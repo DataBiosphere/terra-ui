@@ -3,7 +3,7 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { containsUnlabelledIcon } from 'src/components/icons';
 import TooltipTrigger from 'src/components/TooltipTrigger';
-import { forwardRefWithName, useLabelAssert } from 'src/libs/react-utils';
+import { forwardRefWithName } from 'src/libs/react-utils';
 
 export const Clickable = forwardRefWithName(
   'Clickable',
@@ -33,12 +33,6 @@ export const Clickable = forwardRefWithName(
     // Note that TooltipTrigger does this same check with its own children, but since we'll be passing it an
     // Interactive element, we need to do the check here instead.
     const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel;
-
-    // If we determined that we need to use the tooltip as a label, assert that we have a tooltip.
-    // Do the check here and pass empty properties, to bypass the check logic in useLabelAssert() which doesn't take into account the icon's properties.
-    if (useAsLabel && !tooltip) {
-      useLabelAssert('Clickable', { allowTooltip: true, allowContent: true });
-    }
 
     if (tooltip) {
       return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel: useAsLabel }, [child]);

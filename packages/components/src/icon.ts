@@ -4,7 +4,9 @@ import iconLibrary, { IconId } from './icon-library';
 
 export interface IconProps {
   'aria-label'?: string;
+  'aria-labelledby'?: string;
   className?: string;
+  color?: string;
   size?: number;
   style?: CSSProperties;
 }

@@ -1,8 +1,10 @@
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
+import { spinnerOverlay } from 'src/components/common';
 import { notifyDataImportProgress } from 'src/data/import-jobs';
 import { Ajax } from 'src/libs/ajax';
+import { Dataset } from 'src/libs/ajax/Catalog';
 import { resolveWdsUrl, WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -13,6 +15,7 @@ import { asyncImportJobStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { useDataCatalog } from 'src/pages/library/dataBrowser-utils';
 
+import { TemplateWorkspaceInfo } from './import-types';
 import { ImportDataDestination } from './ImportDataDestination';
 import { ImportDataOverview } from './ImportDataOverview';
 import { isProtectedSource } from './protected-data-utils';
@@ -23,17 +26,34 @@ import { isProtectedSource } from './protected-data-utils';
 // * Managing the import
 export const ImportData = () => {
   const {
-    query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer, tdrmanifest, catalogDatasetId, tdrSyncPermissions },
+    query: {
+      url,
+      format,
+      ad,
+      wid,
+      template,
+      snapshotId,
+      snapshotName,
+      snapshotIds,
+      referrer,
+      tdrmanifest,
+      catalogDatasetId,
+      tdrSyncPermissions,
+    },
   } = Nav.useRoute();
-  const [templateWorkspaces, setTemplateWorkspaces] = useState();
+  const [templateWorkspaces, setTemplateWorkspaces] = useState<{ [key: string]: TemplateWorkspaceInfo[] }>();
   const [userHasBillingProjects, setUserHasBillingProjects] = useState(true);
-  const [snapshotResponses, setSnapshotResponses] = useState();
+  const [snapshotResponses, setSnapshotResponses] = useState<{ status: string; message: string | undefined }[]>();
   const [isImporting, setIsImporting] = useState(false);
 
   const { dataCatalog } = useDataCatalog();
   const snapshots = _.flow(
-    _.filter((snapshot) => _.includes(snapshot['dct:identifier'], snapshotIds)),
-    _.map((snapshot) => ({ id: snapshot['dct:identifier'], title: snapshot['dct:title'], description: snapshot['dct:description'] }))
+    _.filter((snapshot: Dataset) => _.includes(snapshot['dct:identifier'] as string, snapshotIds)),
+    _.map((snapshot) => ({
+      id: snapshot['dct:identifier'],
+      title: snapshot['dct:title'],
+      description: snapshot['dct:description'],
+    }))
   )(dataCatalog);
 
   const isDataset = !_.includes(format, ['snapshot', 'tdrexport']);
@@ -110,26 +130,34 @@ export const ImportData = () => {
       if (!_.isEmpty(snapshots)) {
         const responses = await Promise.allSettled(
           _.map(({ title, id, description }) => {
-            return Ajax().Workspaces.workspace(namespace, name).importSnapshot(id, normalizeSnapshotName(title), description);
+            return Ajax()
+              .Workspaces.workspace(namespace, name)
+              .importSnapshot(id, normalizeSnapshotName(title), description);
           }, snapshots)
         );
 
         if (_.some({ status: 'rejected' }, responses)) {
-          const normalizedResponses = await Promise.all(
-            _.map(async ({ status, reason }) => {
+          const normalizedResponses = (await Promise.all(
+            _.map(async ({ status, reason }: { status: string; reason: Response | undefined }) => {
               const reasonJson = await reason?.json();
               const { message } = JSON.parse(reasonJson?.message || '{}');
               return { status, message };
             }, responses)
-          );
+          )) as unknown as { status: string; message: string | undefined }[];
           setSnapshotResponses(normalizedResponses);
 
           // Consolidate the multiple errors into a single error message
           const numFailures = _.flow(_.filter({ status: 'rejected' }), _.size)(normalizedResponses);
-          throw new Error(`${numFailures} snapshot${numFailures > 1 ? 's' : ''} failed to import. See details in the "Linking to Workspace" section`);
+          throw new Error(
+            `${numFailures} snapshot${
+              numFailures > 1 ? 's' : ''
+            } failed to import. See details in the "Linking to Workspace" section`
+          );
         }
       } else {
-        await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, normalizeSnapshotName(snapshotName));
+        await Ajax()
+          .Workspaces.workspace(namespace, name)
+          .importSnapshot(snapshotId, normalizeSnapshotName(snapshotName));
         notify('success', 'Snapshot imported successfully.', { timeout: 3000 });
       }
     };
@@ -170,15 +198,15 @@ export const ImportData = () => {
   return h(Fragment, [
     h(ImportDataOverview, { header, snapshots, isDataset, snapshotResponses, url, isProtectedData }),
     h(ImportDataDestination, {
-      workspaceId: wid,
+      initialSelectedWorkspaceId: wid,
       templateWorkspaces,
       template,
       userHasBillingProjects,
       importMayTakeTime: isDataset,
-      authorizationDomain: ad,
+      requiredAuthorizationDomain: ad,
       onImport,
-      isImporting,
       isProtectedData,
     }),
+    isImporting && spinnerOverlay,
   ]);
 };

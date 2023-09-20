@@ -753,6 +753,7 @@ export const mockAbortResponse = {
   state: 'CANCELING',
 };
 
+/** @type WorkspaceWrapper */
 export const mockAzureWorkspace = {
   workspace: {
     authorizationDomain: [],

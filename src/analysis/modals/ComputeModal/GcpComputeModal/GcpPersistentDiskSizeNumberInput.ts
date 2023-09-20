@@ -1,7 +1,7 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import { div, h, label } from 'react-hyperscript-helpers';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { NumberInput } from 'src/components/input';
-import { useUniqueId } from 'src/libs/react-utils';
 
 export interface GcpPersistentDiskSizeNumberInputProps {
   persistentDiskSize: number;

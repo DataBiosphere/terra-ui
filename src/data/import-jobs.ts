@@ -57,7 +57,7 @@ export const useImportJobs = (workspace: WorkspaceWrapper): UseImportJobsResult 
   };
 };
 
-export const notifyDataImportProgress = (jobId: string, message: string): void => {
+export const notifyDataImportProgress = (jobId: string, message?: string): void => {
   notify('info', 'Data import in progress.', {
     id: jobId,
     message,

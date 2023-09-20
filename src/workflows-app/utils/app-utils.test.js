@@ -24,16 +24,29 @@ describe('resolveRunningCromwellAppUrl', () => {
   };
 
   it.each([
-    { appStatus: appStatuses.running.status, expectedUrl: { cbasUrl: mockCbasUrl, cbasUiUrl: mockCbasUiUrl, cromwellUrl: mockCromwellUrl } },
-    { appStatus: appStatuses.provisioning.status, expectedUrl: null },
-    { appStatus: appStatuses.stopped.status, expectedUrl: null },
-    { appStatus: appStatuses.stopping.status, expectedUrl: null },
-    { appStatus: appStatuses.error.status, expectedUrl: null },
-  ])('returns correct value for Cromwell app in $appStatus from the Leo response', ({ appStatus, expectedUrl }) => {
+    {
+      appStatus: appStatuses.running.status,
+      appType: 'CROMWELL',
+      expectedUrl: { cbasUrl: mockCbasUrl, cbasUiUrl: mockCbasUiUrl, cromwellUrl: mockCromwellUrl },
+    },
+    { appStatus: appStatuses.provisioning.status, appType: 'CROMWELL', expectedUrl: null },
+    { appStatus: appStatuses.stopped.status, appType: 'CROMWELL', expectedUrl: null },
+    { appStatus: appStatuses.stopping.status, appType: 'CROMWELL', expectedUrl: null },
+    { appStatus: appStatuses.error.status, appType: 'CROMWELL', expectedUrl: null },
+    {
+      appStatus: appStatuses.running.status,
+      appType: 'WORKFLOWS_APP',
+      expectedUrl: { cbasUrl: mockCbasUrl, cbasUiUrl: mockCbasUiUrl, cromwellUrl: mockCromwellUrl },
+    },
+    { appStatus: appStatuses.provisioning.status, appType: 'WORKFLOWS_APP', expectedUrl: null },
+    { appStatus: appStatuses.stopped.status, appType: 'WORKFLOWS_APP', expectedUrl: null },
+    { appStatus: appStatuses.stopping.status, appType: 'WORKFLOWS_APP', expectedUrl: null },
+    { appStatus: appStatuses.error.status, appType: 'WORKFLOWS_APP', expectedUrl: null },
+  ])('returns correct value for Cromwell app in $appStatus from the Leo response', ({ appStatus, appType, expectedUrl }) => {
     const mockAppsResponse = [
       {
         ...appResponseCommonField,
-        appType: 'CROMWELL',
+        appType,
         status: appStatus,
         proxyUrls: {
           cbas: mockCbasUrl,
@@ -72,6 +85,33 @@ describe('resolveRunningCromwellAppUrl', () => {
     ];
 
     expect(resolveRunningCromwellAppUrl(mockApps, mockCurrentUserEmail)).toBe(null);
+  });
+
+  it('returns the correct WORKFLOWS app even if not created by current user in the workspace', () => {
+    const mockApps = [
+      {
+        ...appResponseCommonField,
+        appType: 'WORKFLOWS_APP',
+        status: 'RUNNING',
+        proxyUrls: {
+          cbas: mockCbasUrl,
+          'cbas-ui': mockCbasUiUrl,
+          cromwell: mockCromwellUrl,
+        },
+        auditInfo: {
+          creator: 'not-abc@gmail.com',
+          createdDate: '2021-12-10T20:19:13.162484Z',
+          destroyedDate: null,
+          dateAccessed: '2021-12-11T20:19:13.162484Z',
+        },
+      },
+    ];
+
+    expect(resolveRunningCromwellAppUrl(mockApps, mockCurrentUserEmail)).toStrictEqual({
+      cbasUiUrl: mockCbasUiUrl,
+      cbasUrl: mockCbasUrl,
+      cromwellUrl: mockCromwellUrl,
+    });
   });
 
   it('returns null if there exists apps other than Cromwell in the workspace', () => {

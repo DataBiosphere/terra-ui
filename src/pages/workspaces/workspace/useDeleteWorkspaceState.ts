@@ -94,7 +94,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
           Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).getAcl(),
           Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).bucketUsage(),
         ]);
-        setCollaboratorEmails(_.without([getUser().email], _.keys(acl)));
+        setCollaboratorEmails(_.without([getUser().email!], _.keys(acl)));
         setWorkspaceBucketUsageInBytes(usageInBytes);
       }
     });

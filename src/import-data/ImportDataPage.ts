@@ -1,4 +1,5 @@
 import _ from 'lodash/fp';
+import { CSSProperties } from 'react';
 import { div, h, img } from 'react-hyperscript-helpers';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
@@ -16,7 +17,7 @@ const styles = {
     position: 'relative',
     padding: '2rem',
   },
-};
+} as const satisfies Record<string, CSSProperties>;
 
 // ImportData handles all the information relating to the page itself - this includes:
 // * Reading from the URL
@@ -35,6 +36,7 @@ const ImportDataPage = () => {
   );
 
   return h(FooterWrapper, [
+    // @ts-expect-error
     h(TopBar, { title }),
     div({ role: 'main', style: styles.container }, [
       img({

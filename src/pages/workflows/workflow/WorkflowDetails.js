@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import * as clipboard from 'clipboard-polyfill/text';
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
@@ -19,7 +20,7 @@ import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { useCancellation, useOnMount, useStore, useUniqueId } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { snapshotsListStore, snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';

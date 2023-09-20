@@ -1,3 +1,5 @@
+import { WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
+
 export const workflowParams = [
   {
     input_name: 'wf_hello.hello.addressee',
@@ -70,17 +72,30 @@ export const methodData = {
       method_id: '00000000-0000-0000-0000-000000000004',
       name: 'Hello world',
       description: 'Add description',
-      source: 'Github',
+      source: 'Github' as const,
       source_url:
         'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
       created: '2022-12-08T23:28:50.280+00:00',
       last_run: {
-        run_previously: false,
+        previously_run: false,
         timestamp: '2022-12-08T23:28:50.280+00:00',
         run_set_id: 'e8347247-4738-4ad1-a591-56c119f93f58',
         method_version_id: '20000000-0000-0000-0000-000000000004',
         method_version_name: '1.0',
       },
+    },
+  ],
+};
+
+export const methodDataWithVersions: { methods: WorkflowMethod[] } = {
+  methods: [
+    {
+      ...methodData.methods[0],
+      method_versions: [
+        {
+          name: '1.0',
+        },
+      ],
     },
   ],
 };

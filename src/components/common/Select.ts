@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Children, useCallback, useEffect, useRef } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -14,7 +15,7 @@ import { List } from 'react-virtualized';
 import { AutoSizer } from 'src/components/common/VirtualizedSelectAutoSizer';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
-import { useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils';
+import { useOnMount } from 'src/libs/react-utils';
 
 const commonSelectProps: Partial<RSelectProps> = {
   theme: (base) =>
@@ -188,8 +189,6 @@ export const Select = <
   options = [],
   ...props
 }: SelectProps<Value, IsMulti, Option>) => {
-  useLabelAssert('Select', { ...props, allowId: true });
-
   // Allows passing options as list of values instead of options objects.
   // For example:
   // options: ['foo', 'bar']
@@ -232,8 +231,6 @@ export const GroupedSelect = <
   options = [],
   ...props
 }: GroupedSelectProps<Value, IsMulti, Option, Group>) => {
-  useLabelAssert('GroupedSelect', { ...props, allowId: true });
-
   // cast because types don't carry through Lodash
   const flattenedOptions = _.flatMap('options', options) as Option[];
   const findValue = (target: Value) => (_.find({ value: target }, flattenedOptions) || null) as Option | null;
