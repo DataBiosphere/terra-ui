@@ -1,5 +1,4 @@
-import { canWrite } from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { canWrite, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 import { isProtectedWorkspace } from './protected-data-utils';
 
