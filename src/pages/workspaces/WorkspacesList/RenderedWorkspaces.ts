@@ -7,11 +7,9 @@ import { Link } from 'src/components/common';
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown';
 import { FlexTable, HeaderRenderer } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
-import {
-  NoWorkspacesMessage,
-  WorkspaceStarControl,
-  WorkspaceSubmissionStatusIcon,
-} from 'src/components/workspace-utils';
+import { NoWorkspacesMessage } from 'src/components/workspace-utils';
+import { WorkspaceStarControl } from 'src/components/WorkspaceStarControl';
+import { WorkspaceSubmissionStatusIcon } from 'src/components/WorkspaceSubmissionStatusIcon';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';

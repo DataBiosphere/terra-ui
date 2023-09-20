@@ -138,7 +138,7 @@ export const WorkspacesList: FC<{}> = () => {
   );
 
   return h(FooterWrapper, [
-    h(TopBar, { title: 'Workspaces' }),
+    h(TopBar, { title: 'Workspaces', href: undefined }, []),
     div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, fontSize: '1.5rem' } }, ['Workspaces']),
