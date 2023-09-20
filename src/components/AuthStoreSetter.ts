@@ -11,7 +11,7 @@ function AuthStoreSetter(): null {
   useOnMount((): void => {
     authStore.update(_.set(['authContext'], auth));
   });
-  useEffect((): void => {
+  useEffect((): (() => void) => {
     const cleanupFns = [
       auth.events.addUserLoaded((user: OidcUser) => processUser(user, true)),
       auth.events.addUserUnloaded(() => processUser(null, false)),
@@ -19,7 +19,11 @@ function AuthStoreSetter(): null {
         loadAuthToken();
       }),
     ];
-    _.over(cleanupFns);
+    return (): void => {
+      cleanupFns.forEach((fn): void => {
+        fn();
+      });
+    };
   }, [auth]);
 
   // Return null because this component doesn't actually render anything.
