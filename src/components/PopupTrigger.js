@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Children, cloneElement, Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { div, h, hr } from 'react-hyperscript-helpers';
@@ -7,7 +8,7 @@ import { icon } from 'src/components/icons';
 import { VerticalNavigation } from 'src/components/keyboard-nav';
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils';
 import colors from 'src/libs/colors';
-import { forwardRefWithName, useUniqueId } from 'src/libs/react-utils';
+import { forwardRefWithName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 
 const styles = {

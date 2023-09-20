@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import React from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
 import { SingleValue } from 'react-select';
@@ -5,7 +6,6 @@ import { IComputeConfig } from 'src/analysis/modal-utils';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { Select } from 'src/components/common';
 import { PdSelectOption, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
-import { useUniqueId } from 'src/libs/react-utils';
 
 export interface PersistentDiskTypeInputProps {
   value: SharedPdType;

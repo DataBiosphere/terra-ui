@@ -4,31 +4,114 @@ import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 
-export const authStore = atom<any>({
+export type TerraUser = {
+  token?: string | undefined;
+  scope?: string | undefined;
+  id?: string | undefined;
+  email?: string | undefined;
+  name?: string | undefined;
+  givenName?: string | undefined;
+  familyName?: string | undefined;
+  imageUrl?: string | undefined;
+  idp?: string | undefined;
+};
+
+export type TerraUserProfile = {
+  institute: string | undefined;
+  title: string | undefined;
+  department: string | undefined;
+  interestInTerra: string | undefined;
+};
+
+export type TokenMetadata = {
+  token: string | undefined; // do not log or send this to mixpanel
+  id: string | undefined;
+  createdAt: number;
+  expiresAt: number;
+  totalTokensUsedThisSession: number;
+  totalTokenLoadAttemptsThisSession: number;
+};
+
+export type AuthState = {
+  anonymousId: string | undefined;
+  authContext: any;
+  authTokenMetadata: TokenMetadata;
+  cookiesAccepted: boolean | undefined;
+  fenceStatus: {};
+  hasGcpBillingScopeThroughB2C: boolean | undefined;
+  isSignedIn: boolean | undefined;
+  isTimeoutEnabled?: boolean | undefined;
+  nihStatus?: {
+    linkedNihUsername: string;
+    linkExpireTime: number;
+  };
+  oidcConfig: {
+    authorityEndpoint?: string;
+    clientId?: string;
+  };
+  // props in the TerraUserProfile are always present, but there may be more props
+  profile: TerraUserProfile & any;
+  refreshTokenMetadata: TokenMetadata;
+  registrationStatus: any;
+  sessionId?: string | undefined;
+  sessionStartTime: number;
+  termsOfService: {};
+  user: TerraUser;
+};
+
+export const authStore: Atom<AuthState> = atom<AuthState>({
   anonymousId: undefined,
   authContext: undefined,
   authTokenMetadata: {
+    token: undefined,
+    id: undefined,
     createdAt: -1,
     expiresAt: -1,
+    totalTokenLoadAttemptsThisSession: 0,
+    totalTokensUsedThisSession: 0,
   },
   cookiesAccepted: undefined,
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
-  isAzurePreviewUser: undefined,
   isSignedIn: undefined,
   oidcConfig: {
     authorityEndpoint: undefined,
     clientId: undefined,
   },
-  profile: {},
+  profile: {
+    institute: undefined,
+    title: undefined,
+    department: undefined,
+    interestInTerra: undefined,
+  },
+  refreshTokenMetadata: {
+    token: undefined,
+    id: undefined,
+    createdAt: -1,
+    expiresAt: -1,
+    totalTokenLoadAttemptsThisSession: 0,
+    totalTokensUsedThisSession: 0,
+  },
   registrationStatus: undefined,
   sessionId: undefined,
   sessionStartTime: -1,
   termsOfService: {},
-  user: {},
+  user: {
+    token: undefined,
+    scope: undefined,
+    id: undefined,
+    email: undefined,
+    name: undefined,
+    givenName: undefined,
+    familyName: undefined,
+    imageUrl: undefined,
+    idp: undefined,
+  },
 });
 
-export const getUser = () => authStore.get().user;
+export const getUser = (): TerraUser => authStore.get().user;
+
+export const getSessionId = () => authStore.get().sessionId;
 
 export const userStatus = {
   unregistered: 'unregistered',
