@@ -121,10 +121,18 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
     notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
   }
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
+  // TODO: make separate state store for holding authContext and anything needed to bootstrap terra
+  //  so we can selectively refresh session info
+  const authState = authStore.get();
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
   azurePreviewStore.set(false);
+  authStore.reset();
+  authStore.update((oldState) => ({
+    ...oldState,
+    authContext: authState.authContext,
+  }));
   const auth: AuthContextProps = getAuthInstance();
   revokeTokens()
     .finally(() => auth.removeUser())
@@ -401,7 +409,7 @@ export const isAzureUser = (): boolean => {
   return _.startsWith('https://login.microsoftonline.com', getUser().idp!);
 };
 
-export const processUser = (user: OidcUser | null, isSignInEvent: boolean): void => {
+export const doUserLoaded = (user: OidcUser, isSignInEvent: boolean): void => {
   return authStore.update((state) => {
     const isSignedIn = !_.isNil(user);
     const profile: B2cIdTokenClaims | undefined = user?.profile;
@@ -452,6 +460,20 @@ export const processUser = (user: OidcUser | null, isSignInEvent: boolean): void
   });
 };
 
+// TODO: make this consistent with signout logic, or determine any differences we need to implement
+export const doUserUnloaded = (): void => {
+  // const authState = authStore.get();
+  cookieReadyStore.reset();
+  azureCookieReadyStore.reset();
+  getSessionStorage().clear();
+  azurePreviewStore.set(false);
+  // authStore.reset();
+  // authStore.update((oldState) => ({
+  //   ...oldState,
+  //   authContext: authState.authContext,
+  // }));
+};
+
 const initializeTermsOfService = (isSignedIn, state) => {
   return {
     userHasAcceptedLatestTos: isSignedIn ? state.termsOfService.userHasAcceptedLatestTos : undefined,
@@ -459,11 +481,25 @@ const initializeTermsOfService = (isSignedIn, state) => {
   };
 };
 
+// this function is only called when the browser refreshes
 export const initializeAuth = _.memoize(async () => {
   // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
   // All other auth usage should use the AuthContext from authStore.
   const userManager: UserManager = new UserManager(getOidcConfig());
-  processUser(await userManager.getUser(), false);
+
+  // TODO: we would like to make this only happen when the user is already signed in
+  const errorMessage = 'Failed to initialize auth.';
+  try {
+    const initialOidcUser: OidcUser | null = await userManager.getUser();
+    if (initialOidcUser === null) {
+      console.error('Failed to receive initial auth token from oidc-client');
+      throw new Error(errorMessage);
+    }
+    doUserLoaded(initialOidcUser, false);
+  } catch (e) {
+    console.error('Error in contacting oidc-client');
+    throw new Error(errorMessage);
+  }
 });
 
 export const initializeClientId = _.memoize(async () => {
