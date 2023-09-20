@@ -7,7 +7,7 @@ import { Ajax } from 'src/libs/ajax';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
-import { getTerraUser } from 'src/libs/state';
+import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 export const dataTableVersionsPathRoot = '.data-table-versions';
@@ -58,7 +58,7 @@ export const saveDataTableVersion = async (workspace, entityType, { description 
   await Ajax().Buckets.upload(googleProject, bucketName, `${dataTableVersionsPathRoot}/${entityType}/`, zipFile);
 
   const objectName = `${dataTableVersionsPathRoot}/${entityType}/${versionName}.zip`;
-  const createdBy = getTerraUser().email;
+  const createdBy = getUser().email;
   await Ajax().Buckets.patch(googleProject, bucketName, objectName, {
     metadata: {
       createdBy,

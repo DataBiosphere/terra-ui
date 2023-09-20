@@ -3,10 +3,10 @@ import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { AuthTokenState, loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
-import { ajaxOverridesStore, getTerraUser } from 'src/libs/state';
+import { ajaxOverridesStore, getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
-export const authOpts = (token = getTerraUser().token) => ({ headers: { Authorization: `Bearer ${token}` } });
+export const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } });
 export const jsonBody = (body) => ({
   body: JSON.stringify(body),
   headers: { 'Content-Type': 'application/json' },

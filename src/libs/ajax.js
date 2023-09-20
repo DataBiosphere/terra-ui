@@ -34,7 +34,7 @@ import { WorkflowScript } from 'src/libs/ajax/workflows-app/WorkflowScript';
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources';
 import { getConfig } from 'src/libs/config';
-import { getTerraUser } from 'src/libs/state';
+import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 window.ajaxOverrideUtils = {
@@ -206,7 +206,7 @@ const User = (signal) => ({
   },
 
   firstTimestamp: () => {
-    return getFirstTimeStamp(getTerraUser().token);
+    return getFirstTimeStamp(getUser().token);
   },
 
   getNihStatus: async () => {
@@ -685,7 +685,7 @@ const Workspaces = (signal) => ({
       },
 
       snapshotEntityMetadata: (googleProject, dataReference) => {
-        return getSnapshotEntityMetadata(getTerraUser().token, namespace, name, googleProject, dataReference);
+        return getSnapshotEntityMetadata(getUser().token, namespace, name, googleProject, dataReference);
       },
 
       createEntity: async (payload) => {

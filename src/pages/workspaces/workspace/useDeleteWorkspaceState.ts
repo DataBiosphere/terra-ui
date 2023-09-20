@@ -6,7 +6,7 @@ import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { reportError, withErrorReportingInModal } from 'src/libs/error';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import { getTerraUser } from 'src/libs/state';
+import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { BaseWorkspace, isAzureWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils';
 
@@ -94,7 +94,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
           Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).getAcl(),
           Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).bucketUsage(),
         ]);
-        setCollaboratorEmails(_.without([getTerraUser().email!], _.keys(acl)));
+        setCollaboratorEmails(_.without([getUser().email!], _.keys(acl)));
         setWorkspaceBucketUsageInBytes(usageInBytes);
       }
     });

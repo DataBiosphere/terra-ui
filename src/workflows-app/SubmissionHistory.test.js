@@ -27,7 +27,7 @@ jest.mock('src/components/PopupTrigger', () => {
 });
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
-  getTerraUser: jest.fn(),
+  getUser: jest.fn(),
 }));
 // Mocking feature preview setup
 jest.mock('src/libs/feature-previews', () => ({
