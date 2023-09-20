@@ -84,6 +84,7 @@ export interface ListAppResponse {
   appType: AppToolLabel;
   accessScope: string | null;
   labels: LeoResourceLabels;
+  region: string;
 }
 
 export interface CreateAppV1Request {

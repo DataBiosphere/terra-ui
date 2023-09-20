@@ -19,7 +19,6 @@ import {
   isResourceDeletable,
 } from 'src/analysis/utils/resource-utils';
 import {
-  defaultComputeZone,
   getDisplayRuntimeStatus,
   getNormalizedComputeRegion,
   getRegionFromZone,
@@ -37,7 +36,6 @@ import { useWorkspaces } from 'src/components/workspace-utils';
 import { useReplaceableAjaxExperimental } from 'src/libs/ajax';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { isGceConfig, isGceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { isRuntime, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
@@ -762,12 +760,14 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
                   const cloudEnvironment = filteredCloudEnvironments[rowIndex];
                   // We assume that all apps get created in zone 'us-central1-a'.
                   // If zone or region is not present then cloudEnvironment is an app so we return 'us-central1-a'.
-                  const location = isRuntime(cloudEnvironment)
-                    ? isGceConfig(cloudEnvironment.runtimeConfig) || isGceWithPdConfig(cloudEnvironment.runtimeConfig)
-                      ? cloudEnvironment.runtimeConfig.zone
-                      : _.toLower(getNormalizedComputeRegion(cloudEnvironment.runtimeConfig))
-                    : defaultComputeZone.toLowerCase();
-                  return location;
+                  if (isApp(cloudEnvironment)) {
+                    return cloudEnvironment.region;
+                  }
+                  if ('runtimeConfig' in cloudEnvironment) {
+                    const location = _.toLower(getNormalizedComputeRegion(cloudEnvironment.runtimeConfig));
+                    return location;
+                  }
+                  return '';
                 },
               },
               {
