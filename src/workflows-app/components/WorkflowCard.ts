@@ -13,29 +13,22 @@ export type LastRun =
     }
   | {
       previously_run: true;
-      method_version_id: string;
-      method_version_name: string;
-      run_set_id: string;
       timestamp: string;
     };
 
+export type MethodVersion = {
+  name: string;
+  url: string;
+};
+
 /** Represents a workflow method from CBAS */
 export type WorkflowMethod = {
+  method_id?: string; // No method ID before it comes from CBAS
   name: string;
   last_run: LastRun;
   description?: string;
   source: WorkflowSource;
-  method_id: string;
-  method_versions: [
-    {
-      name: string;
-      url: string;
-      method_version_id: string;
-      method_id: string;
-      description?: string;
-      last_run: LastRun;
-    }
-  ];
+  method_versions: MethodVersion[];
 };
 
 /** Represents a set of workflows grouped together */

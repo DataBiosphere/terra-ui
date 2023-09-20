@@ -14,7 +14,8 @@ import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-ut
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { WorkflowCard, WorkflowCardMethod, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
+import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
+import { FeaturedWorkflow, featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
 
@@ -24,82 +25,6 @@ type FeaturedWorkflowsProps = {
   workspace: WorkspaceWrapper;
   analysesData: AnalysesData;
 };
-
-const featuredWorkflowsData: WorkflowCardMethod[] = [
-  {
-    name: 'Covid-19 tutorial workflows',
-    description:
-      'Complete a Covid-19 study tutorial to learn more about workflows in Terra. To learn more, read Covid-19 Surveillance tutorial guide or go to the featured workspace',
-    methods: [
-      {
-        method_id: '00000000-0000-0000-0000-000000000008',
-        name: 'fetch_sra_to_bam',
-        description:
-          'Retrieve reads from the NCBI Short Read Archive in unaligned BAM format with relevant metadata encoded.',
-        source: 'Github',
-        method_versions: [
-          {
-            method_version_id: '80000000-0000-0000-0000-000000000008',
-            method_id: '00000000-0000-0000-0000-000000000008',
-            name: 'v2.1.33.16',
-            description: 'fetch_sra_to_bam sample submission',
-            url: 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/v2.1.33.16/pipes/WDL/workflows/fetch_sra_to_bam.wdl',
-            last_run: {
-              previously_run: false,
-            },
-          },
-        ],
-        last_run: {
-          previously_run: false,
-        },
-      },
-      {
-        method_id: '00000000-0000-0000-0000-000000000005',
-        name: 'assemble_refbased',
-        description:
-          'Reference-based microbial consensus calling. Aligns NGS reads to a singular reference genome, calls a new consensus sequence, and emits: new assembly, reads aligned to provided reference, reads aligned to new assembly, various figures of merit, plots, and QC metrics. The user may provide unaligned reads spread across multiple input files and this workflow will parallelize alignment per input file before merging results prior to consensus calling.',
-        source: 'Github',
-        method_versions: [
-          {
-            method_version_id: '50000000-0000-0000-0000-000000000005',
-            method_id: '00000000-0000-0000-0000-000000000005',
-            name: 'v2.1.33.16',
-            description: 'assemble_refbased sample submission',
-            url: 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/v2.1.33.16/pipes/WDL/workflows/assemble_refbased.wdl',
-            last_run: {
-              previously_run: false,
-            },
-          },
-        ],
-        last_run: {
-          previously_run: false,
-        },
-      },
-      {
-        method_id: '00000000-0000-0000-0000-000000000006',
-        name: 'sarscov2_nextstrain',
-        description:
-          'Align assemblies, build trees, and convert to json representation suitable for Nextstrain visualization. See https://nextstrain.org/docs/getting-started/ and https://nextstrain-augur.readthedocs.io/en/stable/',
-        source: 'Github',
-        method_versions: [
-          {
-            method_version_id: '60000000-0000-0000-0000-000000000006',
-            method_id: '00000000-0000-0000-0000-000000000006',
-            name: 'v2.1.33.16',
-            description: 'sarscov2_nextstrain sample submission',
-            url: 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/v2.1.33.16/pipes/WDL/workflows/sarscov2_nextstrain.wdl',
-            last_run: {
-              previously_run: false,
-            },
-          },
-        ],
-        last_run: {
-          previously_run: false,
-        },
-      },
-    ],
-  },
-];
 
 export const FeaturedWorkflows = ({
   workspace: {
@@ -240,15 +165,29 @@ export const FeaturedWorkflows = ({
                             minWidth: '10rem',
                             backgroundColor: colors.accent(1),
                           },
-                          onClick: () => {
-                            // eslint-disable-next-line no-console
-                            console.log(
-                              'Importing methods, ',
-                              methodsInWorkspace
-                                .filter(([inWorkspace, _method]) => inWorkspace)
-                                .map(([_inWorkspace, method]) => method)
+                          onClick: async () => {
+                            const {
+                              cbasProxyUrlState: { state },
+                            } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
+                            const imports = methodsInWorkspace.map(([inWorkspace, m]) =>
+                              inWorkspace
+                                ? Promise.resolve()
+                                : Cbas()
+                                    .methods.post(state, {
+                                      method_name: m.name,
+                                      method_description: m.description,
+                                      method_source: m.source,
+                                      method_version: m.method_versions[0].name,
+                                      method_url: m.method_versions[0].url,
+                                      method_input_mappings: m.template.method_input_mappings,
+                                      method_output_mappings: m.template.method_output_mappings,
+                                    })
+                                    .catch(async (err) =>
+                                      notify('error', 'Error importing workflow', { detail: await err.text() })
+                                    )
                             );
-                            // TODO: Import methods...
+                            await Promise.all(imports);
+                            // TODO: Import popup...
                           },
                         },
 
@@ -257,10 +196,10 @@ export const FeaturedWorkflows = ({
                     ]),
               ]
             );
-          }, featuredWorkflowsData)
+          }, featuredWorkflowsData as FeaturedWorkflow[])
         ),
       ]),
-    [methodsData]
+    [methodsData, workspaceId]
   );
 
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
