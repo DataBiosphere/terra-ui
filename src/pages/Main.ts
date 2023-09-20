@@ -35,7 +35,7 @@ const Main = () => {
       h(
         ErrorBoundary,
         {
-          onError: (error) => {
+          onError: (error: unknown) => {
             reportError('An error occurred', error);
           },
         },
