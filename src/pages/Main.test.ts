@@ -1,4 +1,4 @@
-import { Theme, ThemeProvider } from '@terra-ui-packages/components';
+import { Theme, ThemeProvider, ThemeProviderProps } from '@terra-ui-packages/components';
 import { render } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { getEnabledBrand } from 'src/libs/brand-utils';
@@ -182,7 +182,10 @@ describe('Main', () => {
       render(h(Main));
 
       // Assert
-      expect(ThemeProvider).toHaveBeenCalledWith(expect.objectContaining({ theme: mockTheme }), expect.anything());
+      expect(ThemeProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ theme: mockTheme } satisfies ThemeProviderProps),
+        expect.anything()
+      );
     });
   });
 

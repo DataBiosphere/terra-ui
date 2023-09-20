@@ -48,7 +48,7 @@ export const enrichTheme = (theme: Theme): EnrichedTheme => {
 
 const EnrichedThemeContext = createContext<EnrichedTheme | null>(null);
 
-type ThemeProviderProps = PropsWithChildren<{
+export type ThemeProviderProps = PropsWithChildren<{
   theme: Theme;
 }>;
 
