@@ -35,6 +35,8 @@ import { downloadIO, downloadWorkflows, ioTask, ioVariable } from 'src/libs/work
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
+const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborting', 'Succeeded', 'Failed', 'Aborted'];
+
 // Note: This 'deletionDelayYears' value should reflect the current 'deletion-delay' value configured for PROD in firecloud-develop's
 // 'cromwell.conf.ctmpl' file:
 const deletionDelayYears = 1;
@@ -109,7 +111,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
           'aria-label': 'Completion status',
           value: statusFilter,
           onChange: (data) => setStatusFilter(_.map('value', data)),
-          options: Utils.workflowStatuses,
+          options: workflowStatuses,
         }),
       ]),
       h(Link, { onClick: () => downloadWorkflows(filteredWorkflows, submissionId) }, ['Download TSV']),

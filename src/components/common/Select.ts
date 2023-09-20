@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Children, useCallback, useEffect, useRef } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -14,7 +15,7 @@ import { List } from 'react-virtualized';
 import { AutoSizer } from 'src/components/common/VirtualizedSelectAutoSizer';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
-import { useOnMount, useUniqueId } from 'src/libs/react-utils';
+import { useOnMount } from 'src/libs/react-utils';
 
 const commonSelectProps: Partial<RSelectProps> = {
   theme: (base) =>
