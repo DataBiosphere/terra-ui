@@ -540,6 +540,7 @@ export const galaxyRunning: App = {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
   status: 'RUNNING',
+  region: 'us-central1-a',
 };
 
 export const galaxyDeleting: App = {
@@ -565,6 +566,7 @@ export const galaxyDeleting: App = {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
   status: 'DELETING',
+  region: 'us-central1-a',
 };
 
 export const generateTestApp = (overrides: Partial<ListAppResponse>): ListAppResponse => ({
@@ -590,6 +592,7 @@ export const generateTestApp = (overrides: Partial<ListAppResponse>): ListAppRes
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
   status: 'RUNNING',
+  region: 'us-central1-a',
   ...overrides,
 });
 
@@ -622,6 +625,7 @@ export const generateTestAppWithGoogleWorkspace = (
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
   status: 'RUNNING',
+  region: 'us-central1-a',
   ...overrides,
 });
 
@@ -654,6 +658,7 @@ export const generateTestAppWithAzureWorkspace = (
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
   status: 'RUNNING',
+  region: 'us-central1-a',
   ...overrides,
 });
 

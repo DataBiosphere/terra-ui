@@ -77,6 +77,7 @@ const testProxyUrlResponse: ListAppResponse[] = [
     workspaceId: uuid,
     diskName: null,
     accessScope: null,
+    region: 'us-central1-a',
   },
 ];
 

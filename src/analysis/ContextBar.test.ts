@@ -172,6 +172,7 @@ const cromwellRunning: App = {
       'https://leonardo-fiab.dsde-dev.broadinstitute.org/fd0cfbb14f/cromwell-service/swagger/cromwell.yaml',
   },
   status: 'RUNNING',
+  region: 'us-central1-a',
 };
 
 const cromwellDisk: PersistentDisk = {
@@ -235,6 +236,7 @@ const cromwellOnAzureRunning: App = {
     clusterServiceAccount: '/subscriptions/123/pet-101',
     creator: 'abc.testerson@gmail.com',
   },
+  region: 'us-central1-a',
 };
 
 const rstudioRuntime: Runtime = {
@@ -454,6 +456,7 @@ const hailBatchAppRunning: App = {
     clusterServiceAccount: '/subscriptions/123/pet-101',
     creator: 'abc.testerson@gmail.com',
   },
+  region: 'us-central1-a',
 };
 
 describe('ContextBar - buttons', () => {

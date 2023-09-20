@@ -135,6 +135,7 @@ describe('useWdsStatus', () => {
       },
       accessScope: 'WORKSPACE_SHARED',
       labels: {},
+      region: '',
     };
 
     it('updates status with app name and status', async () => {
