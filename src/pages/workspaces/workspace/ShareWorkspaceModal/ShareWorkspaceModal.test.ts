@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { getTerraUser } from 'src/libs/state';
+import { getUser } from 'src/libs/state';
 import { AzureWorkspace, GoogleWorkspace } from 'src/libs/workspace-utils';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import { AccessEntry, RawWorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
@@ -11,7 +11,7 @@ import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
-  getTerraUser: jest.fn(),
+  getUser: jest.fn(),
 }));
 
 type ModalMockExports = typeof import('src/components/Modal.mock');
@@ -28,7 +28,7 @@ type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
 describe('the share workspace modal', () => {
   beforeEach(() => {
-    asMockedFn(getTerraUser).mockReturnValue({
+    asMockedFn(getUser).mockReturnValue({
       email: 'owner@test.com',
     });
   });

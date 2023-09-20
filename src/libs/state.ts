@@ -59,7 +59,7 @@ export type AuthState = {
   sessionId?: string | undefined;
   sessionStartTime: number;
   termsOfService: {};
-  terraUser: TerraUser;
+  user: TerraUser;
 };
 
 export const authStore: Atom<AuthState> = atom<AuthState>({
@@ -100,7 +100,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   sessionId: undefined,
   sessionStartTime: -1,
   termsOfService: {},
-  terraUser: {
+  user: {
     token: undefined,
     scope: undefined,
     id: undefined,
@@ -113,7 +113,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   },
 });
 
-export const getTerraUser = (): TerraUser => authStore.get().terraUser;
+export const getUser = (): TerraUser => authStore.get().user;
 
 export const getOidcUser = (): User | undefined => authStore.get().oidcUser;
 

@@ -17,7 +17,7 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
-import { getTerraUser } from 'src/libs/state';
+import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { workflowNameValidation } from 'src/libs/workflow-utils';
@@ -73,7 +73,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
   const importToAzureCromwellApp = async (workspaceId, namespace, name) => {
     const appUrls = await Apps(signal)
       .listAppsV2(workspaceId)
-      .then((apps) => resolveRunningCromwellAppUrl(apps, getTerraUser()?.email));
+      .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email));
 
     if (appUrls) {
       const postRequestBody = {
@@ -119,7 +119,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
         Ajax(signal).Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true });
         Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName });
       } else {
-        if (workspace.createdBy !== getTerraUser()?.email) {
+        if (workspace.createdBy !== getUser()?.email) {
           throw new Error('Currently only a workspace creator can import workflow to their Azure workspace.');
         }
 

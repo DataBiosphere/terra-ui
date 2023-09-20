@@ -28,7 +28,7 @@ jest.mock('src/libs/auth', () => {
 jest.mock('src/libs/state', () => {
   return {
     ...jest.requireActual('src/libs/state'),
-    getTerraUser: jest.fn(() => ({ token: 'testtoken' })),
+    getUser: jest.fn(() => ({ token: 'testtoken' })),
   };
 });
 

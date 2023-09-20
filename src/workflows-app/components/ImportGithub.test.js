@@ -18,7 +18,7 @@ jest.mock('src/libs/config', () => ({
 }));
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
-  getTerraUser: jest.fn(),
+  getUser: jest.fn(),
 }));
 
 describe('Add a Workflow Link', () => {

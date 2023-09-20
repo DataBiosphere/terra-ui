@@ -1,13 +1,13 @@
 import JSZip from 'jszip';
 import { Ajax } from 'src/libs/ajax';
 import { importDataTableVersion, saveDataTableVersion, tableNameForImport } from 'src/libs/data-table-versions';
-import { getTerraUser } from 'src/libs/state';
+import { getUser } from 'src/libs/state';
 
 jest.mock('src/libs/ajax');
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
-  getTerraUser: jest.fn(),
+  getUser: jest.fn(),
 }));
 
 describe('tableNameForImport', () => {
@@ -119,7 +119,7 @@ describe('saveDataTableVersion', () => {
       },
     }));
 
-    getTerraUser.mockReturnValue({
+    getUser.mockReturnValue({
       email: 'user@example.com',
     });
   });

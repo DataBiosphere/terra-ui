@@ -1,7 +1,7 @@
 import { getDynamic, getLocalStorage, setDynamic } from 'src/libs/browser-storage';
-import { getTerraUser } from 'src/libs/state';
+import { getUser } from 'src/libs/state';
 
-const withUserPrefix = (key) => `${getTerraUser().id}/${key}`;
+const withUserPrefix = (key) => `${getUser().id}/${key}`;
 const withUserPrefixForSpecifiedUserId = (userId, key) => `${userId}/${key}`;
 
 export const getLocalPref = (key) => getDynamic(getLocalStorage(), withUserPrefix(key));

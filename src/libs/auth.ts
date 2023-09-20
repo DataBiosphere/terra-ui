@@ -22,7 +22,7 @@ import {
   azureCookieReadyStore,
   azurePreviewStore,
   cookieReadyStore,
-  getTerraUser,
+  getUser,
   requesterPaysProjectStore,
   TokenMetadata,
   userStatus,
@@ -372,14 +372,14 @@ export const ensureAuthSettled = () => {
 };
 
 export const bucketBrowserUrl = (id) => {
-  return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getTerraUser().email}`;
+  return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`;
 };
 
 /*
  * Specifies whether the user has logged in via the Azure identity provider.
  */
 export const isAzureUser = (): boolean => {
-  return _.startsWith('https://login.microsoftonline.com', getTerraUser().idp!);
+  return _.startsWith('https://login.microsoftonline.com', getUser().idp!);
 };
 
 export interface B2cIdTokenClaims extends IdTokenClaims {
@@ -421,7 +421,7 @@ export const processUser = (user: User | null, isSignInEvent: boolean): void => 
         : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
-      terraUser: {
+      user: {
         token: user?.access_token,
         scope: user?.scope,
         id: userId,
@@ -474,7 +474,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
       isTimeoutEnabled: undefined,
       cookiesAccepted: true,
       profile: {},
-      terraUser: {
+      user: {
         token,
         id: data.sub,
         email: data.email,

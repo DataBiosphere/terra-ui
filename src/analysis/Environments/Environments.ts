@@ -43,7 +43,7 @@ import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
-import { contactUsActive, getTerraUser } from 'src/libs/state';
+import { contactUsActive, getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
@@ -284,7 +284,7 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
 
   const ajax = useReplaceableAjaxExperimental();
 
-  const currentUser: string = getTerraUser().email!;
+  const currentUser: string = getUser().email!;
 
   const refreshData = Utils.withBusyState(setLoading, async () => {
     await refreshWorkspaces();
