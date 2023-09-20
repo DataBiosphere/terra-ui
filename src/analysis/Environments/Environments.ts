@@ -764,8 +764,7 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
                     return cloudEnvironment.region;
                   }
                   if ('runtimeConfig' in cloudEnvironment) {
-                    const location = _.toLower(getNormalizedComputeRegion(cloudEnvironment.runtimeConfig));
-                    return location;
+                    return _.toLower(getNormalizedComputeRegion(cloudEnvironment.runtimeConfig));
                   }
                   return '';
                 },

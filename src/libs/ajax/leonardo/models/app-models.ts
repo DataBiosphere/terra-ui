@@ -69,6 +69,7 @@ export interface GetAppResponse {
   appType: AppToolLabel;
   accessScope: string | null;
   labels: LeoResourceLabels;
+  region: string;
 }
 
 export interface ListAppResponse {
