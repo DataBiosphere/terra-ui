@@ -267,7 +267,7 @@ const CallTable = ({
                 const { taskName, index, attempt, executionStatus, backendStatus, failures } = filteredCallObjects[rowIndex];
                 const failureCount = _.size(failures);
                 const collapsedStatus = collapseCromwellStatus(executionStatus);
-                if (collapsedStatus === statusType.failed && failureCount > 0) {
+                if (collapsedStatus.id === statusType.failed.id && failureCount > 0) {
                   return h(
                     Link,
                     {
