@@ -32,6 +32,7 @@ describe('Workflows App Navigation Panel', () => {
         analysesData: defaultAnalysesData,
         setLoading: jest.fn(),
         signal: jest.fn(),
+
       })
     );
 

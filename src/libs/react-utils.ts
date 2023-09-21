@@ -54,10 +54,6 @@ export const useInstance = <T>(fn: () => T): T => {
   return ref.current;
 };
 
-export const useUniqueId = (): string => {
-  return useInstance(() => _.uniqueId('unique-id-'));
-};
-
 type UseCancelableResult = {
   signal: AbortSignal;
   abort: () => void;

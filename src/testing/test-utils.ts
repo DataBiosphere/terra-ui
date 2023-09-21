@@ -1,5 +1,39 @@
-import { act, renderHook, RenderHookOptions, RenderHookResult, within } from '@testing-library/react';
+import { Theme, ThemeProvider } from '@terra-ui-packages/components';
+import {
+  act,
+  render,
+  renderHook,
+  RenderHookOptions,
+  RenderHookResult,
+  RenderOptions,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { PropsWithChildren, ReactElement } from 'react';
+import { h } from 'react-hyperscript-helpers';
+
+const testTheme: Theme = {
+  colorPalette: {
+    primary: '#74ae43',
+    secondary: '#6d6e70',
+    accent: '#4d72aa',
+    success: '#74ae43',
+    warning: '#f7981c',
+    danger: '#db3214',
+    light: '#e9ecef',
+    dark: '#333f52',
+    grey: '#808080',
+    disabled: '#b6b7b8',
+  },
+};
+
+const AppProviders = ({ children }: PropsWithChildren<{}>): ReactElement => {
+  return h(ThemeProvider, { theme: testTheme }, [children]);
+};
+
+export const renderWithAppContexts = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => {
+  return render(ui, { wrapper: AppProviders, ...options });
+};
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
 
