@@ -37,10 +37,10 @@ export const WorkspacesList: FC<{}> = () => {
     loadingWorkspaces,
     loadingSubmissionStats,
   } = useWorkspacesWithSubmissionStats();
+
   const [featuredList, setFeaturedList] = useState<Workspace[]>();
 
   const { query } = useRoute();
-
   const filters: WorkspaceFilterValues = getWorkspaceFiltersFromQuery(query);
 
   useOnMount(() => {
@@ -60,7 +60,7 @@ export const WorkspacesList: FC<{}> = () => {
     loadFeatured();
   });
 
-  const initialFiltered = useMemo(() => catagorizeWorkspaces(workspaces, featuredList), [workspaces, featuredList]);
+  const sortedWorkspaces = useMemo(() => catagorizeWorkspaces(workspaces, featuredList), [workspaces, featuredList]);
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: undefined }, []),
@@ -91,7 +91,7 @@ export const WorkspacesList: FC<{}> = () => {
       h(RecentlyViewedWorkspaces, { workspaces, loadingSubmissionStats }),
       h(WorkspaceFilters, { workspaces }),
       h(WorkspacesListTabs, {
-        workspaces: initialFiltered,
+        workspaces: sortedWorkspaces,
         loadingSubmissionStats,
         loadingWorkspaces,
         refreshWorkspaces,
