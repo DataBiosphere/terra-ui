@@ -29,29 +29,25 @@ export const submitMethod = async (signal, onDismiss, method, workspace, setImpo
       };
       const methodObject = await Ajax(signal).Cbas.methods.post(workflowsAppStore.get().cbasProxyUrlState.state, methodPayload);
 
-      !isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)
-        ? Nav.goToPath('workspace-workflows-app-submission-config', {
-            name: workspace.workspace.name,
-            namespace,
-            methodId: methodObject.method_id,
-          })
-        : () => {
-            if (setImportLoading && setMethodId && setSuccessfulImport && setErrorMessage) {
-              setMethodId(methodObject.method_id);
-              setImportLoading(false);
-              setSuccessfulImport(true);
-            }
-          };
+      if (!isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)) {
+        Nav.goToPath('workspace-workflows-app-submission-config', {
+          name: workspace.workspace.name,
+          namespace,
+          methodId: methodObject.method_id,
+        });
+      } else if (setImportLoading && setMethodId && setSuccessfulImport && setErrorMessage) {
+        setMethodId(methodObject.method_id);
+        setImportLoading(false);
+        setSuccessfulImport(true);
+      }
     } catch (error) {
-      !isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)
-        ? notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error })
-        : async () => {
-            if (setImportLoading && setMethodId && setSuccessfulImport && setErrorMessage) {
-              setImportLoading(false);
-              setSuccessfulImport(false);
-              setErrorMessage(JSON.stringify(error instanceof Response ? await error.text() : error, null, 2));
-            }
-          };
+      if (!isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)) {
+        notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
+      } else if (setImportLoading && setMethodId && setSuccessfulImport && setErrorMessage) {
+        setImportLoading(false);
+        setSuccessfulImport(false);
+        setErrorMessage(JSON.stringify(error instanceof Response ? await error.text() : error, null, 2));
+      }
 
       onDismiss();
     }
