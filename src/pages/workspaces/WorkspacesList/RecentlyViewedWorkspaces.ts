@@ -22,14 +22,10 @@ export const RecentlyViewedWorkspaces: FC<RecentlyViewedWorkspacesProps> = ({ wo
   }, [recentlyViewedOpen]);
 
   // A user may have lost access to a workspace after viewing it, so we'll filter those out just in case
-  const recentlyViewed = useMemo(
-    () =>
-      _.filter(
-        (w) => getWorkspace(w.workspaceId, workspaces),
-        getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []
-      ),
-    [workspaces]
-  );
+  const recentlyViewed = useMemo(() => {
+    const recent = getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || [];
+    return _.filter((w) => getWorkspace(w.workspaceId, workspaces), recent);
+  }, [workspaces]);
 
   return !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed)
     ? h(
