@@ -1,6 +1,7 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import { CSSProperties, ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { ButtonPrimary, useUniqueId } from 'src/components/common';
+import { ButtonPrimary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { ValidatedInput } from 'src/components/input';
 import colors from 'src/libs/colors';

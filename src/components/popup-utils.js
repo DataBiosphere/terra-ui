@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Children, useEffect, useRef, useState } from 'react';
+import { Children, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useGetter, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
@@ -30,20 +30,6 @@ export const useDynamicPosition = (selectors) => {
     computePosition();
     return () => cancelAnimationFrame(animation.current);
   });
-  return dimensions;
-};
-
-export const useWindowDimensions = () => {
-  const [dimensions, setDimensions] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }));
-
-  useEffect(() => {
-    const onResize = () => {
-      setDimensions({ width: window.innerWidth, height: window.innerHeight });
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
   return dimensions;
 };
 

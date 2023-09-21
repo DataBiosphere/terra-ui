@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import * as qs from 'qs';
@@ -12,7 +13,6 @@ import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { useUniqueId } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
 export interface FilterSection<DataType> {

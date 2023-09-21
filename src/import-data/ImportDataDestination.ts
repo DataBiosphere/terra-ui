@@ -22,7 +22,7 @@ import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
 
 import { TemplateWorkspaceInfo } from './import-types';
-import { isProtectedWorkspace } from './protected-data-utils';
+import { canImportIntoWorkspace } from './import-utils';
 
 const styles = {
   card: {
@@ -153,16 +153,17 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             // @ts-expect-error
             h(WorkspaceSelector, {
               id,
-              workspaces: _.filter((ws) => {
-                return (
-                  Utils.canWrite(ws.accessLevel) &&
-                  (!requiredAuthorizationDomain ||
-                    _.some({ membersGroupName: requiredAuthorizationDomain }, ws.workspace.authorizationDomain))
+              workspaces: workspaces.filter((workspace) => {
+                return canImportIntoWorkspace(
+                  {
+                    isProtectedData,
+                    requiredAuthorizationDomain,
+                  },
+                  workspace
                 );
-              }, workspaces),
+              }),
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
-              isOptionDisabled: (workspace) => isProtectedData && !isProtectedWorkspace(workspace),
             }),
           ]),
       ]),

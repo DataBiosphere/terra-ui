@@ -37,6 +37,7 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 
 import DataTable from '../shared/DataTable';
 import { AddColumnModal } from './AddColumnModal';
@@ -326,7 +327,7 @@ const EntitiesContent = ({
   };
 
   const entitiesSelected = !_.isEmpty(selectedEntities);
-  const editErrorMessage = Utils.editWorkspaceError(workspace);
+  const editErrorMessage = WorkspaceUtils.editWorkspaceError(workspace);
   const canEdit = !editErrorMessage;
 
   const renderEditMenu = () => {
@@ -486,7 +487,7 @@ const EntitiesContent = ({
           dataProvider,
           persist: true,
           refreshKey,
-          editable: !snapshotName && !Utils.editWorkspaceError(workspace),
+          editable: !snapshotName && !WorkspaceUtils.editWorkspaceError(workspace),
           entityType: entityKey,
           activeCrossTableTextFilter,
           entityMetadata,

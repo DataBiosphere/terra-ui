@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
@@ -22,11 +22,14 @@ describe('Workflows App Navigation Panel', () => {
 
     render(
       h(WorkflowsAppNavPanel, {
+        loading: false,
+        launcherDisabled: true,
+        createWorkflowsApp: jest.fn(),
+        pageReady: true,
         name: 'test-azure-ws-name',
         namespace: 'test-azure-ws-namespace',
         workspace: mockAzureWorkspace,
         analysesData: defaultAnalysesData,
-        loading: false,
       })
     );
 
@@ -50,5 +53,65 @@ describe('Workflows App Navigation Panel', () => {
 
     expect(featuredWorkflows).not.toBeInTheDocument();
     expect(importWorkflows).not.toBeInTheDocument();
+  });
+
+  it('is disabled when page is not ready', () => {
+    render(
+      h(WorkflowsAppNavPanel, {
+        loading: false,
+        launcherDisabled: true,
+        createWorkflowsApp: jest.fn(),
+        pageReady: false,
+        name: 'test-azure-ws-name',
+        namespace: 'test-azure-ws-namespace',
+        workspace: mockAzureWorkspace,
+        analysesData: defaultAnalysesData,
+      })
+    );
+
+    expect(screen.queryByText('Featured workflows')).not.toBeInTheDocument();
+    expect(screen.queryByText('Import a workflow')).not.toBeInTheDocument();
+    expect(screen.queryByText('Dockstore')).not.toBeInTheDocument();
+
+    const workflowsInWorkspaceButton = screen.getAllByRole('button')[0];
+    const submissionHistoryButton = screen.getAllByRole('button')[1];
+
+    expect(workflowsInWorkspaceButton).toHaveAttribute('aria-disabled', 'true');
+    expect(submissionHistoryButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('renders workflow launch card when page is not ready', async () => {
+    const { rerender } = render(
+      h(WorkflowsAppNavPanel, {
+        loading: false,
+        launcherDisabled: true,
+        createWorkflowsApp: jest.fn(),
+        pageReady: false,
+        name: 'test-azure-ws-name',
+        namespace: 'test-azure-ws-namespace',
+        workspace: mockAzureWorkspace,
+        analysesData: defaultAnalysesData,
+      })
+    );
+
+    expect(screen.getByText('Launch Workflows app to run workflows')).toBeInTheDocument();
+
+    // Re-render with pageReady: true
+    await act(() => {
+      rerender(
+        h(WorkflowsAppNavPanel, {
+          loading: false,
+          launcherDisabled: true,
+          createWorkflowsApp: jest.fn(),
+          pageReady: true,
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: defaultAnalysesData,
+        })
+      );
+    });
+
+    expect(screen.queryByText('Launch Workflows app to run workflows')).not.toBeInTheDocument();
   });
 });
