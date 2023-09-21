@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
@@ -80,7 +80,7 @@ describe('Add a Workflow Link', () => {
 
     expect(addToWorkspaceButtonDisabled.getAttribute('aria-disabled')).toBe('true');
 
-    await user.type(urlLink, githubLink);
+    fireEvent.change(urlLink, { target: { value: githubLink } });
     expect(workflowName.value).toBe('simple_task');
     const addToWorkspaceButtonEnabled = screen.getByLabelText('Add to Workspace button');
     expect(addToWorkspaceButtonEnabled.getAttribute('aria-disabled')).toBe('false');
@@ -124,12 +124,12 @@ describe('Add a Workflow Link', () => {
     const urlLink = screen.getByPlaceholderText('Paste Github link');
     const workflowName = screen.getByPlaceholderText('Workflow Name');
 
-    await user.type(urlLink, rawGithubLink);
+    fireEvent.change(urlLink, { target: { value: rawGithubLink } });
     // Expect autofill
     expect(workflowName.value).toBe('simple_task');
     // User change name
     await user.clear(workflowName);
-    await user.type(workflowName, 'Test workflow again');
+    fireEvent.change(workflowName, { target: { value: 'Test workflow again' } });
     const addToWorkspaceButtonEnabled = screen.getByLabelText('Add to Workspace button');
     await user.click(addToWorkspaceButtonEnabled);
 
@@ -146,7 +146,6 @@ describe('Add a Workflow Link', () => {
 
   it('should fail when given a non github link', async () => {
     const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }));
-    const user = userEvent.setup();
 
     await Ajax.mockImplementation(() => {
       return {
@@ -166,8 +165,8 @@ describe('Add a Workflow Link', () => {
     const workflowName = screen.getByPlaceholderText('Workflow Name');
     const addToWorkspaceButton = screen.getByLabelText('Add to Workspace button');
 
-    await user.type(urlLink, 'lol.com');
-    await user.type(workflowName, 'Test bad workflow');
+    fireEvent.change(urlLink, { target: { value: 'lol.com' } });
+    fireEvent.change(workflowName, { target: { value: 'Test bad workflow' } });
 
     expect(addToWorkspaceButton.getAttribute('aria-disabled')).toBe('true');
   });
@@ -197,7 +196,9 @@ describe('Add a Workflow Link', () => {
 
     const urlLink = screen.getByPlaceholderText('Paste Github link');
 
-    await user.type(urlLink, 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl');
+    fireEvent.change(urlLink, {
+      target: { value: 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl' },
+    });
     const addToWorkspaceButtonEnabled = screen.getByLabelText('Add to Workspace button');
     expect(addToWorkspaceButtonEnabled.getAttribute('aria-disabled')).toBe('false');
     await user.click(addToWorkspaceButtonEnabled);
@@ -234,7 +235,7 @@ describe('Add a Workflow Link', () => {
     const urlLink = screen.getByPlaceholderText('Paste Github link');
     const workflowName = screen.getByPlaceholderText('Workflow Name');
 
-    await user.type(urlLink, githubLink);
+    fireEvent.change(urlLink, { target: { value: githubLink } });
     // Expect autofill
     expect(workflowName.value).toBe('simple_task');
 

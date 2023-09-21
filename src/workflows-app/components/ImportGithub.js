@@ -60,7 +60,7 @@ const ImportGithub = ({ setLoading, signal, onDismiss, workspace, name, namespac
       setSuccessfulImport(true);
     }
   };
-  const onError = async (error, onDismiss) => {
+  const onError = async (error) => {
     if (!isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)) {
       notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
       onDismiss();
@@ -119,7 +119,7 @@ const ImportGithub = ({ setLoading, signal, onDismiss, workspace, name, namespac
                   method_url: methodUrl,
                   method_source: 'GitHub',
                 };
-                withBusyState(setLoading, submitMethod(signal, onDismiss, method, workspace, onSuccess, onError));
+                withBusyState(setLoading, submitMethod(signal, method, workspace, onSuccess, onError));
               },
             },
             ['Add to Workspace']
@@ -182,7 +182,7 @@ const ImportGithub = ({ setLoading, signal, onDismiss, workspace, name, namespac
                     method_url: methodUrl,
                     method_source: 'GitHub',
                   };
-                  withBusyState(setLoading, submitMethod(signal, onDismiss, method, workspace, onSuccess, onError));
+                  withBusyState(setLoading, submitMethod(signal, method, workspace, onSuccess, onError));
                 },
               },
               ['Add to Workspace']
