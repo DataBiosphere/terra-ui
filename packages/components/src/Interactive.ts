@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { createElement, forwardRef, ReactNode, useState } from 'react';
+import { createElement, ForwardedRef, forwardRef, ReactNode, useState } from 'react';
 
 import { injectStyle } from './injectStyle';
 import * as Utils from './utils';
@@ -55,103 +55,101 @@ export type InteractiveProps = {
   onMouseDown?: (event: any) => void;
 };
 
-export const Interactive: React.ForwardRefExoticComponent<InteractiveProps> = forwardRef(
-  (props: InteractiveProps, ref) => {
-    const {
-      children,
-      className = '',
-      disabled,
-      hover = {},
-      role,
-      style = {},
-      tabIndex,
-      tagName: TagName = 'div',
-      type,
-      onBlur,
-      onClick,
-      onKeyDown,
-      onMouseDown,
-      ...otherProps
-    } = props;
+export const Interactive = forwardRef((props: InteractiveProps, ref: ForwardedRef<HTMLElement>) => {
+  const {
+    children,
+    className = '',
+    disabled,
+    hover = {},
+    role,
+    style = {},
+    tabIndex,
+    tagName: TagName = 'div',
+    type,
+    onBlur,
+    onClick,
+    onKeyDown,
+    onMouseDown,
+    ...otherProps
+  } = props;
 
-    const [outline, setOutline] = useState<string>();
-    const { cursor } = style;
+  const [outline, setOutline] = useState<string>();
+  const { cursor } = style;
 
-    const computedCursor = Utils.cond(
-      [!!cursor, () => cursor],
-      [disabled, () => 'not-allowed'],
-      [!!onClick || pointerTags.includes(TagName) || pointerTypes.includes(type!), () => 'pointer']
-    );
+  const computedCursor = Utils.cond(
+    [!!cursor, () => cursor],
+    [disabled, () => 'not-allowed'],
+    [!!onClick || pointerTags.includes(TagName) || pointerTypes.includes(type!), () => 'pointer']
+  );
 
-    const computedTabIndex = Utils.cond(
-      [_.isNumber(tabIndex), () => tabIndex],
-      [disabled, () => -1],
-      [!!onClick, () => 0],
-      () => undefined
-    );
+  const computedTabIndex = Utils.cond(
+    [_.isNumber(tabIndex), () => tabIndex],
+    [disabled, () => -1],
+    [!!onClick, () => 0],
+    () => undefined
+  );
 
-    const computedRole = Utils.cond(
-      [!!role, () => role],
-      [onClick && !['input', ...pointerTags].includes(TagName), () => 'button'],
-      () => undefined
-    );
+  const computedRole = Utils.cond(
+    [!!role, () => role],
+    [onClick && !['input', ...pointerTags].includes(TagName), () => 'button'],
+    () => undefined
+  );
 
-    const cssVariables = _.flow(
-      _.toPairs,
-      _.flatMap(([key, value]) => {
-        console.assert(
-          allowedHoverVariables.includes(key),
-          `${key} needs to be added to the .terra-ui--interactive CSS for the style to be applied`
-        );
-        return [
-          [`--app-hover-${key}`, value],
-          [key, `var(--hover-${key}, ${style[key]})`],
-        ];
-      }),
-      _.fromPairs
-    )(hover);
+  const cssVariables = _.flow(
+    _.toPairs,
+    _.flatMap(([key, value]) => {
+      console.assert(
+        allowedHoverVariables.includes(key),
+        `${key} needs to be added to the .terra-ui--interactive CSS for the style to be applied`
+      );
+      return [
+        [`--app-hover-${key}`, value],
+        [key, `var(--hover-${key}, ${style[key]})`],
+      ];
+    }),
+    _.fromPairs
+  )(hover);
 
-    return createElement(
-      TagName,
-      {
-        ref,
-        className: `terra-ui--interactive ${className}`,
-        style: {
-          ...style,
-          ...cssVariables,
-          fill: `var(--hover-color, ${style.color})`,
-          cursor: computedCursor,
-          outline,
-        },
-        role: computedRole,
-        tabIndex: computedTabIndex,
-        onClick,
-        disabled,
-        onMouseDown: (e) => {
-          setOutline('none');
-          if (onMouseDown) {
-            onMouseDown(e);
-          }
-        },
-        onBlur: (e) => {
-          if (outline) {
-            setOutline(undefined);
-          }
-          if (onBlur) {
-            onBlur(e);
-          }
-        },
-        onKeyDown:
-          onKeyDown ||
-          ((event: React.KeyboardEvent) => {
-            if (event.key === 'Enter') {
-              event.stopPropagation();
-              (event.target as HTMLElement).click();
-            }
-          }),
-        ...otherProps,
+  return createElement(
+    TagName,
+    {
+      ref,
+      className: `terra-ui--interactive ${className}`,
+      style: {
+        ...style,
+        ...cssVariables,
+        fill: `var(--hover-color, ${style.color})`,
+        cursor: computedCursor,
+        outline,
       },
-      [children]
-    );
-  }
-);
+      role: computedRole,
+      tabIndex: computedTabIndex,
+      onClick,
+      disabled,
+      onMouseDown: (e) => {
+        setOutline('none');
+        if (onMouseDown) {
+          onMouseDown(e);
+        }
+      },
+      onBlur: (e) => {
+        if (outline) {
+          setOutline(undefined);
+        }
+        if (onBlur) {
+          onBlur(e);
+        }
+      },
+      onKeyDown:
+        onKeyDown ||
+        ((event: React.KeyboardEvent) => {
+          if (event.key === 'Enter') {
+            event.stopPropagation();
+            (event.target as HTMLElement).click();
+          }
+        }),
+      ...otherProps,
+    },
+    [children]
+  );
+});
