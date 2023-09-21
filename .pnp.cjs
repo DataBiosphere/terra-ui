@@ -5064,6 +5064,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@terra-ui-packages/test-utils", "workspace:packages/test-utils"],\
             ["@testing-library/dom", "npm:9.3.1"],\
             ["@testing-library/react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.0.0"],\
+            ["@testing-library/user-event", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.4.3"],\
             ["@types/jest", "npm:28.1.8"],\
             ["@types/lodash", "npm:4.14.184"],\
             ["@types/react", "npm:18.2.15"],\
@@ -5099,6 +5100,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@terra-ui-packages/test-utils", "workspace:packages/test-utils"],\
             ["@testing-library/dom", "npm:9.3.1"],\
             ["@testing-library/react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.0.0"],\
+            ["@testing-library/user-event", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.4.3"],\
             ["@types/jest", "npm:28.1.8"],\
             ["@types/lodash", "npm:4.14.184"],\
             ["@types/react", "npm:18.2.15"],\

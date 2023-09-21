@@ -15,6 +15,7 @@ import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { canWrite } from 'src/libs/workspace-utils';
 import validate from 'validate.js';
 
 const SnapshotLabeledInfo = ({ title, text }) => {
@@ -164,7 +165,7 @@ export const SnapshotInfo = ({
               },
               [
                 snapshotName,
-                Utils.canWrite(accessLevel) &&
+                canWrite(accessLevel) &&
                   !editingName &&
                   h(
                     Link,
@@ -179,7 +180,7 @@ export const SnapshotInfo = ({
             ),
             div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, [
               'Description:',
-              Utils.canWrite(accessLevel) &&
+              canWrite(accessLevel) &&
                 !editingDescription &&
                 h(
                   Link,
@@ -208,7 +209,7 @@ export const SnapshotInfo = ({
 
           snapshotLoadError ? tdrErrorDisplay() : tdrDetails(),
 
-          Utils.canWrite(accessLevel) &&
+          canWrite(accessLevel) &&
             div({ style: { marginTop: '2rem' } }, [h(ButtonSecondary, { onClick: () => setDeleting(true) }, ['Delete snapshot from workspace'])]),
           editingName &&
             h(

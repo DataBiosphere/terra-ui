@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -6,7 +7,6 @@ import { icon } from 'src/components/icons';
 import { NumberInput, ValidatedInput } from 'src/components/input';
 import { MarkdownEditor } from 'src/components/markdown';
 import { FormLabel } from 'src/libs/forms';
-import { useUniqueId } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
 interface InputProps<T> {

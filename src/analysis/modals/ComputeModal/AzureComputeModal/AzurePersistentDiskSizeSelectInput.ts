@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import React from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
 import { SingleValue } from 'react-select';
@@ -6,7 +7,6 @@ import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { Select } from 'src/components/common';
 import { azureDiskSizes } from 'src/libs/ajax/leonardo/models/disk-models';
 import { defaultAzureDiskSize } from 'src/libs/azure-utils';
-import { useUniqueId } from 'src/libs/react-utils';
 
 export interface AzurePersistentDiskSizeSelectInputProps {
   persistentDiskSize: number;
