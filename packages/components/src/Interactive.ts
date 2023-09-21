@@ -98,13 +98,22 @@ export const Interactive = forwardRef((props: InteractiveProps, ref: ForwardedRe
     () => undefined
   );
 
+  /**
+   * This allow setting :hover and :focus styles using inline styles in JS.
+   * For supported style properties (listed in allowedHoverVariables), this sets the style property
+   * X of the rendered element to be:
+   * - the value of the --hover-X CSS variable if --hover-X is set
+   * - the value of X from the `style` prop otherwise (style[X])
+   *
+   * It also sets the --app-hover-X CSS variable to be the value of X from the `hover` prop (hover[X])
+   *
+   * By default, --hover-X is not set, so the value from the `style` prop is used. When the element
+   * is hovered or focused, the CSS injected above sets --hover-X to be equal to the value of --app-hover-X.
+   * This overrides the value from the `style` prop with the value from the `hover` prop.
+   */
   const cssVariables = _.flow(
     _.toPairs,
     _.flatMap(([key, value]) => {
-      console.assert(
-        (allowedHoverVariables as readonly string[]).includes(key),
-        `${key} needs to be added to the .terra-ui--interactive CSS for the style to be applied`
-      );
       return [
         [`--app-hover-${key}`, value],
         [key, `var(--hover-${key}, ${style[key]})`],
