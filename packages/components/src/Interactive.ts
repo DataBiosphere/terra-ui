@@ -35,7 +35,11 @@ const allowedHoverVariables = [
   'boxShadow',
   'opacity',
   'textDecoration',
-];
+] as const;
+
+// Union type of all values in allowedHoverVariables.
+type HoverStyleProperty = (typeof allowedHoverVariables)[number];
+
 const pointerTags = ['button', 'area', 'a', 'select'];
 const pointerTypes = ['radio', 'checkbox', 'submit', 'button'];
 
@@ -44,7 +48,10 @@ const pointerTypes = ['radio', 'checkbox', 'submit', 'button'];
 // for any HTML element.
 // TODO: Can a more specific type be used by parameterizing this with a tag name?
 export interface InteractiveProps extends AllHTMLAttributes<HTMLElement> {
-  hover?: React.CSSProperties;
+  /** Styles applied when element is hovered or focused. */
+  hover?: Pick<React.CSSProperties, HoverStyleProperty>;
+
+  /** HTML tag to render. */
   tagName?: keyof JSX.IntrinsicElements;
 
   // Allow arbitrary data attributes on the rendered element.
@@ -95,7 +102,7 @@ export const Interactive = forwardRef((props: InteractiveProps, ref: ForwardedRe
     _.toPairs,
     _.flatMap(([key, value]) => {
       console.assert(
-        allowedHoverVariables.includes(key),
+        (allowedHoverVariables as readonly string[]).includes(key),
         `${key} needs to be added to the .terra-ui--interactive CSS for the style to be applied`
       );
       return [
