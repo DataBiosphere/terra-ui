@@ -1,4 +1,6 @@
 import { Ajax } from 'src/libs/ajax';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { workflowsAppStore } from 'src/libs/state';
@@ -14,7 +16,7 @@ const MethodSource = Object.freeze({
 const Covid19Methods = ['fetch_sra_to_bam', 'assemble_refbased', 'sarscov2_nextstrain'];
 export const isCovid19Method = (methodName) => Covid19Methods.includes(methodName);
 
-export const submitMethod = async (signal, onDismiss, method, workspace) => {
+export const submitMethod = async (signal, onDismiss, method, workspace, setImportLoading, setMethodId, setSuccessfulImport, setErrorMessage) => {
   if (doesAppProxyUrlExist(workspace.workspace.workspaceId, 'cbasProxyUrlState')) {
     const namespace = await workspace.workspace.namespace;
     try {
@@ -26,14 +28,21 @@ export const submitMethod = async (signal, onDismiss, method, workspace) => {
         method_url: method.method_url,
       };
       const methodObject = await Ajax(signal).Cbas.methods.post(workflowsAppStore.get().cbasProxyUrlState.state, methodPayload);
-      onDismiss();
-      Nav.goToPath('workspace-workflows-app-submission-config', {
-        name: workspace.workspace.name,
-        namespace,
-        methodId: methodObject.method_id,
-      });
+
+      !isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)
+        ? Nav.goToPath('workspace-workflows-app-submission-config', {
+            name: workspace.workspace.name,
+            namespace,
+            methodId: methodObject.method_id,
+          })
+        : setMethodId(methodObject.method_id);
+      setImportLoading(false);
+      setSuccessfulImport(true);
     } catch (error) {
-      notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
+      setImportLoading(false);
+      setSuccessfulImport(false);
+      setErrorMessage(JSON.stringify(error instanceof Response ? await error.text() : error, null, 2));
+      // notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
       onDismiss();
     }
   } else {

@@ -68,7 +68,7 @@ const suggestedWorkflowsList = [
   },
 ];
 
-const FindWorkflowModal = ({ onDismiss, workspace }) => {
+const FindWorkflowModal = ({ onDismiss, workspace, namespace }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows');
   const [loading, setLoading] = useState(false);
 
@@ -141,7 +141,7 @@ const FindWorkflowModal = ({ onDismiss, workspace }) => {
               ),
             ]),
           ]),
-        isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss, workspace }),
+        isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss, workspace, namespace }),
         isSubHeaderActive('go-to-dockstore') &&
           div({ style: { marginLeft: '4rem', width: '50%' } }, [
             h(
