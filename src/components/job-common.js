@@ -102,11 +102,11 @@ export const makeStatusLine = (iconFn, label, style) =>
  */
 export const makeCromwellStatusLine = (executionStatus, backendStatus) => {
   const collapsedStatus = collapseCromwellStatus(executionStatus, backendStatus);
-  return h(
-    TooltipCell,
-    { tooltip: collapsedStatus.tooltip }, // Note that if the tooltip is undefined, a default will be shown
-    [makeStatusLine((style) => collapsedStatus.icon(style), collapsedStatus.label(executionStatus), { marginLeft: '0.5rem' })]
-  );
+  const statusLine = makeStatusLine((style) => collapsedStatus.icon(style), collapsedStatus.label(executionStatus), { marginLeft: '0.5rem' });
+  if (collapsedStatus.tooltip !== undefined) {
+    return h(TooltipCell, { tooltip: collapsedStatus.tooltip }, [statusLine]);
+  }
+  return statusLine;
 };
 
 export const makeSection = (label, children, { style = {} } = {}) =>
