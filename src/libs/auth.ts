@@ -36,6 +36,8 @@ export interface OidcUser extends User {
   profile: B2cIdTokenClaims;
 }
 
+// Our config for b2C claims are defined here: https://github.com/broadinstitute/terraform-ap-deployments/tree/master/azure/b2c/policies
+// The standard b2C claims are defined here: https://learn.microsoft.com/en-us/azure/active-directory/develop/id-token-claims-reference
 export interface B2cIdTokenClaims extends IdTokenClaims {
   email_verified?: boolean;
   idp?: string;
@@ -71,7 +73,8 @@ export const getOidcConfig = () => {
 const getAuthInstance = (): AuthContextProps => {
   const authContext: AuthContextProps | undefined = authStore.get().authContext;
   if (authContext === undefined) {
-    throw new Error('Auth instance is trying to be accessed before it is initialized');
+    console.error('getAuthInstance must not be called before authContext is initialized.');
+    throw new Error('Error initializing authentication.');
   }
   return authContext;
 };
@@ -291,7 +294,7 @@ const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Pro
   const args: ExtraSigninRequestArgs = getSigninArgs(includeBillingScope);
   const authInstance: AuthContextProps = getAuthInstance();
   try {
-    const loadedAuthTokenResponse: OidcUser | null | AuthTokenErrorState = await (popUp
+    const loadedAuthTokenResponse: OidcUser | null = await (popUp
       ? // returns Promise<OidcUser | null>, attempts to use the refresh token to get a new authToken
         authInstance.signinPopup(args)
       : authInstance.signinSilent(args));

@@ -8,19 +8,19 @@ import { authStore } from 'src/libs/state';
 function AuthStoreSetter(): null {
   const auth: AuthContextProps = useAuth();
 
-  useOnMount((): void => {
+  useOnMount(() => {
     authStore.update(_.set(['authContext'], auth));
   });
   useEffect((): (() => void) => {
     const cleanupFns = [
       auth.events.addUserLoaded((user: OidcUser) => processUser(user, true)),
       auth.events.addUserUnloaded(() => processUser(null, false)),
-      auth.events.addAccessTokenExpired((): void => {
+      auth.events.addAccessTokenExpired(() => {
         loadAuthToken();
       }),
     ];
     return (): void => {
-      cleanupFns.forEach((fn): void => {
+      cleanupFns.forEach((fn) => {
         fn();
       });
     };
