@@ -230,6 +230,8 @@ jobs:
       - run: yarn run build
       - run: yarn eslint --max-warnings=0 .
       - run: yarn workspaces foreach --exclude terra-integration-tests run test --coverage --maxWorkers=2 --passWithNoTests
+      - store_artifacts:
+          path: test-report/index.html
       - run: yarn check-types
       - save_cache:
           key: deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
