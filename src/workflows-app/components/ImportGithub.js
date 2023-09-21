@@ -8,6 +8,8 @@ import colors from 'src/libs/colors';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
 import { FormLabel } from 'src/libs/forms';
+import * as Nav from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
 import * as Utils from 'src/libs/utils';
 import { withBusyState } from 'src/libs/utils';
 import { ImportWorkflowModal } from 'src/workflows-app/components/ImportWorkflowModal';
@@ -43,6 +45,30 @@ const ImportGithub = ({ setLoading, signal, onDismiss, workspace, name, namespac
 
   const updateWorkflowName = (url) => {
     setMethodName(url.substring(url.lastIndexOf('/') + 1).replace('.wdl', ''));
+  };
+
+  const onSuccess = (methodObject) => {
+    if (!isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)) {
+      Nav.goToPath('workspace-workflows-app-submission-config', {
+        name: workspace.workspace.name,
+        namespace,
+        methodId: methodObject.method_id,
+      });
+    } else {
+      setMethodId(methodObject.method_id);
+      setImportLoading(false);
+      setSuccessfulImport(true);
+    }
+  };
+  const onError = async (error, onDismiss) => {
+    if (!isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)) {
+      notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
+      onDismiss();
+    } else {
+      setImportLoading(false);
+      setSuccessfulImport(false);
+      setErrorMessage(JSON.stringify(error instanceof Response ? await error.text() : error, null, 2));
+    }
   };
   return !isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)
     ? div({ style: { marginLeft: '4rem', width: '50%' } }, [
@@ -93,7 +119,7 @@ const ImportGithub = ({ setLoading, signal, onDismiss, workspace, name, namespac
                   method_url: methodUrl,
                   method_source: 'GitHub',
                 };
-                withBusyState(setLoading, submitMethod(signal, onDismiss, method, workspace));
+                withBusyState(setLoading, submitMethod(signal, onDismiss, method, workspace, onSuccess, onError));
               },
             },
             ['Add to Workspace']
@@ -156,10 +182,7 @@ const ImportGithub = ({ setLoading, signal, onDismiss, workspace, name, namespac
                     method_url: methodUrl,
                     method_source: 'GitHub',
                   };
-                  withBusyState(
-                    setLoading,
-                    submitMethod(signal, onDismiss, method, workspace, setImportLoading, setMethodId, setSuccessfulImport, setErrorMessage)
-                  );
+                  withBusyState(setLoading, submitMethod(signal, onDismiss, method, workspace, onSuccess, onError));
                 },
               },
               ['Add to Workspace']

@@ -74,6 +74,9 @@ export const ImportWorkflowModal = ({
         },
         ['Start configuring now']
       ),
+      div({ style: { marginTop: '2rem' } }, [
+        h(Link, { style: { paddingTop: '2.5rem' }, onClick: onDismiss }, ['Continue browsing workflows']),
+      ]),
     ]);
   };
 
@@ -113,34 +116,18 @@ export const ImportWorkflowModal = ({
       showCancel: false,
       okButton:
         !successfulImport &&
-        div({}, [
-          h(
-            Link,
-            {
-              style: {
-                paddingRight: '23rem',
-              },
-              onClick: onDismiss,
-            },
-            ['Continue browsing workflows']
-          ),
-          h(
-            ButtonPrimary,
-            {
-              onClick: onDismiss,
-            },
-            ['Close']
-          ),
-        ]),
+        h(
+          ButtonPrimary,
+          {
+            onClick: onDismiss,
+          },
+          ['Close']
+        ),
     },
     [
       importLoading
         ? centeredSpinner()
         : Utils.cond([successfulImport, () => successBody()], [!successfulImport, () => errorBody()]),
-      successfulImport &&
-        div({ style: { marginTop: '2rem' } }, [
-          h(Link, { style: { paddingTop: '2.5rem' }, onClick: onDismiss }, ['Continue browsing workflows']),
-        ]),
     ]
   );
 };
