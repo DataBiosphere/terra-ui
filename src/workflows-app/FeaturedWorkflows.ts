@@ -147,6 +147,7 @@ export const FeaturedWorkflows = ({
                         h(
                           TooltipTrigger,
                           {
+                            useTooltipAsLabel: true,
                             content:
                               'You already have some of the workflows in this set added to this workspace. Clicking add to workspace will only add the remaining workflows.',
                           },
