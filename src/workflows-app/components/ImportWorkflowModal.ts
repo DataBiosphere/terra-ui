@@ -10,7 +10,7 @@ import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 type ImportWorkflowModalProps = {
-  importLoading: Function;
+  importLoading: boolean;
   methodName: string;
   onDismiss: Function;
   workspace: WorkspaceWrapper;

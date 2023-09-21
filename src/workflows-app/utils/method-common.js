@@ -35,14 +35,24 @@ export const submitMethod = async (signal, onDismiss, method, workspace, setImpo
             namespace,
             methodId: methodObject.method_id,
           })
-        : setMethodId(methodObject.method_id);
-      setImportLoading(false);
-      setSuccessfulImport(true);
+        : () => {
+            if (setImportLoading && setMethodId && setSuccessfulImport && setErrorMessage) {
+              setMethodId(methodObject.method_id);
+              setImportLoading(false);
+              setSuccessfulImport(true);
+            }
+          };
     } catch (error) {
-      setImportLoading(false);
-      setSuccessfulImport(false);
-      setErrorMessage(JSON.stringify(error instanceof Response ? await error.text() : error, null, 2));
-      // notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
+      !isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)
+        ? notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error })
+        : async () => {
+            if (setImportLoading && setMethodId && setSuccessfulImport && setErrorMessage) {
+              setImportLoading(false);
+              setSuccessfulImport(false);
+              setErrorMessage(JSON.stringify(error instanceof Response ? await error.text() : error, null, 2));
+            }
+          };
+
       onDismiss();
     }
   } else {
