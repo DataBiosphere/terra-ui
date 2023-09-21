@@ -4,7 +4,7 @@ import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { makeCromwellStatusLine } from 'src/components/job-common';
+import { makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
 import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
@@ -264,8 +264,27 @@ const CallTable = ({
               field: 'status',
               headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
-                const { executionStatus, backendStatus } = filteredCallObjects[rowIndex];
-                return makeCromwellStatusLine(executionStatus, backendStatus);
+                const { taskName, index, attempt, executionStatus, backendStatus, failures } = filteredCallObjects[rowIndex];
+                const failureCount = _.size(failures);
+                const collapsedStatus = collapseCromwellStatus(executionStatus);
+                if (collapsedStatus.id === statusType.failed.id && failureCount > 0) {
+                  return h(
+                    Link,
+                    {
+                      onClick: () => setFailuresModalParams({ callFqn: taskName, index, attempt, failures }),
+                    },
+                    [
+                      div({ style: { display: 'flex', alignItems: 'center' } }, [
+                        makeStatusLine(
+                          (style) => collapsedStatus.icon(style),
+                          `${collapsedStatus.label(executionStatus)} (${failureCount} Message${failureCount > 1 ? 's' : ''})`,
+                          { marginLeft: '0.5rem' }
+                        ),
+                      ]),
+                    ]
+                  );
+                }
+                return makeCromwellStatusLine(executionStatus, backendStatus, failures);
               },
             },
             {
@@ -322,40 +341,17 @@ const CallTable = ({
               headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Task Data']),
               cellRenderer: ({ rowIndex }) => {
                 const {
-                  taskName,
                   stdout,
                   stderr,
                   inputs,
                   outputs,
                   subWorkflowId,
-                  failures,
-                  shardIndex: index,
-                  attempt,
                   // disable linting to match the backend keys
                   // eslint-disable-next-line camelcase
                   tes_stderr,
                   // eslint-disable-next-line camelcase
                   tes_stdout,
                 } = filteredCallObjects[rowIndex];
-                const failureCount = _.size(failures);
-                if (_.isEmpty(subWorkflowId) && !stdout && !stderr && !inputs && !outputs) {
-                  return (
-                    !!failureCount &&
-                    h(
-                      Link,
-                      {
-                        style: { marginLeft: '0.5rem' },
-                        onClick: () => setFailuresModalParams({ callFqn: taskName, index, attempt, failures }),
-                      },
-                      [
-                        div({ style: { display: 'flex', alignItems: 'center' } }, [
-                          icon('warning-standard', { size: 18, style: { color: colors.warning(), marginRight: '0.5rem' } }),
-                          `${failureCount} Message${failureCount > 1 ? 's' : ''}`,
-                        ]),
-                      ]
-                    )
-                  );
-                }
                 const style =
                   enableExplorer && !_.isEmpty(subWorkflowId)
                     ? {
