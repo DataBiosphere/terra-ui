@@ -12,7 +12,7 @@ import { WorkspaceSubmissionStatusIcon } from 'src/components/WorkspaceSubmissio
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import * as Nav from 'src/libs/nav';
+import { getLink } from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
 import { AuthState, authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
@@ -124,7 +124,7 @@ export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = ({ workspaces, lo
                   fontSize: 16,
                   ...Style.noWrapEllipsis,
                 },
-                href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
+                href: canView ? getLink('workspace-dashboard', { namespace, name }) : undefined,
                 onClick: () => {
                   canAccessWorkspace();
                   !!canView &&
