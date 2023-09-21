@@ -15,7 +15,7 @@ import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { getUser, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { differenceFromNowInSeconds } from 'src/libs/utils';
-import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { canWrite, isAzureWorkspace, isGoogleWorkspace, isOwner, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export interface StorageDetails {
   googleBucketLocation: string; // historically returns defaultLocation if bucket location cannot be retrieved or Azure
@@ -92,7 +92,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
       // to be done syncing until all the methods that we know will be called quickly in succession succeed.
       // This is not guaranteed to eliminate the issue, but it improves the odds.
       await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess();
-      if (Utils.canWrite(workspace.accessLevel)) {
+      if (canWrite(workspace.accessLevel)) {
         // Calls done on the Workspace Dashboard. We could store the results and pass them
         // through, but then we would have to do it checkWorkspaceInitialization as well,
         // and nobody else actually needs these values.
@@ -198,16 +198,12 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
 
       // Request a service account token. If this is the first time, it could take some time before everything is in sync.
       // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
-      if (Utils.canWrite(accessLevel) && isGoogleWorkspace(workspace)) {
+      if (canWrite(accessLevel) && isGoogleWorkspace(workspace)) {
         saToken(googleProject);
       }
 
       // This is old code-- it is unclear if this case can actually happen anymore.
-      if (
-        !Utils.isOwner(accessLevel) &&
-        createdBy === getUser().email &&
-        differenceFromNowInSeconds(createdDate) < 60
-      ) {
+      if (!isOwner(accessLevel) && createdBy === getUser().email && differenceFromNowInSeconds(createdDate) < 60) {
         accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
           message: h(Fragment, [
             'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',

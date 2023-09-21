@@ -1,5 +1,5 @@
 import { DeepPartial, NavLinkProvider } from '@terra-ui-packages/core-utils';
-import { act, fireEvent, getAllByRole, render, screen } from '@testing-library/react';
+import { act, fireEvent, getAllByRole, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -26,7 +26,7 @@ import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonard
 import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 type ModalMockExports = typeof import('src/components/Modal.mock');

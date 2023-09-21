@@ -6,7 +6,7 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils';
 import { withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { canWrite, WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 type WorkspaceImporterProps = {
   additionalErrors: any;
@@ -46,8 +46,7 @@ export const WorkspaceImporter: (props: WorkspaceImporterInnerProps) => ReactEle
       h(WorkspaceSelector, {
         workspaces: _.filter((ws) => {
           return (
-            Utils.canWrite(ws.accessLevel) &&
-            (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
+            canWrite(ws.accessLevel) && (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
           );
         }, workspaces),
         noOptionsMessage: loadingWorkspaces ? _.constant('Loading workspaces') : undefined,

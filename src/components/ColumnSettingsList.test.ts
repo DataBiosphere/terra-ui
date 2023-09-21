@@ -1,8 +1,9 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { ColumnData, ColumnSettingsList, dragEndNotifier } from 'src/components/ColumnSettingsList';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 const visibleColumnA: ColumnData = {
   id: 'a',

@@ -63,8 +63,7 @@ const statusCell = (workflowStatuses, status) => {
     TooltipTrigger,
     {
       side: 'bottom',
-      type: 'light',
-      content: table({ style: { margin: '0.5rem' } }, [
+      content: table([
         tbody({}, [
           tr({}, [
             td(styles.statusDetailCell, [statusType.succeeded.icon()]),

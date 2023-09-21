@@ -4,10 +4,8 @@ import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
-import { canWrite } from 'src/libs/workspace-utils';
 
 export { cond, DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
-export { canRead, canWrite, isOwner } from 'src/libs/workspace-utils';
 
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
@@ -102,14 +100,6 @@ export const abandonedPromise = () => {
 // Returns a message explaining that the desired snapshot reference could not be found by name
 export const snapshotReferenceMissingError = (snapshotReferenceName) => {
   return `The requested snapshot reference '${snapshotReferenceName}' could not be found in this workspace.`;
-};
-
-// Returns a message explaining why the user can't edit the workspace, or undefined if they can
-export const editWorkspaceError = ({ accessLevel, workspace: { isLocked } }) => {
-  return cond(
-    [!canWrite(accessLevel), () => 'You do not have permission to modify this workspace.'],
-    [isLocked, () => 'This workspace is locked.']
-  );
 };
 
 // Returns a message explaining why the user can't compute in the workspace, or undefined if they can
