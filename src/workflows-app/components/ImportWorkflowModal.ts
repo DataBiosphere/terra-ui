@@ -42,7 +42,7 @@ export const ImportWorkflowModal = ({
               Link,
               {
                 'aria-label': 'Close',
-                style: { marginLeft: '2rem' },
+                style: { marginLeft: '1.5rem' },
                 tabIndex: 0,
                 onClick: onDismiss,
               },
@@ -98,7 +98,7 @@ export const ImportWorkflowModal = ({
             ),
         ]),
       ]),
-      div({ style: { ...(errorStyles.jsonFrame as CSSProperties), overflowY: 'scroll', maxHeight: 100 } }, [
+      div({ style: { ...(errorStyles.jsonFrame as CSSProperties), overflowY: 'scroll', maxHeight: 150 } }, [
         errorMessage,
       ]),
     ]);
@@ -108,14 +108,39 @@ export const ImportWorkflowModal = ({
     Modal,
     {
       width: 700,
-      showButtons: false,
+      showButtons: !successfulImport,
       onDismiss,
+      showCancel: false,
+      okButton:
+        !successfulImport &&
+        div({}, [
+          h(
+            Link,
+            {
+              style: {
+                paddingRight: '23rem',
+              },
+              onClick: onDismiss,
+            },
+            ['Continue browsing workflows']
+          ),
+          h(
+            ButtonPrimary,
+            {
+              onClick: onDismiss,
+            },
+            ['Close']
+          ),
+        ]),
     },
     [
       importLoading
         ? centeredSpinner()
         : Utils.cond([successfulImport, () => successBody()], [!successfulImport, () => errorBody()]),
-      div({ style: { marginTop: '2rem' } }, [h(Link, { onClick: onDismiss }, ['Continue browsing workflows'])]),
+      successfulImport &&
+        div({ style: { marginTop: '2rem' } }, [
+          h(Link, { style: { paddingTop: '2.5rem' }, onClick: onDismiss }, ['Continue browsing workflows']),
+        ]),
     ]
   );
 };
