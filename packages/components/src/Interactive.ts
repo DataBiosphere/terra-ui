@@ -56,8 +56,8 @@ export type InteractiveProps = {
 };
 
 export const Interactive: React.ForwardRefExoticComponent<InteractiveProps> = forwardRef(
-  (
-    {
+  (props: InteractiveProps, ref) => {
+    const {
       children,
       className = '',
       disabled,
@@ -71,10 +71,9 @@ export const Interactive: React.ForwardRefExoticComponent<InteractiveProps> = fo
       onClick,
       onKeyDown,
       onMouseDown,
-      ...props
-    },
-    ref
-  ) => {
+      ...otherProps
+    } = props;
+
     const [outline, setOutline] = useState<string>();
     const { cursor } = style;
 
@@ -150,7 +149,7 @@ export const Interactive: React.ForwardRefExoticComponent<InteractiveProps> = fo
               (event.target as HTMLElement).click();
             }
           }),
-        ...props,
+        ...otherProps,
       },
       [children]
     );
