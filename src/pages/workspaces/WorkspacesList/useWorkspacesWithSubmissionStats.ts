@@ -62,7 +62,9 @@ export const useWorkspacesWithSubmissionStats = () => {
   return { workspaces: workspacesWithSubmissionStats, refresh, loadingWorkspaces, loadingSubmissionStats };
 };
 
-export const workspaceSubmissionStatus = (workspace: Workspace): string | undefined => {
+export type WorkspaceSubmissionStatus = 'success' | 'failure' | 'running';
+
+export const workspaceSubmissionStatus = (workspace: Workspace): WorkspaceSubmissionStatus | undefined => {
   const stats = workspace.workspaceSubmissionStats;
   if (!stats) return undefined;
   const { runningSubmissionsCount, lastSuccessDate, lastFailureDate } = stats;
