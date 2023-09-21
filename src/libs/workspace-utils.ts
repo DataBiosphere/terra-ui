@@ -32,6 +32,7 @@ interface BaseWorkspaceInfo {
   bucketName?: string;
   attributes?: Record<string, any>;
   isLocked?: boolean;
+  canShare?: boolean;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {

@@ -5,9 +5,6 @@ import Collapse from 'src/components/Collapse';
 import { Link, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
-import LeaveResourceModal from 'src/components/LeaveResourceModal';
-import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
-import { SimpleTabBar } from 'src/components/tabBars';
 import TopBar from 'src/components/TopBar';
 import { recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
@@ -15,32 +12,23 @@ import { isAzureUser } from 'src/libs/auth';
 import { withErrorIgnoring } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
-import { useOnMount, useStore } from 'src/libs/react-utils';
-import * as Style from 'src/libs/style';
-import * as Utils from 'src/libs/utils';
-import {
-  cloudProviderTypes,
-  getCloudProviderFromWorkspace,
-  WorkspaceAccessLevels,
-  WorkspaceWrapper as Workspace,
-} from 'src/libs/workspace-utils';
-import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
-import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
-import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal';
-import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
+import { useOnMount } from 'src/libs/react-utils';
+import { elements as StyleElements } from 'src/libs/style';
+import { newTabLinkProps } from 'src/libs/utils';
+import { cloudProviderTypes, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { catagorizeWorkspaces } from 'src/pages/workspaces/WorkspacesList/CatagorizedWorkspaces';
-import { RenderedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RenderedWorkspaces';
 import {
   useWorkspacesWithSubmissionStats,
   workspaceSubmissionStatus,
 } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
-import { WorkspaceFilters } from 'src/pages/workspaces/WorkspacesList/WorkspaceFilters';
 import {
-  updateWorkspaceActions,
-  workspaceUserActionsStore,
-} from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
-
-const EMPTY_LIST = [];
+  getWorkspaceFiltersFromQuery,
+  WorkspaceFilters,
+  WorkspaceFilterValues,
+} from 'src/pages/workspaces/WorkspacesList/WorkspaceFilters';
+import { WorkspacesListTabs } from 'src/pages/workspaces/WorkspacesList/WorkspaceListTabs';
+import { WorkspacesListModals } from 'src/pages/workspaces/WorkspacesList/WorkspacesListModals';
+import { updateWorkspaceActions } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
 
 export const WorkspacesList: FC<{}> = () => {
   const {
@@ -67,33 +55,23 @@ export const WorkspacesList: FC<{}> = () => {
   );
 
   const { query } = Nav.useRoute();
-  const filter = query.filter || '';
-  // Using the EMPTY_LIST constant as a default value instead of creating a new empty array on
-  // each render avoids unnecessarily recomputing the memoized filteredWorkspaces value.
-  const accessLevelsFilter: WorkspaceAccessLevels = query.accessLevelsFilter || EMPTY_LIST;
-  const projectsFilter = query.projectsFilter || undefined;
-  const cloudPlatformFilter = query.cloudPlatform || undefined;
-  const submissionsFilter = query.submissionsFilter || EMPTY_LIST;
-  const tab = query.tab || 'myWorkspaces';
-  const tagsFilter = query.tagsFilter || EMPTY_LIST;
+
+  const filters: WorkspaceFilterValues = getWorkspaceFiltersFromQuery(query);
 
   useOnMount(() => {
     // For some time after Terra on Azure is released, the vast majority of featured workspaces
     // will be GCP workspaces, which are not usable by Azure users. To improve visibility of the
     // featured workspaces that are available on Azure, automatically filter workspaces by cloud
     // platform for Azure users.
-    if (isAzureUser() && !cloudPlatformFilter) {
+    if (isAzureUser() && !filters.cloudPlatform) {
       Nav.updateSearch({ ...query, cloudPlatform: cloudProviderTypes.AZURE });
     }
   });
-
-  const userActions = useStore(workspaceUserActionsStore);
 
   useOnMount(() => {
     const loadFeatured = withErrorIgnoring(async () => {
       setFeaturedList(await Ajax().FirecloudBucket.getFeaturedWorkspaces());
     });
-
     loadFeatured();
   });
 
@@ -103,45 +81,13 @@ export const WorkspacesList: FC<{}> = () => {
 
   const getWorkspace = (id: string): Workspace => _.find({ workspace: { workspaceId: id } }, workspaces)!;
 
-  const initialFiltered = useMemo(() => {
-    return catagorizeWorkspaces(workspaces, featuredList);
-  }, [workspaces, featuredList]);
-
-  const filteredWorkspaces = useMemo(
-    () =>
-      _.mapValues(
-        _.filter((ws: Workspace) => {
-          const {
-            workspace: { namespace, name, attributes },
-          } = ws;
-          return (
-            Utils.textMatch(filter, `${namespace}/${name}`) &&
-            (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
-            (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
-            (_.isEmpty(cloudPlatformFilter) || getCloudProviderFromWorkspace(ws) === cloudPlatformFilter) &&
-            (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
-            _.every((a) => _.includes(a, _.get(['tag:tags', 'items'], attributes)), tagsFilter)
-          );
-        }),
-        initialFiltered
-      ),
-    [accessLevelsFilter, filter, initialFiltered, projectsFilter, cloudPlatformFilter, submissionsFilter, tagsFilter]
-  );
-
-  const tabs = _.map(
-    (key) => ({
-      key,
-      title: span([_.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`]),
-      tableName: _.lowerCase(key),
-    }),
-    ['myWorkspaces', 'newAndInteresting', 'featured', 'public']
-  );
+  const initialFiltered = useMemo(() => catagorizeWorkspaces(workspaces, featuredList), [workspaces, featuredList]);
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: undefined }, []),
     div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
-        div({ style: { ...Style.elements.sectionHeader, fontSize: '1.5rem' } }, ['Workspaces']),
+        div({ style: { ...StyleElements.sectionHeader, fontSize: '1.5rem' } }, ['Workspaces']),
         h(
           Link,
           {
@@ -157,7 +103,7 @@ export const WorkspacesList: FC<{}> = () => {
         h(
           Link,
           {
-            ...Utils.newTabLinkProps,
+            ...newTabLinkProps,
             href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces',
           },
           ['Learn more about workspaces.']
@@ -193,72 +139,13 @@ export const WorkspacesList: FC<{}> = () => {
           ]
         ),
       h(WorkspaceFilters, { workspaces }),
-      h(
-        SimpleTabBar,
-        {
-          'aria-label': 'choose a workspace collection',
-          value: tab,
-          onChange: (newTab) => {
-            if (newTab === tab) {
-              refreshWorkspaces();
-            } else {
-              Nav.updateSearch({ ...query, tab: newTab === 'myWorkspaces' ? undefined : newTab });
-            }
-          },
-          tabs,
-        },
-        [
-          h(RenderedWorkspaces, {
-            workspaces,
-            loadingWorkspaces,
-            tabs,
-            initialFiltered,
-            filteredWorkspaces,
-            loadingSubmissionStats,
-          }),
-        ]
-      ),
-      userActions.creatingNewWorkspace &&
-        h(NewWorkspaceModal, {
-          onDismiss: () => updateWorkspaceActions({ creatingNewWorkspace: false }),
-          onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name }),
-        }),
-      !!userActions.cloningWorkspaceId &&
-        h(NewWorkspaceModal, {
-          cloneWorkspace: getWorkspace(userActions.cloningWorkspaceId),
-          onDismiss: () => updateWorkspaceActions({ cloningWorkspaceId: undefined }),
-          onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name }),
-        }),
-      !!userActions.deletingWorkspaceId &&
-        h(DeleteWorkspaceModal, {
-          workspace: getWorkspace(userActions.deletingWorkspaceId),
-          onDismiss: () => updateWorkspaceActions({ deletingWorkspaceId: undefined }),
-          onSuccess: refreshWorkspaces,
-        }),
-      !!userActions.lockingWorkspaceId &&
-        h(LockWorkspaceModal, {
-          workspace: getWorkspace(userActions.lockingWorkspaceId),
-          onDismiss: () => updateWorkspaceActions({ lockingWorkspaceId: undefined }),
-          onSuccess: refreshWorkspaces,
-        }),
-      !!userActions.sharingWorkspace &&
-        h(ShareWorkspaceModal, {
-          workspace: userActions.sharingWorkspace,
-          onDismiss: () => updateWorkspaceActions({ sharingWorkspace: undefined }),
-        }),
-      !!userActions.leavingWorkspaceId &&
-        h(LeaveResourceModal, {
-          samResourceId: userActions.leavingWorkspaceId,
-          samResourceType: 'workspace',
-          displayName: 'workspace',
-          onDismiss: () => updateWorkspaceActions({ leavingWorkspaceId: undefined }),
-          onSuccess: refreshWorkspaces,
-        }),
-      !!userActions.requestingAccessWorkspaceId &&
-        h(RequestAccessModal, {
-          workspace: getWorkspace(userActions.requestingAccessWorkspaceId),
-          onDismiss: () => updateWorkspaceActions({ requestingAccessWorkspaceId: undefined }),
-        }),
+      h(WorkspacesListTabs, {
+        workspaces: initialFiltered,
+        loadingSubmissionStats,
+        loadingWorkspaces,
+        refreshWorkspaces,
+      }),
+      h(WorkspacesListModals, { getWorkspace, refreshWorkspaces }),
       loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay),
     ]),
   ]);
