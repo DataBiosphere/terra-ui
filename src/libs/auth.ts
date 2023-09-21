@@ -53,6 +53,7 @@ export const getOidcConfig = () => {
   };
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
+    // TODO: The clientId from authStore.oidcConfig is null
     client_id: authStore.get().oidcConfig.clientId!,
     popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
     silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
@@ -411,9 +412,11 @@ export const isAzureUser = (): boolean => {
 
 export const doUserLoaded = (user: OidcUser, isSignInEvent: boolean): void => {
   return authStore.update((state) => {
-    const isSignedIn = !_.isNil(user);
+    const isSignedIn = true;
     const profile: B2cIdTokenClaims | undefined = user?.profile;
     const userId: string | undefined = profile?.sub;
+    const signedOut = !isSignedIn && !!state.isSignedIn;
+
     // The following few lines of code are to handle sign-in failures due to privacy tools.
     if (isSignInEvent && state.isSignedIn === false && !isSignedIn) {
       // if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
@@ -428,7 +431,8 @@ export const doUserLoaded = (user: OidcUser, isSignInEvent: boolean): void => {
     return {
       ...state,
       isSignedIn,
-      anonymousId: !isSignedIn && state.isSignedIn ? undefined : state.anonymousId,
+      // !isSignedIn && state.isSignedIn is checking if you signed out
+      anonymousId: signedOut ? undefined : state.anonymousId,
       registrationStatus: isSignedIn ? state.registrationStatus : undefined,
       termsOfService: initializeTermsOfService(isSignedIn, state),
       profile: isSignedIn ? state.profile : {},
@@ -456,22 +460,33 @@ export const doUserLoaded = (user: OidcUser, isSignInEvent: boolean): void => {
             }
           : {}),
       },
+
+      authContext: state.authContext,
+      oidcConfig: state.oidcConfig,
+      oidcUser: state.oidcUser,
+      authTokenMetadata: state.authTokenMetadata,
+      refreshTokenMetadata: state.refreshTokenMetadata,
+      sessionId: state.sessionId,
+      sessionStartTime: state.sessionStartTime,
     };
   });
 };
 
 // TODO: make this consistent with signout logic, or determine any differences we need to implement
 export const doUserUnloaded = (): void => {
-  // const authState = authStore.get();
-  cookieReadyStore.reset();
-  azureCookieReadyStore.reset();
-  getSessionStorage().clear();
-  azurePreviewStore.set(false);
-  // authStore.reset();
-  // authStore.update((oldState) => ({
-  //   ...oldState,
-  //   authContext: authState.authContext,
-  // }));
+  const authState = authStore.get();
+  authStore.reset();
+  authStore.update((state) => ({
+    ...state,
+    anonymousId: authState.anonymousId,
+    authContext: authState.authContext,
+    oidcConfig: authState.oidcConfig,
+    oidcUser: authState.oidcUser,
+    authTokenMetadata: authState.authTokenMetadata,
+    refreshTokenMetadata: authState.refreshTokenMetadata,
+    sessionId: authState.sessionId,
+    sessionStartTime: authState.sessionStartTime,
+  }));
 };
 
 const initializeTermsOfService = (isSignedIn, state) => {
@@ -482,20 +497,23 @@ const initializeTermsOfService = (isSignedIn, state) => {
 };
 
 // this function is only called when the browser refreshes
-export const initializeAuth = _.memoize(async () => {
+export const initializeAuth = _.memoize(async (): Promise<void> => {
   // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
   // All other auth usage should use the AuthContext from authStore.
+  // TODO: store this in the "authStore" and only create it when it does not already exist
   const userManager: UserManager = new UserManager(getOidcConfig());
 
   // TODO: we would like to make this only happen when the user is already signed in
   const errorMessage = 'Failed to initialize auth.';
   try {
     const initialOidcUser: OidcUser | null = await userManager.getUser();
+    // no user stored in oidc userStore
+    // this is totally normal when first signing in
     if (initialOidcUser === null) {
-      console.error('Failed to receive initial auth token from oidc-client');
-      throw new Error(errorMessage);
+      console.error('No user found in oidc userStore when expected');
+    } else {
+      doUserLoaded(initialOidcUser, false);
     }
-    doUserLoaded(initialOidcUser, false);
   } catch (e) {
     console.error('Error in contacting oidc-client');
     throw new Error(errorMessage);

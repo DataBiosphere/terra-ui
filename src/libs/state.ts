@@ -6,6 +6,8 @@ import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 
+export type Uninitialized = 'uninitialized';
+
 export type TerraUser = {
   token?: string | undefined;
   scope?: string | undefined;
