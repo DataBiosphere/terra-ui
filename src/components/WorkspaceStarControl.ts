@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { icon, spinner } from 'src/components/icons';
@@ -7,29 +7,25 @@ import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { useStore } from 'src/libs/react-utils';
+import { AuthState, authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 interface WorkspaceStarControlProps {
   workspace: WorkspaceWrapper;
-  stars: string[];
-  setStars: React.Dispatch<string[]>;
-  style?: React.CSSProperties;
-  updatingStars: boolean;
-  setUpdatingStars: React.Dispatch<boolean>;
 }
 
-export const WorkspaceStarControl: FC<WorkspaceStarControlProps> = ({
-  workspace,
-  stars,
-  setStars,
-  style,
-  updatingStars,
-  setUpdatingStars,
-}) => {
+export const WorkspaceStarControl: FC<WorkspaceStarControlProps> = ({ workspace }) => {
   const {
     workspace: { workspaceId },
   } = workspace;
+  const {
+    profile: { starredWorkspaces },
+  } = useStore<AuthState>(authStore);
+  const stars = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces);
+
+  const [updatingStars, setUpdatingStars] = useState(false);
   const isStarred = _.includes(workspaceId, stars);
 
   // Thurloe has a limit of 2048 bytes for its VALUE column. That means we can store a max of 55
@@ -58,7 +54,7 @@ export const WorkspaceStarControl: FC<WorkspaceStarControlProps> = ({
       starred: star,
       ...extractWorkspaceDetails(workspace.workspace),
     });
-    setStars(updatedWorkspaceIds);
+    authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds.join(',')));
   });
 
   return h(
@@ -84,7 +80,7 @@ export const WorkspaceStarControl: FC<WorkspaceStarControlProps> = ({
       'aria-label': isStarred ? 'This workspace is starred' : '',
       className: 'fa-layers fa-fw',
       disabled: updatingStars || (maxStarredWorkspacesReached && !isStarred),
-      style: { verticalAlign: 'middle', ...style },
+      style: { verticalAlign: 'middle' },
       onKeyDown: (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();

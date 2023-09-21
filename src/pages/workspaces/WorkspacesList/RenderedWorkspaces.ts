@@ -14,7 +14,7 @@ import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
-import { authStore } from 'src/libs/state';
+import { AuthState, authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import {
@@ -50,28 +50,18 @@ const styles = {
 
 interface RenderedWorkspacesProps {
   workspaces: Workspace[];
-  // filteredWorkspaces: CatagorizedWorkspaces;
   label: string;
-  // tabs: WorkspaceTab[];
   noContent: ReactNode;
   loadingSubmissionStats: boolean;
 }
 
-export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = ({
-  workspaces,
-  // tab,
-  // filteredWorkspaces,
-  loadingSubmissionStats,
-  ...props
-}) => {
+export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = ({ workspaces, loadingSubmissionStats, ...props }) => {
   const getWorkspace = (id: string): Workspace => _.find({ workspace: { workspaceId: id } }, workspaces)!;
 
   const {
     profile: { starredWorkspaces },
-  } = useStore(authStore);
+  } = useStore<AuthState>(authStore);
   const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces);
-  const [stars, setStars] = useState(starredWorkspaceIds);
-  const [updatingStars, setUpdatingStars] = useState(false);
 
   const [sort, setSort] = useState<WorkspaceSort>({ field: 'lastModified', direction: 'desc' });
 
@@ -103,16 +93,7 @@ export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = ({
               padding: '0.5rem 0',
             },
           },
-          [
-            h(WorkspaceStarControl, {
-              workspace,
-              setStars,
-              style: {},
-              updatingStars,
-              setUpdatingStars,
-              stars,
-            }),
-          ]
+          [h(WorkspaceStarControl, { workspace })]
         );
       },
       size: { basis: 40, grow: 0, shrink: 0 },
