@@ -46,6 +46,9 @@ const pointerTypes = ['radio', 'checkbox', 'submit', 'button'];
 export interface InteractiveProps extends AllHTMLAttributes<HTMLElement> {
   hover?: React.CSSProperties;
   tagName?: keyof JSX.IntrinsicElements;
+
+  // Allow arbitrary data attributes on the rendered element.
+  [dataAttribute: `data-${string}`]: string;
 }
 
 export const Interactive = forwardRef((props: InteractiveProps, ref: ForwardedRef<HTMLElement>) => {
