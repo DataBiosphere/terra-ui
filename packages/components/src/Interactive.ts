@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { createElement, ForwardedRef, forwardRef, ReactNode, useState } from 'react';
+import { AllHTMLAttributes, createElement, ForwardedRef, forwardRef, useState } from 'react';
 
 import { injectStyle } from './injectStyle';
 import * as Utils from './utils';
@@ -39,21 +39,14 @@ const allowedHoverVariables = [
 const pointerTags = ['button', 'area', 'a', 'select'];
 const pointerTypes = ['radio', 'checkbox', 'submit', 'button'];
 
-export type InteractiveProps = {
-  children?: ReactNode;
-  className?: string;
-  disabled?: boolean;
+// Since Interactive may render any HTML element based on the tagName prop,
+// use AllHTMLAttributes<HTMLElement> to allow this to accept attributes
+// for any HTML element.
+// TODO: Can a more specific type be used by parameterizing this with a tag name?
+export interface InteractiveProps extends AllHTMLAttributes<HTMLElement> {
   hover?: React.CSSProperties;
-  role?: string;
-  style?: React.CSSProperties;
-  tabIndex?: number;
   tagName?: keyof JSX.IntrinsicElements;
-  type?: string;
-  onBlur?: (event: any) => void;
-  onClick?: (event: any) => void;
-  onKeyDown?: (event: any) => void;
-  onMouseDown?: (event: any) => void;
-};
+}
 
 export const Interactive = forwardRef((props: InteractiveProps, ref: ForwardedRef<HTMLElement>) => {
   const {
