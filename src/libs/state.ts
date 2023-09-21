@@ -1,4 +1,6 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
+import { AuthContextProps } from 'react-oidc-context';
+import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
@@ -34,7 +36,7 @@ export type TokenMetadata = {
 
 export type AuthState = {
   anonymousId: string | undefined;
-  authContext: any;
+  authContext: AuthContextProps | undefined;
   authTokenMetadata: TokenMetadata;
   cookiesAccepted: boolean | undefined;
   fenceStatus: {};
@@ -45,6 +47,7 @@ export type AuthState = {
     linkedNihUsername: string;
     linkExpireTime: number;
   };
+  oidcUser: OidcUser | undefined;
   oidcConfig: {
     authorityEndpoint?: string;
     clientId?: string;
@@ -78,6 +81,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     authorityEndpoint: undefined,
     clientId: undefined,
   },
+  oidcUser: undefined,
   profile: {
     institute: undefined,
     title: undefined,
