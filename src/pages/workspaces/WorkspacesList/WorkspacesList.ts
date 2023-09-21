@@ -1,26 +1,21 @@
 import _ from 'lodash/fp';
-import { FC, useEffect, useMemo, useState } from 'react';
-import { div, h, p, span } from 'react-hyperscript-helpers';
-import Collapse from 'src/components/Collapse';
+import { FC, useMemo, useState } from 'react';
+import { div, h, p } from 'react-hyperscript-helpers';
 import { Link, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import TopBar from 'src/components/TopBar';
-import { recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { isAzureUser } from 'src/libs/auth';
 import { withErrorIgnoring } from 'src/libs/error';
-import * as Nav from 'src/libs/nav';
-import { getLocalPref, setLocalPref } from 'src/libs/prefs';
+import { updateSearch, useRoute } from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import { elements as StyleElements } from 'src/libs/style';
 import { newTabLinkProps } from 'src/libs/utils';
 import { cloudProviderTypes, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { catagorizeWorkspaces } from 'src/pages/workspaces/WorkspacesList/CatagorizedWorkspaces';
-import {
-  useWorkspacesWithSubmissionStats,
-  workspaceSubmissionStatus,
-} from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
+import { RecentlyViewedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RecentlyViewedWorkspaces';
+import { useWorkspacesWithSubmissionStats } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
 import {
   getWorkspaceFiltersFromQuery,
   WorkspaceFilters,
@@ -29,6 +24,11 @@ import {
 import { WorkspacesListTabs } from 'src/pages/workspaces/WorkspacesList/WorkspaceListTabs';
 import { WorkspacesListModals } from 'src/pages/workspaces/WorkspacesList/WorkspacesListModals';
 import { updateWorkspaceActions } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
+
+export const persistenceId = 'workspaces/list';
+
+export const getWorkspace = (id: string, workspaces: Workspace[]): Workspace =>
+  _.find({ workspace: { workspaceId: id } }, workspaces)!;
 
 export const WorkspacesList: FC<{}> = () => {
   const {
@@ -39,22 +39,7 @@ export const WorkspacesList: FC<{}> = () => {
   } = useWorkspacesWithSubmissionStats();
   const [featuredList, setFeaturedList] = useState<Workspace[]>();
 
-  // A user may have lost access to a workspace after viewing it, so we'll filter those out just in case
-  const recentlyViewed = useMemo(
-    () =>
-      _.filter(
-        (w) => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces),
-        getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []
-      ),
-    [workspaces]
-  );
-
-  const persistenceId = 'workspaces/list';
-  const [recentlyViewedOpen, setRecentlyViewedOpen] = useState(() =>
-    _.defaultTo(true, getLocalPref(persistenceId)?.recentlyViewedOpen)
-  );
-
-  const { query } = Nav.useRoute();
+  const { query } = useRoute();
 
   const filters: WorkspaceFilterValues = getWorkspaceFiltersFromQuery(query);
 
@@ -64,7 +49,7 @@ export const WorkspacesList: FC<{}> = () => {
     // featured workspaces that are available on Azure, automatically filter workspaces by cloud
     // platform for Azure users.
     if (isAzureUser() && !filters.cloudPlatform) {
-      Nav.updateSearch({ ...query, cloudPlatform: cloudProviderTypes.AZURE });
+      updateSearch({ ...query, cloudPlatform: cloudProviderTypes.AZURE });
     }
   });
 
@@ -74,12 +59,6 @@ export const WorkspacesList: FC<{}> = () => {
     });
     loadFeatured();
   });
-
-  useEffect(() => {
-    setLocalPref(persistenceId, { recentlyViewedOpen });
-  }, [recentlyViewedOpen, persistenceId]);
-
-  const getWorkspace = (id: string): Workspace => _.find({ workspace: { workspaceId: id } }, workspaces)!;
 
   const initialFiltered = useMemo(() => catagorizeWorkspaces(workspaces, featuredList), [workspaces, featuredList]);
 
@@ -109,35 +88,7 @@ export const WorkspacesList: FC<{}> = () => {
           ['Learn more about workspaces.']
         ),
       ]),
-      !_.isEmpty(workspaces) &&
-        !_.isEmpty(recentlyViewed) &&
-        h(
-          Collapse,
-          {
-            title: 'Recently Viewed',
-            initialOpenState: recentlyViewedOpen,
-            noTitleWrap: true,
-            onClick: () => setRecentlyViewedOpen((v) => !v),
-            summaryStyle: { margin: '0.5rem 0' },
-          },
-          [
-            // Stop the click propagation here, otherwise using spacebar to click on a card will also collapse the Recently Viewed section
-            span({ onClick: (e) => e.stopPropagation() }, [
-              div(
-                { style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
-                _.map(({ workspaceId, timestamp }) => {
-                  const workspace = getWorkspace(workspaceId);
-                  return h(RecentlyViewedWorkspaceCard, {
-                    workspace,
-                    loadingSubmissionStats,
-                    timestamp,
-                    submissionStatus: workspaceSubmissionStatus(workspace),
-                  });
-                }, recentlyViewed)
-              ),
-            ]),
-          ]
-        ),
+      h(RecentlyViewedWorkspaces, { workspaces, loadingSubmissionStats }),
       h(WorkspaceFilters, { workspaces }),
       h(WorkspacesListTabs, {
         workspaces: initialFiltered,
@@ -145,7 +96,7 @@ export const WorkspacesList: FC<{}> = () => {
         loadingWorkspaces,
         refreshWorkspaces,
       }),
-      h(WorkspacesListModals, { getWorkspace, refreshWorkspaces }),
+      h(WorkspacesListModals, { getWorkspace: (id) => getWorkspace(id, workspaces), refreshWorkspaces }),
       loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay),
     ]),
   ]);
