@@ -26,6 +26,7 @@ export const useWorkspacesWithSubmissionStats = () => {
       'workspace.name',
       'workspace.namespace',
       'workspace.workspaceId',
+      'workspace.state',
     ],
     250
   );
