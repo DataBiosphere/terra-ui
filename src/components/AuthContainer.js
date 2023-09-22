@@ -4,7 +4,7 @@ import { centeredSpinner } from 'src/components/icons';
 import { isAzureUser } from 'src/libs/auth';
 import { useRoute } from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
-import { authStore, azurePreviewStore, userStatus } from 'src/libs/state';
+import { authStore, azurePreviewStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import AzurePreview from 'src/pages/AzurePreview';
 import { Disabled } from 'src/pages/Disabled';
@@ -18,15 +18,14 @@ const AuthContainer = ({ children }) => {
   const displayTosPage = isSignedIn && termsOfService.permitsSystemUsage === false;
   const seenAzurePreview = useStore(azurePreviewStore) || false;
   const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } });
-
   return Utils.cond(
     [isSignedIn === undefined && !isPublic, authspinner],
     [isSignedIn === false && !isPublic, () => h(SignIn)],
     [seenAzurePreview === false && isAzureUser(), () => h(AzurePreview)],
-    [registrationStatus === undefined && !isPublic, authspinner],
-    [registrationStatus === userStatus.unregistered, () => h(Register)],
+    [registrationStatus === 'uninitialized' && !isPublic, authspinner],
+    [registrationStatus === 'unregistered', () => h(Register)],
     [displayTosPage && name !== 'privacy', () => h(TermsOfService)],
-    [registrationStatus === userStatus.disabled, () => h(Disabled)],
+    [registrationStatus === 'disabled', () => h(Disabled)],
     [_.isEmpty(profile) && !isPublic, authspinner],
     () => children
   );

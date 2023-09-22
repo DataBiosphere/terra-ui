@@ -12,7 +12,7 @@ import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { registrationLogo } from 'src/libs/logos';
-import { authStore, getUser, TerraUser, TerraUserProfile, userStatus } from 'src/libs/state';
+import { authStore, getUser, TerraUser, TerraUserProfile } from 'src/libs/state';
 import validate from 'validate.js';
 
 const constraints = (partOfOrg) => {
@@ -90,7 +90,7 @@ const Register = () => {
         interestInTerra,
         ...orgFields,
       });
-      authStore.update((state) => ({ ...state, registrationStatus: userStatus.registeredWithoutTos }));
+      authStore.update((state) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
       await refreshTerraProfile();
       Ajax().Metrics.captureEvent(Events.userRegister);
     } catch (error) {
