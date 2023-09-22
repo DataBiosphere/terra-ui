@@ -1,6 +1,5 @@
 import _ from 'lodash/fp';
-import { canWrite } from 'src/libs/utils';
-import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { canWrite, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
 export interface CatagorizedWorkspaces {
   myWorkspaces: Workspace[];
