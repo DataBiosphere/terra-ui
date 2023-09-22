@@ -19,7 +19,6 @@ const AuthContainer = ({ children }) => {
   const seenAzurePreview = useStore(azurePreviewStore) || false;
   const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } });
   return Utils.cond(
-    [isSignedIn === undefined && !isPublic, authspinner],
     [isSignedIn === false && !isPublic, () => h(SignIn)],
     [seenAzurePreview === false && isAzureUser(), () => h(AzurePreview)],
     [registrationStatus === 'uninitialized' && !isPublic, authspinner],

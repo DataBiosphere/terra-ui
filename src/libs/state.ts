@@ -1,4 +1,5 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
+import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
 import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
@@ -55,21 +56,15 @@ export type TokenMetadata = {
 
 export type AuthState = {
   anonymousId: string | undefined;
-  authContext: AuthContextProps | undefined;
   authTokenMetadata: TokenMetadata;
   cookiesAccepted: boolean | undefined;
   fenceStatus: {};
   hasGcpBillingScopeThroughB2C: boolean | undefined;
-  isSignedIn: boolean | undefined;
+  isSignedIn: boolean;
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: {
     linkedNihUsername: string;
     linkExpireTime: number;
-  };
-  oidcUser: OidcUser | undefined;
-  oidcConfig: {
-    authorityEndpoint?: string;
-    clientId?: string;
   };
   // props in the TerraUserProfile are always present, but there may be more props
   profile: TerraUserProfile & any;
@@ -83,7 +78,6 @@ export type AuthState = {
 
 export const authStore: Atom<AuthState> = atom<AuthState>({
   anonymousId: undefined,
-  authContext: undefined,
   authTokenMetadata: {
     token: undefined,
     id: undefined,
@@ -95,12 +89,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   cookiesAccepted: undefined,
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
-  isSignedIn: undefined,
-  oidcConfig: {
-    authorityEndpoint: undefined,
-    clientId: undefined,
-  },
-  oidcUser: undefined,
+  isSignedIn: false,
   profile: {
     institute: undefined,
     title: undefined,
@@ -138,6 +127,26 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
 export const getUser = (): TerraUser => authStore.get().user;
 
 export const getSessionId = () => authStore.get().sessionId;
+
+export type OidcState = {
+  authContext: AuthContextProps | undefined;
+  user: OidcUser | undefined;
+  userManager: UserManager | undefined;
+  config: {
+    authorityEndpoint?: string;
+    clientId?: string;
+  };
+};
+
+export const oidcStore: Atom<OidcState> = atom<OidcState>({
+  authContext: undefined,
+  user: undefined,
+  userManager: undefined,
+  config: {
+    authorityEndpoint: undefined,
+    clientId: undefined,
+  },
+});
 
 export const cookieReadyStore = atom(false);
 export const azureCookieReadyStore = atom({

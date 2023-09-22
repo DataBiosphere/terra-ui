@@ -23,8 +23,8 @@ import {
   azurePreviewStore,
   cookieReadyStore,
   getUser,
+  oidcStore,
   requesterPaysProjectStore,
-  TermsOfServiceStatus,
   TerraUserRegistrationStatus,
   TokenMetadata,
   workspacesStore,
@@ -55,7 +55,7 @@ export const getOidcConfig = () => {
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
     // TODO: The clientId from authStore.oidcConfig is null
-    client_id: authStore.get().oidcConfig.clientId!,
+    client_id: oidcStore.get().config.clientId!,
     popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
     silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
     metadata,
@@ -73,7 +73,7 @@ export const getOidcConfig = () => {
 };
 
 const getAuthInstance = (): AuthContextProps => {
-  const authContext: AuthContextProps | undefined = authStore.get().authContext;
+  const authContext: AuthContextProps | undefined = oidcStore.get().authContext;
   if (authContext === undefined) {
     console.error('getAuthInstance must not be called before authContext is initialized.');
     throw new Error('Error initializing authentication.');
@@ -123,22 +123,25 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
     notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
   }
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
-  // TODO: make separate state store for holding authContext and anything needed to bootstrap terra
-  //  so we can selectively refresh session info
-  const authState = authStore.get();
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
   azurePreviewStore.set(false);
-  authStore.reset();
-  authStore.update((oldState) => ({
-    ...oldState,
-    authContext: authState.authContext,
-  }));
+
   const auth: AuthContextProps = getAuthInstance();
   revokeTokens()
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState());
+  const authState = authStore.get();
+  authStore.reset();
+  authStore.update((state) => ({
+    ...state,
+    isSignedIn: false,
+    // TODO: If allowed, this should be moved to the cookie store
+    // Load whether a user has input a cookie acceptance in a previous session on this system,
+    // or whether they input cookie acceptance previously in this session
+    cookiesAccepted: authState.cookiesAccepted,
+  }));
 };
 
 const revokeTokens = async () => {
@@ -241,6 +244,11 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     // for future might want to take refresh token and hash it to compare to a saved hashed token to see if they are the same
     const isNewRefreshToken = !!refreshToken && refreshToken !== oldRefreshTokenMetadata.token;
 
+    oidcStore.update((state) => ({
+      ...state,
+      user: oidcUser,
+    }));
+
     // for metrics, updates authToken metadata and refresh token metadata
     authStore.update((state) => ({
       ...state,
@@ -256,7 +264,6 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
             ? oldAuthTokenMetadata.totalTokensUsedThisSession
             : oldAuthTokenMetadata.totalTokensUsedThisSession + 1,
       },
-      oidcUser,
       refreshTokenMetadata: isNewRefreshToken
         ? {
             ...authStore.get().refreshTokenMetadata,
@@ -380,7 +387,7 @@ const becameRegistered = (oldState: AuthState, state: AuthState) => {
 };
 
 export const isAuthSettled = ({ isSignedIn, registrationStatus }) => {
-  return isSignedIn !== undefined && (!isSignedIn || registrationStatus !== undefined);
+  return !isSignedIn || registrationStatus !== 'uninitialized';
 };
 
 export const ensureAuthSettled = () => {
@@ -408,43 +415,27 @@ export const isAzureUser = (): boolean => {
   return _.startsWith('https://login.microsoftonline.com', getUser().idp!);
 };
 
-export const doUserLoaded = (user: OidcUser, isSignInEvent: boolean): void => {
+export const doUserLoaded = (user: OidcUser): void => {
   return authStore.update((state) => {
-    const isSignedIn = true;
-    const profile: B2cIdTokenClaims | undefined = user?.profile;
-    const userId: string | undefined = profile?.sub;
-    const signedOut = !isSignedIn && !!state.isSignedIn;
-
-    // The following few lines of code are to handle sign-in failures due to privacy tools.
-    if (isSignInEvent && state.isSignedIn === false && !isSignedIn) {
-      // if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
-      // tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
-      notify('error', 'Could not sign in', {
-        message: 'Click for more information',
-        detail:
-          'If you are using privacy blockers, they may be preventing you from signing in. Please disable those tools, refresh, and try signing in again.',
-        timeout: 30000,
-      });
-    }
+    const profile: B2cIdTokenClaims = user.profile;
+    // according to IdTokenClaims, this is a mandatory claim and should always exist
+    const userId: string = profile.sub;
     return {
       ...state,
-      isSignedIn,
-      // !isSignedIn && state.isSignedIn is checking if you signed out
-      anonymousId: signedOut ? undefined : state.anonymousId,
-      registrationStatus: isSignedIn ? state.registrationStatus : 'uninitialized',
-      termsOfService: initializeTermsOfService(isSignedIn, state),
-      profile: isSignedIn ? state.profile : {},
-      nihStatus: isSignedIn ? state.nihStatus : undefined,
-      fenceStatus: isSignedIn ? state.fenceStatus : {},
+      isSignedIn: true,
+      anonymousId: state.anonymousId,
+      registrationStatus: state.registrationStatus,
+      termsOfService: state.termsOfService,
+      profile: state.profile,
+      nihStatus: state.nihStatus,
+      fenceStatus: state.fenceStatus,
       // Load whether a user has input a cookie acceptance in a previous session on this system,
       // or whether they input cookie acceptance previously in this session
-      cookiesAccepted: isSignedIn
-        ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey)
-        : undefined,
-      isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
-      hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
+      cookiesAccepted: state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey),
+      isTimeoutEnabled: state.isTimeoutEnabled,
+      hasGcpBillingScopeThroughB2C: state.hasGcpBillingScopeThroughB2C,
       user: {
-        token: user?.access_token,
+        token: user.access_token,
         scope: user?.scope,
         id: userId,
         ...(profile
@@ -458,59 +449,21 @@ export const doUserLoaded = (user: OidcUser, isSignInEvent: boolean): void => {
             }
           : {}),
       },
-
-      authContext: state.authContext,
-      oidcConfig: state.oidcConfig,
-      oidcUser: state.oidcUser,
-      authTokenMetadata: state.authTokenMetadata,
-      refreshTokenMetadata: state.refreshTokenMetadata,
-      sessionId: state.sessionId,
-      sessionStartTime: state.sessionStartTime,
     };
   });
-};
-
-// TODO: make this consistent with signout logic, or determine any differences we need to implement
-export const doUserUnloaded = (): void => {
-  const authState = authStore.get();
-  authStore.reset();
-  authStore.update((state) => ({
-    ...state,
-    anonymousId: authState.anonymousId,
-    authContext: authState.authContext,
-    oidcConfig: authState.oidcConfig,
-    oidcUser: authState.oidcUser,
-    authTokenMetadata: authState.authTokenMetadata,
-    refreshTokenMetadata: authState.refreshTokenMetadata,
-    sessionId: authState.sessionId,
-    sessionStartTime: authState.sessionStartTime,
-  }));
-};
-
-const initializeTermsOfService = (isSignedIn: boolean, state: AuthState): TermsOfServiceStatus => {
-  return {
-    userHasAcceptedLatestTos: isSignedIn ? state.termsOfService.userHasAcceptedLatestTos : undefined,
-    permitsSystemUsage: isSignedIn ? state.termsOfService.permitsSystemUsage : undefined,
-  };
 };
 
 // this function is only called when the browser refreshes
 export const initializeAuth = _.memoize(async (): Promise<void> => {
   // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
-  // All other auth usage should use the AuthContext from authStore.
-  // TODO: store this in the "authStore" and only create it when it does not already exist
+  // All other auth usage should use the AuthContext from oidcStore.
   const userManager: UserManager = new UserManager(getOidcConfig());
 
-  // TODO: we would like to make this only happen when the user is already signed in
   const errorMessage = 'Failed to initialize auth.';
   try {
     const initialOidcUser: OidcUser | null = await userManager.getUser();
-    // no user stored in oidc userStore
-    // this is totally normal when first signing in
-    if (initialOidcUser === null) {
-      console.error('No user found in oidc userStore when expected');
-    } else {
-      doUserLoaded(initialOidcUser, false);
+    if (initialOidcUser !== null) {
+      doUserLoaded(initialOidcUser);
     }
   } catch (e) {
     console.error('Error in contacting oidc-client');
@@ -518,9 +471,10 @@ export const initializeAuth = _.memoize(async (): Promise<void> => {
   }
 });
 
+// This is the first thing that happens on app load.
 export const initializeClientId = _.memoize(async () => {
   const oidcConfig = await Ajax().OAuth2.getConfiguration();
-  authStore.update((state) => ({ ...state, oidcConfig }));
+  oidcStore.update((state) => ({ ...state, config: oidcConfig }));
 });
 
 // This is intended for tests to short circuit the login flow
@@ -570,7 +524,7 @@ authStore.subscribe(
     };
     const canNowUseSystem =
       !oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage === true;
-    const isNowSignedIn = oldState.isSignedIn === false && state.isSignedIn === true;
+    const isNowSignedIn = !oldState.isSignedIn && state.isSignedIn;
     if (isNowSignedIn || canNowUseSystem) {
       clearNotification(sessionTimeoutProps.id);
       const registrationStatus: TerraUserRegistrationStatus = await getRegistrationStatus();
