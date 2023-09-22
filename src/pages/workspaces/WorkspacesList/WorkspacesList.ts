@@ -21,8 +21,8 @@ import {
   WorkspaceFilters,
   WorkspaceFilterValues,
 } from 'src/pages/workspaces/WorkspacesList/WorkspaceFilters';
-import { WorkspacesListTabs } from 'src/pages/workspaces/WorkspacesList/WorkspaceListTabs';
 import { WorkspacesListModals } from 'src/pages/workspaces/WorkspacesList/WorkspacesListModals';
+import { WorkspacesListTabs } from 'src/pages/workspaces/WorkspacesList/WorkspacesListTabs';
 import { updateWorkspaceActions } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
 
 export const persistenceId = 'workspaces/list';
