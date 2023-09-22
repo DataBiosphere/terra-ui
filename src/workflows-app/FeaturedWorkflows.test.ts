@@ -59,6 +59,7 @@ describe('Featured workflows', () => {
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
           analysesData: defaultAnalysesData,
+          setSelectedSubHeader: jest.fn(),
         })
       )
     );
@@ -110,6 +111,7 @@ describe('Featured workflows', () => {
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
           analysesData: defaultAnalysesData,
+          setSelectedSubHeader: jest.fn(),
         })
       )
     );
@@ -155,6 +157,7 @@ describe('Featured workflows', () => {
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
           analysesData: defaultAnalysesData,
+          setSelectedSubHeader: jest.fn(),
         })
       )
     );

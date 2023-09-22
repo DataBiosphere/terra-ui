@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useCallback, useState } from 'react';
+import { Dispatch, Fragment, SetStateAction, useCallback, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
@@ -14,6 +14,7 @@ import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-ut
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { ImportWorkflowModal } from 'src/workflows-app/components/ImportWorkflowModal';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { FeaturedWorkflow, featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
@@ -24,16 +25,29 @@ type FeaturedWorkflowsProps = {
   namespace: string;
   workspace: WorkspaceWrapper;
   analysesData: AnalysesData;
+  setSelectedSubHeader: Dispatch<SetStateAction<string>>;
 };
 
 export const FeaturedWorkflows = ({
+  name,
+  namespace,
+  workspace,
   workspace: {
     workspace: { workspaceId },
   },
   analysesData: { apps, refreshApps },
+  setSelectedSubHeader,
 }: FeaturedWorkflowsProps) => {
   const [methodsData, setMethodsData] = useState<WorkflowMethod[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [methodName, setMethodName] = useState('');
+  const [methodId, setMethodId] = useState('');
+
+  const [importWorkflowModal, setImportWorkflowModal] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [successfulImport, setSuccessfulImport] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const signal = useCancellation();
   const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
@@ -170,28 +184,36 @@ export const FeaturedWorkflows = ({
                             const {
                               cbasProxyUrlState: { state },
                             } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
+                            setImportWorkflowModal(true);
+                            setImportLoading(true);
+                            setMethodName(method.name);
                             const imports = methodsInWorkspace.map(([inWorkspace, m]) =>
                               inWorkspace
                                 ? Promise.resolve()
-                                : Cbas()
-                                    .methods.post(state, {
-                                      method_name: m.name,
-                                      method_description: m.description,
-                                      method_source: m.source,
-                                      method_version: m.method_versions[0].name,
-                                      method_url: m.method_versions[0].url,
-                                      method_input_mappings: m.template.method_input_mappings,
-                                      method_output_mappings: m.template.method_output_mappings,
-                                    })
-                                    .catch(async (err) =>
-                                      notify('error', 'Error importing workflow', { detail: await err.text() })
-                                    )
+                                : Cbas().methods.post(state, {
+                                    method_name: m.name,
+                                    method_description: m.description,
+                                    method_source: m.source,
+                                    method_version: m.method_versions[0].name,
+                                    method_url: m.method_versions[0].url,
+                                    method_input_mappings: m.template.method_input_mappings,
+                                    method_output_mappings: m.template.method_output_mappings,
+                                  })
                             );
-                            await Promise.all(imports);
-                            // TODO: Import popup...
+                            await Promise.all(imports)
+                              .then((resolvedImports) => {
+                                setSuccessfulImport(true);
+                                setMethodId(resolvedImports[0].method_id);
+                              })
+                              .catch(async (error) => {
+                                setSuccessfulImport(false);
+                                setErrorMessage(
+                                  JSON.stringify(error instanceof Response ? await error.text() : error, null, 2)
+                                );
+                              });
+                            setImportLoading(false);
                           },
                         },
-
                         ['Add to workspace']
                       ),
                     ]),
@@ -211,5 +233,18 @@ export const FeaturedWorkflows = ({
           ' Loading your Workflows app, this may take a few minutes.',
         ])
       : renderFeaturedWorkflows(),
+    importWorkflowModal &&
+      h(ImportWorkflowModal, {
+        importLoading,
+        methodName,
+        onDismiss: () => setImportWorkflowModal(false),
+        workspace,
+        namespace,
+        name,
+        methodId,
+        setSelectedSubHeader,
+        successfulImport,
+        errorMessage,
+      }),
   ]);
 };
