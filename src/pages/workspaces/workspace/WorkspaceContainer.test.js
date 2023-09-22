@@ -14,6 +14,7 @@ jest.mock('src/libs/feature-previews', () => ({
   ...jest.requireActual('src/libs/feature-previews'),
   isFeaturePreviewEnabled: jest.fn(),
 }));
+// Mocking events
 
 const mockWorkspaceMenu = jest.fn();
 jest.mock(
