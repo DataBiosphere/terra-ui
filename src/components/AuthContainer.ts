@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
-import { div, h } from 'react-hyperscript-helpers';
-import { centeredSpinner } from 'src/components/icons';
+import { ReactNode } from 'react';
+import { h } from 'react-hyperscript-helpers';
+import { fixedSpinnerOverlay } from 'src/components/common';
 import { isAzureUser } from 'src/libs/auth';
 import { useRoute } from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
@@ -17,9 +18,9 @@ const AuthContainer = ({ children }) => {
   const { isSignedIn, registrationStatus, termsOfService, profile } = useStore(authStore);
   const displayTosPage = isSignedIn === true && (termsOfService as any).permitsSystemUsage === false;
   const seenAzurePreview = useStore(azurePreviewStore) || false;
-  const authspinner = () => h(centeredSpinner, div({ style: { position: 'fixed' } }));
+  const authspinner = () => fixedSpinnerOverlay;
 
-  return Utils.cond<any>(
+  return Utils.cond<ReactNode>(
     [isSignedIn === undefined && !isPublic, authspinner],
     [isSignedIn === false && !isPublic, () => h(SignIn)],
     [seenAzurePreview === false && isAzureUser(), () => h(AzurePreview)],
@@ -28,7 +29,7 @@ const AuthContainer = ({ children }) => {
     [displayTosPage && name !== 'privacy', () => h(TermsOfService)],
     [registrationStatus === userStatus.disabled, () => h(Disabled)],
     [_.isEmpty(profile) && !isPublic, authspinner],
-    [true, () => children]
+    () => children
   );
 };
 
