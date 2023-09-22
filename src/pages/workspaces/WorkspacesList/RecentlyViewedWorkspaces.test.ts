@@ -18,7 +18,7 @@ jest.mock('src/libs/prefs', () => ({
   setLocalPref: jest.fn(),
 }));
 
-describe('', () => {
+describe('The recently viewed workspaces component', () => {
   it('starts open when the user preference is set', () => {
     jest.mock('src/libs/prefs', () => ({
       ...jest.requireActual('src/libs/prefs'),

@@ -4,9 +4,9 @@ import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
 export interface CatagorizedWorkspaces {
   myWorkspaces: Workspace[];
-  public: Workspace[];
   newAndInteresting: Workspace[];
   featured: Workspace[];
+  public: Workspace[];
 }
 
 export function catagorizeWorkspaces(workspaces: Workspace[], featuredList?: Workspace[]): CatagorizedWorkspaces {

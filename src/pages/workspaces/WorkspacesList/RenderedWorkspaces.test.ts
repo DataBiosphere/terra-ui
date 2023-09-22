@@ -3,7 +3,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { RenderedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RenderedWorkspaces';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
-// FileBrowserTable uses react-virtualized's AutoSizer to size the table.
+// FlexTable uses react-virtualized's AutoSizer to size the table.
 // This makes the virtualized window large enough for all rows/columns to be rendered in tests.
 jest.mock('react-virtualized', () => ({
   ...jest.requireActual('react-virtualized'),
