@@ -7,6 +7,8 @@ import ModalDrawer from 'src/components/ModalDrawer';
 import { TextCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
+import * as Nav from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -68,7 +70,7 @@ const suggestedWorkflowsList = [
   },
 ];
 
-const FindWorkflowModal = ({ onDismiss, workspace }) => {
+const FindWorkflowModal = ({ onDismiss, workspace, namespace }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows');
   const [loading, setLoading] = useState(false);
 
@@ -81,6 +83,18 @@ const FindWorkflowModal = ({ onDismiss, workspace }) => {
   };
 
   const isSubHeaderActive = (subHeader) => selectedSubHeader === subHeader;
+
+  const onSuccess = (methodObject) => {
+    Nav.goToPath('workspace-workflows-app-submission-config', {
+      name: workspace.workspace.name,
+      namespace,
+      methodId: methodObject.method_id,
+    });
+  };
+  const onError = async (error) => {
+    notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
+    onDismiss();
+  };
 
   return h(
     ModalDrawer,
@@ -134,14 +148,14 @@ const FindWorkflowModal = ({ onDismiss, workspace }) => {
                 (method) =>
                   h(MethodCard, {
                     method,
-                    onClick: () => Utils.withBusyState(setLoading, submitMethod(signal, onDismiss, method, workspace)),
+                    onClick: () => Utils.withBusyState(setLoading, submitMethod(signal, method, workspace, onSuccess, onError)),
                     key: method.method_name,
                   }),
                 suggestedWorkflowsList
               ),
             ]),
           ]),
-        isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss, workspace }),
+        isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss, workspace, namespace }),
         isSubHeaderActive('go-to-dockstore') &&
           div({ style: { marginLeft: '4rem', width: '50%' } }, [
             h(
