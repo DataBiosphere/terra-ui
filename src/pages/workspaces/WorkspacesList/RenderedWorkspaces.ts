@@ -18,6 +18,7 @@ import { AuthState, authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import {
+  canRead,
   getCloudProviderFromWorkspace,
   workspaceAccessLevels,
   WorkspaceInfo,
@@ -166,7 +167,7 @@ const NameCell: FC<CellProps> = (props) => {
     workspace: { workspaceId, namespace, name, attributes },
   } = props.workspace;
   const description = attributes?.description;
-  const canView = Utils.canRead(accessLevel);
+  const canView = canRead(accessLevel);
   const canAccessWorkspace = () =>
     !canView ? updateWorkspaceActions({ requestingAccessWorkspaceId: workspaceId }) : undefined;
 
@@ -279,7 +280,7 @@ const ActionsCell: FC<ActionsCellProps> = (props) => {
     accessLevel,
     workspace: { workspaceId, namespace, name },
   } = props.workspace;
-  if (!Utils.canRead(accessLevel)) {
+  if (!canRead(accessLevel)) {
     // No menu shown if user does not have read access.
     return div({ className: 'sr-only' }, ['You do not have permission to perform actions on this workspace.']);
   }
