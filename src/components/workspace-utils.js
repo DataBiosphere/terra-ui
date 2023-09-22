@@ -27,6 +27,7 @@ export const useWorkspaces = (fieldsArg, stringAttributeMaxLength) => {
     'accessLevel',
     'public',
     'workspace',
+    'workspace.state',
     'workspace.attributes.description',
     'workspace.attributes.tag:tags',
     'workspace.workspaceVersion',

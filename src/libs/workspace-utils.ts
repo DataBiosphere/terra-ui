@@ -33,6 +33,7 @@ interface BaseWorkspaceInfo {
   attributes?: Record<string, any>;
   isLocked?: boolean;
   canShare?: boolean;
+  state: WorkpaceState;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
@@ -70,6 +71,15 @@ export interface WorkspaceSubmissionStats {
   lastFailureDate?: string;
   runningSubmissionsCount: number;
 }
+
+export type WorkpaceState =
+  | 'Creating'
+  | 'CreateFailed'
+  | 'Ready'
+  | 'Updating'
+  | 'UpdateFailed'
+  | 'Deleting'
+  | 'DeleteFailed';
 
 export interface BaseWorkspace {
   accessLevel: WorkspaceAccessLevel;
