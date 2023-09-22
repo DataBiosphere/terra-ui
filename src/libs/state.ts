@@ -126,14 +126,16 @@ export const getUser = (): TerraUser => authStore.get().user;
 
 export const getSessionId = () => authStore.get().sessionId;
 
+export type OidcConfig = {
+  authorityEndpoint?: string;
+  clientId?: string;
+};
+
 export type OidcState = {
   authContext: AuthContextProps | undefined;
   user: OidcUser | undefined;
   userManager: UserManager | undefined;
-  config: {
-    authorityEndpoint?: string;
-    clientId?: string;
-  };
+  config: OidcConfig;
 };
 
 export const oidcStore: Atom<OidcState> = atom<OidcState>({
