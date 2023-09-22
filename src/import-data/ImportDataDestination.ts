@@ -12,13 +12,14 @@ import {
   spinnerOverlay,
 } from 'src/components/common';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
-import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils';
+import { WorkspaceSelector } from 'src/components/workspace-utils';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
 import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';

@@ -12,7 +12,7 @@ import { DelayedSearchInput } from 'src/components/input';
 import { NameModal } from 'src/components/NameModal';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import TopBar from 'src/components/TopBar';
-import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils';
+import { NoWorkspacesMessage, WorkspaceTagSelect } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
@@ -22,6 +22,7 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import UploadPreviewTable from './UploadPreviewTable';
 

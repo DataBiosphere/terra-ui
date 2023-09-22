@@ -1,12 +1,11 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { CloudProvider, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportRequest } from './import-types';
 import { canImportIntoWorkspace, ImportOptions } from './import-utils';
@@ -29,10 +28,10 @@ jest.mock('src/components/NewWorkspaceModal', (): NewWorkspaceModalExports => {
   };
 });
 
-type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
-jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
+type UseWorkspacesExports = typeof import('src/workspaces/useWorkspaces');
+jest.mock('src/workspaces/useWorkspaces', (): UseWorkspacesExports => {
   return {
-    ...jest.requireActual<WorkspaceUtilsExports>('src/components/workspace-utils'),
+    ...jest.requireActual<UseWorkspacesExports>('src/workspaces/useWorkspaces'),
     useWorkspaces: jest.fn(),
   };
 });
