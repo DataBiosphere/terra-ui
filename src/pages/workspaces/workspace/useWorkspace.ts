@@ -12,7 +12,7 @@ import { saToken } from 'src/libs/ajax/GoogleStorage';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import { clearNotification, notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
-import { getUser, workspaceStore } from 'src/libs/state';
+import { getUser, workspaceCheckCloudAccessFailureStore, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { differenceFromNowInSeconds } from 'src/libs/utils';
 import { canWrite, isAzureWorkspace, isGoogleWorkspace, isOwner, WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -44,6 +44,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
   const accessNotificationId = useRef();
   const cachedWorkspace = useStore(workspaceStore);
+  workspaceCheckCloudAccessFailureStore.set(0);
   const workspace =
     cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace))
       ? cachedWorkspace
@@ -111,6 +112,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
       } else {
         updateWorkspaceInStore(workspace, false);
         console.log('Google permissions are still syncing'); // eslint-disable-line no-console
+        workspaceCheckCloudAccessFailureStore.update((n) => n + 1);
         checkInitializationTimeout.current = window.setTimeout(
           () => checkWorkspaceInitialization(workspace),
           googlePermissionsRecheckRate
