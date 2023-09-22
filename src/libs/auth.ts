@@ -54,7 +54,7 @@ export const getOidcConfig = () => {
   };
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
-    // TODO: The clientId from authStore.oidcConfig is null
+    // The clientId from oidcStore.config is not null, setup in initializeClientId on appLoad
     client_id: oidcStore.get().config.clientId!,
     popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
     silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
