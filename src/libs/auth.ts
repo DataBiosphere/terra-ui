@@ -25,7 +25,7 @@ import {
   getUser,
   requesterPaysProjectStore,
   TermsOfServiceStatus,
-  TerraUserStatus,
+  TerraUserRegistrationStatus,
   TokenMetadata,
   workspacesStore,
   workspaceStore,
@@ -420,7 +420,7 @@ export const processUser = (user: OidcUser | null, isSignInEvent: boolean): void
       isSignedIn,
       anonymousId: !isSignedIn && state.isSignedIn ? undefined : state.anonymousId,
       registrationStatus: isSignedIn ? state.registrationStatus : 'uninitialized',
-      termsOfService: initializeTermsOfService(state),
+      termsOfService: initializeTermsOfService(isSignedIn, state),
       profile: isSignedIn ? state.profile : {},
       nihStatus: isSignedIn ? state.nihStatus : undefined,
       fenceStatus: isSignedIn ? state.fenceStatus : {},
@@ -450,10 +450,10 @@ export const processUser = (user: OidcUser | null, isSignInEvent: boolean): void
   });
 };
 
-const initializeTermsOfService = (state: AuthState): TermsOfServiceStatus => {
+const initializeTermsOfService = (isSignedIn: boolean, state: AuthState): TermsOfServiceStatus => {
   return {
-    userHasAcceptedLatestTos: state.isSignedIn ? state.termsOfService.userHasAcceptedLatestTos : undefined,
-    permitsSystemUsage: state.isSignedIn ? state.termsOfService.permitsSystemUsage : undefined,
+    userHasAcceptedLatestTos: isSignedIn ? state.termsOfService.userHasAcceptedLatestTos : undefined,
+    permitsSystemUsage: isSignedIn ? state.termsOfService.permitsSystemUsage : undefined,
   };
 };
 
@@ -499,7 +499,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
 
 authStore.subscribe(
   withErrorReporting('Error checking registration', async (state: AuthState, oldState: AuthState) => {
-    const getRegistrationStatus = async (): Promise<TerraUserStatus> => {
+    const getRegistrationStatus = async (): Promise<TerraUserRegistrationStatus> => {
       try {
         const { enabled } = await Ajax().User.getStatus();
         if (enabled) {
@@ -519,7 +519,7 @@ authStore.subscribe(
     const isNowSignedIn = oldState.isSignedIn === false && state.isSignedIn === true;
     if (isNowSignedIn || canNowUseSystem) {
       clearNotification(sessionTimeoutProps.id);
-      const registrationStatus: TerraUserStatus = await getRegistrationStatus();
+      const registrationStatus: TerraUserRegistrationStatus = await getRegistrationStatus();
       authStore.update((state) => ({ ...state, registrationStatus }));
     }
   })

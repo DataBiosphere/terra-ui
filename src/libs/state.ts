@@ -25,7 +25,17 @@ export type TerraUserProfile = {
   interestInTerra: string | undefined;
 };
 
-export type TerraUserStatus = 'unregistered' | 'registeredWithoutTos' | 'registered' | 'disabled' | 'uninitialized';
+export type TerraUserRegistrationStatus =
+  // User is logged in through B2C but has not registered in Terra.
+  | 'unregistered'
+  // User has registered in Terra but has not accepted the terms of service.
+  | 'registeredWithoutTos'
+  // User has registered in Terra and accepted the terms of service.
+  | 'registered'
+  // User's account has been disabled.
+  | 'disabled'
+  // Registration status has not yet been determined.
+  | 'uninitialized';
 
 export type TermsOfServiceStatus = {
   permitsSystemUsage: boolean | undefined;
@@ -62,7 +72,7 @@ export type AuthState = {
   // props in the TerraUserProfile are always present, but there may be more props
   profile: TerraUserProfile & any;
   refreshTokenMetadata: TokenMetadata;
-  registrationStatus: TerraUserStatus;
+  registrationStatus: TerraUserRegistrationStatus;
   sessionId?: string | undefined;
   sessionStartTime: number;
   termsOfService: TermsOfServiceStatus;
