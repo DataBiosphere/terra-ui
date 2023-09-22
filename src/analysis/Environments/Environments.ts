@@ -796,12 +796,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 headerRenderer: () =>
                   h(Sortable, { sort: diskSort, field: 'workspace', onSort: setDiskSort }, ['Workspace']),
                 cellRenderer: ({ rowIndex }) => {
-                  const {
-                    status: diskStatus,
-                    googleProject,
-                    workspace: { namespace, name },
-                    creator,
-                  } = filteredDisks[rowIndex];
+                  const { status: diskStatus, googleProject, workspace, creator } = filteredDisks[rowIndex];
+                  const namespace = workspace?.namespace;
+                  const name = workspace?.name;
                   const appType: AppToolLabel | undefined = getDiskAppType(filteredDisks[rowIndex]);
                   const multipleDisks = multipleDisksError(disksByProject[googleProject], appType);
                   return !!namespace && !!name
