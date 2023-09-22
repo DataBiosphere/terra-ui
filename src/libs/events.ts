@@ -20,6 +20,7 @@ const eventsList = {
   analysisEnableBeta: 'analysis:enable',
   analysisDisableBeta: 'analysis:disable',
   analysisCreate: 'analysis:create',
+  analysisLaunch: 'analysis:launch',
   analysisToggleJupyterLabGCP: 'analysis:toggleJupyterLabGCP',
   analysisPreviewSuccess: 'analysis:previewSuccess',
   analysisPreviewFail: 'analysis:previewFail',
