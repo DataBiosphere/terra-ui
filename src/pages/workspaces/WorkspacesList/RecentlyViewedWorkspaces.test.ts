@@ -19,7 +19,7 @@ jest.mock('src/libs/prefs', () => ({
 }));
 
 describe('The recently viewed workspaces component', () => {
-  it('starts open when the user preference is set', () => {
+  it('starts open when the user preference is set to true', () => {
     jest.mock('src/libs/prefs', () => ({
       ...jest.requireActual('src/libs/prefs'),
       getLocalPref: jest.fn(),
@@ -40,7 +40,7 @@ describe('The recently viewed workspaces component', () => {
     expect(renderedAzureWS).toHaveLength(1);
   });
 
-  it('starts collapsed when the user preference is not set', () => {
+  it('starts collapsed when the user preference is set to false', () => {
     jest.mock('src/libs/prefs', () => ({
       ...jest.requireActual('src/libs/prefs'),
       getLocalPref: jest.fn(),
@@ -54,6 +54,26 @@ describe('The recently viewed workspaces component', () => {
       return {};
     });
 
+    const workspaces = [defaultAzureWorkspace];
+
+    render(h(RecentlyViewedWorkspaces, { workspaces, loadingSubmissionStats: false }));
+    const renderedAzureWS = screen.queryAllByText(defaultAzureWorkspace.workspace.name);
+    expect(renderedAzureWS).toHaveLength(0);
+  });
+
+  it('defaults to open when the user preference is not set', () => {
+    jest.mock('src/libs/prefs', () => ({
+      ...jest.requireActual('src/libs/prefs'),
+      getLocalPref: jest.fn(),
+      setLocalPref: jest.fn(),
+    }));
+
+    const recentlyViewed = [{ workspaceId: defaultAzureWorkspace.workspace.workspaceId, timestamp: Date.now() }];
+    asMockedFn(getLocalPref).mockImplementation((key) => {
+      if (key === persistenceId) return {};
+      if (key === recentlyViewedPersistenceId) return { recentlyViewed };
+      return {};
+    });
     const workspaces = [defaultAzureWorkspace];
 
     render(h(RecentlyViewedWorkspaces, { workspaces, loadingSubmissionStats: false }));
