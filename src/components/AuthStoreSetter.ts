@@ -1,12 +1,12 @@
 import _ from 'lodash/fp';
 import { useEffect } from 'react';
 import { AuthContextProps, useAuth } from 'react-oidc-context';
-import { doUserLoaded, loadAuthToken, OidcUser } from 'src/libs/auth';
+import { loadAuthToken, OidcUser, UserLoadedEventHandler } from 'src/libs/auth';
 import { useOnMount } from 'src/libs/react-utils';
 import { oidcStore } from 'src/libs/state';
 
 function AuthStoreSetter(): null {
-  // When the AuthContext changes, this component will reload
+  // When the AuthContext changes, this component will rerender
   const auth: AuthContextProps = useAuth();
 
   useOnMount(() => {
@@ -14,11 +14,10 @@ function AuthStoreSetter(): null {
   });
   useEffect((): (() => void) => {
     const cleanupFns = [
-      // add{EVENT_NAME} will add this callback to this event
-      // ex: will add doUserLoaded to the userLoadedEvent
-      // load event called in the following fns https://github.com/authts/oidc-client-ts/blob/main/src/UserManager.ts
+      // Subscribe to UserManager events.
+      // For details of each event, see https://authts.github.io/oidc-client-ts/classes/UserManagerEvents.html
       auth.events.addUserLoaded((user: OidcUser) => {
-        doUserLoaded(user);
+        UserLoadedEventHandler(user);
       }),
       auth.events.addAccessTokenExpired((): void => {
         loadAuthToken();

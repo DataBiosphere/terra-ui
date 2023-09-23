@@ -14,11 +14,13 @@ import TermsOfService from 'src/pages/TermsOfService';
 
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute();
-  const { isSignedIn, registrationStatus, termsOfService, profile } = useStore(authStore);
+  const { isSignedIn, isSigningIn, registrationStatus, termsOfService, profile } = useStore(authStore);
   const displayTosPage = isSignedIn && termsOfService.permitsSystemUsage === false;
   const seenAzurePreview = useStore(azurePreviewStore) || false;
   const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } });
+
   return Utils.cond(
+    [isSigningIn === true && !isPublic, authspinner],
     [isSignedIn === false && !isPublic, () => h(SignIn)],
     [seenAzurePreview === false && isAzureUser(), () => h(AzurePreview)],
     [registrationStatus === 'uninitialized' && !isPublic, authspinner],

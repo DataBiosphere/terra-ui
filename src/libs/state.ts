@@ -59,6 +59,7 @@ export type AuthState = {
   fenceStatus: {};
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   isSignedIn: boolean;
+  isSigningIn: boolean;
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: {
     linkedNihUsername: string;
@@ -88,6 +89,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   isSignedIn: false,
+  isSigningIn: false,
   profile: {
     institute: undefined,
     title: undefined,
