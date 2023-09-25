@@ -71,8 +71,9 @@ describe('Featured workflows', () => {
     expect(screen.getByText(/Covid-19 tutorial workflows/i)).toBeInTheDocument();
 
     expect(screen.queryByText(/You already have some of the workflows in this set/i)).not.toBeInTheDocument();
-    const button = screen.getByRole('button', { name: 'Add to workspace' });
-    await user.click(button);
+    const allAddButtons = screen.getAllByRole('button', { name: 'Add to workspace' });
+    const covid19Button = allAddButtons[allAddButtons.length - 1];
+    await user.click(covid19Button);
 
     expect(post).toHaveBeenCalledTimes(3);
     expect(post).toHaveBeenCalledWith(
@@ -123,8 +124,9 @@ describe('Featured workflows', () => {
     expect(screen.getByText(/Covid-19 tutorial workflows/i)).toBeInTheDocument();
 
     expect(screen.getByLabelText(/You already have some of the workflows in this set/i)).toBeInTheDocument();
-    const button = screen.getByRole('button', { name: 'Add to workspace' });
-    await user.click(button);
+    const allAddButtons = screen.getAllByRole('button', { name: 'Add to workspace' });
+    const covid19Button = allAddButtons[allAddButtons.length - 1];
+    await user.click(covid19Button);
 
     expect(post).toHaveBeenCalledTimes(2);
     expect(post).toHaveBeenCalledWith(
@@ -169,7 +171,8 @@ describe('Featured workflows', () => {
     expect(screen.getByText(/Covid-19 tutorial workflows/i)).toBeInTheDocument();
 
     expect(screen.queryByText(/You already have some of the workflows in this set/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Add to workspace' })).not.toBeInTheDocument();
+    const addToWorkspaceButtons = screen.queryAllByRole('button', { name: 'Add to workspace' });
+    expect(addToWorkspaceButtons.length).toBe(5);
     const added = screen.getByText(/Added/i);
     await user.click(added);
 

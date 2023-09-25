@@ -84,20 +84,6 @@ export const featuredWarpWorkflows = [
       previously_run: false,
     },
   },
-  {
-    name: 'simple_task',
-    description: 'blah',
-    source: 'GitHub',
-    method_versions: [
-      {
-        name: 'develop',
-        url: 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl',
-      },
-    ],
-    last_run: {
-      previously_run: false,
-    },
-  },
 ] satisfies FeaturedWorkflow[];
 
 export const featuredWorkflowsData = [
