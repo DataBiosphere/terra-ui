@@ -58,7 +58,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
 
     const signal = useCancellation();
     const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
-    const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps);
+    const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps) || getCurrentApp(appToolLabels.WORKFLOWS_APP, apps);
     const pageReady = cbasReady && currentApp && !getIsAppBusy(currentApp);
     const launcherDisabled = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady);
 
