@@ -145,8 +145,6 @@ export const contactUsActive = atom(false);
 
 export const workspaceStore = atom<any>(undefined);
 
-export const workspaceCheckCloudAccessFailureStore = atom<number>(0);
-
 export const workspacesStore = atom<WorkspaceWrapper[]>([]);
 
 export const rerunFailuresStatus = atom<unknown>(undefined);

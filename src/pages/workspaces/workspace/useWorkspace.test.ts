@@ -302,6 +302,41 @@ describe('useActiveWorkspace', () => {
     await verifyGooglePermissionsSuccess(result);
   });
 
+  it('fires an event on the second checkBucketReadAccess failure', async () => {
+    // Arrange
+    // remove workspaceInitialized because the server response does not include this information
+    const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
+    const captureEventFn = jest.fn();
+    const errorMockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () => ({
+          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+          checkBucketReadAccess: () => Promise.reject(new Response('Mock permissions error', { status: 500 })),
+        }),
+      },
+      Metrics: {
+        captureEvent: captureEventFn,
+      },
+    };
+    asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract);
+
+    // Verify initial failure does not fire event
+    await verifyGooglePermissionsFailure();
+    expect(captureEventFn).not.toHaveBeenCalled();
+
+    // Verify second failure does fire event
+    await act(async () => {
+      jest.advanceTimersByTime(googlePermissionsRecheckRate);
+    });
+    expect(captureEventFn).toHaveBeenCalledTimes(1);
+
+    // Verify additional failures do not fire more events.
+    await act(async () => {
+      jest.advanceTimersByTime(googlePermissionsRecheckRate);
+    });
+    expect(captureEventFn).toHaveBeenCalledTimes(1);
+  });
+
   it('can read workspace details from server, and poll until permissions synced (handling storageCostEstimate failure)', async () => {
     // Arrange
     // remove workspaceInitialized because the server response does not include this information

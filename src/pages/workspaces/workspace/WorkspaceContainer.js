@@ -18,10 +18,9 @@ import { Ajax } from 'src/libs/ajax';
 import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils';
-import { getUser, workspaceCheckCloudAccessFailureStore } from 'src/libs/state';
+import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
+import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { hasProtectedData, isAzureWorkspace, isGoogleWorkspace, protectedDataMessage, regionConstraintMessage } from 'src/libs/workspace-utils';
@@ -164,19 +163,6 @@ export const WorkspaceContainer = ({
   const [leavingWorkspace, setLeavingWorkspace] = useState(false);
   const workspaceLoaded = !!workspace;
   const isGoogleWorkspaceSyncing = workspaceLoaded && isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false;
-  const checkCloudAccessFailureStore = useStore(workspaceCheckCloudAccessFailureStore);
-
-  useEffect(() => {
-    if (checkCloudAccessFailureStore >= 2) {
-      Ajax().Metrics.captureEvent(Events.permissionsSynchronizationDelay, {
-        accessLevel: workspace.accessLevel,
-        createdDate: workspace.workspace.createdDate,
-        isWorkspaceCreator: workspace.workspace.createdBy === getUser().email,
-        ...extractWorkspaceDetails(workspace),
-      });
-    }
-    // Only want to event when isGoogleWorkspaceSyncing changes state, not whenever any part of workspace changes.
-  }, [checkCloudAccessFailureStore]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
