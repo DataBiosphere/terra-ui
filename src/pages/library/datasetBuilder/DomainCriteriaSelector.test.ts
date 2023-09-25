@@ -27,7 +27,7 @@ describe('DomainCriteriaSelector', () => {
   };
   const getConceptsMock = (mockDatasetResponse as DatasetBuilderContract).getConcepts;
   const concept = getConceptForId(101);
-  const domainOption = dummyDatasetDetails('').snapshotBuilderSettings.domainOptions[0];
+  const domainOption = dummyDatasetDetails('')!.snapshotBuilderSettings!.domainOptions[0];
   const cohort = newCohort('cohort');
   cohort.criteriaGroups.push(newCriteriaGroup());
   asMockedFn(getConceptsMock).mockResolvedValue({ result: [concept] });

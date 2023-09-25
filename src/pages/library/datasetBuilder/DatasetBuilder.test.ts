@@ -108,7 +108,7 @@ describe('DatasetBuilder', () => {
           { name: 'concept set 1', featureValueGroupName: 'a' },
           { name: 'concept set 2', featureValueGroupName: 'b' },
         ],
-        prepackagedConceptSets: dummyDatasetDetailsWithId.snapshotBuilderSettings.datasetConceptSets,
+        prepackagedConceptSets: dummyDatasetDetailsWithId!.snapshotBuilderSettings!.datasetConceptSets,
         selectedConceptSets: [],
         updateConceptSets: jest.fn(),
         onChange: (conceptSets) => conceptSets,
@@ -165,7 +165,7 @@ describe('DatasetBuilder', () => {
     _.flow(
       _.map((prepackagedConceptSet: ConceptSet) => prepackagedConceptSet.name),
       _.forEach((prepackagedConceptSetName: string) => expect(screen.getByText(prepackagedConceptSetName)).toBeTruthy())
-    )(dummyDatasetDetailsWithId.snapshotBuilderSettings.datasetConceptSets);
+    )(dummyDatasetDetailsWithId!.snapshotBuilderSettings!.datasetConceptSets);
     expect(screen.getByText('Concept sets')).toBeTruthy();
     expect(screen.getByText('Prepackaged concept sets')).toBeTruthy();
   });

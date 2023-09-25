@@ -19,7 +19,7 @@ describe('ConceptSetCreator', () => {
     // Arrange
     renderConceptSetCreator();
     // Assert
-    expect(await screen.findByText(datasetDetails.snapshotBuilderSettings.domainOptions[0].root.name)).toBeTruthy();
+    expect(await screen.findByText(datasetDetails!.snapshotBuilderSettings!.domainOptions[0].root.name)).toBeTruthy();
   });
 
   it('updates the builder concept sets on save', async () => {
@@ -33,7 +33,7 @@ describe('ConceptSetCreator', () => {
     // Assert
     expect(onStateChange).toHaveBeenCalledWith(homepageState.new());
     expect(conceptSetUpdater.mock.calls[0][0]([])).toEqual([
-      toConceptSet(datasetDetails.snapshotBuilderSettings.domainOptions[0].root),
+      toConceptSet(datasetDetails!.snapshotBuilderSettings!.domainOptions[0].root),
     ]);
   });
 
