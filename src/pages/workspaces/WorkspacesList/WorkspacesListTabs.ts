@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { FC, ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { h, span } from 'react-hyperscript-helpers';
 import { SimpleTabBar } from 'src/components/tabBars';
 import * as Nav from 'src/libs/nav';
@@ -25,7 +25,7 @@ interface WorkspacesListTabsProps {
   refreshWorkspaces: () => void;
 }
 
-export const WorkspacesListTabs: FC<WorkspacesListTabsProps> = (props: WorkspacesListTabsProps) => {
+export const WorkspacesListTabs = (props: WorkspacesListTabsProps): ReactNode => {
   const { workspaces, loadingSubmissionStats, loadingWorkspaces } = props;
   const { query } = Nav.useRoute();
   const filters = getWorkspaceFiltersFromQuery(query);

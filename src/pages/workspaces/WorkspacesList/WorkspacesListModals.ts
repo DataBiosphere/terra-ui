@@ -1,4 +1,4 @@
-import { FC, Fragment } from 'react';
+import { Fragment, ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
@@ -19,7 +19,7 @@ interface WorkspacesListModalsProps {
   refreshWorkspaces: () => void;
 }
 
-export const WorkspacesListModals: FC<WorkspacesListModalsProps> = (props: WorkspacesListModalsProps) => {
+export const WorkspacesListModals = (props: WorkspacesListModalsProps): ReactNode => {
   const { getWorkspace, refreshWorkspaces } = props;
   const userActions = useStore(workspaceUserActionsStore);
 

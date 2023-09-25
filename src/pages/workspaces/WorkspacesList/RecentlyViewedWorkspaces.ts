@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { FC, Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard } from 'src/components/workspace-utils';
@@ -13,7 +13,7 @@ interface RecentlyViewedWorkspacesProps {
   loadingSubmissionStats: boolean;
 }
 
-export const RecentlyViewedWorkspaces: FC<RecentlyViewedWorkspacesProps> = (props: RecentlyViewedWorkspacesProps) => {
+export const RecentlyViewedWorkspaces = (props: RecentlyViewedWorkspacesProps): ReactNode => {
   const { workspaces, loadingSubmissionStats } = props;
   const [recentlyViewedOpen, setRecentlyViewedOpen] = useState(() =>
     _.defaultTo(true, getLocalPref(persistenceId)?.recentlyViewedOpen)

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { FC, useMemo, useState } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import { div, h, p } from 'react-hyperscript-helpers';
 import { Link, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -30,7 +30,7 @@ export const persistenceId = 'workspaces/list';
 export const getWorkspace = (id: string, workspaces: Workspace[]): Workspace =>
   _.find({ workspace: { workspaceId: id } }, workspaces)!;
 
-export const WorkspacesList: FC<never> = () => {
+export const WorkspacesList = (): ReactNode => {
   const {
     workspaces,
     refresh: refreshWorkspaces,

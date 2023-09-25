@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { FC, ReactNode, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
@@ -56,7 +56,7 @@ interface RenderedWorkspacesProps {
   loadingSubmissionStats: boolean;
 }
 
-export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = (props: RenderedWorkspacesProps) => {
+export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode => {
   const { workspaces, loadingSubmissionStats } = props;
   const {
     profile: { starredWorkspaces },
@@ -148,7 +148,7 @@ interface CellProps {
   workspace: Workspace;
 }
 
-const StarCell: FC<CellProps> = (props: CellProps) =>
+const StarCell = (props: CellProps): ReactNode =>
   div(
     {
       style: {
@@ -161,7 +161,7 @@ const StarCell: FC<CellProps> = (props: CellProps) =>
     [h(WorkspaceStarControl, { workspace: props.workspace })]
   );
 
-const NameCell: FC<CellProps> = (props: CellProps) => {
+const NameCell = (props: CellProps): ReactNode => {
   const {
     accessLevel,
     workspace,
@@ -215,7 +215,7 @@ const NameCell: FC<CellProps> = (props: CellProps) => {
   ]);
 };
 
-const LastModifiedCell: FC<CellProps> = (props: CellProps) => {
+const LastModifiedCell = (props: CellProps): ReactNode => {
   const {
     workspace: { lastModified },
   } = props.workspace;
@@ -229,7 +229,7 @@ const LastModifiedCell: FC<CellProps> = (props: CellProps) => {
   ]);
 };
 
-const CreatedByCell: FC<CellProps> = (props: CellProps) => {
+const CreatedByCell = (props: CellProps): ReactNode => {
   const {
     workspace: { createdBy },
   } = props.workspace;
@@ -239,7 +239,7 @@ const CreatedByCell: FC<CellProps> = (props: CellProps) => {
   ]);
 };
 
-const AccessLevelCell: FC<CellProps> = (props: CellProps) => {
+const AccessLevelCell = (props: CellProps): ReactNode => {
   const { accessLevel } = props.workspace;
 
   return div({ style: styles.tableCellContainer }, [
@@ -251,7 +251,7 @@ interface SubmissionStatusCellProps extends CellProps {
   loadingSubmissionStats: boolean;
 }
 
-const SubmissionStatusCell: FC<SubmissionStatusCellProps> = (props: SubmissionStatusCellProps) => {
+const SubmissionStatusCell = (props: SubmissionStatusCellProps): ReactNode => {
   const { workspace, loadingSubmissionStats } = props;
   const lastRunStatus = workspaceSubmissionStatus(workspace);
 
@@ -265,7 +265,7 @@ const SubmissionStatusCell: FC<SubmissionStatusCellProps> = (props: SubmissionSt
   ]);
 };
 
-const CloudPlatformCell: FC<CellProps> = (props: CellProps) => {
+const CloudPlatformCell = (props: CellProps): ReactNode => {
   return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
     div({ style: styles.tableCellContent }, [
       h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(props.workspace) }),
@@ -277,7 +277,7 @@ interface ActionsCellProps extends CellProps {
   workspaces: Workspace[];
 }
 
-const ActionsCell: FC<ActionsCellProps> = (props: ActionsCellProps) => {
+const ActionsCell = (props: ActionsCellProps): ReactNode => {
   const {
     accessLevel,
     workspace: { workspaceId, namespace, name },

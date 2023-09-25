@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { FC, Fragment } from 'react';
+import { Fragment } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { NoWorkspacesMessage } from 'src/components/workspace-utils';
 import { cond } from 'src/libs/utils';
@@ -15,7 +15,7 @@ interface NoContentMessageProps {
   filters: WorkspaceFilterValues;
 }
 
-export const NoContentMessage: FC<NoContentMessageProps> = (props: NoContentMessageProps) => {
+export const NoContentMessage = (props: NoContentMessageProps): ReactNode => {
   const { loadingWorkspaces, loadingSubmissionStats, workspaces, filters } = props;
   return cond(
     [loadingWorkspaces, () => h(Fragment, ['Loading...'])],

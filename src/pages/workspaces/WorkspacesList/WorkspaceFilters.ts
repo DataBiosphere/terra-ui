@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { FC } from 'react';
+import { ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { Select } from 'src/components/common';
 import { DelayedSearchInput } from 'src/components/input';
@@ -26,7 +26,7 @@ interface WorkspaceFiltersProps {
   workspaces: Workspace[];
 }
 
-export const WorkspaceFilters: FC<WorkspaceFiltersProps> = (props: WorkspaceFiltersProps) => {
+export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
   const { workspaces } = props;
   const { query } = Nav.useRoute();
   const filters = getWorkspaceFiltersFromQuery(query);
