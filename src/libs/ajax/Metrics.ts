@@ -4,14 +4,14 @@ import { authOpts, fetchBard, jsonBody } from 'src/libs/ajax/ajax-common';
 import { ensureAuthSettled } from 'src/libs/auth';
 import { withErrorIgnoring } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { authStore, getSessionId, userStatus } from 'src/libs/state';
+import { authStore, getSessionId } from 'src/libs/state';
 import { v4 as uuid } from 'uuid';
 
 export const Metrics = (signal?: AbortSignal) => {
   const captureEventFn = async (event, details = {}) => {
     await ensureAuthSettled();
-    const { isSignedIn, registrationStatus } = authStore.get(); // NOTE: This is intentionally read after ensureAuthSettled
-    const isRegistered = isSignedIn && registrationStatus === userStatus.registeredWithTos;
+    const { signInStatus, registrationStatus } = authStore.get(); // NOTE: This is intentionally read after ensureAuthSettled
+    const isRegistered = signInStatus === 'signedIn' && registrationStatus === 'registered';
     if (!isRegistered) {
       authStore.update(
         _.update('anonymousId', (id) => {

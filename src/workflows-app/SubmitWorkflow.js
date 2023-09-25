@@ -19,7 +19,6 @@ import * as Utils from 'src/libs/utils';
 import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 import { SavedWorkflows } from 'src/workflows-app/components/SavedWorkflows';
-import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { doesAppProxyUrlExist, getCromwellUnsupportedMessage, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
@@ -59,7 +58,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
 
     const signal = useCancellation();
     const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
-    const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps);
+    const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps) || getCurrentApp(appToolLabels.WORKFLOWS_APP, apps);
     const pageReady = cbasReady && currentApp && !getIsAppBusy(currentApp);
     const launcherDisabled = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady);
 
@@ -187,14 +186,25 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
               ]),
             viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, workspace, onDismiss: () => setViewFindWorkflowModal(false) }),
           ])
-        : h(WorkflowsAppNavPanel, { name, namespace, workspace, loading, analysesData });
+        : h(WorkflowsAppNavPanel, {
+            name,
+            namespace,
+            workspace,
+            loading,
+            analysesData,
+            pageReady,
+            launcherDisabled,
+            createWorkflowsApp,
+            setLoading,
+            signal,
+          });
     };
     return Utils.cond(
       [loading, () => centeredSpinner()],
       [pageReady, () => renderSubmitWorkflow()],
       [
         doesWorkspaceSupportCromwellAppForUser(workspace.workspace, getCloudProviderFromWorkspace(workspace), appToolLabels.CROMWELL),
-        () => h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, disabled: launcherDisabled }),
+        () => h(WorkflowsAppNavPanel, { pageReady, launcherDisabled, loading, createWorkflowsApp }),
       ],
       [Utils.DEFAULT, () => div({ style: { ...styles.card, width: '50rem', margin: '2rem 4rem' } }, [getCromwellUnsupportedMessage()])]
     );

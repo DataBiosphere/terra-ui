@@ -1,6 +1,5 @@
-import { User } from 'oidc-client-ts';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { loadAuthToken, signOut } from 'src/libs/auth';
+import { loadAuthToken, OidcUser, signOut } from 'src/libs/auth';
 import { getTerraUser } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -67,7 +66,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
 
     beforeEach(() => {
       let mockTerraUser = { token };
-      const mockOidcUser: User = {
+      const mockOidcUser: OidcUser = {
         id_token: undefined,
         session_state: null,
         access_token: token,
@@ -95,7 +94,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
         mockTerraUser = { token: 'newtesttoken' };
         return Promise.resolve({
           status: 'success',
-          user: mockOidcUser,
+          oidcUser: mockOidcUser,
         });
       });
     });

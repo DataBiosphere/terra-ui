@@ -1,5 +1,5 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from 'src/analysis/_testData/testData';
@@ -11,7 +11,7 @@ import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorag
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal';

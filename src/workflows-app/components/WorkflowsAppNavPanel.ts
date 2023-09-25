@@ -11,6 +11,8 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
+import ImportGithub from 'src/workflows-app/components/ImportGithub';
+import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
 import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
 
 const subHeadersMap = {
@@ -35,10 +37,11 @@ const styles = {
 
 type ListItemProps = {
   title: string;
+  pageReady: boolean;
   style?: CSSProperties;
 };
 
-const ListItem = ({ title, ...props }: ListItemProps) =>
+const ListItem = ({ title, pageReady, ...props }: ListItemProps) =>
   div(
     {
       style: {
@@ -47,7 +50,7 @@ const ListItem = ({ title, ...props }: ListItemProps) =>
         flex: 'none',
         width: '100%',
         height: 50,
-        color: colors.accent(1.1),
+        color: !pageReady ? colors.disabled() : colors.accent(1.1),
       },
     },
     [div({ style: { fontSize: 15, ...props.style } }, [title])]
@@ -59,18 +62,28 @@ type WorkflowsAppNavPanelProps = {
   namespace: string;
   workspace: WorkspaceWrapper;
   analysesData: AnalysesData;
+  launcherDisabled: boolean;
+  createWorkflowsApp: Function;
+  pageReady: boolean;
+  setLoading: Function;
+  signal: Function;
 };
 
 export const WorkflowsAppNavPanel = ({
+  pageReady,
+  launcherDisabled,
   loading,
   name,
   namespace,
   workspace,
   analysesData,
+  createWorkflowsApp,
+  setLoading,
+  signal,
 }: WorkflowsAppNavPanelProps) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState<string>('workspace-workflows');
 
-  const isSubHeaderActive = (subHeader: string) => selectedSubHeader === subHeader;
+  const isSubHeaderActive = (subHeader: string) => pageReady && selectedSubHeader === subHeader;
 
   return div({ style: { display: 'flex', flex: 1, height: 'calc(100% - 66px)', position: 'relative' } }, [
     div(
@@ -100,10 +113,12 @@ export const WorkflowsAppNavPanel = ({
                   hover: Style.navList.itemHover(isActive),
                   'aria-current': isActive,
                   key: subHeaderKey,
+                  disabled: !pageReady,
                 },
                 [
                   h(ListItem, {
                     title: subHeaderName,
+                    pageReady,
                   }),
                 ]
               );
@@ -112,10 +127,13 @@ export const WorkflowsAppNavPanel = ({
           Collapse,
           {
             style: { borderBottom: `1px solid ${colors.dark(0.2)}` },
-            title: span({ style: { fontSize: 15, color: colors.accent() } }, ['Find & add workflows']),
-            initialOpenState: true,
+            title: span({ style: { color: !pageReady ? colors.disabled() : colors.accent(), fontSize: 15 } }, [
+              'Find & add workflows',
+            ]),
+            initialOpenState: pageReady,
             titleFirst: true,
             summaryStyle: { padding: '1rem 1rem 1rem 1.5rem' },
+            disabled: !pageReady,
           },
           [
             div(
@@ -138,10 +156,12 @@ export const WorkflowsAppNavPanel = ({
                       hover: Style.navList.itemHover(isActive),
                       'aria-current': isActive,
                       key: subHeaderKey,
+                      disabled: !pageReady,
                     },
                     [
                       h(ListItem, {
                         title: subHeaderName,
+                        pageReady,
                         style: { paddingLeft: '2em' },
                       }),
                     ]
@@ -199,12 +219,33 @@ export const WorkflowsAppNavPanel = ({
         ),
       ]
     ),
-    Utils.switchCase(
-      selectedSubHeader,
-      ['workspace-workflows', () => h(WorkflowsInWorkspace, { name, namespace, workspace, analysesData })],
-      ['submission-history', () => div(['Submission history TODO'])],
-      ['featured-workflows', () => div(['Featured workflows TODO'])],
-      ['import-workflow', () => div(['Import workflow TODO'])]
+    Utils.cond(
+      [
+        pageReady,
+        Utils.switchCase(
+          selectedSubHeader,
+          ['workspace-workflows', () => h(WorkflowsInWorkspace, { name, namespace, workspace, analysesData })],
+          ['submission-history', () => div(['Submission history TODO'])],
+          ['featured-workflows', () => div(['Featured workflows TODO'])],
+          [
+            'import-workflow',
+            () =>
+              h(ImportGithub, {
+                setLoading,
+                signal,
+                onDismiss: null,
+                workspace,
+                name,
+                namespace,
+                setSelectedSubHeader,
+              }),
+          ]
+        ),
+      ],
+      [
+        !pageReady,
+        () => div([h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, disabled: launcherDisabled })]),
+      ]
     ),
   ]);
 };

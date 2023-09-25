@@ -3,8 +3,7 @@ import { div, h, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
-import * as Utils from 'src/libs/utils';
-import { WorkspaceAccessLevel } from 'src/libs/workspace-utils';
+import { canWrite, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
 
 interface WorkspaceAttributeNoticeProperties {
   accessLevel: WorkspaceAccessLevel;
@@ -14,7 +13,7 @@ interface WorkspaceAttributeNoticeProperties {
 }
 
 const WorkspaceAttributeNotice = (props: WorkspaceAttributeNoticeProperties) => {
-  const isReadOnly = !Utils.canWrite(props.accessLevel);
+  const isReadOnly = !canWrite(props.accessLevel);
 
   return div({}, [
     props.isLocked && h(Notice, { label: 'Locked', tooltip: 'Workspace is locked', iconName: 'lock' }),

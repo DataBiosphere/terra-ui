@@ -1,4 +1,4 @@
-import { safeCurry } from '@terra-ui-packages/core-utils';
+import { cond, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { azureRegions } from 'src/libs/azure-regions';
 
@@ -158,3 +158,11 @@ export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, dest
     sourceWsCloudPlatform === destWsCloudPlatform
   );
 });
+
+// Returns a message explaining why the user can't edit the workspace, or undefined if they can
+export const editWorkspaceError = ({ accessLevel, workspace: { isLocked } }) => {
+  return cond(
+    [!canWrite(accessLevel), () => 'You do not have permission to modify this workspace.'],
+    [isLocked, () => 'This workspace is locked.']
+  );
+};

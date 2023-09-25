@@ -30,10 +30,13 @@ import { authStore, requesterPaysProjectStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import {
+  canWrite,
+  editWorkspaceError,
   hasProtectedData,
   hasRegionConstraint,
   isAzureWorkspace,
   isGoogleWorkspace,
+  isOwner,
   protectedDataMessage,
   regionConstraintMessage,
 } from 'src/libs/workspace-utils';
@@ -101,26 +104,29 @@ const DataUseLimitations = ({ attributes }) => {
 
 const DashboardAuthContainer = (props) => {
   const { namespace, name } = props;
-  const { isSignedIn } = useStore(authStore);
+  const { signInStatus } = useStore(authStore);
   const [featuredWorkspaces, setFeaturedWorkspaces] = useState();
 
-  const isAuthInitialized = isSignedIn !== undefined;
+  const isAuthInitialized = signInStatus !== 'uninitialized';
 
   useEffect(() => {
     const fetchData = async () => {
       setFeaturedWorkspaces(await Ajax().FirecloudBucket.getFeaturedWorkspaces());
     };
-    if (isSignedIn === false) {
+    if (signInStatus === 'signedOut') {
       fetchData();
     }
-  }, [isSignedIn]);
+  }, [signInStatus]);
 
   const isFeaturedWorkspace = () => _.some((ws) => ws.namespace === namespace && ws.name === name, featuredWorkspaces);
 
   return Utils.cond(
-    [!isAuthInitialized || (isSignedIn === false && featuredWorkspaces === undefined), () => h(centeredSpinner, { style: { position: 'fixed' } })],
-    [isSignedIn === false && isFeaturedWorkspace(), () => h(DashboardPublic, props)],
-    [isSignedIn === false, () => h(SignIn)],
+    [
+      !isAuthInitialized || (signInStatus === 'signedOut' && featuredWorkspaces === undefined),
+      () => h(centeredSpinner, { style: { position: 'fixed' } }),
+    ],
+    [signInStatus === 'signedOut' && isFeaturedWorkspace(), () => h(DashboardPublic, props)],
+    [signInStatus === 'signedOut', () => h(SignIn)],
     () => h(WorkspaceDashboard, props)
   );
 };
@@ -374,7 +380,7 @@ const WorkspaceDashboard = _.flow(
       loadWsTags();
 
       // If the current user is the only owner of the workspace, load the ACL to check if the workspace is shared.
-      if (Utils.isOwner(accessLevel) && _.size(owners) === 1) {
+      if (isOwner(accessLevel) && _.size(owners) === 1) {
         loadAcl();
       }
 
@@ -417,7 +423,7 @@ const WorkspaceDashboard = _.flow(
 
     const updateGoogleBucketDetails = useCallback(
       (workspace) => {
-        if (isGoogleWorkspace(workspace) && workspace.workspaceInitialized && Utils.canWrite(accessLevel)) {
+        if (isGoogleWorkspace(workspace) && workspace.workspaceInitialized && canWrite(accessLevel)) {
           loadStorageCost();
           loadBucketSize();
         }
@@ -515,7 +521,7 @@ const WorkspaceDashboard = _.flow(
       [_.size(owners) !== 1, () => null],
       // If the current user does not own the workspace, then then workspace must be shared.
       [
-        !Utils.isOwner(accessLevel),
+        !isOwner(accessLevel),
         () =>
           h(Fragment, [
             'This shared workspace has only one owner. Consider requesting ',
@@ -552,7 +558,7 @@ const WorkspaceDashboard = _.flow(
                       h(TooltipCell, [bucketName]),
                       h(ClipboardButton, { 'aria-label': 'Copy bucket name to clipboard', text: bucketName, style: { marginLeft: '0.25rem' } }),
                     ]),
-                    Utils.canWrite(accessLevel) &&
+                    canWrite(accessLevel) &&
                       h(
                         InfoRow,
                         {
@@ -564,7 +570,7 @@ const WorkspaceDashboard = _.flow(
                         },
                         [storageCost?.estimate || '$ ...']
                       ),
-                    Utils.canWrite(accessLevel) &&
+                    canWrite(accessLevel) &&
                       h(
                         InfoRow,
                         {
@@ -659,8 +665,8 @@ const WorkspaceDashboard = _.flow(
               Link,
               {
                 style: { marginLeft: '0.5rem' },
-                disabled: !!Utils.editWorkspaceError(workspace),
-                tooltip: Utils.editWorkspaceError(workspace) || 'Edit description',
+                disabled: !!editWorkspaceError(workspace),
+                tooltip: editWorkspaceError(workspace) || 'Edit description',
                 onClick: () => setEditDescription(description?.toString()),
               },
               [icon('edit')]
@@ -794,7 +800,7 @@ const WorkspaceDashboard = _.flow(
               social security number, or medical record number.`,
                 ]),
               ]),
-              !Utils.editWorkspaceError(workspace) &&
+              !editWorkspaceError(workspace) &&
                 div({ style: { marginBottom: '0.5rem' } }, [
                   h(WorkspaceTagSelect, {
                     menuShouldScrollIntoView: false,
@@ -808,7 +814,7 @@ const WorkspaceDashboard = _.flow(
                 _.map((tag) => {
                   return span({ key: tag, style: styles.tag }, [
                     tag,
-                    !Utils.editWorkspaceError(workspace) &&
+                    !editWorkspaceError(workspace) &&
                       h(
                         Link,
                         {

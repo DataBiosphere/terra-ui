@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h, p } from 'react-hyperscript-helpers';
 import {
@@ -17,7 +17,7 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 type RuntimesAjaxExports = typeof import('src/libs/ajax/leonardo/Runtimes');
