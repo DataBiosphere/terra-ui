@@ -424,7 +424,7 @@ export const isAzureUser = (): boolean => {
   return _.startsWith('https://login.microsoftonline.com', getUser().idp!);
 };
 
-export const UserLoadedEventHandler = (user: OidcUser): void => {
+export const userLoadedEventHandler = (user: OidcUser): void => {
   return authStore.update((state) => {
     const tokenClaims: B2cIdTokenClaims = user.profile;
     // according to IdTokenClaims, this is a mandatory claim and should always exist
@@ -460,7 +460,7 @@ export const initializeAuth = _.memoize(async (): Promise<void> => {
   try {
     const initialOidcUser: OidcUser | null = await userManager.getUser();
     if (initialOidcUser !== null) {
-      UserLoadedEventHandler(initialOidcUser);
+      userLoadedEventHandler(initialOidcUser);
     }
   } catch (e) {
     console.error('Error in contacting oidc-client');
