@@ -153,7 +153,7 @@ const LocalVariablesContent = ({
   return h(
     Dropzone,
     {
-      disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
+      disabled: WorkspaceUtils.canEditWorkspace(workspace)[0] ? false : true,
       style: { flex: 1, display: 'flex', flexDirection: 'column' },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       onDropAccepted: upload,
@@ -175,7 +175,7 @@ const LocalVariablesContent = ({
             },
             [
               h(Link, { onClick: download }, ['Download TSV']),
-              !WorkspaceUtils.editWorkspaceError(workspace) &&
+              WorkspaceUtils.canEditWorkspace(workspace)[0] &&
                 h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']), h(Link, { onClick: openUploader }, ['upload TSV'])]),
               h(DelayedSearchInput, {
                 'aria-label': 'Search',
@@ -286,8 +286,8 @@ const LocalVariablesContent = ({
                                 h(
                                   Link,
                                   {
-                                    disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
-                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || 'Edit variable',
+                                    tooltip: 'Edit variable',
+                                    ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
                                     style: { marginLeft: '1rem' },
                                     onClick: () => {
                                       setEditIndex(rowIndex);
@@ -302,8 +302,8 @@ const LocalVariablesContent = ({
                                 h(
                                   Link,
                                   {
-                                    disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
-                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || 'Delete variable',
+                                    tooltip: 'Delete variable',
+                                    ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
                                     style: { marginLeft: '1rem' },
                                     onClick: () => setDeleteIndex(rowIndex),
                                     'aria-haspopup': 'dialog',
@@ -320,7 +320,7 @@ const LocalVariablesContent = ({
           ]),
           !creatingNewVariable &&
             editIndex === undefined &&
-            !WorkspaceUtils.editWorkspaceError(workspace) &&
+            WorkspaceUtils.canEditWorkspace(workspace)[0] &&
             h(FloatingActionButton, {
               label: 'ADD VARIABLE',
               iconShape: 'plus',

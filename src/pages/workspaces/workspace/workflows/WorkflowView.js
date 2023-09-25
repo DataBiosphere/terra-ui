@@ -821,8 +821,7 @@ const WorkflowView = _.flow(
                         h(
                           MenuButton,
                           {
-                            disabled: !!WorkspaceUtils.editWorkspaceError(ws),
-                            tooltip: WorkspaceUtils.editWorkspaceError(ws),
+                            ...WorkspaceUtils.getWorkspaceEditControlProps(ws),
                             tooltipSide: 'right',
                             onClick: () => this.setState({ deleting: true }),
                           },
@@ -846,7 +845,7 @@ const WorkflowView = _.flow(
                     div({ style: { display: 'inline-block', marginLeft: '0.25rem', width: sourceRepo === 'agora' ? 75 : 200 } }, [
                       h(Select, {
                         id,
-                        isDisabled: !!WorkspaceUtils.editWorkspaceError(ws),
+                        isDisabled: WorkspaceUtils.canEditWorkspace[0] ? false : true,
                         isClearable: false,
                         isSearchable: false,
                         value: methodVersion,
@@ -881,7 +880,7 @@ const WorkflowView = _.flow(
               div({ role: 'radiogroup', 'aria-label': 'Select number of target entities', style: { marginBottom: '1rem' } }, [
                 div([
                   h(RadioButton, {
-                    disabled: !!WorkspaceUtils.editWorkspaceError(ws) || currentSnapRedacted,
+                    disabled: WorkspaceUtils.canEditWorkspace(ws)[0] || currentSnapRedacted,
                     text: 'Run workflow with inputs defined by file paths',
                     name: 'process-workflows',
                     checked: this.isSingle(),
@@ -891,7 +890,7 @@ const WorkflowView = _.flow(
                 ]),
                 div([
                   h(RadioButton, {
-                    disabled: !!WorkspaceUtils.editWorkspaceError(ws) || currentSnapRedacted,
+                    disabled: WorkspaceUtils.canEditWorkspace(ws)[0] || currentSnapRedacted,
                     text: 'Run workflow(s) with inputs defined by data table',
                     name: 'process-workflows',
                     checked: this.isMultiple(),
@@ -914,7 +913,7 @@ const WorkflowView = _.flow(
                       h(GroupedSelect, {
                         'aria-label': 'Entity type selector',
                         isClearable: false,
-                        isDisabled: currentSnapRedacted || this.isSingle() || !!WorkspaceUtils.editWorkspaceError(ws),
+                        isDisabled: currentSnapRedacted || this.isSingle() || WorkspaceUtils.canEditWorkspace(ws)[0],
                         isSearchable: true,
                         placeholder: 'Select data type...',
                         styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
@@ -962,7 +961,7 @@ const WorkflowView = _.flow(
                     entitySelectionModel.type === processSnapshotTable
                       ? div({ style: { margin: '2rem 0 0 2rem' } }, [
                           h(Select, {
-                            isDisabled: !!WorkspaceUtils.editWorkspaceError(ws) || !!snapshotReferenceError,
+                            isDisabled: WorkspaceUtils.canEditWorkspace(ws)[0] || !!snapshotReferenceError,
                             'aria-label': 'Snapshot table selector',
                             isClearable: false,
                             value: modifiedConfig.dataReferenceName && !snapshotReferenceError ? modifiedConfig.rootEntityType : undefined,
@@ -984,10 +983,9 @@ const WorkflowView = _.flow(
                                   currentSnapRedacted ||
                                   this.isSingle() ||
                                   !rootEntityType ||
-                                  !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) ||
-                                  !!WorkspaceUtils.editWorkspaceError(ws),
-                                tooltip: WorkspaceUtils.editWorkspaceError(ws),
+                                  !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]),
                                 onClick: () => this.setState({ selectingData: true }),
+                                ...WorkspaceUtils.getWorkspaceEditControlProps(ws)
                               },
                               ['Select Data']
                             ),
@@ -1319,7 +1317,7 @@ const WorkflowView = _.flow(
       }, data);
 
       const isSingleAndOutputs = key === 'outputs' && this.isSingle();
-      const isEditable = !currentSnapRedacted && !WorkspaceUtils.editWorkspaceError(workspace) && !isSingleAndOutputs;
+      const isEditable = !currentSnapRedacted && WorkspaceUtils.canEditWorkspace(workspace)[0] && !isSingleAndOutputs;
 
       const linkStyle = { color: colors.accent(1.05) }; // Get to 4.5:1 contrast on the gray background
 
@@ -1329,7 +1327,7 @@ const WorkflowView = _.flow(
           key,
           accept: '.json',
           multiple: false,
-          disabled: currentSnapRedacted || !!WorkspaceUtils.editWorkspaceError(workspace) || data.length === 0,
+          disabled: currentSnapRedacted || WorkspaceUtils.canEditWorkspace(workspace)[0] ? false : true || data.length === 0,
           style: {
             ...styles.tabContents,
             flex: 'auto',

@@ -30,8 +30,8 @@ import { authStore, requesterPaysProjectStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import {
+  canEditWorkspace,
   canWrite,
-  editWorkspaceError,
   hasProtectedData,
   hasRegionConstraint,
   isAzureWorkspace,
@@ -652,6 +652,7 @@ const WorkspaceDashboard = _.flow(
     // Render
     const isEditing = _.isString(editDescription);
     const brand = getEnabledBrand();
+    const [canEdit, editErrorMessage] = canEditWorkspace(workspace);
 
     return div({ style: { flex: 1, display: 'flex' } }, [
       div({ style: Style.dashboard.leftBox }, [
@@ -662,8 +663,8 @@ const WorkspaceDashboard = _.flow(
               Link,
               {
                 style: { marginLeft: '0.5rem' },
-                disabled: !!editWorkspaceError(workspace),
-                tooltip: editWorkspaceError(workspace) || 'Edit description',
+                disabled: canEdit ? false : true,
+                tooltip: editErrorMessage || 'Edit description',
                 onClick: () => setEditDescription(description?.toString()),
               },
               [icon('edit')]
@@ -797,7 +798,7 @@ const WorkspaceDashboard = _.flow(
               social security number, or medical record number.`,
                 ]),
               ]),
-              !editWorkspaceError(workspace) &&
+              canEdit &&
                 div({ style: { marginBottom: '0.5rem' } }, [
                   h(WorkspaceTagSelect, {
                     menuShouldScrollIntoView: false,
@@ -811,7 +812,7 @@ const WorkspaceDashboard = _.flow(
                 _.map((tag) => {
                   return span({ key: tag, style: styles.tag }, [
                     tag,
-                    !editWorkspaceError(workspace) &&
+                    canEdit &&
                       h(
                         Link,
                         {

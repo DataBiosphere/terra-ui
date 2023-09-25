@@ -16,7 +16,7 @@ import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { noWrapEllipsis } from 'src/libs/style';
 import { cond, withBusyState } from 'src/libs/utils';
-import { editWorkspaceError } from 'src/libs/workspace-utils';
+import { canEditWorkspace } from 'src/libs/workspace-utils';
 
 const savedColumnSettingsWorkspaceAttributeName = 'system:columnSettings';
 
@@ -200,8 +200,8 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
   });
 
   const selectedSettingsNameExists = _.has(selectedSettingsName, savedColumnSettings);
-  const editWorkspaceErrorMessage = workspace ? editWorkspaceError(workspace) : undefined;
-  const canSaveSettings = workspace && !editWorkspaceErrorMessage;
+  const [canEdit, editErrorMessage] = canEditWorkspace(workspace);
+  const canSaveSettings = workspace && canEdit;
 
   return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
     div(
@@ -253,7 +253,7 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
               ButtonOutline,
               {
                 disabled: !canSaveSettings,
-                tooltip: editWorkspaceErrorMessage,
+                tooltip: editErrorMessage,
                 onClick: () => {
                   setShowSaveForm(true);
                 },

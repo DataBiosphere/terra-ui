@@ -757,7 +757,7 @@ const MetadataUploadPanel = ({
       h(
         Dropzone,
         {
-          disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
+          disabled: WorkspaceUtils.canEditWorkspace(workspace)[0] ? false : true,
           style: {
             flex: 0,
             backgroundColor: 'white',
@@ -795,7 +795,7 @@ const MetadataUploadPanel = ({
                 },
                 ['Drag and drop your metadata .tsv or .txt file here']
               ),
-              !WorkspaceUtils.editWorkspaceError(workspace) &&
+              WorkspaceUtils.canEditWorkspace(workspace)[0] &&
                 h(FloatingActionButton, {
                   label: 'UPLOAD',
                   iconShape: 'plus',

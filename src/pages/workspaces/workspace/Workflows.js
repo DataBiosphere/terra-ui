@@ -106,6 +106,7 @@ const WorkflowCard = memoWithName('WorkflowCard', ({ listView, name, namespace, 
     methodRepoMethod: { sourceRepo, methodVersion },
   } = config;
   const sourceRepoName = sourceRepo === 'agora' ? 'Terra' : Utils.normalizeLabel(sourceRepo);
+  const props = WorkspaceUtils.getWorkspaceEditControlProps(workspace);
   const workflowCardMenu = h(
     MenuTrigger,
     {
@@ -123,8 +124,7 @@ const WorkflowCard = memoWithName('WorkflowCard', ({ listView, name, namespace, 
           MenuButton,
           {
             onClick: onCopy,
-            disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
-            tooltip: WorkspaceUtils.editWorkspaceError(workspace),
+            ...props,
             tooltipSide: 'left',
           },
           [makeMenuIcon('copy'), 'Duplicate']
@@ -133,8 +133,7 @@ const WorkflowCard = memoWithName('WorkflowCard', ({ listView, name, namespace, 
           MenuButton,
           {
             onClick: onDelete,
-            disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
-            tooltip: WorkspaceUtils.editWorkspaceError(workspace),
+            ...props,
             tooltipSide: 'left',
           },
           [makeMenuIcon('trash'), 'Delete']
@@ -452,8 +451,7 @@ export const Workflows = _.flow(
         Clickable,
         {
           'aria-haspopup': 'dialog',
-          disabled: !!WorkspaceUtils.editWorkspaceError(ws),
-          tooltip: WorkspaceUtils.editWorkspaceError(ws),
+          ...WorkspaceUtils.getWorkspaceEditControlProps(ws),
           style: { ...styles.card, ...styles.shortCard, color: colors.accent(), fontSize: 18, lineHeight: '22px' },
           onClick: () => setFindingWorkflow(true),
         },
