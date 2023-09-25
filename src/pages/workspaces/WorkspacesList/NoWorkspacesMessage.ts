@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment } from 'react';
+import { Fragment, ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { NoWorkspacesMessage } from 'src/components/workspace-utils';
 import { cond } from 'src/libs/utils';

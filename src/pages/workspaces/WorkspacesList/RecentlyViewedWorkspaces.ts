@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, ReactNode, useEffect, useMemo, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard } from 'src/components/workspace-utils';
