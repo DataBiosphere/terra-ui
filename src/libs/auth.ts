@@ -193,6 +193,11 @@ export const signIn = async (includeBillingScope = false): Promise<OidcUser> => 
     });
     return authTokenState.oidcUser;
   }
+  // unset isSigningIn on failure to signIn to not be stuck in spinner
+  authStore.update((state) => ({
+    ...state,
+    isSigningIn: false,
+  }));
   throw new Error('Auth token failed to load when signing in');
 };
 
