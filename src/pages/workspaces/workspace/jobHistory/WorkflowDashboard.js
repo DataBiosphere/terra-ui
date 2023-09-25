@@ -16,7 +16,6 @@ import {
   workflowDetailsBreadcrumbSubtitle,
 } from 'src/components/job-common';
 import WDLViewer from 'src/components/WDLViewer';
-import { UriViewer } from 'src/data/data-table/uri-viewer/UriViewer';
 import { Ajax } from 'src/libs/ajax';
 import { bucketBrowserUrl } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
@@ -26,6 +25,7 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { UriViewer } from 'src/workspace-data/data-table/uri-viewer/UriViewer';
 
 const styles = {
   sectionTableLabel: { fontWeight: 600 },

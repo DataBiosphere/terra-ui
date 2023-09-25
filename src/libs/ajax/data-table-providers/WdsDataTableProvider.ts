@@ -1,5 +1,4 @@
 import _ from 'lodash/fp';
-import { notifyDataImportProgress } from 'src/data/import-jobs';
 import { Ajax } from 'src/libs/ajax';
 import {
   AttributeArray,
@@ -18,6 +17,7 @@ import { withErrorReporting } from 'src/libs/error';
 import { notify } from 'src/libs/notifications';
 import { notificationStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
