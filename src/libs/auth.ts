@@ -136,7 +136,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   authStore.reset();
   authStore.update((state) => ({
     ...state,
-    isSignedIn: false,
+    signInStatus: 'signedOut',
     // TODO: If allowed, this should be moved to the cookie store
     // Load whether a user has input a cookie acceptance in a previous session on this system,
     // or whether they input cookie acceptance previously in this session
@@ -386,8 +386,15 @@ const becameRegistered = (oldState: AuthState, state: AuthState) => {
   return oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered';
 };
 
+const isNowSignedIn = (oldState: AuthState, state: AuthState) => {
+  return oldState.signInStatus !== 'signedIn' && state.signInStatus === 'signedIn';
+};
+
 export const isAuthSettled = (state: AuthState) => {
-  return state.isSignedIn !== 'uninitialized' && (!state.isSignedIn || state.registrationStatus !== 'uninitialized');
+  return (
+    state.signInStatus !== 'uninitialized' &&
+    (state.signInStatus !== 'signedIn' || state.registrationStatus !== 'uninitialized')
+  );
 };
 
 export const ensureAuthSettled = () => {
@@ -422,7 +429,7 @@ export const loadOidcUser = (user: OidcUser): void => {
     const userId: string = tokenClaims.sub;
     return {
       ...state,
-      isSignedIn: true,
+      signInStatus: 'signedIn',
       // Load whether a user has input a cookie acceptance in a previous session on this system,
       // or whether they input cookie acceptance previously in this session
       cookiesAccepted: state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey),
@@ -474,7 +481,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
   authStore.update((state) => {
     return {
       ...state,
-      isSignedIn: true,
+      signInStatus: 'signedIn',
       registrationStatus: 'uninitialized',
       isTimeoutEnabled: undefined,
       cookiesAccepted: true,
@@ -511,8 +518,7 @@ authStore.subscribe(
     };
     const canNowUseSystem =
       !oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage === true;
-    const isNowSignedIn = !oldState.isSignedIn && state.isSignedIn;
-    if (isNowSignedIn || canNowUseSystem) {
+    if (isNowSignedIn(oldState, state) || canNowUseSystem) {
       clearNotification(sessionTimeoutProps.id);
       const registrationStatus: TerraUserRegistrationStatus = await getRegistrationStatus();
       authStore.update((state) => ({ ...state, registrationStatus }));
@@ -521,8 +527,8 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting('Error checking TOS', async (state, oldState) => {
-    if (!oldState.isSignedIn && state.isSignedIn) {
+  withErrorReporting('Error checking TOS', async (state: AuthState, oldState: AuthState) => {
+    if (isNowSignedIn(oldState, state)) {
       const tosComplianceStatus = await Ajax().User.getTermsOfServiceComplianceStatus();
       // If the user is now logged in, but there's no ToS status from Sam,
       // then they haven't accepted it yet and Sam hasn't caught up.
@@ -546,7 +552,7 @@ declare global {
 }
 
 authStore.subscribe(
-  withErrorIgnoring(async (state, oldState) => {
+  withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
         window.Appcues.identify(state.user.id, {
@@ -558,18 +564,18 @@ authStore.subscribe(
   })
 );
 
-authStore.subscribe((state) => {
+authStore.subscribe((state: AuthState) => {
   // We can't guarantee that someone reopening the window is the same user,
   // so we should not persist cookie acceptance across sessions for people signed out
   // Per compliance recommendation, we could probably persist through a session, but
   // that would require a second store in session storage instead of local storage
-  if (state.isSignedIn && state.cookiesAccepted !== getLocalPref(cookiesAcceptedKey)) {
+  if (state.signInStatus === 'signedIn' && state.cookiesAccepted !== getLocalPref(cookiesAcceptedKey)) {
     setLocalPref(cookiesAcceptedKey, state.cookiesAccepted);
   }
 });
 
 authStore.subscribe(
-  withErrorReporting('Error checking groups for timeout status', async (state, oldState) => {
+  withErrorReporting('Error checking groups for timeout status', async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
       const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list());
       authStore.update((state) => ({ ...state, isTimeoutEnabled }));
@@ -583,15 +589,15 @@ export const refreshTerraProfile = async () => {
 };
 
 authStore.subscribe(
-  withErrorReporting('Error loading user profile', async (state, oldState) => {
-    if (!oldState.isSignedIn && state.isSignedIn) {
+  withErrorReporting('Error loading user profile', async (state: AuthState, oldState: AuthState) => {
+    if (isNowSignedIn(oldState, state)) {
       await refreshTerraProfile();
     }
   })
 );
 
 authStore.subscribe(
-  withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
+  withErrorReporting('Error loading NIH account link status', async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
       const nihStatus = await Ajax().User.getNihStatus();
       authStore.update((state) => ({ ...state, nihStatus }));
@@ -600,7 +606,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorIgnoring(async (state, oldState) => {
+  withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
       await Ajax().Metrics.syncProfile();
     }
@@ -608,7 +614,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorIgnoring(async (state, oldState) => {
+  withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
       if (state.anonymousId) {
         return await Ajax().Metrics.identify(state.anonymousId);
@@ -618,20 +624,23 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting('Error loading Framework Services account status', async (state, oldState) => {
-    if (becameRegistered(oldState, state)) {
-      await Promise.all(
-        _.map(async ({ key }) => {
-          const status = await Ajax().User.getFenceStatus(key);
-          authStore.update(_.set(['fenceStatus', key], status));
-        }, allProviders)
-      );
+  withErrorReporting(
+    'Error loading Framework Services account status',
+    async (state: AuthState, oldState: AuthState) => {
+      if (becameRegistered(oldState, state)) {
+        await Promise.all(
+          _.map(async ({ key }) => {
+            const status = await Ajax().User.getFenceStatus(key);
+            authStore.update(_.set(['fenceStatus', key], status));
+          }, allProviders)
+        );
+      }
     }
-  })
+  )
 );
 
-authStore.subscribe((state, oldState) => {
-  if (oldState.isSignedIn && !state.isSignedIn) {
+authStore.subscribe((state: AuthState, oldState: AuthState) => {
+  if (oldState.signInStatus === 'signedIn' && state.signInStatus !== 'signedIn') {
     workspaceStore.reset();
     workspacesStore.reset();
     asyncImportJobStore.reset();

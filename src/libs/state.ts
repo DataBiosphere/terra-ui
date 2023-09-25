@@ -54,13 +54,15 @@ export type TokenMetadata = {
 
 export type Initializable<T> = T | 'uninitialized';
 
+export type SignInStatus = Initializable<'signedIn' | 'signedOut'>;
+
 export type AuthState = {
   anonymousId: string | undefined;
   authTokenMetadata: TokenMetadata;
   cookiesAccepted: boolean | undefined;
   fenceStatus: {};
   hasGcpBillingScopeThroughB2C: boolean | undefined;
-  isSignedIn: Initializable<boolean>;
+  signInStatus: SignInStatus;
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: {
     linkedNihUsername: string;
@@ -89,7 +91,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   cookiesAccepted: undefined,
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
-  isSignedIn: 'uninitialized',
+  signInStatus: 'uninitialized',
   profile: {
     institute: undefined,
     title: undefined,
