@@ -65,10 +65,6 @@ export type DatasetModel = {
   snapshotBuilderSettings?: SnapshotBuilderSettings;
 };
 
-type SnapshotDetails = {};
-
-type JobModel = {};
-
 type DatasetInclude =
   | 'NONE'
   | 'SCHEMA'
@@ -96,11 +92,11 @@ export interface DataRepoContract {
     roles: () => Promise<string[]>;
   };
   snapshot: (snapshotId: string) => {
-    details: () => Promise<SnapshotDetails>;
-    exportSnapshot: () => Promise<JobModel>;
+    details: () => Promise<{}>;
+    exportSnapshot: () => Promise<{}>;
   };
   job: (jobId: string) => {
-    details: () => Promise<JobModel>;
+    details: () => Promise<{}>;
     result: () => Promise<{}>;
   };
 }
