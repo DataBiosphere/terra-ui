@@ -1,7 +1,3 @@
-import _ from 'lodash/fp';
-
-import ReferenceData from './references';
-
 export const referenceMetadata = {
   hg38: {
     species: 'Human',
@@ -53,12 +49,6 @@ export const referenceMetadata = {
   },
 };
 
-export const extractReferenceName = (referenceAlias) => {
-  return referenceAlias.split(': ')[1];
-};
-
-export const makeReferenceAlias = (referenceName) => {
+export const getReferenceLabel = (referenceName) => {
   return `${referenceMetadata[referenceName].species}: ${referenceName}`;
 };
-
-export const referenceAliases = _.keys(ReferenceData).map(makeReferenceAlias);
