@@ -6,7 +6,7 @@ import { AnalysesData } from 'src/analysis/Analyses';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import { asMockedFn } from 'src/testing/test-utils';
 import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
-import { featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
+import { featuredWarpWorkflows, featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
 const defaultAnalysesData: AnalysesData = {
@@ -175,6 +175,110 @@ describe('Featured workflows', () => {
     expect(addToWorkspaceButtons.length).toBe(5);
     const added = screen.getByText(/Added/i);
     await user.click(added);
+
+    expect(post).toHaveBeenCalledTimes(0);
+  });
+
+  it('should render warp workflows', async () => {
+    const getWithVersions = jest.fn().mockReturnValue(Promise.resolve({ methods: [] }));
+    const mockMethods: DeepPartial<CbasContract> = {
+      methods: {
+        getWithVersions,
+      },
+    };
+    asMockedFn(Cbas).mockImplementation(() => mockMethods as CbasContract);
+
+    await act(() =>
+      render(
+        h(FeaturedWorkflows, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: defaultAnalysesData,
+          setSelectedSubHeader: jest.fn(),
+        })
+      )
+    );
+
+    expect(getWithVersions).toHaveBeenCalledTimes(1);
+
+    expect(screen.getByText(/Featured workflows/i)).toBeInTheDocument();
+    expect(screen.getByText(/Get up and running with these commonly used, standard workflows./i)).toBeInTheDocument();
+    expect(screen.getByText('Optimus')).toBeInTheDocument();
+    expect(screen.getByText('MultiSampleSmartSeq2SingleNucleus')).toBeInTheDocument();
+    expect(screen.getByText('scATAC')).toBeInTheDocument();
+    expect(screen.getByText('WholeGenomeGermlineSingleSample')).toBeInTheDocument();
+    expect(screen.getByText('ExomeGermlineSingleSample')).toBeInTheDocument();
+  });
+
+  it('should submit un-imported workflow', async () => {
+    const user = userEvent.setup();
+
+    const getWithVersions = jest.fn().mockReturnValue(Promise.resolve({ methods: [] }));
+    const post = jest.fn().mockReturnValue(Promise.resolve());
+    const mockMethods: DeepPartial<CbasContract> = {
+      methods: {
+        getWithVersions,
+        post,
+      },
+    };
+    asMockedFn(Cbas).mockImplementation(() => mockMethods as CbasContract);
+
+    await act(() =>
+      render(
+        h(FeaturedWorkflows, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: defaultAnalysesData,
+          setSelectedSubHeader: jest.fn(),
+        })
+      )
+    );
+
+    expect(getWithVersions).toHaveBeenCalledTimes(1);
+
+    const allAddButtons = screen.getAllByRole('button', { name: 'Add to workspace' });
+    const optimusButton = allAddButtons[0];
+    await user.click(optimusButton);
+
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenCalledWith(
+      'https://lz-abc/terra-app-abc/cbas',
+      expect.objectContaining({ method_name: 'Optimus' })
+    );
+  });
+
+  it('should not submit imported workflow', async () => {
+    const user = userEvent.setup();
+
+    const getWithVersions = jest.fn().mockReturnValue(Promise.resolve({ methods: featuredWarpWorkflows }));
+    const post = jest.fn().mockReturnValue(Promise.resolve());
+    const mockMethods: DeepPartial<CbasContract> = {
+      methods: {
+        getWithVersions,
+        post,
+      },
+    };
+    asMockedFn(Cbas).mockImplementation(() => mockMethods as CbasContract);
+
+    await act(() =>
+      render(
+        h(FeaturedWorkflows, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: defaultAnalysesData,
+          setSelectedSubHeader: jest.fn(),
+        })
+      )
+    );
+
+    expect(getWithVersions).toHaveBeenCalledTimes(1);
+
+    screen.debug(undefined, 30000);
+    const addedButtons = screen.getAllByText('Added');
+    await user.click(addedButtons[0]);
 
     expect(post).toHaveBeenCalledTimes(0);
   });

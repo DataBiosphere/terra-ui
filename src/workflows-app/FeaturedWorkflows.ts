@@ -80,7 +80,7 @@ export const FeaturedWorkflows = ({
     [signal, workspaceId]
   );
 
-  const abstracted = useCallback(
+  const getMethodsInWorkspace = useCallback(
     (method) => {
       const methods = 'methods' in method ? method.methods : [method];
       return methods.map((featuredMethod) => {
@@ -207,7 +207,7 @@ export const FeaturedWorkflows = ({
       div(['Get up and running with these commonly used, standard workflows.']),
       div({ style: { marginTop: '1rem' } }, [
         _.map((method) => {
-          const methodsInWorkspace = abstracted(method);
+          const methodsInWorkspace = getMethodsInWorkspace(method);
           const allMethodsInWorkspace = methodsInWorkspace.every(([inWorkspace, _method]) => inWorkspace);
           return h(
             WorkflowCard,
@@ -222,7 +222,7 @@ export const FeaturedWorkflows = ({
       div(
         { style: { marginTop: '1rem' } },
         _.map((method) => {
-          const methodsInWorkspace = abstracted(method);
+          const methodsInWorkspace = getMethodsInWorkspace(method);
           const allMethodsInWorkspace = methodsInWorkspace.every(([inWorkspace, _method]) => inWorkspace);
           const noMethodsInWorkspace = methodsInWorkspace.every(([inWorkspace, _method]) => !inWorkspace);
           const newMethodData = methodsInWorkspace.map(([_inWorkspace, method]) => method);
