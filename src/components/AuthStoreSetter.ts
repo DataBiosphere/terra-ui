@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { useEffect } from 'react';
 import { AuthContextProps, useAuth } from 'react-oidc-context';
-import { loadAuthToken, OidcUser, userLoadedEventHandler } from 'src/libs/auth';
+import { loadAuthToken, loadOidcUser, OidcUser } from 'src/libs/auth';
 import { useOnMount } from 'src/libs/react-utils';
 import { oidcStore } from 'src/libs/state';
 
@@ -17,7 +17,7 @@ function AuthStoreSetter(): null {
       // Subscribe to UserManager events.
       // For details of each event, see https://authts.github.io/oidc-client-ts/classes/UserManagerEvents.html
       auth.events.addUserLoaded((user: OidcUser) => {
-        userLoadedEventHandler(user);
+        loadOidcUser(user);
       }),
       auth.events.addAccessTokenExpired((): void => {
         loadAuthToken();

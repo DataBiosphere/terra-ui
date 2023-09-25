@@ -173,10 +173,6 @@ const getSigninArgs = (includeBillingScope: boolean): ExtraSigninRequestArgs => 
 };
 
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
-  authStore.update((state) => ({
-    ...state,
-    isSigningIn: true,
-  }));
   // we should handle if we get back null or false here (if loading the authTokenFails)
   const authTokenState: AuthTokenState = await loadAuthToken(includeBillingScope, true);
   if (authTokenState.status === 'success') {
@@ -193,11 +189,6 @@ export const signIn = async (includeBillingScope = false): Promise<OidcUser> => 
     });
     return authTokenState.oidcUser;
   }
-  // unset isSigningIn on failure to signIn to not be stuck in spinner
-  authStore.update((state) => ({
-    ...state,
-    isSigningIn: false,
-  }));
   throw new Error('Auth token failed to load when signing in');
 };
 
@@ -396,7 +387,7 @@ const becameRegistered = (oldState: AuthState, state: AuthState) => {
 };
 
 export const isAuthSettled = (state: AuthState) => {
-  return (!state.isSigningIn && !state.isSignedIn) || state.registrationStatus !== 'uninitialized';
+  return state.isSignedIn !== 'uninitialized' && (!state.isSignedIn || state.registrationStatus !== 'uninitialized');
 };
 
 export const ensureAuthSettled = () => {
@@ -424,7 +415,7 @@ export const isAzureUser = (): boolean => {
   return _.startsWith('https://login.microsoftonline.com', getUser().idp!);
 };
 
-export const userLoadedEventHandler = (user: OidcUser): void => {
+export const loadOidcUser = (user: OidcUser): void => {
   return authStore.update((state) => {
     const tokenClaims: B2cIdTokenClaims = user.profile;
     // according to IdTokenClaims, this is a mandatory claim and should always exist
@@ -432,7 +423,6 @@ export const userLoadedEventHandler = (user: OidcUser): void => {
     return {
       ...state,
       isSignedIn: true,
-      isSigningIn: false,
       // Load whether a user has input a cookie acceptance in a previous session on this system,
       // or whether they input cookie acceptance previously in this session
       cookiesAccepted: state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey),
@@ -460,7 +450,7 @@ export const initializeAuth = _.memoize(async (): Promise<void> => {
   try {
     const initialOidcUser: OidcUser | null = await userManager.getUser();
     if (initialOidcUser !== null) {
-      userLoadedEventHandler(initialOidcUser);
+      loadOidcUser(initialOidcUser);
     }
   } catch (e) {
     console.error('Error in contacting oidc-client');
