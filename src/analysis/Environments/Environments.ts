@@ -757,9 +757,7 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
                 size: { min: '10em', grow: 0.2 },
                 headerRenderer: () => 'Location',
                 cellRenderer: ({ rowIndex }) => {
-                  const cloudEnvironment = filteredCloudEnvironments[rowIndex];
-                  // We assume that all apps get created in zone 'us-central1-a'.
-                  // If zone or region is not present then cloudEnvironment is an app so we return 'us-central1-a'.
+                  const cloudEnvironment = filteredCloudEnvironments[rowIndex]; //
                   if (isApp(cloudEnvironment)) {
                     return cloudEnvironment.region;
                   }

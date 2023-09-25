@@ -74,9 +74,7 @@ export type NormalizedComputeRegion = NominalType<string, 'ComputeRegion'>;
 // TODO: test when zone and region have types
 export const getNormalizedComputeRegion = (config: GoogleRuntimeConfig | AzureConfig): NormalizedComputeRegion => {
   if (isGceConfig(config) || isGceWithPdConfig(config)) {
-    if ('zone' in config) {
-      return getRegionFromZone(config.zone).toUpperCase() as NormalizedComputeRegion;
-    }
+    return getRegionFromZone(config.zone).toUpperCase() as NormalizedComputeRegion;
   }
   if (isDataprocConfig(config)) {
     return config.region.toUpperCase() as NormalizedComputeRegion;

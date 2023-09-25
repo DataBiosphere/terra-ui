@@ -14,7 +14,7 @@ import {
   generateTestDiskWithGoogleWorkspace,
   generateTestListGoogleRuntime,
 } from 'src/analysis/_testData/testData';
-import { EnvironmentNavActions, Environments } from 'src/analysis/Environments/Environments';
+import { EnvironmentNavActions, Environments, PauseButton } from 'src/analysis/Environments/Environments';
 import { getNormalizedComputeRegion } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { useWorkspaces } from 'src/components/workspace-utils';
@@ -774,6 +774,35 @@ describe('Environments', () => {
       await user.click(buttons1[0]);
       screen.getByText('Delete persistent disk?');
     });
+  });
+
+  describe('PauseButton', () => {
+    it.each([{ app: generateTestAppWithGoogleWorkspace() }, { app: generateTestAppWithAzureWorkspace() }])(
+      'should enable pause for azure and google',
+      async ({ app }) => {
+        // Arrange
+        const pauseComputeAndRefresh = jest.fn();
+
+        await act(async () => {
+          render(
+            h(PauseButton, {
+              computeType: 'app',
+              cloudEnvironment: app,
+              currentUser: app.auditInfo.creator,
+              pauseComputeAndRefresh,
+            })
+          );
+        });
+        // Act
+        const pauseButton = screen.getByText('Pause');
+        // Assert
+        expect(pauseButton).toBeEnabled();
+        // Act
+        await userEvent.click(pauseButton);
+        // Assert
+        expect(pauseComputeAndRefresh).toHaveBeenCalled();
+      }
+    );
   });
 });
 

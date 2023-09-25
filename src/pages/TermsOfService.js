@@ -11,15 +11,15 @@ import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
-import { authStore, userStatus } from 'src/libs/state';
+import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState();
-  const { isSignedIn, termsOfService } = authStore.get(); // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
-  const acceptedLatestTos = isSignedIn && termsOfService.userHasAcceptedLatestTos;
-  const usageAllowed = isSignedIn && termsOfService.permitsSystemUsage;
+  const { signInStatus, termsOfService } = authStore.get(); // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
+  const acceptedLatestTos = signInStatus === 'signedIn' && termsOfService.userHasAcceptedLatestTos;
+  const usageAllowed = signInStatus === 'signedIn' && termsOfService.permitsSystemUsage;
   const [tosText, setTosText] = useState();
 
   useOnMount(() => {
@@ -39,7 +39,7 @@ const TermsOfServicePage = () => {
       const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus();
 
       if (enabled) {
-        const registrationStatus = userStatus.registeredWithTos;
+        const registrationStatus = 'registered';
         authStore.update((state) => ({ ...state, registrationStatus, termsOfService }));
         Nav.goToPath('root');
       } else {

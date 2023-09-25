@@ -30,6 +30,8 @@ describe('Workflows App Navigation Panel', () => {
         namespace: 'test-azure-ws-namespace',
         workspace: mockAzureWorkspace,
         analysesData: defaultAnalysesData,
+        setLoading: jest.fn(),
+        signal: jest.fn(),
       })
     );
 
@@ -66,6 +68,8 @@ describe('Workflows App Navigation Panel', () => {
         namespace: 'test-azure-ws-namespace',
         workspace: mockAzureWorkspace,
         analysesData: defaultAnalysesData,
+        setLoading: jest.fn(),
+        signal: jest.fn(),
       })
     );
 
@@ -91,6 +95,8 @@ describe('Workflows App Navigation Panel', () => {
         namespace: 'test-azure-ws-namespace',
         workspace: mockAzureWorkspace,
         analysesData: defaultAnalysesData,
+        setLoading: jest.fn(),
+        signal: jest.fn(),
       })
     );
 
@@ -108,6 +114,8 @@ describe('Workflows App Navigation Panel', () => {
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
           analysesData: defaultAnalysesData,
+          setLoading: jest.fn(),
+          signal: jest.fn(),
         })
       );
     });

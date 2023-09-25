@@ -5,7 +5,6 @@ import { cromwellLinkProps, doesAppProxyUrlExist, resolveRunningCromwellAppUrl }
 
 describe('resolveRunningCromwellAppUrl', () => {
   const mockCbasUrl = 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas';
-  const mockCbasUiUrl = 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/';
   const mockCromwellUrl =
     'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cromwell';
 
@@ -27,7 +26,7 @@ describe('resolveRunningCromwellAppUrl', () => {
     {
       appStatus: appStatuses.running.status,
       appType: 'CROMWELL',
-      expectedUrl: { cbasUrl: mockCbasUrl, cbasUiUrl: mockCbasUiUrl, cromwellUrl: mockCromwellUrl },
+      expectedUrl: { cbasUrl: mockCbasUrl, cromwellUrl: mockCromwellUrl },
     },
     { appStatus: appStatuses.provisioning.status, appType: 'CROMWELL', expectedUrl: null },
     { appStatus: appStatuses.stopped.status, appType: 'CROMWELL', expectedUrl: null },
@@ -36,7 +35,7 @@ describe('resolveRunningCromwellAppUrl', () => {
     {
       appStatus: appStatuses.running.status,
       appType: 'WORKFLOWS_APP',
-      expectedUrl: { cbasUrl: mockCbasUrl, cbasUiUrl: mockCbasUiUrl, cromwellUrl: mockCromwellUrl },
+      expectedUrl: { cbasUrl: mockCbasUrl, cromwellUrl: mockCromwellUrl },
     },
     { appStatus: appStatuses.provisioning.status, appType: 'WORKFLOWS_APP', expectedUrl: null },
     { appStatus: appStatuses.stopped.status, appType: 'WORKFLOWS_APP', expectedUrl: null },
@@ -50,7 +49,6 @@ describe('resolveRunningCromwellAppUrl', () => {
         status: appStatus,
         proxyUrls: {
           cbas: mockCbasUrl,
-          'cbas-ui': mockCbasUiUrl,
           cromwell: mockCromwellUrl,
         },
         auditInfo: {
@@ -72,7 +70,6 @@ describe('resolveRunningCromwellAppUrl', () => {
         status: 'RUNNING',
         proxyUrls: {
           cbas: mockCbasUrl,
-          'cbas-ui': mockCbasUiUrl,
           cromwell: mockCromwellUrl,
         },
         auditInfo: {
@@ -95,7 +92,6 @@ describe('resolveRunningCromwellAppUrl', () => {
         status: 'RUNNING',
         proxyUrls: {
           cbas: mockCbasUrl,
-          'cbas-ui': mockCbasUiUrl,
           cromwell: mockCromwellUrl,
         },
         auditInfo: {
@@ -108,7 +104,6 @@ describe('resolveRunningCromwellAppUrl', () => {
     ];
 
     expect(resolveRunningCromwellAppUrl(mockApps, mockCurrentUserEmail)).toStrictEqual({
-      cbasUiUrl: mockCbasUiUrl,
       cbasUrl: mockCbasUrl,
       cromwellUrl: mockCromwellUrl,
     });
