@@ -23,7 +23,10 @@ import {
 } from 'src/pages/workspaces/WorkspacesList/WorkspaceFilters';
 import { WorkspacesListModals } from 'src/pages/workspaces/WorkspacesList/WorkspacesListModals';
 import { WorkspacesListTabs } from 'src/pages/workspaces/WorkspacesList/WorkspacesListTabs';
-import { updateWorkspaceActions } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
+import {
+  WorkspaceUserActions,
+  WorkspaceUserActionsContext,
+} from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
 
 export const persistenceId = 'workspaces/list';
 
@@ -62,42 +65,48 @@ export const WorkspacesList = (): ReactNode => {
 
   const sortedWorkspaces = useMemo(() => catagorizeWorkspaces(workspaces, featuredList), [workspaces, featuredList]);
 
-  return h(FooterWrapper, [
-    h(TopBar, { title: 'Workspaces', href: undefined }, []),
-    div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
-        div({ style: { ...StyleElements.sectionHeader, fontSize: '1.5rem' } }, ['Workspaces']),
-        h(
-          Link,
-          {
-            onClick: () => updateWorkspaceActions({ creatingNewWorkspace: true }),
-            style: { marginLeft: '0.5rem' },
-            tooltip: 'Create a new workspace',
-          },
-          [icon('lighter-plus-circle', { size: 24 })]
-        ),
+  const [userActions, setUserActions] = useState<WorkspaceUserActions>({ creatingNewWorkspace: false });
+  const updateUserActions = (newActions: Partial<WorkspaceUserActions>) =>
+    setUserActions({ ...userActions, ...newActions });
+
+  return h(WorkspaceUserActionsContext.Provider, { value: { userActions, setUserActions: updateUserActions } }, [
+    h(FooterWrapper, [
+      h(TopBar, { title: 'Workspaces', href: undefined }, []),
+      div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
+        div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
+          div({ style: { ...StyleElements.sectionHeader, fontSize: '1.5rem' } }, ['Workspaces']),
+          h(
+            Link,
+            {
+              onClick: () => updateUserActions({ creatingNewWorkspace: true }),
+              style: { marginLeft: '0.5rem' },
+              tooltip: 'Create a new workspace',
+            },
+            [icon('lighter-plus-circle', { size: 24 })]
+          ),
+        ]),
+        p({ style: { margin: '0 0 1rem' } }, [
+          'Dedicated spaces for you and your collaborators to access and analyze data together. ',
+          h(
+            Link,
+            {
+              ...newTabLinkProps,
+              href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces',
+            },
+            ['Learn more about workspaces.']
+          ),
+        ]),
+        h(RecentlyViewedWorkspaces, { workspaces, loadingSubmissionStats }),
+        h(WorkspaceFilters, { workspaces }),
+        h(WorkspacesListTabs, {
+          workspaces: sortedWorkspaces,
+          loadingSubmissionStats,
+          loadingWorkspaces,
+          refreshWorkspaces,
+        }),
+        h(WorkspacesListModals, { getWorkspace: (id) => getWorkspace(id, workspaces), refreshWorkspaces }),
+        loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay),
       ]),
-      p({ style: { margin: '0 0 1rem' } }, [
-        'Dedicated spaces for you and your collaborators to access and analyze data together. ',
-        h(
-          Link,
-          {
-            ...newTabLinkProps,
-            href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces',
-          },
-          ['Learn more about workspaces.']
-        ),
-      ]),
-      h(RecentlyViewedWorkspaces, { workspaces, loadingSubmissionStats }),
-      h(WorkspaceFilters, { workspaces }),
-      h(WorkspacesListTabs, {
-        workspaces: sortedWorkspaces,
-        loadingSubmissionStats,
-        loadingWorkspaces,
-        refreshWorkspaces,
-      }),
-      h(WorkspacesListModals, { getWorkspace: (id) => getWorkspace(id, workspaces), refreshWorkspaces }),
-      loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay),
     ]),
   ]);
 };

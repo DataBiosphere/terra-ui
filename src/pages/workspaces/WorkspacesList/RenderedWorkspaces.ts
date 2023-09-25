@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useContext, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
@@ -26,7 +26,7 @@ import {
 } from 'src/libs/workspace-utils';
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
 import { workspaceSubmissionStatus } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
-import { updateWorkspaceActions } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
+import { WorkspaceUserActionsContext } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
 
 // This is actually the sort type from the FlexTable component
 // When that component is converted to typescript, we should use that instead
@@ -139,7 +139,7 @@ export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode =>
               size: { basis: 30, grow: 0, shrink: 0 },
             },
           ],
-        }),
+        } as any),
     ]),
   ]);
 };
@@ -167,10 +167,12 @@ const NameCell = (props: CellProps): ReactNode => {
     workspace,
     workspace: { workspaceId, namespace, name, attributes },
   } = props.workspace;
+  const { setUserActions } = useContext(WorkspaceUserActionsContext);
+
   const description = attributes?.description;
   const canView = canRead(accessLevel);
   const canAccessWorkspace = () =>
-    !canView ? updateWorkspaceActions({ requestingAccessWorkspaceId: workspaceId }) : undefined;
+    !canView ? setUserActions({ requestingAccessWorkspaceId: workspaceId }) : undefined;
 
   return div({ style: styles.tableCellContainer }, [
     div({ style: styles.tableCellContent }, [
@@ -282,18 +284,19 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
     accessLevel,
     workspace: { workspaceId, namespace, name },
   } = props.workspace;
+  const { setUserActions } = useContext(WorkspaceUserActionsContext);
+
   if (!canRead(accessLevel)) {
     // No menu shown if user does not have read access.
     return div({ className: 'sr-only' }, ['You do not have permission to perform actions on this workspace.']);
   }
   const getWorkspace = (id: string): Workspace => _.find({ workspace: { workspaceId: id } }, props.workspaces)!;
 
-  const onClone = () => updateWorkspaceActions({ cloningWorkspaceId: workspaceId });
-  const onDelete = () => updateWorkspaceActions({ deletingWorkspaceId: workspaceId });
-  const onLock = () => updateWorkspaceActions({ lockingWorkspaceId: workspaceId });
-  const onShare = (policies) =>
-    updateWorkspaceActions({ sharingWorkspace: { ...getWorkspace(workspaceId), policies } });
-  const onLeave = () => updateWorkspaceActions({ leavingWorkspaceId: workspaceId });
+  const onClone = () => setUserActions({ cloningWorkspaceId: workspaceId });
+  const onDelete = () => setUserActions({ deletingWorkspaceId: workspaceId });
+  const onLock = () => setUserActions({ lockingWorkspaceId: workspaceId });
+  const onShare = (policies) => setUserActions({ sharingWorkspace: { ...getWorkspace(workspaceId), policies } });
+  const onLeave = () => setUserActions({ leavingWorkspaceId: workspaceId });
 
   return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
     div({ style: styles.tableCellContent }, [
@@ -301,7 +304,7 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
         iconSize: 20,
         popupLocation: 'left',
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-        workspaceInfo: { namespace, name },
+        workspaceInfo: { namespace, name } as any,
       }),
     ]),
   ]);

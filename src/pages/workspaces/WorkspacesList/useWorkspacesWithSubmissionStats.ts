@@ -1,4 +1,4 @@
-import { cond } from '@terra-ui-packages/core-utils/src/logic-utils';
+import { cond } from '@terra-ui-packages/core-utils';
 import { isAfter, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { useEffect, useMemo, useState } from 'react';

@@ -1,13 +1,17 @@
-import { Atom, atom } from '@terra-ui-packages/core-utils';
+import { createContext } from 'react';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
-/**
- * This is here instead of libs/state.ts
- * because it is limited to tracking current user activity in the List component
- */
-export const workspaceUserActionsStore: Atom<WorkspaceUserActions> = atom<WorkspaceUserActions>({
-  creatingNewWorkspace: false,
+export const WorkspaceUserActionsContext = createContext<WorkspaceUserActionsState>({
+  userActions: {
+    creatingNewWorkspace: false,
+  },
+  setUserActions: () => {},
 });
+
+export interface WorkspaceUserActionsState {
+  userActions: WorkspaceUserActions;
+  setUserActions: (actions: Partial<WorkspaceUserActions>) => void;
+}
 
 export interface WorkspaceUserActions {
   creatingNewWorkspace: boolean;
@@ -18,7 +22,3 @@ export interface WorkspaceUserActions {
   requestingAccessWorkspaceId?: string;
   sharingWorkspace?: WorkspaceWrapper;
 }
-
-export const updateWorkspaceActions = (actions: Partial<WorkspaceUserActions>) => {
-  workspaceUserActionsStore.set({ ...workspaceUserActionsStore.get(), ...actions });
-};
