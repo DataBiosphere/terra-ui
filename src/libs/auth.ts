@@ -454,13 +454,21 @@ export const initializeAuth = _.memoize(async (): Promise<void> => {
   // All other auth usage should use the AuthContext from oidcStore.
   const userManager: UserManager = new UserManager(getOidcConfig());
 
+  const setSignedOut = () =>
+    authStore.update((state) => ({
+      ...state,
+      signInStatus: 'signedOut',
+    }));
   try {
     const initialOidcUser: OidcUser | null = await userManager.getUser();
     if (initialOidcUser !== null) {
       loadOidcUser(initialOidcUser);
+    } else {
+      setSignedOut();
     }
   } catch (e) {
     console.error('Error in contacting oidc-client');
+    setSignedOut();
     throw new Error('Failed to initialize auth.');
   }
 });
