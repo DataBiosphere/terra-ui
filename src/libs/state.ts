@@ -25,6 +25,23 @@ export type TerraUserProfile = {
   interestInTerra: string | undefined;
 };
 
+export type TerraUserRegistrationStatus =
+  // User is logged in through B2C but has not registered in Terra.
+  | 'unregistered'
+  // User has registered in Terra but has not accepted the terms of service.
+  | 'registeredWithoutTos'
+  // User has registered in Terra and accepted the terms of service.
+  | 'registered'
+  // User's account has been disabled.
+  | 'disabled'
+  // Registration status has not yet been determined.
+  | 'uninitialized';
+
+export type TermsOfServiceStatus = {
+  permitsSystemUsage: boolean | undefined;
+  userHasAcceptedLatestTos: boolean | undefined;
+};
+
 export type TokenMetadata = {
   token: string | undefined; // do not log or send this to mixpanel
   id: string | undefined;
@@ -55,10 +72,10 @@ export type AuthState = {
   // props in the TerraUserProfile are always present, but there may be more props
   profile: TerraUserProfile & any;
   refreshTokenMetadata: TokenMetadata;
-  registrationStatus: any;
+  registrationStatus: TerraUserRegistrationStatus;
   sessionId?: string | undefined;
   sessionStartTime: number;
-  termsOfService: {};
+  termsOfService: TermsOfServiceStatus;
   user: TerraUser;
 };
 
@@ -96,10 +113,13 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     totalTokenLoadAttemptsThisSession: 0,
     totalTokensUsedThisSession: 0,
   },
-  registrationStatus: undefined,
+  registrationStatus: 'uninitialized',
   sessionId: undefined,
   sessionStartTime: -1,
-  termsOfService: {},
+  termsOfService: {
+    permitsSystemUsage: undefined,
+    userHasAcceptedLatestTos: undefined,
+  },
   user: {
     token: undefined,
     scope: undefined,
@@ -117,13 +137,6 @@ export const getUser = (): TerraUser => authStore.get().user;
 
 export const getSessionId = () => authStore.get().sessionId;
 
-export const userStatus = {
-  unregistered: 'unregistered',
-  registeredWithoutTos: 'registeredWithoutTos',
-  registeredWithTos: 'registered',
-  disabled: 'disabled',
-};
-
 export const cookieReadyStore = atom(false);
 export const azureCookieReadyStore = atom({
   readyForRuntime: false,
@@ -136,7 +149,7 @@ lastActiveTimeStore.update((v) => v || {});
 export const toggleStateAtom = staticStorageSlot(getSessionStorage(), 'toggleState');
 toggleStateAtom.update((v) => v || { notebooksTab: true });
 
-export const azurePreviewStore = staticStorageSlot(getLocalStorage(), 'azurePreview');
+export const azurePreviewStore: Atom<boolean> = staticStorageSlot(getLocalStorage(), 'azurePreview');
 azurePreviewStore.update((v) => v || false);
 
 export const notificationStore = atom<any[]>([]);

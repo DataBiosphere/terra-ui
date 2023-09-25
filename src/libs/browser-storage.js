@@ -161,6 +161,9 @@ export const staticStorageSlot = (storage, key) => {
     setStatic(storage, key, newValue);
     next(newValue);
   };
+
+  const initialValue = get();
+
   listenStatic(storage, key, next);
-  return { subscribe, get, set, update: (fn) => set(fn(get())) };
+  return { subscribe, get, set, update: (fn) => set(fn(get())), reset: () => set(initialValue) };
 };
