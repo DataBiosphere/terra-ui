@@ -1186,6 +1186,7 @@ export const WorkspaceData = _.flow(
                                   Link,
                                   {
                                     style: { flex: 0 },
+                                    tooltip: `Delete ${type}`,
                                     ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
                                     onClick: (e) => {
                                       e.stopPropagation();

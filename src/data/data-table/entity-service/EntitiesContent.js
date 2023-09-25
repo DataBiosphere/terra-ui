@@ -386,6 +386,7 @@ const EntitiesContent = ({
           h(
             ButtonSecondary,
             {
+              tooltip: 'Edit data',
               ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
               style: { marginRight: '1.5rem' },
             },
