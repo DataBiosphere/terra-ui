@@ -1,132 +1,6 @@
 import * as _ from 'lodash/fp';
 import { authOpts, fetchDataRepo } from 'src/libs/ajax/ajax-common';
 
-type TableDataType =
-  | 'string'
-  | 'boolean'
-  | 'bytes'
-  | 'date'
-  | 'datetime'
-  | 'dirref'
-  | 'fileref'
-  | 'float'
-  | 'float64'
-  | 'integer'
-  | 'int64'
-  | 'numeric'
-  | 'record'
-  | 'text'
-  | 'time'
-  | 'timestamp';
-
-type ColumnModel = {
-  name: string;
-  datatype: TableDataType;
-  array_of?: boolean;
-  required?: boolean;
-};
-
-type DatePartitionOptionsModel = {
-  column: string;
-};
-
-type IntPartitionOptionsModel = {
-  column: string;
-  min: number;
-  max: number;
-  interval: number;
-};
-
-type PartitionMode = 'none' | 'date' | 'int';
-
-type TableModel = {
-  name: string;
-  columns: ColumnModel[];
-  primaryKey?: string[];
-  partitionMode?: PartitionMode;
-  datePartitionOptions?: DatePartitionOptionsModel;
-  intPartitionOptions?: IntPartitionOptionsModel;
-  rowCount?: number;
-};
-
-type RelationshipTermModel = {
-  table: string;
-  column: string;
-};
-
-type RelationshipModel = {
-  name: string;
-  from: RelationshipTermModel;
-  to: RelationshipTermModel;
-};
-
-type AssetTableModel = {
-  name: string;
-  columns: string[];
-};
-
-type AssetModel = {
-  name: string;
-  tables: AssetTableModel[];
-  rootTable: string;
-  rootColumn: string;
-  follow?: string[];
-};
-
-type DatasetSpecificationModel = {
-  tables: TableModel[];
-  relationships?: RelationshipModel[];
-  assets?: AssetModel[];
-};
-
-type CloudPlatform = 'gcp' | 'azure';
-
-type StorageResourceModel = {
-  region?: string;
-  cloudResource?: string;
-  cloudPlatform?: CloudPlatform;
-};
-
-type AccessInfoBigQueryModelTable = {
-  name: string;
-  id: string;
-  qualifiedName: string;
-  link?: string;
-  sampleQuery: string;
-};
-
-type AccessInfoBigQueryModel = {
-  datasetName: string;
-  datasetId: string;
-  projectId: string;
-  link: string;
-  tables: AccessInfoBigQueryModelTable;
-};
-
-type AccessInfoParquetModelTable = {
-  name: string;
-  url: string;
-  sasToken: string;
-};
-
-type AccessInfoParquetModel = {
-  datasetName: string;
-  datasetId: string;
-  storageAccountId: string;
-  url: string;
-  sasToken: string;
-  tables: AccessInfoParquetModelTable;
-};
-
-type AccessInfoModel = {
-  bigQuery?: AccessInfoBigQueryModel;
-  parquet?: AccessInfoParquetModel;
-};
-
-type ResourceLocks = {
-  exclusive: string;
-};
-
 export type SnapshotBuilderConcept = {
   id: number;
   name: string;
@@ -186,23 +60,9 @@ export type DatasetModel = {
   id: string;
   name: string;
   description: string;
-  defaultProfileId?: string;
-  dataProject?: string;
-  defaultSnapshotId?: string;
-  schema?: DatasetSpecificationModel;
   createdDate: string;
-  storage?: StorageResourceModel[];
-  secureMonitoringEnabled?: boolean;
-  phsId?: string;
-  accessInformation?: AccessInfoModel;
-  cloudPlatform?: CloudPlatform;
-  selfHosted: boolean;
   properties: any;
-  ingestServiceAccount?: string;
-  predictableFileIds: boolean;
-  tags: string[];
-  resourceLocks: ResourceLocks;
-  snapshotBuilderSettings: SnapshotBuilderSettings;
+  snapshotBuilderSettings?: SnapshotBuilderSettings;
 };
 
 type SnapshotDetails = {};

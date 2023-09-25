@@ -7,11 +7,7 @@ export const dummyDatasetDetails = (datasetId: string): DatasetModel => ({
   description:
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br><br>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
   createdDate: new Date().toDateString(),
-  selfHosted: false,
   properties: {},
-  predictableFileIds: false,
-  tags: [],
-  resourceLocks: { exclusive: '' },
   snapshotBuilderSettings: {
     programDataOptions: [
       { id: 1, name: 'Year of birth', kind: 'range', min: 1900, max: 2023 },
