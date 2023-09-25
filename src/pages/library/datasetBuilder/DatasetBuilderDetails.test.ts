@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { DataRepo, DataRepoContract, DatasetModel } from 'src/libs/ajax/DataRepo';
-import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import { DatasetBuilderDetails } from 'src/pages/library/datasetBuilder/DatasetBuilderDetails';
+import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
 import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({

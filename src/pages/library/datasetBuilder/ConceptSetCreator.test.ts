@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import { ConceptSetCreator, toConceptSet } from 'src/pages/library/datasetBuilder/ConceptSetCreator';
 import { homepageState } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
 
 describe('ConceptSetCreator', () => {
   const datasetDetails = dummyDatasetDetails('0');

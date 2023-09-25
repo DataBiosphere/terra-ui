@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { KEY_LEFT, KEY_RIGHT } from 'keycode-js';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { AnyCriteria, Cohort, CriteriaGroup, DomainCriteria, dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
+import { AnyCriteria, Cohort, CriteriaGroup, DomainCriteria } from 'src/libs/ajax/DatasetBuilder';
 import {
   CohortEditor,
   criteriaFromOption,
@@ -16,6 +16,7 @@ import {
   newCohort,
   newCriteriaGroup,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
 
 describe('CohortEditor', () => {
   type CriteriaViewPropsOverrides = {

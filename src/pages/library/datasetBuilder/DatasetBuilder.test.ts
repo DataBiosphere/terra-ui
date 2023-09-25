@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { DataRepo, DataRepoContract, DatasetModel } from 'src/libs/ajax/DataRepo';
-import { Cohort, ConceptSet, dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
+import { Cohort, ConceptSet } from 'src/libs/ajax/DatasetBuilder';
 import * as Nav from 'src/libs/nav';
 import { cohortEditorState, newCohort, Updater } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import {
@@ -15,6 +15,7 @@ import {
   OnStateChangeHandler,
   ValuesSelector,
 } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
 import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({
