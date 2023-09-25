@@ -130,7 +130,7 @@ describe('WorkspaceNotifications', () => {
       expectedState: false,
     },
   ])('renders checkbox with submission notifications status', ({ profile, expectedState }) => {
-    authStore.set({ profile });
+    authStore.update((state) => ({ ...state, profile }));
 
     const { getByLabelText } = render(h(WorkspaceNotifications, { workspace: testWorkspace }));
     const submissionNotificationsCheckbox = getByLabelText('Receive submission notifications');
@@ -153,13 +153,14 @@ describe('WorkspaceNotifications', () => {
       },
     }));
 
-    authStore.set({
+    authStore.update((state) => ({
+      ...state,
       profile: {
         'notifications/SuccessfulSubmissionNotification/test/test': 'false',
         'notifications/FailedSubmissionNotification/test/test': 'false',
         'notifications/AbortedSubmissionNotification/test/test': 'false',
       },
-    });
+    }));
 
     const { getByLabelText } = render(h(WorkspaceNotifications, { workspace: testWorkspace }));
     const submissionNotificationsCheckbox = getByLabelText('Receive submission notifications');
@@ -173,13 +174,14 @@ describe('WorkspaceNotifications', () => {
   });
 
   it('has no accessibility errors', async () => {
-    authStore.set({
+    authStore.update((state) => ({
+      ...state,
       profile: {
         'notifications/SuccessfulSubmissionNotification/test/test': 'false',
         'notifications/FailedSubmissionNotification/test/test': 'false',
         'notifications/AbortedSubmissionNotification/test/test': 'false',
       },
-    });
+    }));
 
     const { container } = render(h(WorkspaceNotifications, { workspace: testWorkspace }));
     expect(await axe(container)).toHaveNoViolations();
