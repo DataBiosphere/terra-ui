@@ -1,41 +1,141 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
+import { AuthContextProps } from 'react-oidc-context';
+import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 
-export const authStore = atom<any>({
+export type TerraUser = {
+  token?: string | undefined;
+  scope?: string | undefined;
+  id?: string | undefined;
+  email?: string | undefined;
+  name?: string | undefined;
+  givenName?: string | undefined;
+  familyName?: string | undefined;
+  imageUrl?: string | undefined;
+  idp?: string | undefined;
+};
+
+export type TerraUserProfile = {
+  institute: string | undefined;
+  title: string | undefined;
+  department: string | undefined;
+  interestInTerra: string | undefined;
+};
+
+export type TerraUserRegistrationStatus =
+  // User is logged in through B2C but has not registered in Terra.
+  | 'unregistered'
+  // User has registered in Terra but has not accepted the terms of service.
+  | 'registeredWithoutTos'
+  // User has registered in Terra and accepted the terms of service.
+  | 'registered'
+  // User's account has been disabled.
+  | 'disabled'
+  // Registration status has not yet been determined.
+  | 'uninitialized';
+
+export type TermsOfServiceStatus = {
+  permitsSystemUsage: boolean | undefined;
+  userHasAcceptedLatestTos: boolean | undefined;
+};
+
+export type TokenMetadata = {
+  token: string | undefined; // do not log or send this to mixpanel
+  id: string | undefined;
+  createdAt: number;
+  expiresAt: number;
+  totalTokensUsedThisSession: number;
+  totalTokenLoadAttemptsThisSession: number;
+};
+
+export type AuthState = {
+  anonymousId: string | undefined;
+  authContext: AuthContextProps | undefined;
+  authTokenMetadata: TokenMetadata;
+  cookiesAccepted: boolean | undefined;
+  fenceStatus: {};
+  hasGcpBillingScopeThroughB2C: boolean | undefined;
+  isSignedIn: boolean | undefined;
+  isTimeoutEnabled?: boolean | undefined;
+  nihStatus?: {
+    linkedNihUsername: string;
+    linkExpireTime: number;
+  };
+  oidcUser: OidcUser | undefined;
+  oidcConfig: {
+    authorityEndpoint?: string;
+    clientId?: string;
+  };
+  // props in the TerraUserProfile are always present, but there may be more props
+  profile: TerraUserProfile & any;
+  refreshTokenMetadata: TokenMetadata;
+  registrationStatus: TerraUserRegistrationStatus;
+  sessionId?: string | undefined;
+  sessionStartTime: number;
+  termsOfService: TermsOfServiceStatus;
+  user: TerraUser;
+};
+
+export const authStore: Atom<AuthState> = atom<AuthState>({
   anonymousId: undefined,
   authContext: undefined,
   authTokenMetadata: {
+    token: undefined,
+    id: undefined,
     createdAt: -1,
     expiresAt: -1,
+    totalTokenLoadAttemptsThisSession: 0,
+    totalTokensUsedThisSession: 0,
   },
   cookiesAccepted: undefined,
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
-  isAzurePreviewUser: undefined,
   isSignedIn: undefined,
   oidcConfig: {
     authorityEndpoint: undefined,
     clientId: undefined,
   },
-  profile: {},
-  registrationStatus: undefined,
+  oidcUser: undefined,
+  profile: {
+    institute: undefined,
+    title: undefined,
+    department: undefined,
+    interestInTerra: undefined,
+  },
+  refreshTokenMetadata: {
+    token: undefined,
+    id: undefined,
+    createdAt: -1,
+    expiresAt: -1,
+    totalTokenLoadAttemptsThisSession: 0,
+    totalTokensUsedThisSession: 0,
+  },
+  registrationStatus: 'uninitialized',
   sessionId: undefined,
   sessionStartTime: -1,
-  termsOfService: {},
-  user: {},
+  termsOfService: {
+    permitsSystemUsage: undefined,
+    userHasAcceptedLatestTos: undefined,
+  },
+  user: {
+    token: undefined,
+    scope: undefined,
+    id: undefined,
+    email: undefined,
+    name: undefined,
+    givenName: undefined,
+    familyName: undefined,
+    imageUrl: undefined,
+    idp: undefined,
+  },
 });
 
-export const getUser = () => authStore.get().user;
+export const getUser = (): TerraUser => authStore.get().user;
 
-export const userStatus = {
-  unregistered: 'unregistered',
-  registeredWithoutTos: 'registeredWithoutTos',
-  registeredWithTos: 'registered',
-  disabled: 'disabled',
-};
+export const getSessionId = () => authStore.get().sessionId;
 
 export const cookieReadyStore = atom(false);
 export const azureCookieReadyStore = atom({
@@ -49,7 +149,7 @@ lastActiveTimeStore.update((v) => v || {});
 export const toggleStateAtom = staticStorageSlot(getSessionStorage(), 'toggleState');
 toggleStateAtom.update((v) => v || { notebooksTab: true });
 
-export const azurePreviewStore = staticStorageSlot(getLocalStorage(), 'azurePreview');
+export const azurePreviewStore: Atom<boolean> = staticStorageSlot(getLocalStorage(), 'azurePreview');
 azurePreviewStore.update((v) => v || false);
 
 export const notificationStore = atom<any[]>([]);

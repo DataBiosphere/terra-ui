@@ -1,7 +1,10 @@
+import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
-import { User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
+import { ExtraSigninRequestArgs, IdTokenClaims, User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
+import { AuthContextProps } from 'react-oidc-context';
+import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
@@ -14,18 +17,35 @@ import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/pref
 import allProviders from 'src/libs/providers';
 import {
   asyncImportJobStore,
+  AuthState,
   authStore,
   azureCookieReadyStore,
   azurePreviewStore,
   cookieReadyStore,
   getUser,
   requesterPaysProjectStore,
-  userStatus,
+  TermsOfServiceStatus,
+  TerraUserRegistrationStatus,
+  TokenMetadata,
   workspacesStore,
   workspaceStore,
 } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { v4 as uuid } from 'uuid';
+
+export interface OidcUser extends User {
+  profile: B2cIdTokenClaims;
+}
+
+// Our config for b2C claims are defined here: https://github.com/broadinstitute/terraform-ap-deployments/tree/master/azure/b2c/policies
+// The standard b2C claims are defined here: https://learn.microsoft.com/en-us/azure/active-directory/develop/id-token-claims-reference
+export interface B2cIdTokenClaims extends IdTokenClaims {
+  email_verified?: boolean;
+  idp?: string;
+  idp_access_token?: string;
+  tid?: string;
+  ver?: string;
+}
 
 export const getOidcConfig = () => {
   const metadata = {
@@ -34,7 +54,7 @@ export const getOidcConfig = () => {
   };
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
-    client_id: authStore.get().oidcConfig.clientId,
+    client_id: authStore.get().oidcConfig.clientId!,
     popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
     silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
     metadata,
@@ -51,39 +71,71 @@ export const getOidcConfig = () => {
   };
 };
 
-const getAuthInstance = () => {
-  return authStore.get().authContext;
+const getAuthInstance = (): AuthContextProps => {
+  const authContext: AuthContextProps | undefined = authStore.get().authContext;
+  if (authContext === undefined) {
+    console.error('getAuthInstance must not be called before authContext is initialized.');
+    throw new Error('Error initializing authentication.');
+  }
+  return authContext;
 };
 
-export const signOut = () => {
-  // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
+export type SignOutCause =
+  | 'requested'
+  | 'disabled'
+  | 'declinedTos'
+  | 'expiredRefreshToken'
+  | 'errorRefreshingAuthToken'
+  | 'idleStatusMonitor'
+  | 'unspecified';
+
+const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
+  const eventToFire: string = switchCase<SignOutCause, string>(
+    cause,
+    ['requested', () => Events.user.signOut.requested],
+    ['disabled', () => Events.user.signOut.disabled],
+    ['declinedTos', () => Events.user.signOut.declinedTos],
+    ['expiredRefreshToken', () => Events.user.signOut.expiredRefreshToken],
+    ['errorRefreshingAuthToken', () => Events.user.signOut.errorRefreshingAuthToken],
+    ['idleStatusMonitor', () => Events.user.signOut.idleStatusMonitor],
+    ['unspecified', () => Events.user.signOut.unspecified],
+    [DEFAULT, () => Events.user.signOut.unspecified]
+  );
   const sessionEndTime: number = Date.now();
-  const tokenMetadata = authStore.get().authTokenMetadata;
-  Ajax().Metrics.captureEvent(Events.userLogout, {
+  const authStoreState: AuthState = authStore.get();
+  const tokenMetadata: TokenMetadata = authStoreState.authTokenMetadata;
+
+  await Ajax().Metrics.captureEvent(eventToFire, {
     sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
-    sessionDurationInSeconds: (sessionEndTime - authStore.get().sessionStartTime) / 1000.0,
-    authTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
-    authTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
+    sessionDurationInSeconds:
+      authStoreState.sessionStartTime < 0 ? undefined : (sessionEndTime - authStoreState.sessionStartTime) / 1000.0,
+    authTokenCreatedAt: getTimestampMetricLabel(tokenMetadata.createdAt),
+    authTokenExpiresAt: getTimestampMetricLabel(tokenMetadata.expiresAt),
+    totalAuthTokensUsedThisSession: authStoreState.authTokenMetadata.totalTokensUsedThisSession,
+    totalAuthTokenLoadAttemptsThisSession: authStoreState.authTokenMetadata.totalTokenLoadAttemptsThisSession,
   });
+};
+
+export const signOut = (cause: SignOutCause = 'unspecified'): void => {
+  sendSignOutMetrics(cause);
+  if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
+    notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
+  }
+  // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
   azurePreviewStore.set(false);
-  const auth = getAuthInstance();
+  const auth: AuthContextProps = getAuthInstance();
   revokeTokens()
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState());
 };
 
-export const signOutAfterSessionTimeout = () => {
-  Ajax().Metrics.captureEvent(Events.userSessionTimeout, {});
-  signOut();
-  notify('info', 'Session timed out', sessionTimeoutProps);
-};
-
 const revokeTokens = async () => {
-  const auth = getAuthInstance();
-  if (auth.settings.metadata.revocation_endpoint) {
+  // send back auth instance, so we can use it for remove and clear stale state
+  const auth: AuthContextProps = getAuthInstance();
+  if (auth.settings.metadata?.revocation_endpoint) {
     // revokeTokens can fail if the token has already been revoked.
     // Recover from invalid_token errors to make sure signOut completes successfully.
     try {
@@ -97,71 +149,196 @@ const revokeTokens = async () => {
   }
 };
 
-const getSigninArgs = (includeBillingScope) => {
+const getSigninArgs = (includeBillingScope: boolean): ExtraSigninRequestArgs => {
   return Utils.cond(
-    [includeBillingScope === false, () => ({})],
+    [!includeBillingScope, (): ExtraSigninRequestArgs => ({})],
     // For B2C use a dedicated policy endpoint configured for the GCP cloud-billing scope.
-    () => ({
+    (): ExtraSigninRequestArgs => ({
       extraQueryParams: { access_type: 'offline', p: getConfig().b2cBillingPolicy },
       extraTokenParams: { p: getConfig().b2cBillingPolicy },
     })
   );
 };
 
-export const signIn = async (includeBillingScope = false): Promise<User> => {
-  const args = getSigninArgs(includeBillingScope);
-  const user: User = await getAuthInstance().signinPopup(args);
+export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
+  // we should handle if we get back null or false here (if loading the authTokenFails)
+  const authTokenState: AuthTokenState = await loadAuthToken(includeBillingScope, true);
+  if (authTokenState.status === 'success') {
+    const sessionId = uuid();
+    const sessionStartTime: number = Date.now();
+    authStore.update((state) => ({
+      ...state,
+      hasGcpBillingScopeThroughB2C: includeBillingScope,
+      sessionId,
+      sessionStartTime,
+    }));
+    Ajax().Metrics.captureEvent(Events.user.login, {
+      sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
+    });
+    return authTokenState.oidcUser;
+  }
+  throw new Error('Auth token failed to load when signing in');
+};
 
-  const sessionId = uuid();
-  const sessionStartTime: number = Date.now();
-  const userJWT: string = user.id_token!;
-  const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
-  const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
-  const authTokenExpiresAt: number = user.expires_at!; // time in seconds when authorization token expires, as given by the oidc client
-  const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
+export interface AuthTokenSuccessState {
+  status: 'success';
+  oidcUser: OidcUser;
+}
 
+export interface AuthTokenExpiredState {
+  status: 'expired';
+}
+export interface AuthTokenErrorState {
+  status: 'error';
+  reason: any; // Promise rejection reason
+  userErrorMsg: string;
+  internalErrorMsg: string;
+}
+
+export type AuthTokenState = AuthTokenSuccessState | AuthTokenExpiredState | AuthTokenErrorState;
+
+/**
+ * Attempts to load an auth token.
+ * When token is successfully loaded, returns an AuthTokenSuccessState.
+ * When token fails to load because of an expired refresh token, returns an AuthTokenExpiredState
+ * When tokens fails to load because of an error, returns an AuthTokenErrorState
+ * @param includeBillingScope
+ * @param popUp whether signIn is attempted with a popup, or silently in the background.
+ */
+export const loadAuthToken = async (includeBillingScope = false, popUp = false): Promise<AuthTokenState> => {
+  const oldAuthTokenMetadata: TokenMetadata = authStore.get().authTokenMetadata;
+  const oldRefreshTokenMetadata: TokenMetadata = authStore.get().refreshTokenMetadata;
+
+  // for metrics, updates number of authToken load attempts for this session
   authStore.update((state) => ({
     ...state,
-    hasGcpBillingScopeThroughB2C: includeBillingScope,
-    sessionId,
-    sessionStartTime,
     authTokenMetadata: {
-      createdAt: authTokenCreatedAt,
-      expiresAt: authTokenExpiresAt,
+      ...oldAuthTokenMetadata,
+      totalTokenLoadAttemptsThisSession: authStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
     },
   }));
-  Ajax().Metrics.captureEvent(Events.userLogin, {
-    authProvider: user.profile.idp,
-    sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
-    authTokenCreatedAt: Utils.formatTimestampInSeconds(authTokenCreatedAt),
-    authTokenExpiresAt: Utils.formatTimestampInSeconds(authTokenExpiresAt),
-    jwtExpiresAt: Utils.formatTimestampInSeconds(jwtExpiresAt),
-  });
-  return user;
-};
 
-export const reloadAuthToken = (includeBillingScope = false) => {
-  const args = getSigninArgs(includeBillingScope);
-  const tokenMetadata = authStore.get().authTokenMetadata;
-  let authReloadSuccessful = true;
-  return getAuthInstance()
-    .signinSilent(args)
-    .catch((e) => {
-      console.error('An unexpected exception occurred while attempting to refresh auth credentials.');
-      console.error(e);
-      authReloadSuccessful = false;
-      return false;
-    })
-    .finally(() => {
-      Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
-        authReloadSuccessful,
-        oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
-        oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
-      });
+  const loadedAuthTokenState: AuthTokenState = await tryLoadAuthToken(includeBillingScope, popUp);
+
+  if (loadedAuthTokenState.status === 'success') {
+    const oidcUser: OidcUser = loadedAuthTokenState.oidcUser;
+    const oidcUserJWT: string = oidcUser.id_token!;
+    const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(oidcUserJWT);
+    const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
+    const authTokenExpiresAt: number = oidcUser.expires_at!; // time in seconds when authorization token expires, as given by the oidc client
+    const authTokenId: string = uuid();
+    const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
+    const refreshToken: string | undefined = oidcUser.refresh_token;
+    // for future might want to take refresh token and hash it to compare to a saved hashed token to see if they are the same
+    const isNewRefreshToken = !!refreshToken && refreshToken !== oldRefreshTokenMetadata.token;
+
+    // for metrics, updates authToken metadata and refresh token metadata
+    authStore.update((state) => ({
+      ...state,
+      authTokenMetadata: {
+        ...authStore.get().authTokenMetadata,
+        token: oidcUser.access_token,
+        createdAt: authTokenCreatedAt,
+        expiresAt: authTokenExpiresAt,
+        id: authTokenId,
+        totalTokensUsedThisSession:
+          oldAuthTokenMetadata.token !== undefined &&
+          oldAuthTokenMetadata.token === authStore.get().authTokenMetadata.token
+            ? oldAuthTokenMetadata.totalTokensUsedThisSession
+            : oldAuthTokenMetadata.totalTokensUsedThisSession + 1,
+      },
+      oidcUser,
+      refreshTokenMetadata: isNewRefreshToken
+        ? {
+            ...authStore.get().refreshTokenMetadata,
+            id: uuid(),
+            token: refreshToken,
+            createdAt: authTokenCreatedAt,
+            // Auth token expiration is set to 24 hours in B2C configuration.
+            expiresAt: authTokenCreatedAt + 86400, // 24 hours in seconds
+            totalTokensUsedThisSession: authStore.get().authTokenMetadata.totalTokensUsedThisSession + 1,
+            totalTokenLoadAttemptsThisSession: authStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
+          }
+        : { ...authStore.get().refreshTokenMetadata },
+    }));
+    Ajax().Metrics.captureEvent(Events.user.authTokenLoad.success, {
+      authProvider: oidcUser.profile.idp,
+      ...getOldAuthTokenLabels(oldAuthTokenMetadata),
+      authTokenCreatedAt: getTimestampMetricLabel(authTokenCreatedAt),
+      authTokenExpiresAt: getTimestampMetricLabel(authTokenExpiresAt),
+      authTokenId,
+      refreshTokenId: authStore.get().refreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
+      jwtExpiresAt: getTimestampMetricLabel(jwtExpiresAt),
     });
+  } else if (loadedAuthTokenState.status === 'expired') {
+    Ajax().Metrics.captureEvent(Events.user.authTokenLoad.expired, {
+      ...getOldAuthTokenLabels(oldAuthTokenMetadata),
+      refreshTokenId: authStore.get().refreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
+    });
+  } else {
+    Ajax().Metrics.captureEvent(Events.user.authTokenLoad.error, {
+      // we could potentially log the reason, but I don't know if that data is safe to log
+      ...getOldAuthTokenLabels(oldAuthTokenMetadata),
+      refreshTokenId: authStore.get().refreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
+    });
+  }
+  return loadedAuthTokenState;
 };
 
-export const hasBillingScope = () => authStore.get().hasGcpBillingScopeThroughB2C === true;
+const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Promise<AuthTokenState> => {
+  const args: ExtraSigninRequestArgs = getSigninArgs(includeBillingScope);
+  const authInstance: AuthContextProps = getAuthInstance();
+  try {
+    const loadedAuthTokenResponse: OidcUser | null = await (popUp
+      ? // returns Promise<OidcUser | null>, attempts to use the refresh token to get a new authToken
+        authInstance.signinPopup(args)
+      : authInstance.signinSilent(args));
+
+    if (loadedAuthTokenResponse === null) {
+      return {
+        status: 'expired',
+      };
+    }
+
+    return {
+      status: 'success',
+      oidcUser: loadedAuthTokenResponse,
+    };
+  } catch (e) {
+    const userErrorMsg = 'Unable to sign in.';
+    const internalErrorMsg = 'An unexpected exception occurred while attempting to load new auth token.';
+    console.error(`user error message: ${userErrorMsg}`);
+    console.error(`internal error message: ${internalErrorMsg}`);
+    console.error(`reason: ${e}`);
+    return {
+      internalErrorMsg,
+      userErrorMsg,
+      reason: e,
+      status: 'error',
+    };
+  }
+};
+
+const getOldAuthTokenLabels = (oldAuthTokenMetadata: TokenMetadata) => {
+  return {
+    oldAuthTokenCreatedAt: getTimestampMetricLabel(oldAuthTokenMetadata.createdAt),
+    oldAuthTokenExpiresAt: getTimestampMetricLabel(oldAuthTokenMetadata.expiresAt),
+    oldAuthTokenId: oldAuthTokenMetadata.id,
+    oldAuthTokenLifespan:
+      oldAuthTokenMetadata.createdAt < 0 ? undefined : Date.now() - oldAuthTokenMetadata.createdAt / 1000.0,
+  };
+};
+const getTimestampMetricLabel = (timestamp: number): string | undefined => {
+  return timestamp < 0 ? undefined : Utils.formatTimestampInSeconds(timestamp);
+};
+
+export const hasBillingScope = (): boolean => authStore.get().hasGcpBillingScopeThroughB2C === true;
 
 /*
  * Tries to obtain Google Cloud Billing scope silently.
@@ -171,7 +348,7 @@ export const hasBillingScope = () => authStore.get().hasGcpBillingScopeThroughB2
  */
 export const tryBillingScope = async () => {
   if (!hasBillingScope()) {
-    await reloadAuthToken(true);
+    await loadAuthToken(true);
   }
 };
 
@@ -189,11 +366,8 @@ export const ensureBillingScope = async () => {
   }
 };
 
-const becameRegistered = (oldState, state) => {
-  return (
-    oldState.registrationStatus !== userStatus.registeredWithTos &&
-    state.registrationStatus === userStatus.registeredWithTos
-  );
+const becameRegistered = (oldState: AuthState, state: AuthState) => {
+  return oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered';
 };
 
 export const isAuthSettled = ({ isSignedIn, registrationStatus }) => {
@@ -221,18 +395,17 @@ export const bucketBrowserUrl = (id) => {
 /*
  * Specifies whether the user has logged in via the Azure identity provider.
  */
-export const isAzureUser = () => {
-  return _.startsWith('https://login.microsoftonline.com', getUser().idp);
+export const isAzureUser = (): boolean => {
+  return _.startsWith('https://login.microsoftonline.com', getUser().idp!);
 };
 
-export const processUser = (user, isSignInEvent) => {
+export const processUser = (user: OidcUser | null, isSignInEvent: boolean): void => {
   return authStore.update((state) => {
     const isSignedIn = !_.isNil(user);
-    const profile = user?.profile;
-    const userId = profile?.sub;
-
+    const profile: B2cIdTokenClaims | undefined = user?.profile;
+    const userId: string | undefined = profile?.sub;
     // The following few lines of code are to handle sign-in failures due to privacy tools.
-    if (isSignInEvent === true && state.isSignedIn === false && isSignedIn === false) {
+    if (isSignInEvent && state.isSignedIn === false && !isSignedIn) {
       // if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
       // tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
       notify('error', 'Could not sign in', {
@@ -246,7 +419,7 @@ export const processUser = (user, isSignInEvent) => {
       ...state,
       isSignedIn,
       anonymousId: !isSignedIn && state.isSignedIn ? undefined : state.anonymousId,
-      registrationStatus: isSignedIn ? state.registrationStatus : undefined,
+      registrationStatus: isSignedIn ? state.registrationStatus : 'uninitialized',
       termsOfService: initializeTermsOfService(isSignedIn, state),
       profile: isSignedIn ? state.profile : {},
       nihStatus: isSignedIn ? state.nihStatus : undefined,
@@ -258,9 +431,6 @@ export const processUser = (user, isSignInEvent) => {
         : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
-      // A user is an Azure preview user if state.isAzurePreviewUser is set to true (in Sam group or environment where we don't restrict)
-      // _or_ they have the `azurePreviewUser` claim set from B2C.
-      isAzurePreviewUser: isSignedIn ? state.isAzurePreviewUser || profile.isAzurePreviewUser : undefined,
       user: {
         token: user?.access_token,
         scope: user?.scope,
@@ -269,8 +439,8 @@ export const processUser = (user, isSignInEvent) => {
           ? {
               email: profile.email,
               name: profile.name,
-              givenName: profile.givenName,
-              familyName: profile.familyName,
+              givenName: profile.given_name,
+              familyName: profile.family_name,
               imageUrl: profile.picture,
               idp: profile.idp,
             }
@@ -280,7 +450,7 @@ export const processUser = (user, isSignInEvent) => {
   });
 };
 
-const initializeTermsOfService = (isSignedIn, state) => {
+const initializeTermsOfService = (isSignedIn: boolean, state: AuthState): TermsOfServiceStatus => {
   return {
     userHasAcceptedLatestTos: isSignedIn ? state.termsOfService.userHasAcceptedLatestTos : undefined,
     permitsSystemUsage: isSignedIn ? state.termsOfService.permitsSystemUsage : undefined,
@@ -290,7 +460,7 @@ const initializeTermsOfService = (isSignedIn, state) => {
 export const initializeAuth = _.memoize(async () => {
   // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
   // All other auth usage should use the AuthContext from authStore.
-  const userManager = new UserManager(getOidcConfig());
+  const userManager: UserManager = new UserManager(getOidcConfig());
   processUser(await userManager.getUser(), false);
 });
 
@@ -310,7 +480,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
     return {
       ...state,
       isSignedIn: true,
-      registrationStatus: undefined,
+      registrationStatus: 'uninitialized',
       isTimeoutEnabled: undefined,
       cookiesAccepted: true,
       profile: {},
@@ -328,29 +498,28 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
 });
 
 authStore.subscribe(
-  withErrorReporting('Error checking registration', async (state, oldState) => {
-    const getRegistrationStatus = async () => {
+  withErrorReporting('Error checking registration', async (state: AuthState, oldState: AuthState) => {
+    const getRegistrationStatus = async (): Promise<TerraUserRegistrationStatus> => {
       try {
         const { enabled } = await Ajax().User.getStatus();
         if (enabled) {
           // When Terra is first loaded, termsOfService.permitsSystemUsage will be undefined while the user's ToS status is fetched from Sam
-          return state.termsOfService.permitsSystemUsage
-            ? userStatus.registeredWithTos
-            : userStatus.registeredWithoutTos;
+          return state.termsOfService.permitsSystemUsage ? 'registered' : 'registeredWithoutTos';
         }
-        return userStatus.disabled;
+        return 'disabled';
       } catch (error) {
         if ((error as Response).status === 404) {
-          return userStatus.unregistered;
+          return 'unregistered';
         }
         throw error;
       }
     };
-    const canNowUseSystem = !oldState.termsOfService?.permitsSystemUsage && state.termsOfService?.permitsSystemUsage;
-    const isNowSignedIn = !oldState.isSignedIn && state.isSignedIn;
+    const canNowUseSystem =
+      !oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage === true;
+    const isNowSignedIn = oldState.isSignedIn === false && state.isSignedIn === true;
     if (isNowSignedIn || canNowUseSystem) {
       clearNotification(sessionTimeoutProps.id);
-      const registrationStatus = await getRegistrationStatus();
+      const registrationStatus: TerraUserRegistrationStatus = await getRegistrationStatus();
       authStore.update((state) => ({ ...state, registrationStatus }));
     }
   })
@@ -481,15 +650,3 @@ workspaceStore.subscribe((newState, oldState) => {
     requesterPaysProjectStore.reset();
   }
 });
-
-authStore.subscribe(
-  withErrorReporting('Error loading azure preview group membership', async (state, oldState) => {
-    if (becameRegistered(oldState, state)) {
-      // Note that `azurePreviewGroup` is set to true in all non-prod config files, so only call Sam if we have a non-boolean value (prod).
-      const configValue = getConfig().azurePreviewGroup;
-      const isGroupMember = _.isBoolean(configValue) ? configValue : await Ajax().Groups.group(configValue).isMember();
-      const isAzurePreviewUser = oldState.isAzurePreviewUser || isGroupMember;
-      authStore.update((state) => ({ ...state, isAzurePreviewUser }));
-    }
-  })
-);

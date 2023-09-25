@@ -1,3 +1,5 @@
+import { useUniqueId } from '@terra-ui-packages/components';
+import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import PropTypes from 'prop-types';
 import { useRef } from 'react';
@@ -6,7 +8,7 @@ import RModal from 'react-modal';
 import { ButtonPrimary, ButtonSecondary, Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { getPopupRoot } from 'src/components/popup-utils';
-import { useOnMount, useUniqueId } from 'src/libs/react-utils';
+import { useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
@@ -82,7 +84,7 @@ function Modal({
         const nodeToFocus = modalNode.current.contains(document.activeElement) ? document.activeElement : modalNode.current;
         // Add the focus update to the end of the event queue
         // Per react-focus-lock: https://github.com/theKashey/react-focus-lock#unmounting-and-focus-management
-        await Utils.delay(0);
+        await delay(0);
         previouslyFocusedNode.current = modalNode.current.contains(document.activeElement) ? previouslyFocusedNode.current : document.activeElement;
         nodeToFocus.focus();
       },

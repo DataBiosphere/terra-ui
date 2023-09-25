@@ -21,7 +21,7 @@ import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
 import { getConfig } from 'src/libs/config';
 import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { canWrite, cloudProviderTypes } from 'src/libs/workspace-utils';
 
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
@@ -94,7 +94,7 @@ const getServiceAccountToken: (googleProject: string, token: string) => Promise<
 );
 
 export const saToken = (googleProject: string): Promise<string> =>
-  getServiceAccountToken(googleProject, getUser().token);
+  getServiceAccountToken(googleProject, getUser().token!);
 
 export type GCSMetadata = { [key: string]: string };
 
@@ -144,7 +144,7 @@ const encodeAnalysisName = (name) => encodeURIComponent(`notebooks/${name}`);
 export const GoogleStorage = (signal?: AbortSignal) => ({
   checkBucketAccess: async (googleProject, bucket, accessLevel) => {
     // Protect against asking for a project-specific pet service account token if user cannot write to the workspace
-    if (!Utils.canWrite(accessLevel)) {
+    if (!canWrite(accessLevel)) {
       return false;
     }
 

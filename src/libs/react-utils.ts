@@ -1,4 +1,4 @@
-import { Atom, safeCurry } from '@terra-ui-packages/core-utils';
+import { Atom, delay, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import {
   EffectCallback,
@@ -11,7 +11,7 @@ import {
   useState,
 } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { delay, pollWithCancellation } from 'src/libs/utils';
+import { pollWithCancellation } from 'src/libs/utils';
 
 /**
  * Performs the given effect, but only on component mount.
@@ -52,10 +52,6 @@ export const useInstance = <T>(fn: () => T): T => {
     ref.current = fn();
   }
   return ref.current;
-};
-
-export const useUniqueId = (): string => {
-  return useInstance(() => _.uniqueId('unique-id-'));
 };
 
 type UseCancelableResult = {
@@ -184,77 +180,6 @@ export const useStore = <T>(theStore: Atom<T>): T => {
     return theStore.subscribe((v) => setValue(v)).unsubscribe;
   }, [theStore]);
   return value;
-};
-
-type UseLabelAssertOptions = {
-  allowContent?: boolean;
-  allowId?: boolean;
-  allowLabelledBy?: boolean;
-  allowTooltip?: boolean;
-  'aria-label'?: string;
-  'aria-labelledby'?: string;
-  id?: string;
-  tooltip?: string;
-};
-
-/**
- * Asserts that a component has an accessible label, and alerts the developer how to fix it if it doesn't.
- *
- * @param componentName The name of the component, which will be printed to the console if there's an alert.
- * @param [allowLabelledBy] If true (default), the component can have an aria-labelledby linked to another element. Set to false to only allow aria-label.
- * @param [allowId] If true, the component can have an id linked to a label using htmlFor. This is true for form elements.
- * @param [allowTooltip] If true, the component can have a tooltip which will be used if needed as the label.
- * @param [allowContent] If true, the component can used nested textual content as its label, as long as it's not a single unlabelled icon
- * @param [ariaLabel] Optional: The label provided to the component
- * @param [ariaLabelledBy] Optional: The ID of the label provided to the component
- * @param [id]: Optional: The ID of the component if allowId is true
- * @param [tooltip] Optional: The tooltip provided to the component if allowTooltip is true
- */
-export const useLabelAssert = (componentName: string, options: UseLabelAssertOptions) => {
-  const {
-    allowContent = false,
-    allowId = false,
-    allowLabelledBy = true,
-    allowTooltip = false,
-    'aria-label': ariaLabel,
-    'aria-labelledby': ariaLabelledBy,
-    id,
-    tooltip,
-  } = options;
-
-  const printed = useRef(false);
-
-  if (!printed.current) {
-    // Ensure that the properties contain a label
-    if (!(ariaLabel || (allowLabelledBy && ariaLabelledBy) || (allowId && id) || (allowTooltip && tooltip))) {
-      printed.current = true;
-
-      // eslint-disable-next-line no-console
-      console.warn(`For accessibility, ${componentName} needs a label. Resolve this by doing any of the following: ${
-        allowContent
-          ? `
-  * add a child component with textual content or a label
-  * if the child is an icon, add a label to it`
-          : ''
-      }${
-        allowTooltip
-          ? `
-  * add a tooltip property to this component, which will also be used as the aria-label`
-          : ''
-      }
-  * add an aria-label property to this component${
-    allowLabelledBy
-      ? `
-  * add an aria-labelledby property referencing the id of another component containing the label`
-      : ''
-  }${
-        allowId
-          ? `
-  * create a label component and point its htmlFor property to this component's id`
-          : ''
-      }`);
-    }
-  }
 };
 
 export const useDebouncedValue = <T>(value: T, wait: number): T => {

@@ -1,3 +1,4 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import { differenceInDays, parseISO } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
@@ -33,6 +34,8 @@ import * as Utils from 'src/libs/utils';
 import { downloadIO, downloadWorkflows, ioTask, ioVariable } from 'src/libs/workflow-utils';
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+
+const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborting', 'Succeeded', 'Failed', 'Aborted'];
 
 // Note: This 'deletionDelayYears' value should reflect the current 'deletion-delay' value configured for PROD in firecloud-develop's
 // 'cromwell.conf.ctmpl' file:
@@ -108,7 +111,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
           'aria-label': 'Completion status',
           value: statusFilter,
           onChange: (data) => setStatusFilter(_.map('value', data)),
-          options: Utils.workflowStatuses,
+          options: workflowStatuses,
         }),
       ]),
       h(Link, { onClick: () => downloadWorkflows(filteredWorkflows, submissionId) }, ['Download TSV']),
@@ -361,7 +364,7 @@ const SubmissionDetails = _.flow(
         _.some(({ status }) => _.includes(collapseStatus(status), [statusType.running, statusType.submitted]), submission.workflows)
       ) {
         if (!_.isEmpty(submission)) {
-          await Utils.delay(60000);
+          await delay(60000);
         }
         const sub = _.update(
           ['workflows'],

@@ -1,13 +1,14 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { ModalToolButton } from 'src/components/data/data-utils';
 import { centeredSpinner } from 'src/components/icons';
+import { ModalToolButton } from 'src/components/ModalToolButton';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { useCancellation, useOnMount, useUniqueId } from 'src/libs/react-utils';
+import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { workflowSelectionStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';

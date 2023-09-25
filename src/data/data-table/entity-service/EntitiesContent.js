@@ -10,13 +10,13 @@ import { tools } from 'src/analysis/utils/tool-utils';
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
 import { ButtonSecondary } from 'src/components/common';
 import { DataTableColumnProvenance } from 'src/components/data/data-table-provenance';
-import { ModalToolButton } from 'src/components/data/data-utils';
 import { icon, spinner } from 'src/components/icons';
 import IGVBrowser from 'src/components/IGVBrowser';
 import IGVFileSelector from 'src/components/IGVFileSelector';
 import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
 import { withModalDrawer } from 'src/components/ModalDrawer';
+import { ModalToolButton } from 'src/components/ModalToolButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import TitleBar from 'src/components/TitleBar';
 import WorkflowSelector from 'src/components/WorkflowSelector';
@@ -37,6 +37,7 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 
 import DataTable from '../shared/DataTable';
 import { AddColumnModal } from './AddColumnModal';
@@ -326,7 +327,7 @@ const EntitiesContent = ({
   };
 
   const entitiesSelected = !_.isEmpty(selectedEntities);
-  const editErrorMessage = Utils.editWorkspaceError(workspace);
+  const editErrorMessage = WorkspaceUtils.editWorkspaceError(workspace);
   const canEdit = !editErrorMessage;
 
   const renderEditMenu = () => {
@@ -486,7 +487,7 @@ const EntitiesContent = ({
           dataProvider,
           persist: true,
           refreshKey,
-          editable: !snapshotName && !Utils.editWorkspaceError(workspace),
+          editable: !snapshotName && !WorkspaceUtils.editWorkspaceError(workspace),
           entityType: entityKey,
           activeCrossTableTextFilter,
           entityMetadata,

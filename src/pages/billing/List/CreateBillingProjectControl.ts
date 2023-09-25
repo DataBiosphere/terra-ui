@@ -7,7 +7,6 @@ import { MenuTrigger } from 'src/components/PopupTrigger';
 import { CloudProvider } from 'src/libs/workspace-utils';
 
 interface CreateBillingProjectControlProps {
-  isAzurePreviewUser: boolean;
   showCreateProjectModal: (type: CloudProvider) => void;
 }
 
@@ -23,9 +22,6 @@ export const CreateBillingProjectControl = (props: CreateBillingProjectControlPr
     );
   };
 
-  if (!props.isAzurePreviewUser) {
-    return createButton('GCP');
-  }
   return h(
     MenuTrigger,
     {

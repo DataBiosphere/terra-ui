@@ -1,5 +1,4 @@
 import { Ajax } from 'src/libs/ajax';
-import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -14,9 +13,8 @@ const MethodSource = Object.freeze({
 const Covid19Methods = ['fetch_sra_to_bam', 'assemble_refbased', 'sarscov2_nextstrain'];
 export const isCovid19Method = (methodName) => Covid19Methods.includes(methodName);
 
-export const submitMethod = async (signal, onDismiss, method, workspace) => {
+export const submitMethod = async (signal, method, workspace, onSuccess, onError) => {
   if (doesAppProxyUrlExist(workspace.workspace.workspaceId, 'cbasProxyUrlState')) {
-    const namespace = await workspace.workspace.namespace;
     try {
       const methodPayload = {
         method_name: method.method_name,
@@ -26,15 +24,10 @@ export const submitMethod = async (signal, onDismiss, method, workspace) => {
         method_url: method.method_url,
       };
       const methodObject = await Ajax(signal).Cbas.methods.post(workflowsAppStore.get().cbasProxyUrlState.state, methodPayload);
-      onDismiss();
-      Nav.goToPath('workspace-workflows-app-submission-config', {
-        name: workspace.workspace.name,
-        namespace,
-        methodId: methodObject.method_id,
-      });
+
+      onSuccess(methodObject);
     } catch (error) {
-      notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
-      onDismiss();
+      onError(error);
     }
   } else {
     const cbasUrlState = workflowsAppStore.get().cbasProxyUrlState.state;

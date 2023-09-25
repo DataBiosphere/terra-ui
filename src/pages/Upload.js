@@ -1,3 +1,4 @@
+import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { code, div, h, h2, h3, li, p, span, strong, ul } from 'react-hyperscript-helpers';
@@ -21,6 +22,7 @@ import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 
 // As you add support for uploading additional types of metadata, add them here.
 // You may also need to adjust the validation logic.
@@ -604,7 +606,7 @@ const MetadataUploadPanel = ({
 
     try {
       // Read the file contents
-      const text = await Utils.readFileAsText(file);
+      const text = await readFileAsText(file);
 
       // Split rows by newlines and columns by tabs
       const rows = _.flow(
@@ -755,7 +757,7 @@ const MetadataUploadPanel = ({
       h(
         Dropzone,
         {
-          disabled: !!Utils.editWorkspaceError(workspace),
+          disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
           style: {
             flex: 0,
             backgroundColor: 'white',
@@ -793,7 +795,7 @@ const MetadataUploadPanel = ({
                 },
                 ['Drag and drop your metadata .tsv or .txt file here']
               ),
-              !Utils.editWorkspaceError(workspace) &&
+              !WorkspaceUtils.editWorkspaceError(workspace) &&
                 h(FloatingActionButton, {
                   label: 'UPLOAD',
                   iconShape: 'plus',
@@ -954,7 +956,7 @@ const UploadData = _.flow(
 
   const filteredWorkspaces = useMemo(() => {
     return _.filter((ws) => {
-      return Utils.canWrite(ws.accessLevel); // && (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
+      return WorkspaceUtils.canWrite(ws.accessLevel); // && (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
     }, workspaces);
   }, [workspaces]);
 

@@ -1,12 +1,9 @@
-import { AnyPromiseFn, cond, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
+import { AnyPromiseFn, cond, delay, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
 import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
-import { v4 as uuid } from 'uuid';
-
-import { hasAccessLevel } from './workspace-utils';
 
 export { cond, DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 
@@ -64,32 +61,6 @@ export const formatUSD = (v) =>
 
 export const formatNumber = new Intl.NumberFormat('en-US').format;
 
-export const canWrite = (accessLevel) => hasAccessLevel('WRITER', accessLevel);
-export const canRead = (accessLevel) => hasAccessLevel('READER', accessLevel);
-export const isOwner = (accessLevel) => hasAccessLevel('OWNER', accessLevel);
-
-export const workflowStatuses = [
-  'Queued',
-  'Launching',
-  'Submitted',
-  'Running',
-  'Aborting',
-  'Succeeded',
-  'Failed',
-  'Aborted',
-];
-
-/**
- * Convenience helper for debugging _.flow pipelines.
- *
- * To inspect intermediate values in a pipeline, use:
- * _.flow(step1, Utils.log, step2)
- */
-export const log = (...args) => {
-  console.log.apply(null, args); // eslint-disable-line no-console
-  return _.last(args);
-};
-
 export const toIndexPairs = <T>(obj: T[]): [number, T][] =>
   _.flow(
     _.toPairs,
@@ -121,41 +92,14 @@ export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }
   };
 };
 
-export const delay = (ms) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
-
-export const withDelay = _.curry((ms, wrappedFn) => async (...args) => {
-  await delay(ms);
-  return wrappedFn(...args);
-});
-
-export const onNextTick = (fn, ...args) => setTimeout(() => fn(...args), 0);
-
 // Returns a promise that will never resolve or reject. Useful for cancelling async flows.
 export const abandonedPromise = () => {
   return new Promise(() => {});
 };
 
-export const generateRuntimeName = () => `saturn-${uuid()}`;
-
-export const generateAppName = () => `terra-app-${uuid()}`;
-
-export const generatePersistentDiskName = () => `saturn-pd-${uuid()}`;
-
-export const waitOneTick = () => new Promise(setImmediate);
-
 // Returns a message explaining that the desired snapshot reference could not be found by name
 export const snapshotReferenceMissingError = (snapshotReferenceName) => {
   return `The requested snapshot reference '${snapshotReferenceName}' could not be found in this workspace.`;
-};
-
-// Returns a message explaining why the user can't edit the workspace, or undefined if they can
-export const editWorkspaceError = ({ accessLevel, workspace: { isLocked } }) => {
-  return cond(
-    [!canWrite(accessLevel), () => 'You do not have permission to modify this workspace.'],
-    [isLocked, () => 'This workspace is locked.']
-  );
 };
 
 // Returns a message explaining why the user can't compute in the workspace, or undefined if they can
@@ -193,15 +137,6 @@ export const summarizeErrors = (errors) => {
       return div({ key: k, style: { marginTop: k !== '0' ? '0.5rem' : undefined } }, [v as any]);
     }, _.toPairs(errorList));
   }
-};
-
-export const readFileAsText = (file) => {
-  const reader = new FileReader();
-  return new Promise((resolve, reject) => {
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsText(file);
-  });
 };
 
 /**

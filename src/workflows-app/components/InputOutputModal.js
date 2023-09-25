@@ -1,11 +1,11 @@
 import _ from 'lodash/fp';
-import { div, h } from 'react-hyperscript-helpers';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import { FlexTable, HeaderCell, tableHeight } from 'src/components/table';
-import { isAzureUri } from 'src/components/UriViewer/uri-viewer-utils';
+import { isAzureUri } from 'src/data/data-table/uri-viewer/uri-viewer-utils';
 import { getConfig } from 'src/libs/config';
 import { newTabLinkProps } from 'src/libs/utils';
 
@@ -24,21 +24,19 @@ export const getFilenameFromAzureBlobPath = (blobPath) => {
 
 const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
   // Link to download the blob file
-  const renderBlobLink = (blobPath) => {
+  const renderBlobLink = (blobPath, key = undefined) => {
     const downloadUrl = appendSASTokenIfNecessary(blobPath, sasToken);
     const fileName = getFilenameFromAzureBlobPath(blobPath);
-    return h(
-      Link,
-      {
-        disabled: !downloadUrl,
-        isRendered: !_.isEmpty(fileName),
-        href: downloadUrl,
-        download: fileName,
-        style: {},
-        ...newTabLinkProps,
-      },
-      [fileName, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-    );
+    const props = {
+      disabled: !downloadUrl,
+      isRendered: !_.isEmpty(fileName),
+      href: downloadUrl,
+      download: fileName,
+      style: {},
+      ...(key !== undefined ? { key } : {}),
+      ...newTabLinkProps,
+    };
+    return h(Link, props, [fileName, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]);
   };
 
   const dataArray = jsonData ? Object.keys(jsonData).map((key) => [key, jsonData[key]]) : [];
@@ -61,7 +59,7 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
             h(
               FlexTable,
               {
-                'aria-label': 'call table',
+                'aria-label': 'inputs outputs table',
                 height: tableHeight({ actualRows: dataArray.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
                 width,
                 rowCount: dataArray.length,
@@ -80,7 +78,26 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
                     field: 'value',
                     headerRenderer: () => h(HeaderCell, ['Value']),
                     cellRenderer: ({ rowIndex }) => {
-                      return isAzureUri(dataArray[rowIndex][1]) ? renderBlobLink(dataArray[rowIndex][1]) : div({}, dataArray[rowIndex][1]);
+                      let output = [];
+                      const targetData = dataArray[rowIndex][1];
+                      if (Array.isArray(targetData)) {
+                        output = targetData.map((item, index) => {
+                          const key = `output-${rowIndex}-item-${index}`;
+                          return isAzureUri(item) ? renderBlobLink(item, key) : span({ key }, item);
+                        });
+                      } else {
+                        const key = `output-${rowIndex}-item`;
+                        output.push(isAzureUri(targetData) ? renderBlobLink(targetData, key) : div({ key }, targetData));
+                      }
+                      return div(
+                        {
+                          style: {
+                            display: 'flex',
+                            flexDirection: 'column',
+                          },
+                        },
+                        [output]
+                      );
                     },
                   },
                 ],

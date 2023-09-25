@@ -27,6 +27,7 @@ import {
 } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider } from 'src/libs/workspace-utils';
+import { v4 as uuid } from 'uuid';
 
 export const runtimeTypes = {
   gceVm: 'Standard VM',
@@ -205,3 +206,5 @@ export const isGcpContext = (cloudContext: CloudContext): boolean =>
   cloudContext.cloudProvider === cloudProviders.gcp.label;
 export const isAzureContext = (cloudContext: CloudContext): boolean =>
   cloudContext.cloudProvider === cloudProviders.azure.label;
+
+export const generateRuntimeName = () => `saturn-${uuid()}`;

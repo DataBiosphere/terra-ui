@@ -13,7 +13,6 @@ import {
   Link,
   RadioButton,
 } from 'src/components/common';
-import { EditDataLink, HeaderOptions } from 'src/components/data/data-utils';
 import { icon } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
@@ -29,6 +28,7 @@ import { useCancellation } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 
 // TODO: Shared components should not depend on EntityService/WDS specific components.
 import { concatenateAttributeNames } from '../entity-service/attribute-utils';
@@ -43,6 +43,8 @@ import {
   decodeColumnSettings,
 } from '../entity-service/SavedColumnSettings';
 import { SingleEntityEditor } from '../entity-service/SingleEntityEditor';
+import { EditDataLink } from './EditDataLink';
+import { HeaderOptions } from './HeaderOptions';
 
 const entityMap = (entities) => {
   return _.fromPairs(_.map((e) => [e.name, e], entities));
@@ -170,7 +172,7 @@ const DataTable = (props) => {
 
   const [filterOperator, setFilterOperator] = useState('AND');
 
-  const noEdit = Utils.editWorkspaceError(workspace);
+  const noEdit = WorkspaceUtils.editWorkspaceError(workspace);
 
   const table = useRef();
   const signal = useCancellation();

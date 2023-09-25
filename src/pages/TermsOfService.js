@@ -11,7 +11,7 @@ import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
-import { authStore, userStatus } from 'src/libs/state';
+import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
@@ -39,7 +39,7 @@ const TermsOfServicePage = () => {
       const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus();
 
       if (enabled) {
-        const registrationStatus = userStatus.registeredWithTos;
+        const registrationStatus = 'registered';
         authStore.update((state) => ({ ...state, registrationStatus, termsOfService }));
         Nav.goToPath('root');
       } else {
@@ -60,7 +60,7 @@ const TermsOfServicePage = () => {
       reportError('Error rejecting Terms of Service', error);
     } finally {
       setBusy(false);
-      signOut();
+      signOut('declinedTos');
     }
   };
 
@@ -94,7 +94,7 @@ const TermsOfServicePage = () => {
       !usageAllowed &&
         !!tosText &&
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
+          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => signOut('declinedTos') }, 'Decline and Sign Out'),
           h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept']),
         ]),
       !acceptedLatestTos &&

@@ -1,4 +1,5 @@
-import { reloadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth';
+import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { loadAuthToken, OidcUser, signOut } from 'src/libs/auth';
 import { getUser } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -7,8 +8,8 @@ import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } f
 type AuthExports = typeof import('src/libs/auth');
 jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   return {
-    reloadAuthToken: jest.fn(),
-    signOutAfterSessionTimeout: jest.fn(),
+    loadAuthToken: jest.fn(),
+    signOut: jest.fn(),
   };
 });
 
@@ -59,15 +60,42 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
       Promise.reject(new Response(JSON.stringify({ success: false }), { status: 401 }))
     );
     const wrappedFetch = withRetryAfterReloadingExpiredAuthToken(originalFetch);
+
+    const token = 'testtoken';
     const makeAuthenticatedRequest = () => wrappedFetch('https://example.com', authOpts());
 
     beforeEach(() => {
-      let mockUser = { token: 'testtoken' };
-      asMockedFn(getUser).mockImplementation(() => mockUser);
+      let mockTerraUser = { token };
+      const mockOidcUser: OidcUser = {
+        id_token: undefined,
+        session_state: null,
+        access_token: token,
+        refresh_token: '',
+        token_type: '',
+        scope: undefined,
+        profile: {
+          sub: '',
+          iss: '',
+          aud: '',
+          exp: 0,
+          iat: 0,
+        },
+        expires_at: undefined,
+        state: undefined,
+        expires_in: 0,
+        expired: undefined,
+        scopes: [],
+        toStorageString: (): string => '',
+      };
 
-      asMockedFn(reloadAuthToken).mockImplementation(() => {
-        mockUser = { token: 'newtesttoken' };
-        return Promise.resolve(true);
+      asMockedFn(getUser).mockImplementation(() => mockTerraUser);
+
+      asMockedFn(loadAuthToken).mockImplementation(() => {
+        mockTerraUser = { token: 'newtesttoken' };
+        return Promise.resolve({
+          status: 'success',
+          oidcUser: mockOidcUser,
+        });
       });
     });
 
@@ -77,7 +105,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
       await Promise.allSettled([makeAuthenticatedRequest()]);
 
       // Assert
-      expect(reloadAuthToken).toHaveBeenCalled();
+      expect(loadAuthToken).toHaveBeenCalled();
     });
 
     it('retries request with new auth token if reloading auth token succeeds', async () => {
@@ -97,16 +125,23 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
 
     describe('if reloading auth token fails', () => {
       beforeEach(() => {
-        asMockedFn(reloadAuthToken).mockImplementation(() => Promise.resolve(false));
+        asMockedFn(loadAuthToken).mockImplementation(() =>
+          Promise.resolve({
+            status: 'error',
+            internalErrorMsg: 'unexpected error',
+            userErrorMsg: 'unexpected error',
+            reason: {},
+          })
+        );
       });
 
       it('signs out user', async () => {
         // Act
-        // Ignore errors because makeAuthenticatedReuqest is expected to return a rejected promise here.
+        // Ignore errors because makeAuthenticatedRequest is expected to return a rejected promise here.
         await Promise.allSettled([makeAuthenticatedRequest()]);
 
         // Assert
-        expect(signOutAfterSessionTimeout).toHaveBeenCalled();
+        expect(signOut).toHaveBeenCalled();
       });
 
       it('throws an error', () => {
@@ -114,7 +149,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
         const result = makeAuthenticatedRequest();
 
         // Assert
-        expect(result).rejects.toEqual(new Error('Session timed out'));
+        expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
       });
     });
   });

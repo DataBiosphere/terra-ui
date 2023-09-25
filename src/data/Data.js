@@ -5,31 +5,27 @@ import * as qs from 'qs';
 import { Fragment, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { DraggableCore } from 'react-draggable';
 import { div, form, h, h3, input, span } from 'react-hyperscript-helpers';
-import { AutoSizer } from 'react-virtualized';
 import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
 import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions';
-import { getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter } from 'src/components/data/data-utils';
 import FileBrowser from 'src/components/data/FileBrowser';
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent';
 import { icon, spinner } from 'src/components/icons';
-import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input';
+import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
-import { FlexTable, HeaderCell } from 'src/components/table';
-import { SnapshotInfo } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions';
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { useImportJobs } from 'src/libs/import-jobs';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -37,16 +33,23 @@ import { getUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 import EntitiesContent from './data-table/entity-service/EntitiesContent';
 import { ExportDataModal } from './data-table/entity-service/ExportDataModal';
 import { RenameTableModal } from './data-table/entity-service/RenameTableModal';
-import { renderDataCell } from './data-table/entity-service/renderDataCell';
 import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnSettings';
+import { SnapshotContent } from './data-table/entity-service/SnapshotContent';
+import { getRootTypeForSetTable } from './data-table/entity-service/table-utils';
 import { EntityUploader } from './data-table/shared/EntityUploader';
 import WDSContent from './data-table/wds/WDSContent';
 import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
+import { useImportJobs } from './import-jobs';
+import { getReferenceData } from './reference-data/reference-data-utils';
+import { ReferenceDataContent } from './reference-data/ReferenceDataContent';
+import { ReferenceDataDeleter } from './reference-data/ReferenceDataDeleter';
+import { ReferenceDataImporter } from './reference-data/ReferenceDataImporter';
 
 const styles = {
   tableContainer: {
@@ -159,94 +162,6 @@ const DataImportPlaceholder = () => {
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('downloadRegular', { size: 14 })]),
     div({ style: { flex: 1 } }, ['Data import in progress']),
   ]);
-};
-
-const getReferenceData = _.flow(
-  _.toPairs,
-  _.filter(([key]) => key.startsWith('referenceData_')),
-  _.map(([k, value]) => {
-    const [, datum, key] = /referenceData_([^_]+)_(.+)/.exec(k);
-    return { datum, key, value };
-  }),
-  _.groupBy('datum')
-);
-
-const ReferenceDataContent = ({ workspace, referenceKey }) => {
-  const {
-    workspace: { attributes },
-  } = workspace;
-  const [textFilter, setTextFilter] = useState('');
-
-  const selectedData = _.flow(
-    _.filter(({ key, value }) => Utils.textMatch(textFilter, `${key} ${value}`)),
-    _.sortBy('key')
-  )(getReferenceData(attributes)[referenceKey]);
-
-  return h(Fragment, [
-    div(
-      {
-        style: {
-          display: 'flex',
-          justifyContent: 'flex-end',
-          padding: '1rem',
-          background: colors.light(0.5),
-          borderBottom: `1px solid ${colors.grey(0.4)}`,
-        },
-      },
-      [
-        h(DelayedSearchInput, {
-          'aria-label': 'Search',
-          style: { width: 300 },
-          placeholder: 'Search',
-          onChange: setTextFilter,
-          value: textFilter,
-        }),
-      ]
-    ),
-    div({ style: { flex: 1, margin: '0 0 1rem' } }, [
-      h(AutoSizer, [
-        ({ width, height }) =>
-          h(FlexTable, {
-            'aria-label': 'reference data',
-            width,
-            height,
-            rowCount: selectedData.length,
-            noContentMessage: 'No matching data',
-            columns: [
-              {
-                size: { basis: 400, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ['Key']),
-                cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, workspace),
-              },
-              {
-                size: { grow: 1 },
-                headerRenderer: () => h(HeaderCell, ['Value']),
-                cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, workspace),
-              },
-            ],
-            border: false,
-          }),
-      ]),
-    ]),
-  ]);
-};
-const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, onDelete, snapshotName, tableName }) => {
-  return Utils.cond(
-    [!snapshotDetails?.[snapshotName], () => spinnerOverlay],
-    [
-      !!tableName,
-      () =>
-        h(EntitiesContent, {
-          snapshotName,
-          workspace,
-          entityMetadata: snapshotDetails[snapshotName].entityMetadata,
-          setEntityMetadata: () => {},
-          entityKey: tableName,
-          loadMetadata,
-        }),
-    ],
-    () => h(SnapshotInfo, { workspace, resource: snapshotDetails[snapshotName].resource, snapshotName, onUpdate, onDelete })
-  );
 };
 
 const DataTypeSection = ({ title, error, retryFunction, children }) => {
@@ -384,7 +299,7 @@ const DataTableActions = ({
   const isSetOfSets = tableName.endsWith('_set_set');
   const setTableNames = _.filter((v) => v.match(`${tableName}(_set)+$`), _.keys(entityMetadata));
 
-  const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace);
+  const editWorkspaceErrorMessage = WorkspaceUtils.editWorkspaceError(workspace);
 
   const downloadForm = useRef();
   const signal = useCancellation();
@@ -647,7 +562,7 @@ export const WorkspaceData = _.flow(
     const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}); // { [entityType: string]: boolean }
     const pollWdsInterval = useRef();
 
-    const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' });
+    const [wdsApp, setWdsApp] = useState({ status: 'None', state: undefined });
     const [wdsTypes, setWdsTypes] = useState({ status: 'None', state: [] });
 
     const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } =
@@ -663,9 +578,10 @@ export const WorkspaceData = _.flow(
     const region = isAzureWorkspace ? storageDetails.azureContainerRegion : storageDetails.googleBucketLocation;
 
     const wdsDataTableProvider = useMemo(() => {
-      const proxyUrl = !!wdsProxyUrl && wdsProxyUrl.state;
+      const app = wdsApp?.state;
+      const proxyUrl = app?.proxyUrls?.wds;
       return new WdsDataTableProvider(workspaceId, proxyUrl);
-    }, [workspaceId, wdsProxyUrl]);
+    }, [workspaceId, wdsApp]);
 
     const loadEntityMetadata = async () => {
       try {
@@ -729,20 +645,34 @@ export const WorkspaceData = _.flow(
       }
     };
 
-    const loadWdsUrl = useCallback((workspaceId) => {
+    // returns the found app only if it is in a ready state,
+    // otherwise returns undefined
+    const loadWdsApp = useCallback((workspaceId) => {
       return Ajax()
         .Apps.listAppsV2(workspaceId)
         .then((apps) => {
           const foundApp = resolveWdsApp(apps);
-          if (foundApp?.status === 'RUNNING') {
-            const url = foundApp.proxyUrls.wds;
-            setWdsProxyUrl({ status: 'Ready', state: url });
-            return url;
+          switch (foundApp?.status) {
+            case appStatuses.provisioning.status:
+            case appStatuses.updating.status:
+              setWdsApp({ status: 'Loading', state: foundApp });
+              break;
+            case appStatuses.running.status:
+              setWdsApp({ status: 'Ready', state: foundApp });
+              return foundApp;
+            case appStatuses.error.status:
+              setWdsApp({ status: 'Error', state: foundApp });
+              break;
+            default:
+              if (foundApp?.status) {
+                // eslint-disable-next-line no-console
+                console.log(`Unhandled state [${foundApp?.status} while polling WDS`);
+              }
           }
-          if (foundApp?.status === 'ERROR') {
-            setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
-          }
-          return '';
+        })
+        .catch((error) => {
+          setWdsApp({ status: 'Error', state: 'Error resolving WDS app' });
+          reportError('Error resolving WDS app', error);
         });
     }, []);
 
@@ -753,37 +683,37 @@ export const WorkspaceData = _.flow(
           .then((typesResult) => {
             setWdsTypes({ status: 'Ready', state: typesResult });
           })
-          .catch((err) => {
-            setWdsTypes({ status: 'Error', state: err });
+          .catch((error) => {
+            setWdsTypes({ status: 'Error', state: 'Error loading WDS schema' });
+            reportError('Error loading WDS schema', error);
           });
       },
       [signal]
     );
 
     const loadWdsData = useCallback(async () => {
-      try {
-        // Try to load the proxy URL
-        if (!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') {
-          const wdsUrl = await loadWdsUrl(workspaceId);
-          if (wdsUrl) {
-            await loadWdsTypes(wdsUrl, workspaceId);
-          }
-        } else {
-          // If we have the proxy URL try to load the WDS types
-          const proxyUrl = wdsProxyUrl.state;
-          await loadWdsTypes(proxyUrl, workspaceId);
+      // Try to load the proxy URL
+      if (!wdsApp || !['Ready', 'Error'].includes(wdsApp.status)) {
+        const foundApp = await loadWdsApp(workspaceId);
+        // TODO: figure out how not to make this redundant fetch, per
+        // https://github.com/DataBiosphere/terra-ui/pull/4202#discussion_r1319145491
+        if (foundApp) {
+          loadWdsTypes(foundApp.proxyUrls?.wds, workspaceId);
         }
-      } catch (error) {
-        console.log(`Error thrown loading WDS schema: ${error}`); // eslint-disable-line no-console
       }
-    }, [loadWdsUrl, loadWdsTypes, workspaceId, wdsProxyUrl]);
+      // If we have the proxy URL try to load the WDS types
+      else if (wdsApp?.status === 'Ready') {
+        const proxyUrl = wdsApp.state.proxyUrls?.wds;
+        await loadWdsTypes(proxyUrl, workspaceId);
+      }
+    }, [wdsApp, loadWdsApp, loadWdsTypes, workspaceId]);
 
     useEffect(() => {
       if (isAzureWorkspace) {
         // Start polling if we're missing WDS Types, and stop polling when we have them.
-        if ((!wdsTypes || wdsTypes.status !== 'Ready') && !pollWdsInterval.current) {
+        if ((!wdsTypes || !['Ready', 'Error'].includes(wdsTypes.status)) && !pollWdsInterval.current) {
           pollWdsInterval.current = setInterval(loadWdsData, 30 * 1000);
-        } else if (!!wdsTypes && wdsTypes.status === 'Ready' && pollWdsInterval.current) {
+        } else if (wdsTypes?.status === 'Ready' && pollWdsInterval.current) {
           clearInterval(pollWdsInterval.current);
           pollWdsInterval.current = undefined;
         }
@@ -793,7 +723,7 @@ export const WorkspaceData = _.flow(
         clearInterval(pollWdsInterval.current);
         pollWdsInterval.current = undefined;
       };
-    }, [loadWdsData, workspaceId, wdsProxyUrl, wdsTypes, isAzureWorkspace]);
+    }, [loadWdsData, workspaceId, wdsApp, wdsTypes, isAzureWorkspace]);
 
     const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first));
 
@@ -849,13 +779,14 @@ export const WorkspaceData = _.flow(
     const sortedEntityPairs = toSortedPairs(entityMetadata);
     const sortedSnapshotPairs = toSortedPairs(snapshotDetails);
 
-    const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace);
+    const editWorkspaceErrorMessage = WorkspaceUtils.editWorkspaceError(workspace);
     const canEditWorkspace = !editWorkspaceErrorMessage;
 
     // convenience vars for WDS
-    const wdsReady = wdsProxyUrl.status === 'Ready' && wdsTypes.status === 'Ready';
-    const wdsLoading = wdsProxyUrl.status === 'Loading' || wdsTypes.status === 'Loading';
-    const wdsError = wdsProxyUrl.status === 'Error' || wdsTypes.status === 'Error';
+    const wdsReady = wdsApp.status === 'Ready' && wdsTypes.status === 'Ready';
+    const wdsError = wdsApp.status === 'Error' || wdsTypes.status === 'Error';
+    const wdsAppState = wdsApp.state?.status;
+    const wdsLoading = !wdsReady && !wdsError && (wdsApp.status === 'Loading' || wdsTypes.status === 'Loading');
 
     const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && wdsReady);
     return div({ style: styles.tableContainer }, [
@@ -1258,8 +1189,8 @@ export const WorkspaceData = _.flow(
                                   Link,
                                   {
                                     style: { flex: 0 },
-                                    disabled: !!Utils.editWorkspaceError(workspace),
-                                    tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
+                                    disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
+                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || `Delete ${type}`,
                                     onClick: (e) => {
                                       e.stopPropagation();
                                       setDeletingReference(type);
@@ -1400,7 +1331,7 @@ export const WorkspaceData = _.flow(
                           ),
                       ],
                       [
-                        isAzureWorkspace && !wdsReady,
+                        isAzureWorkspace && wdsLoading,
                         () =>
                           div(
                             {
@@ -1408,19 +1339,14 @@ export const WorkspaceData = _.flow(
                             },
                             [
                               icon('loadingSpinner'),
-                              ' Preparing your data tables, this may take a few minutes. ',
-                              Utils.cond(
-                                [
-                                  !uploadingWDSFile,
-                                  () =>
-                                    div({}, [
-                                      'You can ',
-                                      h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
-                                      ' of your data table service.',
-                                    ]),
-                                ],
-                                () => ''
-                              ),
+                              ` ${
+                                wdsAppState === appStatuses.updating.status ? 'Updating' : 'Preparing'
+                              } your data tables, this may take a few minutes. `,
+                              div([
+                                'You can ',
+                                h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
+                                ' of your data table service.',
+                              ]),
                             ]
                           ),
                       ],

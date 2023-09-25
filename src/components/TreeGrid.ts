@@ -1,3 +1,4 @@
+import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactElement, useState } from 'react';
 import { div, h, strong } from 'react-hyperscript-helpers';
@@ -128,7 +129,7 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
     noContentMessage: 'No matching data',
     cellRenderer: ({ rowIndex, columnIndex, style }) => {
       const row = visibleRows[rowIndex];
-      const [iconName, handler, label] = (() => {
+      const [iconName, handler, label]: [IconId, ((row: Row<T>) => void) | undefined, string | undefined] = (() => {
         switch (row.state) {
           case 'closed':
             return ['angle-up', expand, 'expand'];
@@ -136,7 +137,7 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
             return ['angle-down', collapse, 'collapse'];
           case 'opening':
           default:
-            return ['loadingSpinner'];
+            return ['loadingSpinner', undefined, undefined];
         }
       })();
       return div(

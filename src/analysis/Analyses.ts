@@ -69,7 +69,13 @@ import { authStore } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import {
+  canWrite,
+  isAzureWorkspace,
+  isGoogleWorkspace,
+  isGoogleWorkspaceInfo,
+  WorkspaceWrapper,
+} from 'src/libs/workspace-utils';
 import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
@@ -501,7 +507,8 @@ export const BaseAnalyses = (
     )(async () => {
       const [currentUserHash, potentialLockers]: [string | undefined, any] = isGoogleWorkspace(workspace)
         ? await Promise.all([
-            notebookLockHash(workspace.workspace.bucketName, authState.user.email),
+            // non-null assertion since a user must be logged in to see this page
+            notebookLockHash(workspace.workspace.bucketName, authState.user.email!),
             findPotentialNotebookLockers(workspace),
           ])
         : await Promise.all([Promise.resolve(undefined), Promise.resolve([])]);
@@ -611,7 +618,6 @@ export const BaseAnalyses = (
   // Render helpers
   const renderAnalyses = () => {
     const { field, direction } = sortOrder;
-    const canWrite = Utils.canWrite(accessLevel);
 
     const filteredAnalyses: AnalysisFile[] = _.filter(
       (analysisFile: AnalysisFile) => Utils.textMatch(filter, getFileName(analysisFile.name)),
@@ -620,6 +626,7 @@ export const BaseAnalyses = (
     // Lodash does not have a well-typed return on this function and there are not any nice alternatives, so expect error for now
     // @ts-expect-error
     const sortedAnalyses: AnalysisFile[] = _.orderBy(sortTokens[field] || field, direction, filteredAnalyses);
+    const canWriteWithCurrentAccessLevel = canWrite(accessLevel);
     const analysisCards = _.map(
       ({ name, lastModified, metadata, tool }) =>
         h(AnalysisCard, {
@@ -632,7 +639,7 @@ export const BaseAnalyses = (
           tool,
           namespace: workspaceInfo.namespace,
           workspaceName: workspaceInfo.name,
-          canWrite,
+          canWrite: canWriteWithCurrentAccessLevel,
           currentUserHash,
           potentialLockers,
           onRename: () => setRenamingAnalysisName(name),
@@ -709,7 +716,7 @@ export const BaseAnalyses = (
     Dropzone,
     {
       accept: `.${runtimeTools.Jupyter.ext.join(', .')}, .${runtimeTools.RStudio.ext.join(', .')}`,
-      disabled: !Utils.canWrite(accessLevel),
+      disabled: !canWrite(accessLevel),
       style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       onDropRejected: () =>
@@ -733,8 +740,8 @@ export const BaseAnalyses = (
                   {
                     style: { marginLeft: '1.5rem' },
                     onClick: () => setCreating(true),
-                    disabled: !Utils.canWrite(accessLevel),
-                    tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined,
+                    disabled: !canWrite(accessLevel),
+                    tooltip: !canWrite(accessLevel) ? noWrite : undefined,
                   },
                   [
                     icon('plus', { size: 14, style: { color: colors.accent() } }),

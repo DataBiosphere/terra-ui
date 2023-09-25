@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Children, cloneElement, Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { div, h, hr } from 'react-hyperscript-helpers';
@@ -7,7 +8,7 @@ import { icon } from 'src/components/icons';
 import { VerticalNavigation } from 'src/components/keyboard-nav';
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils';
 import colors from 'src/libs/colors';
-import { forwardRefWithName, useLabelAssert, useUniqueId } from 'src/libs/react-utils';
+import { forwardRefWithName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 
 const styles = {
@@ -25,10 +26,6 @@ const styles = {
 // This is written as a "function" function rather than an arrow function because react-onclickoutside wants it to have a prototype
 // eslint-disable-next-line prefer-arrow-callback
 export const Popup = onClickOutside(function ({ id, side = 'right', target: targetId, onClick, children, popupProps = {} }) {
-  // We're passing popupProps here rather than just props, because ...props also includes lots of internal onClickOutside properties which
-  // aren't valid to be dropped on a DOM element.
-  useLabelAssert('Popup', popupProps);
-
   const elementRef = useRef();
   const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }]);
   const { position } = computePopupPosition({ side, target, element, viewport, gap: 10 });

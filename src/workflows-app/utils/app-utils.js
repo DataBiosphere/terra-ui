@@ -23,13 +23,14 @@ export const resolveRunningCromwellAppUrl = (apps, currentUser) => {
   // note: the requirement for checking if the app was created by user will not be needed when we move to multi-user Workflows app where users with
   // OWNER and WRITER roles will be able to import methods to app created by another user
   const filteredApps = apps.filter(
-    (app) => app.appType === appToolLabels.CROMWELL && app.status === 'RUNNING' && app.auditInfo.creator === currentUser
+    (app) =>
+      ((app.appType === appToolLabels.CROMWELL && app.auditInfo.creator === currentUser) || app.appType === appToolLabels.WORKFLOWS_APP) &&
+      app.status === 'RUNNING'
   );
   if (filteredApps.length === 1) {
     return {
       cbasUrl: filteredApps[0].proxyUrls.cbas,
-      cbasUiUrl: filteredApps[0].proxyUrls['cbas-ui'],
-      cromwellUrl: filteredApps[0].proxyUrls.cromwell,
+      cromwellUrl: filteredApps[0].proxyUrls.cromwell ? filteredApps[0].proxyUrls.cromwell : filteredApps[0].proxyUrls['cromwell-reader'],
     };
   }
   // if there are no Running Cromwell apps or if there are more than one then it's an error state and return null

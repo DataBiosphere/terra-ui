@@ -1,3 +1,4 @@
+import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
@@ -44,7 +45,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
             name: 'Concept Name',
             width: 710,
             render: (concept) => {
-              const [label, iconName] = (() => {
+              const [label, iconName]: [string, IconId] = (() => {
                 if (_.contains(concept.id, cart)) {
                   return ['remove', 'minus-circle-red'];
                 }

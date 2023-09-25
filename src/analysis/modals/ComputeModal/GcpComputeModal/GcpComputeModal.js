@@ -16,6 +16,7 @@ import {
   defaultGceBootDiskSize,
   defaultGcePersistentDiskSize,
   defaultPersistentDiskType,
+  generatePersistentDiskName,
   pdTypeFromDiskType,
 } from 'src/analysis/utils/disk-utils';
 import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/analysis/utils/gce-machines';
@@ -31,6 +32,7 @@ import {
   defaultNumGpus,
   displayNameForGpuType,
   findMachineType,
+  generateRuntimeName,
   getAutopauseThreshold,
   getDefaultMachineType,
   getImageUrlFromRuntime,
@@ -374,7 +376,7 @@ export const GcpComputeModalBase = ({
             Utils.DEFAULT,
             () => ({
               persistentDisk: {
-                name: Utils.generatePersistentDiskName(),
+                name: generatePersistentDiskName(),
                 size: desiredPersistentDisk.size,
                 diskType: desiredPersistentDisk.diskType,
                 labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name },
@@ -389,7 +391,7 @@ export const GcpComputeModalBase = ({
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig };
         await Ajax()
-          .Runtimes.runtime(googleProject, Utils.generateRuntimeName())
+          .Runtimes.runtime(googleProject, generateRuntimeName())
           .create({
             runtimeConfig: createRuntimeConfig,
             autopauseThreshold: computeConfig.autopauseThreshold,

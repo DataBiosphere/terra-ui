@@ -1,7 +1,8 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
-import { AzureWorkspace, GoogleWorkspace } from 'src/libs/workspace-utils';
+import { AzureWorkspace, GoogleWorkspace, WorkspacePolicy } from 'src/libs/workspace-utils';
 
 export const defaultAzureWorkspace: AzureWorkspace = {
   workspace: {
@@ -24,14 +25,38 @@ export const defaultAzureWorkspace: AzureWorkspace = {
   canCompute: true,
 };
 
+export const makeAzureWorkspace = (workspace?: DeepPartial<AzureWorkspace>): AzureWorkspace => {
+  return _.merge(_.cloneDeep(defaultAzureWorkspace), workspace);
+};
+
+const protectedDataPolicy: WorkspacePolicy = {
+  additionalData: [],
+  name: 'protected-data',
+  namespace: 'terra',
+};
+
 export const protectedAzureWorkspace: AzureWorkspace = _.merge(defaultAzureWorkspace, {
-  policies: [
+  policies: [protectedDataPolicy],
+});
+
+const regionConstraintPolicy: WorkspacePolicy = {
+  additionalData: [
     {
-      additionalData: {},
-      name: 'protected-data',
-      namespace: 'terra',
+      'region-name': 'azure.eastus',
+    },
+    {
+      'region-name': 'azure.westus2',
+    },
+    {
+      'region-name': 'unknownRegion',
     },
   ],
+  name: 'region-constraint',
+  namespace: 'terra',
+};
+
+export const regionRestrictedAzureWorkspace: AzureWorkspace = _.merge(defaultAzureWorkspace, {
+  policies: [regionConstraintPolicy],
 });
 
 // These values are not populated by default, and for the majority of existing
@@ -60,6 +85,10 @@ export const defaultGoogleWorkspace: GoogleWorkspace = {
   accessLevel: 'OWNER',
   canShare: true,
   canCompute: true,
+};
+
+export const makeGoogleWorkspace = (workspace?: DeepPartial<GoogleWorkspace>): GoogleWorkspace => {
+  return _.merge(_.cloneDeep(defaultGoogleWorkspace), workspace);
 };
 
 // These defaults are intended to track the default behavior implemented in useWorkspace.ts

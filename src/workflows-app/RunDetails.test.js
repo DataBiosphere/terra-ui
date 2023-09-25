@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { isAzureUri } from 'src/components/UriViewer/uri-viewer-utils';
+import { isAzureUri } from 'src/data/data-table/uri-viewer/uri-viewer-utils';
 import { Ajax } from 'src/libs/ajax';
 import * as configStore from 'src/libs/config';
 import { makeCompleteDate } from 'src/libs/utils';
@@ -192,7 +192,7 @@ describe('BaseRunDetails - render smoke test', () => {
       // Checking row text content for dates since querying by formatted date doesn't seem to work
       const statusObj = collapseCromwellStatus(executionStatus, backendStatus);
       const status = within(row).getAllByText(statusObj.label());
-      expect(status.length).toEqual(2);
+      expect(status.length).toEqual(1);
       const targetStartText = makeCompleteDate(start);
       const targetEndText = makeCompleteDate(end);
       expect(row.textContent).toContain(targetStartText);
@@ -239,13 +239,48 @@ describe('BaseRunDetails - render smoke test', () => {
     expect(rows.length).toEqual(6);
     const targetRow = within(table).getAllByRole('row')[1];
     within(targetRow).getByText('sub_wf_scattering.subSubworkflowHello');
-    const failedStatus = within(targetRow).getAllByText('Failed');
-    expect(failedStatus.length).toEqual(2);
+    const failedStatus = within(targetRow).getAllByText('Failed (1 Message)');
+    expect(failedStatus.length).toEqual(1);
     const targetStartText = makeCompleteDate(start);
     const targetEndText = makeCompleteDate(end);
     expect(targetRow.textContent).toContain(targetStartText);
     expect(targetRow.textContent).toContain(targetEndText);
     within(targetRow).getByText('Logs');
+  });
+
+  it('only opens the failure modal when failure status is clicked', async () => {
+    const workflowCopy = _.cloneDeep(runDetailsMetadata);
+    workflowCopy.status = 'Failed';
+
+    const modifiedMock = {
+      ..._.cloneDeep(mockObj),
+      CromwellApp: {
+        workflows: () => {
+          return {
+            metadata: () => {
+              return workflowCopy;
+            },
+            failedTasks: () => {
+              return failedTasksMetadata;
+            },
+          };
+        },
+      },
+    };
+
+    // redefine Ajax mock so that it returns the modified workflow instead of the original
+    Ajax.mockImplementation(() => {
+      return modifiedMock;
+    });
+
+    const user = userEvent.setup();
+
+    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+    const table = screen.getByRole('table');
+    const targetRow = within(table).getAllByRole('row')[1];
+    const failedStatus = within(targetRow).getAllByText('Failed (1 Message)');
+    await user.click(failedStatus[0]);
+    screen.getByText('Messages');
   });
 
   it('opens the log viewer modal when Execution Logs is clicked', async () => {
@@ -544,7 +579,7 @@ describe('BaseRunDetails - render smoke test', () => {
     const targetRow = within(table).getAllByRole('row')[1];
     within(targetRow).getByText(failedTaskName);
     const failedStatus = within(targetRow).getAllByText('Failed');
-    expect(failedStatus.length).toEqual(2);
+    expect(failedStatus.length).toEqual(1);
     const targetStartText = makeCompleteDate(start);
     const targetEndText = makeCompleteDate(end);
     expect(targetRow.textContent).toContain(targetStartText);

@@ -3,6 +3,7 @@ import { act, render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { LeoAppStatus, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { reportError } from 'src/libs/error';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -26,6 +27,11 @@ jest.mock('src/libs/ajax', (): AjaxExports => {
   };
 });
 
+jest.mock('src/libs/error', () => ({
+  ...jest.requireActual('src/libs/error'),
+  reportError: jest.fn(),
+}));
+
 // When Data.js is broken apart and the WorkspaceData component is converted to TypeScript,
 // this type belongs there.
 interface WorkspaceDataProps {
@@ -37,6 +43,14 @@ interface WorkspaceDataProps {
 }
 type AjaxContract = ReturnType<typeof Ajax>;
 
+beforeAll(() => {
+  jest.useFakeTimers();
+});
+
+afterAll(() => {
+  jest.useRealTimers();
+});
+
 describe('WorkspaceData', () => {
   type SetupOptions = {
     namespace?: string;
@@ -45,10 +59,19 @@ describe('WorkspaceData', () => {
     refreshWorkspace?: () => void;
     storageDetails?: StorageDetails;
     status: LeoAppStatus;
+    wdsUrl?: string | undefined;
   };
   type SetupResult = {
     workspaceDataProps: WorkspaceDataProps;
+    listAppResponse: DeepPartial<ListAppResponse>;
     mockGetSchema: jest.Mock;
+    mockListAppsV2: jest.Mock;
+  };
+
+  // Used for parameterized tests that check the waiting message for a given app status
+  type StatusParams = {
+    status: LeoAppStatus;
+    expectedMessage: RegExp;
   };
 
   const populatedAzureStorageOptions = {
@@ -65,15 +88,18 @@ describe('WorkspaceData', () => {
     refreshWorkspace = () => {},
     storageDetails = { ...defaultGoogleBucketOptions, ...populatedAzureStorageOptions },
     status = 'RUNNING',
+    wdsUrl = 'http://fake.wds.url',
   }: SetupOptions): SetupResult {
-    const wdsApp: DeepPartial<ListAppResponse> = {
+    const listAppResponse: DeepPartial<ListAppResponse> = {
       proxyUrls: {
-        wds: 'https://fake.wds.url/',
+        wds: wdsUrl,
       },
       appType: 'WDS',
+      status,
     };
 
     const mockGetSchema = jest.fn().mockResolvedValue([]);
+    const mockListAppsV2 = jest.fn().mockResolvedValue([listAppResponse]);
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: (_namespace, _name) => ({
@@ -86,7 +112,7 @@ describe('WorkspaceData', () => {
         getSchema: mockGetSchema,
       },
       Apps: {
-        listAppsV2: jest.fn().mockResolvedValue([{ ...wdsApp, status }]),
+        listAppsV2: mockListAppsV2,
       },
     };
 
@@ -100,14 +126,15 @@ describe('WorkspaceData', () => {
       storageDetails,
     };
 
-    return { workspaceDataProps, mockGetSchema };
+    return { workspaceDataProps, listAppResponse, mockGetSchema, mockListAppsV2 };
   }
 
   it('displays a waiting message for an azure workspace that is still provisioning in WDS', async () => {
     // Arrange
-    const { workspaceDataProps } = setup({
+    const { workspaceDataProps, mockGetSchema } = setup({
       workspace: defaultAzureWorkspace,
       status: 'PROVISIONING',
+      wdsUrl: undefined, // no WDS URL yet
     });
 
     // Act
@@ -118,7 +145,50 @@ describe('WorkspaceData', () => {
     // Assert
     expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
+    expect(mockGetSchema).not.toHaveBeenCalled(); // never tried fetching schema, which depends on wds URL
   });
+
+  it('does not accidentally fetch schema before the proxyURL has been set', async () => {
+    // Arrange
+    const { workspaceDataProps, mockGetSchema } = setup({
+      workspace: defaultAzureWorkspace,
+      status: 'PROVISIONING',
+      wdsUrl: undefined, // no WDS URL yet
+    });
+
+    // Act
+    await act(async () => {
+      render(h(WorkspaceData, workspaceDataProps));
+    });
+
+    // Assert
+    expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
+    expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
+    expect(mockGetSchema).not.toHaveBeenCalled(); // never tried fetching schema, which depends on wds URL
+  });
+
+  it.each([
+    { status: 'PROVISIONING' as LeoAppStatus, expectedMessage: /Preparing your data tables/ },
+    { status: 'UPDATING' as LeoAppStatus, expectedMessage: /Updating your data tables/ },
+  ])(
+    'displays a waiting message for an azure workspace with $status status',
+    async ({ status, expectedMessage }: StatusParams) => {
+      // Arrange
+      const { workspaceDataProps } = setup({
+        workspace: defaultAzureWorkspace,
+        status,
+      });
+
+      // Act
+      await act(async () => {
+        render(h(WorkspaceData, workspaceDataProps));
+      });
+
+      // Assert
+      expect(screen.getByText(expectedMessage)).toBeVisible();
+      expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
+    }
+  );
 
   it('displays an error message for an azure workspace whose status is ERROR', async () => {
     // Arrange
@@ -138,9 +208,93 @@ describe('WorkspaceData', () => {
     expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
   });
 
+  it('displays an error message for an azure workspace that fails when resolving the app', async () => {
+    // Arrange
+    const { workspaceDataProps, mockListAppsV2 } = setup({
+      workspace: defaultAzureWorkspace,
+      status: 'RUNNING',
+    });
+
+    const mockedError = new Error('app resolve error');
+    mockListAppsV2.mockRejectedValue(mockedError);
+
+    // Act
+    await act(async () => {
+      render(h(WorkspaceData, workspaceDataProps));
+    });
+
+    // Assert
+    expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
+    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
+    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
+    expect(reportError).toHaveBeenCalledWith('Error resolving WDS app', mockedError);
+  });
+
   it('displays an error message for an azure workspace that fails when loading schema info', async () => {
     // Arrange
     const { workspaceDataProps, mockGetSchema } = setup({
+      workspace: defaultAzureWorkspace,
+      status: 'RUNNING',
+    });
+
+    const mockedError = new Error('schema error');
+    mockGetSchema.mockRejectedValue(mockedError);
+
+    // Act
+    await act(async () => {
+      render(h(WorkspaceData, workspaceDataProps));
+    });
+
+    // Assert
+    expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
+    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
+    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
+    expect(reportError).toHaveBeenCalledWith('Error loading WDS schema', mockedError);
+  });
+
+  it('stops polling for app status if app reaches an ERROR status', async () => {
+    // Arrange
+    const { workspaceDataProps, mockListAppsV2, listAppResponse, mockGetSchema } = setup({
+      workspace: defaultAzureWorkspace,
+      status: 'PROVISIONING',
+    });
+
+    mockListAppsV2
+      .mockResolvedValueOnce([{ ...listAppResponse, status: 'PROVISIONING' }])
+      .mockResolvedValueOnce([{ ...listAppResponse, status: 'ERROR' }]);
+
+    // Act
+    await act(async () => {
+      render(h(WorkspaceData, workspaceDataProps));
+    });
+
+    // Assert
+    expect(mockListAppsV2).toHaveBeenCalledTimes(1); // initial call, provisioning
+    expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
+
+    // Act
+    await act(async () => {
+      jest.advanceTimersByTime(30000);
+    });
+
+    // Assert
+    expect(mockListAppsV2).toHaveBeenCalledTimes(2); // second call, error
+    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
+    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
+
+    // Act
+    await act(async () => {
+      jest.advanceTimersByTime(30000);
+    });
+
+    // Assert
+    expect(mockListAppsV2).toHaveBeenCalledTimes(2); // no further calls
+    expect(mockGetSchema).not.toHaveBeenCalled(); // never tried fetching schema, which depends on app status
+  });
+
+  it('stops polling for schema info if an error occurs while doing so', async () => {
+    // Arrange
+    const { workspaceDataProps, mockListAppsV2, mockGetSchema } = setup({
       workspace: defaultAzureWorkspace,
       status: 'RUNNING',
     });
@@ -153,17 +307,40 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
+    expect(mockListAppsV2).toHaveBeenCalledTimes(1); // only expected call, provisioning
+    expect(mockGetSchema).toHaveBeenCalledTimes(1); // only expected call, which resulted in an error
     expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
-    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
+
+    // Act
+    await act(async () => {
+      jest.advanceTimersByTime(30000);
+    });
+
+    // Assert
+    expect(mockListAppsV2).toHaveBeenCalledTimes(1); // no further invocations
+    expect(mockGetSchema).toHaveBeenCalledTimes(1); // no further invocations
   });
 
-  it('displays a prompt to select a data type once azure workspace is loaded', async () => {
+  it.each([
+    { status: 'PROVISIONING' as LeoAppStatus, expectedMessage: /Preparing your data tables/ },
+    { status: 'UPDATING' as LeoAppStatus, expectedMessage: /Updating your data tables/ },
+  ])('polls for schema until $status app is RUNNING', async ({ status, expectedMessage }: StatusParams) => {
     // Arrange
-    const { workspaceDataProps } = setup({
-      workspace: defaultAzureWorkspace,
-      status: 'RUNNING',
+    const { workspaceDataProps, mockListAppsV2, listAppResponse, mockGetSchema } = setup({
+      workspace: {
+        ...defaultAzureWorkspace,
+        workspace: {
+          ...defaultAzureWorkspace.workspace,
+          workspaceId: 'test-workspace-id',
+        },
+      },
+      status,
     });
+
+    mockListAppsV2
+      .mockResolvedValueOnce([{ ...listAppResponse, status, proxyUrls: {} }])
+      .mockResolvedValueOnce([{ ...listAppResponse, status, proxyUrls: {} }])
+      .mockResolvedValueOnce([{ ...listAppResponse, status: 'RUNNING', proxyUrls: { wds: 'http://test.wds.url' } }]);
 
     // Act
     await act(async () => {
@@ -171,8 +348,34 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
+    expect(mockListAppsV2).toHaveBeenCalledTimes(1); // initial call, not yet running
+    expect(mockGetSchema).not.toHaveBeenCalled(); // don't fetch schema yet
+    expect(screen.queryByText(/Select a data type/)).toBeNull();
+    expect(screen.getByText(expectedMessage)).toBeVisible();
+
+    // Act
+    await act(async () => {
+      jest.advanceTimersByTime(30000);
+    });
+
+    // Assert
+    expect(mockListAppsV2).toHaveBeenCalledTimes(2); // second call, still pending
+    expect(mockGetSchema).not.toHaveBeenCalled(); // don't fetch schema yet
+    expect(screen.queryByText(/Select a data type/)).toBeNull();
+    expect(screen.getByText(expectedMessage)).toBeVisible();
+
+    // Act
+    await act(async () => {
+      jest.advanceTimersByTime(30000);
+    });
+
+    // Assert
+    expect(mockListAppsV2).toHaveBeenCalledTimes(3); // third call, now running
+    expect(mockListAppsV2).toHaveBeenCalledWith('test-workspace-id'); // it should have been called with the correct ID
+    expect(mockGetSchema).toHaveBeenCalledWith('http://test.wds.url', 'test-workspace-id'); // fetch schema after running
+
     expect(screen.getByText(/Select a data type/)).toBeVisible();
+    expect(screen.queryByText(expectedMessage)).toBeNull(); // no waiting message
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
-    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
   });
 });

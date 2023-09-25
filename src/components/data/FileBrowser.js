@@ -11,7 +11,7 @@ import { NameModal } from 'src/components/NameModal';
 import { UploadProgressModal } from 'src/components/ProgressBar';
 import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table';
-import { UriViewer } from 'src/components/UriViewer/UriViewer';
+import { UriViewer } from 'src/data/data-table/uri-viewer/UriViewer';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
@@ -19,6 +19,7 @@ import { useCancelable } from 'src/libs/react-utils';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import { useUploader } from 'src/libs/uploads';
 import * as Utils from 'src/libs/utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 
 const useBucketContents = ({ googleProject, bucketName, prefix, pageSize = 1000 }) => {
   const [allObjects, setAllObjects] = useState([]);
@@ -344,7 +345,7 @@ const BucketBrowser = ({
   const [deletingSelectedObjects, setDeletingSelectedObjects] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const editWorkspaceError = Utils.editWorkspaceError(workspace);
+  const editWorkspaceError = WorkspaceUtils.editWorkspaceError(workspace);
   const canEditWorkspace = !editWorkspaceError;
 
   const editDisabledForPrefix = shouldDisableEditForPrefix(prefix);
