@@ -68,7 +68,7 @@ const ApplicationLauncher = _.flow(
     const signal = useCancellation();
     const interval = useRef();
     const {
-      user: { email },
+      terraUser: { email },
     } = useStore(authStore);
 
     // We've already init Welder if app is Jupyter in google
