@@ -142,6 +142,10 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
     // or whether they input cookie acceptance previously in this session
     cookiesAccepted,
   }));
+  oidcStore.update((state) => ({
+    ...state,
+    user: undefined,
+  }));
 };
 
 const revokeTokens = async () => {
