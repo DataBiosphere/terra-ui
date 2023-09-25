@@ -26,7 +26,8 @@ interface WorkspaceFiltersProps {
   workspaces: Workspace[];
 }
 
-export const WorkspaceFilters: FC<WorkspaceFiltersProps> = ({ workspaces }) => {
+export const WorkspaceFilters: FC<WorkspaceFiltersProps> = (props: WorkspaceFiltersProps) => {
+  const { workspaces } = props;
   const { query } = Nav.useRoute();
   const filters = getWorkspaceFiltersFromQuery(query);
 

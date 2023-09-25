@@ -13,7 +13,8 @@ interface RecentlyViewedWorkspacesProps {
   loadingSubmissionStats: boolean;
 }
 
-export const RecentlyViewedWorkspaces: FC<RecentlyViewedWorkspacesProps> = ({ workspaces, loadingSubmissionStats }) => {
+export const RecentlyViewedWorkspaces: FC<RecentlyViewedWorkspacesProps> = (props: RecentlyViewedWorkspacesProps) => {
+  const { workspaces, loadingSubmissionStats } = props;
   const [recentlyViewedOpen, setRecentlyViewedOpen] = useState(() =>
     _.defaultTo(true, getLocalPref(persistenceId)?.recentlyViewedOpen)
   );

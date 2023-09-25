@@ -19,7 +19,8 @@ interface WorkspacesListModalsProps {
   refreshWorkspaces: () => void;
 }
 
-export const WorkspacesListModals: FC<WorkspacesListModalsProps> = ({ getWorkspace, refreshWorkspaces }) => {
+export const WorkspacesListModals: FC<WorkspacesListModalsProps> = (props: WorkspacesListModalsProps) => {
+  const { getWorkspace, refreshWorkspaces } = props;
   const userActions = useStore(workspaceUserActionsStore);
 
   return h(Fragment, [

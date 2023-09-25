@@ -10,16 +10,26 @@ jest.mock('react-virtualized', () => ({
   AutoSizer: ({ children }) => children({ width: 1000, height: 1000 }),
 }));
 
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
-  getLink: jest.fn(),
-}));
+type NavExports = typeof import('src/libs/nav');
+
+jest.mock(
+  'src/libs/nav',
+  (): NavExports => ({
+    ...jest.requireActual<NavExports>('src/libs/nav'),
+    getLink: jest.fn(),
+  })
+);
 
 describe('The behavior of the RenderedWorkspaces component', () => {
   it('should render all of the workspaces it is given', () => {
+    // Arange
     const workspaces = [defaultAzureWorkspace, defaultGoogleWorkspace];
     const label = 'myWorkspaces';
+
+    // Act
     render(h(RenderedWorkspaces, { workspaces, label, noContent: div({}), loadingSubmissionStats: false }));
+
+    // Assert
     const renderedGoogleWS = screen.getAllByText(defaultGoogleWorkspace.workspace.name);
     expect(renderedGoogleWS).not.toBeNull();
     const renderedAzureWS = screen.getAllByText(defaultAzureWorkspace.workspace.name);

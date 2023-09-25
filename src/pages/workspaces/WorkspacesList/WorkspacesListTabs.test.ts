@@ -13,16 +13,21 @@ jest.mock('react-virtualized', () => ({
   AutoSizer: ({ children }) => children({ width: 1000, height: 1000 }),
 }));
 
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
-  getLink: jest.fn(),
-  useRoute: jest.fn().mockImplementation(() => ({ params: {}, query: {} })),
-  updateSearch: jest.fn(),
-}));
+type NavExports = typeof import('src/libs/nav');
+
+jest.mock(
+  'src/libs/nav',
+  (): NavExports => ({
+    ...jest.requireActual<NavExports>('src/libs/nav'),
+    getLink: jest.fn(),
+    useRoute: jest.fn().mockImplementation(() => ({ params: {}, query: {} })),
+    updateSearch: jest.fn(),
+  })
+);
 
 describe('The WorkspacesListTabs component', () => {
   it('should render the workspaces of the current tab', () => {
-    useRoute;
+    // Arrange
     const workspaces: CatagorizedWorkspaces = {
       myWorkspaces: [defaultAzureWorkspace],
       public: [defaultGoogleWorkspace],
@@ -31,6 +36,7 @@ describe('The WorkspacesListTabs component', () => {
     };
     asMockedFn(useRoute).mockImplementation(() => ({ params: {}, query: { tab: 'public' } }));
 
+    // Act
     render(
       h(WorkspacesListTabs, {
         workspaces,
@@ -39,6 +45,8 @@ describe('The WorkspacesListTabs component', () => {
         loadingSubmissionStats: false,
       })
     );
+
+    // Assert
     const renderedGoogleWS = screen.queryAllByText(defaultGoogleWorkspace.workspace.name);
     expect(renderedGoogleWS).toHaveLength(1);
     const renderedAzureWS = screen.queryAllByText(defaultAzureWorkspace.workspace.name);
@@ -46,6 +54,7 @@ describe('The WorkspacesListTabs component', () => {
   });
 
   it('should default to the myWorkspaces tab', () => {
+    // Arrange
     const workspaces: CatagorizedWorkspaces = {
       myWorkspaces: [defaultAzureWorkspace],
       public: [defaultGoogleWorkspace],
@@ -54,6 +63,7 @@ describe('The WorkspacesListTabs component', () => {
     };
     asMockedFn(useRoute).mockImplementation(() => ({ params: {}, query: {} }));
 
+    // Act
     render(
       h(WorkspacesListTabs, {
         workspaces,
@@ -62,6 +72,8 @@ describe('The WorkspacesListTabs component', () => {
         loadingSubmissionStats: false,
       })
     );
+
+    // Assert
     const renderedGoogleWS = screen.queryAllByText(defaultGoogleWorkspace.workspace.name);
     expect(renderedGoogleWS).toHaveLength(0);
     const renderedAzureWS = screen.queryAllByText(defaultAzureWorkspace.workspace.name);
@@ -69,6 +81,7 @@ describe('The WorkspacesListTabs component', () => {
   });
 
   it('refreshes workspaces when the current tab is clicked', () => {
+    // Arrange
     const workspaces: CatagorizedWorkspaces = {
       myWorkspaces: [defaultAzureWorkspace],
       public: [defaultGoogleWorkspace],
@@ -77,6 +90,8 @@ describe('The WorkspacesListTabs component', () => {
     };
     asMockedFn(useRoute).mockImplementation(() => ({ params: {}, query: {} }));
     const refreshWorkspaces = jest.fn();
+
+    // Act
     render(
       h(WorkspacesListTabs, {
         workspaces,
@@ -86,6 +101,7 @@ describe('The WorkspacesListTabs component', () => {
       })
     );
 
+    // Assert
     const tabs = screen.getAllByRole('tab');
     const myWorkspacesTab = tabs[0];
     act(() => fireEvent.click(myWorkspacesTab));
@@ -93,6 +109,7 @@ describe('The WorkspacesListTabs component', () => {
   });
 
   it('switches to an intactive tab when clicked', () => {
+    // Arrange
     const workspaces: CatagorizedWorkspaces = {
       myWorkspaces: [defaultAzureWorkspace],
       public: [defaultGoogleWorkspace],
@@ -100,6 +117,8 @@ describe('The WorkspacesListTabs component', () => {
       featured: [],
     };
     asMockedFn(updateSearch);
+
+    // Act
     const refreshWorkspaces = jest.fn();
     render(
       h(WorkspacesListTabs, {
@@ -110,6 +129,7 @@ describe('The WorkspacesListTabs component', () => {
       })
     );
 
+    // Assert
     const tabs = screen.getAllByRole('tab');
     const publicTab = tabs[3];
     act(() => fireEvent.click(publicTab));

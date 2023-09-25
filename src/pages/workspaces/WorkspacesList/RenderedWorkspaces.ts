@@ -56,7 +56,8 @@ interface RenderedWorkspacesProps {
   loadingSubmissionStats: boolean;
 }
 
-export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = ({ workspaces, loadingSubmissionStats, ...props }) => {
+export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = (props: RenderedWorkspacesProps) => {
+  const { workspaces, loadingSubmissionStats } = props;
   const {
     profile: { starredWorkspaces },
   } = useStore<AuthState>(authStore);
@@ -147,7 +148,7 @@ interface CellProps {
   workspace: Workspace;
 }
 
-const StarCell: FC<CellProps> = ({ workspace }) =>
+const StarCell: FC<CellProps> = (props: CellProps) =>
   div(
     {
       style: {
@@ -157,10 +158,10 @@ const StarCell: FC<CellProps> = ({ workspace }) =>
         padding: '0.5rem 0',
       },
     },
-    [h(WorkspaceStarControl, { workspace })]
+    [h(WorkspaceStarControl, { workspace: props.workspace })]
   );
 
-const NameCell: FC<CellProps> = (props) => {
+const NameCell: FC<CellProps> = (props: CellProps) => {
   const {
     accessLevel,
     workspace,
@@ -214,7 +215,7 @@ const NameCell: FC<CellProps> = (props) => {
   ]);
 };
 
-const LastModifiedCell: FC<CellProps> = (props) => {
+const LastModifiedCell: FC<CellProps> = (props: CellProps) => {
   const {
     workspace: { lastModified },
   } = props.workspace;
@@ -228,7 +229,7 @@ const LastModifiedCell: FC<CellProps> = (props) => {
   ]);
 };
 
-const CreatedByCell: FC<CellProps> = (props) => {
+const CreatedByCell: FC<CellProps> = (props: CellProps) => {
   const {
     workspace: { createdBy },
   } = props.workspace;
@@ -238,7 +239,7 @@ const CreatedByCell: FC<CellProps> = (props) => {
   ]);
 };
 
-const AccessLevelCell: FC<CellProps> = (props) => {
+const AccessLevelCell: FC<CellProps> = (props: CellProps) => {
   const { accessLevel } = props.workspace;
 
   return div({ style: styles.tableCellContainer }, [
@@ -250,7 +251,8 @@ interface SubmissionStatusCellProps extends CellProps {
   loadingSubmissionStats: boolean;
 }
 
-const SubmissionStatusCell: FC<SubmissionStatusCellProps> = ({ workspace, loadingSubmissionStats }) => {
+const SubmissionStatusCell: FC<SubmissionStatusCellProps> = (props: SubmissionStatusCellProps) => {
+  const { workspace, loadingSubmissionStats } = props;
   const lastRunStatus = workspaceSubmissionStatus(workspace);
 
   return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
@@ -263,10 +265,10 @@ const SubmissionStatusCell: FC<SubmissionStatusCellProps> = ({ workspace, loadin
   ]);
 };
 
-const CloudPlatformCell: FC<CellProps> = ({ workspace }) => {
+const CloudPlatformCell: FC<CellProps> = (props: CellProps) => {
   return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
     div({ style: styles.tableCellContent }, [
-      h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(workspace) }),
+      h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(props.workspace) }),
     ]),
   ]);
 };
@@ -275,7 +277,7 @@ interface ActionsCellProps extends CellProps {
   workspaces: Workspace[];
 }
 
-const ActionsCell: FC<ActionsCellProps> = (props) => {
+const ActionsCell: FC<ActionsCellProps> = (props: ActionsCellProps) => {
   const {
     accessLevel,
     workspace: { workspaceId, namespace, name },

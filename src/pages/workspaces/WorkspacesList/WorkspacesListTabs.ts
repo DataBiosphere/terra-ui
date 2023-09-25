@@ -25,12 +25,8 @@ interface WorkspacesListTabsProps {
   refreshWorkspaces: () => void;
 }
 
-export const WorkspacesListTabs: FC<WorkspacesListTabsProps> = ({
-  workspaces,
-  loadingSubmissionStats,
-  loadingWorkspaces,
-  ...props
-}) => {
+export const WorkspacesListTabs: FC<WorkspacesListTabsProps> = (props: WorkspacesListTabsProps) => {
+  const { workspaces, loadingSubmissionStats, loadingWorkspaces } = props;
   const { query } = Nav.useRoute();
   const filters = getWorkspaceFiltersFromQuery(query);
 

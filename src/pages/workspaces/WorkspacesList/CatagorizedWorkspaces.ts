@@ -8,7 +8,7 @@ export interface CatagorizedWorkspaces {
   public: Workspace[];
 }
 
-export function catagorizeWorkspaces(workspaces: Workspace[], featuredList?: Workspace[]): CatagorizedWorkspaces {
+export const catagorizeWorkspaces = (workspaces: Workspace[], featuredList?: Workspace[]): CatagorizedWorkspaces => {
   const [newWsList, featuredWsList] = _.partition('isNew', featuredList);
 
   return {
@@ -23,4 +23,4 @@ export function catagorizeWorkspaces(workspaces: Workspace[], featuredList?: Wor
       _.compact
     )(featuredWsList),
   };
-}
+};

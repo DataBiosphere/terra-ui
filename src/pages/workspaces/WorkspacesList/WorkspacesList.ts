@@ -30,7 +30,7 @@ export const persistenceId = 'workspaces/list';
 export const getWorkspace = (id: string, workspaces: Workspace[]): Workspace =>
   _.find({ workspace: { workspaceId: id } }, workspaces)!;
 
-export const WorkspacesList: FC<{}> = () => {
+export const WorkspacesList: FC<never> = () => {
   const {
     workspaces,
     refresh: refreshWorkspaces,

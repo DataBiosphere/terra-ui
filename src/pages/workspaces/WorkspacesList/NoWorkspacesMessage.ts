@@ -1,3 +1,4 @@
+import _ from 'lodash/fp';
 import { FC, Fragment } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { NoWorkspacesMessage } from 'src/components/workspace-utils';
@@ -14,13 +15,9 @@ interface NoContentMessageProps {
   filters: WorkspaceFilterValues;
 }
 
-export const NoContentMessage: FC<NoContentMessageProps> = ({
-  loadingWorkspaces,
-  loadingSubmissionStats,
-  workspaces,
-  filters,
-}) =>
-  cond(
+export const NoContentMessage: FC<NoContentMessageProps> = (props: NoContentMessageProps) => {
+  const { loadingWorkspaces, loadingSubmissionStats, workspaces, filters } = props;
+  return cond(
     [loadingWorkspaces, () => h(Fragment, ['Loading...'])],
     [
       _.isEmpty(workspaces.myWorkspaces) && filters.tab === 'myWorkspaces',
@@ -32,3 +29,4 @@ export const NoContentMessage: FC<NoContentMessageProps> = ({
     [!_.isEmpty(filters.submissions) && loadingSubmissionStats, () => h(Fragment, ['Loading submission statuses...'])],
     () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
   );
+};
