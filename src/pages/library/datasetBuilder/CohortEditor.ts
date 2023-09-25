@@ -10,7 +10,7 @@ import {
   ProgramDataListOption,
   ProgramDataListValue,
   ProgramDataRangeOption,
-  SnapshotBuilderDomainOption,
+  SnapshotBuilderDomainOption as DomainOption,
 } from 'src/libs/ajax/DataRepo';
 import {
   AnyCriteria,
@@ -178,12 +178,12 @@ const createDefaultRangeCriteria = (rangeOption: ProgramDataRangeOption): Progra
   };
 };
 
-const addKindToDomainOption = (domainOption: SnapshotBuilderDomainOption): DomainOptionWithKind => ({
+const addKindToDomainOption = (domainOption: DomainOption): DomainOptionWithKind => ({
   ...domainOption,
   kind: 'domain',
 });
 
-interface DomainOptionWithKind extends SnapshotBuilderDomainOption {
+interface DomainOptionWithKind extends DomainOption {
   kind: 'domain';
 }
 
@@ -229,7 +229,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
             value: addKindToDomainOption(domainOption),
             label: domainOption.category,
           }),
-          datasetDetails.snapshotBuilderSettings.domainOptions
+          datasetDetails?.snapshotBuilderSettings?.domainOptions
         ),
       },
       {
@@ -239,7 +239,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
             value: programDataOption,
             label: programDataOption.name,
           };
-        }, datasetDetails.snapshotBuilderSettings.programDataOptions),
+        }, datasetDetails?.snapshotBuilderSettings?.programDataOptions),
       },
     ],
     'aria-label': addCriteriaText,

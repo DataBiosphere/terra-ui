@@ -6,20 +6,20 @@ import { ActionBar } from 'src/components/ActionBar';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TreeGrid } from 'src/components/TreeGrid';
-import { SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
+import { SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import { DatasetBuilder, getConceptForId } from 'src/libs/ajax/DatasetBuilder';
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
 
-const getChildren = async (concept: SnapshotBuilderConcept): Promise<SnapshotBuilderConcept[]> => {
+const getChildren = async (concept: Concept): Promise<Concept[]> => {
   const result = await DatasetBuilder().getConcepts(concept);
   return result.result;
 };
 
 type ConceptSelectorProps = {
-  readonly initialRows: SnapshotBuilderConcept[];
+  readonly initialRows: Concept[];
   readonly title: string;
   readonly onCancel: () => void;
-  readonly onCommit: (selected: SnapshotBuilderConcept[]) => void;
+  readonly onCommit: (selected: Concept[]) => void;
   readonly actionText: string;
 };
 
@@ -39,7 +39,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
         ),
         div({ style: { marginLeft: 15 } }, [title]),
       ]),
-      h(TreeGrid<SnapshotBuilderConcept>, {
+      h(TreeGrid<Concept>, {
         columns: [
           {
             name: 'Concept Name',

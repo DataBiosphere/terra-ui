@@ -7,8 +7,8 @@ import {
   ProgramDataListOption,
   ProgramDataListValue,
   ProgramDataRangeOption,
-  SnapshotBuilderConcept,
-  SnapshotBuilderDomainOption,
+  SnapshotBuilderConcept as Concept,
+  SnapshotBuilderDomainOption as DomainOption,
 } from 'src/libs/ajax/DataRepo';
 
 /** A specific criteria based on a type. */
@@ -21,7 +21,7 @@ export interface Criteria {
 
 export interface DomainCriteria extends Criteria {
   kind: 'domain';
-  domainOption: SnapshotBuilderDomainOption;
+  domainOption: DomainOption;
 }
 
 export interface ProgramDataRangeCriteria extends Criteria {
@@ -63,7 +63,7 @@ export interface DatasetBuilderType {
 export type DatasetBuilderValue = DatasetBuilderType;
 
 export interface GetConceptsResponse {
-  result: SnapshotBuilderConcept[];
+  result: Concept[];
 }
 
 type DatasetRequest = {
@@ -84,7 +84,7 @@ type DatasetParticipantCountRequest = {
 
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetModel>;
-  getConcepts: (parent: SnapshotBuilderConcept) => Promise<GetConceptsResponse>;
+  getConcepts: (parent: Concept) => Promise<GetConceptsResponse>;
   requestAccess: (request: DatasetAccessRequest) => Promise<void>;
   getParticipantCount: (request: DatasetParticipantCountRequest) => Promise<number>;
 }
@@ -113,7 +113,7 @@ const dummyConcepts = [
   { id: 303, name: 'Height', count: 100, hasChildren: false },
 ];
 
-export const getConceptForId = (id: number): SnapshotBuilderConcept => {
+export const getConceptForId = (id: number): Concept => {
   return _.find({ id }, dummyConcepts)!;
 };
 
@@ -136,7 +136,7 @@ const dummyConceptToParent = [
   [303, 300],
 ];
 
-const getDummyConcepts = async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> => {
+const getDummyConcepts = async (parent: Concept): Promise<GetConceptsResponse> => {
   // Use a 1s delay to simulate server response time.
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return {
@@ -154,7 +154,7 @@ export const DatasetBuilder = (): DatasetBuilderContract => ({
       .DataRepo.dataset(datasetId)
       .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
   },
-  getConcepts: (parent: SnapshotBuilderConcept) => Promise.resolve(getDummyConcepts(parent)),
+  getConcepts: (parent: Concept) => Promise.resolve(getDummyConcepts(parent)),
   requestAccess: (_request) => Promise.resolve(),
   getParticipantCount: (_request) => Promise.resolve(100),
 });

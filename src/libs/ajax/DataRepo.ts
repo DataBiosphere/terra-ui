@@ -105,43 +105,26 @@ export interface DataRepoContract {
   };
 }
 
+const callDataRepo = async (url: string, signal?: AbortSignal) => {
+  const res = await fetchDataRepo(url, _.merge(authOpts(), { signal }));
+  return await res.json();
+};
+
 export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
   dataset: (datasetId) => ({
-    details: async (include): Promise<DatasetModel> => {
-      const res = await fetchDataRepo(
-        `repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`,
-        _.merge(authOpts(), { signal })
-      );
-      return await res.json();
-    },
-    roles: async (): Promise<string[]> => {
-      const res = await fetchDataRepo(`repository/v1/datasets/${datasetId}/roles`, _.merge(authOpts(), { signal }));
-      return res.json();
-    },
+    details: async (include): Promise<DatasetModel> =>
+      callDataRepo(`repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`, signal),
+    roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
   }),
   snapshot: (snapshotId) => {
     return {
-      details: async () => {
-        const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}`, _.merge(authOpts(), { signal }));
-        return res.json();
-      },
-      exportSnapshot: async () => {
-        const res = await fetchDataRepo(
-          `repository/v1/snapshots/${snapshotId}/export?validatePrimaryKeyUniqueness=false`,
-          _.merge(authOpts(), { signal })
-        );
-        return res.json();
-      },
+      details: async () => callDataRepo(`repository/v1/snapshots/${snapshotId}`, signal),
+      exportSnapshot: async () =>
+        callDataRepo(`repository/v1/snapshots/${snapshotId}/export?validatePrimaryKeyUniqueness=false`, signal),
     };
   },
   job: (jobId) => ({
-    details: async () => {
-      const res = await fetchDataRepo(`repository/v1/jobs/${jobId}`, _.merge(authOpts(), { signal }));
-      return res.json();
-    },
-    result: async () => {
-      const res = await fetchDataRepo(`repository/v1/jobs/${jobId}/result`, _.merge(authOpts(), { signal }));
-      return res.json();
-    },
+    details: async () => callDataRepo(`repository/v1/jobs/${jobId}`, signal),
+    result: async () => callDataRepo(`repository/v1/jobs/${jobId}/result`, signal),
   }),
 });

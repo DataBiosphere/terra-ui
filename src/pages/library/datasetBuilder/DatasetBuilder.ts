@@ -15,8 +15,8 @@ import {
   DataRepo,
   datasetIncludeTypes,
   DatasetModel,
-  SnapshotBuilderDatasetConceptSets,
-  SnapshotBuilderFeatureValueGroup,
+  SnapshotBuilderDatasetConceptSets as DatasetConceptSets,
+  SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
 } from 'src/libs/ajax/DataRepo';
 import {
   Cohort,
@@ -370,14 +370,14 @@ export const ConceptSetSelector = ({
   onChange,
   onStateChange,
 }: {
-  conceptSets: SnapshotBuilderDatasetConceptSets[];
-  prepackagedConceptSets?: SnapshotBuilderDatasetConceptSets[];
+  conceptSets: DatasetConceptSets[];
+  prepackagedConceptSets?: DatasetConceptSets[];
   selectedConceptSets: HeaderAndValues<ConceptSet>[];
   updateConceptSets: Updater<ConceptSet[]>;
   onChange: (conceptSets: HeaderAndValues<ConceptSet>[]) => void;
   onStateChange: OnStateChangeHandler;
 }) => {
-  return h(Selector<SnapshotBuilderDatasetConceptSets>, {
+  return h(Selector<DatasetConceptSets>, {
     headerAction: h(
       Link,
       {
@@ -528,7 +528,7 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
 export type DatasetBuilderContentsProps = {
   onStateChange: OnStateChangeHandler;
   updateCohorts: Updater<Cohort[]>;
-  updateConceptSets: Updater<SnapshotBuilderDatasetConceptSets[]>;
+  updateConceptSets: Updater<DatasetConceptSets[]>;
   dataset: DatasetModel;
   cohorts: Cohort[];
   conceptSets: ConceptSet[];
@@ -581,11 +581,9 @@ export const DatasetBuilderContents = ({
 
   const getAvailableValuesFromFeatureGroups = (featureValueGroups: string[]): HeaderAndValues<DatasetBuilderValue>[] =>
     _.flow(
-      _.filter((featureValueGroup: SnapshotBuilderFeatureValueGroup) =>
-        _.includes(featureValueGroup.name, featureValueGroups)
-      ),
+      _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
       _.sortBy('name'),
-      _.map((featureValueGroup: SnapshotBuilderFeatureValueGroup) => ({
+      _.map((featureValueGroup: FeatureValueGroup) => ({
         header: featureValueGroup.name,
         values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
@@ -595,10 +593,8 @@ export const DatasetBuilderContents = ({
     featureValueGroups: string[]
   ): HeaderAndValues<DatasetBuilderValue>[] =>
     _.flow(
-      _.filter((featureValueGroup: SnapshotBuilderFeatureValueGroup) =>
-        _.includes(featureValueGroup.name, featureValueGroups)
-      ),
-      _.map((featureValueGroup: SnapshotBuilderFeatureValueGroup) => ({
+      _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
+      _.map((featureValueGroup: FeatureValueGroup) => ({
         header: featureValueGroup.name,
         values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
@@ -680,7 +676,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
     initialState || homepageState.new()
   );
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
-  const [conceptSets, setConceptSets] = useState<SnapshotBuilderDatasetConceptSets[]>([]);
+  const [conceptSets, setConceptSets] = useState<DatasetConceptSets[]>([]);
   const onStateChange = setDatasetBuilderState;
 
   useOnMount(() => {
