@@ -11,6 +11,7 @@ jest.mock('src/libs/nav', () => ({
   useRoute: jest.fn(),
 }));
 
+jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
 jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   return {
@@ -37,7 +38,7 @@ describe('DatasetBuilderDetails', () => {
 
   it('renders', async () => {
     // Arrange
-    mockWithValues(dummyDatasetDetails('id'), ['Steward']);
+    mockWithValues(dummyDatasetDetails('id'), ['admin']);
     render(h(DatasetBuilderDetails, { datasetId: 'id' }));
     // Assert
     expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
@@ -46,7 +47,7 @@ describe('DatasetBuilderDetails', () => {
 
   it("renders the 'how to get access' button if discoverer", async () => {
     // Arrange
-    mockWithValues(dummyDatasetDetails('id'), ['Discoverer']);
+    mockWithValues(dummyDatasetDetails('id'), ['snapshot_creator']);
     render(h(DatasetBuilderDetails, { datasetId: 'id' }));
     // Assert
     expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
