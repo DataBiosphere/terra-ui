@@ -150,7 +150,9 @@ const getDummyConcepts = async (parent: SnapshotBuilderConcept): Promise<GetConc
 
 export const DatasetBuilder = (): DatasetBuilderContract => ({
   retrieveDataset: async (datasetId) => {
-    return await Ajax().DataRepo.dataset(datasetId).details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS]);
+    return await Ajax()
+      .DataRepo.dataset(datasetId)
+      .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
   },
   getConcepts: (parent: SnapshotBuilderConcept) => Promise.resolve(getDummyConcepts(parent)),
   requestAccess: (_request) => Promise.resolve(),

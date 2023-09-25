@@ -685,7 +685,9 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
 
   useOnMount(() => {
     void loadDatasetDetails(() =>
-      DataRepo().dataset(datasetId).details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS])
+      DataRepo()
+        .dataset(datasetId)
+        .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
     );
   });
   return datasetDetails.status === 'Ready'

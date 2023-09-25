@@ -71,7 +71,9 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
 
   useOnMount(() => {
     void loadDatasetDetails(() =>
-      DataRepo().dataset(datasetId).details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS])
+      DataRepo()
+        .dataset(datasetId)
+        .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
     );
     void loadDatasetRoles(() => DataRepo().dataset(datasetId).roles());
   });
@@ -107,7 +109,7 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
           ]),
           h(TileDisplay, {
             title: 'EHR Domains',
-            displayInformation: datasetDetails.state.snapshotBuilderSettings.domainOptions,
+            displayInformation: datasetDetails.state?.snapshotBuilderSettings?.domainOptions ?? [],
           }),
         ]),
       ])
