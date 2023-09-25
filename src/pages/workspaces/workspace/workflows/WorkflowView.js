@@ -845,7 +845,7 @@ const WorkflowView = _.flow(
                     div({ style: { display: 'inline-block', marginLeft: '0.25rem', width: sourceRepo === 'agora' ? 75 : 200 } }, [
                       h(Select, {
                         id,
-                        isDisabled: WorkspaceUtils.canEditWorkspace[0] ? false : true,
+                        isDisabled: !WorkspaceUtils.canEditWorkspace[0],
                         isClearable: false,
                         isSearchable: false,
                         value: methodVersion,
@@ -985,7 +985,7 @@ const WorkflowView = _.flow(
                                   !rootEntityType ||
                                   !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]),
                                 onClick: () => this.setState({ selectingData: true }),
-                                ...WorkspaceUtils.getWorkspaceEditControlProps(ws)
+                                ...WorkspaceUtils.getWorkspaceEditControlProps(ws),
                               },
                               ['Select Data']
                             ),

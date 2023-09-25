@@ -663,7 +663,7 @@ const WorkspaceDashboard = _.flow(
               Link,
               {
                 style: { marginLeft: '0.5rem' },
-                disabled: canEdit ? false : true,
+                disabled: !canEdit,
                 tooltip: editErrorMessage || 'Edit description',
                 onClick: () => setEditDescription(description?.toString()),
               },

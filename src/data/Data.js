@@ -382,7 +382,7 @@ const DataTableActions = ({
                 onClick: () => {
                   setRenaming(true);
                 },
-                ...buttonProps
+                ...buttonProps,
               },
               'Rename table'
             ),

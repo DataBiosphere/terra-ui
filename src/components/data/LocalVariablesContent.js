@@ -153,7 +153,7 @@ const LocalVariablesContent = ({
   return h(
     Dropzone,
     {
-      disabled: WorkspaceUtils.canEditWorkspace(workspace)[0] ? false : true,
+      disabled: !WorkspaceUtils.canEditWorkspace(workspace)[0],
       style: { flex: 1, display: 'flex', flexDirection: 'column' },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       onDropAccepted: upload,

@@ -757,7 +757,7 @@ const MetadataUploadPanel = ({
       h(
         Dropzone,
         {
-          disabled: WorkspaceUtils.canEditWorkspace(workspace)[0] ? false : true,
+          disabled: !WorkspaceUtils.canEditWorkspace(workspace)[0],
           style: {
             flex: 0,
             backgroundColor: 'white',
