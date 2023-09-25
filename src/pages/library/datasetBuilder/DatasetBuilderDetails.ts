@@ -67,7 +67,7 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
   const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetModel>();
   const [datasetRoles, loadDatasetRoles] = useLoadedData<string[]>();
   const hasAggregateDataViewerAccess =
-    datasetRoles.status === 'Ready' ? !_.includes('Discoverer', datasetRoles.state) : false;
+    datasetRoles.status === 'Ready' ? _.intersection(['admin'], datasetRoles.state).length > 0 : false;
 
   useOnMount(() => {
     void loadDatasetDetails(() =>
