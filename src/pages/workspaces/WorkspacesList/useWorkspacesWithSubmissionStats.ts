@@ -1,3 +1,4 @@
+import { cond } from '@terra-ui-packages/core-utils/src/logic-utils';
 import { isAfter, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { useEffect, useMemo, useState } from 'react';
@@ -69,7 +70,7 @@ export const workspaceSubmissionStatus = (workspace: Workspace): WorkspaceSubmis
   const stats = workspace.workspaceSubmissionStats;
   if (!stats) return undefined;
   const { runningSubmissionsCount, lastSuccessDate, lastFailureDate } = stats;
-  return Utils.cond(
+  return cond(
     [!!runningSubmissionsCount, () => 'running'],
     [
       !!lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))),
