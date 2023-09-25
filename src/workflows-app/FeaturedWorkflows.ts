@@ -16,7 +16,11 @@ import { withBusyState } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { ImportWorkflowModal } from 'src/workflows-app/components/ImportWorkflowModal';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
-import { FeaturedWorkflow, featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
+import {
+  featuredWarpWorkflows,
+  FeaturedWorkflow,
+  featuredWorkflowsData,
+} from 'src/workflows-app/fixtures/featured-workflows';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
 
@@ -116,6 +120,96 @@ export const FeaturedWorkflows = ({
     () =>
       h(Fragment, [
         div(['Get up and running with these commonly used, standard workflows.']),
+        div({ style: { marginTop: '1rem' } }, [
+          _.map((method) => {
+            const methods = 'methods' in method ? method.methods : [method];
+            const methodsInWorkspace = methods.map((featuredMethod) => {
+              const matchingMethod = methodsData.find((existingMethod) =>
+                existingMethod.method_versions.some((version) => version.url === featuredMethod.method_versions[0].url)
+              );
+              return [
+                matchingMethod !== undefined,
+                { ...featuredMethod, last_run: matchingMethod ? matchingMethod.last_run : featuredMethod.last_run },
+              ] as const;
+            });
+            const allMethodsInWorkspace = methodsInWorkspace.every(([inWorkspace, _method]) => inWorkspace);
+            return h(
+              WorkflowCard,
+              {
+                key: method.name,
+                method,
+              },
+              [
+                allMethodsInWorkspace
+                  ? div(
+                      {
+                        style: {
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: 2,
+                          color: colors.light(0.5),
+                          fontWeight: 500,
+                          padding: '0.75rem 0',
+                          whiteSpace: 'pre',
+                          backgroundColor: colors.success(1),
+                        },
+                      },
+                      [icon('success-standard'), '   Added']
+                    )
+                  : h(
+                      Clickable,
+                      {
+                        style: {
+                          flex: 1,
+                          borderRadius: 2,
+                          color: colors.light(0.5),
+                          fontWeight: 500,
+                          textAlign: 'center',
+                          padding: '0.75rem 0',
+                          minWidth: '10rem',
+                          backgroundColor: colors.accent(1),
+                        },
+                        onClick: async () => {
+                          const {
+                            cbasProxyUrlState: { state },
+                          } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
+                          setImportWorkflowModal(true);
+                          setImportLoading(true);
+                          setMethodName(method.name);
+                          const imports = methodsInWorkspace.map(([inWorkspace, m]) =>
+                            inWorkspace
+                              ? Promise.resolve()
+                              : Cbas().methods.post(state, {
+                                  method_name: m.name,
+                                  method_description: m.description,
+                                  method_source: m.source,
+                                  method_version: m.method_versions[0].name,
+                                  method_url: m.method_versions[0].url,
+                                  method_input_mappings: m.template?.method_input_mappings,
+                                  method_output_mappings: m.template?.method_output_mappings,
+                                })
+                          );
+                          await Promise.all(imports)
+                            .then((resolvedImports) => {
+                              setSuccessfulImport(true);
+                              setMethodId(resolvedImports[0].method_id);
+                            })
+                            .catch(async (error) => {
+                              setSuccessfulImport(false);
+                              setErrorMessage(
+                                JSON.stringify(error instanceof Response ? await error.text() : error, null, 2)
+                              );
+                            });
+                          setImportLoading(false);
+                        },
+                      },
+                      ['Add to workspace']
+                    ),
+              ]
+            );
+          }, featuredWarpWorkflows as FeaturedWorkflow[]),
+        ]),
         div(
           { style: { marginTop: '1rem' } },
           _.map((method) => {
@@ -196,8 +290,8 @@ export const FeaturedWorkflows = ({
                                     method_source: m.source,
                                     method_version: m.method_versions[0].name,
                                     method_url: m.method_versions[0].url,
-                                    method_input_mappings: m.template.method_input_mappings,
-                                    method_output_mappings: m.template.method_output_mappings,
+                                    method_input_mappings: m.template?.method_input_mappings,
+                                    method_output_mappings: m.template?.method_output_mappings,
                                   })
                             );
                             await Promise.all(imports)

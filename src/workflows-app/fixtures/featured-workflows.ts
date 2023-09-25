@@ -1,7 +1,7 @@
 import { WorkflowMethod, WorkflowMethodSet } from 'src/workflows-app/components/WorkflowCard';
 
 export type FeaturedWorkflowMethod = WorkflowMethod & {
-  template: {
+  template?: {
     method_input_mappings: object[];
     method_output_mappings: object[];
   };
@@ -10,6 +10,95 @@ export type FeaturedWorkflowMethod = WorkflowMethod & {
 export type FeaturedWorkflowSet = Omit<WorkflowMethodSet, 'methods'> & { methods: FeaturedWorkflowMethod[] };
 
 export type FeaturedWorkflow = FeaturedWorkflowMethod | FeaturedWorkflowSet;
+
+export const featuredWarpWorkflows = [
+  {
+    name: 'Optimus',
+    description:
+      'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
+    source: 'GitHub',
+    method_versions: [
+      {
+        name: 'Optimus_v5.8.0',
+        url: 'https://raw.githubusercontent.com/broadinstitute/warp/Optimus_v5.8.0/pipelines/skylab/optimus/Optimus.wdl',
+      },
+    ],
+    last_run: {
+      previously_run: false,
+    },
+  },
+  {
+    name: 'MultiSampleSmartSeq2SingleNucleus',
+    description:
+      'The MultiSampleSmartSeq2SingleNucleus pipeline runs multiple snSS2 samples in a single pipeline invocation.',
+    source: 'GitHub',
+    method_versions: [
+      {
+        name: 'MultiSampleSmartSeq2SingleNucleus_v1.2.24',
+        url: 'https://raw.githubusercontent.com/broadinstitute/warp/MultiSampleSmartSeq2SingleNucleus_v1.2.24/pipelines/skylab/smartseq2_single_nucleus_multisample/MultiSampleSmartSeq2SingleNucleus.wdl',
+      },
+    ],
+    last_run: {
+      previously_run: false,
+    },
+  },
+  {
+    name: 'scATAC',
+    description: 'Processing of single-cell ATAC-seq data with the scATAC pipeline.',
+    source: 'GitHub',
+    method_versions: [
+      {
+        name: 'scATAC_v1.3.1',
+        url: 'https://raw.githubusercontent.com/broadinstitute/warp/scATAC_v1.3.1/pipelines/skylab/scATAC/scATAC.wdl',
+      },
+    ],
+    last_run: {
+      previously_run: false,
+    },
+  },
+  {
+    name: 'WholeGenomeGermlineSingleSample',
+    description: 'Processes germline whole genome sequencing data.',
+    source: 'GitHub',
+    method_versions: [
+      {
+        name: 'WholeGenomeGermlineSingleSample_v3.1.6',
+        url: 'https://raw.githubusercontent.com/broadinstitute/warp/WholeGenomeGermlineSingleSample_v3.1.6/pipelines/broad/dna_seq/germline/single_sample/wgs/WholeGenomeGermlineSingleSample.wdl',
+      },
+    ],
+    last_run: {
+      previously_run: false,
+    },
+  },
+  {
+    name: 'ExomeGermlineSingleSample',
+    description: 'Processes germline exome/targeted sequencing data.',
+    source: 'GitHub',
+    method_versions: [
+      {
+        name: 'ExomeGermlineSingleSample_v3.0.0',
+        url: 'https://raw.githubusercontent.com/broadinstitute/warp/ExomeGermlineSingleSample_v3.0.0/pipelines/broad/dna_seq/germline/single_sample/exome/ExomeGermlineSingleSample.wdl',
+      },
+    ],
+    last_run: {
+      previously_run: false,
+    },
+  },
+  {
+    name: 'simple_task',
+    description: 'blah',
+    source: 'GitHub',
+    method_versions: [
+      {
+        name: 'develop',
+        url: 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl',
+      },
+    ],
+    last_run: {
+      previously_run: false,
+    },
+  },
+] satisfies FeaturedWorkflow[];
 
 export const featuredWorkflowsData = [
   {
