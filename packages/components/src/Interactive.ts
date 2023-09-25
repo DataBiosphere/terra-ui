@@ -140,17 +140,13 @@ export const Interactive = forwardRef((props: InteractiveProps, ref: ForwardedRe
       disabled,
       onMouseDown: (e) => {
         setOutline('none');
-        if (onMouseDown) {
-          onMouseDown(e);
-        }
+        onMouseDown?.(e);
       },
       onBlur: (e) => {
         if (outline) {
           setOutline(undefined);
         }
-        if (onBlur) {
-          onBlur(e);
-        }
+        onBlur?.(e);
       },
       onKeyDown:
         onKeyDown ||
