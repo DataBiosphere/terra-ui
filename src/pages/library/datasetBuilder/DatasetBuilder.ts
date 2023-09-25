@@ -402,7 +402,7 @@ export const ConceptSetSelector = ({
             [icon('trash-circle-filled', { size: 20 })]
           ),
       },
-      { header: 'Prepackaged concept sets', values: prepackagedConceptSets || [] },
+      { header: 'Prepackaged concept sets', values: prepackagedConceptSets ?? [] },
     ],
     selectedObjectSets: selectedConceptSets,
     header: 'Select concept sets',
