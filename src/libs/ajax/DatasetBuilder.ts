@@ -1,59 +1,27 @@
 // Types that can be used to create a criteria.
 import _ from 'lodash/fp';
-
-export interface DomainOption {
-  kind: 'domain';
-  id: number;
-  category: string;
-  conceptCount: number;
-  participantCount: number;
-  root: Concept;
-}
-
-export interface ProgramDataOption {
-  kind: 'range' | 'list';
-  id: number;
-  name: string;
-}
-
-export interface ProgramDataRangeOption extends ProgramDataOption {
-  kind: 'range';
-  min: number;
-  max: number;
-}
-
-export interface ProgramDataListValue {
-  id: number;
-  name: string;
-}
-
-export interface ProgramDataListOption extends ProgramDataOption {
-  kind: 'list';
-  values: ProgramDataListValue[];
-}
-
-export interface DatasetResponse {
-  name: string;
-  id: string;
-  description: string;
-  programDataOptions: (ProgramDataRangeOption | ProgramDataListOption)[];
-  domainOptions: DomainOption[];
-  learnMoreLink: string;
-  accessLevel: AccessLevel;
-  featureValueGroups: FeatureValueGroup[];
-}
+import { Ajax } from 'src/libs/ajax';
+import {
+  datasetIncludeTypes,
+  DatasetModel,
+  ProgramDataListOption,
+  ProgramDataListValue,
+  ProgramDataRangeOption,
+  SnapshotBuilderConcept,
+  SnapshotBuilderDomainOption,
+} from 'src/libs/ajax/DataRepo';
 
 /** A specific criteria based on a type. */
 export interface Criteria {
   kind: 'domain' | 'range' | 'list';
   name: string;
   id: number;
-  count: number;
+  count?: number;
 }
 
 export interface DomainCriteria extends Criteria {
   kind: 'domain';
-  domainOption: DomainOption;
+  domainOption: SnapshotBuilderDomainOption;
 }
 
 export interface ProgramDataRangeCriteria extends Criteria {
@@ -94,21 +62,8 @@ export interface DatasetBuilderType {
 
 export type DatasetBuilderValue = DatasetBuilderType;
 
-export type FeatureValueGroup = {
-  values: DatasetBuilderValue[];
-  name: string;
-  id: number;
-};
-
 export interface GetConceptsResponse {
-  result: Concept[];
-}
-
-export interface Concept {
-  id: number;
-  name: string;
-  count: number;
-  hasChildren: boolean;
+  result: SnapshotBuilderConcept[];
 }
 
 type DatasetRequest = {
@@ -128,13 +83,11 @@ type DatasetParticipantCountRequest = {
 };
 
 export interface DatasetBuilderContract {
-  retrieveDataset: (datasetId: string) => Promise<DatasetResponse>;
-  getConcepts: (parent: Concept) => Promise<GetConceptsResponse>;
+  retrieveDataset: (datasetId: string) => Promise<DatasetModel>;
+  getConcepts: (parent: SnapshotBuilderConcept) => Promise<GetConceptsResponse>;
   requestAccess: (request: DatasetAccessRequest) => Promise<void>;
   getParticipantCount: (request: DatasetParticipantCountRequest) => Promise<number>;
 }
-
-type AccessLevel = 'Owner' | 'Reader' | 'Discoverer';
 
 const dummyConcepts = [
   // IDs must be unique.
@@ -160,7 +113,7 @@ const dummyConcepts = [
   { id: 303, name: 'Height', count: 100, hasChildren: false },
 ];
 
-export const getConceptForId = (id: number): Concept => {
+export const getConceptForId = (id: number): SnapshotBuilderConcept => {
   return _.find({ id }, dummyConcepts)!;
 };
 
@@ -183,104 +136,111 @@ const dummyConceptToParent = [
   [303, 300],
 ];
 
-export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
+export const dummyDatasetDetails = (datasetId: string): DatasetModel => ({
   name: 'AnalytiXIN',
   id: datasetId,
   description:
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br><br>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-  programDataOptions: [
-    { id: 1, name: 'Year of birth', kind: 'range', min: 1900, max: 2023 },
-    {
-      id: 2,
-      name: 'Ethnicity',
-      kind: 'list',
-      values: [
-        { name: 'Hispanic or Latino', id: 20 },
-        { name: 'Not Hispanic or Latino', id: 21 },
-        { name: 'No Matching Concept', id: 0 },
-      ],
-    },
-    {
-      id: 3,
-      name: 'Gender identity',
-      kind: 'list',
-      values: [
-        { name: 'FEMALE', id: 22 },
-        { name: 'MALE', id: 23 },
-        { name: 'No Matching Concept', id: 0 },
-      ],
-    },
-    {
-      id: 4,
-      name: 'Race',
-      kind: 'list',
-      values: [
-        { name: 'American Indian or Alaska Native', id: 24 },
-        { name: 'Asian', id: 25 },
-        { name: 'Black', id: 26 },
-        { name: 'White', id: 27 },
-        { name: 'No Matching Concept', id: 0 },
-      ],
-    },
-  ],
-  domainOptions: [
-    {
-      kind: 'domain',
-      id: 10,
-      category: 'Condition',
-      conceptCount: 18000,
-      participantCount: 12500,
-      root: getConceptForId(100),
-    },
-    {
-      kind: 'domain',
-      id: 11,
-      category: 'Procedure',
-      conceptCount: 22500,
-      participantCount: 11328,
-      root: getConceptForId(200),
-    },
-    {
-      kind: 'domain',
-      id: 12,
-      category: 'Observation',
-      conceptCount: 12300,
-      participantCount: 23223,
-      root: getConceptForId(300),
-    },
-  ],
-  learnMoreLink: '',
-  accessLevel: 'Reader',
-  featureValueGroups: [
-    {
-      values: [{ name: 'condition column 1' }, { name: 'condition column 2' }],
-      name: 'Condition',
-      id: 0,
-    },
-    {
-      values: [{ name: 'observation column 1' }, { name: 'observation column 2' }],
-      name: 'Observation',
-      id: 1,
-    },
-    {
-      values: [{ name: 'procedure column 1' }, { name: 'procedure column 2' }],
-      name: 'Procedure',
-      id: 2,
-    },
-    {
-      values: [{ name: 'surveys column 1' }, { name: 'surveys column 2' }],
-      name: 'Surveys',
-      id: 2,
-    },
-    {
-      values: [{ name: 'demographics column 1' }, { name: 'demographics column 2' }],
-      name: 'Person',
-      id: 3,
-    },
-  ],
+  createdDate: new Date().toDateString(),
+  selfHosted: false,
+  properties: {},
+  predictableFileIds: false,
+  tags: [],
+  resourceLocks: { exclusive: '' },
+  snapshotBuilderSettings: {
+    programDataOptions: [
+      { id: 1, name: 'Year of birth', kind: 'range', min: 1900, max: 2023 },
+      {
+        id: 2,
+        name: 'Ethnicity',
+        kind: 'list',
+        values: [
+          { name: 'Hispanic or Latino', id: 20 },
+          { name: 'Not Hispanic or Latino', id: 21 },
+          { name: 'No Matching Concept', id: 0 },
+        ],
+      },
+      {
+        id: 3,
+        name: 'Gender identity',
+        kind: 'list',
+        values: [
+          { name: 'FEMALE', id: 22 },
+          { name: 'MALE', id: 23 },
+          { name: 'No Matching Concept', id: 0 },
+        ],
+      },
+      {
+        id: 4,
+        name: 'Race',
+        kind: 'list',
+        values: [
+          { name: 'American Indian or Alaska Native', id: 24 },
+          { name: 'Asian', id: 25 },
+          { name: 'Black', id: 26 },
+          { name: 'White', id: 27 },
+          { name: 'No Matching Concept', id: 0 },
+        ],
+      },
+    ],
+    domainOptions: [
+      {
+        id: 10,
+        category: 'Condition',
+        conceptCount: 18000,
+        participantCount: 12500,
+        root: getConceptForId(100),
+      },
+      {
+        id: 11,
+        category: 'Procedure',
+        conceptCount: 22500,
+        participantCount: 11328,
+        root: getConceptForId(200),
+      },
+      {
+        id: 12,
+        category: 'Observation',
+        conceptCount: 12300,
+        participantCount: 23223,
+        root: getConceptForId(300),
+      },
+    ],
+    featureValueGroups: [
+      {
+        values: ['condition column 1', 'condition column 2'],
+        name: 'Condition',
+        id: 0,
+      },
+      {
+        values: ['observation column 1', 'observation column 2'],
+        name: 'Observation',
+        id: 1,
+      },
+      {
+        values: ['procedure column 1', 'procedure column 2'],
+        name: 'Procedure',
+        id: 2,
+      },
+      {
+        values: ['surveys column 1', 'surveys column 2'],
+        name: 'Surveys',
+        id: 2,
+      },
+      {
+        values: ['demographics column 1', 'demographics column 2'],
+        name: 'Person',
+        id: 3,
+      },
+    ],
+    datasetConceptSets: [
+      { name: 'Demographics', featureValueGroupName: 'Person' },
+      { name: 'All surveys', featureValueGroupName: 'Surveys' },
+    ],
+  },
 });
 
-const getDummyConcepts = async (parent: Concept): Promise<GetConceptsResponse> => {
+const getDummyConcepts = async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> => {
   // Use a 1s delay to simulate server response time.
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return {
@@ -293,8 +253,10 @@ const getDummyConcepts = async (parent: Concept): Promise<GetConceptsResponse> =
 };
 
 export const DatasetBuilder = (): DatasetBuilderContract => ({
-  retrieveDataset: (datasetId) => Promise.resolve(dummyDatasetDetails(datasetId)),
-  getConcepts: (parent: Concept) => Promise.resolve(getDummyConcepts(parent)),
+  retrieveDataset: async (datasetId) => {
+    return await Ajax().DataRepo.dataset(datasetId).details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS]);
+  },
+  getConcepts: (parent: SnapshotBuilderConcept) => Promise.resolve(getDummyConcepts(parent)),
   requestAccess: (_request) => Promise.resolve(),
   getParticipantCount: (_request) => Promise.resolve(100),
 });

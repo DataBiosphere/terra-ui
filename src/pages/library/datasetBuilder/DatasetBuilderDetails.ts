@@ -4,7 +4,7 @@ import { ButtonOutline, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { MarkdownViewer } from 'src/components/markdown';
 import TopBar from 'src/components/TopBar';
-import { DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
+import { DataRepo, datasetIncludeTypes, DatasetModel } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
@@ -15,8 +15,8 @@ interface DomainDisplayProps {
   title: string;
   displayInformation: {
     category: string;
-    participantCount: number;
-    conceptCount: number;
+    participantCount?: number;
+    conceptCount?: number;
   }[];
 }
 
@@ -43,10 +43,14 @@ const TileDisplay = (props: DomainDisplayProps) => {
             [
               h3([displayTile.category]),
               div({ style: { display: 'flex', alignItems: 'baseline' } }, [
-                div({ style: { fontSize: 30, fontWeight: 600 } }, [`${displayTile.conceptCount / 1000}K`]),
+                div({ style: { fontSize: 30, fontWeight: 600 } }, [
+                  displayTile.conceptCount ? `${displayTile.conceptCount / 1000}K` : 'UNKNOWN',
+                ]),
                 div({ style: { fontSize: 20, marginLeft: '0.5rem' } }, ['concepts']),
               ]),
-              div({ style: { fontSize: 20, marginTop: '0.5rem' } }, [`${displayTile.participantCount} participants`]),
+              div({ style: { fontSize: 20, marginTop: '0.5rem' } }, [
+                displayTile.participantCount ? `${displayTile.participantCount} participants` : 'UNKNOWN',
+              ]),
             ]
           ),
         displayInformation
@@ -60,12 +64,16 @@ interface DatasetBuilderDetailsProps {
 }
 
 export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps) => {
-  const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
+  const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetModel>();
+  const [datasetRoles, loadDatasetRoles] = useLoadedData<string[]>();
   const hasAggregateDataViewerAccess =
-    datasetDetails.status === 'Ready' ? datasetDetails.state.accessLevel !== 'Discoverer' : false;
+    datasetRoles.status === 'Ready' ? !_.includes('Discoverer', datasetRoles.state) : false;
 
   useOnMount(() => {
-    void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
+    void loadDatasetDetails(() =>
+      DataRepo().dataset(datasetId).details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS])
+    );
+    void loadDatasetRoles(() => DataRepo().dataset(datasetId).roles());
   });
   return datasetDetails.status === 'Ready'
     ? h(FooterWrapper, [
@@ -86,9 +94,9 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
                 {
                   style: { width: '100%', borderRadius: 0, marginTop: '1rem', textTransform: 'none' },
                   // TODO: Get link for learn how to get access
-                  href: hasAggregateDataViewerAccess
-                    ? Nav.getLink('create-dataset', { datasetId })
-                    : encodeURIComponent(datasetDetails.state.learnMoreLink),
+                  href: !hasAggregateDataViewerAccess
+                    ? encodeURIComponent(datasetDetails.state.properties.learnMoreLink)
+                    : Nav.getLink('create-dataset', { datasetId }),
                 },
                 [hasAggregateDataViewerAccess ? 'Start creating datasets' : 'Learn how to gain access']
               ),
@@ -97,7 +105,10 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
               ]),
             ]),
           ]),
-          h(TileDisplay, { title: 'EHR Domains', displayInformation: datasetDetails.state.domainOptions }),
+          h(TileDisplay, {
+            title: 'EHR Domains',
+            displayInformation: datasetDetails.state.snapshotBuilderSettings.domainOptions,
+          }),
         ]),
       ])
     : spinnerOverlay;

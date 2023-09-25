@@ -6,16 +6,18 @@ import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
 import {
+  DatasetModel,
+  ProgramDataListOption,
+  ProgramDataListValue,
+  ProgramDataRangeOption,
+  SnapshotBuilderDomainOption,
+} from 'src/libs/ajax/DataRepo';
+import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
-  DatasetResponse,
-  DomainOption,
   ProgramDataListCriteria,
-  ProgramDataListOption,
-  ProgramDataListValue,
   ProgramDataRangeCriteria,
-  ProgramDataRangeOption,
 } from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
@@ -176,9 +178,18 @@ const createDefaultRangeCriteria = (rangeOption: ProgramDataRangeOption): Progra
   };
 };
 
-type CriteriaOption = DomainOption | ProgramDataRangeOption | ProgramDataListOption;
+const addKindToDomainOption = (domainOption: SnapshotBuilderDomainOption): DomainOptionWithKind => ({
+  ...domainOption,
+  kind: 'domain',
+});
 
-export function criteriaFromOption(option: DomainOption): undefined;
+interface DomainOptionWithKind extends SnapshotBuilderDomainOption {
+  kind: 'domain';
+}
+
+type CriteriaOption = DomainOptionWithKind | ProgramDataRangeOption | ProgramDataListOption;
+
+export function criteriaFromOption(option: DomainOptionWithKind): undefined;
 export function criteriaFromOption(option: ProgramDataListOption): ProgramDataListCriteria;
 export function criteriaFromOption(option: ProgramDataRangeOption): ProgramDataRangeCriteria;
 export function criteriaFromOption(option: CriteriaOption): AnyCriteria;
@@ -199,7 +210,7 @@ type AddCriteriaSelectorProps = {
   index: number;
   criteriaGroup: CriteriaGroup;
   updateCohort: Updater<Cohort>;
-  datasetDetails: DatasetResponse;
+  datasetDetails: DatasetModel;
   onStateChange: OnStateChangeHandler;
   cohort: Cohort;
 };
@@ -213,12 +224,13 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
     options: [
       {
         label: 'Domains',
-        options: _.map((domainOption) => {
-          return {
-            value: domainOption,
+        options: _.map(
+          (domainOption) => ({
+            value: addKindToDomainOption(domainOption),
             label: domainOption.category,
-          };
-        }, datasetDetails.domainOptions),
+          }),
+          datasetDetails.snapshotBuilderSettings.domainOptions
+        ),
       },
       {
         label: 'Program Data',
@@ -227,7 +239,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
             value: programDataOption,
             label: programDataOption.name,
           };
-        }, datasetDetails.programDataOptions),
+        }, datasetDetails.snapshotBuilderSettings.programDataOptions),
       },
     ],
     'aria-label': addCriteriaText,
@@ -253,7 +265,7 @@ type CriteriaGroupViewProps = {
   criteriaGroup: CriteriaGroup;
   updateCohort: Updater<Cohort>;
   cohort: Cohort;
-  datasetDetails: DatasetResponse;
+  datasetDetails: DatasetModel;
   onStateChange: OnStateChangeHandler;
 };
 
@@ -365,7 +377,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
 
 type CohortGroupsProps = {
   cohort: Cohort | undefined;
-  datasetDetails: DatasetResponse;
+  datasetDetails: DatasetModel;
   updateCohort: Updater<Cohort>;
   onStateChange: OnStateChangeHandler;
 };
@@ -412,7 +424,7 @@ const editorBackgroundColor = colors.light(0.7);
 type CohortEditorContentsProps = {
   updateCohort: Updater<Cohort>;
   cohort: Cohort;
-  datasetDetails: DatasetResponse;
+  datasetDetails: DatasetModel;
   onStateChange: OnStateChangeHandler;
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
@@ -463,7 +475,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
 
 interface CohortEditorProps {
   readonly onStateChange: OnStateChangeHandler;
-  readonly datasetDetails: DatasetResponse;
+  readonly datasetDetails: DatasetModel;
   readonly originalCohort: Cohort;
   readonly updateCohorts: Updater<Cohort[]>;
 }

@@ -1,12 +1,12 @@
 import { div, h, h1 } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
-import { DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
+import { DatasetModel } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { DatasetBuilderBreadcrumbs } from 'src/pages/library/datasetBuilder/Breadcrumbs';
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
 
-type DatasetBuilderHeaderProps = { datasetDetails: DatasetResponse };
+type DatasetBuilderHeaderProps = { datasetDetails: DatasetModel };
 
 export const DatasetBuilderHeader = ({ datasetDetails }: DatasetBuilderHeaderProps) => {
   return div(

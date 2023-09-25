@@ -54,7 +54,6 @@ describe('CohortEditor', () => {
       name: 'test criteria',
       count: 0,
       domainOption: {
-        kind: 'domain',
         id: 0,
         category: 'test category',
         participantCount: 0,
@@ -282,7 +281,7 @@ describe('CohortEditor', () => {
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByLabelText('Add criteria'));
-    const option = datasetDetails.programDataOptions[0];
+    const option = datasetDetails.snapshotBuilderSettings.programDataOptions[0];
     const dataOptionMenuItem = screen.getByText(option.name);
     await user.click(dataOptionMenuItem);
     // Assert
@@ -296,7 +295,7 @@ describe('CohortEditor', () => {
   it('can delete criteria from the criteria group', async () => {
     // Arrange
     const { cohort, updateCohort } = showCriteriaGroup((criteriaGroup) =>
-      criteriaGroup.criteria.push(criteriaFromOption(datasetDetails.programDataOptions[0]))
+      criteriaGroup.criteria.push(criteriaFromOption(datasetDetails.snapshotBuilderSettings.programDataOptions[0]))
     );
     const user = userEvent.setup();
     // Act
@@ -367,12 +366,12 @@ describe('CohortEditor', () => {
     // Act
     await user.click(screen.getByText('Add group'));
     await user.click(screen.getByLabelText('Add criteria'));
-    const domainOption = datasetDetails.domainOptions[0];
+    const domainOption = datasetDetails.snapshotBuilderSettings.domainOptions[0];
     const domainMenuItem = screen.getByText(domainOption.category);
     await user.click(domainMenuItem);
     // Assert
     expect(onStateChange).toBeCalledWith(
-      domainCriteriaSelectorState.new(expect.anything(), expect.anything(), domainOption)
+      domainCriteriaSelectorState.new(expect.anything(), expect.anything(), _.set('kind', 'domain', domainOption))
     );
   });
 });

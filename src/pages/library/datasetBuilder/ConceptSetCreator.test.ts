@@ -19,7 +19,7 @@ describe('ConceptSetCreator', () => {
     // Arrange
     renderConceptSetCreator();
     // Assert
-    expect(await screen.findByText(datasetDetails.domainOptions[0].root.name)).toBeTruthy();
+    expect(await screen.findByText(datasetDetails.snapshotBuilderSettings.domainOptions[0].root.name)).toBeTruthy();
   });
 
   it('updates the builder concept sets on save', async () => {
@@ -32,7 +32,9 @@ describe('ConceptSetCreator', () => {
     await user.click(screen.getByText('Add to concept sets'));
     // Assert
     expect(onStateChange).toHaveBeenCalledWith(homepageState.new());
-    expect(conceptSetUpdater.mock.calls[0][0]([])).toEqual([toConceptSet(datasetDetails.domainOptions[0].root)]);
+    expect(conceptSetUpdater.mock.calls[0][0]([])).toEqual([
+      toConceptSet(datasetDetails.snapshotBuilderSettings.domainOptions[0].root),
+    ]);
   });
 
   it('returns to the home page on cancel', async () => {

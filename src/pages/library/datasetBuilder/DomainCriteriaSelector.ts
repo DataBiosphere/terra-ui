@@ -1,13 +1,8 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import {
-  Concept,
-  DatasetBuilder,
-  DomainCriteria,
-  DomainOption,
-  GetConceptsResponse,
-} from 'src/libs/ajax/DatasetBuilder';
+import { SnapshotBuilderConcept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
+import { DatasetBuilder, DomainCriteria, GetConceptsResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useOnMount } from 'src/libs/react-utils';
 import { ConceptSelector } from 'src/pages/library/datasetBuilder/ConceptSelector';
@@ -20,8 +15,8 @@ interface DomainCriteriaSelectorProps {
 }
 
 export const toCriteria =
-  (domainOption: DomainOption) =>
-  (concept: Concept): DomainCriteria => {
+  (domainOption: SnapshotBuilderDomainOption) =>
+  (concept: SnapshotBuilderConcept): DomainCriteria => {
     return {
       kind: 'domain',
       name: concept.name,
@@ -42,7 +37,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
         initialRows: rootConcepts.state.result,
         title: state.domainOption.category,
         onCancel: () => onStateChange(cohortEditorState.new(state.cohort)),
-        onCommit: (selected: Concept[]) => {
+        onCommit: (selected: SnapshotBuilderConcept[]) => {
           const cartCriteria = _.map(toCriteria(state.domainOption), selected);
           const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
           // add/remove all cart elements to the domain group's criteria list in the cohort
