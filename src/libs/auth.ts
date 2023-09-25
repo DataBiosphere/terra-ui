@@ -23,8 +23,8 @@ import {
   azurePreviewStore,
   cookieReadyStore,
   getUser,
+  oidcStore,
   requesterPaysProjectStore,
-  TermsOfServiceStatus,
   TerraUserRegistrationStatus,
   TokenMetadata,
   workspacesStore,
@@ -54,7 +54,8 @@ export const getOidcConfig = () => {
   };
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
-    client_id: authStore.get().oidcConfig.clientId!,
+    // The clientId from oidcStore.config is not undefined, setup in initializeClientId on appLoad
+    client_id: oidcStore.get().config.clientId!,
     popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
     silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
     metadata,
@@ -72,7 +73,7 @@ export const getOidcConfig = () => {
 };
 
 const getAuthInstance = (): AuthContextProps => {
-  const authContext: AuthContextProps | undefined = authStore.get().authContext;
+  const authContext: AuthContextProps | undefined = oidcStore.get().authContext;
   if (authContext === undefined) {
     console.error('getAuthInstance must not be called before authContext is initialized.');
     throw new Error('Error initializing authentication.');
@@ -126,10 +127,25 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
   azurePreviewStore.set(false);
+
   const auth: AuthContextProps = getAuthInstance();
   revokeTokens()
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState());
+  const cookiesAccepted: boolean | undefined = authStore.get().cookiesAccepted;
+  authStore.reset();
+  authStore.update((state) => ({
+    ...state,
+    signInStatus: 'signedOut',
+    // TODO: If allowed, this should be moved to the cookie store
+    // Load whether a user has input a cookie acceptance in a previous session on this system,
+    // or whether they input cookie acceptance previously in this session
+    cookiesAccepted,
+  }));
+  oidcStore.update((state) => ({
+    ...state,
+    user: undefined,
+  }));
 };
 
 const revokeTokens = async () => {
@@ -232,6 +248,11 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     // for future might want to take refresh token and hash it to compare to a saved hashed token to see if they are the same
     const isNewRefreshToken = !!refreshToken && refreshToken !== oldRefreshTokenMetadata.token;
 
+    oidcStore.update((state) => ({
+      ...state,
+      user: oidcUser,
+    }));
+
     // for metrics, updates authToken metadata and refresh token metadata
     authStore.update((state) => ({
       ...state,
@@ -247,7 +268,6 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
             ? oldAuthTokenMetadata.totalTokensUsedThisSession
             : oldAuthTokenMetadata.totalTokensUsedThisSession + 1,
       },
-      oidcUser,
       refreshTokenMetadata: isNewRefreshToken
         ? {
             ...authStore.get().refreshTokenMetadata,
@@ -370,8 +390,15 @@ const becameRegistered = (oldState: AuthState, state: AuthState) => {
   return oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered';
 };
 
-export const isAuthSettled = ({ isSignedIn, registrationStatus }) => {
-  return isSignedIn !== undefined && (!isSignedIn || registrationStatus !== undefined);
+const isNowSignedIn = (oldState: AuthState, state: AuthState) => {
+  return oldState.signInStatus !== 'signedIn' && state.signInStatus === 'signedIn';
+};
+
+export const isAuthSettled = (state: AuthState) => {
+  return (
+    state.signInStatus !== 'uninitialized' &&
+    (state.signInStatus !== 'signedIn' || state.registrationStatus !== 'uninitialized')
+  );
 };
 
 export const ensureAuthSettled = () => {
@@ -399,74 +426,61 @@ export const isAzureUser = (): boolean => {
   return _.startsWith('https://login.microsoftonline.com', getUser().idp!);
 };
 
-export const processUser = (user: OidcUser | null, isSignInEvent: boolean): void => {
+export const loadOidcUser = (user: OidcUser): void => {
   return authStore.update((state) => {
-    const isSignedIn = !_.isNil(user);
-    const profile: B2cIdTokenClaims | undefined = user?.profile;
-    const userId: string | undefined = profile?.sub;
-    // The following few lines of code are to handle sign-in failures due to privacy tools.
-    if (isSignInEvent && state.isSignedIn === false && !isSignedIn) {
-      // if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
-      // tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
-      notify('error', 'Could not sign in', {
-        message: 'Click for more information',
-        detail:
-          'If you are using privacy blockers, they may be preventing you from signing in. Please disable those tools, refresh, and try signing in again.',
-        timeout: 30000,
-      });
-    }
+    const tokenClaims: B2cIdTokenClaims = user.profile;
+    // according to IdTokenClaims, this is a mandatory claim and should always exist
+    const userId: string = tokenClaims.sub;
     return {
       ...state,
-      isSignedIn,
-      anonymousId: !isSignedIn && state.isSignedIn ? undefined : state.anonymousId,
-      registrationStatus: isSignedIn ? state.registrationStatus : 'uninitialized',
-      termsOfService: initializeTermsOfService(isSignedIn, state),
-      profile: isSignedIn ? state.profile : {},
-      nihStatus: isSignedIn ? state.nihStatus : undefined,
-      fenceStatus: isSignedIn ? state.fenceStatus : {},
+      signInStatus: 'signedIn',
       // Load whether a user has input a cookie acceptance in a previous session on this system,
       // or whether they input cookie acceptance previously in this session
-      cookiesAccepted: isSignedIn
-        ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey)
-        : undefined,
-      isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
-      hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
+      cookiesAccepted: state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey),
       user: {
-        token: user?.access_token,
-        scope: user?.scope,
+        token: user.access_token,
+        scope: user.scope,
         id: userId,
-        ...(profile
-          ? {
-              email: profile.email,
-              name: profile.name,
-              givenName: profile.given_name,
-              familyName: profile.family_name,
-              imageUrl: profile.picture,
-              idp: profile.idp,
-            }
-          : {}),
+        email: tokenClaims.email,
+        name: tokenClaims.name,
+        givenName: tokenClaims.given_name,
+        familyName: tokenClaims.family_name,
+        imageUrl: tokenClaims.picture,
+        idp: tokenClaims.idp,
       },
     };
   });
 };
 
-const initializeTermsOfService = (isSignedIn: boolean, state: AuthState): TermsOfServiceStatus => {
-  return {
-    userHasAcceptedLatestTos: isSignedIn ? state.termsOfService.userHasAcceptedLatestTos : undefined,
-    permitsSystemUsage: isSignedIn ? state.termsOfService.permitsSystemUsage : undefined,
-  };
-};
-
-export const initializeAuth = _.memoize(async () => {
+// this function is only called when the browser refreshes
+export const initializeAuth = _.memoize(async (): Promise<void> => {
   // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
-  // All other auth usage should use the AuthContext from authStore.
+  // All other auth usage should use the AuthContext from oidcStore.
   const userManager: UserManager = new UserManager(getOidcConfig());
-  processUser(await userManager.getUser(), false);
+
+  const setSignedOut = () =>
+    authStore.update((state) => ({
+      ...state,
+      signInStatus: 'signedOut',
+    }));
+  try {
+    const initialOidcUser: OidcUser | null = await userManager.getUser();
+    if (initialOidcUser !== null) {
+      loadOidcUser(initialOidcUser);
+    } else {
+      setSignedOut();
+    }
+  } catch (e) {
+    console.error('Error in contacting oidc-client');
+    setSignedOut();
+    throw new Error('Failed to initialize auth.');
+  }
 });
 
+// This is the first thing that happens on app load.
 export const initializeClientId = _.memoize(async () => {
   const oidcConfig = await Ajax().OAuth2.getConfiguration();
-  authStore.update((state) => ({ ...state, oidcConfig }));
+  oidcStore.update((state) => ({ ...state, config: oidcConfig }));
 });
 
 // This is intended for tests to short circuit the login flow
@@ -479,7 +493,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
   authStore.update((state) => {
     return {
       ...state,
-      isSignedIn: true,
+      signInStatus: 'signedIn',
       registrationStatus: 'uninitialized',
       isTimeoutEnabled: undefined,
       cookiesAccepted: true,
@@ -516,8 +530,7 @@ authStore.subscribe(
     };
     const canNowUseSystem =
       !oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage === true;
-    const isNowSignedIn = oldState.isSignedIn === false && state.isSignedIn === true;
-    if (isNowSignedIn || canNowUseSystem) {
+    if (isNowSignedIn(oldState, state) || canNowUseSystem) {
       clearNotification(sessionTimeoutProps.id);
       const registrationStatus: TerraUserRegistrationStatus = await getRegistrationStatus();
       authStore.update((state) => ({ ...state, registrationStatus }));
@@ -526,8 +539,8 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting('Error checking TOS', async (state, oldState) => {
-    if (!oldState.isSignedIn && state.isSignedIn) {
+  withErrorReporting('Error checking TOS', async (state: AuthState, oldState: AuthState) => {
+    if (isNowSignedIn(oldState, state)) {
       const tosComplianceStatus = await Ajax().User.getTermsOfServiceComplianceStatus();
       // If the user is now logged in, but there's no ToS status from Sam,
       // then they haven't accepted it yet and Sam hasn't caught up.
@@ -551,7 +564,7 @@ declare global {
 }
 
 authStore.subscribe(
-  withErrorIgnoring(async (state, oldState) => {
+  withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
         window.Appcues.identify(state.user.id, {
@@ -563,18 +576,18 @@ authStore.subscribe(
   })
 );
 
-authStore.subscribe((state) => {
+authStore.subscribe((state: AuthState) => {
   // We can't guarantee that someone reopening the window is the same user,
   // so we should not persist cookie acceptance across sessions for people signed out
   // Per compliance recommendation, we could probably persist through a session, but
   // that would require a second store in session storage instead of local storage
-  if (state.isSignedIn && state.cookiesAccepted !== getLocalPref(cookiesAcceptedKey)) {
+  if (state.signInStatus === 'signedIn' && state.cookiesAccepted !== getLocalPref(cookiesAcceptedKey)) {
     setLocalPref(cookiesAcceptedKey, state.cookiesAccepted);
   }
 });
 
 authStore.subscribe(
-  withErrorReporting('Error checking groups for timeout status', async (state, oldState) => {
+  withErrorReporting('Error checking groups for timeout status', async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
       const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list());
       authStore.update((state) => ({ ...state, isTimeoutEnabled }));
@@ -588,15 +601,15 @@ export const refreshTerraProfile = async () => {
 };
 
 authStore.subscribe(
-  withErrorReporting('Error loading user profile', async (state, oldState) => {
-    if (!oldState.isSignedIn && state.isSignedIn) {
+  withErrorReporting('Error loading user profile', async (state: AuthState, oldState: AuthState) => {
+    if (isNowSignedIn(oldState, state)) {
       await refreshTerraProfile();
     }
   })
 );
 
 authStore.subscribe(
-  withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
+  withErrorReporting('Error loading NIH account link status', async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
       const nihStatus = await Ajax().User.getNihStatus();
       authStore.update((state) => ({ ...state, nihStatus }));
@@ -605,7 +618,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorIgnoring(async (state, oldState) => {
+  withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
       await Ajax().Metrics.syncProfile();
     }
@@ -613,7 +626,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorIgnoring(async (state, oldState) => {
+  withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
       if (state.anonymousId) {
         return await Ajax().Metrics.identify(state.anonymousId);
@@ -623,20 +636,23 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting('Error loading Framework Services account status', async (state, oldState) => {
-    if (becameRegistered(oldState, state)) {
-      await Promise.all(
-        _.map(async ({ key }) => {
-          const status = await Ajax().User.getFenceStatus(key);
-          authStore.update(_.set(['fenceStatus', key], status));
-        }, allProviders)
-      );
+  withErrorReporting(
+    'Error loading Framework Services account status',
+    async (state: AuthState, oldState: AuthState) => {
+      if (becameRegistered(oldState, state)) {
+        await Promise.all(
+          _.map(async ({ key }) => {
+            const status = await Ajax().User.getFenceStatus(key);
+            authStore.update(_.set(['fenceStatus', key], status));
+          }, allProviders)
+        );
+      }
     }
-  })
+  )
 );
 
-authStore.subscribe((state, oldState) => {
-  if (oldState.isSignedIn && !state.isSignedIn) {
+authStore.subscribe((state: AuthState, oldState: AuthState) => {
+  if (oldState.signInStatus === 'signedIn' && state.signInStatus !== 'signedIn') {
     workspaceStore.reset();
     workspacesStore.reset();
     asyncImportJobStore.reset();

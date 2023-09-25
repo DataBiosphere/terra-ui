@@ -15,14 +15,14 @@ import TermsOfService from 'src/pages/TermsOfService';
 
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute();
-  const { isSignedIn, registrationStatus, termsOfService, profile } = useStore(authStore);
-  const displayTosPage = isSignedIn === true && termsOfService.permitsSystemUsage === false;
+  const { signInStatus, registrationStatus, termsOfService, profile } = useStore(authStore);
+  const displayTosPage = signInStatus === 'signedIn' && termsOfService.permitsSystemUsage === false;
   const seenAzurePreview = useStore(azurePreviewStore) || false;
   const authspinner = () => fixedSpinnerOverlay;
 
   return Utils.cond<ReactNode>(
-    [isSignedIn === undefined && !isPublic, authspinner],
-    [isSignedIn === false && !isPublic, () => h(SignIn)],
+    [signInStatus === 'uninitialized' && !isPublic, authspinner],
+    [signInStatus === 'signedOut' && !isPublic, () => h(SignIn)],
     [seenAzurePreview === false && isAzureUser(), () => h(AzurePreview)],
     [registrationStatus === 'uninitialized' && !isPublic, authspinner],
     [registrationStatus === 'unregistered', () => h(Register)],

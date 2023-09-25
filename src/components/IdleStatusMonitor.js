@@ -40,7 +40,7 @@ const IdleStatusMonitor = ({ timeout = Utils.durationToMillis({ minutes: 15 }), 
   const [signOutRequired, setSignOutRequired] = useState(false);
 
   const {
-    isSignedIn,
+    signInStatus,
     isTimeoutEnabled,
     user: { id },
   } = useStore(authStore);
@@ -61,10 +61,10 @@ const IdleStatusMonitor = ({ timeout = Utils.durationToMillis({ minutes: 15 }), 
 
   // Render
   return Utils.cond(
-    [isSignedIn && isTimeoutEnabled, () => h(InactivityTimer, { id, timeout, countdownStart, doSignOut })],
+    [signInStatus === 'signedIn' && isTimeoutEnabled, () => h(InactivityTimer, { id, timeout, countdownStart, doSignOut })],
     [signOutRequired, () => iframe({ onLoad: reloadSoon, style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })],
     [
-      query?.sessionExpired && !isSignedIn,
+      query?.sessionExpired && signInStatus !== 'signedIn',
       () =>
         h(
           Modal,
