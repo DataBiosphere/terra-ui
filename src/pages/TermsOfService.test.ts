@@ -1,8 +1,9 @@
 import { act, render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { authStore } from 'src/libs/state';
+import { authStore, SignInStatus, TermsOfServiceStatus } from 'src/libs/state';
 import TermsOfServicePage from 'src/pages/TermsOfService';
+import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
 jest.mock('react-notifications-component', () => {
@@ -14,25 +15,35 @@ jest.mock('react-notifications-component', () => {
   };
 });
 
-const setupMockAjax = (termsOfService) => {
+type AjaxContract = ReturnType<typeof Ajax>;
+type AjaxMetricsContract = AjaxContract['Metrics'];
+type AjaxUserContract = AjaxContract['User'];
+
+const setupMockAjax = (termsOfService: TermsOfServiceStatus) => {
   const getTos = jest.fn().mockReturnValue(Promise.resolve('some text'));
   const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(Promise.resolve(termsOfService));
   const getStatus = jest.fn().mockReturnValue(Promise.resolve({}));
-  Ajax.mockImplementation(() => ({
-    Metrics: {
-      captureEvent: jest.fn(),
+  const mockMetrics: Partial<AjaxMetricsContract> = {
+    captureEvent: jest.fn(),
+  };
+  const mockUser: Partial<AjaxUserContract> = {
+    profile: {
+      get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
+      set: jest.fn(),
+      setPreferences: jest.fn(),
+      preferLegacyFirecloud: jest.fn(),
     },
-    User: {
-      profile: {
-        get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
-      },
-      getTos,
-      getTermsOfServiceComplianceStatus,
-      getStatus,
-    },
-  }));
+    getTos,
+    getTermsOfServiceComplianceStatus,
+    getStatus,
+  };
+  const mockAjax: Partial<AjaxContract> = {
+    Metrics: mockMetrics as AjaxMetricsContract,
+    User: mockUser as AjaxUserContract,
+  };
+  asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
-  const signInStatus = 'signedIn';
+  const signInStatus: SignInStatus = 'signedIn';
   authStore.update((state) => ({ ...state, termsOfService, signInStatus }));
   return {
     getTosFn: getTos,
@@ -47,7 +58,7 @@ describe('TermsOfService', () => {
   });
   it('fetches the Terms of Service text from Sam', async () => {
     // Arrange
-    const termsOfService = {
+    const termsOfService: TermsOfServiceStatus = {
       userHasAcceptedLatestTos: true,
       permitsSystemUsage: true,
     };
@@ -65,7 +76,7 @@ describe('TermsOfService', () => {
 
   it('shows "Continue under grace period" when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
     // Arrange
-    const termsOfService = {
+    const termsOfService: TermsOfServiceStatus = {
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: true,
     };
@@ -81,7 +92,7 @@ describe('TermsOfService', () => {
 
   it('does not show "Continue under grace period" when the user has not accepted the latest ToS and is not allowed to use Terra', async () => {
     // Arrange
-    const termsOfService = {
+    const termsOfService: TermsOfServiceStatus = {
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: false,
     };
@@ -97,7 +108,7 @@ describe('TermsOfService', () => {
 
   it('does not show any buttons when the user has accepted the latest ToS and is allowed to use Terra', async () => {
     // Arrange
-    const termsOfService = {
+    const termsOfService: TermsOfServiceStatus = {
       userHasAcceptedLatestTos: true,
       permitsSystemUsage: true,
     };
