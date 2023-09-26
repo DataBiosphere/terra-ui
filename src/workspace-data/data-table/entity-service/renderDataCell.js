@@ -6,10 +6,10 @@ import { parseGsUri } from 'src/components/data/data-utils';
 import { icon } from 'src/components/icons';
 import { TextCell } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
-import { getAttributeType } from 'src/data/data-table/entity-service/attribute-utils';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import { getAttributeType } from 'src/workspace-data/data-table/entity-service/attribute-utils';
 
 import { UriViewerLink } from '../shared/UriViewerLink';
 import { isAzureUri, isDrsUri, isGsUri } from '../uri-viewer/uri-viewer-utils';

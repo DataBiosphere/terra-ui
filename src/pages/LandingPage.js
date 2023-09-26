@@ -82,7 +82,7 @@ const makeDocLinks = _.map(({ link, text }) =>
 );
 
 const LandingPage = () => {
-  const { isSignedIn } = useStore(authStore);
+  const { signInStatus } = useStore(authStore);
   const [billingProjects, setBillingProjects] = useState();
   const signal = useCancellation();
 
@@ -94,10 +94,10 @@ const LandingPage = () => {
       const projects = await Ajax(signal).Billing.listProjects();
       setBillingProjects(projects);
     });
-    if (isSignedIn) {
+    if (signInStatus === 'signedIn') {
       loadProjects();
     }
-  }, [isSignedIn, setBillingProjects, signal]);
+  }, [signInStatus, setBillingProjects, signal]);
 
   return h(HeroWrapper, { bigSubhead: true }, [
     isTerra() &&

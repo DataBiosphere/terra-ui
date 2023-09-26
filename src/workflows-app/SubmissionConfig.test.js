@@ -7,7 +7,7 @@ import { getConfig } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_CROMWELL_APP_CALL_CACHING } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
-import { AppProxyUrlStatus, getUser, workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, getTerraUser, workflowsAppStore } from 'src/libs/state';
 import { SelectHelper } from 'src/testing/test-utils';
 import { BaseSubmissionConfig } from 'src/workflows-app/SubmissionConfig';
 import {
@@ -44,7 +44,7 @@ jest.mock('src/libs/nav', () => ({
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
-  getUser: jest.fn(),
+  getTerraUser: jest.fn(),
 }));
 
 jest.mock('src/components/Modal', () => {
@@ -354,7 +354,7 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
 
   beforeEach(() => {
     getConfig.mockReturnValue({ leoUrlRoot });
-    getUser.mockReturnValue({ email: 'groot@gmail.com' });
+    getTerraUser.mockReturnValue({ email: 'groot@gmail.com' });
   });
 
   afterAll(() => {

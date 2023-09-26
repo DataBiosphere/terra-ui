@@ -9,13 +9,13 @@ import FloatingActionButton from 'src/components/FloatingActionButton';
 import { icon } from 'src/components/icons';
 import { DelayedSearchInput, TextInput } from 'src/components/input';
 import { FlexTable, HeaderCell } from 'src/components/table';
-import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCell';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import { renderDataCell } from 'src/workspace-data/data-table/entity-service/renderDataCell';
 
 export const getDisplayedAttribute = (arr) => {
   const { key, value, description = '' } = _.mergeAll(arr);

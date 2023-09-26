@@ -3,7 +3,7 @@ import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { getConfig } from 'src/libs/config';
 import * as Nav from 'src/libs/nav';
-import { AppProxyUrlStatus, getUser, workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, getTerraUser, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 
@@ -30,8 +30,7 @@ export const resolveRunningCromwellAppUrl = (apps, currentUser) => {
   if (filteredApps.length === 1) {
     return {
       cbasUrl: filteredApps[0].proxyUrls.cbas,
-      cbasUiUrl: filteredApps[0].proxyUrls['cbas-ui'],
-      cromwellUrl: filteredApps[0].proxyUrls.cromwell,
+      cromwellUrl: filteredApps[0].proxyUrls.cromwell ? filteredApps[0].proxyUrls.cromwell : filteredApps[0].proxyUrls['cromwell-reader'],
     };
   }
   // if there are no Running Cromwell apps or if there are more than one then it's an error state and return null
@@ -81,11 +80,11 @@ const fetchAppUrlsFromLeo = async (workspaceId, wdsUrlRoot, cbasUrlRoot, cromwel
   try {
     const appsList = await Ajax().Apps.listAppsV2(workspaceId);
     wdsProxyUrlState = resolveProxyUrl(wdsUrlRoot, appsList, (appsList) => resolveWdsUrl(appsList));
-    cbasProxyUrlState = resolveProxyUrl(cbasUrlRoot, appsList, (appsList) => resolveRunningCromwellAppUrl(appsList, getUser()?.email).cbasUrl);
+    cbasProxyUrlState = resolveProxyUrl(cbasUrlRoot, appsList, (appsList) => resolveRunningCromwellAppUrl(appsList, getTerraUser()?.email).cbasUrl);
     cromwellProxyUrlState = resolveProxyUrl(
       cromwellUrlRoot,
       appsList,
-      (appsList) => resolveRunningCromwellAppUrl(appsList, getUser()?.email).cromwellUrl
+      (appsList) => resolveRunningCromwellAppUrl(appsList, getTerraUser()?.email).cromwellUrl
     );
   } catch (error) {
     wdsProxyUrlState = { status: AppProxyUrlStatus.Error, state: error };

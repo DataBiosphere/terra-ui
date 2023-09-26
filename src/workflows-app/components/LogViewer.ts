@@ -7,10 +7,10 @@ import { centeredSpinner, icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import { InfoBox } from 'src/components/PopupTrigger';
 import { SimpleTabBar } from 'src/components/tabBars';
-import { isAzureUri } from 'src/data/data-table/uri-viewer/uri-viewer-utils';
 import { Ajax } from 'src/libs/ajax';
 import { useCancellation } from 'src/libs/react-utils';
 import { newTabLinkProps } from 'src/libs/utils';
+import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 /**
  * Information needed to preview a log file.
  * @member logUri - The URI of the log file. Must be a valid Azure blob URI. No Sas token should be appended: a fresh one will be obtained.
