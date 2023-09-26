@@ -355,7 +355,7 @@ const PreviewHeader = ({
 }) => {
   const signal = useCancellation();
   const {
-    user: { email },
+    terraUser: { email },
   } = useStore(authStore);
   const [fileInUseOpen, setFileInUseOpen] = useState(false);
   const [editModeDisabledOpen, setEditModeDisabledOpen] = useState(false);

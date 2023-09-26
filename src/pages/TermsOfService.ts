@@ -17,9 +17,9 @@ import * as Utils from 'src/libs/utils';
 
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState<boolean>();
-  const { isSignedIn, termsOfService } = useStore(authStore);
-  const acceptedLatestTos = isSignedIn && termsOfService.userHasAcceptedLatestTos;
-  const usageAllowed = isSignedIn && termsOfService.permitsSystemUsage;
+  const { signInStatus, termsOfService } = useStore(authStore);
+  const acceptedLatestTos = signInStatus === 'signedIn' && termsOfService.userHasAcceptedLatestTos;
+  const usageAllowed = signInStatus === 'signedIn' && termsOfService.permitsSystemUsage;
   const [tosText, setTosText] = useState();
 
   useOnMount(() => {

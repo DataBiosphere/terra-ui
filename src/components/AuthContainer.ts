@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
+import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { centeredSpinner } from 'src/components/icons';
+import { fixedSpinnerOverlay } from 'src/components/common';
 import { isAzureUser } from 'src/libs/auth';
 import { useRoute } from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
@@ -14,13 +15,14 @@ import TermsOfService from 'src/pages/TermsOfService';
 
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute();
-  const { isSignedIn, registrationStatus, termsOfService, profile } = useStore(authStore);
-  const displayTosPage = isSignedIn && termsOfService.permitsSystemUsage === false;
+  const { signInStatus, registrationStatus, termsOfService, profile } = useStore(authStore);
+  const displayTosPage = signInStatus === 'signedIn' && termsOfService.permitsSystemUsage === false;
   const seenAzurePreview = useStore(azurePreviewStore) || false;
-  const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } });
-  return Utils.cond(
-    [isSignedIn === undefined && !isPublic, authspinner],
-    [isSignedIn === false && !isPublic, () => h(SignIn)],
+  const authspinner = () => fixedSpinnerOverlay;
+
+  return Utils.cond<ReactNode>(
+    [signInStatus === 'uninitialized' && !isPublic, authspinner],
+    [signInStatus === 'signedOut' && !isPublic, () => h(SignIn)],
     [seenAzurePreview === false && isAzureUser(), () => h(AzurePreview)],
     [registrationStatus === 'uninitialized' && !isPublic, authspinner],
     [registrationStatus === 'unregistered', () => h(Register)],
