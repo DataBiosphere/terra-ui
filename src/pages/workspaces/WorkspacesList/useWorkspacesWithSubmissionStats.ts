@@ -7,7 +7,14 @@ import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceSubmissionStats, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
-export const useWorkspacesWithSubmissionStats = () => {
+interface WorkspacesWithSubmissionStatsReturn {
+  workspaces: Workspace[];
+  refresh: () => void;
+  loadingWorkspaces: boolean;
+  loadingSubmissionStats: boolean;
+}
+
+export const useWorkspacesWithSubmissionStats = (): WorkspacesWithSubmissionStatsReturn => {
   const {
     workspaces,
     loading: loadingWorkspaces,
