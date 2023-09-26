@@ -132,7 +132,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
         );
       }
 
-      await Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).delete();
+      await Ajax(signal).Workspaces.workspaceV2(workspaceInfo.namespace, workspaceInfo.name).delete();
       hookArgs.onDismiss();
       hookArgs.onSuccess();
     } catch (error) {

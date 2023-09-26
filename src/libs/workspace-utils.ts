@@ -33,7 +33,7 @@ interface BaseWorkspaceInfo {
   attributes?: Record<string, unknown>;
   isLocked?: boolean;
   canShare?: boolean;
-  state?: WorkpaceState;
+  state?: WorkspaceState;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
@@ -72,7 +72,7 @@ export interface WorkspaceSubmissionStats {
   runningSubmissionsCount: number;
 }
 
-export type WorkpaceState =
+export type WorkspaceState =
   | 'Creating'
   | 'CreateFailed'
   | 'Ready'

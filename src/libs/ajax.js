@@ -483,6 +483,16 @@ const Workspaces = (signal) => ({
     return response.json();
   },
 
+  workspaceV2: (namespace, name) => {
+    const root = `workspaces/v2/${namespace}/${name}`;
+
+    return {
+      delete: () => {
+        return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
+      },
+    };
+  },
+
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`;
     const mcPath = `${root}/methodconfigs`;
