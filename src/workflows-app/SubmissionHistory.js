@@ -9,6 +9,8 @@ import { MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
@@ -174,193 +176,215 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
 
   return loading
     ? centeredSpinner()
-    : div([
-        h(
-          Link,
-          {
-            onClick: () =>
-              Nav.goToPath('workspace-workflows-app', {
-                name,
-                namespace,
-                workspace: {
-                  workspace: { workspaceId },
-                },
-              }),
-            style: { display: 'inline-flex', alignItems: 'center', margin: '1.5em 1.5em 0' },
-          },
-          [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to workflows']
-        ),
+    : div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } }, [
+        !isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP) &&
+          h(
+            Link,
+            {
+              onClick: () =>
+                Nav.goToPath('workspace-workflows-app', {
+                  name,
+                  namespace,
+                  workspace: {
+                    workspace: { workspaceId },
+                  },
+                }),
+              style: { display: 'inline-flex', alignItems: 'center', margin: '1.5em 1.5em 0' },
+            },
+            [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to workflows']
+          ),
         h(Fragment, [
-          div({ style: { margin: '2em' } }, [
-            div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
-              h2(['Submission History']),
-              h(
-                ButtonOutline,
-                {
-                  onClick: () =>
-                    Nav.goToPath('workspace-workflows-app', {
-                      name,
-                      namespace,
-                      workspace: {
-                        workspace: { workspaceId },
+          div({ style: { margin: '1rem 2rem' } }, [
+            isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)
+              ? h(Fragment, [
+                  h2({ style: { marginTop: 0 } }, ['Submission history']),
+                  paginatedPreviousRunSets.length === 0
+                    ? div(
+                        {
+                          style: {
+                            padding: '1rem',
+                            border: `1px solid ${colors.accent(1)}`,
+                            borderRadius: 5,
+                            backgroundColor: colors.accent(0.08),
+                            width: '75%',
+                          },
+                        },
+                        ['No workflows have been submitted.']
+                      )
+                    : div(['See workflows that were submitted by all collaborators in this workspace.']),
+                ])
+              : h(Fragment, [
+                  div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
+                    h2(['Submission History']),
+                    h(
+                      ButtonOutline,
+                      {
+                        onClick: () =>
+                          Nav.goToPath('workspace-workflows-app', {
+                            name,
+                            namespace,
+                            workspace: {
+                              workspace: { workspaceId },
+                            },
+                          }),
                       },
-                    }),
-                },
-                ['Submit another workflow']
-              ),
-            ]),
-            runSetsFullyUpdated
-              ? div([icon('check', { size: 15, style: { color: colors.success() } }), ' Submission statuses are all up to date.'])
-              : div([
-                  icon('warning-standard', { size: 15, style: { color: colors.warning() } }),
-                  ' Some submission statuses are not up to date. Refreshing the page may update more statuses.',
+                      ['Submit another workflow']
+                    ),
+                  ]),
+                  runSetsFullyUpdated
+                    ? div([icon('check', { size: 15, style: { color: colors.success() } }), ' Submission statuses are all up to date.'])
+                    : div([
+                        icon('warning-standard', { size: 15, style: { color: colors.warning() } }),
+                        ' Some submission statuses are not up to date. Refreshing the page may update more statuses.',
+                      ]),
                 ]),
-            div(
-              {
-                style: {
-                  marginTop: '1em',
-                  height: tableHeight({ actualRows: paginatedPreviousRunSets.length, maxRows: 12.5, heightPerRow: rowHeight }),
-                  minHeight: '10em',
+            (!isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP) || paginatedPreviousRunSets.length > 0) &&
+              div(
+                {
+                  style: {
+                    marginTop: '1em',
+                    height: tableHeight({ actualRows: paginatedPreviousRunSets.length, maxRows: 12.5, heightPerRow: rowHeight }),
+                    minHeight: '10em',
+                  },
                 },
-              },
-              [
-                h(AutoSizer, [
-                  ({ width, height }) =>
-                    h(FlexTable, {
-                      'aria-label': 'previous runs',
-                      width,
-                      height,
-                      sort,
-                      rowCount: paginatedPreviousRunSets.length,
-                      noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
-                      hoverHighlight: true,
-                      rowHeight,
-                      styleCell: () => ({
-                        display: 'inline',
-                        alignItems: 'top',
-                        paddingLeft: '1rem',
-                        paddingRight: '1rem',
-                        paddingTop: '1em',
-                      }),
-                      columns: [
-                        {
-                          size: { basis: 100, grow: 0 },
-                          field: 'actions',
-                          headerRenderer: () => h(TextCell, {}, ['Actions']),
-                          cellRenderer: ({ rowIndex }) => {
-                            return h(
-                              MenuTrigger,
-                              {
-                                'aria-label': 'Action selection menu',
-                                popupProps: {
-                                  style: { left: '-20px' },
-                                },
-                                content: h(Fragment, [
-                                  h(
-                                    MenuButton,
-                                    {
-                                      style: { fontSize: 15 },
-                                      disabled:
-                                        isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) ||
-                                        paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
-                                      tooltip:
-                                        isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) && 'Cannot abort a terminal submission',
-                                      onClick: () => cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id),
-                                    },
-                                    ['Abort']
-                                  ),
-                                ]),
-                              },
-                              [
-                                h(
-                                  Clickable,
-                                  {
-                                    style: { textAlign: 'center' },
-                                    'aria-label': 'Action selection menu',
-                                  },
-                                  [icon('cardMenuIcon', { size: 35 })]
-                                ),
-                              ]
-                            );
-                          },
-                        },
-                        {
-                          size: { basis: 350 },
-                          field: 'runset_name',
-                          headerRenderer: () => h(Sortable, { sort, field: 'runset_name', onSort: setSort }, ['Submission name']),
-                          cellRenderer: ({ rowIndex }) => {
-                            return div([
-                              h(
-                                Link,
+                [
+                  h(AutoSizer, [
+                    ({ width, height }) =>
+                      h(FlexTable, {
+                        'aria-label': 'previous runs',
+                        width,
+                        height,
+                        sort,
+                        rowCount: paginatedPreviousRunSets.length,
+                        noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
+                        hoverHighlight: true,
+                        rowHeight,
+                        styleCell: () => ({
+                          display: 'inline',
+                          alignItems: 'top',
+                          paddingLeft: '1rem',
+                          paddingRight: '1rem',
+                          paddingTop: '1em',
+                        }),
+                        columns: [
+                          {
+                            size: { basis: 100, grow: 0 },
+                            field: 'actions',
+                            headerRenderer: () => h(TextCell, {}, ['Actions']),
+                            cellRenderer: ({ rowIndex }) => {
+                              return h(
+                                MenuTrigger,
                                 {
-                                  onClick: () => {
-                                    Nav.goToPath('workspace-workflows-app-submission-details', {
-                                      name: workspace.workspace.name,
-                                      namespace,
-                                      submissionId: paginatedPreviousRunSets[rowIndex].run_set_id,
-                                    });
+                                  'aria-label': 'Action selection menu',
+                                  popupProps: {
+                                    style: { left: '-20px' },
                                   },
-                                  style: { fontWeight: 'bold' },
+                                  content: h(Fragment, [
+                                    h(
+                                      MenuButton,
+                                      {
+                                        style: { fontSize: 15 },
+                                        disabled:
+                                          isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) ||
+                                          paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
+                                        tooltip:
+                                          isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) && 'Cannot abort a terminal submission',
+                                        onClick: () => cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id),
+                                      },
+                                      ['Abort']
+                                    ),
+                                  ]),
                                 },
-                                [paginatedPreviousRunSets[rowIndex].run_set_name || 'No name']
-                              ),
-                              h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
-                                `Data used: ${paginatedPreviousRunSets[rowIndex].record_type}`,
-                              ]),
-                              h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
-                                `${paginatedPreviousRunSets[rowIndex].run_count} workflows`,
-                              ]),
-                            ]);
+                                [
+                                  h(
+                                    Clickable,
+                                    {
+                                      style: { textAlign: 'center' },
+                                      'aria-label': 'Action selection menu',
+                                    },
+                                    [icon('cardMenuIcon', { size: 35 })]
+                                  ),
+                                ]
+                              );
+                            },
                           },
-                        },
-                        {
-                          size: { basis: 200, grow: 0 },
-                          field: 'state',
-                          headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
-                          cellRenderer: ({ rowIndex }) => {
-                            return stateCell(paginatedPreviousRunSets[rowIndex]);
+                          {
+                            size: { basis: 350 },
+                            field: 'runset_name',
+                            headerRenderer: () => h(Sortable, { sort, field: 'runset_name', onSort: setSort }, ['Submission name']),
+                            cellRenderer: ({ rowIndex }) => {
+                              return div([
+                                h(
+                                  Link,
+                                  {
+                                    onClick: () => {
+                                      Nav.goToPath('workspace-workflows-app-submission-details', {
+                                        name: workspace.workspace.name,
+                                        namespace,
+                                        submissionId: paginatedPreviousRunSets[rowIndex].run_set_id,
+                                      });
+                                    },
+                                    style: { fontWeight: 'bold' },
+                                  },
+                                  [paginatedPreviousRunSets[rowIndex].run_set_name || 'No name']
+                                ),
+                                h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
+                                  `Data used: ${paginatedPreviousRunSets[rowIndex].record_type}`,
+                                ]),
+                                h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
+                                  `${paginatedPreviousRunSets[rowIndex].run_count} workflows`,
+                                ]),
+                              ]);
+                            },
                           },
-                        },
-                        {
-                          size: { basis: 200, grow: 0 },
-                          field: 'submission_timestamp',
-                          headerRenderer: () => h(Sortable, { sort, field: 'submission_timestamp', onSort: setSort }, ['Date Submitted']),
-                          cellRenderer: ({ rowIndex }) => {
-                            return h(TextCell, { style: { whiteSpace: 'normal' } }, [
-                              Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp),
-                            ]);
+                          {
+                            size: { basis: 200, grow: 0 },
+                            field: 'state',
+                            headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
+                            cellRenderer: ({ rowIndex }) => {
+                              return stateCell(paginatedPreviousRunSets[rowIndex]);
+                            },
                           },
-                        },
-                        {
-                          size: { basis: 175, grow: 0 },
-                          field: 'duration',
-                          headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
-                          cellRenderer: ({ rowIndex }) => {
-                            const row = paginatedPreviousRunSets[rowIndex];
-                            return h(TextCell, [
-                              Utils.customFormatDuration(
-                                getDuration(row.state, row.submission_timestamp, row.last_modified_timestamp, isRunSetInTerminalState)
-                              ),
-                            ]);
+                          {
+                            size: { basis: 200, grow: 0 },
+                            field: 'submission_timestamp',
+                            headerRenderer: () => h(Sortable, { sort, field: 'submission_timestamp', onSort: setSort }, ['Date Submitted']),
+                            cellRenderer: ({ rowIndex }) => {
+                              return h(TextCell, { style: { whiteSpace: 'normal' } }, [
+                                Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp),
+                              ]);
+                            },
                           },
-                        },
-                        {
-                          size: { basis: 600, grow: 0 },
-                          field: 'comment',
-                          headerRenderer: () => h(Sortable, { sort, field: 'comment', onSort: setSort }, ['Comment']),
-                          cellRenderer: ({ rowIndex }) => {
-                            return div({ style: { width: '100%', textAlign: 'left' } }, [
-                              h(TextCell, { style: { whiteSpace: 'normal', fontStyle: 'italic' } }, [
-                                paginatedPreviousRunSets[rowIndex].run_set_description || 'No Description',
-                              ]),
-                            ]);
+                          {
+                            size: { basis: 175, grow: 0 },
+                            field: 'duration',
+                            headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
+                            cellRenderer: ({ rowIndex }) => {
+                              const row = paginatedPreviousRunSets[rowIndex];
+                              return h(TextCell, [
+                                Utils.customFormatDuration(
+                                  getDuration(row.state, row.submission_timestamp, row.last_modified_timestamp, isRunSetInTerminalState)
+                                ),
+                              ]);
+                            },
                           },
-                        },
-                      ],
-                    }),
-                ]),
-              ]
-            ),
+                          {
+                            size: { basis: 600, grow: 0 },
+                            field: 'comment',
+                            headerRenderer: () => h(Sortable, { sort, field: 'comment', onSort: setSort }, ['Comment']),
+                            cellRenderer: ({ rowIndex }) => {
+                              return div({ style: { width: '100%', textAlign: 'left' } }, [
+                                h(TextCell, { style: { whiteSpace: 'normal', fontStyle: 'italic' } }, [
+                                  paginatedPreviousRunSets[rowIndex].run_set_description || 'No Description',
+                                ]),
+                              ]);
+                            },
+                          },
+                        ],
+                      }),
+                  ]),
+                ]
+              ),
             !_.isEmpty(sortedPreviousRunSets) &&
               div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
                 paginator({

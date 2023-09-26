@@ -14,6 +14,7 @@ import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
 import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
+import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
 
 const subHeadersMap = {
@@ -226,7 +227,7 @@ export const WorkflowsAppNavPanel = ({
         Utils.switchCase(
           selectedSubHeader,
           ['workspace-workflows', () => h(WorkflowsInWorkspace, { name, namespace, workspace, analysesData })],
-          ['submission-history', () => div(['Submission history TODO'])],
+          ['submission-history', () => h(BaseSubmissionHistory, { name, namespace, workspace })],
           [
             'featured-workflows',
             () => h(FeaturedWorkflows, { name, namespace, workspace, analysesData, setSelectedSubHeader }),
