@@ -227,6 +227,11 @@ export const WorkflowsAppNavPanel = ({
         Utils.switchCase(
           selectedSubHeader,
           ['workspace-workflows', () => h(WorkflowsInWorkspace, { name, namespace, workspace, analysesData })],
+          ['submission-history', () => div(['Submission history TODO'])],
+          [
+            'featured-workflows',
+            () => h(FeaturedWorkflows, { name, namespace, workspace, analysesData, setSelectedSubHeader }),
+          ],
           ['submission-history', () => h(BaseSubmissionHistory, { name, namespace, workspace })],
           [
             'featured-workflows',
