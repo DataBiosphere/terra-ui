@@ -30,7 +30,7 @@ interface BaseWorkspaceInfo {
   createdBy: string;
   lastModified: string;
   bucketName?: string;
-  attributes?: Record<string, any>;
+  attributes?: Record<string, unknown>;
   isLocked?: boolean;
   canShare?: boolean;
   state?: WorkpaceState;
