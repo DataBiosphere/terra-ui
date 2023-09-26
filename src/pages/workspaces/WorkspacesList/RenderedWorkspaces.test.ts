@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { div, h } from 'react-hyperscript-helpers';
+import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { RenderedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RenderedWorkspaces';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -34,5 +35,52 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     expect(renderedGoogleWS).not.toBeNull();
     const renderedAzureWS = screen.getAllByText(defaultAzureWorkspace.workspace.name);
     expect(renderedAzureWS).not.toBeNull();
+  });
+
+  it('should indicate when the workspace is in the process of deleting instead of displaying the description', () => {
+    // Arange
+    const workspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'Deleting',
+        attributes: { description: 'some description' },
+      },
+    };
+    const label = 'myWorkspaces';
+
+    // Act
+    render(
+      h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}), loadingSubmissionStats: false })
+    );
+
+    // Assert
+    const workspaceDescriptionDisplay = screen.queryAllByText('some description');
+    expect(workspaceDescriptionDisplay).toHaveLength(0);
+
+    const workspaceStateDisplay = screen.getAllByText('Deleting');
+    expect(workspaceStateDisplay).not.toBeNull();
+  });
+
+  it('should render the description when the workspace is not in the process of deleting', () => {
+    // Arange
+    const workspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'Ready',
+        attributes: { description: 'some description' },
+      },
+    };
+    const label = 'myWorkspaces';
+
+    // Act
+    render(
+      h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}), loadingSubmissionStats: false })
+    );
+
+    // Assert
+    const workspaceDescriptionDisplay = screen.queryAllByText('some description');
+    expect(workspaceDescriptionDisplay).toHaveLength(1);
   });
 });

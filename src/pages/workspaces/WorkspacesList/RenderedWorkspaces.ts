@@ -1,4 +1,4 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { icon, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useContext, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -165,14 +165,15 @@ const NameCell = (props: CellProps): ReactNode => {
   const {
     accessLevel,
     workspace,
-    workspace: { workspaceId, namespace, name, attributes },
+    workspace: { workspaceId, namespace, name, attributes, state },
   } = props.workspace;
   const { setUserActions } = useContext(WorkspaceUserActionsContext);
 
-  const description = attributes?.description;
   const canView = canRead(accessLevel);
   const canAccessWorkspace = () =>
     !canView ? setUserActions({ requestingAccessWorkspaceId: workspaceId }) : undefined;
+
+  const description = attributes?.description;
 
   return div({ style: styles.tableCellContainer }, [
     div({ style: styles.tableCellContent }, [
@@ -199,22 +200,42 @@ const NameCell = (props: CellProps): ReactNode => {
         [name]
       ),
     ]),
-    div({ style: { ...styles.tableCellContent } }, [
-      h(
-        FirstParagraphMarkdownViewer,
-        {
-          style: {
-            height: '1.5rem',
-            margin: 0,
-            ...Style.noWrapEllipsis,
-            color: description ? undefined : colors.dark(0.75),
-            fontSize: 14,
-          },
-        },
-        [description?.toString() || 'No description added']
-      ),
-    ]),
+    state === 'Deleting' || state === 'DeleteFailed'
+      ? h(NameCellStateMessage, { workspace: props.workspace, state })
+      : h(NameCellDescription, { description }),
   ]);
+};
+
+const NameCellDescription = (props: { description: unknown | undefined }) => {
+  return div({ style: { ...styles.tableCellContent } }, [
+    h(
+      FirstParagraphMarkdownViewer,
+      {
+        style: {
+          height: '1.5rem',
+          margin: 0,
+          ...Style.noWrapEllipsis,
+          color: props.description ? undefined : colors.dark(0.75),
+          fontSize: 14,
+        },
+      },
+      [props.description?.toString() || 'No description added']
+    ),
+  ]);
+};
+
+interface NameCellStateMessageProps extends CellProps {
+  state: 'DeleteFailed' | 'Deleting';
+}
+const NameCellStateMessage = (props: NameCellStateMessageProps): ReactNode => {
+  return div(
+    {
+      style: {
+        color: colors.danger(),
+      },
+    },
+    [icon('sync', { style: { marginRight: '.5rem' } }), Utils.normalizeLabel(props.state)]
+  );
 };
 
 const LastModifiedCell = (props: CellProps): ReactNode => {
