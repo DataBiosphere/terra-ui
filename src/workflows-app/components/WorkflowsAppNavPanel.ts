@@ -233,7 +233,10 @@ export const WorkflowsAppNavPanel = ({
             () => h(FeaturedWorkflows, { name, namespace, workspace, analysesData, setSelectedSubHeader }),
           ],
           ['submission-history', () => h(BaseSubmissionHistory, { name, namespace, workspace })],
-          ['featured-workflows', () => div(['Featured workflows TODO'])],
+          [
+            'featured-workflows',
+            () => h(FeaturedWorkflows, { name, namespace, workspace, analysesData, setSelectedSubHeader }),
+          ],
           [
             'import-workflow',
             () =>

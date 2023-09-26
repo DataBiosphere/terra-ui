@@ -96,6 +96,7 @@ describe('Featured workflows', () => {
     const getWithVersions = jest
       .fn()
       .mockReturnValue(Promise.resolve({ methods: featuredWorkflowsData[5]?.methods?.slice(0, 1) }));
+
     const post = jest.fn().mockReturnValue(Promise.resolve());
     const mockMethods: DeepPartial<CbasContract> = {
       methods: {
@@ -173,6 +174,7 @@ describe('Featured workflows', () => {
     expect(screen.queryByText(/You already have some of the workflows in this set/i)).not.toBeInTheDocument();
     const addToWorkspaceButtons = screen.queryAllByRole('button', { name: 'Add to workspace' });
     expect(addToWorkspaceButtons.length).toBe(5);
+
     const added = screen.getByText(/Added/i);
     await user.click(added);
 
