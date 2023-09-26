@@ -41,7 +41,7 @@ export const WorkspacesList = (): ReactNode => {
     loadingSubmissionStats,
   } = useWorkspacesWithSubmissionStats();
 
-  const [featuredList, setFeaturedList] = useState<Workspace[]>();
+  const [featuredList, setFeaturedList] = useState<{ name: string; namespace: string }[]>();
 
   const { query } = useRoute();
   const filters: WorkspaceFilterValues = getWorkspaceFiltersFromQuery(query);

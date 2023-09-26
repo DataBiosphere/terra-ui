@@ -8,7 +8,10 @@ export interface CategorizedWorkspaces {
   public: Workspace[];
 }
 
-export const categorizeWorkspaces = (workspaces: Workspace[], featuredList?: Workspace[]): CategorizedWorkspaces => {
+export const categorizeWorkspaces = (
+  workspaces: Workspace[],
+  featuredList?: { name: string; namespace: string }[]
+): CategorizedWorkspaces => {
   const [newWsList, featuredWsList] = _.partition('isNew', featuredList);
 
   return {
