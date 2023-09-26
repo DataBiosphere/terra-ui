@@ -4,12 +4,12 @@ import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary } from 'src/components/common';
 import { getUserProjectForWorkspace } from 'src/components/data/data-utils';
 import { spinner } from 'src/components/icons';
-import DownloadPrices from 'src/data/download-prices';
 import { Ajax } from 'src/libs/ajax';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import DownloadPrices from 'src/workspace-data/download-prices';
 
 import els from './uri-viewer-styles';
 import { isAzureUri, isDrsUri } from './uri-viewer-utils';

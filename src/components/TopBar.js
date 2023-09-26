@@ -196,7 +196,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
 
   const buildNav = (transitionState) => {
     const {
-      isSignedIn,
+      signInStatus,
       profile: { firstName = 'Loading...', lastName = '' },
     } = authState;
 
@@ -222,7 +222,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                 style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 },
               },
               [
-                isSignedIn
+                signInStatus === 'signedIn'
                   ? h(
                       DropDownSection,
                       {
@@ -477,8 +477,8 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                   h(
                     NavSection,
                     {
-                      disabled: !isSignedIn,
-                      tooltip: isSignedIn ? undefined : 'Please sign in',
+                      disabled: signInStatus !== 'signedIn',
+                      tooltip: signInStatus === 'signedIn' ? undefined : 'Please sign in',
                       onClick: () => {
                         hideNav();
                         setOpenFirecloudModal(true);

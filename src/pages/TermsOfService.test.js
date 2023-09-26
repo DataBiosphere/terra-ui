@@ -32,8 +32,8 @@ const setupMockAjax = (termsOfService) => {
     },
   }));
 
-  const isSignedIn = true;
-  authStore.update((state) => ({ ...state, termsOfService, isSignedIn }));
+  const signInStatus = 'signedIn';
+  authStore.update((state) => ({ ...state, termsOfService, signInStatus }));
   return {
     getTosFn: getTos,
     getStatusFn: getStatus,
