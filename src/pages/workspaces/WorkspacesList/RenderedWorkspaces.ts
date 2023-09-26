@@ -1,3 +1,4 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useContext, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -6,7 +7,6 @@ import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { Link } from 'src/components/common';
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown';
 import { FlexTable, HeaderRenderer } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { WorkspaceStarControl } from 'src/components/WorkspaceStarControl';
 import { WorkspaceSubmissionStatusIcon } from 'src/components/WorkspaceSubmissionStatusIcon';
 import { Ajax } from 'src/libs/ajax';

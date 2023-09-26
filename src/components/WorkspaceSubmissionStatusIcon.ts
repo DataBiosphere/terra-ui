@@ -1,9 +1,9 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { FC } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { DelayedRender } from 'src/components/common';
 import { icon, spinner } from 'src/components/icons';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 
