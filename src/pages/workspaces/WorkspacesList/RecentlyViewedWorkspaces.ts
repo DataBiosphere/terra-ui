@@ -15,7 +15,7 @@ interface RecentlyViewedWorkspacesProps {
 
 export const RecentlyViewedWorkspaces = (props: RecentlyViewedWorkspacesProps): ReactNode => {
   const { workspaces, loadingSubmissionStats } = props;
-  const [recentlyViewedOpen, setRecentlyViewedOpen] = useState(() =>
+  const [recentlyViewedOpen, setRecentlyViewedOpen] = useState<boolean>(() =>
     _.defaultTo(true, getLocalPref(persistenceId)?.recentlyViewedOpen)
   );
   useEffect(() => {
