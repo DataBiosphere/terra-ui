@@ -3,7 +3,6 @@ export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
 export const ENABLE_CROMWELL_APP_CALL_CACHING = 'enableCromwellAppCallCaching';
 export const ENABLE_AZURE_COLLABORATIVE_WORKFLOWS = 'enableCollborativeWorkflows';
-export const ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP = 'enableSubmissionUxRevamp';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -98,14 +97,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
       'Enabling this feature will allow for workspaces to become collaborative with other users to run workflows and read workspace data',
     feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Azure Collaborative Workflows experience.'
-    )}`,
-  },
-  {
-    id: ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP,
-    title: 'Workflows Submission UI Revamp',
-    description: 'Enabling this feature will allow interaction with the updated Submission UI in Azure workspaces',
-    feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
-      'Feedback on Submission UX experience.'
     )}`,
   },
 ];

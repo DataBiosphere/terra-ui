@@ -1,24 +1,16 @@
-import { Fragment, useCallback, useState } from 'react';
-import { div, h, h2 } from 'react-hyperscript-helpers';
+import { useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
 import { doesWorkspaceSupportCromwellAppForUser, generateAppName, getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appAccessScopes, appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
-import { ButtonOutline, Clickable } from 'src/components/common';
-import { centeredSpinner, icon } from 'src/components/icons';
+import { centeredSpinner } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
-import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOWS, ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
-import * as Nav from 'src/libs/nav';
-import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
-import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
-import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
-import { SavedWorkflows } from 'src/workflows-app/components/SavedWorkflows';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { doesAppProxyUrlExist, getCromwellUnsupportedMessage, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
@@ -51,10 +43,8 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     },
     _ref
   ) => {
-    const [methodsData, setMethodsData] = useState();
     const [loading, setLoading] = useState(false);
     const [creating, setCreating] = useState(false);
-    const [viewFindWorkflowModal, setViewFindWorkflowModal] = useState(false);
 
     const signal = useCancellation();
     const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
@@ -62,29 +52,8 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const pageReady = cbasReady && currentApp && !getIsAppBusy(currentApp);
     const launcherDisabled = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady);
 
-    const loadRunsData = useCallback(
-      async (cbasProxyUrlDetails) => {
-        try {
-          if (cbasProxyUrlDetails.status !== AppProxyUrlStatus.Ready) {
-            const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
-
-            if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-              const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasProxyUrlState.state);
-              setMethodsData(runs.methods);
-            }
-          } else {
-            const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasProxyUrlDetails.state);
-            setMethodsData(runs.methods);
-          }
-        } catch (error) {
-          notify('error', 'Error loading saved workflows', { detail: error instanceof Response ? await error.text() : error });
-        }
-      },
-      [signal, workspaceId]
-    );
-
     // poll if we're missing CBAS proxy url and stop polling when we have it
-    usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState') && loadRunsData(workflowsAppStore.get().cbasProxyUrlState), {
+    usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState'), {
       ms: CbasPollInterval,
       leading: false,
     });
@@ -94,7 +63,6 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
         const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
         if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-          await loadRunsData(cbasProxyUrlState);
           await refreshApps(true);
         }
       });
@@ -117,22 +85,19 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const createWorkflowsApp = Utils.withBusyState(setCreating, async () => {
       try {
         setCreating(true);
-        if (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOWS)) {
-          await Ajax().Apps.createAppV2(
-            generateAppName(),
-            workspace.workspace.workspaceId,
-            appToolLabels.WORKFLOWS_APP,
-            appAccessScopes.WORKSPACE_SHARED
-          );
-          await Ajax().Apps.createAppV2(
-            generateAppName(),
-            workspace.workspace.workspaceId,
-            appToolLabels.CROMWELL_RUNNER_APP,
-            appAccessScopes.USER_PRIVATE
-          );
-        } else {
-          await Ajax().Apps.createAppV2(generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL, appAccessScopes.USER_PRIVATE);
-        }
+        await Ajax().Apps.createAppV2(
+          generateAppName(),
+          workspace.workspace.workspaceId,
+          appToolLabels.WORKFLOWS_APP,
+          appAccessScopes.WORKSPACE_SHARED
+        );
+        await Ajax().Apps.createAppV2(
+          generateAppName(),
+          workspace.workspace.workspaceId,
+          appToolLabels.CROMWELL_RUNNER_APP,
+          appAccessScopes.USER_PRIVATE
+        );
+
         await Ajax(signal).Metrics.captureEvent(Events.applicationCreate, {
           app: appTools.CROMWELL.label,
           ...extractWorkspaceDetails(workspace),
@@ -146,58 +111,18 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     });
 
     const renderSubmitWorkflow = () => {
-      return !isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)
-        ? div({ style: { margin: '2rem 4rem' } }, [
-            div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
-              h2(['Submit a workflow']),
-              h(
-                ButtonOutline,
-                {
-                  onClick: () =>
-                    Nav.goToPath('workspace-workflows-app-submission-history', {
-                      name,
-                      namespace,
-                    }),
-                },
-                ['Submission history']
-              ),
-            ]),
-            div(['Run a workflow in Terra using Cromwell engine. Full feature workflow submission coming soon.']),
-            !cbasReady &&
-              div({ style: { marginTop: '2rem' } }, [icon('loadingSpinner'), ' Loading your Workflows app, this may take a few minutes.']),
-            cbasReady &&
-              div({ style: { marginTop: '3rem' } }, [
-                h(
-                  Clickable,
-                  {
-                    'aria-haspopup': 'dialog',
-                    style: {
-                      ...styles.card,
-                      ...styles.shortCard,
-                      color: colors.accent(),
-                      fontSize: 18,
-                      lineHeight: '22px',
-                    },
-                    onClick: () => setViewFindWorkflowModal(true),
-                  },
-                  ['Find a Workflow', icon('plus-circle', { size: 32 })]
-                ),
-                h(Fragment, [h(SavedWorkflows, { workspaceName: name, namespace, methodsData })]),
-              ]),
-            viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, workspace, onDismiss: () => setViewFindWorkflowModal(false) }),
-          ])
-        : h(WorkflowsAppNavPanel, {
-            name,
-            namespace,
-            workspace,
-            loading,
-            analysesData,
-            pageReady,
-            launcherDisabled,
-            createWorkflowsApp,
-            setLoading,
-            signal,
-          });
+      return h(WorkflowsAppNavPanel, {
+        name,
+        namespace,
+        workspace,
+        loading,
+        analysesData,
+        pageReady,
+        launcherDisabled,
+        createWorkflowsApp,
+        setLoading,
+        signal,
+      });
     };
     return Utils.cond(
       [loading, () => centeredSpinner()],
