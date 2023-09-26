@@ -92,7 +92,7 @@ const Register = () => {
       });
       authStore.update((state) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
       await refreshTerraProfile();
-      Ajax().Metrics.captureEvent(Events.userRegister);
+      Ajax().Metrics.captureEvent(Events.user.register);
     } catch (error) {
       reportError('Error registering', error);
       setBusy(false);

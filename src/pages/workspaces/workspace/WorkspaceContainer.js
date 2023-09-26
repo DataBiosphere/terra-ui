@@ -18,7 +18,6 @@ import { Ajax } from 'src/libs/ajax';
 import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
@@ -164,18 +163,6 @@ export const WorkspaceContainer = ({
   const [leavingWorkspace, setLeavingWorkspace] = useState(false);
   const workspaceLoaded = !!workspace;
   const isGoogleWorkspaceSyncing = workspaceLoaded && isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false;
-
-  useEffect(() => {
-    if (isGoogleWorkspaceSyncing) {
-      Ajax().Metrics.captureEvent(Events.permissionsSynchronizationDelayDisplayed, {
-        accessLevel: workspace.accessLevel,
-        createdDate: workspace.workspace.createdDate,
-        isWorkspaceCreator: workspace.workspace.createdBy === getTerraUser().email,
-        ...extractWorkspaceDetails(workspace),
-      });
-    }
-    // Only want to event when isGoogleWorkspaceSyncing changes state, not whenever any part of workspace changes.
-  }, [isGoogleWorkspaceSyncing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
