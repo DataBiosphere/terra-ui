@@ -276,7 +276,6 @@ describe('Featured workflows', () => {
 
     expect(getWithVersions).toHaveBeenCalledTimes(1);
 
-    screen.debug(undefined, 30000);
     const addedButtons = screen.getAllByText('Added');
     await user.click(addedButtons[0]);
 
