@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { useState } from 'react';
-import { div, h, h1, img, WithKey } from 'react-hyperscript-helpers';
+import { div, h, h1, img } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, ButtonSecondary } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown';
@@ -10,14 +10,14 @@ import { signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { useOnMount } from 'src/libs/react-utils';
+import { useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState<boolean>();
-  const { isSignedIn, termsOfService } = authStore.get(); // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
+  const { isSignedIn, termsOfService } = useStore(authStore);
   const acceptedLatestTos = isSignedIn && termsOfService.userHasAcceptedLatestTos;
   const usageAllowed = isSignedIn && termsOfService.permitsSystemUsage;
   const [tosText, setTosText] = useState();
@@ -43,7 +43,7 @@ const TermsOfServicePage = () => {
         authStore.update((state) => ({ ...state, registrationStatus, termsOfService }));
         Nav.goToPath('root');
       } else {
-        reportError('Error accepting TOS, unexpected backend error occurred.', new Error('Cannot accept ToS'));
+        throw new Error('Cannot accept ToS');
       }
     } catch (error) {
       reportError('Error accepting Terms of Service', error);
@@ -102,11 +102,12 @@ const TermsOfServicePage = () => {
                 : h(
                     MarkdownViewer,
                     {
+                      // @ts-expect-error
                       renderers: {
                         link: newWindowLinkRenderer,
                         heading: (text, level) => `<h${level} style="margin-bottom: 0">${text}</h${level}>`,
                       },
-                    } as WithKey<any>,
+                    },
                     tosText
                   ),
             ]

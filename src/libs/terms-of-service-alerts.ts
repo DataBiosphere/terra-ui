@@ -15,7 +15,7 @@ type TermsOfServiceAlert = {
   severity: string;
 };
 
-const getNewTermsOfServiceNeedsAcceptingAlert = async (): Promise<TermsOfServiceAlert | null> => {
+const getNewTermsOfServiceNeedsAcceptingAlert = async (): Promise<TermsOfServiceAlert> => {
   let responseText;
   try {
     const { text } = await Ajax().FirecloudBucket.getTosGracePeriodText();
