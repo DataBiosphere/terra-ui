@@ -95,7 +95,7 @@ describe('Featured workflows', () => {
 
     const getWithVersions = jest
       .fn()
-      .mockReturnValue(Promise.resolve({ methods: featuredWorkflowsData[5].methods.slice(0, 1) }));
+      .mockReturnValue(Promise.resolve({ methods: featuredWorkflowsData[5]?.methods?.slice(0, 1) }));
     const post = jest.fn().mockReturnValue(Promise.resolve());
     const mockMethods: DeepPartial<CbasContract> = {
       methods: {
