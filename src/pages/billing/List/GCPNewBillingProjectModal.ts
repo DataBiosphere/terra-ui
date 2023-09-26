@@ -7,7 +7,7 @@ import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { billingProjectNameValidator } from 'src/pages/billing/billing-utils';
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject';
@@ -112,7 +112,7 @@ export const GCPNewBillingProjectModal = (props: GCPNewBillingProjectModalProps)
                   {
                     href: `https://console.cloud.google.com/billing/${
                       chosenBillingAccount.accountName.split('/')[1]
-                    }?authuser=${getUser().email}`,
+                    }?authuser=${getTerraUser().email}`,
                     ...Utils.newTabLinkProps,
                   },
                   ['Google Cloud Console', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })]

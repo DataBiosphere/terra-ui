@@ -10,8 +10,8 @@ import { v4 as uuid } from 'uuid';
 export const Metrics = (signal?: AbortSignal) => {
   const captureEventFn = async (event, details = {}) => {
     await ensureAuthSettled();
-    const { isSignedIn, registrationStatus } = authStore.get(); // NOTE: This is intentionally read after ensureAuthSettled
-    const isRegistered = isSignedIn && registrationStatus === 'registered';
+    const { signInStatus, registrationStatus } = authStore.get(); // NOTE: This is intentionally read after ensureAuthSettled
+    const isRegistered = signInStatus === 'signedIn' && registrationStatus === 'registered';
     if (!isRegistered) {
       authStore.update(
         _.update('anonymousId', (id) => {
