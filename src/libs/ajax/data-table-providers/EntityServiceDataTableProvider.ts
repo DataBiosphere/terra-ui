@@ -1,5 +1,4 @@
 import _ from 'lodash/fp';
-import { notifyDataImportProgress } from 'src/data/import-jobs';
 import { Ajax } from 'src/libs/ajax';
 import {
   DataTableFeatures,
@@ -15,6 +14,7 @@ import {
 } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import { asyncImportJobStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
 
 export class EntityServiceDataTableProvider implements DataTableProvider {
   constructor(namespace: string, name: string) {

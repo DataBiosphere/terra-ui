@@ -29,7 +29,7 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -331,7 +331,7 @@ const DataTableActions = ({
               action: `${getConfig().orchestrationUrlRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${tableName}/tsv`,
               method: 'POST',
             },
-            [input({ type: 'hidden', name: 'FCtoken', value: getUser().token }), input({ type: 'hidden', name: 'model', value: 'flexible' })]
+            [input({ type: 'hidden', name: 'FCtoken', value: getTerraUser().token }), input({ type: 'hidden', name: 'model', value: 'flexible' })]
           ),
           (dataProvider.features.supportsTsvDownload || dataProvider.features.supportsTsvAjaxDownload) &&
             h(

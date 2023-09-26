@@ -2,10 +2,10 @@ import _ from 'lodash/fp';
 import { useState } from 'react';
 import { b, div, h } from 'react-hyperscript-helpers';
 import { absoluteSpinnerOverlay, DeleteConfirmationModal } from 'src/components/common';
-import { getReferenceLabel } from 'src/data/reference-data/reference-metadata';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 
+import { getReferenceLabel } from './reference-metadata';
 import ReferenceData from './references';
 
 export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, referenceDataType }) => {

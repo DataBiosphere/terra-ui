@@ -4,6 +4,7 @@ import { div, h, h2 } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
+import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import colors from 'src/libs/colors';
@@ -123,17 +124,41 @@ export const WorkflowsInWorkspace = ({
               { style: { marginTop: '1rem' } },
               _.map(
                 (method) =>
-                  h(WorkflowCard, {
-                    key: method.method_id,
-                    method,
-                    buttonText: 'Configure',
-                    onClick: () =>
-                      Nav.goToPath('workspace-workflows-app-submission-config', {
-                        namespace,
-                        name,
-                        methodId: method.method_id,
-                      }),
-                  }),
+                  h(
+                    WorkflowCard,
+                    {
+                      key: method.method_id,
+                      method,
+                    },
+                    [
+                      h(
+                        Clickable,
+                        {
+                          onClick: () =>
+                            Nav.goToPath('workspace-workflows-app-submission-config', {
+                              namespace,
+                              name,
+                              methodId: method.method_id,
+                            }),
+                        },
+                        [
+                          div(
+                            {
+                              style: {
+                                borderRadius: 2,
+                                color: colors.light(0.5),
+                                fontWeight: 500,
+                                textAlign: 'center',
+                                padding: '0.75rem 0',
+                                backgroundColor: colors.accent(1),
+                              },
+                            },
+                            ['Configure']
+                          ),
+                        ]
+                      ),
+                    ]
+                  ),
                 methodsData
               )
             ),

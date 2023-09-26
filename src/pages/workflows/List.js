@@ -12,7 +12,7 @@ import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 // TODO: add error handling, consider wrapping query updates in useEffect
@@ -40,7 +40,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
   const tabs = { mine: 'My Workflows', public: 'Public Workflows', featured: 'Featured Workflows' };
 
   useOnMount(() => {
-    const isMine = ({ public: isPublic, managers }) => !isPublic || _.includes(getUser().email, managers);
+    const isMine = ({ public: isPublic, managers }) => !isPublic || _.includes(getTerraUser().email, managers);
 
     const loadWorkflows = async () => {
       const [allWorkflows, featuredList] = await Promise.all([Ajax(signal).Methods.definitions(), Ajax(signal).FirecloudBucket.getFeaturedMethods()]);

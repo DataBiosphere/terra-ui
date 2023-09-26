@@ -1,4 +1,5 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
+import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
 import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
@@ -25,6 +26,23 @@ export type TerraUserProfile = {
   interestInTerra: string | undefined;
 };
 
+export type TerraUserRegistrationStatus =
+  // User is logged in through B2C but has not registered in Terra.
+  | 'unregistered'
+  // User has registered in Terra but has not accepted the terms of service.
+  | 'registeredWithoutTos'
+  // User has registered in Terra and accepted the terms of service.
+  | 'registered'
+  // User's account has been disabled.
+  | 'disabled'
+  // Registration status has not yet been determined.
+  | 'uninitialized';
+
+export type TermsOfServiceStatus = {
+  permitsSystemUsage: boolean | undefined;
+  userHasAcceptedLatestTos: boolean | undefined;
+};
+
 export type TokenMetadata = {
   token: string | undefined; // do not log or send this to mixpanel
   id: string | undefined;
@@ -34,37 +52,34 @@ export type TokenMetadata = {
   totalTokenLoadAttemptsThisSession: number;
 };
 
+export type Initializable<T> = T | 'uninitialized';
+
+export type SignInStatus = Initializable<'signedIn' | 'signedOut'>;
+
 export type AuthState = {
   anonymousId: string | undefined;
-  authContext: AuthContextProps | undefined;
   authTokenMetadata: TokenMetadata;
   cookiesAccepted: boolean | undefined;
   fenceStatus: {};
   hasGcpBillingScopeThroughB2C: boolean | undefined;
-  isSignedIn: boolean | undefined;
+  signInStatus: SignInStatus;
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: {
     linkedNihUsername: string;
     linkExpireTime: number;
   };
-  oidcUser: OidcUser | undefined;
-  oidcConfig: {
-    authorityEndpoint?: string;
-    clientId?: string;
-  };
   // props in the TerraUserProfile are always present, but there may be more props
   profile: TerraUserProfile & any;
   refreshTokenMetadata: TokenMetadata;
-  registrationStatus: any;
+  registrationStatus: TerraUserRegistrationStatus;
   sessionId?: string | undefined;
   sessionStartTime: number;
-  termsOfService: {};
-  user: TerraUser;
+  termsOfService: TermsOfServiceStatus;
+  terraUser: TerraUser;
 };
 
 export const authStore: Atom<AuthState> = atom<AuthState>({
   anonymousId: undefined,
-  authContext: undefined,
   authTokenMetadata: {
     token: undefined,
     id: undefined,
@@ -76,12 +91,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   cookiesAccepted: undefined,
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
-  isSignedIn: undefined,
-  oidcConfig: {
-    authorityEndpoint: undefined,
-    clientId: undefined,
-  },
-  oidcUser: undefined,
+  signInStatus: 'uninitialized',
   profile: {
     institute: undefined,
     title: undefined,
@@ -96,11 +106,14 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     totalTokenLoadAttemptsThisSession: 0,
     totalTokensUsedThisSession: 0,
   },
-  registrationStatus: undefined,
+  registrationStatus: 'uninitialized',
   sessionId: undefined,
   sessionStartTime: -1,
-  termsOfService: {},
-  user: {
+  termsOfService: {
+    permitsSystemUsage: undefined,
+    userHasAcceptedLatestTos: undefined,
+  },
+  terraUser: {
     token: undefined,
     scope: undefined,
     id: undefined,
@@ -113,16 +126,31 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   },
 });
 
-export const getUser = (): TerraUser => authStore.get().user;
+export const getTerraUser = (): TerraUser => authStore.get().terraUser;
 
 export const getSessionId = () => authStore.get().sessionId;
 
-export const userStatus = {
-  unregistered: 'unregistered',
-  registeredWithoutTos: 'registeredWithoutTos',
-  registeredWithTos: 'registered',
-  disabled: 'disabled',
+export type OidcConfig = {
+  authorityEndpoint?: string;
+  clientId?: string;
 };
+
+export type OidcState = {
+  authContext: AuthContextProps | undefined;
+  user: OidcUser | undefined;
+  userManager: UserManager | undefined;
+  config: OidcConfig;
+};
+
+export const oidcStore: Atom<OidcState> = atom<OidcState>({
+  authContext: undefined,
+  user: undefined,
+  userManager: undefined,
+  config: {
+    authorityEndpoint: undefined,
+    clientId: undefined,
+  },
+});
 
 export const cookieReadyStore = atom(false);
 export const azureCookieReadyStore = atom({
@@ -136,7 +164,7 @@ lastActiveTimeStore.update((v) => v || {});
 export const toggleStateAtom = staticStorageSlot(getSessionStorage(), 'toggleState');
 toggleStateAtom.update((v) => v || { notebooksTab: true });
 
-export const azurePreviewStore = staticStorageSlot(getLocalStorage(), 'azurePreview');
+export const azurePreviewStore: Atom<boolean> = staticStorageSlot(getLocalStorage(), 'azurePreview');
 azurePreviewStore.update((v) => v || false);
 
 export const notificationStore = atom<any[]>([]);

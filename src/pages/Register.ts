@@ -12,7 +12,7 @@ import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { registrationLogo } from 'src/libs/logos';
-import { authStore, getUser, TerraUser, TerraUserProfile, userStatus } from 'src/libs/state';
+import { authStore, getTerraUser, TerraUser, TerraUserProfile } from 'src/libs/state';
 import validate from 'validate.js';
 
 const constraints = (partOfOrg) => {
@@ -27,7 +27,7 @@ const constraints = (partOfOrg) => {
 };
 
 const Register = () => {
-  const user: TerraUser = getUser();
+  const user: TerraUser = getTerraUser();
   const profile: TerraUserProfile = authStore.get().profile;
   const [busy, setBusy] = useState(false);
   const [givenName, setGivenName] = useState(user.givenName || '');
@@ -90,9 +90,9 @@ const Register = () => {
         interestInTerra,
         ...orgFields,
       });
-      authStore.update((state) => ({ ...state, registrationStatus: userStatus.registeredWithoutTos }));
+      authStore.update((state) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
       await refreshTerraProfile();
-      Ajax().Metrics.captureEvent(Events.userRegister);
+      Ajax().Metrics.captureEvent(Events.user.register);
     } catch (error) {
       reportError('Error registering', error);
       setBusy(false);
