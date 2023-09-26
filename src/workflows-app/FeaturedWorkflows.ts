@@ -16,11 +16,7 @@ import { withBusyState } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { ImportWorkflowModal } from 'src/workflows-app/components/ImportWorkflowModal';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
-import {
-  featuredWarpWorkflows,
-  FeaturedWorkflow,
-  featuredWorkflowsData,
-} from 'src/workflows-app/fixtures/featured-workflows';
+import { FeaturedWorkflow, featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
 
@@ -152,6 +148,7 @@ export const FeaturedWorkflows = ({
             await Promise.all(imports)
               .then((resolvedImports) => {
                 setSuccessfulImport(true);
+                loadRunsData(state);
                 setMethodId(resolvedImports[0].method_id);
               })
               .catch(async (error) => {
@@ -163,7 +160,7 @@ export const FeaturedWorkflows = ({
         },
         ['Add to workspace']
       ),
-    [workspaceId]
+    [loadRunsData, workspaceId]
   );
 
   // poll if we're missing CBAS proxy url and stop polling when we have it
@@ -205,20 +202,6 @@ export const FeaturedWorkflows = ({
   const renderFeaturedWorkflows = () =>
     h(Fragment, [
       div(['Get up and running with these commonly used, standard workflows.']),
-      div({ style: { marginTop: '1rem' } }, [
-        _.map((method) => {
-          const methodsInWorkspace = getMethodsInWorkspace(method);
-          const allMethodsInWorkspace = methodsInWorkspace.every(([inWorkspace, _method]) => inWorkspace);
-          return h(
-            WorkflowCard,
-            {
-              key: method.name,
-              method,
-            },
-            [allMethodsInWorkspace ? addedButton() : addToWorkspaceButton(method, methodsInWorkspace)]
-          );
-        }, featuredWarpWorkflows as FeaturedWorkflow[]),
-      ]),
       div(
         { style: { marginTop: '1rem' } },
         _.map((method) => {

@@ -6,7 +6,7 @@ import { AnalysesData } from 'src/analysis/Analyses';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import { asMockedFn } from 'src/testing/test-utils';
 import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
-import { featuredWarpWorkflows, featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
+import { featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
 const defaultAnalysesData: AnalysesData = {
@@ -95,7 +95,7 @@ describe('Featured workflows', () => {
 
     const getWithVersions = jest
       .fn()
-      .mockReturnValue(Promise.resolve({ methods: featuredWorkflowsData[0].methods.slice(0, 1) }));
+      .mockReturnValue(Promise.resolve({ methods: featuredWorkflowsData[5].methods.slice(0, 1) }));
     const post = jest.fn().mockReturnValue(Promise.resolve());
     const mockMethods: DeepPartial<CbasContract> = {
       methods: {
@@ -142,7 +142,7 @@ describe('Featured workflows', () => {
   it('should render fully imported covid-19 workflows with added text', async () => {
     const user = userEvent.setup();
 
-    const getWithVersions = jest.fn().mockReturnValue(Promise.resolve({ methods: featuredWorkflowsData[0].methods }));
+    const getWithVersions = jest.fn().mockReturnValue(Promise.resolve({ methods: featuredWorkflowsData[5].methods }));
     const post = jest.fn().mockReturnValue(Promise.resolve());
     const mockMethods: DeepPartial<CbasContract> = {
       methods: {
@@ -252,7 +252,7 @@ describe('Featured workflows', () => {
   it('should not submit imported workflow', async () => {
     const user = userEvent.setup();
 
-    const getWithVersions = jest.fn().mockReturnValue(Promise.resolve({ methods: featuredWarpWorkflows }));
+    const getWithVersions = jest.fn().mockReturnValue(Promise.resolve({ methods: featuredWorkflowsData.slice(0, 4) }));
     const post = jest.fn().mockReturnValue(Promise.resolve());
     const mockMethods: DeepPartial<CbasContract> = {
       methods: {

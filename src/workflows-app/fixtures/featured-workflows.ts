@@ -11,7 +11,7 @@ export type FeaturedWorkflowSet = Omit<WorkflowMethodSet, 'methods'> & { methods
 
 export type FeaturedWorkflow = FeaturedWorkflowMethod | FeaturedWorkflowSet;
 
-export const featuredWarpWorkflows = [
+export const featuredWorkflowsData = [
   {
     name: 'Optimus',
     description:
@@ -84,9 +84,6 @@ export const featuredWarpWorkflows = [
       previously_run: false,
     },
   },
-] satisfies FeaturedWorkflow[];
-
-export const featuredWorkflowsData = [
   {
     name: 'Covid-19 tutorial workflows',
     description:
