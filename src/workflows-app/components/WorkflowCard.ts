@@ -104,7 +104,7 @@ export const WorkflowCard = ({ method, subCard, children }: PropsWithChildren<Wo
                     },
                   },
                   [
-                    div({ style: { ...Style.noWrapEllipsis, marginRight: '2rem', width: '10rem' } }, [
+                    div({ style: { ...Style.noWrapEllipsis, marginRight: '2rem', width: '15rem' } }, [
                       `Version ${method.method_versions[0].name}`,
                     ]),
                     div({ style: { ...Style.noWrapEllipsis, marginRight: '2rem', width: '15rem' } }, [
