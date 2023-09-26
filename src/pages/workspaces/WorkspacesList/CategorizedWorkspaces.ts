@@ -1,14 +1,14 @@
 import _ from 'lodash/fp';
 import { canWrite, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
-export interface CatagorizedWorkspaces {
+export interface CategorizedWorkspaces {
   myWorkspaces: Workspace[];
   newAndInteresting: Workspace[];
   featured: Workspace[];
   public: Workspace[];
 }
 
-export const catagorizeWorkspaces = (workspaces: Workspace[], featuredList?: Workspace[]): CatagorizedWorkspaces => {
+export const categorizeWorkspaces = (workspaces: Workspace[], featuredList?: Workspace[]): CategorizedWorkspaces => {
   const [newWsList, featuredWsList] = _.partition('isNew', featuredList);
 
   return {

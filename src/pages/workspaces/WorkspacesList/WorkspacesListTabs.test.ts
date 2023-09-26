@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { updateSearch, useRoute } from 'src/libs/nav';
-import { CatagorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CatagorizedWorkspaces';
+import { CategorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CategorizedWorkspaces';
 import { WorkspacesListTabs } from 'src/pages/workspaces/WorkspacesList/WorkspacesListTabs';
 import { asMockedFn } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -28,7 +28,7 @@ jest.mock(
 describe('The WorkspacesListTabs component', () => {
   it('should render the workspaces of the current tab', () => {
     // Arrange
-    const workspaces: CatagorizedWorkspaces = {
+    const workspaces: CategorizedWorkspaces = {
       myWorkspaces: [defaultAzureWorkspace],
       public: [defaultGoogleWorkspace],
       newAndInteresting: [],
@@ -55,7 +55,7 @@ describe('The WorkspacesListTabs component', () => {
 
   it('should default to the myWorkspaces tab', () => {
     // Arrange
-    const workspaces: CatagorizedWorkspaces = {
+    const workspaces: CategorizedWorkspaces = {
       myWorkspaces: [defaultAzureWorkspace],
       public: [defaultGoogleWorkspace],
       newAndInteresting: [],
@@ -82,7 +82,7 @@ describe('The WorkspacesListTabs component', () => {
 
   it('refreshes workspaces when the current tab is clicked', () => {
     // Arrange
-    const workspaces: CatagorizedWorkspaces = {
+    const workspaces: CategorizedWorkspaces = {
       myWorkspaces: [defaultAzureWorkspace],
       public: [defaultGoogleWorkspace],
       newAndInteresting: [],
@@ -110,7 +110,7 @@ describe('The WorkspacesListTabs component', () => {
 
   it('switches to an intactive tab when clicked', () => {
     // Arrange
-    const workspaces: CatagorizedWorkspaces = {
+    const workspaces: CategorizedWorkspaces = {
       myWorkspaces: [defaultAzureWorkspace],
       public: [defaultGoogleWorkspace],
       newAndInteresting: [],

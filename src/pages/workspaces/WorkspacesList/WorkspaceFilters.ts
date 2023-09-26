@@ -14,7 +14,7 @@ import {
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
-import { CatagorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CatagorizedWorkspaces';
+import { CategorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CategorizedWorkspaces';
 
 const styles = {
   filter: { marginRight: '1rem', flex: '1 1 0', minWidth: 'max-content' },
@@ -111,7 +111,7 @@ export interface WorkspaceFilterValues {
   projects?: string;
   cloudPlatform?: CloudPlatform;
   submissions: WorkspaceSubmissionStatus[];
-  tab: keyof CatagorizedWorkspaces;
+  tab: keyof CategorizedWorkspaces;
   tags: string[];
 }
 
