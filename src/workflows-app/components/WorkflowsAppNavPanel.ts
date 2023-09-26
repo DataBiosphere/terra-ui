@@ -13,6 +13,7 @@ import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
+import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
 
@@ -227,7 +228,10 @@ export const WorkflowsAppNavPanel = ({
           selectedSubHeader,
           ['workspace-workflows', () => h(WorkflowsInWorkspace, { name, namespace, workspace, analysesData })],
           ['submission-history', () => h(BaseSubmissionHistory, { name, namespace, workspace })],
-          ['featured-workflows', () => div(['Featured workflows TODO'])],
+          [
+            'featured-workflows',
+            () => h(FeaturedWorkflows, { name, namespace, workspace, analysesData, setSelectedSubHeader }),
+          ],
           [
             'import-workflow',
             () =>
