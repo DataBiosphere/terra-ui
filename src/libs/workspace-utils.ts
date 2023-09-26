@@ -29,7 +29,6 @@ interface BaseWorkspaceInfo {
   createdDate: string;
   createdBy: string;
   lastModified: string;
-  bucketName?: string;
   attributes?: Record<string, unknown>;
   isLocked?: boolean;
   canShare?: boolean;

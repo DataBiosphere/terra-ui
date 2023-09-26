@@ -26,7 +26,7 @@ export const workspaceSubmissionStatus = (workspace: Workspace): WorkspaceSubmis
 };
 
 interface WorkspaceSubmissionStatusIconProps {
-  status: WorkspaceSubmissionStatus | undefined;
+  status?: WorkspaceSubmissionStatus;
   loadingSubmissionStats: boolean;
   size?: number;
 }
