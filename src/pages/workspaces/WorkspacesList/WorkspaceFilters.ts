@@ -4,6 +4,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { Select } from 'src/components/common';
 import { DelayedSearchInput } from 'src/components/input';
 import { WorkspaceTagSelect } from 'src/components/workspace-utils';
+import { WorkspaceSubmissionStatus } from 'src/components/WorkspaceSubmissionStatusIcon';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
 import {
@@ -13,9 +14,7 @@ import {
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
-
-import { CatagorizedWorkspaces } from './CatagorizedWorkspaces';
-import { WorkspaceSubmissionStatus } from './useWorkspacesWithSubmissionStats';
+import { CatagorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CatagorizedWorkspaces';
 
 const styles = {
   filter: { marginRight: '1rem', flex: '1 1 0', minWidth: 'max-content' },

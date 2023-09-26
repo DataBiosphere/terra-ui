@@ -1,21 +1,39 @@
 import { TooltipTrigger } from '@terra-ui-packages/components';
+import { cond, switchCase } from '@terra-ui-packages/core-utils';
+import { isAfter, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { DelayedRender } from 'src/components/common';
 import { icon, spinner } from 'src/components/icons';
 import colors from 'src/libs/colors';
-import * as Utils from 'src/libs/utils';
+import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+
+export type WorkspaceSubmissionStatus = 'success' | 'failure' | 'running';
+
+export const workspaceSubmissionStatus = (workspace: Workspace): WorkspaceSubmissionStatus | undefined => {
+  const stats = workspace.workspaceSubmissionStats;
+  if (!stats) return undefined;
+  const { runningSubmissionsCount, lastSuccessDate, lastFailureDate } = stats;
+  return cond(
+    [!!runningSubmissionsCount, () => 'running'],
+    [
+      !!lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))),
+      () => 'success',
+    ],
+    [!!lastFailureDate, () => 'failure']
+  );
+};
 
 interface WorkspaceSubmissionStatusIconProps {
-  status;
+  status: WorkspaceSubmissionStatus | undefined;
   loadingSubmissionStats: boolean;
   size?: number;
 }
 
 export const WorkspaceSubmissionStatusIcon = (props: WorkspaceSubmissionStatusIconProps): ReactNode => {
   const { status, loadingSubmissionStats, size = 20 } = props;
-  return Utils.cond(
+  return cond(
     [
       loadingSubmissionStats,
       () =>
@@ -32,19 +50,20 @@ export const WorkspaceSubmissionStatusIcon = (props: WorkspaceSubmissionStatusIc
         ]),
     ],
     [
-      status,
+      !!status,
       () =>
         h(
           TooltipTrigger,
           {
             content: span([
               'Last submitted workflow status: ',
-              span({ style: { fontWeight: 600 } }, [_.startCase(status)]),
+              // the cond means status has already been verified to be defined
+              span({ style: { fontWeight: 600 } }, [_.startCase(status!)]),
             ]),
             side: 'left',
           },
           [
-            Utils.switchCase(
+            switchCase(
               status,
               [
                 'success',

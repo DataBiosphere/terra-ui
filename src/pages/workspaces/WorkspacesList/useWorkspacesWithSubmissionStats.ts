@@ -1,5 +1,3 @@
-import { cond } from '@terra-ui-packages/core-utils';
-import { isAfter, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { useEffect, useMemo, useState } from 'react';
 import { useWorkspaces } from 'src/components/workspace-utils';
@@ -62,20 +60,4 @@ export const useWorkspacesWithSubmissionStats = () => {
   }, [workspaces, submissionStats]);
 
   return { workspaces: workspacesWithSubmissionStats, refresh, loadingWorkspaces, loadingSubmissionStats };
-};
-
-export type WorkspaceSubmissionStatus = 'success' | 'failure' | 'running';
-
-export const workspaceSubmissionStatus = (workspace: Workspace): WorkspaceSubmissionStatus | undefined => {
-  const stats = workspace.workspaceSubmissionStats;
-  if (!stats) return undefined;
-  const { runningSubmissionsCount, lastSuccessDate, lastFailureDate } = stats;
-  return cond(
-    [!!runningSubmissionsCount, () => 'running'],
-    [
-      !!lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))),
-      () => 'success',
-    ],
-    [!!lastFailureDate, () => 'failure']
-  );
 };

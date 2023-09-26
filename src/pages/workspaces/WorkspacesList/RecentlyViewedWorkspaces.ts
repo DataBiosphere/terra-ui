@@ -3,9 +3,9 @@ import { Fragment, ReactNode, useEffect, useMemo, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard } from 'src/components/workspace-utils';
+import { workspaceSubmissionStatus } from 'src/components/WorkspaceSubmissionStatusIcon';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
-import { workspaceSubmissionStatus } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
 import { getWorkspace, persistenceId } from 'src/pages/workspaces/WorkspacesList/WorkspacesList';
 
 interface RecentlyViewedWorkspacesProps {

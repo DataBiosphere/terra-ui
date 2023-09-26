@@ -8,7 +8,7 @@ import { Link } from 'src/components/common';
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown';
 import { FlexTable, HeaderRenderer } from 'src/components/table';
 import { WorkspaceStarControl } from 'src/components/WorkspaceStarControl';
-import { WorkspaceSubmissionStatusIcon } from 'src/components/WorkspaceSubmissionStatusIcon';
+import { workspaceSubmissionStatus, WorkspaceSubmissionStatusIcon } from 'src/components/WorkspaceSubmissionStatusIcon';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -25,7 +25,6 @@ import {
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
-import { workspaceSubmissionStatus } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
 import { WorkspaceUserActionsContext } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
 
 // This is actually the sort type from the FlexTable component
