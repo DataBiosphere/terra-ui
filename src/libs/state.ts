@@ -1,4 +1,5 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
+import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
 import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
@@ -51,23 +52,21 @@ export type TokenMetadata = {
   totalTokenLoadAttemptsThisSession: number;
 };
 
+export type Initializable<T> = T | 'uninitialized';
+
+export type SignInStatus = Initializable<'signedIn' | 'signedOut'>;
+
 export type AuthState = {
   anonymousId: string | undefined;
-  authContext: AuthContextProps | undefined;
   authTokenMetadata: TokenMetadata;
   cookiesAccepted: boolean | undefined;
   fenceStatus: {};
   hasGcpBillingScopeThroughB2C: boolean | undefined;
-  isSignedIn: boolean | undefined;
+  signInStatus: SignInStatus;
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: {
     linkedNihUsername: string;
     linkExpireTime: number;
-  };
-  oidcUser: OidcUser | undefined;
-  oidcConfig: {
-    authorityEndpoint?: string;
-    clientId?: string;
   };
   // props in the TerraUserProfile are always present, but there may be more props
   profile: TerraUserProfile & any;
@@ -76,12 +75,11 @@ export type AuthState = {
   sessionId?: string | undefined;
   sessionStartTime: number;
   termsOfService: TermsOfServiceStatus;
-  user: TerraUser;
+  terraUser: TerraUser;
 };
 
 export const authStore: Atom<AuthState> = atom<AuthState>({
   anonymousId: undefined,
-  authContext: undefined,
   authTokenMetadata: {
     token: undefined,
     id: undefined,
@@ -93,12 +91,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   cookiesAccepted: undefined,
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
-  isSignedIn: undefined,
-  oidcConfig: {
-    authorityEndpoint: undefined,
-    clientId: undefined,
-  },
-  oidcUser: undefined,
+  signInStatus: 'uninitialized',
   profile: {
     institute: undefined,
     title: undefined,
@@ -120,7 +113,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     permitsSystemUsage: undefined,
     userHasAcceptedLatestTos: undefined,
   },
-  user: {
+  terraUser: {
     token: undefined,
     scope: undefined,
     id: undefined,
@@ -133,9 +126,31 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   },
 });
 
-export const getUser = (): TerraUser => authStore.get().user;
+export const getTerraUser = (): TerraUser => authStore.get().terraUser;
 
 export const getSessionId = () => authStore.get().sessionId;
+
+export type OidcConfig = {
+  authorityEndpoint?: string;
+  clientId?: string;
+};
+
+export type OidcState = {
+  authContext: AuthContextProps | undefined;
+  user: OidcUser | undefined;
+  userManager: UserManager | undefined;
+  config: OidcConfig;
+};
+
+export const oidcStore: Atom<OidcState> = atom<OidcState>({
+  authContext: undefined,
+  user: undefined,
+  userManager: undefined,
+  config: {
+    authorityEndpoint: undefined,
+    clientId: undefined,
+  },
+});
 
 export const cookieReadyStore = atom(false);
 export const azureCookieReadyStore = atom({

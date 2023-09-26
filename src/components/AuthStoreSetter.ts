@@ -1,21 +1,25 @@
 import _ from 'lodash/fp';
 import { useEffect } from 'react';
 import { AuthContextProps, useAuth } from 'react-oidc-context';
-import { loadAuthToken, OidcUser, processUser } from 'src/libs/auth';
+import { loadAuthToken, loadOidcUser, OidcUser } from 'src/libs/auth';
 import { useOnMount } from 'src/libs/react-utils';
-import { authStore } from 'src/libs/state';
+import { oidcStore } from 'src/libs/state';
 
 function AuthStoreSetter(): null {
+  // When the AuthContext changes, this component will rerender
   const auth: AuthContextProps = useAuth();
 
   useOnMount(() => {
-    authStore.update(_.set(['authContext'], auth));
+    oidcStore.update(_.set(['authContext'], auth));
   });
   useEffect((): (() => void) => {
     const cleanupFns = [
-      auth.events.addUserLoaded((user: OidcUser) => processUser(user, true)),
-      auth.events.addUserUnloaded(() => processUser(null, false)),
-      auth.events.addAccessTokenExpired(() => {
+      // Subscribe to UserManager events.
+      // For details of each event, see https://authts.github.io/oidc-client-ts/classes/UserManagerEvents.html
+      auth.events.addUserLoaded((user: OidcUser) => {
+        loadOidcUser(user);
+      }),
+      auth.events.addAccessTokenExpired((): void => {
         loadAuthToken();
       }),
     ];

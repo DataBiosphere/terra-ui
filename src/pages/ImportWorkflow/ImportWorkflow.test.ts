@@ -9,7 +9,7 @@ import { errorWatcher } from 'src/libs/error.mock';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -120,7 +120,7 @@ jest.mock(
   'src/libs/state',
   (): StateExports => ({
     ...jest.requireActual('src/libs/state'),
-    getUser: jest.fn(),
+    getTerraUser: jest.fn(),
   })
 );
 
@@ -259,7 +259,7 @@ describe('ImportWorkflow', () => {
       loading: false,
     });
 
-    asMockedFn(getUser).mockReturnValue({
+    asMockedFn(getTerraUser).mockReturnValue({
       email: 'abc@gmail.com',
     });
 

@@ -13,7 +13,7 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { clearNotification, notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
-import { getUser, workspaceStore } from 'src/libs/state';
+import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { differenceFromNowInSeconds } from 'src/libs/utils';
 import { canWrite, isAzureWorkspace, isGoogleWorkspace, isOwner, WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -214,7 +214,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
       }
 
       // This is old code-- it is unclear if this case can actually happen anymore.
-      if (!isOwner(accessLevel) && createdBy === getUser().email && differenceFromNowInSeconds(createdDate) < 60) {
+      if (!isOwner(accessLevel) && createdBy === getTerraUser().email && differenceFromNowInSeconds(createdDate) < 60) {
         accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
           message: h(Fragment, [
             'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',
