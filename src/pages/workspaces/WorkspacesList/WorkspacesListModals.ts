@@ -33,13 +33,15 @@ export const WorkspacesListModals = (props: WorkspacesListModalsProps): ReactNod
       }),
     !!userActions.deletingWorkspaceId &&
       h(DeleteWorkspaceModal, {
-        workspace: getWorkspace(userActions.deletingWorkspaceId) as any,
+        // @ts-expect-error
+        workspace: getWorkspace(userActions.deletingWorkspaceId),
         onDismiss: () => setUserActions({ deletingWorkspaceId: undefined }),
         onSuccess: refreshWorkspaces,
       }),
     !!userActions.lockingWorkspaceId &&
       h(LockWorkspaceModal, {
-        workspace: getWorkspace(userActions.lockingWorkspaceId) as any,
+        // @ts-expect-error
+        workspace: getWorkspace(userActions.lockingWorkspaceId),
         onDismiss: () => setUserActions({ lockingWorkspaceId: undefined }),
         onSuccess: refreshWorkspaces,
       }),

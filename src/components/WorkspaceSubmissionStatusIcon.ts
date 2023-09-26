@@ -29,7 +29,8 @@ export const WorkspaceSubmissionStatusIcon: FC<WorkspaceSubmissionStatusIconProp
               content: 'Loading submission status',
               side: 'left',
             },
-            [spinner({ size } as any)]
+            // @ts-expect-error
+            [spinner({ size })]
           ),
         ]),
     ],

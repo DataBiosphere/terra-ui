@@ -89,6 +89,7 @@ export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode =>
           noContentRenderer: () => props.noContent,
           variant: 'light',
           rowHeight: 70,
+          // @ts-expect-error
           sort,
           columns: [
             {
@@ -139,7 +140,7 @@ export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode =>
               size: { basis: 30, grow: 0, shrink: 0 },
             },
           ],
-        } as any),
+        }),
     ]),
   ]);
 };
@@ -304,7 +305,8 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
         iconSize: 20,
         popupLocation: 'left',
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-        workspaceInfo: { namespace, name } as any,
+        // @ts-expect-error
+        workspaceInfo: { namespace, name },
       }),
     ]),
   ]);

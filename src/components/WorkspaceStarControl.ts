@@ -36,7 +36,8 @@ export const WorkspaceStarControl: FC<WorkspaceStarControlProps> = ({ workspace 
   const maxStarredWorkspacesReached = _.size(stars) >= MAX_STARRED_WORKSPACES;
 
   const refreshStarredWorkspacesList = async () => {
-    const { starredWorkspaces } = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs) as any;
+    // @ts-expect-error
+    const { starredWorkspaces } = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs);
     return _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces);
   };
 
@@ -92,7 +93,8 @@ export const WorkspaceStarControl: FC<WorkspaceStarControlProps> = ({ workspace 
     },
     [
       updatingStars
-        ? spinner({ size: 20 } as any)
+        ? // @ts-expect-error
+          spinner({ size: 20 })
         : icon('star', { size: 20, color: isStarred ? colors.warning() : colors.light(2) }),
     ]
   );
