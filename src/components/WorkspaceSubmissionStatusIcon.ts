@@ -1,6 +1,6 @@
 import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { FC } from 'react';
+import { ReactNode } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { DelayedRender } from 'src/components/common';
 import { icon, spinner } from 'src/components/icons';
@@ -13,11 +13,8 @@ interface WorkspaceSubmissionStatusIconProps {
   size?: number;
 }
 
-export const WorkspaceSubmissionStatusIcon: FC<WorkspaceSubmissionStatusIconProps> = ({
-  status,
-  loadingSubmissionStats,
-  size = 20,
-}) => {
+export const WorkspaceSubmissionStatusIcon = (props: WorkspaceSubmissionStatusIconProps): ReactNode => {
+  const { status, loadingSubmissionStats, size = 20 } = props;
   return Utils.cond(
     [
       loadingSubmissionStats,

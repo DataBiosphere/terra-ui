@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { FC, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { icon, spinner } from 'src/components/icons';
@@ -16,10 +16,10 @@ interface WorkspaceStarControlProps {
   workspace: WorkspaceWrapper;
 }
 
-export const WorkspaceStarControl: FC<WorkspaceStarControlProps> = ({ workspace }) => {
+export const WorkspaceStarControl = (props: WorkspaceStarControlProps): ReactNode => {
   const {
     workspace: { workspaceId },
-  } = workspace;
+  } = props.workspace;
   const {
     profile: { starredWorkspaces },
   } = useStore<AuthState>(authStore);
@@ -53,7 +53,7 @@ export const WorkspaceStarControl: FC<WorkspaceStarControlProps> = ({ workspace 
     Ajax().Metrics.captureEvent(Events.workspaceStar, {
       workspaceId,
       starred: star,
-      ...extractWorkspaceDetails(workspace.workspace),
+      ...extractWorkspaceDetails(props.workspace.workspace),
     });
     authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds.join(',')));
   });
