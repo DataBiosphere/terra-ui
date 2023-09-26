@@ -118,7 +118,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
           Ajax().Metrics.captureEvent(Events.permissionsSynchronizationDelay, {
             accessLevel: workspace.accessLevel,
             createdDate: workspace.workspace.createdDate,
-            isWorkspaceCreator: workspace.workspace.createdBy === getUser().email,
+            isWorkspaceCreator: workspace.workspace.createdBy === getTerraUser().email,
             ...extractWorkspaceDetails(workspace),
           });
         }
