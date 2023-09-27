@@ -880,7 +880,7 @@ const WorkflowView = _.flow(
               div({ role: 'radiogroup', 'aria-label': 'Select number of target entities', style: { marginBottom: '1rem' } }, [
                 div([
                   h(RadioButton, {
-                    disabled: WorkspaceUtils.canEditWorkspace(ws).value || currentSnapRedacted,
+                    disabled: !WorkspaceUtils.canEditWorkspace(ws).value || currentSnapRedacted,
                     text: 'Run workflow with inputs defined by file paths',
                     name: 'process-workflows',
                     checked: this.isSingle(),

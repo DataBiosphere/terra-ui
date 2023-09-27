@@ -667,7 +667,7 @@ const WorkspaceDashboard = _.flow(
               {
                 style: { marginLeft: '0.5rem' },
                 disabled: !canEdit,
-                tooltip: editErrorMessage || 'Edit description',
+                tooltip: canEdit ? 'Edit description' : editErrorMessage,
                 onClick: () => setEditDescription(description?.toString()),
               },
               [icon('edit')]
