@@ -845,7 +845,7 @@ const WorkflowView = _.flow(
                     div({ style: { display: 'inline-block', marginLeft: '0.25rem', width: sourceRepo === 'agora' ? 75 : 200 } }, [
                       h(Select, {
                         id,
-                        isDisabled: !WorkspaceUtils.canEditWorkspace.value,
+                        isDisabled: !WorkspaceUtils.canEditWorkspace(ws).value,
                         isClearable: false,
                         isSearchable: false,
                         value: methodVersion,
