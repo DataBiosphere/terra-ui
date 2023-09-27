@@ -1,31 +1,6 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { extractBillingDetails, extractCrossWorkspaceDetails, extractWorkspaceDetails } from './events';
-
-const gcpWorkspace = {
-  workspace: {
-    cloudPlatform: 'Gcp',
-    name: 'wsName',
-    namespace: 'wsNamespace',
-    workspaceId: 'testGoogleWorkspaceId',
-  },
-  accessLevel: 'OWNER',
-  canShare: true,
-  canCompute: true,
-} as const satisfies DeepPartial<WorkspaceWrapper>;
-
-const azureWorkspace = {
-  workspace: {
-    cloudPlatform: 'Azure',
-    name: 'azName',
-    namespace: 'azNamespace',
-    workspaceId: 'azWorkspaceId',
-  },
-  accessLevel: 'OWNER',
-  canShare: true,
-  canCompute: true,
-} as const satisfies DeepPartial<WorkspaceWrapper>;
 
 describe('extractWorkspaceDetails', () => {
   it('Handles properties at top level, converts cloudPlatform to upper case', () => {
@@ -55,12 +30,12 @@ describe('extractWorkspaceDetails', () => {
 
   it('Handles nested workspace details (like from workspace object)', () => {
     // Act
-    const workspaceDetails = extractWorkspaceDetails(gcpWorkspace);
+    const workspaceDetails = extractWorkspaceDetails(defaultGoogleWorkspace);
 
     // Assert
     expect(workspaceDetails).toEqual({
-      workspaceName: 'wsName',
-      workspaceNamespace: 'wsNamespace',
+      workspaceName: defaultGoogleWorkspace.workspace.name,
+      workspaceNamespace: defaultGoogleWorkspace.workspace.namespace,
       cloudPlatform: 'GCP',
       hasProtectedData: undefined,
     });
@@ -70,15 +45,15 @@ describe('extractWorkspaceDetails', () => {
 describe('extractCrossWorkspaceDetails', () => {
   it('Extracts name, namespace, and upper-cased cloudPlatform', () => {
     // Act
-    const crossWorkspaceDetails = extractCrossWorkspaceDetails(gcpWorkspace, azureWorkspace);
+    const crossWorkspaceDetails = extractCrossWorkspaceDetails(defaultGoogleWorkspace, defaultAzureWorkspace);
 
     // Assert
     expect(crossWorkspaceDetails).toEqual({
-      fromWorkspaceNamespace: 'wsNamespace',
-      fromWorkspaceName: 'wsName',
+      fromWorkspaceNamespace: defaultGoogleWorkspace.workspace.namespace,
+      fromWorkspaceName: defaultGoogleWorkspace.workspace.name,
       fromWorkspaceCloudPlatform: 'GCP',
-      toWorkspaceNamespace: 'azNamespace',
-      toWorkspaceName: 'azName',
+      toWorkspaceNamespace: defaultAzureWorkspace.workspace.namespace,
+      toWorkspaceName: defaultAzureWorkspace.workspace.name,
       toWorkspaceCloudPlatform: 'AZURE',
     });
   });
