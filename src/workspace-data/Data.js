@@ -47,6 +47,7 @@ import WDSContent from './data-table/wds/WDSContent';
 import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
 import { useImportJobs } from './import-jobs';
 import { getReferenceData } from './reference-data/reference-data-utils';
+import { getReferenceLabel } from './reference-data/reference-metadata';
 import { ReferenceDataContent } from './reference-data/ReferenceDataContent';
 import { ReferenceDataDeleter } from './reference-data/ReferenceDataDeleter';
 import { ReferenceDataImporter } from './reference-data/ReferenceDataImporter';
@@ -1190,7 +1191,7 @@ export const WorkspaceData = _.flow(
                                   {
                                     style: { flex: 0 },
                                     disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
-                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || `Delete ${type}`,
+                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || `Delete ${getReferenceLabel(type)} reference`,
                                     onClick: (e) => {
                                       e.stopPropagation();
                                       setDeletingReference(type);
@@ -1199,7 +1200,7 @@ export const WorkspaceData = _.flow(
                                   [icon('minus-circle', { size: 16 })]
                                 ),
                               },
-                              [type]
+                              [getReferenceLabel(type)]
                             ),
                           _.keys(referenceData)
                         ),
