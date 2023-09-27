@@ -485,7 +485,7 @@ const EntitiesContent = ({
           dataProvider,
           persist: true,
           refreshKey,
-          editable: !snapshotName && WorkspaceUtils.canEditWorkspace(workspace),
+          editable: !snapshotName && WorkspaceUtils.canEditWorkspace(workspace).value,
           entityType: entityKey,
           activeCrossTableTextFilter,
           entityMetadata,

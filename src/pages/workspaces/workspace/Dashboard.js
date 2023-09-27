@@ -655,7 +655,7 @@ const WorkspaceDashboard = _.flow(
     // Render
     const isEditing = _.isString(editDescription);
     const brand = getEnabledBrand();
-    const [canEdit, editErrorMessage] = canEditWorkspace(workspace);
+    const { value: canEdit, message: editErrorMessage } = canEditWorkspace(workspace);
 
     return div({ style: { flex: 1, display: 'flex' } }, [
       div({ style: Style.dashboard.leftBox }, [

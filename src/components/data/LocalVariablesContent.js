@@ -153,7 +153,7 @@ const LocalVariablesContent = ({
   return h(
     Dropzone,
     {
-      disabled: !WorkspaceUtils.canEditWorkspace(workspace)[0],
+      disabled: !WorkspaceUtils.canEditWorkspace(workspace).value,
       style: { flex: 1, display: 'flex', flexDirection: 'column' },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       onDropAccepted: upload,
@@ -175,7 +175,7 @@ const LocalVariablesContent = ({
             },
             [
               h(Link, { onClick: download }, ['Download TSV']),
-              WorkspaceUtils.canEditWorkspace(workspace)[0] &&
+              WorkspaceUtils.canEditWorkspace(workspace).value &&
                 h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']), h(Link, { onClick: openUploader }, ['upload TSV'])]),
               h(DelayedSearchInput, {
                 'aria-label': 'Search',
@@ -320,7 +320,7 @@ const LocalVariablesContent = ({
           ]),
           !creatingNewVariable &&
             editIndex === undefined &&
-            WorkspaceUtils.canEditWorkspace(workspace)[0] &&
+            WorkspaceUtils.canEditWorkspace(workspace).value &&
             h(FloatingActionButton, {
               label: 'ADD VARIABLE',
               iconShape: 'plus',
