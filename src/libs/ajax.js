@@ -6,7 +6,6 @@ import {
   authOpts,
   fetchAgora,
   fetchBond,
-  fetchDataRepo,
   fetchDrsHub,
   fetchEcm,
   fetchGoogleForms,
@@ -21,6 +20,7 @@ import {
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
+import { DataRepo } from 'src/libs/ajax/DataRepo';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
@@ -903,34 +903,6 @@ const Workspaces = (signal) => ({
       },
     };
   },
-});
-
-const DataRepo = (signal) => ({
-  snapshot: (snapshotId) => {
-    return {
-      details: async () => {
-        const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}`, _.merge(authOpts(), { signal }));
-        return res.json();
-      },
-      exportSnapshot: async () => {
-        const res = await fetchDataRepo(
-          `repository/v1/snapshots/${snapshotId}/export?validatePrimaryKeyUniqueness=false`,
-          _.merge(authOpts(), { signal })
-        );
-        return res.json();
-      },
-    };
-  },
-  job: (jobId) => ({
-    details: async () => {
-      const res = await fetchDataRepo(`repository/v1/jobs/${jobId}`, _.merge(authOpts(), { signal }));
-      return res.json();
-    },
-    result: async () => {
-      const res = await fetchDataRepo(`repository/v1/jobs/${jobId}/result`, _.merge(authOpts(), { signal }));
-      return res.json();
-    },
-  }),
 });
 
 const FirecloudBucket = (signal) => ({

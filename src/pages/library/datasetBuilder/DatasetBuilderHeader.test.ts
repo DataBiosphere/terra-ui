@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilderHeader';
+import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),

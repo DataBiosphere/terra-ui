@@ -12,13 +12,18 @@ import Modal from 'src/components/Modal';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
 import {
+  DataRepo,
+  datasetIncludeTypes,
+  DatasetModel,
+  SnapshotBuilderDatasetConceptSets as DatasetConceptSets,
+  SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
+} from 'src/libs/ajax/DataRepo';
+import {
   Cohort,
   ConceptSet,
   DatasetBuilder,
   DatasetBuilderType,
   DatasetBuilderValue,
-  DatasetResponse,
-  FeatureValueGroup,
 } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
@@ -28,11 +33,7 @@ import * as Utils from 'src/libs/utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
 import { CohortEditor } from 'src/pages/library/datasetBuilder/CohortEditor';
 import { ConceptSetCreator } from 'src/pages/library/datasetBuilder/ConceptSetCreator';
-import {
-  PAGE_PADDING_HEIGHT,
-  PAGE_PADDING_WIDTH,
-  PREPACKAGED_CONCEPT_SETS,
-} from 'src/pages/library/datasetBuilder/constants';
+import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
 import {
   AnyDatasetBuilderState,
   cohortEditorState,
@@ -363,18 +364,20 @@ export const CohortSelector = ({
 
 export const ConceptSetSelector = ({
   conceptSets,
+  prepackagedConceptSets,
   selectedConceptSets,
   updateConceptSets,
   onChange,
   onStateChange,
 }: {
-  conceptSets: ConceptSet[];
+  conceptSets: DatasetConceptSets[];
+  prepackagedConceptSets?: DatasetConceptSets[];
   selectedConceptSets: HeaderAndValues<ConceptSet>[];
   updateConceptSets: Updater<ConceptSet[]>;
   onChange: (conceptSets: HeaderAndValues<ConceptSet>[]) => void;
   onStateChange: OnStateChangeHandler;
 }) => {
-  return h(Selector<ConceptSet>, {
+  return h(Selector<DatasetConceptSets>, {
     headerAction: h(
       Link,
       {
@@ -399,7 +402,7 @@ export const ConceptSetSelector = ({
             [icon('trash-circle-filled', { size: 20 })]
           ),
       },
-      { header: 'Prepackaged concept sets', values: PREPACKAGED_CONCEPT_SETS },
+      { header: 'Prepackaged concept sets', values: prepackagedConceptSets ?? [] },
     ],
     selectedObjectSets: selectedConceptSets,
     header: 'Select concept sets',
@@ -525,8 +528,8 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
 export type DatasetBuilderContentsProps = {
   onStateChange: OnStateChangeHandler;
   updateCohorts: Updater<Cohort[]>;
-  updateConceptSets: Updater<ConceptSet[]>;
-  dataset: DatasetResponse;
+  updateConceptSets: Updater<DatasetConceptSets[]>;
+  dataset: DatasetModel;
   cohorts: Cohort[];
   conceptSets: ConceptSet[];
 };
@@ -582,9 +585,9 @@ export const DatasetBuilderContents = ({
       _.sortBy('name'),
       _.map((featureValueGroup: FeatureValueGroup) => ({
         header: featureValueGroup.name,
-        values: featureValueGroup.values,
+        values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
-    )(dataset.featureValueGroups);
+    )(dataset?.snapshotBuilderSettings?.featureValueGroups);
 
   const createHeaderAndValuesFromFeatureValueGroups = (
     featureValueGroups: string[]
@@ -593,9 +596,9 @@ export const DatasetBuilderContents = ({
       _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
       _.map((featureValueGroup: FeatureValueGroup) => ({
         header: featureValueGroup.name,
-        values: featureValueGroup.values,
+        values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
-    )(dataset.featureValueGroups);
+    )(dataset?.snapshotBuilderSettings?.featureValueGroups);
 
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
@@ -614,6 +617,7 @@ export const DatasetBuilderContents = ({
           }),
           h(ConceptSetSelector, {
             conceptSets,
+            prepackagedConceptSets: dataset?.snapshotBuilderSettings?.datasetConceptSets,
             selectedConceptSets,
             updateConceptSets,
             onChange: async (conceptSets) => {
@@ -667,16 +671,20 @@ const editorBackgroundColor = colors.light(0.7);
 
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const { datasetId, initialState } = props;
-  const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
+  const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetModel>();
   const [datasetBuilderState, setDatasetBuilderState] = useState<AnyDatasetBuilderState>(
     initialState || homepageState.new()
   );
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
-  const [conceptSets, setConceptSets] = useState<ConceptSet[]>([]);
+  const [conceptSets, setConceptSets] = useState<DatasetConceptSets[]>([]);
   const onStateChange = setDatasetBuilderState;
 
   useOnMount(() => {
-    void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
+    void loadDatasetDetails(() =>
+      DataRepo()
+        .dataset(datasetId)
+        .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
+    );
   });
   return datasetDetails.status === 'Ready'
     ? h(FooterWrapper, [
@@ -695,20 +703,24 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   conceptSets,
                 });
               case 'cohort-editor':
-                return h(CohortEditor, {
-                  onStateChange,
-                  originalCohort: datasetBuilderState.cohort,
-                  datasetDetails: datasetDetails.state,
-                  updateCohorts: setCohorts,
-                });
+                return datasetDetails.state.snapshotBuilderSettings
+                  ? h(CohortEditor, {
+                      onStateChange,
+                      originalCohort: datasetBuilderState.cohort,
+                      snapshotBuilderSettings: datasetDetails.state.snapshotBuilderSettings,
+                      updateCohorts: setCohorts,
+                    })
+                  : div(['No Dataset Builder Settings Found']);
               case 'domain-criteria-selector':
                 return h(DomainCriteriaSelector, { state: datasetBuilderState, onStateChange });
               case 'concept-set-creator':
-                return h(ConceptSetCreator, {
-                  onStateChange,
-                  datasetDetails: datasetDetails.state,
-                  conceptSetUpdater: setConceptSets,
-                });
+                return datasetDetails.state.snapshotBuilderSettings
+                  ? h(ConceptSetCreator, {
+                      onStateChange,
+                      snapshotBuilderSettings: datasetDetails.state.snapshotBuilderSettings,
+                      conceptSetUpdater: setConceptSets,
+                    })
+                  : div(['No Dataset Builder Settings Found']);
               default:
                 return datasetBuilderState;
             }
