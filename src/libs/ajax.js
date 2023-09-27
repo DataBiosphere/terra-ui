@@ -6,7 +6,6 @@ import {
   authOpts,
   fetchAgora,
   fetchBond,
-  fetchDataRepo,
   fetchDrsHub,
   fetchEcm,
   fetchGoogleForms,
@@ -21,6 +20,7 @@ import {
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
+import { DataRepo } from 'src/libs/ajax/DataRepo';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
@@ -34,7 +34,7 @@ import { WorkflowScript } from 'src/libs/ajax/workflows-app/WorkflowScript';
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources';
 import { getConfig } from 'src/libs/config';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 window.ajaxOverrideUtils = {
@@ -206,7 +206,7 @@ const User = (signal) => ({
   },
 
   firstTimestamp: () => {
-    return getFirstTimeStamp(getUser().token);
+    return getFirstTimeStamp(getTerraUser().token);
   },
 
   getNihStatus: async () => {
@@ -685,7 +685,7 @@ const Workspaces = (signal) => ({
       },
 
       snapshotEntityMetadata: (googleProject, dataReference) => {
-        return getSnapshotEntityMetadata(getUser().token, namespace, name, googleProject, dataReference);
+        return getSnapshotEntityMetadata(getTerraUser().token, namespace, name, googleProject, dataReference);
       },
 
       createEntity: async (payload) => {
@@ -903,34 +903,6 @@ const Workspaces = (signal) => ({
       },
     };
   },
-});
-
-const DataRepo = (signal) => ({
-  snapshot: (snapshotId) => {
-    return {
-      details: async () => {
-        const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}`, _.merge(authOpts(), { signal }));
-        return res.json();
-      },
-      exportSnapshot: async () => {
-        const res = await fetchDataRepo(
-          `repository/v1/snapshots/${snapshotId}/export?validatePrimaryKeyUniqueness=false`,
-          _.merge(authOpts(), { signal })
-        );
-        return res.json();
-      },
-    };
-  },
-  job: (jobId) => ({
-    details: async () => {
-      const res = await fetchDataRepo(`repository/v1/jobs/${jobId}`, _.merge(authOpts(), { signal }));
-      return res.json();
-    },
-    result: async () => {
-      const res = await fetchDataRepo(`repository/v1/jobs/${jobId}/result`, _.merge(authOpts(), { signal }));
-      return res.json();
-    },
-  }),
 });
 
 const FirecloudBucket = (signal) => ({

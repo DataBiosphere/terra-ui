@@ -18,10 +18,9 @@ import { Ajax } from 'src/libs/ajax';
 import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { hasProtectedData, isAzureWorkspace, isGoogleWorkspace, protectedDataMessage, regionConstraintMessage } from 'src/libs/workspace-utils';
@@ -165,18 +164,6 @@ export const WorkspaceContainer = ({
   const workspaceLoaded = !!workspace;
   const isGoogleWorkspaceSyncing = workspaceLoaded && isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false;
 
-  useEffect(() => {
-    if (isGoogleWorkspaceSyncing) {
-      Ajax().Metrics.captureEvent(Events.permissionsSynchronizationDelayDisplayed, {
-        accessLevel: workspace.accessLevel,
-        createdDate: workspace.workspace.createdDate,
-        isWorkspaceCreator: workspace.workspace.createdBy === getUser().email,
-        ...extractWorkspaceDetails(workspace),
-      });
-    }
-    // Only want to event when isGoogleWorkspaceSyncing changes state, not whenever any part of workspace changes.
-  }, [isGoogleWorkspaceSyncing]); // eslint-disable-line react-hooks/exhaustive-deps
-
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -281,7 +268,7 @@ const WorkspaceAccessError = () => {
     p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
     p([
       'You are currently logged in as ',
-      span({ style: { fontWeight: 600 } }, [getUser().email]),
+      span({ style: { fontWeight: 600 } }, [getTerraUser().email]),
       '. You may have access with a different account.',
     ]),
     p([

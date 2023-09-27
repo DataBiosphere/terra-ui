@@ -7,13 +7,13 @@ import { icon } from 'src/components/icons';
 import { NameModal } from 'src/components/NameModal';
 import { GridTable, HeaderCell, Resizable, Sortable } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
-import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCell';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import { getLocalPref } from 'src/libs/prefs';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
+import { renderDataCell } from 'src/workspace-data/data-table/entity-service/renderDataCell';
 
 const UploadDataTable = (props) => {
   const {

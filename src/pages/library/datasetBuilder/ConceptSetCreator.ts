@@ -1,13 +1,14 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Concept, ConceptSet, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
+import { SnapshotBuilderConcept as Concept, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
+import { ConceptSet } from 'src/libs/ajax/DatasetBuilder';
 import { ConceptSelector } from 'src/pages/library/datasetBuilder/ConceptSelector';
 import { homepageState, Updater } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 
 export type ConceptSetCreatorProps = {
   readonly onStateChange: OnStateChangeHandler;
-  readonly datasetDetails: DatasetResponse;
+  readonly snapshotBuilderSettings: SnapshotBuilderSettings;
   readonly conceptSetUpdater: Updater<ConceptSet[]>;
 };
 
@@ -19,9 +20,9 @@ export const toConceptSet = (concept: Concept): ConceptSet => {
 };
 
 export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
-  const { onStateChange, datasetDetails, conceptSetUpdater } = props;
+  const { onStateChange, snapshotBuilderSettings, conceptSetUpdater } = props;
   return h(ConceptSelector, {
-    initialRows: _.map(_.get('root'), datasetDetails.domainOptions),
+    initialRows: _.map(_.get('root'), snapshotBuilderSettings?.domainOptions),
     title: 'Add concept',
     onCancel: () => onStateChange(homepageState.new()),
     onCommit: (selected: Concept[]) => {

@@ -20,6 +20,7 @@ const eventsList = {
   analysisEnableBeta: 'analysis:enable',
   analysisDisableBeta: 'analysis:disable',
   analysisCreate: 'analysis:create',
+  analysisLaunch: 'analysis:launch',
   analysisToggleJupyterLabGCP: 'analysis:toggleJupyterLabGCP',
   analysisPreviewSuccess: 'analysis:previewSuccess',
   analysisPreviewFail: 'analysis:previewFail',
@@ -73,7 +74,7 @@ const eventsList = {
   notebookCopy: 'notebook:copy',
   notificationToggle: 'notification:toggle',
   pageView: 'page:view',
-  permissionsSynchronizationDelayDisplayed: 'permissions:propagationDelay',
+  permissionsSynchronizationDelay: 'permissions:propagationDelay',
   resourceLeave: 'resource:leave',
   user: {
     authTokenLoad: {
@@ -153,7 +154,9 @@ export const extractWorkspaceDetails = (workspaceObject) => {
   const data = { workspaceName: name, workspaceNamespace: namespace };
   // When workspace details are obtained from the nav path, the cloudPlatform will not be available.
   // Uppercase cloud platform because we mix camelcase and uppercase depending on which server API it came from (rawls/workspace vs. leo).
-  return _.isUndefined(cloudPlatform) ? data : _.merge(data, { cloudPlatform: _.toUpper(cloudPlatform), hasProtectedData });
+  return _.isUndefined(cloudPlatform)
+    ? data
+    : _.merge(data, { cloudPlatform: _.toUpper(cloudPlatform), hasProtectedData });
 };
 
 export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
@@ -180,7 +183,10 @@ export function PageViewReporter() {
   useEffect(() => {
     const isWorkspace = /^#workspaces\/.+\/.+/.test(window.location.hash);
 
-    Ajax().Metrics.captureEvent(`${eventsList.pageView}:${name}`, isWorkspace ? extractWorkspaceDetails(params) : undefined);
+    Ajax().Metrics.captureEvent(
+      `${eventsList.pageView}:${name}`,
+      isWorkspace ? extractWorkspaceDetails(params) : undefined
+    );
   }, [name, params]);
 
   return null;

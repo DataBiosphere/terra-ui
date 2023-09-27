@@ -8,7 +8,7 @@ import { signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useCurrentTime, useOnMount, useStore } from 'src/libs/react-utils';
-import { authStore, getUser, lastActiveTimeStore } from 'src/libs/state';
+import { authStore, getTerraUser, lastActiveTimeStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 const displayRemainingTime = (remainingSeconds) => {
@@ -22,7 +22,7 @@ const displayRemainingTime = (remainingSeconds) => {
   ]);
 };
 
-const setLastActive = (lastActive) => lastActiveTimeStore.update(_.set(getUser().id, lastActive));
+const setLastActive = (lastActive) => lastActiveTimeStore.update(_.set(getTerraUser().id, lastActive));
 const getIdleData = ({ currentTime, lastRecordedActivity, timeout, countdownStart }) => {
   const lastActiveTime = Utils.cond([!lastRecordedActivity, () => currentTime], () => parseInt(lastRecordedActivity, 10));
   const timeoutTime = lastActiveTime + timeout;
@@ -40,9 +40,9 @@ const IdleStatusMonitor = ({ timeout = Utils.durationToMillis({ minutes: 15 }), 
   const [signOutRequired, setSignOutRequired] = useState(false);
 
   const {
-    isSignedIn,
+    signInStatus,
     isTimeoutEnabled,
-    user: { id },
+    terraUser: { id },
   } = useStore(authStore);
   const { query } = Nav.useRoute();
 
@@ -61,10 +61,10 @@ const IdleStatusMonitor = ({ timeout = Utils.durationToMillis({ minutes: 15 }), 
 
   // Render
   return Utils.cond(
-    [isSignedIn && isTimeoutEnabled, () => h(InactivityTimer, { id, timeout, countdownStart, doSignOut })],
+    [signInStatus === 'signedIn' && isTimeoutEnabled, () => h(InactivityTimer, { id, timeout, countdownStart, doSignOut })],
     [signOutRequired, () => iframe({ onLoad: reloadSoon, style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })],
     [
-      query?.sessionExpired && !isSignedIn,
+      query?.sessionExpired && signInStatus !== 'signedIn',
       () =>
         h(
           Modal,

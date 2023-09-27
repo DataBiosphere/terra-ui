@@ -6,7 +6,8 @@ import { ActionBar } from 'src/components/ActionBar';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TreeGrid } from 'src/components/TreeGrid';
-import { Concept, DatasetBuilder, getConceptForId } from 'src/libs/ajax/DatasetBuilder';
+import { SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
+import { DatasetBuilder, getConceptForId } from 'src/libs/ajax/DatasetBuilder';
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
 
 const getChildren = async (concept: Concept): Promise<Concept[]> => {

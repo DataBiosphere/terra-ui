@@ -1,9 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
+import { SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 import { ConceptSetCreator, toConceptSet } from 'src/pages/library/datasetBuilder/ConceptSetCreator';
 import { homepageState } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
 
 describe('ConceptSetCreator', () => {
   const datasetDetails = dummyDatasetDetails('0');
@@ -11,7 +12,13 @@ describe('ConceptSetCreator', () => {
   const renderConceptSetCreator = () => {
     const conceptSetUpdater = jest.fn();
     const onStateChange = jest.fn();
-    render(h(ConceptSetCreator, { datasetDetails, onStateChange, conceptSetUpdater }));
+    render(
+      h(ConceptSetCreator, {
+        snapshotBuilderSettings: datasetDetails.snapshotBuilderSettings as SnapshotBuilderSettings,
+        onStateChange,
+        conceptSetUpdater,
+      })
+    );
     return { conceptSetUpdater, onStateChange };
   };
 
@@ -19,7 +26,7 @@ describe('ConceptSetCreator', () => {
     // Arrange
     renderConceptSetCreator();
     // Assert
-    expect(await screen.findByText(datasetDetails.domainOptions[0].root.name)).toBeTruthy();
+    expect(await screen.findByText(datasetDetails!.snapshotBuilderSettings!.domainOptions[0].root.name)).toBeTruthy();
   });
 
   it('updates the builder concept sets on save', async () => {
@@ -32,7 +39,9 @@ describe('ConceptSetCreator', () => {
     await user.click(screen.getByText('Add to concept sets'));
     // Assert
     expect(onStateChange).toHaveBeenCalledWith(homepageState.new());
-    expect(conceptSetUpdater.mock.calls[0][0]([])).toEqual([toConceptSet(datasetDetails.domainOptions[0].root)]);
+    expect(conceptSetUpdater.mock.calls[0][0]([])).toEqual([
+      toConceptSet(datasetDetails!.snapshotBuilderSettings!.domainOptions[0].root),
+    ]);
   });
 
   it('returns to the home page on cancel', async () => {

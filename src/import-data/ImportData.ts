@@ -2,7 +2,6 @@ import _ from 'lodash/fp';
 import { Fragment, useCallback, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import { notifyDataImportProgress } from 'src/data/import-jobs';
 import { Ajax } from 'src/libs/ajax';
 import { Dataset } from 'src/libs/ajax/Catalog';
 import { resolveWdsUrl, WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -14,6 +13,7 @@ import { useOnMount } from 'src/libs/react-utils';
 import { asyncImportJobStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { useDataCatalog } from 'src/pages/library/dataBrowser-utils';
+import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
 
 import { TemplateWorkspaceInfo } from './import-types';
 import { ImportDataDestination } from './ImportDataDestination';

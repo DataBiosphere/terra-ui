@@ -52,8 +52,8 @@ const renderAlerts = async (termsOfService) => {
   await act(async () => { render(h(Alerts)) }) //eslint-disable-line
   setupMockAjax(termsOfService);
 
-  const isSignedIn = true;
-  await act(async () => { authStore.update(state => ({ ...state, termsOfService, isSignedIn })) })  //eslint-disable-line
+  const signInStatus = 'signedIn';
+  await act(async () => { authStore.update(state => ({ ...state, termsOfService, signInStatus })) })  //eslint-disable-line
 };
 
 describe('terms-of-service-alerts', () => {

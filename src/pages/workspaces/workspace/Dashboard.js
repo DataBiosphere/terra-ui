@@ -104,26 +104,29 @@ const DataUseLimitations = ({ attributes }) => {
 
 const DashboardAuthContainer = (props) => {
   const { namespace, name } = props;
-  const { isSignedIn } = useStore(authStore);
+  const { signInStatus } = useStore(authStore);
   const [featuredWorkspaces, setFeaturedWorkspaces] = useState();
 
-  const isAuthInitialized = isSignedIn !== undefined;
+  const isAuthInitialized = signInStatus !== 'uninitialized';
 
   useEffect(() => {
     const fetchData = async () => {
       setFeaturedWorkspaces(await Ajax().FirecloudBucket.getFeaturedWorkspaces());
     };
-    if (isSignedIn === false) {
+    if (signInStatus === 'signedOut') {
       fetchData();
     }
-  }, [isSignedIn]);
+  }, [signInStatus]);
 
   const isFeaturedWorkspace = () => _.some((ws) => ws.namespace === namespace && ws.name === name, featuredWorkspaces);
 
   return Utils.cond(
-    [!isAuthInitialized || (isSignedIn === false && featuredWorkspaces === undefined), () => h(centeredSpinner, { style: { position: 'fixed' } })],
-    [isSignedIn === false && isFeaturedWorkspace(), () => h(DashboardPublic, props)],
-    [isSignedIn === false, () => h(SignIn)],
+    [
+      !isAuthInitialized || (signInStatus === 'signedOut' && featuredWorkspaces === undefined),
+      () => h(centeredSpinner, { style: { position: 'fixed' } }),
+    ],
+    [signInStatus === 'signedOut' && isFeaturedWorkspace(), () => h(DashboardPublic, props)],
+    [signInStatus === 'signedOut', () => h(SignIn)],
     () => h(WorkspaceDashboard, props)
   );
 };

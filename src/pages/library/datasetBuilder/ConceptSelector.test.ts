@@ -31,7 +31,7 @@ describe('ConceptSelector', () => {
     expect(screen.queryByText(title)).toBeTruthy();
     expect(screen.queryByText(initialRows[0].name)).toBeTruthy();
     expect(screen.queryByText(initialRows[0].id)).toBeTruthy();
-    expect(screen.queryByText(initialRows[0].count)).toBeTruthy();
+    expect(screen.queryByText(initialRows[0].count || 0)).toBeTruthy();
     // Action text not visible until a row is selected.
     expect(screen.queryByText(actionText)).toBeFalsy();
   });
@@ -83,12 +83,12 @@ describe('ConceptSelector', () => {
   it('calls ajax API to expand a row', async () => {
     // Arrange
     renderSelector();
-    const mockDatasetResponse: Partial<DatasetBuilderContract> = {
+    const mockDatasetBuilderContract: Partial<DatasetBuilderContract> = {
       getConcepts: jest.fn(),
     };
-    const getConceptsMock = (mockDatasetResponse as DatasetBuilderContract).getConcepts;
+    const getConceptsMock = (mockDatasetBuilderContract as DatasetBuilderContract).getConcepts;
     asMockedFn(getConceptsMock).mockResolvedValue({ result: [] });
-    asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetResponse as DatasetBuilderContract);
+    asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetBuilderContract as DatasetBuilderContract);
     // Act
     const user = userEvent.setup();
     await user.click(screen.getByLabelText('expand'));
