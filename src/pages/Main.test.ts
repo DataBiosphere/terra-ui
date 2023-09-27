@@ -124,10 +124,10 @@ jest.mock('src/components/TitleManager', (): TitleManagerExports => {
   };
 });
 
-type ImportStatusExports = typeof import('src/data/ImportStatus') & { __esModule: true };
-jest.mock('src/data/ImportStatus', (): ImportStatusExports => {
+type ImportStatusExports = typeof import('src/workspace-data/ImportStatus') & { __esModule: true };
+jest.mock('src/workspace-data/ImportStatus', (): ImportStatusExports => {
   return {
-    ...jest.requireActual<ImportStatusExports>('src/data/ImportStatus'),
+    ...jest.requireActual<ImportStatusExports>('src/workspace-data/ImportStatus'),
     default: jest.fn().mockReturnValue(null),
     __esModule: true,
   };

@@ -24,7 +24,7 @@ type StateExports = typeof import('src/libs/state');
 jest.mock('src/libs/state', (): StateExports => {
   return {
     ...jest.requireActual('src/libs/state'),
-    getUser: jest.fn(() => ({ email: 'workspace-creator@gmail.com' })),
+    getTerraUser: jest.fn(() => ({ email: 'workspace-creator@gmail.com' })),
   };
 });
 

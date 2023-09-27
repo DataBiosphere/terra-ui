@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
-import { getAttributeType } from 'src/data/data-table/entity-service/attribute-utils';
 import * as Utils from 'src/libs/utils';
+import { getAttributeType } from 'src/workspace-data/data-table/entity-service/attribute-utils';
 
 export const entityAttributeText = (attributeValue, machineReadable) => {
   const { type, isList } = getAttributeType(attributeValue);

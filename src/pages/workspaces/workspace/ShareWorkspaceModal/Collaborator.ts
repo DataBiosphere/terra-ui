@@ -5,7 +5,7 @@ import { LabeledCheckbox, Link, Select, SelectProps } from 'src/components/commo
 import { icon } from 'src/components/icons';
 import { getPopupRoot } from 'src/components/popup-utils';
 import colors from 'src/libs/colors';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { BaseWorkspace, hasAccessLevel, isAzureWorkspace, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
 import { AccessEntry, WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
@@ -31,7 +31,7 @@ export const Collaborator: React.FC<CollaboratorProps> = (props: CollaboratorPro
   const { originalAcl, aclItem, acl, setAcl, workspace, lastAddedEmail } = props;
   const { email, accessLevel, pending } = aclItem;
   const POAccessLevel: WorkspaceAccessLevel = 'PROJECT_OWNER';
-  const disabled = accessLevel === POAccessLevel || email === getUser().email;
+  const disabled = accessLevel === POAccessLevel || email === getTerraUser().email;
   const isOld = _.find({ email }, originalAcl);
 
   return div(

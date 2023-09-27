@@ -29,7 +29,7 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -47,6 +47,7 @@ import WDSContent from './data-table/wds/WDSContent';
 import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
 import { useImportJobs } from './import-jobs';
 import { getReferenceData } from './reference-data/reference-data-utils';
+import { getReferenceLabel } from './reference-data/reference-metadata';
 import { ReferenceDataContent } from './reference-data/ReferenceDataContent';
 import { ReferenceDataDeleter } from './reference-data/ReferenceDataDeleter';
 import { ReferenceDataImporter } from './reference-data/ReferenceDataImporter';
@@ -330,7 +331,7 @@ const DataTableActions = ({
               action: `${getConfig().orchestrationUrlRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${tableName}/tsv`,
               method: 'POST',
             },
-            [input({ type: 'hidden', name: 'FCtoken', value: getUser().token }), input({ type: 'hidden', name: 'model', value: 'flexible' })]
+            [input({ type: 'hidden', name: 'FCtoken', value: getTerraUser().token }), input({ type: 'hidden', name: 'model', value: 'flexible' })]
           ),
           (dataProvider.features.supportsTsvDownload || dataProvider.features.supportsTsvAjaxDownload) &&
             h(
@@ -1190,7 +1191,7 @@ export const WorkspaceData = _.flow(
                                   {
                                     style: { flex: 0 },
                                     disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
-                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || `Delete ${type}`,
+                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || `Delete ${getReferenceLabel(type)} reference`,
                                     onClick: (e) => {
                                       e.stopPropagation();
                                       setDeletingReference(type);
@@ -1199,7 +1200,7 @@ export const WorkspaceData = _.flow(
                                   [icon('minus-circle', { size: 16 })]
                                 ),
                               },
-                              [type]
+                              [getReferenceLabel(type)]
                             ),
                           _.keys(referenceData)
                         ),

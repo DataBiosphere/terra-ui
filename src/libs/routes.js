@@ -3,7 +3,6 @@ import { compile, pathToRegexp } from 'path-to-regexp';
 import * as Analysis from 'src/analysis/Analyses';
 import * as AnalysisLauncher from 'src/analysis/AnalysisLauncher';
 import * as AppLauncher from 'src/analysis/AppLauncher';
-import * as Data from 'src/data/Data';
 import * as ImportDataPage from 'src/import-data/ImportDataPage';
 import { routeHandlersStore } from 'src/libs/state';
 import * as AzurePreview from 'src/pages/AzurePreview';
@@ -39,6 +38,7 @@ import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/Wo
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows';
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView';
 import * as WorkflowsApp from 'src/workflows-app/routes';
+import * as Data from 'src/workspace-data/Data';
 
 /*
  * NOTE: In order to show up in reports, new events[^1] MUST be marked as expected in the Mixpanel

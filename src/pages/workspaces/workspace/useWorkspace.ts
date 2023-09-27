@@ -10,9 +10,10 @@ import { responseContainsRequesterPaysError } from 'src/libs/ajax/ajax-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { saToken } from 'src/libs/ajax/GoogleStorage';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { clearNotification, notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
-import { getUser, workspaceStore } from 'src/libs/state';
+import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { differenceFromNowInSeconds } from 'src/libs/utils';
 import { canWrite, isAzureWorkspace, isGoogleWorkspace, isOwner, WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -75,17 +76,19 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     workspaceStore.set(_.clone(workspace));
   };
 
-  const checkWorkspaceInitialization = (workspace) => {
+  const checkWorkspaceInitialization = (workspace, times = 0) => {
     console.assert(!!workspace, 'initialization should not be called before workspace details are fetched');
 
     if (isGoogleWorkspace(workspace)) {
-      !workspaceInitialized ? checkGooglePermissions(workspace) : loadGoogleBucketLocationIgnoringError(workspace);
+      !workspaceInitialized
+        ? checkGooglePermissions(workspace, times)
+        : loadGoogleBucketLocationIgnoringError(workspace);
     } else if (isAzureWorkspace(workspace)) {
       !workspaceInitialized ? checkAzureStorageExists(workspace) : loadAzureStorageDetails(workspace);
     }
   };
 
-  const checkGooglePermissions = async (workspace) => {
+  const checkGooglePermissions = async (workspace, times) => {
     try {
       // Because checkBucketReadAccess can succeed and subsequent calls to get the bucket location or storage
       // cost estimate may fail (due to caching of previous failure results), do not consider permissions
@@ -111,8 +114,16 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
       } else {
         updateWorkspaceInStore(workspace, false);
         console.log('Google permissions are still syncing'); // eslint-disable-line no-console
+        if (times === 1) {
+          Ajax().Metrics.captureEvent(Events.permissionsSynchronizationDelay, {
+            accessLevel: workspace.accessLevel,
+            createdDate: workspace.workspace.createdDate,
+            isWorkspaceCreator: workspace.workspace.createdBy === getTerraUser().email,
+            ...extractWorkspaceDetails(workspace),
+          });
+        }
         checkInitializationTimeout.current = window.setTimeout(
-          () => checkWorkspaceInitialization(workspace),
+          () => checkWorkspaceInitialization(workspace, times + 1),
           googlePermissionsRecheckRate
         );
       }
@@ -203,7 +214,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
       }
 
       // This is old code-- it is unclear if this case can actually happen anymore.
-      if (!isOwner(accessLevel) && createdBy === getUser().email && differenceFromNowInSeconds(createdDate) < 60) {
+      if (!isOwner(accessLevel) && createdBy === getTerraUser().email && differenceFromNowInSeconds(createdDate) < 60) {
         accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
           message: h(Fragment, [
             'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',

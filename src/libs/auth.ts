@@ -22,7 +22,7 @@ import {
   azureCookieReadyStore,
   azurePreviewStore,
   cookieReadyStore,
-  getUser,
+  getTerraUser,
   oidcStore,
   requesterPaysProjectStore,
   TerraUserRegistrationStatus,
@@ -416,14 +416,14 @@ export const ensureAuthSettled = () => {
 };
 
 export const bucketBrowserUrl = (id) => {
-  return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`;
+  return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getTerraUser().email}`;
 };
 
 /*
  * Specifies whether the user has logged in via the Azure identity provider.
  */
 export const isAzureUser = (): boolean => {
-  return _.startsWith('https://login.microsoftonline.com', getUser().idp!);
+  return _.startsWith('https://login.microsoftonline.com', getTerraUser().idp!);
 };
 
 export const loadOidcUser = (user: OidcUser): void => {
@@ -437,7 +437,7 @@ export const loadOidcUser = (user: OidcUser): void => {
       // Load whether a user has input a cookie acceptance in a previous session on this system,
       // or whether they input cookie acceptance previously in this session
       cookiesAccepted: state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey),
-      user: {
+      terraUser: {
         token: user.access_token,
         scope: user.scope,
         id: userId,
@@ -498,7 +498,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
       isTimeoutEnabled: undefined,
       cookiesAccepted: true,
       profile: {},
-      user: {
+      terraUser: {
         token,
         id: data.sub,
         email: data.email,
@@ -567,7 +567,7 @@ authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
-        window.Appcues.identify(state.user.id, {
+        window.Appcues.identify(state.terraUser.id, {
           dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime(),
         });
         window.Appcues.on('all', captureAppcuesEvent);

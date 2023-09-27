@@ -21,6 +21,7 @@ export type AuthorizationDomain = {
   membersGroupName: string;
 };
 
+// TODO: Clean up all the optional types when we fix return types of all the places we retrieve workspaces
 interface BaseWorkspaceInfo {
   namespace: string;
   name: string;
@@ -29,6 +30,9 @@ interface BaseWorkspaceInfo {
   createdDate: string;
   createdBy: string;
   lastModified: string;
+  attributes?: Record<string, unknown>;
+  isLocked?: boolean;
+  state?: WorkpaceState;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
@@ -61,6 +65,21 @@ export const canWrite = (accessLevel: WorkspaceAccessLevel): boolean => hasAcces
 export const canRead = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('READER', accessLevel);
 export const isOwner = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('OWNER', accessLevel);
 
+export interface WorkspaceSubmissionStats {
+  lastSuccessDate?: string;
+  lastFailureDate?: string;
+  runningSubmissionsCount: number;
+}
+
+export type WorkpaceState =
+  | 'Creating'
+  | 'CreateFailed'
+  | 'Ready'
+  | 'Updating'
+  | 'UpdateFailed'
+  | 'Deleting'
+  | 'DeleteFailed';
+
 export interface BaseWorkspace {
   accessLevel: WorkspaceAccessLevel;
   canShare: boolean;
@@ -69,6 +88,8 @@ export interface BaseWorkspace {
   // Currently will always be empty for GCP workspaces, but this will change in the future.
   // For the purposes of test data, not requiring the specification of the field.
   policies?: WorkspacePolicy[];
+  public?: boolean;
+  workspaceSubmissionStats?: WorkspaceSubmissionStats;
 }
 
 export interface AzureContext {

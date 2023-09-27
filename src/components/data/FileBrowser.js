@@ -11,7 +11,6 @@ import { NameModal } from 'src/components/NameModal';
 import { UploadProgressModal } from 'src/components/ProgressBar';
 import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table';
-import { UriViewer } from 'src/data/data-table/uri-viewer/UriViewer';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
@@ -20,6 +19,7 @@ import { requesterPaysProjectStore } from 'src/libs/state';
 import { useUploader } from 'src/libs/uploads';
 import * as Utils from 'src/libs/utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import { UriViewer } from 'src/workspace-data/data-table/uri-viewer/UriViewer';
 
 const useBucketContents = ({ googleProject, bucketName, prefix, pageSize = 1000 }) => {
   const [allObjects, setAllObjects] = useState([]);
