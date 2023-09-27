@@ -37,7 +37,7 @@ export const convertInitialAttributes = _.flow(
   _.sortBy(_.first)
 );
 
-const LocalVariablesContent = ({
+export const WorkspaceAttributes = ({
   workspace,
   workspace: {
     workspace: { namespace, name },
@@ -353,5 +353,3 @@ const LocalVariablesContent = ({
     ]
   );
 };
-
-export default LocalVariablesContent;

@@ -1,4 +1,4 @@
-import { convertInitialAttributes, getDisplayedAttribute, renameAttribute } from 'src/components/data/LocalVariablesContent';
+import { convertInitialAttributes, getDisplayedAttribute, renameAttribute } from './WorkspaceAttributes';
 
 describe('getDisplayedAttribute', () => {
   it('gets a displayed attribute with a description', () => {
