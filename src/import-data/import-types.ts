@@ -5,3 +5,5 @@ export interface TemplateWorkspaceInfo {
   hasNotebooks: boolean;
   hasWorkflows: boolean;
 }
+
+// This is a test change
