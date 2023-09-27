@@ -1,11 +1,10 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { DelayedRender, icon, TooltipTrigger } from '@terra-ui-packages/components';
 import { cond, switchCase } from '@terra-ui-packages/core-utils';
 import { isAfter, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
-import { DelayedRender } from 'src/components/common';
-import { icon, spinner } from 'src/components/icons';
+import { spinner } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
