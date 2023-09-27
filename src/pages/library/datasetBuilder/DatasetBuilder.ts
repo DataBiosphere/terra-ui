@@ -703,20 +703,24 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   conceptSets,
                 });
               case 'cohort-editor':
-                return h(CohortEditor, {
-                  onStateChange,
-                  originalCohort: datasetBuilderState.cohort,
-                  datasetDetails: datasetDetails.state,
-                  updateCohorts: setCohorts,
-                });
+                return datasetDetails.state.snapshotBuilderSettings
+                  ? h(CohortEditor, {
+                      onStateChange,
+                      originalCohort: datasetBuilderState.cohort,
+                      snapshotBuilderSettings: datasetDetails.state.snapshotBuilderSettings,
+                      updateCohorts: setCohorts,
+                    })
+                  : div(['No Dataset Builder Settings Found']);
               case 'domain-criteria-selector':
                 return h(DomainCriteriaSelector, { state: datasetBuilderState, onStateChange });
               case 'concept-set-creator':
-                return h(ConceptSetCreator, {
-                  onStateChange,
-                  datasetDetails: datasetDetails.state,
-                  conceptSetUpdater: setConceptSets,
-                });
+                return datasetDetails.state.snapshotBuilderSettings
+                  ? h(ConceptSetCreator, {
+                      onStateChange,
+                      snapshotBuilderSettings: datasetDetails.state.snapshotBuilderSettings,
+                      conceptSetUpdater: setConceptSets,
+                    })
+                  : div(['No Dataset Builder Settings Found']);
               default:
                 return datasetBuilderState;
             }

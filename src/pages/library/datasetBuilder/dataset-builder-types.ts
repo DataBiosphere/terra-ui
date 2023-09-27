@@ -1,4 +1,4 @@
-import { SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
+import { SnapshotBuilderDomainOption as DomainOption } from 'src/libs/ajax/DataRepo';
 import { Cohort, CriteriaGroup } from 'src/libs/ajax/DatasetBuilder';
 
 let groupCount = 1;
@@ -52,15 +52,11 @@ export interface DomainCriteriaSelectorState extends DatasetBuilderState {
 
   readonly cohort: Cohort;
   readonly criteriaGroup: CriteriaGroup;
-  readonly domainOption: SnapshotBuilderDomainOption;
+  readonly domainOption: DomainOption;
 }
 
 export const domainCriteriaSelectorState = {
-  new: (
-    cohort: Cohort,
-    criteriaGroup: CriteriaGroup,
-    domainOption: SnapshotBuilderDomainOption
-  ): DomainCriteriaSelectorState => ({
+  new: (cohort: Cohort, criteriaGroup: CriteriaGroup, domainOption: DomainOption): DomainCriteriaSelectorState => ({
     mode: 'domain-criteria-selector',
     cohort,
     criteriaGroup,

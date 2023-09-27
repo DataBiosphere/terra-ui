@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 import { ConceptSetCreator, toConceptSet } from 'src/pages/library/datasetBuilder/ConceptSetCreator';
 import { homepageState } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
@@ -11,7 +12,13 @@ describe('ConceptSetCreator', () => {
   const renderConceptSetCreator = () => {
     const conceptSetUpdater = jest.fn();
     const onStateChange = jest.fn();
-    render(h(ConceptSetCreator, { datasetDetails, onStateChange, conceptSetUpdater }));
+    render(
+      h(ConceptSetCreator, {
+        snapshotBuilderSettings: datasetDetails.snapshotBuilderSettings as SnapshotBuilderSettings,
+        onStateChange,
+        conceptSetUpdater,
+      })
+    );
     return { conceptSetUpdater, onStateChange };
   };
 

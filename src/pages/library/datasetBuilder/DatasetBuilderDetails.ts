@@ -1,4 +1,5 @@
 import _ from 'lodash/fp';
+import { useEffect } from 'react';
 import { div, h, h1, h3 } from 'react-hyperscript-helpers';
 import { ButtonOutline, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -70,13 +71,17 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
     datasetRoles.status === 'Ready' ? _.intersection(['admin'], datasetRoles.state).length > 0 : false;
 
   useOnMount(() => {
-    void loadDatasetDetails(() =>
-      DataRepo()
-        .dataset(datasetId)
-        .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
-    );
+    void loadDatasetDetails(() => DataRepo().dataset(datasetId).details());
     void loadDatasetRoles(() => DataRepo().dataset(datasetId).roles());
   });
+
+  useEffect(() => {
+    hasAggregateDataViewerAccess &&
+      void loadDatasetDetails(() =>
+        DataRepo().dataset(datasetId).details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS])
+      );
+  }, [datasetId, loadDatasetDetails, hasAggregateDataViewerAccess]);
+
   return datasetDetails.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
@@ -85,9 +90,9 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
             breadcrumbs: [{ link: Nav.getLink('library-datasets'), title: 'Data Browser' }],
           }),
           h1({ style: { marginTop: '0.75rem' } }, [datasetDetails.state.name]),
-          div({ style: { display: 'flex' } }, [
+          div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
             h(MarkdownViewer, [datasetDetails.state.description]),
-            div({ style: { width: '70rem', backgroundColor: 'white', padding: '1rem', marginLeft: '1rem' } }, [
+            div({ style: { width: '22rem', backgroundColor: 'white', padding: '1rem', marginLeft: '1rem' } }, [
               div([
                 'Use the Dataset Builder to create specific tailored data for further analyses in a Terra Workspace',
               ]),
@@ -97,7 +102,7 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
                   style: { width: '100%', borderRadius: 0, marginTop: '1rem', textTransform: 'none' },
                   // TODO: Get link for learn how to get access
                   href: !hasAggregateDataViewerAccess
-                    ? encodeURIComponent(datasetDetails.state.properties.learnMoreLink)
+                    ? encodeURIComponent(Nav.getLink('root'))
                     : Nav.getLink('create-dataset', { datasetId }),
                 },
                 [hasAggregateDataViewerAccess ? 'Start creating datasets' : 'Learn how to gain access']
@@ -107,10 +112,11 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
               ]),
             ]),
           ]),
-          h(TileDisplay, {
-            title: 'EHR Domains',
-            displayInformation: datasetDetails.state?.snapshotBuilderSettings?.domainOptions ?? [],
-          }),
+          datasetDetails.state.snapshotBuilderSettings &&
+            h(TileDisplay, {
+              title: 'EHR Domains',
+              displayInformation: datasetDetails.state.snapshotBuilderSettings.domainOptions,
+            }),
         ]),
       ])
     : spinnerOverlay;

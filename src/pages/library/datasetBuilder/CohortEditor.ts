@@ -6,11 +6,11 @@ import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
 import {
-  DatasetModel,
   ProgramDataListOption,
   ProgramDataListValue,
   ProgramDataRangeOption,
   SnapshotBuilderDomainOption as DomainOption,
+  SnapshotBuilderSettings,
 } from 'src/libs/ajax/DataRepo';
 import {
   AnyCriteria,
@@ -210,13 +210,13 @@ type AddCriteriaSelectorProps = {
   index: number;
   criteriaGroup: CriteriaGroup;
   updateCohort: Updater<Cohort>;
-  datasetDetails: DatasetModel;
+  snapshotBuilderSettings: SnapshotBuilderSettings;
   onStateChange: OnStateChangeHandler;
   cohort: Cohort;
 };
 
 const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
-  const { index, criteriaGroup, updateCohort, datasetDetails, onStateChange, cohort } = props;
+  const { index, criteriaGroup, updateCohort, snapshotBuilderSettings, onStateChange, cohort } = props;
   return h(GroupedSelect<CriteriaOption>, {
     styles: { container: (provided) => ({ ...provided, width: '230px', marginTop: wideMargin }) },
     isClearable: false,
@@ -229,7 +229,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
             value: addKindToDomainOption(domainOption),
             label: domainOption.category,
           }),
-          datasetDetails?.snapshotBuilderSettings?.domainOptions
+          snapshotBuilderSettings.domainOptions
         ),
       },
       {
@@ -239,7 +239,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
             value: programDataOption,
             label: programDataOption.name,
           };
-        }, datasetDetails?.snapshotBuilderSettings?.programDataOptions),
+        }, snapshotBuilderSettings.programDataOptions),
       },
     ],
     'aria-label': addCriteriaText,
@@ -265,12 +265,12 @@ type CriteriaGroupViewProps = {
   criteriaGroup: CriteriaGroup;
   updateCohort: Updater<Cohort>;
   cohort: Cohort;
-  datasetDetails: DatasetModel;
+  snapshotBuilderSettings: SnapshotBuilderSettings;
   onStateChange: OnStateChangeHandler;
 };
 
 export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
-  const { index, criteriaGroup, updateCohort, cohort, datasetDetails, onStateChange } = props;
+  const { index, criteriaGroup, updateCohort, cohort, snapshotBuilderSettings, onStateChange } = props;
 
   const deleteCriteria = (criteria: AnyCriteria) =>
     updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)));
@@ -355,7 +355,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
                 ]),
               ]),
         ]),
-        h(AddCriteriaSelector, { index, criteriaGroup, updateCohort, datasetDetails, onStateChange, cohort }),
+        h(AddCriteriaSelector, { index, criteriaGroup, updateCohort, snapshotBuilderSettings, onStateChange, cohort }),
       ]),
       div(
         {
@@ -377,12 +377,12 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
 
 type CohortGroupsProps = {
   cohort: Cohort | undefined;
-  datasetDetails: DatasetModel;
+  snapshotBuilderSettings: SnapshotBuilderSettings;
   updateCohort: Updater<Cohort>;
   onStateChange: OnStateChangeHandler;
 };
 const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
-  const { datasetDetails, cohort, updateCohort, onStateChange } = props;
+  const { snapshotBuilderSettings, cohort, updateCohort, onStateChange } = props;
   return div({ style: { width: '47rem' } }, [
     cohort == null
       ? 'No cohort found'
@@ -390,7 +390,14 @@ const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
           _.map(
             ([index, criteriaGroup]) =>
               h(Fragment, { key: criteriaGroup.name }, [
-                h(CriteriaGroupView, { index, criteriaGroup, updateCohort, cohort, datasetDetails, onStateChange }),
+                h(CriteriaGroupView, {
+                  index,
+                  criteriaGroup,
+                  updateCohort,
+                  cohort,
+                  snapshotBuilderSettings,
+                  onStateChange,
+                }),
                 div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'center' } }, [
                   div(
                     {
@@ -424,11 +431,11 @@ const editorBackgroundColor = colors.light(0.7);
 type CohortEditorContentsProps = {
   updateCohort: Updater<Cohort>;
   cohort: Cohort;
-  datasetDetails: DatasetModel;
+  snapshotBuilderSettings: SnapshotBuilderSettings;
   onStateChange: OnStateChangeHandler;
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
-  const { updateCohort, cohort, datasetDetails, onStateChange } = props;
+  const { updateCohort, cohort, snapshotBuilderSettings, onStateChange } = props;
   return div(
     {
       style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` },
@@ -451,7 +458,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
       div({ style: { display: 'flow' } }, [
         h(CohortGroups, {
           key: cohort.name,
-          datasetDetails,
+          snapshotBuilderSettings,
           cohort,
           updateCohort,
           onStateChange,
@@ -475,18 +482,18 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
 
 interface CohortEditorProps {
   readonly onStateChange: OnStateChangeHandler;
-  readonly datasetDetails: DatasetModel;
+  readonly snapshotBuilderSettings: SnapshotBuilderSettings;
   readonly originalCohort: Cohort;
   readonly updateCohorts: Updater<Cohort[]>;
 }
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
-  const { onStateChange, datasetDetails, originalCohort, updateCohorts } = props;
+  const { onStateChange, snapshotBuilderSettings, originalCohort, updateCohorts } = props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
   const updateCohort = (updateCohort: (Cohort) => Cohort) => _.flow(updateCohort, setCohort)(cohort);
 
   return h(Fragment, [
-    h(CohortEditorContents, { updateCohort, cohort, datasetDetails, onStateChange }),
+    h(CohortEditorContents, { updateCohort, cohort, snapshotBuilderSettings, onStateChange }),
     // add div to cover page to footer
     div(
       {

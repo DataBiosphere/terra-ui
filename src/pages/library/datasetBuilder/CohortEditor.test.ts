@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { KEY_LEFT, KEY_RIGHT } from 'keycode-js';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
+import { SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 import { AnyCriteria, Cohort, CriteriaGroup, DomainCriteria } from 'src/libs/ajax/DatasetBuilder';
 import {
   CohortEditor,
@@ -218,7 +219,7 @@ describe('CohortEditor', () => {
         criteriaGroup,
         updateCohort,
         cohort,
-        datasetDetails,
+        snapshotBuilderSettings: datasetDetails.snapshotBuilderSettings as SnapshotBuilderSettings,
         onStateChange: _.noop,
       })
     );
@@ -312,7 +313,14 @@ describe('CohortEditor', () => {
     const onStateChange = jest.fn();
     const updateCohorts = jest.fn();
 
-    render(h(CohortEditor, { onStateChange, datasetDetails, originalCohort, updateCohorts }));
+    render(
+      h(CohortEditor, {
+        onStateChange,
+        snapshotBuilderSettings: datasetDetails.snapshotBuilderSettings as SnapshotBuilderSettings,
+        originalCohort,
+        updateCohorts,
+      })
+    );
     return { originalCohort, onStateChange, updateCohorts };
   }
 
