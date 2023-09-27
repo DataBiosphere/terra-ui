@@ -106,7 +106,7 @@ const WorkflowCard = memoWithName('WorkflowCard', ({ listView, name, namespace, 
     methodRepoMethod: { sourceRepo, methodVersion },
   } = config;
   const sourceRepoName = sourceRepo === 'agora' ? 'Terra' : Utils.normalizeLabel(sourceRepo);
-  const props = WorkspaceUtils.getWorkspaceEditControlProps(workspace);
+  const workspaceEditControlProps = WorkspaceUtils.getWorkspaceEditControlProps(workspace);
   const workflowCardMenu = h(
     MenuTrigger,
     {
@@ -124,7 +124,7 @@ const WorkflowCard = memoWithName('WorkflowCard', ({ listView, name, namespace, 
           MenuButton,
           {
             onClick: onCopy,
-            ...props,
+            ...workspaceEditControlProps,
             tooltipSide: 'left',
           },
           [makeMenuIcon('copy'), 'Duplicate']
@@ -133,7 +133,7 @@ const WorkflowCard = memoWithName('WorkflowCard', ({ listView, name, namespace, 
           MenuButton,
           {
             onClick: onDelete,
-            ...props,
+            ...workspaceEditControlProps,
             tooltipSide: 'left',
           },
           [makeMenuIcon('trash'), 'Delete']
