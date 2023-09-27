@@ -6,6 +6,8 @@ import { centeredSpinner } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOWS } from 'src/libs/feature-previews-config';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus } from 'src/libs/state';
 import * as Style from 'src/libs/style';
@@ -85,19 +87,22 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const createWorkflowsApp = Utils.withBusyState(setCreating, async () => {
       try {
         setCreating(true);
-        await Ajax().Apps.createAppV2(
-          generateAppName(),
-          workspace.workspace.workspaceId,
-          appToolLabels.WORKFLOWS_APP,
-          appAccessScopes.WORKSPACE_SHARED
-        );
-        await Ajax().Apps.createAppV2(
-          generateAppName(),
-          workspace.workspace.workspaceId,
-          appToolLabels.CROMWELL_RUNNER_APP,
-          appAccessScopes.USER_PRIVATE
-        );
-
+        if (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOWS)) {
+          await Ajax().Apps.createAppV2(
+            generateAppName(),
+            workspace.workspace.workspaceId,
+            appToolLabels.WORKFLOWS_APP,
+            appAccessScopes.WORKSPACE_SHARED
+          );
+          await Ajax().Apps.createAppV2(
+            generateAppName(),
+            workspace.workspace.workspaceId,
+            appToolLabels.CROMWELL_RUNNER_APP,
+            appAccessScopes.USER_PRIVATE
+          );
+        } else {
+          await Ajax().Apps.createAppV2(generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL, appAccessScopes.USER_PRIVATE);
+        }
         await Ajax(signal).Metrics.captureEvent(Events.applicationCreate, {
           app: appTools.CROMWELL.label,
           ...extractWorkspaceDetails(workspace),
