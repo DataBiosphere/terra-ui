@@ -44,7 +44,6 @@ export const WorkspaceSubmissionStatusIcon = (props: WorkspaceSubmissionStatusIc
               content: 'Loading submission status',
               side: 'left',
             },
-            // @ts-expect-error
             [spinner({ size })]
           ),
         ]),

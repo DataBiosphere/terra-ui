@@ -1,6 +1,6 @@
-import { icon } from '@terra-ui-packages/components';
+import { icon, IconProps } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Children, Fragment } from 'react';
+import { Children, Fragment, ReactNode } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 // Temporary workaround to avoid a circular import.
 // components/icons => components/common => components/common/spinners => components/icons
@@ -38,13 +38,17 @@ export const containsUnlabelledIcon = ({ children, 'aria-label': ariaLabel, 'ari
   return false;
 };
 
-export const spinner = ({ message = 'Loading', ...props } = {}) =>
+export interface SpinnerOptions extends IconProps {
+  message?: string;
+}
+
+export const spinner = ({ message = 'Loading', ...props }: SpinnerOptions = {}): ReactNode =>
   h(Fragment, [
     icon('loadingSpinner', _.merge({ size: 24, style: { color: colors.primary() } }, props)),
     h(DelayedRender, { delay: 150 }, [span({ className: 'sr-only', role: 'alert' }, [message])]),
   ]);
 
-export const centeredSpinner = ({ size = 48, ...props } = {}) =>
+export const centeredSpinner = ({ size = 48, ...props }: SpinnerOptions = {}): ReactNode =>
   spinner(
     _.merge(
       {
@@ -62,7 +66,7 @@ export const centeredSpinner = ({ size = 48, ...props } = {}) =>
     )
   );
 
-export const wdlIcon = ({ style = {}, ...props } = {}) =>
+export const wdlIcon = ({ style = {}, ...props }: JSX.IntrinsicElements['div'] = {}): ReactNode =>
   div(
     {
       style: {
