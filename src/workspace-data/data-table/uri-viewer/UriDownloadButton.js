@@ -33,8 +33,9 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
     });
     return url;
   };
-  const getUrlFromSam = async () => {
-    return await Ajax(signal).SamResources.getSignedUrl(bucket, name, workspace.workspace.googleProject, false);
+  const getUrlFromSam = async (userProject) => {
+    const requesterPaysProject = knownBucketRequesterPaysStatuses.get()[bucket] ? userProject : undefined;
+    return await Ajax(signal).SamResources.getSignedUrl(bucket, name, requesterPaysProject);
   };
   const getUrl = async () => {
     if (accessUrl?.url) {
@@ -52,8 +53,8 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
     } else {
       try {
         const userProject = await getUserProjectForWorkspace(workspace);
-        const url = isDrsUri(uri) ? await getUrlFromDrsProvider() : await getUrlFromSam();
-        setUrl(knownBucketRequesterPaysStatuses.get()[bucket] ? Utils.mergeQueryParams({ userProject }, url) : url);
+        const url = isDrsUri(uri) ? await getUrlFromDrsProvider() : await getUrlFromSam(userProject);
+        setUrl(knownBucketRequesterPaysStatuses.get()[bucket] && isDrsUri(uri) ? Utils.mergeQueryParams({ userProject }, url) : url);
       } catch (error) {
         setUrl(null);
       }

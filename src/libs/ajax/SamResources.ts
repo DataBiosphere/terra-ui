@@ -1,6 +1,8 @@
 import _ from 'lodash/fp';
 import { appIdentifier, authOpts, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
 
+type RequesterPaysProject = undefined | string;
+
 export const SamResources = (signal: AbortSignal) => ({
   leave: (samResourceType, samResourceId): Promise<void> =>
     fetchSam(
@@ -8,11 +10,15 @@ export const SamResources = (signal: AbortSignal) => ({
       _.mergeAll([authOpts(), appIdentifier, { method: 'DELETE' }])
     ),
 
-  getSignedUrl: async (bucket: string, object: string, project: string, requesterPays = false): Promise<string> => {
+  getSignedUrl: async (
+    bucket: string,
+    object: string,
+    requesterPaysProject: RequesterPaysProject = undefined
+  ): Promise<string> => {
     const res = await fetchSam(
-      `api/google/v1/user/petServiceAccount/${project}/signedUrlForBlob`,
+      'api/google/v1/user/signedUrlForBlob',
       _.mergeAll([
-        jsonBody({ bucketName: bucket, blobName: object, requesterPays }),
+        jsonBody({ bucketName: bucket, blobName: object, requesterPaysProject }),
         authOpts(),
         appIdentifier,
         { signal, method: 'POST' },
