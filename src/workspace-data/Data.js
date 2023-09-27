@@ -11,7 +11,6 @@ import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
 import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions';
 import FileBrowser from 'src/components/data/FileBrowser';
-import LocalVariablesContent from 'src/components/data/LocalVariablesContent';
 import { icon, spinner } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
@@ -51,6 +50,7 @@ import { getReferenceLabel } from './reference-data/reference-metadata';
 import { ReferenceDataContent } from './reference-data/ReferenceDataContent';
 import { ReferenceDataDeleter } from './reference-data/ReferenceDataDeleter';
 import { ReferenceDataImporter } from './reference-data/ReferenceDataImporter';
+import { WorkspaceAttributes } from './WorkspaceAttributes';
 
 const styles = {
   tableContainer: {
@@ -1354,7 +1354,7 @@ export const WorkspaceData = _.flow(
                 [
                   workspaceDataTypes.localVariables,
                   () =>
-                    h(LocalVariablesContent, {
+                    h(WorkspaceAttributes, {
                       workspace,
                       refreshKey,
                     }),
