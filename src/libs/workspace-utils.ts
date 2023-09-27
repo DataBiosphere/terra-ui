@@ -164,17 +164,20 @@ export interface WorkspaceAccessInfo {
   workspace: { isLocked: boolean };
 }
 
-export const canEditWorkspace = ({ accessLevel, workspace: { isLocked } }: WorkspaceAccessInfo): [boolean, string?] =>
-  cond<[boolean, string?]>(
-    [!canWrite(accessLevel), () => [false, 'You do not have permission to modify this workspace.']],
-    [isLocked, () => [false, 'This workspace is locked.']],
-    () => [true, undefined]
+export const canEditWorkspace = ({
+  accessLevel,
+  workspace: { isLocked },
+}: WorkspaceAccessInfo): { value: boolean; message?: string } =>
+  cond<{ value: boolean; message?: string }>(
+    [!canWrite(accessLevel), () => ({ value: false, message: 'You do not have permission to modify this workspace.' })],
+    [isLocked, () => ({ value: false, message: 'This workspace is locked.' })],
+    () => ({ value: true })
   );
 
 export const getWorkspaceEditControlProps = ({
   accessLevel,
   workspace: { isLocked },
 }: WorkspaceAccessInfo): { disabled?: boolean; tooltip?: string } => {
-  const [canEdit, disabledMessage] = canEditWorkspace({ accessLevel, workspace: { isLocked } });
-  return canEdit ? {} : { disabled: true, tooltip: disabledMessage };
+  const { value, message } = canEditWorkspace({ accessLevel, workspace: { isLocked } });
+  return value ? {} : { disabled: true, tooltip: message };
 };

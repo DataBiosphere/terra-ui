@@ -777,7 +777,7 @@ export const WorkspaceData = _.flow(
     const sortedEntityPairs = toSortedPairs(entityMetadata);
     const sortedSnapshotPairs = toSortedPairs(snapshotDetails);
 
-    const [canEditWorkspace, editWorkspaceErrorMessage] = WorkspaceUtils.canEditWorkspace(workspace);
+    const { value: canEditWorkspace, message: editWorkspaceErrorMessage } = WorkspaceUtils.canEditWorkspace(workspace);
 
     // convenience vars for WDS
     const wdsReady = wdsApp.status === 'Ready' && wdsTypes.status === 'Ready';
