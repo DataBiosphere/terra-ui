@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { div, h, h1, img } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, ButtonSecondary } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
@@ -15,12 +15,12 @@ import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
-const TermsOfServicePage = () => {
+const TermsOfServicePage = (): ReactNode => {
   const [busy, setBusy] = useState<boolean>();
   const { signInStatus, termsOfService } = useStore(authStore);
   const acceptedLatestTos = signInStatus === 'signedIn' && termsOfService.userHasAcceptedLatestTos;
   const usageAllowed = signInStatus === 'signedIn' && termsOfService.permitsSystemUsage;
-  const [tosText, setTosText] = useState();
+  const [tosText, setTosText] = useState<string>();
 
   useOnMount(() => {
     const loadTosAndUpdateState = _.flow(

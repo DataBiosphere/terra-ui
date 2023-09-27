@@ -96,10 +96,13 @@ describe('TermsOfService', () => {
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: false,
     };
-    setupMockAjax(termsOfService);
+    // setupMockAjax(termsOfService);
 
     // Act
-    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+    await act(async () => {
+      setupMockAjax(termsOfService);
+      render(h(TermsOfServicePage));
+    }) //eslint-disable-line
 
     // Assert
     const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');
@@ -116,7 +119,9 @@ describe('TermsOfService', () => {
     setupMockAjax(termsOfService);
 
     // Act
-    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+    await act(async () => {
+      render(h(TermsOfServicePage));
+    });
 
     // Assert
     const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');
