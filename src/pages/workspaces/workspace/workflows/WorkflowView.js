@@ -1327,7 +1327,7 @@ const WorkflowView = _.flow(
           key,
           accept: '.json',
           multiple: false,
-          disabled: currentSnapRedacted || WorkspaceUtils.canEditWorkspace(workspace).value ? false : true || data.length === 0,
+          disabled: currentSnapRedacted || !WorkspaceUtils.canEditWorkspace(workspace).value || data.length === 0,
           style: {
             ...styles.tabContents,
             flex: 'auto',
