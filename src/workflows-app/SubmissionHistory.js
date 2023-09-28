@@ -359,12 +359,3 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
 };
 
 export const SubmissionHistory = wrapWorkflowsPage({ name: 'SubmissionHistory' })(BaseSubmissionHistory);
-
-export const navPaths = [
-  {
-    name: 'workspace-workflows-app-submission-history',
-    path: '/workspaces/:namespace/:name/workflows-app/submission-history',
-    component: SubmissionHistory,
-    title: ({ name }) => `${name} - Submission History`,
-  },
-];
