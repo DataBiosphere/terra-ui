@@ -230,7 +230,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     const breadcrumbPathObjects = [
       {
         label: 'Submission History',
-        path: 'workspace-workflows-app-submission-history',
+        path: 'workspace-workflows-app', // TODO: Refactor to reroute to submission history tab in panel
         params: { name, namespace },
       },
       {
