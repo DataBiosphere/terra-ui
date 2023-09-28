@@ -200,7 +200,7 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
   });
 
   const selectedSettingsNameExists = _.has(selectedSettingsName, savedColumnSettings);
-  const { value: canEdit, message: editErrorMessage } = canEditWorkspace(workspace);
+  const { value: canEdit, message: editErrorMessage } = workspace ? canEditWorkspace(workspace) : {};
   const canSaveSettings = workspace && canEdit;
 
   return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
