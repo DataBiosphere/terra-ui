@@ -890,7 +890,7 @@ const WorkflowView = _.flow(
                 ]),
                 div([
                   h(RadioButton, {
-                    disabled: WorkspaceUtils.canEditWorkspace(ws).value || currentSnapRedacted,
+                    disabled: !WorkspaceUtils.canEditWorkspace(ws).value || currentSnapRedacted,
                     text: 'Run workflow(s) with inputs defined by data table',
                     name: 'process-workflows',
                     checked: this.isMultiple(),
@@ -913,7 +913,7 @@ const WorkflowView = _.flow(
                       h(GroupedSelect, {
                         'aria-label': 'Entity type selector',
                         isClearable: false,
-                        isDisabled: currentSnapRedacted || this.isSingle() || WorkspaceUtils.canEditWorkspace(ws).value,
+                        isDisabled: currentSnapRedacted || this.isSingle() || !WorkspaceUtils.canEditWorkspace(ws).value,
                         isSearchable: true,
                         placeholder: 'Select data type...',
                         styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
@@ -961,7 +961,7 @@ const WorkflowView = _.flow(
                     entitySelectionModel.type === processSnapshotTable
                       ? div({ style: { margin: '2rem 0 0 2rem' } }, [
                           h(Select, {
-                            isDisabled: WorkspaceUtils.canEditWorkspace(ws).value || !!snapshotReferenceError,
+                            isDisabled: !WorkspaceUtils.canEditWorkspace(ws).value || !!snapshotReferenceError,
                             'aria-label': 'Snapshot table selector',
                             isClearable: false,
                             value: modifiedConfig.dataReferenceName && !snapshotReferenceError ? modifiedConfig.rootEntityType : undefined,
