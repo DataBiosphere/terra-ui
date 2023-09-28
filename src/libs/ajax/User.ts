@@ -4,7 +4,6 @@ import {
   authOpts,
   fetchBond,
   fetchEcm,
-  fetchOk,
   fetchOrchestration,
   fetchRex,
   fetchSam,
@@ -40,34 +39,35 @@ export interface SamUserTosComplianceStatusResponse {
 
 export interface OrchestrationUserProfileResponse {
   userId: string;
-  keyValuePairs: { key: any; value: any }[];
+  keyValuePairs: { key: string; value: string }[];
 }
 
-interface OrchestrationUserPreferLegacyFireCloudResponse {
+export interface OrchestrationUserPreferLegacyFireCloudResponse {
   preferTerra: boolean;
   preferTerraLastUpdated: number;
 }
 
-interface NihDatasetPermission {
+export interface NihDatasetPermission {
   name: string;
   authorized: boolean;
 }
-interface OrchestrationNihStatusResponse {
+
+export interface OrchestrationNihStatusResponse {
   linkedNihUsername: string;
   datasetPermissions: NihDatasetPermission[];
   linkExpireTime: number;
 }
 
-interface BondFenceUrlResponse {
+export interface BondFenceUrlResponse {
   url: string;
 }
 
-interface BondFenceStatusResponse {
+export interface BondFenceStatusResponse {
   issued_at: Date;
   username: string;
 }
 
-interface EcmLinkAccountResponse {
+export interface EcmLinkAccountResponse {
   externalUserId: string;
   expirationTimestamp: Date;
   authenticated: boolean;
@@ -77,7 +77,8 @@ export interface SamInviteUserResponse {
   userSubjectId: string;
   userEmail: string;
 }
-interface RexFirstTimestampResponse {
+
+export interface RexFirstTimestampResponse {
   timestamp: Date;
 }
 
@@ -88,7 +89,7 @@ const getFirstTimeStamp = Utils.memoizeAsync(
     return res.json();
   },
   { keyFn: (...args) => JSON.stringify(args) }
-) as (...args: any[]) => RexFirstTimestampResponse;
+) as (token: string) => Promise<RexFirstTimestampResponse>;
 
 export const User = (signal?: AbortSignal) => {
   return {
@@ -157,8 +158,8 @@ export const User = (signal?: AbortSignal) => {
           _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
         );
         return response.json();
-      } catch (error: any) {
-        if (error.status !== 404) {
+      } catch (error: unknown) {
+        if (!(error instanceof Response && error.status !== 404)) {
           throw error;
         }
       }
@@ -171,8 +172,8 @@ export const User = (signal?: AbortSignal) => {
           _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
         );
         return response.json();
-      } catch (error: any) {
-        if (error.status !== 404) {
+      } catch (error: unknown) {
+        if (!(error instanceof Response && error.status !== 404)) {
           throw error;
         }
       }
@@ -185,8 +186,8 @@ export const User = (signal?: AbortSignal) => {
           _.merge(authOpts(), { signal })
         );
         return res.json();
-      } catch (error: any) {
-        if (error.status === 404 || error.status === 403) {
+      } catch (error: unknown) {
+        if (!(error instanceof Response && (error.status === 404 || error.status === 403))) {
           return null;
         }
         throw error;
@@ -198,70 +199,16 @@ export const User = (signal?: AbortSignal) => {
       return response.text();
     },
 
-    // If you are making changes to the Support Request Modal, make sure you test the following:
-    // 1. Submit a ticket via Terra while signed in and signed out
-    // 2. Check the tickets are generated on Zendesk
-    // 3. Reply internally (as a Light Agent) and make sure an email is not sent
-    // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
-    createSupportRequest: ({
-      name,
-      email,
-      currUrl,
-      subject,
-      type,
-      description,
-      attachmentToken,
-      emailAgreed,
-      clinicalUser,
-    }) => {
-      return fetchOk(
-        'https://support.terra.bio/api/v2/requests.json',
-        _.merge(
-          { signal, method: 'POST' },
-          jsonBody({
-            request: {
-              requester: { name, email },
-              subject,
-              // BEWARE changing the following ids or values! If you change them then you must thoroughly test.
-              custom_fields: [
-                { id: 360012744452, value: type },
-                { id: 360007369412, value: description },
-                { id: 360012744292, value: name },
-                { id: 360012782111, value: email },
-                { id: 360018545031, value: emailAgreed },
-                { id: 360027463271, value: clinicalUser },
-              ],
-              comment: {
-                body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`,
-                uploads: [`${attachmentToken}`],
-              },
-            },
-          })
-        )
-      );
-    },
-
-    uploadAttachment: async (file) => {
-      const res = await fetchOk(`https://support.terra.bio/api/v2/uploads?filename=${file.name}`, {
-        method: 'POST',
-        body: file,
-        headers: {
-          'Content-Type': 'application/binary',
-        },
-      });
-      return (await res.json()).upload;
-    },
-
-    firstTimestamp: (): RexFirstTimestampResponse => {
-      return getFirstTimeStamp(getTerraUser().token);
+    firstTimestamp: (): Promise<RexFirstTimestampResponse> => {
+      return getFirstTimeStamp(getTerraUser().token!);
     },
 
     getNihStatus: async (): Promise<OrchestrationNihStatusResponse | undefined> => {
       try {
         const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }));
         return res.json();
-      } catch (error: any) {
-        if (error.status === 404) {
+      } catch (error: unknown) {
+        if (!(error instanceof Response && error.status === 404)) {
           return;
         }
         throw error;
@@ -284,8 +231,8 @@ export const User = (signal?: AbortSignal) => {
       try {
         const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }));
         return res.json();
-      } catch (error: any) {
-        if (error.status === 404) {
+      } catch (error: unknown) {
+        if (!(error instanceof Response && error.status === 404)) {
           return {};
         }
         throw error;
@@ -306,10 +253,10 @@ export const User = (signal?: AbortSignal) => {
     },
 
     linkFenceAccount: async (
-      provider,
+      providerKey: string,
       authCode: string | undefined,
       redirectUri: string,
-      state
+      state: string
     ): Promise<BondFenceStatusResponse> => {
       const queryParams = {
         oauthcode: authCode,
@@ -317,14 +264,14 @@ export const User = (signal?: AbortSignal) => {
         state,
       };
       const res = await fetchBond(
-        `api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`,
+        `api/link/v1/${providerKey}/oauthcode?${qs.stringify(queryParams)}`,
         _.merge(authOpts(), { signal, method: 'POST' })
       );
       return res.json();
     },
 
-    unlinkFenceAccount: async (provider): Promise<void> => {
-      return fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
+    unlinkFenceAccount: async (providerKey: string): Promise<void> => {
+      return fetchBond(`api/link/v1/${providerKey}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
     },
 
     externalAccount: (providerKey: string) => {
@@ -341,8 +288,8 @@ export const User = (signal?: AbortSignal) => {
           try {
             const res = await fetchEcm(root, _.merge(authOpts(), { signal }));
             return res.json();
-          } catch (error: any) {
-            if (error.status === 404) {
+          } catch (error: unknown) {
+            if (!(error instanceof Response && error.status === 404)) {
               return null;
             }
             throw error;
@@ -379,8 +326,8 @@ export const User = (signal?: AbortSignal) => {
     isUserRegistered: async (email: string): Promise<boolean> => {
       try {
         await fetchSam(`api/users/v1/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'GET' }));
-      } catch (error: any) {
-        if (error.status === 404) {
+      } catch (error: unknown) {
+        if (!(error instanceof Response && error.status === 404)) {
           return false;
         }
         throw error;
