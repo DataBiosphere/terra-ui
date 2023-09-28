@@ -237,6 +237,7 @@ export const BaseRunDetails = (
                 name,
                 namespace,
                 submissionId,
+                isAzure: true,
               }),
             ]
           ),
