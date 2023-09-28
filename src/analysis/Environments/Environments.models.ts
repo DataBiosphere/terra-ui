@@ -4,7 +4,7 @@ import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
 
 export interface DecoratedResourceAttributes {
-  workspace: WorkspaceInfo;
+  workspace?: WorkspaceInfo;
   unsupportedWorkspace: boolean;
 }
 

@@ -955,7 +955,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         runtimeToDelete &&
         h(DeleteRuntimeModal, {
           runtime: runtimeToDelete,
-          workspaceId: runtimeToDelete.workspace.workspaceId,
           deleteProvider: leoRuntimeData,
           onDismiss: () => setDeleteRuntimeId(undefined),
           onSuccess: () => {

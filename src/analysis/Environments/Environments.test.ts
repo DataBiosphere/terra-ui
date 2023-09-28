@@ -14,7 +14,12 @@ import {
   generateTestDiskWithGoogleWorkspace,
   generateTestListGoogleRuntime,
 } from 'src/analysis/_testData/testData';
-import { EnvironmentNavActions, Environments, EnvironmentsProps, PauseButton } from 'src/analysis/Environments/Environments';
+import {
+  EnvironmentNavActions,
+  Environments,
+  EnvironmentsProps,
+  PauseButton,
+} from 'src/analysis/Environments/Environments';
 import { defaultComputeZone } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { AzureConfig, GceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';

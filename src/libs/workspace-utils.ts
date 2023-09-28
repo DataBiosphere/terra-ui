@@ -47,8 +47,8 @@ export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
 
 export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo;
 
-export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo): workspace is GoogleWorkspaceInfo => {
-  return workspace.cloudPlatform === 'Gcp';
+export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo | undefined): workspace is GoogleWorkspaceInfo => {
+  return workspace ? workspace.cloudPlatform === 'Gcp' : false;
 };
 
 export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER'] as const;
