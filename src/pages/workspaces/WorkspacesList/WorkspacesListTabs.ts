@@ -6,7 +6,7 @@ import { workspaceSubmissionStatus } from 'src/components/WorkspaceSubmissionSta
 import * as Nav from 'src/libs/nav';
 import { textMatch } from 'src/libs/utils';
 import { getCloudProviderFromWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
-import { CatagorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CatagorizedWorkspaces';
+import { CategorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CategorizedWorkspaces';
 import { NoContentMessage } from 'src/pages/workspaces/WorkspacesList/NoWorkspacesMessage';
 import { RenderedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RenderedWorkspaces';
 import {
@@ -23,7 +23,7 @@ export interface WorkspaceTab {
 interface WorkspacesListTabsProps {
   loadingSubmissionStats: boolean;
   loadingWorkspaces: boolean;
-  workspaces: CatagorizedWorkspaces;
+  workspaces: CategorizedWorkspaces;
   refreshWorkspaces: () => void;
 }
 
@@ -35,7 +35,7 @@ export const WorkspacesListTabs = (props: WorkspacesListTabsProps): ReactNode =>
   const filteredWorkspaces = useMemo(() => filterWorkspaces(workspaces, filters), [workspaces, filters]);
 
   const tabs: WorkspaceTab[] = _.map(
-    (key: keyof CatagorizedWorkspaces) => ({
+    (key: keyof CategorizedWorkspaces) => ({
       key,
       title: span([_.upperCase(key), ` (${loadingWorkspaces ? '...' : workspaces[key].length})`]),
       tableName: _.lowerCase(key),
@@ -68,7 +68,7 @@ export const WorkspacesListTabs = (props: WorkspacesListTabsProps): ReactNode =>
   );
 };
 
-const filterWorkspaces = (workspaces: CatagorizedWorkspaces, filters: WorkspaceFilterValues): CatagorizedWorkspaces => {
+const filterWorkspaces = (workspaces: CategorizedWorkspaces, filters: WorkspaceFilterValues): CategorizedWorkspaces => {
   const filterWorkspacesCategory = (workspaces: Workspace[], filters: WorkspaceFilterValues): Workspace[] => {
     const matches = (ws: Workspace): boolean => {
       const {

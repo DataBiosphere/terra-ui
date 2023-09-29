@@ -1,5 +1,6 @@
+import { DelayedRender } from '@terra-ui-packages/components';
 import { h, span } from 'react-hyperscript-helpers';
-import { DelayedRender, Link } from 'src/components/common';
+import { Link } from 'src/components/common';
 import { getLink } from 'src/libs/nav';
 import { useWorkspaceById } from 'src/libs/workspace-hooks';
 

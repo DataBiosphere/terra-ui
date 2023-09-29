@@ -11,7 +11,6 @@ import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
 import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions';
 import FileBrowser from 'src/components/data/FileBrowser';
-import LocalVariablesContent from 'src/components/data/LocalVariablesContent';
 import { icon, spinner } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
@@ -47,9 +46,11 @@ import WDSContent from './data-table/wds/WDSContent';
 import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
 import { useImportJobs } from './import-jobs';
 import { getReferenceData } from './reference-data/reference-data-utils';
+import { getReferenceLabel } from './reference-data/reference-metadata';
 import { ReferenceDataContent } from './reference-data/ReferenceDataContent';
 import { ReferenceDataDeleter } from './reference-data/ReferenceDataDeleter';
 import { ReferenceDataImporter } from './reference-data/ReferenceDataImporter';
+import { WorkspaceAttributes } from './WorkspaceAttributes';
 
 const styles = {
   tableContainer: {
@@ -1190,7 +1191,7 @@ export const WorkspaceData = _.flow(
                                   {
                                     style: { flex: 0 },
                                     disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
-                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || `Delete ${type}`,
+                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || `Delete ${getReferenceLabel(type)} reference`,
                                     onClick: (e) => {
                                       e.stopPropagation();
                                       setDeletingReference(type);
@@ -1199,7 +1200,7 @@ export const WorkspaceData = _.flow(
                                   [icon('minus-circle', { size: 16 })]
                                 ),
                               },
-                              [type]
+                              [getReferenceLabel(type)]
                             ),
                           _.keys(referenceData)
                         ),
@@ -1356,7 +1357,7 @@ export const WorkspaceData = _.flow(
                 [
                   workspaceDataTypes.localVariables,
                   () =>
-                    h(LocalVariablesContent, {
+                    h(WorkspaceAttributes, {
                       workspace,
                       refreshKey,
                     }),

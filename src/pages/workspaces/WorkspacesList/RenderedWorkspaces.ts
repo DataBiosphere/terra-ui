@@ -169,11 +169,10 @@ const NameCell = (props: CellProps): ReactNode => {
   } = props.workspace;
   const { setUserActions } = useContext(WorkspaceUserActionsContext);
 
+  const description = attributes?.description;
   const canView = canRead(accessLevel);
   const canAccessWorkspace = () =>
     !canView ? setUserActions({ requestingAccessWorkspaceId: workspaceId }) : undefined;
-
-  const description = attributes?.description;
 
   return div({ style: styles.tableCellContainer }, [
     div({ style: styles.tableCellContent }, [

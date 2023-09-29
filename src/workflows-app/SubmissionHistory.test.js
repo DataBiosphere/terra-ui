@@ -1,6 +1,5 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
@@ -91,7 +90,7 @@ afterAll(() => {
 
 // Note: Since the timestamps in the data is being converted to Local timezone, it returns different time when the tests
 //       are run locally and in GitHub action. Hence everywhere in this file we are verifying only the date format for now.
-describe('SubmissionHistory page', () => {
+describe('SubmissionHistory tab', () => {
   const headerPosition = {
     Actions: 0,
     Submission: 1,
@@ -204,12 +203,8 @@ describe('SubmissionHistory page', () => {
     // Assert
     expect(mockRunSetResponse).toBeCalled();
 
-    const table = await screen.findByRole('table');
-    expect(table).toHaveAttribute('aria-colcount', '6');
-    expect(table).toHaveAttribute('aria-rowcount', '1');
-
-    const noContentCell = within(table).getByRole('cell');
-    expect(noContentCell).toHaveTextContent('Nothing here yet! Your previously run workflows will be displayed here.');
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    screen.getByText(/No workflows have been submitted./i);
   });
 
   it('should correctly display previous 2 run sets', async () => {
@@ -240,6 +235,7 @@ describe('SubmissionHistory page', () => {
       );
     });
 
+    screen.getByText(/See workflows that were submitted by all collaborators in this workspace./i);
     expect(screen.getByRole('table')).toBeInTheDocument();
 
     const table = await screen.findByRole('table');
@@ -363,76 +359,6 @@ describe('SubmissionHistory page', () => {
     ],
     fully_updated: true,
   };
-
-  it('should indicate fully updated polls', async () => {
-    const runSetData = simpleRunSetData;
-
-    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
-    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
-
-    Ajax.mockImplementation(() => {
-      return {
-        Cbas: {
-          runSets: {
-            get: getRunSetsMethod,
-          },
-        },
-        Apps: {
-          listAppsV2: mockLeoResponse,
-        },
-      };
-    });
-
-    // Act
-    await act(async () => {
-      render(
-        h(BaseSubmissionHistory, {
-          name: 'test-azure-ws-name',
-          namespace: 'test-azure-ws-namespace',
-          workspace: mockAzureWorkspace,
-        })
-      );
-    });
-
-    expect(screen.getByRole('table')).toBeInTheDocument();
-
-    expect(screen.getByText('Submission statuses are all up to date.')).toBeInTheDocument();
-  });
-
-  it('should indicate incompletely updated polls', async () => {
-    const runSetData = _.merge(simpleRunSetData, { fully_updated: false });
-
-    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
-    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
-
-    Ajax.mockImplementation(() => {
-      return {
-        Cbas: {
-          runSets: {
-            get: getRunSetsMethod,
-          },
-        },
-        Apps: {
-          listAppsV2: mockLeoResponse,
-        },
-      };
-    });
-
-    // Act
-    await act(async () => {
-      render(
-        h(BaseSubmissionHistory, {
-          name: 'test-azure-ws-name',
-          namespace: 'test-azure-ws-namespace',
-          workspace: mockAzureWorkspace,
-        })
-      );
-    });
-
-    expect(screen.getByRole('table')).toBeInTheDocument();
-
-    expect(screen.getByText('Some submission statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument();
-  });
 
   it('Gives abort option for actions button', async () => {
     const user = userEvent.setup();

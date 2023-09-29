@@ -93,8 +93,7 @@ export const WorkspaceStarControl = (props: WorkspaceStarControlProps): ReactNod
     },
     [
       updatingStars
-        ? // @ts-expect-error
-          spinner({ size: 20 })
+        ? spinner({ size: 20 })
         : icon('star', { size: 20, color: isStarred ? colors.warning() : colors.light(2) }),
     ]
   );

@@ -3,14 +3,14 @@ import { Fragment, ReactNode, useContext } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { NoWorkspacesMessage } from 'src/components/workspace-utils';
 import { cond } from 'src/libs/utils';
-import { CatagorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CatagorizedWorkspaces';
+import { CategorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CategorizedWorkspaces';
 import { WorkspaceFilterValues } from 'src/pages/workspaces/WorkspacesList/WorkspaceFilters';
 import { WorkspaceUserActionsContext } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
 
 interface NoContentMessageProps {
   loadingWorkspaces: boolean;
   loadingSubmissionStats: boolean;
-  workspaces: CatagorizedWorkspaces;
+  workspaces: CategorizedWorkspaces;
   filters: WorkspaceFilterValues;
 }
 

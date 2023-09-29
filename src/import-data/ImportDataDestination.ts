@@ -1,6 +1,6 @@
 import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { CSSProperties, Fragment, ReactNode, useState } from 'react';
+import { AriaAttributes, CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, h2, img, p, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import {
@@ -42,7 +42,7 @@ const styles = {
 } as const satisfies Record<string, CSSProperties>;
 
 interface ChoiceButtonProps {
-  'aria-haspopup'?: string;
+  'aria-haspopup'?: AriaAttributes['aria-haspopup'];
   detail: string;
   disabled?: boolean;
   iconName: IconId;
@@ -68,7 +68,7 @@ const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
         cursor: disabled ? 'not-allowed' : 'pointer',
       },
       hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) },
-      onClick: !disabled && onClick,
+      onClick: disabled ? undefined : onClick,
       ...otherProps,
     },
     [

@@ -21,6 +21,7 @@ export type AuthorizationDomain = {
   membersGroupName: string;
 };
 
+// TODO: Clean up all the optional types when we fix return types of all the places we retrieve workspaces
 interface BaseWorkspaceInfo {
   namespace: string;
   name: string;
@@ -29,11 +30,10 @@ interface BaseWorkspaceInfo {
   createdDate: string;
   createdBy: string;
   lastModified: string;
-  bucketName?: string;
   attributes?: Record<string, unknown>;
   isLocked?: boolean;
   canShare?: boolean;
-  state?: WorkspaceState;
+  state?: WorkpaceState;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
@@ -72,7 +72,7 @@ export interface WorkspaceSubmissionStats {
   runningSubmissionsCount: number;
 }
 
-export type WorkspaceState =
+export type WorkpaceState =
   | 'Creating'
   | 'CreateFailed'
   | 'Ready'

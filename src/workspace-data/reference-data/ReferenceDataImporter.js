@@ -6,6 +6,7 @@ import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 
+import { getReferenceLabel } from './reference-metadata';
 import ReferenceData from './references';
 
 export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name }) => {
@@ -46,7 +47,7 @@ export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name })
         placeholder: 'Select data',
         value: selectedReference,
         onChange: ({ value }) => setSelectedReference(value),
-        options: _.keys(ReferenceData),
+        options: _.keys(ReferenceData).map((referenceName) => ({ value: referenceName, label: getReferenceLabel(referenceName) })),
       }),
       loading && spinnerOverlay,
     ]

@@ -13,6 +13,7 @@ export interface WorkspaceUserActionsState {
   setUserActions: (actions: Partial<WorkspaceUserActions>) => void;
 }
 
+// TODO: these should be removed in favor of the modal manager once available
 export interface WorkspaceUserActions {
   creatingNewWorkspace: boolean;
   cloningWorkspaceId?: string;

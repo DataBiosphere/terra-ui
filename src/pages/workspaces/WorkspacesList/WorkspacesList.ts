@@ -13,7 +13,7 @@ import { useOnMount } from 'src/libs/react-utils';
 import { elements as StyleElements } from 'src/libs/style';
 import { newTabLinkProps } from 'src/libs/utils';
 import { cloudProviderTypes, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
-import { catagorizeWorkspaces } from 'src/pages/workspaces/WorkspacesList/CatagorizedWorkspaces';
+import { categorizeWorkspaces } from 'src/pages/workspaces/WorkspacesList/CategorizedWorkspaces';
 import { RecentlyViewedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RecentlyViewedWorkspaces';
 import { useWorkspacesWithSubmissionStats } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
 import {
@@ -41,7 +41,7 @@ export const WorkspacesList = (): ReactNode => {
     loadingSubmissionStats,
   } = useWorkspacesWithSubmissionStats();
 
-  const [featuredList, setFeaturedList] = useState<Workspace[]>();
+  const [featuredList, setFeaturedList] = useState<{ name: string; namespace: string }[]>();
 
   const { query } = useRoute();
   const filters: WorkspaceFilterValues = getWorkspaceFiltersFromQuery(query);
@@ -63,7 +63,7 @@ export const WorkspacesList = (): ReactNode => {
     loadFeatured();
   });
 
-  const sortedWorkspaces = useMemo(() => catagorizeWorkspaces(workspaces, featuredList), [workspaces, featuredList]);
+  const sortedWorkspaces = useMemo(() => categorizeWorkspaces(workspaces, featuredList), [workspaces, featuredList]);
 
   const [userActions, setUserActions] = useState<WorkspaceUserActions>({ creatingNewWorkspace: false });
   const updateUserActions = (newActions: Partial<WorkspaceUserActions>) =>

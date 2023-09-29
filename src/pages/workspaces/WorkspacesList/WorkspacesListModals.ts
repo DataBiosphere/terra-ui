@@ -33,6 +33,7 @@ export const WorkspacesListModals = (props: WorkspacesListModalsProps): ReactNod
       }),
     !!userActions.deletingWorkspaceId &&
       h(DeleteWorkspaceModal, {
+        // @ts-expect-error
         workspace: getWorkspace(userActions.deletingWorkspaceId),
         onDismiss: () => setUserActions({ deletingWorkspaceId: undefined }),
         onSuccess: refreshWorkspaces,
