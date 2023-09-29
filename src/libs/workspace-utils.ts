@@ -32,7 +32,6 @@ interface BaseWorkspaceInfo {
   lastModified: string;
   attributes?: Record<string, unknown>;
   isLocked?: boolean;
-  canShare?: boolean;
   state?: WorkpaceState;
 }
 
