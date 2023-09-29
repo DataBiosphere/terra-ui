@@ -46,7 +46,7 @@ export const Support = (signal?: AbortSignal) => {
       request: ZendeskCreateSupportRequestRequest
     ): Promise<ZendeskCreateSupportRequestResponse> => {
       const { name, email, currUrl, subject, type, description, attachmentToken, emailAgreed, clinicalUser } = request;
-      return fetchOk(
+      const res = await fetchOk(
         'https://support.terra.bio/api/v2/requests.json',
         _.merge(
           { signal, method: 'POST' },
@@ -71,6 +71,7 @@ export const Support = (signal?: AbortSignal) => {
           })
         )
       );
+      return res.json();
     },
 
     uploadAttachment: async (file: File): Promise<ZendeskUploadResponse> => {

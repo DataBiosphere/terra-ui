@@ -39,7 +39,9 @@ export interface SamUserTosComplianceStatusResponse {
 
 export type TerraUserPreferences = {
   starredWorkspaces?: string;
-} & {};
+} & {
+  [key: string]: string;
+};
 
 export interface OrchestrationUserProfileResponse {
   userId: string;
@@ -285,7 +287,7 @@ export const User = (signal?: AbortSignal) => {
     },
 
     unlinkFenceAccount: async (providerKey: string): Promise<void> => {
-      return fetchBond(`api/link/v1/${providerKey}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
+      await fetchBond(`api/link/v1/${providerKey}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
     },
 
     externalAccount: (providerKey: string) => {
