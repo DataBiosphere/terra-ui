@@ -10,7 +10,7 @@ import {
   jsonBody,
 } from 'src/libs/ajax/ajax-common';
 import { getConfig } from 'src/libs/config';
-import { getBlankProfile, getTerraUser, TerraUserProfile } from 'src/libs/state';
+import { getTerraUser, TerraUserProfile } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 export interface SamUserRegistrationStatusResponse {
@@ -106,9 +106,25 @@ export const User = (signal?: AbortSignal) => {
 
       // We are not calling Thurloe directly because free credits logic was in orchestration
       set: async (profile: TerraUserProfile): Promise<void> => {
+        const blankProfile: TerraUserProfile = {
+          firstName: 'N/A',
+          lastName: 'N/A',
+          contactEmail: 'N/A',
+          title: 'N/A',
+          institute: 'N/A',
+          department: 'N/A',
+          institutionalProgram: 'N/A',
+          programLocationCity: 'N/A',
+          programLocationState: 'N/A',
+          programLocationCountry: 'N/A',
+          pi: 'N/A',
+          nonProfitStatus: 'N/A',
+          interestInTerra: 'N/A',
+          starredWorkspaces: '',
+        };
         return fetchOrchestration(
           'register/profile',
-          _.mergeAll([authOpts(), jsonBody(_.merge(getBlankProfile(), profile)), { signal, method: 'POST' }])
+          _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, profile)), { signal, method: 'POST' }])
         );
       },
 

@@ -20,10 +20,10 @@ export type TerraUser = {
 };
 
 export type TerraUserProfile = {
-  firstName: string;
-  lastName: string;
+  firstName: string | undefined;
+  lastName: string | undefined;
   institute: string | undefined;
-  contactEmail: string;
+  contactEmail: string | undefined;
   title: string | undefined;
   department: string | undefined;
   interestInTerra: string | undefined;
@@ -31,28 +31,9 @@ export type TerraUserProfile = {
   programLocationCity: string | undefined;
   programLocationState: string | undefined;
   programLocationCountry: string | undefined;
-  pi: string;
-  nonProfitStatus: string;
+  pi: string | undefined;
+  nonProfitStatus: string | undefined;
   starredWorkspaces: string | undefined;
-};
-
-export const getBlankProfile = (): TerraUserProfile => {
-  return {
-    firstName: 'N/A',
-    lastName: 'N/A',
-    contactEmail: 'N/A',
-    title: 'N/A',
-    institute: 'N/A',
-    department: 'N/A',
-    institutionalProgram: 'N/A',
-    programLocationCity: 'N/A',
-    programLocationState: 'N/A',
-    programLocationCountry: 'N/A',
-    pi: 'N/A',
-    nonProfitStatus: 'N/A',
-    interestInTerra: 'N/A',
-    starredWorkspaces: '',
-  };
 };
 
 export type TerraUserRegistrationStatus =
@@ -120,7 +101,22 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
-  profile: getBlankProfile(),
+  profile: {
+    firstName: undefined,
+    lastName: undefined,
+    contactEmail: undefined,
+    title: undefined,
+    institute: undefined,
+    department: undefined,
+    institutionalProgram: undefined,
+    programLocationCity: undefined,
+    programLocationState: undefined,
+    programLocationCountry: undefined,
+    pi: undefined,
+    nonProfitStatus: undefined,
+    interestInTerra: undefined,
+    starredWorkspaces: undefined,
+  },
   refreshTokenMetadata: {
     token: undefined,
     id: undefined,
