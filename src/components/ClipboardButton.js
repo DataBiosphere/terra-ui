@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons';
 import { withErrorReporting } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
-export const ClipboardButton = ({ text, onClick, children, size = 16, ...props }) => {
+export const ClipboardButton = ({ text, onClick, children, iconSize, ...props }) => {
   const [copied, setCopied] = useState(false);
   return h(
     Link,
@@ -24,6 +24,6 @@ export const ClipboardButton = ({ text, onClick, children, size = 16, ...props }
         await delay(1500);
       }),
     },
-    [children, icon(copied ? 'check' : 'copy-to-clipboard', { size, ...(!!children && { style: { marginLeft: '0.5rem' } }) })]
+    [children, icon(copied ? 'check' : 'copy-to-clipboard', { size: iconSize, ...(!!children && { style: { marginLeft: '0.5rem' } }) })]
   );
 };

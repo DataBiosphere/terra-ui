@@ -254,7 +254,7 @@ const BucketBrowserTable = ({
                             className: 'cell-hover-only',
                             style: { marginLeft: '1ch' },
                             text: `gs://${bucketName}/${object.name}`,
-                            size: 14,
+                            iconSize: 14,
                           }),
                         ]);
                       },
