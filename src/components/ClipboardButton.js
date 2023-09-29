@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons';
 import { withErrorReporting } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
-export const ClipboardButton = ({ text, onClick, children, iconSize, ...props }) => {
+export const ClipboardButton = ({ text, onClick, children, iconSize = undefined, ...props }) => {
   const [copied, setCopied] = useState(false);
   return h(
     Link,
