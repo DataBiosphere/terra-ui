@@ -37,9 +37,13 @@ export interface SamUserTosComplianceStatusResponse {
   permitsSystemUsage: boolean;
 }
 
+export type TerraUserPreferences = {
+  starredWorkspaces?: string;
+} & {};
+
 export interface OrchestrationUserProfileResponse {
   userId: string;
-  keyValuePairs: { key: string; value: string }[];
+  keyValuePairs: TerraUserProfile;
 }
 
 export interface OrchestrationUserPreferLegacyFireCloudResponse {
@@ -106,32 +110,39 @@ export const User = (signal?: AbortSignal) => {
 
       // We are not calling Thurloe directly because free credits logic was in orchestration
       set: async (profile: TerraUserProfile): Promise<void> => {
-        const blankProfile: TerraUserProfile = {
+        interface SetTerraUserProfileRequest {
+          firstName: string;
+          lastName: string;
+          title: string;
+          contactEmail?: string;
+          institute: string;
+          programLocationCity: string;
+          programLocationState: string;
+          programLocationCountry: string;
+          termsOfService?: string;
+          researchArea?: string;
+          department?: string;
+          interestInTerra?: string;
+        }
+        const blankProfileRequest: SetTerraUserProfileRequest = {
           firstName: 'N/A',
           lastName: 'N/A',
-          contactEmail: 'N/A',
           title: 'N/A',
           institute: 'N/A',
-          department: 'N/A',
-          institutionalProgram: 'N/A',
           programLocationCity: 'N/A',
           programLocationState: 'N/A',
           programLocationCountry: 'N/A',
-          pi: 'N/A',
-          nonProfitStatus: 'N/A',
-          interestInTerra: 'N/A',
-          starredWorkspaces: '',
         };
         return fetchOrchestration(
           'register/profile',
-          _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, profile)), { signal, method: 'POST' }])
+          _.mergeAll([authOpts(), jsonBody(_.merge(blankProfileRequest, profile)), { signal, method: 'POST' }])
         );
       },
 
-      setPreferences: async (body: {}): Promise<void> => {
+      setPreferences: async (preferences: TerraUserPreferences): Promise<void> => {
         return fetchOrchestration(
           'api/profile/preferences',
-          _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }])
+          _.mergeAll([authOpts(), jsonBody(preferences), { signal, method: 'POST' }])
         );
       },
 

@@ -27,12 +27,9 @@ export type TerraUserProfile = {
   title: string | undefined;
   department: string | undefined;
   interestInTerra: string | undefined;
-  institutionalProgram: string | undefined;
   programLocationCity: string | undefined;
   programLocationState: string | undefined;
   programLocationCountry: string | undefined;
-  pi: string | undefined;
-  nonProfitStatus: string | undefined;
   starredWorkspaces: string | undefined;
 };
 
@@ -108,12 +105,9 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     title: undefined,
     institute: undefined,
     department: undefined,
-    institutionalProgram: undefined,
     programLocationCity: undefined,
     programLocationState: undefined,
     programLocationCountry: undefined,
-    pi: undefined,
-    nonProfitStatus: undefined,
     interestInTerra: undefined,
     starredWorkspaces: undefined,
   },
