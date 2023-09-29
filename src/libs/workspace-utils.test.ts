@@ -7,7 +7,9 @@ import {
 } from 'src/testing/workspace-fixtures';
 
 import {
+  canEditWorkspace,
   getRegionConstraintLabels,
+  getWorkspaceEditControlProps,
   hasProtectedData,
   hasRegionConstraint,
   isValidWsExportTarget,
@@ -150,5 +152,48 @@ describe('hasRegionConstraint', () => {
 
     expect(hasRegionConstraint(protectedAzureWorkspace)).toBe(false);
     expect(getRegionConstraintLabels(protectedAzureWorkspace.policies).length).toBe(0);
+  });
+});
+
+describe('canEditWorkspace', () => {
+  it('Returns true if passed parameters permit editing.', () => {
+    expect(canEditWorkspace({ accessLevel: 'WRITER', workspace: { isLocked: false } })).toStrictEqual({ value: true });
+    expect(canEditWorkspace({ accessLevel: 'OWNER', workspace: { isLocked: false } })).toStrictEqual({ value: true });
+  });
+  it('Returns false with a reason if passed parameters do not permit editing.', () => {
+    expect(canEditWorkspace({ accessLevel: 'WRITER', workspace: { isLocked: true } })).toStrictEqual({
+      value: false,
+      message: 'This workspace is locked.',
+    });
+    expect(canEditWorkspace({ accessLevel: 'OWNER', workspace: { isLocked: true } })).toStrictEqual({
+      value: false,
+      message: 'This workspace is locked.',
+    });
+    expect(canEditWorkspace({ accessLevel: 'READER', workspace: { isLocked: false } })).toStrictEqual({
+      value: false,
+      message: 'You do not have permission to modify this workspace.',
+    });
+  });
+  // Documenting incorrect behavior.
+  it('Provides one reason if multiple reasons apply.', () => {
+    expect(canEditWorkspace({ accessLevel: 'READER', workspace: { isLocked: true } })).toStrictEqual({
+      value: false,
+      message: 'You do not have permission to modify this workspace.',
+    });
+  });
+});
+
+describe('getWorkspaceEditControlProps', () => {
+  it("Doesn't touch anything when editing should be enabled.", () => {
+    expect({
+      tooltip: 'foo',
+      ...getWorkspaceEditControlProps({ accessLevel: 'WRITER', workspace: { isLocked: false } }),
+    }).toStrictEqual({ tooltip: 'foo' });
+  });
+  it('Disables the control with a message when appropriate.', () => {
+    expect({
+      tooltip: 'foo',
+      ...getWorkspaceEditControlProps({ accessLevel: 'WRITER', workspace: { isLocked: true } }),
+    }).toStrictEqual({ disabled: true, tooltip: 'This workspace is locked.' });
   });
 });
