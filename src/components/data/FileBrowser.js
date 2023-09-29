@@ -250,7 +250,7 @@ const BucketBrowserTable = ({
                             [label]
                           ),
                           h(ClipboardButton, {
-                            'aria-label': `Copy ${object.name} to clipboard`,
+                            tooltip: 'Copy file URL to clipboard',
                             className: 'cell-hover-only',
                             style: { marginLeft: '1rem' },
                             text: `gs://${bucketName}/${object.name}`,
