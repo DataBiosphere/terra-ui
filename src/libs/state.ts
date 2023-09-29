@@ -20,10 +20,39 @@ export type TerraUser = {
 };
 
 export type TerraUserProfile = {
+  firstName: string;
+  lastName: string;
   institute: string | undefined;
+  contactEmail: string;
   title: string | undefined;
   department: string | undefined;
   interestInTerra: string | undefined;
+  institutionalProgram: string | undefined;
+  programLocationCity: string | undefined;
+  programLocationState: string | undefined;
+  programLocationCountry: string | undefined;
+  pi: string;
+  nonProfitStatus: string;
+  starredWorkspaces: string | undefined;
+};
+
+export const getBlankProfile = (): TerraUserProfile => {
+  return {
+    firstName: 'N/A',
+    lastName: 'N/A',
+    contactEmail: 'N/A',
+    title: 'N/A',
+    institute: 'N/A',
+    department: 'N/A',
+    institutionalProgram: 'N/A',
+    programLocationCity: 'N/A',
+    programLocationState: 'N/A',
+    programLocationCountry: 'N/A',
+    pi: 'N/A',
+    nonProfitStatus: 'N/A',
+    interestInTerra: 'N/A',
+    starredWorkspaces: '',
+  };
 };
 
 export type TerraUserRegistrationStatus =
@@ -68,8 +97,7 @@ export type AuthState = {
     linkedNihUsername: string;
     linkExpireTime: number;
   };
-  // props in the TerraUserProfile are always present, but there may be more props
-  profile: TerraUserProfile & any;
+  profile: TerraUserProfile;
   refreshTokenMetadata: TokenMetadata;
   registrationStatus: TerraUserRegistrationStatus;
   sessionId?: string | undefined;
@@ -92,12 +120,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
-  profile: {
-    institute: undefined,
-    title: undefined,
-    department: undefined,
-    interestInTerra: undefined,
-  },
+  profile: getBlankProfile(),
   refreshTokenMetadata: {
     token: undefined,
     id: undefined,
@@ -125,7 +148,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     idp: undefined,
   },
 });
-
 export const getTerraUser = (): TerraUser => authStore.get().terraUser;
 
 export const getSessionId = () => authStore.get().sessionId;

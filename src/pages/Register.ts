@@ -12,7 +12,7 @@ import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { registrationLogo } from 'src/libs/logos';
-import { authStore, getTerraUser, TerraUser, TerraUserProfile } from 'src/libs/state';
+import { authStore, getBlankProfile, getTerraUser, TerraUser, TerraUserProfile } from 'src/libs/state';
 import validate from 'validate.js';
 
 const constraints = (partOfOrg) => {
@@ -84,6 +84,7 @@ const Register = () => {
           }
         : {};
       await Ajax().User.profile.set({
+        ...getBlankProfile(),
         firstName: givenName,
         lastName: familyName,
         contactEmail: email,

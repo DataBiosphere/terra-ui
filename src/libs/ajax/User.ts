@@ -10,7 +10,7 @@ import {
   jsonBody,
 } from 'src/libs/ajax/ajax-common';
 import { getConfig } from 'src/libs/config';
-import { getTerraUser } from 'src/libs/state';
+import { getBlankProfile, getTerraUser, TerraUserProfile } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 export interface SamUserRegistrationStatusResponse {
@@ -105,23 +105,10 @@ export const User = (signal?: AbortSignal) => {
       },
 
       // We are not calling Thurloe directly because free credits logic was in orchestration
-      set: async (keysAndValues: {}): Promise<void> => {
-        const blankProfile = {
-          firstName: 'N/A',
-          lastName: 'N/A',
-          title: 'N/A',
-          institute: 'N/A',
-          department: 'N/A',
-          institutionalProgram: 'N/A',
-          programLocationCity: 'N/A',
-          programLocationState: 'N/A',
-          programLocationCountry: 'N/A',
-          pi: 'N/A',
-          nonProfitStatus: 'N/A',
-        };
+      set: async (profile: TerraUserProfile): Promise<void> => {
         return fetchOrchestration(
           'register/profile',
-          _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { signal, method: 'POST' }])
+          _.mergeAll([authOpts(), jsonBody(_.merge(getBlankProfile(), profile)), { signal, method: 'POST' }])
         );
       },
 
@@ -159,7 +146,7 @@ export const User = (signal?: AbortSignal) => {
         );
         return response.json();
       } catch (error: unknown) {
-        if (!(error instanceof Response && error.status !== 404)) {
+        if (!(error instanceof Response && error.status === 404)) {
           throw error;
         }
       }
@@ -173,7 +160,7 @@ export const User = (signal?: AbortSignal) => {
         );
         return response.json();
       } catch (error: unknown) {
-        if (!(error instanceof Response && error.status !== 404)) {
+        if (!(error instanceof Response && error.status === 404)) {
           throw error;
         }
       }
@@ -187,7 +174,7 @@ export const User = (signal?: AbortSignal) => {
         );
         return res.json();
       } catch (error: unknown) {
-        if (!(error instanceof Response && (error.status === 404 || error.status === 403))) {
+        if (error instanceof Response && (error.status === 404 || error.status === 403)) {
           return null;
         }
         throw error;
@@ -208,7 +195,7 @@ export const User = (signal?: AbortSignal) => {
         const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }));
         return res.json();
       } catch (error: unknown) {
-        if (!(error instanceof Response && error.status === 404)) {
+        if (error instanceof Response && error.status === 404) {
           return;
         }
         throw error;
@@ -227,12 +214,12 @@ export const User = (signal?: AbortSignal) => {
       await fetchOrchestration('api/nih/account', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]));
     },
 
-    getFenceStatus: async (provider): Promise<BondFenceStatusResponse | {}> => {
+    getFenceStatus: async (providerKey: string): Promise<BondFenceStatusResponse | {}> => {
       try {
-        const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }));
+        const res = await fetchBond(`api/link/v1/${providerKey}`, _.merge(authOpts(), { signal }));
         return res.json();
       } catch (error: unknown) {
-        if (!(error instanceof Response && error.status === 404)) {
+        if (error instanceof Response && error.status === 404) {
           return {};
         }
         throw error;
@@ -289,7 +276,7 @@ export const User = (signal?: AbortSignal) => {
             const res = await fetchEcm(root, _.merge(authOpts(), { signal }));
             return res.json();
           } catch (error: unknown) {
-            if (!(error instanceof Response && error.status === 404)) {
+            if (error instanceof Response && error.status === 404) {
               return null;
             }
             throw error;
@@ -309,7 +296,7 @@ export const User = (signal?: AbortSignal) => {
           return res.json();
         },
 
-        linkAccount: async (oauthcode, state): Promise<EcmLinkAccountResponse> => {
+        linkAccount: async (oauthcode: string, state: string): Promise<EcmLinkAccountResponse> => {
           const res = await fetchEcm(
             `${root}/oauthcode?${qs.stringify({ ...queryParams, oauthcode, state }, { indices: false })}`,
             _.merge(authOpts(), { signal, method: 'POST' })
@@ -327,7 +314,7 @@ export const User = (signal?: AbortSignal) => {
       try {
         await fetchSam(`api/users/v1/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'GET' }));
       } catch (error: unknown) {
-        if (!(error instanceof Response && error.status === 404)) {
+        if (error instanceof Response && error.status === 404) {
           return false;
         }
         throw error;
