@@ -252,7 +252,7 @@ const BucketBrowserTable = ({
                           h(ClipboardButton, {
                             tooltip: 'Copy file URL to clipboard',
                             className: 'cell-hover-only',
-                            style: { marginLeft: '1rem' },
+                            style: { marginLeft: '1ch' },
                             text: `gs://${bucketName}/${object.name}`,
                             size: 14,
                           }),
