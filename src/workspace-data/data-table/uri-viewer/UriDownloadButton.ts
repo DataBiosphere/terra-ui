@@ -67,7 +67,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
   });
 
   const loadingSpinner = () => {
-    // @ts-expect-error
+    // @ts-ignore
     return h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })]);
   };
 
