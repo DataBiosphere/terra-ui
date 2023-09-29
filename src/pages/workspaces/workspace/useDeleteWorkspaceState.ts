@@ -10,8 +10,6 @@ import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { BaseWorkspace, isAzureWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils';
 
-export const WorkspaceResourceDeletionPollRate = 5000;
-
 export interface WorkspaceResources {
   nonDeleteableApps: App[];
   deleteableApps: App[];
@@ -31,8 +29,6 @@ export interface DeleteWorkspaceState {
   hasApps: () => boolean;
   hasRuntimes: () => boolean;
   deleteWorkspace: () => void;
-  deleteWorkspaceResources: () => void;
-  deletingResources: boolean;
 }
 
 export interface DeleteWorkspaceHookArgs {
@@ -43,8 +39,7 @@ export interface DeleteWorkspaceHookArgs {
 
 export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): DeleteWorkspaceState => {
   const [deleting, setDeleting] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [deletingResources, setDeletingResources] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [workspaceResources, setWorkspaceResources] = useState<WorkspaceResources>();
   const [collaboratorEmails, setCollaboratorEmails] = useState<string[]>();
   const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState<number>();
@@ -141,58 +136,6 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
     }
   };
 
-  const checkAzureResources = async () => {
-    try {
-      console.log('Checking azure resources...'); // eslint-disable-line no-console
-      const appsInfo = await fetchWorkspaceResources(hookArgs.workspace);
-      setWorkspaceResources(appsInfo);
-
-      if (appsInfo.apps.length > 0 || appsInfo.runtimes.length > 0) {
-        console.log('Resources still present, rescheduling check...'); // eslint-disable-line no-console
-        checkAzureResourcesTimeout.current = window.setTimeout(
-          () => checkAzureResources(),
-          WorkspaceResourceDeletionPollRate
-        );
-      } else {
-        console.log('Resources gone.'); // eslint-disable-line no-console
-        setDeletingResources(false);
-      }
-    } catch (error) {
-      setDeletingResources(false);
-      reportError('Error checking workspace resources', error);
-    }
-  };
-
-  const deleteWorkspaceResources = async () => {
-    try {
-      if (isGoogleWorkspace(hookArgs.workspace)) {
-        throw new Error('Attempting to delete resources in an unsupported workspace');
-      }
-
-      if (workspaceResources && workspaceResources.nonDeleteableApps.length > 0) {
-        throw new Error('Workspace contains non-deletable apps');
-      }
-
-      if (workspaceResources && workspaceResources.nonDeleteableRuntimes.length > 0) {
-        throw new Error('Workspace contains non-deletable runtimes');
-      }
-
-      setDeletingResources(true);
-      console.log(`Requesting app and runtime deletion for workspace ${workspaceInfo.workspaceId}`); // eslint-disable-line no-console
-      await Ajax(signal).Apps.deleteAllAppsV2(workspaceInfo.workspaceId, true);
-      await Ajax(signal).Runtimes.deleteAll(workspaceInfo.workspaceId, true);
-      console.log('Resource deletions requested, starting poll.'); // eslint-disable-line no-console
-
-      checkAzureResourcesTimeout.current = window.setTimeout(
-        () => checkAzureResources(),
-        WorkspaceResourceDeletionPollRate
-      );
-    } catch (error) {
-      setDeletingResources(false);
-      reportError('Error deleting workspace', error);
-    }
-  };
-
   return {
     workspaceResources,
     loading,
@@ -203,7 +146,5 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
     hasApps,
     hasRuntimes,
     deleteWorkspace,
-    deleteWorkspaceResources,
-    deletingResources,
   };
 };

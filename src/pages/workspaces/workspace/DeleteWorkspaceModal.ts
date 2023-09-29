@@ -21,14 +21,7 @@ interface DeleteWorkspaceModalProps {
 
 const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps) => {
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
-  const {
-    workspace,
-    workspace: {
-      workspace: { name, bucketName },
-    },
-    onDismiss,
-    onSuccess,
-  } = props;
+  const { workspace, onDismiss, onSuccess } = props;
   const {
     workspaceResources,
     loading,
@@ -48,7 +41,7 @@ const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps) => {
             Link,
             {
               ...Utils.newTabLinkProps,
-              href: bucketBrowserUrl(bucketName),
+              href: bucketBrowserUrl(props.workspace.workspace.bucketName),
             },
             ['Google Cloud Bucket']
           )
@@ -91,11 +84,11 @@ const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps) => {
   };
 
   const getWorkspaceName = () => {
-    return span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [name]);
+    return span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [workspace.workspace.name]);
   };
 
   if (loading) {
-    // only show the deletion modal when we have all of our constiuent data elements
+    // only show the deletion modal when we have all of our constituent data elements
     return div([spinnerOverlay]);
   }
   return h(

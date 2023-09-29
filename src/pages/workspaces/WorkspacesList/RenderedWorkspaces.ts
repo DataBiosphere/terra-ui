@@ -199,13 +199,15 @@ const NameCell = (props: CellProps): ReactNode => {
         [name]
       ),
     ]),
-    state === 'Deleting' || state === 'DeleteFailed'
-      ? h(NameCellStateMessage, { workspace: props.workspace, state })
-      : h(NameCellDescription, { description }),
+    Utils.cond(
+      [state === 'Deleting', () => h(WorkspaceDeletingCell)],
+      [state === 'DeleteFailed', () => h(WorkspaceDeletionFailedCell)],
+      [Utils.DEFAULT, () => h(WorkspaceDescriptionCell, { description })]
+    ),
   ]);
 };
 
-const NameCellDescription = (props: { description: unknown | undefined }) => {
+const WorkspaceDescriptionCell = (props: { description: unknown | undefined }) => {
   return div({ style: { ...styles.tableCellContent } }, [
     h(
       FirstParagraphMarkdownViewer,
@@ -223,17 +225,39 @@ const NameCellDescription = (props: { description: unknown | undefined }) => {
   ]);
 };
 
-interface NameCellStateMessageProps extends CellProps {
-  state: 'DeleteFailed' | 'Deleting';
-}
-const NameCellStateMessage = (props: NameCellStateMessageProps): ReactNode => {
+const WorkspaceDeletingCell = (): ReactNode => {
+  const deletingIcon = icon('syncAlt', {
+    size: 18,
+    style: {
+      animation: 'rotation 2s infinite linear',
+      marginRight: '0.5rem',
+    },
+  });
   return div(
     {
       style: {
         color: colors.danger(),
       },
     },
-    [icon('sync', { style: { marginRight: '.5rem' } }), Utils.normalizeLabel(props.state)]
+    [deletingIcon, 'Workspace deletion in progress']
+  );
+};
+
+const WorkspaceDeletionFailedCell = (): ReactNode => {
+  const errorIcon = icon('warning-standard', {
+    size: 18,
+    style: {
+      color: colors.danger(),
+      marginRight: '0.5rem',
+    },
+  });
+  return div(
+    {
+      style: {
+        color: colors.danger(),
+      },
+    },
+    [errorIcon, 'Error deleting workspace']
   );
 };
 

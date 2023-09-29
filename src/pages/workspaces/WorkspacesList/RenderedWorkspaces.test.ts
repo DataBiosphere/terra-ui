@@ -23,7 +23,7 @@ jest.mock(
 
 describe('The behavior of the RenderedWorkspaces component', () => {
   it('should render all of the workspaces it is given', () => {
-    // Arange
+    // Arrange
     const workspaces = [defaultAzureWorkspace, defaultGoogleWorkspace];
     const label = 'myWorkspaces';
 
@@ -38,7 +38,7 @@ describe('The behavior of the RenderedWorkspaces component', () => {
   });
 
   it('should indicate when the workspace is in the process of deleting instead of displaying the description', () => {
-    // Arange
+    // Arrange
     const workspace: WorkspaceWrapper = {
       ...defaultAzureWorkspace,
       workspace: {
@@ -58,12 +58,37 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     const workspaceDescriptionDisplay = screen.queryAllByText('some description');
     expect(workspaceDescriptionDisplay).toHaveLength(0);
 
-    const workspaceStateDisplay = screen.getAllByText('Deleting');
+    const workspaceStateDisplay = screen.getAllByText('Workspace deletion in progress');
+    expect(workspaceStateDisplay).not.toBeNull();
+  });
+
+  it('should indicate when the workspace failed to delete instead of displaying the description', () => {
+    // Arrange
+    const workspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'DeleteFailed',
+        attributes: { description: 'some description' },
+      },
+    };
+    const label = 'myWorkspaces';
+
+    // Act
+    render(
+      h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}), loadingSubmissionStats: false })
+    );
+
+    // Assert
+    const workspaceDescriptionDisplay = screen.queryAllByText('some description');
+    expect(workspaceDescriptionDisplay).toHaveLength(0);
+
+    const workspaceStateDisplay = screen.getAllByText('Error deleting workspace');
     expect(workspaceStateDisplay).not.toBeNull();
   });
 
   it('should render the description when the workspace is not in the process of deleting', () => {
-    // Arange
+    // Arrange
     const workspace: WorkspaceWrapper = {
       ...defaultAzureWorkspace,
       workspace: {
