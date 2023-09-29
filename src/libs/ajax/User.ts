@@ -40,6 +40,17 @@ export interface SamUserTosComplianceStatusResponse {
 export type TerraUserPreferences = {
   starredWorkspaces?: string;
 } & {
+  // These are the key value pairs from the workspace notification settings in the form of:
+  // 'notifications/SuccessfulSubmissionNotification/${workspace.workspace.namespace}/${workspace.workspace.name}' : true
+  // TODO for a follow-up ticket:
+  //  Change this data structure to be an array of:
+  //  {
+  //    workspaceId: string,
+  //    successfulSubmissionNotification: boolean,
+  //    failedSubmissionNotification: boolean,
+  //    abortedSubmissionNotification: boolean,
+  //  }
+  // and extract these values from the result inside profile.setPreferences
   [key: string]: string;
 };
 
@@ -47,6 +58,35 @@ export interface OrchestrationUserProfileResponse {
   userId: string;
   keyValuePairs: TerraUserProfile;
 }
+
+export interface SetTerraUserProfileRequest {
+  firstName: string;
+  lastName: string;
+  title: string;
+  contactEmail?: string;
+  institute: string;
+  programLocationCity: string;
+  programLocationState: string;
+  programLocationCountry: string;
+  termsOfService?: string;
+  researchArea?: string;
+  department?: string;
+  interestInTerra?: string;
+}
+
+export const makeSetUserProfileRequest = (terraUserProfile: TerraUserProfile): SetTerraUserProfileRequest => {
+  return {
+    firstName: terraUserProfile.firstName ?? 'N/A',
+    lastName: terraUserProfile.lastName ?? 'N/A',
+    title: terraUserProfile.title ?? 'N/A',
+    institute: terraUserProfile.institute ?? 'N/A',
+    programLocationCity: terraUserProfile.programLocationCity ?? 'N/A',
+    programLocationState: terraUserProfile.programLocationState ?? 'N/A',
+    programLocationCountry: terraUserProfile.programLocationCountry ?? 'N/A',
+    department: terraUserProfile.department,
+    interestInTerra: terraUserProfile.interestInTerra,
+  };
+};
 
 export interface OrchestrationUserPreferLegacyFireCloudResponse {
   preferTerra: boolean;
@@ -111,33 +151,10 @@ export const User = (signal?: AbortSignal) => {
       },
 
       // We are not calling Thurloe directly because free credits logic was in orchestration
-      set: async (profile: TerraUserProfile): Promise<void> => {
-        interface SetTerraUserProfileRequest {
-          firstName: string;
-          lastName: string;
-          title: string;
-          contactEmail?: string;
-          institute: string;
-          programLocationCity: string;
-          programLocationState: string;
-          programLocationCountry: string;
-          termsOfService?: string;
-          researchArea?: string;
-          department?: string;
-          interestInTerra?: string;
-        }
-        const blankProfileRequest: SetTerraUserProfileRequest = {
-          firstName: 'N/A',
-          lastName: 'N/A',
-          title: 'N/A',
-          institute: 'N/A',
-          programLocationCity: 'N/A',
-          programLocationState: 'N/A',
-          programLocationCountry: 'N/A',
-        };
+      set: async (profile: SetTerraUserProfileRequest): Promise<void> => {
         return fetchOrchestration(
           'register/profile',
-          _.mergeAll([authOpts(), jsonBody(_.merge(blankProfileRequest, profile)), { signal, method: 'POST' }])
+          _.mergeAll([authOpts(), jsonBody(profile), { signal, method: 'POST' }])
         );
       },
 
