@@ -4,6 +4,7 @@ import pluralize from 'pluralize';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
+import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonOutline, ButtonPrimary, Checkbox, DeleteConfirmationModal, Link, topSpinnerOverlay } from 'src/components/common';
 import Dropzone from 'src/components/Dropzone';
 import { icon } from 'src/components/icons';
@@ -248,6 +249,13 @@ const BucketBrowserTable = ({
                             },
                             [label]
                           ),
+                          h(ClipboardButton, {
+                            'aria-label': `Copy ${object.name} to clipboard`,
+                            className: 'cell-hover-only',
+                            style: { marginLeft: '1rem' },
+                            text: `gs://${bucketName}/${object.name}`,
+                            size: 14,
+                          }),
                         ]);
                       },
                     ],
