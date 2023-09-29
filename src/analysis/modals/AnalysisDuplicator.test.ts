@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { AnalysisDuplicator, AnalysisDuplicatorProps } from 'src/analysis/modals/AnalysisDuplicator';
@@ -8,7 +8,7 @@ import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage';
 import { errorWatcher } from 'src/libs/error.mock';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 type ModalMockExports = typeof import('src/components/Modal.mock');

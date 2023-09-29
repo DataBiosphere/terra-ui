@@ -1,9 +1,9 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { SelectHelper } from 'src/testing/test-utils';
+import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { BaseSubmissionDetails } from 'src/workflows-app/SubmissionDetails';
 import { methodData, runsData, runSetData, simpleRunsData } from 'src/workflows-app/utils/mock-data';
 import { mockAzureApps, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
