@@ -117,11 +117,11 @@ export const PageHeader = ({ breadcrumbPathObjects, title }) => {
 };
 
 export const Breadcrumbs = ({ breadcrumbPathObjects, pageId }) => {
-  const links = breadcrumbPathObjects.map(({ label, path, params }, index) => {
+  const links = breadcrumbPathObjects.map(({ label, path, pathParams, queryParams }, index) => {
     const attributes = { key: `${_.kebabCase(label)}-breadcrumb-link` };
     let component;
     if (!_.isNil(path)) {
-      attributes.href = getLink(path, params);
+      attributes.href = getLink(path, pathParams, queryParams);
       component = h(Link, { ...attributes }, [label]);
     } else {
       component = span({ ...attributes }, [label]);

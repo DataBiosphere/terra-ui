@@ -8,11 +8,11 @@ jest.mock('src/libs/nav', () => ({
   getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
   getLink: jest
     .fn()
-    .mockImplementation((path, params) =>
+    .mockImplementation((path, pathParams, queryParams) =>
       path === 'workspace-workflows-app'
-        ? `/#workspaces/${params.namespace}/${params.name}/workflows-app${jest
+        ? `/#workspaces/${pathParams.namespace}/${pathParams.name}/workflows-app${jest
             .requireActual('qs')
-            .stringify(params.queryParams, { addQueryPrefix: true })}`
+            .stringify(queryParams, { addQueryPrefix: true })}`
         : '/#test-link'
     ),
   goToPath: jest.fn(),
@@ -30,7 +30,8 @@ describe('Job Common Components - Page Header', () => {
       {
         label: 'Submission History',
         path: 'workspace-workflows-app',
-        params: { namespace: 'foo', name: 'bar', queryParams: { tab: 'submission-history' } },
+        pathParams: { namespace: 'foo', name: 'bar' },
+        queryParams: { tab: 'submission-history' },
       },
       {
         label: 'Test link',
@@ -46,7 +47,10 @@ describe('Job Common Components - Page Header', () => {
     render(h(PageHeader, props));
 
     const historyLink = screen.getByText(breadcrumbPathObjects[0].label);
-    expect(historyLink).toHaveAttribute('href', Nav.getLink(breadcrumbPathObjects[0].path, breadcrumbPathObjects[0].params));
+    expect(historyLink).toHaveAttribute(
+      'href',
+      Nav.getLink(breadcrumbPathObjects[0].path, breadcrumbPathObjects[0].pathParams, breadcrumbPathObjects[0].queryParams)
+    );
     const testLink = screen.getByText(breadcrumbPathObjects[1].label);
     expect(testLink).toHaveAttribute('href', Nav.getLink(breadcrumbPathObjects[1].path));
   });

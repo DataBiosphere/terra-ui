@@ -159,12 +159,13 @@ export const BaseRunDetails = (
       {
         label: 'Submission History',
         path: 'workspace-workflows-app',
-        params: { name, namespace, queryParams: { tab: 'submission-history' } },
+        pathParams: { name, namespace },
+        queryParams: { tab: 'submission-history' },
       },
       {
         label: `Submission ${submissionId}`,
         path: 'workspace-workflows-app-submission-details',
-        params: { name, namespace, submissionId },
+        pathParams: { name, namespace, submissionId },
       },
       {
         label: workflow?.workflowName,
