@@ -1,1 +1,1 @@
-export { jestConfig as baseConfig } from './jest.config';
+export * from './jestConfig';
