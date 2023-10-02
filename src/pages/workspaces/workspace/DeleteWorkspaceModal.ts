@@ -54,15 +54,18 @@ const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps) => {
   };
 
   const getResourceDeletionMessage = () => {
-    const nNonDeletableApps = workspaceResources?.nonDeleteableApps.length ?? 0;
-    const appCount = nNonDeletableApps > 1 ? `are ${workspaceResources?.nonDeleteableApps.length}` : 'is 1';
-    const googleMessage = `You cannot delete this workspace because there ${appCount} ${pluralize(
+    // On Azure, JupyterLab is returned as a runtime instead of an app (on GCP, Jupyter seems to be neither).
+    // WDS and Cromwell are apps.
+    const nNonDeletableResources =
+      (workspaceResources?.nonDeleteableApps.length ?? 0) + (workspaceResources?.nonDeleteableRuntimes.length ?? 0);
+    const nDeletableResources =
+      (workspaceResources?.deleteableApps.length ?? 0) + (workspaceResources?.deleteableRuntimes.length ?? 0);
+    const nonDeletableResourcesVerb = nNonDeletableResources === 1 ? 'is' : 'are';
+    const nonDeletableResourceMessage = `You cannot delete this workspace because there ${nonDeletableResourcesVerb} ${pluralize(
       'application',
-      nNonDeletableApps,
-      false
-    )} you must delete first. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`;
-    const azureMessage =
-      'Deleting workspaces with running cloud resources in Terra on Azure Preview is currently unavailable. Please reach out to support@terra.bio for assistance.';
+      nNonDeletableResources,
+      true
+    )} that ${nonDeletableResourcesVerb} currently not deletable. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`;
     return isDeleteDisabledFromResources
       ? div({ style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' } }, [
           div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
@@ -72,12 +75,12 @@ const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps) => {
             }),
             'Undeletable Workspace Warning',
           ]),
-          p({ style: { fontWeight: 'normal' } }, [isGoogleWorkspace(workspace) ? googleMessage : azureMessage]),
+          p({ style: { fontWeight: 'normal' } }, [nonDeletableResourceMessage]),
         ])
       : p({ style: { marginLeft: '1rem', fontWeight: 'bold' } }, [
-          `Detected ${nNonDeletableApps} automatically deletable ${pluralize(
+          `Detected ${nDeletableResources} automatically deletable ${pluralize(
             'application',
-            nNonDeletableApps,
+            nDeletableResources,
             false
           )}.`,
         ]);
