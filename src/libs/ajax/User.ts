@@ -147,9 +147,8 @@ export const User = (signal?: AbortSignal) => {
     profile: {
       get: async (): Promise<TerraUserProfile> => {
         const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }));
-        const rawResponseJson: OrchestrationUserProfileResponse = res.json();
-        // @ts-expect-error
-        return Utils.kvArrayToObject(rawResponseJson) as TerraUserProfile;
+        const rawResponseJson: OrchestrationUserProfileResponse = await res.json();
+        return Utils.kvArrayToObject(rawResponseJson.keyValuePairs) as TerraUserProfile;
       },
 
       // We are not calling Thurloe directly because free credits logic was in orchestration
