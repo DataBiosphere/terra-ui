@@ -51,35 +51,78 @@ jest.mock('src/pages/library/dataBrowser-utils', (): DataBrowserUtilsExports => 
 });
 
 interface SetupOptions {
-  mockAjax: DeepPartial<AjaxContract>;
   queryParams: { [key: string]: unknown };
 }
 
 const setup = (opts: SetupOptions) => {
-  const { mockAjax, queryParams } = opts;
+  const { queryParams } = opts;
 
-  const mockAjaxWithCommonFunctions: DeepPartial<AjaxContract> = {
-    ...mockAjax,
+  const exportDataset = jest.fn().mockResolvedValue(undefined);
+
+  const importBagit = jest.fn().mockResolvedValue(undefined);
+  const importJob = jest.fn().mockResolvedValue({ jobId: 'new-job' });
+  const importJSON = jest.fn().mockResolvedValue(undefined);
+  const importSnapshot = jest.fn().mockResolvedValue(undefined);
+
+  const getWorkspaceApi = jest.fn().mockReturnValue({
+    importBagit,
+    importJob,
+    importJSON,
+    importSnapshot,
+  });
+
+  const importTdr = jest.fn().mockResolvedValue(undefined);
+
+  const wdsProxyUrl = 'https://proxyurl';
+  const mockAjax: DeepPartial<AjaxContract> = {
+    Apps: {
+      listAppsV2: jest.fn().mockResolvedValue([
+        {
+          appType: 'WDS',
+          appName: `wds-${defaultAzureWorkspace.workspace.workspaceId}`,
+          status: 'RUNNING',
+          proxyUrls: { wds: wdsProxyUrl },
+          workspaceId: defaultAzureWorkspace.workspace.workspaceId,
+        },
+      ]),
+    },
     Billing: {
       listProjects: jest.fn().mockResolvedValue([{}]),
-      ...mockAjax.Billing,
+    },
+    Catalog: {
+      exportDataset,
     },
     FirecloudBucket: {
       getTemplateWorkspaces: jest.fn().mockResolvedValue([]),
-      ...mockAjax.FirecloudBucket,
     },
     Metrics: {
       captureEvent: jest.fn(),
-      ...mockAjax.Metrics,
+    },
+    WorkspaceData: {
+      importTdr,
+    },
+    Workspaces: {
+      workspace: getWorkspaceApi,
     },
   };
-  asMockedFn(Ajax).mockImplementation(() => mockAjaxWithCommonFunctions as AjaxContract);
+  asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
   asMockedFn(useRoute).mockReturnValue({
     query: queryParams,
   });
 
   render(h(ImportData));
+
+  return {
+    exportDataset,
+    getWorkspaceApi,
+    importBagit,
+    importJob,
+    importJSON,
+    importSnapshot,
+    importTdr,
+    wdsProxyUrl,
+  };
 };
 
 const importIntoExistingWorkspace = async (user: UserEvent, workspaceName: string): Promise<void> => {
@@ -113,18 +156,8 @@ describe('ImportData', () => {
       // Arrange
       const user = userEvent.setup();
 
-      const importJob = jest.fn().mockResolvedValue({ jobId: 'new-job' });
-      const getWorkspaceApi = jest.fn().mockReturnValue({
-        importJob,
-      });
-
       const importUrl = 'https://example.com/path/to/file.pfb';
-      setup({
-        mockAjax: {
-          Workspaces: {
-            workspace: getWorkspaceApi,
-          },
-        },
+      const { getWorkspaceApi, importJob } = setup({
         queryParams: {
           format: 'PFB',
           url: importUrl,
@@ -147,18 +180,8 @@ describe('ImportData', () => {
       // Arrange
       const user = userEvent.setup();
 
-      const importBagit = jest.fn().mockResolvedValue(undefined);
-      const getWorkspaceApi = jest.fn().mockReturnValue({
-        importBagit,
-      });
-
       const importUrl = 'https://example.com/path/to/file.bagit';
-      setup({
-        mockAjax: {
-          Workspaces: {
-            workspace: getWorkspaceApi,
-          },
-        },
+      const { getWorkspaceApi, importBagit } = setup({
         queryParams: {
           url: importUrl,
         },
@@ -180,18 +203,8 @@ describe('ImportData', () => {
       // Arrange
       const user = userEvent.setup();
 
-      const importJSON = jest.fn().mockResolvedValue(undefined);
-      const getWorkspaceApi = jest.fn().mockReturnValue({
-        importJSON,
-      });
-
       const importUrl = 'https://example.com/path/to/file.json';
-      setup({
-        mockAjax: {
-          Workspaces: {
-            workspace: getWorkspaceApi,
-          },
-        },
+      const { getWorkspaceApi, importJSON } = setup({
         queryParams: {
           format: 'entitiesJson',
           url: importUrl,
@@ -226,19 +239,7 @@ describe('ImportData', () => {
         // Arrange
         const user = userEvent.setup();
 
-        const importJob = jest.fn().mockResolvedValue({ jobId: 'new-job' });
-        const getWorkspaceApi = jest.fn().mockReturnValue({
-          importJob,
-        });
-
-        setup({
-          mockAjax: {
-            Workspaces: {
-              workspace: getWorkspaceApi,
-            },
-          },
-          queryParams,
-        });
+        const { getWorkspaceApi, importJob } = setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
@@ -256,28 +257,7 @@ describe('ImportData', () => {
         // Arrange
         const user = userEvent.setup();
 
-        const importTdr = jest.fn().mockResolvedValue(undefined);
-
-        const wdsProxyUrl = 'https://proxyurl';
-        setup({
-          mockAjax: {
-            Apps: {
-              listAppsV2: jest.fn().mockResolvedValue([
-                {
-                  appType: 'WDS',
-                  appName: `wds-${defaultAzureWorkspace.workspace.workspaceId}`,
-                  status: 'RUNNING',
-                  proxyUrls: { wds: wdsProxyUrl },
-                  workspaceId: defaultAzureWorkspace.workspace.workspaceId,
-                },
-              ]),
-            },
-            WorkspaceData: {
-              importTdr,
-            },
-          },
-          queryParams,
-        });
+        const { importTdr, wdsProxyUrl } = setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultAzureWorkspace.workspace.name);
@@ -296,24 +276,12 @@ describe('ImportData', () => {
         // Arrange
         const user = userEvent.setup();
 
-        const importSnapshot = jest.fn().mockResolvedValue(undefined);
-        const getWorkspaceApi = jest.fn().mockReturnValue({
-          importSnapshot,
-        });
-
         const queryParams = {
           format: 'snapshot',
           snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
           snapshotName: 'test-snapshot',
         };
-        setup({
-          mockAjax: {
-            Workspaces: {
-              workspace: getWorkspaceApi,
-            },
-          },
-          queryParams,
-        });
+        const { getWorkspaceApi, importSnapshot } = setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
@@ -334,23 +302,11 @@ describe('ImportData', () => {
       // Arrange
       const user = userEvent.setup();
 
-      const importSnapshot = jest.fn().mockResolvedValue(undefined);
-      const getWorkspaceApi = jest.fn().mockReturnValue({
-        importSnapshot,
-      });
-
       const queryParams = {
         format: 'snapshot',
         snapshotIds: ['00001111-2222-3333-aaaa-bbbbccccdddd', 'aaaabbbb-cccc-1111-2222-333333333333'],
       };
-      setup({
-        mockAjax: {
-          Workspaces: {
-            workspace: getWorkspaceApi,
-          },
-        },
-        queryParams,
-      });
+      const { getWorkspaceApi, importSnapshot } = setup({ queryParams });
 
       asMockedFn(useDataCatalog).mockReturnValue({
         dataCatalog: [
@@ -417,20 +373,11 @@ describe('ImportData', () => {
     // Arrange
     const user = userEvent.setup();
 
-    const exportDataset = jest.fn().mockResolvedValue(undefined);
-
     const queryParams = {
       format: 'catalog',
       catalogDatasetId: '00001111-2222-3333-aaaa-bbbbccccdddd',
     };
-    setup({
-      mockAjax: {
-        Catalog: {
-          exportDataset,
-        },
-      },
-      queryParams,
-    });
+    const { exportDataset } = setup({ queryParams });
 
     // Act
     await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
