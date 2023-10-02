@@ -597,9 +597,7 @@ authStore.subscribe(
 );
 
 export const refreshTerraProfile = async () => {
-  const profile: TerraUserProfile = Utils.kvArrayToObject(
-    (await Ajax().User.profile.get()).keyValuePairs
-  ) as TerraUserProfile;
+  const profile: TerraUserProfile = await Ajax().User.profile.get();
   authStore.update((state: AuthState) => ({ ...state, profile }));
 };
 

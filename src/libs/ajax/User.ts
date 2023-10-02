@@ -56,7 +56,7 @@ export type TerraUserPreferences = {
 
 export interface OrchestrationUserProfileResponse {
   userId: string;
-  keyValuePairs: any; // This is not a TerraUserProfile until Utils.kvArrayToObject is called on this
+  keyValuePairs: { key: string; value: string }[];
 }
 
 export interface SetTerraUserProfileRequest {
@@ -145,9 +145,10 @@ export const User = (signal?: AbortSignal) => {
     },
 
     profile: {
-      get: async (): Promise<OrchestrationUserProfileResponse> => {
+      get: async (): Promise<TerraUserProfile> => {
         const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }));
-        return res.json();
+        const rawResponseJson = res.json();
+        return Utils.kvArrayToObject(rawResponseJson) as TerraUserProfile;
       },
 
       // We are not calling Thurloe directly because free credits logic was in orchestration
