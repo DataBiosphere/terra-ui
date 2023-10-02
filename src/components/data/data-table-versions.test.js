@@ -1,7 +1,8 @@
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { DataTableSaveVersionModal, DataTableVersion } from 'src/components/data/data-table-versions';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 describe('DataTableSaveVersionModal', () => {
   it('renders input for description', () => {

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { KEY_LEFT, KEY_RIGHT } from 'keycode-js';
 import _ from 'lodash/fp';
@@ -18,6 +18,7 @@ import {
   newCriteriaGroup,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 describe('CohortEditor', () => {
   type CriteriaViewPropsOverrides = {

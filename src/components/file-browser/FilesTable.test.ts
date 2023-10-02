@@ -1,10 +1,11 @@
-import { getAllByRole, getByRole, render, screen } from '@testing-library/react';
+import { getAllByRole, getByRole, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { basename } from 'src/components/file-browser/file-browser-utils';
 import FilesTable, { FilesTableProps } from 'src/components/file-browser/FilesTable';
 import { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 // FileBrowserTable uses react-virtualized's AutoSizer to size the table.
 // This makes the virtualized window large enough for all rows/columns to be rendered in tests.

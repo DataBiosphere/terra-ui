@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { signOut } from 'src/libs/auth';
 import { azurePreviewStore } from 'src/libs/state';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import AzurePreview from './AzurePreview';
 

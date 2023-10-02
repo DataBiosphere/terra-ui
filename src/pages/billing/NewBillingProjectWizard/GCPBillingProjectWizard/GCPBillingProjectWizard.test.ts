@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import Events from 'src/libs/events';
 import * as Preferences from 'src/libs/prefs';
 import GCPBillingProjectWizard from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
 jest.spyOn(Preferences, 'getLocalPref');
