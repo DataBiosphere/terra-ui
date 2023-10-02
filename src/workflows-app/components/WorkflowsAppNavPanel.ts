@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { CSSProperties } from 'react';
+import { CSSProperties, useEffect } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
 import Collapse from 'src/components/Collapse';
@@ -85,6 +85,12 @@ export const WorkflowsAppNavPanel = ({
   signal,
 }: WorkflowsAppNavPanelProps) => {
   const [selectedSubHeader, setSelectedSubHeader] = useQueryParameter('tab');
+
+  useEffect(() => {
+    if (!(selectedSubHeader in subHeadersMap || selectedSubHeader in findAndAddSubheadersMap)) {
+      setSelectedSubHeader('workspace-workflows');
+    }
+  }, [selectedSubHeader, setSelectedSubHeader]);
 
   const isSubHeaderActive = (subHeader: string) => pageReady && selectedSubHeader === subHeader;
 
@@ -249,8 +255,7 @@ export const WorkflowsAppNavPanel = ({
                 namespace,
                 setSelectedSubHeader,
               }),
-          ],
-          [Utils.DEFAULT, () => () => setSelectedSubHeader('workspace-workflows')]
+          ]
         ),
       ],
       [
