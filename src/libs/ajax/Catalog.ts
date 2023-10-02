@@ -295,6 +295,7 @@ export interface DatasetMetadata {
   'dct:title': string;
   'dct:description': string;
   'dct:creator': string;
+  // Snapshot datasets have a dct:identifier field. Workspace datasets do not.
   'dct:identifier'?: string;
   'dct:issued': string;
   'dct:modified'?: string;
