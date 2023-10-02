@@ -23,7 +23,6 @@ import {
   makeStatusLine,
   statusType,
 } from 'src/workflows-app/utils/submission-utils';
-import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   // State
@@ -270,13 +269,11 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                 h(
                                   Link,
                                   {
-                                    onClick: () => {
-                                      Nav.goToPath('workspace-workflows-app-submission-details', {
-                                        name: workspace.workspace.name,
-                                        namespace,
-                                        submissionId: paginatedPreviousRunSets[rowIndex].run_set_id,
-                                      });
-                                    },
+                                    href: Nav.getLink('workspace-workflows-app-submission-details', {
+                                      name: workspace.workspace.name,
+                                      namespace,
+                                      submissionId: paginatedPreviousRunSets[rowIndex].run_set_id,
+                                    }),
                                     style: { fontWeight: 'bold' },
                                   },
                                   [paginatedPreviousRunSets[rowIndex].run_set_name || 'No name']
@@ -357,5 +354,3 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
         ]),
       ]);
 };
-
-export const SubmissionHistory = wrapWorkflowsPage({ name: 'SubmissionHistory' })(BaseSubmissionHistory);

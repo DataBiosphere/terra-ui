@@ -258,17 +258,16 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
               h(
                 Link,
                 {
-                  onClick: () =>
-                    Nav.goToPath('workspace-workflows-app', {
-                      name,
-                      namespace,
-                      workspace: {
-                        workspace: { workspaceId },
-                      },
-                      queryParams: {
-                        tab: 'submission-history',
-                      },
-                    }),
+                  href: Nav.getLink('workspace-workflows-app', {
+                    name,
+                    namespace,
+                    workspace: {
+                      workspace: { workspaceId },
+                    },
+                    queryParams: {
+                      tab: 'submission-history',
+                    },
+                  }),
                   style: { display: 'inline-flex', alignItems: 'center', padding: '1rem 0 0', fontSize: '115%' },
                 },
                 [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to submission history']
@@ -354,14 +353,12 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                               h(
                                 Link,
                                 {
-                                  onClick: () => {
-                                    Nav.goToPath('workspace-workflows-app-run-details', {
-                                      namespace,
-                                      name,
-                                      submissionId,
-                                      workflowId: paginatedPreviousRuns[rowIndex].engine_id,
-                                    });
-                                  },
+                                  href: Nav.getLink('workspace-workflows-app-run-details', {
+                                    namespace,
+                                    name,
+                                    submissionId,
+                                    workflowId: paginatedPreviousRuns[rowIndex].engine_id,
+                                  }),
                                   style: { fontWeight: 'bold' },
                                 },
                                 [paginatedPreviousRuns[rowIndex].record_id]
