@@ -56,7 +56,7 @@ export type TerraUserPreferences = {
 
 export interface OrchestrationUserProfileResponse {
   userId: string;
-  keyValuePairs: TerraUserProfile;
+  keyValuePairs: any; // This is not a TerraUserProfile until Utils.kvArrayToObject is called on this
 }
 
 export interface SetTerraUserProfileRequest {
