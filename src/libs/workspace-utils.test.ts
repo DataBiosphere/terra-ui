@@ -13,6 +13,7 @@ import {
   hasProtectedData,
   hasRegionConstraint,
   isValidWsExportTarget,
+  WorkspaceAccessLevel,
   WorkspaceWrapper,
 } from './workspace-utils';
 
@@ -156,14 +157,17 @@ describe('hasRegionConstraint', () => {
 });
 
 describe('canEditWorkspace', () => {
-  it.each(['WRITER', 'OWNER'])('Returns true if passed parameters permit editing.', (accessLevel) => {
-    // Act
-    const result = canEditWorkspace({ accessLevel, workspace: { isLocked: false } });
+  it.each(['WRITER', 'OWNER'] as WorkspaceAccessLevel[])(
+    'Returns true if passed parameters permit editing.',
+    (accessLevel) => {
+      // Act
+      const result = canEditWorkspace({ accessLevel, workspace: { isLocked: false } });
 
-    // Assert
-    expect(result).toStrictEqual({ value: true });
-  });
-  it.each(['WRITER', 'OWNER'])(
+      // Assert
+      expect(result).toStrictEqual({ value: true });
+    }
+  );
+  it.each(['WRITER', 'OWNER'] as WorkspaceAccessLevel[])(
     'Returns false with a locked message if passed parameters include locked.',
     (accessLevel) => {
       // Act
