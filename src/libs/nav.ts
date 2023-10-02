@@ -175,8 +175,8 @@ export function PathHashInserter() {
 }
 
 export interface TerraNavLinkProvider {
-  getLink: (name: string, params?: Record<string, any>) => string;
-  goToPath: (name: string, params?: Record<string, any>) => void;
+  getLink: (name: string, pathParams?: Record<string, any>, queryParams?: Record<string, any>) => string;
+  goToPath: (name: string, pathParams?: Record<string, any>, queryParams?: Record<string, any>) => void;
 }
 
 export const terraNavLinkProvider: TerraNavLinkProvider = {
