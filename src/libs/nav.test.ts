@@ -39,6 +39,7 @@ describe('isTerraNavKey', () => {
 
 describe('goToPath', () => {
   it('does not include query params if not provided', () => {
+    // Arrange
     const pathname = '/url-version-of-path/foo/bar';
     const pathRef = 'totally-real-path';
     const push = jest.spyOn(history, 'push');
@@ -53,12 +54,13 @@ describe('goToPath', () => {
   });
 
   it('includes query params', () => {
+    // Arrange
     const pathname = '/url-version-of-path/foo/bar';
     const pathRef = 'totally-real-path';
     const push = jest.spyOn(history, 'push');
 
     // Act
-    goToPath(pathRef, { name: 'foo', namespace: 'bar', queryParams: { red: 'fish', blue: 'fish' } });
+    goToPath(pathRef, { name: 'foo', namespace: 'bar' }, { red: 'fish', blue: 'fish' });
 
     // Assert
     expect(push).toHaveBeenCalledWith({
@@ -70,6 +72,7 @@ describe('goToPath', () => {
 
 describe('getLink', () => {
   it('does not include query params if not provided', () => {
+    // Arrange
     const pathname = '#url-version-of-path/foo/bar';
     const pathRef = 'totally-real-path';
 
@@ -81,11 +84,12 @@ describe('getLink', () => {
   });
 
   it('includes query params', () => {
+    // Arrange
     const pathname = '#url-version-of-path/foo/bar';
     const pathRef = 'totally-real-path';
 
     // Act
-    const link = getLink(pathRef, { name: 'foo', namespace: 'bar', queryParams: { red: 'fish', blue: 'fish' } });
+    const link = getLink(pathRef, { name: 'foo', namespace: 'bar' }, { red: 'fish', blue: 'fish' });
 
     // Assert
     expect(link).toEqual(`${pathname}?red=fish&blue=fish`);

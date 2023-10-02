@@ -73,18 +73,19 @@ export const getPath = (name: string, params?: Record<string, any>): string => {
 /**
  * alias for getPath()
  */
-export const getLink = (name: string, params?: Record<string, any>) =>
-  `#${getPath(name, params).slice(1)}${
-    params?.queryParams ? qs.stringify(params.queryParams, { addQueryPrefix: true }) : ''
-  }`; // slice off leading slash
+export const getLink = (name: string, pathParams?: Record<string, any>, queryParams?: Record<string, any>) => {
+  const path = getPath(name, pathParams).slice(1); // slice off leading slash
+  const queryString = queryParams ? qs.stringify(queryParams, { addQueryPrefix: true }) : '';
+  return `#${path}${queryString}`;
+};
 
 /**
  * navigate the application to the desired nav path.
  */
-export const goToPath = (name: string, params?: Record<string, any>) => {
+export const goToPath = (name: string, pathParams?: Record<string, any>, queryParams?: Record<string, any>) => {
   history.push({
-    pathname: getPath(name, params),
-    ...(params?.queryParams ? { search: qs.stringify(params.queryParams, { addQueryPrefix: true }) } : {}),
+    pathname: getPath(name, pathParams),
+    ...(queryParams ? { search: qs.stringify(queryParams, { addQueryPrefix: true }) } : {}),
   });
 };
 
