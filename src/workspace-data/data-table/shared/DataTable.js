@@ -172,7 +172,7 @@ const DataTable = (props) => {
 
   const [filterOperator, setFilterOperator] = useState('AND');
 
-  const noEdit = WorkspaceUtils.editWorkspaceError(workspace);
+  const actionProps = WorkspaceUtils.getWorkspaceEditControlProps(workspace);
 
   const table = useRef();
   const signal = useCancellation();
@@ -558,20 +558,17 @@ const DataTable = (props) => {
                                       // Without this, autofocus doesn't work in the modals.
                                       {
                                         label: 'Rename Column',
-                                        disabled: !!noEdit,
-                                        tooltip: noEdit || '',
+                                        ...actionProps,
                                         onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0),
                                       },
                                       {
                                         label: 'Delete Column',
-                                        disabled: !!noEdit,
-                                        tooltip: noEdit || '',
+                                        ...actionProps,
                                         onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0),
                                       },
                                       {
                                         label: 'Clear Column',
-                                        disabled: !!noEdit,
-                                        tooltip: noEdit || '',
+                                        ...actionProps,
                                         onClick: () => setTimeout(() => setClearingColumn(attributeName), 0),
                                       },
                                     ]

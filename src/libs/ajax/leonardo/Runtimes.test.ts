@@ -10,7 +10,7 @@ jest.mock('src/libs/ajax/ajax-common', () => ({
 
 describe('Runtimes ajax', () => {
   const mockFetchLeo = jest.fn();
-  const signal = jest.fn();
+  const signal = new window.AbortController().signal;
   beforeEach(() => {
     asMockedFn(fetchLeo).mockImplementation(mockFetchLeo);
     asMockedFn(authOpts).mockImplementation(jest.fn());

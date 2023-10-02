@@ -1,6 +1,5 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { createContext, useContext } from 'react';
 import {
   appIdentifier,
   authOpts,
@@ -25,6 +24,7 @@ import { Disks } from 'src/libs/ajax/leonardo/Disks';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { SamResources } from 'src/libs/ajax/SamResources';
+import { Support } from 'src/libs/ajax/Support';
 import { User } from 'src/libs/ajax/User';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import { CromwellApp } from 'src/libs/ajax/workflows-app/CromwellApp';
@@ -725,43 +725,36 @@ const Surveys = (signal) => ({
 
 export const Ajax = (signal) => {
   return {
-    User: User(signal),
-    Groups: Groups(signal),
-    SamResources: SamResources(signal),
-    Billing: Billing(signal),
-    Workspaces: Workspaces(signal),
-    Catalog: Catalog(signal),
-    DataRepo: DataRepo(signal),
-    AzureStorage: AzureStorage(signal),
-    Buckets: GoogleStorage(signal),
-    Methods: Methods(signal),
-    Submissions: Submissions(signal),
-    Runtimes: Runtimes(signal),
     Apps: Apps(signal),
+    AzureStorage: AzureStorage(signal),
+    Billing: Billing(signal),
+    Buckets: GoogleStorage(signal),
+    Catalog: Catalog(signal),
+    Cbas: Cbas(signal),
+    CromIAM: CromIAM(signal),
+    CromwellApp: CromwellApp(signal),
+    DataRepo: DataRepo(signal),
+    Disks: Disks(signal),
     Dockstore: Dockstore(signal),
     DrsUriResolver: DrsUriResolver(signal),
     Duos: Duos(signal),
-    Metrics: Metrics(signal),
-    Disks: Disks(signal),
-    CromIAM: CromIAM(signal),
     FirecloudBucket: FirecloudBucket(signal),
+    Groups: Groups(signal),
+    Methods: Methods(signal),
+    Metrics: Metrics(signal),
     OAuth2: OAuth2(signal),
+    Runtimes: Runtimes(signal),
+    SamResources: SamResources(signal),
+    Submissions: Submissions(signal),
+    Support: Support(signal),
     Surveys: Surveys(signal),
+    User: User(signal),
+    WorkflowScript: WorkflowScript(signal),
     WorkspaceData: WorkspaceData(signal),
     WorkspaceManagerResources: WorkspaceManagerResources(signal),
-    Cbas: Cbas(signal),
-    CromwellApp: CromwellApp(signal),
-    WorkflowScript: WorkflowScript(signal),
+    Workspaces: Workspaces(signal),
   };
 };
 
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
 window.Ajax = Ajax;
-
-// Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
-// https://github.com/DataBiosphere/terra-ui/pull/3669
-export const ajaxContext = createContext(Ajax);
-
-// Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
-// https://github.com/DataBiosphere/terra-ui/pull/3669
-export const useReplaceableAjaxExperimental = () => useContext(ajaxContext);
