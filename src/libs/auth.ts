@@ -597,7 +597,6 @@ authStore.subscribe(
 );
 
 export const refreshTerraProfile = async () => {
-  // @ts-expect-error
   const profile: TerraUserProfile = Utils.kvArrayToObject(
     (await Ajax().User.profile.get()).keyValuePairs
   ) as TerraUserProfile;
