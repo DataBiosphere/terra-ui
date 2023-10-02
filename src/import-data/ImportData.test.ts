@@ -358,16 +358,36 @@ describe('ImportData', () => {
         asMockedFn(useDataCatalog).mockReturnValue({
           dataCatalog: [
             {
-              // @ts-expect-error
-              'dct:identifier': '00001111-2222-3333-aaaa-bbbbccccdddd',
-              'dct:title': 'test-snapshot-1',
+              id: 'aaaabbbb-cccc-dddd-eeee-ffffgggghhhh',
+              'dct:creator': 'testowner',
               'dct:description': 'A test snapshot',
+              'dct:identifier': '00001111-2222-3333-aaaa-bbbbccccdddd',
+              'dct:issued': '2023-10-02T11:30:00.000000Z',
+              'dct:title': 'test-snapshot-1',
+              'dcat:accessURL':
+                'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/00001111-2222-3333-aaaa-bbbbccccdddd',
+              'TerraDCAT_ap:hasDataCollection': [],
+              accessLevel: 'reader',
+              storage: [],
+              counts: {},
+              samples: {},
+              contributors: [],
             },
             {
-              // @ts-expect-error
-              'dct:identifier': 'aaaabbbb-cccc-1111-2222-333333333333',
-              'dct:title': 'test-snapshot-2',
+              id: '11112222-3333-4444-5555-666677778888',
+              'dct:creator': 'testowner',
               'dct:description': 'Another test snapshot',
+              'dct:identifier': 'aaaabbbb-cccc-1111-2222-333333333333',
+              'dct:issued': '2023-10-02T11:30:00.000000Z',
+              'dct:title': 'test-snapshot-2',
+              'dcat:accessURL':
+                'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/aaaabbbb-cccc-1111-2222-333333333333',
+              'TerraDCAT_ap:hasDataCollection': [],
+              accessLevel: 'reader',
+              storage: [],
+              counts: {},
+              samples: {},
+              contributors: [],
             },
           ],
           loading: false,

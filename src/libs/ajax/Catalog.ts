@@ -295,6 +295,7 @@ export interface DatasetMetadata {
   'dct:title': string;
   'dct:description': string;
   'dct:creator': string;
+  'dct:identifier'?: string;
   'dct:issued': string;
   'dct:modified'?: string;
   'dcat:accessURL': string;
