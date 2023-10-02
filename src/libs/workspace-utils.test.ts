@@ -156,27 +156,43 @@ describe('hasRegionConstraint', () => {
 });
 
 describe('canEditWorkspace', () => {
-  it('Returns true if passed parameters permit editing.', () => {
-    expect(canEditWorkspace({ accessLevel: 'WRITER', workspace: { isLocked: false } })).toStrictEqual({ value: true });
-    expect(canEditWorkspace({ accessLevel: 'OWNER', workspace: { isLocked: false } })).toStrictEqual({ value: true });
+  it.each(['WRITER', 'OWNER'])('Returns true if passed parameters permit editing.', (accessLevel) => {
+    // Act
+    const result = canEditWorkspace({ accessLevel, workspace: { isLocked: false } });
+
+    // Assert
+    expect(result).toStrictEqual({ value: true });
   });
-  it('Returns false with a reason if passed parameters do not permit editing.', () => {
-    expect(canEditWorkspace({ accessLevel: 'WRITER', workspace: { isLocked: true } })).toStrictEqual({
-      value: false,
-      message: 'This workspace is locked.',
-    });
-    expect(canEditWorkspace({ accessLevel: 'OWNER', workspace: { isLocked: true } })).toStrictEqual({
-      value: false,
-      message: 'This workspace is locked.',
-    });
-    expect(canEditWorkspace({ accessLevel: 'READER', workspace: { isLocked: false } })).toStrictEqual({
+  it.each(['WRITER', 'OWNER'])(
+    'Returns false with a locked message if passed parameters include locked.',
+    (accessLevel) => {
+      // Act
+      const result = canEditWorkspace({ accessLevel, workspace: { isLocked: true } });
+
+      // Assert
+      expect(result).toStrictEqual({
+        value: false,
+        message: 'This workspace is locked.',
+      });
+    }
+  );
+  it('Returns false with a permissions message if passed parameters do not have the right access level.', () => {
+    // Act
+    const result = canEditWorkspace({ accessLevel: 'READER', workspace: { isLocked: false } });
+
+    // Assert
+    expect(result).toStrictEqual({
       value: false,
       message: 'You do not have permission to modify this workspace.',
     });
   });
   // Documenting incorrect behavior.
-  it('Provides one reason if multiple reasons apply.', () => {
-    expect(canEditWorkspace({ accessLevel: 'READER', workspace: { isLocked: true } })).toStrictEqual({
+  it('Incorrectly provides one reason if multiple reasons apply.', () => {
+    // Act
+    const result = canEditWorkspace({ accessLevel: 'READER', workspace: { isLocked: true } });
+
+    // Assert
+    expect(result).toStrictEqual({
       value: false,
       message: 'You do not have permission to modify this workspace.',
     });
@@ -185,15 +201,23 @@ describe('canEditWorkspace', () => {
 
 describe('getWorkspaceEditControlProps', () => {
   it("Doesn't touch anything when editing should be enabled.", () => {
-    expect({
+    // Act
+    const result = {
       tooltip: 'foo',
       ...getWorkspaceEditControlProps({ accessLevel: 'WRITER', workspace: { isLocked: false } }),
-    }).toStrictEqual({ tooltip: 'foo' });
+    };
+
+    // Assert
+    expect(result).toStrictEqual({ tooltip: 'foo' });
   });
   it('Disables the control with a message when appropriate.', () => {
-    expect({
+    // Act
+    const result = {
       tooltip: 'foo',
       ...getWorkspaceEditControlProps({ accessLevel: 'WRITER', workspace: { isLocked: true } }),
-    }).toStrictEqual({ disabled: true, tooltip: 'This workspace is locked.' });
+    };
+
+    // Assert
+    expect(result).toStrictEqual({ disabled: true, tooltip: 'This workspace is locked.' });
   });
 });
