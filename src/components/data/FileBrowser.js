@@ -254,7 +254,7 @@ const BucketBrowserTable = ({
                             className: 'cell-hover-only',
                             style: { marginLeft: '1ch' },
                             text: `gs://${bucketName}/${object.name}`,
-                            iconSize: 14,
+                            iconSize: 14, // See this PR for reason: https://github.com/DataBiosphere/terra-ui/pull/4288
                           }),
                         ]);
                       },
