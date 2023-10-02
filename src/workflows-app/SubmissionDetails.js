@@ -230,8 +230,8 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     const breadcrumbPathObjects = [
       {
         label: 'Submission History',
-        path: 'workspace-workflows-app', // TODO: Refactor to reroute to submission history tab in panel
-        params: { name, namespace },
+        path: 'workspace-workflows-app',
+        params: { name, namespace, queryParams: { tab: 'submission-history' } },
       },
       {
         label: `Submission ${submissionId}`,
@@ -265,10 +265,13 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                       workspace: {
                         workspace: { workspaceId },
                       },
+                      queryParams: {
+                        tab: 'submission-history',
+                      },
                     }),
                   style: { display: 'inline-flex', alignItems: 'center', padding: '1rem 0 0', fontSize: '115%' },
                 },
-                [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to workflows']
+                [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to submission history']
               ),
               header,
               h2(['Submission name: ', filteredRunSets[0]?.run_set_name]),
