@@ -108,7 +108,7 @@ describe('ImportData', () => {
     });
   });
 
-  describe('PFB imports', () => {
+  describe('files', () => {
     it('imports PFB files', async () => {
       // Arrange
       const user = userEvent.setup();
@@ -142,10 +142,8 @@ describe('ImportData', () => {
 
       expect(importJob).toHaveBeenCalledWith(importUrl, 'pfb', null);
     });
-  });
 
-  describe('BagIt imports', () => {
-    it('imports BagIt file when format is unspecified', async () => {
+    it('imports BagIt files when format is unspecified', async () => {
       // Arrange
       const user = userEvent.setup();
 
@@ -177,10 +175,8 @@ describe('ImportData', () => {
 
       expect(importBagit).toHaveBeenCalledWith(importUrl);
     });
-  });
 
-  describe('Entities JSON imports', () => {
-    it('imports Rawls entities JSON', async () => {
+    it('imports Rawls entities JSON files', async () => {
       // Arrange
       const user = userEvent.setup();
 
@@ -215,8 +211,8 @@ describe('ImportData', () => {
     });
   });
 
-  describe('TDR imports', () => {
-    describe('TDR exports', () => {
+  describe('TDR', () => {
+    describe('snapshot exports', () => {
       const queryParams = {
         format: 'tdrexport',
         snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
@@ -226,7 +222,7 @@ describe('ImportData', () => {
         url: 'https://data.terra.bio',
       };
 
-      it('imports TDR exports into Google workspaces', async () => {
+      it('imports snapshot exports into Google workspaces', async () => {
         // Arrange
         const user = userEvent.setup();
 
@@ -256,7 +252,7 @@ describe('ImportData', () => {
         expect(importJob).toHaveBeenCalledWith(queryParams.tdrmanifest, 'tdrexport', { tdrSyncPermissions: true });
       });
 
-      it('copies snapshot into Azure workspaces', async () => {
+      it('imports snapshots into Azure workspaces', async () => {
         // Arrange
         const user = userEvent.setup();
 
@@ -295,7 +291,7 @@ describe('ImportData', () => {
       });
     });
 
-    describe('TDR snapshot references', () => {
+    describe('snapshot references', () => {
       it('imports a snapshot by reference', async () => {
         // Arrange
         const user = userEvent.setup();
@@ -331,118 +327,118 @@ describe('ImportData', () => {
         expect(importSnapshot).toHaveBeenCalledWith(queryParams.snapshotId, queryParams.snapshotName);
       });
     });
+  });
 
-    describe('Catalog imports', () => {
-      it('imports multiple snapshots by reference from the data catalog', async () => {
-        // Arrange
-        const user = userEvent.setup();
-
-        const importSnapshot = jest.fn().mockResolvedValue(undefined);
-        const getWorkspaceApi = jest.fn().mockReturnValue({
-          importSnapshot,
-        });
-
-        const queryParams = {
-          format: 'snapshot',
-          snapshotIds: ['00001111-2222-3333-aaaa-bbbbccccdddd', 'aaaabbbb-cccc-1111-2222-333333333333'],
-        };
-        setup({
-          mockAjax: {
-            Workspaces: {
-              workspace: getWorkspaceApi,
-            },
-          },
-          queryParams,
-        });
-
-        asMockedFn(useDataCatalog).mockReturnValue({
-          dataCatalog: [
-            {
-              id: 'aaaabbbb-cccc-dddd-eeee-ffffgggghhhh',
-              'dct:creator': 'testowner',
-              'dct:description': 'A test snapshot',
-              'dct:identifier': '00001111-2222-3333-aaaa-bbbbccccdddd',
-              'dct:issued': '2023-10-02T11:30:00.000000Z',
-              'dct:title': 'test-snapshot-1',
-              'dcat:accessURL':
-                'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/00001111-2222-3333-aaaa-bbbbccccdddd',
-              'TerraDCAT_ap:hasDataCollection': [],
-              accessLevel: 'reader',
-              storage: [],
-              counts: {},
-              samples: {},
-              contributors: [],
-            },
-            {
-              id: '11112222-3333-4444-5555-666677778888',
-              'dct:creator': 'testowner',
-              'dct:description': 'Another test snapshot',
-              'dct:identifier': 'aaaabbbb-cccc-1111-2222-333333333333',
-              'dct:issued': '2023-10-02T11:30:00.000000Z',
-              'dct:title': 'test-snapshot-2',
-              'dcat:accessURL':
-                'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/aaaabbbb-cccc-1111-2222-333333333333',
-              'TerraDCAT_ap:hasDataCollection': [],
-              accessLevel: 'reader',
-              storage: [],
-              counts: {},
-              samples: {},
-              contributors: [],
-            },
-          ],
-          loading: false,
-          refresh: () => Promise.resolve(),
-        });
-
-        // Act
-        await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
-
-        // Assert
-        expect(getWorkspaceApi).toHaveBeenCalledWith(
-          defaultGoogleWorkspace.workspace.namespace,
-          defaultGoogleWorkspace.workspace.name
-        );
-
-        expect(importSnapshot).toHaveBeenCalledWith(
-          '00001111-2222-3333-aaaa-bbbbccccdddd',
-          'test-snapshot-1',
-          'A test snapshot'
-        );
-        expect(importSnapshot).toHaveBeenCalledWith(
-          'aaaabbbb-cccc-1111-2222-333333333333',
-          'test-snapshot-2',
-          'Another test snapshot'
-        );
-      });
-    });
-
-    it('imports from the data catalog', async () => {
+  describe('catalog', () => {
+    it('imports multiple snapshots by reference from the data catalog', async () => {
       // Arrange
       const user = userEvent.setup();
 
-      const exportDataset = jest.fn().mockResolvedValue(undefined);
+      const importSnapshot = jest.fn().mockResolvedValue(undefined);
+      const getWorkspaceApi = jest.fn().mockReturnValue({
+        importSnapshot,
+      });
 
       const queryParams = {
-        format: 'catalog',
-        catalogDatasetId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+        format: 'snapshot',
+        snapshotIds: ['00001111-2222-3333-aaaa-bbbbccccdddd', 'aaaabbbb-cccc-1111-2222-333333333333'],
       };
       setup({
         mockAjax: {
-          Catalog: {
-            exportDataset,
+          Workspaces: {
+            workspace: getWorkspaceApi,
           },
         },
         queryParams,
+      });
+
+      asMockedFn(useDataCatalog).mockReturnValue({
+        dataCatalog: [
+          {
+            id: 'aaaabbbb-cccc-dddd-eeee-ffffgggghhhh',
+            'dct:creator': 'testowner',
+            'dct:description': 'A test snapshot',
+            'dct:identifier': '00001111-2222-3333-aaaa-bbbbccccdddd',
+            'dct:issued': '2023-10-02T11:30:00.000000Z',
+            'dct:title': 'test-snapshot-1',
+            'dcat:accessURL':
+              'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/00001111-2222-3333-aaaa-bbbbccccdddd',
+            'TerraDCAT_ap:hasDataCollection': [],
+            accessLevel: 'reader',
+            storage: [],
+            counts: {},
+            samples: {},
+            contributors: [],
+          },
+          {
+            id: '11112222-3333-4444-5555-666677778888',
+            'dct:creator': 'testowner',
+            'dct:description': 'Another test snapshot',
+            'dct:identifier': 'aaaabbbb-cccc-1111-2222-333333333333',
+            'dct:issued': '2023-10-02T11:30:00.000000Z',
+            'dct:title': 'test-snapshot-2',
+            'dcat:accessURL':
+              'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/aaaabbbb-cccc-1111-2222-333333333333',
+            'TerraDCAT_ap:hasDataCollection': [],
+            accessLevel: 'reader',
+            storage: [],
+            counts: {},
+            samples: {},
+            contributors: [],
+          },
+        ],
+        loading: false,
+        refresh: () => Promise.resolve(),
       });
 
       // Act
       await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
 
       // Assert
-      expect(exportDataset).toHaveBeenCalledWith({
-        id: queryParams.catalogDatasetId,
-        workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
-      });
+      expect(getWorkspaceApi).toHaveBeenCalledWith(
+        defaultGoogleWorkspace.workspace.namespace,
+        defaultGoogleWorkspace.workspace.name
+      );
+
+      expect(importSnapshot).toHaveBeenCalledWith(
+        '00001111-2222-3333-aaaa-bbbbccccdddd',
+        'test-snapshot-1',
+        'A test snapshot'
+      );
+      expect(importSnapshot).toHaveBeenCalledWith(
+        'aaaabbbb-cccc-1111-2222-333333333333',
+        'test-snapshot-2',
+        'Another test snapshot'
+      );
+    });
+  });
+
+  it('imports from the data catalog', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const exportDataset = jest.fn().mockResolvedValue(undefined);
+
+    const queryParams = {
+      format: 'catalog',
+      catalogDatasetId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+    };
+    setup({
+      mockAjax: {
+        Catalog: {
+          exportDataset,
+        },
+      },
+      queryParams,
+    });
+
+    // Act
+    await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
+
+    // Assert
+    expect(exportDataset).toHaveBeenCalledWith({
+      id: queryParams.catalogDatasetId,
+      workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
     });
   });
 });
