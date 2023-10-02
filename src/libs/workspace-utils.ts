@@ -180,10 +180,25 @@ export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, dest
   );
 });
 
-// Returns a message explaining why the user can't edit the workspace, or undefined if they can
-export const editWorkspaceError = ({ accessLevel, workspace: { isLocked } }) => {
-  return cond(
-    [!canWrite(accessLevel), () => 'You do not have permission to modify this workspace.'],
-    [isLocked, () => 'This workspace is locked.']
+export interface WorkspaceAccessInfo {
+  accessLevel: WorkspaceAccessLevel;
+  workspace: { isLocked: boolean };
+}
+
+export const canEditWorkspace = ({
+  accessLevel,
+  workspace: { isLocked },
+}: WorkspaceAccessInfo): { value: boolean; message?: string } =>
+  cond<{ value: boolean; message?: string }>(
+    [!canWrite(accessLevel), () => ({ value: false, message: 'You do not have permission to modify this workspace.' })],
+    [isLocked, () => ({ value: false, message: 'This workspace is locked.' })],
+    () => ({ value: true })
   );
+
+export const getWorkspaceEditControlProps = ({
+  accessLevel,
+  workspace: { isLocked },
+}: WorkspaceAccessInfo): { disabled?: boolean; tooltip?: string } => {
+  const { value, message } = canEditWorkspace({ accessLevel, workspace: { isLocked } });
+  return value ? {} : { disabled: true, tooltip: message };
 };

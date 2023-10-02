@@ -353,8 +353,7 @@ const BucketBrowser = ({
   const [deletingSelectedObjects, setDeletingSelectedObjects] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const editWorkspaceError = WorkspaceUtils.editWorkspaceError(workspace);
-  const canEditWorkspace = !editWorkspaceError;
+  const { value: canEditWorkspace, message: editWorkspaceError } = WorkspaceUtils.canEditWorkspace(workspace);
 
   const editDisabledForPrefix = shouldDisableEditForPrefix(prefix);
   const notice = noticeForPrefix(prefix);
