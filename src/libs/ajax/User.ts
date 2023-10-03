@@ -277,7 +277,7 @@ export const User = (signal?: AbortSignal) => {
       const queryParams = {
         scopes: ['openid', 'google_credentials', 'data', 'user'],
         redirect_uri: redirectUri,
-        state: btoa(JSON.stringify({ providerKey })),
+        state: btoa(JSON.stringify({ provider: providerKey })),
       };
       const res = await fetchBond(
         `api/link/v1/${providerKey}/authorization-url?${qs.stringify(queryParams, { indices: false })}`,
