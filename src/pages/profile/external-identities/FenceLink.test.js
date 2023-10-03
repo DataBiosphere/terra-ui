@@ -6,6 +6,7 @@ import { FenceLink } from 'src/pages/profile/external-identities/FenceLink';
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getLink: jest.fn(() => '/'),
+  useRoute: jest.fn(() => 'fence-callback'),
 }));
 
 describe('FenceLink', () => {
