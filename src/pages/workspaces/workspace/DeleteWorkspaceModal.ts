@@ -58,7 +58,7 @@ const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps) => {
   const getResourceDeletionMessage = () => {
     const nonDeletableResourceMessage =
       'You cannot delete this workspace because it contains at least one cloud resource, ' +
-      'such as an application or cloud environment, that is in an undeletable state. Try again in a few minutes.';
+      'such as an application or cloud environment, that is in an undeletable state. Please try again in a few minutes.';
     return isDeleteDisabledFromResources
       ? div({ style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' } }, [
           div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
