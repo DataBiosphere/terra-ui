@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useRoute } from 'src/libs/nav';
 
 import {
@@ -110,39 +111,51 @@ const getCatalogSnapshotsImportRequest = (queryParams: QueryParams): CatalogSnap
   };
 };
 
-export const getImportRequest = (queryParams: QueryParams): ImportRequest => {
+export const getImportRequest = (queryParams: QueryParams): Promise<ImportRequest> => {
   const format = getFormat(queryParams);
 
   switch (format) {
     case 'pfb':
-      return getFileImportRequest(queryParams, 'pfb');
+      return Promise.resolve(getFileImportRequest(queryParams, 'pfb'));
     case 'bagit':
-      return getFileImportRequest(queryParams, 'bagit');
+      return Promise.resolve(getFileImportRequest(queryParams, 'bagit'));
     case 'entitiesjson':
-      return getFileImportRequest(queryParams, 'entities');
+      return Promise.resolve(getFileImportRequest(queryParams, 'entities'));
     case 'tdrexport':
-      return getTDRSnapshotExportImportRequest(queryParams);
+      return Promise.resolve(getTDRSnapshotExportImportRequest(queryParams));
     case 'snapshot':
       if (queryParams.snapshotIds) {
-        return getCatalogSnapshotsImportRequest(queryParams);
+        return Promise.resolve(getCatalogSnapshotsImportRequest(queryParams));
       }
-      return getTDRSnapshotReferenceImportRequest(queryParams);
+      return Promise.resolve(getTDRSnapshotReferenceImportRequest(queryParams));
     case 'catalog':
-      return getCatalogDatasetImportRequest(queryParams);
+      return Promise.resolve(getCatalogDatasetImportRequest(queryParams));
     default:
       throw new Error(`Invalid format: ${format}`);
   }
 };
 
-export type UseImportRequestResult = { isValid: true; importRequest: ImportRequest } | { isValid: false; error: Error };
+export type UseImportRequestResult =
+  | { status: 'Loading' }
+  | { status: 'Ready'; importRequest: ImportRequest }
+  | { status: 'Error'; error: Error };
 
 export const useImportRequest = (): UseImportRequestResult => {
   const { query } = useRoute();
-  try {
-    const importRequest = getImportRequest(query);
-    return { isValid: true, importRequest };
-  } catch (originalError: unknown) {
-    const error = originalError instanceof Error ? originalError : new Error('Unknown error');
-    return { isValid: false, error };
-  }
+
+  const [result, setResult] = useState<UseImportRequestResult>({ status: 'Loading' });
+  useEffect(() => {
+    (async () => {
+      try {
+        setResult({ status: 'Loading' });
+        const importRequest = await getImportRequest(query);
+        setResult({ status: 'Ready', importRequest });
+      } catch (originalError: unknown) {
+        const error = originalError instanceof Error ? originalError : new Error('Unknown error');
+        setResult({ status: 'Error', error });
+      }
+    })();
+  }, [JSON.stringify(query)]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return result;
 };

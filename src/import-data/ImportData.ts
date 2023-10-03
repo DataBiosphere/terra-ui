@@ -250,7 +250,12 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
  */
 export const ImportDataContainer = () => {
   const result = useImportRequest();
-  if (!result.isValid) {
+
+  if (result.status === 'Loading') {
+    return spinnerOverlay;
+  }
+
+  if (result.status === 'Error') {
     return div(
       {
         style: {

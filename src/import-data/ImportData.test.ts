@@ -1,5 +1,5 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { useWorkspaces } from 'src/components/workspace-utils';
@@ -54,7 +54,7 @@ interface SetupOptions {
   queryParams: { [key: string]: unknown };
 }
 
-const setup = (opts: SetupOptions) => {
+const setup = async (opts: SetupOptions) => {
   const { queryParams } = opts;
 
   const exportDataset = jest.fn().mockResolvedValue(undefined);
@@ -113,6 +113,10 @@ const setup = (opts: SetupOptions) => {
 
   render(h(ImportDataContainer));
 
+  await waitFor(() => {
+    expect(screen.queryByTestId('loading-spinner')).toBeNull();
+  });
+
   return {
     exportDataset,
     getWorkspaceApi,
@@ -157,7 +161,7 @@ describe('ImportData', () => {
       const user = userEvent.setup();
 
       const importUrl = 'https://example.com/path/to/file.pfb';
-      const { getWorkspaceApi, importJob } = setup({
+      const { getWorkspaceApi, importJob } = await setup({
         queryParams: {
           format: 'PFB',
           url: importUrl,
@@ -181,7 +185,7 @@ describe('ImportData', () => {
       const user = userEvent.setup();
 
       const importUrl = 'https://example.com/path/to/file.bagit';
-      const { getWorkspaceApi, importBagit } = setup({
+      const { getWorkspaceApi, importBagit } = await setup({
         queryParams: {
           url: importUrl,
         },
@@ -204,7 +208,7 @@ describe('ImportData', () => {
       const user = userEvent.setup();
 
       const importUrl = 'https://example.com/path/to/file.json';
-      const { getWorkspaceApi, importJSON } = setup({
+      const { getWorkspaceApi, importJSON } = await setup({
         queryParams: {
           format: 'entitiesJson',
           url: importUrl,
@@ -239,7 +243,7 @@ describe('ImportData', () => {
         // Arrange
         const user = userEvent.setup();
 
-        const { getWorkspaceApi, importJob } = setup({ queryParams });
+        const { getWorkspaceApi, importJob } = await setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
@@ -257,7 +261,7 @@ describe('ImportData', () => {
         // Arrange
         const user = userEvent.setup();
 
-        const { importTdr, wdsProxyUrl } = setup({ queryParams });
+        const { importTdr, wdsProxyUrl } = await setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultAzureWorkspace.workspace.name);
@@ -281,7 +285,7 @@ describe('ImportData', () => {
           snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
           snapshotName: 'test-snapshot',
         };
-        const { getWorkspaceApi, importSnapshot } = setup({ queryParams });
+        const { getWorkspaceApi, importSnapshot } = await setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
@@ -301,12 +305,6 @@ describe('ImportData', () => {
     it('imports multiple snapshots by reference from the data catalog', async () => {
       // Arrange
       const user = userEvent.setup();
-
-      const queryParams = {
-        format: 'snapshot',
-        snapshotIds: ['00001111-2222-3333-aaaa-bbbbccccdddd', 'aaaabbbb-cccc-1111-2222-333333333333'],
-      };
-      const { getWorkspaceApi, importSnapshot } = setup({ queryParams });
 
       asMockedFn(useDataCatalog).mockReturnValue({
         dataCatalog: [
@@ -347,6 +345,12 @@ describe('ImportData', () => {
         refresh: () => Promise.resolve(),
       });
 
+      const queryParams = {
+        format: 'snapshot',
+        snapshotIds: ['00001111-2222-3333-aaaa-bbbbccccdddd', 'aaaabbbb-cccc-1111-2222-333333333333'],
+      };
+      const { getWorkspaceApi, importSnapshot } = await setup({ queryParams });
+
       // Act
       await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
 
@@ -376,7 +380,7 @@ describe('ImportData', () => {
         format: 'catalog',
         catalogDatasetId: '00001111-2222-3333-aaaa-bbbbccccdddd',
       };
-      const { exportDataset } = setup({ queryParams });
+      const { exportDataset } = await setup({ queryParams });
 
       // Act
       await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
@@ -394,9 +398,9 @@ describe('ImportData', () => {
     { queryParams: { format: 'tdrexport', snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd' } },
   ] as { queryParams: Record<string, any> }[])(
     'renders an error message for invalid import requests',
-    ({ queryParams }) => {
+    async ({ queryParams }) => {
       // Act
-      setup({ queryParams });
+      await setup({ queryParams });
 
       // Assert
       screen.getByText('Invalid import request.');

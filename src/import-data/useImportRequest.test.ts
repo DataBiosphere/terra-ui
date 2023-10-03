@@ -106,9 +106,9 @@ describe('getImportRequest', () => {
 
   it.each(testCases)(
     'parses $expectedResult.type import request from query parameters',
-    ({ queryParams, expectedResult }) => {
+    async ({ queryParams, expectedResult }) => {
       // Act
-      const importRequest = getImportRequest(queryParams);
+      const importRequest = await getImportRequest(queryParams);
 
       // Assert
       expect(importRequest).toEqual(expectedResult);
