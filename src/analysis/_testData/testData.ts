@@ -8,7 +8,12 @@ import { defaultGceMachineType, defaultLocation, generateRuntimeName } from 'src
 import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
 import { App, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { cloudServiceTypes, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import {
+  AzureConfig,
+  cloudServiceTypes,
+  GceWithPdConfig,
+  RuntimeConfig,
+} from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { GetRuntimeItem, ListRuntimeItem, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureRegion } from 'src/libs/azure-utils';
 import * as Utils from 'src/libs/utils';
@@ -222,15 +227,16 @@ export const defaultAuditInfo = {
 
 export const generateGoogleProject = () => `terra-test-${uuid().substring(0, 8)}`;
 
-export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): RuntimeConfig => ({
-  machineType: defaultGceMachineType,
-  persistentDiskId: getRandomInt(randomMaxInt),
-  cloudService: cloudServiceTypes.GCE,
-  bootDiskSize: defaultGceBootDiskSize,
-  zone: 'us-central1-a',
-  gpuConfig: undefined,
-  ...overrides,
-});
+export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): RuntimeConfig =>
+  ({
+    machineType: defaultGceMachineType,
+    persistentDiskId: getRandomInt(randomMaxInt),
+    cloudService: cloudServiceTypes.GCE,
+    bootDiskSize: defaultGceBootDiskSize,
+    zone: 'us-central1-a',
+    gpuConfig: undefined,
+    ...overrides,
+  } satisfies GceWithPdConfig);
 
 // Use this if you only need to override top-level fields, otherwise use `getGoogleRuntime`
 export const generateTestGetGoogleRuntime = (overrides: Partial<GetRuntimeItem> = {}): GetRuntimeItem => {
@@ -829,7 +835,7 @@ export const azureRuntime: ListRuntimeItem = {
     machineType: 'Standard_DS2_v2',
     persistentDiskId: 16902,
     region: 'eastus',
-  },
+  } satisfies AzureConfig,
   proxyUrl:
     'https://lzf07312d05014dcfc2a6d8244c0f9b166a3801f44ec2b003d.servicebus.windows.net/saturn-42a4398b-10f8-4626-9025-7abda26aedab',
   status: 'Running',

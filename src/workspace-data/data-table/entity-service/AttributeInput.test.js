@@ -1,5 +1,6 @@
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import AttributeInput, { AttributeTypeInput } from './AttributeInput';
 

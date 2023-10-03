@@ -1,9 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { asMockedFn, SelectHelper } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { canImportIntoWorkspace, ImportOptions } from './import-utils';

@@ -158,13 +158,14 @@ export const BaseRunDetails = (
     const breadcrumbPathObjects = [
       {
         label: 'Submission History',
-        path: 'workspace-workflows-app-submission-history',
-        params: { name, namespace },
+        path: 'workspace-workflows-app',
+        pathParams: { name, namespace },
+        queryParams: { tab: 'submission-history' },
       },
       {
         label: `Submission ${submissionId}`,
         path: 'workspace-workflows-app-submission-details',
-        params: { name, namespace, submissionId },
+        pathParams: { name, namespace, submissionId },
       },
       {
         label: workflow?.workflowName,
@@ -237,6 +238,7 @@ export const BaseRunDetails = (
                 name,
                 namespace,
                 submissionId,
+                isAzure: true,
               }),
             ]
           ),

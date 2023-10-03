@@ -2,15 +2,13 @@ import _ from 'lodash/fp';
 import { Fragment, useCallback, useRef, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
-import { ButtonOutline, Clickable, Link } from 'src/components/common';
+import { Clickable, Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
@@ -25,15 +23,13 @@ import {
   makeStatusLine,
   statusType,
 } from 'src/workflows-app/utils/submission-utils';
-import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
-export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
+export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   // State
   const [sort, setSort] = useState({ field: 'submission_timestamp', direction: 'desc' });
   const [pageNumber, setPageNumber] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [runSetsData, setRunSetData] = useState();
-  const [runSetsFullyUpdated, setRunSetsFullyUpdated] = useState();
   const [loading, setLoading] = useState(false);
 
   const signal = useCancellation();
@@ -66,7 +62,6 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
             const runSets = await loadRunSets(cbasProxyUrlState.state);
             if (runSets !== undefined) {
               setRunSetData(runSets.run_sets);
-              setRunSetsFullyUpdated(runSets.fully_updated);
               return runSets;
             }
           } else {
@@ -82,7 +77,6 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
           const runSets = await loadRunSets(cbasProxyUrlDetails.state);
           if (runSets !== undefined) {
             setRunSetData(runSets.run_sets);
-            setRunSetsFullyUpdated(runSets.fully_updated);
             return runSets;
           }
         }
@@ -177,68 +171,26 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
   return loading
     ? centeredSpinner()
     : div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } }, [
-        !isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP) &&
-          h(
-            Link,
-            {
-              onClick: () =>
-                Nav.goToPath('workspace-workflows-app', {
-                  name,
-                  namespace,
-                  workspace: {
-                    workspace: { workspaceId },
-                  },
-                }),
-              style: { display: 'inline-flex', alignItems: 'center', margin: '1.5em 1.5em 0' },
-            },
-            [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to workflows']
-          ),
         h(Fragment, [
           div({ style: { margin: '1rem 2rem' } }, [
-            isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)
-              ? h(Fragment, [
-                  h2({ style: { marginTop: 0 } }, ['Submission history']),
-                  paginatedPreviousRunSets.length === 0
-                    ? div(
-                        {
-                          style: {
-                            padding: '1rem',
-                            border: `1px solid ${colors.accent(1)}`,
-                            borderRadius: 5,
-                            backgroundColor: colors.accent(0.08),
-                            width: '75%',
-                          },
-                        },
-                        ['No workflows have been submitted.']
-                      )
-                    : div(['See workflows that were submitted by all collaborators in this workspace.']),
-                ])
-              : h(Fragment, [
-                  div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
-                    h2(['Submission History']),
-                    h(
-                      ButtonOutline,
-                      {
-                        onClick: () =>
-                          Nav.goToPath('workspace-workflows-app', {
-                            name,
-                            namespace,
-                            workspace: {
-                              workspace: { workspaceId },
-                            },
-                          }),
+            h(Fragment, [
+              h2({ style: { marginTop: 0 } }, ['Submission history']),
+              paginatedPreviousRunSets.length === 0
+                ? div(
+                    {
+                      style: {
+                        padding: '1rem',
+                        border: `1px solid ${colors.accent(1)}`,
+                        borderRadius: 5,
+                        backgroundColor: colors.accent(0.08),
+                        width: '75%',
                       },
-                      ['Submit another workflow']
-                    ),
-                  ]),
-                  runSetsFullyUpdated
-                    ? div([icon('check', { size: 15, style: { color: colors.success() } }), ' Submission statuses are all up to date.'])
-                    : div([
-                        icon('warning-standard', { size: 15, style: { color: colors.warning() } }),
-                        ' Some submission statuses are not up to date. Refreshing the page may update more statuses.',
-                      ]),
-                ]),
-            (!isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP) || paginatedPreviousRunSets.length > 0) &&
+                    },
+                    ['No workflows have been submitted.']
+                  )
+                : div(['See workflows that were submitted by all collaborators in this workspace.']),
+            ]),
+            paginatedPreviousRunSets.length > 0 &&
               div(
                 {
                   style: {
@@ -317,13 +269,11 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
                                 h(
                                   Link,
                                   {
-                                    onClick: () => {
-                                      Nav.goToPath('workspace-workflows-app-submission-details', {
-                                        name: workspace.workspace.name,
-                                        namespace,
-                                        submissionId: paginatedPreviousRunSets[rowIndex].run_set_id,
-                                      });
-                                    },
+                                    href: Nav.getLink('workspace-workflows-app-submission-details', {
+                                      name: workspace.workspace.name,
+                                      namespace,
+                                      submissionId: paginatedPreviousRunSets[rowIndex].run_set_id,
+                                    }),
                                     style: { fontWeight: 'bold' },
                                   },
                                   [paginatedPreviousRunSets[rowIndex].run_set_name || 'No name']
@@ -404,14 +354,3 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
         ]),
       ]);
 };
-
-export const SubmissionHistory = wrapWorkflowsPage({ name: 'SubmissionHistory' })(BaseSubmissionHistory);
-
-export const navPaths = [
-  {
-    name: 'workspace-workflows-app-submission-history',
-    path: '/workspaces/:namespace/:name/workflows-app/submission-history',
-    component: SubmissionHistory,
-    title: ({ name }) => `${name} - Submission History`,
-  },
-];

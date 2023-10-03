@@ -36,8 +36,7 @@ export const WorkspaceStarControl = (props: WorkspaceStarControlProps): ReactNod
   const maxStarredWorkspacesReached = _.size(stars) >= MAX_STARRED_WORKSPACES;
 
   const refreshStarredWorkspacesList = async () => {
-    // @ts-expect-error
-    const { starredWorkspaces } = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs);
+    const { starredWorkspaces } = await Ajax().User.profile.get();
     return _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces);
   };
 
@@ -93,8 +92,7 @@ export const WorkspaceStarControl = (props: WorkspaceStarControlProps): ReactNod
     },
     [
       updatingStars
-        ? // @ts-expect-error
-          spinner({ size: 20 })
+        ? spinner({ size: 20 })
         : icon('star', { size: 20, color: isStarred ? colors.warning() : colors.light(2) }),
     ]
   );

@@ -22,6 +22,7 @@ const nonProtectedUrls = [
   { url: 'http://localhost:3000', format: '' },
   { url: '', format: 'pfb' },
   { url: null, format: 'PFB' },
+  { url: 'https://example.com/path/to/file', format: undefined },
 ];
 
 describe('isProtectedSource', () => {

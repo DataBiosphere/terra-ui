@@ -1,14 +1,12 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_CROMWELL_APP_CALL_CACHING } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { AppProxyUrlStatus, getTerraUser, workflowsAppStore } from 'src/libs/state';
-import { SelectHelper } from 'src/testing/test-utils';
+import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { BaseSubmissionConfig } from 'src/workflows-app/SubmissionConfig';
 import {
   badRecordTypeRunSetResponse,
@@ -55,11 +53,6 @@ jest.mock('src/components/Modal', () => {
 jest.mock('src/libs/ajax/metrics/useMetrics', () => ({
   ...jest.requireActual('src/libs/ajax/metrics/useMetrics'),
   useMetricsEvent: jest.fn(() => ({ captureEvent: jest.fn() })),
-}));
-
-jest.mock('src/libs/feature-previews', () => ({
-  ...jest.requireActual('src/libs/feature-previews'),
-  isFeaturePreviewEnabled: jest.fn(),
 }));
 
 // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
@@ -174,7 +167,6 @@ describe('BaseSubmissionConfig renders workflow details', () => {
   });
 
   it('should render a functional call cache toggle button', async () => {
-    isFeaturePreviewEnabled.mockImplementation((id) => (id === ENABLE_CROMWELL_APP_CALL_CACHING ? true : isFeaturePreviewEnabled(id)));
     const { container } = await act(async () => {
       return render(
         h(BaseSubmissionConfig, {
@@ -195,23 +187,6 @@ describe('BaseSubmissionConfig renders workflow details', () => {
     expect(callCacheToggleButton).toHaveProperty('checked', false); // Clicking the switch toggles it
     await user.click(callCacheToggleButton);
     expect(callCacheToggleButton).toHaveProperty('checked', true); // Clicking switch again toggles it back.
-  });
-
-  it('should not render call cache toggle with disabled feature flag', async () => {
-    isFeaturePreviewEnabled.mockImplementation((id) => (id === ENABLE_CROMWELL_APP_CALL_CACHING ? false : isFeaturePreviewEnabled(id)));
-    const { container } = await act(async () => {
-      return render(
-        h(BaseSubmissionConfig, {
-          methodId: '123',
-          name: 'test-azure-ws-name',
-          namespace: 'test-azure-ws-namespace',
-          workspace: mockAzureWorkspace,
-        })
-      );
-    });
-    expect(await axe(container)).toHaveNoViolations();
-    const toggleButton = screen.queryByLabelText('Call Caching:');
-    expect(toggleButton).not.toBeInTheDocument();
   });
 
   it('should render a back to workflows button', async () => {
@@ -1308,7 +1283,6 @@ describe('Submitting a run set', () => {
 
   it('should call POST /run_sets endpoint with expected parameters', async () => {
     // ** ARRANGE **
-    isFeaturePreviewEnabled.mockImplementation((id) => (id === ENABLE_CROMWELL_APP_CALL_CACHING ? false : isFeaturePreviewEnabled(id)));
     const user = userEvent.setup();
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
@@ -1357,6 +1331,11 @@ describe('Submitting a run set', () => {
     expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
 
     // ** ACT **
+    // user untoggles call caching box
+    const callCacheToggleButton = screen.getByLabelText('Call Caching:');
+    await user.click(callCacheToggleButton);
+
+    // ** ACT **
     // user selects 'FOO1' record from Data Table
     const checkboxes = screen.getAllByRole('checkbox');
     const checkbox = checkboxes[1];
@@ -1393,9 +1372,9 @@ describe('Submitting a run set', () => {
           record_type: 'FOO',
           record_ids: ['FOO1'],
         },
+        call_caching_enabled: false,
       })
     );
-    expect(postRunSetFunction.mock.lastCall[1]).not.toHaveProperty('call_caching_enabled');
   });
 
   it('error message should display on workflow launch fail, and not on success', async () => {
@@ -1499,7 +1478,6 @@ describe('Submitting a run set', () => {
 
   it('should call POST /run_sets endpoint with expected parameters after an optional input is set to None', async () => {
     // ** ARRANGE **
-    isFeaturePreviewEnabled.mockImplementation((id) => (id === ENABLE_CROMWELL_APP_CALL_CACHING ? true : isFeaturePreviewEnabled(id)));
     const user = userEvent.setup();
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));

@@ -36,7 +36,7 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         placeholder: 'Search by keyword',
         'aria-label': 'Search workspaces by keyword',
         onChange: (newFilter) => Nav.updateSearch({ ...query, filter: newFilter || undefined }),
-        value: filters.accessLevels,
+        value: filters.nameFilter,
       }),
     ]),
     div({ style: styles.filter }, [

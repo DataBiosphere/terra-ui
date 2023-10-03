@@ -48,9 +48,12 @@ export const ImportData = () => {
 
   const { dataCatalog } = useDataCatalog();
   const snapshots = _.flow(
-    _.filter((snapshot: Dataset) => _.includes(snapshot['dct:identifier'] as string, snapshotIds)),
+    _.filter(
+      (snapshot: Dataset) => !!snapshot['dct:identifier'] && _.includes(snapshot['dct:identifier'], snapshotIds)
+    ),
     _.map((snapshot) => ({
-      id: snapshot['dct:identifier'],
+      // The previous step filters the list to only datasets with 'dct:identifier' defined
+      id: snapshot['dct:identifier']!,
       title: snapshot['dct:title'],
       description: snapshot['dct:description'],
     }))

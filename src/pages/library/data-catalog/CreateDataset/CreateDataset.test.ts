@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { CreateDataset } from 'src/pages/library/data-catalog/CreateDataset/CreateDataset';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type MarkdownExports = typeof import('src/components/markdown');
 jest.mock('src/components/markdown', (): Partial<MarkdownExports> => {

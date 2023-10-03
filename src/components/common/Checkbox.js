@@ -1,14 +1,14 @@
-import { Interactive } from '@terra-ui-packages/components';
+import { Interactive, useThemeFromContext } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { h, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
-import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 
 import { IdContainer } from './IdContainer';
 
 export const Checkbox = ({ checked, onChange, disabled = false, ...props }) => {
+  const { colors } = useThemeFromContext();
   return h(
     Interactive,
     _.merge(
@@ -32,6 +32,7 @@ export const Checkbox = ({ checked, onChange, disabled = false, ...props }) => {
 };
 
 export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...props }) => {
+  const { colors } = useThemeFromContext();
   return h(IdContainer, [
     (id) =>
       h(Fragment, [

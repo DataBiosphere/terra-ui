@@ -1,8 +1,8 @@
-/* eslint-env jest */
 import '@testing-library/jest-dom';
 import 'blob-polyfill';
 import 'whatwg-fetch';
 
+// @ts-expect-error Types for the current version of jest-axe are not available.
 import { toHaveNoViolations } from 'jest-axe';
 import failOnConsole from 'jest-fail-on-console';
 

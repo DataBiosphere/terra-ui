@@ -1,13 +1,8 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import {
-  Concept,
-  DatasetBuilder,
-  DomainCriteria,
-  DomainOption,
-  GetConceptsResponse,
-} from 'src/libs/ajax/DatasetBuilder';
+import { SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption as DomainOption } from 'src/libs/ajax/DataRepo';
+import { DatasetBuilder, DomainCriteria, GetConceptsResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useOnMount } from 'src/libs/react-utils';
 import { ConceptSelector } from 'src/pages/library/datasetBuilder/ConceptSelector';

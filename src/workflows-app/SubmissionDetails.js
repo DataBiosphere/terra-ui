@@ -230,8 +230,9 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     const breadcrumbPathObjects = [
       {
         label: 'Submission History',
-        path: 'workspace-workflows-app-submission-history',
-        params: { name, namespace },
+        path: 'workspace-workflows-app',
+        pathParams: { name, namespace },
+        queryParams: { tab: 'submission-history' },
       },
       {
         label: `Submission ${submissionId}`,
@@ -258,17 +259,22 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
               h(
                 Link,
                 {
-                  onClick: () =>
-                    Nav.goToPath('workspace-workflows-app', {
+                  href: Nav.getLink(
+                    'workspace-workflows-app',
+                    {
                       name,
                       namespace,
                       workspace: {
                         workspace: { workspaceId },
                       },
-                    }),
+                    },
+                    {
+                      tab: 'submission-history',
+                    }
+                  ),
                   style: { display: 'inline-flex', alignItems: 'center', padding: '1rem 0 0', fontSize: '115%' },
                 },
-                [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to workflows']
+                [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to submission history']
               ),
               header,
               h2(['Submission name: ', filteredRunSets[0]?.run_set_name]),
@@ -351,14 +357,12 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                               h(
                                 Link,
                                 {
-                                  onClick: () => {
-                                    Nav.goToPath('workspace-workflows-app-run-details', {
-                                      namespace,
-                                      name,
-                                      submissionId,
-                                      workflowId: paginatedPreviousRuns[rowIndex].engine_id,
-                                    });
-                                  },
+                                  href: Nav.getLink('workspace-workflows-app-run-details', {
+                                    namespace,
+                                    name,
+                                    submissionId,
+                                    workflowId: paginatedPreviousRuns[rowIndex].engine_id,
+                                  }),
                                   style: { fontWeight: 'bold' },
                                 },
                                 [paginatedPreviousRuns[rowIndex].record_id]

@@ -1,4 +1,5 @@
-import { Cohort, CriteriaGroup, DomainOption } from 'src/libs/ajax/DatasetBuilder';
+import { SnapshotBuilderDomainOption as DomainOption } from 'src/libs/ajax/DataRepo';
+import { Cohort, CriteriaGroup } from 'src/libs/ajax/DatasetBuilder';
 
 let groupCount = 1;
 export const newCriteriaGroup = (): CriteriaGroup => {
