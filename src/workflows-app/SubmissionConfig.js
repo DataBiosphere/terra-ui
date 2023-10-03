@@ -118,12 +118,17 @@ export const BaseSubmissionConfig = (
         const newRunSetData = runSet.run_sets[0];
 
         setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
+        // Use output definition if it has been run before or if the template contains non-none destinations
+        // Otherwise we will autofill all outputs to default.
+        const jsonParsedOutput = maybeParseJSON(newRunSetData.output_definition);
+        const shouldUseOutputs = newRunSetData.run_count > 0 || jsonParsedOutput.some((outputDef) => outputDef.destination.type !== 'none');
         setConfiguredOutputDefinition(
-          _.map((outputDef) =>
-            _.get('destination.type', outputDef) === 'none'
-              ? _.set('destination', { type: 'record_update', record_attribute: parseMethodString(outputDef.output_name).variable || '' })(outputDef)
-              : outputDef
-          )(maybeParseJSON(newRunSetData.output_definition))
+          shouldUseOutputs
+            ? jsonParsedOutput
+            : jsonParsedOutput.map((outputDef) => ({
+                ...outputDef,
+                destination: { type: 'record_update', record_attribute: parseMethodString(outputDef.output_name).variable || '' },
+              }))
         );
         setSelectedRecordType(newRunSetData.record_type);
 
