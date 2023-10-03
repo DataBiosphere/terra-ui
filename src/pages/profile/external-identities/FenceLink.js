@@ -11,7 +11,7 @@ import * as Nav from 'src/libs/nav';
 import { useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { SpacedSpinner } from 'src/profile/SpacedSpinner';
+import { SpacedSpinner } from 'src/pages/profile/SpacedSpinner';
 
 const styles = {
   idLink: {

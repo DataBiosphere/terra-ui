@@ -29,8 +29,8 @@ import { memoWithName, useCancellation, useOnMount, useStore } from 'src/libs/re
 import { authStore, getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { FenceLink } from 'src/profile/external-identities/FenceLink';
-import { SpacedSpinner } from 'src/profile/SpacedSpinner';
+import { FenceLink } from 'src/pages/profile/external-identities/FenceLink';
+import { SpacedSpinner } from 'src/pages/profile/SpacedSpinner';
 import validate from 'validate.js';
 
 const styles = {
