@@ -7,7 +7,7 @@ import scienceBackground from 'src/images/science-background.jpg';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
 
-import { ImportData } from './ImportData';
+import { ImportDataContainer } from './ImportData';
 
 const styles = {
   container: {
@@ -19,10 +19,6 @@ const styles = {
   },
 } as const satisfies Record<string, CSSProperties>;
 
-// ImportData handles all the information relating to the page itself - this includes:
-// * Reading from the URL
-// * Loading initial Data
-// * Managing the import
 const ImportDataPage = () => {
   const {
     query: { format, referrer },
@@ -44,7 +40,7 @@ const ImportDataPage = () => {
         alt: '',
         style: { position: 'fixed', top: 0, left: 0, zIndex: -1 },
       }),
-      h(ImportData),
+      h(ImportDataContainer),
     ]),
   ]);
 };

@@ -75,7 +75,7 @@ interface ImportDataOverviewProps {
   isProtectedData: boolean;
   snapshotResponses: { status: string; message: string | undefined }[] | undefined;
   snapshots: { id: string; title: string }[];
-  url: string;
+  url?: string;
 }
 
 export const ImportDataOverview = (props: ImportDataOverviewProps): ReactNode => {
