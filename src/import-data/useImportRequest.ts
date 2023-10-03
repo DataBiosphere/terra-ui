@@ -97,29 +97,25 @@ const getCatalogSnapshotsImportRequest = (queryParams: QueryParams): CatalogSnap
 export const getImportRequest = (queryParams: QueryParams): ImportRequest => {
   const format = getFormat(queryParams);
 
-  if (format === 'pfb') {
-    return getFileImportRequest(queryParams, 'pfb');
+  switch (format) {
+    case 'pfb':
+      return getFileImportRequest(queryParams, 'pfb');
+    case 'bagit':
+      return getFileImportRequest(queryParams, 'bagit');
+    case 'entitiesjson':
+      return getFileImportRequest(queryParams, 'entities');
+    case 'tdrexport':
+      return getTDRSnapshotExportImportRequest(queryParams);
+    case 'snapshot':
+      if (queryParams.snapshotIds) {
+        return getCatalogSnapshotsImportRequest(queryParams);
+      }
+      return getTDRSnapshotReferenceImportRequest(queryParams);
+    case 'catalog':
+      return getCatalogDatasetImportRequest(queryParams);
+    default:
+      throw new Error(`Invalid format: ${format}`);
   }
-  if (format === 'bagit') {
-    return getFileImportRequest(queryParams, 'bagit');
-  }
-  if (format === 'entitiesjson') {
-    return getFileImportRequest(queryParams, 'entities');
-  }
-  if (format === 'tdrexport') {
-    return getTDRSnapshotExportImportRequest(queryParams);
-  }
-  if (format === 'snapshot') {
-    if (queryParams.snapshotIds) {
-      return getCatalogSnapshotsImportRequest(queryParams);
-    }
-    return getTDRSnapshotReferenceImportRequest(queryParams);
-  }
-  if (format === 'catalog') {
-    return getCatalogDatasetImportRequest(queryParams);
-  }
-
-  throw new Error(`Invalid format: ${format}`);
 };
 
 export type UseImportRequestResult = { isValid: true; importRequest: ImportRequest } | { isValid: false; error: Error };

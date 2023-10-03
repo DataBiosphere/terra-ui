@@ -34,19 +34,16 @@ import { isProtectedSource } from './protected-data-utils';
 import { useImportRequest } from './useImportRequest';
 
 const getTitleForImportRequest = (importRequest: ImportRequest): string => {
-  if (importRequest.type === 'tdr-snapshot-export') {
-    return `Importing snapshot ${importRequest.snapshotName}`;
+  switch (importRequest.type) {
+    case 'tdr-snapshot-export':
+      return `Importing snapshot ${importRequest.snapshotName}`;
+    case 'tdr-snapshot-reference':
+    case 'catalog-dataset':
+    case 'catalog-snapshots':
+      return 'Linking data to a workspace';
+    default:
+      return 'Importing data to a workspace';
   }
-
-  if (
-    importRequest.type === 'tdr-snapshot-reference' ||
-    importRequest.type === 'catalog-dataset' ||
-    importRequest.type === 'catalog-snapshots'
-  ) {
-    return 'Linking data to a workspace';
-  }
-
-  return 'Importing data to a workspace';
 };
 
 export interface ImportDataProps {
