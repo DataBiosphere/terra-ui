@@ -71,7 +71,7 @@ export const getPath = (name: string, params?: Record<string, any>): string => {
 };
 
 /**
- * alias for getPath()
+ * gets a link to the desired nav path, with support for query parameters
  */
 export const getLink = (name: string, pathParams?: Record<string, any>, queryParams?: Record<string, any>): string => {
   const path = getPath(name, pathParams).slice(1); // slice off leading slash
