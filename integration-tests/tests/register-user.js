@@ -17,6 +17,10 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await click(page, clickable({ textContains: 'Register' }));
   await click(page, clickable({ textContains: 'Accept' }), { timeout: 90000 });
   await findText(page, 'Welcome to Terra Community Workbench');
+
+  // This is the hamburger menu
+  await click(page, '/html/body/div[1]/div[2]/div/div[1]/div[1]/div[1]/div/div[1]');
+  await findText(page, 'Integration Test');
 });
 
 registerTest({
