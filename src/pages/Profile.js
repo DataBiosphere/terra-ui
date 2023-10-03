@@ -274,6 +274,19 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
     const extractedProvider = state ? JSON.parse(atob(state)).provider : '';
     const token = key === extractedProvider ? code : undefined;
 
+    // eslint-disable-next-line no-console
+    console.log('Key: ', key);
+    // eslint-disable-next-line no-console
+    console.log('Provider: ', provider);
+    // eslint-disable-next-line no-console
+    console.log('State: ', state);
+    // eslint-disable-next-line no-console
+    console.log('Code: ', code);
+    // eslint-disable-next-line no-console
+    console.log('Extracted Provider: ', extractedProvider);
+    // eslint-disable-next-line no-console
+    console.log('Token: ', token);
+
     const linkFenceAccount = _.flow(
       withErrorReporting('Error linking NIH account'),
       Utils.withBusyState(setIsLinking)
@@ -285,7 +298,12 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
     if (token) {
       const profileLink = `/${Nav.getLink('profile')}`;
       window.history.replaceState({}, '', profileLink);
+      // eslint-disable-next-line no-console
+      console.log('Linking Fence Account');
       linkFenceAccount();
+    } else {
+      // eslint-disable-next-line no-console
+      console.log('Not linking fence account');
     }
   });
 
