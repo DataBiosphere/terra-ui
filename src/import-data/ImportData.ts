@@ -79,7 +79,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
 
   const isDataset = !_.includes(format, ['snapshot', 'tdrexport']);
 
-  const isProtectedData = importRequest.type === 'pfb' && isProtectedSource(importRequest.url);
+  const isProtectedData = isProtectedSource(importRequest);
 
   // Normalize the snapshot name:
   // Importing snapshot will throw an "enum" error if the name has any spaces or special characters
