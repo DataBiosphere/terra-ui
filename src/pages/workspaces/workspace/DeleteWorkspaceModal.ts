@@ -29,9 +29,11 @@ const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps) => {
     isDeleteDisabledFromResources,
     workspaceBucketUsageInBytes,
     collaboratorEmails,
-    hasApps,
     deleteWorkspace,
   } = useDeleteWorkspaceState({ workspace, onDismiss, onSuccess });
+
+  const numDeletableResources =
+    (workspaceResources?.deleteableApps.length ?? 0) + (workspaceResources?.deleteableRuntimes.length ?? 0);
 
   const getStorageDeletionMessage = () => {
     return div({ style: { marginTop: '1rem' } }, [
@@ -54,18 +56,9 @@ const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps) => {
   };
 
   const getResourceDeletionMessage = () => {
-    // On Azure, JupyterLab is returned as a runtime instead of an app (on GCP, Jupyter seems to be neither).
-    // WDS and Cromwell are apps.
-    const nNonDeletableResources =
-      (workspaceResources?.nonDeleteableApps.length ?? 0) + (workspaceResources?.nonDeleteableRuntimes.length ?? 0);
-    const nDeletableResources =
-      (workspaceResources?.deleteableApps.length ?? 0) + (workspaceResources?.deleteableRuntimes.length ?? 0);
-    const nonDeletableResourcesVerb = nNonDeletableResources === 1 ? 'is' : 'are';
-    const nonDeletableResourceMessage = `You cannot delete this workspace because there ${nonDeletableResourcesVerb} ${pluralize(
-      'application',
-      nNonDeletableResources,
-      true
-    )} that ${nonDeletableResourcesVerb} currently not deletable. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`;
+    const nonDeletableResourceMessage =
+      'You cannot delete this workspace because it contains at least one cloud resource, ' +
+      'such as an application or cloud environment, that is in an undeletable state. Try again in a few minutes.';
     return isDeleteDisabledFromResources
       ? div({ style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' } }, [
           div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
@@ -77,13 +70,7 @@ const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps) => {
           ]),
           p({ style: { fontWeight: 'normal' } }, [nonDeletableResourceMessage]),
         ])
-      : p({ style: { marginLeft: '1rem', fontWeight: 'bold' } }, [
-          `Detected ${nDeletableResources} automatically deletable ${pluralize(
-            'application',
-            nDeletableResources,
-            false
-          )}.`,
-        ]);
+      : p(['Deleting it will also automatically delete all cloud resources in the workspace.']);
   };
 
   const getWorkspaceName = () => {
@@ -125,11 +112,8 @@ const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps) => {
       getStorageDeletionMessage(),
       isDeleteDisabledFromResources && div({ style: { marginTop: '1rem' } }, [getResourceDeletionMessage()]),
       !isDeleteDisabledFromResources &&
-        hasApps() &&
-        div({ style: { marginTop: '1rem' } }, [
-          p(['Deleting it will also delete any associated applications:']),
-          getResourceDeletionMessage(),
-        ]),
+        numDeletableResources > 0 &&
+        div({ style: { marginTop: '1rem' } }, [getResourceDeletionMessage()]),
       collaboratorEmails &&
         collaboratorEmails.length > 0 &&
         div({ style: { marginTop: '1rem' } }, [
