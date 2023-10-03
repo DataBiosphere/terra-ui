@@ -9,7 +9,7 @@ import { useDataCatalog } from 'src/pages/library/dataBrowser-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
-import { ImportData } from './ImportData';
+import { ImportDataContainer } from './ImportData';
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
 
@@ -111,7 +111,7 @@ const setup = (opts: SetupOptions) => {
     query: queryParams,
   });
 
-  render(h(ImportData));
+  render(h(ImportDataContainer));
 
   return {
     exportDataset,
@@ -367,25 +367,39 @@ describe('ImportData', () => {
         'Another test snapshot'
       );
     });
-  });
 
-  it('imports from the data catalog', async () => {
-    // Arrange
-    const user = userEvent.setup();
+    it('imports from the data catalog', async () => {
+      // Arrange
+      const user = userEvent.setup();
 
-    const queryParams = {
-      format: 'catalog',
-      catalogDatasetId: '00001111-2222-3333-aaaa-bbbbccccdddd',
-    };
-    const { exportDataset } = setup({ queryParams });
+      const queryParams = {
+        format: 'catalog',
+        catalogDatasetId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+      };
+      const { exportDataset } = setup({ queryParams });
 
-    // Act
-    await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
+      // Act
+      await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
 
-    // Assert
-    expect(exportDataset).toHaveBeenCalledWith({
-      id: queryParams.catalogDatasetId,
-      workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
+      // Assert
+      expect(exportDataset).toHaveBeenCalledWith({
+        id: queryParams.catalogDatasetId,
+        workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
+      });
     });
   });
+
+  it.each([
+    { queryParams: { format: 'pfb' } },
+    { queryParams: { format: 'tdrexport', snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd' } },
+  ] as { queryParams: Record<string, any> }[])(
+    'renders an error message for invalid import requests',
+    ({ queryParams }) => {
+      // Act
+      setup({ queryParams });
+
+      // Assert
+      screen.getByText('Invalid import request.');
+    }
+  );
 });
