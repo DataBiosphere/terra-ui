@@ -44,6 +44,7 @@ import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } f
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
+import { sanitizeAttributeUpdateString } from 'src/pages/workspaces/workspace/workflows/workflow-view-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const sideMargin = '3rem';
@@ -1219,9 +1220,7 @@ const WorkflowView = _.flow(
     async uploadJson(key, file) {
       try {
         const rawUpdates = JSON.parse(await readFileAsText(file));
-        const updates = _.mapValues((v) =>
-          _.isString(v) && v.match(/\${([\s\S]*)}/) ? v.replace(/\${([\s\S]*)}/, (_, match) => match) : JSON.stringify(v)
-        )(rawUpdates);
+        const updates = _.mapValues((v) => sanitizeAttributeUpdateString(v))(rawUpdates);
         this.setState(({ modifiedConfig, modifiedInputsOutputs }) => {
           const existing = _.map('name', modifiedInputsOutputs[key]);
           return {
