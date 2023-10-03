@@ -152,10 +152,23 @@ export const User = (signal?: AbortSignal) => {
       },
 
       // We are not calling Thurloe directly because free credits logic was in orchestration
-      set: async (profile: SetTerraUserProfileRequest): Promise<void> => {
+      set: (keysAndValues) => {
+        const blankProfile = {
+          firstName: 'N/A',
+          lastName: 'N/A',
+          title: 'N/A',
+          institute: 'N/A',
+          department: 'N/A',
+          institutionalProgram: 'N/A',
+          programLocationCity: 'N/A',
+          programLocationState: 'N/A',
+          programLocationCountry: 'N/A',
+          pi: 'N/A',
+          nonProfitStatus: 'N/A',
+        };
         return fetchOrchestration(
           'register/profile',
-          _.mergeAll([authOpts(), jsonBody(profile), { signal, method: 'POST' }])
+          _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { signal, method: 'POST' }])
         );
       },
 
