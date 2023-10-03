@@ -1,14 +1,12 @@
-import { addDays, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
-import * as qs from 'qs';
 import { Fragment, useState } from 'react';
 import { div, h, h2, h3, label, p, span } from 'react-hyperscript-helpers';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
 import { ButtonPrimary, Checkbox, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
-import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/external-account-links';
+import { ShibbolethLink } from 'src/components/external-account-links';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import { TextInput, ValidatedInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
@@ -31,6 +29,8 @@ import { memoWithName, useCancellation, useOnMount, useStore } from 'src/libs/re
 import { authStore, getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { FenceLink } from 'src/profile/external-identities/FenceLink';
+import { SpacedSpinner } from 'src/profile/SpacedSpinner';
 import validate from 'validate.js';
 
 const styles = {
@@ -107,10 +107,6 @@ const styles = {
       marginRight: '1.2rem',
     },
   },
-};
-
-const SpacedSpinner = ({ children }) => {
-  return div({ style: { display: 'flex', alignItems: 'center' } }, [spinner({ style: { marginRight: '1rem' } }), children]);
 };
 
 const NihLink = ({ nihToken }) => {
@@ -252,83 +248,6 @@ const NihLink = ({ nihToken }) => {
           isUnlinking && spinnerOverlay,
         ]
       ),
-  ]);
-};
-
-const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
-  // State
-  const {
-    fenceStatus: { [key]: { username, issued_at: issuedAt } = {} },
-  } = useStore(authStore);
-
-  const oauth2State = new URLSearchParams(window.location.search).get('state');
-  const provider = oauth2State ? JSON.parse(atob(oauth2State)).provider : '';
-  const [isLinking, setIsLinking] = useState(Nav.useRoute().name === 'fence-callback' && key === provider);
-
-  // Helpers
-  const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`;
-
-  // Lifecycle
-  useOnMount(() => {
-    const { state, code } = qs.parse(window.location.search, { ignoreQueryPrefix: true });
-    const extractedProvider = state ? JSON.parse(atob(state)).provider : '';
-    const token = key === extractedProvider ? code : undefined;
-
-    // eslint-disable-next-line no-console
-    console.log('Key: ', key);
-    // eslint-disable-next-line no-console
-    console.log('Provider: ', provider);
-    // eslint-disable-next-line no-console
-    console.log('State: ', state);
-    // eslint-disable-next-line no-console
-    console.log('Code: ', code);
-    // eslint-disable-next-line no-console
-    console.log('Extracted Provider: ', extractedProvider);
-    // eslint-disable-next-line no-console
-    console.log('Token: ', token);
-
-    const linkFenceAccount = _.flow(
-      withErrorReporting('Error linking NIH account'),
-      Utils.withBusyState(setIsLinking)
-    )(async () => {
-      const status = await Ajax().User.linkFenceAccount(key, token, redirectUrl, state);
-      authStore.update(_.set(['fenceStatus', key], status));
-    });
-
-    if (token) {
-      const profileLink = `/${Nav.getLink('profile')}`;
-      window.history.replaceState({}, '', profileLink);
-      // eslint-disable-next-line no-console
-      console.log('Linking Fence Account');
-      linkFenceAccount();
-    } else {
-      // eslint-disable-next-line no-console
-      console.log('Not linking fence account');
-    }
-  });
-
-  // Render
-  return div({ style: styles.idLink.container }, [
-    div({ style: styles.idLink.linkContentTop(false) }, [
-      h3({ style: { marginTop: 0, ...styles.idLink.linkName } }, [name]),
-      Utils.cond(
-        [isLinking, () => h(SpacedSpinner, ['Loading account status...'])],
-        [!username, () => div([h(FrameworkServiceLink, { button: true, linkText: `Log in to ${short} `, provider: key, redirectUrl })])],
-        () =>
-          h(Fragment, [
-            div([span({ style: styles.idLink.linkDetailLabel }, ['Username:']), username]),
-            div([
-              span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
-              span([Utils.makeCompleteDate(addDays(expiresAfter, parseJSON(issuedAt)))]),
-            ]),
-            div([
-              h(FrameworkServiceLink, { linkText: 'Renew', 'aria-label': `Renew your ${short} link`, provider: key, redirectUrl }),
-              span({ style: { margin: '0 .25rem 0' } }, [' | ']),
-              h(UnlinkFenceAccount, { linkText: 'Unlink', 'aria-label': `Unlink from ${short}`, provider: { key, name } }),
-            ]),
-          ])
-      ),
-    ]),
   ]);
 };
 
