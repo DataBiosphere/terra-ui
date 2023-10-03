@@ -1,11 +1,12 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
+import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
+import TooltipTrigger from 'src/components/TooltipTrigger';
 import { useWorkspaceDetails } from 'src/components/workspace-utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import WorkspaceMenu, { tooltipText } from 'src/pages/workspaces/workspace/WorkspaceMenu';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/components/workspace-utils', () => {
   const originalModule = jest.requireActual('src/components/workspace-utils');
@@ -25,6 +26,14 @@ jest.mock('src/components/PopupTrigger', () => {
   };
 });
 
+// Mocking TooltipTrigger to avoid test environment issues with React Portal's requirement to use
+// DOM measure services which are not available in jest environment
+jest.mock('src/components/TooltipTrigger', () => ({
+  ...jest.requireActual('src/components/TooltipTrigger'),
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 const workspaceMenuProps = {
   iconSize: 20,
   popupLocation: 'left',
@@ -35,6 +44,23 @@ const workspaceMenuProps = {
 beforeEach(() => {
   MenuTrigger.mockImplementation(({ content }) => {
     return div({ role: 'menu' }, [content]);
+  });
+  TooltipTrigger.mockImplementation(({ content, children }) => {
+    const [open, setOpen] = useState(false);
+    return div([
+      div(
+        {
+          onMouseEnter: () => {
+            setOpen(true);
+          },
+          onMouseLeave: () => {
+            setOpen(false);
+          },
+        },
+        [children]
+      ),
+      open && !!content && div([content]),
+    ]);
   });
 });
 
@@ -126,9 +152,9 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     fireEvent.mouseOver(menuItem);
     // Assert
     if (canShare) {
-      expect(screen.queryByRole('tooltip', { name: tooltipText.shareNoPermission })).toBeNull();
+      expect(screen.queryByText(tooltipText.shareNoPermission)).toBeNull();
     } else {
-      expect(screen.queryByRole('tooltip', { name: tooltipText.shareNoPermission })).not.toBeNull();
+      expect(screen.queryByText(tooltipText.shareNoPermission)).not.toBeNull();
     }
   });
 
@@ -161,7 +187,7 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     render(h(WorkspaceMenu, workspaceMenuProps));
     fireEvent.mouseOver(screen.getByText(menuText));
     // Assert
-    expect(screen.queryByRole('tooltip', { name: tooltipText })).not.toBeNull();
+    expect(screen.queryByText(tooltipText)).not.toBeNull();
   });
 
   it.each([
@@ -196,12 +222,12 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     fireEvent.mouseOver(screen.getByText('Delete'));
     // Assert
     if (!locked && WorkspaceUtils.isOwner(accessLevel)) {
-      expect(screen.queryByRole('tooltip', { name: tooltipText.deleteLocked })).toBeNull();
-      expect(screen.queryByRole('tooltip', { name: tooltipText.deleteNoPermission })).toBeNull();
+      expect(screen.queryByText(tooltipText.deleteLocked)).toBeNull();
+      expect(screen.queryByText(tooltipText.deleteNoPermission)).toBeNull();
     } else if (locked) {
-      expect(screen.queryByRole('tooltip', { name: tooltipText.deleteLocked })).not.toBeNull();
+      expect(screen.queryByText(tooltipText.deleteLocked)).not.toBeNull();
     } else {
-      expect(screen.queryByRole('tooltip', { name: tooltipText.deleteNoPermission })).not.toBeNull();
+      expect(screen.queryByText(tooltipText.deleteNoPermission)).not.toBeNull();
     }
   });
 });

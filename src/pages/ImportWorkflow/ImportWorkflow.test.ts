@@ -6,6 +6,8 @@ import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { errorWatcher } from 'src/libs/error.mock';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { getTerraUser } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -355,7 +357,11 @@ describe('ImportWorkflow', () => {
     );
   });
 
-  it('it imports the workflow into the selected Azure workspace', async () => {
+  it('it navigates into the selected Azure workspace with flag enabled', async () => {
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((key) => {
+      return key === ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP;
+    });
+
     // Arrange
     const user = userEvent.setup();
     const mockPostMethodResponse = {
@@ -418,6 +424,79 @@ describe('ImportWorkflow', () => {
     );
 
     expect(Nav.goToPath).toHaveBeenCalledWith('workspace-workflows-app', {
+      methodId: '031e1da5-b977-4467-b1d7-acc7054fe72d',
+      name: 'azure-workspace1',
+      namespace: 'azure-test1',
+    });
+  });
+
+  it('it imports the workflow into the selected Azure workspace', async () => {
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation(() => {
+      return false;
+    });
+
+    // Arrange
+    const user = userEvent.setup();
+    const mockPostMethodResponse = {
+      method_id: '031e1da5-b977-4467-b1d7-acc7054fe72d',
+      run_set_id: 'd250fe2e-d5c2-4ccc-8484-3cd6179e312c',
+    };
+    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
+    const mockPostMethodAppsFn = jest.fn(() => Promise.resolve(mockPostMethodResponse));
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Cbas: {
+            methods: {
+              post: mockPostMethodAppsFn,
+            },
+          } as DeepPartial<AjaxContract['Cbas']>,
+          ...mockAjax,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    asMockedFn(Apps).mockImplementation(
+      () =>
+        ({
+          listAppsV2: mockListAppsFn as Partial<AjaxContract['Apps']>,
+        } as Partial<AppsContract> as AppsContract)
+    );
+
+    const testWorkflow = {
+      path: 'github.com/DataBiosphere/test-workflows/test-workflow',
+      version: 'v1.0.0',
+      source: 'dockstore',
+    };
+
+    render(h(ImportWorkflow, { ...testWorkflow }));
+
+    // Act
+    const workspaceMenu = screen.getByLabelText('Destination Workspace');
+    await user.click(workspaceMenu);
+    const option = screen.getAllByRole('option').find((el) => el.textContent === 'azure-workspace1')!;
+    await user.click(option);
+
+    const importButton = screen.getByText('Import');
+    await user.click(importButton);
+
+    // Assert
+    expect(mockListAppsFn).toHaveBeenCalledWith('79201ea6-519a-4077-a9a4-75b2a7c4cdeb');
+
+    expect(mockPostMethodAppsFn).toHaveBeenCalledWith(
+      'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
+      expect.objectContaining({
+        method_name: 'test-workflow',
+        method_description: null,
+        method_source: 'Dockstore',
+        method_version: 'v1.0.0',
+        method_url: 'github.com/DataBiosphere/test-workflows/test-workflow',
+        method_input_mappings: [],
+        method_output_mappings: [],
+      })
+    );
+
+    expect(Nav.goToPath).toHaveBeenCalledWith('workspace-workflows-app-submission-config', {
       methodId: '031e1da5-b977-4467-b1d7-acc7054fe72d',
       name: 'azure-workspace1',
       namespace: 'azure-test1',

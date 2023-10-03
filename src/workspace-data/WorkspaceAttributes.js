@@ -153,7 +153,7 @@ export const WorkspaceAttributes = ({
   return h(
     Dropzone,
     {
-      disabled: !WorkspaceUtils.canEditWorkspace(workspace).value,
+      disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
       style: { flex: 1, display: 'flex', flexDirection: 'column' },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       onDropAccepted: upload,
@@ -175,7 +175,7 @@ export const WorkspaceAttributes = ({
             },
             [
               h(Link, { onClick: download }, ['Download TSV']),
-              WorkspaceUtils.canEditWorkspace(workspace).value &&
+              !WorkspaceUtils.editWorkspaceError(workspace) &&
                 h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']), h(Link, { onClick: openUploader }, ['upload TSV'])]),
               h(DelayedSearchInput, {
                 'aria-label': 'Search',
@@ -286,8 +286,8 @@ export const WorkspaceAttributes = ({
                                 h(
                                   Link,
                                   {
-                                    tooltip: 'Edit variable',
-                                    ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
+                                    disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
+                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || 'Edit variable',
                                     style: { marginLeft: '1rem' },
                                     onClick: () => {
                                       setEditIndex(rowIndex);
@@ -302,8 +302,8 @@ export const WorkspaceAttributes = ({
                                 h(
                                   Link,
                                   {
-                                    tooltip: 'Delete variable',
-                                    ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
+                                    disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
+                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || 'Delete variable',
                                     style: { marginLeft: '1rem' },
                                     onClick: () => setDeleteIndex(rowIndex),
                                     'aria-haspopup': 'dialog',
@@ -320,7 +320,7 @@ export const WorkspaceAttributes = ({
           ]),
           !creatingNewVariable &&
             editIndex === undefined &&
-            WorkspaceUtils.canEditWorkspace(workspace).value &&
+            !WorkspaceUtils.editWorkspaceError(workspace) &&
             h(FloatingActionButton, {
               label: 'ADD VARIABLE',
               iconShape: 'plus',

@@ -1,10 +1,10 @@
+import { render } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { brands } from 'src/libs/brands';
 import * as Nav from 'src/libs/nav';
 import { dataCatalogStore } from 'src/libs/state';
 import { prepareDatasetsForDisplay } from 'src/pages/library/dataBrowser-utils';
 import { Datasets } from 'src/pages/library/Datasets';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/brand-utils', () => {
   const { brands } = jest.requireActual('src/libs/brands');

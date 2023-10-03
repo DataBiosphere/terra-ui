@@ -1,12 +1,12 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { act, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { LeoAppStatus, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
 
 import { WorkspaceData } from './Data';

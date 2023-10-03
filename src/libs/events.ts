@@ -1,8 +1,8 @@
 import _ from 'lodash/fp';
-import { ReactNode, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { useRoute } from 'src/libs/nav';
-import { containsProtectedDataPolicy, WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { containsProtectedDataPolicy } from 'src/libs/workspace-utils';
 
 /*
  * NOTE: In order to show up in reports, new events MUST be marked as expected in the Mixpanel
@@ -140,66 +140,26 @@ const eventsList = {
   workspaceStar: 'workspace:star',
 };
 
-// extractWorkspaceDetails accepts multiple types of input...
-export type EventWorkspaceAttributes =
-  // A WorkspaceWrapper object, from which it extracts the policies and a few fields from the inner WorkspaceInfo.
-  | {
-      workspace: Pick<WorkspaceInfo, 'namespace' | 'name' | 'cloudPlatform'>;
-      policies?: WorkspaceWrapper['policies'];
-    }
-  // A WorkspaceInfo object, from which it extracts a few fields.
-  | Pick<WorkspaceInfo, 'namespace' | 'name' | 'cloudPlatform'>
-  // A workspace namespace and name on their own.
-  // cloudPlatform may also be passed, but it's mainly here to make the types easier in extractWorkspaceDetails.
-  | { namespace: string; name: string; cloudPlatform?: WorkspaceInfo['cloudPlatform'] };
-
-export interface EventWorkspaceDetails {
-  workspaceNamespace: string;
-  workspaceName: string;
-  cloudPlatform?: string;
-  hasProtectedData?: boolean;
-}
-
 /**
- * Extracts name, namespace, cloudPlatform, and policies (if present) from an object.
- *
- * @param workspace - Workspace attributes. These can be provided with a WorkspaceWrapper object, a WorkspaceInfo object, or a plain { namespace, name } object.
+ * Extracts name, namespace, and cloudPlatform and policies (if present) from an object. The object can either have these
+ * as top-level properties (such as would be returned from parseNav), or nested within a workspace object
+ * (such as would be returned from the ajax workspace details API).
  */
-export const extractWorkspaceDetails = (workspaceObject: EventWorkspaceAttributes): EventWorkspaceDetails => {
-  // If a WorkspaceWrapper is provided, get the inner WorkspaceInfo. Otherwise, use the provided object directly.
+export const extractWorkspaceDetails = (workspaceObject) => {
+  // A "workspace" as returned from the workspace list or details API method has as "workspace" object within it
+  // containing the workspace details.
   const workspaceDetails = 'workspace' in workspaceObject ? workspaceObject.workspace : workspaceObject;
   const { name, namespace, cloudPlatform } = workspaceDetails;
-
-  // Policies are only available if a WorkspaceWrapper object is passed.
-  // For other types of input, whether the workspace has protected data is unknown.
-  const hasProtectedData =
-    'policies' in workspaceObject ? containsProtectedDataPolicy(workspaceObject.policies) : undefined;
-
-  return {
-    workspaceNamespace: namespace,
-    workspaceName: name,
-    cloudPlatform: cloudPlatform ? cloudPlatform.toUpperCase() : undefined,
-    hasProtectedData,
-  };
+  const hasProtectedData = containsProtectedDataPolicy(workspaceObject.policies ?? workspaceDetails.policies);
+  const data = { workspaceName: name, workspaceNamespace: namespace };
+  // When workspace details are obtained from the nav path, the cloudPlatform will not be available.
+  // Uppercase cloud platform because we mix camelcase and uppercase depending on which server API it came from (rawls/workspace vs. leo).
+  return _.isUndefined(cloudPlatform)
+    ? data
+    : _.merge(data, { cloudPlatform: _.toUpper(cloudPlatform), hasProtectedData });
 };
 
-export interface CrossWorkspaceEventWorkspaceAttributes {
-  workspace: Pick<WorkspaceWrapper['workspace'], 'namespace' | 'name' | 'cloudPlatform'>;
-}
-
-export interface CrossWorkspaceEventWorkspaceDetails {
-  fromWorkspaceNamespace: string;
-  fromWorkspaceName: string;
-  fromWorkspaceCloudPlatform: string;
-  toWorkspaceNamespace: string;
-  toWorkspaceName: string;
-  toWorkspaceCloudPlatform: string;
-}
-
-export const extractCrossWorkspaceDetails = (
-  fromWorkspace: CrossWorkspaceEventWorkspaceAttributes,
-  toWorkspace: CrossWorkspaceEventWorkspaceAttributes
-): CrossWorkspaceEventWorkspaceDetails => {
+export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
   return {
     fromWorkspaceNamespace: fromWorkspace.workspace.namespace,
     fromWorkspaceName: fromWorkspace.workspace.name,
@@ -210,24 +170,14 @@ export const extractCrossWorkspaceDetails = (
   };
 };
 
-export interface EventBillingProjectAttributes {
-  projectName: string;
-  cloudPlatform: string;
-}
-
-export interface EventBillingDetails {
-  billingProjectName: string;
-  cloudPlatform: string;
-}
-
-export const extractBillingDetails = (billingProject: EventBillingProjectAttributes): EventBillingDetails => {
+export const extractBillingDetails = (billingProject) => {
   return {
     billingProjectName: billingProject.projectName,
     cloudPlatform: _.toUpper(billingProject.cloudPlatform), // Should already be uppercase, but enforce for consistency.
   };
 };
 
-export const PageViewReporter = (): ReactNode => {
+export function PageViewReporter() {
   const { name, params } = useRoute();
 
   useEffect(() => {
@@ -240,9 +190,9 @@ export const PageViewReporter = (): ReactNode => {
   }, [name, params]);
 
   return null;
-};
+}
 
-export const captureAppcuesEvent = (eventName: string, event: any) => {
+export const captureAppcuesEvent = (eventName, event) => {
   // Only record "public-facing events" (and related properties) as documented by Appcues: https://docs.appcues.com/article/301-client-side-events-reference
   const publicEvents = [
     'flow_started',

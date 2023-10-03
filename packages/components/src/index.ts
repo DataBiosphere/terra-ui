@@ -1,4 +1,3 @@
-export * from './Clickable';
 export * from './DelayedRender';
 export * from './ErrorBoundary';
 export * from './hooks/useUniqueId';

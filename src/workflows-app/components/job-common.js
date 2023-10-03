@@ -4,7 +4,7 @@ import { ButtonOutline, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { breadcrumbHistoryCaret, statusType as gcpStatusType } from 'src/components/job-common';
 import colors from 'src/libs/colors';
-import { getLink, goToPath } from 'src/libs/nav';
+import { goToPath } from 'src/libs/nav';
 
 const iconSize = 18;
 
@@ -117,11 +117,11 @@ export const PageHeader = ({ breadcrumbPathObjects, title }) => {
 };
 
 export const Breadcrumbs = ({ breadcrumbPathObjects, pageId }) => {
-  const links = breadcrumbPathObjects.map(({ label, path, pathParams, queryParams }, index) => {
+  const links = breadcrumbPathObjects.map(({ label, path, params }, index) => {
     const attributes = { key: `${_.kebabCase(label)}-breadcrumb-link` };
     let component;
     if (!_.isNil(path)) {
-      attributes.href = getLink(path, pathParams, queryParams);
+      attributes.onClick = () => goToPath(path, params);
       component = h(Link, { ...attributes }, [label]);
     } else {
       component = span({ ...attributes }, [label]);

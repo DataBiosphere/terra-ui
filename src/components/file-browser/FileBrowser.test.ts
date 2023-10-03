@@ -1,10 +1,11 @@
+import { render } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks';
 import FileBrowser from 'src/components/file-browser/FileBrowser';
 import FilesTable from 'src/components/file-browser/FilesTable';
 import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/components/file-browser/file-browser-hooks', () => ({
   ...jest.requireActual('src/components/file-browser/file-browser-hooks'),

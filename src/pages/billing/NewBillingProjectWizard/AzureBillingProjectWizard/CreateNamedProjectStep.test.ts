@@ -1,8 +1,7 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { CreateNamedProjectStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 // Exported for wizard integration test.
 export const nameBillingProject = async (billingProjectName) => {

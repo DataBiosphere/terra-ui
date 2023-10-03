@@ -71,22 +71,15 @@ export const getPath = (name: string, params?: Record<string, any>): string => {
 };
 
 /**
- * gets a link to the desired nav path, with support for query parameters
+ * alias for getPath()
  */
-export const getLink = (name: string, pathParams?: Record<string, any>, queryParams?: Record<string, any>): string => {
-  const path = getPath(name, pathParams).slice(1); // slice off leading slash
-  const queryString = queryParams ? qs.stringify(queryParams, { addQueryPrefix: true }) : '';
-  return `#${path}${queryString}`;
-};
+export const getLink = (name: string, params?: Record<string, any>) => `#${getPath(name, params).slice(1)}`; // slice off leading slash
 
 /**
  * navigate the application to the desired nav path.
  */
-export const goToPath = (name: string, pathParams?: Record<string, any>, queryParams?: Record<string, any>): void => {
-  history.push({
-    pathname: getPath(name, pathParams),
-    ...(queryParams ? { search: qs.stringify(queryParams, { addQueryPrefix: true }) } : {}),
-  });
+export const goToPath = (name: string, params?: Record<string, any>) => {
+  history.push({ pathname: getPath(name, params) });
 };
 
 export function Redirector({ pathname, search }) {
@@ -175,8 +168,8 @@ export function PathHashInserter() {
 }
 
 export interface TerraNavLinkProvider {
-  getLink: (name: string, pathParams?: Record<string, any>, queryParams?: Record<string, any>) => string;
-  goToPath: (name: string, pathParams?: Record<string, any>, queryParams?: Record<string, any>) => void;
+  getLink: (name: string, params?: Record<string, any>) => string;
+  goToPath: (name: string, params?: Record<string, any>) => void;
 }
 
 export const terraNavLinkProvider: TerraNavLinkProvider = {

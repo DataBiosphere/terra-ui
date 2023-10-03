@@ -16,11 +16,6 @@ const defaultAnalysesData: AnalysesData = {
 
 jest.mock('src/libs/ajax');
 
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
-  useQueryParameter: jest.requireActual('react').useState,
-}));
-
 describe('Workflows App Navigation Panel', () => {
   it('renders headers', async () => {
     const user = userEvent.setup();

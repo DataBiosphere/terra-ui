@@ -1,9 +1,9 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { generateTestAppWithAzureWorkspace } from 'src/analysis/_testData/testData';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn } from 'src/testing/test-utils';
 import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 
 import { appAccessScopes, appToolLabels } from '../utils/tool-utils';

@@ -3,7 +3,7 @@ import { isGoogleWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 // This method identifies whether an import source is considered protected data;
 // For now this means pfb imports from AnVIL or Biodata Catalyst.
-export const isProtectedSource = (url: string, filetype?: string): boolean => {
+export const isProtectedSource = (url: string, filetype: string): boolean => {
   if (!url) {
     return false;
   }
@@ -16,7 +16,7 @@ export const isProtectedSource = (url: string, filetype?: string): boolean => {
       'gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export.s3.amazonaws.com',
       'gen3-theanvil-io-pfb-export.s3.amazonaws.com',
     ];
-    return cond([!filetype || !url, () => false], [!!filetype && filetype.toLowerCase() !== 'pfb', () => false], () =>
+    return cond([!filetype || !url, () => false], [filetype.toLowerCase() !== 'pfb', () => false], () =>
       protectedHosts.some((host) => hostname.endsWith(host))
     );
   } catch (e) {

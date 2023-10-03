@@ -5,7 +5,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { AsyncCreatableSelect, Clickable, Link, VirtualizedSelect } from 'src/components/common';
 import { WorkspaceSubmissionStatusIcon } from 'src/components/WorkspaceSubmissionStatusIcon';
-import { Ajax } from 'src/libs/ajax';
+import { Ajax, useReplaceableAjaxExperimental } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -21,6 +21,7 @@ export const useWorkspaces = (fieldsArg, stringAttributeMaxLength) => {
   const signal = useCancellation();
   const [loading, setLoading] = useState(false);
   const workspaces = useStore(workspacesStore);
+  const ajax = useReplaceableAjaxExperimental();
 
   const fields = fieldsArg || [
     'accessLevel',
@@ -36,7 +37,7 @@ export const useWorkspaces = (fieldsArg, stringAttributeMaxLength) => {
     withErrorReporting('Error loading workspace list'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const ws = await Ajax(signal).Workspaces.list(fields, stringAttributeMaxLength);
+    const ws = await ajax(signal).Workspaces.list(fields, stringAttributeMaxLength);
     workspacesStore.set(ws);
   });
   useOnMount(() => {

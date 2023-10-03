@@ -1,9 +1,10 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 
 jest.mock('src/libs/ajax');
@@ -21,10 +22,11 @@ jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
   getTerraUser: jest.fn(),
 }));
-jest.mock('src/components/Modal', () => {
-  const mockModal = jest.requireActual('src/components/Modal.mock');
-  return mockModal.mockModalModule();
-});
+
+jest.mock('src/libs/feature-previews', () => ({
+  ...jest.requireActual('src/libs/feature-previews'),
+  isFeaturePreviewEnabled: jest.fn(),
+}));
 
 describe('Add a Workflow Link', () => {
   const workspace = {
@@ -206,6 +208,8 @@ describe('Add a Workflow Link', () => {
   });
 
   it('shows modal on successful import', async () => {
+    isFeaturePreviewEnabled.mockImplementation((id) => (id === ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP ? true : isFeaturePreviewEnabled(id)));
+
     const githubLink = 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl';
     const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }));
     const user = userEvent.setup();

@@ -661,7 +661,7 @@ const PreferFirecloudModal = ({ onDismiss }) => {
   )(async () => {
     await Ajax().User.profile.preferLegacyFirecloud();
     if (emailAgreed === true || reason.length !== 0) {
-      await Ajax().Support.createSupportRequest({
+      await Ajax().User.createSupportRequest({
         name: `${firstName} ${lastName}`,
         email,
         description: reason,

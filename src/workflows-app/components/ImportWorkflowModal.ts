@@ -12,7 +12,7 @@ import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 type ImportWorkflowModalProps = {
   importLoading: boolean;
   methodName: string;
-  onDismiss: () => void;
+  onDismiss: Function;
   workspace: WorkspaceWrapper;
   namespace: string;
   setSelectedSubHeader: Function;

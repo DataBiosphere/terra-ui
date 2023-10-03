@@ -24,7 +24,7 @@ const expectedJson = [azureDisk, galaxyDisk];
 const rawJson = [undecoratePd(azureDisk), undecoratePd(galaxyDisk)];
 
 describe('Disks ajax', () => {
-  const signal = new window.AbortController().signal;
+  const signal = jest.fn();
   beforeEach(() => {
     asMockedFn(authOpts).mockImplementation(jest.fn());
   });

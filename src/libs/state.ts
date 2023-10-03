@@ -20,17 +20,10 @@ export type TerraUser = {
 };
 
 export type TerraUserProfile = {
-  firstName: string | undefined;
-  lastName: string | undefined;
   institute: string | undefined;
-  contactEmail: string | undefined;
   title: string | undefined;
   department: string | undefined;
   interestInTerra: string | undefined;
-  programLocationCity: string | undefined;
-  programLocationState: string | undefined;
-  programLocationCountry: string | undefined;
-  starredWorkspaces: string | undefined;
 };
 
 export type TerraUserRegistrationStatus =
@@ -75,7 +68,8 @@ export type AuthState = {
     linkedNihUsername: string;
     linkExpireTime: number;
   };
-  profile: TerraUserProfile;
+  // props in the TerraUserProfile are always present, but there may be more props
+  profile: TerraUserProfile & any;
   refreshTokenMetadata: TokenMetadata;
   registrationStatus: TerraUserRegistrationStatus;
   sessionId?: string | undefined;
@@ -99,17 +93,10 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
   profile: {
-    firstName: undefined,
-    lastName: undefined,
-    contactEmail: undefined,
-    title: undefined,
     institute: undefined,
+    title: undefined,
     department: undefined,
-    programLocationCity: undefined,
-    programLocationState: undefined,
-    programLocationCountry: undefined,
     interestInTerra: undefined,
-    starredWorkspaces: undefined,
   },
   refreshTokenMetadata: {
     token: undefined,
@@ -138,6 +125,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     idp: undefined,
   },
 });
+
 export const getTerraUser = (): TerraUser => authStore.get().terraUser;
 
 export const getSessionId = () => authStore.get().sessionId;

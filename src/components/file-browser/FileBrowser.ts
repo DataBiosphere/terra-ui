@@ -57,21 +57,21 @@ const FileBrowser = (props: FileBrowserProps) => {
     }
   }, []);
 
-  const { editDisabled, editDisabledReason } = (({ value, message }) =>
-    Utils.cond<{
-      editDisabled: boolean;
-      editDisabledReason: string | undefined;
-    }>(
-      [!value, () => ({ editDisabled: true, editDisabledReason: message })],
-      [
-        path.startsWith(`${dataTableVersionsPathRoot}/`),
-        () => ({
-          editDisabled: true,
-          editDisabledReason: 'This folder is managed by data table versioning and cannot be edited here.',
-        }),
-      ],
-      () => ({ editDisabled: false, editDisabledReason: undefined })
-    ))(WorkspaceUtils.canEditWorkspace(workspace));
+  const editWorkspaceError = WorkspaceUtils.editWorkspaceError(workspace);
+  const { editDisabled, editDisabledReason } = Utils.cond<{
+    editDisabled: boolean;
+    editDisabledReason: string | undefined;
+  }>(
+    [!!editWorkspaceError, () => ({ editDisabled: true, editDisabledReason: editWorkspaceError })],
+    [
+      path.startsWith(`${dataTableVersionsPathRoot}/`),
+      () => ({
+        editDisabled: true,
+        editDisabledReason: 'This folder is managed by data table versioning and cannot be edited here.',
+      }),
+    ],
+    () => ({ editDisabled: false, editDisabledReason: undefined })
+  );
 
   const reloadRequests = subscribable();
 

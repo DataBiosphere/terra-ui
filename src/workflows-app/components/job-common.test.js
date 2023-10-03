@@ -6,15 +6,7 @@ import { HeaderSection, PageHeader } from 'src/workflows-app/components/job-comm
 
 jest.mock('src/libs/nav', () => ({
   getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
-  getLink: jest
-    .fn()
-    .mockImplementation((path, pathParams, queryParams) =>
-      path === 'workspace-workflows-app'
-        ? `/#workspaces/${pathParams.namespace}/${pathParams.name}/workflows-app${jest
-            .requireActual('qs')
-            .stringify(queryParams, { addQueryPrefix: true })}`
-        : '/#test-link'
-    ),
+  getLink: jest.fn(),
   goToPath: jest.fn(),
 }));
 
@@ -29,9 +21,8 @@ describe('Job Common Components - Page Header', () => {
     const breadcrumbPathObjects = [
       {
         label: 'Submission History',
-        path: 'workspace-workflows-app',
-        pathParams: { namespace: 'foo', name: 'bar' },
-        queryParams: { tab: 'submission-history' },
+        path: 'submission-history',
+        params: { namespace: 'foo', name: 'bar' },
       },
       {
         label: 'Test link',
@@ -45,14 +36,14 @@ describe('Job Common Components - Page Header', () => {
     };
 
     render(h(PageHeader, props));
+    const user = userEvent.setup();
 
     const historyLink = screen.getByText(breadcrumbPathObjects[0].label);
-    expect(historyLink).toHaveAttribute(
-      'href',
-      Nav.getLink(breadcrumbPathObjects[0].path, breadcrumbPathObjects[0].pathParams, breadcrumbPathObjects[0].queryParams)
-    );
+    await user.click(historyLink);
+    expect(Nav.goToPath).toHaveBeenCalledWith(breadcrumbPathObjects[0].path, breadcrumbPathObjects[0].params);
     const testLink = screen.getByText(breadcrumbPathObjects[1].label);
-    expect(testLink).toHaveAttribute('href', Nav.getLink(breadcrumbPathObjects[1].path));
+    await user.click(testLink);
+    expect(Nav.goToPath).toHaveBeenCalledWith(breadcrumbPathObjects[1].path, breadcrumbPathObjects[1].params);
   });
 });
 

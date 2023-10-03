@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
@@ -7,7 +7,7 @@ import { Ajax } from 'src/libs/ajax';
 import { azureRegions } from 'src/libs/azure-regions';
 import { authStore } from 'src/libs/state';
 import { AzureStorageDetails, BucketLocation, WorkspaceInformation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn } from 'src/testing/test-utils';
 import {
   defaultAzureStorageOptions,
   defaultGoogleBucketOptions,

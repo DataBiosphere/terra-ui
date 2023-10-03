@@ -14,29 +14,27 @@ import DownloadPrices from 'src/workspace-data/download-prices';
 import els from './uri-viewer-styles';
 import { isAzureUri, isDrsUri } from './uri-viewer-utils';
 
-const getMaxDownloadCostNA = (bytes: number) => {
+const getMaxDownloadCostNA = (bytes) => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos;
-  const downloadPrice =
-    (bytes * nanos) / DownloadPrices.pricingInfo[0].pricingExpression.baseUnitConversionFactor / 10e8;
+  const downloadPrice = (bytes * nanos) / DownloadPrices.pricingInfo[0].pricingExpression.baseUnitConversionFactor / 10e8;
 
   return Utils.formatUSD(downloadPrice);
 };
 
 export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl, workspace }) => {
   const signal = useCancellation();
-  const [url, setUrl] = useState<string | null>();
-  const getUrlFromDrsProvider = async (userProject: string) => {
+  const [url, setUrl] = useState();
+  const getUrlFromDrsProvider = async () => {
     const { url } = await Ajax(signal).DrsUriResolver.getSignedUrl({
       bucket,
       object: name,
       googleProject: workspace.workspace.googleProject,
       dataObjectUri: uri,
     });
-    return knownBucketRequesterPaysStatuses.get()[bucket] ? Utils.mergeQueryParams({ userProject }, url) : url;
+    return url;
   };
-  const getUrlFromSam = async (userProject: string) => {
-    const requesterPaysProject = knownBucketRequesterPaysStatuses.get()[bucket] ? userProject : undefined;
-    return await Ajax(signal).SamResources.getRequesterPaysSignedUrl(uri, requesterPaysProject);
+  const getUrlFromSam = async () => {
+    return await Ajax(signal).SamResources.getSignedUrl(bucket, name, workspace.workspace.googleProject, false);
   };
   const getUrl = async () => {
     if (accessUrl?.url) {
@@ -54,8 +52,8 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
     } else {
       try {
         const userProject = await getUserProjectForWorkspace(workspace);
-        const url = isDrsUri(uri) ? await getUrlFromDrsProvider(userProject) : await getUrlFromSam(userProject);
-        setUrl(url);
+        const url = isDrsUri(uri) ? await getUrlFromDrsProvider() : await getUrlFromSam();
+        setUrl(knownBucketRequesterPaysStatuses.get()[bucket] ? Utils.mergeQueryParams({ userProject }, url) : url);
       } catch (error) {
         setUrl(null);
       }
@@ -67,7 +65,6 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
   });
 
   const loadingSpinner = () => {
-    // @ts-ignore
     return h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })]);
   };
 
@@ -115,8 +112,6 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
   return els.cell([
     _.isEmpty(url)
       ? 'Unable to generate download link.'
-      : div({ style: { display: 'flex', justifyContent: 'center' } }, [
-          isAzureUri(uri) ? azureDownloadButton() : googleDownloadButton(),
-        ]),
+      : div({ style: { display: 'flex', justifyContent: 'center' } }, [isAzureUri(uri) ? azureDownloadButton() : googleDownloadButton()]),
   ]);
 };

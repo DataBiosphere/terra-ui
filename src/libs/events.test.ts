@@ -1,59 +1,66 @@
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { extractBillingDetails, extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';
 
-import { extractBillingDetails, extractCrossWorkspaceDetails, extractWorkspaceDetails } from './events';
+const gcpWorkspace = {
+  workspace: {
+    cloudPlatform: 'Gcp',
+    name: 'wsName',
+    namespace: 'wsNamespace',
+    workspaceId: 'testGoogleWorkspaceId',
+  },
+  accessLevel: 'OWNER',
+  canShare: true,
+  canCompute: true,
+};
+
+const azureWorkspace = {
+  workspace: {
+    cloudPlatform: 'Azure',
+    name: 'azName',
+    namespace: 'azNamespace',
+    workspaceId: 'azWorkspaceId',
+  },
+  accessLevel: 'OWNER',
+  canShare: true,
+  canCompute: true,
+};
 
 describe('extractWorkspaceDetails', () => {
   it('Handles properties at top level, converts cloudPlatform to upper case', () => {
-    // Act
-    const workspaceDetails = extractWorkspaceDetails({
-      name: 'wsName',
-      namespace: 'wsNamespace',
-      cloudPlatform: 'Gcp',
-    });
-
-    // Assert
-    expect(workspaceDetails).toEqual({
+    expect(
+      extractWorkspaceDetails({ name: 'wsName', namespace: 'wsNamespace', cloudPlatform: 'wsCloudPlatform' })
+    ).toEqual({
       workspaceName: 'wsName',
       workspaceNamespace: 'wsNamespace',
-      cloudPlatform: 'GCP',
-      hasProtectedData: undefined,
+      cloudPlatform: 'WSCLOUDPLATFORM',
+      hasProtectedData: false,
     });
   });
 
   it('Does not include cloud platform if undefined', () => {
-    // Act
-    const workspaceDetails = extractWorkspaceDetails({ name: 'wsName', namespace: 'wsNamespace' });
-
-    // Assert
-    expect(workspaceDetails.cloudPlatform).toBeUndefined();
+    expect(extractWorkspaceDetails({ name: 'wsName', namespace: 'wsNamespace' })).toEqual({
+      workspaceName: 'wsName',
+      workspaceNamespace: 'wsNamespace',
+    });
   });
 
   it('Handles nested workspace details (like from workspace object)', () => {
-    // Act
-    const workspaceDetails = extractWorkspaceDetails(defaultGoogleWorkspace);
-
-    // Assert
-    expect(workspaceDetails).toEqual({
-      workspaceName: defaultGoogleWorkspace.workspace.name,
-      workspaceNamespace: defaultGoogleWorkspace.workspace.namespace,
+    expect(extractWorkspaceDetails(gcpWorkspace)).toEqual({
+      workspaceName: 'wsName',
+      workspaceNamespace: 'wsNamespace',
       cloudPlatform: 'GCP',
-      hasProtectedData: undefined,
+      hasProtectedData: false,
     });
   });
 });
 
 describe('extractCrossWorkspaceDetails', () => {
   it('Extracts name, namespace, and upper-cased cloudPlatform', () => {
-    // Act
-    const crossWorkspaceDetails = extractCrossWorkspaceDetails(defaultGoogleWorkspace, defaultAzureWorkspace);
-
-    // Assert
-    expect(crossWorkspaceDetails).toEqual({
-      fromWorkspaceNamespace: defaultGoogleWorkspace.workspace.namespace,
-      fromWorkspaceName: defaultGoogleWorkspace.workspace.name,
+    expect(extractCrossWorkspaceDetails(gcpWorkspace, azureWorkspace)).toEqual({
+      fromWorkspaceNamespace: 'wsNamespace',
+      fromWorkspaceName: 'wsName',
       fromWorkspaceCloudPlatform: 'GCP',
-      toWorkspaceNamespace: defaultAzureWorkspace.workspace.namespace,
-      toWorkspaceName: defaultAzureWorkspace.workspace.name,
+      toWorkspaceNamespace: 'azNamespace',
+      toWorkspaceName: 'azName',
       toWorkspaceCloudPlatform: 'AZURE',
     });
   });
@@ -61,11 +68,7 @@ describe('extractCrossWorkspaceDetails', () => {
 
 describe('extractBillingDetails', () => {
   it('Extracts billing project name and cloudPlatform (as upper case)', () => {
-    // Act
-    const billingDetails = extractBillingDetails({ projectName: 'projectName', cloudPlatform: 'cloudPlatform' });
-
-    // Assert
-    expect(billingDetails).toEqual({
+    expect(extractBillingDetails({ projectName: 'projectName', cloudPlatform: 'cloudPlatform' })).toEqual({
       billingProjectName: 'projectName',
       cloudPlatform: 'CLOUDPLATFORM',
     });

@@ -5,7 +5,11 @@ import { icon } from 'src/components/icons';
 import { ValidatedInput } from 'src/components/input';
 import { TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
 import { FormLabel } from 'src/libs/forms';
+import * as Nav from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
 import * as Utils from 'src/libs/utils';
 import { withBusyState } from 'src/libs/utils';
 import { ImportWorkflowModal } from 'src/workflows-app/components/ImportWorkflowModal';
@@ -22,7 +26,7 @@ const constraints = {
   },
 };
 
-const ImportGithub = ({ setLoading, signal, workspace, name, namespace, setSelectedSubHeader }) => {
+const ImportGithub = ({ setLoading, signal, onDismiss, workspace, name, namespace, setSelectedSubHeader }) => {
   const [methodName, setMethodName] = useState('');
   const [methodVersionName, setMethodVersionName] = useState('');
   const [methodUrl, setMethodUrl] = useState('');
@@ -44,92 +48,161 @@ const ImportGithub = ({ setLoading, signal, workspace, name, namespace, setSelec
   };
 
   const onSuccess = (methodObject) => {
-    setMethodId(methodObject.method_id);
-    setImportLoading(false);
-    setSuccessfulImport(true);
+    if (!isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)) {
+      Nav.goToPath('workspace-workflows-app-submission-config', {
+        name: workspace.workspace.name,
+        namespace,
+        methodId: methodObject.method_id,
+      });
+    } else {
+      setMethodId(methodObject.method_id);
+      setImportLoading(false);
+      setSuccessfulImport(true);
+    }
   };
   const onError = async (error) => {
-    setImportLoading(false);
-    setSuccessfulImport(false);
-    setErrorMessage(JSON.stringify(error instanceof Response ? await error.text() : error, null, 2));
+    if (!isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)) {
+      notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
+      onDismiss();
+    } else {
+      setImportLoading(false);
+      setSuccessfulImport(false);
+      setErrorMessage(JSON.stringify(error instanceof Response ? await error.text() : error, null, 2));
+    }
   };
-  return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
-    h2({ style: { marginTop: 0 } }, ['Import a workflow']),
-    'Options to add workflows via a link or adding a script.',
-    div({ style: { marginTop: '2rem' } }, [
-      h2({}, ['Add a link']),
-      div({ style: { display: 'flex', alignItems: 'center' } }, [
-        h(FormLabel, { style: { fontWeight: 'bold' }, htmlFor: 'methodurl', required: true }, ['Workflow Link']),
-        h(TooltipCell, { tooltip: 'Link must start with https://github.com or https://raw.githubusercontent.com' }, [
-          icon('error-standard', { size: 20, style: { top: '50px', marginLeft: '1rem', color: colors.accent(), cursor: 'help' } }),
+  return !isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)
+    ? div({ style: { marginLeft: '4rem', width: '50%' } }, [
+        div({ style: { fontSize: 30, display: 'flex', alignItems: 'center' } }, [
+          h(FormLabel, { htmlFor: 'methodurl', required: true }, ['Workflow Link']),
+          h(TooltipCell, { tooltip: 'Link must start with https://github.com or https://raw.githubusercontent.com' }, [
+            icon('error-standard', { size: 20, style: { top: '50px', marginLeft: '1rem', color: colors.accent(), cursor: 'help' } }),
+          ]),
         ]),
-      ]),
-      h(ValidatedInput, {
-        inputProps: {
-          style: { width: '30%', height: '3.5rem' },
-          id: 'methodurl',
-          placeholder: 'Paste Github link',
-          value: methodUrl,
-          onChange: (u) => {
-            updateWorkflowName(u);
-            setMethodVersionName(getMethodVersionName(u));
-            setMethodUrl(u);
-            setMethodUrlModified(true);
-          },
-        },
-        error: Utils.summarizeErrors(methodUrlModified && errors?.methodUrl),
-      }),
-      h(FormLabel, { style: { fontWeight: 'bold' }, htmlFor: 'workflowName', required: true }, ['Workflow Name']),
-      h(ValidatedInput, {
-        inputProps: {
-          id: 'workflowName',
-          style: { width: '30%', height: '3.5rem' },
-          placeholder: 'Workflow Name',
-          value: methodName,
-          onChange: (n) => {
-            setMethodName(n);
-            setMethodNameModified(true);
-          },
-        },
-        error: Utils.summarizeErrors(methodNameModified && errors?.methodName),
-      }),
-      div({}, [
-        h(
-          ButtonPrimary,
-          {
-            style: { marginTop: '2rem', borderRadius: 2 },
-            'aria-label': 'Add to Workspace button',
-            disabled: errors,
-            onClick: () => {
-              setImportWorkflowModal(true);
-              setImportLoading(true);
-              const method = {
-                method_name: methodName,
-                method_version: methodVersionName,
-                method_url: methodUrl,
-                method_source: 'GitHub',
-              };
-              withBusyState(setLoading, submitMethod(signal, method, workspace, onSuccess, onError));
+        h(ValidatedInput, {
+          inputProps: {
+            id: 'methodurl',
+            placeholder: 'Paste Github link',
+            value: methodUrl,
+            onChange: (u) => {
+              updateWorkflowName(u);
+              setMethodVersionName(getMethodVersionName(u));
+              setMethodUrl(u);
+              setMethodUrlModified(true);
             },
           },
-          ['Add to Workspace']
-        ),
-      ]),
-    ]),
-    importWorkflowModal &&
-      h(ImportWorkflowModal, {
-        importLoading,
-        methodName,
-        onDismiss: () => setImportWorkflowModal(false),
-        workspace,
-        namespace,
-        name,
-        methodId,
-        setSelectedSubHeader,
-        successfulImport,
-        errorMessage,
-      }),
-  ]);
+          error: Utils.summarizeErrors(methodUrlModified && errors?.methodUrl),
+        }),
+        h(FormLabel, { htmlFor: 'workflowName', required: true }, ['Workflow Name']),
+        h(ValidatedInput, {
+          inputProps: {
+            id: 'workflowName',
+            placeholder: 'Workflow Name',
+            value: methodName,
+            onChange: (n) => {
+              setMethodName(n);
+              setMethodNameModified(true);
+            },
+          },
+          error: Utils.summarizeErrors(methodNameModified && errors?.methodName),
+        }),
+        div({}, [
+          h(
+            ButtonPrimary,
+            {
+              style: { marginTop: '2rem' },
+              'aria-label': 'Add to Workspace button',
+              disabled: errors,
+              onClick: () => {
+                const method = {
+                  method_name: methodName,
+                  method_version: methodVersionName,
+                  method_url: methodUrl,
+                  method_source: 'GitHub',
+                };
+                withBusyState(setLoading, submitMethod(signal, method, workspace, onSuccess, onError));
+              },
+            },
+            ['Add to Workspace']
+          ),
+        ]),
+      ])
+    : div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
+        h2({ style: { marginTop: 0 } }, ['Import a workflow']),
+        'Options to add workflows via a link or adding a script.',
+        div({ style: { marginTop: '2rem' } }, [
+          h2({}, ['Add a link']),
+          div({ style: { display: 'flex', alignItems: 'center' } }, [
+            h(FormLabel, { style: { fontWeight: 'bold' }, htmlFor: 'methodurl', required: true }, ['Workflow Link']),
+            h(TooltipCell, { tooltip: 'Link must start with https://github.com or https://raw.githubusercontent.com' }, [
+              icon('error-standard', { size: 20, style: { top: '50px', marginLeft: '1rem', color: colors.accent(), cursor: 'help' } }),
+            ]),
+          ]),
+          h(ValidatedInput, {
+            inputProps: {
+              style: { width: '30%', height: '3.5rem' },
+              id: 'methodurl',
+              placeholder: 'Paste Github link',
+              value: methodUrl,
+              onChange: (u) => {
+                updateWorkflowName(u);
+                setMethodVersionName(getMethodVersionName(u));
+                setMethodUrl(u);
+                setMethodUrlModified(true);
+              },
+            },
+            error: Utils.summarizeErrors(methodUrlModified && errors?.methodUrl),
+          }),
+          h(FormLabel, { style: { fontWeight: 'bold' }, htmlFor: 'workflowName', required: true }, ['Workflow Name']),
+          h(ValidatedInput, {
+            inputProps: {
+              id: 'workflowName',
+              style: { width: '30%', height: '3.5rem' },
+              placeholder: 'Workflow Name',
+              value: methodName,
+              onChange: (n) => {
+                setMethodName(n);
+                setMethodNameModified(true);
+              },
+            },
+            error: Utils.summarizeErrors(methodNameModified && errors?.methodName),
+          }),
+          div({}, [
+            h(
+              ButtonPrimary,
+              {
+                style: { marginTop: '2rem', borderRadius: 2 },
+                'aria-label': 'Add to Workspace button',
+                disabled: errors,
+                onClick: () => {
+                  setImportWorkflowModal(true);
+                  setImportLoading(true);
+                  const method = {
+                    method_name: methodName,
+                    method_version: methodVersionName,
+                    method_url: methodUrl,
+                    method_source: 'GitHub',
+                  };
+                  withBusyState(setLoading, submitMethod(signal, method, workspace, onSuccess, onError));
+                },
+              },
+              ['Add to Workspace']
+            ),
+          ]),
+        ]),
+        importWorkflowModal &&
+          h(ImportWorkflowModal, {
+            importLoading,
+            methodName,
+            onDismiss: () => setImportWorkflowModal(false),
+            workspace,
+            namespace,
+            name,
+            methodId,
+            setSelectedSubHeader,
+            successfulImport,
+            errorMessage,
+          }),
+      ]);
 };
 
 export default ImportGithub;

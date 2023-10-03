@@ -25,7 +25,6 @@ import {
   getTerraUser,
   oidcStore,
   requesterPaysProjectStore,
-  TerraUserProfile,
   TerraUserRegistrationStatus,
   TokenMetadata,
   workspacesStore,
@@ -498,6 +497,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
       registrationStatus: 'uninitialized',
       isTimeoutEnabled: undefined,
       cookiesAccepted: true,
+      profile: {},
       terraUser: {
         token,
         id: data.sub,
@@ -539,19 +539,18 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting('Error checking TOS', async (state: AuthState, oldState: AuthState): Promise<void> => {
+  withErrorReporting('Error checking TOS', async (state: AuthState, oldState: AuthState) => {
     if (isNowSignedIn(oldState, state)) {
       const tosComplianceStatus = await Ajax().User.getTermsOfServiceComplianceStatus();
       // If the user is now logged in, but there's no ToS status from Sam,
       // then they haven't accepted it yet and Sam hasn't caught up.
-      const acceptedTos = !_.isNull(tosComplianceStatus);
-      const termsOfService = acceptedTos
-        ? tosComplianceStatus
-        : {
+      const termsOfService = _.isNull(tosComplianceStatus)
+        ? {
             userHasAcceptedLatestTos: false,
             permitsSystemUsage: false,
-          };
-      authStore.update((state: AuthState) => ({ ...state, termsOfService }));
+          }
+        : tosComplianceStatus;
+      authStore.update((state) => ({ ...state, termsOfService }));
     }
   })
 );
@@ -597,8 +596,8 @@ authStore.subscribe(
 );
 
 export const refreshTerraProfile = async () => {
-  const profile: TerraUserProfile = await Ajax().User.profile.get();
-  authStore.update((state: AuthState) => ({ ...state, profile }));
+  const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs);
+  authStore.update((state) => ({ ...state, profile }));
 };
 
 authStore.subscribe(
@@ -613,7 +612,7 @@ authStore.subscribe(
   withErrorReporting('Error loading NIH account link status', async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
       const nihStatus = await Ajax().User.getNihStatus();
-      authStore.update((state: AuthState) => ({ ...state, nihStatus }));
+      authStore.update((state) => ({ ...state, nihStatus }));
     }
   })
 );

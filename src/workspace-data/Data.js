@@ -300,7 +300,7 @@ const DataTableActions = ({
   const isSetOfSets = tableName.endsWith('_set_set');
   const setTableNames = _.filter((v) => v.match(`${tableName}(_set)+$`), _.keys(entityMetadata));
 
-  const buttonProps = WorkspaceUtils.getWorkspaceEditControlProps(workspace);
+  const editWorkspaceErrorMessage = WorkspaceUtils.editWorkspaceError(workspace);
 
   const downloadForm = useRef();
   const signal = useCancellation();
@@ -383,7 +383,8 @@ const DataTableActions = ({
                 onClick: () => {
                   setRenaming(true);
                 },
-                ...buttonProps,
+                disabled: !!editWorkspaceErrorMessage,
+                tooltip: editWorkspaceErrorMessage || '',
               },
               'Rename table'
             ),
@@ -392,7 +393,8 @@ const DataTableActions = ({
               MenuButton,
               {
                 onClick: () => setDeleting(true),
-                ...buttonProps,
+                disabled: !!editWorkspaceErrorMessage,
+                tooltip: editWorkspaceErrorMessage || '',
               },
               'Delete table'
             ),
@@ -778,7 +780,8 @@ export const WorkspaceData = _.flow(
     const sortedEntityPairs = toSortedPairs(entityMetadata);
     const sortedSnapshotPairs = toSortedPairs(snapshotDetails);
 
-    const { value: canEditWorkspace, message: editWorkspaceErrorMessage } = WorkspaceUtils.canEditWorkspace(workspace);
+    const editWorkspaceErrorMessage = WorkspaceUtils.editWorkspaceError(workspace);
+    const canEditWorkspace = !editWorkspaceErrorMessage;
 
     // convenience vars for WDS
     const wdsReady = wdsApp.status === 'Ready' && wdsTypes.status === 'Ready';
@@ -1187,8 +1190,8 @@ export const WorkspaceData = _.flow(
                                   Link,
                                   {
                                     style: { flex: 0 },
-                                    tooltip: `Delete ${getReferenceLabel(type)} reference`,
-                                    ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
+                                    disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
+                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || `Delete ${getReferenceLabel(type)} reference`,
                                     onClick: (e) => {
                                       e.stopPropagation();
                                       setDeletingReference(type);

@@ -129,7 +129,7 @@ const GCSFileBrowserProvider = ({
         signal,
       }),
     getDownloadUrlForFile: async (path, { signal } = {}) => {
-      return await Ajax(signal).SamResources.getSignedUrl(bucket, path);
+      return await Ajax(signal).SamResources.getSignedUrl(bucket, path, project, false);
     },
     getDownloadCommandForFile: (path) => {
       return Promise.resolve(`gsutil cp 'gs://${bucket}/${path}' .`);

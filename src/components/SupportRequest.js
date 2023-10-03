@@ -57,7 +57,7 @@ const SupportRequest = () => {
     const {
       token,
       attachment: { file_name: fileName },
-    } = await Ajax().Support.uploadAttachment(files[0]);
+    } = await Ajax().User.uploadAttachment(files[0]);
     setAttachmentToken(token);
     setAttachmentName(fileName);
   });
@@ -75,7 +75,7 @@ const SupportRequest = () => {
   const submit = Utils.withBusyState(setSubmitting, async () => {
     const currUrl = window.location.href;
     try {
-      await Ajax().Support.createSupportRequest({ ...requestObject, currUrl });
+      await Ajax().User.createSupportRequest({ ...requestObject, currUrl });
       notify('success', 'Message sent successfully', { timeout: 3000 });
     } catch (error) {
       notify(

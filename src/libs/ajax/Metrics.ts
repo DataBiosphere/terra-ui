@@ -2,7 +2,6 @@ import { getDefaultProperties } from '@databiosphere/bard-client';
 import _ from 'lodash/fp';
 import { authOpts, fetchBard, jsonBody } from 'src/libs/ajax/ajax-common';
 import { ensureAuthSettled } from 'src/libs/auth';
-import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { authStore, getSessionId } from 'src/libs/state';
@@ -30,8 +29,6 @@ export const Metrics = (signal?: AbortSignal) => {
         appId: 'Saturn',
         hostname: window.location.hostname,
         appPath: Nav.getCurrentRoute().name,
-        appVersion: `https://github.com/DataBiosphere/terra-ui/commits/${getConfig().gitRevision}`,
-        appVersionPublishDate: new Date(parseInt(getConfig().buildTimestamp, 10)).toLocaleString(),
         ...getDefaultProperties(),
       },
     };

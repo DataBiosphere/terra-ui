@@ -3020,11 +3020,7 @@ __metadata:
   resolution: "@terra-ui-packages/test-utils@workspace:packages/test-utils"
   dependencies:
     "@babel/core": ^7.16.0
-    "@jest/types": ^27.5.1
-    "@terra-ui-packages/build-utils": ^1.0.0
     "@testing-library/jest-dom": ^5.17.0
-    "@types/jest": ^28.1.8
-    "@types/node": ^20.6.2
     babel-jest: ^27.4.2
     babel-preset-react-app: ^10.0.1
     blob-polyfill: ^7.0.20220408
@@ -3035,8 +3031,6 @@ __metadata:
     jest-axe: ^6.0.0
     jest-fail-on-console: ^3.1.1
     jest-watch-typeahead: ^1.0.0
-    typescript: ^4.9.5
-    vite: ^4.3.9
     whatwg-fetch: ^3.6.2
   languageName: unknown
   linkType: soft
@@ -3379,13 +3373,6 @@ __metadata:
   version: 18.7.16
   resolution: "@types/node@npm:18.7.16"
   checksum: 01a3d35c764a3f0e7370b56e1ad4203731131883c65784e020009014171b3f53c4649cde6c7aa4f1026b907ee87ef6ae6ece2bc518151dc7b81100fe8b1db3ad
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^20.6.2":
-  version: 20.6.2
-  resolution: "@types/node@npm:20.6.2"
-  checksum: 96fe5303872640a173f3fd43e289a451776ed5b8f0090094447c6790b43f23fb607eea8268af0829cef4d132e5afa0bfa4cd871aa7412e9042a414a698e9e971
   languageName: node
   linkType: hard
 

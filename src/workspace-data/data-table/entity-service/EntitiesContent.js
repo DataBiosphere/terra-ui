@@ -327,6 +327,8 @@ const EntitiesContent = ({
   };
 
   const entitiesSelected = !_.isEmpty(selectedEntities);
+  const editErrorMessage = WorkspaceUtils.editWorkspaceError(workspace);
+  const canEdit = !editErrorMessage;
 
   const renderEditMenu = () => {
     return (
@@ -386,8 +388,8 @@ const EntitiesContent = ({
           h(
             ButtonSecondary,
             {
-              tooltip: 'Edit data',
-              ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
+              disabled: !canEdit,
+              tooltip: Utils.cond([!canEdit, () => editErrorMessage], () => 'Edit data'),
               style: { marginRight: '1.5rem' },
             },
             [icon('edit', { style: { marginRight: '0.5rem' } }), 'Edit']
@@ -485,7 +487,7 @@ const EntitiesContent = ({
           dataProvider,
           persist: true,
           refreshKey,
-          editable: !snapshotName && WorkspaceUtils.canEditWorkspace(workspace).value,
+          editable: !snapshotName && !WorkspaceUtils.editWorkspaceError(workspace),
           entityType: entityKey,
           activeCrossTableTextFilter,
           entityMetadata,

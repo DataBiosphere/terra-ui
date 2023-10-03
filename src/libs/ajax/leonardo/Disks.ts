@@ -4,7 +4,7 @@ import { mapToPdTypes, updatePdType } from 'src/analysis/utils/disk-utils';
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
 import { GetDiskItem, ListDiskItem, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 
-export const Disks = (signal: AbortSignal) => {
+export const Disks = (signal) => {
   const diskV2Root = 'api/v2/disks';
   const v2Func = () => ({
     delete: (diskId: number): Promise<void> => {
@@ -55,8 +55,3 @@ export const Disks = (signal: AbortSignal) => {
     disksV2: v2Func,
   };
 };
-
-export type DisksAjaxContract = ReturnType<typeof Disks>;
-export type DisksAjaxContractV1 = ReturnType<DisksAjaxContract['disksV1']>;
-export type DisksAjaxContractV2 = ReturnType<DisksAjaxContract['disksV2']>;
-export type DiskAjaxContract = ReturnType<DisksAjaxContractV1['disk']>;

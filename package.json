@@ -67,7 +67,7 @@
     "analyze": "yarn build && source-map-explorer 'build/static/js/*.js' --gzip",
     "build": "yarn build-packages && yarn build-app",
     "build-app": "tsc && yarn save-build-info && vite build && rm build/config.json",
-    "build-packages": "yarn workspaces foreach --include '@terra-ui-packages/*' --parallel --topological-dev run build",
+    "build-packages": "yarn workspaces foreach --include '@terra-ui-packages/*' --parallel run build",
     "lint": "eslint --fix --max-warnings=0 .",
     "optimize-image-svgs": "svgo --enable=inlineStyles,prefixIds --config '{ \"plugins\": [ { \"inlineStyles\": { \"onlyMatchedOnce\": false } }] }' --pretty -f src/images -r -p 1 --multipass",
     "preinstall": "node .hooks/check-engine-light.js",

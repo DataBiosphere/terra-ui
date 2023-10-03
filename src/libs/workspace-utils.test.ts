@@ -7,13 +7,10 @@ import {
 } from 'src/testing/workspace-fixtures';
 
 import {
-  canEditWorkspace,
   getRegionConstraintLabels,
-  getWorkspaceEditControlProps,
   hasProtectedData,
   hasRegionConstraint,
   isValidWsExportTarget,
-  WorkspaceAccessLevel,
   WorkspaceWrapper,
 } from './workspace-utils';
 
@@ -153,75 +150,5 @@ describe('hasRegionConstraint', () => {
 
     expect(hasRegionConstraint(protectedAzureWorkspace)).toBe(false);
     expect(getRegionConstraintLabels(protectedAzureWorkspace.policies).length).toBe(0);
-  });
-});
-
-describe('canEditWorkspace', () => {
-  it.each(['WRITER', 'OWNER'] as WorkspaceAccessLevel[])(
-    'Returns true if passed parameters permit editing.',
-    (accessLevel) => {
-      // Act
-      const result = canEditWorkspace({ accessLevel, workspace: { isLocked: false } });
-
-      // Assert
-      expect(result).toStrictEqual({ value: true });
-    }
-  );
-  it.each(['WRITER', 'OWNER'] as WorkspaceAccessLevel[])(
-    'Returns false with a locked message if passed parameters include locked.',
-    (accessLevel) => {
-      // Act
-      const result = canEditWorkspace({ accessLevel, workspace: { isLocked: true } });
-
-      // Assert
-      expect(result).toStrictEqual({
-        value: false,
-        message: 'This workspace is locked.',
-      });
-    }
-  );
-  it('Returns false with a permissions message if passed parameters do not have the right access level.', () => {
-    // Act
-    const result = canEditWorkspace({ accessLevel: 'READER', workspace: { isLocked: false } });
-
-    // Assert
-    expect(result).toStrictEqual({
-      value: false,
-      message: 'You do not have permission to modify this workspace.',
-    });
-  });
-  // Documenting incorrect behavior.
-  it('Incorrectly provides one reason if multiple reasons apply.', () => {
-    // Act
-    const result = canEditWorkspace({ accessLevel: 'READER', workspace: { isLocked: true } });
-
-    // Assert
-    expect(result).toStrictEqual({
-      value: false,
-      message: 'You do not have permission to modify this workspace.',
-    });
-  });
-});
-
-describe('getWorkspaceEditControlProps', () => {
-  it("Doesn't touch anything when editing should be enabled.", () => {
-    // Act
-    const result = {
-      tooltip: 'foo',
-      ...getWorkspaceEditControlProps({ accessLevel: 'WRITER', workspace: { isLocked: false } }),
-    };
-
-    // Assert
-    expect(result).toStrictEqual({ tooltip: 'foo' });
-  });
-  it('Disables the control with a message when appropriate.', () => {
-    // Act
-    const result = {
-      tooltip: 'foo',
-      ...getWorkspaceEditControlProps({ accessLevel: 'WRITER', workspace: { isLocked: true } }),
-    };
-
-    // Assert
-    expect(result).toStrictEqual({ disabled: true, tooltip: 'This workspace is locked.' });
   });
 });

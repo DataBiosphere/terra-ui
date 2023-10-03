@@ -1,9 +1,8 @@
-import { act, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { mockModalModule } from 'src/components/Modal.mock';
 import { Ajax } from 'src/libs/ajax';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import NewWorkspaceModal from './NewWorkspaceModal';
 

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -11,7 +11,7 @@ import {
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { DomainCriteriaSelector, toCriteria } from 'src/pages/library/datasetBuilder/DomainCriteriaSelector';
 import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn } from 'src/testing/test-utils';
 
 type DatasetBuilderExports = typeof import('src/libs/ajax/DatasetBuilder');
 jest.mock('src/libs/ajax/DatasetBuilder', (): DatasetBuilderExports => {

@@ -18,7 +18,6 @@ import { SimpleTabBar } from 'src/components/tabBars';
 import TopBar from 'src/components/TopBar';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
-import { makeSetUserProfileRequest } from 'src/libs/ajax/User';
 import { refreshTerraProfile } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
@@ -652,7 +651,7 @@ const PersonalInfoTab = ({ setSaving }) => {
               Utils.withBusyState(setSaving),
               withErrorReporting('Error saving profile')
             )(async () => {
-              await Ajax().User.profile.set(makeSetUserProfileRequest(profileInfo));
+              await Ajax().User.profile.set(_.pickBy(_.identity, profileInfo));
               await refreshTerraProfile();
             }),
             disabled: !!errors,

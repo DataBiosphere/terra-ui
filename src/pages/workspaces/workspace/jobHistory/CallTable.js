@@ -120,7 +120,6 @@ const CallTable = ({
   workflowName,
   workflowId,
   failedTasks,
-  isAzure,
 }) => {
   const [failuresModalParams, setFailuresModalParams] = useState();
   const [wizardSelection, setWizardSelection] = useState();
@@ -336,88 +335,84 @@ const CallTable = ({
                 return div({ style: { color: colors.dark(0.7) } }, [effectiveCallCachingMode]);
               },
             },
-            ...(isAzure // GCP workspaces do not have inputs/outputs/logs (only log file is at top level, linked in workflow dashboard)
-              ? [
-                  {
-                    size: { basis: 200, grow: 1 },
-                    field: 'logs',
-                    headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Task Data']),
-                    cellRenderer: ({ rowIndex }) => {
-                      const {
-                        stdout,
-                        stderr,
-                        inputs,
-                        outputs,
-                        subWorkflowId,
-                        // disable linting to match the backend keys
-                        // eslint-disable-next-line camelcase
-                        tes_stderr,
-                        // eslint-disable-next-line camelcase
-                        tes_stdout,
-                      } = filteredCallObjects[rowIndex];
-                      const style =
-                        enableExplorer && !_.isEmpty(subWorkflowId)
-                          ? {
-                              display: 'flex',
-                              justifyContent: 'flex-start',
-                            }
-                          : {
-                              display: 'grid',
-                              gridTemplateColumns: '1fr 1fr 1fr',
-                              gridColumnGap: '0.6em',
-                              gridRowGap: '0.3em',
-                            };
-                      const linkTemplate =
-                        enableExplorer && !_.isEmpty(subWorkflowId)
-                          ? [
-                              h(
-                                Link,
-                                {
-                                  onClick: () => {
-                                    loadWorkflow(subWorkflowId, updateWorkflowPath);
-                                  },
-                                },
-                                ['View sub-workflow']
-                              ),
-                            ]
-                          : _.isEmpty(subWorkflowId) && [
-                              h(
-                                Link,
-                                {
-                                  'aria-label': 'View task inputs',
-                                  onClick: () => showTaskDataModal('Inputs', inputs),
-                                },
-                                ['Inputs']
-                              ),
-                              h(
-                                Link,
-                                {
-                                  'aria-label': 'View task outputs',
-                                  onClick: () => showTaskDataModal('Outputs', outputs),
-                                },
-                                ['Outputs']
-                              ),
-                              h(
-                                Link,
-                                {
-                                  onClick: () =>
-                                    showLogModal('Task Logs', [
-                                      { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout', logFilename: 'stdout.txt' },
-                                      { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr', logFilename: 'stderr.txt' },
-                                      // eslint-disable-next-line camelcase
-                                      { logUri: tes_stdout, logTitle: 'Backend Standard Out', logKey: 'tes_stdout', logFilename: 'stdout.txt' },
-                                      // eslint-disable-next-line camelcase
-                                      { logUri: tes_stderr, logTitle: 'Backend Standard Err', logKey: 'tes_stderr', logFilename: 'stderr.txt' },
-                                    ]),
-                                },
-                                ['Logs']
-                              ),
-                            ];
-                      return div({ style }, linkTemplate);
-                    },
-                  },
-                ]
-              : []),
+            {
+              size: { basis: 200, grow: 1 },
+              field: 'logs',
+              headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Task Data']),
+              cellRenderer: ({ rowIndex }) => {
+                const {
+                  stdout,
+                  stderr,
+                  inputs,
+                  outputs,
+                  subWorkflowId,
+                  // disable linting to match the backend keys
+                  // eslint-disable-next-line camelcase
+                  tes_stderr,
+                  // eslint-disable-next-line camelcase
+                  tes_stdout,
+                } = filteredCallObjects[rowIndex];
+                const style =
+                  enableExplorer && !_.isEmpty(subWorkflowId)
+                    ? {
+                        display: 'flex',
+                        justifyContent: 'flex-start',
+                      }
+                    : {
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr 1fr',
+                        gridColumnGap: '0.6em',
+                        gridRowGap: '0.3em',
+                      };
+                const linkTemplate =
+                  enableExplorer && !_.isEmpty(subWorkflowId)
+                    ? [
+                        h(
+                          Link,
+                          {
+                            onClick: () => {
+                              loadWorkflow(subWorkflowId, updateWorkflowPath);
+                            },
+                          },
+                          ['View sub-workflow']
+                        ),
+                      ]
+                    : _.isEmpty(subWorkflowId) && [
+                        h(
+                          Link,
+                          {
+                            'aria-label': 'View task inputs',
+                            onClick: () => showTaskDataModal('Inputs', inputs),
+                          },
+                          ['Inputs']
+                        ),
+                        h(
+                          Link,
+                          {
+                            'aria-label': 'View task outputs',
+                            onClick: () => showTaskDataModal('Outputs', outputs),
+                          },
+                          ['Outputs']
+                        ),
+                        h(
+                          Link,
+                          {
+                            onClick: () =>
+                              showLogModal('Task Logs', [
+                                { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout', logFilename: 'stdout.txt' },
+                                { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr', logFilename: 'stderr.txt' },
+                                // eslint-disable-next-line camelcase
+                                { logUri: tes_stdout, logTitle: 'Backend Standard Out', logKey: 'tes_stdout', logFilename: 'stdout.txt' },
+                                // eslint-disable-next-line camelcase
+                                { logUri: tes_stderr, logTitle: 'Backend Standard Err', logKey: 'tes_stderr', logFilename: 'stderr.txt' },
+                              ]),
+                          },
+                          ['Logs']
+                        ),
+                      ];
+                return div({ style }, linkTemplate);
+              },
+            },
           ],
         }),
     ]),
