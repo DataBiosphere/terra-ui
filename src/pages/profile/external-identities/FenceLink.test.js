@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { FenceLink } from 'src/pages/profile/external-identities/FenceLink';
 
@@ -10,7 +10,7 @@ jest.mock('src/libs/nav', () => ({
 }));
 
 describe('FenceLink', () => {
-  it('renders', async () => {
+  it('renders the login button', async () => {
     // Arrange
     const props = {
       key: 'fence',
@@ -24,5 +24,6 @@ describe('FenceLink', () => {
     // Act
     render(h(FenceLink, props));
     // Assert
+    expect(screen.getByText('Log in to NHLBI')).not.toBeNull();
   });
 });
