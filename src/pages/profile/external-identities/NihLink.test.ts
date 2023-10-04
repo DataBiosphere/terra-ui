@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
 import { NihLink } from 'src/pages/profile/external-identities/NihLink';
-import { renderWithAppContexts } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -43,14 +43,13 @@ describe('NihLink', () => {
     it('links the NIH Account and renders a linked NIH Account', async () => {
       // Arrange
       const linkNihAccountFunction = jest.fn().mockReturnValue(Promise.resolve(nihStatus));
-      Ajax.mockImplementation(() => ({
-        Metrics: {
-          captureEvent: jest.fn(),
-        },
-        User: {
-          linkNihAccount: linkNihAccountFunction,
-        },
-      }));
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Metrics: { captureEvent: jest.fn() } as Partial<ReturnType<typeof Ajax>['Metrics']>,
+            User: { linkNihAccount: linkNihAccountFunction } as Partial<ReturnType<typeof Ajax>['User']>,
+          } as ReturnType<typeof Ajax>)
+      );
 
       // Act
       await act(async () => {
@@ -117,14 +116,13 @@ describe('NihLink', () => {
       const user = userEvent.setup();
 
       const unlinkNihAccountFunction = jest.fn().mockReturnValue(Promise.resolve());
-      Ajax.mockImplementation(() => ({
-        Metrics: {
-          captureEvent: jest.fn(),
-        },
-        User: {
-          unlinkNihAccount: unlinkNihAccountFunction,
-        },
-      }));
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Metrics: { captureEvent: jest.fn() } as Partial<ReturnType<typeof Ajax>['Metrics']>,
+            User: { unlinkNihAccount: unlinkNihAccountFunction } as Partial<ReturnType<typeof Ajax>['User']>,
+          } as ReturnType<typeof Ajax>)
+      );
       // Act
       await act(async () => {
         authStore.update((state) => ({ ...state, nihStatus, nihStatusLoaded: true }));
