@@ -30,7 +30,7 @@ import {
 } from './import-types';
 import { ImportDataDestination } from './ImportDataDestination';
 import { ImportDataOverview } from './ImportDataOverview';
-import { isProtectedSource } from './protected-data-utils';
+import { isAnvilImport, isProtectedSource } from './protected-data-utils';
 import { useImportRequest } from './useImportRequest';
 
 const getTitleForImportRequest = (importRequest: ImportRequest): string => {
@@ -214,7 +214,11 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     }
 
     const { namespace, name } = workspace;
-    Ajax().Metrics.captureEvent(Events.workspaceDataImport, { format, ...extractWorkspaceDetails(workspace) });
+    Ajax().Metrics.captureEvent(Events.workspaceDataImport, {
+      format,
+      ...extractWorkspaceDetails(workspace),
+      isAnvilData: isAnvilImport('url' in importRequest ? importRequest.url : ''),
+    });
     Nav.goToPath('workspace-data', { namespace, name });
   });
 
