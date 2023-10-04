@@ -76,10 +76,10 @@ export interface SetTerraUserProfileRequest {
 
 export const makeSetUserProfileRequest = (terraUserProfile: TerraUserProfile): SetTerraUserProfileRequest => {
   return {
-    // first name and last name are REQUIRED for this request, but should not ever be "N/A"
-    // TODO: determine if this request should fail if firstname or lastname is undefined
-    firstName: terraUserProfile.firstName! ?? 'N/A',
-    lastName: terraUserProfile.lastName! ?? 'N/A',
+    // first name and last name are REQUIRED for this request, and they are populated from the oidc token claims,
+    // so they should not be undefined
+    firstName: terraUserProfile.firstName!,
+    lastName: terraUserProfile.lastName!,
 
     // title and institute are REQUIRED for this request, but they do not necessarily
     // get set during registration
