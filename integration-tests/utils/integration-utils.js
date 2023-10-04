@@ -163,10 +163,6 @@ const label = ({ labelContains }) => {
   return `(//label[contains(normalize-space(.),"${labelContains}")])`;
 };
 
-const labelByExactMatch = ({ labelExact }) => {
-  return `(//label[normalize-space()=${labelExact}])`;
-};
-
 const fillIn = async (page, xpath, text) => {
   const input = await page.waitForXPath(xpath, defaultToVisibleTrue());
   await input.type(text, { delay: 20 });
@@ -524,7 +520,6 @@ module.exports = {
   image,
   input,
   label,
-  labelByExactMatch,
   select,
   svgText,
   delay,
