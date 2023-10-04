@@ -23,21 +23,25 @@ const protectedSources: ProtectedSource[] = [
  * */
 export const isProtectedPfbSource = (pfbUrl: URL): boolean => {
   return protectedSources.some((source) => {
-    if (source.type === 'http') {
-      // Match the hostname or subdomains of protected hosts.
-      return pfbUrl.hostname === source.host || pfbUrl.hostname.endsWith(`.${source.host}`);
-    }
+    switch (source.type) {
+      case 'http':
+        // Match the hostname or subdomains of protected hosts.
+        return pfbUrl.hostname === source.host || pfbUrl.hostname.endsWith(`.${source.host}`);
 
-    if (source.type === 's3') {
-      // S3 supports multiple URL formats
-      // https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html
-      return (
-        pfbUrl.hostname === `${source.bucket}.s3.amazonaws.com` ||
-        (pfbUrl.hostname === 's3.amazonaws.com' && pfbUrl.pathname.startsWith(`/${source.bucket}/`))
-      );
-    }
+      case 's3':
+        // S3 supports multiple URL formats
+        // https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html
+        return (
+          pfbUrl.hostname === `${source.bucket}.s3.amazonaws.com` ||
+          (pfbUrl.hostname === 's3.amazonaws.com' && pfbUrl.pathname.startsWith(`/${source.bucket}/`))
+        );
 
-    return false;
+      default:
+        // Use TypeScript to verify that all cases have been handled.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const exhaustiveGuard: never = source;
+        return false;
+    }
   });
 };
 
