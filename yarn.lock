@@ -2989,6 +2989,7 @@ __metadata:
     lodash: ^4.17.21
     react: 18.2.0
     react-dom: 18.2.0
+    react-focus-lock: ^2.9.5
     react-hyperscript-helpers: ^2.0.0
     typescript: ^4.9.5
     vite: ^4.3.9
@@ -13330,7 +13331,6 @@ __metadata:
     react-draggable: ^4.4.4
     react-dropzone: ^11.4.0
     react-favicon: ^2.0.3
-    react-focus-lock: ^2.9.5
     react-hyperscript-helpers: ^2.0.0
     react-modal: ^3.16.1
     react-notifications-component: ^4.0.1
