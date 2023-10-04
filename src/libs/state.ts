@@ -60,6 +60,12 @@ export type TokenMetadata = {
   totalTokenLoadAttemptsThisSession: number;
 };
 
+export type NihStatus = {
+  linkedNihUsername: string;
+  linkExpireTime: number;
+  datasetPermissions: NihDatasetPermission[];
+};
+
 export type Initializable<T> = T | 'uninitialized';
 
 export type SignInStatus = Initializable<'signedIn' | 'signedOut'>;
@@ -72,11 +78,7 @@ export type AuthState = {
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   signInStatus: SignInStatus;
   isTimeoutEnabled?: boolean | undefined;
-  nihStatus?: {
-    linkedNihUsername: string;
-    linkExpireTime: number;
-    datasetPermissions: NihDatasetPermission[];
-  };
+  nihStatus?: NihStatus;
   nihStatusLoaded: boolean;
   profile: TerraUserProfile;
   refreshTokenMetadata: TokenMetadata;

@@ -13,7 +13,7 @@ import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useOnMount, useStore } from 'src/libs/react-utils';
-import { authStore } from 'src/libs/state';
+import { AuthState, authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { linkStyles as styles } from 'src/pages/profile/external-identities/LinkStyles';
 import { SpacedSpinner } from 'src/pages/profile/SpacedSpinner';
@@ -32,8 +32,11 @@ export const NihLink = ({ nihToken }) => {
       Utils.withBusyState(setIsLinking)
     )(async () => {
       const nihStatus = await Ajax().User.linkNihAccount(nihToken);
-      authStore.update(_.set(['nihStatus'], nihStatus));
-      authStore.update(_.set(['nihStatusLoaded'], true));
+      authStore.update((oldState: AuthState) => ({
+        ...oldState,
+        nihStatus,
+        nihStatusLoaded: true,
+      }));
     });
 
     if (nihToken) {
@@ -155,8 +158,11 @@ export const NihLink = ({ nihToken }) => {
               )(async () => {
                 authStore.update(_.set('nihStatusLoaded', false));
                 await Ajax().User.unlinkNihAccount();
-                authStore.update(_.set('nihStatus', {}));
-                authStore.update(_.set('nihStatusLoaded', true));
+                authStore.update((oldState: AuthState) => ({
+                  ...oldState,
+                  nihStatus: undefined,
+                  nihStatusLoaded: true,
+                }));
                 setIsConfirmUnlinkModalOpen(false);
                 notify('success', 'Successfully unlinked account', {
                   message: 'Successfully unlinked your account from NIH.',
