@@ -59,7 +59,7 @@ export interface OrchestrationUserProfileResponse {
   keyValuePairs: { key: string; value: string }[];
 }
 
-export type RegisterTerraUserProfileRequest = {
+export type CreateTerraUserProfileRequest = {
   firstName: string;
   lastName: string;
   title: string;
@@ -69,7 +69,7 @@ export type RegisterTerraUserProfileRequest = {
   interestInTerra: string;
 };
 
-export interface SetTerraUserProfileRequest extends RegisterTerraUserProfileRequest {
+export interface UpdateTerraUserProfileRequest extends CreateTerraUserProfileRequest {
   programLocationCity?: string;
   programLocationState?: string;
   programLocationCountry?: string;
@@ -77,31 +77,48 @@ export interface SetTerraUserProfileRequest extends RegisterTerraUserProfileRequ
   researchArea?: string;
 }
 
-export const makeSetUserProfileRequest = (terraUserProfile: TerraUserProfile): SetTerraUserProfileRequest => {
+export interface OrchestrationUpsertTerraUserProfileRequest {
+  firstName: string;
+  lastName: string;
+  title: string;
+  contactEmail?: string;
+  institute: string;
+  programLocationCity: string;
+  programLocationState: string;
+  programLocationCountry: string;
+  termsOfService?: string;
+  researchArea?: string;
+  department?: string;
+  interestInTerra?: string;
+}
+
+export const generateAPIBodyForCreateUserProfile = (
+  request: CreateTerraUserProfileRequest
+): OrchestrationUpsertTerraUserProfileRequest => {
+  return generateAPIBodyForUpdateUserProfile(request);
+};
+
+export const generateAPIBodyForUpdateUserProfile = (
+  request: UpdateTerraUserProfileRequest
+): OrchestrationUpsertTerraUserProfileRequest => {
   return {
     // first name and last name are REQUIRED for this request, and they are populated from the oidc token claims,
     // so they should not be undefined
-    firstName: terraUserProfile.firstName!,
-    lastName: terraUserProfile.lastName!,
+    firstName: request.firstName!,
+    lastName: request.lastName!,
 
     // title and institute are REQUIRED for this request, but they do not necessarily
     // get set during registration
-    title: !_.isEmpty(terraUserProfile.title) ? terraUserProfile.title : 'N/A',
-    institute: !_.isEmpty(terraUserProfile.institute) ? terraUserProfile.institute : 'N/A',
-    department: terraUserProfile.department,
-    interestInTerra: terraUserProfile.interestInTerra,
+    title: !_.isEmpty(request.title) ? request.title : 'N/A',
+    institute: !_.isEmpty(request.institute) ? request.institute : 'N/A',
+    department: request.department,
+    interestInTerra: request.interestInTerra,
 
     // program locations are REQUIRED for the request
     // but are not present during a registration. They could exist in setting profile
-    programLocationCity: !_.isEmpty(terraUserProfile.programLocationCity)
-      ? terraUserProfile.programLocationCity
-      : 'N/A',
-    programLocationState: !_.isEmpty(terraUserProfile.programLocationState)
-      ? terraUserProfile.programLocationState
-      : 'N/A',
-    programLocationCountry: !_.isEmpty(terraUserProfile.programLocationCountry)
-      ? terraUserProfile.programLocationCountry
-      : 'N/A',
+    programLocationCity: !_.isEmpty(request.programLocationCity) ? request.programLocationCity : 'N/A',
+    programLocationState: !_.isEmpty(request.programLocationState) ? request.programLocationState : 'N/A',
+    programLocationCountry: !_.isEmpty(request.programLocationCountry) ? request.programLocationCountry : 'N/A',
   };
 };
 
@@ -168,24 +185,19 @@ export const User = (signal?: AbortSignal) => {
         return Utils.kvArrayToObject(rawResponseJson.keyValuePairs) as TerraUserProfile;
       },
 
-      // We are not calling Thurloe directly because free credits logic was in orchestration
-      set: (keysAndValues) => {
-        const blankProfile = {
-          firstName: 'N/A',
-          lastName: 'N/A',
-          title: 'N/A',
-          institute: 'N/A',
-          department: 'N/A',
-          institutionalProgram: 'N/A',
-          programLocationCity: 'N/A',
-          programLocationState: 'N/A',
-          programLocationCountry: 'N/A',
-          pi: 'N/A',
-          nonProfitStatus: 'N/A',
-        };
+      // even though both create and update call the same URL, the body of the request will differ depending on
+      // whether we are registering a user vs updating their profile
+      create: async (request: OrchestrationUpsertTerraUserProfileRequest): Promise<void> => {
         return fetchOrchestration(
           'register/profile',
-          _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { signal, method: 'POST' }])
+          _.mergeAll([authOpts(), jsonBody(request), { signal, method: 'POST' }])
+        );
+      },
+
+      update: async (request: OrchestrationUpsertTerraUserProfileRequest): Promise<void> => {
+        return fetchOrchestration(
+          'register/profile',
+          _.mergeAll([authOpts(), jsonBody(request), { signal, method: 'POST' }])
         );
       },
 

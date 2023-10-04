@@ -16,17 +16,21 @@ jest.mock('src/libs/ajax/User', (): Partial<UserExports> => {
   };
 }); */
 
-import { makeSetUserProfileRequest, SetTerraUserProfileRequest } from 'src/libs/ajax/User';
+import {
+  generateAPIBodyForCreateUserProfile,
+  OrchestrationUpsertTerraUserProfileRequest,
+  UpdateTerraUserProfileRequest,
+} from 'src/libs/ajax/User';
 import { TerraUserProfile } from 'src/libs/state';
 
 jest.mock('src/libs/ajax/ajax-common', () => ({
   authOpts: jest.fn(() => ''),
 }));
 
-const emptyProfile: TerraUserProfile = {
-  firstName: undefined,
-  lastName: undefined,
-  contactEmail: undefined,
+const registrationProfile: TerraUserProfile = {
+  firstName: 'testFirstName',
+  lastName: 'testFirstName',
+  contactEmail: 'testFirstName',
   department: undefined,
   institute: undefined,
   interestInTerra: undefined,
@@ -37,106 +41,83 @@ const emptyProfile: TerraUserProfile = {
   title: undefined,
 };
 
+const createUserProfileRequest: UpdateTerraUserProfileRequest = {
+  firstName: registrationProfile.firstName!,
+  lastName: registrationProfile.lastName!,
+  contactEmail: registrationProfile.contactEmail!,
+  department: '',
+  institute: '',
+  interestInTerra: '',
+  title: '',
+};
+
 const NA = 'N/A';
 
 describe('Prepared UserProfileRequest', () => {
   describe('should change `undefined` property', () => {
     it('title to "N/A"', async () => {
       // Arrange, Act
-      const userProfileRequest: SetTerraUserProfileRequest = makeSetUserProfileRequest(emptyProfile);
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest =
+        generateAPIBodyForCreateUserProfile(createUserProfileRequest);
 
       // Assert
-      expect(userProfileRequest.title).toBe(NA);
+      expect(apiBody.title).toBe(NA);
     });
 
     it('institute to "N/A"', async () => {
       // Arrange, Act
-      const userProfileRequest: SetTerraUserProfileRequest = makeSetUserProfileRequest(emptyProfile);
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest =
+        generateAPIBodyForCreateUserProfile(createUserProfileRequest);
 
       // Assert
-      expect(userProfileRequest.institute).toBe(NA);
+      expect(apiBody.institute).toBe(NA);
     });
 
     it('programLocationCity to "N/A"', async () => {
       // Arrange, Act
-      const userProfileRequest: SetTerraUserProfileRequest = makeSetUserProfileRequest(emptyProfile);
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest =
+        generateAPIBodyForCreateUserProfile(createUserProfileRequest);
 
       // Assert
-      expect(userProfileRequest.programLocationCity).toBe(NA);
+      expect(apiBody.programLocationCity).toBe(NA);
     });
 
     it('programLocationState to "N/A"', async () => {
       // Arrange, Act
-      const userProfileRequest: SetTerraUserProfileRequest = makeSetUserProfileRequest(emptyProfile);
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest =
+        generateAPIBodyForCreateUserProfile(createUserProfileRequest);
 
       // Assert
-      expect(userProfileRequest.programLocationState).toBe(NA);
+      expect(apiBody.programLocationState).toBe(NA);
     });
 
     it('programLocationCountry to "N/A"', async () => {
       // Arrange, Act
-      const userProfileRequest: SetTerraUserProfileRequest = makeSetUserProfileRequest(emptyProfile);
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest =
+        generateAPIBodyForCreateUserProfile(createUserProfileRequest);
 
       // Assert
-      expect(userProfileRequest.programLocationCountry).toBe(NA);
+      expect(apiBody.programLocationCountry).toBe(NA);
     });
   });
 
   describe('should not modify property', () => {
     it('firstName', async () => {
       // Arrange, Act
-      const userProfileRequest: SetTerraUserProfileRequest = makeSetUserProfileRequest(emptyProfile);
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest =
+        generateAPIBodyForCreateUserProfile(createUserProfileRequest);
 
       // Assert
-      expect(userProfileRequest.firstName).not.toBe(NA);
+      expect(apiBody.firstName).not.toBe(NA);
     });
 
     it('lastName', async () => {
       // Arrange, Act
-      const userProfileRequest: SetTerraUserProfileRequest = makeSetUserProfileRequest(emptyProfile);
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest =
+        generateAPIBodyForCreateUserProfile(createUserProfileRequest);
 
       // Assert
-      expect(userProfileRequest.lastName).not.toBe(NA);
+      expect(apiBody.lastName).not.toBe(NA);
     });
   });
 });
-
-// describe('converting a terra user profile into a request to upsert a user profile', () => {
-//   it('with a complete profile', () => {
-//     // arrange
-//     const terraCompleteProfile: TerraUserProfile = {
-//       firstName: 'testFirstName',
-//       lastName: 'testLastName',
-//       institute: 'testInstitute',
-//       contactEmail: 'testContactEmail',
-//       title: 'testTitle',
-//       department: 'TestDepartment',
-//       interestInTerra: 'testInterestInTerra',
-//       programLocationCity: 'testCity',
-//       programLocationState: 'testState',
-//       programLocationCountry: 'testCountry',
-//       starredWorkspaces: 'testWorkspace',
-//     };
-//
-//     // act
-//     const setUserProfileRequest: SetTerraUserProfileRequest = makeSetUserProfileRequest(terraCompleteProfile);
-//
-//     // assert
-//     const expectedRequest: SetTerraUserProfileRequest = {
-//       firstName: 'testFirstName',
-//       lastName: 'testLastName',
-//       institute: 'testInstitute',
-//       contactEmail: 'testContactEmail',
-//       title: 'testTitle',
-//       department: 'TestDepartment',
-//       interestInTerra: 'testInterestInTerra',
-//       programLocationCity: 'testCity',
-//       programLocationState: 'testState',
-//       programLocationCountry: 'testCountry',
-//       // termsOfService: "testTos",
-//       // researchArea: "string",
-//     };
-//
-//     expect(setUserProfileRequest).toBe(expectedRequest);
-//   });
-// });

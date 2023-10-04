@@ -6,14 +6,14 @@ import { centeredSpinner } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import planet from 'src/images/register-planet.svg';
 import { Ajax } from 'src/libs/ajax';
-import { makeSetUserProfileRequest } from 'src/libs/ajax/User';
+import { CreateTerraUserProfileRequest, generateAPIBodyForCreateUserProfile } from 'src/libs/ajax/User';
 import { refreshTerraProfile, signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { registrationLogo } from 'src/libs/logos';
-import { AuthState, authStore, getTerraUser, TerraUser, TerraUserProfile } from 'src/libs/state';
+import { AuthState, authStore, getTerraUser, TerraUser } from 'src/libs/state';
 import validate from 'validate.js';
 
 const constraints = (partOfOrg: boolean) => {
@@ -82,7 +82,7 @@ const Register = () => {
   const register = async () => {
     try {
       setBusy(true);
-      const newlyRegisteredUserProfile: TerraUserProfile = {
+      const createTerraUserProfileRequest: CreateTerraUserProfileRequest = {
         firstName: givenName,
         lastName: familyName,
         contactEmail: email,
@@ -91,7 +91,7 @@ const Register = () => {
         department,
         title,
       };
-      await Ajax().User.profile.set(makeSetUserProfileRequest(newlyRegisteredUserProfile));
+      await Ajax().User.profile.create(generateAPIBodyForCreateUserProfile(createTerraUserProfileRequest));
       authStore.update((state: AuthState) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
       await refreshTerraProfile();
       Ajax().Metrics.captureEvent(Events.user.register);
