@@ -24,12 +24,14 @@ export interface AzureRuntimeWrapper {
   runtimeName: string;
 }
 
+export type RuntimeWrapper = GoogleRuntimeWrapper | AzureRuntimeWrapper;
+
 const isAzureRuntimeWrapper = (obj: any): obj is AzureRuntimeWrapper => {
   const castObj = obj as AzureRuntimeWrapper;
   return castObj && !!castObj.workspaceId && !!castObj.runtimeName;
 };
 
-export const Runtimes = (signal) => {
+export const Runtimes = (signal: AbortSignal) => {
   const v1Func = (project: string, name: string) => {
     const root = `api/google/v1/runtimes/${project}/${name}`;
 
@@ -204,17 +206,10 @@ export const Runtimes = (signal) => {
       return res.json();
     },
 
-    deleteAll: (workspaceId: string, deleteDisk = true): Promise<void> => {
-      return fetchLeo(
-        `api/v2/runtimes/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-        _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier])
-      );
-    },
-
     runtimeV2: v2Func,
 
     // TODO: Consider refactoring to not use this wrapper
-    runtimeWrapper: (props: GoogleRuntimeWrapper | AzureRuntimeWrapper) => {
+    runtimeWrapper: (props: RuntimeWrapper) => {
       return {
         stop: () => {
           const stopFunc = isAzureRuntimeWrapper(props)
@@ -285,3 +280,8 @@ export const Runtimes = (signal) => {
     },
   };
 };
+
+export type RuntimesAjaxContract = ReturnType<typeof Runtimes>;
+export type RuntimeAjaxContractV1 = ReturnType<RuntimesAjaxContract['runtime']>;
+export type RuntimeAjaxContractV2 = ReturnType<RuntimesAjaxContract['runtimeV2']>;
+export type RuntimeWrapperAjaxContract = ReturnType<RuntimesAjaxContract['runtimeWrapper']>;

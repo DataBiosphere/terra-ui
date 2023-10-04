@@ -7,12 +7,12 @@ import { ButtonPrimary, ButtonSecondary, IdContainer, RadioButton } from 'src/co
 import { icon } from 'src/components/icons';
 import { ValidatedInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
-import DataTable from 'src/data/data-table/shared/DataTable';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { FormLabel } from 'src/libs/forms';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { chooseBaseType, chooseRootType, chooseSetType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
+import DataTable from 'src/workspace-data/data-table/shared/DataTable';
 import validate from 'validate.js';
 
 function DataStepContent({ entitySelectionModel, onDismiss, onSuccess, entityMetadata, rootEntityType, workspace }) {

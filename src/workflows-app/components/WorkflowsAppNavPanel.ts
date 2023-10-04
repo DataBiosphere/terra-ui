@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { CSSProperties, useState } from 'react';
+import { CSSProperties, useEffect } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
 import Collapse from 'src/components/Collapse';
@@ -7,12 +7,15 @@ import { Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
+import { useQueryParameter } from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
+import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
+import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
 
 const subHeadersMap = {
@@ -81,7 +84,13 @@ export const WorkflowsAppNavPanel = ({
   setLoading,
   signal,
 }: WorkflowsAppNavPanelProps) => {
-  const [selectedSubHeader, setSelectedSubHeader] = useState<string>('workspace-workflows');
+  const [selectedSubHeader, setSelectedSubHeader] = useQueryParameter('tab');
+
+  useEffect(() => {
+    if (!(selectedSubHeader in subHeadersMap || selectedSubHeader in findAndAddSubheadersMap)) {
+      setSelectedSubHeader('workspace-workflows');
+    }
+  }, [selectedSubHeader, setSelectedSubHeader]);
 
   const isSubHeaderActive = (subHeader: string) => pageReady && selectedSubHeader === subHeader;
 
@@ -225,8 +234,15 @@ export const WorkflowsAppNavPanel = ({
         Utils.switchCase(
           selectedSubHeader,
           ['workspace-workflows', () => h(WorkflowsInWorkspace, { name, namespace, workspace, analysesData })],
-          ['submission-history', () => div(['Submission history TODO'])],
-          ['featured-workflows', () => div(['Featured workflows TODO'])],
+          [
+            'featured-workflows',
+            () => h(FeaturedWorkflows, { name, namespace, workspace, analysesData, setSelectedSubHeader }),
+          ],
+          ['submission-history', () => h(BaseSubmissionHistory, { name, namespace, workspace })],
+          [
+            'featured-workflows',
+            () => h(FeaturedWorkflows, { name, namespace, workspace, analysesData, setSelectedSubHeader }),
+          ],
           [
             'import-workflow',
             () =>

@@ -92,7 +92,7 @@ const Register = () => {
       });
       authStore.update((state) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
       await refreshTerraProfile();
-      Ajax().Metrics.captureEvent(Events.userRegister);
+      Ajax().Metrics.captureEvent(Events.user.register);
     } catch (error) {
       reportError('Error registering', error);
       setBusy(false);
@@ -246,7 +246,7 @@ const Register = () => {
         busy &&
           centeredSpinner({
             size: 34,
-            ...{ style: { display: null, margin: null, marginLeft: '1ex' } },
+            ...{ style: { display: undefined, margin: undefined, marginLeft: '1ex' } },
           }),
       ]),
     ]

@@ -87,16 +87,17 @@ export const methodData = {
   ],
 };
 
-export const methodDataWithVersions: { methods: WorkflowMethod[] } = {
+export const methodDataWithVersions = {
   methods: [
     {
       ...methodData.methods[0],
       method_versions: [
         {
           name: '1.0',
+          url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
         },
       ],
-    },
+    } satisfies WorkflowMethod,
   ],
 };
 

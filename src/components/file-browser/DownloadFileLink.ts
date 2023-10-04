@@ -24,10 +24,6 @@ export const DownloadFileLink = (props: DownloadFileLinkProps) => {
       download: basename(file.path),
       href: downloadUrl,
     },
-    [
-      'Download',
-      // @ts-expect-error
-      status === 'Loading' && spinner({ size: 12, style: { color: '#fff', marginLeft: '1ch' } }),
-    ]
+    ['Download', status === 'Loading' && spinner({ size: 12, style: { color: '#fff', marginLeft: '1ch' } })]
   );
 };

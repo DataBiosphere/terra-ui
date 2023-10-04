@@ -1,13 +1,12 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { isAzureUri } from 'src/data/data-table/uri-viewer/uri-viewer-utils';
 import { Ajax } from 'src/libs/ajax';
 import * as configStore from 'src/libs/config';
 import { makeCompleteDate } from 'src/libs/utils';
-import { SelectHelper } from 'src/testing/test-utils';
+import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { appendSASTokenIfNecessary, getFilenameFromAzureBlobPath } from 'src/workflows-app/components/InputOutputModal';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
 import { failedTasks as failedTasksMetadata } from 'src/workflows-app/fixtures/failed-tasks';
@@ -16,6 +15,7 @@ import { metadata as parentMetadata } from 'src/workflows-app/fixtures/test-pare
 import { metadata as runDetailsMetadata } from 'src/workflows-app/fixtures/test-workflow';
 import { BaseRunDetails } from 'src/workflows-app/RunDetails';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
+import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
 jest.mock('src/libs/ajax');
 

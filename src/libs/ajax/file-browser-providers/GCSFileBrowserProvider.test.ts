@@ -161,7 +161,7 @@ describe('GCSFileBrowserProvider', () => {
     const downloadUrl = await provider.getDownloadUrlForFile('path/to/example.txt');
 
     // Assert
-    expect(getSignedUrl).toHaveBeenCalledWith('test-bucket', 'path/to/example.txt', 'test-project', false);
+    expect(getSignedUrl).toHaveBeenCalledWith('test-bucket', 'path/to/example.txt');
     expect(downloadUrl).toBe('signedUrl');
   });
 

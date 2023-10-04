@@ -5,9 +5,9 @@ import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import { FlexTable, HeaderCell, tableHeight } from 'src/components/table';
-import { isAzureUri } from 'src/data/data-table/uri-viewer/uri-viewer-utils';
 import { getConfig } from 'src/libs/config';
 import { newTabLinkProps } from 'src/libs/utils';
+import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
 // Only append sas tokens for files in the workspace container. Otherwise, assume they are public and don't append the token.
 // Public files can't be downloaded if a sas token is appended, since sas tokens limit access to your own container + storage account.

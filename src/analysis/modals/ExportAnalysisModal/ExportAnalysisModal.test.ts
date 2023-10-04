@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { useAnalysisExportState } from 'src/analysis/modals/ExportAnalysisModal/useAnalysisExportState';
@@ -6,7 +6,7 @@ import { AnalysisFile } from 'src/analysis/useAnalysisFiles';
 import { AbsolutePath, DisplayName, FileExtension, FileName } from 'src/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { asMockedFn, setUpAutoSizerTesting } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render, setUpAutoSizerTesting } from 'src/testing/test-utils';
 
 import { ExportAnalysisModal } from './ExportAnalysisModal';
 

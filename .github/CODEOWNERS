@@ -10,7 +10,7 @@
 /src/libs/ajax/AzureStorage.js @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/GoogleStorage.js @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/Catalog.ts @DataBiosphere/data-explorer-eng
-/src/libs/ajax/workflows-app/ @DataBiosphere/broad-workflow-management
+/src/libs/ajax/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
 /src/pages/library/DataBrowser* @DataBiosphere/data-explorer-eng
 /src/pages/library/dataBrowser-utils* @DataBiosphere/data-explorer-eng
 /src/pages/library/Datasets* @DataBiosphere/data-explorer-eng
@@ -23,14 +23,14 @@
 /src/pages/workspaces/workspace/*Workspace* @DataBiosphere/broadworkspaces
 /src/components/*Workspace* @DataBiosphere/broadworkspaces
 /src/components/workspace-utils* @DataBiosphere/broadworkspaces
-/src/workflows-app/ @DataBiosphere/broad-workflow-management
+/src/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
 /integration-tests/tests/billing-projects.js @DataBiosphere/broadworkspaces
 /integration-tests/tests/janitor.js @DataBiosphere/broadworkspaces
 /integration-tests/tests/workspace-dashboard.js @DataBiosphere/broadworkspaces
 /integration-tests/tests/run-analysis.js @DataBiosphere/broad-interactive-analysis
 /integration-tests/tests/run-rstudio.js @DataBiosphere/broad-interactive-analysis
 /integration-tests/tests/analysis-context-bar.js @DataBiosphere/broad-interactive-analysis
-/integration-tests/tests/export-*-dataset-to-new-workspace.js @DataBiosphere/data-explorer-eng
+/integration-tests/tests/export-*-dataset-to-workspace.js @DataBiosphere/data-explorer-eng
 /integration-tests/tests/preview-dataset.js @DataBiosphere/data-explorer-eng
 /integration-tests/tests/request-access.js @DataBiosphere/data-explorer-eng
 /integration-tests/tests/run-catalog* @DataBiosphere/data-explorer-eng

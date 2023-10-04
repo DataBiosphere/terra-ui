@@ -1,10 +1,10 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Cohort, ConceptSet, DatasetResponse, dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
+import { DataRepo, DataRepoContract, DatasetModel } from 'src/libs/ajax/DataRepo';
+import { Cohort, ConceptSet } from 'src/libs/ajax/DatasetBuilder';
 import * as Nav from 'src/libs/nav';
-import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
 import { cohortEditorState, newCohort, Updater } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import {
   CohortSelector,
@@ -15,7 +15,8 @@ import {
   OnStateChangeHandler,
   ValuesSelector,
 } from 'src/pages/library/datasetBuilder/DatasetBuilder';
-import { asMockedFn } from 'src/testing/test-utils';
+import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -29,12 +30,22 @@ jest.mock('src/components/Modal', () => {
   return mockModal.mockModalModule();
 });
 
+jest.mock('src/libs/ajax/GoogleStorage');
+type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
+jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
+  return {
+    ...jest.requireActual('src/libs/ajax/DataRepo'),
+    DataRepo: jest.fn(),
+  };
+});
+
 describe('DatasetBuilder', () => {
+  const dummyDatasetDetailsWithId = dummyDatasetDetails('id');
   type DatasetBuilderContentsPropsOverrides = {
     onStateChange?: OnStateChangeHandler;
     updateCohorts?: Updater<Cohort[]>;
     updateConceptSets?: Updater<ConceptSet[]>;
-    dataset?: DatasetResponse;
+    dataset?: DatasetModel;
     cohorts?: Cohort[];
     conceptSets?: ConceptSet[];
   };
@@ -46,9 +57,22 @@ describe('DatasetBuilder', () => {
         updateCohorts: jest.fn(),
         updateConceptSets: jest.fn(),
         onStateChange: (state) => state,
-        dataset: dummyDatasetDetails('id'),
+        dataset: dummyDatasetDetailsWithId,
         ...overrides,
       })
+    );
+  };
+
+  const mockWithValues = (datasetDetailsResponse: DatasetModel) => {
+    const datasetDetailsMock = jest.fn((_include) => Promise.resolve(datasetDetailsResponse));
+    asMockedFn(DataRepo).mockImplementation(
+      () =>
+        ({
+          dataset: (_datasetId) =>
+            ({
+              details: datasetDetailsMock,
+            } as Partial<DataRepoContract['dataset']>),
+        } as Partial<DataRepoContract> as DataRepoContract)
     );
   };
 
@@ -84,6 +108,7 @@ describe('DatasetBuilder', () => {
           { name: 'concept set 1', featureValueGroupName: 'a' },
           { name: 'concept set 2', featureValueGroupName: 'b' },
         ],
+        prepackagedConceptSets: dummyDatasetDetailsWithId!.snapshotBuilderSettings!.datasetConceptSets,
         selectedConceptSets: [],
         updateConceptSets: jest.fn(),
         onChange: (conceptSets) => conceptSets,
@@ -139,8 +164,8 @@ describe('DatasetBuilder', () => {
     expect(screen.getByText('concept set 2')).toBeTruthy();
     _.flow(
       _.map((prepackagedConceptSet: ConceptSet) => prepackagedConceptSet.name),
-      _.forEach((prepackagedConceptSet: string) => expect(screen.getByText(prepackagedConceptSet)).toBeTruthy())
-    )(PREPACKAGED_CONCEPT_SETS);
+      _.forEach((prepackagedConceptSetName: string) => expect(screen.getByText(prepackagedConceptSetName)).toBeTruthy())
+    )(dummyDatasetDetailsWithId!.snapshotBuilderSettings!.datasetConceptSets);
     expect(screen.getByText('Concept sets')).toBeTruthy();
     expect(screen.getByText('Prepackaged concept sets')).toBeTruthy();
   });
@@ -218,6 +243,7 @@ describe('DatasetBuilder', () => {
 
   it('shows the home page by default', async () => {
     // Arrange
+    mockWithValues(dummyDatasetDetailsWithId);
     render(h(DatasetBuilderView));
     // Assert
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();

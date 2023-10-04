@@ -75,7 +75,7 @@ interface ImportDataOverviewProps {
   isProtectedData: boolean;
   snapshotResponses: { status: string; message: string | undefined }[] | undefined;
   snapshots: { id: string; title: string }[];
-  url: string;
+  url?: URL;
 }
 
 export const ImportDataOverview = (props: ImportDataOverviewProps): ReactNode => {
@@ -103,7 +103,7 @@ export const ImportDataOverview = (props: ImportDataOverviewProps): ReactNode =>
             }),
           ]),
         ])
-      : url && div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
+      : url && div({ style: { fontSize: 16 } }, ['From: ', url.hostname]),
     div(
       { style: { marginTop: '1rem' } },
       isProtectedData

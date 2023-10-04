@@ -1,10 +1,11 @@
+import { FocusTrap } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useRef, useState } from 'react';
 import { UnmountClosed as RCollapse } from 'react-collapse';
 import { a, div, h, h1, img, span } from 'react-hyperscript-helpers';
 import { Transition } from 'react-transition-group';
 import AlertsIndicator from 'src/components/Alerts';
-import { Clickable, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
+import { Clickable, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextArea } from 'src/components/input';
 import Modal from 'src/components/Modal';
@@ -201,9 +202,9 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
     } = authState;
 
     return h(
-      FocusTrapper,
+      FocusTrap,
       {
-        onBreakout: () => setNavShown(false),
+        onEscape: () => setNavShown(false),
         role: 'navigation',
         'aria-label': 'Main menu',
         style: navShown ? styles.nav.background : undefined,
@@ -661,7 +662,7 @@ const PreferFirecloudModal = ({ onDismiss }) => {
   )(async () => {
     await Ajax().User.profile.preferLegacyFirecloud();
     if (emailAgreed === true || reason.length !== 0) {
-      await Ajax().User.createSupportRequest({
+      await Ajax().Support.createSupportRequest({
         name: `${firstName} ${lastName}`,
         email,
         description: reason,

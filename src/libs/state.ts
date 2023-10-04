@@ -1,6 +1,7 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
 import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
+import { NihDatasetPermission } from 'src/libs/ajax/User';
 import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -20,10 +21,17 @@ export type TerraUser = {
 };
 
 export type TerraUserProfile = {
+  firstName: string | undefined;
+  lastName: string | undefined;
   institute: string | undefined;
+  contactEmail: string | undefined;
   title: string | undefined;
   department: string | undefined;
   interestInTerra: string | undefined;
+  programLocationCity: string | undefined;
+  programLocationState: string | undefined;
+  programLocationCountry: string | undefined;
+  starredWorkspaces: string | undefined;
 };
 
 export type TerraUserRegistrationStatus =
@@ -52,6 +60,12 @@ export type TokenMetadata = {
   totalTokenLoadAttemptsThisSession: number;
 };
 
+export type NihStatus = {
+  linkedNihUsername: string;
+  linkExpireTime: number;
+  datasetPermissions: NihDatasetPermission[];
+};
+
 export type Initializable<T> = T | 'uninitialized';
 
 export type SignInStatus = Initializable<'signedIn' | 'signedOut'>;
@@ -64,12 +78,9 @@ export type AuthState = {
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   signInStatus: SignInStatus;
   isTimeoutEnabled?: boolean | undefined;
-  nihStatus?: {
-    linkedNihUsername: string;
-    linkExpireTime: number;
-  };
-  // props in the TerraUserProfile are always present, but there may be more props
-  profile: TerraUserProfile & any;
+  nihStatus?: NihStatus;
+  nihStatusLoaded: boolean;
+  profile: TerraUserProfile;
   refreshTokenMetadata: TokenMetadata;
   registrationStatus: TerraUserRegistrationStatus;
   sessionId?: string | undefined;
@@ -92,11 +103,19 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
+  nihStatusLoaded: false,
   profile: {
-    institute: undefined,
+    firstName: undefined,
+    lastName: undefined,
+    contactEmail: undefined,
     title: undefined,
+    institute: undefined,
     department: undefined,
+    programLocationCity: undefined,
+    programLocationState: undefined,
+    programLocationCountry: undefined,
     interestInTerra: undefined,
+    starredWorkspaces: undefined,
   },
   refreshTokenMetadata: {
     token: undefined,
@@ -125,7 +144,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     idp: undefined,
   },
 });
-
 export const getTerraUser = (): TerraUser => authStore.get().terraUser;
 
 export const getSessionId = () => authStore.get().sessionId;

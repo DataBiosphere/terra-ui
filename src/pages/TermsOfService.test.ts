@@ -1,9 +1,9 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { authStore, SignInStatus, TermsOfServiceStatus } from 'src/libs/state';
 import TermsOfServicePage from 'src/pages/TermsOfService';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
 jest.mock('react-notifications-component', () => {

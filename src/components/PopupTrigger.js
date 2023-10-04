@@ -1,9 +1,9 @@
-import { useUniqueId } from '@terra-ui-packages/components';
+import { FocusTrap, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Children, cloneElement, Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { div, h, hr } from 'react-hyperscript-helpers';
 import onClickOutside from 'react-onclickoutside';
-import { Clickable, FocusTrapper } from 'src/components/common';
+import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { VerticalNavigation } from 'src/components/keyboard-nav';
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils';
@@ -98,7 +98,7 @@ const PopupTrigger = forwardRefWithName(
             },
             ...props,
           },
-          [h(FocusTrapper, { onBreakout: () => setOpen(false) }, [content])]
+          [h(FocusTrap, { onEscape: () => setOpen(false) }, [content])]
         ),
     ]);
   }
