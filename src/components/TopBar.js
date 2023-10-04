@@ -596,7 +596,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                           transform: navShown ? 'rotate(90deg)' : undefined,
                           transition: 'transform 0.1s ease-out',
                         },
-                        id: 'top-level-hamburger',
                       }),
                     ]
                   )

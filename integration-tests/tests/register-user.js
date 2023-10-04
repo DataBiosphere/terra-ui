@@ -34,7 +34,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   // This is the hamburger menu
   await maybeSaveScreenshot(page, 'register-user');
   await click(page, '/html/body/div[1]/div[2]/div/div[1]/div[1]/div[1]/div/div[1]');
-  await findText(page, 'Integration Test', { timeout: 3000 });
+  await findText(page, 'Integration Test');
   await maybeSaveScreenshot(page, 'register-user');
 
   await click(page, clickable({ textContains: 'Integration Test' }));
