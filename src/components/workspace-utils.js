@@ -18,34 +18,6 @@ import { cloudProviderLabels, getCloudProviderFromWorkspace } from 'src/libs/wor
 import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
-export const useWorkspaces = (fieldsArg, stringAttributeMaxLength) => {
-  const signal = useCancellation();
-  const [loading, setLoading] = useState(false);
-  const workspaces = useStore(workspacesStore);
-
-  const fields = fieldsArg || [
-    'accessLevel',
-    'public',
-    'workspace',
-    'workspace.state',
-    'workspace.attributes.description',
-    'workspace.attributes.tag:tags',
-    'workspace.workspaceVersion',
-  ];
-
-  const refresh = _.flow(
-    withErrorReporting('Error loading workspace list'),
-    Utils.withBusyState(setLoading)
-  )(async () => {
-    const ws = await Ajax(signal).Workspaces.list(fields, stringAttributeMaxLength);
-    workspacesStore.set(ws);
-  });
-  useOnMount(() => {
-    refresh();
-  });
-  return { workspaces, refresh, loading };
-};
-
 export const useWorkspaceDetails = ({ namespace, name }, fields) => {
   const [workspace, setWorkspace] = useState();
 

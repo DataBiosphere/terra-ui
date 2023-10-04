@@ -1,4 +1,4 @@
-import { Ajax, useReplaceableAjaxExperimental } from 'src/libs/ajax';
+import { Ajax } from 'src/libs/ajax';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { workspaceProvider } from './WorkspaceProvider';
@@ -27,9 +27,6 @@ const mockAjaxNeeds = (): AjaxMockNeeds => {
   const mockWorkspaces = partialWorkspaces as WorkspacesAjaxContract;
 
   asMockedFn(Ajax).mockReturnValue({ Workspaces: mockWorkspaces } as AjaxContract);
-
-  // also need to mock this to simplify testing
-  asMockedFn(useReplaceableAjaxExperimental).mockReturnValue(Ajax);
 
   return {
     workspaces: partialWorkspaces,

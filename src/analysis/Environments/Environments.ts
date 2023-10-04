@@ -43,9 +43,8 @@ import { useCancellation, useGetter } from 'src/libs/react-utils';
 import { contactUsActive, getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { UseWorkspacesState, UseWorkspacesStateResult } from 'src/workspaces/useWorkspaces.composable';
 
 import { DeleteAppModal } from './DeleteAppModal';
 import { DeleteButton } from './DeleteButton';
@@ -205,18 +204,7 @@ export function PauseButton(props: PauseButtonProps): ReactNode {
     : null;
 }
 
-export interface UseWorkspacesStateResult {
-  workspaces: WorkspaceWrapper[];
-  refresh: () => Promise<void>;
-  loading: boolean;
-}
-
-export type UseWorkspacesState = (
-  fields?: Record<string, string>,
-  stringAttributeMaxLength?: string | number
-) => UseWorkspacesStateResult;
-
-type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'pause' | 'delete' | 'get'>;
+type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'pause' | 'delete'>;
 type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
 

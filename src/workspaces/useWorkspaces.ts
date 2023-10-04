@@ -1,4 +1,15 @@
 import { workspaceProvider } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
-import { makeUseWorkspaces, UseWorkspacesState } from 'src/workspaces/useWorkspaces.composable';
+import { useSettableStore } from 'src/libs/react-utils';
+import { workspacesStore } from 'src/libs/state';
+import { makeUseWorkspaces } from 'src/workspaces/useWorkspaces.composable';
 
-export const useWorkspaces: UseWorkspacesState = makeUseWorkspaces({ workspaceProvider });
+export const useWorkspacesState = () => useSettableStore(workspacesStore);
+
+export const useWorkspacesComposer = {
+  make: () =>
+    makeUseWorkspaces({
+      workspaceProvider,
+      useWorkspacesState,
+    }),
+};
+export const useWorkspaces = useWorkspacesComposer.make();

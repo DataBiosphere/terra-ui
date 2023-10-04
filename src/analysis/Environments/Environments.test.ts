@@ -31,7 +31,6 @@ import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
