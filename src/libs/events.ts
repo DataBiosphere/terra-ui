@@ -4,6 +4,8 @@ import { Ajax } from 'src/libs/ajax';
 import { useRoute } from 'src/libs/nav';
 import { containsProtectedDataPolicy, WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
+type NestedEnum<T> = { [key: string]: T | NestedEnum<T> };
+
 /*
  * NOTE: In order to show up in reports, new events MUST be marked as expected in the Mixpanel
  * lexicon. See the Mixpanel guide in the terra-ui GitHub Wiki for more details:
@@ -53,11 +55,13 @@ const eventsList = {
   cloudEnvironmentDelete: 'cloudEnvironment:delete',
   cloudEnvironmentUpdate: 'cloudEnvironment:update',
   cloudEnvironmentDetailsLoad: 'analysis:details:load',
-  catalogFilter: 'catalog:filter',
+  catalogFilterSearch: 'catalog:filter:search',
+  catalogFilterSidebar: 'catalog:filter:sidebar',
   catalogRequestAccess: 'catalog:requestAccess',
   catalogToggle: 'catalog:toggle',
   catalogLandingPageBanner: 'catalog:landingPageBanner',
-  catalogView: 'catalog:view',
+  catalogViewDetails: 'catalog:view:details',
+  catalogViewPreviewData: 'catalog:view:previewData',
   catalogWorkspaceLink: 'catalog:workspaceLink',
   catalogWorkspaceLinkExportFinished: 'catalog:workspaceLink:completed',
   datasetLibraryBrowseData: 'library:browseData',
@@ -138,7 +142,20 @@ const eventsList = {
   workspaceSnapshotDelete: 'workspace:snapshot:delete',
   workspaceSnapshotContentsView: 'workspace:snapshot:contents:view',
   workspaceStar: 'workspace:star',
-};
+} as const satisfies NestedEnum<string>;
+
+/**
+ * Extract the type of leaf nodes in a NestedEnum.
+ */
+type NestedEnumValue<T> = T extends NestedEnum<infer U> ? U : never;
+
+/**
+ * Union type of all metrics event names.
+ */
+export type MetricsEvent =
+  | NestedEnumValue<typeof eventsList>
+  // Each route has its own page view event, where the event name includes the name of the route.
+  | `${typeof eventsList.pageView}:${string}`;
 
 // extractWorkspaceDetails accepts multiple types of input...
 export type EventWorkspaceAttributes =
