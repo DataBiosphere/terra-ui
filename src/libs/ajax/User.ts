@@ -76,15 +76,23 @@ export interface SetTerraUserProfileRequest {
 
 export const makeSetUserProfileRequest = (terraUserProfile: TerraUserProfile): SetTerraUserProfileRequest => {
   return {
-    firstName: terraUserProfile.firstName ?? 'N/A',
-    lastName: terraUserProfile.lastName ?? 'N/A',
-    title: terraUserProfile.title ?? 'N/A',
-    institute: terraUserProfile.institute ?? 'N/A',
+    // first name and last name are REQUIRED for this request, but should not ever be "N/A"
+    // TODO: determine if this request should fail if firstname or lastname is undefined
+    firstName: terraUserProfile.firstName! ?? 'N/A',
+    lastName: terraUserProfile.lastName! ?? 'N/A',
+
+    // title and institute are REQUIRED for this request, but they do not necessarily
+    // get set during registration
+    title: !_.isEmpty(terraUserProfile.title) ? terraUserProfile.title : 'N/A',
+    institute: !_.isEmpty(terraUserProfile.institute) ? terraUserProfile.institute : 'N/A',
+    department: terraUserProfile.department,
+    interestInTerra: terraUserProfile.interestInTerra,
+
+    // program locations are REQUIRED for the request
+    // but are not present during a registration. They could exist in setting profile
     programLocationCity: terraUserProfile.programLocationCity ?? 'N/A',
     programLocationState: terraUserProfile.programLocationState ?? 'N/A',
     programLocationCountry: terraUserProfile.programLocationCountry ?? 'N/A',
-    department: terraUserProfile.department,
-    interestInTerra: terraUserProfile.interestInTerra,
   };
 };
 

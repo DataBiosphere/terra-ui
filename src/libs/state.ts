@@ -27,10 +27,10 @@ export type TerraUserProfile = {
   title: string | undefined;
   department: string | undefined;
   interestInTerra: string | undefined;
-  programLocationCity: string | undefined;
-  programLocationState: string | undefined;
-  programLocationCountry: string | undefined;
-  starredWorkspaces: string | undefined;
+  programLocationCity?: string;
+  programLocationState?: string;
+  programLocationCountry?: string;
+  starredWorkspaces?: string;
 };
 
 export type TerraUserRegistrationStatus =

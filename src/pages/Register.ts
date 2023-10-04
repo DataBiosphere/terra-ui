@@ -6,16 +6,17 @@ import { centeredSpinner } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import planet from 'src/images/register-planet.svg';
 import { Ajax } from 'src/libs/ajax';
+import { makeSetUserProfileRequest } from 'src/libs/ajax/User';
 import { refreshTerraProfile, signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { registrationLogo } from 'src/libs/logos';
-import { authStore, getTerraUser, TerraUser, TerraUserProfile } from 'src/libs/state';
+import { AuthState, authStore, getTerraUser, TerraUser, TerraUserProfile } from 'src/libs/state';
 import validate from 'validate.js';
 
-const constraints = (partOfOrg) => {
+const constraints = (partOfOrg: boolean) => {
   return {
     givenName: { presence: { allowEmpty: false } },
     familyName: { presence: { allowEmpty: false } },
@@ -27,17 +28,20 @@ const constraints = (partOfOrg) => {
 };
 
 const Register = () => {
+  // this terra user has the data populated in it from the loadOidc user method on login
+  // these are accessToken props
   const user: TerraUser = getTerraUser();
-  const profile: TerraUserProfile = authStore.get().profile;
   const [busy, setBusy] = useState(false);
   const [givenName, setGivenName] = useState(user.givenName || '');
   const [familyName, setFamilyName] = useState(user.familyName || '');
   const [email, setEmail] = useState(user.email || '');
+
+  // these are TerraUser specific props
   const [partOfOrganization, setPartOfOrganization] = useState(true);
-  const [institute, setInstitute] = useState(profile.institute ?? ''); // keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
-  const [title, setTitle] = useState(profile.title ?? '');
-  const [department, setDepartment] = useState(profile.department ?? '');
-  const [interestInTerra, setInterestInTerra] = useState(profile.interestInTerra ?? '');
+  const [institute, setInstitute] = useState(''); // keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
+  const [title, setTitle] = useState('');
+  const [department, setDepartment] = useState('');
+  const [interestInTerra, setInterestInTerra] = useState('');
 
   const checkboxLine = (children) =>
     div(
@@ -48,15 +52,17 @@ const Register = () => {
       },
       children
     );
-  const interestInTerraCheckbox = (title) =>
+  const interestInTerraCheckbox = (title: string) =>
     div({ style: { marginTop: '.25rem' } }, [
       h(
         LabeledCheckbox,
         {
           checked: _.includes(title, interestInTerra),
           onChange: (v) => {
-            const interestsList = _.isEmpty(interestInTerra) ? [] : _.split(',', interestInTerra);
-            const updatedInterestsList = v ? _.concat(interestsList, [title]) : _.without([title], interestsList);
+            const interestsList: string[] = _.isEmpty(interestInTerra) ? [] : _.split(',', interestInTerra);
+            const updatedInterestsList: string[] = v
+              ? _.concat(interestsList, [title])
+              : _.without([title], interestsList);
             setInterestInTerra(_.join(',', updatedInterestsList));
           },
         },
@@ -76,21 +82,17 @@ const Register = () => {
   const register = async () => {
     try {
       setBusy(true);
-      const orgFields = partOfOrganization
-        ? {
-            institute,
-            department,
-            title,
-          }
-        : {};
-      await Ajax().User.profile.set({
+      const newlyRegisteredUserProfile: TerraUserProfile = {
         firstName: givenName,
         lastName: familyName,
         contactEmail: email,
         interestInTerra,
-        ...orgFields,
-      });
-      authStore.update((state) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
+        institute,
+        department,
+        title,
+      };
+      await Ajax().User.profile.set(makeSetUserProfileRequest(newlyRegisteredUserProfile));
+      authStore.update((state: AuthState) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
       await refreshTerraProfile();
       Ajax().Metrics.captureEvent(Events.user.register);
     } catch (error) {
