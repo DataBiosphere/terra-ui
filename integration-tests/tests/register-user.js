@@ -31,7 +31,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await findText(page, 'Welcome to Terra Community Workbench');
 
   // This is the hamburger menu
-  await click(page, '//*[@id="top-level-hamburger"]');
+  await click(page, '/html/body/div[1]/div[2]/div/div[1]/div[1]/div[1]/div/div[1]');
   await findText(page, 'Integration Test');
 
   await click(page, clickable({ textContains: 'Integration Test' }));
