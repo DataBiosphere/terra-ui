@@ -59,19 +59,22 @@ export interface OrchestrationUserProfileResponse {
   keyValuePairs: { key: string; value: string }[];
 }
 
-export interface SetTerraUserProfileRequest {
+export type RegisterTerraUserProfileRequest = {
   firstName: string;
   lastName: string;
   title: string;
-  contactEmail?: string;
+  contactEmail: string;
   institute: string;
-  programLocationCity: string;
-  programLocationState: string;
-  programLocationCountry: string;
+  department: string;
+  interestInTerra: string;
+};
+
+export interface SetTerraUserProfileRequest extends RegisterTerraUserProfileRequest {
+  programLocationCity?: string;
+  programLocationState?: string;
+  programLocationCountry?: string;
   termsOfService?: string;
   researchArea?: string;
-  department?: string;
-  interestInTerra?: string;
 }
 
 export const makeSetUserProfileRequest = (terraUserProfile: TerraUserProfile): SetTerraUserProfileRequest => {
