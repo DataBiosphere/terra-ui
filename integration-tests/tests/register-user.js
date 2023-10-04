@@ -10,7 +10,6 @@ const {
   label,
   getLabelledTextInputValue,
   assertLabelledTextInputValue,
-  maybeSaveScreenshot,
   delay,
 } = require('../utils/integration-utils');
 const { fillInReplace, gotoPage } = require('../utils/integration-utils');
@@ -33,19 +32,15 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await findText(page, 'Welcome to Terra Community Workbench');
 
   // This is the hamburger menu
-  await maybeSaveScreenshot(page, 'register-user');
   await click(page, '/html/body/div[1]/div[2]/div/div[1]/div[1]/div[1]/div/div[1]');
   await delay(1000);
-  await maybeSaveScreenshot(page, 'register-user');
-  await findText(page, 'Integration Test');
 
+  await findText(page, 'Integration Test');
   await click(page, clickable({ textContains: 'Integration Test' }));
   await delay(1000);
-  await maybeSaveScreenshot(page, 'register-user');
 
   await click(page, clickable({ textContains: 'Profile' }));
   await delay(1000);
-  await maybeSaveScreenshot(page, 'register-user');
 
   await findText(page, 'Hello again, Integration');
 
