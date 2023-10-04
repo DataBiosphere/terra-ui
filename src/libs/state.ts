@@ -1,6 +1,7 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
 import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
+import { Dataset } from 'src/libs/ajax/Catalog';
 import { NihDatasetPermission } from 'src/libs/ajax/User';
 import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
@@ -225,7 +226,7 @@ export const snapshotsListStore = atom<unknown>(undefined);
 
 export const snapshotStore = atom<unknown>(undefined);
 
-export const dataCatalogStore = atom<any[]>([]);
+export const dataCatalogStore = atom<Dataset[]>([]);
 
 type AjaxOverride = {
   fn: (fetch: AnyPromiseFn) => AnyPromiseFn;

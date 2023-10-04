@@ -3,7 +3,6 @@ import { Fragment, ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
-import { Dataset } from 'src/libs/ajax/Catalog';
 import { resolveWdsUrl, WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -14,7 +13,6 @@ import { useOnMount } from 'src/libs/react-utils';
 import { asyncImportJobStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
-import { useDataCatalog } from 'src/pages/library/dataBrowser-utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
 
 import {
@@ -59,23 +57,6 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   const [userHasBillingProjects, setUserHasBillingProjects] = useState(true);
   const [snapshotResponses, setSnapshotResponses] = useState<{ status: string; message: string | undefined }[]>();
   const [isImporting, setIsImporting] = useState(false);
-
-  const { dataCatalog } = useDataCatalog();
-  const snapshots =
-    importRequest.type === 'catalog-snapshots'
-      ? _.flow(
-          _.filter(
-            (snapshot: Dataset) =>
-              !!snapshot['dct:identifier'] && _.includes(snapshot['dct:identifier'], importRequest.snapshotIds)
-          ),
-          _.map((snapshot) => ({
-            // The previous step filters the list to only datasets with 'dct:identifier' defined
-            id: snapshot['dct:identifier']!,
-            title: snapshot['dct:title'],
-            description: snapshot['dct:description'],
-          }))
-        )(dataCatalog)
-      : [];
 
   const isDataset = !_.includes(format, ['snapshot', 'tdrexport']);
 
@@ -152,7 +133,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
           return Ajax()
             .Workspaces.workspace(namespace, name)
             .importSnapshot(id, normalizeSnapshotName(title), description);
-        }, snapshots)
+        }, importRequest.snapshots)
       );
 
       if (_.some({ status: 'rejected' }, responses)) {
@@ -225,7 +206,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   return h(Fragment, [
     h(ImportDataOverview, {
       header: getTitleForImportRequest(importRequest),
-      snapshots,
+      snapshots: importRequest.type === 'catalog-snapshots' ? importRequest.snapshots : [],
       isDataset,
       snapshotResponses,
       url: 'url' in importRequest ? importRequest.url : undefined,

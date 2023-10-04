@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRoute } from 'src/libs/nav';
+import { fetchDataCatalog } from 'src/pages/library/dataBrowser-utils';
 
 import {
   CatalogDatasetImportRequest,
@@ -100,14 +101,27 @@ const getCatalogDatasetImportRequest = (queryParams: QueryParams): CatalogDatase
   };
 };
 
-const getCatalogSnapshotsImportRequest = (queryParams: QueryParams): CatalogSnapshotsImportRequest => {
+const getCatalogSnapshotsImportRequest = async (queryParams: QueryParams): Promise<CatalogSnapshotsImportRequest> => {
   const { snapshotIds } = queryParams;
   if (!(Array.isArray(snapshotIds) && snapshotIds.every((snapshotId) => typeof snapshotId === 'string'))) {
     throw new Error(`Invalid snapshot IDs: ${snapshotIds}`);
   }
+
+  const catalogDatasets = await fetchDataCatalog();
+  const snapshots = catalogDatasets
+    .filter((dataset) => snapshotIds.includes(dataset['dct:identifier']))
+    .map((dataset) => {
+      return {
+        // The previous step filters the list to only datasets with 'dct:identifier' defined
+        id: dataset['dct:identifier']!,
+        title: dataset['dct:title'],
+        description: dataset['dct:description'],
+      };
+    });
+
   return {
     type: 'catalog-snapshots',
-    snapshotIds,
+    snapshots,
   };
 };
 
@@ -125,7 +139,7 @@ export const getImportRequest = (queryParams: QueryParams): Promise<ImportReques
       return Promise.resolve(getTDRSnapshotExportImportRequest(queryParams));
     case 'snapshot':
       if (queryParams.snapshotIds) {
-        return Promise.resolve(getCatalogSnapshotsImportRequest(queryParams));
+        return getCatalogSnapshotsImportRequest(queryParams);
       }
       return Promise.resolve(getTDRSnapshotReferenceImportRequest(queryParams));
     case 'catalog':

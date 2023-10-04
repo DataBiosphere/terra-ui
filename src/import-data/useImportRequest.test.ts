@@ -1,3 +1,6 @@
+import { fetchDataCatalog } from 'src/pages/library/dataBrowser-utils';
+import { asMockedFn } from 'src/testing/test-utils';
+
 import {
   BagItImportRequest,
   CatalogDatasetImportRequest,
@@ -9,6 +12,14 @@ import {
   TDRSnapshotReferenceImportRequest,
 } from './import-types';
 import { getImportRequest } from './useImportRequest';
+
+type DataBrowserUtilsExports = typeof import('src/pages/library/dataBrowser-utils');
+jest.mock('src/pages/library/dataBrowser-utils', (): DataBrowserUtilsExports => {
+  return {
+    ...jest.requireActual<DataBrowserUtilsExports>('src/pages/library/dataBrowser-utils'),
+    fetchDataCatalog: jest.fn(),
+  };
+});
 
 describe('getImportRequest', () => {
   type TestCase = {
@@ -95,14 +106,78 @@ describe('getImportRequest', () => {
     {
       queryParams: {
         format: 'snapshot',
-        snapshotIds: ['00001111-2222-3333-aaaa-bbbbccccdddd', 'aaaabbbb-cccc-1111-2222-333333333333'],
+        snapshotIds: ['aaaabbbb-cccc-1111-2222-333333333333', '00001111-2222-3333-aaaa-bbbbccccdddd'],
       },
       expectedResult: {
         type: 'catalog-snapshots',
-        snapshotIds: ['00001111-2222-3333-aaaa-bbbbccccdddd', 'aaaabbbb-cccc-1111-2222-333333333333'],
+        snapshots: [
+          {
+            id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+            title: 'test-snapshot-1',
+            description: 'A test snapshot',
+          },
+          {
+            id: 'aaaabbbb-cccc-1111-2222-333333333333',
+            title: 'test-snapshot-2',
+            description: 'Another test snapshot',
+          },
+        ],
       } satisfies CatalogSnapshotsImportRequest,
     },
   ];
+
+  beforeAll(() => {
+    asMockedFn(fetchDataCatalog).mockResolvedValue([
+      {
+        id: 'aaaabbbb-cccc-dddd-eeee-ffffgggghhhh',
+        'dct:creator': 'testowner',
+        'dct:description': 'A test snapshot',
+        'dct:identifier': '00001111-2222-3333-aaaa-bbbbccccdddd',
+        'dct:issued': '2023-10-02T11:30:00.000000Z',
+        'dct:title': 'test-snapshot-1',
+        'dcat:accessURL':
+          'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/00001111-2222-3333-aaaa-bbbbccccdddd',
+        'TerraDCAT_ap:hasDataCollection': [],
+        accessLevel: 'reader',
+        storage: [],
+        counts: {},
+        samples: {},
+        contributors: [],
+      },
+      {
+        id: '11112222-3333-4444-5555-666677778888',
+        'dct:creator': 'testowner',
+        'dct:description': 'Another test snapshot',
+        'dct:identifier': 'aaaabbbb-cccc-1111-2222-333333333333',
+        'dct:issued': '2023-10-02T11:30:00.000000Z',
+        'dct:title': 'test-snapshot-2',
+        'dcat:accessURL':
+          'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/aaaabbbb-cccc-1111-2222-333333333333',
+        'TerraDCAT_ap:hasDataCollection': [],
+        accessLevel: 'reader',
+        storage: [],
+        counts: {},
+        samples: {},
+        contributors: [],
+      },
+      {
+        id: 'zzzzyyyy-xxxx-1111-2222-333333333333',
+        'dct:creator': 'testowner',
+        'dct:description': 'Yet another test snapshot',
+        'dct:identifier': '99998888-7777-xxxx-yyyy-zzzzzzzzzzzz',
+        'dct:issued': '2023-10-02T11:30:00.000000Z',
+        'dct:title': 'test-snapshot-3',
+        'dcat:accessURL':
+          'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/99998888-7777-xxxx-yyyy-zzzzzzzzzzzz',
+        'TerraDCAT_ap:hasDataCollection': [],
+        accessLevel: 'reader',
+        storage: [],
+        counts: {},
+        samples: {},
+        contributors: [],
+      },
+    ]);
+  });
 
   it.each(testCases)(
     'parses $expectedResult.type import request from query parameters',

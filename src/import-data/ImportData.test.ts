@@ -5,7 +5,7 @@ import { h } from 'react-hyperscript-helpers';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { useRoute } from 'src/libs/nav';
-import { useDataCatalog } from 'src/pages/library/dataBrowser-utils';
+import { fetchDataCatalog } from 'src/pages/library/dataBrowser-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -46,7 +46,7 @@ type DataBrowserUtilsExports = typeof import('src/pages/library/dataBrowser-util
 jest.mock('src/pages/library/dataBrowser-utils', (): DataBrowserUtilsExports => {
   return {
     ...jest.requireActual<DataBrowserUtilsExports>('src/pages/library/dataBrowser-utils'),
-    useDataCatalog: jest.fn(),
+    fetchDataCatalog: jest.fn(),
   };
 });
 
@@ -144,12 +144,6 @@ describe('ImportData', () => {
     // Arrange
     asMockedFn(useWorkspaces).mockReturnValue({
       workspaces: [defaultAzureWorkspace, defaultGoogleWorkspace],
-      loading: false,
-      refresh: () => Promise.resolve(),
-    });
-
-    asMockedFn(useDataCatalog).mockReturnValue({
-      dataCatalog: [],
       loading: false,
       refresh: () => Promise.resolve(),
     });
@@ -306,44 +300,40 @@ describe('ImportData', () => {
       // Arrange
       const user = userEvent.setup();
 
-      asMockedFn(useDataCatalog).mockReturnValue({
-        dataCatalog: [
-          {
-            id: 'aaaabbbb-cccc-dddd-eeee-ffffgggghhhh',
-            'dct:creator': 'testowner',
-            'dct:description': 'A test snapshot',
-            'dct:identifier': '00001111-2222-3333-aaaa-bbbbccccdddd',
-            'dct:issued': '2023-10-02T11:30:00.000000Z',
-            'dct:title': 'test-snapshot-1',
-            'dcat:accessURL':
-              'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/00001111-2222-3333-aaaa-bbbbccccdddd',
-            'TerraDCAT_ap:hasDataCollection': [],
-            accessLevel: 'reader',
-            storage: [],
-            counts: {},
-            samples: {},
-            contributors: [],
-          },
-          {
-            id: '11112222-3333-4444-5555-666677778888',
-            'dct:creator': 'testowner',
-            'dct:description': 'Another test snapshot',
-            'dct:identifier': 'aaaabbbb-cccc-1111-2222-333333333333',
-            'dct:issued': '2023-10-02T11:30:00.000000Z',
-            'dct:title': 'test-snapshot-2',
-            'dcat:accessURL':
-              'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/aaaabbbb-cccc-1111-2222-333333333333',
-            'TerraDCAT_ap:hasDataCollection': [],
-            accessLevel: 'reader',
-            storage: [],
-            counts: {},
-            samples: {},
-            contributors: [],
-          },
-        ],
-        loading: false,
-        refresh: () => Promise.resolve(),
-      });
+      asMockedFn(fetchDataCatalog).mockResolvedValue([
+        {
+          id: 'aaaabbbb-cccc-dddd-eeee-ffffgggghhhh',
+          'dct:creator': 'testowner',
+          'dct:description': 'A test snapshot',
+          'dct:identifier': '00001111-2222-3333-aaaa-bbbbccccdddd',
+          'dct:issued': '2023-10-02T11:30:00.000000Z',
+          'dct:title': 'test-snapshot-1',
+          'dcat:accessURL':
+            'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/00001111-2222-3333-aaaa-bbbbccccdddd',
+          'TerraDCAT_ap:hasDataCollection': [],
+          accessLevel: 'reader',
+          storage: [],
+          counts: {},
+          samples: {},
+          contributors: [],
+        },
+        {
+          id: '11112222-3333-4444-5555-666677778888',
+          'dct:creator': 'testowner',
+          'dct:description': 'Another test snapshot',
+          'dct:identifier': 'aaaabbbb-cccc-1111-2222-333333333333',
+          'dct:issued': '2023-10-02T11:30:00.000000Z',
+          'dct:title': 'test-snapshot-2',
+          'dcat:accessURL':
+            'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/aaaabbbb-cccc-1111-2222-333333333333',
+          'TerraDCAT_ap:hasDataCollection': [],
+          accessLevel: 'reader',
+          storage: [],
+          counts: {},
+          samples: {},
+          contributors: [],
+        },
+      ]);
 
       const queryParams = {
         format: 'snapshot',

@@ -36,7 +36,11 @@ export interface CatalogDatasetImportRequest {
 
 export interface CatalogSnapshotsImportRequest {
   type: 'catalog-snapshots';
-  snapshotIds: string[];
+  snapshots: {
+    id: string;
+    title: string;
+    description: string;
+  }[];
 }
 
 export type ImportRequest =
