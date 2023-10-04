@@ -25,7 +25,7 @@ describe('getImportRequest', () => {
       },
       expectedResult: {
         type: 'pfb',
-        url: 'https://example.com/path/to/file.pfb',
+        url: new URL('https://example.com/path/to/file.pfb'),
       } satisfies PFBImportRequest,
     },
     // BagIt
@@ -35,7 +35,7 @@ describe('getImportRequest', () => {
       },
       expectedResult: {
         type: 'bagit',
-        url: 'https://example.com/path/to/file.bagit',
+        url: new URL('https://example.com/path/to/file.bagit'),
       } satisfies BagItImportRequest,
     },
     // Rawls entities
@@ -46,7 +46,7 @@ describe('getImportRequest', () => {
       },
       expectedResult: {
         type: 'entities',
-        url: 'https://example.com/path/to/file.json',
+        url: new URL('https://example.com/path/to/file.json'),
       } satisfies EntitiesImportRequest,
     },
     // TDR snapshot export
@@ -61,7 +61,7 @@ describe('getImportRequest', () => {
       },
       expectedResult: {
         type: 'tdr-snapshot-export',
-        manifestUrl: 'https://example.com/path/to/manifest.json',
+        manifestUrl: new URL('https://example.com/path/to/manifest.json'),
         snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
         snapshotName: 'test-snapshot',
         syncPermissions: true,

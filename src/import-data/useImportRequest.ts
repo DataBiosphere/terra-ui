@@ -29,6 +29,22 @@ const requireString = (value: unknown, label = 'value'): string => {
 };
 
 /**
+ * Validate that a value can be parsed as a URL. Throw an error if it cannot.
+ *
+ * @param value The value to validate.
+ * @param label Label for the value to use in error messages.
+ * @returns The parsed URL.
+ */
+const requireUrl = (value: unknown, label = 'value'): URL => {
+  const stringValue = requireString(value, label);
+  try {
+    return new URL(stringValue);
+  } catch {
+    throw new Error(`Invalid ${label}: ${value}`);
+  }
+};
+
+/**
  * Get the requested import format from query parameters. Default to 'bagit' if none is specified.
  *
  * @param queryParams Query parameters from import request.
@@ -46,12 +62,12 @@ const getFormat = (queryParams: QueryParams): string => {
 };
 
 const getFileImportRequest = (queryParams: QueryParams, type: FileImportRequest['type']): FileImportRequest => {
-  const url = requireString(queryParams.url, 'URL');
+  const url = requireUrl(queryParams.url, 'URL');
   return { type, url };
 };
 
 const getTDRSnapshotExportImportRequest = (queryParams: QueryParams): TDRSnapshotExportImportRequest => {
-  const manifestUrl = requireString(queryParams.tdrmanifest, 'manifest URL');
+  const manifestUrl = requireUrl(queryParams.tdrmanifest, 'manifest URL');
   const snapshotId = requireString(queryParams.snapshotId, 'snapshot ID');
   const snapshotName = requireString(queryParams.snapshotName, 'snapshot name');
   const syncPermissions = queryParams.tdrSyncPermissions === 'true';
