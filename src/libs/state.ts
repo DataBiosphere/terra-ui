@@ -77,6 +77,7 @@ export type AuthState = {
     linkExpireTime: number;
     datasetPermissions: NihDatasetPermission[];
   };
+  nihStatusLoaded: boolean;
   profile: TerraUserProfile;
   refreshTokenMetadata: TokenMetadata;
   registrationStatus: TerraUserRegistrationStatus;
@@ -100,6 +101,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
+  nihStatusLoaded: false,
   profile: {
     firstName: undefined,
     lastName: undefined,

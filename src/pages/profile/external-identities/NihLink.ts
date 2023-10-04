@@ -20,7 +20,7 @@ import { SpacedSpinner } from 'src/pages/profile/SpacedSpinner';
 
 export const NihLink = ({ nihToken }) => {
   // State
-  const { nihStatus } = useStore(authStore);
+  const { nihStatus, nihStatusLoaded } = useStore(authStore);
   const [isLinking, setIsLinking] = useState(false);
   const [isConfirmUnlinkModalOpen, setIsConfirmUnlinkModalOpen] = useState(false);
   const [isUnlinking, setIsUnlinking] = useState(false);
@@ -33,6 +33,7 @@ export const NihLink = ({ nihToken }) => {
     )(async () => {
       const nihStatus = await Ajax().User.linkNihAccount(nihToken);
       authStore.update(_.set(['nihStatus'], nihStatus));
+      authStore.update(_.set(['nihStatusLoaded'], true));
     });
 
     if (nihToken) {
@@ -66,7 +67,7 @@ export const NihLink = ({ nihToken }) => {
         ]),
       ]),
       Utils.cond(
-        [!nihStatus, () => h(SpacedSpinner, ['Loading NIH account status...'])],
+        [!nihStatusLoaded, () => h(SpacedSpinner, ['Loading NIH account status...'])],
         [isLinking, () => h(SpacedSpinner, ['Linking NIH account...'])],
         [!linkedNihUsername, () => div([h(ShibbolethLink, { button: true }, ['Log in to NIH'])])],
         () =>
@@ -152,8 +153,10 @@ export const NihLink = ({ nihToken }) => {
                 withErrorReporting('Error unlinking account'),
                 Utils.withBusyState(setIsUnlinking)
               )(async () => {
+                authStore.update(_.set('nihStatusLoaded', false));
                 await Ajax().User.unlinkNihAccount();
                 authStore.update(_.set('nihStatus', {}));
+                authStore.update(_.set('nihStatusLoaded', true));
                 setIsConfirmUnlinkModalOpen(false);
                 notify('success', 'Successfully unlinked account', {
                   message: 'Successfully unlinked your account from NIH.',

@@ -85,7 +85,7 @@ function Modal({
         // Add the focus update to the end of the event queue
         // Per react-focus-lock: https://github.com/theKashey/react-focus-lock#unmounting-and-focus-management
         await delay(0);
-        previouslyFocusedNode.current = modalNode.current.contains(document.activeElement) ? previouslyFocusedNode.current : document.activeElement;
+        previouslyFocusedNode.current = modalNode.current?.contains(document.activeElement) ? previouslyFocusedNode.current : document.activeElement;
         nodeToFocus.focus();
       },
       style: { overlay: styles.overlay, content: { ...styles.modal, width, ...props.styles?.modal } },
