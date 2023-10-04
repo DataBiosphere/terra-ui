@@ -255,7 +255,7 @@ export const errorStyle = {
   backgroundColor: colors.danger(0.15),
 };
 
-export const warningBoxStyle = {
+export const warningBoxStyle: CSSProperties = {
   backgroundColor: colors.warning(0.15),
   padding: '1rem 1.25rem',
   color: colors.dark(),
