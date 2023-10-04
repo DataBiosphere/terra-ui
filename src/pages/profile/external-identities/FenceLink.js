@@ -5,45 +5,13 @@ import { Fragment, useState } from 'react';
 import { div, h, h3, span } from 'react-hyperscript-helpers';
 import { FrameworkServiceLink, UnlinkFenceAccount } from 'src/components/external-account-links';
 import { Ajax } from 'src/libs/ajax';
-import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { linkStyles as styles } from 'src/pages/profile/external-identities/LinkStyles';
 import { SpacedSpinner } from 'src/pages/profile/SpacedSpinner';
-
-const styles = {
-  idLink: {
-    container: {
-      display: 'grid',
-      marginBottom: '0.6rem',
-      border: `1px solid ${colors.dark(0.55)}`,
-      borderRadius: 4,
-    },
-    linkContentTop: (hasBottom) => ({
-      display: 'grid',
-      rowGap: '0.6rem',
-      backgroundColor: colors.light(0.2),
-      padding: '1.2rem',
-      borderRadius: hasBottom ? '4px 4px 0 0' : 4,
-    }),
-    linkContentBottom: {
-      padding: '1.2rem',
-    },
-    linkName: {
-      fontSize: 18,
-      fontWeight: 700,
-      marginBottom: '0.6rem',
-      display: 'inline',
-    },
-    linkDetailLabel: {
-      fontWeight: 700,
-      marginBottom: '0.6rem',
-      marginRight: '1.2rem',
-    },
-  },
-};
 
 export const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
   // State
