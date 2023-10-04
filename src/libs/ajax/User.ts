@@ -90,9 +90,15 @@ export const makeSetUserProfileRequest = (terraUserProfile: TerraUserProfile): S
 
     // program locations are REQUIRED for the request
     // but are not present during a registration. They could exist in setting profile
-    programLocationCity: terraUserProfile.programLocationCity ?? 'N/A',
-    programLocationState: terraUserProfile.programLocationState ?? 'N/A',
-    programLocationCountry: terraUserProfile.programLocationCountry ?? 'N/A',
+    programLocationCity: !_.isEmpty(terraUserProfile.programLocationCity)
+      ? terraUserProfile.programLocationCity
+      : 'N/A',
+    programLocationState: !_.isEmpty(terraUserProfile.programLocationState)
+      ? terraUserProfile.programLocationState
+      : 'N/A',
+    programLocationCountry: !_.isEmpty(terraUserProfile.programLocationCountry)
+      ? terraUserProfile.programLocationCountry
+      : 'N/A',
   };
 };
 
