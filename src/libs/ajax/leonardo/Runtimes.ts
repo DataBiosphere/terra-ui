@@ -206,13 +206,6 @@ export const Runtimes = (signal: AbortSignal) => {
       return res.json();
     },
 
-    deleteAll: (workspaceId: string, deleteDisk = true): Promise<void> => {
-      return fetchLeo(
-        `api/v2/runtimes/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-        _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier])
-      );
-    },
-
     runtimeV2: v2Func,
 
     // TODO: Consider refactoring to not use this wrapper
