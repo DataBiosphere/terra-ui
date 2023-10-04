@@ -49,10 +49,12 @@ export const isProtectedPfbSource = (pfbUrl: URL): boolean => {
  * Determine whether an import source is considered protected.
  */
 export const isProtectedSource = (importRequest: ImportRequest): boolean => {
-  if (importRequest.type === 'pfb') {
-    return isProtectedPfbSource(importRequest.url);
+  switch (importRequest.type) {
+    case 'pfb':
+      return isProtectedPfbSource(importRequest.url);
+    default:
+      return false;
   }
-  return false;
 };
 
 // This method identifies whether a workspace qualifies as protected.
