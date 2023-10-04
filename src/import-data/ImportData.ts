@@ -102,20 +102,22 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
 
   const importPFB = async (importRequest: PFBImportRequest, workspace: WorkspaceInfo) => {
     const { namespace, name } = workspace;
-    const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(importRequest.url, 'pfb', null);
+    const { jobId } = await Ajax()
+      .Workspaces.workspace(namespace, name)
+      .importJob(importRequest.url.toString(), 'pfb', null);
     asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
     notifyDataImportProgress(jobId);
   };
 
   const importBagit = async (importRequest: BagItImportRequest, workspace: WorkspaceInfo) => {
     const { namespace, name } = workspace;
-    await Ajax().Workspaces.workspace(namespace, name).importBagit(importRequest.url);
+    await Ajax().Workspaces.workspace(namespace, name).importBagit(importRequest.url.toString());
     notify('success', 'Data imported successfully.', { timeout: 3000 });
   };
 
   const importEntitiesJson = async (importRequest: EntitiesImportRequest, workspace: WorkspaceInfo) => {
     const { namespace, name } = workspace;
-    await Ajax().Workspaces.workspace(namespace, name).importJSON(importRequest.url);
+    await Ajax().Workspaces.workspace(namespace, name).importJSON(importRequest.url.toString());
     notify('success', 'Data imported successfully.', { timeout: 3000 });
   };
 
@@ -132,7 +134,9 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     const { namespace, name } = workspace;
     const { jobId } = await Ajax()
       .Workspaces.workspace(namespace, name)
-      .importJob(importRequest.manifestUrl, 'tdrexport', { tdrSyncPermissions: importRequest.syncPermissions });
+      .importJob(importRequest.manifestUrl.toString(), 'tdrexport', {
+        tdrSyncPermissions: importRequest.syncPermissions,
+      });
     asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
     notifyDataImportProgress(jobId);
   };

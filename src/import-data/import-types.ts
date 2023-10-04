@@ -1,23 +1,23 @@
 export interface PFBImportRequest {
   type: 'pfb';
-  url: string;
+  url: URL;
 }
 
 export interface BagItImportRequest {
   type: 'bagit';
-  url: string;
+  url: URL;
 }
 
 export interface EntitiesImportRequest {
   type: 'entities';
-  url: string;
+  url: URL;
 }
 
 export type FileImportRequest = PFBImportRequest | BagItImportRequest | EntitiesImportRequest;
 
 export interface TDRSnapshotExportImportRequest {
   type: 'tdr-snapshot-export';
-  manifestUrl: string;
+  manifestUrl: URL;
   snapshotId: string;
   snapshotName: string;
   syncPermissions: boolean;

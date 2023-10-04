@@ -33,13 +33,12 @@ const requireString = (value: unknown, label = 'value'): string => {
  *
  * @param value The value to validate.
  * @param label Label for the value to use in error messages.
- * @returns The validated string value.
+ * @returns The parsed URL.
  */
-const requireUrl = (value: unknown, label = 'value'): string => {
+const requireUrl = (value: unknown, label = 'value'): URL => {
   const stringValue = requireString(value, label);
   try {
-    const url = new URL(stringValue);
-    return url.toString();
+    return new URL(stringValue);
   } catch {
     throw new Error(`Invalid ${label}: ${value}`);
   }

@@ -5,20 +5,23 @@ import { isProtectedSource, isProtectedWorkspace } from './protected-data-utils'
 
 const protectedImports: ImportRequest[] = [
   // AnVIL production
-  { type: 'pfb', url: 'https://service.prod.anvil.gi.ucsc.edu/file.pfb' },
-  { type: 'pfb', url: 'https://s3.amazonaws.com/edu-ucsc-gi-platform-anvil-prod-storage-anvilprod.us-east-1/file.pfb' },
+  { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/file.pfb') },
+  {
+    type: 'pfb',
+    url: new URL('https://s3.amazonaws.com/edu-ucsc-gi-platform-anvil-prod-storage-anvilprod.us-east-1/file.pfb'),
+  },
   // AnVIL development
-  { type: 'pfb', url: 'https://service.anvil.gi.ucsc.edu/file.pfb' },
+  { type: 'pfb', url: new URL('https://service.anvil.gi.ucsc.edu/file.pfb') },
   // BioData Catalyst
-  { type: 'pfb', url: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/file.pfb' },
-  { type: 'pfb', url: 'https://gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export.s3.amazonaws.com/file.pfb' },
-  { type: 'pfb', url: 'https://s3.amazonaws.com/gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export/file.pfb' },
-  { type: 'pfb', url: 'https://gen3-theanvil-io-pfb-export.s3.amazonaws.com/file.pfb' },
+  { type: 'pfb', url: new URL('https://gen3.biodatacatalyst.nhlbi.nih.gov/file.pfb') },
+  { type: 'pfb', url: new URL('https://gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export.s3.amazonaws.com/file.pfb') },
+  { type: 'pfb', url: new URL('https://s3.amazonaws.com/gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export/file.pfb') },
+  { type: 'pfb', url: new URL('https://gen3-theanvil-io-pfb-export.s3.amazonaws.com/file.pfb') },
 ];
 
 const unprotectedImports: ImportRequest[] = [
-  { type: 'pfb', url: 'https://example.com/file.pfb' },
-  { type: 'entities', url: 'https://service.prod.anvil.gi.ucsc.edu/file.json' },
+  { type: 'pfb', url: new URL('https://example.com/file.pfb') },
+  { type: 'entities', url: new URL('https://service.prod.anvil.gi.ucsc.edu/file.json') },
 ];
 
 describe('isProtectedSource', () => {

@@ -21,20 +21,19 @@ const protectedSources: ProtectedSource[] = [
 /**
  * Determine if a PFB file is considered protected data.
  * */
-export const isProtectedPfbSource = (pfbUrl: string): boolean => {
-  const parsedUrl = new URL(pfbUrl);
+export const isProtectedPfbSource = (pfbUrl: URL): boolean => {
   return protectedSources.some((source) => {
     if (source.type === 'http') {
       // Match the hostname or subdomains of protected hosts.
-      return parsedUrl.hostname === source.host || parsedUrl.hostname.endsWith(`.${source.host}`);
+      return pfbUrl.hostname === source.host || pfbUrl.hostname.endsWith(`.${source.host}`);
     }
 
     if (source.type === 's3') {
       // S3 supports multiple URL formats
       // https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html
       return (
-        parsedUrl.hostname === `${source.bucket}.s3.amazonaws.com` ||
-        (parsedUrl.hostname === 's3.amazonaws.com' && parsedUrl.pathname.startsWith(`/${source.bucket}/`))
+        pfbUrl.hostname === `${source.bucket}.s3.amazonaws.com` ||
+        (pfbUrl.hostname === 's3.amazonaws.com' && pfbUrl.pathname.startsWith(`/${source.bucket}/`))
       );
     }
 

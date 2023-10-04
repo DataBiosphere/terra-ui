@@ -16,7 +16,7 @@ describe('ImportDataOverview', () => {
         snapshots,
         isDataset,
         snapshotResponses,
-        url: 'https://gen3-theanvil-io-pfb-export.s3.amazonaws.com/export_2023-07-07.avro',
+        url: new URL('https://gen3-theanvil-io-pfb-export.s3.amazonaws.com/export_2023-07-07.avro'),
         isProtectedData: true,
       })
     );
@@ -39,7 +39,7 @@ describe('ImportDataOverview', () => {
         snapshots,
         isDataset,
         snapshotResponses,
-        url: 'https://google.com/file.pfb',
+        url: new URL('https://google.com/file.pfb'),
         isProtectedData: false,
       })
     );
