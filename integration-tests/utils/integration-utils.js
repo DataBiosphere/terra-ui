@@ -124,6 +124,20 @@ const findText = (page, textContains, options) => {
   return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options));
 };
 
+const getLabelledTextInputValue = async (page, xpath) => {
+  const inputLabel = await page.waitForXPath(xpath);
+  const labelFor = await inputLabel?.evaluate((l) => l.getAttribute('for'));
+  const input = await page.$(`#${labelFor}`);
+  return await input?.evaluate((i) => i.value);
+};
+
+const assertLabelledTextInputValue = async (page, xpath, text) => {
+  const value = await getLabelledTextInputValue(page, xpath);
+  if (text !== value) {
+    throw new Error(`The specified text '${text}' not found labelled by '${xpath}'`);
+  }
+};
+
 const assertTextNotFound = async (page, text) => {
   let found = false;
   try {
@@ -147,6 +161,10 @@ const input = ({ labelContains, placeholder }) => {
 
 const label = ({ labelContains }) => {
   return `(//label[contains(normalize-space(.),"${labelContains}")])`;
+};
+
+const labelByExactMatch = ({ labelExact }) => {
+  return `(//label[normalize-space()=${labelExact}])`;
 };
 
 const fillIn = async (page, xpath, text) => {
@@ -506,6 +524,7 @@ module.exports = {
   image,
   input,
   label,
+  labelByExactMatch,
   select,
   svgText,
   delay,
@@ -526,4 +545,6 @@ module.exports = {
   savePageContent,
   findButtonInDialogByAriaLabel,
   verifyAccessibility,
+  assertLabelledTextInputValue,
+  getLabelledTextInputValue,
 };
