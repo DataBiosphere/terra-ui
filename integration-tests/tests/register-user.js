@@ -11,6 +11,7 @@ const {
   getLabelledTextInputValue,
   assertLabelledTextInputValue,
   maybeSaveScreenshot,
+  delay,
 } = require('../utils/integration-utils');
 const { fillInReplace, gotoPage } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -34,11 +35,18 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   // This is the hamburger menu
   await maybeSaveScreenshot(page, 'register-user');
   await click(page, '/html/body/div[1]/div[2]/div/div[1]/div[1]/div[1]/div/div[1]');
-  await findText(page, 'Integration Test');
+  await delay(3000);
   await maybeSaveScreenshot(page, 'register-user');
+  await findText(page, 'Integration Test');
 
   await click(page, clickable({ textContains: 'Integration Test' }));
+  await delay(3000);
+  await maybeSaveScreenshot(page, 'register-user');
+
   await click(page, clickable({ textContains: 'Profile' }));
+  await delay(3000);
+  await maybeSaveScreenshot(page, 'register-user');
+
   await findText(page, 'Hello again, Integration');
 
   await assertLabelledTextInputValue(page, label({ labelContains: 'First Name' }), 'Integration');
