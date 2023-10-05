@@ -38,6 +38,8 @@ const setupMockAjax = (termsOfService) => {
   const getStatus = jest.fn().mockReturnValue(Promise.resolve({}));
   const acceptTos = jest.fn().mockReturnValue(Promise.resolve({ enabled: true }));
   const rejectTos = jest.fn().mockReturnValue(Promise.resolve({ enabled: true }));
+  const getFenceStatus = jest.fn();
+  const getNihStatus = jest.fn();
 
   (Ajax as jest.Mock).mockImplementation(() => ({
     Metrics: {
@@ -52,6 +54,11 @@ const setupMockAjax = (termsOfService) => {
       getStatus,
       acceptTos,
       rejectTos,
+      getFenceStatus,
+      getNihStatus,
+    },
+    Groups: {
+      list: jest.fn(),
     },
   }));
 
