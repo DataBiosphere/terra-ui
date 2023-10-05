@@ -53,8 +53,9 @@ const createUserProfileRequest: UpdateTerraUserProfileRequest = {
 
 const NA = 'N/A';
 
-describe('Prepared UserProfileRequest', () => {
-  describe('should change `undefined` property', () => {
+// An UpdatedUserProfileRequest
+describe('A CreateUserProfileRequest', () => {
+  describe('when minmally pilled out should change `undefined` property', () => {
     it('title to "N/A"', async () => {
       // Arrange, Act
       const apiBody: OrchestrationUpsertTerraUserProfileRequest =

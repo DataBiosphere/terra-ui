@@ -59,16 +59,18 @@ export interface OrchestrationUserProfileResponse {
   keyValuePairs: { key: string; value: string }[];
 }
 
+// These type are marked as optional to be aligned with required fields for registration
 export type CreateTerraUserProfileRequest = {
   firstName: string;
   lastName: string;
-  title: string;
+  title?: string;
   contactEmail: string;
-  institute: string;
-  department: string;
-  interestInTerra: string;
+  institute?: string;
+  department?: string;
+  interestInTerra?: string;
 };
 
+// These type are marked as optional to be aligned with required fields for updating the profile
 export interface UpdateTerraUserProfileRequest extends CreateTerraUserProfileRequest {
   programLocationCity?: string;
   programLocationState?: string;
@@ -111,8 +113,10 @@ export const generateAPIBodyForUpdateUserProfile = (
     // get set during registration
     title: !_.isEmpty(request.title) ? request.title : 'N/A',
     institute: !_.isEmpty(request.institute) ? request.institute : 'N/A',
-    department: request.department,
-    interestInTerra: request.interestInTerra,
+    // department and interestedInTerra NOT REQUIRED for this request and they do not necessarily
+    // get set during registration
+    department: !_.isEmpty(request.department) ? request.department : undefined,
+    interestInTerra: !_.isEmpty(request.interestInTerra) ? request.interestInTerra : undefined,
 
     // program locations are REQUIRED for the request
     // but are not present during a registration. They could exist in setting profile
