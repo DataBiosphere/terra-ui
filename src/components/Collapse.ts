@@ -9,7 +9,9 @@ import * as Style from 'src/libs/style';
 
 type DivProps = Omit<WithDataAttributes<HTMLElementProps<'div'>>, 'children'>;
 
-interface CollapseProps {
+type DivProps = JSX.InstrinsicElements['div'];
+
+interface CollapseProps extends Omit<DivProps, 'title'> {
   title?: ReactNode;
   hover?: LinkProps['hover'];
   tooltip?: string;
