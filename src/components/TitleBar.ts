@@ -3,7 +3,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 
-interface ITitleBar {
+interface TitleBarProps {
   id?: string;
   onPrevious?: MouseEventHandler;
   title: ReactNode;
