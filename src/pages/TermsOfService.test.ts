@@ -92,8 +92,7 @@ describe('TermsOfService', () => {
     // Assert
     expect(getTosFn).toHaveBeenCalled();
 
-    const tosText = screen.getByText('some text');
-    expect(tosText).toBeInTheDocument();
+    screen.getByText('some text');
   });
 
   it('shows "Continue under grace period" when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
