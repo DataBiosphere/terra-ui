@@ -101,15 +101,22 @@ const getCatalogDatasetImportRequest = (queryParams: QueryParams): CatalogDatase
   };
 };
 
+/**
+ * Validate that an unknown value is an array of strings.
+ */
+const isStringArray = (value: unknown): value is string[] => {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
+};
+
 const getCatalogSnapshotsImportRequest = async (queryParams: QueryParams): Promise<CatalogSnapshotsImportRequest> => {
   const { snapshotIds } = queryParams;
-  if (!(Array.isArray(snapshotIds) && snapshotIds.every((snapshotId) => typeof snapshotId === 'string'))) {
+  if (!isStringArray(snapshotIds)) {
     throw new Error(`Invalid snapshot IDs: ${snapshotIds}`);
   }
 
   const catalogDatasets = await fetchDataCatalog();
   const snapshots = catalogDatasets
-    .filter((dataset) => snapshotIds.includes(dataset['dct:identifier']))
+    .filter((dataset) => dataset['dct:identifier'] && snapshotIds.includes(dataset['dct:identifier']))
     .map((dataset) => {
       return {
         // The previous step filters the list to only datasets with 'dct:identifier' defined
