@@ -21,7 +21,7 @@ export const BillingProjectList = () => {
       reportErrorAndRethrow('Error loading workspace migration information'),
       Utils.withBusyState(setLoadingMigrationInformation)
     )(async () => {
-      const migrationResponse = (await Ajax(signal).Workspaces.bucketMigration()) as Record<string, any>;
+      const migrationResponse = await Ajax(signal).Workspaces.bucketMigration();
       setBillingProjectWorkspaces(parseServerResponse(migrationResponse));
     });
     loadWorkspaces();
@@ -41,7 +41,7 @@ export const BillingProjectList = () => {
         billingProjectWorkspaces.length === 0 &&
         div({ style: { fontSize, marginTop: '1.5rem', marginLeft: '1.5rem' } }, ['You have no workspaces to migrate']),
       ..._.map(
-        (billingProjectWorkspaces) => h(BillingProjectParent, billingProjectWorkspaces),
+        (billingProjectMigrationInfo) => h(BillingProjectParent, billingProjectMigrationInfo),
         billingProjectWorkspaces
       ),
     ]),
