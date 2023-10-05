@@ -2,10 +2,12 @@ import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { a, div, h, h2, label, span } from 'react-hyperscript-helpers';
+import { generateAppName, getCurrentApp } from 'src/analysis/utils/app-utils';
+import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { Switch } from 'src/components/common/Switch';
 import { styles as errorStyles } from 'src/components/ErrorView';
-import { centeredSpinner, icon } from 'src/components/icons';
+import { centeredSpinner, icon, spinner } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { TextArea, TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
@@ -15,6 +17,8 @@ import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
@@ -37,6 +41,7 @@ export const BaseSubmissionConfig = (
     name,
     namespace,
     workspace,
+    analysesData: { apps, refreshApps },
     workspace: {
       workspace: { workspaceId },
     },
@@ -64,6 +69,7 @@ export const BaseSubmissionConfig = (
 
   const [runSetName, setRunSetName] = useState('');
   const [runSetDescription, setRunSetDescription] = useState('');
+  const [isCreatingCromwellRunner, setIsCreatingCromwellRunner] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [workflowSubmissionError, setWorkflowSubmissionError] = useState();
 
@@ -74,6 +80,18 @@ export const BaseSubmissionConfig = (
   const dataTableRef = useRef();
   const signal = useCancellation();
   const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
+  const cromwellRunner = getCurrentApp(appToolLabels.CROMWELL_RUNNER_APP, apps);
+  const cromwellRunnerNeeded = isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS) && cromwellRunner?.status !== 'RUNNING';
+
+  const createCromwell = Utils.withBusyState(setIsCreatingCromwellRunner, async () => {
+    await Ajax().Apps.createAppV2(
+      generateAppName(),
+      workspace.workspace.workspaceId,
+      appToolLabels.CROMWELL_RUNNER_APP,
+      appAccessScopes.USER_PRIVATE
+    );
+    await refreshApps();
+  });
 
   const loadRecordsData = useCallback(
     async (recordType, wdsUrlRoot) => {
@@ -501,7 +519,8 @@ export const BaseSubmissionConfig = (
               okButton: h(
                 ButtonPrimary,
                 {
-                  disabled: isSubmitting,
+                  disabled: isSubmitting || cromwellRunnerNeeded,
+                  tooltip: cromwellRunnerNeeded && 'You need to create a cromwell runner first',
                   'aria-label': 'Launch Submission',
                   onClick: () => submitRun(),
                 },
@@ -547,6 +566,23 @@ export const BaseSubmissionConfig = (
                       },
                       [workflowSubmissionError]
                     ),
+                  ]),
+                cromwellRunnerNeeded &&
+                  div([
+                    div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
+                      icon('warning-standard', { size: 16, style: { color: colors.warning() } }),
+                      h(TextCell, { style: { marginLeft: '0.5rem', marginRight: 'auto' } }, ['You need a cromwell runner to launch this workflow']),
+                      isCreatingCromwellRunner || cromwellRunner?.status === 'PROVISIONING'
+                        ? h(Fragment, [spinner(), div({ style: { marginLeft: '1rem' } }, ['Creating...'])])
+                        : h(
+                            ButtonPrimary,
+                            {
+                              'aria-label': 'Create cromwell runner',
+                              onClick: () => createCromwell(),
+                            },
+                            ['Create']
+                          ),
+                    ]),
                   ]),
               ]),
             ]

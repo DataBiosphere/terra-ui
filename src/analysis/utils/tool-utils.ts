@@ -1,10 +1,12 @@
 import _ from 'lodash/fp';
 import { code } from 'react-hyperscript-helpers';
+import { getCurrentApp } from 'src/analysis/utils/app-utils';
 import { FileExtension, getExtension } from 'src/analysis/utils/file-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
 
@@ -34,7 +36,7 @@ export const toolLabelDisplays: Record<ToolLabel, string> = {
   GALAXY: 'Galaxy',
   CROMWELL: 'Cromwell',
   WORKFLOWS_APP: 'Workflows',
-  CROMWELL_RUNNER_APP: 'Cromwell runner',
+  CROMWELL_RUNNER_APP: 'Cromwell Runner',
   HAIL_BATCH: 'Hail Batch',
   WDS: 'Workspace Data Service',
 };
@@ -162,7 +164,7 @@ export const cloudRuntimeTools = {
 
 export const cloudAppTools = {
   GCP: [Galaxy, Cromwell],
-  AZURE: [Cromwell, HailBatch],
+  AZURE: [Cromwell, CromwellRunner, HailBatch],
 } as const satisfies Record<CloudProvider, readonly AppTool[]>;
 
 export interface ExtensionDisplay {
@@ -186,8 +188,8 @@ export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string =
   return patterns[toolLabel];
 };
 
-export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProvider): readonly Tool[] =>
-  _.remove((tool: Tool) => isToolHidden(tool.label, cloudProvider))(
+export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProvider, apps: App[]): readonly Tool[] =>
+  _.remove((tool: Tool) => isToolHidden(tool.label, cloudProvider, getCurrentApp(tool.label, apps)))(
     (cloudRuntimeTools[cloudProvider] as readonly Tool[]).concat(cloudAppTools[cloudProvider] as readonly Tool[])
   );
 
@@ -222,7 +224,11 @@ export const allAppTypes: AppToolLabel[] = _.flow(_.map('label'), _.compact)(app
 export const isPauseSupported = (toolLabel: ToolLabel): boolean =>
   !_.find((tool: AppTool | RuntimeTool) => tool.label === toolLabel)(tools)?.isPauseUnsupported;
 
-export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider): boolean =>
+export const isToolHidden = (
+  toolLabel: ToolLabel,
+  cloudProvider: CloudProvider,
+  currentApp: App | undefined
+): boolean =>
   Utils.cond(
     [
       toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.GCP && !isCromwellAppVisible(),
@@ -233,6 +239,19 @@ export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider)
         (cloudProvider === cloudProviderTypes.GCP || !isFeaturePreviewEnabled('hail-batch-azure')),
       () => true,
     ],
+    [
+      toolLabel === appToolLabels.CROMWELL &&
+        cloudProvider === cloudProviderTypes.AZURE &&
+        isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS),
+      () => true,
+    ],
+    [
+      toolLabel === appToolLabels.CROMWELL_RUNNER_APP &&
+        cloudProvider === cloudProviderTypes.AZURE &&
+        (!isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS) || !currentApp),
+      () => true,
+    ],
+    [toolLabel === appToolLabels.WORKFLOWS_APP, () => true],
     [Utils.DEFAULT, () => false]
   );
 

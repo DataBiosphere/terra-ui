@@ -736,7 +736,7 @@ describe('CloudEnvironmentModal', () => {
 });
 
 describe('renderToolButtons', () => {
-  it('should render PeriodicAzureCookieSetter for Cromwell', async () => {
+  it('should not render PeriodicAzureCookieSetter for Cromwell', async () => {
     // Arrange
     const mockRuntimes: Partial<RuntimesContract> = {
       invalidateCookie: jest.fn(),
@@ -759,7 +759,7 @@ describe('renderToolButtons', () => {
     render(h(CloudEnvironmentModal, testProps));
 
     // Assert
-    expect(PeriodicAzureCookieSetter).toHaveBeenCalled();
+    expect(PeriodicAzureCookieSetter).not.toHaveBeenCalled();
   });
   it('should render PeriodicAzureCookieSetter for Hail Batch', async () => {
     // Arrange

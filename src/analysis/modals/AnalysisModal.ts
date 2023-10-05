@@ -239,6 +239,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const renderAppModal = (appModalBase, toolLabel) =>
       h(appModalBase, {
         isOpen: viewMode === toolLabel,
+        appLabel: toolLabel,
         workspace,
         apps,
         appDataDisks,
@@ -269,12 +270,14 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const currentApps: Record<AvailableAppToolLabel, App | undefined> = {
       GALAXY: currentApp(appToolLabels.GALAXY),
       CROMWELL: currentApp(appToolLabels.CROMWELL),
+      CROMWELL_RUNNER_APP: currentApp(appToolLabels.CROMWELL_RUNNER_APP),
       HAIL_BATCH: currentApp(appToolLabels.HAIL_BATCH),
     };
 
     const appDisabledMessages: Record<AvailableAppToolLabel, string> = {
       GALAXY: 'You already have a Galaxy environment',
       CROMWELL: 'You already have a Cromwell instance',
+      CROMWELL_RUNNER_APP: 'You already have a Cromwell Runner instance',
       HAIL_BATCH: 'You already have a Hail Batch instance',
     };
 
@@ -288,11 +291,12 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       }),
       GALAXY: img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: 139 }) }),
       CROMWELL: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image }),
+      CROMWELL_RUNNER_APP: img({ src: cromwellImg, alt: 'Create new Cromwell Runner app', style: styles.image }),
       HAIL_BATCH: img({ src: hailLogo, alt: 'Create new Hail Batch app', style: styles.image }),
     };
 
     const runtimeToolButtons = availableRuntimeTools.map((runtimeTool) => {
-      return !isToolHidden(runtimeTool.label, cloudProvider)
+      return !isToolHidden(runtimeTool.label, cloudProvider, undefined)
         ? h(
             Clickable,
             {
@@ -312,7 +316,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const appToolButtons = availableAppTools.map((appTool) => {
       const currentApp = currentApps[appTool.label];
-      return !isToolHidden(appTool.label, cloudProvider)
+      return !isToolHidden(appTool.label, cloudProvider, currentApp)
         ? h(
             Clickable,
             {

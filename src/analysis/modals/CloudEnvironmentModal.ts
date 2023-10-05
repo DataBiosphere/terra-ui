@@ -51,6 +51,8 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
@@ -141,6 +143,7 @@ export const CloudEnvironmentModal = ({
   const renderAppModal = (appModalBase: Component<any>, appMode: ToolLabel | undefined): ReactElement<any> =>
     h(appModalBase, {
       isOpen: viewMode === appMode,
+      appLabel: appMode,
       workspace,
       apps,
       appDataDisks,
@@ -154,7 +157,9 @@ export const CloudEnvironmentModal = ({
       { style: { display: 'flex', flexDirection: 'column', flex: 1 } },
       filterForTool
         ? [renderToolButtons(tools[filterForTool].label, cloudProvider)]
-        : getToolsToDisplayForCloudProvider(cloudProvider).map((tool) => renderToolButtons(tool.label, cloudProvider))
+        : getToolsToDisplayForCloudProvider(cloudProvider, apps).map((tool) =>
+            renderToolButtons(tool.label, cloudProvider)
+          )
     );
 
   const toolPanelStyles = {
@@ -367,6 +372,7 @@ export const CloudEnvironmentModal = ({
       [appToolLabels.GALAXY, () => galaxyLogo],
       [runtimeToolLabels.RStudio, () => rstudioBioLogo],
       [appToolLabels.CROMWELL, () => cromwellImg],
+      [appToolLabels.CROMWELL_RUNNER_APP, () => cromwellImg],
       [appToolLabels.HAIL_BATCH, () => hailLogo],
       [runtimeToolLabels.JupyterLab, () => jupyterLogo]
     );
@@ -402,9 +408,17 @@ export const CloudEnvironmentModal = ({
     // - For GCP, apps are all behind a centralized Leo proxy; leoCookieReady stores whether a cookie has been set in Leo's domain.
 
     const cookieReady = Utils.cond(
+      [
+        (cloudProvider === cloudProviderTypes.AZURE && toolLabel === appToolLabels.CROMWELL) ||
+          toolLabel === appToolLabels.CROMWELL_RUNNER_APP,
+        () => leoCookieReady,
+      ],
       [cloudProvider === cloudProviderTypes.AZURE && toolLabel in appToolLabels, () => azureCookieReady.readyForApp],
       [Utils.DEFAULT, () => leoCookieReady]
     );
+
+    const cromwellSupportedForUser =
+      canCompute && doesWorkspaceSupportCromwellAppForUser(workspace.workspace, cloudProvider, toolLabel);
 
     const isDisabled =
       !doesCloudEnvForToolExist ||
@@ -413,7 +427,8 @@ export const CloudEnvironmentModal = ({
       busy ||
       isToolBusy ||
       !isLaunchSupported(toolLabel) ||
-      !doesWorkspaceSupportCromwellAppForUser(workspace.workspace, cloudProvider, toolLabel);
+      !cromwellSupportedForUser;
+
     const baseProps = {
       'aria-label': `Launch ${toolLabel}`,
       disabled: isDisabled,
@@ -426,8 +441,9 @@ export const CloudEnvironmentModal = ({
       tooltip: Utils.cond(
         [!!doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
         [
-          isDisabled && !doesWorkspaceSupportCromwellAppForUser(workspace.workspace, cloudProvider, toolLabel),
-          () => getCromwellUnsupportedMessage(),
+          !cromwellSupportedForUser,
+          () =>
+            canCompute ? getCromwellUnsupportedMessage() : 'Cannot launch Cromwell Runner without compute permission',
         ],
         [
           !!doesCloudEnvForToolExist && isDisabled && isLaunchSupported(toolLabel),
@@ -471,6 +487,24 @@ export const CloudEnvironmentModal = ({
             onClick: () => {
               onDismiss();
               Metrics(signal).captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
+            },
+          };
+        },
+      ],
+      [
+        appToolLabels.CROMWELL_RUNNER_APP,
+        () => {
+          return {
+            ...baseProps,
+            ...cromwellLinkProps({
+              cloudProvider,
+              namespace,
+              app,
+              name,
+            }),
+            onClick: () => {
+              onDismiss();
+              Metrics(signal).captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL_RUNNER_APP.label });
             },
           };
         },
@@ -524,10 +558,6 @@ export const CloudEnvironmentModal = ({
       // We cannot attach the periodic cookie setter until we have a running Cromwell app for Azure because the relay is not guaranteed to be ready until then
       app?.cloudContext?.cloudProvider === cloudProviderTypes.AZURE && app?.status === 'RUNNING'
         ? Utils.cond(
-            [
-              toolLabel === appToolLabels.CROMWELL,
-              () => h(PeriodicAzureCookieSetter, { proxyUrl: app.proxyUrls['cbas-ui'], forApp: true }),
-            ],
             [
               toolLabel === appToolLabels.HAIL_BATCH,
               () => {
@@ -616,6 +646,13 @@ export const CloudEnvironmentModal = ({
       viewMode,
       [runtimeToolLabels.JupyterLab, () => renderAzureModal(runtimeToolLabels.JupyterLab)],
       [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)],
+      [
+        appToolLabels.CROMWELL_RUNNER_APP,
+        () =>
+          isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS)
+            ? renderAppModal(CromwellModalBase, appToolLabels.CROMWELL_RUNNER_APP)
+            : renderDefaultPage(),
+      ],
       [appToolLabels.HAIL_BATCH, () => renderAppModal(HailBatchModal, appToolLabels.HAIL_BATCH)],
       [Utils.DEFAULT, renderDefaultPage]
     );
@@ -629,6 +666,7 @@ export const CloudEnvironmentModal = ({
     [runtimeToolLabels.RStudio, () => 675],
     [appToolLabels.GALAXY, () => 675],
     [appToolLabels.CROMWELL, () => 675],
+    [appToolLabels.CROMWELL_RUNNER_APP, () => 675],
     [appToolLabels.HAIL_BATCH, () => 675],
     [runtimeToolLabels.JupyterLab, () => 675],
     [Utils.DEFAULT, () => 430]

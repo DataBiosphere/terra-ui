@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -25,6 +25,18 @@ const defaultCromwellProps = {
   onDismiss: () => {},
   onError: () => {},
   onSuccess,
+  appLabel: appToolLabels.CROMWELL,
+  apps: [],
+  workspace: defaultAzureWorkspace,
+  isOpen: true,
+  onExited: () => {},
+};
+
+const defaultCromwellRunnerAppProps = {
+  onDismiss: () => {},
+  onError: () => {},
+  onSuccess,
+  appLabel: appToolLabels.CROMWELL_RUNNER_APP,
   apps: [],
   workspace: defaultAzureWorkspace,
   isOpen: true,
@@ -68,26 +80,20 @@ describe('CromwellModal', () => {
     screen.getByText('Create');
   });
 
-  it('Use new WORKFLOW apps when feature flag is enabled', async () => {
+  it('Use new CROMWELL_RUNNER app when feature flag is enabled', async () => {
     // Arrange
     const user = userEvent.setup();
     const createFunc = createAppV2Func();
     asMockedFn(isFeaturePreviewEnabled).mockImplementation((key) => {
-      return key === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS;
+      return key === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS;
     });
 
     // Act
-    render(h(CromwellModal, defaultCromwellProps));
+    render(h(CromwellModal, defaultCromwellRunnerAppProps));
 
     const createButton = screen.getByText('Create');
     await user.click(createButton);
 
-    expect(createFunc).toHaveBeenCalledWith(
-      expect.anything(),
-      defaultAzureWorkspace.workspace.workspaceId,
-      appToolLabels.WORKFLOWS_APP,
-      appAccessScopes.WORKSPACE_SHARED
-    );
     expect(createFunc).toHaveBeenCalledWith(
       expect.anything(),
       defaultAzureWorkspace.workspace.workspaceId,
@@ -97,7 +103,7 @@ describe('CromwellModal', () => {
     expect(onSuccess).toHaveBeenCalled();
   });
 
-  it('Use old CROMWELL app when feature flag is not enabled', async () => {
+  it('Prevent creation of CROMWELL_RUNNER app in CROMWELL_RUNNER modal when feature flag is not enabled', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -107,17 +113,12 @@ describe('CromwellModal', () => {
     });
 
     // Act
-    render(h(CromwellModal, defaultCromwellProps));
+    render(h(CromwellModal, defaultCromwellRunnerAppProps));
 
     const createButton = screen.getByText('Create');
     await user.click(createButton);
 
-    expect(createFunc).toHaveBeenCalledWith(
-      expect.anything(),
-      defaultAzureWorkspace.workspace.workspaceId,
-      appToolLabels.CROMWELL,
-      appAccessScopes.USER_PRIVATE
-    );
-    expect(onSuccess).toHaveBeenCalled();
+    expect(createFunc).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
   });
 });

@@ -49,6 +49,7 @@ import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -135,6 +136,7 @@ export const ContextBar = ({
       [runtimeToolLabels.Jupyter, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
       [appToolLabels.GALAXY, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
       [appToolLabels.CROMWELL, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
+      [appToolLabels.CROMWELL_RUNNER_APP, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
       [appToolLabels.HAIL_BATCH, () => img({ src: hailLogo, style: { height: 45, width: 45 }, alt: '' })],
       [runtimeToolLabels.RStudio, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
       [runtimeToolLabels.JupyterLab, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
@@ -196,20 +198,25 @@ export const ContextBar = ({
   };
 
   const getEnvironmentStatusIcons = () => {
+    const cromwellAppLabel = isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS)
+      ? appToolLabels.CROMWELL_RUNNER_APP
+      : appToolLabels.CROMWELL;
+
     const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps);
-    const cromwellAppObject = getCurrentApp(appTools.CROMWELL.label, apps);
+    const cromwellAppObject = getCurrentApp(appTools[cromwellAppLabel].label, apps);
 
     const cromwellApp =
-      !isToolHidden(appTools.CROMWELL.label, cloudProvider) &&
+      !isToolHidden(appTools[cromwellAppLabel].label, cloudProvider, cromwellAppObject) &&
       cromwellAppObject &&
-      doesWorkspaceSupportCromwellAppForUser(workspace?.workspace, cloudProvider, appTools.CROMWELL.label);
+      doesWorkspaceSupportCromwellAppForUser(workspace?.workspace, cloudProvider, appTools[cromwellAppLabel].label);
 
     const hailBatchAppObject = getCurrentApp(appTools.HAIL_BATCH.label, apps);
-    const hailBatchApp = !isToolHidden(appTools.HAIL_BATCH.label, cloudProvider) && hailBatchAppObject;
+    const hailBatchApp =
+      !isToolHidden(appTools.HAIL_BATCH.label, cloudProvider, hailBatchAppObject) && hailBatchAppObject;
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
       ...(galaxyApp ? [getIconForTool(appToolLabels.GALAXY, galaxyApp.status)] : []),
-      ...(cromwellApp ? [getIconForTool(appToolLabels.CROMWELL, cromwellAppObject.status)] : []),
+      ...(cromwellApp ? [getIconForTool(cromwellAppLabel, cromwellAppObject.status)] : []),
       ...(hailBatchApp ? [getIconForTool(appToolLabels.HAIL_BATCH, hailBatchApp.status)] : []),
     ]);
   };

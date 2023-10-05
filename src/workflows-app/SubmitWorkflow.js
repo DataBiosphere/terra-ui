@@ -7,7 +7,7 @@ import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS, ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus } from 'src/libs/state';
 import * as Style from 'src/libs/style';
@@ -39,6 +39,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       workspace,
       workspace: {
         workspace: { workspaceId },
+        canCompute,
       },
       analysesData,
       analysesData: { apps, refreshApps },
@@ -52,7 +53,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
     const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps) || getCurrentApp(appToolLabels.WORKFLOWS_APP, apps);
     const pageReady = cbasReady && currentApp && !getIsAppBusy(currentApp);
-    const launcherDisabled = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady);
+    const launcherDisabled = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady) || !canCompute;
 
     // poll if we're missing CBAS proxy url and stop polling when we have it
     usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState'), {
@@ -94,12 +95,6 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
             appToolLabels.WORKFLOWS_APP,
             appAccessScopes.WORKSPACE_SHARED
           );
-          await Ajax().Apps.createAppV2(
-            generateAppName(),
-            workspace.workspace.workspaceId,
-            appToolLabels.CROMWELL_RUNNER_APP,
-            appAccessScopes.USER_PRIVATE
-          );
         } else {
           await Ajax().Apps.createAppV2(generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL, appAccessScopes.USER_PRIVATE);
         }
@@ -133,7 +128,11 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       [loading, () => centeredSpinner()],
       [pageReady, () => renderSubmitWorkflow()],
       [
-        doesWorkspaceSupportCromwellAppForUser(workspace.workspace, getCloudProviderFromWorkspace(workspace), appToolLabels.CROMWELL),
+        doesWorkspaceSupportCromwellAppForUser(
+          workspace.workspace,
+          getCloudProviderFromWorkspace(workspace),
+          isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS) ? appToolLabels.WORKFLOWS_APP : appToolLabels.CROMWELL
+        ),
         () => h(WorkflowsAppNavPanel, { pageReady, launcherDisabled, loading, createWorkflowsApp }),
       ],
       [Utils.DEFAULT, () => div({ style: { ...styles.card, width: '50rem', margin: '2rem 4rem' } }, [getCromwellUnsupportedMessage()])]

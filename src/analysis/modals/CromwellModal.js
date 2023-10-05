@@ -11,12 +11,11 @@ import { Ajax } from 'src/libs/ajax';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
-import { useStore, withDisplayName } from 'src/libs/react-utils';
-import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
+import { withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes, getCloudProviderFromWorkspace, isAzureWorkspace } from 'src/libs/workspace-utils';
-import { cromwellLinkProps } from 'src/workflows-app/utils/app-utils';
+import { getCloudProviderFromWorkspace, isAzureWorkspace } from 'src/libs/workspace-utils';
+import { cromwellLinkProps, getCromwellUnsupportedMessage } from 'src/workflows-app/utils/app-utils';
 
 import { computeStyles } from './modalStyles';
 
@@ -38,36 +37,29 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
     workspace: {
       workspace: { namespace, bucketName, name: workspaceName, googleProject },
     },
+    appLabel,
     shouldHideCloseButton = true,
   }) => {
-    const app = getCurrentApp(appTools.CROMWELL.label, apps);
+    const app = getCurrentApp(appTools[appLabel].label, apps);
+    const canCreate = Utils.switchCase(
+      appLabel,
+      [appToolLabels.CROMWELL, () => true],
+      [appToolLabels.CROMWELL_RUNNER_APP, () => isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS)]
+    );
+    const appReady = app.status === 'RUNNING';
     const [loading, setLoading] = useState(false);
-    const currentDataDisk = getCurrentAppDataDisk(appTools.CROMWELL.label, apps, appDataDisks, workspaceName);
-    const leoCookieReady = useStore(cookieReadyStore);
-    const azureCookieReady = useStore(azureCookieReadyStore);
+    const currentDataDisk = getCurrentAppDataDisk(appTools[appLabel].label, apps, appDataDisks, workspaceName);
     const cloudProvider = getCloudProviderFromWorkspace(workspace);
 
     const createCromwell = _.flow(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error creating Cromwell', onError)
     )(async () => {
+      if (!canCreate || app) {
+        return;
+      }
       if (isAzureWorkspace(workspace)) {
-        if (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS)) {
-          await Ajax().Apps.createAppV2(
-            generateAppName(),
-            workspace.workspace.workspaceId,
-            appToolLabels.WORKFLOWS_APP,
-            appAccessScopes.WORKSPACE_SHARED
-          );
-          await Ajax().Apps.createAppV2(
-            generateAppName(),
-            workspace.workspace.workspaceId,
-            appToolLabels.CROMWELL_RUNNER_APP,
-            appAccessScopes.USER_PRIVATE
-          );
-        } else {
-          await Ajax().Apps.createAppV2(generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL, appAccessScopes.USER_PRIVATE);
-        }
+        await Ajax().Apps.createAppV2(generateAppName(), workspace.workspace.workspaceId, appLabel, appAccessScopes.USER_PRIVATE);
       } else {
         await Ajax()
           .Apps.app(googleProject, generateAppName())
@@ -82,17 +74,13 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
           });
       }
 
-      await Ajax().Metrics.captureEvent(Events.applicationCreate, { app: appTools.CROMWELL.label, ...extractWorkspaceDetails(workspace) });
+      await Ajax().Metrics.captureEvent(Events.applicationCreate, { app: appLabel, ...extractWorkspaceDetails(workspace) });
       return onSuccess();
     });
 
     const renderActionButton = () => {
-      const cookieReady = Utils.cond(
-        [cloudProvider === cloudProviderTypes.AZURE, () => azureCookieReady.readyForApp],
-        [Utils.DEFAULT, () => leoCookieReady]
-      );
       return !app
-        ? h(ButtonPrimary, { onClick: createCromwell }, ['Create'])
+        ? h(ButtonPrimary, { disabled: !canCreate, tooltip: !canCreate && getCromwellUnsupportedMessage(), onClick: createCromwell }, ['Create'])
         : h(
             ButtonPrimary,
             {
@@ -102,14 +90,14 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
                 app,
                 name: workspaceName,
               }),
-              disabled: !cookieReady,
-              tooltip: Utils.cond([cookieReady, () => 'Open'], [Utils.DEFAULT, () => 'Please wait until Cromwell is running']),
+              disabled: !appReady,
+              tooltip: Utils.cond([appReady, () => 'Open'], [Utils.DEFAULT, () => 'Please wait until Cromwell is running']),
               onClick: () => {
                 onDismiss();
                 Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
               },
             },
-            ['Open Cromwell']
+            ['Open workflows tab']
           );
     };
 
@@ -117,7 +105,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
       return div({ style: computeStyles.drawerContent }, [
         h(TitleBar, {
           id: titleId,
-          title: 'Cromwell Cloud Environment',
+          title: `${_.startCase(_.lowerCase(appLabel))} Cloud Environment`,
           hideCloseButton: shouldHideCloseButton,
           style: { marginBottom: '0.5rem' },
           onDismiss,
