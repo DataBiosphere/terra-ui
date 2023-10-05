@@ -8,6 +8,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonSecondary, Link, Select } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
+import { InfoBox } from 'src/components/InfoBox';
 import { DelayedSearchInput } from 'src/components/input';
 import {
   addCountSuffix,
@@ -17,7 +18,6 @@ import {
   statusType,
   submissionDetailsBreadcrumbSubtitle,
 } from 'src/components/job-common';
-import { InfoBox } from 'src/components/PopupTrigger';
 import { SimpleTabBar } from 'src/components/tabBars';
 import { FlexTable, flexTableDefaultRowHeight, Sortable, TextCell, TooltipCell } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';

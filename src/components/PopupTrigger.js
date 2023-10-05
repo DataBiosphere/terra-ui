@@ -3,15 +3,12 @@ import _ from 'lodash/fp';
 import { Children, cloneElement, Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { div, h, hr } from 'react-hyperscript-helpers';
 import onClickOutside from 'react-onclickoutside';
-import { FocusTrapper } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { VerticalNavigation } from 'src/components/keyboard-nav';
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils';
 import colors from 'src/libs/colors';
 import { forwardRefWithName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
-
-export { InfoBox } from 'src/components/InfoBox';
 
 const styles = {
   popup: {
