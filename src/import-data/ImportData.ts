@@ -34,7 +34,7 @@ import { useImportRequest } from './useImportRequest';
 const getTitleForImportRequest = (importRequest: ImportRequest): string => {
   switch (importRequest.type) {
     case 'tdr-snapshot-export':
-      return `Importing snapshot ${importRequest.snapshotName}`;
+      return `Importing snapshot ${importRequest.snapshot.name}`;
     case 'tdr-snapshot-reference':
     case 'catalog-dataset':
     case 'catalog-snapshots':
@@ -110,7 +110,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
       const wdsDataTableProvider = new WdsDataTableProvider(workspace.workspaceId, wdsUrl);
 
       // call import snapshot
-      wdsDataTableProvider.importTdr(workspace.workspaceId, importRequest.snapshotId);
+      wdsDataTableProvider.importTdr(workspace.workspaceId, importRequest.snapshot.id);
     }
     const { namespace, name } = workspace;
     const { jobId } = await Ajax()
@@ -157,7 +157,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     } else {
       await Ajax()
         .Workspaces.workspace(namespace, name)
-        .importSnapshot(importRequest.snapshotId, normalizeSnapshotName(importRequest.snapshotName));
+        .importSnapshot(importRequest.snapshot.id, normalizeSnapshotName(importRequest.snapshot.name));
       notify('success', 'Snapshot imported successfully.', { timeout: 3000 });
     }
   };

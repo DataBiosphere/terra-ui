@@ -1,3 +1,5 @@
+import { Snapshot } from 'src/libs/ajax/DataRepo';
+
 export interface PFBImportRequest {
   type: 'pfb';
   url: URL;
@@ -18,15 +20,13 @@ export type FileImportRequest = PFBImportRequest | BagItImportRequest | Entities
 export interface TDRSnapshotExportImportRequest {
   type: 'tdr-snapshot-export';
   manifestUrl: URL;
-  snapshotId: string;
-  snapshotName: string;
+  snapshot: Snapshot;
   syncPermissions: boolean;
 }
 
 export interface TDRSnapshotReferenceImportRequest {
   type: 'tdr-snapshot-reference';
-  snapshotId: string;
-  snapshotName: string;
+  snapshot: Snapshot;
 }
 
 export interface CatalogDatasetImportRequest {

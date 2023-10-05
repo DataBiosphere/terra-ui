@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
+import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
 import { useRoute } from 'src/libs/nav';
 import { fetchDataCatalog } from 'src/pages/library/dataBrowser-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -24,6 +25,14 @@ jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
 type AjaxExports = typeof import('src/libs/ajax');
 type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 jest.mock('src/libs/ajax');
+
+type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
+jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
+  return {
+    ...jest.requireActual<DataRepoExports>('src/libs/ajax/DataRepo'),
+    DataRepo: jest.fn(),
+  };
+});
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock('src/libs/nav', (): NavExports => {
@@ -50,12 +59,39 @@ jest.mock('src/pages/library/dataBrowser-utils', (): DataBrowserUtilsExports => 
   };
 });
 
+const snapshotFixture: Snapshot = {
+  id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+  name: 'test-snapshot',
+  source: [
+    {
+      dataset: {
+        id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+        name: 'test-dataset',
+        secureMonitoringEnabled: false,
+      },
+    },
+  ],
+  cloudPlatform: 'gcp',
+};
+
 interface SetupOptions {
   queryParams: { [key: string]: unknown };
 }
 
 const setup = async (opts: SetupOptions) => {
   const { queryParams } = opts;
+
+  const mockDataRepo = {
+    snapshot: (snapshotId: string): Partial<ReturnType<DataRepoContract['snapshot']>> => ({
+      details: jest.fn().mockImplementation(() => {
+        if (snapshotId === snapshotFixture.id) {
+          return snapshotFixture;
+        }
+        throw new Response('{"message":"Snapshot not found"}', { status: 404 });
+      }),
+    }),
+  };
+  asMockedFn(DataRepo).mockReturnValue(mockDataRepo as unknown as DataRepoContract);
 
   const exportDataset = jest.fn().mockResolvedValue(undefined);
 
@@ -92,6 +128,7 @@ const setup = async (opts: SetupOptions) => {
     Catalog: {
       exportDataset,
     },
+    DataRepo: mockDataRepo,
     FirecloudBucket: {
       getTemplateWorkspaces: jest.fn().mockResolvedValue([]),
     },
@@ -227,7 +264,6 @@ describe('ImportData', () => {
       const queryParams = {
         format: 'tdrexport',
         snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
-        snapshotName: 'test-snapshot',
         tdrmanifest: 'https://example.com/path/to/manifest.json',
         tdrSyncPermissions: 'true',
         url: 'https://data.terra.bio',
@@ -277,7 +313,6 @@ describe('ImportData', () => {
         const queryParams = {
           format: 'snapshot',
           snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
-          snapshotName: 'test-snapshot',
         };
         const { getWorkspaceApi, importSnapshot } = await setup({ queryParams });
 
@@ -290,7 +325,7 @@ describe('ImportData', () => {
           defaultGoogleWorkspace.workspace.name
         );
 
-        expect(importSnapshot).toHaveBeenCalledWith(queryParams.snapshotId, queryParams.snapshotName);
+        expect(importSnapshot).toHaveBeenCalledWith(queryParams.snapshotId, snapshotFixture.name);
       });
     });
   });
