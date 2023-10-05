@@ -7,6 +7,13 @@ import { WorkspaceMigrationInfo } from 'src/pages/workspaces/migration/migration
 
 export const WorkspaceItem = (workspace: WorkspaceMigrationInfo) => {
   const renderMigrationState = () => {
+    const getTransferProgress = (transferType, processed, total) => {
+      if (total === 0) {
+        return `${transferType} Bucket Transfer`;
+      }
+      return `${transferType} Transfer in Progress (${Utils.formatBytes(processed)}/${Utils.formatBytes(total)})`;
+    };
+
     const text = Utils.cond(
       [
         workspace.outcome === 'failure',
@@ -27,7 +34,37 @@ export const WorkspaceItem = (workspace: WorkspaceMigrationInfo) => {
           ]),
       ],
       [workspace.outcome === 'success', () => span(['Migration Complete'])],
-      [workspace.migrationStep !== 'Unscheduled', span(['Migration in Progress'])]
+      [workspace.migrationStep === 'ScheduledForMigration', () => span(['Starting Migration'])],
+      [workspace.migrationStep === 'PreparingTransferToTempBucket', () => span(['Preparing Original Bucket'])],
+      [
+        workspace.migrationStep === 'TransferringToTempBucket',
+        () =>
+          span([
+            getTransferProgress(
+              'Initial',
+              workspace.tempBucketTransferProgress?.bytesTransferred,
+              workspace.tempBucketTransferProgress?.totalBytesToTransfer
+            ),
+          ]),
+      ],
+      [workspace.migrationStep === 'PreparingTransferToFinalBucket', () => span(['Creating Destination Bucket'])],
+      [
+        workspace.migrationStep === 'TransferringToFinalBucket',
+        () =>
+          span([
+            getTransferProgress(
+              'Final',
+              workspace.finalBucketTransferProgress?.bytesTransferred,
+              workspace.finalBucketTransferProgress?.totalBytesToTransfer
+            ),
+          ]),
+      ],
+      // If workspace.outcome === 'success', we end earlier with a "Migration Complete" message.
+      // Therefor we shouldn't encounter 'Finished' here, but handling it in case `outcome` updates later.
+      [
+        workspace.migrationStep === 'FinishingUp' || workspace.migrationStep === 'Finished',
+        () => span(['Finishing Migration']),
+      ]
     );
     const statusIcon = Utils.cond(
       [

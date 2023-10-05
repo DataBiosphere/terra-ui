@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 
 export type MigrationStep = ServerMigrationStep | 'Unscheduled';
 
-export type MigrationOutcome = 'success' | 'failure' | 'in progress';
+export type MigrationOutcome = 'success' | 'failure';
 
 interface TransferProgress {
   totalBytesToTransfer: number;
@@ -38,9 +38,9 @@ type ServerMigrationStep =
 
 interface ServerMigrationStatus {
   migrationStep: ServerMigrationStep;
-  outcome: 'success' | { failure: string };
-  tempBucketTransferProgress: TransferProgress;
-  finalBucketTransferProgress: TransferProgress;
+  outcome?: 'success' | { failure: string };
+  tempBucketTransferProgress?: TransferProgress;
+  finalBucketTransferProgress?: TransferProgress;
 }
 
 export const parseServerResponse = (
@@ -70,19 +70,18 @@ export const parseServerResponse = (
     const sortedWorkspaces = _.orderBy([({ name }) => _.lowerCase(name)], ['asc'], workspacesByNamespace[namespace]);
     // Transform the information
     const expandedWorkspaces: WorkspaceMigrationInfo[] = _.map(({ name, status }) => {
-      if (!_.isObjectLike(status)) {
+      if (status === null) {
         return { namespace, name, migrationStep: 'Unscheduled' };
       }
-      const serverStatus = status as ServerMigrationStatus;
+
       return {
         namespace,
         name,
-        migrationStep: serverStatus.migrationStep ?? 'Unscheduled',
-        outcome:
-          serverStatus.outcome === 'success' ? 'success' : _.isObject(serverStatus.outcome) ? 'failure' : undefined,
-        failureReason: _.isObject(serverStatus.outcome) ? JSON.parse(serverStatus.outcome.failure).message : undefined,
-        tempBucketTransferProgress: serverStatus.tempBucketTransferProgress,
-        finalBucketTransferProgress: serverStatus.finalBucketTransferProgress,
+        migrationStep: status.migrationStep ?? 'Unscheduled',
+        outcome: status.outcome === 'success' ? 'success' : _.isObject(status.outcome) ? 'failure' : undefined,
+        failureReason: _.isObject(status.outcome) ? JSON.parse(status.outcome.failure).message : undefined,
+        tempBucketTransferProgress: status.tempBucketTransferProgress,
+        finalBucketTransferProgress: status.finalBucketTransferProgress,
       };
     }, sortedWorkspaces);
     return { namespace, workspaces: expandedWorkspaces };
