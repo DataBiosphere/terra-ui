@@ -41,7 +41,7 @@ const setupMockAjax = (termsOfService) => {
   const getFenceStatus = jest.fn();
   const getNihStatus = jest.fn();
 
-  (Ajax as jest.Mock).mockImplementation(() => ({
+  asMockedFn(Ajax).mockImplementation(() => ({
     Metrics: {
       captureEvent: jest.fn(),
     },
