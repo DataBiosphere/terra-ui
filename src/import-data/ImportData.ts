@@ -202,7 +202,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     Ajax().Metrics.captureEvent(Events.workspaceDataImport, {
       format,
       ...extractWorkspaceDetails(workspace),
-      isAnvilData: isAnvilImport('url' in importRequest ? importRequest.url : ''),
+      isAnvilData: 'url' in importRequest ? isAnvilImport(importRequest.url) : undefined,
     });
     Nav.goToPath('workspace-data', { namespace, name });
   });

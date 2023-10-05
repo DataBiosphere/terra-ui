@@ -58,15 +58,12 @@ export const isProtectedSource = (importRequest: ImportRequest): boolean => {
 };
 
 // This method identifies whether an import source is an AnVIL Explorer import
-export const isAnvilImport = (url: string): boolean => {
-  if (!url) {
-    return false;
-  }
+export const isAnvilImport = (url: URL): boolean => {
   const anvilSources = [
     'service.prod.anvil.gi.ucsc.edu',
     'edu-ucsc-gi-platform-anvil-prod-storage-anvilprod.us-east-1',
   ];
-  return anvilSources.some((path) => url.includes(path));
+  return anvilSources.some((path) => url.href.includes(path));
 };
 
 // This method identifies whether a workspace qualifies as protected.
