@@ -94,7 +94,7 @@ const TermsOfServicePage = () => {
       !usageAllowed &&
         !!tosText &&
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => signOut('declinedTos') }, 'Decline and Sign Out'),
+          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: reject }, 'Decline and Sign Out'),
           h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept']),
         ]),
       !acceptedLatestTos &&
