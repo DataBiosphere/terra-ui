@@ -1001,7 +1001,7 @@ const WorkflowView = _.flow(
                     h(
                       LabeledCheckbox,
                       {
-                        disabled: currentSnapRedacted || !!Utils.computeWorkspaceError(ws),
+                        disabled: currentSnapRedacted || !WorkspaceUtils.canRunAnalysisInWorkspace(ws).value,
                         checked: useCallCache,
                         onChange: (v) => this.setState({ useCallCache: v }),
                       },
@@ -1118,8 +1118,9 @@ const WorkflowView = _.flow(
                   ButtonPrimary,
                   {
                     style: { marginLeft: '1rem' },
-                    disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
-                    tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
+                    disabled: !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
+                    tooltip: noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
+                    ...WorkspaceUtils.getWorkspaceAnalysisControlProps(ws),
                     onClick: () => this.setState({ launching: true }),
                   },
                   ['Run analysis']
