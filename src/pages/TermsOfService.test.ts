@@ -19,7 +19,10 @@ const setupMockAjax = (termsOfService) => {
   const getTos = jest.fn().mockReturnValue(Promise.resolve('some text'));
   const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(Promise.resolve(termsOfService));
   const getStatus = jest.fn().mockReturnValue(Promise.resolve({}));
-  Ajax.mockImplementation(() => ({
+  const acceptTos = jest.fn().mockReturnValue(Promise.resolve({ enabled: true }));
+  const rejectTos = jest.fn().mockReturnValue(Promise.resolve({ enabled: true }));
+
+  (Ajax as jest.Mock).mockImplementation(() => ({
     Metrics: {
       captureEvent: jest.fn(),
     },
@@ -30,6 +33,8 @@ const setupMockAjax = (termsOfService) => {
       getTos,
       getTermsOfServiceComplianceStatus,
       getStatus,
+      acceptTos,
+      rejectTos,
     },
   }));
 
@@ -39,6 +44,8 @@ const setupMockAjax = (termsOfService) => {
     getTosFn: getTos,
     getStatusFn: getStatus,
     getTermsOfServiceComplianceStatusFn: getTermsOfServiceComplianceStatus,
+    acceptTosFn: acceptTos,
+    rejectTosFn: rejectTos,
   };
 };
 
@@ -114,5 +121,48 @@ describe('TermsOfService', () => {
 
     const acceptButton = screen.queryByText('Accept');
     expect(acceptButton).not.toBeInTheDocument();
+  });
+  it('calls the acceptTos endpoint when the accept tos button is clicked', async () => {
+    // Arrange
+    const termsOfService = {
+      userHasAcceptedLatestTos: false,
+      permitsSystemUsage: true,
+    };
+
+    const { acceptTosFn } = setupMockAjax(termsOfService);
+
+    // Act
+    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+
+    // Assert
+    const acceptButton = screen.queryByText('Accept');
+    expect(acceptButton).not.toBeInTheDocument();
+    expect(acceptButton).not.toBeNull();
+    if (acceptButton) {
+      acceptButton.click();
+    }
+    expect(acceptTosFn).toHaveBeenCalled();
+  });
+
+  it('calls the acceptTos endpoint when the accept tos button is clicked', async () => {
+    // Arrange
+    const termsOfService = {
+      userHasAcceptedLatestTos: false,
+      permitsSystemUsage: true,
+    };
+
+    const { rejectTosFn } = setupMockAjax(termsOfService);
+
+    // Act
+    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+
+    // Assert
+    const rejectButton = screen.queryByText('Decline');
+    expect(rejectButton).not.toBeInTheDocument();
+    expect(rejectButton).not.toBeNull();
+    if (rejectButton) {
+      rejectButton.click();
+    }
+    expect(rejectTosFn).toHaveBeenCalled();
   });
 });
