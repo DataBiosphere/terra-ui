@@ -5,7 +5,7 @@ import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceMigrationInfo } from 'src/pages/workspaces/migration/migration-utils';
 
-export const WorkspaceItem = (workspace: WorkspaceMigrationInfo) => {
+export const WorkspaceItem = (workspaceInfo: WorkspaceMigrationInfo) => {
   const renderMigrationState = () => {
     const getTransferProgress = (transferType, processed, total) => {
       if (total === 0) {
@@ -16,7 +16,7 @@ export const WorkspaceItem = (workspace: WorkspaceMigrationInfo) => {
 
     const text = Utils.cond(
       [
-        workspace.outcome === 'failure',
+        workspaceInfo.outcome === 'failure',
         () =>
           span({ style: { color: colors.danger() } }, [
             'Migration Failed',
@@ -29,46 +29,46 @@ export const WorkspaceItem = (workspace: WorkspaceMigrationInfo) => {
                 size: 18,
                 iconOverride: undefined,
               },
-              [workspace.failureReason]
+              [workspaceInfo.failureReason]
             ),
           ]),
       ],
-      [workspace.outcome === 'success', () => span(['Migration Complete'])],
-      [workspace.migrationStep === 'ScheduledForMigration', () => span(['Starting Migration'])],
-      [workspace.migrationStep === 'PreparingTransferToTempBucket', () => span(['Preparing Original Bucket'])],
+      [workspaceInfo.outcome === 'success', () => span(['Migration Complete'])],
+      [workspaceInfo.migrationStep === 'ScheduledForMigration', () => span(['Starting Migration'])],
+      [workspaceInfo.migrationStep === 'PreparingTransferToTempBucket', () => span(['Preparing Original Bucket'])],
       [
-        workspace.migrationStep === 'TransferringToTempBucket',
+        workspaceInfo.migrationStep === 'TransferringToTempBucket',
         () =>
           span([
             getTransferProgress(
               'Initial',
-              workspace.tempBucketTransferProgress?.bytesTransferred,
-              workspace.tempBucketTransferProgress?.totalBytesToTransfer
+              workspaceInfo.tempBucketTransferProgress?.bytesTransferred,
+              workspaceInfo.tempBucketTransferProgress?.totalBytesToTransfer
             ),
           ]),
       ],
-      [workspace.migrationStep === 'PreparingTransferToFinalBucket', () => span(['Creating Destination Bucket'])],
+      [workspaceInfo.migrationStep === 'PreparingTransferToFinalBucket', () => span(['Creating Destination Bucket'])],
       [
-        workspace.migrationStep === 'TransferringToFinalBucket',
+        workspaceInfo.migrationStep === 'TransferringToFinalBucket',
         () =>
           span([
             getTransferProgress(
               'Final',
-              workspace.finalBucketTransferProgress?.bytesTransferred,
-              workspace.finalBucketTransferProgress?.totalBytesToTransfer
+              workspaceInfo.finalBucketTransferProgress?.bytesTransferred,
+              workspaceInfo.finalBucketTransferProgress?.totalBytesToTransfer
             ),
           ]),
       ],
       // If workspace.outcome === 'success', we end earlier with a "Migration Complete" message.
       // Therefor we shouldn't encounter 'Finished' here, but handling it in case `outcome` updates later.
       [
-        workspace.migrationStep === 'FinishingUp' || workspace.migrationStep === 'Finished',
+        workspaceInfo.migrationStep === 'FinishingUp' || workspaceInfo.migrationStep === 'Finished',
         () => span(['Finishing Migration']),
       ]
     );
     const statusIcon = Utils.cond(
       [
-        workspace.outcome === 'failure',
+        workspaceInfo.outcome === 'failure',
         () =>
           icon('warning-standard', {
             size: 18,
@@ -76,7 +76,7 @@ export const WorkspaceItem = (workspace: WorkspaceMigrationInfo) => {
           }),
       ],
       [
-        workspace.outcome === 'success',
+        workspaceInfo.outcome === 'success',
         () =>
           icon('check', {
             size: 18,
@@ -84,7 +84,7 @@ export const WorkspaceItem = (workspace: WorkspaceMigrationInfo) => {
           }),
       ],
       [
-        workspace.migrationStep !== 'Unscheduled',
+        workspaceInfo.migrationStep !== 'Unscheduled',
         () =>
           icon('syncAlt', {
             size: 18,
@@ -110,6 +110,6 @@ export const WorkspaceItem = (workspace: WorkspaceMigrationInfo) => {
         borderTop: `1px solid ${colors.dark(0.2)}`,
       },
     },
-    [span([workspace.name]), renderMigrationState()]
+    [span([workspaceInfo.name]), renderMigrationState()]
   );
 };

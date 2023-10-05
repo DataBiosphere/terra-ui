@@ -5,7 +5,7 @@ import colors from 'src/libs/colors';
 import { BillingProjectMigrationInfo } from 'src/pages/workspaces/migration/migration-utils';
 import { WorkspaceItem } from 'src/pages/workspaces/migration/WorkspaceItem';
 
-export const BillingProjectParent = (billingProjectWorkspaces: BillingProjectMigrationInfo) => {
+export const BillingProjectParent = (billingProjectMigrationInfo: BillingProjectMigrationInfo) => {
   return div({ role: 'listitem' }, [
     h(
       Collapse,
@@ -19,10 +19,10 @@ export const BillingProjectParent = (billingProjectWorkspaces: BillingProjectMig
           borderRadius: 5,
           background: 'white',
         },
-        title: div({}, [billingProjectWorkspaces.namespace]),
+        title: div({}, [billingProjectMigrationInfo.namespace]),
         initialOpenState: true,
       },
-      _.map((workspace) => h(WorkspaceItem, workspace), billingProjectWorkspaces.workspaces)
+      _.map((workspace) => h(WorkspaceItem, workspace), billingProjectMigrationInfo.workspaces)
     ),
   ]);
 };
