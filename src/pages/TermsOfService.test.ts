@@ -15,6 +15,23 @@ jest.mock('react-notifications-component', () => {
   };
 });
 
+type NavExports = typeof import('src/libs/nav');
+jest.mock(
+  'src/libs/nav',
+  (): NavExports => ({
+    ...jest.requireActual('src/libs/nav'),
+    goToPath: jest.fn(),
+  })
+);
+type AuthExports = typeof import('src/libs/auth');
+jest.mock(
+  'src/libs/auth',
+  (): AuthExports => ({
+    ...jest.requireActual('src/libs/auth'),
+    signOut: jest.fn(),
+  })
+);
+
 const setupMockAjax = (termsOfService) => {
   const getTos = jest.fn().mockReturnValue(Promise.resolve('some text'));
   const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(Promise.resolve(termsOfService));
@@ -68,7 +85,8 @@ describe('TermsOfService', () => {
     // Assert
     expect(getTosFn).toHaveBeenCalled();
 
-    screen.getByText('some text');
+    const tosText = screen.getByText('some text');
+    expect(tosText).toBeInTheDocument();
   });
 
   it('shows "Continue under grace period" when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
@@ -84,7 +102,8 @@ describe('TermsOfService', () => {
     await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
     // Assert
-    screen.getByText('Continue under grace period');
+    const gracePeriodButton = screen.getByText('Continue under grace period');
+    expect(gracePeriodButton).toBeInTheDocument();
   });
 
   it('does not show "Continue under grace period" when the user has not accepted the latest ToS and is not allowed to use Terra', async () => {
@@ -136,19 +155,19 @@ describe('TermsOfService', () => {
 
     // Assert
     const acceptButton = screen.queryByText('Accept');
-    expect(acceptButton).not.toBeInTheDocument();
+    expect(acceptButton).toBeInTheDocument();
     expect(acceptButton).not.toBeNull();
     if (acceptButton) {
-      acceptButton.click();
+      await act(async () => acceptButton.click());
     }
     expect(acceptTosFn).toHaveBeenCalled();
   });
 
-  it('calls the acceptTos endpoint when the accept tos button is clicked', async () => {
+  it('calls the rejectTos endpoint when the reject tos button is clicked', async () => {
     // Arrange
     const termsOfService = {
       userHasAcceptedLatestTos: false,
-      permitsSystemUsage: true,
+      permitsSystemUsage: false,
     };
 
     const { rejectTosFn } = setupMockAjax(termsOfService);
@@ -157,11 +176,11 @@ describe('TermsOfService', () => {
     await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
     // Assert
-    const rejectButton = screen.queryByText('Decline');
-    expect(rejectButton).not.toBeInTheDocument();
+    const rejectButton = screen.queryByText('Decline and Sign Out');
+    expect(rejectButton).toBeInTheDocument();
     expect(rejectButton).not.toBeNull();
     if (rejectButton) {
-      rejectButton.click();
+      await act(async () => rejectButton.click());
     }
     expect(rejectTosFn).toHaveBeenCalled();
   });
