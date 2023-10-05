@@ -10,14 +10,14 @@ import { signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { useOnMount } from 'src/libs/react-utils';
+import { useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState<boolean>();
-  const { signInStatus, termsOfService } = useStore(authStore.get());
+  const { signInStatus, termsOfService } = useStore(authStore);
   const acceptedLatestTos = signInStatus === 'signedIn' && termsOfService.userHasAcceptedLatestTos;
   const usageAllowed = signInStatus === 'signedIn' && termsOfService.permitsSystemUsage;
   const [tosText, setTosText] = useState<string>();
@@ -35,17 +35,18 @@ const TermsOfServicePage = () => {
   const accept = async () => {
     try {
       setBusy(true);
-      const acceptTosResponse = await Ajax().User.acceptTos();
-      const { enabled } = acceptTosResponse || { enabled: false };
+      const { enabled } = await Ajax().User.acceptTos();
       if (enabled) {
-        const termsOfServiceResponse = await Ajax().User.getTermsOfServiceComplianceStatus();
-        const termsOfService = termsOfServiceResponse || { userHasAcceptedLatestTos: false, permitsSystemUsage: false };
+        const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus();
 
         const registrationStatus = 'registered';
         authStore.update((state) => ({ ...state, registrationStatus, termsOfService }));
         Nav.goToPath('root');
       } else {
-        reportError('Error accepting terms of service, unexpected backend error occurred.', new Error('Unexpected backend error'));
+        reportError(
+          'Error accepting terms of service, unexpected backend error occurred.',
+          new Error('Unexpected backend error')
+        );
       }
     } catch (error) {
       reportError('Error accepting Terms of Service', error);
