@@ -11,7 +11,7 @@ import { Ajax } from 'src/libs/ajax';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOWS } from 'src/libs/feature-previews-config';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
 import { useStore, withDisplayName } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -52,7 +52,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
       withErrorReportingInModal('Error creating Cromwell', onError)
     )(async () => {
       if (isAzureWorkspace(workspace)) {
-        if (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOWS)) {
+        if (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS)) {
           await Ajax().Apps.createAppV2(
             generateAppName(),
             workspace.workspace.workspaceId,

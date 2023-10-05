@@ -1,7 +1,8 @@
 export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
-export const ENABLE_AZURE_COLLABORATIVE_WORKFLOWS = 'enableCollborativeWorkflows';
+export const ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS = 'enableCollborativeWorkflowReaders';
+export const ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS = 'enableCollborativeWorkflowRunners';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -81,12 +82,21 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Hail Batch (Azure)')}`,
   },
   {
-    id: ENABLE_AZURE_COLLABORATIVE_WORKFLOWS,
-    title: 'Azure Collaborative Workflows',
+    id: ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
+    title: 'Azure Collaborative Workflows Read-only',
     description:
-      'Enabling this feature will allow for workspaces to become collaborative with other users to run workflows and read workspace data',
+      'Enabling this feature will allow for Azure workspaces to become collaborative with other users to read workflow data run by workspace owner',
     feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
-      'Feedback on Azure Collaborative Workflows experience.'
+      'Feedback on Azure Collaborative Workflows experience, Phase 1.'
+    )}`,
+  },
+  {
+    id: ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS,
+    title: 'Azure Collaborative Workflows Run-only',
+    description:
+      'Enabling this feature will allow for Azure workspaces to become collaborative with other users to run workflows in workspaces with writer access',
+    feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
+      'Feedback on Azure Collaborative Workflows experience, Phase 2.'
     )}`,
   },
 ];

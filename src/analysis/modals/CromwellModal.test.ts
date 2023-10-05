@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOWS } from 'src/libs/feature-previews-config';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -73,7 +73,7 @@ describe('CromwellModal', () => {
     const user = userEvent.setup();
     const createFunc = createAppV2Func();
     asMockedFn(isFeaturePreviewEnabled).mockImplementation((key) => {
-      return key === ENABLE_AZURE_COLLABORATIVE_WORKFLOWS;
+      return key === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS;
     });
 
     // Act
