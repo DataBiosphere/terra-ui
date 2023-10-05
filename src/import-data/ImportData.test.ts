@@ -1,11 +1,11 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { useRoute } from 'src/libs/nav';
-import { useDataCatalog } from 'src/pages/library/dataBrowser-utils';
+import { fetchDataCatalog } from 'src/pages/library/dataBrowser-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -46,7 +46,7 @@ type DataBrowserUtilsExports = typeof import('src/pages/library/dataBrowser-util
 jest.mock('src/pages/library/dataBrowser-utils', (): DataBrowserUtilsExports => {
   return {
     ...jest.requireActual<DataBrowserUtilsExports>('src/pages/library/dataBrowser-utils'),
-    useDataCatalog: jest.fn(),
+    fetchDataCatalog: jest.fn(),
   };
 });
 
@@ -54,7 +54,7 @@ interface SetupOptions {
   queryParams: { [key: string]: unknown };
 }
 
-const setup = (opts: SetupOptions) => {
+const setup = async (opts: SetupOptions) => {
   const { queryParams } = opts;
 
   const exportDataset = jest.fn().mockResolvedValue(undefined);
@@ -113,6 +113,10 @@ const setup = (opts: SetupOptions) => {
 
   render(h(ImportDataContainer));
 
+  await waitFor(() => {
+    expect(screen.queryByTestId('loading-spinner')).toBeNull();
+  });
+
   return {
     exportDataset,
     getWorkspaceApi,
@@ -143,12 +147,6 @@ describe('ImportData', () => {
       loading: false,
       refresh: () => Promise.resolve(),
     });
-
-    asMockedFn(useDataCatalog).mockReturnValue({
-      dataCatalog: [],
-      loading: false,
-      refresh: () => Promise.resolve(),
-    });
   });
 
   describe('files', () => {
@@ -157,7 +155,7 @@ describe('ImportData', () => {
       const user = userEvent.setup();
 
       const importUrl = 'https://example.com/path/to/file.pfb';
-      const { getWorkspaceApi, importJob } = setup({
+      const { getWorkspaceApi, importJob } = await setup({
         queryParams: {
           format: 'PFB',
           url: importUrl,
@@ -181,7 +179,7 @@ describe('ImportData', () => {
       const user = userEvent.setup();
 
       const importUrl = 'https://example.com/path/to/file.bagit';
-      const { getWorkspaceApi, importBagit } = setup({
+      const { getWorkspaceApi, importBagit } = await setup({
         queryParams: {
           url: importUrl,
         },
@@ -204,7 +202,7 @@ describe('ImportData', () => {
       const user = userEvent.setup();
 
       const importUrl = 'https://example.com/path/to/file.json';
-      const { getWorkspaceApi, importJSON } = setup({
+      const { getWorkspaceApi, importJSON } = await setup({
         queryParams: {
           format: 'entitiesJson',
           url: importUrl,
@@ -239,7 +237,7 @@ describe('ImportData', () => {
         // Arrange
         const user = userEvent.setup();
 
-        const { getWorkspaceApi, importJob } = setup({ queryParams });
+        const { getWorkspaceApi, importJob } = await setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
@@ -257,7 +255,7 @@ describe('ImportData', () => {
         // Arrange
         const user = userEvent.setup();
 
-        const { importTdr, wdsProxyUrl } = setup({ queryParams });
+        const { importTdr, wdsProxyUrl } = await setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultAzureWorkspace.workspace.name);
@@ -281,7 +279,7 @@ describe('ImportData', () => {
           snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
           snapshotName: 'test-snapshot',
         };
-        const { getWorkspaceApi, importSnapshot } = setup({ queryParams });
+        const { getWorkspaceApi, importSnapshot } = await setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
@@ -302,50 +300,46 @@ describe('ImportData', () => {
       // Arrange
       const user = userEvent.setup();
 
+      asMockedFn(fetchDataCatalog).mockResolvedValue([
+        {
+          id: 'aaaabbbb-cccc-dddd-eeee-ffffgggghhhh',
+          'dct:creator': 'testowner',
+          'dct:description': 'A test snapshot',
+          'dct:identifier': '00001111-2222-3333-aaaa-bbbbccccdddd',
+          'dct:issued': '2023-10-02T11:30:00.000000Z',
+          'dct:title': 'test-snapshot-1',
+          'dcat:accessURL':
+            'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/00001111-2222-3333-aaaa-bbbbccccdddd',
+          'TerraDCAT_ap:hasDataCollection': [],
+          accessLevel: 'reader',
+          storage: [],
+          counts: {},
+          samples: {},
+          contributors: [],
+        },
+        {
+          id: '11112222-3333-4444-5555-666677778888',
+          'dct:creator': 'testowner',
+          'dct:description': 'Another test snapshot',
+          'dct:identifier': 'aaaabbbb-cccc-1111-2222-333333333333',
+          'dct:issued': '2023-10-02T11:30:00.000000Z',
+          'dct:title': 'test-snapshot-2',
+          'dcat:accessURL':
+            'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/aaaabbbb-cccc-1111-2222-333333333333',
+          'TerraDCAT_ap:hasDataCollection': [],
+          accessLevel: 'reader',
+          storage: [],
+          counts: {},
+          samples: {},
+          contributors: [],
+        },
+      ]);
+
       const queryParams = {
         format: 'snapshot',
         snapshotIds: ['00001111-2222-3333-aaaa-bbbbccccdddd', 'aaaabbbb-cccc-1111-2222-333333333333'],
       };
-      const { getWorkspaceApi, importSnapshot } = setup({ queryParams });
-
-      asMockedFn(useDataCatalog).mockReturnValue({
-        dataCatalog: [
-          {
-            id: 'aaaabbbb-cccc-dddd-eeee-ffffgggghhhh',
-            'dct:creator': 'testowner',
-            'dct:description': 'A test snapshot',
-            'dct:identifier': '00001111-2222-3333-aaaa-bbbbccccdddd',
-            'dct:issued': '2023-10-02T11:30:00.000000Z',
-            'dct:title': 'test-snapshot-1',
-            'dcat:accessURL':
-              'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/00001111-2222-3333-aaaa-bbbbccccdddd',
-            'TerraDCAT_ap:hasDataCollection': [],
-            accessLevel: 'reader',
-            storage: [],
-            counts: {},
-            samples: {},
-            contributors: [],
-          },
-          {
-            id: '11112222-3333-4444-5555-666677778888',
-            'dct:creator': 'testowner',
-            'dct:description': 'Another test snapshot',
-            'dct:identifier': 'aaaabbbb-cccc-1111-2222-333333333333',
-            'dct:issued': '2023-10-02T11:30:00.000000Z',
-            'dct:title': 'test-snapshot-2',
-            'dcat:accessURL':
-              'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/aaaabbbb-cccc-1111-2222-333333333333',
-            'TerraDCAT_ap:hasDataCollection': [],
-            accessLevel: 'reader',
-            storage: [],
-            counts: {},
-            samples: {},
-            contributors: [],
-          },
-        ],
-        loading: false,
-        refresh: () => Promise.resolve(),
-      });
+      const { getWorkspaceApi, importSnapshot } = await setup({ queryParams });
 
       // Act
       await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
@@ -376,7 +370,7 @@ describe('ImportData', () => {
         format: 'catalog',
         catalogDatasetId: '00001111-2222-3333-aaaa-bbbbccccdddd',
       };
-      const { exportDataset } = setup({ queryParams });
+      const { exportDataset } = await setup({ queryParams });
 
       // Act
       await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
@@ -394,9 +388,9 @@ describe('ImportData', () => {
     { queryParams: { format: 'tdrexport', snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd' } },
   ] as { queryParams: Record<string, any> }[])(
     'renders an error message for invalid import requests',
-    ({ queryParams }) => {
+    async ({ queryParams }) => {
       // Act
-      setup({ queryParams });
+      await setup({ queryParams });
 
       // Assert
       screen.getByText('Invalid import request.');

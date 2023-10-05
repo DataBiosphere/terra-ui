@@ -1,37 +1,36 @@
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
+import { ImportRequest } from './import-types';
 import { isProtectedSource, isProtectedWorkspace } from './protected-data-utils';
 
-const protectedUrls = [
-  { url: 'https://prod.anvil.gi.ucsc.edu/file', format: 'pfb' },
-  { url: 'https://anvilproject.org/file2', format: 'PFB' },
-  { url: 'https://dev.anvil.gi.ucsc.edu/manifest/files', format: 'pFb' },
-  { url: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/explorer', format: 'PFB' },
-  { url: 'https://gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export.s3.amazonaws.com/dataset', format: 'pfB' },
-  { url: 'https://gen3-theanvil-io-pfb-export.s3.amazonaws.com/export_2023-07-07.avro', format: 'PFB' },
+const protectedImports: ImportRequest[] = [
+  // AnVIL production
+  { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/file.pfb') },
+  {
+    type: 'pfb',
+    url: new URL('https://s3.amazonaws.com/edu-ucsc-gi-platform-anvil-prod-storage-anvilprod.us-east-1/file.pfb'),
+  },
+  // AnVIL development
+  { type: 'pfb', url: new URL('https://service.anvil.gi.ucsc.edu/file.pfb') },
+  // BioData Catalyst
+  { type: 'pfb', url: new URL('https://gen3.biodatacatalyst.nhlbi.nih.gov/file.pfb') },
+  { type: 'pfb', url: new URL('https://gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export.s3.amazonaws.com/file.pfb') },
+  { type: 'pfb', url: new URL('https://s3.amazonaws.com/gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export/file.pfb') },
+  { type: 'pfb', url: new URL('https://gen3-theanvil-io-pfb-export.s3.amazonaws.com/file.pfb') },
 ];
 
-const nonProtectedUrls = [
-  { url: 'https://nonanvil.site.org/file', format: 'pfb' },
-  { url: 'https://prod.anvil.gi.ucsc.edu/file', format: 'entitiesJson' },
-  { url: 'https://google.com/file.pfb', format: 'PFB' },
-  { url: 'https://nonanvil.site.org/file', format: 'tdrexport' },
-  { url: 'https://prod.anvil.gi.ucsc.edu/file', format: 'snapshot' },
-  { url: 'https://anvilproject.org/', format: 'catalog' },
-  { url: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/explorer', format: 'snapShot' },
-  { url: 'http://localhost:3000', format: '' },
-  { url: '', format: 'pfb' },
-  { url: null, format: 'PFB' },
-  { url: 'https://example.com/path/to/file', format: undefined },
+const unprotectedImports: ImportRequest[] = [
+  { type: 'pfb', url: new URL('https://example.com/file.pfb') },
+  { type: 'entities', url: new URL('https://service.prod.anvil.gi.ucsc.edu/file.json') },
 ];
 
 describe('isProtectedSource', () => {
-  it.each(protectedUrls)('%o should  be protected', ({ url, format }) => {
-    expect(isProtectedSource(url, format)).toBe(true);
+  it.each(protectedImports)('$url should be protected', (importRequest) => {
+    expect(isProtectedSource(importRequest)).toBe(true);
   });
 
-  it.each(nonProtectedUrls)('%o should not be protected', ({ url, format }) => {
-    expect(isProtectedSource(url!, format)).toBe(false);
+  it.each(unprotectedImports)('$url should not be protected', (importRequest) => {
+    expect(isProtectedSource(importRequest)).toBe(false);
   });
 });
 

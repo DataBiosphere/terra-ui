@@ -1,6 +1,7 @@
 export * from './Clickable';
 export * from './DelayedRender';
 export * from './ErrorBoundary';
+export * from './FocusTrap';
 export * from './hooks/useUniqueId';
 export * from './hooks/useWindowDimensions';
 export * from './icon';

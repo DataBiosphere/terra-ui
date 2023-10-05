@@ -613,7 +613,7 @@ authStore.subscribe(
   withErrorReporting('Error loading NIH account link status', async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
       const nihStatus = await Ajax().User.getNihStatus();
-      authStore.update((state: AuthState) => ({ ...state, nihStatus }));
+      authStore.update((state: AuthState) => ({ ...state, nihStatus, nihStatusLoaded: true }));
     }
   })
 );

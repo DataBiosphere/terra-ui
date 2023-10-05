@@ -29,6 +29,9 @@ export default defineConfig(({ mode }) => {
         // Do not bundle dependencies.
         external: /node_modules/,
         output: {
+          // Handle default exports from CommonJS dependencies.
+          // https://rollupjs.org/configuration-options/#output-interop
+          interop: 'auto',
           paths: (id) => {
             // ES Modules require imports to be fully specified (including extensions).
             // Thus, we need to specify the extension for the fp.js file imported from lodash.

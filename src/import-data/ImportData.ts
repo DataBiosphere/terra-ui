@@ -3,7 +3,6 @@ import { Fragment, ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
-import { Dataset } from 'src/libs/ajax/Catalog';
 import { resolveWdsUrl, WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -14,7 +13,6 @@ import { useOnMount } from 'src/libs/react-utils';
 import { asyncImportJobStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
-import { useDataCatalog } from 'src/pages/library/dataBrowser-utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
 
 import {
@@ -60,26 +58,9 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   const [snapshotResponses, setSnapshotResponses] = useState<{ status: string; message: string | undefined }[]>();
   const [isImporting, setIsImporting] = useState(false);
 
-  const { dataCatalog } = useDataCatalog();
-  const snapshots =
-    importRequest.type === 'catalog-snapshots'
-      ? _.flow(
-          _.filter(
-            (snapshot: Dataset) =>
-              !!snapshot['dct:identifier'] && _.includes(snapshot['dct:identifier'], importRequest.snapshotIds)
-          ),
-          _.map((snapshot) => ({
-            // The previous step filters the list to only datasets with 'dct:identifier' defined
-            id: snapshot['dct:identifier']!,
-            title: snapshot['dct:title'],
-            description: snapshot['dct:description'],
-          }))
-        )(dataCatalog)
-      : [];
-
   const isDataset = !_.includes(format, ['snapshot', 'tdrexport']);
 
-  const isProtectedData = importRequest.type === 'pfb' && isProtectedSource(importRequest.url);
+  const isProtectedData = isProtectedSource(importRequest);
 
   // Normalize the snapshot name:
   // Importing snapshot will throw an "enum" error if the name has any spaces or special characters
@@ -102,20 +83,22 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
 
   const importPFB = async (importRequest: PFBImportRequest, workspace: WorkspaceInfo) => {
     const { namespace, name } = workspace;
-    const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(importRequest.url, 'pfb', null);
+    const { jobId } = await Ajax()
+      .Workspaces.workspace(namespace, name)
+      .importJob(importRequest.url.toString(), 'pfb', null);
     asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
     notifyDataImportProgress(jobId);
   };
 
   const importBagit = async (importRequest: BagItImportRequest, workspace: WorkspaceInfo) => {
     const { namespace, name } = workspace;
-    await Ajax().Workspaces.workspace(namespace, name).importBagit(importRequest.url);
+    await Ajax().Workspaces.workspace(namespace, name).importBagit(importRequest.url.toString());
     notify('success', 'Data imported successfully.', { timeout: 3000 });
   };
 
   const importEntitiesJson = async (importRequest: EntitiesImportRequest, workspace: WorkspaceInfo) => {
     const { namespace, name } = workspace;
-    await Ajax().Workspaces.workspace(namespace, name).importJSON(importRequest.url);
+    await Ajax().Workspaces.workspace(namespace, name).importJSON(importRequest.url.toString());
     notify('success', 'Data imported successfully.', { timeout: 3000 });
   };
 
@@ -132,7 +115,9 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     const { namespace, name } = workspace;
     const { jobId } = await Ajax()
       .Workspaces.workspace(namespace, name)
-      .importJob(importRequest.manifestUrl, 'tdrexport', { tdrSyncPermissions: importRequest.syncPermissions });
+      .importJob(importRequest.manifestUrl.toString(), 'tdrexport', {
+        tdrSyncPermissions: importRequest.syncPermissions,
+      });
     asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
     notifyDataImportProgress(jobId);
   };
@@ -148,7 +133,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
           return Ajax()
             .Workspaces.workspace(namespace, name)
             .importSnapshot(id, normalizeSnapshotName(title), description);
-        }, snapshots)
+        }, importRequest.snapshots)
       );
 
       if (_.some({ status: 'rejected' }, responses)) {
@@ -225,7 +210,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   return h(Fragment, [
     h(ImportDataOverview, {
       header: getTitleForImportRequest(importRequest),
-      snapshots,
+      snapshots: importRequest.type === 'catalog-snapshots' ? importRequest.snapshots : [],
       isDataset,
       snapshotResponses,
       url: 'url' in importRequest ? importRequest.url : undefined,
@@ -250,7 +235,12 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
  */
 export const ImportDataContainer = () => {
   const result = useImportRequest();
-  if (!result.isValid) {
+
+  if (result.status === 'Loading') {
+    return spinnerOverlay;
+  }
+
+  if (result.status === 'Error') {
     return div(
       {
         style: {
