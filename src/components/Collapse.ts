@@ -19,7 +19,7 @@ interface CollapseProps extends Omit<DivProps, 'title'> {
   initialOpenState?: boolean;
   titleFirst?: boolean;
   afterTitle?: ReactNode;
-  onFirstOpen?: () => {};
+  onFirstOpen?: () => void;
   noTitleWrap?: boolean;
   disabled?: boolean;
 }
