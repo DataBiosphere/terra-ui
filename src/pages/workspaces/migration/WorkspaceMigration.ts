@@ -1,21 +1,16 @@
-import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
-import { div, h, h2, p, span } from 'react-hyperscript-helpers';
+import { div, h, h2, p } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import TopBar from 'src/components/TopBar';
-import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
-import { reportErrorAndRethrow } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
-import { useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { BillingProjectParent } from 'src/pages/workspaces/migration/BillingProjectParent';
-import { BillingProjectMigrationInfo, parseServerResponse } from 'src/pages/workspaces/migration/migration-utils';
+import { BillingProjectList } from 'src/pages/workspaces/migration/BillingProjectList';
 
 const MigrationInformation = () => {
   const persistenceId = 'multiregionBucketMigration';
@@ -65,43 +60,12 @@ const MigrationInformation = () => {
   ]);
 };
 
-const ListView = () => {
-  const [loadingMigrationInformation, setLoadingMigrationInformation] = useState(true);
-  const [billingProjectWorkspaces, setBillingProjectWorkspaces] = useState<BillingProjectMigrationInfo[]>([]);
-  const signal = useCancellation();
-  useEffect(() => {
-    const loadWorkspaces = _.flow(
-      reportErrorAndRethrow('Error loading workspace migration information'),
-      Utils.withBusyState(setLoadingMigrationInformation)
-    )(async () => {
-      const migrationResponse = (await Ajax(signal).Workspaces.bucketMigration()) as Record<string, any>;
-      setBillingProjectWorkspaces(parseServerResponse(migrationResponse));
-    });
-    loadWorkspaces();
-  }, [setBillingProjectWorkspaces, signal]);
-
-  return div({ style: { padding: '10px', backgroundColor: colors.light(), flexGrow: 1 } }, [
-    h2({ style: { fontSize: 16, marginLeft: '1rem' } }, ['Billing Projects']),
-    loadingMigrationInformation &&
-      div({ style: { display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [
-        spinner({ size: 36 }),
-        span({ style: { fontSize: 16, marginLeft: '0.5rem', marginTop: '0.5rem', fontStyle: 'italic' } }, [
-          'Fetching billing projects',
-        ]),
-      ]),
-    div(
-      { role: 'list' },
-      _.map((billingProjectWorkspaces) => h(BillingProjectParent, billingProjectWorkspaces), billingProjectWorkspaces)
-    ),
-  ]);
-};
-
 export const WorkspaceMigrationPage = () => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspace Multi-Region Bucket Migrations', href: Nav.getLink('workspace-migration') }, []),
     div({ role: 'main', style: { display: 'flex', flex: '1 1 auto', flexFlow: 'column' } }, [
       h(MigrationInformation, {}),
-      h(ListView, {}),
+      h(BillingProjectList, {}),
     ]),
   ]);
 };
