@@ -19,6 +19,11 @@ export interface SamUserRegistrationStatusResponse {
   enabled: boolean;
 }
 
+export interface SamUserInfo {
+  userSubjectId: string;
+  userEmail: string;
+}
+
 export interface SamUserTosStatusResponse {
   userInfo: {
     userSubjectId: string;

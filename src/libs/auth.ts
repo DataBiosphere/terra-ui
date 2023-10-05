@@ -25,6 +25,7 @@ import {
   getTerraUser,
   oidcStore,
   requesterPaysProjectStore,
+  TermsOfServiceStatus,
   TerraUserProfile,
   TerraUserRegistrationStatus,
   TokenMetadata,
@@ -538,20 +539,31 @@ authStore.subscribe(
   })
 );
 
+export const updateToSComplianceStatus = async (): Promise<void> => {
+  const tosComplianceStatus = await Ajax().User.getTermsOfServiceComplianceStatus();
+  // If the user is now logged in, but there's no ToS status from Sam,
+  // then they haven't accepted it yet and Sam hasn't caught up.
+  const acceptedTos = !_.isNull(tosComplianceStatus);
+  const [termsOfService, registrationStatus]: [TermsOfServiceStatus, TerraUserRegistrationStatus] = acceptedTos
+    ? [tosComplianceStatus, 'registered']
+    : [
+        {
+          userHasAcceptedLatestTos: false,
+          permitsSystemUsage: false,
+        },
+        authStore.get().registrationStatus,
+      ];
+  authStore.update((state: AuthState) => ({
+    ...state,
+    registrationStatus,
+    termsOfService,
+  }));
+};
+
 authStore.subscribe(
   withErrorReporting('Error checking TOS', async (state: AuthState, oldState: AuthState): Promise<void> => {
     if (isNowSignedIn(oldState, state)) {
-      const tosComplianceStatus = await Ajax().User.getTermsOfServiceComplianceStatus();
-      // If the user is now logged in, but there's no ToS status from Sam,
-      // then they haven't accepted it yet and Sam hasn't caught up.
-      const acceptedTos = !_.isNull(tosComplianceStatus);
-      const termsOfService = acceptedTos
-        ? tosComplianceStatus
-        : {
-            userHasAcceptedLatestTos: false,
-            permitsSystemUsage: false,
-          };
-      authStore.update((state: AuthState) => ({ ...state, termsOfService }));
+      await updateToSComplianceStatus();
     }
   })
 );

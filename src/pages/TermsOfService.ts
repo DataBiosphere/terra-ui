@@ -6,7 +6,7 @@ import { centeredSpinner } from 'src/components/icons';
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown';
 import scienceBackground from 'src/images/science-background.jpg';
 import { Ajax } from 'src/libs/ajax';
-import { signOut } from 'src/libs/auth';
+import { signOut, updateToSComplianceStatus } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
@@ -35,12 +35,10 @@ const TermsOfServicePage = (): ReactNode => {
   const accept = async () => {
     try {
       setBusy(true);
-      const { enabled } = await Ajax().User.acceptTos();
-      const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus();
+      const userStatus = await Ajax().User.acceptTos();
 
-      if (enabled) {
-        const registrationStatus = 'registered';
-        authStore.update((state) => ({ ...state, registrationStatus, termsOfService }));
+      if (userStatus?.enabled.allUsersGroup && userStatus?.enabled.ldap && userStatus?.enabled.google) {
+        await updateToSComplianceStatus();
         Nav.goToPath('root');
       } else {
         throw new Error('Cannot accept ToS');
