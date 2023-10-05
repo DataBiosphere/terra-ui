@@ -229,7 +229,7 @@ export const dashboard = {
   collapsibleHeader: {
     ...elements.sectionHeader,
     color: colors.accent(),
-    textTransform: 'uppercase',
+    textTransform: 'uppercase' as const,
     padding: '0.5rem 0 0.5rem 0.5rem',
     display: 'flex',
     fontSize: 14,
