@@ -189,4 +189,55 @@ describe('getImportRequest', () => {
       expect(importRequest).toEqual(expectedResult);
     }
   );
+
+  describe('catalog snapshot imports', () => {
+    it('throws an error if unable to load the catalog', async () => {
+      // Arrange
+      asMockedFn(fetchDataCatalog).mockRejectedValue(new Response('Something went wrong', { status: 500 }));
+
+      // Act
+      const queryParams = {
+        format: 'snapshot',
+        snapshotIds: ['aaaabbbb-cccc-1111-2222-333333333333', '00001111-2222-3333-aaaa-bbbbccccdddd'],
+      };
+      const importRequestPromise = getImportRequest(queryParams);
+
+      // Assert
+      await expect(importRequestPromise).rejects.toEqual(new Error('Failed to load data catalog.'));
+    });
+
+    it('throws an error if any requested snapshots are not found in catalog', async () => {
+      // Arrange
+      asMockedFn(fetchDataCatalog).mockResolvedValue([
+        {
+          id: 'aaaabbbb-cccc-dddd-eeee-ffffgggghhhh',
+          'dct:creator': 'testowner',
+          'dct:description': 'A test snapshot',
+          'dct:identifier': '00001111-2222-3333-aaaa-bbbbccccdddd',
+          'dct:issued': '2023-10-02T11:30:00.000000Z',
+          'dct:title': 'test-snapshot-1',
+          'dcat:accessURL':
+            'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/00001111-2222-3333-aaaa-bbbbccccdddd',
+          'TerraDCAT_ap:hasDataCollection': [],
+          accessLevel: 'reader',
+          storage: [],
+          counts: {},
+          samples: {},
+          contributors: [],
+        },
+      ]);
+
+      // Act
+      const queryParams = {
+        format: 'snapshot',
+        snapshotIds: ['00001111-2222-3333-aaaa-bbbbccccdddd', 'ddddeeee-ffff-4444-5555-666666666666'],
+      };
+      const importRequestPromise = getImportRequest(queryParams);
+
+      // Assert
+      await expect(importRequestPromise).rejects.toEqual(
+        new Error('Unable to find snapshot ddddeeee-ffff-4444-5555-666666666666 in catalog.')
+      );
+    });
+  });
 });

@@ -1,4 +1,6 @@
+import pluralize from 'pluralize';
 import { useEffect, useState } from 'react';
+import { Dataset } from 'src/libs/ajax/Catalog';
 import { useRoute } from 'src/libs/nav';
 import { fetchDataCatalog } from 'src/pages/library/dataBrowser-utils';
 
@@ -114,7 +116,13 @@ const getCatalogSnapshotsImportRequest = async (queryParams: QueryParams): Promi
     throw new Error(`Invalid snapshot IDs: ${snapshotIds}`);
   }
 
-  const catalogDatasets = await fetchDataCatalog();
+  let catalogDatasets: Dataset[];
+  try {
+    catalogDatasets = await fetchDataCatalog();
+  } catch (err: unknown) {
+    throw new Error('Failed to load data catalog.');
+  }
+
   const snapshots = catalogDatasets
     .filter((dataset) => dataset['dct:identifier'] && snapshotIds.includes(dataset['dct:identifier']))
     .map((dataset) => {
@@ -125,6 +133,15 @@ const getCatalogSnapshotsImportRequest = async (queryParams: QueryParams): Promi
         description: dataset['dct:description'],
       };
     });
+
+  if (snapshots.length < snapshotIds.length) {
+    const missingSnapshots = snapshotIds.filter(
+      (snapshotId) => !snapshots.some((snapshot) => snapshot.id === snapshotId)
+    );
+    throw new Error(
+      `Unable to find ${pluralize('snapshot', missingSnapshots.length)} ${missingSnapshots.join(', ')} in catalog.`
+    );
+  }
 
   return {
     type: 'catalog-snapshots',
