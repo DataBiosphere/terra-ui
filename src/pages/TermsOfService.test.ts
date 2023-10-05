@@ -19,7 +19,7 @@ type NavExports = typeof import('src/libs/nav');
 jest.mock(
   'src/libs/nav',
   (): NavExports => ({
-    ...jest.requireActual('src/libs/nav'),
+    ...jest.requireActual<NavExports>('src/libs/nav'),
     goToPath: jest.fn(),
   })
 );
