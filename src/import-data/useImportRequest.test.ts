@@ -1,3 +1,4 @@
+import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
 import { fetchDataCatalog } from 'src/pages/library/dataBrowser-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -13,6 +14,17 @@ import {
 } from './import-types';
 import { getImportRequest } from './useImportRequest';
 
+// Workaround for circular import errors.
+jest.mock('src/libs/auth');
+
+type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
+jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
+  return {
+    ...jest.requireActual<DataRepoExports>('src/libs/ajax/DataRepo'),
+    DataRepo: jest.fn(),
+  };
+});
+
 type DataBrowserUtilsExports = typeof import('src/pages/library/dataBrowser-utils');
 jest.mock('src/pages/library/dataBrowser-utils', (): DataBrowserUtilsExports => {
   return {
@@ -22,6 +34,21 @@ jest.mock('src/pages/library/dataBrowser-utils', (): DataBrowserUtilsExports => 
 });
 
 describe('getImportRequest', () => {
+  const snapshotFixture: Snapshot = {
+    id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+    name: 'test-snapshot',
+    source: [
+      {
+        dataset: {
+          id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+          name: 'test-dataset',
+          secureMonitoringEnabled: false,
+        },
+      },
+    ],
+    cloudPlatform: 'gcp',
+  };
+
   type TestCase = {
     queryParams: Record<string, any>;
     expectedResult: ImportRequest;
@@ -65,7 +92,6 @@ describe('getImportRequest', () => {
       queryParams: {
         format: 'tdrexport',
         snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
-        snapshotName: 'test-snapshot',
         tdrmanifest: 'https://example.com/path/to/manifest.json',
         tdrSyncPermissions: 'true',
         url: 'https://data.terra.bio',
@@ -73,8 +99,7 @@ describe('getImportRequest', () => {
       expectedResult: {
         type: 'tdr-snapshot-export',
         manifestUrl: new URL('https://example.com/path/to/manifest.json'),
-        snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
-        snapshotName: 'test-snapshot',
+        snapshot: snapshotFixture,
         syncPermissions: true,
       } satisfies TDRSnapshotExportImportRequest,
     },
@@ -87,8 +112,7 @@ describe('getImportRequest', () => {
       },
       expectedResult: {
         type: 'tdr-snapshot-reference',
-        snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
-        snapshotName: 'test-snapshot',
+        snapshot: snapshotFixture,
       } satisfies TDRSnapshotReferenceImportRequest,
     },
     // Catalog dataset
@@ -127,6 +151,18 @@ describe('getImportRequest', () => {
   ];
 
   beforeAll(() => {
+    const mockDataRepo = {
+      snapshot: (snapshotId: string): Partial<ReturnType<DataRepoContract['snapshot']>> => ({
+        details: jest.fn().mockImplementation(() => {
+          if (snapshotId === snapshotFixture.id) {
+            return snapshotFixture;
+          }
+          throw new Response('{"message":"Snapshot not found"}', { status: 404 });
+        }),
+      }),
+    };
+    asMockedFn(DataRepo).mockReturnValue(mockDataRepo as unknown as DataRepoContract);
+
     asMockedFn(fetchDataCatalog).mockResolvedValue([
       {
         id: 'aaaabbbb-cccc-dddd-eeee-ffffgggghhhh',
@@ -189,6 +225,45 @@ describe('getImportRequest', () => {
       expect(importRequest).toEqual(expectedResult);
     }
   );
+
+  describe('snapshot imports', () => {
+    it.each([
+      // Snapshot export
+      {
+        queryParams: {
+          format: 'tdrexport',
+          snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+          tdrmanifest: 'https://example.com/path/to/manifest.json',
+          tdrSyncPermissions: 'true',
+          url: 'https://data.terra.bio',
+        },
+      },
+      // Snapshot reference
+      {
+        queryParams: {
+          format: 'snapshot',
+          snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+        },
+      },
+    ] as { queryParams: Record<string, any> }[])(
+      'throws an error if unable to load the snapshot',
+      async ({ queryParams }) => {
+        // Arrange
+        const mockDataRepo = {
+          snapshot: (): Partial<ReturnType<DataRepoContract['snapshot']>> => ({
+            details: jest.fn().mockRejectedValue(new Response('{"message":"Snapshot not found"}', { status: 404 })),
+          }),
+        };
+        asMockedFn(DataRepo).mockReturnValue(mockDataRepo as unknown as DataRepoContract);
+
+        // Act
+        const importRequestPromise = getImportRequest(queryParams);
+
+        // Assert
+        expect(importRequestPromise).rejects.toEqual(new Error('Unable to load snapshot.'));
+      }
+    );
+  });
 
   describe('catalog snapshot imports', () => {
     it('throws an error if unable to load the catalog', async () => {
