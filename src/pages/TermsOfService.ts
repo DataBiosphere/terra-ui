@@ -17,7 +17,7 @@ import * as Utils from 'src/libs/utils';
 
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState<boolean>();
-  const { signInStatus, termsOfService } = authStore.get(); // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
+  const { signInStatus, termsOfService } = useStore(authStore.get());
   const acceptedLatestTos = signInStatus === 'signedIn' && termsOfService.userHasAcceptedLatestTos;
   const usageAllowed = signInStatus === 'signedIn' && termsOfService.permitsSystemUsage;
   const [tosText, setTosText] = useState<string>();
