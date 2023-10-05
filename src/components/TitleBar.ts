@@ -23,7 +23,7 @@ const TitleBar = ({
   style = {},
   titleStyles = {},
   hideCloseButton = false,
-}: ITitleBar) => {
+}: TitleBarProps) => {
   return div(
     {
       id,

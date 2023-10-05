@@ -1,15 +1,13 @@
 import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { CSSProperties, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
-import { div, h, HTMLElementProps, WithDataAttributes } from 'react-hyperscript-helpers';
+import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
 import { Link, LinkProps } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 
-type DivProps = Omit<WithDataAttributes<HTMLElementProps<'div'>>, 'children'>;
-
-type DivProps = JSX.InstrinsicElements['div'];
+type DivProps = JSX.IntrinsicElements['div'];
 
 interface CollapseProps extends Omit<DivProps, 'title'> {
   title?: ReactNode;
@@ -24,11 +22,9 @@ interface CollapseProps extends Omit<DivProps, 'title'> {
   onFirstOpen?: () => {};
   noTitleWrap?: boolean;
   disabled?: boolean;
-  style?: DivProps['style'];
-  onClick?: DivProps['onClick'];
 }
 
-const Collapse = (props: PropsWithChildren<CollapseProps>): ReactNode => {
+const Collapse = (props: CollapseProps): ReactNode => {
   const {
     title,
     hover,
