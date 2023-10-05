@@ -459,10 +459,10 @@ export const runSetResponseForNewMethod = {
       call_caching_enabled: true,
       submission_timestamp: '2022-12-07T17:26:53.153+00:00',
       last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
-      run_count: 1,
+      run_count: 0,
       error_count: 0,
       input_definition: JSON.stringify(runSetInputDefWithSourceNone),
-      output_definition: JSON.stringify(runSetOutputDef),
+      output_definition: JSON.stringify(runSetOutputDefEmpty),
     },
   ],
 };

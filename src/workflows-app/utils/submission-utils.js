@@ -3,7 +3,7 @@ import { div } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import { statusType as jobStatusType } from 'src/components/job-common';
 import colors from 'src/libs/colors';
-import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils';
+import { differenceFromDatesInSeconds, differenceFromNowInSeconds, maybeParseJSON } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
 
 export const AutoRefreshInterval = 1000 * 60; // 1 minute
@@ -59,6 +59,19 @@ export const parseAttributeName = (attributeName) => {
   const columnName = attributeName.slice(namespaceDelimiterIndex + 1);
   const columnNamespace = attributeName.slice(0, namespaceDelimiterIndex + 1);
   return { columnNamespace, columnName };
+};
+
+// Use output definition if it has been run before or if the template contains non-none destinations
+// Otherwise we will autofill all outputs to default.
+export const autofillOutputDef = (outputDef, runCount) => {
+  const jsonParsedOutput = maybeParseJSON(outputDef);
+  const shouldUseOutputs = runCount > 0 || jsonParsedOutput.some((outputDef) => outputDef.destination.type !== 'none');
+  return shouldUseOutputs
+    ? jsonParsedOutput
+    : jsonParsedOutput.map((outputDef) => ({
+        ...outputDef,
+        destination: { type: 'record_update', record_attribute: parseMethodString(outputDef.output_name).variable || '' },
+      }));
 };
 
 export const inputSourceLabels = {
