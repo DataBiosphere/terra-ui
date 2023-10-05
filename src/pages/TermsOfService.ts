@@ -45,7 +45,7 @@ const TermsOfServicePage = () => {
         authStore.update((state) => ({ ...state, registrationStatus, termsOfService }));
         Nav.goToPath('root');
       } else {
-        reportError('Error accepting TOS, unexpected backend error occurred.', new Error('Unexpected backend error'));
+        reportError('Error accepting terms of service, unexpected backend error occurred.', new Error('Unexpected backend error'));
       }
     } catch (error) {
       reportError('Error accepting Terms of Service', error);
