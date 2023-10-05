@@ -45,7 +45,9 @@ describe('useSettableStore', () => {
     const [initialValue, setValue] = hookReturnRef.current;
 
     // Act
-    setValue('goodbye');
+    act(() => {
+      setValue('goodbye');
+    });
     rerender([myAtom]);
 
     // Assert
@@ -65,7 +67,9 @@ describe('useSettableStore', () => {
     const [initialValue] = hookReturnRef.current;
 
     // Act
-    myAtom.set('goodbye');
+    act(() => {
+      myAtom.set('goodbye');
+    });
     rerender([myAtom]);
 
     // Assert
