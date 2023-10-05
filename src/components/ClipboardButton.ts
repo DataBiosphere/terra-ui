@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons';
 import { withErrorReporting } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
-interface ClipboardButtonProps extends LinkProps {
+interface ClipboardButtonProps extends PropsWithChildren<LinkProps> {
   text: string;
   iconSize?: number;
 }
