@@ -28,7 +28,7 @@ import RecordsTable from 'src/workflows-app/components/RecordsTable';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
-import { CbasPollInterval, convertArrayType, parseMethodString, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
+import { autofillOutputDef, CbasPollInterval, convertArrayType, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionConfig = (
@@ -118,18 +118,8 @@ export const BaseSubmissionConfig = (
         const newRunSetData = runSet.run_sets[0];
 
         setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
-        // Use output definition if it has been run before or if the template contains non-none destinations
-        // Otherwise we will autofill all outputs to default.
-        const jsonParsedOutput = maybeParseJSON(newRunSetData.output_definition);
-        const shouldUseOutputs = newRunSetData.run_count > 0 || jsonParsedOutput.some((outputDef) => outputDef.destination.type !== 'none');
-        setConfiguredOutputDefinition(
-          shouldUseOutputs
-            ? jsonParsedOutput
-            : jsonParsedOutput.map((outputDef) => ({
-                ...outputDef,
-                destination: { type: 'record_update', record_attribute: parseMethodString(outputDef.output_name).variable || '' },
-              }))
-        );
+        const outputDef = autofillOutputDef(newRunSetData.output_definition, newRunSetData.run_count);
+        setConfiguredOutputDefinition(outputDef);
         setSelectedRecordType(newRunSetData.record_type);
 
         let callCache = maybeParseJSON(newRunSetData.call_caching_enabled);
