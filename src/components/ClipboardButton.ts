@@ -13,7 +13,7 @@ interface ClipboardButtonProps extends PropsWithChildren<LinkProps> {
   iconSize?: number;
 }
 
-export const ClipboardButton = (props: PropsWithChildren<ClipboardButtonProps>): ReactNode => {
+export const ClipboardButton = (props: ClipboardButtonProps): ReactNode => {
   const { text, onClick, children, iconSize, ...rest } = props;
   const [copied, setCopied] = useState(false);
   return h(
