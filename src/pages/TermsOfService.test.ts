@@ -160,12 +160,8 @@ describe('TermsOfService', () => {
     await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
     // Assert
-    const acceptButton = screen.queryByText('Accept');
-    expect(acceptButton).toBeInTheDocument();
-    expect(acceptButton).not.toBeNull();
-    if (acceptButton) {
-      await act(async () => acceptButton.click());
-    }
+    const acceptButton = screen.getByText('Accept');
+    await act(async () => fireEvent.click(acceptButton));
     expect(acceptTosFn).toHaveBeenCalled();
   });
 
