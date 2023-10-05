@@ -18,7 +18,7 @@ interface CollapseProps {
   detailsStyle?: CSSProperties;
   initialOpenState?: boolean;
   titleFirst?: boolean;
-  afterTitle?: string;
+  afterTitle?: ReactNode;
   onFirstOpen?: () => {};
   noTitleWrap?: boolean;
   disabled?: boolean;

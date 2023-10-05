@@ -30,7 +30,12 @@ const cardStyles: Record<string, CSSProperties> = {
   },
 };
 
-export const elements = {
+export const elements: {
+  card: Record<string, CSSProperties>;
+  sectionHeader: CSSProperties;
+  pageContentContainer: CSSProperties;
+  contextBarContainer: CSSProperties;
+} = {
   card: cardStyles,
   sectionHeader: { color: colors.dark(), fontSize: 16, fontWeight: 600, margin: '0.25em 0' },
   pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' },
@@ -42,7 +47,7 @@ export const elements = {
   },
 };
 
-export const tabBar = {
+export const tabBar: Record<string, CSSProperties> = {
   container: {
     display: 'flex',
     alignItems: 'center',
@@ -134,7 +139,7 @@ export const navList = {
     textTransform: 'uppercase',
     borderBottom: `0.5px solid ${colors.dark(0.2)}`,
   },
-  itemContainer: (selected) => ({
+  itemContainer: (selected): CSSProperties => ({
     display: 'flex',
     alignItems: 'center',
     flex: 'none',
@@ -194,7 +199,7 @@ export const modalDrawer = {
   },
 };
 
-export const dashboard = {
+export const dashboard: Record<string, CSSProperties> = {
   leftBox: {
     flex: 1,
     padding: '0 2rem 2rem 2rem',

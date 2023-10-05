@@ -3,13 +3,12 @@ import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
 import { PropsWithChildren, ReactNode, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { Link } from 'src/components/common';
+import { Link, LinkProps } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { withErrorReporting } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
-interface ClipboardButtonProps {
-  onClick: (e: any) => void;
+interface ClipboardButtonProps extends LinkProps {
   text: string;
   iconSize?: number;
 }

@@ -4,11 +4,11 @@ import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 
 interface ITitleBar {
-  id: string;
-  onPrevious: MouseEventHandler | undefined;
+  id?: string;
+  onPrevious?: MouseEventHandler;
   title: ReactNode;
   onDismiss: MouseEventHandler;
-  titleChildren: ReactNode;
+  titleChildren?: ReactNode;
   style?: React.CSSProperties;
   titleStyles?: React.CSSProperties;
   hideCloseButton?: boolean;
