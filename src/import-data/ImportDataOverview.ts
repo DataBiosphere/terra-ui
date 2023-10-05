@@ -1,6 +1,5 @@
 import { IconId } from '@terra-ui-packages/components';
 import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
-import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode } from 'react';
 import { div, h, h2, li, strong, ul } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
@@ -8,6 +7,9 @@ import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+
+import { ImportRequest } from './import-types';
+import { isProtectedSource } from './protected-data-utils';
 
 const styles = {
   container: {
@@ -69,41 +71,53 @@ const ResponseFragment = (props: ResponseFragmentProps): ReactNode => {
   ]);
 };
 
-interface ImportDataOverviewProps {
-  header: string;
-  isDataset: boolean;
-  isProtectedData: boolean;
+const getTitleForImportRequest = (importRequest: ImportRequest): string => {
+  switch (importRequest.type) {
+    case 'tdr-snapshot-export':
+      return `Importing snapshot ${importRequest.snapshot.name}`;
+    case 'tdr-snapshot-reference':
+    case 'catalog-dataset':
+    case 'catalog-snapshots':
+      return 'Linking data to a workspace';
+    default:
+      return 'Importing data to a workspace';
+  }
+};
+
+export interface ImportDataOverviewProps {
+  importRequest: ImportRequest;
   snapshotResponses: { status: string; message: string | undefined }[] | undefined;
-  snapshots: { id: string; title: string }[];
-  url?: URL;
 }
 
 export const ImportDataOverview = (props: ImportDataOverviewProps): ReactNode => {
-  const { header, snapshots, isDataset, snapshotResponses, url, isProtectedData } = props;
+  const { importRequest, snapshotResponses } = props;
+
+  const isProtectedData = isProtectedSource(importRequest);
+
   return div({ style: styles.card }, [
-    h2({ style: styles.title }, [header]),
-    !_.isEmpty(snapshots)
-      ? div({ style: { marginTop: 20, marginBottom: 60 } }, [
-          'Dataset(s):',
-          ul({ style: { listStyle: 'none', position: 'relative', marginLeft: 0, paddingLeft: '2rem' } }, [
-            snapshots.map(({ title, id }, index) => {
-              return li(
-                {
-                  key: `snapshot_${id}`,
-                  style: {
-                    fontSize: 16,
-                    fontWeight: 'bold',
-                    marginTop: 20,
-                    paddingTop: index ? 20 : 0,
-                    borderTop: `${index ? 1 : 0}px solid #AAA`,
-                  },
+    h2({ style: styles.title }, [getTitleForImportRequest(importRequest)]),
+    importRequest.type === 'catalog-snapshots' &&
+      div({ style: { marginTop: 20, marginBottom: 60 } }, [
+        'Dataset(s):',
+        ul({ style: { listStyle: 'none', position: 'relative', marginLeft: 0, paddingLeft: '2rem' } }, [
+          importRequest.snapshots.map(({ title, id }, index) => {
+            return li(
+              {
+                key: `snapshot_${id}`,
+                style: {
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  marginTop: 20,
+                  paddingTop: index ? 20 : 0,
+                  borderTop: `${index ? 1 : 0}px solid #AAA`,
                 },
-                [h(ResponseFragment, { snapshotResponses, responseIndex: index, title })]
-              );
-            }),
-          ]),
-        ])
-      : url && div({ style: { fontSize: 16 } }, ['From: ', url.hostname]),
+              },
+              [h(ResponseFragment, { snapshotResponses, responseIndex: index, title })]
+            );
+          }),
+        ]),
+      ]),
+    'url' in importRequest && div({ style: { fontSize: 16 } }, ['From: ', importRequest.url.hostname]),
     div(
       { style: { marginTop: '1rem' } },
       isProtectedData
@@ -121,9 +135,7 @@ export const ImportDataOverview = (props: ImportDataOverviewProps): ReactNode =>
             ),
           ]
         : [
-            `The ${
-              isDataset ? 'dataset' : 'snapshot'
-            }(s) you just chose to import to Terra will be made available to you within a workspace of your choice where you can then perform analysis.`,
+            'The data you just chose to import to Terra will be made available to you within a workspace of your choice where you can then perform analysis.',
           ]
     ),
   ]);

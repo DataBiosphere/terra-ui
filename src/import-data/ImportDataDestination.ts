@@ -21,8 +21,9 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
 
-import { TemplateWorkspaceInfo } from './import-types';
+import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
 import { canImportIntoWorkspace } from './import-utils';
+import { isProtectedSource } from './protected-data-utils';
 
 const styles = {
   card: {
@@ -82,10 +83,9 @@ const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
   );
 };
 
-interface ImportDataDestinationProps {
-  importMayTakeTime: boolean;
+export interface ImportDataDestinationProps {
+  importRequest: ImportRequest;
   initialSelectedWorkspaceId: string | undefined;
-  isProtectedData: boolean;
   requiredAuthorizationDomain: string | undefined;
   template: string | undefined;
   templateWorkspaces: { [key: string]: TemplateWorkspaceInfo[] } | undefined;
@@ -95,15 +95,22 @@ interface ImportDataDestinationProps {
 
 export const ImportDataDestination = (props: ImportDataDestinationProps): ReactNode => {
   const {
+    importRequest,
     initialSelectedWorkspaceId,
+    requiredAuthorizationDomain,
     templateWorkspaces,
     template,
     userHasBillingProjects,
-    importMayTakeTime,
-    requiredAuthorizationDomain,
     onImport,
-    isProtectedData,
   } = props;
+
+  const isProtectedData = isProtectedSource(importRequest);
+
+  // Some import types are finished in a single request.
+  // For most though, the import request starts a background task that times to complete.
+  const immediateImportTypes: ImportRequest['type'][] = ['tdr-snapshot-reference', 'catalog-snapshots'];
+  const importMayTakeTime = !immediateImportTypes.includes(importRequest.type);
+
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces();
   const [mode, setMode] = useState<'existing' | 'template' | undefined>(
     initialSelectedWorkspaceId ? 'existing' : undefined
