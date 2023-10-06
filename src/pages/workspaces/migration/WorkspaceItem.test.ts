@@ -16,7 +16,7 @@ describe('WorkspaceItem', () => {
     };
 
     // Act
-    render(h(WorkspaceItem, unscheduledWorkspace));
+    render(h(WorkspaceItem, { workspaceMigrationInfo: unscheduledWorkspace }));
 
     // Assert
     await screen.findByText('workspace name');
@@ -45,7 +45,7 @@ describe('WorkspaceItem', () => {
     };
 
     // Act
-    render(h(WorkspaceItem, completedWorkspace));
+    render(h(WorkspaceItem, { workspaceMigrationInfo: completedWorkspace }));
 
     // Assert
     await screen.findByText('april29');
@@ -66,7 +66,7 @@ describe('WorkspaceItem', () => {
     };
 
     // Act
-    const { container } = render(h(WorkspaceItem, failedWorkspace));
+    const { container } = render(h(WorkspaceItem, { workspaceMigrationInfo: failedWorkspace }));
     const infoButton = screen.getByLabelText('More info');
     await user.click(infoButton);
 
@@ -94,7 +94,7 @@ describe('WorkspaceItem', () => {
       };
 
       // Act
-      const { container } = render(h(WorkspaceItem, workspace));
+      const { container } = render(h(WorkspaceItem, { workspaceMigrationInfo: workspace }));
 
       // Assert
       await screen.findByText(expectedStatus);
@@ -125,7 +125,7 @@ describe('WorkspaceItem', () => {
     };
 
     // Act
-    render(h(WorkspaceItem, transferringWorkspace));
+    render(h(WorkspaceItem, { workspaceMigrationInfo: transferringWorkspace }));
 
     // Assert
     await screen.findByText('Christina test');
@@ -155,7 +155,7 @@ describe('WorkspaceItem', () => {
     };
 
     // Act
-    render(h(WorkspaceItem, transferringWorkspace));
+    render(h(WorkspaceItem, { workspaceMigrationInfo: transferringWorkspace }));
 
     // Assert
     await screen.findByText('Christina test');
@@ -185,7 +185,7 @@ describe('WorkspaceItem', () => {
     };
 
     // Act
-    render(h(WorkspaceItem, transferringWorkspace));
+    render(h(WorkspaceItem, { workspaceMigrationInfo: transferringWorkspace }));
 
     // Assert
     await screen.findByText('Christina test');
@@ -215,7 +215,7 @@ describe('WorkspaceItem', () => {
     };
 
     // Act
-    render(h(WorkspaceItem, transferringWorkspace));
+    render(h(WorkspaceItem, { workspaceMigrationInfo: transferringWorkspace }));
 
     // Assert
     await screen.findByText('Christina test');

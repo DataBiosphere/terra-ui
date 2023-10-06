@@ -1,11 +1,16 @@
 import _ from 'lodash/fp';
+import { ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import colors from 'src/libs/colors';
 import { BillingProjectMigrationInfo } from 'src/pages/workspaces/migration/migration-utils';
 import { WorkspaceItem } from 'src/pages/workspaces/migration/WorkspaceItem';
 
-export const BillingProjectParent = (billingProjectMigrationInfo: BillingProjectMigrationInfo) => {
+interface BillingProjectParentProps {
+  billingProjectMigrationInfo: BillingProjectMigrationInfo;
+}
+
+export const BillingProjectParent = (props: BillingProjectParentProps): ReactNode => {
   return div({ role: 'listitem' }, [
     h(
       Collapse,
@@ -19,10 +24,13 @@ export const BillingProjectParent = (billingProjectMigrationInfo: BillingProject
           borderRadius: 5,
           background: 'white',
         },
-        title: div({}, [billingProjectMigrationInfo.namespace]),
+        title: div({}, [props.billingProjectMigrationInfo.namespace]),
         initialOpenState: true,
       },
-      _.map((workspace) => h(WorkspaceItem, workspace), billingProjectMigrationInfo.workspaces)
+      _.map(
+        (workspaceMigrationInfo) => h(WorkspaceItem, { workspaceMigrationInfo }),
+        props.billingProjectMigrationInfo.workspaces
+      )
     ),
   ]);
 };
