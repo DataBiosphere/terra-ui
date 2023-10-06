@@ -1,9 +1,12 @@
-import { act, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { authStore } from 'src/libs/state';
+import { Groups } from 'src/libs/ajax/Groups';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { User } from 'src/libs/ajax/User';
+import { AuthState, authStore } from 'src/libs/state';
 import TermsOfServicePage from 'src/pages/TermsOfService';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
 jest.mock('react-notifications-component', () => {
@@ -33,37 +36,68 @@ jest.mock(
 );
 
 const setupMockAjax = (termsOfService) => {
-  const getTos = jest.fn().mockReturnValue(Promise.resolve('some text'));
-  const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(Promise.resolve(termsOfService));
-  const getStatus = jest.fn().mockReturnValue(Promise.resolve({}));
-  const acceptTos = jest.fn().mockReturnValue(Promise.resolve({ enabled: true }));
-  const rejectTos = jest.fn().mockReturnValue(Promise.resolve({ enabled: true }));
+  const getTos = jest.fn().mockResolvedValue('some text');
+  const getTermsOfServiceComplianceStatus = jest.fn().mockResolvedValue(termsOfService);
+  const getStatus = jest.fn().mockResolvedValue({});
+  const acceptTos = jest.fn().mockResolvedValue({
+    userInfo: {
+      userSubjectId: 'testSubjectId',
+      userEmail: 'testEmail',
+    },
+    enabled: {
+      ldap: true,
+      allUsersGroup: true,
+      google: true,
+    },
+  });
+  const rejectTos = jest.fn().mockResolvedValue({
+    userInfo: {
+      userSubjectId: 'testSubjectId',
+      userEmail: 'testEmail',
+    },
+    enabled: {
+      ldap: true,
+      allUsersGroup: true,
+      google: true,
+    },
+  });
   const getFenceStatus = jest.fn();
   const getNihStatus = jest.fn();
 
-  asMockedFn(Ajax).mockImplementation(() => ({
-    Metrics: {
-      captureEvent: jest.fn(),
-    },
-    User: {
-      profile: {
-        get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
-      },
-      getTos,
-      getTermsOfServiceComplianceStatus,
-      getStatus,
-      acceptTos,
-      rejectTos,
-      getFenceStatus,
-      getNihStatus,
-    },
-    Groups: {
-      list: jest.fn(),
-    },
-  }));
+  type AjaxContract = ReturnType<typeof Ajax>;
+  type UserContract = ReturnType<typeof User>;
+  type MetricsContract = ReturnType<typeof Metrics>;
+  type GroupsContract = ReturnType<typeof Groups>;
+
+  asMockedFn(Ajax).mockImplementation(
+    () =>
+      ({
+        Metrics: {
+          captureEvent: jest.fn(),
+        } as Partial<MetricsContract>,
+        User: {
+          profile: {
+            get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
+            set: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
+            setPreferences: jest.fn().mockResolvedValue({}),
+            preferLegacyFirecloud: jest.fn().mockResolvedValue({}),
+          },
+          getTos,
+          getTermsOfServiceComplianceStatus,
+          getStatus,
+          acceptTos,
+          rejectTos,
+          getFenceStatus,
+          getNihStatus,
+        } as Partial<UserContract>,
+        Groups: {
+          list: jest.fn(),
+        } as Partial<GroupsContract>,
+      } as Partial<AjaxContract> as AjaxContract)
+  );
 
   const signInStatus = 'signedIn';
-  authStore.update((state) => ({ ...state, termsOfService, signInStatus }));
+  authStore.update((state: AuthState) => ({ ...state, termsOfService, signInStatus }));
   return {
     getTosFn: getTos,
     getStatusFn: getStatus,
@@ -74,9 +108,6 @@ const setupMockAjax = (termsOfService) => {
 };
 
 describe('TermsOfService', () => {
-  afterEach(() => {
-    authStore.reset();
-  });
   it('fetches the Terms of Service text from Sam', async () => {
     // Arrange
     const termsOfService = {
@@ -87,7 +118,9 @@ describe('TermsOfService', () => {
     const { getTosFn } = setupMockAjax(termsOfService);
 
     // Act
-    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+    await act(async () => {
+      render(h(TermsOfServicePage));
+    });
 
     // Assert
     expect(getTosFn).toHaveBeenCalled();
@@ -105,11 +138,12 @@ describe('TermsOfService', () => {
     setupMockAjax(termsOfService);
 
     // Act
-    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+    await act(async () => {
+      render(h(TermsOfServicePage));
+    });
 
     // Assert
-    const gracePeriodButton = screen.getByText('Continue under grace period');
-    expect(gracePeriodButton).toBeInTheDocument();
+    screen.getByText('Continue under grace period');
   });
 
   it('does not show "Continue under grace period" when the user has not accepted the latest ToS and is not allowed to use Terra', async () => {
@@ -121,7 +155,9 @@ describe('TermsOfService', () => {
     setupMockAjax(termsOfService);
 
     // Act
-    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+    await act(async () => {
+      render(h(TermsOfServicePage));
+    });
 
     // Assert
     const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');
@@ -138,7 +174,9 @@ describe('TermsOfService', () => {
     setupMockAjax(termsOfService);
 
     // Act
-    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+    await act(async () => {
+      render(h(TermsOfServicePage));
+    });
 
     // Assert
     const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');
@@ -147,6 +185,7 @@ describe('TermsOfService', () => {
     const acceptButton = screen.queryByText('Accept');
     expect(acceptButton).not.toBeInTheDocument();
   });
+
   it('calls the acceptTos endpoint when the accept tos button is clicked', async () => {
     // Arrange
     const termsOfService = {
@@ -157,7 +196,9 @@ describe('TermsOfService', () => {
     const { acceptTosFn } = setupMockAjax(termsOfService);
 
     // Act
-    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+    await act(async () => {
+      render(h(TermsOfServicePage));
+    });
 
     // Assert
     const acceptButton = screen.getByText('Accept');
@@ -175,7 +216,9 @@ describe('TermsOfService', () => {
     const { rejectTosFn } = setupMockAjax(termsOfService);
 
     // Act
-    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+    await act(async () => {
+      render(h(TermsOfServicePage));
+    });
 
     // Assert
     const rejectButton = screen.getByText('Decline and Sign Out');

@@ -36,6 +36,9 @@ const TermsOfServicePage = () => {
     try {
       setBusy(true);
       const { enabled } = await Ajax().User.acceptTos();
+      // This is actually a bug, enabled is being treated as a boolean when it is actually a truthy object
+      // I am choosing to not change the functionality of the code, so we can change it in a dedicated pr
+      // https://broadworkbench.atlassian.net/browse/ID-852
       if (enabled) {
         const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus();
 
@@ -117,14 +120,18 @@ const TermsOfServicePage = () => {
           !usageAllowed &&
             !!tosText &&
             div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
-              h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: reject }, ['Decline and Sign Out']),
+              h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: reject, disabled: busy }, [
+                'Decline and Sign Out',
+              ]),
               h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept']),
             ]),
           !acceptedLatestTos &&
             usageAllowed &&
             !!tosText &&
             div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
-              h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: reject }, ['Decline and Sign Out']),
+              h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: reject, disabled: busy }, [
+                'Decline and Sign Out',
+              ]),
               h(ButtonOutline, { style: { marginRight: '1rem' }, onClick: continueButton, disabled: busy }, [
                 'Continue under grace period',
               ]),
