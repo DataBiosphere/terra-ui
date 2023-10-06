@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { div, h, h2, span } from 'react-hyperscript-helpers';
 import { spinner } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
@@ -10,7 +10,7 @@ import * as Utils from 'src/libs/utils';
 import { BillingProjectParent } from 'src/pages/workspaces/migration/BillingProjectParent';
 import { BillingProjectMigrationInfo, parseServerResponse } from 'src/pages/workspaces/migration/migration-utils';
 
-export const BillingProjectList = () => {
+export const BillingProjectList = (): ReactNode => {
   const [loadingMigrationInformation, setLoadingMigrationInformation] = useState(true);
   const [billingProjectWorkspaces, setBillingProjectWorkspaces] = useState<BillingProjectMigrationInfo[]>([]);
   const signal = useCancellation();
@@ -41,7 +41,7 @@ export const BillingProjectList = () => {
         billingProjectWorkspaces.length === 0 &&
         div({ style: { fontSize, marginTop: '1.5rem', marginLeft: '1.5rem' } }, ['You have no workspaces to migrate']),
       ..._.map(
-        (billingProjectMigrationInfo) => h(BillingProjectParent, billingProjectMigrationInfo),
+        (billingProjectMigrationInfo) => h(BillingProjectParent, { billingProjectMigrationInfo }),
         billingProjectWorkspaces
       ),
     ]),
