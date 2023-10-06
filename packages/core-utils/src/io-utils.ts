@@ -1,3 +1,17 @@
+/**
+ * Attempt to parse a JSON string and return the decoded value.
+ * If the string cannot be parsed, return undefined.
+ *
+ * @param maybeJSONString - The string to attempt to parse.
+ */
+export const maybeParseJSON = (maybeJSONString: string): unknown => {
+  try {
+    return JSON.parse(maybeJSONString);
+  } catch {
+    return undefined;
+  }
+};
+
 export const readFileAsText = (file: File): Promise<string | null> => {
   const reader = new FileReader();
   return new Promise((resolve, reject) => {
