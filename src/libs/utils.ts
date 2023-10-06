@@ -5,7 +5,7 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
 
-export { cond, DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
+export { cond, DEFAULT, formatBytes, formatNumber, formatUSD, switchCase } from '@terra-ui-packages/core-utils';
 
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
@@ -55,12 +55,6 @@ export const differenceFromDatesInSeconds = (jsonDateStringStart, jsonDateString
   return differenceInSeconds(parseJSON(jsonDateStringStart), parseJSON(jsonDateStringEnd));
 };
 
-const usdFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-export const formatUSD = (v) =>
-  cond([_.isNaN(v), () => 'unknown'], [v > 0 && v < 0.01, () => '< $0.01'], () => usdFormatter.format(v));
-
-export const formatNumber = new Intl.NumberFormat('en-US').format;
-
 export const toIndexPairs = <T>(obj: T[]): [number, T][] =>
   _.flow(
     _.toPairs,
@@ -100,14 +94,6 @@ export const abandonedPromise = () => {
 // Returns a message explaining that the desired snapshot reference could not be found by name
 export const snapshotReferenceMissingError = (snapshotReferenceName) => {
   return `The requested snapshot reference '${snapshotReferenceName}' could not be found in this workspace.`;
-};
-
-// Returns a message explaining why the user can't compute in the workspace, or undefined if they can
-export const computeWorkspaceError = ({ canCompute, workspace: { isLocked } }) => {
-  return cond(
-    [!canCompute, () => 'You do not have access to run analyses on this workspace.'],
-    [isLocked, () => 'This workspace is locked.']
-  );
 };
 
 export const textMatch = safeCurry((needle: string, haystack: string): boolean => {
@@ -263,23 +249,6 @@ export const sha256 = async (message) => {
     _.map((v: any) => v.toString(16).padStart(2, '0')),
     _.join('')
   )(new Uint8Array(hashBuffer));
-};
-
-export const formatBytes = (bytes: number): string => {
-  const lookup: [string, number][] = [
-    ['P', 2 ** 50],
-    ['T', 2 ** 40],
-    ['G', 2 ** 30],
-    ['M', 2 ** 20],
-    ['K', 2 ** 10],
-  ];
-  const maybeLookup = lookup.find(([_p, d]: [string, number]) => bytes >= d);
-  if (maybeLookup) {
-    const [prefix, divisor] = maybeLookup;
-    return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`;
-  }
-  // fallback is to return unformatted
-  return `${bytes} B`;
 };
 
 // Truncates an integer to the thousands, i.e. 10363 -> 10k

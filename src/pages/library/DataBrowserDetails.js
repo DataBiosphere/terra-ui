@@ -206,7 +206,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
                 tooltip: actionTooltip,
                 style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
                 onClick: () => {
-                  Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
+                  Ajax().Metrics.captureEvent(Events.catalogViewPreviewData, {
                     id: dataObj.id,
                     title: dataObj['dct:title'],
                   });
