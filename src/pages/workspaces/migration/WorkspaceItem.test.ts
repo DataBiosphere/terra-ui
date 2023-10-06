@@ -71,7 +71,7 @@ describe('WorkspaceItem', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    render(h(WorkspaceItem, unscheduledWorkspace));
+    render(h(WorkspaceItem, { workspaceMigrationInfo: unscheduledWorkspace }));
 
     // Assert
     await screen.findByText('workspace name');

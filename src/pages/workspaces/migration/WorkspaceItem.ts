@@ -24,8 +24,8 @@ export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
       setUnmigratedBucketSize('');
       try {
         const { usageInBytes } = await Ajax(signal)
-            .Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name)
-            .bucketUsage();
+          .Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name)
+          .bucketUsage();
         setUnmigratedBucketSize(`Bucket Size: ${Utils.formatBytes(usageInBytes)}`);
       } catch (error) {
         // This is typically a 404 with no message to display
@@ -41,7 +41,6 @@ export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
       setUnmigratedBucketSize(undefined);
     }
   }, [setUnmigratedBucketSize, signal, unmigratedBucketSize, workspaceInfo]);
-
 
   const renderMigrationIcon = () => {
     return Utils.cond(
@@ -72,14 +71,14 @@ export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
             },
           }),
       ],
-        [
-          workspaceInfo.migrationStep === 'Unscheduled' && unmigratedBucketSize === bucketSizeFailed,
-          () =>
-              icon('warning-info', {
-                size: 22,
-                style: { color: colors.warning() },
-              }),
-        ]
+      [
+        workspaceInfo.migrationStep === 'Unscheduled' && unmigratedBucketSize === bucketSizeFailed,
+        () =>
+          icon('warning-info', {
+            size: 22,
+            style: { color: colors.warning() },
+          }),
+      ]
     );
   };
 
@@ -144,39 +143,6 @@ export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
       ],
       [workspaceInfo.migrationStep === 'Unscheduled' && !!unmigratedBucketSize, () => span([unmigratedBucketSize])]
     );
-    const statusIcon = Utils.cond(
-      [
-        workspaceInfo.outcome === 'failure',
-        () =>
-          icon('warning-standard', {
-            size: 18,
-            style: { color: colors.danger() },
-          }),
-      ],
-      [
-        workspaceInfo.outcome === 'success',
-        () =>
-          icon('check', {
-            size: 18,
-            style: { color: colors.success() },
-          }),
-      ],
-      [
-        workspaceInfo.migrationStep !== 'Unscheduled',
-        () =>
-          icon('syncAlt', {
-            size: 18,
-            style: {
-              animation: 'rotation 2s infinite linear',
-              color: colors.success(),
-            },
-          }),
-      ]
-    );
-    return div({ style: { display: 'flex' } }, [
-      statusIcon,
-      div({ style: { display: 'flex', paddingLeft: '0.5rem', alignItems: 'center' } }, [text]),
-    ]);
   };
 
   return div(
