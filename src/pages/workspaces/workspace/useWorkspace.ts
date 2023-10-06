@@ -175,7 +175,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     storeAzureStorageDetails(await AzureStorage(signal).details(workspace.workspace.workspaceId));
   });
 
-  const refreshWorkspace = _.flow(
+  const refreshWorkspace: () => Promise<unknown> = _.flow(
     withErrorReporting('Error loading workspace'),
     Utils.withBusyState(setLoadingWorkspace)
   )(async () => {
