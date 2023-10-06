@@ -13346,7 +13346,6 @@ __metadata:
     react-modal: ^3.16.1
     react-notifications-component: ^4.0.1
     react-oidc-context: ^2.1.0
-    react-onclickoutside: ^6.13.0
     react-paginating: ^1.4.0
     react-select: ^5.7.4
     react-simplemde-editor: ^5.0.2
