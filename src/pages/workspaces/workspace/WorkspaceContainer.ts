@@ -1,5 +1,14 @@
 import _ from 'lodash/fp';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import {
+  Dispatch,
+  Fragment,
+  JSXElementConstructor,
+  PropsWithChildren,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers';
 import { ContextBar } from 'src/analysis/ContextBar';
 import { analysisTabName } from 'src/analysis/runtime-common-components';
@@ -15,6 +24,9 @@ import { TabBar } from 'src/components/tabBars';
 import TitleBar from 'src/components/TitleBar';
 import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
+import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
@@ -23,22 +35,36 @@ import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-uti
 import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { hasProtectedData, isAzureWorkspace, isGoogleWorkspace, protectedDataMessage, regionConstraintMessage } from 'src/libs/workspace-utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import {
+  hasProtectedData,
+  isAzureWorkspace,
+  isGoogleWorkspace,
+  isOwner,
+  protectedDataMessage,
+  regionConstraintMessage,
+  WorkspaceWrapper,
+} from 'src/libs/workspace-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
-import { useWorkspace } from 'src/pages/workspaces/workspace/useWorkspace';
+import { InitializedWorkspaceWrapper as Workspace, useWorkspace } from 'src/pages/workspaces/workspace/useWorkspace';
 import WorkspaceAttributeNotice from 'src/pages/workspaces/workspace/WorkspaceAttributeNotice';
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
 const TitleBarWarning = (messageComponents) => {
   return h(TitleBar, {
-    title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
-      icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
-      span({ style: { color: colors.dark(), fontSize: 14 } }, messageComponents),
-    ]),
+    title: div(
+      {
+        role: 'alert',
+        style: { display: 'flex', alignItems: 'center', margin: '1rem' },
+      },
+      [
+        icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
+        span({ style: { color: colors.dark(), fontSize: 14 } }, messageComponents),
+      ]
+    ),
     style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
+    onDismiss: () => {},
   });
 };
 
@@ -59,6 +85,7 @@ const TitleBarSpinner = (messageComponents) => {
       span({ style: { color: colors.dark(), fontSize: 14 } }, messageComponents),
     ]),
     style: { backgroundColor: colors.warning(0.1), borderBottom: `1px solid ${colors.warning()}` },
+    onDismiss: () => {},
   });
 };
 
@@ -75,21 +102,35 @@ const GooglePermissionsSpinner = () => {
   return TitleBarSpinner(warningMessage);
 };
 
-export const WorkspaceTabs = ({
-  namespace,
-  name,
-  workspace,
-  activeTab,
-  refresh,
-  setDeletingWorkspace,
-  setCloningWorkspace,
-  setSharingWorkspace,
-  setShowLockWorkspaceModal,
-  setLeavingWorkspace,
-}) => {
-  const isOwner = workspace && WorkspaceUtils.isOwner(workspace.accessLevel);
+interface WorkspaceTabsProps {
+  namespace: string;
+  name: string;
+  workspace?: WorkspaceWrapper;
+  activeTab;
+  refresh: () => void;
+  setDeletingWorkspace: Dispatch<boolean>;
+  setCloningWorkspace: Dispatch<boolean>;
+  setSharingWorkspace: Dispatch<boolean>;
+  setShowLockWorkspaceModal: Dispatch<boolean>;
+  setLeavingWorkspace: Dispatch<boolean>;
+}
+
+export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
+  const {
+    namespace,
+    name,
+    workspace,
+    activeTab,
+    refresh,
+    setDeletingWorkspace,
+    setCloningWorkspace,
+    setSharingWorkspace,
+    setShowLockWorkspaceModal,
+    setLeavingWorkspace,
+  } = props;
+  const wsOwner = workspace && isOwner(workspace.accessLevel);
   const canShare = workspace?.canShare;
-  const isLocked = workspace?.workspace.isLocked;
+  const isLocked = !!workspace?.workspace.isLocked;
   const workspaceLoaded = !!workspace;
   const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace);
   const azureWorkspace = workspaceLoaded && isAzureWorkspace(workspace);
@@ -120,7 +161,7 @@ export const WorkspaceTabs = ({
         activeTab,
         refresh,
         tabNames: _.map('name', tabs),
-        getHref: (currentTab) => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name }),
+        getHref: (currentTab) => Nav.getLink(_.find({ name: currentTab }, tabs)?.link ?? '', { namespace, name }),
       },
       [
         workspace &&
@@ -134,12 +175,28 @@ export const WorkspaceTabs = ({
           iconSize: 27,
           popupLocation: 'bottom',
           callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-          workspaceInfo: { canShare, isLocked, isOwner, workspaceLoaded },
+          // @ts-expect-error
+          workspaceInfo: { canShare, isLocked, isOwner: wsOwner, workspaceLoaded },
         }),
       ]
     ),
   ]);
 };
+
+interface WorkspaceContainerProps {
+  namespace;
+  name;
+  breadcrumbs;
+  topBarContent?: ReactNode;
+  title;
+  activeTab;
+  showTabBar?: boolean;
+  analysesData: { apps; refreshApps; runtimes; refreshRuntimes; appDataDisks; persistentDisks };
+  storageDetails;
+  refresh;
+  workspace: Workspace;
+  refreshWorkspace;
+}
 
 export const WorkspaceContainer = ({
   namespace,
@@ -155,14 +212,15 @@ export const WorkspaceContainer = ({
   workspace,
   refreshWorkspace,
   children,
-}) => {
+}: PropsWithChildren<WorkspaceContainerProps>) => {
   const [deletingWorkspace, setDeletingWorkspace] = useState(false);
   const [cloningWorkspace, setCloningWorkspace] = useState(false);
   const [sharingWorkspace, setSharingWorkspace] = useState(false);
   const [showLockWorkspaceModal, setShowLockWorkspaceModal] = useState(false);
   const [leavingWorkspace, setLeavingWorkspace] = useState(false);
   const workspaceLoaded = !!workspace;
-  const isGoogleWorkspaceSyncing = workspaceLoaded && isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false;
+  const isGoogleWorkspaceSyncing =
+    workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -228,6 +286,7 @@ export const WorkspaceContainer = ({
     ]),
     deletingWorkspace &&
       h(DeleteWorkspaceModal, {
+        // @ts-expect-error
         workspace,
         onDismiss: () => setDeletingWorkspace(false),
         onSuccess: () => Nav.goToPath('workspaces'),
@@ -240,6 +299,7 @@ export const WorkspaceContainer = ({
       }),
     showLockWorkspaceModal &&
       h(LockWorkspaceModal, {
+        // @ts-expect-error
         workspace,
         onDismiss: () => setShowLockWorkspaceModal(false),
         onSuccess: () => refreshWorkspace(),
@@ -261,8 +321,10 @@ export const WorkspaceContainer = ({
 };
 
 const WorkspaceAccessError = () => {
-  const groupURL = 'https://support.terra.bio/hc/en-us/articles/360024617851-Managing-access-to-shared-resources-data-and-tools-';
-  const authorizationURL = 'https://support.terra.bio/hc/en-us/articles/360026775691-Managing-access-to-controlled-data-with-Authorization-Domains';
+  const groupURL =
+    'https://support.terra.bio/hc/en-us/articles/360024617851-Managing-access-to-shared-resources-data-and-tools-';
+  const authorizationURL =
+    'https://support.terra.bio/hc/en-us/articles/360026775691-Managing-access-to-controlled-data-with-Authorization-Domains';
   return div({ style: { padding: '2rem', flexGrow: 1 } }, [
     h2(['Could not display workspace']),
     p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
@@ -273,10 +335,10 @@ const WorkspaceAccessError = () => {
     ]),
     p([
       'To view an existing workspace, the owner of the workspace must share it with you or with a ',
-      h(Link, { ...Utils.newTabLinkProps, href: groupURL }, 'Group'),
+      h(Link, { ...Utils.newTabLinkProps, href: groupURL }, ['Group']),
       ' of which you are a member. ',
       'If the workspace is protected under an ',
-      h(Link, { ...Utils.newTabLinkProps, href: authorizationURL }, 'Authorization Domain'),
+      h(Link, { ...Utils.newTabLinkProps, href: authorizationURL }, ['Authorization Domain']),
       ', you must be a member of every group within the Authorization Domain.',
     ]),
     p(['If you think the workspace exists but you do not have access, please contact the workspace owner.']),
@@ -292,10 +354,10 @@ const WorkspaceAccessError = () => {
 
 const useCloudEnvironmentPolling = (workspace) => {
   const signal = useCancellation();
-  const timeout = useRef();
-  const [runtimes, setRuntimes] = useState();
-  const [persistentDisks, setPersistentDisks] = useState();
-  const [appDataDisks, setAppDataDisks] = useState();
+  const timeout = useRef<NodeJS.Timeout>();
+  const [runtimes, setRuntimes] = useState<ListRuntimeItem[]>();
+  const [persistentDisks, setPersistentDisks] = useState<PersistentDisk[]>();
+  const [appDataDisks, setAppDataDisks] = useState<PersistentDisk[]>();
 
   const saturnWorkspaceNamespace = workspace?.workspace.namespace;
   const saturnWorkspaceName = workspace?.workspace.name;
@@ -306,7 +368,11 @@ const useCloudEnvironmentPolling = (workspace) => {
   };
   const load = async (maybeStale) => {
     try {
-      const cloudEnvFilters = _.pickBy((l) => !_.isUndefined(l), { role: 'creator', saturnWorkspaceName, saturnWorkspaceNamespace });
+      const cloudEnvFilters = _.pickBy((l) => !_.isUndefined(l), {
+        role: 'creator',
+        saturnWorkspaceName,
+        saturnWorkspaceNamespace,
+      });
 
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
@@ -314,7 +380,10 @@ const useCloudEnvironmentPolling = (workspace) => {
         ? await Promise.all([
             Ajax(signal)
               .Disks.disksV1()
-              .list({ ...cloudEnvFilters, includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace' }),
+              .list({
+                ...cloudEnvFilters,
+                includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace',
+              }),
             Ajax(signal).Runtimes.listV2(cloudEnvFilters),
           ])
         : [[], []];
@@ -324,7 +393,10 @@ const useCloudEnvironmentPolling = (workspace) => {
       setPersistentDisks(_.filter((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
       const runtime = getCurrentRuntime(newRuntimes);
       reschedule(
-        maybeStale || ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring'].includes(getConvertedRuntimeStatus(runtime))
+        maybeStale ||
+          ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring'].includes(
+            getConvertedRuntimeStatus(runtime) ?? ''
+          )
           ? 10000
           : 120000
       );
@@ -344,8 +416,8 @@ const useCloudEnvironmentPolling = (workspace) => {
 
 const useAppPolling = (workspace) => {
   const signal = useCancellation();
-  const timeout = useRef();
-  const [apps, setApps] = useState();
+  const timeout = useRef<NodeJS.Timeout>();
+  const [apps, setApps] = useState<ListAppResponse[]>();
 
   const reschedule = (ms) => {
     clearTimeout(timeout.current);
@@ -355,10 +427,15 @@ const useAppPolling = (workspace) => {
     try {
       const newGoogleApps =
         !!workspace && isGoogleWorkspace(workspace)
-          ? await Ajax(signal).Apps.list(workspace.workspace.googleProject, { role: 'creator', saturnWorkspaceName: workspace.workspace.name })
+          ? await Ajax(signal).Apps.list(workspace.workspace.googleProject, {
+              role: 'creator',
+              saturnWorkspaceName: workspace.workspace.name,
+            })
           : [];
       const newAzureApps =
-        !!workspace && isAzureWorkspace(workspace) ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId, { role: 'creator' }) : [];
+        !!workspace && isAzureWorkspace(workspace)
+          ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId, { role: 'creator' })
+          : [];
       const combinedNewApps = [...newGoogleApps, ...newAzureApps];
 
       setApps(combinedNewApps);
@@ -379,14 +456,25 @@ const useAppPolling = (workspace) => {
   return { apps, refreshApps };
 };
 
+interface WrapWorkspaceProps {
+  breadcrumbs;
+  activeTab;
+  title;
+  topBarContent?: (props: any) => ReactNode;
+  showTabBar?: boolean;
+}
+
 export const wrapWorkspace =
-  ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true }) =>
-  (WrappedComponent) => {
+  ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true }: WrapWorkspaceProps) =>
+  (WrappedComponent: JSXElementConstructor<unknown>) => {
     const Wrapper = (props) => {
       const { namespace, name } = props;
-      const child = useRef();
+      const child = useRef<unknown>();
 
-      const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace } = useWorkspace(namespace, name);
+      const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace } = useWorkspace(
+        namespace,
+        name
+      );
       const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(workspace);
       const { apps, refreshApps } = useAppPolling(workspace);
 
@@ -415,7 +503,12 @@ export const wrapWorkspace =
           storageDetails,
           refresh: async () => {
             await refreshWorkspace();
-            if (child.current?.refresh) {
+            if (
+              !!child?.current &&
+              typeof child.current === 'object' &&
+              'refresh' in child.current &&
+              child.current.refresh instanceof Function
+            ) {
               child.current.refresh();
             }
           },
