@@ -4,12 +4,13 @@ import { authOpts, fetchBard, jsonBody } from 'src/libs/ajax/ajax-common';
 import { ensureAuthSettled } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring } from 'src/libs/error';
+import { MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { authStore, getSessionId } from 'src/libs/state';
 import { v4 as uuid } from 'uuid';
 
 export const Metrics = (signal?: AbortSignal) => {
-  const captureEventFn = async (event, details = {}) => {
+  const captureEventFn = async (event: MetricsEventName, details: Record<string, any> = {}): Promise<void> => {
     await ensureAuthSettled();
     const { signInStatus, registrationStatus } = authStore.get(); // NOTE: This is intentionally read after ensureAuthSettled
     const isRegistered = signInStatus === 'signedIn' && registrationStatus === 'registered';
@@ -55,11 +56,11 @@ export const Metrics = (signal?: AbortSignal) => {
 
     syncProfile: withErrorIgnoring(() => {
       return fetchBard('api/syncProfile', _.merge(authOpts(), { signal, method: 'POST' }));
-    }),
+    }) as () => Promise<void>,
 
-    identify: withErrorIgnoring((anonId) => {
+    identify: withErrorIgnoring((anonId: string) => {
       const body = { anonId };
       return fetchBard('api/identify', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
-    }),
+    }) as (anonId: string) => Promise<void>,
   };
 };

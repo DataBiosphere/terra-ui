@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { Ajax } from 'src/libs/ajax';
+import Events from 'src/libs/events';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { useMetricsEvent } from './useMetrics';
@@ -30,10 +31,10 @@ describe('useMetricsEvent', () => {
     // Act
     const renderedHook = renderHook(() => useMetricsEvent());
     const { captureEvent } = renderedHook.result.current;
-    captureEvent('hi there', { something: 'interesting' });
+    captureEvent(Events.workspaceCreate, { something: 'interesting' });
 
     // Assert
     expect(watchCaptureEvent).toBeCalledTimes(1);
-    expect(watchCaptureEvent).toBeCalledWith('hi there', { something: 'interesting' });
+    expect(watchCaptureEvent).toBeCalledWith(Events.workspaceCreate, { something: 'interesting' });
   });
 });
