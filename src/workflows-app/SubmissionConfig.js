@@ -44,6 +44,7 @@ export const BaseSubmissionConfig = (
     analysesData: { apps, refreshApps },
     workspace: {
       workspace: { workspaceId },
+      canCompute,
     },
   },
   _ref
@@ -519,8 +520,11 @@ export const BaseSubmissionConfig = (
               okButton: h(
                 ButtonPrimary,
                 {
-                  disabled: isSubmitting || cromwellRunnerNeeded,
-                  tooltip: cromwellRunnerNeeded && 'You need to create a cromwell runner first',
+                  disabled: isSubmitting || !canCompute || cromwellRunnerNeeded,
+                  tooltip: Utils.cond(
+                    [!canCompute, () => 'Must be a writer or owner to submit workflows'],
+                    [cromwellRunnerNeeded, () => 'You need to create a cromwell runner first']
+                  ),
                   'aria-label': 'Launch Submission',
                   onClick: () => submitRun(),
                 },
@@ -567,11 +571,19 @@ export const BaseSubmissionConfig = (
                       [workflowSubmissionError]
                     ),
                   ]),
+                !canCompute &&
+                  div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
+                    icon('warning-standard', { size: 16, style: { color: colors.danger() } }),
+                    h(TextCell, { style: { marginLeft: '0.5rem', marginRight: 'auto' } }, [
+                      'You do not have permission to run workflows in this workspace.',
+                    ]),
+                  ]),
                 cromwellRunnerNeeded &&
+                  canCompute &&
                   div([
                     div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-                      icon('warning-standard', { size: 16, style: { color: colors.warning() } }),
-                      h(TextCell, { style: { marginLeft: '0.5rem', marginRight: 'auto' } }, ['You need a cromwell runner to launch this workflow']),
+                      icon('info-circle', { size: 16, style: { color: colors.accent() } }),
+                      h(TextCell, { style: { marginLeft: '0.5rem', marginRight: 'auto' } }, ['You need a cromwell runner to launch this workflow.']),
                       isCreatingCromwellRunner || cromwellRunner?.status === 'PROVISIONING'
                         ? h(Fragment, [spinner(), div({ style: { marginLeft: '1rem' } }, ['Creating...'])])
                         : h(
