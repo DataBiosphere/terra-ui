@@ -102,14 +102,6 @@ export const snapshotReferenceMissingError = (snapshotReferenceName) => {
   return `The requested snapshot reference '${snapshotReferenceName}' could not be found in this workspace.`;
 };
 
-// Returns a message explaining why the user can't compute in the workspace, or undefined if they can
-export const computeWorkspaceError = ({ canCompute, workspace: { isLocked } }) => {
-  return cond(
-    [!canCompute, () => 'You do not have access to run analyses on this workspace.'],
-    [isLocked, () => 'This workspace is locked.']
-  );
-};
-
 export const textMatch = safeCurry((needle: string, haystack: string): boolean => {
   return haystack.toLowerCase().includes(needle.toLowerCase());
 }) as (needle: string, haystack: string) => boolean;
