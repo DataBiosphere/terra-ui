@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Ajax } from 'src/libs/ajax';
-import { MetricsEvent } from 'src/libs/events';
+import { MetricsEventName } from 'src/libs/events';
 
-export type CaptureEventFn = (event: MetricsEvent, details?: Record<string, any>) => void;
+export type CaptureEventFn = (event: MetricsEventName, details?: Record<string, any>) => void;
 
 export interface MetricsProvider {
   captureEvent: CaptureEventFn;

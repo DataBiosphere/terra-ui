@@ -142,17 +142,17 @@ const eventsList = {
   workspaceStar: 'workspace:star',
 } as const;
 
-// Helper type to create BaseMetricsEvent.
+// Helper type to create BaseMetricsEventName.
 type MetricsEventsMap<EventName> = { [key: string]: EventName | MetricsEventsMap<EventName> };
 // Union type of all event names configured in eventsList.
-type BaseMetricsEvent = typeof eventsList extends MetricsEventsMap<infer EventName> ? EventName : never;
+type BaseMetricsEventName = typeof eventsList extends MetricsEventsMap<infer EventName> ? EventName : never;
 // Each route has its own page view event, where the event name includes the name of the route.
-type PageViewMetricsEvent = `${typeof eventsList.pageView}:${string}`;
+type PageViewMetricsEventName = `${typeof eventsList.pageView}:${string}`;
 
 /**
  * Union type of all metrics event names.
  */
-export type MetricsEvent = BaseMetricsEvent | PageViewMetricsEvent;
+export type MetricsEventName = BaseMetricsEventName | PageViewMetricsEventName;
 
 // extractWorkspaceDetails accepts multiple types of input...
 export type EventWorkspaceAttributes =
