@@ -1,7 +1,7 @@
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
-import { ImportRequest } from './import-types';
+import { ImportRequest, PFBImportRequest } from './import-types';
 import { getImportSource, isProtectedSource, isProtectedWorkspace } from './protected-data-utils';
 
 const getSnapshot = (secureMonitoringEnabled: boolean): Snapshot => {
@@ -21,7 +21,7 @@ const getSnapshot = (secureMonitoringEnabled: boolean): Snapshot => {
   };
 };
 
-const protectedAnvilImports: ImportRequest[] = [
+const protectedAnvilImports: PFBImportRequest[] = [
   // AnVIL production
   { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/file.pfb') },
   {
@@ -30,7 +30,7 @@ const protectedAnvilImports: ImportRequest[] = [
   },
 ];
 
-const nonAnvilExplorerUrls: ImportRequest[] = [
+const nonAnvilExplorerUrls: PFBImportRequest[] = [
   { type: 'pfb', url: new URL('https://example.com/file.pfb') },
   { type: 'pfb', url: new URL('https://s3.amazonaws.com/gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export/file.pfb') },
   { type: 'pfb', url: new URL('https://gen3-theanvil-io-pfb-export.s3.amazonaws.com/file.pfb') },
@@ -98,7 +98,7 @@ describe('isProtectedWorkspace', () => {
     expect(isProtectedWorkspace(protectedWorkspace)).toBe(true);
   });
 
-describe('getImportSource', () => {
+  describe('getImportSource', () => {
     it.each(protectedAnvilImports)('$url source should be categorized as anvil', (importRequest) => {
       expect(getImportSource(importRequest.url)).toBe('anvil');
     });

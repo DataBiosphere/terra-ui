@@ -5,6 +5,8 @@ import { ImportRequest } from './import-types';
 
 type ProtectedSource = { type: 'http'; host: string } | { type: 's3'; bucket: string };
 
+export type importSource = 'anvil' | '';
+
 // These must be kept in sync with PROTECTED_URL_PATTERNS in import-service.
 // https://github.com/broadinstitute/import-service/blob/develop/app/protected_data.py
 const protectedSources: ProtectedSource[] = [
@@ -69,7 +71,7 @@ export const isProtectedSource = (importRequest: ImportRequest): boolean => {
 };
 
 // This method identifies an import source. Currently it only identifies AnVIL Explorer.
-export const getImportSource = (url: URL): string => {
+export const getImportSource = (url: URL): importSource => {
   const anvilSources = [
     'service.prod.anvil.gi.ucsc.edu',
     'edu-ucsc-gi-platform-anvil-prod-storage-anvilprod.us-east-1',
