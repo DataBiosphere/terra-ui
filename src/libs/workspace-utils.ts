@@ -71,6 +71,15 @@ export interface WorkspaceSubmissionStats {
   runningSubmissionsCount: number;
 }
 
+export interface WorkspaceAccessEntry {
+  accessLevel: WorkspaceAccessLevel;
+  pending: boolean;
+  canShare: boolean;
+  canCompute: boolean;
+}
+
+export type WorkspaceACL = Record<string, WorkspaceAccessEntry>;
+
 export type WorkpaceState =
   | 'Creating'
   | 'CreateFailed'
@@ -188,10 +197,10 @@ export interface WorkspaceAccessInfo {
 export const canEditWorkspace = ({
   accessLevel,
   workspace: { isLocked },
-}: WorkspaceAccessInfo): { value: boolean; message?: string } =>
+}: WorkspaceAccessInfo | WorkspaceWrapper): { value: boolean; message?: string } =>
   cond<{ value: boolean; message?: string }>(
     [!canWrite(accessLevel), () => ({ value: false, message: 'You do not have permission to modify this workspace.' })],
-    [isLocked, () => ({ value: false, message: 'This workspace is locked.' })],
+    [!!isLocked, () => ({ value: false, message: 'This workspace is locked.' })],
     () => ({ value: true })
   );
 
