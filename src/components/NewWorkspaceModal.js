@@ -5,9 +5,9 @@ import { cloudProviders, defaultLocation } from 'src/analysis/utils/runtime-util
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
+import { InfoBox } from 'src/components/InfoBox';
 import { TextArea, ValidatedInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
-import { InfoBox } from 'src/components/PopupTrigger';
 import {
   allRegions,
   availableBucketRegions,

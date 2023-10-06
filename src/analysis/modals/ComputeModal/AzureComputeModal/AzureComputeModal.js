@@ -18,9 +18,9 @@ import {
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonOutline, ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
+import { InfoBox } from 'src/components/InfoBox';
 import { NumberInput } from 'src/components/input';
 import { withModalDrawer } from 'src/components/ModalDrawer';
-import { InfoBox } from 'src/components/PopupTrigger';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
 import {
