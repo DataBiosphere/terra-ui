@@ -9,7 +9,11 @@ import { GalaxyModalBase } from 'src/analysis/modals/GalaxyModal';
 import { HailBatchModal } from 'src/analysis/modals/HailBatchModal';
 import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/analysis/runtime-common-components';
 import { AppErrorModal, RuntimeErrorModal } from 'src/analysis/RuntimeManager';
-import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
+import {
+  doesWorkspaceSupportCromwellAppForUser,
+  getCurrentAppForUser,
+  getIsAppBusy,
+} from 'src/analysis/utils/app-utils';
 import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/analysis/utils/cost-utils';
 import {
   getCurrentPersistentDisk,
@@ -196,7 +200,7 @@ export const CloudEnvironmentModal = ({
   const currentRuntimeStatus = getConvertedRuntimeStatus(currentRuntime);
   const currentRuntimeTool = currentRuntime?.labels?.tool;
 
-  const currentApp = (toolLabel: ToolLabel) => getCurrentApp(toolLabel, apps);
+  const currentApp = (toolLabel: ToolLabel) => getCurrentAppForUser(toolLabel, apps);
 
   const isLaunchSupported = (toolLabel: ToolLabel) =>
     !Object.values(tools).find((tool) => tool.label === toolLabel)!.isLaunchUnsupported;

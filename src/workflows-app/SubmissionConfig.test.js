@@ -2,8 +2,11 @@ import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
+import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { AppProxyUrlStatus, getTerraUser, workflowsAppStore } from 'src/libs/state';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -13,6 +16,7 @@ import {
   methodsResponse,
   mockAzureApps,
   mockAzureWorkspace,
+  mockCollaborativeAzureApps,
   myStructInput,
   runSetInputDef,
   runSetOutputDef,
@@ -32,6 +36,11 @@ jest.mock('src/libs/notifications.js');
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('src/libs/feature-previews', () => ({
+  ...jest.requireActual('src/libs/feature-previews'),
+  isFeaturePreviewEnabled: jest.fn(),
 }));
 
 jest.mock('src/libs/nav', () => ({
@@ -123,7 +132,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -175,7 +184,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       );
     });
@@ -232,7 +241,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -299,7 +308,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -388,7 +397,7 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -461,7 +470,7 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -523,7 +532,7 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -596,7 +605,7 @@ describe('Initial state', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -657,7 +666,7 @@ describe('Initial state', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -745,7 +754,7 @@ describe('Initial state', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -825,6 +834,7 @@ describe('Initial state', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -919,7 +929,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -994,7 +1004,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1099,7 +1109,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1152,7 +1162,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1234,7 +1244,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1281,7 +1291,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1330,7 +1340,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1362,7 +1372,7 @@ describe('Records Table updates', () => {
   });
 });
 
-describe('Submitting a run set', () => {
+describe('Submitting a run set to cromwell', () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
@@ -1417,7 +1427,7 @@ describe('Submitting a run set', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1518,7 +1528,7 @@ describe('Submitting a run set', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1614,7 +1624,7 @@ describe('Submitting a run set', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1742,7 +1752,7 @@ describe('Submitting a run set', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1950,7 +1960,834 @@ describe('Submitting a run set', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: mockAzureApps,
+          analysesData: { apps: mockAzureApps },
+        })
+      )
+    );
+    // ** ASSERT **
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox');
+    const checkbox = checkboxes[1];
+    await user.click(checkbox);
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true');
+
+    const outputButton = screen.getByRole('button', { name: 'Outputs' });
+    await user.click(outputButton);
+
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('row');
+    const headers = within(rows[0]).getAllByRole('columnheader');
+
+    // set defaults
+    await user.click(within(headers[3]).getByRole('button', { name: /Autofill/i }));
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button');
+    await user.click(button);
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    screen.getByText('Send submission');
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
+
+    // ** ACT **
+    // user click on Submit button
+    await user.click(modalSubmitButton);
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters and input 'optional_var' has correct definition for source 'None'
+    expect(postRunSetFunction).toHaveBeenCalled();
+    expect(postRunSetFunction).toBeCalledWith(
+      cbasUrlRoot,
+      expect.objectContaining({
+        method_version_id: runSetResponse.run_sets[0].method_version_id,
+        workflow_input_definitions: runSetInputDef,
+        workflow_output_definitions: runSetOutputDefWithDefaults,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: ['FOO1'],
+        },
+      })
+    );
+  });
+});
+
+describe('Submitting a run set to workflows app', () => {
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
+  });
+
+  beforeEach(() => {
+    getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot: 'https://lz-abc/terra-app-wfa-abc/cbas' });
+    getTerraUser.mockReturnValue({ email: 'groot@gmail.com' });
+    isFeaturePreviewEnabled.mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS);
+  });
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
+  });
+
+  it('should display error message for workspace reader', async () => {
+    // ** ARRANGE **
+    const user = userEvent.setup();
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const postRunSetFunction = jest.fn();
+    getTerraUser.mockReturnValue({ email: 'not-groot@gmail.com' });
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+      };
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: {
+            ...mockAzureWorkspace,
+            canCompute: false,
+          },
+          analysesData: { apps: mockCollaborativeAzureApps },
+        })
+      )
+    );
+    // ** ASSERT **
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox');
+    const checkbox = checkboxes[1];
+    await user.click(checkbox);
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true');
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button');
+    await user.click(button);
+
+    // ** ASSERT **
+    // Launch modal should be displayed, but user is workspace reader and cannot submit
+    screen.getByText('Send submission');
+    screen.getByText(/you do not have permission/i);
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
+    expect(modalSubmitButton).toHaveAttribute('disabled');
+
+    // ** ACT **
+    // user click on Submit button
+    await user.click(modalSubmitButton);
+
+    // ** ASSERT **
+    // assert no post request made
+    expect(postRunSetFunction).not.toHaveBeenCalled();
+  });
+
+  it('should not allow writer with no cromwell runner to submit workflow', async () => {
+    // ** ARRANGE **
+    const user = userEvent.setup();
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const createAppV2 = jest.fn();
+    const refreshApps = jest.fn();
+    const postRunSetFunction = jest.fn();
+    getTerraUser.mockReturnValue({ email: 'not-groot@gmail.com' });
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Apps: {
+          createAppV2,
+        },
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+      };
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: { apps: mockCollaborativeAzureApps, refreshApps },
+        })
+      )
+    );
+    // ** ASSERT **
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox');
+    const checkbox = checkboxes[1];
+    await user.click(checkbox);
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true');
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button');
+    await user.click(button);
+
+    // ** ASSERT **
+    // Launch modal should be displayed, but user doesn't have cromwell runner
+    screen.getByText('Send submission');
+    screen.getByText(/By clicking submit, Cromwell Runner will launch to run your workflow./i);
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
+
+    // ** ACT **
+    // user click on Submit button
+    await user.click(modalSubmitButton);
+
+    // ** ASSERT **
+    // assert cromwell launch called, submission would follow but we are not live-updating apps.
+    expect(createAppV2).toHaveBeenCalledWith(
+      expect.anything(),
+      mockAzureWorkspace.workspace.workspaceId,
+      appToolLabels.CROMWELL_RUNNER_APP,
+      appAccessScopes.USER_PRIVATE
+    );
+    expect(refreshApps).toHaveBeenCalled();
+  });
+
+  it('should call POST /run_sets endpoint with expected parameters', async () => {
+    // ** ARRANGE **
+    const user = userEvent.setup();
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+
+    const postRunSetFunction = jest.fn();
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+      };
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: { apps: mockCollaborativeAzureApps },
+        })
+      )
+    );
+    // ** ASSERT **
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+
+    // ** ACT **
+    // user untoggles call caching box
+    const callCacheToggleButton = screen.getByLabelText('Call Caching:');
+    await user.click(callCacheToggleButton);
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox');
+    const checkbox = checkboxes[1];
+    await user.click(checkbox);
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true');
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button');
+    await user.click(button);
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    screen.getByText('Send submission');
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
+
+    // ** ACT **
+    // user click on Submit button
+    await user.click(modalSubmitButton);
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters
+    expect(postRunSetFunction).toHaveBeenCalled();
+    expect(postRunSetFunction).toBeCalledWith(
+      cbasUrlRoot,
+      expect.objectContaining({
+        method_version_id: runSetResponse.run_sets[0].method_version_id,
+        workflow_input_definitions: runSetInputDef,
+        workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: ['FOO1'],
+        },
+        call_caching_enabled: false,
+      })
+    );
+  });
+
+  it('should display error message on workflow launch fail, and not on success', async () => {
+    // ** ARRANGE **
+    const user = userEvent.setup();
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+
+    const postRunSetSuccessResponse = { run_set_id: '00000000-0000-0000-000000000000' };
+    const postRunSetErrorResponse = { errors: 'Sample Error Message' };
+
+    const postRunSetFunction = jest.fn();
+    postRunSetFunction.mockRejectedValueOnce(postRunSetErrorResponse).mockResolvedValueOnce(postRunSetSuccessResponse);
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+      };
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: { apps: mockCollaborativeAzureApps },
+        })
+      )
+    );
+    // ** ASSERT **
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox');
+    const checkbox = checkboxes[1];
+    await user.click(checkbox);
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true');
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button');
+    await user.click(button);
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    screen.getByText('Send submission');
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
+
+    // ** ACT **
+    // user click on Submit button
+    await user.click(modalSubmitButton);
+
+    // ** ASSERT **
+    // assert error message on first submit
+    expect(postRunSetFunction).toHaveReturned();
+    screen.getByLabelText('Modal submission error');
+    screen.getByText(postRunSetErrorResponse.errors, { exact: false });
+    expect(Nav.goToPath).not.toHaveBeenCalled();
+
+    // ** ACT **
+    // user click on Submit button again
+    await user.click(modalSubmitButton);
+
+    // ** ASSERT **
+    // assert success on second submit
+    expect(postRunSetFunction).toHaveReturned();
+    expect(Nav.goToPath).toHaveBeenCalled();
+    expect(Nav.goToPath).toHaveBeenCalledWith('workspace-workflows-app-submission-details', {
+      name: 'test-azure-ws-name',
+      namespace: 'test-azure-ws-namespace',
+      submissionId: postRunSetSuccessResponse.run_set_id,
+    });
+  });
+
+  it('should call POST /run_sets endpoint with expected parameters after an optional input is set to None', async () => {
+    // ** ARRANGE **
+    const user = userEvent.setup();
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+
+    const postRunSetFunction = jest.fn();
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+      };
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: { apps: mockCollaborativeAzureApps },
+        })
+      )
+    );
+    // ** ASSERT **
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox');
+    const checkbox = checkboxes[1];
+    await user.click(checkbox);
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true');
+
+    // ** ACT **
+    const inputsTabButton = screen.getByRole('button', { name: 'Inputs' });
+    await user.click(inputsTabButton);
+
+    // ** ASSERT **
+    const inputTable = screen.getByRole('table');
+    const rows = within(inputTable).getAllByRole('row');
+    expect(rows.length).toBe(runSetInputDef.length + 1); // one row for each input definition variable, plus headers
+
+    // ** ACT **
+    // user sets the source to 'None' for input 'optional_var'
+    const thirdInputRow = within(rows[3]).getAllByRole('cell');
+    await user.click(within(thirdInputRow[3]).getByText('Type a Value'));
+    const selectOption = screen.getByText('None');
+    await user.click(selectOption);
+
+    // ** ASSERT **
+    // check that the Attribute column has expected behavior
+    within(thirdInputRow[4]).getByText('Optional');
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button');
+    await user.click(button);
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    screen.getByText('Send submission');
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
+
+    // ** ACT **
+    // user click on Submit button
+    await user.click(modalSubmitButton);
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters and input 'optional_var' has correct definition for source 'None'
+    expect(postRunSetFunction).toHaveBeenCalled();
+    expect(postRunSetFunction).toBeCalledWith(
+      cbasUrlRoot,
+      expect.objectContaining({
+        call_caching_enabled: true,
+        method_version_id: runSetResponse.run_sets[0].method_version_id,
+        workflow_input_definitions: [
+          runSetInputDef[0],
+          runSetInputDef[1],
+          {
+            input_name: 'target_workflow_1.optional_var',
+            input_type: {
+              optional_type: {
+                primitive_type: 'String',
+                type: 'primitive',
+              },
+              type: 'optional',
+            },
+            source: {
+              type: 'none',
+            },
+          },
+        ],
+        workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: ['FOO1'],
+        },
+      })
+    );
+  });
+
+  it('should call POST /run_sets endpoint with expected parameters after struct has been updated', async () => {
+    // ** ARRANGE **
+    const user = userEvent.setup();
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseWithStruct));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+
+    const postRunSetFunction = jest.fn();
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+      };
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: { apps: mockCollaborativeAzureApps },
+        })
+      )
+    );
+    // ** ASSERT **
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox');
+    const checkbox = checkboxes[1];
+    await user.click(checkbox);
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true');
+
+    const inputsTabButton = screen.getByRole('button', { name: 'Inputs' });
+
+    // ** ACT **
+    await user.click(inputsTabButton);
+
+    // ** ASSERT **
+    screen.getByRole('table'); // there should be only one table at this point
+
+    const viewStructLink = screen.getByText('View Struct');
+    await user.click(viewStructLink);
+    screen.getByText('myInnerStruct');
+
+    const structTable = screen.getByLabelText('struct-table');
+    const structRows = within(structTable).getAllByRole('row');
+    expect(structRows.length).toBe(6);
+
+    // ** ACT **
+    // Update the top-level struct field myPrimitive
+    const myPrimitiveRowCells = within(structRows[5]).getAllByRole('cell');
+    within(myPrimitiveRowCells[1]).getByText('myPrimitive');
+    const myPrimitiveInput = within(myPrimitiveRowCells[4]).getByDisplayValue('Fiesty');
+    await user.clear(myPrimitiveInput);
+    await user.type(myPrimitiveInput, 'Docile');
+    within(myPrimitiveRowCells[4]).getByDisplayValue('Docile');
+
+    // ** ACT **
+    // Navigate the struct builder to myInnerStruct
+    const myInnerStructRowCells = within(structRows[2]).getAllByRole('cell');
+    within(myInnerStructRowCells[1]).getByText('myInnerStruct');
+    const viewMyInnerStructLink = within(myInnerStructRowCells[4]).getByText('View Struct');
+    await user.click(viewMyInnerStructLink);
+
+    const myInnerStructTable = screen.getByLabelText('struct-table');
+    const myInnerStructRows = within(myInnerStructTable).getAllByRole('row');
+    expect(myInnerStructRows.length).toBe(3);
+
+    // ** ACT **
+    // Update the struct within myInnerStruct
+    const myInnermostPrimitiveRowCells = within(myInnerStructRows[1]).getAllByRole('cell');
+    within(myInnermostPrimitiveRowCells[1]).getByText('myInnermostPrimitive');
+    await user.click(within(myInnermostPrimitiveRowCells[3]).getByText('Select Source'));
+    const selectOption = within(screen.getByLabelText('Options')).getByText('Type a Value');
+    await user.click(selectOption);
+    const myInnermostPrimitiveInput = within(myInnermostPrimitiveRowCells[4]).getByLabelText('Enter a value');
+    await user.clear(myInnermostPrimitiveInput);
+    await user.type(myInnermostPrimitiveInput, 'bar');
+    within(myInnermostPrimitiveRowCells[4]).getByDisplayValue('bar');
+
+    // ** ACT **
+    // Exit the modal and submit
+    const innerStructModalDoneButton = screen.getByText('Back');
+    await user.click(innerStructModalDoneButton);
+    const modalDoneButton = screen.getByText('Done');
+    await user.click(modalDoneButton);
+    screen.getByRole('table'); // there should be only one table again
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const submitButton = screen.getByLabelText('Submit button');
+    await user.click(submitButton);
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    screen.getByText('Send submission');
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
+
+    // ** ACT **
+    // user click on Submit button
+    await user.click(modalSubmitButton);
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters, with struct input sources updated
+    expect(postRunSetFunction).toHaveBeenCalled();
+    expect(postRunSetFunction).toBeCalledWith(
+      cbasUrlRoot,
+      expect.objectContaining({
+        method_version_id: runSetResponseWithStruct.run_sets[0].method_version_id,
+        workflow_input_definitions: [
+          ...runSetInputDef,
+          {
+            input_name: myStructInput.input_name,
+            input_type: myStructInput.input_type,
+            source: {
+              type: 'object_builder',
+              fields: [
+                {
+                  name: 'myPrimitive',
+                  source: {
+                    type: 'literal',
+                    parameter_value: 'Docile',
+                  },
+                },
+                {
+                  name: 'myOptional',
+                  source: {
+                    type: 'literal',
+                    parameter_value: 'Meh',
+                  },
+                },
+                {
+                  name: 'myArray',
+                  source: {
+                    type: 'literal',
+                    parameter_value: [],
+                  },
+                },
+                {
+                  name: 'myMap',
+                  source: {
+                    type: 'literal',
+                    parameter_value: {},
+                  },
+                },
+                {
+                  name: 'myInnerStruct',
+                  source: {
+                    type: 'object_builder',
+                    fields: [
+                      {
+                        name: 'myInnermostPrimitive',
+                        source: {
+                          type: 'literal',
+                          parameter_value: 'bar',
+                        },
+                      },
+                      {
+                        name: 'myInnermostRecordLookup',
+                        source: {
+                          type: 'record_lookup',
+                          record_attribute: 'foo_rating',
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+        workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: ['FOO1'],
+        },
+      })
+    );
+  }, 7000);
+
+  it('should call POST /run_sets endpoint with expected parameters after outputs are set to default', async () => {
+    // ** ARRANGE **
+    const user = userEvent.setup();
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+
+    const postRunSetFunction = jest.fn();
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+      };
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: { apps: mockCollaborativeAzureApps },
         })
       )
     );

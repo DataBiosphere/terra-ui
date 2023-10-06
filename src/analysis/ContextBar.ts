@@ -14,7 +14,11 @@ import { CSSProperties, Fragment, useState } from 'react';
 import { br, div, h, img, span } from 'react-hyperscript-helpers';
 import { CloudEnvironmentModal } from 'src/analysis/modals/CloudEnvironmentModal';
 import { appLauncherTabName } from 'src/analysis/runtime-common-components';
-import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp } from 'src/analysis/utils/app-utils';
+import {
+  doesWorkspaceSupportCromwellAppForUser,
+  getCurrentApp,
+  getCurrentAppForUser,
+} from 'src/analysis/utils/app-utils';
 import {
   getCostDisplayForDisk,
   getCostDisplayForTool,
@@ -203,7 +207,7 @@ export const ContextBar = ({
       : appToolLabels.CROMWELL;
 
     const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps);
-    const cromwellAppObject = getCurrentApp(appTools[cromwellAppLabel].label, apps);
+    const cromwellAppObject = getCurrentAppForUser(appTools[cromwellAppLabel].label, apps);
 
     const cromwellApp =
       !isToolHidden(appTools[cromwellAppLabel].label, cloudProvider, cromwellAppObject) &&

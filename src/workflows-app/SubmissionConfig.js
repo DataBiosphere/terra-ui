@@ -2,7 +2,7 @@ import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { a, div, h, h2, label, span } from 'react-hyperscript-helpers';
-import { generateAppName, getCurrentApp } from 'src/analysis/utils/app-utils';
+import { generateAppName, getCurrentAppForUser } from 'src/analysis/utils/app-utils';
 import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { Switch } from 'src/components/common/Switch';
@@ -72,6 +72,7 @@ export const BaseSubmissionConfig = (
   const [runSetDescription, setRunSetDescription] = useState('');
   const [isCreatingCromwellRunner, setIsCreatingCromwellRunner] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStarted, setSubmitStarted] = useState(false);
   const [workflowSubmissionError, setWorkflowSubmissionError] = useState();
 
   const [displayLaunchModal, setDisplayLaunchModal] = useState(false);
@@ -81,7 +82,7 @@ export const BaseSubmissionConfig = (
   const dataTableRef = useRef();
   const signal = useCancellation();
   const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
-  const cromwellRunner = getCurrentApp(appToolLabels.CROMWELL_RUNNER_APP, apps);
+  const cromwellRunner = getCurrentAppForUser(appToolLabels.CROMWELL_RUNNER_APP, apps);
   const cromwellRunnerNeeded = isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS) && cromwellRunner?.status !== 'RUNNING';
 
   const createCromwell = Utils.withBusyState(setIsCreatingCromwellRunner, async () => {
@@ -247,7 +248,7 @@ export const BaseSubmissionConfig = (
     }
   };
 
-  const submitRun = async () => {
+  const submitRun = useCallback(async () => {
     try {
       const runSetsPayload = {
         run_set_name: runSetName,
@@ -261,7 +262,6 @@ export const BaseSubmissionConfig = (
         },
         call_caching_enabled: isCallCachingEnabled,
       };
-      setIsSubmitting(true);
       const {
         cbasProxyUrlState: { state: cbasUrl },
       } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
@@ -284,9 +284,33 @@ export const BaseSubmissionConfig = (
       });
     } catch (error) {
       setIsSubmitting(false);
+      setSubmitStarted(false);
       setWorkflowSubmissionError(JSON.stringify(error instanceof Response ? await error.json() : error, null, 2));
     }
-  };
+  }, [
+    captureEvent,
+    configuredInputDefinition,
+    configuredOutputDefinition,
+    isCallCachingEnabled,
+    method,
+    name,
+    namespace,
+    runSetDescription,
+    runSetName,
+    selectedMethodVersion,
+    selectedRecordType,
+    selectedRecords,
+    signal,
+    workspace,
+    workspaceId,
+  ]);
+
+  useEffect(() => {
+    if (isSubmitting && !submitStarted && !cromwellRunnerNeeded) {
+      setSubmitStarted(true);
+      submitRun();
+    }
+  }, [cromwellRunnerNeeded, isSubmitting, submitRun, submitStarted]);
 
   useOnMount(() => {
     const loadWorkflowsApp = async () => {
@@ -520,13 +544,15 @@ export const BaseSubmissionConfig = (
               okButton: h(
                 ButtonPrimary,
                 {
-                  disabled: isSubmitting || !canCompute || cromwellRunnerNeeded,
-                  tooltip: Utils.cond(
-                    [!canCompute, () => 'Must be a writer or owner to submit workflows'],
-                    [cromwellRunnerNeeded, () => 'You need to create a cromwell runner first']
-                  ),
+                  disabled: isSubmitting || !canCompute,
+                  tooltip: !canCompute && 'Must be a writer or owner to submit workflows',
                   'aria-label': 'Launch Submission',
-                  onClick: () => submitRun(),
+                  onClick: async () => {
+                    setIsSubmitting(true);
+                    if (cromwellRunnerNeeded) {
+                      await createCromwell();
+                    }
+                  },
                 },
                 [isSubmitting ? 'Submitting...' : 'Submit']
               ),
@@ -583,18 +609,15 @@ export const BaseSubmissionConfig = (
                   div([
                     div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
                       icon('info-circle', { size: 16, style: { color: colors.accent() } }),
-                      h(TextCell, { style: { marginLeft: '0.5rem', marginRight: 'auto' } }, ['You need a cromwell runner to launch this workflow.']),
-                      isCreatingCromwellRunner || cromwellRunner?.status === 'PROVISIONING'
-                        ? h(Fragment, [spinner(), div({ style: { marginLeft: '1rem' } }, ['Creating...'])])
-                        : h(
-                            ButtonPrimary,
-                            {
-                              'aria-label': 'Create cromwell runner',
-                              onClick: () => createCromwell(),
-                            },
-                            ['Create']
-                          ),
+                      h(TextCell, { style: { margin: '0 0.5rem', textWrap: 'wrap', lineHeight: '1.15rem' } }, [
+                        'By clicking submit, Cromwell Runner will launch to run your workflow.',
+                      ]),
                     ]),
+                  ]),
+                (isCreatingCromwellRunner || cromwellRunner?.status === 'PROVISIONING') &&
+                  div({ style: { display: 'flex', flexDirection: 'row', marginTop: '0.5rem' } }, [
+                    spinner(),
+                    div({ style: { marginLeft: '1rem' } }, ['Creating...']),
                   ]),
               ]),
             ]

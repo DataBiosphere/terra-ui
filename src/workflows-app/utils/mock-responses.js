@@ -1,4 +1,5 @@
 import _ from 'lodash/fp';
+import { appAccessScopes } from 'src/analysis/utils/tool-utils';
 
 export const runSetInputDef = [
   {
@@ -724,6 +725,67 @@ export const mockAzureApps = [
       creator: 'groot@gmail.com',
     },
     accessScope: null,
+    labels: {},
+  },
+  {
+    workspaceId: 'abc-c07807929cd1',
+    cloudContext: {
+      cloudProvider: 'AZURE',
+    },
+    errors: [],
+    status: 'RUNNING',
+    proxyUrls: {
+      wds: 'https://lz-abc/wds-abc-c07807929cd1/',
+    },
+    appName: 'wds-abc-c07807929cd1',
+    appType: 'WDS',
+    diskName: null,
+    auditInfo: {
+      creator: 'groot@gmail.com',
+    },
+    accessScope: 'WORKSPACE_SHARED',
+    labels: {},
+  },
+];
+
+export const mockCollaborativeAzureApps = [
+  {
+    workspaceId: 'abc-c07807929cd1',
+    cloudContext: {
+      cloudProvider: 'AZURE',
+    },
+    errors: [],
+    status: 'RUNNING',
+    proxyUrls: {
+      cbas: 'https://lz-abc/terra-app-wfa-abc/cbas',
+      'cromwell-reader': 'https://lz-abc/terra-app-wfa-abc/cromwell',
+    },
+    appName: 'terra-app-wfa-abc',
+    appType: 'WORKFLOWS_APP',
+    diskName: null,
+    auditInfo: {
+      creator: 'groot@gmail.com',
+    },
+    accessScope: appAccessScopes.WORKSPACE_SHARED,
+    labels: {},
+  },
+  {
+    workspaceId: 'abc-c07807929cd1',
+    cloudContext: {
+      cloudProvider: 'AZURE',
+    },
+    errors: [],
+    status: 'RUNNING',
+    proxyUrls: {
+      'cromwell-runner': 'https://lz-abc/terra-app-cra-def/cromwell',
+    },
+    appName: 'terra-app-cra-def',
+    appType: 'CROMWELL_RUNNER_APP',
+    diskName: null,
+    auditInfo: {
+      creator: 'groot@gmail.com',
+    },
+    accessScope: appAccessScopes.USER_PRIVATE,
     labels: {},
   },
   {

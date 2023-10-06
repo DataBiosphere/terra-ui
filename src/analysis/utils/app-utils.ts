@@ -1,5 +1,12 @@
 import _ from 'lodash/fp';
-import { allAppTypes, AppToolLabel, appToolLabels, isAppToolLabel, ToolLabel } from 'src/analysis/utils/tool-utils';
+import {
+  allAppTypes,
+  appAccessScopes,
+  AppToolLabel,
+  appToolLabels,
+  isAppToolLabel,
+  ToolLabel,
+} from 'src/analysis/utils/tool-utils';
 import { App, DisplayAppStatus, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -39,6 +46,14 @@ export const doesWorkspaceSupportCromwellAppForUser = (
     [Utils.DEFAULT, () => true]
   );
 };
+
+export const getCurrentAppForUser = (appType: ToolLabel, apps: App[] | undefined): App | undefined =>
+  getCurrentApp(
+    appType,
+    apps?.filter(
+      (app) => app.accessScope !== appAccessScopes.USER_PRIVATE || app.auditInfo.creator === getTerraUser().email
+    ) ?? []
+  );
 
 export const getCurrentApp = (appType: ToolLabel, apps: App[]): App | undefined =>
   isAppToolLabel(appType) ? getCurrentAppExcludingStatuses(appType, ['DELETING'], apps) : undefined;
