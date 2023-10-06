@@ -204,7 +204,7 @@ export const modalDrawer = {
   },
 } as const satisfies Record<string, CSSProperties>;
 
-export const Dashboard = {
+export const dashboard = {
   leftBox: {
     flex: 1,
     padding: '0 2rem 2rem 2rem',
