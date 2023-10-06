@@ -70,7 +70,7 @@ const TermsOfServicePage = () => {
     }
   };
 
-  const continueButton = () => {
+  const onContinueUnderGracePeriod = () => {
     Nav.goToPath('root');
   };
 
