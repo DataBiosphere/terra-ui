@@ -2983,6 +2983,7 @@ __metadata:
     "@types/jest": ^28.1.8
     "@types/lodash": ^4.14.184
     "@types/react": ^18.2.15
+    "@types/react-onclickoutside": ^6.7.5
     "@types/testing-library__jest-dom": ^5.14.9
     color: ^4.0.1
     jest: ^27.4.3
@@ -2991,6 +2992,7 @@ __metadata:
     react-dom: 18.2.0
     react-focus-lock: ^2.9.5
     react-hyperscript-helpers: ^2.0.0
+    react-onclickoutside: ^6.13.0
     typescript: ^4.9.5
     vite: ^4.3.9
     vite-plugin-svgr: ^3.2.0
@@ -3438,6 +3440,15 @@ __metadata:
   dependencies:
     "@types/react": "*"
   checksum: e02ea908289a7ad26053308248d2b87f6aeafd73d0e2de2a3d435947bcea0422599016ffd1c3e38ff36c42f5e1c87c7417f05b0a157e48649e4a02f21727d54f
+  languageName: node
+  linkType: hard
+
+"@types/react-onclickoutside@npm:^6.7.5":
+  version: 6.7.5
+  resolution: "@types/react-onclickoutside@npm:6.7.5"
+  dependencies:
+    "@types/react": "*"
+  checksum: 2900327b4d031deed7c03d33c32670c19cbf09d4ac0eaa560df46c99073bb48b290b601bb4cc5f3b6f86c2375ea81e8c410e7e93e1105475b00d620eb2a36c8d
   languageName: node
   linkType: hard
 
