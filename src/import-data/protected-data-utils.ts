@@ -21,7 +21,7 @@ const protectedSources: ProtectedSource[] = [
 
 /**
  * Determine if a PFB file is considered protected data.
- * */
+ */
 const isProtectedPfbSource = (pfbUrl: URL): boolean => {
   return protectedSources.some((source) => {
     switch (source.type) {
@@ -48,7 +48,7 @@ const isProtectedPfbSource = (pfbUrl: URL): boolean => {
 
 /**
  * Determine if a TDR snapshot is considered protected data.
- * */
+ */
 const isProtectedSnapshotSource = (snapshot: Snapshot): boolean => {
   return snapshot.source.some((source) => source.dataset.secureMonitoringEnabled);
 };
