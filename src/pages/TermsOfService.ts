@@ -132,9 +132,11 @@ const TermsOfServicePage = () => {
               h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: reject, disabled: busy }, [
                 'Decline and Sign Out',
               ]),
-              h(ButtonOutline, { style: { marginRight: '1rem' }, onClick: continueButton, disabled: busy }, [
-                'Continue under grace period',
-              ]),
+              h(
+                ButtonOutline,
+                { style: { marginRight: '1rem' }, onClick: onContinueUnderGracePeriod, disabled: busy },
+                ['Continue under grace period']
+              ),
               h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept']),
             ]),
         ]

@@ -3,7 +3,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { Groups } from 'src/libs/ajax/Groups';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { User } from 'src/libs/ajax/User';
+import { SamUserRegistrationStatusResponse, SamUserTosStatusResponse, User } from 'src/libs/ajax/User';
 import { AuthState, authStore } from 'src/libs/state';
 import TermsOfServicePage from 'src/pages/TermsOfService';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -35,32 +35,53 @@ jest.mock(
   })
 );
 
-const setupMockAjax = (termsOfService) => {
+interface TermsOfServiceStatusResponse {
+  userHasAcceptedLatestTos: boolean;
+  permitsSystemUsage: boolean;
+}
+interface TermsOfServiceSetupResult {
+  getTosFn: jest.Mock;
+  getStatusFn: jest.Mock;
+  getTermsOfServiceComplianceStatusFn: jest.Mock;
+  acceptTosFn: jest.Mock;
+  rejectTosFn: jest.Mock;
+}
+
+const setupMockAjax = (termsOfService: TermsOfServiceStatusResponse): TermsOfServiceSetupResult => {
+  const userSubjectId = 'testSubjectId';
+  const userEmail = 'test@email.com';
+
   const getTos = jest.fn().mockResolvedValue('some text');
-  const getTermsOfServiceComplianceStatus = jest.fn().mockResolvedValue(termsOfService);
-  const getStatus = jest.fn().mockResolvedValue({});
+  const getTermsOfServiceComplianceStatus = jest
+    .fn()
+    .mockResolvedValue(termsOfService satisfies TermsOfServiceStatusResponse);
+  const getStatus = jest.fn().mockResolvedValue({
+    userSubjectId,
+    userEmail,
+    enabled: true,
+  } satisfies SamUserRegistrationStatusResponse);
   const acceptTos = jest.fn().mockResolvedValue({
     userInfo: {
-      userSubjectId: 'testSubjectId',
-      userEmail: 'testEmail',
+      userSubjectId,
+      userEmail,
     },
     enabled: {
       ldap: true,
       allUsersGroup: true,
       google: true,
     },
-  });
+  } satisfies SamUserTosStatusResponse);
   const rejectTos = jest.fn().mockResolvedValue({
     userInfo: {
-      userSubjectId: 'testSubjectId',
-      userEmail: 'testEmail',
+      userSubjectId,
+      userEmail,
     },
     enabled: {
       ldap: true,
       allUsersGroup: true,
       google: true,
     },
-  });
+  } satisfies SamUserTosStatusResponse);
   const getFenceStatus = jest.fn();
   const getNihStatus = jest.fn();
 
@@ -161,7 +182,7 @@ describe('TermsOfService', () => {
 
     // Assert
     const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');
-    expect(continueUnderGracePeriodButton).not.toBeInTheDocument();
+    expect(continueUnderGracePeriodButton).toBeNull();
   });
 
   it('does not show any buttons when the user has accepted the latest ToS and is allowed to use Terra', async () => {
@@ -183,7 +204,7 @@ describe('TermsOfService', () => {
     expect(continueUnderGracePeriodButton).not.toBeInTheDocument();
 
     const acceptButton = screen.queryByText('Accept');
-    expect(acceptButton).not.toBeInTheDocument();
+    expect(acceptButton).toBeNull();
   });
 
   it('calls the acceptTos endpoint when the accept tos button is clicked', async () => {
