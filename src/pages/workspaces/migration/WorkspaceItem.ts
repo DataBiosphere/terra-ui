@@ -1,8 +1,10 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/PopupTrigger';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
+import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceMigrationInfo } from 'src/pages/workspaces/migration/migration-utils';
 
@@ -12,6 +14,34 @@ interface WorkspaceItemProps {
 
 export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
   const workspaceInfo = props.workspaceMigrationInfo;
+  const [unmigratedBucketSize, setUnmigratedBucketSize] = useState<string>();
+  const bucketSizeFailed = 'Unable to fetch Bucket Size';
+  const signal = useCancellation();
+
+  useEffect(() => {
+    const fetchBucketSize = async () => {
+      // Set to an empty string as a flag that we have sent an Ajax request.
+      setUnmigratedBucketSize('');
+      try {
+        const { usageInBytes } = await Ajax(signal)
+            .Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name)
+            .bucketUsage();
+        setUnmigratedBucketSize(`Bucket Size: ${Utils.formatBytes(usageInBytes)}`);
+      } catch (error) {
+        // This is typically a 404 with no message to display
+        setUnmigratedBucketSize(bucketSizeFailed);
+      }
+    };
+
+    if (unmigratedBucketSize === undefined && workspaceInfo.migrationStep === 'Unscheduled') {
+      fetchBucketSize();
+    }
+    // If the workspace has started migration, clear the bucket size.
+    if (unmigratedBucketSize !== undefined && workspaceInfo.migrationStep !== 'Unscheduled') {
+      setUnmigratedBucketSize(undefined);
+    }
+  }, [setUnmigratedBucketSize, signal, unmigratedBucketSize, workspaceInfo]);
+
 
   const renderMigrationIcon = () => {
     return Utils.cond(
@@ -41,7 +71,15 @@ export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
               color: colors.success(),
             },
           }),
-      ]
+      ],
+        [
+          workspaceInfo.migrationStep === 'Unscheduled' && unmigratedBucketSize === bucketSizeFailed,
+          () =>
+              icon('warning-info', {
+                size: 22,
+                style: { color: colors.warning() },
+              }),
+        ]
     );
   };
 
@@ -103,8 +141,42 @@ export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
       [
         workspaceInfo.migrationStep === 'FinishingUp' || workspaceInfo.migrationStep === 'Finished',
         () => span(['Finishing Migration']),
+      ],
+      [workspaceInfo.migrationStep === 'Unscheduled' && !!unmigratedBucketSize, () => span([unmigratedBucketSize])]
+    );
+    const statusIcon = Utils.cond(
+      [
+        workspaceInfo.outcome === 'failure',
+        () =>
+          icon('warning-standard', {
+            size: 18,
+            style: { color: colors.danger() },
+          }),
+      ],
+      [
+        workspaceInfo.outcome === 'success',
+        () =>
+          icon('check', {
+            size: 18,
+            style: { color: colors.success() },
+          }),
+      ],
+      [
+        workspaceInfo.migrationStep !== 'Unscheduled',
+        () =>
+          icon('syncAlt', {
+            size: 18,
+            style: {
+              animation: 'rotation 2s infinite linear',
+              color: colors.success(),
+            },
+          }),
       ]
     );
+    return div({ style: { display: 'flex' } }, [
+      statusIcon,
+      div({ style: { display: 'flex', paddingLeft: '0.5rem', alignItems: 'center' } }, [text]),
+    ]);
   };
 
   return div(
