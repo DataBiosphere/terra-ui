@@ -28,21 +28,7 @@ import {
 } from './import-types';
 import { ImportDataDestination } from './ImportDataDestination';
 import { ImportDataOverview } from './ImportDataOverview';
-import { isProtectedSource } from './protected-data-utils';
 import { useImportRequest } from './useImportRequest';
-
-const getTitleForImportRequest = (importRequest: ImportRequest): string => {
-  switch (importRequest.type) {
-    case 'tdr-snapshot-export':
-      return `Importing snapshot ${importRequest.snapshot.name}`;
-    case 'tdr-snapshot-reference':
-    case 'catalog-dataset':
-    case 'catalog-snapshots':
-      return 'Linking data to a workspace';
-    default:
-      return 'Importing data to a workspace';
-  }
-};
 
 export interface ImportDataProps {
   importRequest: ImportRequest;
@@ -57,10 +43,6 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   const [userHasBillingProjects, setUserHasBillingProjects] = useState(true);
   const [snapshotResponses, setSnapshotResponses] = useState<{ status: string; message: string | undefined }[]>();
   const [isImporting, setIsImporting] = useState(false);
-
-  const isDataset = !_.includes(format, ['snapshot', 'tdrexport']);
-
-  const isProtectedData = isProtectedSource(importRequest);
 
   // Normalize the snapshot name:
   // Importing snapshot will throw an "enum" error if the name has any spaces or special characters
@@ -205,22 +187,17 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
 
   return h(Fragment, [
     h(ImportDataOverview, {
-      header: getTitleForImportRequest(importRequest),
-      snapshots: importRequest.type === 'catalog-snapshots' ? importRequest.snapshots : [],
-      isDataset,
+      importRequest,
       snapshotResponses,
-      url: 'url' in importRequest ? importRequest.url : undefined,
-      isProtectedData,
     }),
     h(ImportDataDestination, {
+      importRequest,
       initialSelectedWorkspaceId: wid,
+      requiredAuthorizationDomain: ad,
       templateWorkspaces,
       template,
       userHasBillingProjects,
-      importMayTakeTime: isDataset,
-      requiredAuthorizationDomain: ad,
       onImport,
-      isProtectedData,
     }),
     isImporting && spinnerOverlay,
   ]);
