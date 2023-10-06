@@ -1,28 +1,84 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
+import { Ajax } from 'src/libs/ajax';
 import { MigrationStep, WorkspaceMigrationInfo } from 'src/pages/workspaces/migration/migration-utils';
 import { WorkspaceItem } from 'src/pages/workspaces/migration/WorkspaceItem';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+
+type AjaxContract = ReturnType<typeof Ajax>;
+type AjaxWorkspacesContract = AjaxContract['Workspaces'];
+jest.mock('src/libs/ajax');
 
 describe('WorkspaceItem', () => {
-  it('shows the workspace name for an unscheduled workspace', async () => {
-    // Arrange
-    const unscheduledWorkspace: WorkspaceMigrationInfo = {
-      namespace: 'billing project',
-      name: 'workspace name',
-      migrationStep: 'Unscheduled',
+  const unscheduledWorkspace: WorkspaceMigrationInfo = {
+    namespace: 'billing project',
+    name: 'workspace name',
+    migrationStep: 'Unscheduled',
+  };
+  const mockGetBucketUsage = jest.fn();
+
+  beforeEach(() => {
+    const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
+      workspace: () => ({
+        bucketUsage: mockGetBucketUsage,
+      }),
     };
+    const mockAjax: Partial<AjaxContract> = {
+      Workspaces: mockWorkspaces as AjaxWorkspacesContract,
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('shows the workspace name and bucket size for an unscheduled workspace', async () => {
+    // Arrange
+    const mockActualGetBucketUsage = jest.fn().mockResolvedValue({ usageInBytes: 1234 });
+    const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
+      workspace: () => ({
+        bucketUsage: mockActualGetBucketUsage,
+      }),
+    };
+    const mockAjax: Partial<AjaxContract> = {
+      Workspaces: mockWorkspaces as AjaxWorkspacesContract,
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
     render(h(WorkspaceItem, { workspaceMigrationInfo: unscheduledWorkspace }));
 
     // Assert
     await screen.findByText('workspace name');
+    await screen.findByText('Bucket Size: 1.21 KiB');
   });
 
-  it('shows completed workspace status', async () => {
+  it('shows if the bucket size cannot be fetched for an unscheduled workspace', async () => {
+    // Arrange
+    const mockErrorGetBucketUsage = jest.fn().mockRejectedValue(new Error('testing'));
+    const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
+      workspace: () => ({
+        bucketUsage: mockErrorGetBucketUsage,
+      }),
+    };
+    const mockAjax: Partial<AjaxContract> = {
+      Workspaces: mockWorkspaces as AjaxWorkspacesContract,
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    // Act
+    render(h(WorkspaceItem, { workspaceMigrationInfo: unscheduledWorkspace }));
+
+    // Assert
+    await screen.findByText('workspace name');
+    await screen.findByText('Unable to fetch Bucket Size');
+  });
+
+  it('shows completed workspace status and does not fetch bucket size', async () => {
     // Arrange
     const completedWorkspace: WorkspaceMigrationInfo = {
       failureReason: undefined,
@@ -50,6 +106,7 @@ describe('WorkspaceItem', () => {
     // Assert
     await screen.findByText('april29');
     await screen.findByText('Migration Complete');
+    expect(mockGetBucketUsage).not.toHaveBeenCalled();
   });
 
   it('shows failed workspace status with no accessibility errors', async () => {
@@ -74,6 +131,7 @@ describe('WorkspaceItem', () => {
     await screen.findByText('testdata');
     await screen.findByText('Migration Failed');
     await screen.findByText('Bucket migration failure reason');
+    expect(mockGetBucketUsage).not.toHaveBeenCalled();
     expect(await axe(container)).toHaveNoViolations();
   });
 
@@ -98,6 +156,7 @@ describe('WorkspaceItem', () => {
 
       // Assert
       await screen.findByText(expectedStatus);
+      expect(mockGetBucketUsage).not.toHaveBeenCalled();
       expect(await axe(container)).toHaveNoViolations();
     }
   );
@@ -130,6 +189,7 @@ describe('WorkspaceItem', () => {
     // Assert
     await screen.findByText('Christina test');
     await screen.findByText('Initial Transfer in Progress (1000 B/1.95 KiB)');
+    expect(mockGetBucketUsage).not.toHaveBeenCalled();
   });
 
   it('shows transfer to temp bucket state with no files', async () => {
@@ -160,6 +220,7 @@ describe('WorkspaceItem', () => {
     // Assert
     await screen.findByText('Christina test');
     await screen.findByText('Initial Bucket Transfer');
+    expect(mockGetBucketUsage).not.toHaveBeenCalled();
   });
 
   it('shows transfer to temp bucket state with bytes', async () => {
@@ -190,6 +251,7 @@ describe('WorkspaceItem', () => {
     // Assert
     await screen.findByText('Christina test');
     await screen.findByText('Final Transfer in Progress (1000 B/1.95 KiB)');
+    expect(mockGetBucketUsage).not.toHaveBeenCalled();
   });
 
   it('shows transfer to temp bucket state with no files', async () => {
@@ -220,5 +282,6 @@ describe('WorkspaceItem', () => {
     // Assert
     await screen.findByText('Christina test');
     await screen.findByText('Final Bucket Transfer');
+    expect(mockGetBucketUsage).not.toHaveBeenCalled();
   });
 });
