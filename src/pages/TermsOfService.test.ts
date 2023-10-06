@@ -178,12 +178,8 @@ describe('TermsOfService', () => {
     await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
     // Assert
-    const rejectButton = screen.queryByText('Decline and Sign Out');
-    expect(rejectButton).toBeInTheDocument();
-    expect(rejectButton).not.toBeNull();
-    if (rejectButton) {
-      await act(async () => rejectButton.click());
-    }
+    const rejectButton = screen.getByText('Decline and Sign Out');
+    await act(async () => fireEvent.click(rejectButton));
     expect(rejectTosFn).toHaveBeenCalled();
   });
 });
