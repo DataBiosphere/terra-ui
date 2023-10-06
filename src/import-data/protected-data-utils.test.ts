@@ -1,7 +1,25 @@
+import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { ImportRequest } from './import-types';
 import { isProtectedSource, isProtectedWorkspace } from './protected-data-utils';
+
+const getSnapshot = (secureMonitoringEnabled: boolean): Snapshot => {
+  return {
+    id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+    name: 'test-snapshot',
+    source: [
+      {
+        dataset: {
+          id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+          name: 'test-dataset',
+          secureMonitoringEnabled,
+        },
+      },
+    ],
+    cloudPlatform: 'gcp',
+  };
+};
 
 const protectedImports: ImportRequest[] = [
   // AnVIL production
@@ -17,11 +35,32 @@ const protectedImports: ImportRequest[] = [
   { type: 'pfb', url: new URL('https://gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export.s3.amazonaws.com/file.pfb') },
   { type: 'pfb', url: new URL('https://s3.amazonaws.com/gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export/file.pfb') },
   { type: 'pfb', url: new URL('https://gen3-theanvil-io-pfb-export.s3.amazonaws.com/file.pfb') },
+  // Protected TDR snapshots
+  {
+    type: 'tdr-snapshot-export',
+    manifestUrl: new URL('https://example.com/path/to/manifest.json'),
+    snapshot: getSnapshot(true),
+    syncPermissions: false,
+  },
+  {
+    type: 'tdr-snapshot-reference',
+    snapshot: getSnapshot(true),
+  },
 ];
 
 const unprotectedImports: ImportRequest[] = [
   { type: 'pfb', url: new URL('https://example.com/file.pfb') },
   { type: 'entities', url: new URL('https://service.prod.anvil.gi.ucsc.edu/file.json') },
+  {
+    type: 'tdr-snapshot-export',
+    manifestUrl: new URL('https://example.com/path/to/manifest.json'),
+    snapshot: getSnapshot(false),
+    syncPermissions: false,
+  },
+  {
+    type: 'tdr-snapshot-reference',
+    snapshot: getSnapshot(false),
+  },
 ];
 
 describe('isProtectedSource', () => {
