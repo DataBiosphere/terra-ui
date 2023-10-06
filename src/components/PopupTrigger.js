@@ -3,7 +3,6 @@ import _ from 'lodash/fp';
 import { Children, cloneElement, Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { div, h, hr } from 'react-hyperscript-helpers';
 import onClickOutside from 'react-onclickoutside';
-import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { VerticalNavigation } from 'src/components/keyboard-nav';
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils';
@@ -105,31 +104,6 @@ const PopupTrigger = forwardRefWithName(
 );
 
 export default PopupTrigger;
-
-export const InfoBox = ({ size, children, style, side, tooltip, iconOverride }) => {
-  const [open, setOpen] = useState(false);
-  return h(
-    PopupTrigger,
-    {
-      side,
-      onChange: setOpen,
-      content: div({ style: { padding: '0.5rem', width: 300 } }, [children]),
-    },
-    [
-      h(
-        Clickable,
-        {
-          tooltip,
-          tagName: 'span',
-          'aria-label': 'More info',
-          'aria-expanded': open,
-          'aria-haspopup': true,
-        },
-        [icon(iconOverride || 'info-circle', { size, style: { cursor: 'pointer', color: colors.accent(), ...style } })]
-      ),
-    ]
-  );
-};
 
 export const makeMenuIcon = (iconName, props) => {
   return icon(iconName, _.merge({ size: 15, style: { marginRight: '.3rem' } }, props));

@@ -1,6 +1,7 @@
 import pluralize from 'pluralize';
 import { useEffect, useState } from 'react';
 import { Dataset } from 'src/libs/ajax/Catalog';
+import { DataRepo, Snapshot } from 'src/libs/ajax/DataRepo';
 import { useRoute } from 'src/libs/nav';
 import { fetchDataCatalog } from 'src/pages/library/dataBrowser-utils';
 
@@ -70,28 +71,41 @@ const getFileImportRequest = (queryParams: QueryParams, type: FileImportRequest[
   return { type, url };
 };
 
-const getTDRSnapshotExportImportRequest = (queryParams: QueryParams): TDRSnapshotExportImportRequest => {
+const getTDRSnapshotExportImportRequest = async (queryParams: QueryParams): Promise<TDRSnapshotExportImportRequest> => {
   const manifestUrl = requireUrl(queryParams.tdrmanifest, 'manifest URL');
   const snapshotId = requireString(queryParams.snapshotId, 'snapshot ID');
-  const snapshotName = requireString(queryParams.snapshotName, 'snapshot name');
   const syncPermissions = queryParams.tdrSyncPermissions === 'true';
+
+  let snapshot: Snapshot;
+  try {
+    snapshot = await DataRepo().snapshot(snapshotId).details();
+  } catch (err: unknown) {
+    throw new Error('Unable to load snapshot.');
+  }
 
   return {
     type: 'tdr-snapshot-export',
     manifestUrl,
-    snapshotId,
-    snapshotName,
+    snapshot,
     syncPermissions,
   };
 };
 
-const getTDRSnapshotReferenceImportRequest = (queryParams: QueryParams): TDRSnapshotReferenceImportRequest => {
+const getTDRSnapshotReferenceImportRequest = async (
+  queryParams: QueryParams
+): Promise<TDRSnapshotReferenceImportRequest> => {
   const snapshotId = requireString(queryParams.snapshotId, 'snapshot ID');
-  const snapshotName = requireString(queryParams.snapshotName, 'snapshot name');
+
+  let snapshot: Snapshot;
+  try {
+    snapshot = await DataRepo().snapshot(snapshotId).details();
+  } catch (err: unknown) {
+    throw new Error('Unable to load snapshot.');
+  }
+
   return {
     type: 'tdr-snapshot-reference',
-    snapshotId,
-    snapshotName,
+    snapshot,
   };
 };
 
@@ -160,12 +174,12 @@ export const getImportRequest = (queryParams: QueryParams): Promise<ImportReques
     case 'entitiesjson':
       return Promise.resolve(getFileImportRequest(queryParams, 'entities'));
     case 'tdrexport':
-      return Promise.resolve(getTDRSnapshotExportImportRequest(queryParams));
+      return getTDRSnapshotExportImportRequest(queryParams);
     case 'snapshot':
       if (queryParams.snapshotIds) {
         return getCatalogSnapshotsImportRequest(queryParams);
       }
-      return Promise.resolve(getTDRSnapshotReferenceImportRequest(queryParams));
+      return getTDRSnapshotReferenceImportRequest(queryParams);
     case 'catalog':
       return Promise.resolve(getCatalogDatasetImportRequest(queryParams));
     default:

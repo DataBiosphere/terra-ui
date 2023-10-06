@@ -1,3 +1,4 @@
+import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { isGoogleWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 import { ImportRequest } from './import-types';
@@ -20,8 +21,8 @@ const protectedSources: ProtectedSource[] = [
 
 /**
  * Determine if a PFB file is considered protected data.
- * */
-export const isProtectedPfbSource = (pfbUrl: URL): boolean => {
+ */
+const isProtectedPfbSource = (pfbUrl: URL): boolean => {
   return protectedSources.some((source) => {
     switch (source.type) {
       case 'http':
@@ -46,12 +47,22 @@ export const isProtectedPfbSource = (pfbUrl: URL): boolean => {
 };
 
 /**
+ * Determine if a TDR snapshot is considered protected data.
+ */
+const isProtectedSnapshotSource = (snapshot: Snapshot): boolean => {
+  return snapshot.source.some((source) => source.dataset.secureMonitoringEnabled);
+};
+
+/**
  * Determine whether an import source is considered protected.
  */
 export const isProtectedSource = (importRequest: ImportRequest): boolean => {
   switch (importRequest.type) {
     case 'pfb':
       return isProtectedPfbSource(importRequest.url);
+    case 'tdr-snapshot-export':
+    case 'tdr-snapshot-reference':
+      return isProtectedSnapshotSource(importRequest.snapshot);
     default:
       return false;
   }
