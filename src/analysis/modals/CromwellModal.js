@@ -46,7 +46,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
       [appToolLabels.CROMWELL, () => true],
       [appToolLabels.CROMWELL_RUNNER_APP, () => isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS)]
     );
-    const appReady = app.status === 'RUNNING';
+    const appReady = app && app.status === 'RUNNING';
     const [loading, setLoading] = useState(false);
     const currentDataDisk = getCurrentAppDataDisk(appTools[appLabel].label, apps, appDataDisks, workspaceName);
     const cloudProvider = getCloudProviderFromWorkspace(workspace);
