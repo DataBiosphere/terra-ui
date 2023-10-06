@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
-import { InfoBox } from 'src/components/PopupTrigger';
+import { InfoBox } from 'src/components/InfoBox';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceMigrationInfo } from 'src/pages/workspaces/migration/migration-utils';
