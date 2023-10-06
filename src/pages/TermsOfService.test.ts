@@ -30,7 +30,7 @@ type AuthExports = typeof import('src/libs/auth');
 jest.mock(
   'src/libs/auth',
   (): AuthExports => ({
-    ...jest.requireActual('src/libs/auth'),
+    ...jest.requireActual<AuthExports>('src/libs/auth'),
     signOut: jest.fn(),
   })
 );
