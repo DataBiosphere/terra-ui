@@ -3,7 +3,12 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { Groups } from 'src/libs/ajax/Groups';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { SamUserRegistrationStatusResponse, SamUserTosStatusResponse, User } from 'src/libs/ajax/User';
+import {
+  SamUserRegistrationStatusResponse,
+  SamUserTosComplianceStatusResponse,
+  SamUserTosStatusResponse,
+  User,
+} from 'src/libs/ajax/User';
 import { AuthState, authStore } from 'src/libs/state';
 import TermsOfServicePage from 'src/pages/TermsOfService';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -35,10 +40,6 @@ jest.mock(
   })
 );
 
-interface TermsOfServiceStatusResponse {
-  userHasAcceptedLatestTos: boolean;
-  permitsSystemUsage: boolean;
-}
 interface TermsOfServiceSetupResult {
   getTosFn: jest.Mock;
   getStatusFn: jest.Mock;
@@ -47,14 +48,14 @@ interface TermsOfServiceSetupResult {
   rejectTosFn: jest.Mock;
 }
 
-const setupMockAjax = (termsOfService: TermsOfServiceStatusResponse): TermsOfServiceSetupResult => {
+const setupMockAjax = (termsOfService: SamUserTosComplianceStatusResponse): TermsOfServiceSetupResult => {
   const userSubjectId = 'testSubjectId';
   const userEmail = 'test@email.com';
 
   const getTos = jest.fn().mockResolvedValue('some text');
   const getTermsOfServiceComplianceStatus = jest
     .fn()
-    .mockResolvedValue(termsOfService satisfies TermsOfServiceStatusResponse);
+    .mockResolvedValue(termsOfService satisfies SamUserTosComplianceStatusResponse);
   const getStatus = jest.fn().mockResolvedValue({
     userSubjectId,
     userEmail,
@@ -132,6 +133,7 @@ describe('TermsOfService', () => {
   it('fetches the Terms of Service text from Sam', async () => {
     // Arrange
     const termsOfService = {
+      userId: 'testUserId',
       userHasAcceptedLatestTos: true,
       permitsSystemUsage: true,
     };
@@ -152,6 +154,7 @@ describe('TermsOfService', () => {
   it('shows "Continue under grace period" when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
     // Arrange
     const termsOfService = {
+      userId: 'testUserId',
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: true,
     };
@@ -170,6 +173,7 @@ describe('TermsOfService', () => {
   it('does not show "Continue under grace period" when the user has not accepted the latest ToS and is not allowed to use Terra', async () => {
     // Arrange
     const termsOfService = {
+      userId: 'testUserId',
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: false,
     };
@@ -188,6 +192,7 @@ describe('TermsOfService', () => {
   it('does not show any buttons when the user has accepted the latest ToS and is allowed to use Terra', async () => {
     // Arrange
     const termsOfService = {
+      userId: 'testUserId',
       userHasAcceptedLatestTos: true,
       permitsSystemUsage: true,
     };
@@ -210,6 +215,7 @@ describe('TermsOfService', () => {
   it('calls the acceptTos endpoint when the accept tos button is clicked', async () => {
     // Arrange
     const termsOfService = {
+      userId: 'testUserId',
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: true,
     };
@@ -220,16 +226,17 @@ describe('TermsOfService', () => {
     await act(async () => {
       render(h(TermsOfServicePage));
     });
-
-    // Assert
     const acceptButton = screen.getByText('Accept');
     await act(async () => fireEvent.click(acceptButton));
+
+    // Assert
     expect(acceptTosFn).toHaveBeenCalled();
   });
 
   it('calls the rejectTos endpoint when the reject tos button is clicked', async () => {
     // Arrange
     const termsOfService = {
+      userId: 'testUserId',
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: false,
     };
@@ -240,10 +247,10 @@ describe('TermsOfService', () => {
     await act(async () => {
       render(h(TermsOfServicePage));
     });
-
-    // Assert
     const rejectButton = screen.getByText('Decline and Sign Out');
     await act(async () => fireEvent.click(rejectButton));
+
+    // Assert
     expect(rejectTosFn).toHaveBeenCalled();
   });
 });
