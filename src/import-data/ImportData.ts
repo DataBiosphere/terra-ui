@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useState } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
+import { div, h, h2 } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl, WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -225,7 +225,20 @@ export const ImportDataContainer = () => {
           fontWeight: 'bold',
         },
       },
-      ['Invalid import request.']
+      [
+        h2(
+          {
+            style: {
+              fontSize: 24,
+              fontWeight: 600,
+              color: colors.dark(),
+              margin: '0 0 1rem 0',
+            },
+          },
+          ['Invalid import request.']
+        ),
+        result.error.message,
+      ]
     );
   }
 
