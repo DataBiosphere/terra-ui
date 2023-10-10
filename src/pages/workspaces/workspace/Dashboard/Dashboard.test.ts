@@ -6,8 +6,10 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { azureRegions } from 'src/libs/azure-regions';
 import { authStore } from 'src/libs/state';
+import { AzureStorageDetails } from 'src/pages/workspaces/workspace/Dashboard/AzureStorageDetails';
 import { BucketLocation } from 'src/pages/workspaces/workspace/Dashboard/BucketLocation';
-import { AzureStorageDetails, WorkspaceInformation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/Dashboard';
+import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/Dashboard';
+import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
   defaultAzureStorageOptions,
@@ -17,6 +19,8 @@ import {
   regionRestrictedAzureWorkspace,
 } from 'src/testing/workspace-fixtures';
 
+type AjaxContract = ReturnType<typeof Ajax>;
+
 jest.mock('src/libs/ajax');
 
 jest.mock('src/libs/notifications');
@@ -24,7 +28,9 @@ jest.mock('src/libs/notifications');
 describe('WorkspaceInformation', () => {
   it('renders information for a non-protected workspace without region constraints and does not fail accessibility tests', async () => {
     // Act
-    const { container } = render(h(WorkspaceInformation, { workspace: defaultGoogleWorkspace }));
+    const { container } = render(
+      h(WorkspaceInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true } })
+    );
 
     // Assert
     // Access Level
@@ -46,7 +52,9 @@ describe('WorkspaceInformation', () => {
     const user = userEvent.setup();
 
     // Act
-    const { container } = render(h(WorkspaceInformation, { workspace: protectedAzureWorkspace }));
+    const { container } = render(
+      h(WorkspaceInformation, { workspace: { ...protectedAzureWorkspace, workspaceInitialized: true } })
+    );
 
     // Assert
     // Access Level
@@ -74,7 +82,9 @@ describe('WorkspaceInformation', () => {
     const user = userEvent.setup();
 
     // Act
-    const { container } = render(h(WorkspaceInformation, { workspace: regionRestrictedAzureWorkspace }));
+    const { container } = render(
+      h(WorkspaceInformation, { workspace: { ...regionRestrictedAzureWorkspace, workspaceInitialized: true } })
+    );
 
     // Assert
     // Access Level
@@ -142,21 +152,25 @@ describe('WorkspaceNotifications', () => {
     const user = userEvent.setup();
 
     const setPreferences = jest.fn().mockReturnValue(Promise.resolve());
-    Ajax.mockImplementation(() => ({
-      Metrics: {
-        captureEvent: jest.fn(),
-      },
-      User: {
-        profile: {
-          get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
-          setPreferences,
-        },
-      },
-    }));
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Metrics: {
+            captureEvent: jest.fn(),
+          } as Partial<AjaxContract['Metrics']>,
+          User: {
+            profile: {
+              get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
+              setPreferences,
+            } as Partial<AjaxContract['User']['profile']>,
+          } as Partial<AjaxContract['User']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
 
     authStore.update((state) => ({
       ...state,
       profile: {
+        // @ts-expect-error
         'notifications/SuccessfulSubmissionNotification/test/test': 'false',
         'notifications/FailedSubmissionNotification/test/test': 'false',
         'notifications/AbortedSubmissionNotification/test/test': 'false',
@@ -178,6 +192,7 @@ describe('WorkspaceNotifications', () => {
     authStore.update((state) => ({
       ...state,
       profile: {
+        // @ts-expect-error
         'notifications/SuccessfulSubmissionNotification/test/test': 'false',
         'notifications/FailedSubmissionNotification/test/test': 'false',
         'notifications/AbortedSubmissionNotification/test/test': 'false',
@@ -190,7 +205,10 @@ describe('WorkspaceNotifications', () => {
 });
 
 describe('BucketLocation', () => {
-  const workspace = { workspace: { namespace: 'test', name: 'test', cloudPlatform: 'Gcp' }, workspaceInitialized: true };
+  const workspace = {
+    workspace: { namespace: 'test', name: 'test', cloudPlatform: 'Gcp' },
+    workspaceInitialized: true,
+  };
 
   afterEach(() => {
     jest.resetAllMocks();
@@ -229,7 +247,11 @@ describe('BucketLocation', () => {
     // Arrange
     const props = {
       workspace,
-      storageDetails: _.mergeAll([defaultGoogleBucketOptions, { fetchedGoogleBucketLocation: 'SUCCESS' }, defaultAzureStorageOptions]),
+      storageDetails: _.mergeAll([
+        defaultGoogleBucketOptions,
+        { fetchedGoogleBucketLocation: 'SUCCESS' },
+        defaultAzureStorageOptions,
+      ]),
     };
 
     // Act
@@ -245,19 +267,26 @@ describe('BucketLocation', () => {
     // Arrange
     const props = {
       workspace,
-      storageDetails: _.mergeAll([defaultGoogleBucketOptions, { fetchedGoogleBucketLocation: 'ERROR' }, defaultAzureStorageOptions]),
+      storageDetails: _.mergeAll([
+        defaultGoogleBucketOptions,
+        { fetchedGoogleBucketLocation: 'ERROR' },
+        defaultAzureStorageOptions,
+      ]),
     };
-    const mockAjax = {
-      Workspaces: {
-        workspace: () => ({
-          checkBucketLocation: jest.fn().mockResolvedValue({
-            location: 'bermuda',
-            locationType: 'triangle',
-          }),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax);
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Workspaces: {
+            workspace: () =>
+              ({
+                checkBucketLocation: jest.fn().mockResolvedValue({
+                  location: 'bermuda',
+                  locationType: 'triangle',
+                }),
+              } as Partial<AjaxContract['Workspaces']['workspace']>),
+          } as Partial<AjaxContract['Workspaces']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
 
     // Act
     await act(async () => { render(h(BucketLocation, props)) }) //eslint-disable-line
@@ -271,19 +300,24 @@ describe('BucketLocation', () => {
     // Arrange
     const props = {
       workspace,
-      storageDetails: _.mergeAll([defaultGoogleBucketOptions, { fetchedGoogleBucketLocation: 'ERROR' }, defaultAzureStorageOptions]),
+      storageDetails: _.mergeAll([
+        defaultGoogleBucketOptions,
+        { fetchedGoogleBucketLocation: 'ERROR' },
+        defaultAzureStorageOptions,
+      ]),
     };
-    const requesterPaysError = new Error('Requester pays bucket');
-    requesterPaysError.requesterPaysError = true;
-    const mockAjax = {
-      Workspaces: {
-        workspace: () => ({
-          checkBucketLocation: () => Promise.reject(requesterPaysError),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax);
-
+    const requesterPaysError = { message: 'Requester pays bucket', requesterPaysError: true };
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Workspaces: {
+            workspace: () =>
+              ({
+                checkBucketLocation: () => Promise.reject(requesterPaysError),
+              } as Partial<AjaxContract['Workspaces']['workspace']>),
+          } as Partial<AjaxContract['Workspaces']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
     // Act
     await act(async () => { render(h(BucketLocation, props)) }) //eslint-disable-line
 
@@ -312,7 +346,9 @@ describe('AzureDetails', () => {
     };
 
     // Act
-    const { container } = render(h(AzureStorageDetails, props), { container: document.body.appendChild(document.createElement('dl')) });
+    const { container } = render(h(AzureStorageDetails, props), {
+      container: document.body.appendChild(document.createElement('dl')),
+    });
 
     // Assert
     expect(screen.queryByTitle('Microsoft Azure')).not.toBeNull();
@@ -334,7 +370,9 @@ describe('AzureDetails', () => {
     };
 
     // Act
-    const { container } = render(h(AzureStorageDetails, props), { container: document.body.appendChild(document.createElement('dl')) });
+    const { container } = render(h(AzureStorageDetails, props), {
+      container: document.body.appendChild(document.createElement('dl')),
+    });
 
     // Assert
     expect(screen.queryByText('Loading')).toBeNull();
