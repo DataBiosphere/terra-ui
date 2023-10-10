@@ -28,6 +28,7 @@ import {
 } from './import-types';
 import { ImportDataDestination } from './ImportDataDestination';
 import { ImportDataOverview } from './ImportDataOverview';
+import { getImportSource } from './protected-data-utils';
 import { useImportRequest } from './useImportRequest';
 
 export interface ImportDataProps {
@@ -181,7 +182,11 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     }
 
     const { namespace, name } = workspace;
-    Ajax().Metrics.captureEvent(Events.workspaceDataImport, { format, ...extractWorkspaceDetails(workspace) });
+    Ajax().Metrics.captureEvent(Events.workspaceDataImport, {
+      format,
+      ...extractWorkspaceDetails(workspace),
+      importSource: 'url' in importRequest ? getImportSource(importRequest.url) : undefined,
+    });
     Nav.goToPath('workspace-data', { namespace, name });
   });
 
