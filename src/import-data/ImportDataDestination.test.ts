@@ -138,6 +138,29 @@ describe('ImportDataDestination', () => {
       requiredAuthorizationDomain: undefined,
       expectedArgs: { cloudPlatform: 'GCP', isProtectedData: false, requiredAuthorizationDomain: undefined },
     },
+    {
+      importRequest: {
+        type: 'tdr-snapshot-export',
+        manifestUrl: new URL('https://example.com/path/to/manifest.json'),
+        snapshot: {
+          id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+          name: 'test-snapshot',
+          source: [
+            {
+              dataset: {
+                id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+                name: 'test-dataset',
+                secureMonitoringEnabled: false,
+              },
+            },
+          ],
+          cloudPlatform: 'azure',
+        },
+        syncPermissions: false,
+      },
+      requiredAuthorizationDomain: undefined,
+      expectedArgs: { cloudPlatform: 'AZURE', isProtectedData: false, requiredAuthorizationDomain: undefined },
+    },
   ] as {
     importRequest: ImportRequest;
     requiredAuthorizationDomain?: string;
