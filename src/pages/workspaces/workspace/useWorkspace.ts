@@ -29,7 +29,7 @@ export interface StorageDetails {
 
 export type InitializedWorkspaceWrapper = WorkspaceWrapper & { workspaceInitialized: boolean };
 
-interface WorkspaceDetails {
+export interface WorkspaceDetails {
   workspace: InitializedWorkspaceWrapper;
   accessError: boolean;
   loadingWorkspace: boolean;

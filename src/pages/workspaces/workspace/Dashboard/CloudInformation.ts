@@ -20,10 +20,10 @@ import {
 import { AzureStorageDetails } from 'src/pages/workspaces/workspace/Dashboard/AzureStorageDetails';
 import { BucketLocation } from 'src/pages/workspaces/workspace/Dashboard/BucketLocation';
 import { InfoRow } from 'src/pages/workspaces/workspace/Dashboard/InfoRow';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/workspace/useWorkspace';
+import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
 
 interface CloudInformationProps {
-  storageDetails;
+  storageDetails: StorageDetails;
   workspace: Workspace;
   storageCost?: { isSuccess: boolean; estimate: string; lastUpdated?: string };
   bucketSize?: { isSuccess: boolean; usage: string; lastUpdated?: string };

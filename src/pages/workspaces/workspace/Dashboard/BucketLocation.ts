@@ -12,16 +12,20 @@ import { reportError } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import { GoogleWorkspace } from 'src/libs/workspace-utils';
+import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
 
 interface BucketLocationProps {
   workspace: GoogleWorkspace & { workspaceInitialized: boolean };
-  storageDetails;
+  storageDetails: StorageDetails;
 }
 
 export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })((props: BucketLocationProps) => {
   const { workspace, storageDetails } = props;
   const [loading, setLoading] = useState<boolean>(true);
-  const [{ location, locationType }, setBucketLocation] = useState({ location: undefined, locationType: undefined });
+  const [{ location, locationType }, setBucketLocation] = useState<{ location?: string; locationType?: string }>({
+    location: undefined,
+    locationType: undefined,
+  });
   const [needsRequesterPaysProject, setNeedsRequesterPaysProject] = useState<boolean>(false);
   const [showRequesterPaysModal, setShowRequesterPaysModal] = useState<boolean>(false);
 

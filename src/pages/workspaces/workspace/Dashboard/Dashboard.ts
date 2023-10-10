@@ -47,7 +47,7 @@ import { CloudInformation } from 'src/pages/workspaces/workspace/Dashboard/Cloud
 import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
 import { displayConsentCodes, displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/workspace/useWorkspace';
+import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const styles: Record<string, CSSProperties> = {
@@ -209,7 +209,7 @@ interface WorkspaceDashboardProps {
   namespace: string;
   name: string;
   refreshWorkspace: () => void;
-  storageDetails;
+  storageDetails: StorageDetails;
   workspace: Workspace;
 }
 
