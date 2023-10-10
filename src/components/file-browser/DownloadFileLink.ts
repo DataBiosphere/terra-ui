@@ -22,7 +22,7 @@ export const DownloadFileLink = (props: DownloadFileLinkProps) => {
       ...Utils.newTabLinkProps,
       disabled: !downloadUrl,
       download: basename(file.path),
-      href: downloadUrl,
+      href: downloadUrl || undefined,
     },
     ['Download', status === 'Loading' && spinner({ size: 12, style: { color: '#fff', marginLeft: '1ch' } })]
   );

@@ -194,7 +194,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       ]),
       importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-        h(ButtonSecondary, { onClick: setMode, style: { marginLeft: 'auto' } }, ['Back']),
+        h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
         h(
           ButtonPrimary,
           {
@@ -270,7 +270,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         ]
       ),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-        h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: setMode }, ['Back']),
+        h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: () => setMode(undefined) }, ['Back']),
         h(
           ButtonPrimary,
           {

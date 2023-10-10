@@ -1,4 +1,4 @@
-export * from './buttons';
+export { ButtonOutline, ButtonPrimary, ButtonSecondary } from '@terra-ui-packages/components';
 export * from './Checkbox';
 export * from './Clickable';
 export * from './DeleteConfirmationModal';

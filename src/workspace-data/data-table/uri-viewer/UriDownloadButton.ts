@@ -76,7 +76,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
       ButtonPrimary,
       {
         disabled: !url,
-        href: url,
+        href: url || undefined,
         download: fileName,
         ...Utils.newTabLinkProps,
       },
@@ -97,7 +97,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
             downloadFrom: 'file direct',
           });
         },
-        href: url,
+        href: url || undefined,
         /*
          NOTE:
          Some DOS/DRS servers return file names that are different from the end of the path in the gsUri/url.
