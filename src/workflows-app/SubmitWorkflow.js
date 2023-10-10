@@ -9,7 +9,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS, ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
-import { AppProxyUrlStatus } from 'src/libs/state';
+import { AppProxyUrlStatus, getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
@@ -38,7 +38,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       namespace,
       workspace,
       workspace: {
-        workspace: { workspaceId },
+        workspace: { createdBy, workspaceId },
         canCompute,
       },
       analysesData,
@@ -53,7 +53,8 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
     const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps) || getCurrentApp(appToolLabels.WORKFLOWS_APP, apps);
     const pageReady = cbasReady && currentApp && !getIsAppBusy(currentApp);
-    const launcherDisabled = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady) || !canCompute;
+    const launching = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady);
+    const canLaunch = createdBy === getTerraUser().email || (canCompute && isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS));
 
     // poll if we're missing CBAS proxy url and stop polling when we have it
     usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState'), {
@@ -124,7 +125,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
         loading,
         analysesData,
         pageReady,
-        launcherDisabled,
+        launcherDisabled: !canLaunch,
         createWorkflowsApp,
         setLoading,
         signal,
@@ -137,9 +138,9 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
         doesWorkspaceSupportCromwellAppForUser(
           workspace.workspace,
           getCloudProviderFromWorkspace(workspace),
-          isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS) ? appToolLabels.WORKFLOWS_APP : appToolLabels.CROMWELL
+          isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS) ? appToolLabels.WORKFLOWS_APP : appToolLabels.CROMWELL
         ),
-        () => h(WorkflowsAppNavPanel, { pageReady, launcherDisabled, loading, createWorkflowsApp }),
+        () => h(WorkflowsAppNavPanel, { pageReady, launching, launcherDisabled: !canLaunch, loading, createWorkflowsApp }),
       ],
       [Utils.DEFAULT, () => div({ style: { ...styles.card, width: '50rem', margin: '2rem 4rem' } }, [getCromwellUnsupportedMessage()])]
     );

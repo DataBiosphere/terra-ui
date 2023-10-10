@@ -2110,7 +2110,7 @@ describe('Submitting a run set to workflows app', () => {
     // ** ASSERT **
     // Launch modal should be displayed, but user is workspace reader and cannot submit
     screen.getByText('Send submission');
-    screen.getByText(/you do not have permission/i);
+    screen.getByText(/you do not have permission to run workflows/i);
     const modalSubmitButton = screen.getByLabelText('Launch Submission');
     expect(modalSubmitButton).toHaveAttribute('disabled');
 

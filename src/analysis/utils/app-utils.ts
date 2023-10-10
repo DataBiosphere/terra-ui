@@ -10,7 +10,10 @@ import {
 import { App, DisplayAppStatus, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
+import {
+  ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
+  ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS,
+} from 'src/libs/feature-previews-config';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
@@ -39,9 +42,12 @@ export const doesWorkspaceSupportCromwellAppForUser = (
       () => workspaceInfo.createdBy === getTerraUser()?.email,
     ],
     [
-      (toolLabel === appToolLabels.WORKFLOWS_APP || toolLabel === appToolLabels.CROMWELL_RUNNER_APP) &&
-        cloudProvider === cloudProviderTypes.AZURE,
+      toolLabel === appToolLabels.CROMWELL_RUNNER_APP && cloudProvider === cloudProviderTypes.AZURE,
       () => isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS),
+    ],
+    [
+      toolLabel === appToolLabels.WORKFLOWS_APP && cloudProvider === cloudProviderTypes.AZURE,
+      () => isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS),
     ],
     [Utils.DEFAULT, () => true]
   );

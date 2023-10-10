@@ -14,7 +14,10 @@ import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
+import {
+  ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
+  ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS,
+} from 'src/libs/feature-previews-config';
 import { getTerraUser } from 'src/libs/state';
 import { cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -632,7 +635,7 @@ describe('doesWorkspaceSupportCromwellAppForUser', () => {
       cloudProvider: cloudProviderTypes.AZURE,
       toolLabel: appToolLabels.WORKFLOWS_APP,
       expectedResult: true,
-      isFeaturePreviewEnabled: (id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS,
+      isFeaturePreviewEnabled: (id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
     },
     {
       workspaceInfo: creatorWorkspace,
@@ -646,7 +649,7 @@ describe('doesWorkspaceSupportCromwellAppForUser', () => {
       cloudProvider: cloudProviderTypes.AZURE,
       toolLabel: appToolLabels.WORKFLOWS_APP,
       expectedResult: true,
-      isFeaturePreviewEnabled: (id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS,
+      isFeaturePreviewEnabled: (id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
     },
     {
       workspaceInfo: nonCreatorWorkspace,
@@ -660,7 +663,7 @@ describe('doesWorkspaceSupportCromwellAppForUser', () => {
       cloudProvider: cloudProviderTypes.AZURE,
       toolLabel: appToolLabels.WORKFLOWS_APP,
       expectedResult: false,
-      isFeaturePreviewEnabled: (id) => id !== ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS,
+      isFeaturePreviewEnabled: (id) => id !== ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
     },
     {
       workspaceInfo: creatorWorkspace,
@@ -674,7 +677,7 @@ describe('doesWorkspaceSupportCromwellAppForUser', () => {
       cloudProvider: cloudProviderTypes.AZURE,
       toolLabel: appToolLabels.WORKFLOWS_APP,
       expectedResult: false,
-      isFeaturePreviewEnabled: (id) => id !== ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS,
+      isFeaturePreviewEnabled: (id) => id !== ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
     },
     {
       workspaceInfo: nonCreatorWorkspace,

@@ -1,7 +1,8 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
@@ -29,6 +30,7 @@ describe('Workflows App Navigation Panel', () => {
       h(WorkflowsAppNavPanel, {
         loading: false,
         launcherDisabled: true,
+        launching: true,
         createWorkflowsApp: jest.fn(),
         pageReady: true,
         name: 'test-azure-ws-name',
@@ -67,6 +69,7 @@ describe('Workflows App Navigation Panel', () => {
       h(WorkflowsAppNavPanel, {
         loading: false,
         launcherDisabled: true,
+        launching: true,
         createWorkflowsApp: jest.fn(),
         pageReady: false,
         name: 'test-azure-ws-name',
@@ -94,6 +97,7 @@ describe('Workflows App Navigation Panel', () => {
       h(WorkflowsAppNavPanel, {
         loading: false,
         launcherDisabled: true,
+        launching: false,
         createWorkflowsApp: jest.fn(),
         pageReady: false,
         name: 'test-azure-ws-name',
@@ -113,6 +117,7 @@ describe('Workflows App Navigation Panel', () => {
         h(WorkflowsAppNavPanel, {
           loading: false,
           launcherDisabled: true,
+          launching: false,
           createWorkflowsApp: jest.fn(),
           pageReady: true,
           name: 'test-azure-ws-name',

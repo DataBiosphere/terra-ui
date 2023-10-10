@@ -22,7 +22,7 @@ import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-pr
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
-import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, getTerraUser, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
@@ -43,7 +43,7 @@ export const BaseSubmissionConfig = (
     workspace,
     analysesData: { apps, refreshApps },
     workspace: {
-      workspace: { workspaceId },
+      workspace: { workspaceId, createdBy },
       canCompute,
     },
   },
@@ -84,6 +84,7 @@ export const BaseSubmissionConfig = (
   const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
   const cromwellRunner = getCurrentAppForUser(appToolLabels.CROMWELL_RUNNER_APP, apps);
   const cromwellRunnerNeeded = isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS) && cromwellRunner?.status !== 'RUNNING';
+  const canSubmit = (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS) && canCompute) || getTerraUser().email === createdBy;
 
   const createCromwell = Utils.withBusyState(setIsCreatingCromwellRunner, async () => {
     await Ajax().Apps.createAppV2(
@@ -544,8 +545,8 @@ export const BaseSubmissionConfig = (
               okButton: h(
                 ButtonPrimary,
                 {
-                  disabled: isSubmitting || !canCompute,
-                  tooltip: !canCompute && 'Must be a writer or owner to submit workflows',
+                  disabled: isSubmitting || !canSubmit,
+                  tooltip: !canSubmit && 'You do not have permission to submit workflows in this workspace',
                   'aria-label': 'Launch Submission',
                   onClick: async () => {
                     setIsSubmitting(true);
@@ -597,7 +598,7 @@ export const BaseSubmissionConfig = (
                       [workflowSubmissionError]
                     ),
                   ]),
-                !canCompute &&
+                !canSubmit &&
                   div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
                     icon('warning-standard', { size: 16, style: { color: colors.danger() } }),
                     h(TextCell, { style: { marginLeft: '0.5rem', marginRight: 'auto' } }, [
@@ -605,7 +606,7 @@ export const BaseSubmissionConfig = (
                     ]),
                   ]),
                 cromwellRunnerNeeded &&
-                  canCompute &&
+                  canSubmit &&
                   div([
                     div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
                       icon('info-circle', { size: 16, style: { color: colors.accent() } }),
