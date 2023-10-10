@@ -163,6 +163,7 @@ export const WorkspaceNotifications = ({ workspace }) => {
 
   const notificationsPreferences = _.pickBy((_v, k) => _.startsWith('notifications/', k), authStore.get().profile);
 
+  // TODO: These keys are not included in the type of the auth store profile object
   const submissionNotificationKeys = [
     `notifications/SuccessfulSubmissionNotification/${namespace}/${name}`,
     `notifications/FailedSubmissionNotification/${namespace}/${name}`,
