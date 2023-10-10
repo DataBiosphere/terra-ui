@@ -51,7 +51,7 @@ import { InitializedWorkspaceWrapper as Workspace, useWorkspace } from 'src/page
 import WorkspaceAttributeNotice from 'src/pages/workspaces/workspace/WorkspaceAttributeNotice';
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
-const TitleBarWarning = (messageComponents) => {
+const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {
     title: div(
       {
@@ -60,7 +60,7 @@ const TitleBarWarning = (messageComponents) => {
       },
       [
         icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
-        span({ style: { color: colors.dark(), fontSize: 14 } }, messageComponents),
+        span({ style: { color: colors.dark(), fontSize: 14 } }, [props.children]),
       ]
     ),
     style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
@@ -68,7 +68,7 @@ const TitleBarWarning = (messageComponents) => {
   });
 };
 
-const TitleBarSpinner = (messageComponents) => {
+const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {
     title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center' } }, [
       spinner({
@@ -82,24 +82,24 @@ const TitleBarSpinner = (messageComponents) => {
           borderRadius: '0.5rem',
         },
       }),
-      span({ style: { color: colors.dark(), fontSize: 14 } }, messageComponents),
+      span({ style: { color: colors.dark(), fontSize: 14 } }, [props.children]),
     ]),
     style: { backgroundColor: colors.warning(0.1), borderBottom: `1px solid ${colors.warning()}` },
     onDismiss: () => {},
   });
 };
 
-const AzureWarning = () => {
+const AzureWarning = (): ReactNode => {
   const warningMessage = [
     'Do not store Unclassified Confidential Information in this platform, as it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.',
   ];
-  return TitleBarWarning(warningMessage);
+  return h(TitleBarWarning, warningMessage);
 };
 
-const GooglePermissionsSpinner = () => {
+const GooglePermissionsSpinner = (): ReactNode => {
   const warningMessage = ['Terra synchronizing permissions with Google. This may take a couple moments.'];
 
-  return TitleBarSpinner(warningMessage);
+  return h(TitleBarSpinner, warningMessage);
 };
 
 interface WorkspaceTabsProps {
@@ -449,14 +449,14 @@ const useAppPolling = (workspace) => {
   return { apps, refreshApps };
 };
 
-interface WrapWorkspaceProps<T extends { name: string; namespace: string }> {
-  breadcrumbs: (props: T) => ReactNode;
+interface WrapWorkspaceProps {
+  breadcrumbs: (props: { name: string; namespace: string }) => ReactNode;
   activeTab?: string;
   title: string;
 }
 
 export const wrapWorkspace =
-  <T extends { name: string; namespace: string }>({ breadcrumbs, activeTab, title }: WrapWorkspaceProps<T>) =>
+  ({ breadcrumbs, activeTab, title }: WrapWorkspaceProps) =>
   (WrappedComponent: JSXElementConstructor<unknown>) => {
     const Wrapper = (props) => {
       const { namespace, name } = props;
