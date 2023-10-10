@@ -20,9 +20,9 @@ import {
   EnvironmentsProps,
   PauseButton,
 } from 'src/analysis/Environments/Environments';
-import { defaultComputeZone } from 'src/analysis/utils/runtime-utils';
+import { getNormalizedComputeRegion } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
-import { AzureConfig, GceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { AzureConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { AppBasics, LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
@@ -160,7 +160,9 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstRuntimeRow, 2)).toBe(runtime1.runtimeConfig.cloudService);
       expect(getTextContentForColumn(firstRuntimeRow, 3)).toBe(runtime1.labels.tool);
       expect(getTextContentForColumn(firstRuntimeRow, 5)).toBe(runtime1.status);
-      expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe((runtime1.runtimeConfig as GceWithPdConfig).zone);
+      expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe(
+        _.toLower(getNormalizedComputeRegion(runtime1.runtimeConfig))
+      );
       expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(Utils.makeCompleteDate(runtime1.auditInfo.createdDate));
       expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(Utils.makeCompleteDate(runtime1.auditInfo.dateAccessed));
     });
@@ -199,7 +201,9 @@ describe('Environments', () => {
       expect(getTextContentForColumn(tableRows[2], 2)).toBe(runtime1.runtimeConfig.cloudService);
       expect(getTextContentForColumn(tableRows[2], 3)).toBe(runtime1.labels.tool);
       expect(getTextContentForColumn(tableRows[2], 5)).toBe(runtime1.status);
-      expect(getTextContentForColumn(tableRows[2], 6)).toBe((runtime1.runtimeConfig as GceWithPdConfig).zone);
+      expect(getTextContentForColumn(tableRows[2], 6)).toBe(
+        _.toLower(getNormalizedComputeRegion(runtime1.runtimeConfig))
+      );
       expect(getTextContentForColumn(tableRows[2], 7)).toBe(Utils.makeCompleteDate(runtime1.auditInfo.createdDate));
       expect(getTextContentForColumn(tableRows[2], 8)).toBe(Utils.makeCompleteDate(runtime1.auditInfo.dateAccessed));
     });
@@ -469,7 +473,7 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(firstAppRow, 3)).toBe(_.capitalize(galaxyApp.appType));
       expect(getTextContentForColumn(firstAppRow, 5)).toBe(_.capitalize(galaxyApp.status));
-      expect(getTextContentForColumn(firstAppRow, 6)).toBe(defaultComputeZone.toLowerCase());
+      expect(getTextContentForColumn(firstAppRow, 6)).toBe(galaxyApp.region);
       expect(getTextContentForColumn(firstAppRow, 7)).toBe(Utils.makeCompleteDate(galaxyApp.auditInfo.createdDate));
       expect(getTextContentForColumn(firstAppRow, 8)).toBe(Utils.makeCompleteDate(galaxyApp.auditInfo.dateAccessed));
     });
@@ -504,7 +508,7 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(firstAppRow, 3)).toBe(_.capitalize(googleApp1.appType));
       expect(getTextContentForColumn(firstAppRow, 5)).toBe(_.capitalize(googleApp1.status));
-      expect(getTextContentForColumn(firstAppRow, 6)).toBe(defaultComputeZone.toLowerCase());
+      expect(getTextContentForColumn(firstAppRow, 6)).toBe(googleApp1.region);
       expect(getTextContentForColumn(firstAppRow, 7)).toBe(Utils.makeCompleteDate(googleApp1.auditInfo.createdDate));
       expect(getTextContentForColumn(firstAppRow, 8)).toBe(Utils.makeCompleteDate(googleApp1.auditInfo.dateAccessed));
 
@@ -514,7 +518,7 @@ describe('Environments', () => {
       expect(getTextContentForColumn(secondAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(secondAppRow, 3)).toBe(_.capitalize(googleApp2.appType));
       expect(getTextContentForColumn(secondAppRow, 5)).toBe(_.capitalize(googleApp2.status));
-      expect(getTextContentForColumn(secondAppRow, 6)).toBe(defaultComputeZone.toLowerCase());
+      expect(getTextContentForColumn(secondAppRow, 6)).toBe(googleApp2.region);
       expect(getTextContentForColumn(secondAppRow, 7)).toBe(Utils.makeCompleteDate(googleApp2.auditInfo.createdDate));
       expect(getTextContentForColumn(secondAppRow, 8)).toBe(Utils.makeCompleteDate(googleApp1.auditInfo.dateAccessed));
 
@@ -524,7 +528,7 @@ describe('Environments', () => {
       expect(getTextContentForColumn(thirdAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(thirdAppRow, 3)).toBe(_.capitalize(azureApp1.appType));
       expect(getTextContentForColumn(thirdAppRow, 5)).toBe(_.capitalize(azureApp1.status));
-      expect(getTextContentForColumn(thirdAppRow, 6)).toBe(defaultComputeZone.toLowerCase());
+      expect(getTextContentForColumn(thirdAppRow, 6)).toBe(azureApp1.region);
       expect(getTextContentForColumn(thirdAppRow, 7)).toBe(Utils.makeCompleteDate(azureApp1.auditInfo.createdDate));
       expect(getTextContentForColumn(thirdAppRow, 8)).toBe(Utils.makeCompleteDate(azureApp1.auditInfo.dateAccessed));
 
@@ -534,7 +538,7 @@ describe('Environments', () => {
       expect(getTextContentForColumn(fourthAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(fourthAppRow, 3)).toBe(_.capitalize(azureApp2.appType));
       expect(getTextContentForColumn(fourthAppRow, 5)).toBe(_.capitalize(azureApp2.status));
-      expect(getTextContentForColumn(fourthAppRow, 6)).toBe(defaultComputeZone.toLowerCase());
+      expect(getTextContentForColumn(fourthAppRow, 6)).toBe(azureApp2.region);
       expect(getTextContentForColumn(fourthAppRow, 7)).toBe(Utils.makeCompleteDate(azureApp2.auditInfo.createdDate));
       expect(getTextContentForColumn(fourthAppRow, 8)).toBe(Utils.makeCompleteDate(azureApp2.auditInfo.dateAccessed));
     });
