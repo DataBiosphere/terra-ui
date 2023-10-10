@@ -15,7 +15,7 @@ describe('BillingProjectList', () => {
   it('shows a loading indicator', async () => {
     // Arrange
     const mockWorkspaces: Partial<AjaxWorkspacesContract> = {
-      bucketMigration: jest.fn().mockReturnValue(abandonedPromise()),
+      bucketMigrationInfo: jest.fn().mockReturnValue(abandonedPromise()),
     };
     const mockAjax: Partial<AjaxContract> = {
       Workspaces: mockWorkspaces as AjaxWorkspacesContract,
@@ -32,7 +32,7 @@ describe('BillingProjectList', () => {
   it('shows a message if there are no workspaces to migrate', async () => {
     // Arrange
     const mockWorkspaces: Partial<AjaxWorkspacesContract> = {
-      bucketMigration: jest.fn().mockResolvedValue({}),
+      bucketMigrationInfo: jest.fn().mockResolvedValue({}),
     };
     const mockAjax: Partial<AjaxContract> = {
       Workspaces: mockWorkspaces as AjaxWorkspacesContract,
@@ -50,7 +50,7 @@ describe('BillingProjectList', () => {
   it('shows the list of billing projects with workspaces, and has no accessibility errors', async () => {
     // Arrange
     const mockWorkspaces: Partial<AjaxWorkspacesContract> = {
-      bucketMigration: jest.fn().mockResolvedValue(mockServerData),
+      bucketMigrationInfo: jest.fn().mockResolvedValue(mockServerData),
     };
     const mockAjax: Partial<AjaxContract> = {
       Workspaces: mockWorkspaces as AjaxWorkspacesContract,

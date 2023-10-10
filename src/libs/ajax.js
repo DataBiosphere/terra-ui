@@ -144,11 +144,21 @@ const Workspaces = (signal) => ({
       delete: () => {
         return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
+
+      migrateWorkspace: async () => {
+        const response = await fetchRawls(`${root}/bucketMigration`, _.merge(authOpts(), { signal, method: 'POST' }));
+        return response.json();
+      },
     };
   },
 
-  bucketMigration: async () => {
+  bucketMigrationInfo: async () => {
     const response = await fetchRawls('workspaces/v2/bucketMigration', _.merge(authOpts(), { signal }));
+    return response.json();
+  },
+
+  startBatchBucketMigration: async (body) => {
+    const response = await fetchRawls('workspaces/v2/bucketMigration', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
     return response.json();
   },
 
