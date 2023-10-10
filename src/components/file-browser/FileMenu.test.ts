@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { FileMenu } from './FileMenu';
 
