@@ -279,16 +279,20 @@ describe('ImportData', () => {
 
   describe('TDR', () => {
     describe('snapshot exports', () => {
+      const commonSnapshotExportQueryParams = {
+        format: 'tdrexport',
+        tdrmanifest: 'https://example.com/path/to/manifest.json',
+        tdrSyncPermissions: 'true',
+        url: 'https://data.terra.bio',
+      };
+
       it('imports snapshot exports into Google workspaces', async () => {
         // Arrange
         const user = userEvent.setup();
 
         const queryParams = {
-          format: 'tdrexport',
+          ...commonSnapshotExportQueryParams,
           snapshotId: googleSnapshotFixture.id,
-          tdrmanifest: 'https://example.com/path/to/manifest.json',
-          tdrSyncPermissions: 'true',
-          url: 'https://data.terra.bio',
         };
         const { getWorkspaceApi, importJob } = await setup({ queryParams });
 
@@ -309,11 +313,8 @@ describe('ImportData', () => {
         const user = userEvent.setup();
 
         const queryParams = {
-          format: 'tdrexport',
+          ...commonSnapshotExportQueryParams,
           snapshotId: azureSnapshotFixture.id,
-          tdrmanifest: 'https://example.com/path/to/manifest.json',
-          tdrSyncPermissions: 'true',
-          url: 'https://data.terra.bio',
         };
         const { importTdr, wdsProxyUrl } = await setup({ queryParams });
 
