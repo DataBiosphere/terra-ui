@@ -6,7 +6,8 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { azureRegions } from 'src/libs/azure-regions';
 import { authStore } from 'src/libs/state';
-import { AzureStorageDetails, BucketLocation, WorkspaceInformation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
+import { BucketLocation } from 'src/pages/workspaces/workspace/Dashboard/BucketLocation';
+import { AzureStorageDetails, WorkspaceInformation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/Dashboard';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
   defaultAzureStorageOptions,

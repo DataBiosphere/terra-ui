@@ -90,6 +90,7 @@ export type WorkpaceState =
   | 'DeleteFailed';
 
 export interface BaseWorkspace {
+  owners?: string[];
   accessLevel: WorkspaceAccessLevel;
   canShare: boolean;
   canCompute: boolean;
