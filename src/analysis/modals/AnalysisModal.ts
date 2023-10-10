@@ -8,7 +8,7 @@ import { CromwellModalBase } from 'src/analysis/modals/CromwellModal';
 import { GalaxyModalBase } from 'src/analysis/modals/GalaxyModal';
 import { WarningTitle } from 'src/analysis/modals/WarningTitle';
 import { AnalysisFileStore } from 'src/analysis/useAnalysisFiles';
-import { getCurrentAppForUser } from 'src/analysis/utils/app-utils';
+import { getCurrentApp, getCurrentAppForUser } from 'src/analysis/utils/app-utils';
 import { getCurrentPersistentDisk } from 'src/analysis/utils/disk-utils';
 import { getFileName } from 'src/analysis/utils/file-utils';
 import { analysisNameInput, analysisNameValidator, baseRmd, notebookData } from 'src/analysis/utils/notebook-utils';
@@ -115,7 +115,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const currentRuntime: Runtime | undefined = getCurrentRuntime(runtimes);
     const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks);
     const currentRuntimeToolLabel = currentRuntime && getToolLabelFromCloudEnv(currentRuntime);
-    const currentApp = (toolLabel: AppToolLabel): App | undefined => getCurrentAppForUser(toolLabel, apps);
+    const currentApp = (toolLabel: AppToolLabel): App | undefined =>
+      (toolLabel === 'CROMWELL_RUNNER_APP' ? getCurrentAppForUser : getCurrentApp)(toolLabel, apps);
 
     // TODO: Bring in as props from Analyses OR bring entire AnalysisFileStore from props.
     const { loadedState, createAnalysis, pendingCreate } = analysisFileStore;

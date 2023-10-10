@@ -12,7 +12,7 @@ import {
   getRuntimeCost,
   runtimeConfigCost,
 } from 'src/analysis/utils/cost-utils';
-import { appToolLabels, isToolHidden, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
+import * as ToolUtils from 'src/analysis/utils/tool-utils';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
@@ -21,6 +21,8 @@ import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils';
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
+import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -29,6 +31,7 @@ import {
   defaultGoogleBucketOptions,
   defaultGoogleWorkspace,
 } from 'src/testing/workspace-fixtures';
+import { mockCollaborativeAzureApps } from 'src/workflows-app/utils/mock-responses';
 
 const GALAXY_COMPUTE_COST = 10;
 const GALAXY_DISK_COST = 1;
@@ -54,15 +57,6 @@ jest.mock(
   (): AppUtilsExports => ({
     ...jest.requireActual('src/analysis/utils/app-utils'),
     doesWorkspaceSupportCromwellAppForUser: jest.fn(),
-  })
-);
-
-type ToolUtilsExports = typeof import('src/analysis/utils/tool-utils');
-jest.mock(
-  'src/analysis/utils/tool-utils',
-  (): ToolUtilsExports => ({
-    ...jest.requireActual('src/analysis/utils/tool-utils'),
-    isToolHidden: jest.fn(),
   })
 );
 
@@ -108,6 +102,10 @@ jest.mock(
 
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/feature-previews');
+jest.mock('src/libs/state', () => ({
+  ...jest.requireActual('src/libs/state'),
+  getTerraUser: jest.fn(),
+}));
 
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxMetricsContract = AjaxContract['Metrics'];
@@ -142,10 +140,13 @@ beforeEach(() => {
   asMockedFn(getRuntimeCost).mockReturnValue(RUNTIME_COST);
   asMockedFn(getPersistentDiskCostHourly).mockReturnValue(PERSISTENT_DISK_COST);
   asMockedFn(runtimeConfigCost).mockReturnValue(RUNTIME_COST + PERSISTENT_DISK_COST);
+
+  jest.spyOn(ToolUtils, 'isToolHidden');
 });
 
 afterEach(() => {
   jest.clearAllMocks();
+  asMockedFn(ToolUtils.isToolHidden).mockRestore();
 });
 
 const cromwellRunning: App = {
@@ -599,7 +600,7 @@ describe('ContextBar - buttons', () => {
       appDataDisks: [],
     };
 
-    asMockedFn(isToolHidden).mockReturnValue(true);
+    asMockedFn(ToolUtils.isToolHidden).mockReturnValue(true);
 
     // Act
     const { getByLabelText, queryByLabelText } = render(h(ContextBar, cromwellOnAzureContextBarProps));
@@ -607,6 +608,26 @@ describe('ContextBar - buttons', () => {
     // Assert
     expect(getByLabelText('Environment Configuration'));
     expect(queryByLabelText(new RegExp(/Cromwell Environment/i))).not.toBeInTheDocument();
+  });
+
+  it('will render a Cromwell Runner button if feature preview is enabled', () => {
+    // Arrange
+    const cromwellRunnerContextBarProps: ContextBarProps = {
+      ...contextBarPropsForAzure,
+      apps: mockCollaborativeAzureApps,
+      appDataDisks: [],
+    };
+
+    asMockedFn(getTerraUser).mockReturnValue({ email: 'groot@gmail.com' });
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS);
+    asMockedFn(doesWorkspaceSupportCromwellAppForUser).mockReturnValue(true);
+
+    // Act
+    const { getByLabelText } = render(h(ContextBar, cromwellRunnerContextBarProps));
+
+    // Assert
+    expect(getByLabelText('Environment Configuration'));
+    expect(getByLabelText(new RegExp(/Cromwell Runner Environment/i)));
   });
 
   it('will render JupyterLab Environment button', () => {
@@ -677,7 +698,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details');
-    getByText(runtimeToolLabels.Jupyter);
+    getByText(ToolUtils.runtimeToolLabels.Jupyter);
   });
 
   it('clicking Galaxy opens CloudEnvironmentModal with Galaxy as filter for tool.', () => {
@@ -694,7 +715,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details');
-    getByText(appToolLabels.GALAXY);
+    getByText(ToolUtils.appToolLabels.GALAXY);
   });
 
   it('clicking RStudio opens CloudEnvironmentModal with RStudio as filter for tool.', () => {
@@ -713,7 +734,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details');
-    getByText(runtimeToolLabels.RStudio);
+    getByText(ToolUtils.runtimeToolLabels.RStudio);
   });
 
   it('clicking Terminal will attempt to start currently stopped runtime', async () => {

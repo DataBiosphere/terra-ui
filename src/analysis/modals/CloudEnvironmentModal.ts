@@ -11,6 +11,7 @@ import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/analysis/runt
 import { AppErrorModal, RuntimeErrorModal } from 'src/analysis/RuntimeManager';
 import {
   doesWorkspaceSupportCromwellAppForUser,
+  getCurrentApp,
   getCurrentAppForUser,
   getIsAppBusy,
 } from 'src/analysis/utils/app-utils';
@@ -200,7 +201,8 @@ export const CloudEnvironmentModal = ({
   const currentRuntimeStatus = getConvertedRuntimeStatus(currentRuntime);
   const currentRuntimeTool = currentRuntime?.labels?.tool;
 
-  const currentApp = (toolLabel: ToolLabel) => getCurrentAppForUser(toolLabel, apps);
+  const currentApp = (toolLabel: ToolLabel) =>
+    (toolLabel === 'CROMWELL_RUNNER_APP' ? getCurrentAppForUser : getCurrentApp)(toolLabel, apps);
 
   const isLaunchSupported = (toolLabel: ToolLabel) =>
     !Object.values(tools).find((tool) => tool.label === toolLabel)!.isLaunchUnsupported;

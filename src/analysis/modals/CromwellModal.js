@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { generateAppName, getCurrentAppForUser, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
+import { generateAppName, getCurrentApp, getCurrentAppForUser, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
 import { generatePersistentDiskName, getCurrentAppDataDisk } from 'src/analysis/utils/disk-utils';
 import { appAccessScopes, appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
@@ -40,7 +40,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
     appLabel,
     shouldHideCloseButton = true,
   }) => {
-    const app = getCurrentAppForUser(appTools[appLabel].label, apps);
+    const app = (appLabel === appToolLabels.CROMWELL_RUNNER_APP ? getCurrentAppForUser : getCurrentApp)(appTools[appLabel].label, apps);
     const canCreate = Utils.switchCase(
       appLabel,
       [appToolLabels.CROMWELL, () => true],

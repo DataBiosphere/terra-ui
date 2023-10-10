@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { code } from 'react-hyperscript-helpers';
-import { getCurrentApp } from 'src/analysis/utils/app-utils';
+import { getCurrentApp, getCurrentAppForUser } from 'src/analysis/utils/app-utils';
 import { FileExtension, getExtension } from 'src/analysis/utils/file-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
@@ -189,9 +189,13 @@ export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string =
 };
 
 export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProvider, apps: App[]): readonly Tool[] =>
-  _.remove((tool: Tool) => isToolHidden(tool.label, cloudProvider, getCurrentApp(tool.label, apps)))(
-    (cloudRuntimeTools[cloudProvider] as readonly Tool[]).concat(cloudAppTools[cloudProvider] as readonly Tool[])
-  );
+  _.remove((tool: Tool) =>
+    isToolHidden(
+      tool.label,
+      cloudProvider,
+      (tool.label === 'CROMWELL_RUNNER_APP' ? getCurrentAppForUser : getCurrentApp)(tool.label, apps)
+    )
+  )((cloudRuntimeTools[cloudProvider] as readonly Tool[]).concat(cloudAppTools[cloudProvider] as readonly Tool[]));
 
 export const toolToExtensionMap: Record<ToolLabel, FileExtension> = _.flow(
   _.filter('ext'),

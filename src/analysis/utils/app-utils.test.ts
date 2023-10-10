@@ -2,6 +2,7 @@ import { galaxyDeleting, galaxyDisk, galaxyRunning } from 'src/analysis/_testDat
 import {
   doesWorkspaceSupportCromwellAppForUser,
   getCurrentApp,
+  getCurrentAppForUser,
   getCurrentAppIncludingDeleting,
   getDiskAppType,
   getEnvMessageBasedOnStatus,
@@ -14,8 +15,10 @@ import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
+import { getTerraUser } from 'src/libs/state';
 import { cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { mockCollaborativeAzureApps } from 'src/workflows-app/utils/mock-responses';
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
@@ -518,6 +521,28 @@ describe('getCurrentApp', () => {
   it('returns the most recent app for the given type (that is not deleting)', () => {
     expect(getCurrentApp(appTools.GALAXY.label, mockApps)).toBe(galaxyRunning);
     expect(getCurrentApp(appTools.CROMWELL.label, mockApps)).toBe(cromwellProvisioning);
+  });
+});
+
+describe('getCurrentAppForUser', () => {
+  afterAll(() => {
+    asMockedFn(getTerraUser).mockReturnValue({ email: 'workspace-creator@gmail.com' });
+  });
+
+  it('returns undefined if no instances of the app exist', () => {
+    expect(getCurrentAppForUser(appTools.GALAXY.label, [])).toBeUndefined();
+    expect(getCurrentAppForUser(appTools.CROMWELL.label, [galaxyRunning])).toBeUndefined();
+    expect(getCurrentAppForUser(appTools.CROMWELL_RUNNER_APP.label, mockApps)).toBeUndefined();
+  });
+  it('returns undefined if instances of the app exist but app is private and created by other user', () => {
+    expect(getCurrentAppForUser(appTools.CROMWELL_RUNNER_APP.label, mockCollaborativeAzureApps)).toBeUndefined();
+  });
+  it('returns the most recent private app for the given user or shared app (that is not deleting)', () => {
+    asMockedFn(getTerraUser).mockReturnValue({ email: 'groot@gmail.com' });
+    expect(getCurrentAppForUser(appTools.WDS.label, mockCollaborativeAzureApps)).toBe(mockCollaborativeAzureApps[2]);
+    expect(getCurrentAppForUser(appTools.CROMWELL_RUNNER_APP.label, mockCollaborativeAzureApps)).toBe(
+      mockCollaborativeAzureApps[1]
+    );
   });
 });
 

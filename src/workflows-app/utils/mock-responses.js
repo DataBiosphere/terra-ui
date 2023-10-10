@@ -710,6 +710,7 @@ export const mockAzureApps = [
     workspaceId: 'abc-c07807929cd1',
     cloudContext: {
       cloudProvider: 'AZURE',
+      cloudResource: 'path/to/cloud/resource',
     },
     errors: [],
     status: 'RUNNING',
@@ -726,11 +727,13 @@ export const mockAzureApps = [
     },
     accessScope: null,
     labels: {},
+    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
   },
   {
     workspaceId: 'abc-c07807929cd1',
     cloudContext: {
       cloudProvider: 'AZURE',
+      cloudResource: 'path/to/cloud/resource',
     },
     errors: [],
     status: 'RUNNING',
@@ -745,14 +748,17 @@ export const mockAzureApps = [
     },
     accessScope: 'WORKSPACE_SHARED',
     labels: {},
+    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
   },
 ];
 
+/** @type App[] */
 export const mockCollaborativeAzureApps = [
   {
     workspaceId: 'abc-c07807929cd1',
     cloudContext: {
       cloudProvider: 'AZURE',
+      cloudResource: 'path/to/cloud/resource',
     },
     errors: [],
     status: 'RUNNING',
@@ -768,11 +774,13 @@ export const mockCollaborativeAzureApps = [
     },
     accessScope: appAccessScopes.WORKSPACE_SHARED,
     labels: {},
+    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
   },
   {
     workspaceId: 'abc-c07807929cd1',
     cloudContext: {
       cloudProvider: 'AZURE',
+      cloudResource: 'path/to/cloud/resource',
     },
     errors: [],
     status: 'RUNNING',
@@ -787,11 +795,13 @@ export const mockCollaborativeAzureApps = [
     },
     accessScope: appAccessScopes.USER_PRIVATE,
     labels: {},
+    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
   },
   {
     workspaceId: 'abc-c07807929cd1',
     cloudContext: {
       cloudProvider: 'AZURE',
+      cloudResource: 'path/to/cloud/resource',
     },
     errors: [],
     status: 'RUNNING',
@@ -806,6 +816,7 @@ export const mockCollaborativeAzureApps = [
     },
     accessScope: 'WORKSPACE_SHARED',
     labels: {},
+    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
   },
 ];
 

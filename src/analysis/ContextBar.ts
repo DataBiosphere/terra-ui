@@ -154,7 +154,8 @@ export const ContextBar = ({
       [Utils.DEFAULT, () => colors.warning()]
     );
 
-  const currentApp = (toolLabel) => getCurrentApp(toolLabel, apps);
+  const currentApp = (toolLabel) =>
+    (toolLabel === 'CROMWELL_RUNNER_APP' ? getCurrentAppForUser : getCurrentApp)(toolLabel, apps);
 
   const getIconForTool = (toolLabel, status) => {
     const app = currentApp(toolLabel);

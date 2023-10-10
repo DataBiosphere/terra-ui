@@ -6,6 +6,7 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
+import { mockCollaborativeAzureApps } from 'src/workflows-app/utils/mock-responses';
 
 import { appAccessScopes, appToolLabels } from '../utils/tool-utils';
 import { CromwellModal } from './CromwellModal';
@@ -42,6 +43,16 @@ const defaultCromwellRunnerAppProps = {
   isOpen: true,
   onExited: () => {},
 };
+
+jest.mock('src/libs/nav', () => ({
+  getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
+  getLink: jest.fn().mockReturnValue('workflows-app-link'),
+}));
+
+jest.mock('src/libs/state', () => ({
+  ...jest.requireActual('src/libs/state'),
+  getTerraUser: jest.fn().mockReturnValue({ email: 'groot@gmail.com' }),
+}));
 
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/ajax/leonardo/Apps');
@@ -94,6 +105,7 @@ describe('CromwellModal', () => {
     const createButton = screen.getByText('Create');
     await user.click(createButton);
 
+    // Assert
     expect(createFunc).toHaveBeenCalledWith(
       expect.anything(),
       defaultAzureWorkspace.workspace.workspaceId,
@@ -118,6 +130,58 @@ describe('CromwellModal', () => {
     const createButton = screen.getByText('Create');
     await user.click(createButton);
 
+    // Assert
+    expect(createFunc).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+
+  it('Prevent creation of CROMWELL_RUNNER app in CROMWELL_RUNNER modal with provisioning app', async () => {
+    // Arrange
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((key) => {
+      return key === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS;
+    });
+
+    // Act
+    render(
+      h(CromwellModal, {
+        ...defaultCromwellRunnerAppProps,
+        apps: mockCollaborativeAzureApps,
+      })
+    );
+
+    // Assert
+    expect(screen.queryByText('Create')).not.toBeInTheDocument();
+    const openButton = screen.getByText('Open workflows tab');
+    expect(openButton).toHaveAttribute('href', 'workflows-app-link');
+  });
+
+  it('Prevent creation of CROMWELL_RUNNER app in CROMWELL_RUNNER modal with existing app', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const createFunc = createAppV2Func();
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((key) => {
+      return key === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS;
+    });
+
+    // Act
+    render(
+      h(CromwellModal, {
+        ...defaultCromwellRunnerAppProps,
+        apps: mockCollaborativeAzureApps.map((app) => ({ ...app, status: 'PROVISIONING' })),
+      })
+    );
+
+    // Assert
+    expect(screen.queryByText('Create')).not.toBeInTheDocument();
+    const openButton = screen.getByText('Open workflows tab');
+    expect(openButton).toHaveAttribute('disabled');
+    screen.getByText('Please wait until Cromwell is running');
+
+    // Act
+    await user.click(openButton);
+
+    // Assert
     expect(createFunc).not.toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();
   });

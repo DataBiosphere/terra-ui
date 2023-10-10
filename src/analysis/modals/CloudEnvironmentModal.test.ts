@@ -16,9 +16,13 @@ import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
+import { getTerraUser } from 'src/libs/state';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { mockCollaborativeAzureApps } from 'src/workflows-app/utils/mock-responses';
 
 type RuntimesAjaxExports = typeof import('src/libs/ajax/leonardo/Runtimes');
 type AppsAjaxExports = typeof import('src/libs/ajax/leonardo/Apps');
@@ -223,6 +227,13 @@ jest.mock(
     goToPath: jest.fn(),
   })
 );
+
+jest.mock('src/libs/state', () => ({
+  ...jest.requireActual('src/libs/state'),
+  getTerraUser: jest.fn(),
+}));
+
+jest.mock('src/libs/feature-previews');
 
 describe('CloudEnvironmentModal', () => {
   // vanilla envs
@@ -732,6 +743,68 @@ describe('CloudEnvironmentModal', () => {
     const settingsButton = screen.getByText('Settings');
     await user.click(settingsButton);
     screen.getByText('AzureComputeModalBase');
+  });
+
+  it('Azure - Does not render Cromwell Runner when feature flag is disabled', async () => {
+    asMockedFn(getTerraUser).mockReturnValue({ email: 'groot@gmail.com' });
+    // Act
+    render(
+      h(CloudEnvironmentModal, {
+        ...AzureCloudEnvironmentModalDefaultProps,
+        apps: mockCollaborativeAzureApps,
+      })
+    );
+
+    // Assert
+    expect(screen.queryByAltText('CROMWELL_RUNNER_APP')).not.toBeInTheDocument();
+  });
+
+  it('Azure - Does not render Cromwell when feature flag is enabled', async () => {
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS);
+    // Act
+    render(h(CloudEnvironmentModal, AzureCloudEnvironmentModalDefaultProps));
+
+    // Assert
+    expect(screen.queryByAltText('CROMWELL')).not.toBeInTheDocument();
+  });
+
+  it('Azure - Does not render Cromwell Runner when feature flag is enabled with no app', async () => {
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS);
+    // Act
+    render(h(CloudEnvironmentModal, { ...AzureCloudEnvironmentModalDefaultProps, apps: [] }));
+
+    // Assert
+    expect(screen.queryByAltText('CROMWELL_RUNNER_APP')).not.toBeInTheDocument();
+  });
+
+  it('Azure - Does not render Cromwell Runner when feature flag is enabled with app belonging to other user', async () => {
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS);
+    asMockedFn(getTerraUser).mockReturnValue({ email: 'me@gmail.com' });
+    // Act
+    render(
+      h(CloudEnvironmentModal, {
+        ...AzureCloudEnvironmentModalDefaultProps,
+        apps: mockCollaborativeAzureApps,
+      })
+    );
+
+    // Assert
+    expect(screen.queryByAltText('CROMWELL_RUNNER_APP')).not.toBeInTheDocument();
+  });
+
+  it('Azure - Renders Cromwell Runner when feature flag is enabled and app exists', async () => {
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS);
+    asMockedFn(getTerraUser).mockReturnValue({ email: 'groot@gmail.com' });
+    // Act
+    render(
+      h(CloudEnvironmentModal, {
+        ...AzureCloudEnvironmentModalDefaultProps,
+        apps: mockCollaborativeAzureApps,
+      })
+    );
+
+    // Assert
+    screen.getByAltText('CROMWELL_RUNNER_APP');
   });
 });
 

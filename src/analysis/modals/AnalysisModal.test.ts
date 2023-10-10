@@ -11,9 +11,14 @@ import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorag
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { HAIL_BATCH_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
+import {
+  ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS,
+  HAIL_BATCH_AZURE_FEATURE_ID,
+} from 'src/libs/feature-previews-config';
+import { getTerraUser } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { mockCollaborativeAzureApps } from 'src/workflows-app/utils/mock-responses';
 
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal';
 
@@ -68,6 +73,11 @@ jest.mock('src/analysis/utils/file-utils', (): FileUtilsExports => {
 });
 
 jest.mock('src/libs/feature-previews');
+
+jest.mock('src/libs/state', () => ({
+  ...jest.requireActual('src/libs/state'),
+  getTerraUser: jest.fn(),
+}));
 
 type AjaxContract = ReturnType<typeof Ajax>;
 
@@ -295,6 +305,72 @@ describe('AnalysisModal', () => {
 
     expect(screen.getByText('Cromwell Cloud Environment'));
     expect(screen.getByText('Create'));
+  });
+
+  it('Azure - Does not render Cromwell Runner when feature flag is disabled', async () => {
+    asMockedFn(getTerraUser).mockReturnValue({ email: 'groot@gmail.com' });
+    // Act
+    render(
+      h(AnalysisModal, {
+        ...defaultAzureModalProps,
+        apps: mockCollaborativeAzureApps,
+      })
+    );
+
+    // Assert
+    expect(screen.queryByAltText('Create new Cromwell Runner app')).not.toBeInTheDocument();
+    expect(screen.queryByText('You already have a Cromwell Runner instance')).not.toBeInTheDocument();
+  });
+
+  it('Azure - Does not render Cromwell when feature flag is enabled', async () => {
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS);
+    // Act
+    render(h(AnalysisModal, defaultAzureModalProps));
+
+    // Assert
+    expect(screen.queryByAltText('Create new Cromwell app')).not.toBeInTheDocument();
+    expect(screen.queryByText('You already have a Cromwell instance')).not.toBeInTheDocument();
+  });
+
+  it('Azure - Does not render Cromwell Runner when feature flag is enabled with no app', async () => {
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS);
+    // Act
+    render(h(AnalysisModal, { ...defaultAzureModalProps, apps: [] }));
+
+    // Assert
+    expect(screen.queryByAltText('Create new Cromwell Runner app')).not.toBeInTheDocument();
+    expect(screen.queryByText('You already have a Cromwell Runner instance')).not.toBeInTheDocument();
+  });
+
+  it('Azure - Does not render Cromwell Runner when feature flag is enabled with app belonging to other user', async () => {
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS);
+    asMockedFn(getTerraUser).mockReturnValue({ email: 'me@gmail.com' });
+    // Act
+    render(
+      h(AnalysisModal, {
+        ...defaultAzureModalProps,
+        apps: mockCollaborativeAzureApps,
+      })
+    );
+
+    // Assert
+    expect(screen.queryByAltText('Create new Cromwell Runner app')).not.toBeInTheDocument();
+    expect(screen.queryByText('You already have a Cromwell Runner instance')).not.toBeInTheDocument();
+  });
+
+  it('Azure - Renders Cromwell Runner when feature flag is enabled and app exists', async () => {
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS);
+    asMockedFn(getTerraUser).mockReturnValue({ email: 'groot@gmail.com' });
+    // Act
+    render(
+      h(AnalysisModal, {
+        ...defaultAzureModalProps,
+        apps: mockCollaborativeAzureApps,
+      })
+    );
+
+    // Assert
+    screen.getByText('You already have a Cromwell Runner instance');
   });
 
   it('Azure - Renders Hail Batch when feature flag is enabled', () => {
