@@ -34,7 +34,22 @@ jest.mock('src/pages/library/dataBrowser-utils', (): DataBrowserUtilsExports => 
 });
 
 describe('getImportRequest', () => {
-  const snapshotFixture: Snapshot = {
+  const azureSnapshotFixture: Snapshot = {
+    id: 'aaaabbbb-cccc-dddd-0000-111122223333',
+    name: 'test-snapshot',
+    source: [
+      {
+        dataset: {
+          id: 'aaaabbbb-cccc-dddd-0000-111122223333',
+          name: 'test-dataset',
+          secureMonitoringEnabled: false,
+        },
+      },
+    ],
+    cloudPlatform: 'azure',
+  };
+
+  const googleSnapshotFixture: Snapshot = {
     id: '00001111-2222-3333-aaaa-bbbbccccdddd',
     name: 'test-snapshot',
     source: [
@@ -91,7 +106,7 @@ describe('getImportRequest', () => {
     {
       queryParams: {
         format: 'tdrexport',
-        snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+        snapshotId: googleSnapshotFixture.id,
         tdrmanifest: 'https://example.com/path/to/manifest.json',
         tdrSyncPermissions: 'true',
         url: 'https://data.terra.bio',
@@ -99,7 +114,7 @@ describe('getImportRequest', () => {
       expectedResult: {
         type: 'tdr-snapshot-export',
         manifestUrl: new URL('https://example.com/path/to/manifest.json'),
-        snapshot: snapshotFixture,
+        snapshot: googleSnapshotFixture,
         syncPermissions: true,
       } satisfies TDRSnapshotExportImportRequest,
     },
@@ -107,12 +122,12 @@ describe('getImportRequest', () => {
     {
       queryParams: {
         format: 'snapshot',
-        snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+        snapshotId: googleSnapshotFixture.id,
         snapshotName: 'test-snapshot',
       },
       expectedResult: {
         type: 'tdr-snapshot-reference',
-        snapshot: snapshotFixture,
+        snapshot: googleSnapshotFixture,
       } satisfies TDRSnapshotReferenceImportRequest,
     },
     // Catalog dataset
@@ -154,8 +169,11 @@ describe('getImportRequest', () => {
     const mockDataRepo = {
       snapshot: (snapshotId: string): Partial<ReturnType<DataRepoContract['snapshot']>> => ({
         details: jest.fn().mockImplementation(() => {
-          if (snapshotId === snapshotFixture.id) {
-            return snapshotFixture;
+          if (snapshotId === azureSnapshotFixture.id) {
+            return azureSnapshotFixture;
+          }
+          if (snapshotId === googleSnapshotFixture.id) {
+            return googleSnapshotFixture;
           }
           throw new Response('{"message":"Snapshot not found"}', { status: 404 });
         }),
@@ -232,7 +250,7 @@ describe('getImportRequest', () => {
       {
         queryParams: {
           format: 'tdrexport',
-          snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+          snapshotId: '00001111-2222-3333-xxxx-yyyyyyzzzzzz',
           tdrmanifest: 'https://example.com/path/to/manifest.json',
           tdrSyncPermissions: 'true',
           url: 'https://data.terra.bio',
@@ -242,20 +260,12 @@ describe('getImportRequest', () => {
       {
         queryParams: {
           format: 'snapshot',
-          snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+          snapshotId: '00001111-2222-3333-xxxx-yyyyyyzzzzzz',
         },
       },
     ] as { queryParams: Record<string, any> }[])(
       'throws an error if unable to load the snapshot',
       async ({ queryParams }) => {
-        // Arrange
-        const mockDataRepo = {
-          snapshot: (): Partial<ReturnType<DataRepoContract['snapshot']>> => ({
-            details: jest.fn().mockRejectedValue(new Response('{"message":"Snapshot not found"}', { status: 404 })),
-          }),
-        };
-        asMockedFn(DataRepo).mockReturnValue(mockDataRepo as unknown as DataRepoContract);
-
         // Act
         const importRequestPromise = getImportRequest(queryParams);
 
