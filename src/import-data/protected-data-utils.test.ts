@@ -96,6 +96,21 @@ describe('isProtectedWorkspace', () => {
     expect(isProtectedWorkspace(protectedAzureWorkspace)).toBe(true);
   });
 
+  it('should require a "protected-data" policy for Azure workspaces', () => {
+    const protectedAzureWorkspace: AzureWorkspace = {
+      ...defaultAzureWorkspace,
+      policies: [
+        {
+          additionalData: [],
+          namespace: 'terra',
+          name: 'some-other-policy',
+        },
+      ],
+    };
+
+    expect(isProtectedWorkspace(protectedAzureWorkspace)).toBe(false);
+  });
+
   it('should recognize a protected Google workspace', () => {
     const protectedWorkspace = { ...defaultGoogleWorkspace };
     protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
