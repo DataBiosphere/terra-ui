@@ -9,7 +9,7 @@ import { ReactComponent as GcpLogo } from 'src/images/gcp.svg';
 import { Ajax } from 'src/libs/ajax';
 import { bucketBrowserUrl } from 'src/libs/auth';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import * as Utils from 'src/libs/utils';
+import { newTabLinkProps } from 'src/libs/utils';
 import {
   AzureWorkspace,
   canWrite,
@@ -48,7 +48,7 @@ const AzureCloudInformation = (props: AzureCloudInformationProps): ReactNode => 
         h(
           Link,
           {
-            ...Utils.newTabLinkProps,
+            ...newTabLinkProps,
             href: 'https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10',
             style: { textDecoration: 'underline' },
           },
@@ -58,7 +58,7 @@ const AzureCloudInformation = (props: AzureCloudInformationProps): ReactNode => 
         h(
           Link,
           {
-            ...Utils.newTabLinkProps,
+            ...newTabLinkProps,
             href: 'https://azure.microsoft.com/en-us/products/storage/storage-explorer',
             style: { textDecoration: 'underline' },
           },
@@ -136,7 +136,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           Link,
           {
             style: { margin: '1rem 0.5rem' },
-            ...Utils.newTabLinkProps,
+            ...newTabLinkProps,
             onClick: () => {
               Ajax().Metrics.captureEvent(Events.workspaceOpenedBucketInBrowser, {
                 ...extractWorkspaceDetails(workspace),
@@ -152,7 +152,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           Link,
           {
             style: { margin: '1rem 0.5rem' },
-            ...Utils.newTabLinkProps,
+            ...newTabLinkProps,
             onClick: () => {
               Ajax().Metrics.captureEvent(Events.workspaceOpenedProjectInConsole, {
                 ...extractWorkspaceDetails(workspace),
