@@ -111,7 +111,23 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
   const immediateImportTypes: ImportRequest['type'][] = ['tdr-snapshot-reference', 'catalog-snapshots'];
   const importMayTakeTime = !immediateImportTypes.includes(importRequest.type);
 
-  const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces();
+  const {
+    workspaces,
+    refresh: refreshWorkspaces,
+    loading: loadingWorkspaces,
+  } = useWorkspaces([
+    'workspace.workspaceId',
+    'workspace.namespace',
+    'workspace.name',
+    // The decision on whether or data can be imported into a workspace is based on the user's level of access
+    // to the workspace and the workspace's authorization domain, protected status and cloud platform.
+    // That information needs to be fetched here.
+    'accessLevel',
+    'policies',
+    'workspace.authorizationDomain',
+    'workspace.bucketName',
+    'workspace.cloudPlatform',
+  ]);
   const [mode, setMode] = useState<'existing' | 'template' | undefined>(
     initialSelectedWorkspaceId ? 'existing' : undefined
   );

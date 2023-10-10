@@ -1,4 +1,5 @@
 import { Snapshot } from 'src/libs/ajax/DataRepo';
+import { AzureWorkspace } from 'src/libs/workspace-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { ImportRequest } from './import-types';
@@ -80,7 +81,37 @@ describe('isProtectedWorkspace', () => {
     expect(isProtectedWorkspace(workspace)).toBe(false);
   });
 
-  it('should recognize a protected workspace', () => {
+  it('should recognize a protected Azure workspace', () => {
+    const protectedAzureWorkspace: AzureWorkspace = {
+      ...defaultAzureWorkspace,
+      policies: [
+        {
+          additionalData: [],
+          namespace: 'terra',
+          name: 'protected-data',
+        },
+      ],
+    };
+
+    expect(isProtectedWorkspace(protectedAzureWorkspace)).toBe(true);
+  });
+
+  it('should require a "protected-data" policy for Azure workspaces', () => {
+    const protectedAzureWorkspace: AzureWorkspace = {
+      ...defaultAzureWorkspace,
+      policies: [
+        {
+          additionalData: [],
+          namespace: 'terra',
+          name: 'some-other-policy',
+        },
+      ],
+    };
+
+    expect(isProtectedWorkspace(protectedAzureWorkspace)).toBe(false);
+  });
+
+  it('should recognize a protected Google workspace', () => {
     const protectedWorkspace = { ...defaultGoogleWorkspace };
     protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
 
