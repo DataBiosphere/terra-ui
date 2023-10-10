@@ -1,5 +1,7 @@
 import _ from 'lodash/fp';
 
+import { referenceMetadata } from './reference-metadata';
+
 export const getReferenceData = _.flow(
   _.toPairs,
   _.filter(([key]) => key.startsWith('referenceData_')),
@@ -9,3 +11,7 @@ export const getReferenceData = _.flow(
   }),
   _.groupBy('datum')
 );
+
+export const getReferenceLabel = (referenceName) => {
+  return `${referenceMetadata[referenceName].species}: ${referenceName}`;
+};

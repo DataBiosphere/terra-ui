@@ -48,7 +48,3 @@ export const referenceMetadata = {
     species: 'Sheep',
   },
 };
-
-export const getReferenceLabel = (referenceName) => {
-  return `${referenceMetadata[referenceName].species}: ${referenceName}`;
-};
