@@ -24,7 +24,6 @@ export const InfoBox = (props: PropsWithChildren<InfoBoxProps>) => {
       onChange: setOpen,
       content: div({ style: { padding: '0.5rem', width: 300 } }, [children]),
     },
-    // @ts-expect-error
     [
       h(
         Clickable,

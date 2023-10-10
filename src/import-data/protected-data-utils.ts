@@ -1,5 +1,5 @@
 import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { isGoogleWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 import { ImportRequest } from './import-types';
 
@@ -70,7 +70,9 @@ export const isProtectedSource = (importRequest: ImportRequest): boolean => {
   }
 };
 
-// This method identifies an import source. Currently it only identifies AnVIL Explorer.
+/**
+ * This method identifies an import source. Currently it only identifies AnVIL Explorer.
+ */
 export const getImportSource = (url: URL): ImportSource => {
   const anvilSources = [
     'service.prod.anvil.gi.ucsc.edu',
@@ -82,12 +84,27 @@ export const getImportSource = (url: URL): ImportSource => {
   return '';
 };
 
-// This method identifies whether a workspace qualifies as protected.
-// 'Protected' here means that it has enhanced logging - either on its own or because it has an auth domain.
-// For now this also means only GCP workspaces are included.
+/**
+ * Determine whether a workspace is considred protected.
+ *
+ * For Azure workspaces, this checks for the "protected-data" policy.
+ * For Google workspaces, this checks for has enhanced logging - either directly or from an auth domain.
+ *
+ * @param workspace - The workspace.
+ */
 export const isProtectedWorkspace = (workspace: WorkspaceWrapper): boolean => {
-  if (!isGoogleWorkspace(workspace)) {
-    return false;
+  switch (workspace.workspace.cloudPlatform) {
+    case 'Azure':
+      // The WorkspaceWrapper type specifies policies as optional, but policies are loaded by the ImportData component.
+      if (!workspace.policies) {
+        return false;
+      }
+      return workspace.policies.some((policy) => policy.namespace === 'terra' && policy.name === 'protected-data');
+    case 'Gcp':
+      return workspace.workspace.bucketName.startsWith('fc-secure');
+    default:
+      // Check that all possible cases are handled.
+      const exhaustiveGuard: never = workspace.workspace;
+      return exhaustiveGuard;
   }
-  return !!workspace.workspace.bucketName && workspace.workspace.bucketName.startsWith('fc-secure');
 };
