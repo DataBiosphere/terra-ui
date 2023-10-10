@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { CloudProvider, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -104,17 +104,67 @@ describe('ImportDataDestination', () => {
     {
       importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
       requiredAuthorizationDomain: 'test-auth-domain',
-      expectedArgs: { isProtectedData: true, requiredAuthorizationDomain: 'test-auth-domain' },
+      expectedArgs: {
+        cloudPlatform: undefined,
+        isProtectedData: true,
+        requiredAuthorizationDomain: 'test-auth-domain',
+      },
     },
     {
       importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedArgs: { cloudPlatform: undefined, isProtectedData: false, requiredAuthorizationDomain: undefined },
+    },
+    {
+      importRequest: {
+        type: 'tdr-snapshot-export',
+        manifestUrl: new URL('https://example.com/path/to/manifest.json'),
+        snapshot: {
+          id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+          name: 'test-snapshot',
+          source: [
+            {
+              dataset: {
+                id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+                name: 'test-dataset',
+                secureMonitoringEnabled: false,
+              },
+            },
+          ],
+          cloudPlatform: 'gcp',
+        },
+        syncPermissions: false,
+      },
+      requiredAuthorizationDomain: undefined,
+      expectedArgs: { cloudPlatform: 'GCP', isProtectedData: false, requiredAuthorizationDomain: undefined },
+    },
+    {
+      importRequest: {
+        type: 'tdr-snapshot-export',
+        manifestUrl: new URL('https://example.com/path/to/manifest.json'),
+        snapshot: {
+          id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+          name: 'test-snapshot',
+          source: [
+            {
+              dataset: {
+                id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+                name: 'test-dataset',
+                secureMonitoringEnabled: false,
+              },
+            },
+          ],
+          cloudPlatform: 'azure',
+        },
+        syncPermissions: false,
+      },
+      requiredAuthorizationDomain: undefined,
+      expectedArgs: { cloudPlatform: 'AZURE', isProtectedData: false, requiredAuthorizationDomain: undefined },
     },
   ] as {
     importRequest: ImportRequest;
     requiredAuthorizationDomain?: string;
-    expectedArgs: { isProtectedData: boolean; requiredAuthorizationDomain?: string };
+    expectedArgs: { cloudPlatform?: CloudProvider; isProtectedData: boolean; requiredAuthorizationDomain?: string };
   }[])(
     'should filter workspaces through canImportIntoWorkspace',
     async ({ importRequest, requiredAuthorizationDomain, expectedArgs }) => {
