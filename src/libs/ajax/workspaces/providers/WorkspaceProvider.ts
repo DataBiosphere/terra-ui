@@ -4,7 +4,7 @@ import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export type FieldsArg = string[];
 export type WorkspaceListOptions = AbortOption & {
-  stringAttributeMaxLength?: string | number;
+  stringAttributeMaxLength?: number;
 };
 
 // TODO: grow this interface to include more of the available data verbs

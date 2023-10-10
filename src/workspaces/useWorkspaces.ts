@@ -9,7 +9,7 @@ import {
 
 export const useWorkspaces: UseWorkspacesState = (
   fieldsArg?: FieldsArg,
-  stringAttributeMaxLength?: string | number
+  stringAttributeMaxLength?: number
 ): UseWorkspacesStateResult => {
   const useWorkspacesStore = () => useSettableStore(workspacesStore);
 

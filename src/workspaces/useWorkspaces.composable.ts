@@ -12,10 +12,7 @@ export interface UseWorkspacesStateResult {
   loading: boolean;
 }
 
-export type UseWorkspacesState = (
-  fields?: FieldsArg,
-  stringAttributeMaxLength?: string | number
-) => UseWorkspacesStateResult;
+export type UseWorkspacesState = (fields?: FieldsArg, stringAttributeMaxLength?: number) => UseWorkspacesStateResult;
 
 const defaultFieldsArgs: FieldsArg = [
   'accessLevel',
@@ -48,7 +45,7 @@ export interface UseWorkspacesDeps {
 export const useWorkspacesComposable = (
   deps: UseWorkspacesDeps,
   fieldsArg?: FieldsArg,
-  stringAttributeMaxLength?: string | number
+  stringAttributeMaxLength?: number
 ): UseWorkspacesStateResult => {
   const { workspaceProvider, useWorkspacesStore } = deps;
 
