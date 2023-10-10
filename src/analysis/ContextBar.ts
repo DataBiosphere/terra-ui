@@ -82,9 +82,9 @@ export interface ContextBarProps {
   runtimes: Runtime[];
   apps: App[];
   appDataDisks: PersistentDisk[];
-  refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
+  refreshRuntimes: (maybeStale?: boolean) => Promise<unknown>;
   storageDetails: StorageDetails;
-  refreshApps: (maybeStale?: boolean) => Promise<void>;
+  refreshApps: (maybeStale?: boolean) => Promise<unknown>;
   workspace: BaseWorkspace;
   persistentDisks: PersistentDisk[];
 }

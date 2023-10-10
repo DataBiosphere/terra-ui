@@ -4,6 +4,8 @@ import { h } from 'react-hyperscript-helpers';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { WorkspaceContainer, WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn } from 'src/testing/test-utils';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 // Mocking for Nav.getLink
 jest.mock('src/libs/nav', () => ({
@@ -29,9 +31,19 @@ jest.mock(
 describe('WorkspaceTabs', () => {
   it('renders subset of tabs if workspace is unknown, with no accessibility issues', async () => {
     // Arrange
-    const props = { workspace: undefined };
+    const props = {
+      workspace: undefined,
+      setDeletingWorkspace: () => {},
+      setCloningWorkspace: () => {},
+      setSharingWorkspace: () => {},
+      setShowLockWorkspaceModal: () => {},
+      setLeavingWorkspace: () => {},
+      refresh: () => {},
+    };
+
     // Act
     const { container } = render(h(WorkspaceTabs, props));
+
     // Assert
     const tabs = screen.getAllByRole('menuitem');
     expect(tabs.length).toBe(3);
@@ -43,7 +55,15 @@ describe('WorkspaceTabs', () => {
 
   it('renders subset of tabs for Azure workspace, with no accessibility issues', async () => {
     // Arrange
-    const props = { workspace: { workspace: { cloudPlatform: 'Azure' } } };
+    const props = {
+      workspace: defaultAzureWorkspace,
+      setDeletingWorkspace: () => {},
+      setCloningWorkspace: () => {},
+      setSharingWorkspace: () => {},
+      setShowLockWorkspaceModal: () => {},
+      setLeavingWorkspace: () => {},
+      refresh: () => {},
+    };
     // Act
     const { container } = render(h(WorkspaceTabs, props));
     // Assert
@@ -57,9 +77,18 @@ describe('WorkspaceTabs', () => {
 
   it('renders subset of tabs for Azure workspace with flag enabled, with no accessibility issues', async () => {
     // Enable config
-    isFeaturePreviewEnabled.mockReturnValue(true);
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
+    // isFeaturePreviewEnabled.mockReturnValue(true);
     // Arrange
-    const props = { workspace: { workspace: { cloudPlatform: 'Azure' } } };
+    const props = {
+      workspace: defaultAzureWorkspace,
+      setDeletingWorkspace: () => {},
+      setCloningWorkspace: () => {},
+      setSharingWorkspace: () => {},
+      setShowLockWorkspaceModal: () => {},
+      setLeavingWorkspace: () => {},
+      refresh: () => {},
+    };
     // Act
     const { container } = render(h(WorkspaceTabs, props));
     // Assert
@@ -74,7 +103,15 @@ describe('WorkspaceTabs', () => {
 
   it('renders subset of tabs for Gcp workspace, with no accessibility issues', async () => {
     // Arrange
-    const props = { workspace: { workspace: { cloudPlatform: 'Gcp' } } };
+    const props = {
+      workspace: defaultGoogleWorkspace,
+      setDeletingWorkspace: () => {},
+      setCloningWorkspace: () => {},
+      setSharingWorkspace: () => {},
+      setShowLockWorkspaceModal: () => {},
+      setLeavingWorkspace: () => {},
+      refresh: () => {},
+    };
     // Act
     const { container } = render(h(WorkspaceTabs, props));
     // Assert
@@ -91,7 +128,13 @@ describe('WorkspaceTabs', () => {
   it('passes workspaceInfo to the workspaceMenu (OWNER, canShare)', () => {
     // Arrange
     const props = {
-      workspace: { canShare: true, accessLevel: 'OWNER', workspace: { cloudPlatform: 'Gcp', isLocked: false } },
+      workspace: defaultGoogleWorkspace,
+      setDeletingWorkspace: () => {},
+      setCloningWorkspace: () => {},
+      setSharingWorkspace: () => {},
+      setShowLockWorkspaceModal: () => {},
+      setLeavingWorkspace: () => {},
+      refresh: () => {},
     };
     // Act
     render(h(WorkspaceTabs, props));
@@ -107,13 +150,19 @@ describe('WorkspaceTabs', () => {
     // Arrange
     const props = {
       workspace: undefined,
+      setDeletingWorkspace: () => {},
+      setCloningWorkspace: () => {},
+      setSharingWorkspace: () => {},
+      setShowLockWorkspaceModal: () => {},
+      setLeavingWorkspace: () => {},
+      refresh: () => {},
     };
     // Act
     render(h(WorkspaceTabs, props));
     // Assert
     expect(mockWorkspaceMenu).toHaveBeenCalledWith(
       expect.objectContaining({
-        workspaceInfo: { canShare: undefined, isLocked: undefined, isOwner: undefined, workspaceLoaded: false },
+        workspaceInfo: { canShare: undefined, isLocked: false, isOwner: undefined, workspaceLoaded: false },
       })
     );
   });
@@ -125,15 +174,28 @@ describe('WorkspaceContainer', () => {
     const props = {
       namespace: 'mock-namespace',
       name: 'mock-name',
-      workspace: { workspace: { cloudPlatform: 'Azure' } },
-      analysesData: {},
-      storageDetails: {},
+      workspace: { ...defaultAzureWorkspace, workspaceInitialized: true },
+      storageDetails: {
+        googleBucketLocation: '',
+        googleBucketType: '',
+        fetchedGoogleBucketLocation: undefined,
+      },
+      refresh: () => Promise.resolve(),
+      refreshWorkspace: () => {},
+      breadcrumbs: [],
+      title: '',
+      analysesData: {
+        refreshApps: () => Promise.resolve(),
+        refreshRuntimes: () => Promise.resolve(),
+      },
     };
     // Act
     render(h(WorkspaceContainer, props));
     // Assert
     const alert = screen.getByRole('alert');
-    expect(within(alert).getByText(/Do not store Unclassified Confidential Information in this platform/)).not.toBeNull();
+    expect(
+      within(alert).getByText(/Do not store Unclassified Confidential Information in this platform/)
+    ).not.toBeNull();
   });
 
   it('shows a permissions loading spinner Gcp workspaces that have IAM propagation delays', async () => {
@@ -141,9 +203,20 @@ describe('WorkspaceContainer', () => {
     const props = {
       namespace: 'mock-namespace',
       name: 'mock-name',
-      workspace: { workspaceInitialized: false, workspace: { cloudPlatform: 'Gcp' } },
-      analysesData: {},
-      storageDetails: {},
+      workspace: { ...defaultGoogleWorkspace, workspaceInitialized: false },
+      storageDetails: {
+        googleBucketLocation: '',
+        googleBucketType: '',
+        fetchedGoogleBucketLocation: undefined,
+      },
+      refresh: () => Promise.resolve(),
+      refreshWorkspace: () => {},
+      breadcrumbs: [],
+      title: '',
+      analysesData: {
+        refreshApps: () => Promise.resolve(),
+        refreshRuntimes: () => Promise.resolve(),
+      },
     };
     // Act
     render(h(WorkspaceContainer, props));
@@ -157,9 +230,20 @@ describe('WorkspaceContainer', () => {
     const props = {
       namespace: 'mock-namespace',
       name: 'mock-name',
-      workspace: { workspaceInitialized: true, workspace: { cloudPlatform: 'Gcp' } },
-      analysesData: {},
-      storageDetails: {},
+      workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true },
+      storageDetails: {
+        googleBucketLocation: '',
+        googleBucketType: '',
+        fetchedGoogleBucketLocation: undefined,
+      },
+      refresh: () => Promise.resolve(),
+      refreshWorkspace: () => {},
+      breadcrumbs: [],
+      title: '',
+      analysesData: {
+        refreshApps: () => Promise.resolve(),
+        refreshRuntimes: () => Promise.resolve(),
+      },
     };
     // Act
     render(h(WorkspaceContainer, props));
