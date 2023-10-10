@@ -273,6 +273,20 @@ describe('getImportRequest', () => {
         expect(importRequestPromise).rejects.toEqual(new Error('Unable to load snapshot.'));
       }
     );
+
+    it('rejects snapshot by reference imports for Azure snapshots', async () => {
+      // Act
+      const queryParams = {
+        format: 'snapshot',
+        snapshotId: azureSnapshotFixture.id,
+      };
+      const importRequest = getImportRequest(queryParams);
+
+      // Assert
+      await expect(importRequest).rejects.toEqual(
+        new Error('Importing by reference is not supported for Azure snapshots.')
+      );
+    });
   });
 
   describe('catalog snapshot imports', () => {
