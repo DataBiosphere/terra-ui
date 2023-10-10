@@ -108,8 +108,8 @@ const GooglePermissionsSpinner = (): ReactNode => {
 };
 
 interface WorkspaceTabsProps {
-  namespace: string;
-  name: string;
+  namespace?: string;
+  name?: string;
   workspace?: WorkspaceWrapper;
   activeTab?: string;
   refresh: () => void;
@@ -189,31 +189,32 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
 };
 
 interface WorkspaceContainerProps {
-  namespace;
-  name;
-  breadcrumbs;
-  title;
+  namespace?: string;
+  name?: string;
+  breadcrumbs: ReactNode;
+  title: string;
   activeTab?: string;
-  analysesData: { apps; refreshApps; runtimes; refreshRuntimes; appDataDisks; persistentDisks };
-  storageDetails;
-  refresh;
+  analysesData: AppDetails & CloudEnvironmentDetails;
+  storageDetails: StorageDetails;
+  refresh: () => Promise<unknown>;
   workspace: Workspace;
-  refreshWorkspace;
+  refreshWorkspace: () => void;
 }
 
-export const WorkspaceContainer = ({
-  namespace,
-  name,
-  breadcrumbs,
-  title,
-  activeTab,
-  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
-  storageDetails,
-  refresh,
-  workspace,
-  refreshWorkspace,
-  children,
-}: PropsWithChildren<WorkspaceContainerProps>) => {
+export const WorkspaceContainer = (props: PropsWithChildren<WorkspaceContainerProps>) => {
+  const {
+    namespace,
+    name,
+    breadcrumbs,
+    title,
+    activeTab,
+    analysesData: { apps = [], refreshApps, runtimes = [], refreshRuntimes, appDataDisks = [], persistentDisks = [] },
+    storageDetails,
+    refresh,
+    workspace,
+    refreshWorkspace,
+    children,
+  } = props;
   const [deletingWorkspace, setDeletingWorkspace] = useState(false);
   const [cloningWorkspace, setCloningWorkspace] = useState(false);
   const [sharingWorkspace, setSharingWorkspace] = useState(false);
@@ -226,7 +227,7 @@ export const WorkspaceContainer = ({
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
-        div({ style: Style.noWrapEllipsis }, breadcrumbs),
+        div({ style: Style.noWrapEllipsis }, [breadcrumbs]),
         h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [title || `${namespace}/${name}`]),
       ]),
       div({ style: { flexGrow: 1 } }),
@@ -352,7 +353,7 @@ const WorkspaceAccessError = () => {
 
 interface CloudEnvironmentDetails {
   runtimes?: ListRuntimeItem[];
-  refreshRuntimes: (maybeStale: boolean) => Promise<unknown>;
+  refreshRuntimes: (maybeStale?: boolean) => Promise<unknown>;
   persistentDisks?: PersistentDisk[];
   appDataDisks?: PersistentDisk[];
 }
@@ -421,7 +422,7 @@ const useCloudEnvironmentPolling = (workspace: Workspace): CloudEnvironmentDetai
 
 interface AppDetails {
   apps?: ListAppResponse[];
-  refreshApps: (maybeStale: boolean) => Promise<unknown>;
+  refreshApps: (maybeStale?: boolean) => Promise<unknown>;
 }
 
 const useAppPolling = (workspace: Workspace): AppDetails => {
