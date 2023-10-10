@@ -56,9 +56,8 @@ describe('Environments Page', () => {
 
     // Assert
     screen.getByText('Cloud Environments');
-    const environmentsWatcher = Environments;
-    expect(environmentsWatcher).toBeCalledTimes(1);
-    expect(environmentsWatcher).toBeCalledWith(
+    expect(Environments).toBeCalledTimes(1);
+    expect(Environments).toBeCalledWith(
       expect.objectContaining({
         nav: navProvider,
         useWorkspacesState: useWorkspaces as UseWorkspacesState,

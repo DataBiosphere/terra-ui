@@ -1,65 +1,35 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { act, renderHook } from '@testing-library/react';
 import { workspaceProvider } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
+import { workspacesStore } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { useWorkspaces, useWorkspacesComposer, useWorkspacesState } from 'src/workspaces/useWorkspaces';
-import { makeUseWorkspaces } from 'src/workspaces/useWorkspaces.composable';
+import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
-type UseWorkspacesComposableExports = typeof import('src/workspaces/useWorkspaces.composable');
-jest.mock('src/workspaces/useWorkspaces.composable', (): UseWorkspacesComposableExports => {
-  const { asMockedFn } = jest.requireActual<typeof import('src/testing/test-utils')>('src/testing/test-utils');
-  const mock: UseWorkspacesComposableExports = {
-    ...jest.requireActual<UseWorkspacesComposableExports>('src/workspaces/useWorkspaces.composable'),
-    makeUseWorkspaces: jest.fn(),
-  };
-  asMockedFn(mock.makeUseWorkspaces).mockReturnValue(() => ({
-    workspaces: [],
-    refresh: () => Promise.resolve(),
-    loading: false,
-  }));
-  return mock;
-});
+type WorkspaceProviderExports = typeof import('src/libs/ajax/workspaces/providers/WorkspaceProvider');
+jest.mock(
+  'src/libs/ajax/workspaces/providers/WorkspaceProvider',
+  (): WorkspaceProviderExports => ({
+    workspaceProvider: {
+      list: jest.fn(),
+    },
+  })
+);
 
 describe('useWorkspaces (composed)', () => {
-  it('is composed for Terra UI app', () => {
-    // Act
-    const myHook = useWorkspacesComposer.make();
-
-    // Assert
-    expect(myHook).toBeTruthy();
-    expect(makeUseWorkspaces).toBeCalledTimes(1);
-    expect(makeUseWorkspaces).toBeCalledWith({
-      workspaceProvider,
-      useWorkspacesState,
-    });
-    // also check that the composed export is initialized without issue
-    expect(useWorkspaces).toBeTruthy();
-  });
-});
-
-describe('useWorkspacesState', () => {
-  it('holds state', () => {
+  it('calls workspaces provider and retains state in workspacesStore', async () => {
     // Arrange
-    const hookResult = renderHook(() => useWorkspacesState());
 
-    const [value1, setValue] = hookResult.result.current;
-
-    const workspace1 = {
-      workspace: {
-        name: 'myWorkspace',
-      },
-    } satisfies DeepPartial<WorkspaceWrapper> as WorkspaceWrapper;
+    asMockedFn(workspaceProvider.list).mockResolvedValue([
+      { workspace: { name: 'myWorkspace' } } satisfies DeepPartial<WorkspaceWrapper> as WorkspaceWrapper,
+    ]);
 
     // Act
-    act(() => {
-      setValue([workspace1]);
-      hookResult.rerender();
-    });
+    const hookRender1 = await renderHookInAct(useWorkspaces);
 
     // Assert
-    const [value2] = hookResult.result.current;
-
-    expect(value1).toEqual([]);
-    expect(value2).toEqual([workspace1]);
+    const expectedWorkspaces: DeepPartial<WorkspaceWrapper>[] = [{ workspace: { name: 'myWorkspace' } }];
+    expect(workspaceProvider.list).toBeCalledTimes(1);
+    expect(hookRender1.result.current.workspaces).toEqual(expectedWorkspaces);
+    expect(workspacesStore.get()).toEqual(expectedWorkspaces);
   });
 });
