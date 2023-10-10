@@ -6,10 +6,11 @@ import { ReactComponent as AzureLogo } from 'src/images/azure.svg';
 import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils';
 import { AzureContext } from 'src/libs/workspace-utils';
 import { InfoRow } from 'src/pages/workspaces/workspace/Dashboard/InfoRow';
+import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
 
 interface AzureStorageDetailsProps {
   azureContext: AzureContext;
-  storageDetails;
+  storageDetails: StorageDetails;
 }
 
 export const AzureStorageDetails = (props: AzureStorageDetailsProps): ReactNode => {
@@ -42,7 +43,7 @@ export const AzureStorageDetails = (props: AzureStorageDetailsProps): ReactNode 
       h(TooltipCell, [storageDetails.azureContainerUrl ? storageDetails.azureContainerUrl : 'Loading']),
       h(ClipboardButton, {
         'aria-label': 'Copy storage container URL to clipboard',
-        text: storageDetails.azureContainerUrl,
+        text: storageDetails.azureContainerUrl || '',
         style: { marginLeft: '0.25rem' },
       }),
     ]),
@@ -50,7 +51,7 @@ export const AzureStorageDetails = (props: AzureStorageDetailsProps): ReactNode 
       h(TooltipCell, [storageDetails.azureContainerSasUrl ? storageDetails.azureContainerSasUrl : 'Loading']),
       h(ClipboardButton, {
         'aria-label': 'Copy SAS URL to clipboard',
-        text: storageDetails.azureContainerSasUrl,
+        text: storageDetails.azureContainerSasUrl || '',
         style: { marginLeft: '0.25rem' },
       }),
     ]),

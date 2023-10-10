@@ -1,5 +1,6 @@
 import _ from 'lodash/fp';
 import {
+  ComponentPropsWithRef,
   Dispatch,
   Fragment,
   JSXElementConstructor,
@@ -47,7 +48,11 @@ import {
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
-import { InitializedWorkspaceWrapper as Workspace, useWorkspace } from 'src/pages/workspaces/workspace/useWorkspace';
+import {
+  InitializedWorkspaceWrapper as Workspace,
+  StorageDetails,
+  useWorkspace,
+} from 'src/pages/workspaces/workspace/useWorkspace';
 import WorkspaceAttributeNotice from 'src/pages/workspaces/workspace/WorkspaceAttributeNotice';
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
@@ -345,7 +350,14 @@ const WorkspaceAccessError = () => {
   ]);
 };
 
-const useCloudEnvironmentPolling = (workspace) => {
+interface CloudEnvironmentDetails {
+  runtimes?: ListRuntimeItem[];
+  refreshRuntimes: (maybeStale: boolean) => Promise<unknown>;
+  persistentDisks?: PersistentDisk[];
+  appDataDisks?: PersistentDisk[];
+}
+
+const useCloudEnvironmentPolling = (workspace: Workspace): CloudEnvironmentDetails => {
   const signal = useCancellation();
   const timeout = useRef<NodeJS.Timeout>();
   const [runtimes, setRuntimes] = useState<ListRuntimeItem[]>();
@@ -407,7 +419,12 @@ const useCloudEnvironmentPolling = (workspace) => {
   return { runtimes, refreshRuntimes, persistentDisks, appDataDisks };
 };
 
-const useAppPolling = (workspace) => {
+interface AppDetails {
+  apps?: ListAppResponse[];
+  refreshApps: (maybeStale: boolean) => Promise<unknown>;
+}
+
+const useAppPolling = (workspace: Workspace): AppDetails => {
   const signal = useCancellation();
   const timeout = useRef<NodeJS.Timeout>();
   const [apps, setApps] = useState<ListAppResponse[]>();
@@ -455,9 +472,16 @@ interface WrapWorkspaceProps {
   title: string;
 }
 
+interface WrappedComponentProps extends ComponentPropsWithRef<any> {
+  workspace: Workspace;
+  refreshWorkspace: () => {};
+  analysesData: AppDetails & CloudEnvironmentDetails;
+  storageDetails: StorageDetails;
+}
+
 export const wrapWorkspace =
   ({ breadcrumbs, activeTab, title }: WrapWorkspaceProps) =>
-  (WrappedComponent: JSXElementConstructor<unknown>) => {
+  <T extends WrappedComponentProps>(WrappedComponent: JSXElementConstructor<T>) => {
     const Wrapper = (props) => {
       const { namespace, name } = props;
       const child = useRef<unknown>();
