@@ -13,47 +13,38 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { dd, div, dl, dt, h, h3, i, span } from 'react-hyperscript-helpers';
+import { div, h, h3, i, span } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
-import { requesterPaysWrapper } from 'src/components/bucket-utils';
-import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
 import { ButtonPrimary, ButtonSecondary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { centeredSpinner, icon, spinner } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown';
-import { getRegionInfo } from 'src/components/region-common';
-import RequesterPaysModal from 'src/components/RequesterPaysModal';
-import { SimpleTable, TooltipCell } from 'src/components/table';
+import { SimpleTable } from 'src/components/table';
 import { WorkspaceTagSelect } from 'src/components/workspace-utils';
-import { ReactComponent as AzureLogo } from 'src/images/azure.svg';
-import { ReactComponent as GcpLogo } from 'src/images/gcp.svg';
 import { Ajax } from 'src/libs/ajax';
-import { bucketBrowserUrl, refreshTerraProfile } from 'src/libs/auth';
-import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils';
+import { refreshTerraProfile } from 'src/libs/auth';
 import { getEnabledBrand } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
-import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
-import { authStore, requesterPaysProjectStore } from 'src/libs/state';
+import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import {
   canEditWorkspace,
   canWrite,
-  hasProtectedData,
-  hasRegionConstraint,
-  isAzureWorkspace,
   isGoogleWorkspace,
   isOwner,
-  protectedDataMessage,
-  regionConstraintMessage,
+  WorkspaceAccessLevel,
   WorkspaceACL,
 } from 'src/libs/workspace-utils';
 import SignIn from 'src/pages/SignIn';
+import { CloudInformation } from 'src/pages/workspaces/workspace/Dashboard/CloudInformation';
+import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
 import { displayConsentCodes, displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/workspace/useWorkspace';
@@ -74,29 +65,6 @@ const styles: Record<string, CSSProperties> = {
     overflow: 'hidden',
     wordWrap: 'break-word',
   },
-};
-
-const roleString = {
-  READER: 'Reader',
-  WRITER: 'Writer',
-  OWNER: 'Owner',
-  PROJECT_OWNER: 'Project Owner',
-};
-
-interface InfoRowProps {
-  title: string;
-  subtitle?: string;
-}
-
-const InfoRow = (props: PropsWithChildren<InfoRowProps>): ReactNode => {
-  const { title, subtitle, children } = props;
-  return div({ style: { display: 'flex', justifyContent: 'space-between', margin: '1rem 0.5rem' } }, [
-    dt({ style: { width: 225 } }, [
-      div({ style: { fontWeight: 500 } }, [title]),
-      subtitle && div({ style: { fontWeight: 400, fontSize: 12 } }, [subtitle]),
-    ]),
-    dd({ style: { width: 225, display: 'flex', overflow: 'hidden' } }, [children]),
-  ]);
 };
 
 const displayAttributeValue = (v: unknown): string => {
@@ -147,7 +115,7 @@ const DashboardAuthContainer = (props) => {
 
   const isFeaturedWorkspace = () => _.some((ws) => ws.namespace === namespace && ws.name === name, featuredWorkspaces);
 
-  return Utils.cond(
+  return cond(
     [
       !isAuthInitialized || (signInStatus === 'signedOut' && featuredWorkspaces === undefined),
       () => centeredSpinner({ style: { position: 'fixed' } }),
@@ -183,159 +151,6 @@ const RightBoxSection = (props: PropsWithChildren<RightBoxSectionProps>) => {
         [children]
       ),
     ]),
-  ]);
-};
-
-export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace, storageDetails }) => {
-  console.assert(!!workspace && isGoogleWorkspace(workspace), 'BucketLocation expects a Google workspace');
-  const [loading, setLoading] = useState<boolean>(true);
-  const [{ location, locationType }, setBucketLocation] = useState({ location: undefined, locationType: undefined });
-  const [needsRequesterPaysProject, setNeedsRequesterPaysProject] = useState<boolean>(false);
-  const [showRequesterPaysModal, setShowRequesterPaysModal] = useState<boolean>(false);
-
-  const signal = useCancellation();
-  const loadGoogleBucketLocation = useCallback(async () => {
-    setLoading(true);
-    try {
-      const {
-        namespace,
-        name,
-        workspace: { googleProject, bucketName },
-      } = workspace;
-      const response = await Ajax(signal)
-        .Workspaces.workspace(namespace, name)
-        .checkBucketLocation(googleProject, bucketName);
-      setBucketLocation(response);
-    } catch (error) {
-      if (error != null && typeof error === 'object' && 'requesterPaysError' in error) {
-        setNeedsRequesterPaysProject(true);
-      } else {
-        reportError('Unable to get bucket location.', error);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [workspace, signal]);
-
-  useEffect(() => {
-    if (workspace?.workspaceInitialized) {
-      if (storageDetails.fetchedGoogleBucketLocation === 'ERROR') {
-        // storageDetails.fetchedGoogleBucketLocation stores if an error was encountered from the server,
-        // while storageDetails.googleBucketLocation will contain the default value.
-        // In the case of requester pays workspaces, we wish to show the user more information in this case and allow them to link a workspace.
-        loadGoogleBucketLocation();
-      } else if (storageDetails.fetchedGoogleBucketLocation === 'SUCCESS') {
-        setBucketLocation({
-          location: storageDetails.googleBucketLocation,
-          locationType: storageDetails.googleBucketType,
-        });
-        setLoading(false);
-      }
-    }
-  }, [
-    loadGoogleBucketLocation,
-    setBucketLocation,
-    // Explicit dependencies to avoid extra calls to loadGoogleBucketLocation
-    workspace?.workspaceInitialized,
-    storageDetails.fetchedGoogleBucketLocation,
-    storageDetails.googleBucketLocation,
-    storageDetails.googleBucketType,
-  ]);
-
-  if (loading) {
-    return 'Loading';
-  }
-
-  if (!location) {
-    return h(Fragment, [
-      'Unknown',
-      needsRequesterPaysProject &&
-        h(
-          ButtonSecondary,
-          {
-            'aria-label': 'Load bucket location',
-            tooltip:
-              "This workspace's bucket is requester pays. Click to choose a workspace to bill requests to and get the bucket's location.",
-            style: { height: '1rem', marginLeft: '1ch' },
-            onClick: () => setShowRequesterPaysModal(true),
-          },
-          [icon('sync')]
-        ),
-      showRequesterPaysModal &&
-        h(RequesterPaysModal, {
-          onDismiss: () => setShowRequesterPaysModal(false),
-          onSuccess: (selectedGoogleProject) => {
-            requesterPaysProjectStore.set(selectedGoogleProject);
-            setShowRequesterPaysModal(false);
-            loadGoogleBucketLocation();
-          },
-        }),
-    ]);
-  }
-
-  const { flag, regionDescription } = getRegionInfo(location, locationType);
-  return h(TooltipCell, [flag, ' ', regionDescription]);
-});
-
-export const AzureStorageDetails = ({ azureContext, storageDetails }) => {
-  return h(Fragment, [
-    h(InfoRow, { title: 'Cloud Name' }, [
-      h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } }),
-    ]),
-    h(InfoRow, { title: 'Location' }, [
-      h(
-        TooltipCell,
-        storageDetails.azureContainerRegion
-          ? [
-              getRegionFlag(storageDetails.azureContainerRegion),
-              ' ',
-              getRegionLabel(storageDetails.azureContainerRegion),
-            ]
-          : ['Loading']
-      ),
-    ]),
-    h(InfoRow, { title: 'Resource Group ID' }, [
-      h(TooltipCell, [azureContext.managedResourceGroupId]),
-      h(ClipboardButton, {
-        'aria-label': 'Copy resource group id to clipboard',
-        text: azureContext.managedResourceGroupId,
-        style: { marginLeft: '0.25rem' },
-      }),
-    ]),
-    h(InfoRow, { title: 'Storage Container URL' }, [
-      h(TooltipCell, [storageDetails.azureContainerUrl ? storageDetails.azureContainerUrl : 'Loading']),
-      h(ClipboardButton, {
-        'aria-label': 'Copy storage container URL to clipboard',
-        text: storageDetails.azureContainerUrl,
-        style: { marginLeft: '0.25rem' },
-      }),
-    ]),
-    h(InfoRow, { title: 'Storage SAS URL' }, [
-      h(TooltipCell, [storageDetails.azureContainerSasUrl ? storageDetails.azureContainerSasUrl : 'Loading']),
-      h(ClipboardButton, {
-        'aria-label': 'Copy SAS URL to clipboard',
-        text: storageDetails.azureContainerSasUrl,
-        style: { marginLeft: '0.25rem' },
-      }),
-    ]),
-  ]);
-};
-
-export const WorkspaceInformation = ({ workspace }) => {
-  return dl({}, [
-    h(InfoRow, { title: 'Last Updated' }, [new Date(workspace.workspace.lastModified).toLocaleDateString()]),
-    h(InfoRow, { title: 'Creation Date' }, [new Date(workspace.workspace.createdDate).toLocaleDateString()]),
-    h(InfoRow, { title: 'Access Level' }, [roleString[workspace.accessLevel]]),
-    hasProtectedData(workspace) &&
-      h(InfoRow, { title: 'Workspace Protected' }, [
-        'Yes',
-        h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [protectedDataMessage]),
-      ]),
-    hasRegionConstraint(workspace) &&
-      h(InfoRow, { title: 'Region Constraint' }, [
-        'Yes',
-        h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [regionConstraintMessage(workspace)]),
-      ]),
   ]);
 };
 
@@ -407,15 +222,8 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
     workspace,
     workspace: {
       accessLevel,
-      azureContext,
-      owners,
-      workspace: {
-        authorizationDomain,
-        bucketName,
-        googleProject,
-        // attributes,
-        attributes = { description: '' },
-      },
+      owners = [],
+      workspace: { authorizationDomain, attributes = { description: '' } },
     },
   } = props;
 
@@ -443,7 +251,6 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
     if (isOwner(accessLevel) && _.size(owners) === 1) {
       loadAcl();
     }
-
     updateGoogleBucketDetails(workspace);
   };
 
@@ -598,159 +405,6 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
     refresh();
   });
 
-  const oneOwnerNotice: ReactNode = cond(
-    // No warning if there are multiple owners.
-    [_.size(owners) !== 1, () => null],
-    // If the current user does not own the workspace, then then workspace must be shared.
-    [
-      !isOwner(accessLevel),
-      () =>
-        h(Fragment, [
-          'This shared workspace has only one owner. Consider requesting ',
-          h(Link, { href: `mailto:${owners[0]}` }, [owners[0]]),
-          ' to add another owner to ensure someone is able to manage the workspace in case they lose access to their account.',
-        ]),
-    ],
-    // If the current user is the only owner of the workspace, check if the workspace is shared.
-    [
-      _.size(acl) > 1,
-      () =>
-        h(Fragment, [
-          'You are the only owner of this shared workspace. Consider adding another owner to ensure someone is able to manage the workspace in case you lose access to your account.',
-        ]),
-    ]
-  );
-
-  const getCloudInformation = () => {
-    return !isAzureWorkspace(workspace) && !isGoogleWorkspace(workspace)
-      ? []
-      : [
-          dl(
-            isGoogleWorkspace(workspace)
-              ? [
-                  h(InfoRow, { title: 'Cloud Name' }, [
-                    h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } }),
-                  ]),
-                  h(InfoRow, { title: 'Location' }, [h(BucketLocation, { workspace, storageDetails })]),
-                  h(InfoRow, { title: 'Google Project ID' }, [
-                    h(TooltipCell, [googleProject]),
-                    h(ClipboardButton, {
-                      'aria-label': 'Copy google project id to clipboard',
-                      text: googleProject,
-                      style: { marginLeft: '0.25rem' },
-                    }),
-                  ]),
-                  h(InfoRow, { title: 'Bucket Name' }, [
-                    h(TooltipCell, [bucketName]),
-                    h(ClipboardButton, {
-                      'aria-label': 'Copy bucket name to clipboard',
-                      text: bucketName,
-                      style: { marginLeft: '0.25rem' },
-                    }),
-                  ]),
-                  canWrite(accessLevel) &&
-                    h(
-                      InfoRow,
-                      {
-                        title: 'Estimated Storage Cost',
-                        subtitle: cond(
-                          [!storageCost, () => 'Loading last updated...'],
-                          [
-                            !!storageCost?.isSuccess,
-                            () => `Updated on ${new Date(storageCost?.lastUpdated ?? '').toLocaleDateString()}`,
-                          ]
-                        ),
-                      },
-                      [storageCost?.estimate || '$ ...']
-                    ),
-                  canWrite(accessLevel) &&
-                    h(
-                      InfoRow,
-                      {
-                        title: 'Bucket Size',
-                        subtitle: Utils.cond(
-                          [!bucketSize, () => 'Loading last updated...'],
-                          [
-                            !!bucketSize?.isSuccess,
-                            () => `Updated on ${new Date(bucketSize?.lastUpdated ?? '').toLocaleDateString()}`,
-                          ]
-                        ),
-                      },
-                      [bucketSize?.usage]
-                    ),
-                ]
-              : [h(AzureStorageDetails, { azureContext, storageDetails })]
-          ),
-          isGoogleWorkspace(workspace) &&
-            h(Fragment, [
-              div({ style: { paddingBottom: '0.5rem' } }, [
-                h(
-                  Link,
-                  {
-                    style: { margin: '1rem 0.5rem' },
-                    ...Utils.newTabLinkProps,
-                    onClick: () => {
-                      Ajax().Metrics.captureEvent(Events.workspaceOpenedBucketInBrowser, {
-                        ...extractWorkspaceDetails(workspace),
-                      });
-                    },
-                    href: bucketBrowserUrl(bucketName),
-                  },
-                  ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-                ),
-              ]),
-              div({ style: { paddingBottom: '0.5rem' } }, [
-                h(
-                  Link,
-                  {
-                    style: { margin: '1rem 0.5rem' },
-                    ...Utils.newTabLinkProps,
-                    onClick: () => {
-                      Ajax().Metrics.captureEvent(Events.workspaceOpenedProjectInConsole, {
-                        ...extractWorkspaceDetails(workspace),
-                      });
-                    },
-                    href: `https://console.cloud.google.com/welcome?project=${googleProject}`,
-                  },
-                  [
-                    'Open project in Google Cloud Console',
-                    icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
-                  ]
-                ),
-              ]),
-            ]),
-          isAzureWorkspace(workspace) &&
-            div({ style: { margin: '0.5rem', fontSize: 12 } }, [
-              div([
-                'Use SAS URL in conjunction with ',
-                h(
-                  Link,
-                  {
-                    ...Utils.newTabLinkProps,
-                    href: 'https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10',
-                    style: { textDecoration: 'underline' },
-                  },
-                  ['AzCopy']
-                ),
-                ' or ',
-                h(
-                  Link,
-                  {
-                    ...Utils.newTabLinkProps,
-                    href: 'https://azure.microsoft.com/en-us/products/storage/storage-explorer',
-                    style: { textDecoration: 'underline' },
-                  },
-                  ['Azure Storage Explorer']
-                ),
-                ' to access storage associated with this workspace.',
-              ]),
-              div({ style: { paddingTop: '0.5rem', fontWeight: 'bold' } }, [
-                'The SAS URL expires after 8 hours. To generate a new SAS URL, refresh this page.',
-              ]),
-            ]),
-        ];
-  };
-
   // Render
   const isEditing = _.isString(editDescription);
   const brand = getEnabledBrand();
@@ -772,7 +426,7 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
             [icon('edit')]
           ),
       ]),
-      Utils.cond(
+      cond(
         [
           isEditing,
           () =>
@@ -833,23 +487,14 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
           initialOpenState: cloudInfoPanelOpen,
           onClick: () => setCloudInfoPanelOpen(!cloudInfoPanelOpen),
         },
-        getCloudInformation()
+        [h(CloudInformation, { workspace, storageDetails, bucketSize, storageCost })]
       ),
       h(
         RightBoxSection,
         {
           title: 'Owners',
           initialOpenState: ownersPanelOpen,
-          afterTitle:
-            oneOwnerNotice &&
-            h(
-              InfoBox,
-              {
-                iconOverride: 'error-standard',
-                style: { color: colors.accent() },
-              },
-              [oneOwnerNotice]
-            ),
+          afterTitle: OwnerNotice({ acl, accessLevel, owners }),
           onClick: () => setOwnersPanelOpen(!ownersPanelOpen),
         },
         [
@@ -972,3 +617,45 @@ export const navPaths = [
     public: true,
   },
 ];
+
+interface OwnerNoticeProps {
+  owners: string[];
+  accessLevel: WorkspaceAccessLevel;
+  acl?: WorkspaceACL;
+}
+
+const OwnerNotice = (props: OwnerNoticeProps): ReactNode => {
+  const { owners, accessLevel, acl } = props;
+  const notice = cond(
+    // No warning if there are multiple owners.
+    [_.size(owners) !== 1, () => null],
+    // If the current user does not own the workspace, then then workspace must be shared.
+    [
+      !isOwner(accessLevel),
+      () =>
+        h(Fragment, [
+          'This shared workspace has only one owner. Consider requesting ',
+          h(Link, { href: `mailto:${owners[0]}` }, [owners[0]]),
+          ' to add another owner to ensure someone is able to manage the workspace in case they lose access to their account.',
+        ]),
+    ],
+    // If the current user is the only owner of the workspace, check if the workspace is shared.
+    [
+      _.size(acl) > 1,
+      () =>
+        h(Fragment, [
+          'You are the only owner of this shared workspace. Consider adding another owner to ensure someone is able to manage the workspace in case you lose access to your account.',
+        ]),
+    ]
+  );
+  return !notice
+    ? undefined
+    : h(
+        InfoBox,
+        {
+          iconOverride: 'error-standard',
+          style: { color: colors.accent() },
+        },
+        [notice]
+      );
+};
