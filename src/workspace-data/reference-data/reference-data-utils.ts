@@ -15,5 +15,7 @@ export const getReferenceData = _.flow(
 );
 
 export const getReferenceLabel = (referenceName: string): string => {
-  return `${referenceMetadata[referenceName].species}: ${referenceName}`;
+  const metadata = referenceMetadata[referenceName];
+  const species = metadata ? metadata.species : 'Unknown';
+  return `${species}: ${referenceName}`;
 };
