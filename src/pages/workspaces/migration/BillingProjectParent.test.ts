@@ -5,7 +5,11 @@ import { div, h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { BillingProjectParent } from 'src/pages/workspaces/migration/BillingProjectParent';
 import { WorkspaceMigrationInfo } from 'src/pages/workspaces/migration/migration-utils';
-import { bpWithSucceededAndUnscheduled } from 'src/pages/workspaces/migration/migration-utils.test';
+import {
+  bpWithFailed,
+  bpWithInProgress,
+  bpWithSucceededAndUnscheduled,
+} from 'src/pages/workspaces/migration/migration-utils.test';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type AjaxContract = ReturnType<typeof Ajax>;
@@ -75,5 +79,93 @@ describe('BillingProjectParent', () => {
     const migrateButton = screen.getByText('Migrate remaining workspaces');
     await user.click(migrateButton);
     expect(mockStartBatchBucketMigration).toHaveBeenCalledWith([{ name: 'notmigrated', namespace: 'CARBilling-2' }]);
+    await screen.findByText('1 Workspace Migrated');
+  });
+
+  it('does not show a migrate button if the only workspace is in progress', async () => {
+    // Act
+    render(
+      h(BillingProjectParent, {
+        billingProjectMigrationInfo: bpWithInProgress,
+      })
+    );
+
+    // Assert
+    expect(screen.queryByText('Migrate remaining workspaces')).toBeNull();
+    expect(screen.queryByText('Migrate all workspaces')).toBeNull();
+    await screen.findByText('1 Workspace Migrating');
+  });
+
+  it('does not show a migrate button if the only workspace is failed', async () => {
+    // Act
+    render(
+      h(BillingProjectParent, {
+        billingProjectMigrationInfo: bpWithFailed,
+      })
+    );
+
+    // Assert
+    expect(screen.queryByText('Migrate remaining workspaces')).toBeNull();
+    expect(screen.queryByText('Migrate all workspaces')).toBeNull();
+    await screen.findByText('1 Migration Failed');
+  });
+
+  it('does not show a migrate button if all workspaces succeeded', async () => {
+    // Arrange
+    const twoSucceededMigrationInfo: WorkspaceMigrationInfo[] = [
+      {
+        failureReason: undefined,
+        finalBucketTransferProgress: {
+          bytesTransferred: 288912,
+          objectsTransferred: 561,
+          totalBytesToTransfer: 288912,
+          totalObjectsToTransfer: 561,
+        },
+        migrationStep: 'Finished',
+        name: 'migrated1',
+        namespace: 'CARBilling-2',
+        outcome: 'success',
+        tempBucketTransferProgress: {
+          bytesTransferred: 288912,
+          objectsTransferred: 561,
+          totalBytesToTransfer: 288912,
+          totalObjectsToTransfer: 561,
+        },
+      },
+      {
+        failureReason: undefined,
+        finalBucketTransferProgress: {
+          bytesTransferred: 288912,
+          objectsTransferred: 561,
+          totalBytesToTransfer: 288912,
+          totalObjectsToTransfer: 561,
+        },
+        migrationStep: 'Finished',
+        name: 'migrated2',
+        namespace: 'CARBilling-2',
+        outcome: 'success',
+        tempBucketTransferProgress: {
+          bytesTransferred: 288912,
+          objectsTransferred: 561,
+          totalBytesToTransfer: 288912,
+          totalObjectsToTransfer: 561,
+        },
+      },
+    ];
+
+    // Act
+    render(
+      h(BillingProjectParent, {
+        billingProjectMigrationInfo: {
+          namespace: 'CARBilling-2',
+          workspaces: twoSucceededMigrationInfo,
+        },
+      })
+    );
+
+    // Assert
+    expect(screen.queryByText('Migrate remaining workspaces')).toBeNull();
+    expect(screen.queryByText('Migrate all workspaces')).toBeNull();
+    await screen.findByText('All 2 Workspaces Migrated');
   });
 });

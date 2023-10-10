@@ -72,7 +72,7 @@ export const bpWithSucceededAndUnscheduled: BillingProjectMigrationInfo = {
   ],
 };
 
-export const bpWithFailed = {
+export const bpWithFailed: BillingProjectMigrationInfo = {
   namespace: 'CARBillingTest',
   workspaces: [
     {
@@ -88,7 +88,7 @@ export const bpWithFailed = {
   ],
 };
 
-export const bpWithInProgress = {
+export const bpWithInProgress: BillingProjectMigrationInfo = {
   namespace: 'general-dev-billing-account',
   workspaces: [
     {
