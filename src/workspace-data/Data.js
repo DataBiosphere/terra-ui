@@ -9,7 +9,6 @@ import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
-import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions';
 import FileBrowser from 'src/components/data/FileBrowser';
 import { icon, spinner } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
@@ -42,6 +41,9 @@ import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnS
 import { SnapshotContent } from './data-table/entity-service/SnapshotContent';
 import { getRootTypeForSetTable } from './data-table/entity-service/table-utils';
 import { EntityUploader } from './data-table/shared/EntityUploader';
+import { DataTableSaveVersionModal } from './data-table/versioning/DataTableSaveVersionModal';
+import { DataTableVersion } from './data-table/versioning/DataTableVersion';
+import { DataTableVersions } from './data-table/versioning/DataTableVersions';
 import WDSContent from './data-table/wds/WDSContent';
 import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
 import { useImportJobs } from './import-jobs';
