@@ -599,6 +599,7 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
     ]),
   ]);
 };
+
 const WorkspaceDashboard = _.flow(
   forwardRefWithName('WorkspaceDashboard'),
   wrapWorkspace({

@@ -13,10 +13,8 @@ import { useMemo } from 'use-memo-one';
 export const Files = _.flow(
   forwardRefWithName('Files'),
   wrapWorkspace({
-    activeTab: null,
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Files',
-    topBarContent: null,
   })
 )(({ workspace }: { workspace: WorkspaceWrapper }, _ref) => {
   const { workspace: workspaceInfo } = workspace;
