@@ -123,6 +123,34 @@ describe('parseServerResponse', () => {
   it('Transforms the server data to a list format', () => {
     expect(parseServerResponse(mockServerData)).toEqual(billingProjectList);
   });
+
+  it('Can handle a non-jSON failure message', () => {
+    const alternateErrorFormat = {
+      'CARBillingTest/testdata': {
+        migrationStep: 'Finished' as const,
+        outcome: {
+          failure: 'io.grpc.StatusRuntimeException: NOT_FOUND: Service account',
+        },
+      },
+    };
+    const expected = [
+      {
+        namespace: 'CARBillingTest',
+        workspaces: [
+          {
+            failureReason: 'io.grpc.StatusRuntimeException: NOT_FOUND: Service account',
+            finalBucketTransferProgress: undefined,
+            migrationStep: 'Finished',
+            name: 'testdata',
+            namespace: 'CARBillingTest',
+            outcome: 'failure',
+            tempBucketTransferProgress: undefined,
+          },
+        ],
+      },
+    ];
+    expect(parseServerResponse(alternateErrorFormat)).toEqual(expected);
+  });
 });
 
 describe('getBillingProjectMigrationStats', () => {
