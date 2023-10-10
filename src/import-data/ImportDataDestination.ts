@@ -22,7 +22,7 @@ import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
 
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
-import { canImportIntoWorkspace } from './import-utils';
+import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
 import { isProtectedSource } from './protected-data-utils';
 
 const styles = {
@@ -105,6 +105,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
   } = props;
 
   const isProtectedData = isProtectedSource(importRequest);
+  const requiredCloudPlatform = getCloudPlatformRequiredForImport(importRequest);
 
   // Some import types are finished in a single request.
   // For most though, the import request starts a background task that takes time to complete.
@@ -163,6 +164,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               workspaces: workspaces.filter((workspace) => {
                 return canImportIntoWorkspace(
                   {
+                    cloudPlatform: requiredCloudPlatform,
                     isProtectedData,
                     requiredAuthorizationDomain,
                   },
