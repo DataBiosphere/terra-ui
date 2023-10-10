@@ -48,7 +48,7 @@ export const DownloadFileCommand = (props: DownloadFileCommandProps) => {
           children: undefined,
           disabled: !downloadCommand,
           style: { marginLeft: '1ch' },
-          text: downloadCommand,
+          text: downloadCommand || ' ',
           onClick: undefined,
         }),
       ]

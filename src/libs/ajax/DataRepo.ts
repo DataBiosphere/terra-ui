@@ -86,13 +86,26 @@ export const datasetIncludeTypes: Record<DatasetInclude, DatasetInclude> = {
   SNAPSHOT_BUILDER_SETTINGS: 'SNAPSHOT_BUILDER_SETTINGS',
 };
 
+interface SnapshotDataset {
+  id: string;
+  name: string;
+  secureMonitoringEnabled: boolean;
+}
+
+export interface Snapshot {
+  id: string;
+  name: string;
+  source: { dataset: SnapshotDataset }[];
+  cloudPlatform: 'azure' | 'gcp';
+}
+
 export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
   };
   snapshot: (snapshotId: string) => {
-    details: () => Promise<{}>;
+    details: () => Promise<Snapshot>;
     exportSnapshot: () => Promise<{}>;
   };
   job: (jobId: string) => {

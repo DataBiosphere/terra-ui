@@ -535,7 +535,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
           !!disk && div([strong(['Persistent Disk: ']), disk.name]),
         ]),
       },
-      // @ts-expect-error
       [h(Link, ['view'])]
     );
   };
@@ -850,7 +849,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                         app && div([strong([`${_.capitalize(app.appType)}: `]), app.appName]),
                       ]),
                     },
-                    // @ts-expect-error
                     [h(Link, ['view'])]
                   );
                 },

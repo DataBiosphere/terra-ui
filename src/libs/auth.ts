@@ -11,7 +11,7 @@ import { fetchOk } from 'src/libs/ajax/ajax-common';
 import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage';
 import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import Events, { captureAppcuesEvent } from 'src/libs/events';
+import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications';
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs';
 import allProviders from 'src/libs/providers';
@@ -92,7 +92,7 @@ export type SignOutCause =
   | 'unspecified';
 
 const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
-  const eventToFire: string = switchCase<SignOutCause, string>(
+  const eventToFire: MetricsEventName = switchCase<SignOutCause, MetricsEventName>(
     cause,
     ['requested', () => Events.user.signOut.requested],
     ['disabled', () => Events.user.signOut.disabled],
@@ -613,7 +613,7 @@ authStore.subscribe(
   withErrorReporting('Error loading NIH account link status', async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
       const nihStatus = await Ajax().User.getNihStatus();
-      authStore.update((state: AuthState) => ({ ...state, nihStatus }));
+      authStore.update((state: AuthState) => ({ ...state, nihStatus, nihStatusLoaded: true }));
     }
   })
 );

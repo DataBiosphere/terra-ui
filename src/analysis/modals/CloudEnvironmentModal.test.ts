@@ -544,7 +544,6 @@ describe('CloudEnvironmentModal', () => {
       azureProxy: jest.fn(),
       listV2: jest.fn(),
       listV2WithWorkspace: jest.fn(),
-      deleteAll: jest.fn(),
       runtimeV2: jest.fn(),
       fileSyncing: jest.fn(),
     };
@@ -748,7 +747,6 @@ describe('renderToolButtons', () => {
       azureProxy: jest.fn(),
       listV2: jest.fn(),
       listV2WithWorkspace: jest.fn(),
-      deleteAll: jest.fn(),
       runtimeV2: jest.fn(),
       fileSyncing: jest.fn(),
     };
@@ -774,7 +772,6 @@ describe('renderToolButtons', () => {
       azureProxy: jest.fn(),
       listV2: jest.fn(),
       listV2WithWorkspace: jest.fn(),
-      deleteAll: jest.fn(),
       runtimeV2: jest.fn(),
       fileSyncing: jest.fn(),
     };

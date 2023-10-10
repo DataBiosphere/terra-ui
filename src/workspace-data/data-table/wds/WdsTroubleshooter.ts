@@ -166,7 +166,6 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
           'Please copy this information and email ',
           h(Link, { href: 'mailto:support@terra.bio' }, ['support@terra.bio']),
           ' to troubleshoot the error with your data tables.',
-          // @ts-expect-error
           h(ClipboardButton, {
             'aria-label': 'Copy troubleshooting info to clipboard',
             style: { marginLeft: '1rem' },

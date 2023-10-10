@@ -6,9 +6,9 @@ import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { Switch } from 'src/components/common/Switch';
 import { styles as errorStyles } from 'src/components/ErrorView';
 import { centeredSpinner, icon } from 'src/components/icons';
+import { InfoBox } from 'src/components/InfoBox';
 import { TextArea, TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
-import { InfoBox } from 'src/components/PopupTrigger';
 import StepButtons from 'src/components/StepButtons';
 import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
@@ -28,7 +28,7 @@ import RecordsTable from 'src/workflows-app/components/RecordsTable';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
-import { CbasPollInterval, convertArrayType, parseMethodString, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
+import { autofillOutputDef, CbasPollInterval, convertArrayType, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionConfig = (
@@ -118,13 +118,8 @@ export const BaseSubmissionConfig = (
         const newRunSetData = runSet.run_sets[0];
 
         setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
-        setConfiguredOutputDefinition(
-          _.map((outputDef) =>
-            _.get('destination.type', outputDef) === 'none'
-              ? _.set('destination', { type: 'record_update', record_attribute: parseMethodString(outputDef.output_name).variable || '' })(outputDef)
-              : outputDef
-          )(maybeParseJSON(newRunSetData.output_definition))
-        );
+        const outputDef = autofillOutputDef(newRunSetData.output_definition, newRunSetData.run_count);
+        setConfiguredOutputDefinition(outputDef);
         setSelectedRecordType(newRunSetData.record_type);
 
         let callCache = maybeParseJSON(newRunSetData.call_caching_enabled);

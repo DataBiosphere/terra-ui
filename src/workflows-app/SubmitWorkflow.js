@@ -7,7 +7,7 @@ import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOWS } from 'src/libs/feature-previews-config';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus } from 'src/libs/state';
 import * as Style from 'src/libs/style';
@@ -87,7 +87,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const createWorkflowsApp = Utils.withBusyState(setCreating, async () => {
       try {
         setCreating(true);
-        if (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOWS)) {
+        if (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS)) {
           await Ajax().Apps.createAppV2(
             generateAppName(),
             workspace.workspace.workspaceId,

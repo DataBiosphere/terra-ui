@@ -209,7 +209,7 @@ const DataBrowserTableComponent = ({ sort, setSort, cols, setCols, filteredList 
             Link,
             {
               onClick: () => {
-                Ajax().Metrics.captureEvent(`${Events.catalogView}:details`, {
+                Ajax().Metrics.captureEvent(Events.catalogViewDetails, {
                   id: datum.id,
                   title: datum['dct:title'],
                 });

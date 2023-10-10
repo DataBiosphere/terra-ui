@@ -379,7 +379,7 @@ const getContextualSuggestion = ([leftContext, match, rightContext]) => {
   ];
 };
 
-const sendSearchEvent = (term) => Ajax().Metrics.captureEvent(`${Events.catalogFilter}:search`, { term });
+const sendSearchEvent = (term) => Ajax().Metrics.captureEvent(Events.catalogFilterSearch, { term });
 const debounceSearchEvent = _.debounce(5000, sendSearchEvent);
 
 /**
@@ -760,7 +760,7 @@ export const SearchAndFilterComponent = <ListItem>({
               const sectionToAlter = selectedSections[sectionSelected];
               const valuesSelected = _.xor(sectionEntries, sectionToAlter.values);
               _.forEach(
-                (sectionEntry) => Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag: sectionEntry }),
+                (sectionEntry) => Ajax().Metrics.captureEvent(Events.catalogFilterSidebar, { tag: sectionEntry }),
                 sectionEntries
               );
               valuesSelected.length > 0
