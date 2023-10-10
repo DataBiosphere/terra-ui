@@ -474,7 +474,7 @@ interface WrapWorkspaceProps {
 
 interface WrappedComponentProps extends ComponentPropsWithRef<any> {
   workspace: Workspace;
-  refreshWorkspace: () => {};
+  refreshWorkspace: () => void;
   analysesData: AppDetails & CloudEnvironmentDetails;
   storageDetails: StorageDetails;
 }

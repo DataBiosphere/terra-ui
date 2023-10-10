@@ -33,7 +33,7 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
-import * as Utils from 'src/libs/utils';
+import { append, formatBytes, newTabLinkProps, withBusyState } from 'src/libs/utils';
 import {
   canEditWorkspace,
   canWrite,
@@ -129,9 +129,9 @@ const DashboardAuthContainer = (props) => {
 interface RightBoxSectionProps {
   title: string;
   info?: ReactNode;
-  initialOpenState;
+  initialOpenState?: boolean;
   afterTitle?: ReactNode;
-  onClick;
+  onClick: () => void;
 }
 
 const RightBoxSection = (props: PropsWithChildren<RightBoxSectionProps>) => {
@@ -182,7 +182,7 @@ export const WorkspaceNotifications = ({ workspace }) => {
           checked: submissionNotificationsEnabled,
           disabled: saving,
           onChange: _.flow(
-            Utils.withBusyState(setSaving),
+            withBusyState(setSaving),
             withErrorReporting('Error saving preferences')
           )(async (value) => {
             await Ajax().User.profile.setPreferences(
@@ -278,7 +278,7 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
       withErrorReporting('Error loading bucket size.', async () => {
         try {
           const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage();
-          setBucketSize({ isSuccess: true, usage: Utils.formatBytes(usageInBytes), lastUpdated });
+          setBucketSize({ isSuccess: true, usage: formatBytes(usageInBytes), lastUpdated });
         } catch (error) {
           if (error instanceof Response && error.status === 404) {
             setBucketSize({ isSuccess: false, usage: 'Not available' });
@@ -372,14 +372,14 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
 
   const addTag = _.flow(
     withErrorReporting('Error adding tag'),
-    Utils.withBusyState(setBusy)
+    withBusyState(setBusy)
   )(async (tag) => {
     setTagsList(await Ajax().Workspaces.workspace(namespace, name).addTag(tag));
   });
 
   const deleteTag = _.flow(
     withErrorReporting('Error removing tag'),
-    Utils.withBusyState(setBusy)
+    withBusyState(setBusy)
   )(async (tag) => {
     setTagsList(await Ajax().Workspaces.workspace(namespace, name).deleteTag(tag));
   });
@@ -389,7 +389,7 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
     setAcl(acl);
   });
 
-  const save = Utils.withBusyState(setSaving, async () => {
+  const save = withBusyState(setSaving, async () => {
     try {
       await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description: editDescription });
       await refreshWorkspace();
@@ -456,7 +456,7 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
             'aria-label': 'dataset attributes table',
             rows: _.flow(
               _.map(({ key, title }) => ({ name: title, value: displayAttributeValue(attributes[key]) })),
-              Utils.append({
+              append({
                 name: 'Structured Data Use Limitations',
                 value: attributes['library:orsp'] ? consentStatus : h(DataUseLimitations, { attributes }),
               }),
@@ -524,7 +524,7 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
                 Link,
                 {
                   href: Nav.getLink('groups'),
-                  ...Utils.newTabLinkProps,
+                  ...newTabLinkProps,
                 },
                 ['groups']
               ),
