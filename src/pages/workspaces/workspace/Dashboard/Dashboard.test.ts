@@ -141,6 +141,7 @@ describe('WorkspaceNotifications', () => {
       expectedState: false,
     },
   ])('renders checkbox with submission notifications status', ({ profile, expectedState }) => {
+    // @ts-expect-error
     authStore.update((state) => ({ ...state, profile }));
 
     const { getByLabelText } = render(h(WorkspaceNotifications, { workspace: testWorkspace }));
