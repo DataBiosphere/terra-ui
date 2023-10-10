@@ -22,7 +22,7 @@ import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
 
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
-import { canImportIntoWorkspace } from './import-utils';
+import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
 import { isProtectedSource } from './protected-data-utils';
 
 const styles = {
@@ -105,13 +105,30 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
   } = props;
 
   const isProtectedData = isProtectedSource(importRequest);
+  const requiredCloudPlatform = getCloudPlatformRequiredForImport(importRequest);
 
   // Some import types are finished in a single request.
   // For most though, the import request starts a background task that takes time to complete.
   const immediateImportTypes: ImportRequest['type'][] = ['tdr-snapshot-reference', 'catalog-snapshots'];
   const importMayTakeTime = !immediateImportTypes.includes(importRequest.type);
 
-  const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces();
+  const {
+    workspaces,
+    refresh: refreshWorkspaces,
+    loading: loadingWorkspaces,
+  } = useWorkspaces([
+    'workspace.workspaceId',
+    'workspace.namespace',
+    'workspace.name',
+    // The decision on whether or data can be imported into a workspace is based on the user's level of access
+    // to the workspace and the workspace's authorization domain, protected status and cloud platform.
+    // That information needs to be fetched here.
+    'accessLevel',
+    'policies',
+    'workspace.authorizationDomain',
+    'workspace.bucketName',
+    'workspace.cloudPlatform',
+  ]);
   const [mode, setMode] = useState<'existing' | 'template' | undefined>(
     initialSelectedWorkspaceId ? 'existing' : undefined
   );
@@ -163,6 +180,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               workspaces: workspaces.filter((workspace) => {
                 return canImportIntoWorkspace(
                   {
+                    cloudPlatform: requiredCloudPlatform,
                     isProtectedData,
                     requiredAuthorizationDomain,
                   },

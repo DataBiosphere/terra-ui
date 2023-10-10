@@ -59,7 +59,22 @@ jest.mock('src/pages/library/dataBrowser-utils', (): DataBrowserUtilsExports => 
   };
 });
 
-const snapshotFixture: Snapshot = {
+const azureSnapshotFixture: Snapshot = {
+  id: 'aaaabbbb-cccc-dddd-0000-111122223333',
+  name: 'test-snapshot',
+  source: [
+    {
+      dataset: {
+        id: 'aaaabbbb-cccc-dddd-0000-111122223333',
+        name: 'test-dataset',
+        secureMonitoringEnabled: false,
+      },
+    },
+  ],
+  cloudPlatform: 'azure',
+};
+
+const googleSnapshotFixture: Snapshot = {
   id: '00001111-2222-3333-aaaa-bbbbccccdddd',
   name: 'test-snapshot',
   source: [
@@ -84,8 +99,11 @@ const setup = async (opts: SetupOptions) => {
   const mockDataRepo = {
     snapshot: (snapshotId: string): Partial<ReturnType<DataRepoContract['snapshot']>> => ({
       details: jest.fn().mockImplementation(() => {
-        if (snapshotId === snapshotFixture.id) {
-          return snapshotFixture;
+        if (snapshotId === azureSnapshotFixture.id) {
+          return azureSnapshotFixture;
+        }
+        if (snapshotId === googleSnapshotFixture.id) {
+          return googleSnapshotFixture;
         }
         throw new Response('{"message":"Snapshot not found"}', { status: 404 });
       }),
@@ -261,9 +279,8 @@ describe('ImportData', () => {
 
   describe('TDR', () => {
     describe('snapshot exports', () => {
-      const queryParams = {
+      const commonSnapshotExportQueryParams = {
         format: 'tdrexport',
-        snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
         tdrmanifest: 'https://example.com/path/to/manifest.json',
         tdrSyncPermissions: 'true',
         url: 'https://data.terra.bio',
@@ -273,6 +290,10 @@ describe('ImportData', () => {
         // Arrange
         const user = userEvent.setup();
 
+        const queryParams = {
+          ...commonSnapshotExportQueryParams,
+          snapshotId: googleSnapshotFixture.id,
+        };
         const { getWorkspaceApi, importJob } = await setup({ queryParams });
 
         // Act
@@ -291,6 +312,10 @@ describe('ImportData', () => {
         // Arrange
         const user = userEvent.setup();
 
+        const queryParams = {
+          ...commonSnapshotExportQueryParams,
+          snapshotId: azureSnapshotFixture.id,
+        };
         const { importTdr, wdsProxyUrl } = await setup({ queryParams });
 
         // Act
@@ -312,7 +337,7 @@ describe('ImportData', () => {
 
         const queryParams = {
           format: 'snapshot',
-          snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+          snapshotId: googleSnapshotFixture.id,
         };
         const { getWorkspaceApi, importSnapshot } = await setup({ queryParams });
 
@@ -325,7 +350,7 @@ describe('ImportData', () => {
           defaultGoogleWorkspace.workspace.name
         );
 
-        expect(importSnapshot).toHaveBeenCalledWith(queryParams.snapshotId, snapshotFixture.name);
+        expect(importSnapshot).toHaveBeenCalledWith(queryParams.snapshotId, googleSnapshotFixture.name);
       });
     });
   });
@@ -419,16 +444,20 @@ describe('ImportData', () => {
   });
 
   it.each([
-    { queryParams: { format: 'pfb' } },
-    { queryParams: { format: 'tdrexport', snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd' } },
-  ] as { queryParams: Record<string, any> }[])(
+    { queryParams: { format: 'pfb' }, expectedErrorMessage: 'A URL is required' },
+    {
+      queryParams: { format: 'tdrexport', snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd' },
+      expectedErrorMessage: 'A manifest URL is required',
+    },
+  ] as { queryParams: Record<string, any>; expectedErrorMessage: string }[])(
     'renders an error message for invalid import requests',
-    async ({ queryParams }) => {
+    async ({ queryParams, expectedErrorMessage }) => {
       // Act
       await setup({ queryParams });
 
       // Assert
       screen.getByText('Invalid import request.');
+      screen.getByText(expectedErrorMessage);
     }
   );
 });

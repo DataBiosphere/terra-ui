@@ -5,7 +5,7 @@ import { absoluteSpinnerOverlay, DeleteConfirmationModal } from 'src/components/
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 
-import { getReferenceLabel } from './reference-metadata';
+import { getReferenceLabel } from './reference-data-utils';
 import ReferenceData from './references';
 
 export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, referenceDataType }) => {

@@ -47,8 +47,19 @@ export const referenceMetadata = {
   'ARS-UI-Ramb-v2-0': {
     species: 'Sheep',
   },
-};
 
-export const getReferenceLabel = (referenceName) => {
-  return `${referenceMetadata[referenceName].species}: ${referenceName}`;
+  /**
+   * References not listed in references.ts.
+   */
+
+  // b37 was renamed to b37 human in https://github.com/DataBiosphere/terra-ui/pull/1684
+  // Some workspaces may still have attributes named b37.
+  b37: {
+    species: 'Human',
+  },
+
+  // At least one workspace has been identified containing attributes named GRCh38.
+  GRCh38: {
+    species: 'Human',
+  },
 };
