@@ -106,7 +106,7 @@ interface WorkspaceTabsProps {
   namespace: string;
   name: string;
   workspace?: WorkspaceWrapper;
-  activeTab;
+  activeTab?: string;
   refresh: () => void;
   setDeletingWorkspace: Dispatch<boolean>;
   setCloningWorkspace: Dispatch<boolean>;
@@ -187,10 +187,8 @@ interface WorkspaceContainerProps {
   namespace;
   name;
   breadcrumbs;
-  topBarContent?: ReactNode;
   title;
-  activeTab;
-  showTabBar?: boolean;
+  activeTab?: string;
   analysesData: { apps; refreshApps; runtimes; refreshRuntimes; appDataDisks; persistentDisks };
   storageDetails;
   refresh;
@@ -202,10 +200,8 @@ export const WorkspaceContainer = ({
   namespace,
   name,
   breadcrumbs,
-  topBarContent,
   title,
   activeTab,
-  showTabBar = true,
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
   storageDetails,
   refresh,
@@ -228,7 +224,6 @@ export const WorkspaceContainer = ({
         div({ style: Style.noWrapEllipsis }, breadcrumbs),
         h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [title || `${namespace}/${name}`]),
       ]),
-      topBarContent,
       div({ style: { flexGrow: 1 } }),
       isTerra() &&
         h(
@@ -253,19 +248,18 @@ export const WorkspaceContainer = ({
         ),
       h(RuntimeManager, { namespace, name, runtimes, apps }),
     ]),
-    showTabBar &&
-      h(WorkspaceTabs, {
-        namespace,
-        name,
-        activeTab,
-        refresh,
-        workspace,
-        setDeletingWorkspace,
-        setCloningWorkspace,
-        setLeavingWorkspace,
-        setSharingWorkspace,
-        setShowLockWorkspaceModal,
-      }),
+    h(WorkspaceTabs, {
+      namespace,
+      name,
+      activeTab,
+      refresh,
+      workspace,
+      setDeletingWorkspace,
+      setCloningWorkspace,
+      setLeavingWorkspace,
+      setSharingWorkspace,
+      setShowLockWorkspaceModal,
+    }),
     workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
     isGoogleWorkspaceSyncing && h(GooglePermissionsSpinner),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [
@@ -286,7 +280,6 @@ export const WorkspaceContainer = ({
     ]),
     deletingWorkspace &&
       h(DeleteWorkspaceModal, {
-        // @ts-expect-error
         workspace,
         onDismiss: () => setDeletingWorkspace(false),
         onSuccess: () => Nav.goToPath('workspaces'),
@@ -456,16 +449,14 @@ const useAppPolling = (workspace) => {
   return { apps, refreshApps };
 };
 
-interface WrapWorkspaceProps {
-  breadcrumbs;
-  activeTab;
-  title;
-  topBarContent?: (props: any) => ReactNode;
-  showTabBar?: boolean;
+interface WrapWorkspaceProps<T extends { name: string; namespace: string }> {
+  breadcrumbs: (props: T) => ReactNode;
+  activeTab?: string;
+  title: string;
 }
 
 export const wrapWorkspace =
-  ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true }: WrapWorkspaceProps) =>
+  <T extends { name: string; namespace: string }>({ breadcrumbs, activeTab, title }: WrapWorkspaceProps<T>) =>
   (WrappedComponent: JSXElementConstructor<unknown>) => {
     const Wrapper = (props) => {
       const { namespace, name } = props;
@@ -493,12 +484,10 @@ export const wrapWorkspace =
           namespace,
           name,
           activeTab,
-          showTabBar,
           workspace,
           refreshWorkspace,
           title: _.isFunction(title) ? title(props) : title,
           breadcrumbs: breadcrumbs(props),
-          topBarContent: topBarContent && topBarContent({ workspace, ...props }),
           analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
           storageDetails,
           refresh: async () => {
