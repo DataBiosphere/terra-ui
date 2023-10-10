@@ -15,7 +15,7 @@ interface AjaxMockNeeds {
 
 /**
  * local test utility - mocks the Ajax super-object and the subset of needed multi-contracts it
- * returns with as much type-saftely as possible.
+ * returns with as much type-safety as possible.
  *
  * @return collection of key contract sub-objects for easy
  * mock overrides and/or method spying/assertions
