@@ -78,7 +78,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["animate.css", "npm:4.1.1"],\
             ["array-move", "npm:4.0.0"],\
             ["browserslist", "npm:4.21.10"],\
-            ["check-dts", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:0.7.2"],\
+            ["check-dts", "virtual:8c00fb6d848584930a97145ab92981f57dfda3a26acb7c186ce59ef8e1d0c5c900af7e36dd05e12ff96b7235e88575a55bb45434a9589e1fb111101a9a3d2f5e#npm:0.7.2"],\
             ["clipboard-polyfill", "npm:3.0.3"],\
             ["color", "npm:4.0.1"],\
             ["date-fns", "npm:2.24.0"],\
@@ -5150,7 +5150,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@terra-ui-packages/test-utils", "workspace:packages/test-utils"],\
             ["@types/jest", "npm:28.1.8"],\
             ["@types/lodash", "npm:4.14.184"],\
-            ["check-dts", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:0.7.2"],\
+            ["check-dts", "virtual:8c00fb6d848584930a97145ab92981f57dfda3a26acb7c186ce59ef8e1d0c5c900af7e36dd05e12ff96b7235e88575a55bb45434a9589e1fb111101a9a3d2f5e#npm:0.7.2"],\
             ["jest", "virtual:8c00fb6d848584930a97145ab92981f57dfda3a26acb7c186ce59ef8e1d0c5c900af7e36dd05e12ff96b7235e88575a55bb45434a9589e1fb111101a9a3d2f5e#npm:27.5.1"],\
             ["lodash", "npm:4.17.21"],\
             ["typescript", "patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=289587"],\
@@ -5175,6 +5175,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["blob-polyfill", "npm:7.0.20220408"],\
             ["browserslist", "npm:4.21.10"],\
             ["camelcase", "npm:6.3.0"],\
+            ["check-dts", "virtual:8c00fb6d848584930a97145ab92981f57dfda3a26acb7c186ce59ef8e1d0c5c900af7e36dd05e12ff96b7235e88575a55bb45434a9589e1fb111101a9a3d2f5e#npm:0.7.2"],\
             ["identity-obj-proxy", "npm:3.0.0"],\
             ["jest", "virtual:8c00fb6d848584930a97145ab92981f57dfda3a26acb7c186ce59ef8e1d0c5c900af7e36dd05e12ff96b7235e88575a55bb45434a9589e1fb111101a9a3d2f5e#npm:27.5.1"],\
             ["jest-axe", "npm:6.0.0"],\
@@ -7336,10 +7337,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:0.7.2", {\
-          "packageLocation": "./.yarn/__virtual__/check-dts-virtual-fa49c1546e/0/cache/check-dts-npm-0.7.2-b91f3005a2-c870c71969.zip/node_modules/check-dts/",\
+        ["virtual:8c00fb6d848584930a97145ab92981f57dfda3a26acb7c186ce59ef8e1d0c5c900af7e36dd05e12ff96b7235e88575a55bb45434a9589e1fb111101a9a3d2f5e#npm:0.7.2", {\
+          "packageLocation": "./.yarn/__virtual__/check-dts-virtual-fe7cb514f6/0/cache/check-dts-npm-0.7.2-b91f3005a2-c870c71969.zip/node_modules/check-dts/",\
           "packageDependencies": [\
-            ["check-dts", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:0.7.2"],\
+            ["check-dts", "virtual:8c00fb6d848584930a97145ab92981f57dfda3a26acb7c186ce59ef8e1d0c5c900af7e36dd05e12ff96b7235e88575a55bb45434a9589e1fb111101a9a3d2f5e#npm:0.7.2"],\
             ["@types/typescript", null],\
             ["fast-glob", "npm:3.3.0"],\
             ["nanospinner", "npm:1.1.0"],\
@@ -17914,7 +17915,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["animate.css", "npm:4.1.1"],\
             ["array-move", "npm:4.0.0"],\
             ["browserslist", "npm:4.21.10"],\
-            ["check-dts", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:0.7.2"],\
+            ["check-dts", "virtual:8c00fb6d848584930a97145ab92981f57dfda3a26acb7c186ce59ef8e1d0c5c900af7e36dd05e12ff96b7235e88575a55bb45434a9589e1fb111101a9a3d2f5e#npm:0.7.2"],\
             ["clipboard-polyfill", "npm:3.0.3"],\
             ["color", "npm:4.0.1"],\
             ["date-fns", "npm:2.24.0"],\

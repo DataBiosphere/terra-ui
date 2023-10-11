@@ -12,6 +12,8 @@ import userEvent from '@testing-library/user-event';
 import { PropsWithChildren, ReactElement } from 'react';
 import { h } from 'react-hyperscript-helpers';
 
+export { asMockedFn } from '@terra-ui-packages/test-utils';
+
 const testTheme: Theme = {
   colorPalette: {
     primary: '#74ae43',
@@ -36,16 +38,6 @@ export const renderWithAppContexts = (ui: ReactElement, options?: Omit<RenderOpt
 };
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
-
-/*
- * Use when working with a jest.fn() mocked method to get better type safety and IDE hinting on
- * the function signature of what's being mocked.
- *
- * Type "any" is used here to allow for desired type flow during usage where T "looks like a function".
- */
-export const asMockedFn = <T extends (...args: any[]) => any>(fn: T): jest.MockedFunction<T> => {
-  return fn as jest.MockedFunction<T>;
-};
 
 export type PromiseController<T> = {
   resolve: (value: T) => void;
