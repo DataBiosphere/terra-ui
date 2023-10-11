@@ -3,20 +3,23 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { Fragment, useState } from 'react';
 import { div, h, h3, span } from 'react-hyperscript-helpers';
-import { FrameworkServiceLink, UnlinkFenceAccount } from 'src/components/external-account-links';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { FrameworkServiceLink } from 'src/pages/profile/external-identities/FrameworkServiceLink';
 import { linkStyles as styles } from 'src/pages/profile/external-identities/LinkStyles';
+import { UnlinkFenceAccount } from 'src/pages/profile/external-identities/UnlinkFenceAccount';
 import { SpacedSpinner } from 'src/pages/profile/SpacedSpinner';
 
-export const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
+export const FenceAccount = ({ provider: { key, name, expiresAfter, short } }) => {
   // State
   const {
-    fenceStatus: { [key]: { username, issued_at: issuedAt } = {} },
+    fenceStatus: {
+      [key]: { username, issued_at: issuedAt },
+    },
   } = useStore(authStore);
 
   const oauth2State = new URLSearchParams(window.location.search).get('state');
@@ -53,7 +56,13 @@ export const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
       h3({ style: { marginTop: 0, ...styles.idLink.linkName } }, [name]),
       Utils.cond(
         [isLinking, () => h(SpacedSpinner, ['Loading account status...'])],
-        [!username, () => div([h(FrameworkServiceLink, { button: true, linkText: `Log in to ${short} `, provider: key, redirectUrl })])],
+        [
+          !username,
+          () =>
+            div([
+              h(FrameworkServiceLink, { button: true, linkText: `Log in to ${short} `, provider: key, redirectUrl }),
+            ]),
+        ],
         () =>
           h(Fragment, [
             div([span({ style: styles.idLink.linkDetailLabel }, ['Username:']), username]),

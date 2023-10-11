@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { FenceLink } from 'src/pages/profile/external-identities/FenceLink';
+import { FenceAccount } from 'src/pages/profile/external-identities/FenceAccount';
 
 // Mocking for Nav.getLink
 jest.mock('src/libs/nav', () => ({
@@ -22,7 +22,7 @@ describe('FenceLink', () => {
       },
     };
     // Act
-    render(h(FenceLink, props));
+    render(h(FenceAccount, props));
     // Assert
     expect(screen.getByText('Log in to NHLBI')).not.toBeNull();
   });

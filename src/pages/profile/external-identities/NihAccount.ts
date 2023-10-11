@@ -4,7 +4,6 @@ import { Fragment, useState } from 'react';
 import { div, h, h3, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
-import { ShibbolethLink } from 'src/components/external-account-links';
 import { InfoBox } from 'src/components/InfoBox';
 import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
@@ -16,9 +15,10 @@ import { useOnMount, useStore } from 'src/libs/react-utils';
 import { AuthState, authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { linkStyles as styles } from 'src/pages/profile/external-identities/LinkStyles';
+import { ShibbolethLink } from 'src/pages/profile/external-identities/ShibbolethLink';
 import { SpacedSpinner } from 'src/pages/profile/SpacedSpinner';
 
-export const NihLink = ({ nihToken }) => {
+export const NihAccount = ({ nihToken }) => {
   // State
   const { nihStatus, nihStatusLoaded } = useStore(authStore);
   const [isLinking, setIsLinking] = useState(false);

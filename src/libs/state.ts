@@ -2,7 +2,7 @@ import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
 import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
 import { Dataset } from 'src/libs/ajax/Catalog';
-import { NihDatasetPermission } from 'src/libs/ajax/User';
+import { BondFenceStatusResponse, NihDatasetPermission } from 'src/libs/ajax/User';
 import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -75,7 +75,7 @@ export type AuthState = {
   anonymousId: string | undefined;
   authTokenMetadata: TokenMetadata;
   cookiesAccepted: boolean | undefined;
-  fenceStatus: {};
+  fenceStatus: FenceStatus;
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   signInStatus: SignInStatus;
   isTimeoutEnabled?: boolean | undefined;
@@ -88,6 +88,10 @@ export type AuthState = {
   sessionStartTime: number;
   termsOfService: TermsOfServiceStatus;
   terraUser: TerraUser;
+};
+
+export type FenceStatus = {
+  [key: string]: BondFenceStatusResponse;
 };
 
 export const authStore: Atom<AuthState> = atom<AuthState>({
