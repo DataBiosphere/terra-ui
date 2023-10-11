@@ -30,12 +30,12 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
   }, [props.billingProjectMigrationInfo]);
 
   const renderErrorSummary = () => {
-    return migrationStats?.errored === 0
+    return migrationStats.errored === 0
       ? ''
       : span({ style: { paddingLeft: '0.5rem', paddingRight: '0.5rem' } }, [
           errorIcon,
           span({ style: { paddingLeft: '0.5rem', color: colors.danger() } }, [
-            `${pluralize('Migration', migrationStats?.errored, true)} Failed`,
+            `${pluralize('Migration', migrationStats.errored, true)} Failed`,
           ]),
         ]);
   };
@@ -43,23 +43,23 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
   const renderMigrationSummary = () => {
     return Utils.cond(
       [
-        migrationStats?.workspaceCount === migrationStats?.succeeded,
+        migrationStats.workspaceCount === migrationStats.succeeded,
         () =>
           span({}, [
             successIcon,
             span({ style: { paddingLeft: '0.5rem', paddingRight: '0.5rem' } }, [
-              `All ${pluralize('Workspace', migrationStats?.workspaceCount, true)} Migrated`,
+              `All ${pluralize('Workspace', migrationStats.workspaceCount, true)} Migrated`,
             ]),
           ]),
       ],
       [
-        !!migrationStats?.inProgress,
+        !!migrationStats.inProgress,
         () =>
           span({}, [
             inProgressIcon,
             span({ style: { paddingLeft: '0.5rem', paddingRight: '0.5rem' } }, [
-              `${pluralize('Workspace', migrationStats?.inProgress, true)} Migrating`,
-              !!migrationStats?.errored && ', ',
+              `${pluralize('Workspace', migrationStats.inProgress, true)} Migrating`,
+              !!migrationStats.errored && ', ',
               renderErrorSummary(),
             ]),
           ]),
@@ -68,8 +68,8 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
         Utils.DEFAULT,
         () =>
           span({ style: { paddingRight: '0.5rem' } }, [
-            !!migrationStats?.succeeded && `${pluralize('Workspace', migrationStats?.succeeded, true)} Migrated`,
-            !!migrationStats?.succeeded && !!migrationStats?.errored && ', ',
+            !!migrationStats.succeeded && `${pluralize('Workspace', migrationStats.succeeded, true)} Migrated`,
+            !!migrationStats.succeeded && !!migrationStats.errored && ', ',
             renderErrorSummary(),
           ]),
       ]
@@ -94,7 +94,7 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
           { style: { display: 'flex', marginLeft: 'auto', alignItems: 'center', fontWeight: 'normal' } },
           [
             div({ style: {} }, [renderMigrationSummary()]),
-            !!migrationStats?.unscheduled &&
+            !!migrationStats.unscheduled &&
               h(
                 ButtonOutline,
                 {
@@ -117,7 +117,7 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
                   },
                 },
                 [
-                  migrationStats?.workspaceCount === migrationStats?.unscheduled
+                  migrationStats.workspaceCount === migrationStats.unscheduled
                     ? 'Migrate all workspaces'
                     : 'Migrate remaining workspaces',
                 ]
