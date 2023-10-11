@@ -251,15 +251,6 @@ export const sha256 = async (message) => {
   )(new Uint8Array(hashBuffer));
 };
 
-// Truncates an integer to the thousands, i.e. 10363 -> 10k
-export const truncateInteger = (integer) => {
-  if (integer < 10000) {
-    return `${integer}`;
-  }
-
-  return `${Math.floor(integer / 1000)}k`;
-};
-
 /**
  * Polls using a given function until the pollUntil function returns true.
  * @param pollFn - The function to poll using
