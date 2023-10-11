@@ -27,6 +27,11 @@ jest.mock('react-notifications-component', () => {
   };
 });
 
+type AjaxContract = ReturnType<typeof Ajax>;
+type MetricsPartial = Partial<AjaxContract['Metrics']>;
+type UserPartial = Partial<AjaxContract['User']>;
+type ProfilePartial = Partial<ReturnType<typeof User>['profile']>;
+
 describe('Register', () => {
   it('requires Organization, Department, and Title if the checkbox is unchecked', async () => {
     // Arrange
@@ -86,14 +91,14 @@ describe('Register', () => {
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
-          Metrics: { captureEvent: jest.fn() } as Partial<ReturnType<typeof Ajax>['Metrics']>,
+          Metrics: { captureEvent: jest.fn() } as MetricsPartial,
           User: {
             profile: {
               set: profileSetFunction,
               get: jest.fn().mockReturnValue({}),
-            } as Partial<ReturnType<typeof User>['profile']>,
-          } as Partial<ReturnType<typeof Ajax>['User']>,
-        } as ReturnType<typeof Ajax>)
+            } as ProfilePartial,
+          } as UserPartial,
+        } as AjaxContract)
     );
 
     // Act
