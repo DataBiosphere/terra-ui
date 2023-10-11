@@ -84,6 +84,15 @@ const styles = {
   },
 };
 
+// Truncates an integer to the thousands, i.e. 10363 -> 10k
+const formatSearchResultsCount = (integer) => {
+  if (integer < 10000) {
+    return `${integer}`;
+  }
+
+  return `${Math.floor(integer / 1000)}k`;
+};
+
 const SearchResultsPill = ({ filteredCount, searching }) => {
   return div(
     {
@@ -98,7 +107,7 @@ const SearchResultsPill = ({ filteredCount, searching }) => {
         color: 'white',
       },
     },
-    searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${Utils.truncateInteger(filteredCount)}`
+    searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${formatSearchResultsCount(filteredCount)}`
   );
 };
 
