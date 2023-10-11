@@ -21,7 +21,7 @@ export const BillingProjectList = (): ReactNode => {
       reportErrorAndRethrow('Error loading workspace migration information'),
       Utils.withBusyState(setLoadingMigrationInformation)
     )(async () => {
-      const migrationResponse = await Ajax(signal).Workspaces.bucketMigration();
+      const migrationResponse = await Ajax(signal).Workspaces.bucketMigrationInfo();
       setBillingProjectWorkspaces(parseServerResponse(migrationResponse));
     });
     loadWorkspaces();
