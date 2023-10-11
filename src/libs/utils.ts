@@ -5,7 +5,15 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
 
-export { cond, DEFAULT, formatBytes, formatNumber, formatUSD, switchCase } from '@terra-ui-packages/core-utils';
+export {
+  cond,
+  DEFAULT,
+  formatBytes,
+  formatNumber,
+  formatUSD,
+  maybeParseJSON,
+  switchCase,
+} from '@terra-ui-packages/core-utils';
 
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
@@ -207,14 +215,6 @@ export const getAriaLabelOrTooltip = ({
   tooltip,
 }) => {
   return ariaLabel || ariaLabelledBy || (allowId && id) ? ariaLabel : tooltip;
-};
-
-export const maybeParseJSON = (maybeJSONString) => {
-  try {
-    return JSON.parse(maybeJSONString);
-  } catch {
-    return undefined;
-  }
 };
 
 export const sanitizeEntityName = (unsafe) => unsafe.replace(/[^\w]/g, '-');
