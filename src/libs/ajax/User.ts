@@ -88,7 +88,13 @@ export const makeSetUserProfileRequest = (terraUserProfile: TerraUserProfile): S
   };
 };
 
-export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc) as any, {});
+/**
+ * Orchestration's /register/profile endpoint returns profile attributes as an
+ * array of { key, value } objects. This converts that array into single object.
+ */
+export const kvArrayToObject = (kvArray: { key: string; value: any }[] | undefined): Record<string, any> => {
+  return Object.fromEntries((kvArray || []).map(({ key, value }) => [key, value]));
+};
 
 export interface OrchestrationUserPreferLegacyFireCloudResponse {
   preferTerra: boolean;
