@@ -26,6 +26,7 @@ import * as NotFound from 'src/pages/NotFound';
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy';
 import * as Profile from 'src/pages/Profile';
 import * as TermsOfService from 'src/pages/TermsOfService';
+import * as UploadData from 'src/pages/UploadDataPage';
 import * as WorkflowsList from 'src/pages/workflows/List';
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails';
 import * as WorkspaceList from 'src/pages/workspaces/List';
@@ -39,7 +40,6 @@ import * as Workflows from 'src/pages/workspaces/workspace/Workflows';
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView';
 import * as WorkflowsApp from 'src/workflows-app/routes';
 import * as Data from 'src/workspace-data/Data';
-import * as Upload from 'src/workspace-data/upload-data/UploadData';
 
 /*
  * NOTE: In order to show up in reports, new events[^1] MUST be marked as expected in the Mixpanel
@@ -81,7 +81,7 @@ const routes = _.flatten([
   Environments.navPaths,
   WorkflowsList.navPaths,
   WorkflowDetails.navPaths,
-  Upload.navPaths,
+  UploadData.navPaths,
   FeaturePreviews.navPaths,
   WorkspaceFiles.navPaths,
   AzurePreview.navPaths,

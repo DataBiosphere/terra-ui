@@ -889,7 +889,7 @@ const DonePanel = ({
   ]);
 };
 
-const UploadData = _.flow(
+export const UploadData = _.flow(
   // eslint-disable-line lodash-fp/no-single-composition
   forwardRefWithName('Upload')
 )((props, _ref) => {
@@ -1149,12 +1149,3 @@ const UploadData = _.flow(
     ]),
   ]);
 });
-
-export const navPaths = [
-  {
-    name: 'upload',
-    path: '/upload',
-    component: UploadData,
-    title: 'Upload',
-  },
-];
