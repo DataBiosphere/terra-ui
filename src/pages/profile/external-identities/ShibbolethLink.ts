@@ -1,4 +1,4 @@
-import { IconProps } from '@terra-ui-packages/components';
+import { ClickableProps } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { h } from 'react-hyperscript-helpers';
@@ -8,12 +8,12 @@ import { getConfig } from 'src/libs/config';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
 
-interface ShibbolethLinkInputs extends IconProps {
+interface ShibbolethLinkProps extends ClickableProps {
   button?: boolean;
   children: React.ReactNode[];
 }
 
-export const ShibbolethLink = ({ button = false, children, ...props }: ShibbolethLinkInputs) => {
+export const ShibbolethLink = ({ button = false, children, ...props }: ShibbolethLinkProps) => {
   const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token=<token>`;
   return h(
     button ? ButtonPrimary : Link,

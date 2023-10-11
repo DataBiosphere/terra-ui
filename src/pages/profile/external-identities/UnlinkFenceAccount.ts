@@ -1,4 +1,4 @@
-import { IconProps } from '@terra-ui-packages/components';
+import { ClickableProps } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -10,12 +10,12 @@ import { notify } from 'src/libs/notifications';
 import { authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
-interface UnlinkFenceAccountInputs extends IconProps {
+interface UnlinkFenceAccountProps extends ClickableProps {
   linkText: string;
   provider: { key: string; name: string };
 }
 
-export const UnlinkFenceAccount = ({ linkText, provider }: UnlinkFenceAccountInputs) => {
+export const UnlinkFenceAccount = ({ linkText, provider }: UnlinkFenceAccountProps) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isUnlinking, setIsUnlinking] = useState<boolean>(false);
 

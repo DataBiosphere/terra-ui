@@ -1,4 +1,4 @@
-import { IconProps } from '@terra-ui-packages/components';
+import { ClickableProps } from '@terra-ui-packages/components';
 import { Fragment, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link } from 'src/components/common';
@@ -8,7 +8,7 @@ import { withErrorReporting } from 'src/libs/error';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
-interface FrameworkServiceLinkInputs extends IconProps {
+interface FrameworkServiceLinkProps extends ClickableProps {
   linkText: string;
   provider: string;
   redirectUrl: string;
@@ -21,7 +21,7 @@ export const FrameworkServiceLink = ({
   redirectUrl,
   button = false,
   ...props
-}: FrameworkServiceLinkInputs) => {
+}: FrameworkServiceLinkProps) => {
   const [href, setHref] = useState<string>();
 
   useOnMount(() => {

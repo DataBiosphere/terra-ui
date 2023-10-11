@@ -7,11 +7,15 @@ import { FenceAccount } from 'src/pages/profile/external-identities/FenceAccount
 import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
 
 // Mocking for Nav.getLink
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
-  getLink: jest.fn(() => ''),
-  useRoute: jest.fn(() => 'fence-callback'),
-}));
+type NavExports = typeof import('src/libs/nav');
+jest.mock(
+  'src/libs/nav',
+  (): NavExports => ({
+    ...jest.requireActual<NavExports>('src/libs/nav'),
+    getLink: jest.fn(() => ''),
+    useRoute: jest.fn(() => 'fence-callback'),
+  })
+);
 
 jest.mock('react-notifications-component', () => {
   return {
@@ -41,6 +45,10 @@ const fenceStatus: FenceStatus = {
   },
 };
 
+type AjaxContract = ReturnType<typeof Ajax>;
+type MetricsPartial = Partial<AjaxContract['Metrics']>;
+type UserPartial = Partial<AjaxContract['User']>;
+
 describe('FenceLink', () => {
   describe('when the user has not linked a fence account', () => {
     it('renders the login button', async () => {
@@ -49,11 +57,9 @@ describe('FenceLink', () => {
       asMockedFn(Ajax).mockImplementation(
         () =>
           ({
-            Metrics: { captureEvent: jest.fn() } as Partial<ReturnType<typeof Ajax>['Metrics']>,
-            User: { getFenceAuthUrl: jest.fn().mockReturnValue({ url: 'https://foo.bar' }) } as Partial<
-              ReturnType<typeof Ajax>['User']
-            >,
-          } as ReturnType<typeof Ajax>)
+            Metrics: { captureEvent: jest.fn() } as MetricsPartial,
+            User: { getFenceAuthUrl: jest.fn().mockReturnValue({ url: 'https://foo.bar' }) } as UserPartial,
+          } as AjaxContract)
       );
       // Act
       await act(async () => {
@@ -61,7 +67,7 @@ describe('FenceLink', () => {
       });
 
       // Assert
-      expect(screen.getByText('Log in to NHLBI')).not.toBeNull();
+      expect(screen.getByText('Log in to NHLBI'));
     });
   });
 
@@ -72,11 +78,9 @@ describe('FenceLink', () => {
       asMockedFn(Ajax).mockImplementation(
         () =>
           ({
-            Metrics: { captureEvent: jest.fn() } as Partial<ReturnType<typeof Ajax>['Metrics']>,
-            User: { getFenceAuthUrl: jest.fn().mockReturnValue({ url: 'https://foo.bar' }) } as Partial<
-              ReturnType<typeof Ajax>['User']
-            >,
-          } as ReturnType<typeof Ajax>)
+            Metrics: { captureEvent: jest.fn() } as MetricsPartial,
+            User: { getFenceAuthUrl: jest.fn().mockReturnValue({ url: 'https://foo.bar' }) } as UserPartial,
+          } as AjaxContract)
       );
 
       await act(async () => {
@@ -89,10 +93,10 @@ describe('FenceLink', () => {
       });
 
       // Assert
-      expect(screen.getByText('Renew')).not.toBeNull();
-      expect(screen.getByText('Unlink')).not.toBeNull();
-      expect(screen.getByText(fenceStatus.fence.username)).not.toBeNull();
-      expect(screen.getByText('Link Expiration:')).not.toBeNull();
+      expect(screen.getByText('Renew'));
+      expect(screen.getByText('Unlink'));
+      expect(screen.getByText(fenceStatus.fence.username));
+      expect(screen.getByText('Link Expiration:'));
     });
 
     it('reaches out to Bond when the "Unlink" link is clicked', async () => {
@@ -103,12 +107,12 @@ describe('FenceLink', () => {
       asMockedFn(Ajax).mockImplementation(
         () =>
           ({
-            Metrics: { captureEvent: jest.fn() } as Partial<ReturnType<typeof Ajax>['Metrics']>,
+            Metrics: { captureEvent: jest.fn() } as MetricsPartial,
             User: {
               unlinkFenceAccount: unlinkFenceAccountFunction,
               getFenceAuthUrl: jest.fn().mockReturnValue({ url: 'https://foo.bar' }),
-            } as Partial<ReturnType<typeof Ajax>['User']>,
-          } as ReturnType<typeof Ajax>)
+            } as UserPartial,
+          } as AjaxContract)
       );
       await act(async () => {
         authStore.update((state) => ({ ...state, fenceStatus }));
@@ -118,7 +122,7 @@ describe('FenceLink', () => {
       renderWithAppContexts(h(FenceAccount, nhlbi));
 
       await user.click(screen.getByText('Unlink'));
-      expect(screen.getByText('Confirm unlink account')).not.toBeNull();
+      expect(screen.getByText('Confirm unlink account'));
 
       await user.click(screen.getByText('OK'));
 
@@ -141,12 +145,12 @@ describe('FenceLink', () => {
       asMockedFn(Ajax).mockImplementation(
         () =>
           ({
-            Metrics: { captureEvent: jest.fn() } as Partial<ReturnType<typeof Ajax>['Metrics']>,
+            Metrics: { captureEvent: jest.fn() } as MetricsPartial,
             User: {
               linkFenceAccount: linkFenceAccountFunction,
               getFenceAuthUrl: jest.fn().mockReturnValue({ url: 'https://foo.bar' }),
-            } as Partial<ReturnType<typeof Ajax>['User']>,
-          } as ReturnType<typeof Ajax>)
+            } as UserPartial,
+          } as AjaxContract)
       );
       // Act
       await act(async () => {
