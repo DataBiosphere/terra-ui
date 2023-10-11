@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { mockModalModule } from 'src/components/Modal.mock';
 import { Ajax } from 'src/libs/ajax';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 
 import NewWorkspaceModal from './NewWorkspaceModal';
 
@@ -119,6 +119,47 @@ describe('NewWorkspaceModal', () => {
     screen.getByText('Azure Billing Project');
     // queryByText returns null if the element is not found:
     expect(screen.queryByText('Importing directly into new Azure workspaces is not currently supported.')).toBeNull();
+  });
+
+  it.each([
+    { cloudPlatform: 'AZURE', expectedBillingProjects: ['Azure Billing Project'] },
+    { cloudPlatform: 'GCP', expectedBillingProjects: ['Google Billing Project'] },
+  ])('can limit billing projects to one cloud platform', async ({ cloudPlatform, expectedBillingProjects }) => {
+    // Arrange
+    const user = userEvent.setup();
+
+    Ajax.mockImplementation(() => ({
+      Billing: {
+        listProjects: async () => [gcpBillingProject, azureBillingProject],
+      },
+      ...nonBillingAjax,
+    }));
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          buttonText: null,
+          cloneWorkspace: false,
+          cloudPlatform,
+          customMessage: null,
+          requiredAuthDomain: false,
+          title: null,
+          workflowImport: false,
+          onDismiss: () => null,
+          onSuccess: () => null,
+        })
+      );
+    });
+
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    const availableBillingProjectOptions = await projectSelect.getOptions();
+    // Remove icon name from option label.
+    // The icon names are only present in tests. They're the result of a configured transform.
+    const availableBillingProjects = availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
+
+    // Assert
+    expect(availableBillingProjects).toEqual(expectedBillingProjects);
   });
 
   it('Hides azure billing projects if part of workflow import', async () => {
