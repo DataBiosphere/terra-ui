@@ -1,7 +1,8 @@
 import JSZip from 'jszip';
 import { Ajax } from 'src/libs/ajax';
-import { importDataTableVersion, saveDataTableVersion, tableNameForImport } from 'src/libs/data-table-versions';
 import { getTerraUser } from 'src/libs/state';
+
+import { importDataTableVersion, saveDataTableVersion, tableNameForImport } from './data-table-versioning-utils';
 
 jest.mock('src/libs/ajax');
 

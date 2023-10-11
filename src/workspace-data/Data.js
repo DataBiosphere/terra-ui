@@ -20,7 +20,6 @@ import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/a
 import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
-import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions';
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -41,6 +40,7 @@ import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnS
 import { SnapshotContent } from './data-table/entity-service/SnapshotContent';
 import { getRootTypeForSetTable } from './data-table/entity-service/table-utils';
 import { EntityUploader } from './data-table/shared/EntityUploader';
+import { dataTableVersionsPathRoot, useDataTableVersions } from './data-table/versioning/data-table-versioning-utils';
 import { DataTableSaveVersionModal } from './data-table/versioning/DataTableSaveVersionModal';
 import { DataTableVersion } from './data-table/versioning/DataTableVersion';
 import { DataTableVersions } from './data-table/versioning/DataTableVersions';

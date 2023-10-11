@@ -2,7 +2,8 @@ import { ReactNode } from 'react';
 import { h, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary } from 'src/components/common';
 import Modal from 'src/components/Modal';
-import { tableNameForImport } from 'src/libs/data-table-versions';
+
+import { tableNameForImport } from './data-table-versioning-utils';
 
 export interface DataTableImportVersionModalProps {
   version: any;
