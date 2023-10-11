@@ -26,7 +26,7 @@ const constraints = (partOfOrg) => {
   };
 };
 
-const Register = () => {
+export const Register = () => {
   const user: TerraUser = getTerraUser();
   const profile: TerraUserProfile = authStore.get().profile;
   const [busy, setBusy] = useState(false);
@@ -102,6 +102,7 @@ const Register = () => {
     { givenName, familyName, email, institute, title, department },
     constraints(partOfOrganization)
   );
+
   return div(
     {
       role: 'main',
@@ -252,5 +253,3 @@ const Register = () => {
     ]
   );
 };
-
-export default Register;
