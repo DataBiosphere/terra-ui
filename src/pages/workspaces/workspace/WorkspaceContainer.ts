@@ -1,17 +1,7 @@
 import _ from 'lodash/fp';
-import {
-  ComponentPropsWithRef,
-  Dispatch,
-  Fragment,
-  PropsWithChildren,
-  ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { ComponentPropsWithRef, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers';
 import { ContextBar } from 'src/analysis/ContextBar';
-import { analysisTabName } from 'src/analysis/runtime-common-components';
 import RuntimeManager from 'src/analysis/RuntimeManager';
 import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
@@ -20,7 +10,6 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { icon, spinner } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
-import { TabBar } from 'src/components/tabBars';
 import TitleBar from 'src/components/TitleBar';
 import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
@@ -35,15 +24,7 @@ import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-uti
 import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import {
-  hasProtectedData,
-  isAzureWorkspace,
-  isGoogleWorkspace,
-  isOwner,
-  protectedDataMessage,
-  regionConstraintMessage,
-  WorkspaceWrapper,
-} from 'src/libs/workspace-utils';
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
@@ -52,8 +33,7 @@ import {
   StorageDetails,
   useWorkspace,
 } from 'src/pages/workspaces/workspace/useWorkspace';
-import WorkspaceAttributeNotice from 'src/pages/workspaces/workspace/WorkspaceAttributeNotice';
-import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
+import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
 
 const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {
@@ -104,86 +84,6 @@ const GooglePermissionsSpinner = (): ReactNode => {
   const warningMessage = ['Terra synchronizing permissions with Google. This may take a couple moments.'];
 
   return h(TitleBarSpinner, warningMessage);
-};
-
-interface WorkspaceTabsProps {
-  namespace?: string;
-  name?: string;
-  workspace?: WorkspaceWrapper;
-  activeTab?: string;
-  refresh: () => void;
-  setDeletingWorkspace: Dispatch<boolean>;
-  setCloningWorkspace: Dispatch<boolean>;
-  setSharingWorkspace: Dispatch<boolean>;
-  setShowLockWorkspaceModal: Dispatch<boolean>;
-  setLeavingWorkspace: Dispatch<boolean>;
-}
-
-export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
-  const {
-    namespace,
-    name,
-    workspace,
-    activeTab,
-    refresh,
-    setDeletingWorkspace,
-    setCloningWorkspace,
-    setSharingWorkspace,
-    setShowLockWorkspaceModal,
-    setLeavingWorkspace,
-  } = props;
-  const wsOwner = !!workspace && isOwner(workspace.accessLevel);
-  const canShare = workspace?.canShare;
-  const isLocked = !!workspace?.workspace.isLocked;
-  const workspaceLoaded = !!workspace;
-  const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace);
-  const azureWorkspace = workspaceLoaded && isAzureWorkspace(workspace);
-
-  const onClone = () => setCloningWorkspace(true);
-  const onDelete = () => setDeletingWorkspace(true);
-  const onLock = () => setShowLockWorkspaceModal(true);
-  const onShare = () => setSharingWorkspace(true);
-  const onLeave = () => setLeavingWorkspace(true);
-
-  const tabs = [
-    { name: 'dashboard', link: 'workspace-dashboard' },
-    { name: 'data', link: 'workspace-data' },
-    { name: 'analyses', link: analysisTabName },
-    ...(googleWorkspace
-      ? [
-          { name: 'workflows', link: 'workspace-workflows' },
-          { name: 'job history', link: 'workspace-job-history' },
-        ]
-      : []),
-    ...(azureWorkspace ? [{ name: 'workflows', link: 'workspace-workflows-app' }] : []),
-  ];
-  return h(Fragment, [
-    h(
-      TabBar,
-      {
-        'aria-label': 'Workspace Navigation Tabs',
-        activeTab,
-        refresh,
-        tabNames: _.map('name', tabs),
-        getHref: (currentTab) => Nav.getLink(_.find({ name: currentTab }, tabs)?.link ?? '', { namespace, name }),
-      },
-      [
-        workspace &&
-          h(WorkspaceAttributeNotice, {
-            accessLevel: workspace.accessLevel,
-            isLocked,
-            workspaceProtectedMessage: hasProtectedData(workspace) ? protectedDataMessage : undefined,
-            workspaceRegionConstraintMessage: regionConstraintMessage(workspace),
-          }),
-        h(WorkspaceMenu, {
-          iconSize: 27,
-          popupLocation: 'bottom',
-          callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-          workspaceInfo: { canShare: !!canShare, isLocked, isOwner: wsOwner, workspaceLoaded },
-        }),
-      ]
-    ),
-  ]);
 };
 
 interface WorkspaceContainerProps {
