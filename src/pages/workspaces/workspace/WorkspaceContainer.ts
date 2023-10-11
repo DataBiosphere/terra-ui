@@ -3,7 +3,6 @@ import {
   ComponentPropsWithRef,
   Dispatch,
   Fragment,
-  JSXElementConstructor,
   PropsWithChildren,
   ReactNode,
   useEffect,
@@ -133,7 +132,7 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
     setShowLockWorkspaceModal,
     setLeavingWorkspace,
   } = props;
-  const wsOwner = workspace && isOwner(workspace.accessLevel);
+  const wsOwner = !!workspace && isOwner(workspace.accessLevel);
   const canShare = workspace?.canShare;
   const isLocked = !!workspace?.workspace.isLocked;
   const workspaceLoaded = !!workspace;
@@ -180,8 +179,7 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
           iconSize: 27,
           popupLocation: 'bottom',
           callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-          // @ts-expect-error
-          workspaceInfo: { canShare, isLocked, isOwner: wsOwner, workspaceLoaded },
+          workspaceInfo: { canShare: !!canShare, isLocked, isOwner: wsOwner, workspaceLoaded },
         }),
       ]
     ),
@@ -480,9 +478,22 @@ interface WrappedComponentProps extends ComponentPropsWithRef<any> {
   storageDetails: StorageDetails;
 }
 
-export const wrapWorkspace =
-  ({ breadcrumbs, activeTab, title }: WrapWorkspaceProps) =>
-  <T extends WrappedComponentProps>(WrappedComponent: JSXElementConstructor<T>) => {
+type WrappedWorkspaceComponent<T extends WrappedComponentProps> = (props: T) => ReactNode;
+
+type WorkspaceWrapperFunction<T extends WrappedComponentProps> = (
+  component: WrappedWorkspaceComponent<T>
+) => WrappedWorkspaceComponent<T>;
+// type WorkspaceWrapperComponent<T extends WrappedComponentProps> = (props: WrapWorkspaceProps) => WorkspaceWrapperComponent<T>
+
+/**
+ * wrapWorkspaces contains a component in the WorkspaceContainer
+ * and provides the workspace analysesData and storageDetails
+ * */
+export const wrapWorkspace = <T extends WrappedComponentProps>(
+  props: WrapWorkspaceProps
+): WorkspaceWrapperFunction<T> => {
+  const { breadcrumbs, activeTab, title } = props;
+  return (WrappedComponent: WrappedWorkspaceComponent<T>): WrappedWorkspaceComponent<T> => {
     const Wrapper = (props) => {
       const { namespace, name } = props;
       const child = useRef<unknown>();
@@ -543,3 +554,4 @@ export const wrapWorkspace =
     };
     return withDisplayName('wrapWorkspace', Wrapper);
   };
+};

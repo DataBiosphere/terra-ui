@@ -348,7 +348,6 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
         iconSize: 20,
         popupLocation: 'left',
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-        // @ts-expect-error
         workspaceInfo: { namespace, name },
       }),
     ]),

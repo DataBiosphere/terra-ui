@@ -162,7 +162,7 @@ describe('WorkspaceTabs', () => {
     // Assert
     expect(mockWorkspaceMenu).toHaveBeenCalledWith(
       expect.objectContaining({
-        workspaceInfo: { canShare: undefined, isLocked: false, isOwner: undefined, workspaceLoaded: false },
+        workspaceInfo: { canShare: false, isLocked: false, isOwner: false, workspaceLoaded: false },
       })
     );
   });
