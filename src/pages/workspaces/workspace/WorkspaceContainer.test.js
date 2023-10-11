@@ -1,8 +1,9 @@
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { WorkspaceContainer, WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 // Mocking for Nav.getLink
 jest.mock('src/libs/nav', () => ({

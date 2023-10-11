@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { ImportRequest } from './import-types';
 import { ImportDataOverview, ImportDataOverviewProps } from './ImportDataOverview';

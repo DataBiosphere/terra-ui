@@ -1,8 +1,8 @@
-import { render } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { FileProvenance } from 'src/components/data/data-table-provenance';
 import { fileProvenanceTypes, useFileProvenance } from 'src/libs/data-table-provenance';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),

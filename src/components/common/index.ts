@@ -1,9 +1,10 @@
+export { Link } from '@terra-ui-packages/components';
+export type { LinkProps } from '@terra-ui-packages/components';
 export * from './buttons';
 export * from './Checkbox';
 export * from './Clickable';
 export * from './DeleteConfirmationModal';
 export * from './IdContainer';
-export * from './Link';
 export * from './RadioButton';
 export * from './Select';
 export * from './spinners';
