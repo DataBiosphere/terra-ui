@@ -33,7 +33,7 @@ export interface WorkspaceDetails {
   accessError: boolean;
   loadingWorkspace: boolean;
   storageDetails: StorageDetails;
-  refreshWorkspace: () => void;
+  refreshWorkspace: () => Promise<unknown>;
 }
 
 export const googlePermissionsRecheckRate = 15000;
