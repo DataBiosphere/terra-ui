@@ -84,8 +84,8 @@ describe('WorkspaceMenu - undefined workspace', () => {
 describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
   it('should not fail any accessibility tests', async () => {
     // Arrange
-    // @ts-expect-error - the type checker thinks workspace is only of type undefined
     asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
       workspace: defaultGoogleWorkspace,
       refresh: jest.fn(),
       loading: false,
@@ -97,8 +97,8 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 
   it('renders menu item Clone as enabled', () => {
     // Arrange
-    // @ts-expect-error - the type checker thinks workspace is only of type undefined
     asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
       workspace: defaultGoogleWorkspace,
       refresh: jest.fn(),
       loading: false,
@@ -112,8 +112,8 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 
   it('renders menu item Leave as enabled', () => {
     // Arrange
-    // @ts-expect-error - the type checker thinks workspace is only of type undefined
     asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
       workspace: defaultGoogleWorkspace,
       refresh: jest.fn(),
       loading: false,
@@ -127,8 +127,8 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 
   it.each([true, false])('enables/disables Share menu item based on canShare: %s', (canShare) => {
     // Arrange
-    // @ts-expect-error - the type checker thinks workspace is only of type undefined
     asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
       workspace: { ...defaultGoogleWorkspace, canShare },
       refresh: jest.fn(),
       loading: false,
@@ -146,8 +146,8 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 
   it.each([true, false])('renders Share tooltip based on canShare: %s', (canShare) => {
     // Arrange
-    // @ts-expect-error - the type checker thinks workspace is only of type undefined
     asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
       workspace: { ...defaultGoogleWorkspace, canShare },
       refresh: jest.fn(),
       loading: false,

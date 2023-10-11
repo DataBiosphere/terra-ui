@@ -445,7 +445,6 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
               saving && spinnerOverlay,
             ]),
         ],
-        // @ts-expect-error
         [!!description, () => h(MarkdownViewer, [description?.toString()])],
         () => div({ style: { fontStyle: 'italic' } }, ['No description added'])
       ),
