@@ -1,5 +1,6 @@
 import { Ajax } from 'src/libs/ajax';
-import { fileProvenanceTypes, getFileProvenance } from 'src/libs/data-table-provenance';
+
+import { fileProvenanceTypes, getFileProvenance } from './workspace-data-provenance-utils';
 
 jest.mock('src/libs/ajax');
 
