@@ -20,7 +20,6 @@ import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/a
 import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
-import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions';
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -41,6 +40,7 @@ import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnS
 import { SnapshotContent } from './data-table/entity-service/SnapshotContent';
 import { getRootTypeForSetTable } from './data-table/entity-service/table-utils';
 import { EntityUploader } from './data-table/shared/EntityUploader';
+import { dataTableVersionsPathRoot, useDataTableVersions } from './data-table/versioning/data-table-versioning-utils';
 import { DataTableSaveVersionModal } from './data-table/versioning/DataTableSaveVersionModal';
 import { DataTableVersion } from './data-table/versioning/DataTableVersion';
 import { DataTableVersions } from './data-table/versioning/DataTableVersions';
@@ -84,6 +84,15 @@ const styles = {
   },
 };
 
+// Truncates an integer to the thousands, i.e. 10363 -> 10k
+const formatSearchResultsCount = (integer) => {
+  if (integer < 10000) {
+    return `${integer}`;
+  }
+
+  return `${Math.floor(integer / 1000)}k`;
+};
+
 const SearchResultsPill = ({ filteredCount, searching }) => {
   return div(
     {
@@ -98,7 +107,7 @@ const SearchResultsPill = ({ filteredCount, searching }) => {
         color: 'white',
       },
     },
-    searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${Utils.truncateInteger(filteredCount)}`
+    searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${formatSearchResultsCount(filteredCount)}`
   );
 };
 

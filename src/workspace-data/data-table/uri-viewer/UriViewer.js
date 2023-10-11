@@ -6,7 +6,6 @@ import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/b
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
 import { Link } from 'src/components/common';
-import { FileProvenance } from 'src/components/data/data-table-provenance';
 import { parseGsUri } from 'src/components/data/data-utils';
 import { spinner } from 'src/components/icons';
 import Modal from 'src/components/Modal';
@@ -17,6 +16,7 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
+import { FileProvenance } from '../../provenance/FileProvenance';
 import els from './uri-viewer-styles';
 import { getDownloadCommand, isAzureUri, isGsUri } from './uri-viewer-utils';
 import { UriDownloadButton } from './UriDownloadButton';

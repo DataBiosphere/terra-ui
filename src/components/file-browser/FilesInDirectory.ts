@@ -15,10 +15,10 @@ import FileBrowserProvider, {
   FileBrowserFile,
 } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import colors from 'src/libs/colors';
-import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions';
 import { reportError } from 'src/libs/error';
 import { useUploader } from 'src/libs/uploads';
 import * as Utils from 'src/libs/utils';
+import { dataTableVersionsPathRoot } from 'src/workspace-data/data-table/versioning/data-table-versioning-utils';
 
 interface FilesInDirectoryProps {
   editDisabled?: boolean;

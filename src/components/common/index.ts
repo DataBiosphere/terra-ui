@@ -1,6 +1,5 @@
-export { Link } from '@terra-ui-packages/components';
+export { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from '@terra-ui-packages/components';
 export type { LinkProps } from '@terra-ui-packages/components';
-export * from './buttons';
 export * from './Checkbox';
 export * from './Clickable';
 export * from './DeleteConfirmationModal';

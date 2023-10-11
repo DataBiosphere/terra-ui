@@ -540,18 +540,25 @@ authStore.subscribe(
 
 authStore.subscribe(
   withErrorReporting('Error checking TOS', async (state: AuthState, oldState: AuthState): Promise<void> => {
-    if (isNowSignedIn(oldState, state)) {
-      const tosComplianceStatus = await Ajax().User.getTermsOfServiceComplianceStatus();
-      // If the user is now logged in, but there's no ToS status from Sam,
-      // then they haven't accepted it yet and Sam hasn't caught up.
-      const acceptedTos = !_.isNull(tosComplianceStatus);
-      const termsOfService = acceptedTos
-        ? tosComplianceStatus
-        : {
-            userHasAcceptedLatestTos: false,
-            permitsSystemUsage: false,
-          };
+    if (!isNowSignedIn(oldState, state)) {
+      return;
+    }
+    try {
+      const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus();
       authStore.update((state: AuthState) => ({ ...state, termsOfService }));
+    } catch (error) {
+      // If the resp is 404 it means the user has not accepted ANY tos yet, we want to handle this gracefully.
+      if (error instanceof Response && error.status === 404) {
+        // If the user is now logged in, but there's no ToS status from Sam,
+        // then they haven't accepted it yet and Sam hasn't caught up.
+        const termsOfService = {
+          userHasAcceptedLatestTos: false,
+          permitsSystemUsage: false,
+        };
+        authStore.update((state: AuthState) => ({ ...state, termsOfService }));
+      } else {
+        throw error;
+      }
     }
   })
 );

@@ -1,16 +1,17 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { FileProvenance } from 'src/components/data/data-table-provenance';
-import { fileProvenanceTypes, useFileProvenance } from 'src/libs/data-table-provenance';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+
+import { FileProvenance } from './FileProvenance';
+import { fileProvenanceTypes, useFileProvenance } from './workspace-data-provenance-utils';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getLink: () => '',
 }));
 
-jest.mock('src/libs/data-table-provenance', () => ({
-  ...jest.requireActual('src/libs/data-table-provenance'),
+jest.mock('./workspace-data-provenance-utils', () => ({
+  ...jest.requireActual('./workspace-data-provenance-utils'),
   useFileProvenance: jest.fn(),
 }));
 
@@ -42,7 +43,7 @@ describe('FileProvenance', () => {
 
   _.forEach(([fileProvenance, expectedMessage]) => {
     it(`renders ${fileProvenance.type} provenance`, () => {
-      useFileProvenance.mockReturnValue({ fileProvenance, error: null, loading: false });
+      asMockedFn(useFileProvenance).mockReturnValue({ fileProvenance, error: null, loading: false });
 
       const workspace = { workspace: { namespace: 'test', name: 'test' } };
       const { container } = render(h(FileProvenance, { workspace, fileUrl: 'gs://my-bucket/file.txt' }));
