@@ -1,7 +1,7 @@
+import { cond, DEFAULT } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
-import * as Utils from 'src/libs/utils';
 
 export type MigrationStep = ServerMigrationStep | 'Unscheduled';
 
@@ -141,12 +141,11 @@ export const getBillingProjectMigrationStats = (
   };
 
   billingProjectInfo.workspaces.forEach((workspaceMigrationInfo) => {
-    Utils.cond(
+    cond(
       [
         workspaceMigrationInfo.migrationStep === 'Unscheduled',
         () => {
           migrationStats.unscheduled += 1;
-          return undefined;
         },
       ],
       [
@@ -157,14 +156,12 @@ export const getBillingProjectMigrationStats = (
           } else {
             migrationStats.errored += 1;
           }
-          return undefined;
         },
       ],
       [
-        Utils.DEFAULT,
+        DEFAULT,
         () => {
           migrationStats.inProgress += 1;
-          return undefined;
         },
       ]
     );

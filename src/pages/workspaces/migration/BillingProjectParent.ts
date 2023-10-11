@@ -1,3 +1,4 @@
+import { cond, DEFAULT } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import { ReactNode, useState } from 'react';
@@ -7,7 +8,6 @@ import { ButtonOutline } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
-import * as Utils from 'src/libs/utils';
 import {
   BillingProjectMigrationInfo,
   errorIcon,
@@ -41,7 +41,7 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
   };
 
   const renderMigrationSummary = () => {
-    return Utils.cond(
+    return cond(
       [
         migrationStats.workspaceCount === migrationStats.succeeded,
         () =>
@@ -67,7 +67,7 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
           ]),
       ],
       [
-        Utils.DEFAULT,
+        DEFAULT,
         () =>
           span({ style: { paddingRight: '0.5rem' } }, [
             migrationStats.succeeded > 0 && `${pluralize('Workspace', migrationStats.succeeded, true)} Migrated`,
