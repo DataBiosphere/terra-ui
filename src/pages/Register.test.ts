@@ -1,5 +1,4 @@
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
@@ -31,13 +30,13 @@ jest.mock('react-notifications-component', () => {
 describe('Register', () => {
   it('requires Organization, Department, and Title if the checkbox is unchecked', async () => {
     // Arrange
-    const user = userEvent.setup();
-
     // Act
     const { container } = render(h(Register));
-    await user.type(screen.getByLabelText(/First Name/), 'Test Name');
-    await user.type(screen.getByLabelText(/Last Name/), 'Test Last Name');
-    await user.type(screen.getByLabelText(/Contact Email for Notifications/), 'testemail@noreply.com');
+    fireEvent.change(screen.getByLabelText(/First Name/), { target: { value: 'Test Name' } });
+    fireEvent.change(screen.getByLabelText(/Last Name/), { target: { value: 'Test Last Name' } });
+    fireEvent.change(screen.getByLabelText(/Contact Email for Notifications/), {
+      target: { value: 'testemail@noreply.com' },
+    });
     // Assert
     const registerButton = screen.getByText('Register');
     // expect(registerButton).toBeDisabled doesn't seem to work.
@@ -47,14 +46,14 @@ describe('Register', () => {
 
   it('does not require Organization, Department, and Title if the checkbox is checked', async () => {
     // Arrange
-    const user = userEvent.setup();
-
     // Act
     render(h(Register));
-    await user.type(screen.getByLabelText(/First Name/), 'Test Name');
-    await user.type(screen.getByLabelText(/Last Name/), 'Test Last Name');
-    await user.type(screen.getByLabelText(/Contact Email for Notifications/), 'testemail@noreply.com');
-    await user.click(screen.getByLabelText('I am not a part of an organization'));
+    fireEvent.change(screen.getByLabelText(/First Name/), { target: { value: 'Test Name' } });
+    fireEvent.change(screen.getByLabelText(/Last Name/), { target: { value: 'Test Last Name' } });
+    fireEvent.change(screen.getByLabelText(/Contact Email for Notifications/), {
+      target: { value: 'testemail@noreply.com' },
+    });
+    fireEvent.click(screen.getByLabelText('I am not a part of an organization'));
 
     // Assert
     const registerButton = screen.getByText('Register');
@@ -63,16 +62,16 @@ describe('Register', () => {
 
   it('allows registration if Organization, Department, and Title are filled out', async () => {
     // Arrange
-    const user = userEvent.setup();
-
     // Act
     const { container } = render(h(Register));
-    await user.type(screen.getByLabelText(/First Name/), 'Test Name');
-    await user.type(screen.getByLabelText(/Last Name/), 'Test Last Name');
-    await user.type(screen.getByLabelText(/Contact Email for Notifications/), 'testemail@noreply.com');
-    await user.type(screen.getByLabelText(/Organization/), 'Test Organization');
-    await user.type(screen.getByLabelText(/Department/), 'Test Department');
-    await user.type(screen.getByLabelText(/Title/), 'Test Title');
+    fireEvent.change(screen.getByLabelText(/First Name/), { target: { value: 'Test Name' } });
+    fireEvent.change(screen.getByLabelText(/Last Name/), { target: { value: 'Test Last Name' } });
+    fireEvent.change(screen.getByLabelText(/Contact Email for Notifications/), {
+      target: { value: 'testemail@noreply.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/Organization/), { target: { value: 'Test Organization' } });
+    fireEvent.change(screen.getByLabelText(/Department/), { target: { value: 'Test Department' } });
+    fireEvent.change(screen.getByLabelText(/Title/), { target: { value: 'Test Title' } });
 
     // Assert
     const registerButton = screen.getByText('Register');
@@ -82,7 +81,6 @@ describe('Register', () => {
 
   it('fires off a request to Orch to register a user', async () => {
     // Arrange
-    const user = userEvent.setup();
     const profileSetFunction = jest.fn().mockReturnValue({});
 
     asMockedFn(Ajax).mockImplementation(
@@ -100,15 +98,18 @@ describe('Register', () => {
 
     // Act
     render(h(Register));
-    await user.type(screen.getByLabelText(/First Name/), 'Test Name');
-    await user.type(screen.getByLabelText(/Last Name/), 'Test Last Name');
-    await user.type(screen.getByLabelText(/Contact Email for Notifications/), 'testemail@noreply.com');
-    await user.type(screen.getByLabelText(/Organization/), 'Test Organization');
-    await user.type(screen.getByLabelText(/Department/), 'Test Department');
-    await user.type(screen.getByLabelText(/Title/), 'Test Title');
+
+    fireEvent.change(screen.getByLabelText(/First Name/), { target: { value: 'Test Name' } });
+    fireEvent.change(screen.getByLabelText(/Last Name/), { target: { value: 'Test Last Name' } });
+    fireEvent.change(screen.getByLabelText(/Contact Email for Notifications/), {
+      target: { value: 'testemail@noreply.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/Organization/), { target: { value: 'Test Organization' } });
+    fireEvent.change(screen.getByLabelText(/Department/), { target: { value: 'Test Department' } });
+    fireEvent.change(screen.getByLabelText(/Title/), { target: { value: 'Test Title' } });
 
     const registerButton = screen.getByText('Register');
-    await user.click(registerButton);
+    fireEvent.click(registerButton);
 
     // Assert
     expect(profileSetFunction).toHaveBeenCalledWith({
