@@ -88,6 +88,8 @@ export const makeSetUserProfileRequest = (terraUserProfile: TerraUserProfile): S
   };
 };
 
+export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc) as any, {});
+
 export interface OrchestrationUserPreferLegacyFireCloudResponse {
   preferTerra: boolean;
   preferTerraLastUpdated: number;
@@ -148,7 +150,7 @@ export const User = (signal?: AbortSignal) => {
       get: async (): Promise<TerraUserProfile> => {
         const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }));
         const rawResponseJson: OrchestrationUserProfileResponse = await res.json();
-        return Utils.kvArrayToObject(rawResponseJson.keyValuePairs) as TerraUserProfile;
+        return kvArrayToObject(rawResponseJson.keyValuePairs) as TerraUserProfile;
       },
 
       // We are not calling Thurloe directly because free credits logic was in orchestration

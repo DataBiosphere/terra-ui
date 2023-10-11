@@ -155,9 +155,6 @@ export const convertValue = _.curry((type, value) => {
  */
 export const normalizeLabel = _.flow(_.camelCase, _.startCase);
 
-// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
-export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc) as any, {});
-
 export const append = _.curry((value, arr) => _.concat(arr, [value]));
 
 const withBusyStateFn =
