@@ -4,7 +4,6 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { code, div, h, h2, h3, li, p, span, strong, ul } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common';
 import FileBrowser from 'src/components/data/FileBrowser';
-import UploadPreviewTable from 'src/components/data/UploadPreviewTable';
 import Dropzone from 'src/components/Dropzone';
 import FloatingActionButton from 'src/components/FloatingActionButton';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -23,6 +22,8 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
+
+import UploadPreviewTable from './UploadPreviewTable';
 
 // As you add support for uploading additional types of metadata, add them here.
 // You may also need to adjust the validation logic.
