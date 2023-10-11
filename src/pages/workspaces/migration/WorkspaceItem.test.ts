@@ -19,6 +19,7 @@ describe('WorkspaceItem', () => {
     migrationStep: 'Unscheduled',
   };
   const migrateButtonText = `Migrate ${unscheduledWorkspace.name}`;
+  const migrationScheduledTooltipText = 'Migration has been scheduled';
   const mockGetBucketUsage = jest.fn();
 
   beforeEach(() => {
@@ -77,14 +78,16 @@ describe('WorkspaceItem', () => {
 
     // Act
     render(h(WorkspaceItem, { workspaceMigrationInfo: unscheduledWorkspace }));
+    expect(screen.queryByText(migrationScheduledTooltipText)).toBeNull();
+    await user.click(screen.getByLabelText(migrateButtonText));
 
     // Assert
-    const migrateButton = screen.getByLabelText(migrateButtonText);
-    await user.click(migrateButton);
     expect(mockMigrateWorkspace).toHaveBeenCalled();
+    expect(screen.getByLabelText(migrateButtonText).getAttribute('aria-disabled')).toBe('true');
+    await screen.findByText(migrationScheduledTooltipText);
   });
 
-  it('shows if the bucket size cannot be fetched for an unscheduled workspace', async () => {
+  it('shows if the bucket size cannot be fetched for an unscheduled workspace, and shows migrate button', async () => {
     // Arrange
     const mockErrorGetBucketUsage = jest.fn().mockRejectedValue(new Error('testing'));
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
@@ -106,7 +109,7 @@ describe('WorkspaceItem', () => {
     await screen.findByLabelText(migrateButtonText);
   });
 
-  it('shows completed workspace status and does not fetch bucket size', async () => {
+  it('shows completed workspace status and does not fetch bucket size, with no migrate button', async () => {
     // Arrange
     const completedWorkspace: WorkspaceMigrationInfo = {
       failureReason: undefined,

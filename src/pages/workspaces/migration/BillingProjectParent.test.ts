@@ -17,6 +17,8 @@ type AjaxWorkspacesContract = AjaxContract['Workspaces'];
 jest.mock('src/libs/ajax');
 
 describe('BillingProjectParent', () => {
+  const migrationScheduledTooltipText = 'Migration has been scheduled';
+
   it('shows migrate all button if all workspaces are unscheduled, with no accessibility errors', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -44,15 +46,17 @@ describe('BillingProjectParent', () => {
         }),
       ])
     );
+    expect(await axe(container)).toHaveNoViolations();
+    expect(screen.queryByText(migrationScheduledTooltipText)).toBeNull();
+    await user.click(screen.getByText('Migrate all workspaces'));
 
     // Assert
-    const migrateButton = screen.getByText('Migrate all workspaces');
-    await user.click(migrateButton);
     expect(mockStartBatchBucketMigration).toHaveBeenCalledWith([
       { name: 'notmigrated1', namespace: 'CARBilling-2' },
       { name: 'notmigrated2', namespace: 'CARBilling-2' },
     ]);
-    expect(await axe(container)).toHaveNoViolations();
+    expect(screen.getByText('Migrate all workspaces').getAttribute('aria-disabled')).toBe('true');
+    await screen.findByText(migrationScheduledTooltipText);
   });
 
   it('shows migrate remaining button if some workspaces are unscheduled', async () => {
@@ -74,10 +78,9 @@ describe('BillingProjectParent', () => {
         billingProjectMigrationInfo: bpWithSucceededAndUnscheduled,
       })
     );
+    await user.click(screen.getByText('Migrate remaining workspaces'));
 
     // Assert
-    const migrateButton = screen.getByText('Migrate remaining workspaces');
-    await user.click(migrateButton);
     expect(mockStartBatchBucketMigration).toHaveBeenCalledWith([{ name: 'notmigrated', namespace: 'CARBilling-2' }]);
     await screen.findByText('1 Workspace Migrated');
   });
@@ -112,44 +115,30 @@ describe('BillingProjectParent', () => {
 
   it('does not show a migrate button if all workspaces succeeded', async () => {
     // Arrange
+    const dummyTransferProgress = {
+      bytesTransferred: 288912,
+      objectsTransferred: 561,
+      totalBytesToTransfer: 288912,
+      totalObjectsToTransfer: 561,
+    };
     const twoSucceededMigrationInfo: WorkspaceMigrationInfo[] = [
       {
         failureReason: undefined,
-        finalBucketTransferProgress: {
-          bytesTransferred: 288912,
-          objectsTransferred: 561,
-          totalBytesToTransfer: 288912,
-          totalObjectsToTransfer: 561,
-        },
+        finalBucketTransferProgress: dummyTransferProgress,
         migrationStep: 'Finished',
         name: 'migrated1',
         namespace: 'CARBilling-2',
         outcome: 'success',
-        tempBucketTransferProgress: {
-          bytesTransferred: 288912,
-          objectsTransferred: 561,
-          totalBytesToTransfer: 288912,
-          totalObjectsToTransfer: 561,
-        },
+        tempBucketTransferProgress: dummyTransferProgress,
       },
       {
         failureReason: undefined,
-        finalBucketTransferProgress: {
-          bytesTransferred: 288912,
-          objectsTransferred: 561,
-          totalBytesToTransfer: 288912,
-          totalObjectsToTransfer: 561,
-        },
+        finalBucketTransferProgress: dummyTransferProgress,
         migrationStep: 'Finished',
         name: 'migrated2',
         namespace: 'CARBilling-2',
         outcome: 'success',
-        tempBucketTransferProgress: {
-          bytesTransferred: 288912,
-          objectsTransferred: 561,
-          totalBytesToTransfer: 288912,
-          totalObjectsToTransfer: 561,
-        },
+        tempBucketTransferProgress: dummyTransferProgress,
       },
     ];
 

@@ -48,18 +48,20 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
           span({}, [
             successIcon,
             span({ style: { paddingLeft: '0.5rem', paddingRight: '0.5rem' } }, [
-              `All ${pluralize('Workspace', migrationStats.workspaceCount, true)} Migrated`,
+              migrationStats.workspaceCount === 1
+                ? '1 Workspace Migrated'
+                : `All ${migrationStats.workspaceCount} Workspaces Migrated`,
             ]),
           ]),
       ],
       [
-        !!migrationStats.inProgress,
+        migrationStats.inProgress > 0,
         () =>
           span({}, [
             inProgressIcon,
             span({ style: { paddingLeft: '0.5rem', paddingRight: '0.5rem' } }, [
               `${pluralize('Workspace', migrationStats.inProgress, true)} Migrating`,
-              !!migrationStats.errored && ', ',
+              migrationStats.errored > 0 && ', ',
               renderErrorSummary(),
             ]),
           ]),
@@ -68,8 +70,8 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
         Utils.DEFAULT,
         () =>
           span({ style: { paddingRight: '0.5rem' } }, [
-            !!migrationStats.succeeded && `${pluralize('Workspace', migrationStats.succeeded, true)} Migrated`,
-            !!migrationStats.succeeded && !!migrationStats.errored && ', ',
+            migrationStats.succeeded > 0 && `${pluralize('Workspace', migrationStats.succeeded, true)} Migrated`,
+            migrationStats.succeeded > 0 && migrationStats.errored > 0 && ', ',
             renderErrorSummary(),
           ]),
       ]
@@ -94,7 +96,7 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
           { style: { display: 'flex', marginLeft: 'auto', alignItems: 'center', fontWeight: 'normal' } },
           [
             div({ style: {} }, [renderMigrationSummary()]),
-            !!migrationStats.unscheduled &&
+            migrationStats.unscheduled > 0 &&
               h(
                 ButtonOutline,
                 {
