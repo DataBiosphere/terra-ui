@@ -1,3 +1,4 @@
+import { abandonedPromise } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
@@ -12,7 +13,7 @@ export const withRequesterPaysHandler = _.curry((handler, fn) => async (...args)
   } catch (error) {
     if (error.requesterPaysError) {
       handler();
-      return Utils.abandonedPromise();
+      return abandonedPromise();
     }
     throw error;
   }
