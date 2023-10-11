@@ -91,11 +91,6 @@ export const abandonedPromise = () => {
   return new Promise(() => {});
 };
 
-// Returns a message explaining that the desired snapshot reference could not be found by name
-export const snapshotReferenceMissingError = (snapshotReferenceName) => {
-  return `The requested snapshot reference '${snapshotReferenceName}' could not be found in this workspace.`;
-};
-
 export const textMatch = safeCurry((needle: string, haystack: string): boolean => {
   return haystack.toLowerCase().includes(needle.toLowerCase());
 }) as (needle: string, haystack: string) => boolean;
