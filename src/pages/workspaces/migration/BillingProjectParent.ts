@@ -10,7 +10,6 @@ import { reportErrorAndRethrow } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 import {
   BillingProjectMigrationInfo,
-  BillingProjectMigrationStats,
   errorIcon,
   getBillingProjectMigrationStats,
   inProgressIcon,
@@ -24,11 +23,10 @@ interface BillingProjectParentProps {
 }
 
 export const BillingProjectParent = (props: BillingProjectParentProps): ReactNode => {
-  const [migrationStats, setMigrationStats] = useState<BillingProjectMigrationStats>();
   const [migrateStarted, setMigrateStarted] = useState<boolean>(false);
 
-  useMemo(() => {
-    setMigrationStats(getBillingProjectMigrationStats(props.billingProjectMigrationInfo));
+  const migrationStats = useMemo(() => {
+    return getBillingProjectMigrationStats(props.billingProjectMigrationInfo);
   }, [props.billingProjectMigrationInfo]);
 
   const renderErrorSummary = () => {
