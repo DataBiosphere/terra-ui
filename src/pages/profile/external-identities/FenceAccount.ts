@@ -16,11 +16,8 @@ import { SpacedSpinner } from 'src/pages/profile/SpacedSpinner';
 
 export const FenceAccount = ({ provider: { key, name, expiresAfter, short } }) => {
   // State
-  const {
-    fenceStatus: {
-      [key]: { username, issued_at: issuedAt },
-    },
-  } = useStore(authStore);
+  const { fenceStatus: storedFenceStatus } = useStore(authStore);
+  const { username, issued_at: issuedAt } = storedFenceStatus[key] ?? { username: undefined, issued_at: undefined };
 
   const oauth2State = new URLSearchParams(window.location.search).get('state');
   const provider = oauth2State ? JSON.parse(atob(oauth2State)).provider : '';
