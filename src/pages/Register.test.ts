@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import { User } from 'src/libs/ajax/User';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { Register } from './Register';
+import Register from './Register';
 
 jest.mock('src/libs/ajax', () => ({
   ...jest.requireActual('src/libs/ajax'),
