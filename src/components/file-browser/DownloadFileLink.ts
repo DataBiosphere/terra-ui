@@ -22,6 +22,7 @@ export const DownloadFileLink = (props: DownloadFileLinkProps) => {
       ...Utils.newTabLinkProps,
       disabled: !downloadUrl,
       download: basename(file.path),
+      // downloadUrl is typed string | null, but Clickable wants string | undefined.
       href: downloadUrl || undefined,
     },
     ['Download', status === 'Loading' && spinner({ size: 12, style: { color: '#fff', marginLeft: '1ch' } })]

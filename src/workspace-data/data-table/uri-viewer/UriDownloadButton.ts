@@ -76,6 +76,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
       ButtonPrimary,
       {
         disabled: !url,
+        // url is typed string | null, but Clickable wants string | undefined.
         href: url || undefined,
         download: fileName,
         ...Utils.newTabLinkProps,
@@ -97,6 +98,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
             downloadFrom: 'file direct',
           });
         },
+        // url is typed string | null, but Clickable wants string | undefined.
         href: url || undefined,
         /*
          NOTE:

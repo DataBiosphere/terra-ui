@@ -9,6 +9,8 @@ jest.mock('./Clickable', (): ClickableExports => {
   return {
     ...jest.requireActual<ClickableExports>('./Clickable'),
     // @ts-expect-error
+    // TS expects this to have additional fields because Clickable is a ForwardRefExoticComponent,
+    // but an ordinary function component works for this test.
     Clickable: jest.fn().mockReturnValue(null),
   };
 });
