@@ -78,7 +78,7 @@ export interface WorkspaceAccessEntry {
   canCompute: boolean;
 }
 
-export type WorkspaceACL = Record<string, WorkspaceAccessEntry>;
+export type WorkspaceACL = { [userEmail: string]: WorkspaceAccessEntry };
 
 export type WorkspaceState =
   | 'Creating'
