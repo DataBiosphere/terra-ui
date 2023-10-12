@@ -34,7 +34,7 @@ export const AzureStorageDetails = (props: AzureStorageDetailsProps): ReactNode 
     h(InfoRow, { title: 'Resource Group ID' }, [
       h(TooltipCell, [azureContext.managedResourceGroupId]),
       h(ClipboardButton, {
-        'aria-label': 'Copy resource group id to clipboard',
+        'aria-label': 'Copy resource group ID to clipboard',
         text: azureContext.managedResourceGroupId,
         style: { marginLeft: '0.25rem' },
       }),
