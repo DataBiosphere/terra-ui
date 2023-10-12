@@ -31,7 +31,7 @@ interface WorkspaceMenuProps {
 }
 // In `workspaceInfo`, specify either `name and namespace` to fetch the Workspace details,
 // or `canShare, isLocked, and isOwner` to use previously fetched details.
-export const WorkspaceMenu = (props: WorkspaceMenuProps) => {
+export const WorkspaceMenu = (props: WorkspaceMenuProps): ReactNode => {
   const { iconSize, popupLocation, callbacks, workspaceInfo } = props;
 
   const navIconProps = {
