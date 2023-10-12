@@ -68,8 +68,7 @@ export const BillingProjectList = (): ReactNode => {
 
         //  Start timer to auto-refresh state
         if (!interval.current) {
-          // @ts-ignore
-          interval.current = setInterval(updateWorkspacesSilently, inProgressRefreshRate);
+          interval.current = window.setInterval(updateWorkspacesSilently, inProgressRefreshRate);
         }
       });
       loadWorkspaces();
