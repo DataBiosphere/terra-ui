@@ -4,8 +4,9 @@ import { WorkspaceContainer } from 'src/pages/workspaces/workspace/WorkspaceCont
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 // Mocking for Nav.getLink
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
+type NavExports = typeof import('src/libs/nav');
+jest.mock('src/libs/nav', (): NavExports => ({
+  ...jest.requireActual<NavExports>('src/libs/nav'),
   getLink: jest.fn(() => '/'),
 }));
 // Mocking feature preview setup
