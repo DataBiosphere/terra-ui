@@ -31,8 +31,6 @@ export interface WorkspaceTabsProps {
 
 export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   const {
-    namespace,
-    name,
     workspace,
     activeTab,
     refresh,
@@ -42,6 +40,7 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
     setShowLockWorkspaceModal,
     setLeavingWorkspace,
   } = props;
+  const { namespace = workspace?.workspace.namespace ?? '', name = workspace?.workspace.name ?? '' } = props;
   const wsOwner = !!workspace && isOwner(workspace.accessLevel);
   const canShare = workspace?.canShare;
   const isLocked = !!workspace?.workspace.isLocked;

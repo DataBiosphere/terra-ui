@@ -56,5 +56,3 @@ const Notice = (props: NoticeProperties) => {
     ]
   );
 };
-
-export default WorkspaceAttributeNotice;
