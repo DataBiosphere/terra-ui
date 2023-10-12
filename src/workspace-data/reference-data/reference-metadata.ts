@@ -1,4 +1,7 @@
 export const referenceMetadata = {
+  'T2T-v2': {
+    species: 'Human',
+  },
   hg38: {
     species: 'Human',
   },
