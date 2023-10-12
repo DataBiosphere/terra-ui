@@ -1,3 +1,4 @@
+import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { div, h } from 'react-hyperscript-helpers';
@@ -5,8 +6,8 @@ import { MenuTrigger } from 'src/components/PopupTrigger';
 import { useWorkspaceDetails } from 'src/components/workspace-utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import { WorkspaceAccessLevel } from 'src/libs/workspace-utils';
-import WorkspaceMenu, { tooltipText } from 'src/pages/workspaces/workspace/WorkspaceMenu';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { tooltipText, WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceMenu';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 jest.mock('src/components/workspace-utils', () => {

@@ -1,9 +1,11 @@
+import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { render, screen, within } from '@testing-library/react';
 import { axe } from 'jest-axe';
+import { delay } from 'lodash/fp';
+import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
-import { asMockedFn } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 // Mocking for Nav.getLink
@@ -17,6 +19,8 @@ jest.mock('src/libs/feature-previews', () => ({
   isFeaturePreviewEnabled: jest.fn(),
 }));
 
+type WorkspaceMenuExports = typeof import('src/pages/workspaces/workspace/WorkspaceMenu');
+
 const mockWorkspaceMenu = jest.fn();
 jest.mock(
   'src/pages/workspaces/workspace/WorkspaceMenu',
@@ -26,6 +30,14 @@ jest.mock(
       return null;
     }
 );
+
+jest.mock<WorkspaceMenuExports>('src/pages/workspaces/workspace/WorkspaceMenu', () => ({
+  ...jest.requireActual('src/pages/workspaces/workspace/WorkspaceMenu'),
+  WorkspaceMenu: (props) => {
+    mockWorkspaceMenu(props);
+    return null as ReactNode;
+  },
+}));
 
 describe('WorkspaceTabs', () => {
   it('renders subset of tabs if workspace is unknown, with no accessibility issues', async () => {
@@ -77,9 +89,11 @@ describe('WorkspaceTabs', () => {
   it('renders subset of tabs for Azure workspace with flag enabled, with no accessibility issues', async () => {
     // Enable config
     asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
-    // isFeaturePreviewEnabled.mockReturnValue(true);
+
     // Arrange
     const props = {
+      name: defaultAzureWorkspace.workspace.name,
+      namespace: defaultAzureWorkspace.workspace.namespace,
       workspace: defaultAzureWorkspace,
       setDeletingWorkspace: () => {},
       setCloningWorkspace: () => {},
@@ -135,8 +149,10 @@ describe('WorkspaceTabs', () => {
       setLeavingWorkspace: () => {},
       refresh: () => {},
     };
+
     // Act
     render(h(WorkspaceTabs, props));
+    delay(5);
     // Assert
     expect(mockWorkspaceMenu).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -156,6 +172,7 @@ describe('WorkspaceTabs', () => {
       setLeavingWorkspace: () => {},
       refresh: () => {},
     };
+
     // Act
     render(h(WorkspaceTabs, props));
     // Assert

@@ -5,25 +5,24 @@ import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/works
 
 // Mocking for Nav.getLink
 type NavExports = typeof import('src/libs/nav');
-jest.mock('src/libs/nav', (): NavExports => ({
-  ...jest.requireActual<NavExports>('src/libs/nav'),
-  getLink: jest.fn(() => '/'),
-}));
+jest.mock(
+  'src/libs/nav',
+  (): NavExports => ({
+    ...jest.requireActual<NavExports>('src/libs/nav'),
+    getLink: jest.fn(() => '/'),
+  })
+);
 // Mocking feature preview setup
 jest.mock('src/libs/feature-previews', () => ({
   ...jest.requireActual('src/libs/feature-previews'),
   isFeaturePreviewEnabled: jest.fn(),
 }));
 
-const mockWorkspaceMenu = jest.fn();
-jest.mock(
-  'src/pages/workspaces/workspace/WorkspaceMenu',
-  () =>
-    function (props) {
-      mockWorkspaceMenu(props);
-      return null;
-    }
-);
+type WorkspaceMenuExports = typeof import('src/pages/workspaces/workspace/WorkspaceMenu');
+jest.mock<WorkspaceMenuExports>('src/pages/workspaces/workspace/WorkspaceMenu', () => ({
+  ...jest.requireActual('src/pages/workspaces/workspace/WorkspaceMenu'),
+  WorkspaceMenu: jest.fn().mockReturnValue(null),
+}));
 
 describe('WorkspaceContainer', () => {
   it('shows a warning for Azure workspaces', async () => {

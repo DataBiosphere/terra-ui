@@ -1,3 +1,4 @@
+import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
@@ -10,7 +11,7 @@ import { AzureStorageDetails } from 'src/pages/workspaces/workspace/Dashboard/Az
 import { BucketLocation } from 'src/pages/workspaces/workspace/Dashboard/BucketLocation';
 import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/Dashboard';
 import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
   defaultAzureStorageOptions,
   defaultGoogleBucketOptions,

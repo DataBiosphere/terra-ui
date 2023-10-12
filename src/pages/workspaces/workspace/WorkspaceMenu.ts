@@ -23,7 +23,7 @@ interface WorkspaceMenuCallbacks {
   onLeave: () => void;
 }
 
-interface WorkspaceMenuProps {
+export interface WorkspaceMenuProps {
   iconSize?: number;
   popupLocation: unknown; // will error whenever PopupTrigger.js is converted to ts
   callbacks: WorkspaceMenuCallbacks;
@@ -170,5 +170,3 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
     ),
   ]);
 };
-
-export default WorkspaceMenu;
