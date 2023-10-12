@@ -57,8 +57,8 @@ export const Metrics = (signal?: AbortSignal) => {
       return fetchBard('api/syncProfile', _.merge(authOpts(), { signal, method: 'POST' }));
     }),
 
-    identify: withErrorIgnoring((anonId) => {
-      const body = { anonId };
+    identify: withErrorIgnoring((anonymousId: string) => {
+      const body = { anonId: anonymousId };
       return fetchBard('api/identify', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
     }),
   };

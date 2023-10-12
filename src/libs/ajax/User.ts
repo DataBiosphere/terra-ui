@@ -109,11 +109,15 @@ export const generateAPIBodyForUpdateUserProfile = (
     firstName: request.firstName!,
     lastName: request.lastName!,
 
+    // contact email is NOT REQUIRED for this request, but it is populated from the oidc token claims,
+    // so it should not be undefined
+    contactEmail: request.contactEmail!,
+
     // title and institute are REQUIRED for this request, but they do not necessarily
     // get set during registration
     title: !_.isEmpty(request.title) ? request.title : 'N/A',
     institute: !_.isEmpty(request.institute) ? request.institute : 'N/A',
-    // department and interestedInTerra NOT REQUIRED for this request and they do not necessarily
+    // department and interestedInTerra NOT REQUIRED for this request, and they do not necessarily
     // get set during registration
     department: !_.isEmpty(request.department) ? request.department : undefined,
     interestInTerra: !_.isEmpty(request.interestInTerra) ? request.interestInTerra : undefined,
@@ -123,6 +127,10 @@ export const generateAPIBodyForUpdateUserProfile = (
     programLocationCity: !_.isEmpty(request.programLocationCity) ? request.programLocationCity : 'N/A',
     programLocationState: !_.isEmpty(request.programLocationState) ? request.programLocationState : 'N/A',
     programLocationCountry: !_.isEmpty(request.programLocationCountry) ? request.programLocationCountry : 'N/A',
+
+    // department and interestedInTerra NOT REQUIRED for this request,
+    // but are not present during a registration. They could exist in setting profile
+    researchArea: !_.isEmpty(request.researchArea) ? request.researchArea : undefined,
   };
 };
 

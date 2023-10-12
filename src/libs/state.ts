@@ -20,6 +20,7 @@ export type TerraUser = {
 };
 
 export type TerraUserProfile = {
+  // TODO: anonymousGroup is here from getProfile from orch
   firstName: string | undefined;
   lastName: string | undefined;
   institute: string | undefined;
@@ -30,6 +31,7 @@ export type TerraUserProfile = {
   programLocationCity?: string;
   programLocationState?: string;
   programLocationCountry?: string;
+  researchArea?: string;
   starredWorkspaces?: string;
 };
 
