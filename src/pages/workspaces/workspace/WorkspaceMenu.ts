@@ -1,6 +1,6 @@
 import { icon } from '@terra-ui-packages/components';
 import { cond, DEFAULT } from '@terra-ui-packages/core-utils';
-import { Fragment } from 'react';
+import { Fragment, ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
