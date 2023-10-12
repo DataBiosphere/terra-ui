@@ -32,7 +32,7 @@ interface BaseWorkspaceInfo {
   lastModified: string;
   attributes?: Record<string, unknown>;
   isLocked?: boolean;
-  state?: WorkpaceState;
+  state?: WorkspaceState;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
@@ -80,7 +80,7 @@ export interface WorkspaceAccessEntry {
 
 export type WorkspaceACL = Record<string, WorkspaceAccessEntry>;
 
-export type WorkpaceState =
+export type WorkspaceState =
   | 'Creating'
   | 'CreateFailed'
   | 'Ready'

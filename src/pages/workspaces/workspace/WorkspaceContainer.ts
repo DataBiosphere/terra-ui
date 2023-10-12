@@ -94,7 +94,7 @@ interface WorkspaceContainerProps {
   activeTab?: string;
   analysesData: AppDetails & CloudEnvironmentDetails;
   storageDetails: StorageDetails;
-  refresh: () => Promise<unknown>;
+  refresh: () => Promise<void>;
   workspace: Workspace;
   refreshWorkspace: () => void;
 }
@@ -251,7 +251,7 @@ const WorkspaceAccessError = () => {
 
 interface CloudEnvironmentDetails {
   runtimes?: ListRuntimeItem[];
-  refreshRuntimes: (maybeStale?: boolean) => Promise<unknown>;
+  refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
   persistentDisks?: PersistentDisk[];
   appDataDisks?: PersistentDisk[];
 }
@@ -270,7 +270,7 @@ const useCloudEnvironmentPolling = (workspace: Workspace): CloudEnvironmentDetai
     clearTimeout(timeout.current);
     timeout.current = setTimeout(refreshRuntimesSilently, ms);
   };
-  const load = async (maybeStale) => {
+  const load = async (maybeStale?: boolean): Promise<void> => {
     try {
       const cloudEnvFilters = _.pickBy((l) => !_.isUndefined(l), {
         role: 'creator',
@@ -309,7 +309,9 @@ const useCloudEnvironmentPolling = (workspace: Workspace): CloudEnvironmentDetai
       throw error;
     }
   };
-  const refreshRuntimes = withErrorReporting('Error loading cloud environments', load);
+  const refreshRuntimes = withErrorReporting('Error loading cloud environments', load) as (
+    maybeStale?: boolean
+  ) => Promise<void>;
   const refreshRuntimesSilently = withErrorIgnoring(load);
   useOnMount(() => {
     refreshRuntimes();
@@ -320,7 +322,7 @@ const useCloudEnvironmentPolling = (workspace: Workspace): CloudEnvironmentDetai
 
 interface AppDetails {
   apps?: ListAppResponse[];
-  refreshApps: (maybeStale?: boolean) => Promise<unknown>;
+  refreshApps: (maybeStale?: boolean) => Promise<void>;
 }
 
 const useAppPolling = (workspace: Workspace): AppDetails => {
@@ -332,7 +334,7 @@ const useAppPolling = (workspace: Workspace): AppDetails => {
     clearTimeout(timeout.current);
     timeout.current = setTimeout(refreshAppsSilently, ms);
   };
-  const loadApps = async (maybeStale) => {
+  const loadApps = async (maybeStale?: boolean): Promise<void> => {
     try {
       const newGoogleApps =
         !!workspace && isGoogleWorkspace(workspace)
@@ -356,7 +358,7 @@ const useAppPolling = (workspace: Workspace): AppDetails => {
       throw error;
     }
   };
-  const refreshApps = withErrorReporting('Error loading apps', loadApps);
+  const refreshApps = withErrorReporting('Error loading apps', loadApps) as (maybeStale?: boolean) => Promise<void>;
   const refreshAppsSilently = withErrorIgnoring(loadApps);
   useOnMount(() => {
     refreshApps();
