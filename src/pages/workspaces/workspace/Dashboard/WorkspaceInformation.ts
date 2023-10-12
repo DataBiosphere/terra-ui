@@ -22,7 +22,7 @@ interface WorkspaceInformationProps {
 }
 export const WorkspaceInformation = (props: WorkspaceInformationProps): ReactNode => {
   const { workspace } = props;
-  return dl({}, [
+  return dl([
     h(InfoRow, { title: 'Last Updated' }, [new Date(workspace.workspace.lastModified).toLocaleDateString()]),
     h(InfoRow, { title: 'Creation Date' }, [new Date(workspace.workspace.createdDate).toLocaleDateString()]),
     h(InfoRow, { title: 'Access Level' }, [roleString[workspace.accessLevel]]),
