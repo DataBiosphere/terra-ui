@@ -33,7 +33,7 @@ export interface WorkspaceDetails {
   accessError: boolean;
   loadingWorkspace: boolean;
   storageDetails: StorageDetails;
-  refreshWorkspace: () => Promise<unknown>;
+  refreshWorkspace: () => Promise<void>;
 }
 
 export const googlePermissionsRecheckRate = 15000;
@@ -174,7 +174,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     storeAzureStorageDetails(await AzureStorage(signal).details(workspace.workspace.workspaceId));
   });
 
-  const refreshWorkspace: () => Promise<unknown> = _.flow(
+  const refreshWorkspace: () => Promise<void> = _.flow(
     withErrorReporting('Error loading workspace'),
     withBusyState(setLoadingWorkspace)
   )(async () => {
@@ -239,7 +239,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
         throw error;
       }
     }
-  });
+  }) as () => Promise<void>;
 
   useOnMount(() => {
     if (!workspace) {
