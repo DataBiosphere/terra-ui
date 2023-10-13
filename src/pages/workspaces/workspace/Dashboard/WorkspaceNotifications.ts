@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { LabeledCheckbox } from 'src/components/common';
 import { spinner } from 'src/components/icons';
@@ -16,7 +16,7 @@ interface WorkspaceNotificationsProps {
   workspace: Workspace;
 }
 
-export const WorkspaceNotifications = (props: WorkspaceNotificationsProps) => {
+export const WorkspaceNotifications = (props: WorkspaceNotificationsProps): ReactNode => {
   const {
     workspace: { namespace, name },
   } = props.workspace;

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, ReactNode, useCallback, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { requesterPaysWrapper } from 'src/components/bucket-utils';
 import { ButtonSecondary } from 'src/components/common';
@@ -19,7 +19,7 @@ interface BucketLocationProps {
   storageDetails: StorageDetails;
 }
 
-export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })((props: BucketLocationProps) => {
+export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })((props: BucketLocationProps): ReactNode => {
   const { workspace, storageDetails } = props;
   const [loading, setLoading] = useState<boolean>(true);
   const [{ location, locationType }, setBucketLocation] = useState<{ location?: string; locationType?: string }>({

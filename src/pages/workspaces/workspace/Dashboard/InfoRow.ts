@@ -1,9 +1,10 @@
-import { PropsWithChildren, ReactNode } from 'react';
+import { ReactNode } from 'react';
 import { dd, div, dt } from 'react-hyperscript-helpers';
 
-interface InfoRowProps extends PropsWithChildren {
+interface InfoRowProps {
   title: string;
   subtitle?: string;
+  children?: ReactNode;
 }
 
 export const InfoRow = (props: InfoRowProps): ReactNode => {

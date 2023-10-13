@@ -169,9 +169,11 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
 
 export const CloudInformation = (props: CloudInformationProps): ReactNode => {
   const { workspace, ...rest } = props;
-  return isAzureWorkspace(workspace)
-    ? h(AzureCloudInformation, { workspace, ...rest })
-    : isGoogleWorkspace(workspace)
-    ? h(GoogleCloudInformation, { workspace, ...rest })
-    : h(Fragment);
+  if (isAzureWorkspace(workspace)) {
+    return h(AzureCloudInformation, { workspace, ...rest });
+  }
+  if (isGoogleWorkspace(workspace)) {
+    return h(GoogleCloudInformation, { workspace, ...rest });
+  }
+  return h(Fragment);
 };
