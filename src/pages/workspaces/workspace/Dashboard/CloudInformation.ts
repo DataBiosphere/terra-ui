@@ -108,7 +108,12 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
               [!storageCost, () => 'Loading last updated...'],
               [
                 !!storageCost?.isSuccess,
-                () => `Updated on ${new Date(storageCost?.lastUpdated ?? '').toLocaleDateString()}`,
+                () => {
+                  if (storageCost?.lastUpdated) {
+                    return `Updated on ${new Date(storageCost?.lastUpdated).toLocaleDateString()}`;
+                  }
+                  return 'Unable to determine last date updated';
+                },
               ]
             ),
           },
