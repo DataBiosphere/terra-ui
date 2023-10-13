@@ -1,25 +1,32 @@
 import { getDefaultProperties } from '@databiosphere/bard-client';
 import _ from 'lodash/fp';
 import { authOpts, fetchBard, jsonBody } from 'src/libs/ajax/ajax-common';
+import { ensureAuthSettled } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring } from 'src/libs/error';
 import { MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { AuthState, authStore, getSessionId } from 'src/libs/state';
+import { v4 as uuid } from 'uuid';
 
 export const Metrics = (signal?: AbortSignal) => {
-  const captureEventFn = async (
-    event: MetricsEventName,
-    details: Record<string, any> = {},
-    state: AuthState = authStore.get()
-  ): Promise<void> => {
-    const isSignedIn = state.signInStatus === 'signedIn';
+  const captureEventFn = async (event: MetricsEventName, details: Record<string, any> = {}): Promise<void> => {
+    await ensureAuthSettled();
+    const state: AuthState = authStore.get();
+    const isRegistered = state.registrationStatus === 'registered';
+    if (state.anonymousId === undefined) {
+      authStore.update((oldState: AuthState) => ({
+        ...oldState,
+        anonymousId: uuid(),
+      }));
+    }
+
     const body = {
       event,
       properties: {
         ...details,
         // Users who have not registered are considered anonymous users. Send an anonymized distinct_id in that case; otherwise the user identity is captured via the auth token.
-        distinct_id: isSignedIn ? undefined : authStore.get().anonymousId,
+        distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
         sessionId: getSessionId(),
         appId: 'Saturn',
         hostname: window.location.hostname,
@@ -32,7 +39,7 @@ export const Metrics = (signal?: AbortSignal) => {
     return fetchBard(
       'api/event',
       _.mergeAll([
-        isSignedIn ? authOpts() : undefined,
+        isRegistered ? authOpts() : undefined,
         {
           body: JSON.stringify(body, (key: string, value) =>
             // distinct_id is a mixpanel specific id and the value must not be null or this fetch will 400

@@ -118,8 +118,10 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
   });
 };
 
-export const signOut = (cause: SignOutCause = 'unspecified'): void => {
-  sendSignOutMetrics(cause);
+export const signOut = async (cause: SignOutCause = 'unspecified'): Promise<void> => {
+  try {
+    await sendSignOutMetrics(cause);
+  } catch (error) {}
   if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
     notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
   }
@@ -400,6 +402,20 @@ export const isAuthSettled = (state: AuthState) => {
     state.signInStatus !== 'uninitialized' &&
     (state.signInStatus !== 'signedIn' || state.registrationStatus !== 'uninitialized')
   );
+};
+
+export const ensureAuthSettled = () => {
+  if (isAuthSettled(authStore.get())) {
+    return;
+  }
+  return new Promise((resolve) => {
+    const subscription = authStore.subscribe((state) => {
+      if (isAuthSettled(state)) {
+        resolve(undefined);
+        subscription.unsubscribe();
+      }
+    });
+  });
 };
 
 export const bucketBrowserUrl = (id) => {
