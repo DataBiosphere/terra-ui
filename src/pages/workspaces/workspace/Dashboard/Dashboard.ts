@@ -32,7 +32,7 @@ import { append, formatBytes, newTabLinkProps, withBusyState } from 'src/libs/ut
 import { canEditWorkspace, canWrite, isGoogleWorkspace, isOwner } from 'src/libs/workspace-utils';
 import SignIn from 'src/pages/SignIn';
 import { CloudInformation } from 'src/pages/workspaces/workspace/Dashboard/CloudInformation';
-import { DataUseLimitations } from 'src/pages/workspaces/workspace/Dashboard/DataUseLimitations';
+import { DataUseLimitations, displayAttributeValue } from 'src/pages/workspaces/workspace/Dashboard/DataUseLimitations';
 import { OwnerNotice } from 'src/pages/workspaces/workspace/Dashboard/OwnerNotice';
 import { RightBoxSection } from 'src/pages/workspaces/workspace/Dashboard/RightBoxSection';
 import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
@@ -59,21 +59,6 @@ const styles: Record<string, CSSProperties> = {
     overflow: 'hidden',
     wordWrap: 'break-word',
   },
-};
-
-const displayAttributeValue = (v: unknown): string => {
-  return cond(
-    [_.isArray(v), () => (v as string[]).join(', ')],
-    [v === true, () => 'Yes'],
-    [v === false, () => 'No'],
-    [typeof v === 'string', () => v as string],
-    [
-      !!v && typeof v === 'object' && 'items' in v && _.isArray(v.items),
-      () => ((v as any).items as string[]).join(', '),
-    ],
-    [typeof v === 'object', () => JSON.stringify(v)],
-    () => JSON.stringify(v)
-  );
 };
 
 const DashboardAuthContainer = (props) => {

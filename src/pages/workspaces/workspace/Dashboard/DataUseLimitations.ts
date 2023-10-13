@@ -6,7 +6,7 @@ import { div, h, span } from 'react-hyperscript-helpers';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
 import { displayConsentCodes } from 'src/pages/workspaces/workspace/library-attributes';
 
-const displayAttributeValue = (v: unknown): string => {
+export const displayAttributeValue = (v: unknown): string => {
   return cond(
     [_.isArray(v), () => (v as string[]).join(', ')],
     [v === true, () => 'Yes'],
