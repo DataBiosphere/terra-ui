@@ -71,15 +71,6 @@ export interface WorkspaceSubmissionStats {
   runningSubmissionsCount: number;
 }
 
-export interface WorkspaceAccessEntry {
-  accessLevel: WorkspaceAccessLevel;
-  pending: boolean;
-  canShare: boolean;
-  canCompute: boolean;
-}
-
-export type WorkspaceACL = { [userEmail: string]: WorkspaceAccessEntry };
-
 export type WorkspaceState =
   | 'Creating'
   | 'CreateFailed'

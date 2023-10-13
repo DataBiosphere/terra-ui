@@ -29,7 +29,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import { append, formatBytes, newTabLinkProps, withBusyState } from 'src/libs/utils';
-import { canEditWorkspace, canWrite, isGoogleWorkspace, isOwner, WorkspaceACL } from 'src/libs/workspace-utils';
+import { canEditWorkspace, canWrite, isGoogleWorkspace, isOwner } from 'src/libs/workspace-utils';
 import SignIn from 'src/pages/SignIn';
 import { CloudInformation } from 'src/pages/workspaces/workspace/Dashboard/CloudInformation';
 import { DataUseLimitations } from 'src/pages/workspaces/workspace/Dashboard/DataUseLimitations';
@@ -41,6 +41,8 @@ import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
 import { displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+
+import { WorkspaceAcl } from '../WorkspaceAcl';
 
 const styles: Record<string, CSSProperties> = {
   authDomain: {
@@ -135,7 +137,7 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
   const [busy, setBusy] = useState<boolean>(false);
   const [consentStatus, setConsentStatus] = useState<string>();
   const [tagsList, setTagsList] = useState<string[]>();
-  const [acl, setAcl] = useState<WorkspaceACL>();
+  const [acl, setAcl] = useState<WorkspaceAcl>();
 
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`;
 

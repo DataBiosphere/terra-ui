@@ -5,12 +5,14 @@ import { h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
 import colors from 'src/libs/colors';
-import { isOwner, WorkspaceAccessLevel, WorkspaceACL } from 'src/libs/workspace-utils';
+import { isOwner, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
+
+import { WorkspaceAcl } from '../WorkspaceAcl';
 
 interface OwnerNoticeProps {
   owners: string[];
   accessLevel: WorkspaceAccessLevel;
-  acl?: WorkspaceACL;
+  acl?: WorkspaceAcl;
 }
 
 export const OwnerNotice = (props: OwnerNoticeProps): ReactNode => {
