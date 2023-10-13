@@ -4,7 +4,8 @@
   "scripts": {
     "build": "vite build --emptyOutDir",
     "dev": "vite build --mode=development --watch",
-    "test": "yarn run build >/dev/null && jest"
+    "test": "yarn run build >/dev/null && jest",
+    "check-dts": "check-dts"
   },
   "type": "module",
   "module": "./lib/es/index.js",
@@ -43,6 +44,7 @@
     "@terra-ui-packages/build-utils": "^1.0.0",
     "@types/jest": "^28.1.8",
     "@types/node": "^20.6.2",
+    "check-dts": "^0.7.2",
     "typescript": "^4.9.5",
     "vite": "^4.3.9"
   }

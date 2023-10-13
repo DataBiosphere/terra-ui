@@ -5,7 +5,15 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
 
-export { cond, DEFAULT, formatBytes, formatNumber, formatUSD, switchCase } from '@terra-ui-packages/core-utils';
+export {
+  cond,
+  DEFAULT,
+  formatBytes,
+  formatNumber,
+  formatUSD,
+  maybeParseJSON,
+  switchCase,
+} from '@terra-ui-packages/core-utils';
 
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
@@ -86,16 +94,6 @@ export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }
   };
 };
 
-// Returns a promise that will never resolve or reject. Useful for cancelling async flows.
-export const abandonedPromise = () => {
-  return new Promise(() => {});
-};
-
-// Returns a message explaining that the desired snapshot reference could not be found by name
-export const snapshotReferenceMissingError = (snapshotReferenceName) => {
-  return `The requested snapshot reference '${snapshotReferenceName}' could not be found in this workspace.`;
-};
-
 export const textMatch = safeCurry((needle: string, haystack: string): boolean => {
   return haystack.toLowerCase().includes(needle.toLowerCase());
 }) as (needle: string, haystack: string) => boolean;
@@ -155,9 +153,6 @@ export const convertValue = _.curry((type, value) => {
  */
 export const normalizeLabel = _.flow(_.camelCase, _.startCase);
 
-// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
-export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc) as any, {});
-
 export const append = _.curry((value, arr) => _.concat(arr, [value]));
 
 const withBusyStateFn =
@@ -212,14 +207,6 @@ export const getAriaLabelOrTooltip = ({
   tooltip,
 }) => {
   return ariaLabel || ariaLabelledBy || (allowId && id) ? ariaLabel : tooltip;
-};
-
-export const maybeParseJSON = (maybeJSONString) => {
-  try {
-    return JSON.parse(maybeJSONString);
-  } catch {
-    return undefined;
-  }
 };
 
 export const sanitizeEntityName = (unsafe) => unsafe.replace(/[^\w]/g, '-');

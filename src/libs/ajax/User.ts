@@ -88,6 +88,14 @@ export const makeSetUserProfileRequest = (terraUserProfile: TerraUserProfile): S
   };
 };
 
+/**
+ * Orchestration's /register/profile endpoint returns profile attributes as an
+ * array of { key, value } objects. This converts that array into single object.
+ */
+export const kvArrayToObject = (kvArray: { key: string; value: any }[] | undefined): Record<string, any> => {
+  return Object.fromEntries((kvArray ?? []).map(({ key, value }) => [key, value]));
+};
+
 export interface OrchestrationUserPreferLegacyFireCloudResponse {
   preferTerra: boolean;
   preferTerraLastUpdated: number;
@@ -148,7 +156,7 @@ export const User = (signal?: AbortSignal) => {
       get: async (): Promise<TerraUserProfile> => {
         const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }));
         const rawResponseJson: OrchestrationUserProfileResponse = await res.json();
-        return Utils.kvArrayToObject(rawResponseJson.keyValuePairs) as TerraUserProfile;
+        return kvArrayToObject(rawResponseJson.keyValuePairs) as TerraUserProfile;
       },
 
       // We are not calling Thurloe directly because free credits logic was in orchestration

@@ -1,8 +1,29 @@
+import { cond, DEFAULT } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
+import { icon } from 'src/components/icons';
+import colors from 'src/libs/colors';
 
 export type MigrationStep = ServerMigrationStep | 'Unscheduled';
 
 export type MigrationOutcome = 'success' | 'failure';
+
+export const errorIcon = icon('warning-standard', {
+  size: 18,
+  style: { color: colors.danger() },
+});
+
+export const successIcon = icon('check', {
+  size: 18,
+  style: { color: colors.success() },
+});
+
+export const inProgressIcon = icon('syncAlt', {
+  size: 18,
+  style: {
+    animation: 'rotation 2s infinite linear',
+    color: colors.success(),
+  },
+});
 
 interface TransferProgress {
   totalBytesToTransfer: number;
@@ -73,13 +94,24 @@ export const parseServerResponse = (
       if (status === null) {
         return { namespace, name, migrationStep: 'Unscheduled' };
       }
+      const getFailureMessage = () => {
+        let failureMessage;
+        if (_.isObject(status.outcome)) {
+          try {
+            failureMessage = JSON.parse(status.outcome.failure).message;
+          } catch {
+            failureMessage = status.outcome.failure;
+          }
+        }
+        return failureMessage;
+      };
 
       return {
         namespace,
         name,
         migrationStep: status.migrationStep ?? 'Unscheduled',
         outcome: status.outcome === 'success' ? 'success' : _.isObject(status.outcome) ? 'failure' : undefined,
-        failureReason: _.isObject(status.outcome) ? JSON.parse(status.outcome.failure).message : undefined,
+        failureReason: getFailureMessage(),
         tempBucketTransferProgress: status.tempBucketTransferProgress,
         finalBucketTransferProgress: status.finalBucketTransferProgress,
       };
@@ -87,4 +119,52 @@ export const parseServerResponse = (
     return { namespace, workspaces: expandedWorkspaces };
   }, sortedNamespaceKeys);
   return billingProjectWorkspaces;
+};
+
+export interface BillingProjectMigrationStats {
+  workspaceCount: number;
+  succeeded: number;
+  unscheduled: number;
+  errored: number;
+  inProgress: number;
+}
+
+export const getBillingProjectMigrationStats = (
+  billingProjectInfo: BillingProjectMigrationInfo
+): BillingProjectMigrationStats => {
+  const migrationStats: BillingProjectMigrationStats = {
+    workspaceCount: billingProjectInfo.workspaces.length,
+    unscheduled: 0,
+    errored: 0,
+    succeeded: 0,
+    inProgress: 0,
+  };
+
+  billingProjectInfo.workspaces.forEach((workspaceMigrationInfo) => {
+    cond(
+      [
+        workspaceMigrationInfo.migrationStep === 'Unscheduled',
+        () => {
+          migrationStats.unscheduled += 1;
+        },
+      ],
+      [
+        workspaceMigrationInfo.migrationStep === 'Finished',
+        () => {
+          if (workspaceMigrationInfo.outcome === 'success') {
+            migrationStats.succeeded += 1;
+          } else {
+            migrationStats.errored += 1;
+          }
+        },
+      ],
+      [
+        DEFAULT,
+        () => {
+          migrationStats.inProgress += 1;
+        },
+      ]
+    );
+  });
+  return migrationStats;
 };

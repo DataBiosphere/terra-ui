@@ -102,6 +102,7 @@ const Register = () => {
     { givenName, familyName, email, institute, title, department },
     constraints(partOfOrganization)
   );
+
   return div(
     {
       role: 'main',

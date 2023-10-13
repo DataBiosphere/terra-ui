@@ -1,5 +1,5 @@
 import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { hasProtectedData, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 import { ImportRequest } from './import-types';
 
@@ -95,11 +95,7 @@ export const getImportSource = (url: URL): ImportSource => {
 export const isProtectedWorkspace = (workspace: WorkspaceWrapper): boolean => {
   switch (workspace.workspace.cloudPlatform) {
     case 'Azure':
-      // The WorkspaceWrapper type specifies policies as optional, but policies are loaded by the ImportData component.
-      if (!workspace.policies) {
-        return false;
-      }
-      return workspace.policies.some((policy) => policy.namespace === 'terra' && policy.name === 'protected-data');
+      return hasProtectedData(workspace);
     case 'Gcp':
       return workspace.workspace.bucketName.startsWith('fc-secure');
     default:

@@ -906,12 +906,16 @@ const WorkflowView = _.flow(
                       div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
                       label(['Select root entity type:']),
                       snapshotReferenceError &&
-                        h(TooltipTrigger, { content: Utils.snapshotReferenceMissingError(modifiedConfig.dataReferenceName) }, [
-                          icon('error-standard', {
-                            size: 14,
-                            style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' },
-                          }),
-                        ]),
+                        h(
+                          TooltipTrigger,
+                          { content: `The requested snapshot reference '${modifiedConfig.dataReferenceName}' could not be found in this workspace.` },
+                          [
+                            icon('error-standard', {
+                              size: 14,
+                              style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' },
+                            }),
+                          ]
+                        ),
                       h(GroupedSelect, {
                         'aria-label': 'Entity type selector',
                         isClearable: false,

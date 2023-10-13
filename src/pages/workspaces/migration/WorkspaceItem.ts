@@ -1,12 +1,19 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
+import { ButtonOutline } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
+import { reportErrorAndRethrow } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceMigrationInfo } from 'src/pages/workspaces/migration/migration-utils';
+import {
+  errorIcon,
+  inProgressIcon,
+  successIcon,
+  WorkspaceMigrationInfo,
+} from 'src/pages/workspaces/migration/migration-utils';
 
 interface WorkspaceItemProps {
   workspaceMigrationInfo: WorkspaceMigrationInfo;
@@ -15,6 +22,7 @@ interface WorkspaceItemProps {
 export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
   const workspaceInfo = props.workspaceMigrationInfo;
   const [unmigratedBucketSize, setUnmigratedBucketSize] = useState<string>();
+  const [migrateStarted, setMigrateStarted] = useState<boolean>(false);
   const bucketSizeFailed = 'Unable to fetch Bucket Size';
   const signal = useCancellation();
 
@@ -44,33 +52,9 @@ export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
 
   const renderMigrationIcon = () => {
     return Utils.cond(
-      [
-        workspaceInfo.outcome === 'failure',
-        () =>
-          icon('warning-standard', {
-            size: 18,
-            style: { color: colors.danger() },
-          }),
-      ],
-      [
-        workspaceInfo.outcome === 'success',
-        () =>
-          icon('check', {
-            size: 18,
-            style: { color: colors.success() },
-          }),
-      ],
-      [
-        workspaceInfo.migrationStep !== 'Unscheduled',
-        () =>
-          icon('syncAlt', {
-            size: 18,
-            style: {
-              animation: 'rotation 2s infinite linear',
-              color: colors.success(),
-            },
-          }),
-      ],
+      [workspaceInfo.outcome === 'failure', () => errorIcon],
+      [workspaceInfo.outcome === 'success', () => successIcon],
+      [workspaceInfo.migrationStep !== 'Unscheduled', () => inProgressIcon],
       [
         workspaceInfo.migrationStep === 'Unscheduled' && unmigratedBucketSize === bucketSizeFailed,
         () =>
@@ -150,15 +134,36 @@ export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
       style: {
         display: 'flex',
         justifyContent: 'space-between',
-        padding: '1.0rem 2.5rem',
+        padding: '0.5rem 2.5rem',
+        alignItems: 'center',
+        height: '3.5rem',
         borderTop: `1px solid ${colors.dark(0.2)}`,
       },
     },
     [
       span([workspaceInfo.name]),
-      div({ style: { display: 'flex' } }, [
+      div({ style: { display: 'flex', alignItems: 'center' } }, [
         renderMigrationIcon(),
-        div({ style: { display: 'flex', paddingLeft: '0.5rem', alignItems: 'center' } }, [renderMigrationText()]),
+        div({ style: { paddingLeft: '0.5rem' } }, [renderMigrationText()]),
+        workspaceInfo.migrationStep === 'Unscheduled' &&
+          span({ style: { marginLeft: '10px' } }, [
+            h(
+              ButtonOutline,
+              {
+                disabled: migrateStarted,
+                tooltip: migrateStarted ? 'Migration has been scheduled' : '',
+                onClick: () => {
+                  const migrateWorkspace = reportErrorAndRethrow('Error starting migration', async () => {
+                    setMigrateStarted(true);
+                    await Ajax().Workspaces.workspaceV2(workspaceInfo.namespace, workspaceInfo.name).migrateWorkspace();
+                  });
+                  migrateWorkspace();
+                },
+                'aria-label': `Migrate ${workspaceInfo.name}`,
+              },
+              ['Migrate']
+            ),
+          ]),
       ]),
     ]
   );
