@@ -4,9 +4,14 @@ import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import { GoogleWorkspace } from 'src/libs/workspace-utils';
 import { BucketLocation } from 'src/pages/workspaces/workspace/Dashboard/BucketLocation';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
-import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
+import {
+  defaultAzureStorageOptions,
+  defaultGoogleBucketOptions,
+  defaultGoogleWorkspace,
+} from 'src/testing/workspace-fixtures';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 
@@ -15,8 +20,14 @@ jest.mock('src/libs/ajax');
 jest.mock('src/libs/notifications');
 
 describe('BucketLocation', () => {
-  const workspace = {
-    workspace: { namespace: 'test', name: 'test', cloudPlatform: 'Gcp' },
+  const workspace: GoogleWorkspace & { workspaceInitialized: boolean } = {
+    ...defaultGoogleWorkspace,
+    workspace: {
+      ...defaultGoogleWorkspace.workspace,
+      namespace: 'test',
+      name: 'test',
+      cloudPlatform: 'Gcp',
+    },
     workspaceInitialized: true,
   };
 
