@@ -1,6 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
 import { axe } from 'jest-axe';
-import { delay } from 'lodash/fp';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
@@ -131,7 +130,7 @@ describe('WorkspaceTabs', () => {
 
     // Act
     render(h(WorkspaceTabs, props));
-    delay(5);
+
     // Assert
     expect(mockWorkspaceMenu).toHaveBeenCalledWith(
       expect.objectContaining({
