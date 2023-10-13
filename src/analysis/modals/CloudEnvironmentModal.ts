@@ -89,8 +89,8 @@ export const CloudEnvironmentModal = ({
   runtimes: Runtime[];
   apps: App[];
   appDataDisks: PersistentDisk[];
-  refreshRuntimes: () => Promise<unknown>;
-  refreshApps: () => Promise<unknown>;
+  refreshRuntimes: () => Promise<void>;
+  refreshApps: () => Promise<void>;
   workspace: BaseWorkspace;
   persistentDisks: PersistentDisk[];
   location: string;
