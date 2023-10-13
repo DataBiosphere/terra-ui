@@ -1,6 +1,7 @@
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { WorkspaceContainer } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 // Mocking for Nav.getLink
