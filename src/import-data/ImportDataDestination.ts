@@ -154,6 +154,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
       )(_.castArray(template))
     : [];
+  const canUseTemplateWorkspace = filteredTemplates.length > 0;
 
   const importMayTakeTimeMessage =
     'Note that the import process may take some time after you are redirected into your destination workspace.';
@@ -298,9 +299,10 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         () => {
           return h(Fragment, [
             h2({ style: styles.title }, ['Destination of the prepared data']),
-            div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
+            (canUseTemplateWorkspace || canUseNewWorkspace) &&
+              div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
             !userHasBillingProjects && h(linkAccountPrompt),
-            !!filteredTemplates.length &&
+            canUseTemplateWorkspace &&
               h(ChoiceButton, {
                 onClick: () => setMode('template'),
                 iconName: 'copySolid',
