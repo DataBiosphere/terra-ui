@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
-import { h } from 'react-hyperscript-helpers';
+import { dl, h } from 'react-hyperscript-helpers';
 import { azureRegions } from 'src/libs/azure-regions';
 import { AzureStorageDetails } from 'src/pages/workspaces/workspace/Dashboard/AzureStorageDetails';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -26,9 +26,7 @@ describe('AzureDetails', () => {
     };
 
     // Act
-    const { container } = render(h(AzureStorageDetails, props), {
-      container: document.body.appendChild(document.createElement('dl')),
-    });
+    const { container } = render(dl([h(AzureStorageDetails, props)]));
 
     // Assert
     expect(screen.queryByTitle('Microsoft Azure')).not.toBeNull();
@@ -50,9 +48,7 @@ describe('AzureDetails', () => {
     };
 
     // Act
-    const { container } = render(h(AzureStorageDetails, props), {
-      container: document.body.appendChild(document.createElement('dl')),
-    });
+    const { container } = render(dl([h(AzureStorageDetails, props)]));
 
     // Assert
     expect(screen.queryByText('Loading')).toBeNull();
