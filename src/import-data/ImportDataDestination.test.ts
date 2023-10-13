@@ -1,9 +1,10 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { CloudProvider, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -16,6 +17,15 @@ jest.mock('./import-utils', (): ImportUtilsExports => {
   return {
     ...jest.requireActual<ImportUtilsExports>('./import-utils'),
     canImportIntoWorkspace: jest.fn().mockReturnValue(true),
+  };
+});
+
+type NewWorkspaceModalExports = typeof import('src/components/NewWorkspaceModal') & { __esModule: true };
+jest.mock('src/components/NewWorkspaceModal', (): NewWorkspaceModalExports => {
+  return {
+    ...jest.requireActual<NewWorkspaceModalExports>('src/components/NewWorkspaceModal'),
+    default: jest.fn().mockReturnValue(null),
+    __esModule: true,
   };
 });
 
@@ -104,17 +114,67 @@ describe('ImportDataDestination', () => {
     {
       importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
       requiredAuthorizationDomain: 'test-auth-domain',
-      expectedArgs: { isProtectedData: true, requiredAuthorizationDomain: 'test-auth-domain' },
+      expectedArgs: {
+        cloudPlatform: undefined,
+        isProtectedData: true,
+        requiredAuthorizationDomain: 'test-auth-domain',
+      },
     },
     {
       importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedArgs: { cloudPlatform: undefined, isProtectedData: false, requiredAuthorizationDomain: undefined },
+    },
+    {
+      importRequest: {
+        type: 'tdr-snapshot-export',
+        manifestUrl: new URL('https://example.com/path/to/manifest.json'),
+        snapshot: {
+          id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+          name: 'test-snapshot',
+          source: [
+            {
+              dataset: {
+                id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+                name: 'test-dataset',
+                secureMonitoringEnabled: false,
+              },
+            },
+          ],
+          cloudPlatform: 'gcp',
+        },
+        syncPermissions: false,
+      },
+      requiredAuthorizationDomain: undefined,
+      expectedArgs: { cloudPlatform: 'GCP', isProtectedData: false, requiredAuthorizationDomain: undefined },
+    },
+    {
+      importRequest: {
+        type: 'tdr-snapshot-export',
+        manifestUrl: new URL('https://example.com/path/to/manifest.json'),
+        snapshot: {
+          id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+          name: 'test-snapshot',
+          source: [
+            {
+              dataset: {
+                id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+                name: 'test-dataset',
+                secureMonitoringEnabled: false,
+              },
+            },
+          ],
+          cloudPlatform: 'azure',
+        },
+        syncPermissions: false,
+      },
+      requiredAuthorizationDomain: undefined,
+      expectedArgs: { cloudPlatform: 'AZURE', isProtectedData: false, requiredAuthorizationDomain: undefined },
     },
   ] as {
     importRequest: ImportRequest;
     requiredAuthorizationDomain?: string;
-    expectedArgs: { isProtectedData: boolean; requiredAuthorizationDomain?: string };
+    expectedArgs: { cloudPlatform?: CloudProvider; isProtectedData: boolean; requiredAuthorizationDomain?: string };
   }[])(
     'should filter workspaces through canImportIntoWorkspace',
     async ({ importRequest, requiredAuthorizationDomain, expectedArgs }) => {
@@ -222,5 +282,140 @@ describe('ImportDataDestination', () => {
 
     const isNoticeShown = !!notice;
     expect(isNoticeShown).toBe(shouldShowNotice);
+  });
+
+  it.each([
+    // Unprotected data, no auth domain
+    {
+      props: {
+        importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+        requiredAuthorizationDomain: undefined,
+      },
+      expectedNewWorkspaceModalProps: {
+        cloudPlatform: undefined,
+        requiredAuthDomain: undefined,
+        requireEnhancedBucketLogging: false,
+      },
+    },
+    // Protected data, required auth domain
+    {
+      props: {
+        importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+        requiredAuthorizationDomain: 'test-auth-domain',
+      },
+      expectedNewWorkspaceModalProps: {
+        cloudPlatform: undefined,
+        requiredAuthDomain: 'test-auth-domain',
+        requireEnhancedBucketLogging: true,
+      },
+    },
+    // Snapshot requiring an Azure workspace
+    {
+      props: {
+        importRequest: {
+          type: 'tdr-snapshot-export',
+          manifestUrl: new URL('https://example.com/path/to/manifest.json'),
+          snapshot: {
+            id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+            name: 'test-snapshot',
+            source: [
+              {
+                dataset: {
+                  id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+                  name: 'test-dataset',
+                  secureMonitoringEnabled: false,
+                },
+              },
+            ],
+            cloudPlatform: 'azure',
+          },
+          syncPermissions: false,
+        },
+        requiredAuthorizationDomain: undefined,
+      },
+      expectedNewWorkspaceModalProps: {
+        cloudPlatform: 'AZURE',
+        requiredAuthDomain: undefined,
+        requireEnhancedBucketLogging: false,
+      },
+    },
+    // Snapshot requiring a GCP workspace
+    {
+      props: {
+        importRequest: {
+          type: 'tdr-snapshot-export',
+          manifestUrl: new URL('https://example.com/path/to/manifest.json'),
+          snapshot: {
+            id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+            name: 'test-snapshot',
+            source: [
+              {
+                dataset: {
+                  id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+                  name: 'test-dataset',
+                  secureMonitoringEnabled: false,
+                },
+              },
+            ],
+            cloudPlatform: 'gcp',
+          },
+          syncPermissions: false,
+        },
+        requiredAuthorizationDomain: undefined,
+      },
+      expectedNewWorkspaceModalProps: {
+        cloudPlatform: 'GCP',
+        requiredAuthDomain: undefined,
+        requireEnhancedBucketLogging: false,
+      },
+    },
+  ] as { props: Partial<ImportDataDestinationProps>; expectedNewWorkspaceModalProps: Record<string, any> }[])(
+    'passes workspaces requirements to NewWorkspaceModal',
+    async ({ props, expectedNewWorkspaceModalProps }) => {
+      // Arrange
+      const user = userEvent.setup();
+
+      setup({ props });
+
+      // Act
+      const newWorkspaceButton = screen.getByText('Start with a new workspace');
+      await user.click(newWorkspaceButton);
+
+      // Assert
+      expect(NewWorkspaceModal).toHaveBeenCalledWith(
+        expect.objectContaining(expectedNewWorkspaceModalProps),
+        expect.anything()
+      );
+    }
+  );
+
+  it('hides new workspace option for imports of protected Azure snapshots', async () => {
+    // Arrange
+    setup({
+      props: {
+        importRequest: {
+          type: 'tdr-snapshot-export',
+          manifestUrl: new URL('https://example.com/path/to/manifest.json'),
+          snapshot: {
+            id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+            name: 'test-snapshot',
+            source: [
+              {
+                dataset: {
+                  id: '00001111-2222-3333-aaaa-bbbbccccdddd',
+                  name: 'test-dataset',
+                  secureMonitoringEnabled: true,
+                },
+              },
+            ],
+            cloudPlatform: 'azure',
+          },
+          syncPermissions: false,
+        },
+      },
+    });
+
+    // Assert
+    expect(screen.queryByText('Start with a new workspace')).toBeNull();
   });
 });

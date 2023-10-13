@@ -65,6 +65,7 @@ const cromwellRunning: App = {
       'https://leonardo-fiab.dsde-dev.broadinstitute.org/fd0cfbb14f/cromwell-service/swagger/cromwell.yaml',
   },
   status: 'RUNNING',
+  region: 'us-central1',
 };
 
 // Newer than cromwellRunning
@@ -92,6 +93,7 @@ const cromwellProvisioning: App = {
       'https://leonardo-fiab.dsde-dev.broadinstitute.org/fd0cfbb14f/cromwell-service/swagger/cromwell.yaml',
   },
   status: 'PROVISIONING',
+  region: 'us-central1',
 };
 
 const mockApps = [cromwellProvisioning, cromwellRunning, galaxyRunning, galaxyDeleting];
@@ -119,6 +121,7 @@ const galaxy1Workspace1: App = {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
   status: 'RUNNING',
+  region: 'us-central1',
 };
 
 const galaxy2Workspace1: App = {
@@ -144,6 +147,7 @@ const galaxy2Workspace1: App = {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
   status: 'RUNNING',
+  region: 'us-central1',
 };
 
 const cromwell1Workspace1: App = {
@@ -169,6 +173,7 @@ const cromwell1Workspace1: App = {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
   status: 'RUNNING',
+  region: 'us-central1',
 };
 
 const mockAppsSameWorkspace = [galaxy1Workspace1, galaxy2Workspace1, cromwell1Workspace1];
@@ -514,6 +519,7 @@ const cromwellError: App = {
       'https://leonardo-fiab.dsde-dev.broadinstitute.org/fd0cfbb14f/cromwell-service/swagger/cromwell.yaml',
   },
   status: 'ERROR',
+  region: 'us-central1',
 };
 
 describe('getCurrentApp', () => {

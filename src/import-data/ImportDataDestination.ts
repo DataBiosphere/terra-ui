@@ -22,7 +22,7 @@ import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
 
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
-import { canImportIntoWorkspace } from './import-utils';
+import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
 import { isProtectedSource } from './protected-data-utils';
 
 const styles = {
@@ -105,13 +105,35 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
   } = props;
 
   const isProtectedData = isProtectedSource(importRequest);
+  const requiredCloudPlatform = getCloudPlatformRequiredForImport(importRequest);
+
+  // There is not yet a way to create a protected Azure via Terra UI.
+  // Thus, there is no way to create a new workspace that satisfies the requirements
+  // for a protected Azure snapshot.
+  const canUseNewWorkspace = !(isProtectedData && requiredCloudPlatform === 'AZURE');
 
   // Some import types are finished in a single request.
   // For most though, the import request starts a background task that takes time to complete.
   const immediateImportTypes: ImportRequest['type'][] = ['tdr-snapshot-reference', 'catalog-snapshots'];
   const importMayTakeTime = !immediateImportTypes.includes(importRequest.type);
 
-  const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces();
+  const {
+    workspaces,
+    refresh: refreshWorkspaces,
+    loading: loadingWorkspaces,
+  } = useWorkspaces([
+    'workspace.workspaceId',
+    'workspace.namespace',
+    'workspace.name',
+    // The decision on whether or data can be imported into a workspace is based on the user's level of access
+    // to the workspace and the workspace's authorization domain, protected status and cloud platform.
+    // That information needs to be fetched here.
+    'accessLevel',
+    'policies',
+    'workspace.authorizationDomain',
+    'workspace.bucketName',
+    'workspace.cloudPlatform',
+  ]);
   const [mode, setMode] = useState<'existing' | 'template' | undefined>(
     initialSelectedWorkspaceId ? 'existing' : undefined
   );
@@ -132,6 +154,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
       )(_.castArray(template))
     : [];
+  const canUseTemplateWorkspace = filteredTemplates.length > 0;
 
   const importMayTakeTimeMessage =
     'Note that the import process may take some time after you are redirected into your destination workspace.';
@@ -163,6 +186,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               workspaces: workspaces.filter((workspace) => {
                 return canImportIntoWorkspace(
                   {
+                    cloudPlatform: requiredCloudPlatform,
                     isProtectedData,
                     requiredAuthorizationDomain,
                   },
@@ -176,7 +200,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       ]),
       importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-        h(ButtonSecondary, { onClick: setMode, style: { marginLeft: 'auto' } }, ['Back']),
+        h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
         h(
           ButtonPrimary,
           {
@@ -252,7 +276,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         ]
       ),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-        h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: setMode }, ['Back']),
+        h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: () => setMode(undefined) }, ['Back']),
         h(
           ButtonPrimary,
           {
@@ -275,9 +299,10 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         () => {
           return h(Fragment, [
             h2({ style: styles.title }, ['Destination of the prepared data']),
-            div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
+            (canUseTemplateWorkspace || canUseNewWorkspace) &&
+              div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
             !userHasBillingProjects && h(linkAccountPrompt),
-            !!filteredTemplates.length &&
+            canUseTemplateWorkspace &&
               h(ChoiceButton, {
                 onClick: () => setMode('template'),
                 iconName: 'copySolid',
@@ -291,17 +316,19 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               detail: 'Select one of your workspaces',
               disabled: !userHasBillingProjects,
             }),
-            h(ChoiceButton, {
-              onClick: () => setIsCreateOpen(true),
-              iconName: 'plus-circle',
-              title: 'Start with a new workspace',
-              detail: 'Set up an empty workspace that you will configure for analysis',
-              'aria-haspopup': 'dialog',
-              disabled: !userHasBillingProjects,
-            }),
+            canUseNewWorkspace &&
+              h(ChoiceButton, {
+                onClick: () => setIsCreateOpen(true),
+                iconName: 'plus-circle',
+                title: 'Start with a new workspace',
+                detail: 'Set up an empty workspace that you will configure for analysis',
+                'aria-haspopup': 'dialog',
+                disabled: !userHasBillingProjects,
+              }),
             isCreateOpen &&
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
+                cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
                 customMessage: importMayTakeTime && importMayTakeTimeMessage,
                 requireEnhancedBucketLogging: isProtectedData,
                 onDismiss: () => setIsCreateOpen(false),

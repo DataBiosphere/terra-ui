@@ -180,6 +180,7 @@ const cromwellRunning: App = {
     'cbas-ui': 'testValue',
   },
   status: 'RUNNING',
+  region: 'us-central1',
 };
 
 const hailBatchAppRunning: App = {
@@ -215,6 +216,7 @@ const hailBatchAppRunning: App = {
     clusterServiceAccount: '/subscriptions/123/pet-101',
     creator: 'abc.testerson@gmail.com',
   },
+  region: 'us-central1',
 };
 
 type NavExports = typeof import('src/libs/nav');

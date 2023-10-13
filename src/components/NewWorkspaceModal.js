@@ -63,7 +63,18 @@ const ariaInvalidBillingAccountMsg = (invalidBillingAccount) => {
 };
 const NewWorkspaceModal = withDisplayName(
   'NewWorkspaceModal',
-  ({ cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, requireEnhancedBucketLogging, title, buttonText, workflowImport }) => {
+  ({
+    cloneWorkspace,
+    cloudPlatform,
+    onSuccess,
+    onDismiss,
+    customMessage,
+    requiredAuthDomain,
+    requireEnhancedBucketLogging,
+    title,
+    buttonText,
+    workflowImport,
+  }) => {
     // State
     const [billingProjects, setBillingProjects] = useState();
     const [azureBillingProjectsExist, setAzureBillingProjectsExist] = useState(false);
@@ -303,7 +314,7 @@ const NewWorkspaceModal = withDisplayName(
                           value: projectName,
                           isDisabled: invalidBillingAccount,
                         }),
-                        _.sortBy('projectName', _.uniq(billingProjects))
+                        _.sortBy('projectName', _.uniq(cloudPlatform ? _.filter({ cloudPlatform }, billingProjects) : billingProjects))
                       ),
                     }),
                   ]),

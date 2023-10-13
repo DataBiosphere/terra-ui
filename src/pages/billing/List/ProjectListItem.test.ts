@@ -1,10 +1,11 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { ProjectListItem, ProjectListItemProps } from 'src/pages/billing/List/ProjectListItem';
 import { BillingProject } from 'src/pages/billing/models/BillingProject';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 // Mocking for using Nav.getLink
 jest.mock('src/libs/nav', () => ({

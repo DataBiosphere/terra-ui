@@ -102,6 +102,7 @@ const Register = () => {
     { givenName, familyName, email, institute, title, department },
     constraints(partOfOrganization)
   );
+
   return div(
     {
       role: 'main',
@@ -242,7 +243,7 @@ const Register = () => {
       ]),
       div({ style: { marginTop: '3rem' } }, [
         h(ButtonPrimary, { disabled: errors || busy, onClick: register }, ['Register']),
-        h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: signOut }, ['Cancel']),
+        h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: () => signOut('requested') }, ['Cancel']),
         busy &&
           centeredSpinner({
             size: 34,

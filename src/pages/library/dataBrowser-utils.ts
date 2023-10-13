@@ -1,6 +1,6 @@
 import { withHandlers } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { Fragment, ReactElement, useState } from 'react';
+import { CSSProperties, Fragment, ReactElement, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonOutline } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -103,7 +103,7 @@ interface DatasetAccessProps {
 export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
   const access = getDatasetAccessType(dataset);
   const { requestAccessURL } = dataset;
-  const buttonStyle = { height: 34, textTransform: 'none', padding: '.5rem' };
+  const buttonStyle: CSSProperties = { height: 34, textTransform: 'none', padding: '.5rem' };
   const textStyle = { paddingLeft: 10, paddingTop: 4, fontSize: 12 };
 
   return h(Fragment, [

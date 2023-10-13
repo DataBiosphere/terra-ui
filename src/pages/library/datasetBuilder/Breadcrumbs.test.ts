@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { DatasetBuilderBreadcrumbs } from 'src/pages/library/datasetBuilder/Breadcrumbs';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 describe('Breadcrumbs', () => {
   it('renders a single breadcrumb', () => {

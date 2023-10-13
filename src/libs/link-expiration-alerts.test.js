@@ -1,8 +1,8 @@
-import { render } from '@testing-library/react';
 import { addDays, addHours, setMilliseconds } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { getLinkExpirationAlerts } from 'src/libs/link-expiration-alerts';
 import * as Nav from 'src/libs/nav';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/providers', () => [
   {
