@@ -157,6 +157,14 @@ const Workspaces = (signal) => ({
     return response.json();
   },
 
+  bucketMigrationProgress: async (body) => {
+    const response = await fetchRawls(
+      'workspaces/v2/bucketMigration/getProgress',
+      _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }])
+    );
+    return response.json();
+  },
+
   startBatchBucketMigration: async (body) => {
     const response = await fetchRawls('workspaces/v2/bucketMigration', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
     return response.json();

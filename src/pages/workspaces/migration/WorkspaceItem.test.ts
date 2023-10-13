@@ -21,6 +21,7 @@ describe('WorkspaceItem', () => {
   const migrateButtonText = `Migrate ${unscheduledWorkspace.name}`;
   const migrationScheduledTooltipText = 'Migration has been scheduled';
   const mockGetBucketUsage = jest.fn();
+  const mockMigrationStartedCallback = jest.fn();
 
   beforeEach(() => {
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
@@ -52,7 +53,12 @@ describe('WorkspaceItem', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    render(h(WorkspaceItem, { workspaceMigrationInfo: unscheduledWorkspace }));
+    render(
+      h(WorkspaceItem, {
+        workspaceMigrationInfo: unscheduledWorkspace,
+        migrationStartedCallback: mockMigrationStartedCallback,
+      })
+    );
 
     // Assert
     await screen.findByText('workspace name');
@@ -77,7 +83,12 @@ describe('WorkspaceItem', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    render(h(WorkspaceItem, { workspaceMigrationInfo: unscheduledWorkspace }));
+    render(
+      h(WorkspaceItem, {
+        workspaceMigrationInfo: unscheduledWorkspace,
+        migrationStartedCallback: mockMigrationStartedCallback,
+      })
+    );
     expect(screen.queryByText(migrationScheduledTooltipText)).toBeNull();
     await user.click(screen.getByLabelText(migrateButtonText));
 
@@ -85,6 +96,9 @@ describe('WorkspaceItem', () => {
     expect(mockMigrateWorkspace).toHaveBeenCalled();
     expect(screen.getByLabelText(migrateButtonText).getAttribute('aria-disabled')).toBe('true');
     await screen.findByText(migrationScheduledTooltipText);
+    expect(mockMigrationStartedCallback).toHaveBeenCalledWith([
+      { name: unscheduledWorkspace.name, namespace: unscheduledWorkspace.namespace },
+    ]);
   });
 
   it('shows if the bucket size cannot be fetched for an unscheduled workspace, and shows migrate button', async () => {
@@ -101,7 +115,12 @@ describe('WorkspaceItem', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    render(h(WorkspaceItem, { workspaceMigrationInfo: unscheduledWorkspace }));
+    render(
+      h(WorkspaceItem, {
+        workspaceMigrationInfo: unscheduledWorkspace,
+        migrationStartedCallback: mockMigrationStartedCallback,
+      })
+    );
 
     // Assert
     await screen.findByText('workspace name');
@@ -132,7 +151,12 @@ describe('WorkspaceItem', () => {
     };
 
     // Act
-    render(h(WorkspaceItem, { workspaceMigrationInfo: completedWorkspace }));
+    render(
+      h(WorkspaceItem, {
+        workspaceMigrationInfo: completedWorkspace,
+        migrationStartedCallback: mockMigrationStartedCallback,
+      })
+    );
 
     // Assert
     await screen.findByText('april29');
@@ -155,7 +179,12 @@ describe('WorkspaceItem', () => {
     };
 
     // Act
-    const { container } = render(h(WorkspaceItem, { workspaceMigrationInfo: failedWorkspace }));
+    const { container } = render(
+      h(WorkspaceItem, {
+        workspaceMigrationInfo: failedWorkspace,
+        migrationStartedCallback: mockMigrationStartedCallback,
+      })
+    );
     const infoButton = screen.getByLabelText('More info');
     await user.click(infoButton);
 
@@ -185,7 +214,9 @@ describe('WorkspaceItem', () => {
       };
 
       // Act
-      const { container } = render(h(WorkspaceItem, { workspaceMigrationInfo: workspace }));
+      const { container } = render(
+        h(WorkspaceItem, { workspaceMigrationInfo: workspace, migrationStartedCallback: mockMigrationStartedCallback })
+      );
 
       // Assert
       await screen.findByText(expectedStatus);
@@ -218,7 +249,12 @@ describe('WorkspaceItem', () => {
     };
 
     // Act
-    render(h(WorkspaceItem, { workspaceMigrationInfo: transferringWorkspace }));
+    render(
+      h(WorkspaceItem, {
+        workspaceMigrationInfo: transferringWorkspace,
+        migrationStartedCallback: mockMigrationStartedCallback,
+      })
+    );
 
     // Assert
     await screen.findByText('Christina test');
@@ -249,7 +285,12 @@ describe('WorkspaceItem', () => {
     };
 
     // Act
-    render(h(WorkspaceItem, { workspaceMigrationInfo: transferringWorkspace }));
+    render(
+      h(WorkspaceItem, {
+        workspaceMigrationInfo: transferringWorkspace,
+        migrationStartedCallback: mockMigrationStartedCallback,
+      })
+    );
 
     // Assert
     await screen.findByText('Christina test');
@@ -280,7 +321,12 @@ describe('WorkspaceItem', () => {
     };
 
     // Act
-    render(h(WorkspaceItem, { workspaceMigrationInfo: transferringWorkspace }));
+    render(
+      h(WorkspaceItem, {
+        workspaceMigrationInfo: transferringWorkspace,
+        migrationStartedCallback: mockMigrationStartedCallback,
+      })
+    );
 
     // Assert
     await screen.findByText('Christina test');
@@ -292,26 +338,21 @@ describe('WorkspaceItem', () => {
     // Arrange
     const transferringWorkspace: WorkspaceMigrationInfo = {
       failureReason: undefined,
-      finalBucketTransferProgress: {
-        bytesTransferred: 0,
-        objectsTransferred: 0,
-        totalBytesToTransfer: 0,
-        totalObjectsToTransfer: 0,
-      },
+      finalBucketTransferProgress: undefined,
       migrationStep: 'TransferringToFinalBucket',
       name: 'Christina test',
       namespace: 'general-dev-billing-account',
       outcome: undefined,
-      tempBucketTransferProgress: {
-        bytesTransferred: 0,
-        objectsTransferred: 0,
-        totalBytesToTransfer: 0,
-        totalObjectsToTransfer: 0,
-      },
+      tempBucketTransferProgress: undefined,
     };
 
     // Act
-    render(h(WorkspaceItem, { workspaceMigrationInfo: transferringWorkspace }));
+    render(
+      h(WorkspaceItem, {
+        workspaceMigrationInfo: transferringWorkspace,
+        migrationStartedCallback: mockMigrationStartedCallback,
+      })
+    );
 
     // Assert
     await screen.findByText('Christina test');

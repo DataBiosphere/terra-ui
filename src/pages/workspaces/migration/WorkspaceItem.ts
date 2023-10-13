@@ -13,10 +13,12 @@ import {
   inProgressIcon,
   successIcon,
   WorkspaceMigrationInfo,
+  WorkspaceWithNamespace,
 } from 'src/pages/workspaces/migration/migration-utils';
 
 interface WorkspaceItemProps {
   workspaceMigrationInfo: WorkspaceMigrationInfo;
+  migrationStartedCallback: (p: WorkspaceWithNamespace[]) => {};
 }
 
 export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
@@ -68,7 +70,8 @@ export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
 
   const renderMigrationText = () => {
     const getTransferProgress = (transferType, processed, total) => {
-      if (total === 0) {
+      if (!total) {
+        // handle both 0 and undefined
         return `${transferType} Bucket Transfer`;
       }
       return `${transferType} Transfer in Progress (${Utils.formatBytes(processed)}/${Utils.formatBytes(total)})`;
@@ -154,8 +157,9 @@ export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
                 tooltip: migrateStarted ? 'Migration has been scheduled' : '',
                 onClick: () => {
                   const migrateWorkspace = reportErrorAndRethrow('Error starting migration', async () => {
-                    setMigrateStarted(true);
                     await Ajax().Workspaces.workspaceV2(workspaceInfo.namespace, workspaceInfo.name).migrateWorkspace();
+                    props.migrationStartedCallback([{ name: workspaceInfo.name, namespace: workspaceInfo.namespace }]);
+                    setMigrateStarted(true);
                   });
                   migrateWorkspace();
                 },
