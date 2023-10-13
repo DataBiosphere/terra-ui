@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 
 describe('HelpfulLinksBox', () => {

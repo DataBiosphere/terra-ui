@@ -1,9 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { getLink } from 'src/libs/nav';
 import { useWorkspaceById } from 'src/libs/workspace-hooks';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { WorkspaceLink, WorkspaceLinkById } from './WorkspaceLinks';
 
