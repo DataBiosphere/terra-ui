@@ -45,8 +45,6 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   const canShare = workspace?.canShare;
   const isLocked = !!workspace?.workspace.isLocked;
   const workspaceLoaded = !!workspace;
-  const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace);
-  const azureWorkspace = workspaceLoaded && isAzureWorkspace(workspace);
 
   const onClone = () => setCloningWorkspace(true);
   const onDelete = () => setDeletingWorkspace(true);
@@ -54,18 +52,8 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   const onShare = () => setSharingWorkspace(true);
   const onLeave = () => setLeavingWorkspace(true);
 
-  const tabs = [
-    { name: 'dashboard', link: 'workspace-dashboard' },
-    { name: 'data', link: 'workspace-data' },
-    { name: 'analyses', link: analysisTabName },
-    ...(googleWorkspace
-      ? [
-          { name: 'workflows', link: 'workspace-workflows' },
-          { name: 'job history', link: 'workspace-job-history' },
-        ]
-      : []),
-    ...(azureWorkspace ? [{ name: 'workflows', link: 'workspace-workflows-app' }] : []),
-  ];
+  const tabs = getTabs(workspace);
+
   return h(Fragment, [
     h(
       TabBar,
@@ -93,4 +81,27 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
       ]
     ),
   ]);
+};
+
+const getTabs = (workspace?: Workspace): { name: string; link: string }[] => {
+  const commonTabs = [
+    { name: 'dashboard', link: 'workspace-dashboard' },
+    { name: 'data', link: 'workspace-data' },
+    { name: 'analyses', link: analysisTabName },
+  ];
+
+  if (workspace?.workspace?.state === 'Deleting' || workspace?.workspace?.state === 'DeleteFailed') {
+    return [{ name: 'dashboard', link: 'workspace-dashboard' }];
+  }
+  if (!!workspace && isGoogleWorkspace(workspace)) {
+    return [
+      ...commonTabs,
+      { name: 'workflows', link: 'workspace-workflows' },
+      { name: 'job history', link: 'workspace-job-history' },
+    ];
+  }
+  if (!!workspace && isAzureWorkspace(workspace)) {
+    return [...commonTabs, { name: 'workflows', link: 'workspace-workflows-app' }];
+  }
+  return commonTabs;
 };

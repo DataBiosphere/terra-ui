@@ -2,9 +2,10 @@ import { render, screen, within } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
-
 // Mocking for Nav.getLink
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -161,5 +162,56 @@ describe('WorkspaceTabs', () => {
         workspaceInfo: { canShare: false, isLocked: false, isOwner: false, workspaceLoaded: false },
       })
     );
+  });
+
+  it('hides all tabs except Dashboard if the workspace is in a state of Deleting', () => {
+    const workspace: Workspace = {
+      ...defaultGoogleWorkspace,
+      workspace: { ...defaultGoogleWorkspace.workspace, state: 'Deleting' },
+    };
+    // Arrange
+    const props = {
+      name: workspace.workspace.name,
+      namespace: workspace.workspace.namespace,
+      workspace,
+      setDeletingWorkspace: () => {},
+      setCloningWorkspace: () => {},
+      setSharingWorkspace: () => {},
+      setShowLockWorkspaceModal: () => {},
+      setLeavingWorkspace: () => {},
+      refresh: () => {},
+    };
+    // Act
+    render(h(WorkspaceTabs, props));
+    // Assert
+    const tabs = screen.getAllByRole('menuitem');
+    expect(tabs.length).toBe(1);
+    expect(within(tabs[0]).getByText('dashboard')).not.toBeNull();
+  });
+
+  it('hides all tabs except Dashboard if the workspace is in a state of Delete Failed', () => {
+    const workspace: Workspace = {
+      ...defaultGoogleWorkspace,
+      workspace: { ...defaultGoogleWorkspace.workspace, state: 'DeleteFailed' },
+    };
+
+    // Arrange
+    const props = {
+      name: workspace.workspace.name,
+      namespace: workspace.workspace.namespace,
+      workspace,
+      setDeletingWorkspace: () => {},
+      setCloningWorkspace: () => {},
+      setSharingWorkspace: () => {},
+      setShowLockWorkspaceModal: () => {},
+      setLeavingWorkspace: () => {},
+      refresh: () => {},
+    };
+    // Act
+    render(h(WorkspaceTabs, props));
+    // Assert
+    const tabs = screen.getAllByRole('menuitem');
+    expect(tabs.length).toBe(1);
+    expect(within(tabs[0]).getByText('dashboard')).not.toBeNull();
   });
 });
