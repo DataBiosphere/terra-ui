@@ -76,7 +76,13 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
           iconSize: 27,
           popupLocation: 'bottom',
           callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-          workspaceInfo: { canShare: !!canShare, isLocked, isOwner: wsOwner, workspaceLoaded },
+          workspaceInfo: {
+            state: workspace?.workspace?.state,
+            canShare: !!canShare,
+            isLocked,
+            isOwner: wsOwner,
+            workspaceLoaded,
+          },
         }),
       ]
     ),

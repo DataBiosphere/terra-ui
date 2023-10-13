@@ -145,6 +145,73 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     }
   });
 
+  it('disables all items except Share for a workspace that is deleting', () => {
+    // Arrange
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: {
+        ...defaultGoogleWorkspace,
+        workspace: {
+          ...defaultGoogleWorkspace.workspace,
+          state: 'Deleting',
+        },
+      },
+      refresh: jest.fn(),
+      loading: false,
+    });
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps));
+    // Assert
+    const share = screen.getByText('Share');
+    expect(share).not.toHaveAttribute('disabled');
+
+    const clone = screen.getByText('Clone');
+    expect(clone).toHaveAttribute('disabled');
+
+    const lock = screen.getByText('Lock');
+    expect(lock).toHaveAttribute('disabled');
+
+    const leave = screen.getByText('Leave');
+    expect(leave).toHaveAttribute('disabled');
+
+    const deleteItem = screen.getByText('Delete');
+    expect(deleteItem).toHaveAttribute('disabled');
+  });
+
+  it('disables all items except Share and Delete for a workspace in state DeleteFailed', () => {
+    // Arrange
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: {
+        ...defaultGoogleWorkspace,
+        workspace: {
+          ...defaultGoogleWorkspace.workspace,
+          state: 'DeleteFailed',
+        },
+      },
+      refresh: jest.fn(),
+      loading: false,
+    });
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps));
+
+    // Assert
+    const share = screen.getByText('Share');
+    expect(share).not.toHaveAttribute('disabled');
+
+    const deleteItem = screen.getByText('Delete');
+    expect(deleteItem).not.toHaveAttribute('disabled');
+
+    const clone = screen.getByText('Clone');
+    expect(clone).toHaveAttribute('disabled');
+
+    const lock = screen.getByText('Lock');
+    expect(lock).toHaveAttribute('disabled');
+
+    const leave = screen.getByText('Leave');
+    expect(leave).toHaveAttribute('disabled');
+  });
+
   it.each([true, false])('renders Share tooltip based on canShare: %s', (canShare) => {
     // Arrange
     asMockedFn(useWorkspaceDetails).mockReturnValue({

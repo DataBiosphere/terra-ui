@@ -6,12 +6,18 @@ import { Clickable } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { useWorkspaceDetails } from 'src/components/workspace-utils';
-import { isOwner, WorkspacePolicy, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { isOwner, WorkspacePolicy, WorkspaceState, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
 const isNameType = (o: WorkspaceInfo): o is DynamicWorkspaceInfo =>
   'name' in o && typeof o.name === 'string' && 'namespace' in o && typeof o.namespace === 'string';
 
-type LoadedWorkspaceInfo = { canShare: boolean; isLocked: boolean; isOwner: boolean; workspaceLoaded: boolean };
+type LoadedWorkspaceInfo = {
+  state?: WorkspaceState;
+  canShare: boolean;
+  isLocked: boolean;
+  isOwner: boolean;
+  workspaceLoaded: boolean;
+};
 type DynamicWorkspaceInfo = { name: string; namespace: string };
 type WorkspaceInfo = DynamicWorkspaceInfo | LoadedWorkspaceInfo;
 
@@ -80,12 +86,14 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
     'policies',
     'canShare',
     'workspace.isLocked',
+    'workspace.state',
   ]) as { workspace?: Workspace };
 
   return h(LoadedWorkspaceMenuContent, {
     workspaceInfo: {
+      state: workspace?.workspace?.state,
       canShare: !!workspace?.canShare,
-      isLocked: !!workspace?.workspace.isLocked,
+      isLocked: !!workspace?.workspace?.isLocked,
       isOwner: !!workspace && isOwner(workspace.accessLevel),
       workspaceLoaded: !!workspace,
     },
@@ -115,7 +123,7 @@ interface LoadedWorkspaceMenuContentProps {
 }
 const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
   const {
-    workspaceInfo: { canShare, isLocked, isOwner, workspaceLoaded },
+    workspaceInfo: { state, canShare, isLocked, isOwner, workspaceLoaded },
     callbacks: { onShare, onLock, onLeave, onClone, onDelete },
   } = props;
   const shareTooltip = cond([workspaceLoaded && !canShare, () => tooltipText.shareNoPermission], [DEFAULT, () => '']);
@@ -129,7 +137,7 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
     h(
       MenuButton,
       {
-        disabled: !workspaceLoaded,
+        disabled: !workspaceLoaded || state === 'Deleting' || state === 'DeleteFailed',
         tooltipSide: 'left',
         onClick: onClone,
       },
@@ -148,7 +156,7 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
     h(
       MenuButton,
       {
-        disabled: !workspaceLoaded || !isOwner,
+        disabled: !workspaceLoaded || !isOwner || state === 'Deleting' || state === 'DeleteFailed',
         tooltip: workspaceLoaded &&
           !isOwner && [isLocked ? tooltipText.unlockNoPermission : tooltipText.lockNoPermission],
         tooltipSide: 'left',
@@ -159,7 +167,7 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
     h(
       MenuButton,
       {
-        disabled: !workspaceLoaded,
+        disabled: !workspaceLoaded || state === 'Deleting' || state === 'DeleteFailed',
         onClick: onLeave,
       },
       [makeMenuIcon('arrowRight'), 'Leave']
@@ -167,7 +175,7 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
     h(
       MenuButton,
       {
-        disabled: !workspaceLoaded || !isOwner || isLocked,
+        disabled: !workspaceLoaded || !isOwner || isLocked || state === 'Deleting',
         tooltip: deleteTooltip,
         tooltipSide: 'left',
         onClick: onDelete,
