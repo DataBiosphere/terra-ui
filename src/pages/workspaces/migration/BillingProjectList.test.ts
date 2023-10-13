@@ -1,7 +1,7 @@
+import { abandonedPromise } from '@terra-ui-packages/core-utils';
 import { act, screen, within } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { abandonedPromise } from 'src/libs/utils';
 import { BillingProjectList, inProgressRefreshRate } from 'src/pages/workspaces/migration/BillingProjectList';
 import { mockServerData } from 'src/pages/workspaces/migration/migration-utils.test';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
