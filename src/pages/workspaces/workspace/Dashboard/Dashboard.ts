@@ -308,6 +308,7 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
   // Render
   const isEditing = _.isString(editDescription);
   const brand = getEnabledBrand();
+  // @ts-expect-error
   const { value: canEdit, message: editErrorMessage } = canEditWorkspace(workspace);
 
   return div({ style: { flex: 1, display: 'flex' } }, [
