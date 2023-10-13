@@ -1,11 +1,9 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
 import { cond } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import {
   CSSProperties,
   ForwardedRef,
   Fragment,
-  PropsWithChildren,
   ReactNode,
   useCallback,
   useEffect,
@@ -13,40 +11,34 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { div, h, h3, i, span } from 'react-hyperscript-helpers';
+import { div, h, i, span } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
-import Collapse from 'src/components/Collapse';
-import { ButtonPrimary, ButtonSecondary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common';
 import { centeredSpinner, icon, spinner } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown';
 import { SimpleTable } from 'src/components/table';
 import { WorkspaceTagSelect } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
-import { refreshTerraProfile } from 'src/libs/auth';
 import { getEnabledBrand } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
-import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import { append, formatBytes, newTabLinkProps, withBusyState } from 'src/libs/utils';
-import {
-  canEditWorkspace,
-  canWrite,
-  isGoogleWorkspace,
-  isOwner,
-  WorkspaceAccessLevel,
-  WorkspaceACL,
-} from 'src/libs/workspace-utils';
+import { canEditWorkspace, canWrite, isGoogleWorkspace, isOwner, WorkspaceACL } from 'src/libs/workspace-utils';
 import SignIn from 'src/pages/SignIn';
 import { CloudInformation } from 'src/pages/workspaces/workspace/Dashboard/CloudInformation';
+import { DataUseLimitations } from 'src/pages/workspaces/workspace/Dashboard/DataUseLimitations';
+import { OwnerNotice } from 'src/pages/workspaces/workspace/Dashboard/OwnerNotice';
+import { RightBoxSection } from 'src/pages/workspaces/workspace/Dashboard/RightBoxSection';
 import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
+import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceNotifications';
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
-import { displayConsentCodes, displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
+import { displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
@@ -82,21 +74,6 @@ const displayAttributeValue = (v: unknown): string => {
   );
 };
 
-const DataUseLimitations = ({ attributes }) => {
-  return _.map(
-    ({ key, title }) => {
-      return div({ key, style: { display: 'inline-block', marginRight: '0.75rem' } }, [
-        h(TooltipTrigger, { content: title }, [
-          span({ style: { textDecoration: 'underline dotted' } }, [key.slice(8)]),
-        ]),
-        ': ',
-        displayAttributeValue(attributes[key]),
-      ]);
-    },
-    _.filter(({ key }) => _.has(key, attributes), displayConsentCodes)
-  );
-};
-
 const DashboardAuthContainer = (props) => {
   const { namespace, name } = props;
   const { signInStatus } = useStore(authStore);
@@ -124,86 +101,6 @@ const DashboardAuthContainer = (props) => {
     [signInStatus === 'signedOut', () => h(SignIn)],
     () => h(WorkspaceDashboard, props)
   );
-};
-
-interface RightBoxSectionProps {
-  title: string;
-  info?: ReactNode;
-  initialOpenState?: boolean;
-  afterTitle?: ReactNode;
-  onClick: () => void;
-}
-
-const RightBoxSection = (props: PropsWithChildren<RightBoxSectionProps>) => {
-  const { title, info, initialOpenState, afterTitle, onClick, children } = props;
-  return div({ style: { paddingTop: '1rem' } }, [
-    div({ style: Style.dashboard.rightBoxContainer }, [
-      h(
-        Collapse,
-        {
-          title: h3({ style: Style.dashboard.collapsibleHeader as CSSProperties }, [title, info]),
-          summaryStyle: { color: colors.accent() },
-          initialOpenState,
-          titleFirst: true,
-          afterTitle,
-          onClick,
-        },
-        [children]
-      ),
-    ]),
-  ]);
-};
-
-export const WorkspaceNotifications = ({ workspace }) => {
-  const {
-    workspace: { namespace, name },
-  } = workspace;
-
-  const [saving, setSaving] = useState(false);
-
-  const notificationsPreferences = _.pickBy((_v, k) => _.startsWith('notifications/', k), authStore.get().profile);
-
-  // TODO: These keys are not included in the type of the auth store profile object
-  const submissionNotificationKeys = [
-    `notifications/SuccessfulSubmissionNotification/${namespace}/${name}`,
-    `notifications/FailedSubmissionNotification/${namespace}/${name}`,
-    `notifications/AbortedSubmissionNotification/${namespace}/${name}`,
-  ];
-
-  const submissionNotificationsEnabled = !_.isMatch(
-    _.fromPairs(_.map((k) => [k, 'false'], submissionNotificationKeys)),
-    notificationsPreferences
-  );
-
-  return div({ style: { margin: '0.5rem' } }, [
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
-      h(
-        LabeledCheckbox,
-        {
-          checked: submissionNotificationsEnabled,
-          disabled: saving,
-          onChange: _.flow(
-            withBusyState(setSaving),
-            withErrorReporting('Error saving preferences')
-          )(async (value) => {
-            await Ajax().User.profile.setPreferences(
-              _.fromPairs(_.map((k) => [k, JSON.stringify(value)], submissionNotificationKeys))
-            );
-            await refreshTerraProfile();
-            Ajax().Metrics.captureEvent(Events.notificationToggle, {
-              notificationKeys: submissionNotificationKeys,
-              enabled: value,
-            });
-          }),
-        },
-        [span({ style: { marginLeft: '1ch' } }, ['Receive submission notifications'])]
-      ),
-      h(InfoBox, { style: { marginLeft: '1ch' } }, [
-        'Receive email notifications when a submission in this workspace has succeeded, failed, or been aborted.',
-      ]),
-      saving && spinner({ size: 12, style: { marginLeft: '1ch' } }),
-    ]),
-  ]);
 };
 
 interface WorkspaceDashboardProps {
@@ -618,45 +515,3 @@ export const navPaths = [
     public: true,
   },
 ];
-
-interface OwnerNoticeProps {
-  owners: string[];
-  accessLevel: WorkspaceAccessLevel;
-  acl?: WorkspaceACL;
-}
-
-const OwnerNotice = (props: OwnerNoticeProps): ReactNode => {
-  const { owners, accessLevel, acl } = props;
-  const notice = cond(
-    // No warning if there are multiple owners.
-    [_.size(owners) !== 1, () => null],
-    // If the current user does not own the workspace, then then workspace must be shared.
-    [
-      !isOwner(accessLevel),
-      () =>
-        h(Fragment, [
-          'This shared workspace has only one owner. Consider requesting ',
-          h(Link, { href: `mailto:${owners[0]}` }, [owners[0]]),
-          ' to add another owner to ensure someone is able to manage the workspace in case they lose access to their account.',
-        ]),
-    ],
-    // If the current user is the only owner of the workspace, check if the workspace is shared.
-    [
-      _.size(acl) > 1,
-      () =>
-        h(Fragment, [
-          'You are the only owner of this shared workspace. Consider adding another owner to ensure someone is able to manage the workspace in case you lose access to your account.',
-        ]),
-    ]
-  );
-  return !notice
-    ? undefined
-    : h(
-        InfoBox,
-        {
-          iconOverride: 'error-standard',
-          style: { color: colors.accent() },
-        },
-        [notice]
-      );
-};
