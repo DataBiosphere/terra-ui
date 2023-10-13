@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { appAccessScopes } from 'src/analysis/utils/tool-utils';
 import { App, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
 import { AuditInfo } from 'src/libs/ajax/leonardo/models/core-models';
+import { defaultAzureRegion } from 'src/libs/azure-utils';
 import { AzureWorkspace } from 'src/libs/workspace-utils';
 import { InputDefinition, OutputDefinition } from 'src/workflows-app/models/submission-models';
 
@@ -745,6 +746,7 @@ export const mockAzureApps: App[] = [
     accessScope: null,
     labels: {},
     kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+    region: defaultAzureRegion,
   },
   {
     workspaceId: 'abc-c07807929cd1',
@@ -764,6 +766,7 @@ export const mockAzureApps: App[] = [
     accessScope: 'WORKSPACE_SHARED',
     labels: {},
     kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+    region: defaultAzureRegion,
   },
 ];
 
@@ -785,6 +788,7 @@ export const mockCromwellRunner = (status: LeoAppStatus): App => ({
   accessScope: appAccessScopes.USER_PRIVATE,
   labels: {},
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  region: defaultAzureRegion,
 });
 
 export const mockCollaborativeAzureApps: App[] = [
@@ -807,6 +811,7 @@ export const mockCollaborativeAzureApps: App[] = [
     accessScope: appAccessScopes.WORKSPACE_SHARED,
     labels: {},
     kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+    region: defaultAzureRegion,
   },
   mockCromwellRunner('RUNNING'),
   {
@@ -827,6 +832,7 @@ export const mockCollaborativeAzureApps: App[] = [
     accessScope: 'WORKSPACE_SHARED',
     labels: {},
     kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+    region: defaultAzureRegion,
   },
 ];
 
