@@ -183,7 +183,7 @@ export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, dest
 
 export interface WorkspaceAccessInfo {
   accessLevel: WorkspaceAccessLevel;
-  workspace: { isLocked?: boolean };
+  workspace: { isLocked: boolean };
 }
 
 export const canEditWorkspace = ({
@@ -192,7 +192,7 @@ export const canEditWorkspace = ({
 }: WorkspaceAccessInfo): { value: boolean; message?: string } =>
   cond<{ value: boolean; message?: string }>(
     [!canWrite(accessLevel), () => ({ value: false, message: 'You do not have permission to modify this workspace.' })],
-    [!!isLocked, () => ({ value: false, message: 'This workspace is locked.' })],
+    [isLocked, () => ({ value: false, message: 'This workspace is locked.' })],
     () => ({ value: true })
   );
 
