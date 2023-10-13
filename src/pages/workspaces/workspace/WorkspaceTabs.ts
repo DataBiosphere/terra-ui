@@ -14,6 +14,7 @@ import {
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
 import { WorkspaceAttributeNotice } from 'src/pages/workspaces/workspace/WorkspaceAttributeNotice';
+import { WorkspaceDeletingBanner } from 'src/pages/workspaces/workspace/WorkspaceDeletingBanner';
 import { WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
 export interface WorkspaceTabsProps {
@@ -86,6 +87,7 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
         }),
       ]
     ),
+    h(WorkspaceDeletingBanner, { workspace }),
   ]);
 };
 
