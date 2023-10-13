@@ -13,7 +13,8 @@ import { withErrorReporting } from 'src/libs/error';
 import { getLocalPref } from 'src/libs/prefs';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { renderDataCell } from 'src/workspace-data/data-table/entity-service/renderDataCell';
+
+import { renderDataCell } from '../data-table/entity-service/renderDataCell';
 
 const UploadDataTable = (props) => {
   const {
