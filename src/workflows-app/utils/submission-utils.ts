@@ -138,7 +138,23 @@ export const renderTypeText = (iotype: InputType): string => {
 export const unwrapOptional = (input: InputType): Exclude<InputType, OptionalInputType> =>
   input.type === 'optional' ? input.optional_type : input;
 
-const validateRequiredHasSource = (inputSource: InputSource, inputType: InputType) => {
+type InputValidation =
+  | {
+      type: 'error' | 'info' | 'success';
+      message: string;
+    }
+  | {
+      type: 'none';
+    };
+
+type IsInputValid =
+  | true
+  | {
+      type: 'error' | 'info' | 'success';
+      message: string;
+    };
+
+const validateRequiredHasSource = (inputSource: InputSource, inputType: InputType): IsInputValid => {
   if (inputType.type === 'optional') {
     return true;
   }
@@ -181,7 +197,7 @@ const validateRequiredHasSource = (inputSource: InputSource, inputType: InputTyp
   return true;
 };
 
-export const typeMatch = (cbasType, wdsType) => {
+export const typeMatch = (cbasType, wdsType): boolean => {
   const unwrappedCbasType = unwrapOptional(cbasType);
   if (unwrappedCbasType.type === 'primitive') {
     return Utils.switchCase(
@@ -203,7 +219,11 @@ export const typeMatch = (cbasType, wdsType) => {
   return true;
 };
 
-const validateRecordLookup = (inputSource: InputSource | undefined, inputType: InputType, recordAttributes) => {
+const validateRecordLookup = (
+  inputSource: InputSource | undefined,
+  inputType: InputType,
+  recordAttributes
+): IsInputValid => {
   if (!inputSource) {
     return true;
   }
@@ -311,7 +331,7 @@ export const convertArrayType = ({
   return { ...input, input_type: inputType, source: inputSource };
 };
 
-const validatePrimitiveLiteral = (inputSource, inputType) => {
+const validatePrimitiveLiteral = (inputSource, inputType): IsInputValid => {
   if (inputSource.parameter_value === '' && inputType.primitive_type === 'String') {
     return { type: 'info', message: 'This will be sent as an empty string' };
   }
@@ -326,7 +346,7 @@ const validatePrimitiveLiteral = (inputSource, inputType) => {
   );
 };
 
-const validateArrayLiteral = (inputSource, inputType) => {
+const validateArrayLiteral = (inputSource, inputType): IsInputValid => {
   let value = inputSource.parameter_value;
   if (value === '') {
     return {
@@ -335,7 +355,7 @@ const validateArrayLiteral = (inputSource, inputType) => {
         'Array inputs should follow JSON array literal syntax. This input is empty. To submit an empty array, enter []',
     };
   }
-  const singletonValidation =
+  const singletonValidation: IsInputValid =
     validateLiteralInput(inputSource, inputType.array_type) === true
       ? {
           type: 'info',
@@ -408,7 +428,10 @@ const validateLiteralInput = (inputSource: InputSource, inputType: InputType) =>
   return true;
 };
 
-const validateInput = (input: InputDefinition | (StructField & ObjectBuilderField), dataTableAttributes) => {
+const validateInput = (
+  input: InputDefinition | (StructField & ObjectBuilderField),
+  dataTableAttributes
+): InputValidation => {
   const inputType = 'input_type' in input ? input.input_type : input.field_type;
   // first validate that required inputs have a source
   const requiredHasSource = validateRequiredHasSource(input.source, inputType);
@@ -430,10 +453,7 @@ const validateInput = (input: InputDefinition | (StructField & ObjectBuilderFiel
 };
 
 export const validateInputs = (inputDefinition: (InputDefinition | StructInputDefinition)[], dataTableAttributes) =>
-  _.flow(
-    _.map((input: InputDefinition | StructInputDefinition) => {
-      const inputMessage = validateInput(input, dataTableAttributes);
-      return { name: 'input_name' in input ? input.input_name : input.field_name, ...inputMessage };
-    }),
-    _.compact
-  )(inputDefinition);
+  inputDefinition.map((input) => {
+    const inputMessage = validateInput(input, dataTableAttributes);
+    return { name: 'input_name' in input ? input.input_name : input.field_name, ...inputMessage };
+  });
