@@ -94,11 +94,6 @@ export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }
   };
 };
 
-// Returns a promise that will never resolve or reject. Useful for cancelling async flows.
-export const abandonedPromise = () => {
-  return new Promise(() => {});
-};
-
 export const textMatch = safeCurry((needle: string, haystack: string): boolean => {
   return haystack.toLowerCase().includes(needle.toLowerCase());
 }) as (needle: string, haystack: string) => boolean;
