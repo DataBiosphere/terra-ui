@@ -87,8 +87,8 @@ const GooglePermissionsSpinner = (): ReactNode => {
 };
 
 interface WorkspaceContainerProps {
-  namespace?: string;
-  name?: string;
+  namespace: string;
+  name: string;
   breadcrumbs: ReactNode;
   title: string;
   activeTab?: string;

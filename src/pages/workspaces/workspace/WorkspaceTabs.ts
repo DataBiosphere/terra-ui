@@ -17,8 +17,8 @@ import { WorkspaceAttributeNotice } from 'src/pages/workspaces/workspace/Workspa
 import { WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
 export interface WorkspaceTabsProps {
-  namespace?: string;
-  name?: string;
+  namespace: string;
+  name: string;
   workspace?: Workspace;
   activeTab?: string;
   refresh: () => void;
@@ -40,7 +40,7 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
     setShowLockWorkspaceModal,
     setLeavingWorkspace,
   } = props;
-  const { namespace = workspace?.workspace.namespace ?? '', name = workspace?.workspace.name ?? '' } = props;
+  const { namespace, name } = props;
   const wsOwner = !!workspace && isOwner(workspace.accessLevel);
   const canShare = workspace?.canShare;
   const isLocked = !!workspace?.workspace.isLocked;

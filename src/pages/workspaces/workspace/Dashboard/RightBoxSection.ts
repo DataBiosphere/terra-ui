@@ -7,7 +7,7 @@ import * as Style from 'src/libs/style';
 interface RightBoxSectionProps {
   title: string;
   info?: ReactNode;
-  initialOpenState?: boolean;
+  initialOpenState: boolean;
   afterTitle?: ReactNode;
   onClick: () => void;
   children?: ReactNode;

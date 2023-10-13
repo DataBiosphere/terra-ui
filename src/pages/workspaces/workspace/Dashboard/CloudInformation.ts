@@ -128,7 +128,12 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
               [!bucketSize, () => 'Loading last updated...'],
               [
                 !!bucketSize?.isSuccess,
-                () => `Updated on ${new Date(bucketSize?.lastUpdated ?? '').toLocaleDateString()}`,
+                () => {
+                  if (bucketSize?.lastUpdated) {
+                    return `Updated on ${new Date(bucketSize?.lastUpdated).toLocaleDateString()}`;
+                  }
+                  return 'Unable to determine last date updated';
+                },
               ]
             ),
           },
