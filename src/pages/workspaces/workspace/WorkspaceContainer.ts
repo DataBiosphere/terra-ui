@@ -430,12 +430,7 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
           storageDetails,
           refresh: async () => {
             await refreshWorkspace();
-            if (
-              !!child?.current &&
-              typeof child.current === 'object' &&
-              'refresh' in child.current &&
-              child.current.refresh instanceof Function
-            ) {
+            if (_.isObject(child?.current) && 'refresh' in child.current && _.isFunction(child.current.refresh)) {
               child.current.refresh();
             }
           },
