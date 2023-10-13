@@ -19,7 +19,7 @@ export type LastRun =
 export type MethodVersion = {
   name: string;
   url: string;
-  method_version_id: string;
+  method_version_id?: string;
 };
 
 /** Represents a workflow method from CBAS */
