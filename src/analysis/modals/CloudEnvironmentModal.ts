@@ -372,6 +372,9 @@ export const CloudEnvironmentModal = ({
     );
 
   const isCloudEnvModalDisabled = (toolLabel: ToolLabel): boolean => {
+    if (workspace.workspace.state === 'Deleting' || workspace.workspace.state === 'DeleteFailed') {
+      return true;
+    }
     if (isAppToolLabel(toolLabel)) {
       return (
         !canCompute ||
