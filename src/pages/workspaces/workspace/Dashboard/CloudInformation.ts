@@ -86,7 +86,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
       h(InfoRow, { title: 'Google Project ID' }, [
         h(TooltipCell, [googleProject]),
         h(ClipboardButton, {
-          'aria-label': 'Copy google project id to clipboard',
+          'aria-label': 'Copy google project ID to clipboard',
           text: googleProject,
           style: { marginLeft: '0.25rem' },
         }),
