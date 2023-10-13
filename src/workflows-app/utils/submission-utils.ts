@@ -11,6 +11,7 @@ import {
   InputType,
   ObjectBuilderField,
   OptionalInputType,
+  OutputDefinition,
   PrimitiveInputType,
   StructField,
   StructInputDefinition,
@@ -79,7 +80,7 @@ export const parseAttributeName = (attributeName) => {
 // Use output definition if it has been run before or if the template contains non-none destinations
 // Otherwise we will autofill all outputs to default.
 export const autofillOutputDef = (outputDef, runCount) => {
-  const jsonParsedOutput = maybeParseJSON(outputDef);
+  const jsonParsedOutput = maybeParseJSON(outputDef) as OutputDefinition[];
   const shouldUseOutputs = runCount > 0 || jsonParsedOutput.some((outputDef) => outputDef.destination.type !== 'none');
   return shouldUseOutputs
     ? jsonParsedOutput
