@@ -49,6 +49,7 @@ const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
     ),
     style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
     onDismiss: () => {},
+    hideCloseButton: true,
   });
 };
 
