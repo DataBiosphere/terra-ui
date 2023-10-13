@@ -8,7 +8,6 @@ const renderImportDataOverview = (props: Partial<ImportDataOverviewProps> = {}):
   render(
     h(ImportDataOverview, {
       importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
-      snapshotResponses: [],
       ...props,
     })
   );
