@@ -402,20 +402,6 @@ export const isAuthSettled = (state: AuthState) => {
   );
 };
 
-export const ensureAuthSettled = () => {
-  if (isAuthSettled(authStore.get())) {
-    return;
-  }
-  return new Promise((resolve) => {
-    const subscription = authStore.subscribe((state) => {
-      if (isAuthSettled(state)) {
-        resolve(undefined);
-        subscription.unsubscribe();
-      }
-    });
-  });
-};
-
 export const bucketBrowserUrl = (id) => {
   return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getTerraUser().email}`;
 };

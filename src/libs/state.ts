@@ -6,6 +6,7 @@ import { NihDatasetPermission } from 'src/libs/ajax/User';
 import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { v4 as uuid } from 'uuid';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 
@@ -91,7 +92,7 @@ export type AuthState = {
 };
 
 export const authStore: Atom<AuthState> = atom<AuthState>({
-  anonymousId: undefined,
+  anonymousId: uuid(),
   authTokenMetadata: {
     token: undefined,
     id: undefined,
