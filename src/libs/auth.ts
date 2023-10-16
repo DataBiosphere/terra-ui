@@ -2,15 +2,12 @@ import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
-import { ExtraSigninRequestArgs, IdTokenClaims, User, UserManager } from 'oidc-client-ts';
-import { AuthContextProps } from 'react-oidc-context';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
-import { getOidcConfig, OidcConfig } from 'src/libs/ajax/OAuth2';
+import { B2cIdTokenClaims, OidcUser } from 'src/libs/ajax/OAuth2';
 import { getSessionStorage } from 'src/libs/browser-storage';
-import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications';
@@ -35,35 +32,12 @@ import {
 import * as Utils from 'src/libs/utils';
 import { v4 as uuid } from 'uuid';
 
-export interface OidcUser extends User {
-  profile: B2cIdTokenClaims;
-}
-
 export const getAuthToken = (): string | undefined => {
   const oidcUser: OidcUser | undefined = oidcStore.get().user;
   if (oidcUser !== undefined) {
     return oidcUser.access_token;
   }
   return undefined;
-};
-
-// Our config for b2C claims are defined here: https://github.com/broadinstitute/terraform-ap-deployments/tree/master/azure/b2c/policies
-// The standard b2C claims are defined here: https://learn.microsoft.com/en-us/azure/active-directory/develop/id-token-claims-reference
-export interface B2cIdTokenClaims extends IdTokenClaims {
-  email_verified?: boolean;
-  idp?: string;
-  idp_access_token?: string;
-  tid?: string;
-  ver?: string;
-}
-
-const getAuthInstance = (): AuthContextProps => {
-  const authContext: AuthContextProps | undefined = oidcStore.get().authContext;
-  if (authContext === undefined) {
-    console.error('getAuthInstance must not be called before authContext is initialized.');
-    throw new Error('Error initializing authentication.');
-  }
-  return authContext;
 };
 
 export type SignOutCause =
@@ -113,10 +87,8 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   getSessionStorage().clear();
   azurePreviewStore.set(false);
 
-  const auth: AuthContextProps = getAuthInstance();
-  revokeTokens()
-    .finally(() => auth.removeUser())
-    .finally(() => auth.clearStaleState());
+  Ajax().OAuth2.revokeTokens();
+
   const cookiesAccepted: boolean | undefined = authStore.get().cookiesAccepted;
   authStore.reset();
   authStore.update((state) => ({
@@ -131,34 +103,6 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
     ...state,
     user: undefined,
   }));
-};
-
-const revokeTokens = async () => {
-  // send back auth instance, so we can use it for remove and clear stale state
-  const auth: AuthContextProps = getAuthInstance();
-  if (auth.settings.metadata?.revocation_endpoint) {
-    // revokeTokens can fail if the token has already been revoked.
-    // Recover from invalid_token errors to make sure signOut completes successfully.
-    try {
-      await auth.revokeTokens();
-    } catch (e) {
-      if ((e as any).error === 'invalid_token') {
-        return null;
-      }
-      throw e;
-    }
-  }
-};
-
-const getSigninArgs = (includeBillingScope: boolean): ExtraSigninRequestArgs => {
-  return Utils.cond(
-    [!includeBillingScope, (): ExtraSigninRequestArgs => ({})],
-    // For B2C use a dedicated policy endpoint configured for the GCP cloud-billing scope.
-    (): ExtraSigninRequestArgs => ({
-      extraQueryParams: { access_type: 'offline', p: getConfig().b2cBillingPolicy },
-      extraTokenParams: { p: getConfig().b2cBillingPolicy },
-    })
-  );
 };
 
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
@@ -299,13 +243,8 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
 };
 
 const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Promise<AuthTokenState> => {
-  const args: ExtraSigninRequestArgs = getSigninArgs(includeBillingScope);
-  const authInstance: AuthContextProps = getAuthInstance();
   try {
-    const loadedAuthTokenResponse: OidcUser | null = await (popUp
-      ? // returns Promise<OidcUser | null>, attempts to use the refresh token to get a new authToken
-        authInstance.signinPopup(args)
-      : authInstance.signinSilent(args));
+    const loadedAuthTokenResponse: OidcUser | null = await Ajax().OAuth2.signIn(popUp, includeBillingScope);
 
     if (loadedAuthTokenResponse === null) {
       return {
@@ -443,17 +382,15 @@ export const loadOidcUser = (user: OidcUser): void => {
 
 // this function is only called when the browser refreshes
 export const initializeAuth = _.memoize(async (): Promise<void> => {
-  // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
-  // All other auth usage should use the AuthContext from oidcStore.
-  const userManager: UserManager = new UserManager(getOidcConfig());
-
   const setSignedOut = () =>
     authStore.update((state) => ({
       ...state,
       signInStatus: 'signedOut',
     }));
   try {
-    const initialOidcUser: OidcUser | null = await userManager.getUser();
+    // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
+    // All other auth usage should use the AuthContext from oidcStore.
+    const initialOidcUser: OidcUser | null = await Ajax().OAuth2.getCurrentAuthToken();
     if (initialOidcUser !== null) {
       loadOidcUser(initialOidcUser);
     } else {
@@ -464,12 +401,6 @@ export const initializeAuth = _.memoize(async (): Promise<void> => {
     setSignedOut();
     throw new Error('Failed to initialize auth.');
   }
-});
-
-// This is the first thing that happens on app load.
-export const initializeClientId = _.memoize(async () => {
-  const oidcConfig: OidcConfig = await Ajax().OAuth2.getConfiguration();
-  oidcStore.update((state) => ({ ...state, config: oidcConfig }));
 });
 
 // This is intended for tests to short circuit the login flow
