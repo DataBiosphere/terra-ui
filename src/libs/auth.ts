@@ -245,7 +245,10 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
   }));
 
   const loadedAuthTokenState: AuthTokenState = await tryLoadAuthToken(includeBillingScope, popUp);
-
+  oidcStore.update((state) => ({
+    ...state,
+    authTokenState: loadedAuthTokenState,
+  }));
   if (loadedAuthTokenState.status === 'success') {
     const oidcUser: OidcUser = loadedAuthTokenState.oidcUser;
     oidcStore.update((state) => ({

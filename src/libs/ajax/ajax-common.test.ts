@@ -2,7 +2,7 @@ import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { loadAuthToken, OidcUser, signOut } from 'src/libs/auth';
 import { asMockedFn } from 'src/testing/test-utils';
 
-import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } from './ajax-common';
+import { authOpts, makeRequestRetry, withAuthToken } from './ajax-common';
 
 let mockOidcUser: OidcUser;
 const token = 'testtoken';
@@ -54,7 +54,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
     const originalFetch = jest.fn(() =>
       Promise.resolve(new Response(JSON.stringify({ success: true }), { status: 200 }))
     );
-    const wrappedFetch = withRetryAfterReloadingExpiredAuthToken(originalFetch);
+    const wrappedFetch = withAuthToken(originalFetch);
 
     // Act
     await wrappedFetch('https://example.com', { headers: { 'Content-Type': 'application/json' } });
@@ -70,7 +70,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
     const originalFetch = jest.fn(() =>
       Promise.resolve(new Response(JSON.stringify({ success: true }), { status: 200 }))
     );
-    const wrappedFetch = withRetryAfterReloadingExpiredAuthToken(originalFetch);
+    const wrappedFetch = withAuthToken(originalFetch);
 
     // Act
     const response = await wrappedFetch('https://example.com');
@@ -86,32 +86,8 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
     const originalFetch = jest.fn(() =>
       Promise.reject(new Response(JSON.stringify({ success: false }), { status: 401 }))
     );
-    const wrappedFetch = withRetryAfterReloadingExpiredAuthToken(originalFetch);
+    const wrappedFetch = withAuthToken(originalFetch);
     const makeAuthenticatedRequest = () => wrappedFetch('https://example.com', authOpts());
-
-    it('attempts to reload auth token', async () => {
-      // Act
-      // Ignore errors because the mock originalFetch function always returns a rejected promise.
-      await Promise.allSettled([makeAuthenticatedRequest()]);
-
-      // Assert
-      expect(loadAuthToken).toHaveBeenCalled();
-    });
-
-    it('retries request with new auth token if reloading auth token succeeds', async () => {
-      // Act
-      // Ignore errors because the mock originalFetch function always returns a rejected promise.
-      await Promise.allSettled([makeAuthenticatedRequest()]);
-
-      // Assert
-      expect(originalFetch).toHaveBeenCalledTimes(2);
-      expect(originalFetch).toHaveBeenCalledWith('https://example.com', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      expect(originalFetch).toHaveBeenLastCalledWith('https://example.com', {
-        headers: { Authorization: `Bearer ${newToken}` },
-      });
-    });
 
     describe('if reloading auth token fails', () => {
       beforeEach(() => {

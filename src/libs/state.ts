@@ -4,7 +4,7 @@ import { AuthContextProps } from 'react-oidc-context';
 import { Dataset } from 'src/libs/ajax/Catalog';
 import { OidcConfig } from 'src/libs/ajax/OAuth2';
 import { NihDatasetPermission } from 'src/libs/ajax/User';
-import { OidcUser } from 'src/libs/auth';
+import { AuthTokenState, OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
@@ -152,6 +152,7 @@ export const getSessionId = () => authStore.get().sessionId;
 
 export type OidcState = {
   authContext: AuthContextProps | undefined;
+  authTokenState: AuthTokenState | undefined;
   user: OidcUser | undefined;
   userManager: UserManager | undefined;
   config: OidcConfig;
@@ -159,6 +160,7 @@ export type OidcState = {
 
 export const oidcStore: Atom<OidcState> = atom<OidcState>({
   authContext: undefined,
+  authTokenState: undefined,
   user: undefined,
   userManager: undefined,
   config: {

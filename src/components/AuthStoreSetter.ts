@@ -19,6 +19,9 @@ function AuthStoreSetter(): null {
       auth.events.addUserLoaded((user: OidcUser) => {
         loadOidcUser(user);
       }),
+      auth.events.addAccessTokenExpiring((): void => {
+        loadAuthToken();
+      }),
       auth.events.addAccessTokenExpired((): void => {
         loadAuthToken();
       }),
