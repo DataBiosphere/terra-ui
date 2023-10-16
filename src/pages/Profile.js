@@ -24,8 +24,8 @@ import { memoWithName, useCancellation, useOnMount } from 'src/libs/react-utils'
 import { authStore, getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { FenceLink } from 'src/pages/profile/external-identities/FenceLink';
-import { NihLink } from 'src/pages/profile/external-identities/NihLink';
+import { FenceAccount } from 'src/pages/profile/external-identities/FenceAccount';
+import { NihAccount } from 'src/pages/profile/external-identities/NihAccount';
 import { SpacedSpinner } from 'src/pages/profile/SpacedSpinner';
 import validate from 'validate.js';
 
@@ -177,8 +177,8 @@ const sectionTitle = (text) => h2({ style: styles.sectionTitle }, [text]);
 
 const ExternalIdentitiesTab = ({ queryParams }) => {
   return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
-    h(NihLink, { nihToken: queryParams?.['nih-username-token'] }),
-    _.map((provider) => h(FenceLink, { key: provider.key, provider }), allProviders),
+    h(NihAccount, { nihToken: queryParams?.['nih-username-token'] }),
+    _.map((provider) => h(FenceAccount, { key: provider.key, provider }), allProviders),
     !!getConfig().externalCredsUrlRoot && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' }),
   ]);
 };
