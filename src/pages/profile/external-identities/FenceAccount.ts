@@ -57,7 +57,7 @@ export const FenceAccount = ({ provider: { key, name, expiresAfter, short } }) =
           !username,
           () =>
             div([
-              h(FrameworkServiceLink, { button: true, linkText: `Log in to ${short} `, provider: key, redirectUrl }),
+              h(FrameworkServiceLink, { button: true, linkText: `Log in to ${short} `, providerKey: key, redirectUrl }),
             ]),
         ],
         () =>
@@ -71,7 +71,7 @@ export const FenceAccount = ({ provider: { key, name, expiresAfter, short } }) =
               h(FrameworkServiceLink, {
                 linkText: 'Renew',
                 'aria-label': `Renew your ${short} link`,
-                provider: key,
+                providerKey: key,
                 redirectUrl,
               }),
               span({ style: { margin: '0 .25rem 0' } }, [' | ']),

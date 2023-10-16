@@ -10,14 +10,14 @@ import * as Utils from 'src/libs/utils';
 
 interface FrameworkServiceLinkProps extends ClickableProps {
   linkText: string;
-  provider: string;
+  providerKey: string;
   redirectUrl: string;
   button?: boolean;
 }
 
 export const FrameworkServiceLink = ({
   linkText,
-  provider,
+  providerKey,
   redirectUrl,
   button = false,
   ...props
@@ -26,7 +26,7 @@ export const FrameworkServiceLink = ({
 
   useOnMount(() => {
     const loadAuthUrl = withErrorReporting('Error getting Fence Link', async () => {
-      const result = await Ajax().User.getFenceAuthUrl(provider, redirectUrl);
+      const result = await Ajax().User.getFenceAuthUrl(providerKey, redirectUrl);
       setHref(result.url);
     });
     loadAuthUrl();

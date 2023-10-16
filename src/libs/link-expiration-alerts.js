@@ -53,7 +53,7 @@ const getFenceAccountLinkExpirationAlert = (provider, status, now) => {
     title: `Your access to ${name} ${expireStatus}.`,
     message: h(Fragment, [
       'Log in to ',
-      h(FrameworkServiceLink, { linkText: expireStatus === 'has expired' ? 'restore ' : 'renew ', provider: key, redirectUrl }),
+      h(FrameworkServiceLink, { linkText: expireStatus === 'has expired' ? 'restore ' : 'renew ', providerKey: key, redirectUrl }),
       ' your access or ',
       h(UnlinkFenceAccount, { linkText: 'unlink ', provider: { key, name } }),
       ' your account.',
