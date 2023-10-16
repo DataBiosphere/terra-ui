@@ -61,7 +61,7 @@ const styles: Record<string, CSSProperties> = {
   },
 };
 
-const DashboardAuthContainer = (props) => {
+const DashboardAuthContainer = (props: WorkspaceDashboardProps): ReactNode => {
   const { namespace, name } = props;
   const { signInStatus } = useStore(authStore);
   const [featuredWorkspaces, setFeaturedWorkspaces] = useState<{ name: string; namespace: string }[]>();
@@ -93,12 +93,18 @@ const DashboardAuthContainer = (props) => {
 interface WorkspaceDashboardProps {
   namespace: string;
   name: string;
+}
+
+interface WorkspaceDashboardComponentProps extends WorkspaceDashboardProps {
   refreshWorkspace: () => void;
   storageDetails: StorageDetails;
   workspace: Workspace;
 }
 
-const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: ForwardedRef<unknown>): ReactNode => {
+const WorkspaceDashboardComponent = (
+  props: WorkspaceDashboardComponentProps,
+  ref: ForwardedRef<unknown>
+): ReactNode => {
   const {
     namespace,
     name,
@@ -485,7 +491,7 @@ const WorkspaceDashboardComponent = (props: WorkspaceDashboardProps, ref: Forwar
   ]);
 };
 
-const WorkspaceDashboard = _.flow(
+const WorkspaceDashboard: (props: WorkspaceDashboardProps) => typeof WorkspaceDashboardComponent = _.flow(
   forwardRefWithName('WorkspaceDashboard'),
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),

@@ -385,7 +385,6 @@ type WrappedWorkspaceComponent<T extends WrappedComponentProps> = (props: T) => 
 type WorkspaceWrapperFunction<T extends WrappedComponentProps> = (
   component: WrappedWorkspaceComponent<T>
 ) => WrappedWorkspaceComponent<T>;
-// type WorkspaceWrapperComponent<T extends WrappedComponentProps> = (props: WrapWorkspaceProps) => WorkspaceWrapperComponent<T>
 
 /**
  * wrapWorkspaces contains a component in the WorkspaceContainer

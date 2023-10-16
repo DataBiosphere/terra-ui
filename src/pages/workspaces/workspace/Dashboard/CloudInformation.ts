@@ -40,7 +40,7 @@ interface GoogleCloudInformationProps extends CloudInformationProps {
 const AzureCloudInformation = (props: AzureCloudInformationProps): ReactNode => {
   const { workspace, storageDetails } = props;
   const azureContext = workspace.azureContext;
-  return [
+  return h(Fragment, [
     dl([h(AzureStorageDetails, { azureContext, storageDetails })]),
     div({ style: { margin: '0.5rem', fontSize: 12 } }, [
       div([
@@ -70,14 +70,14 @@ const AzureCloudInformation = (props: AzureCloudInformationProps): ReactNode => 
         'The SAS URL expires after 8 hours. To generate a new SAS URL, refresh this page.',
       ]),
     ]),
-  ];
+  ]);
 };
 
 const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode => {
   const { workspace, storageDetails, storageCost, bucketSize } = props;
   const { accessLevel } = workspace;
   const { googleProject, bucketName } = workspace.workspace;
-  return [
+  return h(Fragment, [
     dl([
       h(InfoRow, { title: 'Cloud Name' }, [
         h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } }),
@@ -174,7 +174,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
         ),
       ]),
     ]),
-  ];
+  ]);
 };
 
 export const CloudInformation = (props: CloudInformationProps): ReactNode => {
@@ -185,5 +185,5 @@ export const CloudInformation = (props: CloudInformationProps): ReactNode => {
   if (isGoogleWorkspace(workspace)) {
     return h(GoogleCloudInformation, { workspace, ...rest });
   }
-  return h(Fragment);
+  return null;
 };
