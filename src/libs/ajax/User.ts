@@ -88,6 +88,14 @@ export const makeSetUserProfileRequest = (terraUserProfile: TerraUserProfile): S
   };
 };
 
+/**
+ * Orchestration's /register/profile endpoint returns profile attributes as an
+ * array of { key, value } objects. This converts that array into single object.
+ */
+export const kvArrayToObject = (kvArray: { key: string; value: any }[] | undefined): Record<string, any> => {
+  return Object.fromEntries((kvArray ?? []).map(({ key, value }) => [key, value]));
+};
+
 export interface OrchestrationUserPreferLegacyFireCloudResponse {
   preferTerra: boolean;
   preferTerraLastUpdated: number;
@@ -148,14 +156,27 @@ export const User = (signal?: AbortSignal) => {
       get: async (): Promise<TerraUserProfile> => {
         const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }));
         const rawResponseJson: OrchestrationUserProfileResponse = await res.json();
-        return Utils.kvArrayToObject(rawResponseJson.keyValuePairs) as TerraUserProfile;
+        return kvArrayToObject(rawResponseJson.keyValuePairs) as TerraUserProfile;
       },
 
       // We are not calling Thurloe directly because free credits logic was in orchestration
-      set: async (profile: SetTerraUserProfileRequest): Promise<void> => {
+      set: (keysAndValues) => {
+        const blankProfile = {
+          firstName: 'N/A',
+          lastName: 'N/A',
+          title: 'N/A',
+          institute: 'N/A',
+          department: 'N/A',
+          institutionalProgram: 'N/A',
+          programLocationCity: 'N/A',
+          programLocationState: 'N/A',
+          programLocationCountry: 'N/A',
+          pi: 'N/A',
+          nonProfitStatus: 'N/A',
+        };
         return fetchOrchestration(
           'register/profile',
-          _.mergeAll([authOpts(), jsonBody(profile), { signal, method: 'POST' }])
+          _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { signal, method: 'POST' }])
         );
       },
 
@@ -185,47 +206,28 @@ export const User = (signal?: AbortSignal) => {
       return response.text();
     },
 
-    acceptTos: async (): Promise<SamUserTosStatusResponse | undefined> => {
-      try {
-        const response = await fetchSam(
-          'register/user/v1/termsofservice',
-          _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
-        );
-        return response.json();
-      } catch (error: unknown) {
-        if (!(error instanceof Response && error.status === 404)) {
-          throw error;
-        }
-      }
+    acceptTos: async (): Promise<SamUserTosStatusResponse> => {
+      const response = await fetchSam(
+        'register/user/v1/termsofservice',
+        _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
+      );
+      return response.json();
     },
 
-    rejectTos: async (): Promise<SamUserTosStatusResponse | undefined> => {
-      try {
-        const response = await fetchSam(
-          'register/user/v1/termsofservice',
-          _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
-        );
-        return response.json();
-      } catch (error: unknown) {
-        if (!(error instanceof Response && error.status === 404)) {
-          throw error;
-        }
-      }
+    rejectTos: async (): Promise<SamUserTosStatusResponse> => {
+      const response = await fetchSam(
+        'register/user/v1/termsofservice',
+        _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
+      );
+      return response.json();
     },
 
-    getTermsOfServiceComplianceStatus: async (): Promise<SamUserTosComplianceStatusResponse | null> => {
-      try {
-        const res = await fetchSam(
-          'register/user/v2/self/termsOfServiceComplianceStatus',
-          _.merge(authOpts(), { signal })
-        );
-        return res.json();
-      } catch (error: unknown) {
-        if (error instanceof Response && (error.status === 404 || error.status === 403)) {
-          return null;
-        }
-        throw error;
-      }
+    getTermsOfServiceComplianceStatus: async (): Promise<SamUserTosComplianceStatusResponse> => {
+      const res = await fetchSam(
+        'register/user/v2/self/termsOfServiceComplianceStatus',
+        _.merge(authOpts(), { signal })
+      );
+      return res.json();
     },
 
     getPrivacyPolicy: async (): Promise<string> => {
@@ -277,7 +279,7 @@ export const User = (signal?: AbortSignal) => {
       const queryParams = {
         scopes: ['openid', 'google_credentials', 'data', 'user'],
         redirect_uri: redirectUri,
-        state: btoa(JSON.stringify({ providerKey })),
+        state: btoa(JSON.stringify({ provider: providerKey })),
       };
       const res = await fetchBond(
         `api/link/v1/${providerKey}/authorization-url?${qs.stringify(queryParams, { indices: false })}`,

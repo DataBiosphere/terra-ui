@@ -1,10 +1,14 @@
+export * from './buttons';
 export * from './Clickable';
 export * from './DelayedRender';
 export * from './ErrorBoundary';
+export * from './FocusTrap';
 export * from './hooks/useUniqueId';
 export * from './hooks/useWindowDimensions';
 export * from './icon';
 export type { IconId } from './icon-library';
 export { Interactive } from './Interactive';
+export * from './Link';
+export * from './PopupTrigger';
 export * from './theme';
 export * from './TooltipTrigger';

@@ -5,9 +5,9 @@ import { cloudProviders, defaultLocation } from 'src/analysis/utils/runtime-util
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
+import { InfoBox } from 'src/components/InfoBox';
 import { TextArea, ValidatedInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
-import { InfoBox } from 'src/components/PopupTrigger';
 import {
   allRegions,
   availableBucketRegions,
@@ -63,7 +63,18 @@ const ariaInvalidBillingAccountMsg = (invalidBillingAccount) => {
 };
 const NewWorkspaceModal = withDisplayName(
   'NewWorkspaceModal',
-  ({ cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, requireEnhancedBucketLogging, title, buttonText, workflowImport }) => {
+  ({
+    cloneWorkspace,
+    cloudPlatform,
+    onSuccess,
+    onDismiss,
+    customMessage,
+    requiredAuthDomain,
+    requireEnhancedBucketLogging,
+    title,
+    buttonText,
+    workflowImport,
+  }) => {
     // State
     const [billingProjects, setBillingProjects] = useState();
     const [azureBillingProjectsExist, setAzureBillingProjectsExist] = useState(false);
@@ -303,7 +314,7 @@ const NewWorkspaceModal = withDisplayName(
                           value: projectName,
                           isDisabled: invalidBillingAccount,
                         }),
-                        _.sortBy('projectName', _.uniq(billingProjects))
+                        _.sortBy('projectName', _.uniq(cloudPlatform ? _.filter({ cloudPlatform }, billingProjects) : billingProjects))
                       ),
                     }),
                   ]),

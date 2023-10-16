@@ -16,9 +16,9 @@ import {
   myStructInput,
   runSetInputDef,
   runSetOutputDef,
-  runSetOutputDefFilled,
   runSetOutputDefWithDefaults,
   runSetResponse,
+  runSetResponseForNewMethod,
   runSetResponseWithStruct,
   searchResponses,
   typesResponse,
@@ -767,14 +767,93 @@ describe('Initial state', () => {
     expect(row1cells[0].textContent).toBe('target_workflow_1');
     within(row1cells[1]).getByText('file_output');
     within(row1cells[2]).getByText('File');
-    within(row1cells[3]).getByDisplayValue('target_workflow_1_file_output'); // autofill from previous run
+    within(row1cells[3]).getByDisplayValue('target_workflow_1_file_output'); // from previous run/template
 
     const row2cells = within(rows[2]).getAllByRole('cell');
     expect(row2cells.length).toBe(4);
     expect(row2cells[0].textContent).toBe('target_workflow_1');
     within(row2cells[1]).getByText('unused_output');
     within(row2cells[2]).getByText('String');
-    within(row2cells[3]).getByDisplayValue('unused_output'); // autofill empty by name
+    within(row2cells[3]).getByDisplayValue(''); // empty from previous run/template
+    within(row2cells[3]).getByPlaceholderText(/enter an attribute/i);
+  });
+
+  it('should initially populate the outputs definition table with autofilled attributes if no template or previously executed run set', async () => {
+    // ** ARRANGE **
+    const user = userEvent.setup();
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseForNewMethod));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+      };
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      )
+    );
+
+    // ** ASSERT **
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+    expect(mockWdlResponse).toHaveBeenCalledTimes(1);
+
+    const button = screen.getByRole('button', { name: 'Outputs' });
+
+    // ** ACT **
+    await user.click(button);
+
+    // ** ASSERT **
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('row');
+
+    expect(runSetOutputDef.length).toBe(2);
+    expect(rows.length).toBe(runSetOutputDef.length + 1); // one row for each output definition variable, plus headers
+
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    expect(headers.length).toBe(4);
+
+    const row1cells = within(rows[1]).getAllByRole('cell');
+    expect(row1cells.length).toBe(4);
+    expect(row1cells[0].textContent).toBe('target_workflow_1');
+    within(row1cells[1]).getByText('file_output');
+    within(row1cells[2]).getByText('File');
+    within(row1cells[3]).getByDisplayValue('file_output'); // autofill by name, no previous run
+
+    const row2cells = within(rows[2]).getAllByRole('cell');
+    expect(row2cells.length).toBe(4);
+    expect(row2cells[0].textContent).toBe('target_workflow_1');
+    within(row2cells[1]).getByText('unused_output');
+    within(row2cells[2]).getByText('String');
+    within(row2cells[3]).getByDisplayValue('unused_output'); // autofill by name, no previous run
   });
 });
 
@@ -1367,7 +1446,7 @@ describe('Submitting a run set', () => {
       expect.objectContaining({
         method_version_id: runSetResponse.run_sets[0].method_version_id,
         workflow_input_definitions: runSetInputDef,
-        workflow_output_definitions: runSetOutputDefFilled,
+        workflow_output_definitions: runSetOutputDef,
         wds_records: {
           record_type: 'FOO',
           record_ids: ['FOO1'],
@@ -1594,7 +1673,7 @@ describe('Submitting a run set', () => {
             },
           },
         ],
-        workflow_output_definitions: runSetOutputDefFilled,
+        workflow_output_definitions: runSetOutputDef,
         wds_records: {
           record_type: 'FOO',
           record_ids: ['FOO1'],
@@ -1801,7 +1880,7 @@ describe('Submitting a run set', () => {
             },
           },
         ],
-        workflow_output_definitions: runSetOutputDefFilled,
+        workflow_output_definitions: runSetOutputDef,
         wds_records: {
           record_type: 'FOO',
           record_ids: ['FOO1'],

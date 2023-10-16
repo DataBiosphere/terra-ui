@@ -176,6 +176,7 @@ const cromwellRunning: App = {
     'cbas-ui': 'testValue',
   },
   status: 'RUNNING',
+  region: 'us-central1',
 };
 
 const hailBatchAppRunning: App = {
@@ -211,6 +212,7 @@ const hailBatchAppRunning: App = {
     clusterServiceAccount: '/subscriptions/123/pet-101',
     creator: 'abc.testerson@gmail.com',
   },
+  region: 'us-central1',
 };
 
 type NavExports = typeof import('src/libs/nav');
@@ -542,7 +544,6 @@ describe('CloudEnvironmentModal', () => {
       azureProxy: jest.fn(),
       listV2: jest.fn(),
       listV2WithWorkspace: jest.fn(),
-      deleteAll: jest.fn(),
       runtimeV2: jest.fn(),
       fileSyncing: jest.fn(),
     };
@@ -746,7 +747,6 @@ describe('renderToolButtons', () => {
       azureProxy: jest.fn(),
       listV2: jest.fn(),
       listV2WithWorkspace: jest.fn(),
-      deleteAll: jest.fn(),
       runtimeV2: jest.fn(),
       fileSyncing: jest.fn(),
     };
@@ -772,7 +772,6 @@ describe('renderToolButtons', () => {
       azureProxy: jest.fn(),
       listV2: jest.fn(),
       listV2WithWorkspace: jest.fn(),
-      deleteAll: jest.fn(),
       runtimeV2: jest.fn(),
       fileSyncing: jest.fn(),
     };

@@ -1,7 +1,9 @@
 import _ from 'lodash/fp';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { getConfig } from 'src/libs/config';
+import { runSetOutputDef, runSetOutputDefEmpty, runSetOutputDefFilled, runSetOutputDefWithDefaults } from 'src/workflows-app/utils/mock-responses';
 import {
+  autofillOutputDef,
   convertToPrimitiveType,
   getDuration,
   inputTypeStyle,
@@ -120,6 +122,29 @@ describe('resolveWdsUrl', () => {
     ];
     expect(resolveWdsUrl(testHealthyAppProxyUrlResponse)).toBe(expectedUrl);
   });
+});
+
+describe('autofillOutputDef', () => {
+  it('should use defaults if never run before and empty template', () => {
+    const res = autofillOutputDef(JSON.stringify(runSetOutputDefEmpty), 0);
+    expect(res).toStrictEqual(runSetOutputDefWithDefaults);
+  });
+
+  it.each([[runSetOutputDef], [runSetOutputDefEmpty], [runSetOutputDefWithDefaults], [runSetOutputDefFilled]])(
+    'should use previous run data if run before',
+    (outputDef) => {
+      const res = autofillOutputDef(JSON.stringify(outputDef), 1);
+      expect(res).toStrictEqual(outputDef);
+    }
+  );
+
+  it.each([[runSetOutputDef], [runSetOutputDefWithDefaults], [runSetOutputDefFilled]])(
+    'should use provided output def if non-empty outputs',
+    (outputDef) => {
+      const res = autofillOutputDef(JSON.stringify(outputDef), 0);
+      expect(res).toStrictEqual(outputDef);
+    }
+  );
 });
 
 describe('convertToPrimitiveType', () => {

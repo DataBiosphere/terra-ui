@@ -6,7 +6,6 @@ import { centeredSpinner } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import planet from 'src/images/register-planet.svg';
 import { Ajax } from 'src/libs/ajax';
-import { makeSetUserProfileRequest } from 'src/libs/ajax/User';
 import { refreshTerraProfile, signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
@@ -77,7 +76,20 @@ const Register = () => {
   const register = async () => {
     try {
       setBusy(true);
-      await Ajax().User.profile.set(makeSetUserProfileRequest(profile));
+      const orgFields = partOfOrganization
+        ? {
+            institute,
+            department,
+            title,
+          }
+        : {};
+      await Ajax().User.profile.set({
+        firstName: givenName,
+        lastName: familyName,
+        contactEmail: email,
+        interestInTerra,
+        ...orgFields,
+      });
       authStore.update((state) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
       await refreshTerraProfile();
       Ajax().Metrics.captureEvent(Events.user.register);
@@ -90,6 +102,7 @@ const Register = () => {
     { givenName, familyName, email, institute, title, department },
     constraints(partOfOrganization)
   );
+
   return div(
     {
       role: 'main',
@@ -230,7 +243,7 @@ const Register = () => {
       ]),
       div({ style: { marginTop: '3rem' } }, [
         h(ButtonPrimary, { disabled: errors || busy, onClick: register }, ['Register']),
-        h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: signOut }, ['Cancel']),
+        h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: () => signOut('requested') }, ['Cancel']),
         busy &&
           centeredSpinner({
             size: 34,

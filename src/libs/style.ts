@@ -15,7 +15,7 @@ export const noWrapEllipsis: CSSProperties = { whiteSpace: 'nowrap', overflow: '
 
 export const codeFont = { fontFamily: 'Courier New' };
 
-const cardStyles: Record<string, CSSProperties> = {
+const cardStyles = {
   title: { color: colors.accent(), fontSize: 16, overflow: 'hidden' },
   mediumTitle: { fontSize: 20, color: colors.accent(), overflow: 'hidden', fontWeight: 'bold' },
   container: {
@@ -28,18 +28,28 @@ const cardStyles: Record<string, CSSProperties> = {
     backgroundColor: 'white',
     boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)',
   },
-};
+} as const satisfies Record<string, CSSProperties>;
 
 export const elements = {
   card: cardStyles,
-  sectionHeader: { color: colors.dark(), fontSize: 16, fontWeight: 600, margin: '0.25em 0' },
-  pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' },
+  sectionHeader: {
+    color: colors.dark(),
+    fontSize: 16,
+    fontWeight: 600,
+    margin: '0.25em 0',
+  } as const satisfies CSSProperties,
+  pageContentContainer: {
+    position: 'relative',
+    flexGrow: 1,
+    display: 'flex',
+    flexDirection: 'column',
+  } as const satisfies CSSProperties,
   contextBarContainer: {
     flex: 'none',
     width: 55,
     backgroundColor: colors.light(),
     borderLeft: `1px solid ${colors.accent()}`,
-  },
+  } as const satisfies CSSProperties,
 };
 
 export const tabBar = {
@@ -76,7 +86,7 @@ export const tabBar = {
   hover: {
     backgroundColor: terraSpecial(0.2),
   },
-};
+} as const satisfies Record<string, CSSProperties>;
 
 const longCardBase = {
   ...elements.card.container,
@@ -134,7 +144,7 @@ export const navList = {
     textTransform: 'uppercase',
     borderBottom: `0.5px solid ${colors.dark(0.2)}`,
   },
-  itemContainer: (selected) => ({
+  itemContainer: (selected): CSSProperties => ({
     display: 'flex',
     alignItems: 'center',
     flex: 'none',
@@ -159,7 +169,7 @@ export const navList = {
         },
 };
 
-export const breadcrumb: { breadcrumb: CSSProperties; textUnderBreadcrumb: CSSProperties } = {
+export const breadcrumb = {
   breadcrumb: {
     display: 'flex',
     flexDirection: 'column',
@@ -176,7 +186,7 @@ export const breadcrumb: { breadcrumb: CSSProperties; textUnderBreadcrumb: CSSPr
     padding: 0,
     margin: 0,
   },
-};
+} as const satisfies Record<string, CSSProperties>;
 
 export const modalDrawer = {
   content: {
@@ -192,7 +202,7 @@ export const modalDrawer = {
     justifyContent: 'flex-end',
     alignItems: 'baseline',
   },
-};
+} as const satisfies Record<string, CSSProperties>;
 
 export const dashboard = {
   leftBox: {
@@ -237,9 +247,9 @@ export const dashboard = {
     textTransform: 'uppercase',
     color: colors.dark(),
   },
-};
+} as const satisfies Record<string, CSSProperties>;
 
-export const warningStyle = {
+export const warningStyle: CSSProperties = {
   border: `1px solid ${colors.warning(0.8)}`,
   borderLeft: 'none',
   borderRight: 'none',
@@ -249,13 +259,13 @@ export const warningStyle = {
   fontWeight: 'bold',
   fontSize: 12,
 };
-export const errorStyle = {
+export const errorStyle: CSSProperties = {
   ...warningStyle,
   border: `1px solid ${colors.danger(0.8)}`,
   backgroundColor: colors.danger(0.15),
 };
 
-export const warningBoxStyle = {
+export const warningBoxStyle: CSSProperties = {
   backgroundColor: colors.warning(0.15),
   padding: '1rem 1.25rem',
   color: colors.dark(),

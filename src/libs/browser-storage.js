@@ -152,7 +152,7 @@ export const listenDynamic = (storage, key, fn) => {
  *
  * @param storage an object implementing the Storage interface
  * @param key the key for storing the value
- * @returns stateful object that manages the given storage location
+ * @returns {import("@terra-ui-packages/core-utils").Atom<any>} stateful object that manages the given storage location
  */
 export const staticStorageSlot = (storage, key) => {
   const { subscribe, next } = subscribable();

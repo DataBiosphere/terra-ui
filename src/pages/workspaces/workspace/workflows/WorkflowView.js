@@ -17,11 +17,12 @@ import {
 } from 'src/components/common';
 import Dropzone from 'src/components/Dropzone';
 import { centeredSpinner, icon } from 'src/components/icons';
+import { InfoBox } from 'src/components/InfoBox';
 import { DelayedAutocompleteTextArea, DelayedSearchInput, NumberInput } from 'src/components/input';
 import { MarkdownViewer } from 'src/components/markdown';
 import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
-import { InfoBox, makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
+import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import StepButtons from 'src/components/StepButtons';
 import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
@@ -45,6 +46,7 @@ import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } f
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
+import { sanitizeAttributeUpdateString } from 'src/pages/workspaces/workspace/workflows/workflow-view-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const sideMargin = '3rem';
@@ -904,12 +906,16 @@ const WorkflowView = _.flow(
                       div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
                       label(['Select root entity type:']),
                       snapshotReferenceError &&
-                        h(TooltipTrigger, { content: Utils.snapshotReferenceMissingError(modifiedConfig.dataReferenceName) }, [
-                          icon('error-standard', {
-                            size: 14,
-                            style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' },
-                          }),
-                        ]),
+                        h(
+                          TooltipTrigger,
+                          { content: `The requested snapshot reference '${modifiedConfig.dataReferenceName}' could not be found in this workspace.` },
+                          [
+                            icon('error-standard', {
+                              size: 14,
+                              style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' },
+                            }),
+                          ]
+                        ),
                       h(GroupedSelect, {
                         'aria-label': 'Entity type selector',
                         isClearable: false,
@@ -1001,7 +1007,7 @@ const WorkflowView = _.flow(
                     h(
                       LabeledCheckbox,
                       {
-                        disabled: currentSnapRedacted || !!Utils.computeWorkspaceError(ws),
+                        disabled: currentSnapRedacted || !WorkspaceUtils.canRunAnalysisInWorkspace(ws).value,
                         checked: useCallCache,
                         onChange: (v) => this.setState({ useCallCache: v }),
                       },
@@ -1118,8 +1124,9 @@ const WorkflowView = _.flow(
                   ButtonPrimary,
                   {
                     style: { marginLeft: '1rem' },
-                    disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
-                    tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
+                    disabled: !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
+                    tooltip: noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
+                    ...WorkspaceUtils.getWorkspaceAnalysisControlProps(ws),
                     onClick: () => this.setState({ launching: true }),
                   },
                   ['Run analysis']
@@ -1218,9 +1225,7 @@ const WorkflowView = _.flow(
     async uploadJson(key, file) {
       try {
         const rawUpdates = JSON.parse(await readFileAsText(file));
-        const updates = _.mapValues((v) => (_.isString(v) && v.match(/\${(.*)}/) ? v.replace(/\${(.*)}/, (_, match) => match) : JSON.stringify(v)))(
-          rawUpdates
-        );
+        const updates = _.mapValues((v) => sanitizeAttributeUpdateString(v))(rawUpdates);
         this.setState(({ modifiedConfig, modifiedInputsOutputs }) => {
           const existing = _.map('name', modifiedInputsOutputs[key]);
           return {

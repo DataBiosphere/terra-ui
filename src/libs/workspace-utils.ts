@@ -202,3 +202,40 @@ export const getWorkspaceEditControlProps = ({
   const { value, message } = canEditWorkspace({ accessLevel, workspace: { isLocked } });
   return value ? {} : { disabled: true, tooltip: message };
 };
+
+/**
+ * The slice of WorkspaceWrapper necessary to determine if a user can run analyses in a workspace.
+ */
+export interface WorkspaceAnalysisAccessInfo {
+  canCompute: boolean;
+  workspace: { isLocked: boolean };
+}
+
+/**
+ * Returns whether or not a user can run analyses in a workspace and a reason if they can't.
+ * @param workspace The workspace.
+ */
+export const canRunAnalysisInWorkspace = (
+  workspace: WorkspaceAnalysisAccessInfo
+): { value: true; message: undefined } | { value: false; message: string } => {
+  const {
+    canCompute,
+    workspace: { isLocked },
+  } = workspace;
+  return cond<{ value: true; message: undefined } | { value: false; message: string }>(
+    [!canCompute, () => ({ value: false, message: 'You do not have access to run analyses on this workspace.' })],
+    [isLocked, () => ({ value: false, message: 'This workspace is locked.' })],
+    () => ({ value: true, message: undefined })
+  );
+};
+
+/**
+ * Returns props to disable and add a tooltip to a control if the user cannot run analyses in the workspace.
+ * @param workspace - The workspace.
+ */
+export const getWorkspaceAnalysisControlProps = (
+  workspace: WorkspaceAnalysisAccessInfo
+): { disabled: true; tooltip: string } | {} => {
+  const { value, message } = canRunAnalysisInWorkspace(workspace);
+  return value ? {} : { disabled: true, tooltip: message };
+};

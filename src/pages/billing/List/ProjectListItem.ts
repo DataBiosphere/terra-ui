@@ -5,7 +5,7 @@ import { div, h, span } from 'react-hyperscript-helpers';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { InfoBox } from 'src/components/PopupTrigger';
+import { InfoBox } from 'src/components/InfoBox';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import Events, { extractBillingDetails } from 'src/libs/events';

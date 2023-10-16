@@ -111,14 +111,6 @@ export const Apps = (signal: AbortSignal) => ({
       _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }])
     );
   },
-  deleteAllAppsV2: async (workspaceId: string, deleteDisk = true): Promise<void> => {
-    const res = await fetchLeo(
-      `api/apps/v2/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal, method: 'POST' }])
-    );
-
-    return res;
-  },
 });
 
 export type AppsAjaxContract = ReturnType<typeof Apps>;

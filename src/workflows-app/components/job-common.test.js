@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h, span } from 'react-hyperscript-helpers';
 import * as Nav from 'src/libs/nav';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { HeaderSection, PageHeader } from 'src/workflows-app/components/job-common';
 
 jest.mock('src/libs/nav', () => ({

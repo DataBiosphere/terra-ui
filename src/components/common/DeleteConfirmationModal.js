@@ -1,3 +1,4 @@
+import { ButtonPrimary } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { b, div, h, label, span } from 'react-hyperscript-helpers';
@@ -6,7 +7,6 @@ import { TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
 import colors from 'src/libs/colors';
 
-import { ButtonPrimary } from './buttons';
 import { IdContainer } from './IdContainer';
 
 export const DeleteConfirmationModal = ({
