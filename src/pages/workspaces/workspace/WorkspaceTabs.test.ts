@@ -2,7 +2,6 @@ import { render, screen, within } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
