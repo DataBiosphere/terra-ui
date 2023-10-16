@@ -1,23 +1,50 @@
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { loadAuthToken, OidcUser, signOut } from 'src/libs/auth';
-import { getTerraUser } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } from './ajax-common';
+
+let mockOidcUser: OidcUser;
+const token = 'testtoken';
+const newToken = 'newtesttoken';
+beforeEach(() => {
+  mockOidcUser = {
+    id_token: undefined,
+    session_state: null,
+    access_token: token,
+    refresh_token: '',
+    token_type: '',
+    scope: undefined,
+    profile: {
+      sub: '',
+      iss: '',
+      aud: '',
+      exp: 0,
+      iat: 0,
+    },
+    expires_at: undefined,
+    state: undefined,
+    expires_in: 0,
+    expired: undefined,
+    scopes: [],
+    toStorageString: (): string => '',
+  };
+
+  asMockedFn(loadAuthToken).mockImplementation(() => {
+    mockOidcUser.access_token = newToken;
+    return Promise.resolve({
+      status: 'success',
+      oidcUser: mockOidcUser,
+    });
+  });
+});
 
 type AuthExports = typeof import('src/libs/auth');
 jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   return {
     loadAuthToken: jest.fn(),
     signOut: jest.fn(),
-  };
-});
-
-type StateExports = typeof import('src/libs/state');
-jest.mock('src/libs/state', (): StateExports => {
-  return {
-    ...jest.requireActual('src/libs/state'),
-    getTerraUser: jest.fn(() => ({ token: 'testtoken' })),
+    getAuthToken: jest.fn(() => mockOidcUser.access_token),
   };
 });
 
@@ -60,44 +87,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
       Promise.reject(new Response(JSON.stringify({ success: false }), { status: 401 }))
     );
     const wrappedFetch = withRetryAfterReloadingExpiredAuthToken(originalFetch);
-
-    const token = 'testtoken';
     const makeAuthenticatedRequest = () => wrappedFetch('https://example.com', authOpts());
-
-    beforeEach(() => {
-      let mockTerraUser = { token };
-      const mockOidcUser: OidcUser = {
-        id_token: undefined,
-        session_state: null,
-        access_token: token,
-        refresh_token: '',
-        token_type: '',
-        scope: undefined,
-        profile: {
-          sub: '',
-          iss: '',
-          aud: '',
-          exp: 0,
-          iat: 0,
-        },
-        expires_at: undefined,
-        state: undefined,
-        expires_in: 0,
-        expired: undefined,
-        scopes: [],
-        toStorageString: (): string => '',
-      };
-
-      asMockedFn(getTerraUser).mockImplementation(() => mockTerraUser);
-
-      asMockedFn(loadAuthToken).mockImplementation(() => {
-        mockTerraUser = { token: 'newtesttoken' };
-        return Promise.resolve({
-          status: 'success',
-          oidcUser: mockOidcUser,
-        });
-      });
-    });
 
     it('attempts to reload auth token', async () => {
       // Act
@@ -116,10 +106,10 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
       // Assert
       expect(originalFetch).toHaveBeenCalledTimes(2);
       expect(originalFetch).toHaveBeenCalledWith('https://example.com', {
-        headers: { Authorization: 'Bearer testtoken' },
+        headers: { Authorization: `Bearer ${token}` },
       });
       expect(originalFetch).toHaveBeenLastCalledWith('https://example.com', {
-        headers: { Authorization: 'Bearer newtesttoken' },
+        headers: { Authorization: `Bearer ${newToken}` },
       });
     });
 

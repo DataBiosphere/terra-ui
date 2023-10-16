@@ -1,11 +1,11 @@
 import { abandonedPromise, delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { AuthTokenState, loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
+import { AuthTokenState, getAuthToken, loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
-import { ajaxOverridesStore, getTerraUser } from 'src/libs/state';
+import { ajaxOverridesStore } from 'src/libs/state';
 
-export const authOpts = (token = getTerraUser().token) => ({ headers: { Authorization: `Bearer ${token}` } });
+export const authOpts = (token = getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } });
 export const jsonBody = (body) => ({
   body: JSON.stringify(body),
   headers: { 'Content-Type': 'application/json' },
@@ -77,7 +77,7 @@ export const withRetryAfterReloadingExpiredAuthToken =
       if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
         const reloadedAuthTokenState: AuthTokenState = await loadAuthToken();
         if (reloadedAuthTokenState.status === 'success') {
-          const optionsWithNewAuthToken = _.merge(options, authOpts());
+          const optionsWithNewAuthToken = _.merge(options, authOpts(getAuthToken()));
           return await wrappedFetch(resource, optionsWithNewAuthToken);
         }
         const signOutCause: SignOutCause =

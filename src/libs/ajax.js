@@ -23,6 +23,7 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { Disks } from 'src/libs/ajax/leonardo/Disks';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
+import { OAuth2 } from 'src/libs/ajax/OAuth2';
 import { SamResources } from 'src/libs/ajax/SamResources';
 import { Support } from 'src/libs/ajax/Support';
 import { User } from 'src/libs/ajax/User';
@@ -741,13 +742,6 @@ const DrsUriResolver = (signal) => ({
 const Duos = (signal) => ({
   getConsent: async (orspId) => {
     const res = await fetchOrchestration(`/api/duos/consent/orsp/${orspId}`, _.merge(authOpts(), { signal }));
-    return res.json();
-  },
-});
-
-const OAuth2 = (signal) => ({
-  getConfiguration: async () => {
-    const res = await fetchOrchestration('/oauth2/configuration', _.merge(authOpts(), { signal }));
     return res.json();
   },
 });

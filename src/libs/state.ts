@@ -2,6 +2,7 @@ import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
 import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
 import { Dataset } from 'src/libs/ajax/Catalog';
+import { OidcConfig } from 'src/libs/ajax/OAuth2';
 import { NihDatasetPermission } from 'src/libs/ajax/User';
 import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
@@ -148,11 +149,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
 export const getTerraUser = (): TerraUser => authStore.get().terraUser;
 
 export const getSessionId = () => authStore.get().sessionId;
-
-export type OidcConfig = {
-  authorityEndpoint?: string;
-  clientId?: string;
-};
 
 export type OidcState = {
   authContext: AuthContextProps | undefined;

@@ -8,6 +8,7 @@ import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
+import { OidcConfig } from 'src/libs/ajax/OAuth2';
 import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage';
 import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
@@ -37,6 +38,14 @@ import { v4 as uuid } from 'uuid';
 export interface OidcUser extends User {
   profile: B2cIdTokenClaims;
 }
+
+export const getAuthToken = (): string | undefined => {
+  const oidcUser: OidcUser | undefined = oidcStore.get().user;
+  if (oidcUser !== undefined) {
+    return oidcUser.access_token;
+  }
+  return undefined;
+};
 
 // Our config for b2C claims are defined here: https://github.com/broadinstitute/terraform-ap-deployments/tree/master/azure/b2c/policies
 // The standard b2C claims are defined here: https://learn.microsoft.com/en-us/azure/active-directory/develop/id-token-claims-reference
@@ -239,6 +248,10 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
 
   if (loadedAuthTokenState.status === 'success') {
     const oidcUser: OidcUser = loadedAuthTokenState.oidcUser;
+    oidcStore.update((state) => ({
+      ...state,
+      user: oidcUser,
+    }));
     const oidcUserJWT: string = oidcUser.id_token!;
     const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(oidcUserJWT);
     const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
@@ -248,11 +261,6 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     const refreshToken: string | undefined = oidcUser.refresh_token;
     // for future might want to take refresh token and hash it to compare to a saved hashed token to see if they are the same
     const isNewRefreshToken = !!refreshToken && refreshToken !== oldRefreshTokenMetadata.token;
-
-    oidcStore.update((state) => ({
-      ...state,
-      user: oidcUser,
-    }));
 
     // for metrics, updates authToken metadata and refresh token metadata
     authStore.update((state) => ({
@@ -428,9 +436,11 @@ export const isAzureUser = (): boolean => {
 };
 
 export const loadOidcUser = (user: OidcUser): void => {
-  return authStore.update((state) => {
+  oidcStore.update((state) => ({ ...state, user }));
+  authStore.update((state) => {
     const tokenClaims: B2cIdTokenClaims = user.profile;
     // according to IdTokenClaims, this is a mandatory claim and should always exist
+    // should be googleSubjectId or b2cId depending on how they authenticated
     const userId: string = tokenClaims.sub;
     return {
       ...state,
@@ -480,7 +490,7 @@ export const initializeAuth = _.memoize(async (): Promise<void> => {
 
 // This is the first thing that happens on app load.
 export const initializeClientId = _.memoize(async () => {
-  const oidcConfig = await Ajax().OAuth2.getConfiguration();
+  const oidcConfig: OidcConfig = await Ajax().OAuth2.getConfiguration();
   oidcStore.update((state) => ({ ...state, config: oidcConfig }));
 });
 
