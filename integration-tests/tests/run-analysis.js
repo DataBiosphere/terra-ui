@@ -69,7 +69,7 @@ const testRunAnalysisFn = _.flowRight(
   await click(page, clickable({ textContains: 'Open' }));
 
   // Find the iframe, wait until the Jupyter kernel is ready, and execute some code
-  const frame = await findIframe(page, '//iframe[@id="analysis-iframe"]');
+  const frame = await findIframe(page, '//*[@role="main"]/iframe', { timeout: 10000 });
 
   await findElement(frame, '//*[@title="Kernel Idle"]', { timeout: 60000 });
   await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)');
