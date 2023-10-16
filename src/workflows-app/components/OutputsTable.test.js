@@ -1,6 +1,7 @@
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
 import { runSetOutputDef, runSetOutputDefEmpty, runSetOutputDefWithDefaults } from 'src/workflows-app/utils/mock-responses';
 

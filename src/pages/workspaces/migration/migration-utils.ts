@@ -47,6 +47,11 @@ export interface BillingProjectMigrationInfo {
   workspaces: WorkspaceMigrationInfo[];
 }
 
+export interface WorkspaceWithNamespace {
+  name: string;
+  namespace: string;
+}
+
 // Server types that are transformed into the exported types.
 type ServerMigrationStep =
   | 'ScheduledForMigration'
@@ -167,4 +172,35 @@ export const getBillingProjectMigrationStats = (
     );
   });
   return migrationStats;
+};
+
+export const mergeBillingProjectMigrationInfo = (
+  original: BillingProjectMigrationInfo[],
+  updated: BillingProjectMigrationInfo[]
+) => {
+  const modified = _.cloneDeep(original);
+  updated.forEach((migrationInfo) => {
+    modified.forEach((modifiedMigrationInfo) => {
+      if (migrationInfo.namespace === modifiedMigrationInfo.namespace) {
+        modifiedMigrationInfo.workspaces = _.unionBy(
+          'name',
+          migrationInfo.workspaces,
+          modifiedMigrationInfo.workspaces
+        );
+        modifiedMigrationInfo.workspaces = _.orderBy(
+          [({ name }) => _.lowerCase(name)],
+          ['asc'],
+          modifiedMigrationInfo.workspaces
+        );
+      }
+    });
+  });
+  return modified;
+};
+
+export const mergeWorkspacesWithNamespaces = (
+  original: WorkspaceWithNamespace[],
+  updated: WorkspaceWithNamespace[]
+) => {
+  return _.unionWith(_.isEqual, original, updated);
 };
