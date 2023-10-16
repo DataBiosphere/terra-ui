@@ -2,14 +2,14 @@ import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
-import { ExtraSigninRequestArgs, IdTokenClaims, User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
+import { ExtraSigninRequestArgs, IdTokenClaims, User, UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
-import { OidcConfig } from 'src/libs/ajax/OAuth2';
-import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage';
+import { getOidcConfig, OidcConfig } from 'src/libs/ajax/OAuth2';
+import { getSessionStorage } from 'src/libs/browser-storage';
 import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
@@ -56,31 +56,6 @@ export interface B2cIdTokenClaims extends IdTokenClaims {
   tid?: string;
   ver?: string;
 }
-
-export const getOidcConfig = () => {
-  const metadata = {
-    authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
-    token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`,
-  };
-  return {
-    authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
-    // The clientId from oidcStore.config is not undefined, setup in initializeClientId on appLoad
-    client_id: oidcStore.get().config.clientId!,
-    popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
-    silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
-    metadata,
-    prompt: 'consent login',
-    scope: 'openid email profile',
-    stateStore: new WebStorageStateStore({ store: getLocalStorage() }),
-    userStore: new WebStorageStateStore({ store: getLocalStorage() }),
-    automaticSilentRenew: true,
-    // Leo's setCookie interval is currently 5 min, set refresh auth then 5 min 30 seconds to guarantee that setCookie's token won't expire between 2 setCookie api calls
-    accessTokenExpiringNotificationTimeInSeconds: 330,
-    includeIdTokenInSilentRenew: true,
-    extraQueryParams: { access_type: 'offline' },
-    redirect_uri: '', // this field is not being used currently, but is expected from UserManager
-  };
-};
 
 const getAuthInstance = (): AuthContextProps => {
   const authContext: AuthContextProps | undefined = oidcStore.get().authContext;
