@@ -854,7 +854,6 @@ const Analyses = _.flow(
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Analyses',
     activeTab: 'analyses',
-    topBarContent: null,
   }),
   withViewToggle('analysesTab')
 )(BaseAnalyses);

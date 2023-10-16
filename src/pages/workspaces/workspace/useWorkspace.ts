@@ -14,8 +14,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { clearNotification, notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
-import { differenceFromNowInSeconds } from 'src/libs/utils';
+import { differenceFromNowInSeconds, withBusyState } from 'src/libs/utils';
 import { canWrite, isAzureWorkspace, isGoogleWorkspace, isOwner, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export interface StorageDetails {
@@ -29,12 +28,12 @@ export interface StorageDetails {
 
 export type InitializedWorkspaceWrapper = WorkspaceWrapper & { workspaceInitialized: boolean };
 
-interface WorkspaceDetails {
+export interface WorkspaceDetails {
   workspace: InitializedWorkspaceWrapper;
   accessError: boolean;
   loadingWorkspace: boolean;
   storageDetails: StorageDetails;
-  refreshWorkspace: () => {};
+  refreshWorkspace: () => Promise<void>;
 }
 
 export const googlePermissionsRecheckRate = 15000;
@@ -175,9 +174,9 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     storeAzureStorageDetails(await AzureStorage(signal).details(workspace.workspace.workspaceId));
   });
 
-  const refreshWorkspace = _.flow(
+  const refreshWorkspace: () => Promise<void> = _.flow(
     withErrorReporting('Error loading workspace'),
-    Utils.withBusyState(setLoadingWorkspace)
+    withBusyState(setLoadingWorkspace)
   )(async () => {
     try {
       const workspace = await Ajax(signal)
@@ -240,7 +239,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
         throw error;
       }
     }
-  });
+  }) as () => Promise<void>;
 
   useOnMount(() => {
     if (!workspace) {

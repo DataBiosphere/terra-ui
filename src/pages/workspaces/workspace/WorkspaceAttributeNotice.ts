@@ -12,7 +12,7 @@ interface WorkspaceAttributeNoticeProperties {
   workspaceRegionConstraintMessage?: string;
 }
 
-const WorkspaceAttributeNotice = (props: WorkspaceAttributeNoticeProperties) => {
+export const WorkspaceAttributeNotice = (props: WorkspaceAttributeNoticeProperties) => {
   const isReadOnly = !canWrite(props.accessLevel);
 
   return div({}, [
@@ -56,5 +56,3 @@ const Notice = (props: NoticeProperties) => {
     ]
   );
 };
-
-export default WorkspaceAttributeNotice;
