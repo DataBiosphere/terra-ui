@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import {
@@ -6,7 +6,6 @@ import {
   AzurePersistentDiskSectionProps,
 } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSection';
 import { defaultAzureDiskSize } from 'src/libs/azure-utils';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 const defaultAzurePersistentDiskSectionProps: AzurePersistentDiskSectionProps = {
   persistentDiskType: {

@@ -388,34 +388,4 @@ describe('ImportDataDestination', () => {
       );
     }
   );
-
-  it('hides new workspace option for imports of protected Azure snapshots', async () => {
-    // Arrange
-    setup({
-      props: {
-        importRequest: {
-          type: 'tdr-snapshot-export',
-          manifestUrl: new URL('https://example.com/path/to/manifest.json'),
-          snapshot: {
-            id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-            name: 'test-snapshot',
-            source: [
-              {
-                dataset: {
-                  id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-                  name: 'test-dataset',
-                  secureMonitoringEnabled: true,
-                },
-              },
-            ],
-            cloudPlatform: 'azure',
-          },
-          syncPermissions: false,
-        },
-      },
-    });
-
-    // Assert
-    expect(screen.queryByText('Start with a new workspace')).toBeNull();
-  });
 });

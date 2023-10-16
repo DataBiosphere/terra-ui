@@ -1,6 +1,6 @@
+import { render } from '@testing-library/react';
 import _ from 'lodash/fp';
 import * as Utils from 'src/libs/utils';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { renderDataCell } from './renderDataCell';
 

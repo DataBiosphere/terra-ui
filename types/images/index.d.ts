@@ -9,7 +9,6 @@ declare module '*.png' {
 }
 
 declare module '*.svg' {
-  export const ReactComponent: JSX.IntrinsicElements<'svg'>;
   const value: string;
   export = value;
 }

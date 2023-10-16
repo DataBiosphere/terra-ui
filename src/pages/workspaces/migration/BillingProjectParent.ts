@@ -1,7 +1,7 @@
 import { cond, DEFAULT } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { ButtonOutline } from 'src/components/common';
@@ -14,17 +14,17 @@ import {
   getBillingProjectMigrationStats,
   inProgressIcon,
   successIcon,
-  WorkspaceWithNamespace,
 } from 'src/pages/workspaces/migration/migration-utils';
 import { WorkspaceItem } from 'src/pages/workspaces/migration/WorkspaceItem';
 import { useMemo } from 'use-memo-one';
 
 interface BillingProjectParentProps {
   billingProjectMigrationInfo: BillingProjectMigrationInfo;
-  migrationStartedCallback: (p: WorkspaceWithNamespace[]) => {};
 }
 
 export const BillingProjectParent = (props: BillingProjectParentProps): ReactNode => {
+  const [migrateStarted, setMigrateStarted] = useState<boolean>(false);
+
   const migrationStats = useMemo(() => {
     return getBillingProjectMigrationStats(props.billingProjectMigrationInfo);
   }, [props.billingProjectMigrationInfo]);
@@ -100,23 +100,21 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
               h(
                 ButtonOutline,
                 {
+                  disabled: migrateStarted,
+                  tooltip: migrateStarted ? 'Migration has been scheduled' : '',
                   onClick: () => {
-                    const migrateWorkspace = reportErrorAndRethrow(
-                      // Some migrations may have started, but the page will not auto-refresh due to the error.
-                      'Error starting migration. Please refresh the page to get the most current status.',
-                      async () => {
-                        const workspacesToMigrate: { namespace: string; name: string }[] = [];
-                        props.billingProjectMigrationInfo.workspaces.forEach((workspace) => {
-                          if (workspace.migrationStep === 'Unscheduled') {
-                            workspacesToMigrate.push({ namespace: workspace.namespace, name: workspace.name });
-                          }
-                        });
-                        if (workspacesToMigrate.length > 0) {
-                          await Ajax().Workspaces.startBatchBucketMigration(workspacesToMigrate);
-                          props.migrationStartedCallback(workspacesToMigrate);
+                    const migrateWorkspace = reportErrorAndRethrow('Error starting migration', async () => {
+                      const workspacesToMigrate: { namespace: string; name: string }[] = [];
+                      props.billingProjectMigrationInfo.workspaces.forEach((workspace) => {
+                        if (workspace.migrationStep === 'Unscheduled') {
+                          workspacesToMigrate.push({ namespace: workspace.namespace, name: workspace.name });
                         }
+                      });
+                      if (workspacesToMigrate.length > 0) {
+                        setMigrateStarted(true);
+                        await Ajax().Workspaces.startBatchBucketMigration(workspacesToMigrate);
                       }
-                    );
+                    });
                     migrateWorkspace();
                   },
                 },
@@ -131,8 +129,7 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
         initialOpenState: true,
       },
       _.map(
-        (workspaceMigrationInfo) =>
-          h(WorkspaceItem, { workspaceMigrationInfo, migrationStartedCallback: props.migrationStartedCallback }),
+        (workspaceMigrationInfo) => h(WorkspaceItem, { workspaceMigrationInfo }),
         props.billingProjectMigrationInfo.workspaces
       )
     ),

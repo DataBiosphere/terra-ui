@@ -1,8 +1,7 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { div, h } from 'react-hyperscript-helpers';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { RenderedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RenderedWorkspaces';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 // FlexTable uses react-virtualized's AutoSizer to size the table.

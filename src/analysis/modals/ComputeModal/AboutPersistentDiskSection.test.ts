@@ -1,11 +1,10 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import {
   AboutPersistentDiskSection,
   AboutPersistentDiskSectionProps,
 } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskSection';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 const defaultAboutPersistentDiskSectionProps: AboutPersistentDiskSectionProps = {
   onClick: jest.fn(),

@@ -1,8 +1,7 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { RowContents, TreeGrid } from 'src/components/TreeGrid';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type Node = RowContents & {
   name: string;

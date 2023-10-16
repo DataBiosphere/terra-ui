@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
-import { NihAccount } from 'src/pages/profile/external-identities/NihAccount';
+import { NihLink } from 'src/pages/profile/external-identities/NihLink';
 import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({
@@ -33,7 +33,7 @@ const nihStatus = {
   linkExpireTime: 10,
 };
 
-describe('NihAccount', () => {
+describe('NihLink', () => {
   afterEach(async () => {
     await act(async () => {
       authStore.reset();
@@ -53,7 +53,7 @@ describe('NihAccount', () => {
 
       // Act
       await act(async () => {
-        renderWithAppContexts(h(NihAccount, { nihToken: 'token' }));
+        renderWithAppContexts(h(NihLink, { nihToken: 'token' }));
       });
 
       // Assert
@@ -73,7 +73,7 @@ describe('NihAccount', () => {
         // Act
         await act(async () => {
           authStore.update((state) => ({ ...state, nihStatusLoaded: true }));
-          renderWithAppContexts(h(NihAccount));
+          renderWithAppContexts(h(NihLink));
         });
 
         // Assert
@@ -86,7 +86,7 @@ describe('NihAccount', () => {
         // Act
         await act(async () => {
           authStore.update((state) => ({ ...state, nihStatus, nihStatusLoaded: true }));
-          renderWithAppContexts(h(NihAccount));
+          renderWithAppContexts(h(NihLink));
         });
 
         // Assert
@@ -103,7 +103,7 @@ describe('NihAccount', () => {
       // Arrange
       // Act
       await act(async () => {
-        renderWithAppContexts(h(NihAccount));
+        renderWithAppContexts(h(NihLink));
       });
 
       // Assert
@@ -126,7 +126,7 @@ describe('NihAccount', () => {
       // Act
       await act(async () => {
         authStore.update((state) => ({ ...state, nihStatus, nihStatusLoaded: true }));
-        renderWithAppContexts(h(NihAccount));
+        renderWithAppContexts(h(NihLink));
       });
 
       expect(screen.getByText('Unlink')).not.toBeNull();

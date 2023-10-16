@@ -1,10 +1,9 @@
-import { act } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import Alerts from 'src/components/Alerts';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
 import * as TosAlerts from 'src/libs/terms-of-service-alerts';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
 

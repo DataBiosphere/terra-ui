@@ -84,11 +84,7 @@ const eventsList = {
       expired: 'user:authTokenLoad:expiredRefreshToken',
       error: 'user:authTokenLoad:error',
     },
-    login: {
-      success: 'user:login:success',
-      expired: 'user:login:expiredRefreshToken',
-      error: 'user:login:error',
-    },
+    login: 'user:login',
     signOut: {
       requested: 'user:signOut:requested',
       disabled: 'user:signOut:disabled',

@@ -1,5 +1,4 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act } from '@testing-library/react';
 import _ from 'lodash/fp';
 import * as WorkspaceUtils from 'src/components/workspace-utils';
@@ -13,7 +12,7 @@ import {
   googlePermissionsRecheckRate,
   useWorkspace,
 } from 'src/pages/workspaces/workspace/useWorkspace';
-import { renderHookInAct } from 'src/testing/test-utils';
+import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
 
 jest.mock('src/libs/ajax/AzureStorage');

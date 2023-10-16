@@ -17,11 +17,7 @@ type AjaxWorkspacesContract = AjaxContract['Workspaces'];
 jest.mock('src/libs/ajax');
 
 describe('BillingProjectParent', () => {
-  const mockMigrationStartedCallback = jest.fn();
-
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
+  const migrationScheduledTooltipText = 'Migration has been scheduled';
 
   it('shows migrate all button if all workspaces are unscheduled, with no accessibility errors', async () => {
     // Arrange
@@ -47,11 +43,11 @@ describe('BillingProjectParent', () => {
             namespace: 'CARBilling-2',
             workspaces: twoUnscheduledMigrationInfo,
           },
-          migrationStartedCallback: mockMigrationStartedCallback,
         }),
       ])
     );
     expect(await axe(container)).toHaveNoViolations();
+    expect(screen.queryByText(migrationScheduledTooltipText)).toBeNull();
     await user.click(screen.getByText('Migrate all workspaces'));
 
     // Assert
@@ -59,10 +55,8 @@ describe('BillingProjectParent', () => {
       { name: 'notmigrated1', namespace: 'CARBilling-2' },
       { name: 'notmigrated2', namespace: 'CARBilling-2' },
     ]);
-    expect(mockMigrationStartedCallback).toHaveBeenCalledWith([
-      { name: 'notmigrated1', namespace: 'CARBilling-2' },
-      { name: 'notmigrated2', namespace: 'CARBilling-2' },
-    ]);
+    expect(screen.getByText('Migrate all workspaces').getAttribute('aria-disabled')).toBe('true');
+    await screen.findByText(migrationScheduledTooltipText);
   });
 
   it('shows migrate remaining button if some workspaces are unscheduled', async () => {
@@ -82,7 +76,6 @@ describe('BillingProjectParent', () => {
     render(
       h(BillingProjectParent, {
         billingProjectMigrationInfo: bpWithSucceededAndUnscheduled,
-        migrationStartedCallback: mockMigrationStartedCallback,
       })
     );
     await user.click(screen.getByText('Migrate remaining workspaces'));
@@ -90,7 +83,6 @@ describe('BillingProjectParent', () => {
     // Assert
     expect(mockStartBatchBucketMigration).toHaveBeenCalledWith([{ name: 'notmigrated', namespace: 'CARBilling-2' }]);
     await screen.findByText('1 Workspace Migrated');
-    expect(mockMigrationStartedCallback).toHaveBeenCalledWith([{ name: 'notmigrated', namespace: 'CARBilling-2' }]);
   });
 
   it('does not show a migrate button if the only workspace is in progress', async () => {
@@ -98,7 +90,6 @@ describe('BillingProjectParent', () => {
     render(
       h(BillingProjectParent, {
         billingProjectMigrationInfo: bpWithInProgress,
-        migrationStartedCallback: mockMigrationStartedCallback,
       })
     );
 
@@ -113,7 +104,6 @@ describe('BillingProjectParent', () => {
     render(
       h(BillingProjectParent, {
         billingProjectMigrationInfo: bpWithFailed,
-        migrationStartedCallback: mockMigrationStartedCallback,
       })
     );
 
@@ -159,7 +149,6 @@ describe('BillingProjectParent', () => {
           namespace: 'CARBilling-2',
           workspaces: twoSucceededMigrationInfo,
         },
-        migrationStartedCallback: mockMigrationStartedCallback,
       })
     );
 

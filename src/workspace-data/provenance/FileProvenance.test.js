@@ -1,6 +1,7 @@
+import { render } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn } from 'src/testing/test-utils';
 
 import { FileProvenance } from './FileProvenance';
 import { fileProvenanceTypes, useFileProvenance } from './workspace-data-provenance-utils';

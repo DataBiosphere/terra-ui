@@ -6,7 +6,6 @@ import { customSpinnerOverlay, Link, Select } from 'src/components/common';
 import { ValidatedInputWithRef } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
-import { getRegionLabel } from 'src/libs/azure-utils';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { summarizeErrors } from 'src/libs/utils';
@@ -37,7 +36,7 @@ const managedAppsToOptions = (apps: AzureManagedAppCoordinates[]) =>
     return {
       value: application,
       label: application.region
-        ? `${application.applicationDeploymentName} (${getRegionLabel(application.region)})`
+        ? `${application.applicationDeploymentName} (${application.region})`
         : application.applicationDeploymentName,
     };
   }, apps);

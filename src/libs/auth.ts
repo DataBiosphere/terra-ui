@@ -189,15 +189,10 @@ export const signIn = async (includeBillingScope = false): Promise<OidcUser> => 
       sessionId,
       sessionStartTime,
     }));
-    Ajax().Metrics.captureEvent(Events.user.login.success, {
+    Ajax().Metrics.captureEvent(Events.user.login, {
       sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
     });
     return authTokenState.oidcUser;
-  }
-  if (authTokenState.status === 'expired') {
-    Ajax().Metrics.captureEvent(Events.user.login.expired, {});
-  } else if (authTokenState.status === 'error') {
-    Ajax().Metrics.captureEvent(Events.user.login.error, {});
   }
   throw new Error('Auth token failed to load when signing in');
 };

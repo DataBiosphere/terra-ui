@@ -1,8 +1,7 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 describe('PathBreadcrumbs', () => {
   it('renders path segments (including root path) as buttons', () => {

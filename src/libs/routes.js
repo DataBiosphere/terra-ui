@@ -31,7 +31,7 @@ import * as WorkflowsList from 'src/pages/workflows/List';
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails';
 import * as WorkspaceList from 'src/pages/workspaces/List';
 import * as WorkspaceMigration from 'src/pages/workspaces/migration/WorkspaceMigration';
-import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard/Dashboard';
+import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard';
 import * as WorkspaceFiles from 'src/pages/workspaces/workspace/Files';
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory';
 import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails';

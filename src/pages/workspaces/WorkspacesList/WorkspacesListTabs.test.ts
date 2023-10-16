@@ -1,10 +1,9 @@
-import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { updateSearch, useRoute } from 'src/libs/nav';
 import { CategorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CategorizedWorkspaces';
 import { WorkspacesListTabs } from 'src/pages/workspaces/WorkspacesList/WorkspacesListTabs';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 // the FlexTable uses react-virtualized's AutoSizer to size the table.

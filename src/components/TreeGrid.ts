@@ -1,8 +1,9 @@
-import { IconId, Link } from '@terra-ui-packages/components';
+import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactElement, useState } from 'react';
 import { div, h, strong } from 'react-hyperscript-helpers';
 import { Grid } from 'react-virtualized';
+import { Link } from 'src/components/common/Link';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { toIndexPairs } from 'src/libs/utils';

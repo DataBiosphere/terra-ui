@@ -1,12 +1,12 @@
 import { subscribable } from '@terra-ui-packages/core-utils';
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h, ul } from 'react-hyperscript-helpers';
 import { Directory } from 'src/components/file-browser/DirectoryTree';
 import { useDirectoriesInDirectory } from 'src/components/file-browser/file-browser-hooks';
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/components/file-browser/file-browser-hooks', () => ({
   ...jest.requireActual('src/components/file-browser/file-browser-hooks'),

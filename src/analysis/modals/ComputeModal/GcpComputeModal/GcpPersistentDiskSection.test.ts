@@ -1,11 +1,10 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import {
   GcpPersistentDiskSection,
   GcpPersistentDiskSectionProps,
 } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 const defaultGcpPersistentDiskSectionProps: GcpPersistentDiskSectionProps = {
   persistentDiskExists: false,
