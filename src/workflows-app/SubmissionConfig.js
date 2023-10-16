@@ -32,7 +32,7 @@ export const BaseSubmissionConfig = (
     name,
     namespace,
     workspace,
-    analysesData,
+    analysesData: { apps, refreshApps },
     workspace: {
       workspace: { workspaceId },
     },
@@ -437,7 +437,8 @@ export const BaseSubmissionConfig = (
             name,
             namespace,
             workspace,
-            analysesData,
+            apps,
+            refreshApps,
           }),
         viewWorkflowScriptModal &&
           h(ViewWorkflowScriptModal, {

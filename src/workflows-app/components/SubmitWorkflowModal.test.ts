@@ -2,7 +2,6 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { AnalysesData } from 'src/analysis/Analyses';
 import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
@@ -57,15 +56,6 @@ jest.mock('src/libs/ajax/metrics/useMetrics', () => ({
   useMetricsEvent: jest.fn(() => ({ captureEvent: jest.fn() })),
 }));
 
-const defaultAnalysesData: AnalysesData = {
-  apps: [],
-  refreshApps: jest.fn().mockReturnValue(Promise.resolve()),
-  runtimes: [],
-  refreshRuntimes: () => Promise.resolve(),
-  appDataDisks: [],
-  persistentDisks: [],
-};
-
 const submitModalProps = {
   method: methodDataWithVersions.methods[0],
   methodVersion: methodDataWithVersions.methods[0].method_versions[0],
@@ -78,7 +68,8 @@ const submitModalProps = {
   name: 'test-azure-ws-name',
   namespace: 'test-azure-ws-namespace',
   workspace: mockAzureWorkspace,
-  analysesData: defaultAnalysesData,
+  apps: [],
+  refreshApps: jest.fn().mockReturnValue(Promise.resolve()),
 };
 
 const submitModalPropsReader = {
@@ -136,10 +127,7 @@ describe('SubmitWorkflowModal submitting to cromwell', () => {
       render(
         h(SubmitWorkflowModal, {
           ...submitModalProps,
-          analysesData: {
-            ...defaultAnalysesData,
-            apps: mockAzureApps,
-          },
+          apps: mockAzureApps,
         })
       )
     );
@@ -275,10 +263,7 @@ describe('SubmitWorkflowModal submitting to workflows app', () => {
       render(
         h(SubmitWorkflowModal, {
           ...submitModalProps,
-          analysesData: {
-            ...defaultAnalysesData,
-            apps: mockCollaborativeAzureApps, // the cromwell-runner belongs to groot
-          },
+          apps: mockCollaborativeAzureApps, // the cromwell-runner belongs to groot
         })
       )
     );
@@ -330,10 +315,7 @@ describe('SubmitWorkflowModal submitting to workflows app', () => {
       render(
         h(SubmitWorkflowModal, {
           ...submitModalProps,
-          analysesData: {
-            ...defaultAnalysesData,
-            apps: [mockCromwellRunner('PROVISIONING')],
-          },
+          apps: [mockCromwellRunner('PROVISIONING')],
         })
       )
     );
@@ -359,10 +341,7 @@ describe('SubmitWorkflowModal submitting to workflows app', () => {
       rerender(
         h(SubmitWorkflowModal, {
           ...submitModalProps,
-          analysesData: {
-            ...defaultAnalysesData,
-            apps: [mockCromwellRunner('RUNNING')],
-          },
+          apps: [mockCromwellRunner('RUNNING')],
         })
       )
     );
@@ -397,10 +376,7 @@ describe('SubmitWorkflowModal submitting to workflows app', () => {
       render(
         h(SubmitWorkflowModal, {
           ...submitModalProps,
-          analysesData: {
-            ...defaultAnalysesData,
-            apps: mockCollaborativeAzureApps,
-          },
+          apps: mockCollaborativeAzureApps,
         })
       )
     );

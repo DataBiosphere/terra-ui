@@ -93,7 +93,7 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     id: ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS,
     title: 'Azure Collaborative Workflows Manual Runners',
     description: 'Enabling this feature will allow for Cromwell runner manual startup and shutdown',
-    groups: ['workflow-management-develop'], // Hidden in prod
+    groups: ['workflow-management-develop'],
   },
 ];
 

@@ -307,7 +307,7 @@ describe('AnalysisModal', () => {
     expect(screen.getByText('Create'));
   });
 
-  it('Azure - Does not render Cromwell Runner when feature flag is disabled', async () => {
+  it('Azure - Renders Cromwell Runner when feature flag is disabled but app exists', async () => {
     asMockedFn(getTerraUser).mockReturnValue({ email: 'groot@gmail.com' });
     // Act
     render(
@@ -318,8 +318,8 @@ describe('AnalysisModal', () => {
     );
 
     // Assert
-    expect(screen.queryByAltText('Create new Cromwell Runner app')).not.toBeInTheDocument();
-    expect(screen.queryByText('You already have a Cromwell Runner instance')).not.toBeInTheDocument();
+    expect(screen.queryByAltText('Create new Cromwell Runner app')).toBeInTheDocument();
+    expect(screen.queryByText('You already have a Cromwell Runner instance')).toBeInTheDocument();
   });
 
   it('Azure - Does not render Cromwell when feature flag is enabled', async () => {

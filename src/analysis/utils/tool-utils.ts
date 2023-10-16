@@ -250,9 +250,7 @@ export const isToolHidden = (
       () => true,
     ],
     [
-      toolLabel === appToolLabels.CROMWELL_RUNNER_APP &&
-        cloudProvider === cloudProviderTypes.AZURE &&
-        (!isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS) || !currentApp),
+      toolLabel === appToolLabels.CROMWELL_RUNNER_APP && cloudProvider === cloudProviderTypes.AZURE && !currentApp,
       () => true,
     ],
     [toolLabel === appToolLabels.WORKFLOWS_APP, () => true],

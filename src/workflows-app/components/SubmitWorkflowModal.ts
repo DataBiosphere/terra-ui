@@ -1,7 +1,6 @@
 import _ from 'lodash/fp';
 import { CSSProperties, useCallback, useEffect, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
-import { AnalysesData } from 'src/analysis/Analyses';
 import { generateAppName, getCurrentAppForUser } from 'src/analysis/utils/app-utils';
 import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary } from 'src/components/common';
@@ -11,6 +10,7 @@ import { TextArea, TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
 import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -38,7 +38,8 @@ type SubmitWorkflowModalProps = {
   name: string;
   namespace: string;
   workspace: WorkspaceWrapper;
-  analysesData: AnalysesData;
+  apps: App[];
+  refreshApps: () => Promise<void>;
 };
 
 export const SubmitWorkflowModal = ({
@@ -52,7 +53,8 @@ export const SubmitWorkflowModal = ({
   onDismiss,
   name,
   namespace,
-  analysesData: { apps, refreshApps },
+  apps,
+  refreshApps,
   workspace,
   workspace: {
     workspace: { workspaceId, createdBy },

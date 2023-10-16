@@ -747,7 +747,7 @@ describe('CloudEnvironmentModal', () => {
     screen.getByText('AzureComputeModalBase');
   });
 
-  it('Azure - Does not render Cromwell Runner when feature flag is disabled', async () => {
+  it('Azure - Renders Cromwell Runner when feature flag is disabled but app exists', async () => {
     asMockedFn(getTerraUser).mockReturnValue({ email: 'groot@gmail.com' });
     // Act
     render(
@@ -758,7 +758,7 @@ describe('CloudEnvironmentModal', () => {
     );
 
     // Assert
-    expect(screen.queryByAltText('CROMWELL_RUNNER_APP')).not.toBeInTheDocument();
+    expect(screen.queryByAltText('CROMWELL_RUNNER_APP')).toBeInTheDocument();
   });
 
   it('Azure - Does not render Cromwell when feature flag is enabled', async () => {
