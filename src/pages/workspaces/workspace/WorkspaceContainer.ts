@@ -171,6 +171,8 @@ export const WorkspaceContainer = (props: PropsWithChildren<WorkspaceContainerPr
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),
         workspace &&
+          workspace?.workspace.state !== 'Deleting' &&
+          workspace?.workspace.state !== 'DeleteFailed' &&
           h(ContextBar, {
             workspace,
             apps,
