@@ -34,6 +34,11 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({}),
 }));
 
+jest.mock('src/libs/feature-previews', () => ({
+  ...jest.requireActual('src/libs/feature-previews'),
+  isFeaturePreviewEnabled: jest.fn(),
+}));
+
 jest.mock('src/libs/nav', () => ({
   getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
   getLink: jest.fn(),
@@ -42,7 +47,7 @@ jest.mock('src/libs/nav', () => ({
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
-  getTerraUser: jest.fn(),
+  getTerraUser: jest.fn().mockReturnValue({ id: 'foo' }),
 }));
 
 jest.mock('src/components/Modal', () => {
@@ -123,6 +128,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -174,6 +180,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       );
     });
@@ -230,6 +237,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -296,6 +304,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -384,6 +393,7 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -456,6 +466,7 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -517,6 +528,7 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -589,6 +601,7 @@ describe('Initial state', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -649,6 +662,7 @@ describe('Initial state', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -736,6 +750,7 @@ describe('Initial state', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -815,6 +830,7 @@ describe('Initial state', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -909,6 +925,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -983,6 +1000,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1087,6 +1105,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1139,6 +1158,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1220,6 +1240,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1266,6 +1287,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1314,6 +1336,7 @@ describe('Records Table updates', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1400,6 +1423,7 @@ describe('Submitting a run set', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1500,6 +1524,7 @@ describe('Submitting a run set', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1595,6 +1620,7 @@ describe('Submitting a run set', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1722,6 +1748,7 @@ describe('Submitting a run set', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
@@ -1929,6 +1956,7 @@ describe('Submitting a run set', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
+          analysesData: { apps: mockAzureApps },
         })
       )
     );
