@@ -37,7 +37,7 @@ const DeletingStateBanner = (): ReactNode => {
         ]),
       ]
     ),
-    style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
+    style: { backgroundColor: colors.warning(0.35), borderBottom: `1px solid ${colors.accent()}` },
     onDismiss: () => {},
     hideCloseButton: true,
   });
@@ -75,7 +75,7 @@ const DeleteFailedStateBanner = (props: WorkspaceDeletingBannerProps): ReactNode
             */
         ]
       ),
-      style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
+      style: { backgroundColor: colors.warning(0.35), borderBottom: `1px solid ${colors.accent()}` },
       onDismiss: () => {},
       hideCloseButton: true,
     }),
