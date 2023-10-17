@@ -1,5 +1,6 @@
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { loadAuthToken, OidcUser, signOut } from 'src/libs/auth';
+import { OidcUser } from 'src/libs/ajax/OAuth2';
+import { loadAuthToken, signOut } from 'src/libs/auth';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { authOpts, makeRequestRetry, withAuthToken } from './ajax-common';
@@ -48,7 +49,7 @@ jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   };
 });
 
-describe('withRetryAfterReloadingExpiredAuthToken', () => {
+describe('withAuthToken', () => {
   it('passes args through to wrapped fetch', async () => {
     // Arrange
     const originalFetch = jest.fn(() =>
