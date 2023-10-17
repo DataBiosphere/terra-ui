@@ -14,7 +14,10 @@ export const Metrics = (signal?: AbortSignal) => {
     await ensureAuthSettled();
     const state: AuthState = authStore.get();
     const isRegistered = state.registrationStatus === 'registered';
-    if (state.anonymousId === undefined) {
+    // If a user has not logged in, or has logged in but has not registered, ensure an anonymous ID has been generated.
+    // The anonymous ID is used to associate events triggered by the anonymous user.
+    // If the anonymous user registers during this session, the anonymous ID will be linked to their actual user ID.
+    if (!isRegistered && state.anonymousId === undefined) {
       authStore.update((oldState: AuthState) => ({
         ...oldState,
         anonymousId: uuid(),
