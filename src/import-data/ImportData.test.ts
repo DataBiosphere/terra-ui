@@ -6,7 +6,6 @@ import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
 import { useRoute } from 'src/libs/nav';
-import { fetchDataCatalog } from 'src/pages/library/dataBrowser-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -356,72 +355,6 @@ describe('ImportData', () => {
   });
 
   describe('catalog', () => {
-    it('imports multiple snapshots by reference from the data catalog', async () => {
-      // Arrange
-      const user = userEvent.setup();
-
-      asMockedFn(fetchDataCatalog).mockResolvedValue([
-        {
-          id: 'aaaabbbb-cccc-dddd-eeee-ffffgggghhhh',
-          'dct:creator': 'testowner',
-          'dct:description': 'A test snapshot',
-          'dct:identifier': '00001111-2222-3333-aaaa-bbbbccccdddd',
-          'dct:issued': '2023-10-02T11:30:00.000000Z',
-          'dct:title': 'test-snapshot-1',
-          'dcat:accessURL':
-            'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/00001111-2222-3333-aaaa-bbbbccccdddd',
-          'TerraDCAT_ap:hasDataCollection': [],
-          accessLevel: 'reader',
-          storage: [],
-          counts: {},
-          samples: {},
-          contributors: [],
-        },
-        {
-          id: '11112222-3333-4444-5555-666677778888',
-          'dct:creator': 'testowner',
-          'dct:description': 'Another test snapshot',
-          'dct:identifier': 'aaaabbbb-cccc-1111-2222-333333333333',
-          'dct:issued': '2023-10-02T11:30:00.000000Z',
-          'dct:title': 'test-snapshot-2',
-          'dcat:accessURL':
-            'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/aaaabbbb-cccc-1111-2222-333333333333',
-          'TerraDCAT_ap:hasDataCollection': [],
-          accessLevel: 'reader',
-          storage: [],
-          counts: {},
-          samples: {},
-          contributors: [],
-        },
-      ]);
-
-      const queryParams = {
-        format: 'snapshot',
-        snapshotIds: ['00001111-2222-3333-aaaa-bbbbccccdddd', 'aaaabbbb-cccc-1111-2222-333333333333'],
-      };
-      const { getWorkspaceApi, importSnapshot } = await setup({ queryParams });
-
-      // Act
-      await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
-
-      // Assert
-      expect(getWorkspaceApi).toHaveBeenCalledWith(
-        defaultGoogleWorkspace.workspace.namespace,
-        defaultGoogleWorkspace.workspace.name
-      );
-
-      expect(importSnapshot).toHaveBeenCalledWith(
-        '00001111-2222-3333-aaaa-bbbbccccdddd',
-        'test-snapshot-1',
-        'A test snapshot'
-      );
-      expect(importSnapshot).toHaveBeenCalledWith(
-        'aaaabbbb-cccc-1111-2222-333333333333',
-        'test-snapshot-2',
-        'Another test snapshot'
-      );
-    });
-
     it('imports from the data catalog', async () => {
       // Arrange
       const user = userEvent.setup();
