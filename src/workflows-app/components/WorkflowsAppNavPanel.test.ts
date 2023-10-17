@@ -30,6 +30,7 @@ describe('Workflows App Navigation Panel', () => {
       h(WorkflowsAppNavPanel, {
         loading: false,
         launcherDisabled: true,
+        launching: true,
         createWorkflowsApp: jest.fn(),
         pageReady: true,
         name: 'test-azure-ws-name',
@@ -68,6 +69,7 @@ describe('Workflows App Navigation Panel', () => {
       h(WorkflowsAppNavPanel, {
         loading: false,
         launcherDisabled: true,
+        launching: true,
         createWorkflowsApp: jest.fn(),
         pageReady: false,
         name: 'test-azure-ws-name',
@@ -95,6 +97,7 @@ describe('Workflows App Navigation Panel', () => {
       h(WorkflowsAppNavPanel, {
         loading: false,
         launcherDisabled: true,
+        launching: false,
         createWorkflowsApp: jest.fn(),
         pageReady: false,
         name: 'test-azure-ws-name',
@@ -114,6 +117,7 @@ describe('Workflows App Navigation Panel', () => {
         h(WorkflowsAppNavPanel, {
           loading: false,
           launcherDisabled: true,
+          launching: false,
           createWorkflowsApp: jest.fn(),
           pageReady: true,
           name: 'test-azure-ws-name',

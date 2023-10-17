@@ -1,6 +1,12 @@
 import _ from 'lodash/fp';
+import { appAccessScopes } from 'src/analysis/utils/tool-utils';
+import { App, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
+import { AuditInfo } from 'src/libs/ajax/leonardo/models/core-models';
+import { defaultAzureRegion } from 'src/libs/azure-utils';
+import { AzureWorkspace } from 'src/libs/workspace-utils';
+import { InputDefinition, OutputDefinition } from 'src/workflows-app/models/submission-models';
 
-export const runSetInputDef = [
+export const runSetInputDef: InputDefinition[] = [
   {
     input_name: 'target_workflow_1.foo.foo_rating_workflow_var',
     input_type: { type: 'primitive', primitive_type: 'Int' },
@@ -298,7 +304,10 @@ export const runSetInputDefWithArrays = [
   },
   {
     input_name: 'target_workflow_1.bar_array',
-    input_type: { type: 'optional', optional_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } } },
+    input_type: {
+      type: 'optional',
+      optional_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } },
+    },
     source: {
       type: 'none',
     },
@@ -390,7 +399,7 @@ export const runSetOutputDefEmpty = [
   },
 ];
 
-export const runSetOutputDefFilled = [
+export const runSetOutputDefFilled: OutputDefinition[] = [
   {
     output_name: 'target_workflow_1.file_output',
     output_type: { type: 'primitive', primitive_type: 'File' },
@@ -487,7 +496,11 @@ export const runSetResponseSameInputNames = {
   ],
 };
 
-export const runSetResponseWithStruct = _.set('run_sets[0].input_definition', JSON.stringify(runSetInputDefWithStruct), runSetResponse);
+export const runSetResponseWithStruct = _.set(
+  'run_sets[0].input_definition',
+  JSON.stringify(runSetInputDefWithStruct),
+  runSetResponse
+);
 
 export const runSetResponseWithArrays = {
   run_sets: [
@@ -560,7 +573,8 @@ export const methodsResponse = {
       name: 'Target Workflow 1',
       description: 'Target Workflow 1',
       source: 'Github',
-      source_url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl',
+      source_url:
+        'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl',
       method_versions: [
         {
           method_version_id: '50000000-0000-0000-0000-000000000006',
@@ -580,7 +594,7 @@ export const methodsResponse = {
       ],
       created: '2022-12-07T17:26:53.131+00:00',
       last_run: {
-        run_previously: false,
+        previously_run: false,
       },
     },
   ],
@@ -704,11 +718,19 @@ export const searchResponses = {
   BAR: searchResponseBAR,
 };
 
-export const mockAzureApps = [
+const auditInfo: AuditInfo = {
+  creator: 'groot@gmail.com',
+  createdDate: '2023-10-13T22:26:06.124Z',
+  dateAccessed: '2023-10-13T22:26:06.124Z',
+  destroyedDate: null,
+};
+
+export const mockAzureApps: App[] = [
   {
     workspaceId: 'abc-c07807929cd1',
     cloudContext: {
       cloudProvider: 'AZURE',
+      cloudResource: 'path/to/cloud/resource',
     },
     errors: [],
     status: 'RUNNING',
@@ -720,16 +742,17 @@ export const mockAzureApps = [
     appName: 'terra-app-abc',
     appType: 'CROMWELL',
     diskName: null,
-    auditInfo: {
-      creator: 'groot@gmail.com',
-    },
+    auditInfo,
     accessScope: null,
     labels: {},
+    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+    region: defaultAzureRegion,
   },
   {
     workspaceId: 'abc-c07807929cd1',
     cloudContext: {
       cloudProvider: 'AZURE',
+      cloudResource: 'path/to/cloud/resource',
     },
     errors: [],
     status: 'RUNNING',
@@ -739,11 +762,77 @@ export const mockAzureApps = [
     appName: 'wds-abc-c07807929cd1',
     appType: 'WDS',
     diskName: null,
-    auditInfo: {
-      creator: 'groot@gmail.com',
-    },
+    auditInfo,
     accessScope: 'WORKSPACE_SHARED',
     labels: {},
+    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+    region: defaultAzureRegion,
+  },
+];
+
+export const mockCromwellRunner = (status: LeoAppStatus): App => ({
+  workspaceId: 'abc-c07807929cd1',
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: 'path/to/cloud/resource',
+  },
+  errors: [],
+  status,
+  proxyUrls: {
+    'cromwell-runner': 'https://lz-abc/terra-app-cra-def/cromwell',
+  },
+  appName: 'terra-app-cra-def',
+  appType: 'CROMWELL_RUNNER_APP',
+  diskName: null,
+  auditInfo,
+  accessScope: appAccessScopes.USER_PRIVATE,
+  labels: {},
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  region: defaultAzureRegion,
+});
+
+export const mockCollaborativeAzureApps: App[] = [
+  {
+    workspaceId: 'abc-c07807929cd1',
+    cloudContext: {
+      cloudProvider: 'AZURE',
+      cloudResource: 'path/to/cloud/resource',
+    },
+    errors: [],
+    status: 'RUNNING',
+    proxyUrls: {
+      cbas: 'https://lz-abc/terra-app-wfa-abc/cbas',
+      'cromwell-reader': 'https://lz-abc/terra-app-wfa-abc/cromwell',
+    },
+    appName: 'terra-app-wfa-abc',
+    appType: 'WORKFLOWS_APP',
+    diskName: null,
+    auditInfo,
+    accessScope: appAccessScopes.WORKSPACE_SHARED,
+    labels: {},
+    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+    region: defaultAzureRegion,
+  },
+  mockCromwellRunner('RUNNING'),
+  {
+    workspaceId: 'abc-c07807929cd1',
+    cloudContext: {
+      cloudProvider: 'AZURE',
+      cloudResource: 'path/to/cloud/resource',
+    },
+    errors: [],
+    status: 'RUNNING',
+    proxyUrls: {
+      wds: 'https://lz-abc/wds-abc-c07807929cd1/',
+    },
+    appName: 'wds-abc-c07807929cd1',
+    appType: 'WDS',
+    diskName: null,
+    auditInfo,
+    accessScope: 'WORKSPACE_SHARED',
+    labels: {},
+    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+    region: defaultAzureRegion,
   },
 ];
 
@@ -753,18 +842,16 @@ export const mockAbortResponse = {
   state: 'CANCELING',
 };
 
-/** @type WorkspaceWrapper */
-export const mockAzureWorkspace = {
+export const mockAzureWorkspace: AzureWorkspace = {
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Azure',
-    googleProject: '',
-    bucketName: '',
     isLocked: false,
     name: 'test-azure-ws-name',
     namespace: 'test-azure-ws-namespace',
     workspaceId: 'abc-c07807929cd1',
     createdDate: '2023-02-15T19:17:15.711Z',
+    lastModified: '2023-02-15T20:17:15.711Z',
     createdBy: 'groot@gmail.com',
   },
   azureContext: {

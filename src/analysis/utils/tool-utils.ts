@@ -5,6 +5,7 @@ import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
 
@@ -231,6 +232,12 @@ export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider)
     [
       toolLabel === appToolLabels.HAIL_BATCH &&
         (cloudProvider === cloudProviderTypes.GCP || !isFeaturePreviewEnabled('hail-batch-azure')),
+      () => true,
+    ],
+    [
+      toolLabel === appToolLabels.CROMWELL &&
+        cloudProvider === cloudProviderTypes.AZURE &&
+        isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS),
       () => true,
     ],
     [Utils.DEFAULT, () => false]
