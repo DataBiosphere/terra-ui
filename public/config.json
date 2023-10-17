@@ -1,1 +1,34 @@
-../config/dev.json
+{
+  "agoraUrlRoot": "https://agora.dsde-staging.broadinstitute.org",
+  "bardRoot": "https://terra-bard-staging.appspot.com",
+  "billingProfileManagerUrlRoot": "https://bpm.dsde-staging.broadinstitute.org",
+  "bondUrlRoot": "https://bond.dsde-staging.broadinstitute.org",
+  "calhounUrlRoot": "https://calhoun.dsde-staging.broadinstitute.org",
+  "catalogUrlRoot": "https://catalog.dsde-staging.broadinstitute.org",
+  "dataRepoUrlRoot": "https://data.staging.envs-terra.bio",
+  "devUrlRoot": "https://bvdp-saturn-staging.appspot.com",
+  "dockstoreUrlRoot": "https://staging.dockstore.org",
+  "drsHubUrlRoot": "https://drshub.dsde-staging.broadinstitute.org",
+  "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-staging",
+  "firecloudUrlRoot": "https://firecloud.dsde-staging.broadinstitute.org",
+  "isProd": true,
+  "jobManagerUrlRoot": "https://job-manager.dsde-staging.broadinstitute.org/jobs",
+  "leoUrlRoot": "https://leonardo.dsde-staging.broadinstitute.org",
+  "marthaUrlRoot": "https://us-central1-broad-dsde-staging.cloudfunctions.net",
+  "orchestrationUrlRoot": "https://firecloud-orchestration.dsde-staging.broadinstitute.org",
+  "rawlsUrlRoot": "https://rawls.dsde-staging.broadinstitute.org",
+  "rexUrlRoot": "https://terra-rex-staging.appspot.com",
+  "samUrlRoot": "https://sam.dsde-staging.broadinstitute.org",
+  "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
+  "shouldUseDrsHub": false,
+  "workspaceManagerUrlRoot": "https://workspace.dsde-staging.broadinstitute.org",
+  "tCell": {
+    "appId": "saturnnonprod-O9lUP",
+    "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"
+  },
+  "alphaRegionalityGroup": "Alpha_Regionality_Users",
+  "terraDockerVersionsFile": "terra-docker-versions-staging.json",
+  "terraDockerImageBucket": "terra-docker-image-documentation-staging",
+  "b2cBillingPolicy": "b2c_1a_signup_signin_billing_staging",
+  "terraDeploymentEnv": "staging"
+}
