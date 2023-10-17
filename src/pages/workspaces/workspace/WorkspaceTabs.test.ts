@@ -1,9 +1,10 @@
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 // Mocking for Nav.getLink
 jest.mock('src/libs/nav', () => ({
