@@ -1,11 +1,14 @@
+import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { useWorkspaceDetails } from 'src/components/workspace-utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
-import WorkspaceMenu, { tooltipText } from 'src/pages/workspaces/workspace/WorkspaceMenu';
+import { WorkspaceAccessLevel } from 'src/libs/workspace-utils';
+import { tooltipText, WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceMenu';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 jest.mock('src/components/workspace-utils', () => {
   const originalModule = jest.requireActual('src/components/workspace-utils');
@@ -28,12 +31,18 @@ jest.mock('src/components/PopupTrigger', () => {
 const workspaceMenuProps = {
   iconSize: 20,
   popupLocation: 'left',
-  callbacks: {},
+  callbacks: {
+    onClone: () => {},
+    onShare: () => {},
+    onLock: () => {},
+    onDelete: () => {},
+    onLeave: () => {},
+  },
   workspaceInfo: { name: 'example1', namespace: 'example-billing-project' },
 };
 
 beforeEach(() => {
-  MenuTrigger.mockImplementation(({ content }) => {
+  asMockedFn(MenuTrigger).mockImplementation(({ content }) => {
     return div({ role: 'menu' }, [content]);
   });
 });
@@ -41,7 +50,7 @@ beforeEach(() => {
 describe('WorkspaceMenu - undefined workspace', () => {
   beforeEach(() => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: undefined });
+    asMockedFn(useWorkspaceDetails).mockReturnValue({ workspace: undefined, loading: false, refresh: jest.fn() });
   });
 
   it('should not fail any accessibility tests', async () => {
@@ -76,8 +85,12 @@ describe('WorkspaceMenu - undefined workspace', () => {
 describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
   it('should not fail any accessibility tests', async () => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { canShare: true, workspace: {} }, accessLevel: 'OWNER' });
-    // Act
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: defaultGoogleWorkspace,
+      refresh: jest.fn(),
+      loading: false,
+    }); // Act
     const { container } = render(h(WorkspaceMenu, workspaceMenuProps));
     // Assert
     expect(await axe(container)).toHaveNoViolations();
@@ -85,7 +98,12 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 
   it('renders menu item Clone as enabled', () => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: {} } });
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: defaultGoogleWorkspace,
+      refresh: jest.fn(),
+      loading: false,
+    });
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
     const menuItem = screen.getByText('Clone');
@@ -95,7 +113,12 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 
   it('renders menu item Leave as enabled', () => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: {} } });
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: defaultGoogleWorkspace,
+      refresh: jest.fn(),
+      loading: false,
+    });
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
     const menuItem = screen.getByText('Leave');
@@ -105,7 +128,12 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 
   it.each([true, false])('enables/disables Share menu item based on canShare: %s', (canShare) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { canShare, workspace: {} } });
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: { ...defaultGoogleWorkspace, canShare },
+      refresh: jest.fn(),
+      loading: false,
+    });
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
     const menuItem = screen.getByText('Share');
@@ -119,8 +147,12 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 
   it.each([true, false])('renders Share tooltip based on canShare: %s', (canShare) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { canShare, workspace: {} } });
-    // Act
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: { ...defaultGoogleWorkspace, canShare },
+      refresh: jest.fn(),
+      loading: false,
+    }); // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
     const menuItem = screen.getByText('Share');
     fireEvent.mouseOver(menuItem);
@@ -139,12 +171,24 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     { menuText: 'Unlock', accessLevel: 'READER' },
   ])('enables/disables $menuText menu item based on access level $accessLevel', ({ menuText, accessLevel }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: menuText === 'Unlock' }, accessLevel } });
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: {
+        ...defaultGoogleWorkspace,
+        accessLevel: accessLevel as WorkspaceAccessLevel,
+        workspace: {
+          ...defaultGoogleWorkspace.workspace,
+          isLocked: menuText === 'Unlock',
+        },
+      },
+      refresh: jest.fn(),
+      loading: false,
+    });
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
     const menuItem = screen.getByText(menuText);
     // Assert
-    if (WorkspaceUtils.isOwner(accessLevel)) {
+    if (WorkspaceUtils.isOwner(accessLevel as WorkspaceAccessLevel)) {
       expect(menuItem).not.toHaveAttribute('disabled');
     } else {
       expect(menuItem).toHaveAttribute('disabled');
@@ -156,7 +200,19 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     { menuText: 'Lock', tooltipText: tooltipText.lockNoPermission },
   ])('renders $menuText menu item tooltip "$tooltipText" for access level READER', ({ menuText, tooltipText }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { accessLevel: 'READER', workspace: { isLocked: menuText === 'Unlock' } } });
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: {
+        ...defaultGoogleWorkspace,
+        accessLevel: 'READER',
+        workspace: {
+          ...defaultGoogleWorkspace.workspace,
+          isLocked: menuText === 'Unlock',
+        },
+      },
+      refresh: jest.fn(),
+      loading: false,
+    });
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
     fireEvent.mouseOver(screen.getByText(menuText));
@@ -169,19 +225,34 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     { accessLevel: 'OWNER', locked: true },
     { accessLevel: 'READER', locked: false },
     { accessLevel: 'OWNER', locked: false },
-  ])('renders Delete menu item as enabled/disabled for access level $accessLevel and locked status $locked', ({ accessLevel, locked }) => {
-    // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: locked }, accessLevel } });
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps));
-    const menuItem = screen.getByText('Delete');
-    // Assert
-    if (!locked && WorkspaceUtils.isOwner(accessLevel)) {
-      expect(menuItem).not.toHaveAttribute('disabled');
-    } else {
-      expect(menuItem).toHaveAttribute('disabled');
+  ])(
+    'renders Delete menu item as enabled/disabled for access level $accessLevel and locked status $locked',
+    ({ accessLevel, locked }) => {
+      // Arrange
+      asMockedFn(useWorkspaceDetails).mockReturnValue({
+        // @ts-expect-error - the type checker thinks workspace is only of type undefined
+        workspace: {
+          ...defaultGoogleWorkspace,
+          accessLevel,
+          workspace: {
+            ...defaultGoogleWorkspace.workspace,
+            isLocked: locked,
+          },
+        },
+        refresh: jest.fn(),
+        loading: false,
+      });
+      // Act
+      render(h(WorkspaceMenu, workspaceMenuProps));
+      const menuItem = screen.getByText('Delete');
+      // Assert
+      if (!locked && WorkspaceUtils.isOwner(accessLevel as WorkspaceAccessLevel)) {
+        expect(menuItem).not.toHaveAttribute('disabled');
+      } else {
+        expect(menuItem).toHaveAttribute('disabled');
+      }
     }
-  });
+  );
 
   it.each([
     { accessLevel: 'READER', locked: true },
@@ -190,12 +261,24 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     { accessLevel: 'OWNER', locked: false },
   ])('renders Delete tooltip for access level $accessLevel and locked status $locked', ({ accessLevel, locked }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: locked }, accessLevel } });
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: {
+        ...defaultGoogleWorkspace,
+        accessLevel,
+        workspace: {
+          ...defaultGoogleWorkspace.workspace,
+          isLocked: locked,
+        },
+      },
+      refresh: jest.fn(),
+      loading: false,
+    });
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
     fireEvent.mouseOver(screen.getByText('Delete'));
     // Assert
-    if (!locked && WorkspaceUtils.isOwner(accessLevel)) {
+    if (!locked && WorkspaceUtils.isOwner(accessLevel as WorkspaceAccessLevel)) {
       expect(screen.queryByRole('tooltip', { name: tooltipText.deleteLocked })).toBeNull();
       expect(screen.queryByRole('tooltip', { name: tooltipText.deleteNoPermission })).toBeNull();
     } else if (locked) {

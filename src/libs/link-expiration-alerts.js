@@ -2,13 +2,15 @@ import { addDays, differenceInDays, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/external-account-links';
 import { getEnabledBrand } from 'src/libs/brand-utils';
 import * as Nav from 'src/libs/nav';
 import allProviders from 'src/libs/providers';
 import { authStore } from 'src/libs/state';
+import { FrameworkServiceLink } from 'src/pages/profile/external-identities/FrameworkServiceLink';
+import { ShibbolethLink } from 'src/pages/profile/external-identities/ShibbolethLink';
+import { UnlinkFenceAccount } from 'src/pages/profile/external-identities/UnlinkFenceAccount';
 
-const getNihLinkExpirationAlert = (status, now) => {
+const getNihAccountLinkExpirationAlert = (status, now) => {
   // Orchestration API returns NIH link expiration time in seconds since epoch
   const dateOfExpiration = status && new Date(status.linkExpireTime * 1000);
   const shouldNotify = Boolean(dateOfExpiration) && now >= addDays(-1, dateOfExpiration);
@@ -31,7 +33,7 @@ const getNihLinkExpirationAlert = (status, now) => {
   };
 };
 
-const getFenceLinkExpirationAlert = (provider, status, now) => {
+const getFenceAccountLinkExpirationAlert = (provider, status, now) => {
   const { key, name } = provider;
 
   // Bond API returns link time as an ISO formatted string.
@@ -51,7 +53,7 @@ const getFenceLinkExpirationAlert = (provider, status, now) => {
     title: `Your access to ${name} ${expireStatus}.`,
     message: h(Fragment, [
       'Log in to ',
-      h(FrameworkServiceLink, { linkText: expireStatus === 'has expired' ? 'restore ' : 'renew ', provider: key, redirectUrl }),
+      h(FrameworkServiceLink, { linkText: expireStatus === 'has expired' ? 'restore ' : 'renew ', providerKey: key, redirectUrl }),
       ' your access or ',
       h(UnlinkFenceAccount, { linkText: 'unlink ', provider: { key, name } }),
       ' your account.',
@@ -64,8 +66,8 @@ export const getLinkExpirationAlerts = (authState) => {
   const now = Date.now();
 
   return _.compact([
-    getNihLinkExpirationAlert(authState.nihStatus, now),
-    ..._.map((provider) => getFenceLinkExpirationAlert(provider, _.get(['fenceStatus', provider.key], authState), now), allProviders),
+    getNihAccountLinkExpirationAlert(authState.nihStatus, now),
+    ..._.map((provider) => getFenceAccountLinkExpirationAlert(provider, _.get(['fenceStatus', provider.key], authState), now), allProviders),
   ]);
 };
 

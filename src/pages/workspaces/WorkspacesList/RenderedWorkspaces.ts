@@ -24,7 +24,7 @@ import {
   WorkspaceInfo,
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
-import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
+import { WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceMenu';
 import { WorkspaceUserActionsContext } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
 
 // This is actually the sort type from the FlexTable component
@@ -348,7 +348,6 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
         iconSize: 20,
         popupLocation: 'left',
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-        // @ts-expect-error
         workspaceInfo: { namespace, name },
       }),
     ]),
