@@ -5,7 +5,7 @@ import RSwitch, { ReactSwitchProps } from 'react-switch';
 import { useThemeFromContext } from './theme';
 
 interface SwitchLabelProps {
-  children?: ReactNode;
+  children: ReactNode;
   isOn: boolean;
 }
 
