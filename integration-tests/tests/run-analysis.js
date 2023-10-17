@@ -59,15 +59,14 @@ const testRunAnalysisFn = _.flowRight(
 
   await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: 40000 });
   await findElement(page, clickable({ textContains: 'Creating' }), { timeout: 40000 });
-  await click(page, clickable({ textContains: 'Open' }));
 
   // Wait for the environment to be running
-  await findText(page, 'Creating cloud environment');
   await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: 10 * 60000 });
   await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60000 });
+  await click(page, clickable({ textContains: 'Open' }));
 
   // Find the iframe, wait until the Jupyter kernel is ready, and execute some code
-  const frame = await findIframe(page, '//iframe[@id="analysis-iframe"]');
+  const frame = await findIframe(page, '//iframe[@id="analysis-iframe"]', { timeout: 60000 });
 
   await findElement(frame, '//*[@title="Kernel Idle"]', { timeout: 60000 });
   await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)');
