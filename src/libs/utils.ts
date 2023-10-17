@@ -94,6 +94,11 @@ export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }
   };
 };
 
+// Returns a promise that will never resolve or reject. Useful for cancelling async flows.
+export const abandonedPromise = () => {
+  return new Promise(() => {});
+};
+
 export const textMatch = safeCurry((needle: string, haystack: string): boolean => {
   return haystack.toLowerCase().includes(needle.toLowerCase());
 }) as (needle: string, haystack: string) => boolean;
@@ -152,6 +157,9 @@ export const convertValue = _.curry((type, value) => {
  * Converts a string to start case, for a label, but handles all caps correctly.
  */
 export const normalizeLabel = _.flow(_.camelCase, _.startCase);
+
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
+export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc) as any, {});
 
 export const append = _.curry((value, arr) => _.concat(arr, [value]));
 

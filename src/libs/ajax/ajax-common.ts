@@ -1,9 +1,10 @@
-import { abandonedPromise, delay } from '@terra-ui-packages/core-utils';
+import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { AuthTokenState, loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore, getTerraUser } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 
 export const authOpts = (token = getTerraUser().token) => ({ headers: { Authorization: `Bearer ${token}` } });
 export const jsonBody = (body) => ({
@@ -132,7 +133,7 @@ const withCancellation =
       return await wrappedFetch(...args);
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        return abandonedPromise();
+        return Utils.abandonedPromise();
       }
       throw error;
     }
