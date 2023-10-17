@@ -83,21 +83,17 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
   },
   {
     id: ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
-    title: 'Azure Collaborative Workflows Read-only',
-    description:
-      'Enabling this feature will allow for Azure workspaces to become collaborative with other users to read workflow data run by workspace owner',
+    title: 'Azure Collaborative Workflows',
+    description: 'Enabling this feature will allow for Azure workspaces to become collaborative with other users.',
     feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
-      'Feedback on Azure Collaborative Workflows experience, Phase 1.'
+      'Feedback on Azure Collaborative Workflows experience'
     )}`,
   },
   {
     id: ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS,
-    title: 'Azure Collaborative Workflows Run-only',
-    description:
-      'Enabling this feature will allow for Azure workspaces to become collaborative with other users to run workflows in workspaces with writer access',
-    feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
-      'Feedback on Azure Collaborative Workflows experience, Phase 2.'
-    )}`,
+    title: 'Azure Collaborative Workflows Manual Runners',
+    description: 'Enabling this feature will allow for Cromwell runner manual startup and shutdown',
+    groups: ['workflow-management-develop'],
   },
 ];
 
