@@ -408,13 +408,17 @@ export const initializeAuth = _.memoize(async (): Promise<void> => {
   }
 });
 
-// This is intended for tests to short circuit the login flow
+// This is intended for integration tests to short circuit the login flow
+
 window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) => {
   await initializeAuth(); // don't want this clobbered when real auth initializes
   const res = await fetchOk('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await res.json();
+  // eslint-disable-next-line
+  console.log(JSON.stringify(data)); // just to test for what these claims are
+  // oidcStore.update((state) => ({ ...state, user: data as OidcUser }));
   authStore.update((state) => {
     return {
       ...state,
