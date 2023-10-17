@@ -1,8 +1,6 @@
-import { icon, Link } from '@terra-ui-packages/components';
-import { Fragment, ReactNode, useState } from 'react';
+import { icon } from '@terra-ui-packages/components';
+import { Fragment, ReactNode } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
-import ErrorView from 'src/components/ErrorView';
-import Modal from 'src/components/Modal';
 import TitleBar from 'src/components/TitleBar';
 import colors from 'src/libs/colors';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
@@ -30,7 +28,10 @@ const DeletingStateBanner = (): ReactNode => {
         style: { display: 'flex', alignItems: 'center', margin: '1rem' },
       },
       [
-        icon('syncAlt', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
+        icon('syncAlt', {
+          size: 32,
+          style: { color: colors.danger(), animation: 'rotation 2s infinite linear', marginRight: '0.5rem' },
+        }),
         span({ style: { color: colors.dark(), fontSize: 14 } }, [
           'Workspace deletion in progress. Analyses, Workflow, and Data tools are no longer accessible.',
         ]),
@@ -43,20 +44,24 @@ const DeletingStateBanner = (): ReactNode => {
 };
 
 const DeleteFailedStateBanner = (props: WorkspaceDeletingBannerProps): ReactNode => {
-  const { workspace } = props;
-  const [showDetails, setShowDetails] = useState<boolean>(false);
+  // TODO: re-enable when https://broadworkbench.atlassian.net/browse/WOR-1283 is complete
+  // const { workspace } = props;
+  // const [showDetails, setShowDetails] = useState<boolean>(false);
   return h(Fragment, [
     h(TitleBar, {
       title: div(
         {
           role: 'alert',
           style: { display: 'flex', alignItems: 'center', margin: '1rem' },
+          // backgroundColor: colors.
         },
         [
-          icon('syncAlt', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
+          icon('error-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
           span({ style: { color: colors.dark(), fontSize: 14, marginRight: '0.5rem' } }, [
             'Error deleting workspace. Analyses, Workflow, and Data tools are no longer accessible.',
           ]),
+          /*
+          // TODO: re-enable when https://broadworkbench.atlassian.net/browse/WOR-1283 is complete
           workspace?.workspace.errorMessage
             ? h(
                 Link,
@@ -67,12 +72,15 @@ const DeleteFailedStateBanner = (props: WorkspaceDeletingBannerProps): ReactNode
                 ['See error details.']
               )
             : null,
+            */
         ]
       ),
       style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
       onDismiss: () => {},
       hideCloseButton: true,
     }),
+    /*
+    // TODO: re-enable when https://broadworkbench.atlassian.net/browse/WOR-1283 is complete
     showDetails
       ? h(
           Modal,
@@ -86,5 +94,6 @@ const DeleteFailedStateBanner = (props: WorkspaceDeletingBannerProps): ReactNode
           [h(ErrorView, { error: workspace?.workspace.errorMessage ?? 'No error message available' })]
         )
       : null,
+      */
   ]);
 };
