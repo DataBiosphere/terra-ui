@@ -408,17 +408,32 @@ export const initializeAuth = _.memoize(async (): Promise<void> => {
   }
 });
 
-// This is intended for integration tests to short circuit the login flow
+interface GoogleUserInfo {
+  sub: string;
+  name: string;
+  given_name: string;
+  family_name: string;
+  picture: string;
+  email: string;
+  email_verified: boolean;
+  locale: string;
+  hd: string;
+}
 
+// This is intended for integration tests to short circuit the login flow
 window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) => {
   await initializeAuth(); // don't want this clobbered when real auth initializes
   const res = await fetchOk('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const data = await res.json();
-  // eslint-disable-next-line
-  console.log(JSON.stringify(data)); // just to test for what these claims are
-  // oidcStore.update((state) => ({ ...state, user: data as OidcUser }));
+  const data: GoogleUserInfo = await res.json();
+  oidcStore.update((state) => ({
+    ...state,
+    user: {
+      ...data,
+      access_token: token,
+    } as unknown as OidcUser,
+  }));
   authStore.update((state) => {
     return {
       ...state,
