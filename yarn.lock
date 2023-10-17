@@ -13351,7 +13351,6 @@ __metadata:
     react-paginating: ^1.4.0
     react-select: ^5.7.4
     react-simplemde-editor: ^5.0.2
-    react-switch: ^6.1.0
     react-textarea-autosize: ^8.5.2
     react-transition-group: ^4.4.5
     react-virtualized: "patch:react-virtualized@npm:^9.22.5#./.yarn/patches/react-virtualized-9.22.5.patch"

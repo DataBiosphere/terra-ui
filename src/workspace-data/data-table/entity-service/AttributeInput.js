@@ -1,8 +1,9 @@
 import ReactJson from '@microlink/react-json-view';
+import { Switch } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, fieldset, h, label, legend, span } from 'react-hyperscript-helpers';
-import { IdContainer, LabeledCheckbox, Link, RadioButton, Select, Switch } from 'src/components/common';
+import { IdContainer, LabeledCheckbox, Link, RadioButton, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { NumberInput, TextInput } from 'src/components/input';
 import TooltipTrigger from 'src/components/TooltipTrigger';
