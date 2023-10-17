@@ -6,7 +6,7 @@ import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { reportError, withErrorReportingInModal } from 'src/libs/error';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import { getTerraUser } from 'src/libs/state';
+import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { BaseWorkspace, isAzureWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils';
 
@@ -130,6 +130,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
       await Ajax(signal).Workspaces.workspaceV2(workspaceInfo.namespace, workspaceInfo.name).delete();
       hookArgs.onDismiss();
       hookArgs.onSuccess();
+      workspaceStore.reset();
     } catch (error) {
       setDeleting(false);
       reportError('Error deleting workspace', error);
