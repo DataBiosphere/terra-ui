@@ -236,31 +236,34 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     { menuText: 'Lock', accessLevel: 'READER' },
     { menuText: 'Unlock', accessLevel: 'OWNER' },
     { menuText: 'Unlock', accessLevel: 'READER' },
-  ])('enables/disables $menuText menu item based on access level $accessLevel', ({ menuText, accessLevel }) => {
-    // Arrange
-    asMockedFn(useWorkspaceDetails).mockReturnValue({
-      // @ts-expect-error - the type checker thinks workspace is only of type undefined
-      workspace: {
-        ...defaultGoogleWorkspace,
-        accessLevel: accessLevel as WorkspaceAccessLevel,
+  ] as { menuText: string; accessLevel: WorkspaceAccessLevel }[])(
+    'enables/disables $menuText menu item based on access level $accessLevel',
+    ({ menuText, accessLevel }) => {
+      // Arrange
+      asMockedFn(useWorkspaceDetails).mockReturnValue({
+        // @ts-expect-error - the type checker thinks workspace is only of type undefined
         workspace: {
-          ...defaultGoogleWorkspace.workspace,
-          isLocked: menuText === 'Unlock',
+          ...defaultGoogleWorkspace,
+          accessLevel: accessLevel as WorkspaceAccessLevel,
+          workspace: {
+            ...defaultGoogleWorkspace.workspace,
+            isLocked: menuText === 'Unlock',
+          },
         },
-      },
-      refresh: jest.fn(),
-      loading: false,
-    });
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps));
-    const menuItem = screen.getByText(menuText);
-    // Assert
-    if (WorkspaceUtils.isOwner(accessLevel as WorkspaceAccessLevel)) {
-      expect(menuItem).not.toHaveAttribute('disabled');
-    } else {
-      expect(menuItem).toHaveAttribute('disabled');
+        refresh: jest.fn(),
+        loading: false,
+      });
+      // Act
+      render(h(WorkspaceMenu, workspaceMenuProps));
+      const menuItem = screen.getByText(menuText);
+      // Assert
+      if (WorkspaceUtils.isOwner(accessLevel)) {
+        expect(menuItem).not.toHaveAttribute('disabled');
+      } else {
+        expect(menuItem).toHaveAttribute('disabled');
+      }
     }
-  });
+  );
 
   it.each([
     { menuText: 'Unlock', tooltipText: tooltipText.unlockNoPermission },

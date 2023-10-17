@@ -87,7 +87,7 @@ const GooglePermissionsSpinner = (): ReactNode => {
   return h(TitleBarSpinner, warningMessage);
 };
 
-interface WorkspaceContainerProps {
+interface WorkspaceContainerProps extends PropsWithChildren {
   namespace: string;
   name: string;
   breadcrumbs: ReactNode;
@@ -100,7 +100,7 @@ interface WorkspaceContainerProps {
   refreshWorkspace: () => void;
 }
 
-export const WorkspaceContainer = (props: PropsWithChildren<WorkspaceContainerProps>) => {
+export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const {
     namespace,
     name,
