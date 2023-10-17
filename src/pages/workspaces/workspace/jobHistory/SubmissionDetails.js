@@ -526,6 +526,12 @@ const SubmissionDetails = _.flow(
               makeSection('Data Entity', [div([entityName]), div([entityType])]),
               makeSection('Submission ID', [
                 h(Link, { href: bucketBrowserUrl(submissionRoot.replace('gs://', '')), ...Utils.newTabLinkProps }, submissionId),
+                h(ClipboardButton, {
+                  'aria-label': 'Copy submission ID to clipboard',
+                  className: 'cell-hover-only',
+                  style: { marginLeft: '0.5rem' },
+                  text: submissionRoot.split('/').pop(),
+                }),
               ]),
               makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled']),
               makeSection('Delete Intermediate Outputs', [deleteIntermediateOutputFiles ? 'Enabled' : 'Disabled']),
