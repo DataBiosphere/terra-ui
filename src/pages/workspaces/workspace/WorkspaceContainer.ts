@@ -90,7 +90,7 @@ const GooglePermissionsSpinner = (): ReactNode => {
 interface WorkspaceContainerProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  breadcrumbs: ReactNode;
+  breadcrumbs: ReactNode[];
   title: string;
   activeTab?: string;
   analysesData: AppDetails & CloudEnvironmentDetails;
@@ -126,7 +126,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
-        div({ style: Style.noWrapEllipsis }, [breadcrumbs]),
+        div({ style: Style.noWrapEllipsis }, breadcrumbs),
         h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [title || `${namespace}/${name}`]),
       ]),
       div({ style: { flexGrow: 1 } }),
@@ -371,7 +371,7 @@ const useAppPolling = (workspace: Workspace): AppDetails => {
 };
 
 interface WrapWorkspaceProps {
-  breadcrumbs: (props: { name: string; namespace: string }) => ReactNode;
+  breadcrumbs: (props: { name: string; namespace: string }) => ReactNode[];
   activeTab?: string;
   title: string;
 }
