@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Dispatch, Fragment, ReactNode } from 'react';
+import { Dispatch, ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { analysisTabName } from 'src/analysis/runtime-common-components';
 import { TabBar } from 'src/components/tabBars';
@@ -14,7 +14,6 @@ import {
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
 import { WorkspaceAttributeNotice } from 'src/pages/workspaces/workspace/WorkspaceAttributeNotice';
-import { WorkspaceDeletingBanner } from 'src/pages/workspaces/workspace/WorkspaceDeletingBanner';
 import { WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
 export interface WorkspaceTabsProps {
@@ -55,40 +54,37 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
 
   const tabs = getTabs(workspace);
 
-  return h(Fragment, [
-    h(
-      TabBar,
-      {
-        'aria-label': 'Workspace Navigation Tabs',
-        activeTab,
-        refresh,
-        tabNames: _.map('name', tabs),
-        getHref: (currentTab) => Nav.getLink(_.find({ name: currentTab }, tabs)?.link ?? '', { namespace, name }),
-      },
-      [
-        workspace &&
-          h(WorkspaceAttributeNotice, {
-            accessLevel: workspace.accessLevel,
-            isLocked,
-            workspaceProtectedMessage: hasProtectedData(workspace) ? protectedDataMessage : undefined,
-            workspaceRegionConstraintMessage: regionConstraintMessage(workspace),
-          }),
-        h(WorkspaceMenu, {
-          iconSize: 27,
-          popupLocation: 'bottom',
-          callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-          workspaceInfo: {
-            state: workspace?.workspace?.state,
-            canShare: !!canShare,
-            isLocked,
-            isOwner: wsOwner,
-            workspaceLoaded,
-          },
+  return h(
+    TabBar,
+    {
+      'aria-label': 'Workspace Navigation Tabs',
+      activeTab,
+      refresh,
+      tabNames: _.map('name', tabs),
+      getHref: (currentTab) => Nav.getLink(_.find({ name: currentTab }, tabs)?.link ?? '', { namespace, name }),
+    },
+    [
+      workspace &&
+        h(WorkspaceAttributeNotice, {
+          accessLevel: workspace.accessLevel,
+          isLocked,
+          workspaceProtectedMessage: hasProtectedData(workspace) ? protectedDataMessage : undefined,
+          workspaceRegionConstraintMessage: regionConstraintMessage(workspace),
         }),
-      ]
-    ),
-    h(WorkspaceDeletingBanner, { workspace }),
-  ]);
+      h(WorkspaceMenu, {
+        iconSize: 27,
+        popupLocation: 'bottom',
+        callbacks: { onClone, onShare, onLock, onDelete, onLeave },
+        workspaceInfo: {
+          state: workspace?.workspace?.state,
+          canShare: !!canShare,
+          isLocked,
+          isOwner: wsOwner,
+          workspaceLoaded,
+        },
+      }),
+    ]
+  );
 };
 
 const getTabs = (workspace?: Workspace): { name: string; link: string }[] => {

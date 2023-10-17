@@ -33,6 +33,7 @@ import {
   StorageDetails,
   useWorkspace,
 } from 'src/pages/workspaces/workspace/useWorkspace';
+import { WorkspaceDeletingBanner } from 'src/pages/workspaces/workspace/WorkspaceDeletingBanner';
 import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
 
 const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
@@ -165,6 +166,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
       setSharingWorkspace,
       setShowLockWorkspaceModal,
     }),
+    h(WorkspaceDeletingBanner, { workspace }),
     workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
     isGoogleWorkspaceSyncing && h(GooglePermissionsSpinner),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [
