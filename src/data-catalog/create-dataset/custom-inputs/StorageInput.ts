@@ -1,5 +1,6 @@
 import * as _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
+import { SelectInput, SelectInputProps } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   azureCloudRegionTypes,
   azureCloudResourceTypes,
@@ -7,7 +8,6 @@ import {
   googleCloudResourceTypes,
   StorageObject,
 } from 'src/libs/ajax/Catalog';
-import { SelectInput, SelectInputProps } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
 
 interface StorageInputProps {
   wrapperProps?: any;

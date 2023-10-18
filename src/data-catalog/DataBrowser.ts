@@ -5,12 +5,6 @@ import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { ColumnSelector, MiniSortable, SimpleTable } from 'src/components/table';
-import { Ajax } from 'src/libs/ajax';
-import { Dataset } from 'src/libs/ajax/Catalog';
-import colors from 'src/libs/colors';
-import Events from 'src/libs/events';
-import * as Nav from 'src/libs/nav';
-import { CloudProvider, cloudProviderLabels } from 'src/libs/workspace-utils';
 import {
   DatasetAccess,
   datasetAccessTypes,
@@ -22,7 +16,13 @@ import {
   getDatasetReleasePoliciesDisplayInformation,
   makeDatasetReleasePolicyDisplayInformation,
   useDataCatalog,
-} from 'src/pages/library/dataBrowser-utils';
+} from 'src/data-catalog/data-browser-utils';
+import { Ajax } from 'src/libs/ajax';
+import { Dataset } from 'src/libs/ajax/Catalog';
+import colors from 'src/libs/colors';
+import Events from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
+import { CloudProvider, cloudProviderLabels } from 'src/libs/workspace-utils';
 import {
   commonStyles,
   FilterSection,

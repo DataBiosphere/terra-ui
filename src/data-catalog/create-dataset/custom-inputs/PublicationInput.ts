@@ -1,10 +1,10 @@
 import { div, h } from 'react-hyperscript-helpers';
-import { Publication } from 'src/libs/ajax/Catalog';
-import { FormLabel } from 'src/libs/forms';
 import {
   generateIndividualInputPropsForObjectField,
   StringInput,
-} from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
+} from 'src/data-catalog/create-dataset/CreateDatasetInputs';
+import { Publication } from 'src/libs/ajax/Catalog';
+import { FormLabel } from 'src/libs/forms';
 import { validate } from 'validate.js';
 
 export interface PublicationInputProps {

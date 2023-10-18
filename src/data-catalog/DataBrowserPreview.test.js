@@ -1,5 +1,5 @@
 import userEvent from '@testing-library/user-event';
-import { formatTableCell } from 'src/pages/library/DataBrowserPreview';
+import { formatTableCell } from 'src/data-catalog/DataBrowserPreview';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 describe('DataBrowserPreview', () => {

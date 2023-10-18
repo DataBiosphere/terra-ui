@@ -1,5 +1,5 @@
+import { fetchDataCatalog } from 'src/data-catalog/data-browser-utils';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
-import { fetchDataCatalog } from 'src/pages/library/dataBrowser-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import {
@@ -24,7 +24,7 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   };
 });
 
-type DataBrowserUtilsExports = typeof import('src/pages/library/dataBrowser-utils');
+type DataBrowserUtilsExports = typeof import('src/data-catalog/data-browser-utils');
 jest.mock('src/pages/library/dataBrowser-utils', (): DataBrowserUtilsExports => {
   return {
     ...jest.requireActual<DataBrowserUtilsExports>('src/pages/library/dataBrowser-utils'),

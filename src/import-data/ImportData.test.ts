@@ -50,7 +50,7 @@ jest.mock('src/libs/notifications', (): NotificationsExports => {
   };
 });
 
-type DataBrowserUtilsExports = typeof import('src/pages/library/dataBrowser-utils');
+type DataBrowserUtilsExports = typeof import('src/data-catalog/data-browser-utils');
 jest.mock('src/pages/library/dataBrowser-utils', (): DataBrowserUtilsExports => {
   return {
     ...jest.requireActual<DataBrowserUtilsExports>('src/pages/library/dataBrowser-utils'),

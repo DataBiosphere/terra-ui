@@ -8,13 +8,13 @@ import { centeredSpinner, icon } from 'src/components/icons';
 import { libraryTopMatter } from 'src/components/library-common';
 import ModalDrawer from 'src/components/ModalDrawer';
 import { ColumnSelector, SimpleTable } from 'src/components/table';
+import { datasetAccessTypes, getDatasetAccessType, useDataCatalog } from 'src/data-catalog/data-browser-utils';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { datasetAccessTypes, getDatasetAccessType, useDataCatalog } from 'src/pages/library/dataBrowser-utils';
 
 const styles = {
   table: {

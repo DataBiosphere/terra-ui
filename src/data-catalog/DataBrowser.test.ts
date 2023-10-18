@@ -1,7 +1,7 @@
 import * as _ from 'lodash/fp';
-import { convertColsToSettings, convertSettingsToCols, extractCatalogFilters } from 'src/pages/library/DataBrowser';
-import { datasetAccessTypes } from 'src/pages/library/dataBrowser-utils';
-import { TEST_DATASET_ONE, TEST_DATASET_TWO, TEST_DATASETS } from 'src/pages/library/test-datasets';
+import { datasetAccessTypes } from 'src/data-catalog/data-browser-utils';
+import { convertColsToSettings, convertSettingsToCols, extractCatalogFilters } from 'src/data-catalog/DataBrowser';
+import { TEST_DATASET_ONE, TEST_DATASET_TWO, TEST_DATASETS } from 'src/data-catalog/test-datasets';
 
 const settings = [
   { name: 'Consortiums', key: 'consortiums', visible: true },

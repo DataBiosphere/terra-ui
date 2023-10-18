@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { StorageInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/StorageInput';
+import { StorageInput } from 'src/data-catalog/create-dataset/custom-inputs/StorageInput';
 
 // For some reason this seemed to want to import files from
 // this file. For some reason fetchBuckets errors here, but

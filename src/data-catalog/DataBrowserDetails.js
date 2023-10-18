@@ -9,17 +9,6 @@ import { centeredSpinner, icon, spinner } from 'src/components/icons';
 import { libraryTopMatter } from 'src/components/library-common';
 import { MarkdownViewer } from 'src/components/markdown';
 import Modal from 'src/components/Modal';
-import { ReactComponent as AzureLogo } from 'src/images/azure.svg';
-import { ReactComponent as GcpLogo } from 'src/images/gcp.svg';
-import { Ajax } from 'src/libs/ajax';
-import colors from 'src/libs/colors';
-import { getConfig } from 'src/libs/config';
-import { withErrorReporting } from 'src/libs/error';
-import Events from 'src/libs/events';
-import * as Nav from 'src/libs/nav';
-import { useCancellation, usePollingEffect } from 'src/libs/react-utils';
-import * as Utils from 'src/libs/utils';
-import { cloudProviderLabels } from 'src/libs/workspace-utils';
 import {
   DatasetAccess,
   datasetAccessTypes,
@@ -32,7 +21,18 @@ import {
   makeDatasetReleasePolicyDisplayInformation,
   uiMessaging,
   useDataCatalog,
-} from 'src/pages/library/dataBrowser-utils';
+} from 'src/data-catalog/data-browser-utils';
+import { ReactComponent as AzureLogo } from 'src/images/azure.svg';
+import { ReactComponent as GcpLogo } from 'src/images/gcp.svg';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import { getConfig } from 'src/libs/config';
+import { withErrorReporting } from 'src/libs/error';
+import Events from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
+import { useCancellation, usePollingEffect } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
+import { cloudProviderLabels } from 'src/libs/workspace-utils';
 import { commonStyles } from 'src/pages/library/SearchAndFilterComponent';
 
 const activeTab = 'datasets';

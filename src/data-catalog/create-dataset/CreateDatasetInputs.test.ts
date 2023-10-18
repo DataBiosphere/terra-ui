@@ -10,7 +10,7 @@ import {
   MarkdownInput,
   SelectInput,
   StringInput,
-} from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
+} from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 
 type MarkdownExports = typeof import('src/components/markdown');
 jest.mock('src/components/markdown', (): Partial<MarkdownExports> => {

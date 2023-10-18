@@ -2,7 +2,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import {
   generateIndividualInputPropsForObjectField,
   StringInput,
-} from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
+} from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import { validate } from 'validate.js';
 
 export const ContributorInput = ({ contributor, onChange, wrapperProps }) => {

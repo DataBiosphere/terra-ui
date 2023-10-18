@@ -11,6 +11,7 @@ import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
+import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   DataRepo,
   datasetIncludeTypes,
@@ -30,7 +31,6 @@ import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
 import { CohortEditor } from 'src/pages/library/datasetBuilder/CohortEditor';
 import { ConceptSetCreator } from 'src/pages/library/datasetBuilder/ConceptSetCreator';
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';

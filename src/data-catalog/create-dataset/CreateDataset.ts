@@ -4,6 +4,20 @@ import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
+import {
+  ListInput,
+  ListInputProps,
+  MarkdownInput,
+  SelectInput,
+  StringInput,
+} from 'src/data-catalog/create-dataset/CreateDatasetInputs';
+import { ContributorInput } from 'src/data-catalog/create-dataset/custom-inputs/ContributorInput';
+import { CountsInput } from 'src/data-catalog/create-dataset/custom-inputs/CountsInput';
+import { DataCollectionInput } from 'src/data-catalog/create-dataset/custom-inputs/DataCollectionInput';
+import { PublicationInput } from 'src/data-catalog/create-dataset/custom-inputs/PublicationInput';
+import { SamplesInput } from 'src/data-catalog/create-dataset/custom-inputs/SamplesInput';
+import { StorageInput } from 'src/data-catalog/create-dataset/custom-inputs/StorageInput';
+import { makeDatasetReleasePolicyDisplayInformation } from 'src/data-catalog/data-browser-utils';
 import { Ajax } from 'src/libs/ajax';
 import {
   DataCollection,
@@ -16,20 +30,6 @@ import {
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
-import {
-  ListInput,
-  ListInputProps,
-  MarkdownInput,
-  SelectInput,
-  StringInput,
-} from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
-import { ContributorInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/ContributorInput';
-import { CountsInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/CountsInput';
-import { DataCollectionInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/DataCollectionInput';
-import { PublicationInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/PublicationInput';
-import { SamplesInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/SamplesInput';
-import { StorageInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/StorageInput';
-import { makeDatasetReleasePolicyDisplayInformation } from 'src/pages/library/dataBrowser-utils';
 import { v4 as uuid } from 'uuid';
 import { validate } from 'validate.js';
 
@@ -54,10 +54,9 @@ const constraints = {
     url: true,
   },
 };
-
 const StorageSystemSelectInput = SelectInput as typeof SelectInput<StorageSystem>;
 
-interface CreateDatasetProps {
+export interface CreateDatasetProps {
   storageSystem: StorageSystem;
   storageSourceId: string;
 }
@@ -100,11 +99,17 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
   });
 
   const errors =
-    validate({ storageSystem: storageSystemState, storageSourceId: storageSourceIdState, ...metadata }, constraints) ||
-    {};
+    validate(
+      {
+        storageSystem: storageSystemState,
+        storageSourceId: storageSourceIdState,
+        ...metadata,
+      },
+      constraints
+    ) || {};
   return h(FooterWrapper, {}, [
     loading && spinnerOverlay,
-    h(TopBar, { title: 'Create Dataset', href: '' }, []),
+    h(TopBar, { title: 'Upsert Dataset', href: '' }, []),
     h(StorageSystemSelectInput, {
       title: 'Storage System',
       isClearable: false,
@@ -298,18 +303,3 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
     ]),
   ]);
 };
-
-export const navPaths = [
-  {
-    name: 'create-dataset',
-    path: '/library/datasets/create',
-    component: CreateDataset,
-    title: 'Catalog - Create Dataset',
-  },
-  {
-    name: 'create-dataset',
-    path: '/library/datasets/create/:storageSystem/:storageSourceId',
-    component: CreateDataset,
-    title: 'Catalog - Create Dataset',
-  },
-];
