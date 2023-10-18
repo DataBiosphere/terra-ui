@@ -1,4 +1,15 @@
 export default {
+  'T2T-v2': {
+    ref_fasta: 'gs://gcp-public-data--broad-references/t2t/v2/chm13v2.0.maskedY.rCRS.EBV.fasta',
+    ref_fasta_index: 'gs://gcp-public-data--broad-references/t2t/v2/chm13v2.0.maskedY.rCRS.EBV.fasta.fai',
+    ref_dict: 'gs://gcp-public-data--broad-references/t2t/v2/chm13v2.0.maskedY.rCRS.EBV.dict',
+    ref_amb: 'gs://gcp-public-data--broad-references/t2t/v2/chm13v2.0.maskedY.rCRS.EBV.fasta.amb',
+    ref_ann: 'gs://gcp-public-data--broad-references/t2t/v2/chm13v2.0.maskedY.rCRS.EBV.fasta.ann',
+    ref_bwt: 'gs://gcp-public-data--broad-references/t2t/v2/chm13v2.0.maskedY.rCRS.EBV.fasta.bwt',
+    ref_pac: 'gs://gcp-public-data--broad-references/t2t/v2/chm13v2.0.maskedY.rCRS.EBV.fasta.pac',
+    ref_sa: 'gs://gcp-public-data--broad-references/t2t/v2/chm13v2.0.maskedY.rCRS.EBV.fasta.sa',
+    par_bed: 'gs://gcp-public-data--broad-references/t2t/v2/chm13v2.0_PAR.bed',
+  },
   hg38: {
     axiomPoly_resource_vcf:
       'gs://gcp-public-data--broad-references/hg38/v0/Axiom_Exome_Plus.genotypes.all_populations.poly.hg38.vcf.gz',
