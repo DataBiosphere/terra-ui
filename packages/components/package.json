@@ -31,7 +31,8 @@
     "lodash": "^4.17.21",
     "react-focus-lock": "^2.9.5",
     "react-hyperscript-helpers": "^2.0.0",
-    "react-onclickoutside": "^6.13.0"
+    "react-onclickoutside": "^6.13.0",
+    "react-switch": "^6.1.0"
   },
   "devDependencies": {
     "@terra-ui-packages/build-utils": "^1.0.0",

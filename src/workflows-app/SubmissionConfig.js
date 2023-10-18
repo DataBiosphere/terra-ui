@@ -1,9 +1,9 @@
-import { useUniqueId } from '@terra-ui-packages/components';
+import { Switch, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { a, div, h, h2, label, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
-import { Switch } from 'src/components/common/Switch';
+import { styles as errorStyles } from 'src/components/ErrorView';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import StepButtons from 'src/components/StepButtons';
