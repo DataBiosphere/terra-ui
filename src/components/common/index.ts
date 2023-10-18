@@ -7,4 +7,3 @@ export * from './IdContainer';
 export * from './RadioButton';
 export * from './Select';
 export * from './spinners';
-export * from './Switch';

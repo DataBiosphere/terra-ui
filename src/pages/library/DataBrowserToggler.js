@@ -1,6 +1,7 @@
+import { Switch } from '@terra-ui-packages/components';
 import { Fragment, useState } from 'react';
 import { div, h, label, strong } from 'react-hyperscript-helpers';
-import { IdContainer, Link, Switch } from 'src/components/common';
+import { IdContainer, Link } from 'src/components/common';
 import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
