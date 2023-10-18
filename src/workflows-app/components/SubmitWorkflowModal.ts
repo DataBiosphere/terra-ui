@@ -1,9 +1,11 @@
 import _ from 'lodash/fp';
-import { CSSProperties, useState } from 'react';
+import { CSSProperties, Fragment, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
+import { generateAppName, getCurrentApp } from 'src/analysis/utils/app-utils';
+import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary } from 'src/components/common';
 import { styles as errorStyles } from 'src/components/ErrorView';
-import { icon } from 'src/components/icons';
+import { icon, spinner } from 'src/components/icons';
 import { TextArea, TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
 import { TextCell } from 'src/components/table';
@@ -12,10 +14,12 @@ import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { getTerraUser } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
+import { poll } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { MethodVersion, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { InputDefinition, OutputDefinition } from 'src/workflows-app/models/submission-models';
@@ -48,60 +52,88 @@ export const SubmitWorkflowModal = ({
   onDismiss,
   name,
   namespace,
-  appToUse,
   workspace,
   workspace: {
-    workspace: { workspaceId },
+    workspace: { workspaceId, createdBy },
+    canCompute,
   },
 }: SubmitWorkflowModalProps) => {
   const [runSetName, setRunSetName] = useState(
     `${_.kebabCase(method.name)}_${_.kebabCase(recordType)}_${new Date().toISOString().slice(0, -5)}`
   );
   const [runSetDescription, setRunSetDescription] = useState('');
+  const [isCromwellRunnerLaunching, setIsCromwellRunnerLaunching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [workflowSubmissionError, setWorkflowSubmissionError] = useState<string>();
 
   const { captureEvent } = useMetricsEvent();
-  const canSubmit = appToUse?.auditInfo.creator === getTerraUser().email;
+  const canSubmit =
+    (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS) && canCompute) ||
+    getTerraUser().email === createdBy;
 
-  const submitRun = Utils.withBusyState(setIsSubmitting, async () => {
-    try {
-      const runSetsPayload = {
-        run_set_name: runSetName,
-        run_set_description: runSetDescription,
-        method_version_id: methodVersion.method_version_id,
-        workflow_input_definitions: _.map(convertArrayType, inputDefinition),
-        workflow_output_definitions: outputDefinition,
-        wds_records: {
-          record_type: recordType,
-          record_ids: _.keys(selectedRecords),
-        },
-        call_caching_enabled: callCachingEnabled,
-      };
-      const {
-        cbasProxyUrlState: { state: cbasUrl },
-      } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
-      const runSetObject = await Ajax().Cbas.runSets.post(cbasUrl, runSetsPayload);
-      notify('success', 'Workflow successfully submitted', {
-        message: 'You may check on the progress of workflow on this page anytime.',
-        timeout: 5000,
-      });
-      captureEvent(Events.workflowsAppLaunchWorkflow, {
-        ...extractWorkspaceDetails(workspace),
-        methodUrl: methodVersion.url,
-        methodVersion: methodVersion.name,
-        methodSource: method.source,
-        previouslyRun: method.last_run.previously_run,
-      });
-      Nav.goToPath('workspace-workflows-app-submission-details', {
-        name,
-        namespace,
-        submissionId: runSetObject.run_set_id,
-      });
-    } catch (error) {
-      setWorkflowSubmissionError(JSON.stringify(error instanceof Response ? await error.json() : error, null, 2));
-    }
-  });
+  const submitRun = async () => {
+    const runSetsPayload = {
+      run_set_name: runSetName,
+      run_set_description: runSetDescription,
+      method_version_id: methodVersion.method_version_id,
+      workflow_input_definitions: _.map(convertArrayType, inputDefinition),
+      workflow_output_definitions: outputDefinition,
+      wds_records: {
+        record_type: recordType,
+        record_ids: _.keys(selectedRecords),
+      },
+      call_caching_enabled: callCachingEnabled,
+    };
+    const {
+      cbasProxyUrlState: { state: cbasUrl },
+    } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
+    const runSetObject = await Ajax().Cbas.runSets.post(cbasUrl, runSetsPayload);
+    notify('success', 'Workflow successfully submitted', {
+      message: 'You may check on the progress of workflow on this page anytime.',
+      timeout: 5000,
+    });
+    captureEvent(Events.workflowsAppLaunchWorkflow, {
+      ...extractWorkspaceDetails(workspace),
+      methodUrl: methodVersion.url,
+      methodVersion: methodVersion.name,
+      methodSource: method.source,
+      previouslyRun: method.last_run.previously_run,
+    });
+    Nav.goToPath('workspace-workflows-app-submission-details', {
+      name,
+      namespace,
+      submissionId: runSetObject.run_set_id,
+    });
+  };
+
+  const pollForSubmission = () =>
+    poll(async () => {
+      try {
+        const appsResponse = await Ajax().Apps.listAppsV2(workspaceId, { role: 'creator' });
+        const appToUse =
+          getCurrentApp(appToolLabels.CROMWELL, appsResponse) ??
+          getCurrentApp(appToolLabels.CROMWELL_RUNNER_APP, appsResponse);
+        if (!appToUse) {
+          setIsCromwellRunnerLaunching(true);
+          await Ajax().Apps.createAppV2(
+            generateAppName(),
+            workspaceId,
+            appToolLabels.CROMWELL_RUNNER_APP,
+            appAccessScopes.USER_PRIVATE
+          );
+          return { result: undefined, shouldContinue: true };
+        }
+        if (appToUse.status !== 'RUNNING') {
+          setIsCromwellRunnerLaunching(true);
+          return { result: undefined, shouldContinue: true };
+        }
+        setIsCromwellRunnerLaunching(false);
+        await submitRun();
+      } catch (error) {
+        setWorkflowSubmissionError(JSON.stringify(error instanceof Response ? await error.json() : error, null, 2));
+      }
+      return { result: undefined, shouldContinue: false };
+    }, 30000);
 
   return h(
     Modal,
@@ -122,7 +154,9 @@ export const SubmitWorkflowModal = ({
           tooltip: !canSubmit && 'You do not have permission to submit workflows in this workspace',
           'aria-label': 'Launch Submission',
           onClick: async () => {
-            await submitRun();
+            setIsSubmitting(true);
+            await pollForSubmission();
+            setIsSubmitting(false);
           },
         },
         [isSubmitting ? 'Submitting...' : 'Submit']
@@ -174,6 +208,16 @@ export const SubmitWorkflowModal = ({
               [workflowSubmissionError]
             ),
           ]),
+        isCromwellRunnerLaunching &&
+          isSubmitting &&
+          h(Fragment, [
+            div({ style: { display: 'flex', flexDirection: 'row', marginTop: '0.5rem' } }, [
+              spinner(),
+              div({ style: { marginLeft: '1rem' } }, ['Cromwell is launching...']),
+            ]),
+            'Your workflow will submit automatically when Cromwell is running',
+          ]),
+
         !canSubmit &&
           div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
             icon('warning-standard', { size: 16, style: { color: colors.danger() } }),

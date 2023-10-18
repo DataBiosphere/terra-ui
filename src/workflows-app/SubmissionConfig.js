@@ -2,8 +2,6 @@ import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { a, div, h, h2, label, span } from 'react-hyperscript-helpers';
-import { getCurrentApp } from 'src/analysis/utils/app-utils';
-import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { Switch } from 'src/components/common/Switch';
 import { centeredSpinner, icon } from 'src/components/icons';
@@ -34,7 +32,6 @@ export const BaseSubmissionConfig = (
     name,
     namespace,
     workspace,
-    analysesData: { apps },
     workspace: {
       workspace: { workspaceId },
     },
@@ -439,7 +436,6 @@ export const BaseSubmissionConfig = (
             name,
             namespace,
             workspace,
-            appToUse: getCurrentApp(appToolLabels.CROMWELL, apps) || getCurrentApp(appToolLabels.WORKFLOWS_APP, apps),
           }),
         viewWorkflowScriptModal &&
           h(ViewWorkflowScriptModal, {
