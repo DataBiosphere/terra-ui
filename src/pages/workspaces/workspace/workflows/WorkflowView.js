@@ -1091,7 +1091,7 @@ const WorkflowView = _.flow(
                 // We show either an info message or a warning, based on whether increasing memory on retries is
                 // enabled and the value of the retry multiplier.
                 retryWithMoreMemory && retryMemoryFactor > 2
-                  ? h(InfoBox, { style: { color: colors.warning() }, iconOverride: 'warning-standard' }, [
+                  ? h(InfoBox, { style: { color: colors.warning() }, icon: 'warning-standard' }, [
                       'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
                       h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ])

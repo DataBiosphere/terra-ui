@@ -90,7 +90,6 @@ export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
                 side: 'bottom',
                 tooltip: 'Failure information',
                 size: 18,
-                iconOverride: undefined,
               },
               [workspaceInfo.failureReason]
             ),

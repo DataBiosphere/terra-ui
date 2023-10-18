@@ -7,6 +7,7 @@ export * from './hooks/useUniqueId';
 export * from './hooks/useWindowDimensions';
 export * from './icon';
 export type { IconId } from './icon-library';
+export * from './InfoBox';
 export { Interactive } from './Interactive';
 export * from './Link';
 export * from './PopupTrigger';

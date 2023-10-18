@@ -43,13 +43,13 @@ const deletionDelayYears = 1;
 const deletionDelayString = `${deletionDelayYears} year${deletionDelayYears > 1 ? 's' : ''}`;
 const isDeleted = (statusLastChangedDate) => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > deletionDelayYears * 365;
 
-const deletedInfoIcon = ({ name, iconOverride }) => {
+const deletedInfoIcon = ({ name, icon }) => {
   return h(
     InfoBox,
     {
       style: { color: colors.secondary(), margin: '0.5rem' },
       tooltip: `${name} unavailable. Click to learn more.`,
-      iconOverride,
+      icon,
     },
     [
       div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
@@ -208,8 +208,8 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                     h(Fragment, [
                       isDeleted(filteredWorkflows[rowIndex].statusLastChangedDate)
                         ? [
-                            deletedInfoIcon({ name: 'Job Manager', iconOverride: 'tasks' }),
-                            deletedInfoIcon({ name: 'Workflow Dashboard', iconOverride: 'tachometer' }),
+                            deletedInfoIcon({ name: 'Job Manager', icon: 'tasks' }),
+                            deletedInfoIcon({ name: 'Workflow Dashboard', icon: 'tachometer' }),
                           ]
                         : [
                             h(
