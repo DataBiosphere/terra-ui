@@ -20,7 +20,7 @@ beforeEach(() => {
   dataCatalogStore.reset();
 });
 
-describe('dataBrowser-utils', () => {
+describe('data-browser-utils', () => {
   it('sets external datasets to accessLevel external', () => {
     const normalizedDatasets = prepareDatasetsForDisplay([{ 'dcat:accessURL': 'any-url.com' }], brands.terra.catalogDataCollectionsToInclude);
     expect(getDatasetAccessType(normalizedDatasets[0])).toBe(datasetAccessTypes.External);
