@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { WorkspaceDeletingBanner } from 'src/pages/workspaces/workspace/WorkspaceDeletingBanner';
@@ -57,9 +57,8 @@ describe('WorkspaceDeletingBanner', () => {
     expect(detailsLink).toBeNull();
   });
 
-  /*
-  TODO: re-enable when https://broadworkbench.atlassian.net/browse/WOR-1283 is complete
-  it('gives a link to display the workspace error message if present', () => {
+  // TODO: re-enable when https://broadworkbench.atlassian.net/browse/WOR-1283 is complete
+  xit('gives a link to display the workspace error message if present', () => {
     // Arrange
     const workspace: Workspace = {
       ...defaultAzureWorkspace,
@@ -77,8 +76,8 @@ describe('WorkspaceDeletingBanner', () => {
     expect(detailsLink).not.toBeNull();
   });
 
-  
-  it('shows the error message in a modal when the details link is clicked', () => {
+  // TODO: re-enable when https://broadworkbench.atlassian.net/browse/WOR-1283 is complete
+  xit('shows the error message in a modal when the details link is clicked', () => {
     // Arrange
     const workspace: Workspace = {
       ...defaultAzureWorkspace,
@@ -98,5 +97,4 @@ describe('WorkspaceDeletingBanner', () => {
     const message = screen.getByText('A semi-helpful message!');
     expect(message).not.toBeNull();
   });
-  */
 });

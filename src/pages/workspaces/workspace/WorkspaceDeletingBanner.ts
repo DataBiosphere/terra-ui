@@ -37,7 +37,7 @@ const DeletingStateBanner = (): ReactNode => {
         ]),
       ]
     ),
-    style: { backgroundColor: colors.warning(0.35), borderBottom: `1px solid ${colors.accent()}` },
+    style: { backgroundColor: colors.warning(0.1), borderBottom: `1px solid ${colors.accent()}` },
     onDismiss: () => {},
     hideCloseButton: true,
   });
@@ -53,7 +53,6 @@ const DeleteFailedStateBanner = (props: WorkspaceDeletingBannerProps): ReactNode
         {
           role: 'alert',
           style: { display: 'flex', alignItems: 'center', margin: '1rem' },
-          // backgroundColor: colors.
         },
         [
           icon('error-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
@@ -75,7 +74,7 @@ const DeleteFailedStateBanner = (props: WorkspaceDeletingBannerProps): ReactNode
             */
         ]
       ),
-      style: { backgroundColor: colors.warning(0.35), borderBottom: `1px solid ${colors.accent()}` },
+      style: { backgroundColor: colors.warning(0.1), borderBottom: `1px solid ${colors.accent()}` },
       onDismiss: () => {},
       hideCloseButton: true,
     }),

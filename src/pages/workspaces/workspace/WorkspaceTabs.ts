@@ -88,15 +88,15 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
 };
 
 const getTabs = (workspace?: Workspace): { name: string; link: string }[] => {
+  if (workspace?.workspace?.state === 'Deleting' || workspace?.workspace?.state === 'DeleteFailed') {
+    return [{ name: 'dashboard', link: 'workspace-dashboard' }];
+  }
+
   const commonTabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
     { name: 'data', link: 'workspace-data' },
     { name: 'analyses', link: analysisTabName },
   ];
-
-  if (workspace?.workspace?.state === 'Deleting' || workspace?.workspace?.state === 'DeleteFailed') {
-    return [{ name: 'dashboard', link: 'workspace-dashboard' }];
-  }
   if (!!workspace && isGoogleWorkspace(workspace)) {
     return [
       ...commonTabs,
