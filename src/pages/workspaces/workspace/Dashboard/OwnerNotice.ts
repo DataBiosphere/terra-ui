@@ -44,7 +44,7 @@ export const OwnerNotice = (props: OwnerNoticeProps): ReactNode => {
     : h(
         InfoBox,
         {
-          iconOverride: 'error-standard',
+          icon: 'error-standard',
           style: { color: colors.accent() },
         },
         [notice]
