@@ -118,8 +118,13 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
   });
 };
 
-export const signOut = (cause: SignOutCause = 'unspecified'): void => {
-  sendSignOutMetrics(cause);
+export const signOut = async (cause: SignOutCause = 'unspecified'): Promise<void> => {
+  try {
+    await sendSignOutMetrics(cause);
+  } catch (error) {
+    console.error('Failed to send sign out metrics');
+    console.error(error);
+  }
   if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
     notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
   }
