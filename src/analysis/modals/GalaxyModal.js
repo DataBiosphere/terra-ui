@@ -5,7 +5,7 @@ import { WarningTitle } from 'src/analysis/modals/WarningTitle';
 import { GalaxyLaunchButton, GalaxyWarning, RadioBlock, SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-components';
 import { generateAppName, getCurrentApp, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
 import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/analysis/utils/cost-utils';
-import { generatePersistentDiskName, getCurrentAppDataDisk, getCurrentAttachedDataDisk } from 'src/analysis/utils/disk-utils';
+import { generatePersistentDiskName, getCurrentAppDataDisk, getCurrentAttachedDataDisk, pdTypeFromDiskType } from 'src/analysis/utils/disk-utils';
 import { machineTypes } from 'src/analysis/utils/gce-machines';
 import { findMachineType } from 'src/analysis/utils/runtime-utils';
 import { appTools } from 'src/analysis/utils/tool-utils';
@@ -284,7 +284,6 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     const renderGalaxyCostBreakdown = (kubernetesRuntimeConfig, dataDisk) => {
       const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', kubernetesRuntimeConfig });
       const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', kubernetesRuntimeConfig });
-
       return div(
         {
           style: {
@@ -362,7 +361,6 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
         }
       );
     };
-
     const renderPersistentDiskType = (disabled) =>
       h(div, [
         h(IdContainer, [
@@ -372,9 +370,9 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
               div({ style: { marginTop: '0.5rem' } }, [
                 h(Select, {
                   id,
-                  value: disabled ? currentDataDisk.diskType : dataDisk.diskType,
+                  value: currentDataDisk ? currentDataDisk.diskType.value : dataDisk.diskType.value,
                   isDisabled: disabled,
-                  onChange: ({ value }) => updateDataDisk('diskType', value),
+                  onChange: ({ value }) => updateDataDisk('diskType', pdTypeFromDiskType(value)),
                   menuPlacement: 'auto',
                   options: GcpPersistentDiskOptions,
                 }),
