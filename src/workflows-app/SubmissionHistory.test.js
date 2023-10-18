@@ -412,7 +412,6 @@ describe('SubmissionHistory tab', () => {
     });
   });
 
-  // Formatted as:
   const abortTestCases = [
     ['abort successfully', { workspace: mockAzureWorkspace, userEmail: mockAzureWorkspace.workspace.createdBy, abortAllowed: true }],
     ['not allow abort for non-creators', { workspace: mockAzureWorkspace, userEmail: 'someoneelse@gmail.com', abortAllowed: false }],
