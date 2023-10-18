@@ -2,8 +2,11 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
 import { getTerraUser, workflowsAppStore } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { SubmitWorkflowModal } from 'src/workflows-app/components/SubmitWorkflowModal';
@@ -11,6 +14,7 @@ import { methodDataWithVersions } from 'src/workflows-app/utils/mock-data';
 import {
   mockAzureApps,
   mockAzureWorkspace,
+  mockCollaborativeAzureApps,
   runSetInputDef,
   runSetOutputDefFilled,
 } from 'src/workflows-app/utils/mock-responses';
@@ -36,6 +40,19 @@ jest.mock('src/libs/state', () => ({
   getTerraUser: jest.fn().mockReturnValue({ id: 'foo' }),
 }));
 
+jest.mock('src/libs/utils', () => ({
+  ...jest.requireActual('src/libs/utils'),
+  poll: jest.fn(async (fn) => {
+    const foo = async () => {
+      const res = await fn();
+      if (res.shouldContinue) {
+        await foo();
+      }
+    };
+    await foo();
+  }),
+}));
+
 jest.mock('src/components/Modal', () => {
   const mockModal = jest.requireActual('src/components/Modal.mock');
   return mockModal.mockModalModule();
@@ -44,6 +61,11 @@ jest.mock('src/components/Modal', () => {
 jest.mock('src/libs/ajax/metrics/useMetrics', () => ({
   ...jest.requireActual('src/libs/ajax/metrics/useMetrics'),
   useMetricsEvent: jest.fn(() => ({ captureEvent: jest.fn() })),
+}));
+
+jest.mock('src/libs/feature-previews', () => ({
+  ...jest.requireActual('src/libs/feature-previews'),
+  isFeaturePreviewEnabled: jest.fn(),
 }));
 
 const submitModalProps = {
@@ -58,7 +80,6 @@ const submitModalProps = {
   name: 'test-azure-ws-name',
   namespace: 'test-azure-ws-namespace',
   workspace: mockAzureWorkspace,
-  appToUse: undefined,
 };
 
 const submitModalPropsReader = {
@@ -88,16 +109,23 @@ describe('SubmitWorkflowModal submitting to cromwell', () => {
       cbasUrlRoot: 'https://lz-abc/terra-app-abc/cbas',
       cromwellUrlRoot: 'https://lz-abc/terra-app-abc/cromwell',
     });
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((_id) => false);
   });
 
   it('should allow submit to cromwell by workspace creator', async () => {
     // ** ARRANGE **
     const user = userEvent.setup();
     const postRunSetFunction = jest.fn();
+    const createAppV2 = jest.fn();
+    const listAppsV2 = jest.fn(() => Promise.resolve(mockAzureApps));
     asMockedFn(getTerraUser).mockReturnValue({ email: 'groot@gmail.com' });
 
     await asMockedFn<() => DeepPartial<AjaxContract>>(Ajax).mockImplementation(() => {
       return {
+        Apps: {
+          createAppV2,
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
@@ -107,14 +135,7 @@ describe('SubmitWorkflowModal submitting to cromwell', () => {
     });
 
     // ** ACT **
-    await act(async () =>
-      render(
-        h(SubmitWorkflowModal, {
-          ...submitModalProps,
-          appToUse: mockAzureApps[0],
-        })
-      )
-    );
+    await act(async () => render(h(SubmitWorkflowModal, submitModalProps)));
 
     // ** ASSERT **
     // Launch modal should be displayed
@@ -126,6 +147,8 @@ describe('SubmitWorkflowModal submitting to cromwell', () => {
     await user.click(modalSubmitButton);
 
     // ** ASSERT **
+    expect(createAppV2).not.toHaveBeenCalled();
+    expect(listAppsV2).toHaveBeenCalled();
     expect(postRunSetFunction).toHaveBeenCalledWith('https://lz-abc/terra-app-abc/cbas', postRunSetPayload);
   });
 
@@ -133,10 +156,16 @@ describe('SubmitWorkflowModal submitting to cromwell', () => {
     // ** ARRANGE **
     const user = userEvent.setup();
     const postRunSetFunction = jest.fn();
+    const createAppV2 = jest.fn();
+    const listAppsV2 = jest.fn(() => Promise.resolve([]));
     asMockedFn(getTerraUser).mockReturnValue({ email: 'not-groot@gmail.com' });
 
     await asMockedFn<() => DeepPartial<AjaxContract>>(Ajax).mockImplementation(() => {
       return {
+        Apps: {
+          createAppV2,
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
@@ -160,7 +189,9 @@ describe('SubmitWorkflowModal submitting to cromwell', () => {
     await user.click(modalSubmitButton);
 
     // ** ASSERT **
-    // assert no post requests made
+    // assert no requests made
+    expect(createAppV2).not.toHaveBeenCalled();
+    expect(listAppsV2).not.toHaveBeenCalled();
     expect(postRunSetFunction).not.toHaveBeenCalled();
   });
 });
@@ -173,16 +204,23 @@ describe('SubmitWorkflowModal submitting to workflows app', () => {
       cbasUrlRoot: 'https://lz-abc/terra-app-wfa-abc/cbas',
       cromwellUrlRoot: 'https://lz-abc/terra-app-abc/cromwell',
     });
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS);
   });
 
-  it('should allow submit to workflows app by workflows app creator', async () => {
+  it('should allow submit to workflows app by creator with running cromwell-runner', async () => {
     // ** ARRANGE **
     const user = userEvent.setup();
     const postRunSetFunction = jest.fn();
+    const createAppV2 = jest.fn();
+    const listAppsV2 = jest.fn(() => Promise.resolve(mockCollaborativeAzureApps));
     asMockedFn(getTerraUser).mockReturnValue({ email: 'groot@gmail.com' });
 
     await asMockedFn<() => DeepPartial<AjaxContract>>(Ajax).mockImplementation(() => {
       return {
+        Apps: {
+          createAppV2,
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
@@ -192,14 +230,7 @@ describe('SubmitWorkflowModal submitting to workflows app', () => {
     });
 
     // ** ACT **
-    await act(async () =>
-      render(
-        h(SubmitWorkflowModal, {
-          ...submitModalProps,
-          appToUse: mockAzureApps[0],
-        })
-      )
-    );
+    await act(async () => render(h(SubmitWorkflowModal, submitModalProps)));
 
     // ** ASSERT **
     // Launch modal should be displayed
@@ -211,17 +242,28 @@ describe('SubmitWorkflowModal submitting to workflows app', () => {
     await user.click(modalSubmitButton);
 
     // ** ASSERT **
+    expect(createAppV2).not.toHaveBeenCalled();
+    expect(listAppsV2).toHaveBeenCalledTimes(1);
     expect(postRunSetFunction).toHaveBeenCalledWith('https://lz-abc/terra-app-wfa-abc/cbas', postRunSetPayload);
   });
 
-  it('should display error message for workflows app non-creator', async () => {
+  it('should allow submit to workflows app by writer without running cromwell-runner', async () => {
     // ** ARRANGE **
     const user = userEvent.setup();
     const postRunSetFunction = jest.fn();
-    asMockedFn(getTerraUser).mockReturnValue({ email: 'not-groot@gmail.com' });
+    const createAppV2 = jest.fn();
+    const listAppsV2 = jest
+      .fn()
+      .mockImplementationOnce(() => Promise.resolve([]))
+      .mockImplementation(() => Promise.resolve(mockCollaborativeAzureApps));
+    asMockedFn(getTerraUser).mockReturnValue({ email: 'groot@gmail.com' });
 
     await asMockedFn<() => DeepPartial<AjaxContract>>(Ajax).mockImplementation(() => {
       return {
+        Apps: {
+          createAppV2,
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
@@ -232,6 +274,51 @@ describe('SubmitWorkflowModal submitting to workflows app', () => {
 
     // ** ACT **
     await act(async () => render(h(SubmitWorkflowModal, submitModalProps)));
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
+    expect(modalSubmitButton).not.toHaveAttribute('disabled');
+
+    // ** ACT **
+    // user click on Submit button
+    await user.click(modalSubmitButton);
+
+    // ** ASSERT **
+    expect(createAppV2).toHaveBeenCalledWith(
+      expect.anything(),
+      mockAzureWorkspace.workspace.workspaceId,
+      appToolLabels.CROMWELL_RUNNER_APP,
+      appAccessScopes.USER_PRIVATE
+    );
+    expect(listAppsV2).toHaveBeenCalledTimes(2);
+    expect(postRunSetFunction).toHaveBeenCalledWith('https://lz-abc/terra-app-wfa-abc/cbas', postRunSetPayload);
+  });
+
+  it('should display error message for workflows app reader', async () => {
+    // ** ARRANGE **
+    const user = userEvent.setup();
+    const postRunSetFunction = jest.fn();
+    const createAppV2 = jest.fn();
+    const listAppsV2 = jest.fn(() => Promise.resolve([]));
+    asMockedFn(getTerraUser).mockReturnValue({ email: 'not-groot@gmail.com' });
+
+    await asMockedFn<() => DeepPartial<AjaxContract>>(Ajax).mockImplementation(() => {
+      return {
+        Apps: {
+          createAppV2,
+          listAppsV2,
+        },
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+          },
+        },
+      };
+    });
+
+    // ** ACT **
+    await act(async () => render(h(SubmitWorkflowModal, submitModalPropsReader)));
 
     // ** ASSERT **
     // Launch modal should be displayed, but user is workspace reader and cannot submit
@@ -245,7 +332,9 @@ describe('SubmitWorkflowModal submitting to workflows app', () => {
     await user.click(modalSubmitButton);
 
     // ** ASSERT **
-    // assert no post requests made
+    // assert no requests made
+    expect(createAppV2).not.toHaveBeenCalled();
+    expect(listAppsV2).not.toHaveBeenCalled();
     expect(postRunSetFunction).not.toHaveBeenCalled();
   });
 });

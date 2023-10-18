@@ -1391,11 +1391,15 @@ describe('Submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const listAppsV2 = jest.fn(() => Promise.resolve(mockAzureApps));
 
     const postRunSetFunction = jest.fn();
 
     await Ajax.mockImplementation(() => {
       return {
+        Apps: {
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
@@ -1488,6 +1492,7 @@ describe('Submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const listAppsV2 = jest.fn(() => Promise.resolve(mockAzureApps));
 
     const postRunSetSuccessResponse = { run_set_id: '00000000-0000-0000-000000000000' };
     const postRunSetErrorResponse = { errors: 'Sample Error Message' };
@@ -1497,6 +1502,9 @@ describe('Submitting a run set', () => {
 
     await Ajax.mockImplementation(() => {
       return {
+        Apps: {
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
@@ -1588,11 +1596,15 @@ describe('Submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const listAppsV2 = jest.fn(() => Promise.resolve(mockAzureApps));
 
     const postRunSetFunction = jest.fn();
 
     await Ajax.mockImplementation(() => {
       return {
+        Apps: {
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
@@ -1716,11 +1728,15 @@ describe('Submitting a run set', () => {
     const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const listAppsV2 = jest.fn(() => Promise.resolve(mockAzureApps));
 
     const postRunSetFunction = jest.fn();
 
     await Ajax.mockImplementation(() => {
       return {
+        Apps: {
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
@@ -1924,11 +1940,15 @@ describe('Submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const listAppsV2 = jest.fn(() => Promise.resolve(mockAzureApps));
 
     const postRunSetFunction = jest.fn();
 
     await Ajax.mockImplementation(() => {
       return {
+        Apps: {
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,

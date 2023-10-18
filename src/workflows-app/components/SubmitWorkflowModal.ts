@@ -10,7 +10,6 @@ import { TextArea, TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
 import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
-import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -38,7 +37,6 @@ type SubmitWorkflowModalProps = {
   name: string;
   namespace: string;
   workspace: WorkspaceWrapper;
-  appToUse: App | undefined; // Cromwell or Workflows App
 };
 
 export const SubmitWorkflowModal = ({
