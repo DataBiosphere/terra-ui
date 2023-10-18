@@ -345,7 +345,7 @@ const useAppPolling = (workspace: Workspace): AppDetails => {
           : [];
       const newAzureApps =
         !!workspace && isAzureWorkspace(workspace)
-          ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId, { role: 'creator' })
+          ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId)
           : [];
       const combinedNewApps = [...newGoogleApps, ...newAzureApps];
 

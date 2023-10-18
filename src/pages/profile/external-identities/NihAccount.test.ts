@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
-import { NihLink } from 'src/pages/profile/external-identities/NihLink';
+import { NihAccount } from 'src/pages/profile/external-identities/NihAccount';
 import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({
@@ -33,7 +33,7 @@ const nihStatus = {
   linkExpireTime: 10,
 };
 
-describe('NihLink', () => {
+describe('NihAccount', () => {
   afterEach(async () => {
     await act(async () => {
       authStore.reset();
@@ -53,7 +53,7 @@ describe('NihLink', () => {
 
       // Act
       await act(async () => {
-        renderWithAppContexts(h(NihLink, { nihToken: 'token' }));
+        renderWithAppContexts(h(NihAccount, { nihToken: 'token' }));
       });
 
       // Assert
@@ -73,7 +73,7 @@ describe('NihLink', () => {
         // Act
         await act(async () => {
           authStore.update((state) => ({ ...state, nihStatusLoaded: true }));
-          renderWithAppContexts(h(NihLink));
+          renderWithAppContexts(h(NihAccount));
         });
 
         // Assert
@@ -86,7 +86,7 @@ describe('NihLink', () => {
         // Act
         await act(async () => {
           authStore.update((state) => ({ ...state, nihStatus, nihStatusLoaded: true }));
-          renderWithAppContexts(h(NihLink));
+          renderWithAppContexts(h(NihAccount));
         });
 
         // Assert
@@ -103,7 +103,7 @@ describe('NihLink', () => {
       // Arrange
       // Act
       await act(async () => {
-        renderWithAppContexts(h(NihLink));
+        renderWithAppContexts(h(NihAccount));
       });
 
       // Assert
@@ -126,7 +126,7 @@ describe('NihLink', () => {
       // Act
       await act(async () => {
         authStore.update((state) => ({ ...state, nihStatus, nihStatusLoaded: true }));
-        renderWithAppContexts(h(NihLink));
+        renderWithAppContexts(h(NihAccount));
       });
 
       expect(screen.getByText('Unlink')).not.toBeNull();

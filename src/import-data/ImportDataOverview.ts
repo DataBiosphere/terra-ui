@@ -1,7 +1,5 @@
-import { IconId } from '@terra-ui-packages/components';
-import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
-import { CSSProperties, Fragment, ReactNode } from 'react';
-import { div, h, h2, li, strong, ul } from 'react-hyperscript-helpers';
+import { CSSProperties, ReactNode } from 'react';
+import { div, h, h2 } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
@@ -35,49 +33,12 @@ const styles = {
   },
 } as const satisfies Record<string, CSSProperties>;
 
-interface ResponseFragmentProps {
-  responseIndex: number;
-  snapshotResponses: { status: string; message: string | undefined }[] | undefined;
-  title: string;
-}
-
-const ResponseFragment = (props: ResponseFragmentProps): ReactNode => {
-  const { title, snapshotResponses, responseIndex } = props;
-  const { status, message } = snapshotResponses
-    ? snapshotResponses[responseIndex]
-    : { status: undefined, message: undefined };
-
-  const [color, iconKey, children] = switchCase<string | undefined, [string, IconId, ReactNode]>(
-    status,
-    [
-      'fulfilled',
-      () => [
-        colors.primary(),
-        'success-standard',
-        h(Fragment, [strong(['Success: ']), 'Snapshot successfully imported']),
-      ],
-    ],
-    ['rejected', () => [colors.danger(), 'warning-standard', h(Fragment, [strong(['Error: ']), message])]],
-    [DEFAULT, () => [colors.primary(), 'success-standard', null]]
-  );
-
-  return h(Fragment, [
-    icon(iconKey, { size: 18, style: { position: 'absolute', left: 0, color } }),
-    title,
-    children &&
-      div({ style: { color, fontWeight: 'normal', fontSize: '0.625rem', marginTop: 5, wordBreak: 'break-word' } }, [
-        children,
-      ]),
-  ]);
-};
-
 const getTitleForImportRequest = (importRequest: ImportRequest): string => {
   switch (importRequest.type) {
     case 'tdr-snapshot-export':
       return `Importing snapshot ${importRequest.snapshot.name}`;
     case 'tdr-snapshot-reference':
     case 'catalog-dataset':
-    case 'catalog-snapshots':
       return 'Linking data to a workspace';
     default:
       return 'Importing data to a workspace';
@@ -86,37 +47,15 @@ const getTitleForImportRequest = (importRequest: ImportRequest): string => {
 
 export interface ImportDataOverviewProps {
   importRequest: ImportRequest;
-  snapshotResponses: { status: string; message: string | undefined }[] | undefined;
 }
 
 export const ImportDataOverview = (props: ImportDataOverviewProps): ReactNode => {
-  const { importRequest, snapshotResponses } = props;
+  const { importRequest } = props;
 
   const isProtectedData = isProtectedSource(importRequest);
 
   return div({ style: styles.card }, [
     h2({ style: styles.title }, [getTitleForImportRequest(importRequest)]),
-    importRequest.type === 'catalog-snapshots' &&
-      div({ style: { marginTop: 20, marginBottom: 60 } }, [
-        'Dataset(s):',
-        ul({ style: { listStyle: 'none', position: 'relative', marginLeft: 0, paddingLeft: '2rem' } }, [
-          importRequest.snapshots.map(({ title, id }, index) => {
-            return li(
-              {
-                key: `snapshot_${id}`,
-                style: {
-                  fontSize: 16,
-                  fontWeight: 'bold',
-                  marginTop: 20,
-                  paddingTop: index ? 20 : 0,
-                  borderTop: `${index ? 1 : 0}px solid #AAA`,
-                },
-              },
-              [h(ResponseFragment, { snapshotResponses, responseIndex: index, title })]
-            );
-          }),
-        ]),
-      ]),
     'url' in importRequest && div({ style: { fontSize: 16 } }, ['From: ', importRequest.url.hostname]),
     div(
       { style: { marginTop: '1rem' } },

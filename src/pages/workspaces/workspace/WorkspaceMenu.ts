@@ -105,7 +105,13 @@ export const tooltipText = {
 
 interface LoadedWorkspaceMenuContentProps {
   workspaceInfo: LoadedWorkspaceInfo;
-  callbacks: WorkspaceMenuCallbacks;
+  callbacks: {
+    onClone: () => void;
+    onShare: () => void;
+    onLock: () => void;
+    onDelete: () => void;
+    onLeave: () => void;
+  };
 }
 const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
   const {
@@ -135,7 +141,7 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
         disabled: !workspaceLoaded || !canShare,
         tooltip: shareTooltip,
         tooltipSide: 'left',
-        onClick: () => onShare,
+        onClick: onShare,
       },
       [makeMenuIcon('share'), 'Share']
     ),

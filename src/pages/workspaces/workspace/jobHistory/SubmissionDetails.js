@@ -43,13 +43,13 @@ const deletionDelayYears = 1;
 const deletionDelayString = `${deletionDelayYears} year${deletionDelayYears > 1 ? 's' : ''}`;
 const isDeleted = (statusLastChangedDate) => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > deletionDelayYears * 365;
 
-const deletedInfoIcon = ({ name, iconOverride }) => {
+const deletedInfoIcon = ({ name, icon }) => {
   return h(
     InfoBox,
     {
       style: { color: colors.secondary(), margin: '0.5rem' },
       tooltip: `${name} unavailable. Click to learn more.`,
-      iconOverride,
+      icon,
     },
     [
       div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
@@ -208,8 +208,8 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                     h(Fragment, [
                       isDeleted(filteredWorkflows[rowIndex].statusLastChangedDate)
                         ? [
-                            deletedInfoIcon({ name: 'Job Manager', iconOverride: 'tasks' }),
-                            deletedInfoIcon({ name: 'Workflow Dashboard', iconOverride: 'tachometer' }),
+                            deletedInfoIcon({ name: 'Job Manager', icon: 'tasks' }),
+                            deletedInfoIcon({ name: 'Workflow Dashboard', icon: 'tachometer' }),
                           ]
                         : [
                             h(
@@ -526,6 +526,12 @@ const SubmissionDetails = _.flow(
               makeSection('Data Entity', [div([entityName]), div([entityType])]),
               makeSection('Submission ID', [
                 h(Link, { href: bucketBrowserUrl(submissionRoot.replace('gs://', '')), ...Utils.newTabLinkProps }, submissionId),
+                h(ClipboardButton, {
+                  'aria-label': 'Copy submission ID to clipboard',
+                  className: 'cell-hover-only',
+                  style: { marginLeft: '0.5rem' },
+                  text: submissionRoot.split('/').pop(),
+                }),
               ]),
               makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled']),
               makeSection('Delete Intermediate Outputs', [deleteIntermediateOutputFiles ? 'Enabled' : 'Disabled']),
