@@ -1,14 +1,9 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { mockModalModule } from 'src/components/Modal.mock';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import RequesterPaysModal from './RequesterPaysModal';
-
-jest.mock('src/components/Modal', () => {
-  return mockModalModule();
-});
 
 jest.mock('src/components/workspace-utils', () => ({
   ...jest.requireActual('src/components/workspace-utils'),

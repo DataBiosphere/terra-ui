@@ -1,15 +1,10 @@
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { mockModalModule } from 'src/components/Modal.mock';
 import { Ajax } from 'src/libs/ajax';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 
 import NewWorkspaceModal from './NewWorkspaceModal';
-
-jest.mock('src/components/Modal', () => {
-  return mockModalModule();
-});
 
 jest.mock('src/libs/ajax');
 

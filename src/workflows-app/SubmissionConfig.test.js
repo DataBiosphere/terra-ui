@@ -45,11 +45,6 @@ jest.mock('src/libs/state', () => ({
   getTerraUser: jest.fn(),
 }));
 
-jest.mock('src/components/Modal', () => {
-  const mockModal = jest.requireActual('src/components/Modal.mock');
-  return mockModal.mockModalModule();
-});
-
 jest.mock('src/libs/ajax/metrics/useMetrics', () => ({
   ...jest.requireActual('src/libs/ajax/metrics/useMetrics'),
   useMetricsEvent: jest.fn(() => ({ captureEvent: jest.fn() })),

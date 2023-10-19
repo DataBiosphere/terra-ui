@@ -6,11 +6,6 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { FilesMenu } from './FilesMenu';
 
-jest.mock('src/components/Modal', () => {
-  const { mockModalModule } = jest.requireActual('src/components/Modal.mock');
-  return mockModalModule();
-});
-
 describe('FilesMenu', () => {
   describe('deleting files', () => {
     const deleteFile = jest.fn((_path: string) => Promise.resolve());
