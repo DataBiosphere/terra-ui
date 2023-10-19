@@ -12,7 +12,7 @@ import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import {
-  ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS,
+  ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
   HAIL_BATCH_AZURE_FEATURE_ID,
 } from 'src/libs/feature-previews-config';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -301,7 +301,7 @@ describe('AnalysisModal', () => {
   });
 
   it('Azure - Does not render Cromwell when feature flag is enabled', async () => {
-    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS);
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS);
     // Act
     render(h(AnalysisModal, defaultAzureModalProps));
 
