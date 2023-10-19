@@ -5,19 +5,23 @@ type FetchFn = typeof fetch;
 describe('mapJsonBody', () => {
   it('updates response body', async () => {
     // Arrange
-    const fetch: FetchFn = jest.fn().mockResolvedValue(new Response(JSON.stringify({ foo: 1, bar: 2, baz: 3 })));
-
-    const incrementValues = mapJsonBody((obj) =>
-      Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, Number(v) + 1]))
-    );
-    const fetchWithOverride = incrementValues(fetch);
+    const originalFetch: FetchFn = jest
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ foo: 1, bar: 2, baz: 3 })));
 
     // Act
+    // Wrap fetch in an override that modifies the response body by incrementing all values in the object.
+    const withModifiedResponse = mapJsonBody((obj) =>
+      Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, Number(v) + 1]))
+    );
+    const fetchWithOverride = withModifiedResponse(originalFetch);
+
+    // Make a request using the wrapped fetch.
     const response = await fetchWithOverride('/api', { headers: { Authorization: 'Bearer token' } });
     const responseBody = await response.json();
 
     // Assert
-    expect(fetch).toHaveBeenCalledWith('/api', { headers: { Authorization: 'Bearer token' } });
+    expect(originalFetch).toHaveBeenCalledWith('/api', { headers: { Authorization: 'Bearer token' } });
     expect(response).toBeInstanceOf(Response);
     expect(responseBody).toEqual({ foo: 2, bar: 3, baz: 4 });
   });
@@ -26,16 +30,19 @@ describe('mapJsonBody', () => {
 describe('makeError', () => {
   it('overrides response with error response', async () => {
     // Arrange
-    const fetch: FetchFn = jest.fn().mockResolvedValue(new Response('{}', { status: 200 }));
-
-    const fetchWithOverride = makeError({ status: 500 })(fetch);
+    const originalFetch: FetchFn = jest.fn().mockResolvedValue(new Response('{}', { status: 200 }));
 
     // Act
+    // Wrap fetch in an override that always returns an error response.
+    const withErrorResponse = makeError({ status: 500 });
+    const fetchWithOverride = withErrorResponse(originalFetch);
+
+    // Make a request using the wrapped fetch.
     const response = await fetchWithOverride('/api', { headers: { Authorization: 'Bearer token' } });
     const responseBody = await response.text();
 
     // Assert
-    expect(fetch).not.toHaveBeenCalled();
+    expect(originalFetch).not.toHaveBeenCalled();
     expect(response).toBeInstanceOf(Response);
     expect(response.status).toBe(500);
     expect(responseBody).toBe('Instrumented error');
@@ -45,11 +52,14 @@ describe('makeError', () => {
     // Arrange
     const random = jest.spyOn(Math, 'random');
 
-    const fetch: FetchFn = jest.fn().mockResolvedValue(new Response('Success', { status: 200 }));
-
-    const fetchWithOverride = makeError({ status: 500, frequency: 0.5 })(fetch);
+    const originalFetch: FetchFn = jest.fn().mockResolvedValue(new Response('Success', { status: 200 }));
 
     // Act
+    // Wrap fetch in an override that returns an error response for 50% of requests.
+    const withIntermittentErrorResponse = makeError({ status: 500, frequency: 0.5 });
+    const fetchWithOverride = withIntermittentErrorResponse(originalFetch);
+
+    // Make requests using the wrapped fetch.
     random.mockReturnValue(0.25);
     const firstResponse = await fetchWithOverride('/api', { headers: { Authorization: 'Bearer token' } });
     const firstResponseBody = await firstResponse.text();
@@ -59,7 +69,7 @@ describe('makeError', () => {
     const secondResponseBody = await secondResponse.text();
 
     // Assert
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(originalFetch).toHaveBeenCalledTimes(1);
 
     expect(firstResponse.status).toBe(500);
     expect(firstResponseBody).toBe('Instrumented error');
@@ -72,16 +82,19 @@ describe('makeError', () => {
 describe('makeSuccess', () => {
   it('overrides response with success response', async () => {
     // Arrange
-    const fetch: FetchFn = jest.fn().mockResolvedValue(new Response('Error', { status: 500 }));
-
-    const fetchWithOverride = makeSuccess({ message: 'Success' })(fetch);
+    const originalFetch: FetchFn = jest.fn().mockResolvedValue(new Response('Error', { status: 500 }));
 
     // Act
+    // Wrap fetch in an override that always returns a successful response.
+    const withSuccessResponse = makeSuccess({ message: 'Success' });
+    const fetchWithOverride = withSuccessResponse(originalFetch);
+
+    // Make a request using the wrapped fetch.
     const response = await fetchWithOverride('/api', { headers: { Authorization: 'Bearer token' } });
     const responseBody = await response.json();
 
     // Assert
-    expect(fetch).not.toHaveBeenCalled();
+    expect(originalFetch).not.toHaveBeenCalled();
     expect(response).toBeInstanceOf(Response);
     expect(response.status).toBe(200);
     expect(responseBody).toEqual({ message: 'Success' });
