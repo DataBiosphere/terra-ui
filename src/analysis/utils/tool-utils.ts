@@ -5,6 +5,7 @@ import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
 
@@ -225,8 +226,18 @@ export const isPauseSupported = (toolLabel: ToolLabel): boolean =>
 export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider): boolean =>
   Utils.cond(
     [
-      toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.GCP && !isCromwellAppVisible(),
-      () => true,
+      toolLabel === appToolLabels.CROMWELL,
+      () =>
+        Utils.cond(
+          [cloudProvider === cloudProviderTypes.GCP, () => !isCromwellAppVisible()],
+          [
+            cloudProvider === cloudProviderTypes.AZURE,
+            () => {
+              return isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS);
+            },
+          ],
+          [Utils.DEFAULT, () => false]
+        ),
     ],
     [
       toolLabel === appToolLabels.HAIL_BATCH &&
