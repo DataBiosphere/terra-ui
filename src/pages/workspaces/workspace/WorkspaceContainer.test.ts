@@ -1,23 +1,32 @@
-import { screen, within } from '@testing-library/react';
+import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { screen, waitFor, within } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
+import { Ajax } from 'src/libs/ajax';
+import { goToPath } from 'src/libs/nav';
 import { WorkspaceContainer } from 'src/pages/workspaces/workspace/WorkspaceContainer';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
-// Mocking for Nav.getLink
+import { InitializedWorkspaceWrapper } from './useWorkspace';
+
 type NavExports = typeof import('src/libs/nav');
 jest.mock(
   'src/libs/nav',
   (): NavExports => ({
     ...jest.requireActual<NavExports>('src/libs/nav'),
     getLink: jest.fn(() => '/'),
+    goToPath: jest.fn(),
   })
 );
-// Mocking feature preview setup
-jest.mock('src/libs/feature-previews', () => ({
-  ...jest.requireActual('src/libs/feature-previews'),
-  isFeaturePreviewEnabled: jest.fn(),
-}));
+
+type AjaxExports = typeof import('src/libs/ajax');
+type AjaxContract = ReturnType<typeof Ajax>;
+jest.mock('src/libs/ajax', (): AjaxExports => {
+  return {
+    ...jest.requireActual('src/libs/ajax'),
+    Ajax: jest.fn(),
+  };
+});
 
 type WorkspaceMenuExports = typeof import('src/pages/workspaces/workspace/WorkspaceMenu');
 jest.mock<WorkspaceMenuExports>('src/pages/workspaces/workspace/WorkspaceMenu', () => ({
@@ -106,5 +115,46 @@ describe('WorkspaceContainer', () => {
     render(h(WorkspaceContainer, props));
     // Assert
     expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('polls for a workspace in the process of deleting and redirects when deleted', async () => {
+    // Arrange
+    const workspace: InitializedWorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'Deleting',
+      },
+      workspaceInitialized: true,
+    };
+    const props = {
+      namespace: workspace.workspace.namespace,
+      name: workspace.workspace.name,
+      workspace,
+      storageDetails: {
+        googleBucketLocation: '',
+        googleBucketType: '',
+        fetchedGoogleBucketLocation: undefined,
+      },
+      refresh: () => Promise.resolve(),
+      refreshWorkspace: () => {},
+      breadcrumbs: [],
+      title: '',
+      analysesData: {
+        refreshApps: () => Promise.resolve(),
+        refreshRuntimes: () => Promise.resolve(),
+      },
+    };
+    const pollResponse: Response = new Response(null, { status: 404 });
+    const details = jest.fn().mockRejectedValue(pollResponse);
+    const mockAjax: DeepPartial<AjaxContract> = { Workspaces: { workspace: () => ({ details }) } };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    // Act
+    render(h(WorkspaceContainer, props));
+
+    // Assert
+    expect(details).toBeCalled();
+    await waitFor(() => expect(goToPath).toBeCalledWith('workspaces'));
   });
 });
