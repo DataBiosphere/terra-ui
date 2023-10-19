@@ -1,3 +1,8 @@
+/**
+ * Utilities for overriding API responses for manual testing.
+ * See https://github.com/DataBiosphere/terra-ui/wiki/Mocking-API-Responses.
+ */
+
 type FetchFn = typeof fetch;
 type FetchWrapper = (wrappedFetch: FetchFn) => FetchFn;
 
