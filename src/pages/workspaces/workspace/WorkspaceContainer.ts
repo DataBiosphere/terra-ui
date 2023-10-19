@@ -124,6 +124,8 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const isGoogleWorkspaceSyncing =
     workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
 
+  useDeletionCheck(workspace);
+
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -254,6 +256,37 @@ const WorkspaceAccessError = () => {
   ]);
 };
 
+const useDeletionCheck = (workspace: Workspace): void => {
+  const signal = useCancellation();
+  const timeout = useRef<NodeJS.Timeout>();
+
+  const namespace = workspace?.workspace.namespace;
+  const name = workspace?.workspace.name;
+
+  const reschedule = (ms: number) => {
+    clearTimeout(timeout.current);
+    timeout.current = setTimeout(refreshSilently, ms);
+  };
+  const load = async (): Promise<void> => {
+    try {
+      await Ajax(signal).Workspaces.workspace(namespace, name).details(['workspace.state']);
+      reschedule(30000);
+    } catch (error) {
+      if (error instanceof Response && error.status < 500 && error.status >= 400) {
+        Nav.goToPath('workspaces');
+      } else {
+        reschedule(30000);
+      }
+    }
+  };
+  const refreshSilently = withErrorIgnoring(load);
+  useOnMount(() => {
+    if (workspace?.workspace?.state === 'Deleting') {
+      refreshSilently();
+    }
+    return () => clearTimeout(timeout.current);
+  });
+};
 interface CloudEnvironmentDetails {
   runtimes?: ListRuntimeItem[];
   refreshRuntimes: (maybeStale?: boolean) => Promise<void>;

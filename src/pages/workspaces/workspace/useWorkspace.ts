@@ -189,6 +189,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
           'owners',
           'policies',
           'workspace',
+          'workspace.state',
           'workspace.attributes',
           'workspace.authorizationDomain',
           'workspace.cloudPlatform',
