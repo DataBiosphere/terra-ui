@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Dispatch, Fragment, ReactNode } from 'react';
+import { Dispatch, ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { analysisTabName } from 'src/analysis/runtime-common-components';
 import { TabBar } from 'src/components/tabBars';
@@ -45,8 +45,6 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   const canShare = workspace?.canShare;
   const isLocked = !!workspace?.workspace.isLocked;
   const workspaceLoaded = !!workspace;
-  const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace);
-  const azureWorkspace = workspaceLoaded && isAzureWorkspace(workspace);
 
   const onClone = () => setCloningWorkspace(true);
   const onDelete = () => setDeletingWorkspace(true);
@@ -54,43 +52,60 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   const onShare = () => setSharingWorkspace(true);
   const onLeave = () => setLeavingWorkspace(true);
 
-  const tabs = [
+  const tabs = getTabs(workspace);
+
+  return h(
+    TabBar,
+    {
+      'aria-label': 'Workspace Navigation Tabs',
+      activeTab,
+      refresh,
+      tabNames: _.map('name', tabs),
+      getHref: (currentTab) => Nav.getLink(_.find({ name: currentTab }, tabs)?.link ?? '', { namespace, name }),
+    },
+    [
+      workspace &&
+        h(WorkspaceAttributeNotice, {
+          accessLevel: workspace.accessLevel,
+          isLocked,
+          workspaceProtectedMessage: hasProtectedData(workspace) ? protectedDataMessage : undefined,
+          workspaceRegionConstraintMessage: regionConstraintMessage(workspace),
+        }),
+      h(WorkspaceMenu, {
+        iconSize: 27,
+        popupLocation: 'bottom',
+        callbacks: { onClone, onShare, onLock, onDelete, onLeave },
+        workspaceInfo: {
+          state: workspace?.workspace?.state,
+          canShare: !!canShare,
+          isLocked,
+          isOwner: wsOwner,
+          workspaceLoaded,
+        },
+      }),
+    ]
+  );
+};
+
+const getTabs = (workspace?: Workspace): { name: string; link: string }[] => {
+  if (workspace?.workspace?.state === 'Deleting' || workspace?.workspace?.state === 'DeleteFailed') {
+    return [{ name: 'dashboard', link: 'workspace-dashboard' }];
+  }
+
+  const commonTabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
     { name: 'data', link: 'workspace-data' },
     { name: 'analyses', link: analysisTabName },
-    ...(googleWorkspace
-      ? [
-          { name: 'workflows', link: 'workspace-workflows' },
-          { name: 'job history', link: 'workspace-job-history' },
-        ]
-      : []),
-    ...(azureWorkspace ? [{ name: 'workflows', link: 'workspace-workflows-app' }] : []),
   ];
-  return h(Fragment, [
-    h(
-      TabBar,
-      {
-        'aria-label': 'Workspace Navigation Tabs',
-        activeTab,
-        refresh,
-        tabNames: _.map('name', tabs),
-        getHref: (currentTab) => Nav.getLink(_.find({ name: currentTab }, tabs)?.link ?? '', { namespace, name }),
-      },
-      [
-        workspace &&
-          h(WorkspaceAttributeNotice, {
-            accessLevel: workspace.accessLevel,
-            isLocked,
-            workspaceProtectedMessage: hasProtectedData(workspace) ? protectedDataMessage : undefined,
-            workspaceRegionConstraintMessage: regionConstraintMessage(workspace),
-          }),
-        h(WorkspaceMenu, {
-          iconSize: 27,
-          popupLocation: 'bottom',
-          callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-          workspaceInfo: { canShare: !!canShare, isLocked, isOwner: wsOwner, workspaceLoaded },
-        }),
-      ]
-    ),
-  ]);
+  if (!!workspace && isGoogleWorkspace(workspace)) {
+    return [
+      ...commonTabs,
+      { name: 'workflows', link: 'workspace-workflows' },
+      { name: 'job history', link: 'workspace-job-history' },
+    ];
+  }
+  if (!!workspace && isAzureWorkspace(workspace)) {
+    return [...commonTabs, { name: 'workflows', link: 'workspace-workflows-app' }];
+  }
+  return commonTabs;
 };

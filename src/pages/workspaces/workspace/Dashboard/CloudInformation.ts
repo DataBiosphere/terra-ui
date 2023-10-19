@@ -140,39 +140,37 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           [bucketSize?.usage]
         ),
     ]),
-    h(Fragment, [
-      div({ style: { paddingBottom: '0.5rem' } }, [
-        h(
-          Link,
-          {
-            style: { margin: '1rem 0.5rem' },
-            ...newTabLinkProps,
-            onClick: () => {
-              Ajax().Metrics.captureEvent(Events.workspaceOpenedBucketInBrowser, {
-                ...extractWorkspaceDetails(workspace),
-              });
-            },
-            href: bucketBrowserUrl(bucketName),
+    div({ style: { paddingBottom: '0.5rem' } }, [
+      h(
+        Link,
+        {
+          style: { margin: '1rem 0.5rem' },
+          ...newTabLinkProps,
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.workspaceOpenedBucketInBrowser, {
+              ...extractWorkspaceDetails(workspace),
+            });
           },
-          ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-        ),
-      ]),
-      div({ style: { paddingBottom: '0.5rem' } }, [
-        h(
-          Link,
-          {
-            style: { margin: '1rem 0.5rem' },
-            ...newTabLinkProps,
-            onClick: () => {
-              Ajax().Metrics.captureEvent(Events.workspaceOpenedProjectInConsole, {
-                ...extractWorkspaceDetails(workspace),
-              });
-            },
-            href: `https://console.cloud.google.com/welcome?project=${googleProject}`,
+          href: bucketBrowserUrl(bucketName),
+        },
+        ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+      ),
+    ]),
+    div({ style: { paddingBottom: '0.5rem' } }, [
+      h(
+        Link,
+        {
+          style: { margin: '1rem 0.5rem' },
+          ...newTabLinkProps,
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.workspaceOpenedProjectInConsole, {
+              ...extractWorkspaceDetails(workspace),
+            });
           },
-          ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-        ),
-      ]),
+          href: `https://console.cloud.google.com/welcome?project=${googleProject}`,
+        },
+        ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+      ),
     ]),
   ]);
 };
