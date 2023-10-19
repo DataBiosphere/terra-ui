@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { CountsInput } from 'src/data-catalog/create-dataset/custom-inputs/CountsInput';
+
+import { CountsInput } from './CountsInput';
 
 describe('CountsInput', () => {
   it('Renders a CountsInput with all fields', () => {

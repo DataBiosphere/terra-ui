@@ -4,13 +4,8 @@ import * as _ from 'lodash/fp';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { MarkdownEditor } from 'src/components/markdown';
-import {
-  CatalogNumberInput,
-  ListInput,
-  MarkdownInput,
-  SelectInput,
-  StringInput,
-} from 'src/data-catalog/create-dataset/CreateDatasetInputs';
+
+import { CatalogNumberInput, ListInput, MarkdownInput, SelectInput, StringInput } from './CreateDatasetInputs';
 
 type MarkdownExports = typeof import('src/components/markdown');
 jest.mock('src/components/markdown', (): Partial<MarkdownExports> => {

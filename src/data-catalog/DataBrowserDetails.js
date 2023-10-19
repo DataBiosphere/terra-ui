@@ -9,19 +9,6 @@ import { centeredSpinner, icon, spinner } from 'src/components/icons';
 import { libraryTopMatter } from 'src/components/library-common';
 import { MarkdownViewer } from 'src/components/markdown';
 import Modal from 'src/components/Modal';
-import {
-  DatasetAccess,
-  datasetAccessTypes,
-  formatDatasetTime,
-  getAssayCategoryListFromDataset,
-  getDataModalityListFromDataset,
-  getDatasetAccessType,
-  isDatarepoSnapshot,
-  isWorkspace,
-  makeDatasetReleasePolicyDisplayInformation,
-  uiMessaging,
-  useDataCatalog,
-} from 'src/data-catalog/data-browser-utils';
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg';
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg';
 import { Ajax } from 'src/libs/ajax';
@@ -34,6 +21,20 @@ import { useCancellation, usePollingEffect } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderLabels } from 'src/libs/workspace-utils';
 import { commonStyles } from 'src/pages/library/SearchAndFilterComponent';
+
+import {
+  DatasetAccess,
+  datasetAccessTypes,
+  formatDatasetTime,
+  getAssayCategoryListFromDataset,
+  getDataModalityListFromDataset,
+  getDatasetAccessType,
+  isDatarepoSnapshot,
+  isWorkspace,
+  makeDatasetReleasePolicyDisplayInformation,
+  uiMessaging,
+  useDataCatalog,
+} from './data-browser-utils';
 
 const activeTab = 'datasets';
 const styles = {

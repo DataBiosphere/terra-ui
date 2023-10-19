@@ -1,5 +1,8 @@
 import { render } from '@testing-library/react';
 import * as _ from 'lodash/fp';
+import { brands } from 'src/libs/brands';
+import { dataCatalogStore } from 'src/libs/state';
+
 import {
   datarepoSnapshotUrlFragment,
   datasetAccessTypes,
@@ -11,10 +14,8 @@ import {
   makeDatasetReleasePolicyDisplayInformation,
   prepareDatasetsForDisplay,
   workspaceUrlFragment,
-} from 'src/data-catalog/data-browser-utils';
-import { TEST_DATASET_ONE } from 'src/data-catalog/test-datasets';
-import { brands } from 'src/libs/brands';
-import { dataCatalogStore } from 'src/libs/state';
+} from './data-browser-utils';
+import { TEST_DATASET_ONE } from './test-datasets';
 
 beforeEach(() => {
   dataCatalogStore.reset();

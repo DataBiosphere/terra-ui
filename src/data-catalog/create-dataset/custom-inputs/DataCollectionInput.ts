@@ -1,11 +1,9 @@
 import * as _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
-import {
-  generateIndividualInputPropsForObjectField,
-  StringInput,
-} from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import { DataCollection } from 'src/libs/ajax/Catalog';
 import { FormLabel } from 'src/libs/forms';
+
+import { generateIndividualInputPropsForObjectField, StringInput } from '../CreateDatasetInputs';
 
 interface DataCollectionInputProps {
   title?: string;

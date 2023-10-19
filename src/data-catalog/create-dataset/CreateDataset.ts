@@ -4,20 +4,6 @@ import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
-import {
-  ListInput,
-  ListInputProps,
-  MarkdownInput,
-  SelectInput,
-  StringInput,
-} from 'src/data-catalog/create-dataset/CreateDatasetInputs';
-import { ContributorInput } from 'src/data-catalog/create-dataset/custom-inputs/ContributorInput';
-import { CountsInput } from 'src/data-catalog/create-dataset/custom-inputs/CountsInput';
-import { DataCollectionInput } from 'src/data-catalog/create-dataset/custom-inputs/DataCollectionInput';
-import { PublicationInput } from 'src/data-catalog/create-dataset/custom-inputs/PublicationInput';
-import { SamplesInput } from 'src/data-catalog/create-dataset/custom-inputs/SamplesInput';
-import { StorageInput } from 'src/data-catalog/create-dataset/custom-inputs/StorageInput';
-import { makeDatasetReleasePolicyDisplayInformation } from 'src/data-catalog/data-browser-utils';
 import { Ajax } from 'src/libs/ajax';
 import {
   DataCollection,
@@ -32,6 +18,15 @@ import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
 import { v4 as uuid } from 'uuid';
 import { validate } from 'validate.js';
+
+import { makeDatasetReleasePolicyDisplayInformation } from '../data-browser-utils';
+import { ListInput, ListInputProps, MarkdownInput, SelectInput, StringInput } from './CreateDatasetInputs';
+import { ContributorInput } from './custom-inputs/ContributorInput';
+import { CountsInput } from './custom-inputs/CountsInput';
+import { DataCollectionInput } from './custom-inputs/DataCollectionInput';
+import { PublicationInput } from './custom-inputs/PublicationInput';
+import { SamplesInput } from './custom-inputs/SamplesInput';
+import { StorageInput } from './custom-inputs/StorageInput';
 
 const constraints = {
   storageSystem: {

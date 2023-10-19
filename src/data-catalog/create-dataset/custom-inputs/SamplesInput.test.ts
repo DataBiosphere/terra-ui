@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { SamplesInput } from 'src/data-catalog/create-dataset/custom-inputs/SamplesInput';
+
+import { SamplesInput } from './SamplesInput';
 
 describe('SamplesInput', () => {
   it('Renders a SamplesInput with all fields', () => {

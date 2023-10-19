@@ -5,18 +5,6 @@ import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { ColumnSelector, MiniSortable, SimpleTable } from 'src/components/table';
-import {
-  DatasetAccess,
-  datasetAccessTypes,
-  formatDatasetTime,
-  getAssayCategoryListFromDataset,
-  getConsortiumTitlesFromDataset,
-  getDataModalityListFromDataset,
-  getDatasetAccessType,
-  getDatasetReleasePoliciesDisplayInformation,
-  makeDatasetReleasePolicyDisplayInformation,
-  useDataCatalog,
-} from 'src/data-catalog/data-browser-utils';
 import { Ajax } from 'src/libs/ajax';
 import { Dataset } from 'src/libs/ajax/Catalog';
 import colors from 'src/libs/colors';
@@ -30,6 +18,19 @@ import {
   SearchAndFilterProps,
   Sort,
 } from 'src/pages/library/SearchAndFilterComponent';
+
+import {
+  DatasetAccess,
+  datasetAccessTypes,
+  formatDatasetTime,
+  getAssayCategoryListFromDataset,
+  getConsortiumTitlesFromDataset,
+  getDataModalityListFromDataset,
+  getDatasetAccessType,
+  getDatasetReleasePoliciesDisplayInformation,
+  makeDatasetReleasePolicyDisplayInformation,
+  useDataCatalog,
+} from './data-browser-utils';
 
 const styles = {
   ...commonStyles,

@@ -1,6 +1,7 @@
 import userEvent from '@testing-library/user-event';
-import { formatTableCell } from 'src/data-catalog/DataBrowserPreview';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
+
+import { formatTableCell } from './DataBrowserPreview';
 
 describe('DataBrowserPreview', () => {
   const testJsonButton = async (cellContent, cellContentTransformation = (cellContent) => cellContent) => {
