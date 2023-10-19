@@ -1360,7 +1360,15 @@ describe('Submitting a run set', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
   });
 
-  it('should call POST /run_sets endpoint with expected parameters', async () => {
+  const submitTestCases = [
+    [
+      'call POST /run_sets endpoint with expected parameters',
+      { workspace: mockAzureWorkspace, userEmail: mockAzureWorkspace.workspace.createdBy, submitAllowed: true },
+    ],
+    ['not allow submit for non-creators', { workspace: mockAzureWorkspace, userEmail: 'someoneelse@gmail.com', submitAllowed: false }],
+  ];
+
+  it.each(submitTestCases)('should %s', async (_unused, { workspace, userEmail, submitAllowed }) => {
     // ** ARRANGE **
     const user = userEvent.setup();
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
@@ -1392,6 +1400,10 @@ describe('Submitting a run set', () => {
       };
     });
 
+    getTerraUser.mockReturnValue({
+      email: userEmail,
+    });
+
     // ** ACT **
     await act(async () =>
       render(
@@ -1399,7 +1411,7 @@ describe('Submitting a run set', () => {
           methodId: '123',
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
-          workspace: mockAzureWorkspace,
+          workspace,
         })
       )
     );
@@ -1427,33 +1439,37 @@ describe('Submitting a run set', () => {
     // ** ACT **
     // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
     const button = screen.getByLabelText('Submit button');
-    await user.click(button);
+    expect(button).toHaveAttribute('aria-disabled', (!submitAllowed).toString());
 
-    // ** ASSERT **
-    // Launch modal should be displayed
-    screen.getByText('Send submission');
-    const modalSubmitButton = screen.getByLabelText('Launch Submission');
+    if (submitAllowed) {
+      await user.click(button);
 
-    // ** ACT **
-    // user click on Submit button
-    await user.click(modalSubmitButton);
+      // ** ASSERT **
+      // Launch modal should be displayed
+      screen.getByText('Send submission');
+      const modalSubmitButton = screen.getByLabelText('Launch Submission');
 
-    // ** ASSERT **
-    // assert POST /run_sets endpoint was called with expected parameters
-    expect(postRunSetFunction).toHaveBeenCalled();
-    expect(postRunSetFunction).toBeCalledWith(
-      cbasUrlRoot,
-      expect.objectContaining({
-        method_version_id: runSetResponse.run_sets[0].method_version_id,
-        workflow_input_definitions: runSetInputDef,
-        workflow_output_definitions: runSetOutputDef,
-        wds_records: {
-          record_type: 'FOO',
-          record_ids: ['FOO1'],
-        },
-        call_caching_enabled: false,
-      })
-    );
+      // ** ACT **
+      // user click on Submit button
+      await user.click(modalSubmitButton);
+
+      // ** ASSERT **
+      // assert POST /run_sets endpoint was called with expected parameters
+      expect(postRunSetFunction).toHaveBeenCalled();
+      expect(postRunSetFunction).toBeCalledWith(
+        cbasUrlRoot,
+        expect.objectContaining({
+          method_version_id: runSetResponse.run_sets[0].method_version_id,
+          workflow_input_definitions: runSetInputDef,
+          workflow_output_definitions: runSetOutputDef,
+          wds_records: {
+            record_type: 'FOO',
+            record_ids: ['FOO1'],
+          },
+          call_caching_enabled: false,
+        })
+      );
+    }
   });
 
   it('error message should display on workflow launch fail, and not on success', async () => {
@@ -1490,6 +1506,10 @@ describe('Submitting a run set', () => {
           get: mockWdlResponse,
         },
       };
+    });
+
+    getTerraUser.mockReturnValue({
+      email: mockAzureWorkspace.workspace.createdBy,
     });
 
     // ** ACT **
@@ -1585,6 +1605,10 @@ describe('Submitting a run set', () => {
           get: mockWdlResponse,
         },
       };
+    });
+
+    getTerraUser.mockReturnValue({
+      email: mockAzureWorkspace.workspace.createdBy,
     });
 
     // ** ACT **
@@ -1712,6 +1736,10 @@ describe('Submitting a run set', () => {
           get: mockWdlResponse,
         },
       };
+    });
+
+    getTerraUser.mockReturnValue({
+      email: mockAzureWorkspace.workspace.createdBy,
     });
 
     // ** ACT **
@@ -1919,6 +1947,10 @@ describe('Submitting a run set', () => {
           get: mockWdlResponse,
         },
       };
+    });
+
+    getTerraUser.mockReturnValue({
+      email: mockAzureWorkspace.workspace.createdBy,
     });
 
     // ** ACT **
