@@ -1,9 +1,9 @@
+import { Clickable } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
 import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
-import { Clickable } from 'src/components/common/Clickable';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon, spinner } from 'src/components/icons';
 import { ValidatedInput, ValidatedTextArea } from 'src/components/input';
