@@ -17,6 +17,10 @@ const { registerTest } = require('../utils/jest-utils');
 
 const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await gotoPage(page, testUrl);
+  await findText(page, 'Terra uses cookies');
+  await click(page, clickable({ textContains: 'Agree' }));
+  // We wait here for the cookie message to disappear, it has a fixed duration fading animation of 300ms
+  await delay(350);
   await verifyAccessibility(page);
   await click(page, clickable({ textContains: 'View Workspaces' }));
   await signIntoTerra(page, { token });
