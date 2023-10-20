@@ -312,7 +312,8 @@ describe('AnalysisModal', () => {
 
   it('Azure - Renders Hail Batch when feature flag is enabled', () => {
     // Arrange
-    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === HAIL_BATCH_AZURE_FEATURE_ID);
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((preview) => preview === HAIL_BATCH_AZURE_FEATURE_ID);
+
     // Act
     render(h(AnalysisModal, defaultAzureModalProps));
     // Assert
