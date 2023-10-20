@@ -244,10 +244,6 @@ export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider)
         (cloudProvider === cloudProviderTypes.GCP || !isFeaturePreviewEnabled('hail-batch-azure')),
       () => true,
     ],
-    [
-      toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.AZURE,
-      () => isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS),
-    ],
     [Utils.DEFAULT, () => false]
   );
 

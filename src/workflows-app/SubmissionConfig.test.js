@@ -1370,7 +1370,6 @@ describe('Submitting a run set', () => {
       'call POST /run_sets endpoint with expected parameters',
       { workspace: mockAzureWorkspace, userEmail: mockAzureWorkspace.workspace.createdBy, submitAllowed: true },
     ],
-    ['not allow submit for non-creators', { workspace: mockAzureWorkspace, userEmail: 'someoneelse@gmail.com', submitAllowed: false }],
   ];
 
   it.each(submitTestCases)('should %s', async (_unused, { workspace, userEmail, submitAllowed }) => {

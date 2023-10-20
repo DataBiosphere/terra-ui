@@ -11,8 +11,8 @@ import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
-import { AppProxyUrlStatus, getTerraUser, workflowsAppStore } from 'src/libs/state';
+import { useCancellation, useOnMount, usePollingEffect, useStore } from 'src/libs/react-utils';
+import { AppProxyUrlStatus, authStore, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import {
@@ -31,6 +31,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [runSetsData, setRunSetData] = useState();
   const [loading, setLoading] = useState(false);
+  const { termsOfService } = useStore(authStore);
 
   const signal = useCancellation();
   const scheduledRefresh = useRef();
@@ -167,7 +168,6 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   const paginatedPreviousRunSets = sortedPreviousRunSets.slice(firstPageIndex, lastPageIndex);
 
   const rowHeight = 175;
-  const permissionToAbort = workspace.workspace.createdBy === getTerraUser()?.email;
 
   return loading
     ? centeredSpinner()
@@ -225,6 +225,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                             field: 'actions',
                             headerRenderer: () => h(TextCell, {}, ['Actions']),
                             cellRenderer: ({ rowIndex }) => {
+                              const permissionToAbort = paginatedPreviousRunSets[rowIndex].user_id === termsOfService.userId;
                               return h(
                                 MenuTrigger,
                                 {

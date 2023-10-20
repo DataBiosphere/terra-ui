@@ -4,7 +4,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
-import { getTerraUser } from 'src/libs/state';
+import { useStore } from 'src/libs/react-utils';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { mockAbortResponse, mockAzureApps, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
@@ -25,9 +25,13 @@ jest.mock('src/components/PopupTrigger', () => {
     MenuTrigger: jest.fn(),
   };
 });
-jest.mock('src/libs/state', () => ({
-  ...jest.requireActual('src/libs/state'),
-  getTerraUser: jest.fn(),
+jest.mock('src/libs/react-utils', () => ({
+  ...jest.requireActual('src/libs/react-utils'),
+  useStore: jest.fn().mockReturnValue({
+    termsOfService: {
+      userId: 'user-id-blah-blah',
+    },
+  }),
 }));
 // Mocking feature preview setup
 jest.mock('src/libs/feature-previews', () => ({
@@ -360,6 +364,7 @@ describe('SubmissionHistory tab', () => {
         run_count: 1,
         run_set_id: '20000000-0000-0000-0000-200000000002',
         state: 'RUNNING',
+        user_id: 'foo',
       },
     ],
     fully_updated: true,
@@ -413,11 +418,11 @@ describe('SubmissionHistory tab', () => {
   });
 
   const abortTestCases = [
-    ['abort successfully', { workspace: mockAzureWorkspace, userEmail: mockAzureWorkspace.workspace.createdBy, abortAllowed: true }],
-    ['not allow abort for non-creators', { workspace: mockAzureWorkspace, userEmail: 'someoneelse@gmail.com', abortAllowed: false }],
+    ['abort successfully', { workspace: mockAzureWorkspace, userId: 'foo', abortAllowed: true }],
+    ['not allow abort for non-submitter', { workspace: mockAzureWorkspace, userId: 'not-foo', abortAllowed: false }],
   ];
 
-  it.each(abortTestCases)('should %s', async (_unused, { workspace, userEmail, abortAllowed }) => {
+  it.each(abortTestCases)('should %s', async (_unused, { workspace, userId, abortAllowed }) => {
     const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(simpleRunSetData));
     const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse));
@@ -437,8 +442,10 @@ describe('SubmissionHistory tab', () => {
       };
     });
 
-    getTerraUser.mockReturnValue({
-      email: userEmail,
+    useStore.mockReturnValue({
+      termsOfService: {
+        userId,
+      },
     });
 
     // Act
