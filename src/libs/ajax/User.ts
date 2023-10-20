@@ -59,7 +59,7 @@ export interface OrchestrationUserProfileResponse {
   keyValuePairs: { key: string; value: string }[];
 }
 
-// These type are marked as optional to be aligned with required fields for registration
+// These types are marked as optional to be aligned with required fields for registration
 export type CreateTerraUserProfileRequest = {
   firstName: string;
   lastName: string;
@@ -70,7 +70,7 @@ export type CreateTerraUserProfileRequest = {
   interestInTerra?: string;
 };
 
-// These type are marked as optional to be aligned with required fields for updating the profile
+// These types are marked as optional to be aligned with required fields for updating the profile
 export interface UpdateTerraUserProfileRequest extends CreateTerraUserProfileRequest {
   programLocationCity?: string;
   programLocationState?: string;

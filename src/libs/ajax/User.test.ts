@@ -65,7 +65,7 @@ const completeUpdateUserProfileRequest: UpdateTerraUserProfileRequest = {
  */
 
 const NA = 'N/A';
-// test make setuserProfile request
+// test make setUserProfile request
 // when given any TerraUserProfile it should create a request with all fields to be nonempty strings
 /*
   firstName: string;
@@ -88,8 +88,11 @@ const NA = 'N/A';
 //
 
 describe('A create user profile request', () => {
-  describe('when minimally filled out', () => {
+  describe('when minimally filled out by the user', () => {
     describe('should change `undefined` property', () => {
+      // when a user has filled out the required fields of a profile
+      // and has not entered values for the optional fields
+      // those optional fields should be changed to 'N/A' in the request
       it('title to "N/A"', async () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
@@ -141,6 +144,7 @@ describe('A create user profile request', () => {
       });
     });
     describe('should not modify property', () => {
+      // these required fields that the user filled out should not be changed
       it('interestInTerra', async () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
@@ -160,7 +164,9 @@ describe('A create user profile request', () => {
         expect(apiBody.department).toBe(minimalCreateUserProfileRequest.department);
       });
     });
-    describe('should not have defined property', () => {
+    describe('should have undefined properties', () => {
+      // because the user is registering for the first time, TOS acceptance and research area should be 'undefined'
+      // these are not required to be initialized as 'N/A'
       it('termsOfService', async () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
@@ -181,6 +187,7 @@ describe('A create user profile request', () => {
       });
     });
     describe('should not modify or have undefined property', () => {
+      // these properties should not be modified and should not have a value of 'N/A'
       it('firstName', async () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
