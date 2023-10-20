@@ -137,6 +137,10 @@ describe('BillingProjectParent', () => {
       screen.queryByText(/Are you sure you want to migrate all remaining workspaces in billing project CARBilling-2/i)
     ).toBeTruthy();
     await user.click(screen.getByText('Migrate Remaining'));
+    // Confirmation dialog
+    expect(
+      screen.queryByText(/Are you sure you want to migrate all remaining workspaces in billing project CARBilling-2/i)
+    ).toBeFalsy();
 
     // Assert
     expect(mockStartBatchBucketMigration).toHaveBeenCalledWith([{ name: 'notmigrated', namespace: 'CARBilling-2' }]);

@@ -69,6 +69,9 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
     // Some migrations may have started, but the page will not auto-refresh due to the error.
     'Error starting migration. Please refresh the page to get the most current status.',
     async () => {
+      // Dismiss the confirmation dialog.
+      setMigratingAll(false);
+
       const workspacesToMigrate: { namespace: string; name: string }[] = [];
       props.billingProjectMigrationInfo.workspaces.forEach((workspace) => {
         if (workspace.migrationStep === 'Unscheduled') {
