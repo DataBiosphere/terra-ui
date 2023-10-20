@@ -34,6 +34,7 @@ interface BaseWorkspaceInfo {
   isLocked?: boolean;
   state?: WorkspaceState;
   errorMessage?: string;
+  storageCost?: string;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {

@@ -1,6 +1,6 @@
 import { icon, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { ReactNode, useContext, useState } from 'react';
+import { ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
@@ -11,14 +11,16 @@ import { WorkspaceStarControl } from 'src/components/WorkspaceStarControl';
 import { workspaceSubmissionStatus, WorkspaceSubmissionStatusIcon } from 'src/components/WorkspaceSubmissionStatusIcon';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { getLink } from 'src/libs/nav';
-import { useStore } from 'src/libs/react-utils';
+import { useCancellation, useStore } from 'src/libs/react-utils';
 import { AuthState, authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import {
   canRead,
+  cloudProviderTypes,
   getCloudProviderFromWorkspace,
   workspaceAccessLevels,
   WorkspaceInfo,
@@ -66,13 +68,25 @@ export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode =>
 
   const makeHeaderRenderer = (name: string) => () => h(HeaderRenderer, { sort, name, onSort: setSort });
 
+  const sortDollarString = (amount) => {
+    if (amount === 'N/A' || amount === '$ ...') {
+      return -1; // Sentinel value to drop to bottom of list
+    }
+    return parseFloat(amount.replace('$', '').replace(',', ''));
+  };
+
+  const sortColumn = (field) => {
+    if (field === 'accessLevel') {
+      return (ws) => -workspaceAccessLevels.indexOf(ws.accessLevel);
+    }
+    if (field === 'storageCost') {
+      return (ws) => sortDollarString(ws.workspace.storageCost);
+    }
+    return `workspace.${field}`;
+  };
+
   const sortedWorkspaces = _.orderBy(
-    [
-      (ws: Workspace) => _.includes(ws.workspace.workspaceId, starredWorkspaceIds),
-      sort.field === 'accessLevel'
-        ? (ws: Workspace) => -workspaceAccessLevels.indexOf(ws.accessLevel)
-        : `workspace.${sort.field}`,
-    ],
+    [(ws: Workspace) => _.includes(ws.workspace.workspaceId, starredWorkspaceIds), sortColumn(sort.field)],
     ['desc', sort.direction],
     workspaces
   );
@@ -108,6 +122,12 @@ export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode =>
               headerRenderer: makeHeaderRenderer('lastModified'),
               cellRenderer: ({ rowIndex }) => h(LastModifiedCell, { workspace: sortedWorkspaces[rowIndex] }),
               size: { basis: 100, grow: 1, shrink: 0 },
+            },
+            {
+              field: 'storageCost',
+              headerRenderer: makeHeaderRenderer('storageCost'),
+              cellRenderer: ({ rowIndex }) => h(StorageCostCell, { workspace: sortedWorkspaces[rowIndex] }),
+              size: { basis: 150, grow: 1, shrink: 0 },
             },
             {
               field: 'createdBy',
@@ -272,6 +292,50 @@ const LastModifiedCell = (props: CellProps): ReactNode => {
         div([Utils.makeStandardDate(lastModified)]),
       ]),
     ]),
+  ]);
+};
+
+const StorageCostCell = (props: CellProps): ReactNode => {
+  const {
+    workspace: { name, namespace },
+  } = props.workspace;
+
+  const signal = useCancellation();
+
+  const [storageCost, setStorageCost] = useState({ isSuccess: false, estimate: '', lastUpdated: '' });
+  const loadStorageCost = useMemo(
+    () =>
+      withErrorReporting('Error loading storage cost data', async () => {
+        if (getCloudProviderFromWorkspace(props.workspace) === cloudProviderTypes.GCP) {
+          try {
+            setStorageCost({ isSuccess: true, estimate: '$ ...', lastUpdated: '' });
+            const { estimate, lastUpdated } = await Ajax(signal)
+              .Workspaces.workspace(namespace, name)
+              .storageCostEstimate();
+            setStorageCost({ isSuccess: true, estimate, lastUpdated });
+          } catch (error: any) {
+            if (error.status === 404) {
+              setStorageCost({ isSuccess: false, estimate: 'N/A', lastUpdated: '' });
+            } else {
+              throw error;
+            }
+          }
+        } else {
+          // No current existing support for Azure workspace costs
+          setStorageCost({ isSuccess: true, estimate: 'N/A', lastUpdated: '' });
+        }
+      }),
+    [props.workspace, signal, namespace, name]
+  );
+
+  useEffect(() => {
+    loadStorageCost(); // Wrap in useEffect to avoid infinite React render loop
+  }, [namespace, name, loadStorageCost]);
+
+  props.workspace.workspace.storageCost = storageCost?.estimate || 'N/A';
+
+  return div({ style: styles.tableCellContainer }, [
+    div({ style: styles.tableCellContent }, [props.workspace.workspace.storageCost]),
   ]);
 };
 
