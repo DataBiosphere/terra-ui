@@ -212,6 +212,7 @@ export const fetchGoogleForms = _.flow(
   (wrappedFetch) => (url, options) => wrappedFetch(url, _.merge(options, { mode: 'no-cors' }))
 )(fetch);
 
-export const fetchWDS = (wdsProxyUrlRoot) => _.flow(withUrlPrefix(`${wdsProxyUrlRoot}/`), withAuthToken)(fetchOk);
+export const fetchWDS = (wdsProxyUrlRoot: string): FetchFn =>
+  _.flow(withUrlPrefix(`${wdsProxyUrlRoot.replace(/\/$/, '')}/`), withAuthToken)(fetchOk);
 
 export const fetchFromProxy = (proxyUrlRoot) => _.flow(withUrlPrefix(`${proxyUrlRoot}/`), withAuthToken)(fetchOk);

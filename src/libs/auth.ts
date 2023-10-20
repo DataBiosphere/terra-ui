@@ -90,9 +90,11 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   revokeTokens();
 
   const cookiesAccepted: boolean | undefined = authStore.get().cookiesAccepted;
+  const anonymousId: string | undefined = authStore.get().anonymousId;
   authStore.reset();
   authStore.update((state) => ({
     ...state,
+    anonymousId,
     signInStatus: 'signedOut',
     // TODO: If allowed, this should be moved to the cookie store
     // Load whether a user has input a cookie acceptance in a previous session on this system,

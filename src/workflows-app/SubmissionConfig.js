@@ -1,9 +1,8 @@
-import { useUniqueId } from '@terra-ui-packages/components';
+import { Switch, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { a, div, h, h2, label, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
-import { Switch } from 'src/components/common/Switch';
 import { styles as errorStyles } from 'src/components/ErrorView';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
@@ -18,7 +17,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
-import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, getTerraUser, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
@@ -349,6 +348,7 @@ export const BaseSubmissionConfig = (
   };
 
   const callCacheId = useUniqueId();
+  const permissionToSubmit = workspace.workspace.createdBy === getTerraUser()?.email;
 
   const renderSummary = () => {
     return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
@@ -471,8 +471,9 @@ export const BaseSubmissionConfig = (
             {
               'aria-label': 'Submit button',
               style: { marginLeft: '1rem' },
-              disabled: _.isEmpty(selectedRecords) || errorMessageCount > 0,
+              disabled: _.isEmpty(selectedRecords) || errorMessageCount > 0 || !permissionToSubmit,
               tooltip: Utils.cond(
+                [!permissionToSubmit, () => 'Only the creator can submit workflows in this workspace'],
                 [_.isEmpty(selectedRecords), () => 'No records selected'],
                 [errorMessageCount > 0, () => `${errorMessageCount} input(s) have missing/invalid values`],
                 () => ''

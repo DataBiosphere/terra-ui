@@ -33,6 +33,7 @@ import {
   StorageDetails,
   useWorkspace,
 } from 'src/pages/workspaces/workspace/useWorkspace';
+import { WorkspaceDeletingBanner } from 'src/pages/workspaces/workspace/WorkspaceDeletingBanner';
 import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
 
 const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
@@ -49,6 +50,7 @@ const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
     ),
     style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
     onDismiss: () => {},
+    hideCloseButton: true,
   });
 };
 
@@ -86,10 +88,10 @@ const GooglePermissionsSpinner = (): ReactNode => {
   return h(TitleBarSpinner, warningMessage);
 };
 
-interface WorkspaceContainerProps {
+interface WorkspaceContainerProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  breadcrumbs: ReactNode;
+  breadcrumbs: ReactNode[];
   title: string;
   activeTab?: string;
   analysesData: AppDetails & CloudEnvironmentDetails;
@@ -99,7 +101,7 @@ interface WorkspaceContainerProps {
   refreshWorkspace: () => void;
 }
 
-export const WorkspaceContainer = (props: PropsWithChildren<WorkspaceContainerProps>) => {
+export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const {
     namespace,
     name,
@@ -125,7 +127,7 @@ export const WorkspaceContainer = (props: PropsWithChildren<WorkspaceContainerPr
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
-        div({ style: Style.noWrapEllipsis }, [breadcrumbs]),
+        div({ style: Style.noWrapEllipsis }, breadcrumbs),
         h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [title || `${namespace}/${name}`]),
       ]),
       div({ style: { flexGrow: 1 } }),
@@ -164,12 +166,15 @@ export const WorkspaceContainer = (props: PropsWithChildren<WorkspaceContainerPr
       setSharingWorkspace,
       setShowLockWorkspaceModal,
     }),
+    h(WorkspaceDeletingBanner, { workspace }),
     workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
     isGoogleWorkspaceSyncing && h(GooglePermissionsSpinner),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),
         workspace &&
+          workspace?.workspace.state !== 'Deleting' &&
+          workspace?.workspace.state !== 'DeleteFailed' &&
           h(ContextBar, {
             workspace,
             apps,
@@ -345,7 +350,7 @@ const useAppPolling = (workspace: Workspace): AppDetails => {
           : [];
       const newAzureApps =
         !!workspace && isAzureWorkspace(workspace)
-          ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId, { role: 'creator' })
+          ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId)
           : [];
       const combinedNewApps = [...newGoogleApps, ...newAzureApps];
 
@@ -368,7 +373,7 @@ const useAppPolling = (workspace: Workspace): AppDetails => {
 };
 
 interface WrapWorkspaceProps {
-  breadcrumbs: (props: { name: string; namespace: string }) => ReactNode;
+  breadcrumbs: (props: { name: string; namespace: string }) => ReactNode[];
   activeTab?: string;
   title: string;
 }

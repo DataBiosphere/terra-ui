@@ -150,7 +150,6 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
           tooltip: undefined,
           size: undefined,
           side: undefined,
-          iconOverride: undefined,
         },
         [
           dl([

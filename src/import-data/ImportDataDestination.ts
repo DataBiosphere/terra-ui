@@ -114,7 +114,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
 
   // Some import types are finished in a single request.
   // For most though, the import request starts a background task that takes time to complete.
-  const immediateImportTypes: ImportRequest['type'][] = ['tdr-snapshot-reference', 'catalog-snapshots'];
+  const immediateImportTypes: ImportRequest['type'][] = ['tdr-snapshot-reference'];
   const importMayTakeTime = !immediateImportTypes.includes(importRequest.type);
 
   const {

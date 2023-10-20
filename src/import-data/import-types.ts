@@ -34,23 +34,13 @@ export interface CatalogDatasetImportRequest {
   datasetId: string;
 }
 
-export interface CatalogSnapshotsImportRequest {
-  type: 'catalog-snapshots';
-  snapshots: {
-    id: string;
-    title: string;
-    description: string;
-  }[];
-}
-
 export type ImportRequest =
   | PFBImportRequest
   | BagItImportRequest
   | EntitiesImportRequest
   | TDRSnapshotExportImportRequest
   | TDRSnapshotReferenceImportRequest
-  | CatalogDatasetImportRequest
-  | CatalogSnapshotsImportRequest;
+  | CatalogDatasetImportRequest;
 
 export interface TemplateWorkspaceInfo {
   name: string;

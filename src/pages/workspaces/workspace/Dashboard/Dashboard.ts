@@ -3,6 +3,7 @@ import _ from 'lodash/fp';
 import {
   CSSProperties,
   ForwardedRef,
+  ForwardRefRenderFunction,
   Fragment,
   ReactNode,
   useCallback,
@@ -491,7 +492,9 @@ const WorkspaceDashboardComponent = (
   ]);
 };
 
-const WorkspaceDashboard: (props: WorkspaceDashboardProps) => typeof WorkspaceDashboardComponent = _.flow(
+const WorkspaceDashboard: (
+  props: WorkspaceDashboardProps
+) => ForwardRefRenderFunction<typeof WorkspaceDashboardComponent, WorkspaceDashboardProps> = _.flow(
   forwardRefWithName('WorkspaceDashboard'),
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),

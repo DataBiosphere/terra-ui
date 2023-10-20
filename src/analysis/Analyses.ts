@@ -1,3 +1,4 @@
+import { Switch } from '@terra-ui-packages/components';
 import { withHandlers } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
@@ -37,7 +38,6 @@ import {
   IdContainer,
   Link,
   spinnerOverlay,
-  Switch,
 } from 'src/components/common';
 import Dropzone from 'src/components/Dropzone';
 import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal';
