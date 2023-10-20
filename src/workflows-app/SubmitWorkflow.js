@@ -96,12 +96,6 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
             appToolLabels.WORKFLOWS_APP,
             appAccessScopes.WORKSPACE_SHARED
           );
-          await Ajax().Apps.createAppV2(
-            generateAppName(),
-            workspace.workspace.workspaceId,
-            appToolLabels.CROMWELL_RUNNER_APP,
-            appAccessScopes.USER_PRIVATE
-          );
         } else {
           await Ajax().Apps.createAppV2(generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL, appAccessScopes.USER_PRIVATE);
         }
