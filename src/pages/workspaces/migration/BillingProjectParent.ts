@@ -1,10 +1,11 @@
 import { cond, DEFAULT } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
-import { ReactNode } from 'react';
-import { div, h, span } from 'react-hyperscript-helpers';
+import { ReactNode, useState } from 'react';
+import { b, div, h, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
-import { ButtonOutline } from 'src/components/common';
+import { ButtonOutline, ButtonPrimary } from 'src/components/common';
+import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
@@ -19,15 +20,67 @@ import {
 import { WorkspaceItem } from 'src/pages/workspaces/migration/WorkspaceItem';
 import { useMemo } from 'use-memo-one';
 
+interface MigrateAllConfirmationProps {
+  onDismiss: () => void;
+  onSubmit: () => void;
+  billingProject: string;
+  remaining: boolean;
+}
+
+const MigrateAllConfirmation = (props: MigrateAllConfirmationProps) => {
+  const remainingWording = props.remaining ? 'remaining ' : '';
+  return h(
+    Modal,
+    {
+      onDismiss: props.onDismiss,
+      title: 'Confirm',
+      okButton: h(
+        ButtonPrimary,
+        {
+          onClick: props.onSubmit,
+        },
+        [props.remaining ? 'Migrate Remaining' : 'Migrate All']
+      ),
+    },
+    [
+      div([
+        `Are you sure you want to migrate all ${remainingWording} workspaces in billing project ${props.billingProject}?`,
+        b({ style: { display: 'block', marginTop: '1rem', marginBottom: '1.5rem' } }, [
+          'This cannot be stopped or undone.',
+        ]),
+      ]),
+    ]
+  );
+};
+
 interface BillingProjectParentProps {
   billingProjectMigrationInfo: BillingProjectMigrationInfo;
   migrationStartedCallback: (p: WorkspaceWithNamespace[]) => {};
 }
 
 export const BillingProjectParent = (props: BillingProjectParentProps): ReactNode => {
+  const [migratingAll, setMigratingAll] = useState(false);
+
   const migrationStats = useMemo(() => {
     return getBillingProjectMigrationStats(props.billingProjectMigrationInfo);
   }, [props.billingProjectMigrationInfo]);
+
+  const migrateWorkspace = reportErrorAndRethrow(
+    // Some migrations may have started, but the page will not auto-refresh due to the error.
+    'Error starting migration. Please refresh the page to get the most current status.',
+    async () => {
+      const workspacesToMigrate: { namespace: string; name: string }[] = [];
+      props.billingProjectMigrationInfo.workspaces.forEach((workspace) => {
+        if (workspace.migrationStep === 'Unscheduled') {
+          workspacesToMigrate.push({ namespace: workspace.namespace, name: workspace.name });
+        }
+      });
+      if (workspacesToMigrate.length > 0) {
+        await Ajax().Workspaces.startBatchBucketMigration(workspacesToMigrate);
+        props.migrationStartedCallback(workspacesToMigrate);
+      }
+    }
+  );
 
   const renderErrorSummary = () => {
     return migrationStats.errored === 0
@@ -100,25 +153,7 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
               h(
                 ButtonOutline,
                 {
-                  onClick: () => {
-                    const migrateWorkspace = reportErrorAndRethrow(
-                      // Some migrations may have started, but the page will not auto-refresh due to the error.
-                      'Error starting migration. Please refresh the page to get the most current status.',
-                      async () => {
-                        const workspacesToMigrate: { namespace: string; name: string }[] = [];
-                        props.billingProjectMigrationInfo.workspaces.forEach((workspace) => {
-                          if (workspace.migrationStep === 'Unscheduled') {
-                            workspacesToMigrate.push({ namespace: workspace.namespace, name: workspace.name });
-                          }
-                        });
-                        if (workspacesToMigrate.length > 0) {
-                          await Ajax().Workspaces.startBatchBucketMigration(workspacesToMigrate);
-                          props.migrationStartedCallback(workspacesToMigrate);
-                        }
-                      }
-                    );
-                    migrateWorkspace();
-                  },
+                  onClick: () => setMigratingAll(true),
                 },
                 [
                   migrationStats.workspaceCount === migrationStats.unscheduled
@@ -136,5 +171,12 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
         props.billingProjectMigrationInfo.workspaces
       )
     ),
+    migratingAll &&
+      h(MigrateAllConfirmation, {
+        onDismiss: () => setMigratingAll(false),
+        onSubmit: migrateWorkspace,
+        billingProject: props.billingProjectMigrationInfo.namespace,
+        remaining: migrationStats.workspaceCount !== migrationStats.unscheduled,
+      }),
   ]);
 };
