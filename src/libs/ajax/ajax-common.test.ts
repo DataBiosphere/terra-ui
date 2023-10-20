@@ -1,5 +1,5 @@
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { OidcUser } from 'src/libs/ajax/OAuth2';
+import { OidcUser } from 'src/auth/OidcBroker';
 import { loadAuthToken, signOut } from 'src/libs/auth';
 import { asMockedFn } from 'src/testing/test-utils';
 

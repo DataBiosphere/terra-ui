@@ -4,7 +4,7 @@ import _ from 'lodash/fp';
 import { createRoot } from 'react-dom/client';
 import { h } from 'react-hyperscript-helpers';
 import RModal from 'react-modal';
-import { Ajax } from 'src/libs/ajax';
+import { initializeClientId } from 'src/auth/OidcBroker';
 import { initializeAuth } from 'src/libs/auth';
 import { isAxeEnabled } from 'src/libs/config';
 import { startPollingServiceAlerts } from 'src/libs/service-alerts-polling';
@@ -18,22 +18,20 @@ RModal.setAppElement(rootElement);
 
 window._ = _;
 
-Ajax()
-  .OAuth2.initializeClientId()
-  .then(() => {
-    const root = createRoot(rootElement);
-    root.render(h(Main));
+initializeClientId().then(() => {
+  const root = createRoot(rootElement);
+  root.render(h(Main));
 
-    // react-notifications-component sets up its Store in the componentDidMount method
-    // of the ReactNotifications component. Use setTimeout to allow that to happen before
-    // doing anything that may show a notification.
-    setTimeout(() => {
-      initializeAuth();
-      initializeTCell();
-      startPollingServiceAlerts();
-    }, 0);
+  // react-notifications-component sets up its Store in the componentDidMount method
+  // of the ReactNotifications component. Use setTimeout to allow that to happen before
+  // doing anything that may show a notification.
+  setTimeout(() => {
+    initializeAuth();
+    initializeTCell();
+    startPollingServiceAlerts();
+  }, 0);
 
-    if (isAxeEnabled()) {
-      import('src/libs/axe-core');
-    }
-  });
+  if (isAxeEnabled()) {
+    import('src/libs/axe-core');
+  }
+});

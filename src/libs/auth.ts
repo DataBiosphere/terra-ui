@@ -3,10 +3,10 @@ import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { B2cIdTokenClaims, getCurrentOidcUser, oidcSignIn, OidcUser, revokeTokens } from 'src/auth/OidcBroker';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
-import { B2cIdTokenClaims, OidcUser } from 'src/libs/ajax/OAuth2';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
@@ -87,7 +87,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   getSessionStorage().clear();
   azurePreviewStore.set(false);
 
-  Ajax().OAuth2.revokeTokens();
+  revokeTokens();
 
   const cookiesAccepted: boolean | undefined = authStore.get().cookiesAccepted;
   authStore.reset();
@@ -249,7 +249,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
 
 const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Promise<AuthTokenState> => {
   try {
-    const loadedAuthTokenResponse: OidcUser | null = await Ajax().OAuth2.signIn(popUp, includeBillingScope);
+    const loadedAuthTokenResponse: OidcUser | null = await oidcSignIn(includeBillingScope, popUp);
 
     if (loadedAuthTokenResponse === null) {
       return {
@@ -393,9 +393,7 @@ export const initializeAuth = _.memoize(async (): Promise<void> => {
       signInStatus: 'signedOut',
     }));
   try {
-    // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
-    // All other auth usage should use the AuthContext from oidcStore.
-    const initialOidcUser: OidcUser | null = await Ajax().OAuth2.getCurrentAuthToken();
+    const initialOidcUser: OidcUser | null = await getCurrentOidcUser();
     if (initialOidcUser !== null) {
       loadOidcUser(initialOidcUser);
     } else {
