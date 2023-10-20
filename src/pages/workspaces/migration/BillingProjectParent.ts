@@ -44,7 +44,9 @@ const MigrateAllConfirmation = (props: MigrateAllConfirmationProps) => {
     },
     [
       div([
-        `Are you sure you want to migrate all ${remainingWording} workspaces in billing project ${props.billingProject}?`,
+        `Are you sure you want to migrate all ${remainingWording} workspaces in billing project `,
+        b([props.billingProject]),
+        '?',
         b({ style: { display: 'block', marginTop: '1rem', marginBottom: '1.5rem' } }, [
           'This cannot be stopped or undone.',
         ]),
@@ -59,7 +61,7 @@ interface BillingProjectParentProps {
 }
 
 export const BillingProjectParent = (props: BillingProjectParentProps): ReactNode => {
-  const [migratingAll, setMigratingAll] = useState(false);
+  const [confirmMigration, setConfirmMigration] = useState(false);
 
   const migrationStats = useMemo(() => {
     return getBillingProjectMigrationStats(props.billingProjectMigrationInfo);
@@ -70,7 +72,7 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
     'Error starting migration. Please refresh the page to get the most current status.',
     async () => {
       // Dismiss the confirmation dialog.
-      setMigratingAll(false);
+      setConfirmMigration(false);
 
       const workspacesToMigrate: { namespace: string; name: string }[] = [];
       props.billingProjectMigrationInfo.workspaces.forEach((workspace) => {
@@ -156,7 +158,7 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
               h(
                 ButtonOutline,
                 {
-                  onClick: () => setMigratingAll(true),
+                  onClick: () => setConfirmMigration(true),
                 },
                 [
                   migrationStats.workspaceCount === migrationStats.unscheduled
@@ -174,9 +176,9 @@ export const BillingProjectParent = (props: BillingProjectParentProps): ReactNod
         props.billingProjectMigrationInfo.workspaces
       )
     ),
-    migratingAll &&
+    confirmMigration &&
       h(MigrateAllConfirmation, {
-        onDismiss: () => setMigratingAll(false),
+        onDismiss: () => setConfirmMigration(false),
         onSubmit: migrateWorkspace,
         billingProject: props.billingProjectMigrationInfo.namespace,
         remaining: migrationStats.workspaceCount !== migrationStats.unscheduled,

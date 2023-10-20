@@ -54,15 +54,11 @@ describe('BillingProjectParent', () => {
     await user.click(screen.getByText('Migrate all workspaces'));
 
     // Confirmation dialog
-    expect(
-      screen.queryByText(/Are you sure you want to migrate all workspaces in billing project CARBilling-2/i)
-    ).toBeTruthy();
+    expect(screen.queryByText(/Are you sure you want to migrate all workspaces/i)).toBeTruthy();
     await user.click(screen.getByText('Cancel'));
 
     // Assert
-    expect(
-      screen.queryByText(/Are you sure you want to migrate all workspaces in billing project CARBilling-2/i)
-    ).toBeFalsy();
+    expect(screen.queryByText(/Are you sure you want to migrate all workspaces/i)).toBeFalsy();
     expect(mockStartBatchBucketMigration).not.toHaveBeenCalled();
     expect(mockMigrationStartedCallback).not.toHaveBeenCalled();
   });
@@ -133,16 +129,11 @@ describe('BillingProjectParent', () => {
     );
     await user.click(screen.getByText('Migrate remaining workspaces'));
     // Confirmation dialog
-    expect(
-      screen.queryByText(/Are you sure you want to migrate all remaining workspaces in billing project CARBilling-2/i)
-    ).toBeTruthy();
+    expect(screen.queryByText(/Are you sure you want to migrate all remaining workspaces/i)).toBeTruthy();
     await user.click(screen.getByText('Migrate Remaining'));
-    // Confirmation dialog
-    expect(
-      screen.queryByText(/Are you sure you want to migrate all remaining workspaces in billing project CARBilling-2/i)
-    ).toBeFalsy();
 
     // Assert
+    expect(screen.queryByText(/Are you sure you want to migrate all remaining workspaces/i)).toBeFalsy();
     expect(mockStartBatchBucketMigration).toHaveBeenCalledWith([{ name: 'notmigrated', namespace: 'CARBilling-2' }]);
     await screen.findByText('1 Workspace Migrated');
     expect(mockMigrationStartedCallback).toHaveBeenCalledWith([{ name: 'notmigrated', namespace: 'CARBilling-2' }]);

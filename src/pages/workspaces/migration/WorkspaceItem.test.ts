@@ -1,5 +1,5 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
@@ -65,6 +65,46 @@ describe('WorkspaceItem', () => {
     await screen.findByText('Bucket Size: 1.21 KiB');
   });
 
+  it('can shows a cancelable confirmation dialog when migrate is selected', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mockMigrateWorkspace = jest.fn();
+    const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
+      workspace: () => ({
+        bucketUsage: jest.fn().mockResolvedValue({ usageInBytes: 1234 }),
+      }),
+      workspaceV2: () => ({
+        migrateWorkspace: mockMigrateWorkspace,
+      }),
+    };
+    const mockAjax: Partial<AjaxContract> = {
+      Workspaces: mockWorkspaces as AjaxWorkspacesContract,
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    // Act
+    render(
+      h(WorkspaceItem, {
+        workspaceMigrationInfo: unscheduledWorkspace,
+        migrationStartedCallback: mockMigrationStartedCallback,
+      })
+    );
+    expect(screen.queryByText(migrationScheduledTooltipText)).toBeNull();
+    await user.click(screen.getByLabelText(migrateButtonText));
+
+    // Confirmation dialog
+    expect(screen.queryByText(/Are you sure you want to migrate workspace/i)).toBeTruthy();
+    const confirmDialog = screen.getByRole('dialog');
+    await user.click(within(confirmDialog).getByText('Cancel'));
+
+    // Assert
+    expect(screen.queryByText(/Are you sure you want to migrate workspace/i)).toBeFalsy();
+    expect(mockMigrateWorkspace).not.toHaveBeenCalled();
+    expect(screen.getByLabelText(migrateButtonText).getAttribute('aria-disabled')).toBe('false');
+    expect(screen.queryByText(migrationScheduledTooltipText)).toBeNull();
+    expect(mockMigrationStartedCallback).not.toHaveBeenCalled();
+  });
+
   it('can start a migration for an unscheduled workspace', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -92,7 +132,13 @@ describe('WorkspaceItem', () => {
     expect(screen.queryByText(migrationScheduledTooltipText)).toBeNull();
     await user.click(screen.getByLabelText(migrateButtonText));
 
+    // Confirmation dialog
+    expect(screen.queryByText(/Are you sure you want to migrate workspace/i)).toBeTruthy();
+    const confirmDialog = screen.getByRole('dialog');
+    await user.click(within(confirmDialog).getByText('Migrate'));
+
     // Assert
+    expect(screen.queryByText(/Are you sure you want to migrate workspace/i)).toBeFalsy();
     expect(mockMigrateWorkspace).toHaveBeenCalled();
     expect(screen.getByLabelText(migrateButtonText).getAttribute('aria-disabled')).toBe('true');
     await screen.findByText(migrationScheduledTooltipText);
