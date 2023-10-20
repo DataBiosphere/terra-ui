@@ -1,10 +1,9 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { screen, waitFor, within } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { Ajax } from 'src/libs/ajax';
+import { ErrorCallback } from 'src/libs/error';
 import { goToPath } from 'src/libs/nav';
 import { WorkspaceContainer } from 'src/pages/workspaces/workspace/WorkspaceContainer';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { InitializedWorkspaceWrapper } from './useWorkspace';
@@ -20,7 +19,6 @@ jest.mock(
 );
 
 type AjaxExports = typeof import('src/libs/ajax');
-type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax', (): AjaxExports => {
   return {
     ...jest.requireActual('src/libs/ajax'),
@@ -35,6 +33,11 @@ jest.mock<WorkspaceMenuExports>('src/pages/workspaces/workspace/WorkspaceMenu', 
 }));
 
 describe('WorkspaceContainer', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.resetAllMocks();
+  });
+
   it('shows a warning for Azure workspaces', async () => {
     // Arrange
     const props = {
@@ -48,6 +51,7 @@ describe('WorkspaceContainer', () => {
       },
       refresh: () => Promise.resolve(),
       refreshWorkspace: () => {},
+      silentlyRefreshWorkspace: () => Promise.resolve(),
       breadcrumbs: [],
       title: '',
       analysesData: {
@@ -77,6 +81,7 @@ describe('WorkspaceContainer', () => {
       },
       refresh: () => Promise.resolve(),
       refreshWorkspace: () => {},
+      silentlyRefreshWorkspace: () => Promise.resolve(),
       breadcrumbs: [],
       title: '',
       analysesData: {
@@ -104,6 +109,7 @@ describe('WorkspaceContainer', () => {
       },
       refresh: () => Promise.resolve(),
       refreshWorkspace: () => {},
+      silentlyRefreshWorkspace: () => Promise.resolve(),
       breadcrumbs: [],
       title: '',
       analysesData: {
@@ -119,6 +125,12 @@ describe('WorkspaceContainer', () => {
 
   it('polls for a workspace in the process of deleting and redirects when deleted', async () => {
     // Arrange
+    const pollResponse: Response = new Response(null, { status: 404 });
+    const silentlyRefreshWorkspace = jest.fn().mockImplementation((errorHandling?: ErrorCallback) => {
+      if (errorHandling) {
+        errorHandling(pollResponse);
+      }
+    });
     const workspace: InitializedWorkspaceWrapper = {
       ...defaultAzureWorkspace,
       workspace: {
@@ -138,6 +150,7 @@ describe('WorkspaceContainer', () => {
       },
       refresh: () => Promise.resolve(),
       refreshWorkspace: () => {},
+      silentlyRefreshWorkspace,
       breadcrumbs: [],
       title: '',
       analysesData: {
@@ -145,16 +158,65 @@ describe('WorkspaceContainer', () => {
         refreshRuntimes: () => Promise.resolve(),
       },
     };
-    const pollResponse: Response = new Response(null, { status: 404 });
-    const details = jest.fn().mockRejectedValue(pollResponse);
-    const mockAjax: DeepPartial<AjaxContract> = { Workspaces: { workspace: () => ({ details }) } };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    jest.useFakeTimers();
 
     // Act
+
     render(h(WorkspaceContainer, props));
+    // trigger first poll
+    jest.advanceTimersByTime(30000);
 
     // Assert
-    expect(details).toBeCalled();
+    await waitFor(() => expect(silentlyRefreshWorkspace).toBeCalled());
     await waitFor(() => expect(goToPath).toBeCalledWith('workspaces'));
+  });
+
+  it('continues polling when a workspace has not been deleted', async () => {
+    // Arrange
+    const silentlyRefreshWorkspace = jest.fn().mockImplementation(() => Promise.resolve());
+    const workspace: InitializedWorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'Deleting',
+      },
+      workspaceInitialized: true,
+    };
+    const props = {
+      namespace: workspace.workspace.namespace,
+      name: workspace.workspace.name,
+      workspace,
+      storageDetails: {
+        googleBucketLocation: '',
+        googleBucketType: '',
+        fetchedGoogleBucketLocation: undefined,
+      },
+      refresh: () => Promise.resolve(),
+      refreshWorkspace: () => {},
+      silentlyRefreshWorkspace,
+      breadcrumbs: [],
+      title: '',
+      analysesData: {
+        refreshApps: () => Promise.resolve(),
+        refreshRuntimes: () => Promise.resolve(),
+      },
+    };
+
+    jest.useFakeTimers();
+
+    // Act
+
+    render(h(WorkspaceContainer, props));
+    // trigger polls
+    jest.advanceTimersByTime(30000);
+    await waitFor(() => expect(silentlyRefreshWorkspace).toBeCalledTimes(1));
+    jest.advanceTimersByTime(30000);
+    await waitFor(() => expect(silentlyRefreshWorkspace).toBeCalledTimes(2));
+    jest.advanceTimersByTime(30000);
+
+    // Assert
+    await waitFor(() => expect(silentlyRefreshWorkspace).toBeCalledTimes(3));
+    await waitFor(() => expect(goToPath).not.toBeCalled());
   });
 });

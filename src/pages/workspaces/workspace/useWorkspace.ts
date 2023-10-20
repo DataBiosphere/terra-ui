@@ -9,7 +9,7 @@ import { Ajax } from 'src/libs/ajax';
 import { responseContainsRequesterPaysError } from 'src/libs/ajax/ajax-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { saToken } from 'src/libs/ajax/GoogleStorage';
-import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
+import { ErrorCallback, withErrorHandling, withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { clearNotification, notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
@@ -34,6 +34,7 @@ export interface WorkspaceDetails {
   loadingWorkspace: boolean;
   storageDetails: StorageDetails;
   refreshWorkspace: () => Promise<void>;
+  silentlyRefreshWorkspace: (errorHandling?: ErrorCallback) => Promise<void>;
 }
 
 export const googlePermissionsRecheckRate = 15000;
@@ -174,74 +175,86 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     storeAzureStorageDetails(await AzureStorage(signal).details(workspace.workspace.workspaceId));
   });
 
+  const doWorkspaceRefresh = async (): Promise<void> => {
+    const workspace = await Ajax(signal)
+      .Workspaces.workspace(namespace, name)
+      .details([
+        'accessLevel',
+        'azureContext',
+        'canCompute',
+        'canShare',
+        'owners',
+        'policies',
+        'workspace',
+        'workspace.state',
+        'workspace.attributes',
+        'workspace.authorizationDomain',
+        'workspace.cloudPlatform',
+        'workspace.errorMessage',
+        'workspace.isLocked',
+        'workspace.workspaceId',
+        'workspaceSubmissionStats',
+      ]);
+    updateWorkspaceInStore(workspace, workspaceInitialized);
+    updateRecentlyViewedWorkspaces(workspace.workspace.workspaceId);
+
+    const {
+      accessLevel,
+      workspace: { createdBy, createdDate, googleProject },
+    } = workspace;
+
+    checkWorkspaceInitialization(workspace);
+
+    // Request a service account token. If this is the first time, it could take some time before everything is in sync.
+    // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
+    if (canWrite(accessLevel) && isGoogleWorkspace(workspace)) {
+      saToken(googleProject);
+    }
+
+    // This is old code-- it is unclear if this case can actually happen anymore.
+    if (!isOwner(accessLevel) && createdBy === getTerraUser().email && differenceFromNowInSeconds(createdDate) < 60) {
+      accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
+        message: h(Fragment, [
+          'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',
+          div({ style: { marginTop: '1rem' } }, [
+            h(
+              Link,
+              {
+                onClick: () => {
+                  refreshWorkspace();
+                  clearNotification(accessNotificationId.current);
+                },
+              },
+              ['Click to refresh now']
+            ),
+          ]),
+        ]),
+      });
+    }
+  };
+
+  const checkForAccessError: ErrorCallback = (error: unknown) => {
+    if (error instanceof Response && error.status === 404) {
+      setAccessError(true);
+    } else {
+      throw error;
+    }
+  };
+
   const refreshWorkspace: () => Promise<void> = _.flow(
+    withErrorHandling(checkForAccessError),
     withErrorReporting('Error loading workspace'),
     withBusyState(setLoadingWorkspace)
-  )(async () => {
-    try {
-      const workspace = await Ajax(signal)
-        .Workspaces.workspace(namespace, name)
-        .details([
-          'accessLevel',
-          'azureContext',
-          'canCompute',
-          'canShare',
-          'owners',
-          'policies',
-          'workspace',
-          'workspace.state',
-          'workspace.attributes',
-          'workspace.authorizationDomain',
-          'workspace.cloudPlatform',
-          'workspace.errorMessage',
-          'workspace.isLocked',
-          'workspace.workspaceId',
-          'workspaceSubmissionStats',
-        ]);
-      updateWorkspaceInStore(workspace, workspaceInitialized);
-      updateRecentlyViewedWorkspaces(workspace.workspace.workspaceId);
+  )(doWorkspaceRefresh) as () => Promise<void>;
 
-      const {
-        accessLevel,
-        workspace: { createdBy, createdDate, googleProject },
-      } = workspace;
-
-      checkWorkspaceInitialization(workspace);
-
-      // Request a service account token. If this is the first time, it could take some time before everything is in sync.
-      // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
-      if (canWrite(accessLevel) && isGoogleWorkspace(workspace)) {
-        saToken(googleProject);
-      }
-
-      // This is old code-- it is unclear if this case can actually happen anymore.
-      if (!isOwner(accessLevel) && createdBy === getTerraUser().email && differenceFromNowInSeconds(createdDate) < 60) {
-        accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
-          message: h(Fragment, [
-            'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',
-            div({ style: { marginTop: '1rem' } }, [
-              h(
-                Link,
-                {
-                  onClick: () => {
-                    refreshWorkspace();
-                    clearNotification(accessNotificationId.current);
-                  },
-                },
-                ['Click to refresh now']
-              ),
-            ]),
-          ]),
-        });
-      }
-    } catch (error: any) {
-      if (error.status === 404) {
-        setAccessError(true);
-      } else {
-        throw error;
-      }
+  // refresh the workspace without triggering busy indicators
+  // if an error handling function is passed, use that - otherwise ignpre errors
+  const silentlyRefreshWorkspace = (errorHandling?: ErrorCallback): Promise<void> => {
+    if (errorHandling) {
+      return withErrorHandling(errorHandling, doWorkspaceRefresh)() as Promise<void>;
     }
-  }) as () => Promise<void>;
+    return withErrorIgnoring('Error loading workspace', doWorkspaceRefresh) as Promise<void>;
+  };
 
   useOnMount(() => {
     if (!workspace) {
@@ -261,5 +274,5 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     azureContainerSasUrl: azureStorage?.sasUrl,
   };
 
-  return { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace };
+  return { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace, silentlyRefreshWorkspace };
 };

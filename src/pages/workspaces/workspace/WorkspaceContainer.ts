@@ -18,9 +18,9 @@ import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
-import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
+import { ErrorCallback, withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, usePollingEffect, withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -99,6 +99,7 @@ interface WorkspaceContainerProps extends PropsWithChildren {
   refresh: () => Promise<void>;
   workspace: Workspace;
   refreshWorkspace: () => void;
+  silentlyRefreshWorkspace: (errorHandling?: ErrorCallback) => Promise<void>;
 }
 
 export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
@@ -113,6 +114,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
     refresh,
     workspace,
     refreshWorkspace,
+    silentlyRefreshWorkspace,
     children,
   } = props;
   const [deletingWorkspace, setDeletingWorkspace] = useState(false);
@@ -124,7 +126,19 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const isGoogleWorkspaceSyncing =
     workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
 
-  useDeletionCheck(workspace);
+  // when the workspace refresh polling gets back an error for a workspace that is deleting
+  // redirect to list view
+  const handleWorkspaceError = (error: unknown) => {
+    if (
+      workspace?.workspace?.state === 'Deleting' &&
+      error instanceof Response &&
+      (error.status === 501 || error.status === 403 || error.status === 404)
+    ) {
+      Nav.goToPath('workspaces');
+    }
+  };
+  // poll workspace state every 30 seconds
+  usePollingEffect(() => silentlyRefreshWorkspace(handleWorkspaceError), { ms: 30000, leading: false });
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -256,37 +270,6 @@ const WorkspaceAccessError = () => {
   ]);
 };
 
-const useDeletionCheck = (workspace: Workspace): void => {
-  const signal = useCancellation();
-  const timeout = useRef<NodeJS.Timeout>();
-
-  const namespace = workspace?.workspace.namespace;
-  const name = workspace?.workspace.name;
-
-  const reschedule = (ms: number) => {
-    clearTimeout(timeout.current);
-    timeout.current = setTimeout(refreshSilently, ms);
-  };
-  const load = async (): Promise<void> => {
-    try {
-      await Ajax(signal).Workspaces.workspace(namespace, name).details(['workspace.state']);
-      reschedule(30000);
-    } catch (error) {
-      if (error instanceof Response && error.status < 500 && error.status >= 400) {
-        Nav.goToPath('workspaces');
-      } else {
-        reschedule(30000);
-      }
-    }
-  };
-  const refreshSilently = withErrorIgnoring(load);
-  useOnMount(() => {
-    if (workspace?.workspace?.state === 'Deleting') {
-      refreshSilently();
-    }
-    return () => clearTimeout(timeout.current);
-  });
-};
 interface CloudEnvironmentDetails {
   runtimes?: ListRuntimeItem[];
   refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
@@ -437,10 +420,8 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
       const { namespace, name } = props;
       const child = useRef<unknown>();
 
-      const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace } = useWorkspace(
-        namespace,
-        name
-      );
+      const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace, silentlyRefreshWorkspace } =
+        useWorkspace(namespace, name);
       const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(workspace);
       const { apps, refreshApps } = useAppPolling(workspace);
 
@@ -453,6 +434,8 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
       if (accessError) {
         return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)]);
       }
+      //   silentlyRefreshWorkspace : (errorHandling?: ErrorCallback) => Promise<void>;
+
       return h(
         WorkspaceContainer,
         {
@@ -471,6 +454,7 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
               child.current.refresh();
             }
           },
+          silentlyRefreshWorkspace,
         },
         [
           workspace &&
