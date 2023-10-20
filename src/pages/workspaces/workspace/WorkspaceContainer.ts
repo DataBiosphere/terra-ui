@@ -129,11 +129,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   // when the workspace refresh polling gets back an error for a workspace that is deleting
   // redirect to list view
   const handleWorkspaceError = (error: unknown) => {
-    if (
-      workspace?.workspace?.state === 'Deleting' &&
-      error instanceof Response &&
-      (error.status === 501 || error.status === 403 || error.status === 404)
-    ) {
+    if (workspace?.workspace?.state === 'Deleting' && error instanceof Response && error.status === 404) {
       Nav.goToPath('workspaces');
     }
   };
