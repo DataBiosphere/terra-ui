@@ -192,6 +192,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
           'workspace.attributes',
           'workspace.authorizationDomain',
           'workspace.cloudPlatform',
+          'workspace.errorMessage',
           'workspace.isLocked',
           'workspace.workspaceId',
           'workspaceSubmissionStats',

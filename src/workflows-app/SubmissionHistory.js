@@ -12,7 +12,7 @@ import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
-import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, getTerraUser, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import {
@@ -167,6 +167,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   const paginatedPreviousRunSets = sortedPreviousRunSets.slice(firstPageIndex, lastPageIndex);
 
   const rowHeight = 175;
+  const permissionToAbort = workspace.workspace.createdBy === getTerraUser()?.email;
 
   return loading
     ? centeredSpinner()
@@ -237,10 +238,21 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                       {
                                         style: { fontSize: 15 },
                                         disabled:
+                                          !permissionToAbort ||
                                           isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) ||
                                           paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
-                                        tooltip:
-                                          isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) && 'Cannot abort a terminal submission',
+                                        tooltip: Utils.cond(
+                                          [
+                                            isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state),
+                                            () => 'Cannot abort a terminal submission',
+                                          ],
+                                          [
+                                            paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
+                                            () => 'Cancel already requested on this submission.',
+                                          ],
+                                          [!permissionToAbort, () => 'You must be the original submitter to abort this submission'],
+                                          () => ''
+                                        ),
                                         onClick: () => cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id),
                                       },
                                       ['Abort']

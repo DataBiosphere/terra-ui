@@ -4,6 +4,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
+import { getTerraUser } from 'src/libs/state';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { mockAbortResponse, mockAzureApps, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
@@ -36,6 +37,10 @@ jest.mock('src/libs/feature-previews', () => ({
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({}),
+}));
+jest.mock('src/libs/state', () => ({
+  ...jest.requireActual('src/libs/state'),
+  getTerraUser: jest.fn(),
 }));
 
 // SubmissionHistory component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
@@ -407,7 +412,12 @@ describe('SubmissionHistory tab', () => {
     });
   });
 
-  it('should abort successfully', async () => {
+  const abortTestCases = [
+    ['abort successfully', { workspace: mockAzureWorkspace, userEmail: mockAzureWorkspace.workspace.createdBy, abortAllowed: true }],
+    ['not allow abort for non-creators', { workspace: mockAzureWorkspace, userEmail: 'someoneelse@gmail.com', abortAllowed: false }],
+  ];
+
+  it.each(abortTestCases)('should %s', async (_unused, { workspace, userEmail, abortAllowed }) => {
     const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(simpleRunSetData));
     const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse));
@@ -427,13 +437,17 @@ describe('SubmissionHistory tab', () => {
       };
     });
 
+    getTerraUser.mockReturnValue({
+      email: userEmail,
+    });
+
     // Act
     await act(async () => {
       render(
         h(BaseSubmissionHistory, {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
-          workspace: mockAzureWorkspace,
+          workspace,
         })
       );
     });
@@ -457,10 +471,12 @@ describe('SubmissionHistory tab', () => {
     });
 
     const abortButton = screen.getByText('Abort');
-    expect(abortButton).toHaveAttribute('aria-disabled', 'false');
+    expect(abortButton).toHaveAttribute('aria-disabled', (!abortAllowed).toString());
     await user.click(abortButton);
 
-    expect(cancelSubmissionFunction).toHaveBeenCalled();
-    expect(cancelSubmissionFunction).toBeCalledWith('https://lz-abc/terra-app-abc/cbas', '20000000-0000-0000-0000-200000000002');
+    if (abortAllowed) {
+      expect(cancelSubmissionFunction).toHaveBeenCalled();
+      expect(cancelSubmissionFunction).toBeCalledWith('https://lz-abc/terra-app-abc/cbas', '20000000-0000-0000-0000-200000000002');
+    }
   });
 });

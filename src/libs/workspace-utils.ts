@@ -33,6 +33,7 @@ interface BaseWorkspaceInfo {
   attributes?: Record<string, unknown>;
   isLocked?: boolean;
   state?: WorkspaceState;
+  errorMessage?: string;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
