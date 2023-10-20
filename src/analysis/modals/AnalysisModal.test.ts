@@ -11,6 +11,7 @@ import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorag
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { HAIL_BATCH_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -298,7 +299,8 @@ describe('AnalysisModal', () => {
 
   it('Azure - Renders Hail Batch when feature flag is enabled', () => {
     // Arrange
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((preview) => preview === HAIL_BATCH_AZURE_FEATURE_ID);
+
     // Act
     render(h(AnalysisModal, defaultAzureModalProps));
     // Assert
