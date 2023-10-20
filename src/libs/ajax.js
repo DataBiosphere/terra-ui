@@ -35,17 +35,6 @@ import { getConfig } from 'src/libs/config';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
-window.ajaxOverrideUtils = {
-  mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
-    const res = await wrappedFetch(...args);
-    return new Response(JSON.stringify(fn(await res.json())), res);
-  }),
-  makeError: _.curry(({ status, frequency = 1 }, wrappedFetch) => (...args) => {
-    return Math.random() < frequency ? Promise.resolve(new Response('Instrumented error', { status })) : wrappedFetch(...args);
-  }),
-  makeSuccess: (body) => (_wrappedFetch) => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 })),
-};
-
 const getSnapshotEntityMetadata = Utils.memoizeAsync(
   async (token, workspaceNamespace, workspaceName, googleProject, dataReference) => {
     const res = await fetchRawls(
@@ -134,6 +123,39 @@ const Workspaces = (signal) => ({
       url += `?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`;
     }
     const response = await fetchRawls(url, _.mergeAll([authOpts(), { signal }]));
+    return response.json();
+  },
+
+  workspaceV2: (namespace, name) => {
+    const root = `workspaces/v2/${namespace}/${name}`;
+
+    return {
+      delete: () => {
+        return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
+      },
+
+      migrateWorkspace: async () => {
+        const response = await fetchRawls(`${root}/bucketMigration`, _.merge(authOpts(), { signal, method: 'POST' }));
+        return response.json();
+      },
+    };
+  },
+
+  bucketMigrationInfo: async () => {
+    const response = await fetchRawls('workspaces/v2/bucketMigration', _.merge(authOpts(), { signal }));
+    return response.json();
+  },
+
+  bucketMigrationProgress: async (body) => {
+    const response = await fetchRawls(
+      'workspaces/v2/bucketMigration/getProgress',
+      _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }])
+    );
+    return response.json();
+  },
+
+  startBatchBucketMigration: async (body) => {
+    const response = await fetchRawls('workspaces/v2/bucketMigration', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
     return response.json();
   },
 

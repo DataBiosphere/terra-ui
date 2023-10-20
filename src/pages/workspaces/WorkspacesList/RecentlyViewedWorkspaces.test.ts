@@ -1,10 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { recentlyViewedPersistenceId } from 'src/components/workspace-utils';
 import { getLocalPref } from 'src/libs/prefs';
 import { RecentlyViewedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RecentlyViewedWorkspaces';
 import { persistenceId } from 'src/pages/workspaces/WorkspacesList/WorkspacesList';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 type NavExports = typeof import('src/libs/nav');

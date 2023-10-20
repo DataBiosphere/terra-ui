@@ -1,9 +1,8 @@
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useState } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
+import { div, h, h2 } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
-import { Dataset } from 'src/libs/ajax/Catalog';
 import { resolveWdsUrl, WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -14,13 +13,11 @@ import { useOnMount } from 'src/libs/react-utils';
 import { asyncImportJobStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
-import { useDataCatalog } from 'src/pages/library/dataBrowser-utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
 
 import {
   BagItImportRequest,
   CatalogDatasetImportRequest,
-  CatalogSnapshotsImportRequest,
   EntitiesImportRequest,
   ImportRequest,
   PFBImportRequest,
@@ -30,21 +27,8 @@ import {
 } from './import-types';
 import { ImportDataDestination } from './ImportDataDestination';
 import { ImportDataOverview } from './ImportDataOverview';
-import { isProtectedSource } from './protected-data-utils';
+import { getImportSource } from './protected-data-utils';
 import { useImportRequest } from './useImportRequest';
-
-const getTitleForImportRequest = (importRequest: ImportRequest): string => {
-  switch (importRequest.type) {
-    case 'tdr-snapshot-export':
-      return `Importing snapshot ${importRequest.snapshotName}`;
-    case 'tdr-snapshot-reference':
-    case 'catalog-dataset':
-    case 'catalog-snapshots':
-      return 'Linking data to a workspace';
-    default:
-      return 'Importing data to a workspace';
-  }
-};
 
 export interface ImportDataProps {
   importRequest: ImportRequest;
@@ -57,29 +41,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   } = Nav.useRoute();
   const [templateWorkspaces, setTemplateWorkspaces] = useState<{ [key: string]: TemplateWorkspaceInfo[] }>();
   const [userHasBillingProjects, setUserHasBillingProjects] = useState(true);
-  const [snapshotResponses, setSnapshotResponses] = useState<{ status: string; message: string | undefined }[]>();
   const [isImporting, setIsImporting] = useState(false);
-
-  const { dataCatalog } = useDataCatalog();
-  const snapshots =
-    importRequest.type === 'catalog-snapshots'
-      ? _.flow(
-          _.filter(
-            (snapshot: Dataset) =>
-              !!snapshot['dct:identifier'] && _.includes(snapshot['dct:identifier'], importRequest.snapshotIds)
-          ),
-          _.map((snapshot) => ({
-            // The previous step filters the list to only datasets with 'dct:identifier' defined
-            id: snapshot['dct:identifier']!,
-            title: snapshot['dct:title'],
-            description: snapshot['dct:description'],
-          }))
-        )(dataCatalog)
-      : [];
-
-  const isDataset = !_.includes(format, ['snapshot', 'tdrexport']);
-
-  const isProtectedData = importRequest.type === 'pfb' && isProtectedSource(importRequest.url);
 
   // Normalize the snapshot name:
   // Importing snapshot will throw an "enum" error if the name has any spaces or special characters
@@ -102,20 +64,22 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
 
   const importPFB = async (importRequest: PFBImportRequest, workspace: WorkspaceInfo) => {
     const { namespace, name } = workspace;
-    const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(importRequest.url, 'pfb', null);
+    const { jobId } = await Ajax()
+      .Workspaces.workspace(namespace, name)
+      .importJob(importRequest.url.toString(), 'pfb', null);
     asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
     notifyDataImportProgress(jobId);
   };
 
   const importBagit = async (importRequest: BagItImportRequest, workspace: WorkspaceInfo) => {
     const { namespace, name } = workspace;
-    await Ajax().Workspaces.workspace(namespace, name).importBagit(importRequest.url);
+    await Ajax().Workspaces.workspace(namespace, name).importBagit(importRequest.url.toString());
     notify('success', 'Data imported successfully.', { timeout: 3000 });
   };
 
   const importEntitiesJson = async (importRequest: EntitiesImportRequest, workspace: WorkspaceInfo) => {
     const { namespace, name } = workspace;
-    await Ajax().Workspaces.workspace(namespace, name).importJSON(importRequest.url);
+    await Ajax().Workspaces.workspace(namespace, name).importJSON(importRequest.url.toString());
     notify('success', 'Data imported successfully.', { timeout: 3000 });
   };
 
@@ -127,54 +91,24 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
       const wdsDataTableProvider = new WdsDataTableProvider(workspace.workspaceId, wdsUrl);
 
       // call import snapshot
-      wdsDataTableProvider.importTdr(workspace.workspaceId, importRequest.snapshotId);
+      wdsDataTableProvider.importTdr(workspace.workspaceId, importRequest.snapshot.id);
     }
     const { namespace, name } = workspace;
     const { jobId } = await Ajax()
       .Workspaces.workspace(namespace, name)
-      .importJob(importRequest.manifestUrl, 'tdrexport', { tdrSyncPermissions: importRequest.syncPermissions });
+      .importJob(importRequest.manifestUrl.toString(), 'tdrexport', {
+        tdrSyncPermissions: importRequest.syncPermissions,
+      });
     asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
     notifyDataImportProgress(jobId);
   };
 
-  const importSnapshot = async (
-    importRequest: TDRSnapshotReferenceImportRequest | CatalogSnapshotsImportRequest,
-    workspace: WorkspaceInfo
-  ) => {
+  const importSnapshot = async (importRequest: TDRSnapshotReferenceImportRequest, workspace: WorkspaceInfo) => {
     const { namespace, name } = workspace;
-    if (importRequest.type === 'catalog-snapshots') {
-      const responses = await Promise.allSettled(
-        _.map(({ title, id, description }) => {
-          return Ajax()
-            .Workspaces.workspace(namespace, name)
-            .importSnapshot(id, normalizeSnapshotName(title), description);
-        }, snapshots)
-      );
-
-      if (_.some({ status: 'rejected' }, responses)) {
-        const normalizedResponses = (await Promise.all(
-          _.map(async ({ status, reason }: { status: string; reason: Response | undefined }) => {
-            const reasonJson = await reason?.json();
-            const { message } = JSON.parse(reasonJson?.message || '{}');
-            return { status, message };
-          }, responses)
-        )) as unknown as { status: string; message: string | undefined }[];
-        setSnapshotResponses(normalizedResponses);
-
-        // Consolidate the multiple errors into a single error message
-        const numFailures = _.flow(_.filter({ status: 'rejected' }), _.size)(normalizedResponses);
-        throw new Error(
-          `${numFailures} snapshot${
-            numFailures > 1 ? 's' : ''
-          } failed to import. See details in the "Linking to Workspace" section`
-        );
-      }
-    } else {
-      await Ajax()
-        .Workspaces.workspace(namespace, name)
-        .importSnapshot(importRequest.snapshotId, normalizeSnapshotName(importRequest.snapshotName));
-      notify('success', 'Snapshot imported successfully.', { timeout: 3000 });
-    }
+    await Ajax()
+      .Workspaces.workspace(namespace, name)
+      .importSnapshot(importRequest.snapshot.id, normalizeSnapshotName(importRequest.snapshot.name));
+    notify('success', 'Snapshot imported successfully.', { timeout: 3000 });
   };
 
   const exportCatalog = async (importRequest: CatalogDatasetImportRequest, workspace: WorkspaceInfo) => {
@@ -201,7 +135,6 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         await importTdrExport(importRequest, workspace);
         break;
       case 'tdr-snapshot-reference':
-      case 'catalog-snapshots':
         await importSnapshot(importRequest, workspace);
         break;
       case 'catalog-dataset':
@@ -214,28 +147,26 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     }
 
     const { namespace, name } = workspace;
-    Ajax().Metrics.captureEvent(Events.workspaceDataImport, { format, ...extractWorkspaceDetails(workspace) });
+    Ajax().Metrics.captureEvent(Events.workspaceDataImport, {
+      format,
+      ...extractWorkspaceDetails(workspace),
+      importSource: 'url' in importRequest ? getImportSource(importRequest.url) : undefined,
+    });
     Nav.goToPath('workspace-data', { namespace, name });
   });
 
   return h(Fragment, [
     h(ImportDataOverview, {
-      header: getTitleForImportRequest(importRequest),
-      snapshots,
-      isDataset,
-      snapshotResponses,
-      url: 'url' in importRequest ? importRequest.url : undefined,
-      isProtectedData,
+      importRequest,
     }),
     h(ImportDataDestination, {
+      importRequest,
       initialSelectedWorkspaceId: wid,
+      requiredAuthorizationDomain: ad,
       templateWorkspaces,
       template,
       userHasBillingProjects,
-      importMayTakeTime: isDataset,
-      requiredAuthorizationDomain: ad,
       onImport,
-      isProtectedData,
     }),
     isImporting && spinnerOverlay,
   ]);
@@ -246,7 +177,12 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
  */
 export const ImportDataContainer = () => {
   const result = useImportRequest();
-  if (!result.isValid) {
+
+  if (result.status === 'Loading') {
+    return spinnerOverlay;
+  }
+
+  if (result.status === 'Error') {
     return div(
       {
         style: {
@@ -258,7 +194,20 @@ export const ImportDataContainer = () => {
           fontWeight: 'bold',
         },
       },
-      ['Invalid import request.']
+      [
+        h2(
+          {
+            style: {
+              fontSize: 24,
+              fontWeight: 600,
+              color: colors.dark(),
+              margin: '0 0 1rem 0',
+            },
+          },
+          ['Invalid import request.']
+        ),
+        result.error.message,
+      ]
     );
   }
 

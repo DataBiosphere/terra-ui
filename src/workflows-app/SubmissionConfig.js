@@ -1,14 +1,13 @@
-import { useUniqueId } from '@terra-ui-packages/components';
+import { Switch, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { a, div, h, h2, label, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
-import { Switch } from 'src/components/common/Switch';
 import { styles as errorStyles } from 'src/components/ErrorView';
 import { centeredSpinner, icon } from 'src/components/icons';
+import { InfoBox } from 'src/components/InfoBox';
 import { TextArea, TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
-import { InfoBox } from 'src/components/PopupTrigger';
 import StepButtons from 'src/components/StepButtons';
 import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
@@ -18,7 +17,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
-import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, getTerraUser, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
@@ -28,7 +27,7 @@ import RecordsTable from 'src/workflows-app/components/RecordsTable';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
-import { CbasPollInterval, convertArrayType, parseMethodString, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
+import { autofillOutputDef, CbasPollInterval, convertArrayType, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionConfig = (
@@ -118,13 +117,8 @@ export const BaseSubmissionConfig = (
         const newRunSetData = runSet.run_sets[0];
 
         setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
-        setConfiguredOutputDefinition(
-          _.map((outputDef) =>
-            _.get('destination.type', outputDef) === 'none'
-              ? _.set('destination', { type: 'record_update', record_attribute: parseMethodString(outputDef.output_name).variable || '' })(outputDef)
-              : outputDef
-          )(maybeParseJSON(newRunSetData.output_definition))
-        );
+        const outputDef = autofillOutputDef(newRunSetData.output_definition, newRunSetData.run_count);
+        setConfiguredOutputDefinition(outputDef);
         setSelectedRecordType(newRunSetData.record_type);
 
         let callCache = maybeParseJSON(newRunSetData.call_caching_enabled);
@@ -354,6 +348,7 @@ export const BaseSubmissionConfig = (
   };
 
   const callCacheId = useUniqueId();
+  const permissionToSubmit = workspace.workspace.createdBy === getTerraUser()?.email;
 
   const renderSummary = () => {
     return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
@@ -476,8 +471,9 @@ export const BaseSubmissionConfig = (
             {
               'aria-label': 'Submit button',
               style: { marginLeft: '1rem' },
-              disabled: _.isEmpty(selectedRecords) || errorMessageCount > 0,
+              disabled: _.isEmpty(selectedRecords) || errorMessageCount > 0 || !permissionToSubmit,
               tooltip: Utils.cond(
+                [!permissionToSubmit, () => 'Only the creator can submit workflows in this workspace'],
                 [_.isEmpty(selectedRecords), () => 'No records selected'],
                 [errorMessageCount > 0, () => `${errorMessageCount} input(s) have missing/invalid values`],
                 () => ''

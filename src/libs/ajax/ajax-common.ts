@@ -1,10 +1,9 @@
-import { delay } from '@terra-ui-packages/core-utils';
+import { abandonedPromise, delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { AuthTokenState, loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore, getTerraUser } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
 
 export const authOpts = (token = getTerraUser().token) => ({ headers: { Authorization: `Bearer ${token}` } });
 export const jsonBody = (body) => ({
@@ -133,7 +132,7 @@ const withCancellation =
       return await wrappedFetch(...args);
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        return Utils.abandonedPromise();
+        return abandonedPromise();
       }
       throw error;
     }
@@ -245,8 +244,8 @@ export const fetchGoogleForms = _.flow(
   (wrappedFetch) => (url, options) => wrappedFetch(url, _.merge(options, { mode: 'no-cors' }))
 )(fetch);
 
-export const fetchWDS = (wdsProxyUrlRoot) =>
-  _.flow(withUrlPrefix(`${wdsProxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
+export const fetchWDS = (wdsProxyUrlRoot: string): FetchFn =>
+  _.flow(withUrlPrefix(`${wdsProxyUrlRoot.replace(/\/$/, '')}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
 
 export const fetchFromProxy = (proxyUrlRoot) =>
   _.flow(withUrlPrefix(`${proxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);

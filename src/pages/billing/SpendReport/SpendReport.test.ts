@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import {
@@ -7,7 +7,7 @@ import {
   SpendReport,
   SpendReportServerResponse,
 } from 'src/pages/billing/SpendReport/SpendReport';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');

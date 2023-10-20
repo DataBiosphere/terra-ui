@@ -1,9 +1,10 @@
-import { fireEvent, getByText, render } from '@testing-library/react';
+import { fireEvent, getByText } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import Alerts from 'src/components/Alerts';
 import { useServiceAlerts } from 'src/libs/service-alerts';
 import * as Utils from 'src/libs/utils';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/service-alerts', () => {
   const originalModule = jest.requireActual('src/libs/service-alerts');

@@ -8,7 +8,9 @@ import {
 
 import {
   canEditWorkspace,
+  canRunAnalysisInWorkspace,
   getRegionConstraintLabels,
+  getWorkspaceAnalysisControlProps,
   getWorkspaceEditControlProps,
   hasProtectedData,
   hasRegionConstraint,
@@ -223,5 +225,64 @@ describe('getWorkspaceEditControlProps', () => {
 
     // Assert
     expect(result).toStrictEqual({ disabled: true, tooltip: 'This workspace is locked.' });
+  });
+});
+
+describe('canRunAnalysisInWorkspace', () => {
+  it('returns false if the user cannot compute in the workspace', () => {
+    // Act
+    const result = canRunAnalysisInWorkspace({
+      canCompute: false,
+      workspace: { isLocked: false },
+    });
+
+    // Assert
+    expect(result).toEqual({ value: false, message: 'You do not have access to run analyses on this workspace.' });
+  });
+
+  it('returns false if the workspace is locked', () => {
+    // Act
+    const result = canRunAnalysisInWorkspace({
+      canCompute: true,
+      workspace: { isLocked: true },
+    });
+
+    // Assert
+    expect(result).toEqual({ value: false, message: 'This workspace is locked.' });
+  });
+
+  it('returns true otherwise', () => {
+    // Act
+    const result = canRunAnalysisInWorkspace({
+      canCompute: true,
+      workspace: { isLocked: false },
+    });
+
+    // Assert
+    expect(result).toEqual({ value: true, message: undefined });
+  });
+});
+
+describe('getWorkspaceAnalysisControlProps', () => {
+  it('adds no props when analysis is enabled', () => {
+    // Act
+    const props = {
+      tooltip: 'This is a control',
+      ...getWorkspaceAnalysisControlProps({ canCompute: true, workspace: { isLocked: false } }),
+    };
+
+    // Assert
+    expect(props).toEqual({ tooltip: 'This is a control' });
+  });
+
+  it('disables the control and adds a tooltip when the user cannot run analyses in the workspace', () => {
+    // Act
+    const props = {
+      tooltip: 'This is a control',
+      ...getWorkspaceAnalysisControlProps({ canCompute: false, workspace: { isLocked: false } }),
+    };
+
+    // Assert
+    expect(props).toEqual({ disabled: true, tooltip: 'You do not have access to run analyses on this workspace.' });
   });
 });

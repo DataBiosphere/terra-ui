@@ -14,7 +14,6 @@ import {
 import { workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import { getCreatorForCompute, getDisplayStatus, isComputePausable } from 'src/analysis/utils/resource-utils';
 import {
-  defaultComputeZone,
   getDisplayRuntimeStatus,
   getNormalizedComputeRegion,
   getRegionFromZone,
@@ -31,7 +30,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger';
 import { useModalHandler } from 'src/components/useModalHandler';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { isAzureConfig, isGceConfig, isGceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { isAzureConfig, isGceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { isRuntime, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
@@ -536,7 +535,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
           !!disk && div([strong(['Persistent Disk: ']), disk.name]),
         ]),
       },
-      // @ts-expect-error
       [h(Link, ['view'])]
     );
   };
@@ -706,15 +704,14 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 size: { min: '10em', grow: 0.2 },
                 headerRenderer: () => 'Location',
                 cellRenderer: ({ rowIndex }) => {
-                  const cloudEnvironment = filteredCloudEnvironments[rowIndex];
-                  // We assume that all apps get created in zone 'us-central1-a'.
-                  // If zone or region is not present then cloudEnvironment is an app so we return 'us-central1-a'.
-                  const location = isRuntime(cloudEnvironment)
-                    ? isGceConfig(cloudEnvironment.runtimeConfig) || isGceWithPdConfig(cloudEnvironment.runtimeConfig)
-                      ? cloudEnvironment.runtimeConfig.zone
-                      : _.toLower(getNormalizedComputeRegion(cloudEnvironment.runtimeConfig))
-                    : defaultComputeZone.toLowerCase();
-                  return location;
+                  const cloudEnvironment = filteredCloudEnvironments[rowIndex]; //
+                  if (isApp(cloudEnvironment)) {
+                    return cloudEnvironment.region;
+                  }
+                  if ('runtimeConfig' in cloudEnvironment) {
+                    return _.toLower(getNormalizedComputeRegion(cloudEnvironment.runtimeConfig));
+                  }
+                  return '';
                 },
               },
               {
@@ -852,7 +849,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                         app && div([strong([`${_.capitalize(app.appType)}: `]), app.appName]),
                       ]),
                     },
-                    // @ts-expect-error
                     [h(Link, ['view'])]
                   );
                 },

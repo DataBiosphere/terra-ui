@@ -1,6 +1,8 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
 import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
+import { Dataset } from 'src/libs/ajax/Catalog';
+import { BondFenceStatusResponse, NihDatasetPermission } from 'src/libs/ajax/User';
 import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -61,6 +63,12 @@ export type TokenMetadata = {
   totalTokenLoadAttemptsThisSession: number;
 };
 
+export type NihStatus = {
+  linkedNihUsername: string;
+  linkExpireTime: number;
+  datasetPermissions: NihDatasetPermission[];
+};
+
 export type Initializable<T> = T | 'uninitialized';
 
 export type SignInStatus = Initializable<'signedIn' | 'signedOut'>;
@@ -69,14 +77,12 @@ export type AuthState = {
   anonymousId: string | undefined;
   authTokenMetadata: TokenMetadata;
   cookiesAccepted: boolean | undefined;
-  fenceStatus: {};
+  fenceStatus: FenceStatus;
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   signInStatus: SignInStatus;
   isTimeoutEnabled?: boolean | undefined;
-  nihStatus?: {
-    linkedNihUsername: string;
-    linkExpireTime: number;
-  };
+  nihStatus?: NihStatus;
+  nihStatusLoaded: boolean;
   profile: TerraUserProfile;
   refreshTokenMetadata: TokenMetadata;
   registrationStatus: TerraUserRegistrationStatus;
@@ -84,6 +90,10 @@ export type AuthState = {
   sessionStartTime: number;
   termsOfService: TermsOfServiceStatus;
   terraUser: TerraUser;
+};
+
+export type FenceStatus = {
+  [key: string]: BondFenceStatusResponse;
 };
 
 export const authStore: Atom<AuthState> = atom<AuthState>({
@@ -100,6 +110,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
+  nihStatusLoaded: false,
   profile: {
     firstName: undefined,
     lastName: undefined,
@@ -221,7 +232,7 @@ export const snapshotsListStore = atom<unknown>(undefined);
 
 export const snapshotStore = atom<unknown>(undefined);
 
-export const dataCatalogStore = atom<any[]>([]);
+export const dataCatalogStore = atom<Dataset[]>([]);
 
 type AjaxOverride = {
   fn: (fetch: AnyPromiseFn) => AnyPromiseFn;

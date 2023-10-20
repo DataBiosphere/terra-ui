@@ -11,7 +11,7 @@ import { fetchOk } from 'src/libs/ajax/ajax-common';
 import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage';
 import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import Events, { captureAppcuesEvent } from 'src/libs/events';
+import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications';
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs';
 import allProviders from 'src/libs/providers';
@@ -92,7 +92,7 @@ export type SignOutCause =
   | 'unspecified';
 
 const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
-  const eventToFire: string = switchCase<SignOutCause, string>(
+  const eventToFire: MetricsEventName = switchCase<SignOutCause, MetricsEventName>(
     cause,
     ['requested', () => Events.user.signOut.requested],
     ['disabled', () => Events.user.signOut.disabled],
@@ -134,9 +134,11 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState());
   const cookiesAccepted: boolean | undefined = authStore.get().cookiesAccepted;
+  const anonymousId: string | undefined = authStore.get().anonymousId;
   authStore.reset();
   authStore.update((state) => ({
     ...state,
+    anonymousId,
     signInStatus: 'signedOut',
     // TODO: If allowed, this should be moved to the cookie store
     // Load whether a user has input a cookie acceptance in a previous session on this system,
@@ -189,10 +191,15 @@ export const signIn = async (includeBillingScope = false): Promise<OidcUser> => 
       sessionId,
       sessionStartTime,
     }));
-    Ajax().Metrics.captureEvent(Events.user.login, {
+    Ajax().Metrics.captureEvent(Events.user.login.success, {
       sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
     });
     return authTokenState.oidcUser;
+  }
+  if (authTokenState.status === 'expired') {
+    Ajax().Metrics.captureEvent(Events.user.login.expired, {});
+  } else if (authTokenState.status === 'error') {
+    Ajax().Metrics.captureEvent(Events.user.login.error, {});
   }
   throw new Error('Auth token failed to load when signing in');
 };
@@ -540,18 +547,25 @@ authStore.subscribe(
 
 authStore.subscribe(
   withErrorReporting('Error checking TOS', async (state: AuthState, oldState: AuthState): Promise<void> => {
-    if (isNowSignedIn(oldState, state)) {
-      const tosComplianceStatus = await Ajax().User.getTermsOfServiceComplianceStatus();
-      // If the user is now logged in, but there's no ToS status from Sam,
-      // then they haven't accepted it yet and Sam hasn't caught up.
-      const acceptedTos = !_.isNull(tosComplianceStatus);
-      const termsOfService = acceptedTos
-        ? tosComplianceStatus
-        : {
-            userHasAcceptedLatestTos: false,
-            permitsSystemUsage: false,
-          };
+    if (!isNowSignedIn(oldState, state)) {
+      return;
+    }
+    try {
+      const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus();
       authStore.update((state: AuthState) => ({ ...state, termsOfService }));
+    } catch (error) {
+      // If the resp is 404 it means the user has not accepted ANY tos yet, we want to handle this gracefully.
+      if (error instanceof Response && error.status === 404) {
+        // If the user is now logged in, but there's no ToS status from Sam,
+        // then they haven't accepted it yet and Sam hasn't caught up.
+        const termsOfService = {
+          userHasAcceptedLatestTos: false,
+          permitsSystemUsage: false,
+        };
+        authStore.update((state: AuthState) => ({ ...state, termsOfService }));
+      } else {
+        throw error;
+      }
     }
   })
 );
@@ -613,7 +627,7 @@ authStore.subscribe(
   withErrorReporting('Error loading NIH account link status', async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
       const nihStatus = await Ajax().User.getNihStatus();
-      authStore.update((state: AuthState) => ({ ...state, nihStatus }));
+      authStore.update((state: AuthState) => ({ ...state, nihStatus, nihStatusLoaded: true }));
     }
   })
 );

@@ -1,4 +1,4 @@
-import { differenceFromDatesInSeconds, differenceFromNowInSeconds, formatBytes, textMatch } from 'src/libs/utils';
+import { differenceFromDatesInSeconds, differenceFromNowInSeconds, textMatch } from 'src/libs/utils';
 
 beforeAll(() => {
   jest.useFakeTimers();
@@ -35,30 +35,6 @@ describe('differenceFromDatesInSeconds', () => {
     expect(differenceFromDatesInSeconds(startDate, threeSecondsLater)).toBe(3);
     expect(differenceFromDatesInSeconds(startDate, oneMinuteLater)).toBe(60);
     expect(differenceFromDatesInSeconds(startDate, twoDaysLater)).toBe(172800);
-  });
-});
-
-describe('formatBytes', () => {
-  it('handles GB', () => {
-    // Act
-    const result = formatBytes(40000000000);
-
-    // Assert
-    expect(result).toBe('37.3 GiB');
-  });
-  it('handles MB', () => {
-    // Act
-    const result = formatBytes(40000000);
-
-    // Assert
-    expect(result).toBe('38.1 MiB');
-  });
-  it('handles fallback case', () => {
-    // Act
-    const result = formatBytes(40);
-
-    // Assert
-    expect(result).toBe('40 B');
   });
 });
 

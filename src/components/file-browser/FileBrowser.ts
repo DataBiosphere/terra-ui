@@ -13,10 +13,10 @@ import FileBrowserProvider, {
   FileBrowserFile,
 } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import colors from 'src/libs/colors';
-import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import { dataTableVersionsPathRoot } from 'src/workspace-data/data-table/versioning/data-table-versioning-utils';
 
 interface FileBrowserProps {
   initialPath?: string;

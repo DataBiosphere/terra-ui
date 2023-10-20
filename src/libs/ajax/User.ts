@@ -134,6 +134,14 @@ export const generateAPIBodyForUpdateUserProfile = (
   };
 };
 
+/**
+ * Orchestration's /register/profile endpoint returns profile attributes as an
+ * array of { key, value } objects. This converts that array into single object.
+ */
+export const kvArrayToObject = (kvArray: { key: string; value: any }[] | undefined): Record<string, any> => {
+  return Object.fromEntries((kvArray ?? []).map(({ key, value }) => [key, value]));
+};
+
 export interface OrchestrationUserPreferLegacyFireCloudResponse {
   preferTerra: boolean;
   preferTerraLastUpdated: number;
@@ -194,7 +202,7 @@ export const User = (signal?: AbortSignal) => {
       get: async (): Promise<TerraUserProfile> => {
         const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }));
         const rawResponseJson: OrchestrationUserProfileResponse = await res.json();
-        return Utils.kvArrayToObject(rawResponseJson.keyValuePairs) as TerraUserProfile;
+        return kvArrayToObject(rawResponseJson.keyValuePairs) as TerraUserProfile;
       },
 
       // even though both create and update call the same URL, the body of the request will differ depending on
@@ -239,47 +247,28 @@ export const User = (signal?: AbortSignal) => {
       return response.text();
     },
 
-    acceptTos: async (): Promise<SamUserTosStatusResponse | undefined> => {
-      try {
-        const response = await fetchSam(
-          'register/user/v1/termsofservice',
-          _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
-        );
-        return response.json();
-      } catch (error: unknown) {
-        if (!(error instanceof Response && error.status === 404)) {
-          throw error;
-        }
-      }
+    acceptTos: async (): Promise<SamUserTosStatusResponse> => {
+      const response = await fetchSam(
+        'register/user/v1/termsofservice',
+        _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
+      );
+      return response.json();
     },
 
-    rejectTos: async (): Promise<SamUserTosStatusResponse | undefined> => {
-      try {
-        const response = await fetchSam(
-          'register/user/v1/termsofservice',
-          _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
-        );
-        return response.json();
-      } catch (error: unknown) {
-        if (!(error instanceof Response && error.status === 404)) {
-          throw error;
-        }
-      }
+    rejectTos: async (): Promise<SamUserTosStatusResponse> => {
+      const response = await fetchSam(
+        'register/user/v1/termsofservice',
+        _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
+      );
+      return response.json();
     },
 
-    getTermsOfServiceComplianceStatus: async (): Promise<SamUserTosComplianceStatusResponse | null> => {
-      try {
-        const res = await fetchSam(
-          'register/user/v2/self/termsOfServiceComplianceStatus',
-          _.merge(authOpts(), { signal })
-        );
-        return res.json();
-      } catch (error: unknown) {
-        if (error instanceof Response && (error.status === 404 || error.status === 403)) {
-          return null;
-        }
-        throw error;
-      }
+    getTermsOfServiceComplianceStatus: async (): Promise<SamUserTosComplianceStatusResponse> => {
+      const res = await fetchSam(
+        'register/user/v2/self/termsOfServiceComplianceStatus',
+        _.merge(authOpts(), { signal })
+      );
+      return res.json();
     },
 
     getPrivacyPolicy: async (): Promise<string> => {

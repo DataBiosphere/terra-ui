@@ -1,0 +1,149 @@
+import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { act, screen } from '@testing-library/react';
+import { axe } from 'jest-axe';
+import _ from 'lodash/fp';
+import { h } from 'react-hyperscript-helpers';
+import { Ajax } from 'src/libs/ajax';
+import { GoogleWorkspace } from 'src/libs/workspace-utils';
+import { BucketLocation } from 'src/pages/workspaces/workspace/Dashboard/BucketLocation';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import {
+  defaultAzureStorageOptions,
+  defaultGoogleBucketOptions,
+  defaultGoogleWorkspace,
+} from 'src/testing/workspace-fixtures';
+
+type AjaxContract = ReturnType<typeof Ajax>;
+
+jest.mock('src/libs/ajax');
+
+jest.mock('src/libs/notifications');
+
+describe('BucketLocation', () => {
+  const workspace: GoogleWorkspace & { workspaceInitialized: boolean } = {
+    ...defaultGoogleWorkspace,
+    workspace: {
+      ...defaultGoogleWorkspace.workspace,
+      namespace: 'test',
+      name: 'test',
+      cloudPlatform: 'Gcp',
+    },
+    workspaceInitialized: true,
+  };
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('shows Loading initially when uninitialized and should not fail any accessibility tests', async () => {
+    // Arrange
+    const props = {
+      workspace: _.merge(workspace, { workspaceInitialized: false }),
+      storageDetails: _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions),
+    };
+
+    // Act
+    const { container } = render(h(BucketLocation, props));
+
+    // Assert
+    expect(screen.queryByText('Loading')).not.toBeNull();
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('shows Loading initially when initialized', () => {
+    // Arrange
+    const props = {
+      workspace,
+      storageDetails: _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions),
+    };
+
+    // Act
+    render(h(BucketLocation, props));
+
+    // Assert
+    expect(screen.queryByText('Loading')).not.toBeNull();
+  });
+
+  it('renders the bucket location if available, and has no accessibility errors', async () => {
+    // Arrange
+    const props = {
+      workspace,
+      storageDetails: _.mergeAll([
+        defaultGoogleBucketOptions,
+        { fetchedGoogleBucketLocation: 'SUCCESS' },
+        defaultAzureStorageOptions,
+      ]),
+    };
+
+    // Act
+    const { container } = render(h(BucketLocation, props));
+
+    // Assert
+    expect(screen.queryByText('Loading')).toBeNull();
+    expect(screen.getAllByText(/Iowa/)).not.toBeNull();
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('fetches the bucket location if workspaceContainer attempt encountered an error', async () => {
+    // Arrange
+    const props = {
+      workspace,
+      storageDetails: _.mergeAll([
+        defaultGoogleBucketOptions,
+        { fetchedGoogleBucketLocation: 'ERROR' },
+        defaultAzureStorageOptions,
+      ]),
+    };
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Workspaces: {
+            workspace: () =>
+              ({
+                checkBucketLocation: jest.fn().mockResolvedValue({
+                  location: 'bermuda',
+                  locationType: 'triangle',
+                }),
+              } as Partial<AjaxContract['Workspaces']['workspace']>),
+          } as Partial<AjaxContract['Workspaces']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    // Act
+    await act(async () => { render(h(BucketLocation, props)) }) //eslint-disable-line
+
+    // Assert
+    expect(screen.queryByText('Loading')).toBeNull();
+    expect(screen.getAllByText(/bermuda/)).not.toBeNull();
+  });
+
+  it('handles requester pays error', async () => {
+    // Arrange
+    const props = {
+      workspace,
+      storageDetails: _.mergeAll([
+        defaultGoogleBucketOptions,
+        { fetchedGoogleBucketLocation: 'ERROR' },
+        defaultAzureStorageOptions,
+      ]),
+    };
+    const requesterPaysError = { message: 'Requester pays bucket', requesterPaysError: true };
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Workspaces: {
+            workspace: () =>
+              ({
+                checkBucketLocation: () => Promise.reject(requesterPaysError),
+              } as Partial<AjaxContract['Workspaces']['workspace']>),
+          } as Partial<AjaxContract['Workspaces']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+    // Act
+    await act(async () => { render(h(BucketLocation, props)) }) //eslint-disable-line
+
+    // Assert
+    expect(screen.queryByText('Loading')).toBeNull();
+    expect(screen.getAllByText(/bucket is requester pays/)).not.toBeNull();
+  });
+});

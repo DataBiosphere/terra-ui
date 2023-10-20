@@ -1,4 +1,4 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { icon, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useContext, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -24,7 +24,7 @@ import {
   WorkspaceInfo,
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
-import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
+import { WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceMenu';
 import { WorkspaceUserActionsContext } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
 
 // This is actually the sort type from the FlexTable component
@@ -165,7 +165,7 @@ const NameCell = (props: CellProps): ReactNode => {
   const {
     accessLevel,
     workspace,
-    workspace: { workspaceId, namespace, name, attributes },
+    workspace: { workspaceId, namespace, name, attributes, state },
   } = props.workspace;
   const { setUserActions } = useContext(WorkspaceUserActionsContext);
 
@@ -199,22 +199,66 @@ const NameCell = (props: CellProps): ReactNode => {
         [name]
       ),
     ]),
-    div({ style: { ...styles.tableCellContent } }, [
-      h(
-        FirstParagraphMarkdownViewer,
-        {
-          style: {
-            height: '1.5rem',
-            margin: 0,
-            ...Style.noWrapEllipsis,
-            color: description ? undefined : colors.dark(0.75),
-            fontSize: 14,
-          },
-        },
-        [description?.toString() || 'No description added']
-      ),
-    ]),
+    Utils.cond(
+      [state === 'Deleting', () => h(WorkspaceDeletingCell)],
+      [state === 'DeleteFailed', () => h(WorkspaceDeletionFailedCell)],
+      [Utils.DEFAULT, () => h(WorkspaceDescriptionCell, { description })]
+    ),
   ]);
+};
+
+const WorkspaceDescriptionCell = (props: { description: unknown | undefined }) => {
+  return div({ style: { ...styles.tableCellContent } }, [
+    h(
+      FirstParagraphMarkdownViewer,
+      {
+        style: {
+          height: '1.5rem',
+          margin: 0,
+          ...Style.noWrapEllipsis,
+          color: props.description ? undefined : colors.dark(0.75),
+          fontSize: 14,
+        },
+      },
+      [props.description?.toString() || 'No description added']
+    ),
+  ]);
+};
+
+const WorkspaceDeletingCell = (): ReactNode => {
+  const deletingIcon = icon('syncAlt', {
+    size: 18,
+    style: {
+      animation: 'rotation 2s infinite linear',
+      marginRight: '0.5rem',
+    },
+  });
+  return div(
+    {
+      style: {
+        color: colors.danger(),
+      },
+    },
+    [deletingIcon, 'Workspace deletion in progress']
+  );
+};
+
+const WorkspaceDeletionFailedCell = (): ReactNode => {
+  const errorIcon = icon('warning-standard', {
+    size: 18,
+    style: {
+      color: colors.danger(),
+      marginRight: '0.5rem',
+    },
+  });
+  return div(
+    {
+      style: {
+        color: colors.danger(),
+      },
+    },
+    [errorIcon, 'Error deleting workspace']
+  );
 };
 
 const LastModifiedCell = (props: CellProps): ReactNode => {
@@ -304,7 +348,6 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
         iconSize: 20,
         popupLocation: 'left',
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-        // @ts-expect-error
         workspaceInfo: { namespace, name },
       }),
     ]),

@@ -1,4 +1,22 @@
-import { readFileAsText } from './io-utils';
+import { maybeParseJSON, readFileAsText } from './io-utils';
+
+describe('maybeParseJSON', () => {
+  it('parses JSON and returns the decoded value', () => {
+    // Act
+    const result = maybeParseJSON('{"key": "value"}');
+
+    // Assert
+    expect(result).toEqual({ key: 'value' });
+  });
+
+  it('returns undefined if the string cannot be parsed as JSON', () => {
+    // Act
+    const result = maybeParseJSON('{"Invalid JSON"}');
+
+    // Assert
+    expect(result).toBe(undefined);
+  });
+});
 
 describe('readFileAsText', () => {
   it('returns file contents', async () => {

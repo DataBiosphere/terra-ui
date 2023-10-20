@@ -53,11 +53,13 @@ const eventsList = {
   cloudEnvironmentDelete: 'cloudEnvironment:delete',
   cloudEnvironmentUpdate: 'cloudEnvironment:update',
   cloudEnvironmentDetailsLoad: 'analysis:details:load',
-  catalogFilter: 'catalog:filter',
+  catalogFilterSearch: 'catalog:filter:search',
+  catalogFilterSidebar: 'catalog:filter:sidebar',
   catalogRequestAccess: 'catalog:requestAccess',
   catalogToggle: 'catalog:toggle',
   catalogLandingPageBanner: 'catalog:landingPageBanner',
-  catalogView: 'catalog:view',
+  catalogViewDetails: 'catalog:view:details',
+  catalogViewPreviewData: 'catalog:view:previewData',
   catalogWorkspaceLink: 'catalog:workspaceLink',
   catalogWorkspaceLinkExportFinished: 'catalog:workspaceLink:completed',
   datasetLibraryBrowseData: 'library:browseData',
@@ -82,7 +84,11 @@ const eventsList = {
       expired: 'user:authTokenLoad:expiredRefreshToken',
       error: 'user:authTokenLoad:error',
     },
-    login: 'user:login',
+    login: {
+      success: 'user:login:success',
+      expired: 'user:login:expiredRefreshToken',
+      error: 'user:login:error',
+    },
     signOut: {
       requested: 'user:signOut:requested',
       disabled: 'user:signOut:disabled',
@@ -138,7 +144,19 @@ const eventsList = {
   workspaceSnapshotDelete: 'workspace:snapshot:delete',
   workspaceSnapshotContentsView: 'workspace:snapshot:contents:view',
   workspaceStar: 'workspace:star',
-};
+} as const;
+
+// Helper type to create BaseMetricsEventName.
+type MetricsEventsMap<EventName> = { [key: string]: EventName | MetricsEventsMap<EventName> };
+// Union type of all event names configured in eventsList.
+type BaseMetricsEventName = typeof eventsList extends MetricsEventsMap<infer EventName> ? EventName : never;
+// Each route has its own page view event, where the event name includes the name of the route.
+type PageViewMetricsEventName = `${typeof eventsList.pageView}:${string}`;
+
+/**
+ * Union type of all metrics event names.
+ */
+export type MetricsEventName = BaseMetricsEventName | PageViewMetricsEventName;
 
 // extractWorkspaceDetails accepts multiple types of input...
 export type EventWorkspaceAttributes =

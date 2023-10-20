@@ -6,7 +6,7 @@ import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 
-import { getReferenceLabel } from './reference-metadata';
+import { getReferenceLabel } from './reference-data-utils';
 import ReferenceData from './references';
 
 export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name }) => {

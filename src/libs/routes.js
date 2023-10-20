@@ -26,11 +26,12 @@ import * as NotFound from 'src/pages/NotFound';
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy';
 import * as Profile from 'src/pages/Profile';
 import * as TermsOfService from 'src/pages/TermsOfService';
-import * as Upload from 'src/pages/Upload';
+import * as UploadData from 'src/pages/UploadDataPage';
 import * as WorkflowsList from 'src/pages/workflows/List';
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails';
 import * as WorkspaceList from 'src/pages/workspaces/List';
-import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard';
+import * as WorkspaceMigration from 'src/pages/workspaces/migration/WorkspaceMigration';
+import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard/Dashboard';
 import * as WorkspaceFiles from 'src/pages/workspaces/workspace/Files';
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory';
 import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails';
@@ -80,11 +81,12 @@ const routes = _.flatten([
   Environments.navPaths,
   WorkflowsList.navPaths,
   WorkflowDetails.navPaths,
-  Upload.navPaths,
+  UploadData.navPaths,
   FeaturePreviews.navPaths,
   WorkspaceFiles.navPaths,
   AzurePreview.navPaths,
   WorkflowsApp.navPaths,
+  WorkspaceMigration.navPaths,
   NotFound.navPaths, // must be last
 ]);
 

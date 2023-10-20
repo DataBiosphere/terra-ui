@@ -22,8 +22,8 @@ const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   return success;
 };
 
-const findIframe = async (page, iframeXPath = '//*[@role="main"]/iframe') => {
-  const iframeNode = await page.waitForXPath(iframeXPath);
+const findIframe = async (page, iframeXPath = '//*[@role="main"]/iframe', options) => {
+  const iframeNode = await page.waitForXPath(iframeXPath, defaultToVisibleTrue(options));
   const srcHandle = await iframeNode.getProperty('src');
   const src = await srcHandle.jsonValue();
   const hasFrame = () => page.frames().find((frame) => frame.url().includes(src));
@@ -122,6 +122,20 @@ const click = async (page, xpath, options) => {
 
 const findText = (page, textContains, options) => {
   return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options));
+};
+
+const getLabelledTextInputValue = async (page, xpath) => {
+  const inputLabel = await page.waitForXPath(xpath);
+  const labelFor = await inputLabel?.evaluate((l) => l.getAttribute('for'));
+  const input = await page.$(`#${labelFor}`);
+  return await input?.evaluate((i) => i.value);
+};
+
+const assertLabelledTextInputValue = async (page, xpath, text) => {
+  const value = await getLabelledTextInputValue(page, xpath);
+  if (text !== value) {
+    throw new Error(`The specified text '${text}' not found labelled by '${xpath}'`);
+  }
 };
 
 const assertTextNotFound = async (page, text) => {
@@ -526,4 +540,6 @@ module.exports = {
   savePageContent,
   findButtonInDialogByAriaLabel,
   verifyAccessibility,
+  assertLabelledTextInputValue,
+  getLabelledTextInputValue,
 };

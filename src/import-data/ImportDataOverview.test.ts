@@ -1,56 +1,42 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { ImportDataOverview } from './ImportDataOverview';
+import { ImportRequest } from './import-types';
+import { ImportDataOverview, ImportDataOverviewProps } from './ImportDataOverview';
+
+const renderImportDataOverview = (props: Partial<ImportDataOverviewProps> = {}): void => {
+  render(
+    h(ImportDataOverview, {
+      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      ...props,
+    })
+  );
+};
 
 describe('ImportDataOverview', () => {
-  const header = 'Linking data to a workspace';
-  const snapshots = [];
-  const isDataset = true;
-  const snapshotResponses = [];
+  it.each([
+    {
+      importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+      shouldShowProtectedDataWarning: true,
+    },
+    {
+      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      shouldShowProtectedDataWarning: false,
+    },
+  ] as { importRequest: ImportRequest; shouldShowProtectedDataWarning: boolean }[])(
+    'should render warning about protected data',
+    ({ importRequest, shouldShowProtectedDataWarning }) => {
+      renderImportDataOverview({ importRequest });
 
-  it('should render warning about protected data', () => {
-    render(
-      h(ImportDataOverview, {
-        header,
-        snapshots,
-        isDataset,
-        snapshotResponses,
-        url: 'https://gen3-theanvil-io-pfb-export.s3.amazonaws.com/export_2023-07-07.avro',
-        isProtectedData: true,
-      })
-    );
-
-    const protectedWarning = screen.queryByText('The data you chose to import to Terra are identified as protected', {
-      exact: false,
-    });
-    expect(protectedWarning).not.toBeNull();
-    const noWarning = screen.queryByText(
-      'The dataset(s) you just chose to import to Terra will be made available to you',
-      { exact: false }
-    );
-    expect(noWarning).toBeNull();
-  });
-
-  it('should not render warning about unprotected data', () => {
-    render(
-      h(ImportDataOverview, {
-        header,
-        snapshots,
-        isDataset,
-        snapshotResponses,
-        url: 'https://google.com/file.pfb',
-        isProtectedData: false,
-      })
-    );
-    const protectedWarning = screen.queryByText('The data you chose to import to Terra are identified as protected', {
-      exact: false,
-    });
-    expect(protectedWarning).toBeNull();
-    const noWarning = screen.queryByText(
-      'The dataset(s) you just chose to import to Terra will be made available to you',
-      { exact: false }
-    );
-    expect(noWarning).not.toBeNull();
-  });
+      const protectedDataWarning = screen.queryByText(
+        'The data you chose to import to Terra are identified as protected',
+        {
+          exact: false,
+        }
+      );
+      const isWarningShown = !!protectedDataWarning;
+      expect(isWarningShown).toBe(shouldShowProtectedDataWarning);
+    }
+  );
 });
