@@ -12,6 +12,14 @@ import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { CloudProvider, cloudProviderLabels } from 'src/libs/workspace-utils';
 import {
+  commonStyles,
+  FilterSection,
+  SearchAndFilterComponent,
+  SearchAndFilterProps,
+  Sort,
+} from 'src/pages/library/SearchAndFilterComponent';
+
+import {
   DatasetAccess,
   datasetAccessTypes,
   formatDatasetTime,
@@ -22,14 +30,7 @@ import {
   getDatasetReleasePoliciesDisplayInformation,
   makeDatasetReleasePolicyDisplayInformation,
   useDataCatalog,
-} from 'src/pages/library/dataBrowser-utils';
-import {
-  commonStyles,
-  FilterSection,
-  SearchAndFilterComponent,
-  SearchAndFilterProps,
-  Sort,
-} from 'src/pages/library/SearchAndFilterComponent';
+} from './data-browser-utils';
 
 const styles = {
   ...commonStyles,

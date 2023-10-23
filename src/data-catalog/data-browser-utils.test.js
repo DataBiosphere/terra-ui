@@ -2,6 +2,7 @@ import { render } from '@testing-library/react';
 import * as _ from 'lodash/fp';
 import { brands } from 'src/libs/brands';
 import { dataCatalogStore } from 'src/libs/state';
+
 import {
   datarepoSnapshotUrlFragment,
   datasetAccessTypes,
@@ -13,14 +14,14 @@ import {
   makeDatasetReleasePolicyDisplayInformation,
   prepareDatasetsForDisplay,
   workspaceUrlFragment,
-} from 'src/pages/library/dataBrowser-utils';
-import { TEST_DATASET_ONE } from 'src/pages/library/test-datasets';
+} from './data-browser-utils';
+import { TEST_DATASET_ONE } from './test-datasets';
 
 beforeEach(() => {
   dataCatalogStore.reset();
 });
 
-describe('dataBrowser-utils', () => {
+describe('data-browser-utils', () => {
   it('sets external datasets to accessLevel external', () => {
     const normalizedDatasets = prepareDatasetsForDisplay([{ 'dcat:accessURL': 'any-url.com' }], brands.terra.catalogDataCollectionsToInclude);
     expect(getDatasetAccessType(normalizedDatasets[0])).toBe(datasetAccessTypes.External);

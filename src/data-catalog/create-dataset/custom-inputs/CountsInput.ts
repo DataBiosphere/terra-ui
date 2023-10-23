@@ -1,9 +1,7 @@
 import { div, h } from 'react-hyperscript-helpers';
 import { FormLabel } from 'src/libs/forms';
-import {
-  CatalogNumberInput,
-  generateIndividualInputPropsForObjectField,
-} from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
+
+import { CatalogNumberInput, generateIndividualInputPropsForObjectField } from '../CreateDatasetInputs';
 
 export const CountsInput = ({ title, wrapperProps = {}, onChange, counts }) => {
   return div(wrapperProps, [

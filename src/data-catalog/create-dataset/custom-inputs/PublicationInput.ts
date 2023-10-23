@@ -1,11 +1,9 @@
 import { div, h } from 'react-hyperscript-helpers';
 import { Publication } from 'src/libs/ajax/Catalog';
 import { FormLabel } from 'src/libs/forms';
-import {
-  generateIndividualInputPropsForObjectField,
-  StringInput,
-} from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
 import { validate } from 'validate.js';
+
+import { generateIndividualInputPropsForObjectField, StringInput } from '../CreateDatasetInputs';
 
 export interface PublicationInputProps {
   onChange: (publication: Publication) => void;

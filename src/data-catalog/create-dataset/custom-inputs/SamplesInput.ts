@@ -2,7 +2,8 @@ import * as _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
 import { Samples } from 'src/libs/ajax/Catalog';
 import { FormLabel } from 'src/libs/forms';
-import { ListInput, StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
+
+import { ListInput, StringInput } from '../CreateDatasetInputs';
 
 export interface SamplesInputProps {
   title?: string;

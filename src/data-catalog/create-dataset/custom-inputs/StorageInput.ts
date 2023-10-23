@@ -7,7 +7,8 @@ import {
   googleCloudResourceTypes,
   StorageObject,
 } from 'src/libs/ajax/Catalog';
-import { SelectInput, SelectInputProps } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
+
+import { SelectInput, SelectInputProps } from '../CreateDatasetInputs';
 
 interface StorageInputProps {
   wrapperProps?: any;
