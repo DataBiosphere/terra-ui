@@ -9,7 +9,7 @@ import { Ajax } from 'src/libs/ajax';
 import { isAzureUser } from 'src/libs/auth';
 import { withErrorIgnoring } from 'src/libs/error';
 import { updateSearch, useRoute } from 'src/libs/nav';
-import { useOnMount } from 'src/libs/react-utils';
+import { useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { elements as StyleElements } from 'src/libs/style';
 import { newTabLinkProps } from 'src/libs/utils';
 import { cloudProviderTypes, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
@@ -37,6 +37,7 @@ export const WorkspacesList = (): ReactNode => {
   const {
     workspaces,
     refresh: refreshWorkspaces,
+    refreshSilently,
     loadingWorkspaces,
     loadingSubmissionStats,
   } = useWorkspacesWithSubmissionStats();
@@ -62,6 +63,8 @@ export const WorkspacesList = (): ReactNode => {
     });
     loadFeatured();
   });
+
+  usePollingEffect(refreshSilently, { leading: false, ms: 30000 });
 
   const sortedWorkspaces = useMemo(() => categorizeWorkspaces(workspaces, featuredList), [workspaces, featuredList]);
 

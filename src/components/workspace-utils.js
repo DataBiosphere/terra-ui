@@ -39,10 +39,16 @@ export const useWorkspaces = (fieldsArg, stringAttributeMaxLength) => {
     const ws = await Ajax(signal).Workspaces.list(fields, stringAttributeMaxLength);
     workspacesStore.set(ws);
   });
+
+  const refreshSilently = _.flow(withErrorReporting('Error loading workspace list'))(async () => {
+    const ws = await Ajax(signal).Workspaces.list(fields, stringAttributeMaxLength);
+    workspacesStore.set(ws);
+  });
+
   useOnMount(() => {
     refresh();
   });
-  return { workspaces, refresh, loading };
+  return { workspaces, refresh, refreshSilently, loading };
 };
 
 export const useWorkspaceDetails = ({ namespace, name }, fields) => {

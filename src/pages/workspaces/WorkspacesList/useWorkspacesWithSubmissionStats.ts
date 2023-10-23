@@ -10,6 +10,7 @@ import { WorkspaceSubmissionStats, WorkspaceWrapper as Workspace } from 'src/lib
 interface WorkspacesWithSubmissionStatsReturn {
   workspaces: Workspace[];
   refresh: () => void;
+  refreshSilently: () => Promise<void>;
   loadingWorkspaces: boolean;
   loadingSubmissionStats: boolean;
 }
@@ -19,6 +20,7 @@ export const useWorkspacesWithSubmissionStats = (): WorkspacesWithSubmissionStat
     workspaces,
     loading: loadingWorkspaces,
     refresh,
+    refreshSilently,
   } = useWorkspaces(
     [
       'accessLevel',
@@ -66,5 +68,11 @@ export const useWorkspacesWithSubmissionStats = (): WorkspacesWithSubmissionStat
     );
   }, [workspaces, submissionStats]);
 
-  return { workspaces: workspacesWithSubmissionStats, refresh, loadingWorkspaces, loadingSubmissionStats };
+  return {
+    workspaces: workspacesWithSubmissionStats,
+    refresh,
+    refreshSilently,
+    loadingWorkspaces,
+    loadingSubmissionStats,
+  };
 };
