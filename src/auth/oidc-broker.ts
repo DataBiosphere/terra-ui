@@ -21,6 +21,7 @@ export interface B2cIdTokenClaims extends IdTokenClaims {
 export interface OidcUser extends User {
   profile: B2cIdTokenClaims;
 }
+
 export const getOidcConfig = () => {
   const metadata = {
     authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
@@ -47,7 +48,7 @@ export const getOidcConfig = () => {
 };
 
 // This is the first thing that happens on app load.
-export const initializeClientId = _.memoize(async () => {
+export const initializeClientId = _.memoize(async (): Promise<void> => {
   const oidcConfig: OidcConfig = await Ajax().OAuth2.getConfiguration();
   oidcStore.update((state) => ({ ...state, config: oidcConfig }));
 });
@@ -78,16 +79,24 @@ export const getSignInArgs = (includeBillingScope: boolean): ExtraSigninRequestA
     })
   );
 };
-export const oidcSignIn = async (includeBillingScope = false, popUp = false): Promise<OidcUser | null> => {
-  const args: ExtraSigninRequestArgs = getSignInArgs(includeBillingScope);
+
+export type OIDCSignInArgs = {
+  includeBillingScope: boolean;
+  popUp: boolean;
+};
+
+export const oidcSignIn = async (args: OIDCSignInArgs): Promise<OidcUser | null> => {
+  const extraArgs: ExtraSigninRequestArgs = getSignInArgs(args.includeBillingScope);
   const authInstance: AuthContextProps = getAuthInstance();
 
-  return popUp
-    ? // returns Promise<OidcUser | null>, attempts to use the refresh token to get a new authToken
-      authInstance.signinPopup(args)
-    : authInstance.signinSilent(args);
+  return args.popUp
+    ? // returns Promise<OidcUser>, uses a fresh refresh token to get a new authToken
+      authInstance.signinPopup(extraArgs)
+    : // returns Promise<OidcUser | null>, attempts to use the refresh token to get a new authToken
+      authInstance.signinSilent(extraArgs);
 };
-export const revokeTokens = async () => {
+
+export const revokeTokens = async (): Promise<void> => {
   // send back auth instance, so we can use it for remove and clear stale state
   const auth: AuthContextProps = getAuthInstance();
   if (auth.settings.metadata?.revocation_endpoint) {

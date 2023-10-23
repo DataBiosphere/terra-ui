@@ -4,7 +4,7 @@ import _ from 'lodash/fp';
 import { createRoot } from 'react-dom/client';
 import { h } from 'react-hyperscript-helpers';
 import RModal from 'react-modal';
-import { initializeClientId } from 'src/auth/OidcBroker';
+import { initializeClientId } from 'src/auth/oidc-broker';
 import { initializeAuth } from 'src/libs/auth';
 import { isAxeEnabled } from 'src/libs/config';
 import { startPollingServiceAlerts } from 'src/libs/service-alerts-polling';

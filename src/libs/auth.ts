@@ -3,7 +3,14 @@ import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { B2cIdTokenClaims, getCurrentOidcUser, oidcSignIn, OidcUser, revokeTokens } from 'src/auth/OidcBroker';
+import {
+  B2cIdTokenClaims,
+  getCurrentOidcUser,
+  oidcSignIn,
+  OIDCSignInArgs,
+  OidcUser,
+  revokeTokens,
+} from 'src/auth/oidc-broker';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
@@ -34,10 +41,8 @@ import { v4 as uuid } from 'uuid';
 
 export const getAuthToken = (): string | undefined => {
   const oidcUser: OidcUser | undefined = oidcStore.get().user;
-  if (oidcUser !== undefined) {
-    return oidcUser.access_token;
-  }
-  return undefined;
+
+  return oidcUser?.access_token;
 };
 
 export type SignOutCause =
@@ -109,7 +114,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
   // we should handle if we get back null or false here (if loading the authTokenFails)
-  const authTokenState: AuthTokenState = await loadAuthToken(includeBillingScope, true);
+  const authTokenState: AuthTokenState = await loadAuthToken({ includeBillingScope, popUp: true });
   if (authTokenState.status === 'success') {
     const sessionId = uuid();
     const sessionStartTime: number = Date.now();
@@ -154,10 +159,11 @@ export type AuthTokenState = AuthTokenSuccessState | AuthTokenExpiredState | Aut
  * When token is successfully loaded, returns an AuthTokenSuccessState.
  * When token fails to load because of an expired refresh token, returns an AuthTokenExpiredState
  * When tokens fails to load because of an error, returns an AuthTokenErrorState
- * @param includeBillingScope
- * @param popUp whether signIn is attempted with a popup, or silently in the background.
+ * @param args whether signIn is attempted with a popup, or silently in the background.
  */
-export const loadAuthToken = async (includeBillingScope = false, popUp = false): Promise<AuthTokenState> => {
+export const loadAuthToken = async (
+  args: OIDCSignInArgs = { includeBillingScope: false, popUp: false }
+): Promise<AuthTokenState> => {
   const oldAuthTokenMetadata: TokenMetadata = authStore.get().authTokenMetadata;
   const oldRefreshTokenMetadata: TokenMetadata = authStore.get().refreshTokenMetadata;
 
@@ -170,7 +176,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     },
   }));
 
-  const loadedAuthTokenState: AuthTokenState = await tryLoadAuthToken(includeBillingScope, popUp);
+  const loadedAuthTokenState: AuthTokenState = await tryLoadAuthToken(args);
   oidcStore.update((state) => ({
     ...state,
     authTokenState: loadedAuthTokenState,
@@ -249,9 +255,11 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
   return loadedAuthTokenState;
 };
 
-const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Promise<AuthTokenState> => {
+const tryLoadAuthToken = async (
+  args: OIDCSignInArgs = { includeBillingScope: false, popUp: false }
+): Promise<AuthTokenState> => {
   try {
-    const loadedAuthTokenResponse: OidcUser | null = await oidcSignIn(includeBillingScope, popUp);
+    const loadedAuthTokenResponse: OidcUser | null = await oidcSignIn(args);
 
     if (loadedAuthTokenResponse === null) {
       return {
@@ -301,7 +309,7 @@ export const hasBillingScope = (): boolean => authStore.get().hasGcpBillingScope
  */
 export const tryBillingScope = async () => {
   if (!hasBillingScope()) {
-    await loadAuthToken(true);
+    await loadAuthToken({ includeBillingScope: true, popUp: false });
   }
 };
 

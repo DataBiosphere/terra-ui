@@ -7,7 +7,7 @@ import { h } from 'react-hyperscript-helpers';
 import { ReactNotifications } from 'react-notifications-component';
 import { AuthProvider } from 'react-oidc-context';
 import { AuthenticatedCookieSetter } from 'src/analysis/runtime-common-components';
-import { getOidcConfig } from 'src/auth/OidcBroker';
+import { getOidcConfig } from 'src/auth/oidc-broker';
 import AuthContainer from 'src/components/AuthContainer';
 import AuthStoreSetter from 'src/components/AuthStoreSetter';
 import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning';

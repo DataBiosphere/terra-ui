@@ -1,5 +1,5 @@
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { OidcUser } from 'src/auth/OidcBroker';
+import { OidcUser } from 'src/auth/oidc-broker';
 import { loadAuthToken, signOut } from 'src/libs/auth';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -49,7 +49,7 @@ jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   };
 });
 
-describe('withAuthToken', () => {
+describe('withRetryAfterReloadingExpiredAuthToken', () => {
   it('passes args through to wrapped fetch', async () => {
     // Arrange
     const originalFetch = jest.fn(() =>
@@ -78,7 +78,7 @@ describe('withAuthToken', () => {
 
     // Assert
     expect(response instanceof Response).toBe(true);
-    expect(response.json()).resolves.toEqual({ success: true });
+    await expect(response.json()).resolves.toEqual({ success: true });
     expect(response.status).toBe(200);
   });
 
@@ -99,7 +99,7 @@ describe('withAuthToken', () => {
       expect(loadAuthToken).toHaveBeenCalled();
     });
 
-    describe('and reloading auth token fails', () => {
+    describe('if reloading auth token fails', () => {
       describe('due to an error', () => {
         beforeEach(() => {
           asMockedFn(loadAuthToken).mockImplementation(() =>
@@ -121,12 +121,12 @@ describe('withAuthToken', () => {
           expect(signOut).toHaveBeenCalledWith('errorRefreshingAuthToken');
         });
 
-        it('throws an error', () => {
+        it('throws an error', async () => {
           // Act
           const result = makeAuthenticatedRequest();
 
           // Assert
-          expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
+          await expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
         });
       });
 
@@ -148,12 +148,12 @@ describe('withAuthToken', () => {
           expect(signOut).toHaveBeenCalledWith('expiredRefreshToken');
         });
 
-        it('throws an error', () => {
+        it('throws an error', async () => {
           // Act
           const result = makeAuthenticatedRequest();
 
           // Assert
-          expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
+          await expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
         });
       });
     });
