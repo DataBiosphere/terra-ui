@@ -232,7 +232,7 @@ export const snapshotStore = atom<unknown>(undefined);
 
 export const dataCatalogStore = atom<Dataset[]>([]);
 
-type AjaxOverride = {
+export type AjaxOverride = {
   fn: (fetch: AnyPromiseFn) => AnyPromiseFn;
   filter:
     | {
