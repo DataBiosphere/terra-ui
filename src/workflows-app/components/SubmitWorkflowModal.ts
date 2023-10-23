@@ -104,7 +104,7 @@ export const SubmitWorkflowModal = ({
     });
   };
 
-  const pollForSubmission = () =>
+  const submitToWorkflowsApp = () =>
     poll(async () => {
       try {
         const appsResponse = await Ajax().Apps.listAppsV2(workspaceId, { role: 'creator' });
@@ -153,7 +153,7 @@ export const SubmitWorkflowModal = ({
           'aria-label': 'Launch Submission',
           onClick: async () => {
             setIsSubmitting(true);
-            await pollForSubmission();
+            await submitToWorkflowsApp();
             setIsSubmitting(false);
           },
         },

@@ -725,52 +725,30 @@ const auditInfo: AuditInfo = {
   destroyedDate: null,
 };
 
-export const mockAzureApps: App[] = [
-  {
-    workspaceId: 'abc-c07807929cd1',
-    cloudContext: {
-      cloudProvider: 'AZURE',
-      cloudResource: 'path/to/cloud/resource',
-    },
-    errors: [],
-    status: 'RUNNING',
-    proxyUrls: {
-      cbas: 'https://lz-abc/terra-app-abc/cbas',
-      'cbas-ui': 'https://lz-abc/terra-app-abc/',
-      cromwell: 'https://lz-abc/terra-app-abc/cromwell',
-    },
-    appName: 'terra-app-abc',
-    appType: 'CROMWELL',
-    diskName: null,
-    auditInfo,
-    accessScope: null,
-    labels: {},
-    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-    region: defaultAzureRegion,
+export const mockCromwellApp: App = {
+  workspaceId: 'abc-c07807929cd1',
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: 'path/to/cloud/resource',
   },
-  {
-    workspaceId: 'abc-c07807929cd1',
-    cloudContext: {
-      cloudProvider: 'AZURE',
-      cloudResource: 'path/to/cloud/resource',
-    },
-    errors: [],
-    status: 'RUNNING',
-    proxyUrls: {
-      wds: 'https://lz-abc/wds-abc-c07807929cd1/',
-    },
-    appName: 'wds-abc-c07807929cd1',
-    appType: 'WDS',
-    diskName: null,
-    auditInfo,
-    accessScope: 'WORKSPACE_SHARED',
-    labels: {},
-    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-    region: defaultAzureRegion,
+  errors: [],
+  status: 'RUNNING',
+  proxyUrls: {
+    cbas: 'https://lz-abc/terra-app-abc/cbas',
+    'cbas-ui': 'https://lz-abc/terra-app-abc/',
+    cromwell: 'https://lz-abc/terra-app-abc/cromwell',
   },
-];
+  appName: 'terra-app-abc',
+  appType: 'CROMWELL',
+  diskName: null,
+  auditInfo,
+  accessScope: null,
+  labels: {},
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  region: defaultAzureRegion,
+};
 
-export const mockCromwellRunner = (status: LeoAppStatus): App => ({
+export const mockCromwellRunner = (status: LeoAppStatus, creator: string = auditInfo.creator): App => ({
   workspaceId: 'abc-c07807929cd1',
   cloudContext: {
     cloudProvider: 'AZURE',
@@ -784,57 +762,62 @@ export const mockCromwellRunner = (status: LeoAppStatus): App => ({
   appName: 'terra-app-cra-def',
   appType: 'CROMWELL_RUNNER_APP',
   diskName: null,
-  auditInfo,
+  auditInfo: {
+    ...auditInfo,
+    creator,
+  },
   accessScope: appAccessScopes.USER_PRIVATE,
   labels: {},
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
   region: defaultAzureRegion,
 });
 
-export const mockCollaborativeAzureApps: App[] = [
-  {
-    workspaceId: 'abc-c07807929cd1',
-    cloudContext: {
-      cloudProvider: 'AZURE',
-      cloudResource: 'path/to/cloud/resource',
-    },
-    errors: [],
-    status: 'RUNNING',
-    proxyUrls: {
-      cbas: 'https://lz-abc/terra-app-wfa-abc/cbas',
-      'cromwell-reader': 'https://lz-abc/terra-app-wfa-abc/cromwell',
-    },
-    appName: 'terra-app-wfa-abc',
-    appType: 'WORKFLOWS_APP',
-    diskName: null,
-    auditInfo,
-    accessScope: appAccessScopes.WORKSPACE_SHARED,
-    labels: {},
-    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-    region: defaultAzureRegion,
+export const mockWorkflowsApp: App = {
+  workspaceId: 'abc-c07807929cd1',
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: 'path/to/cloud/resource',
   },
-  mockCromwellRunner('RUNNING'),
-  {
-    workspaceId: 'abc-c07807929cd1',
-    cloudContext: {
-      cloudProvider: 'AZURE',
-      cloudResource: 'path/to/cloud/resource',
-    },
-    errors: [],
-    status: 'RUNNING',
-    proxyUrls: {
-      wds: 'https://lz-abc/wds-abc-c07807929cd1/',
-    },
-    appName: 'wds-abc-c07807929cd1',
-    appType: 'WDS',
-    diskName: null,
-    auditInfo,
-    accessScope: 'WORKSPACE_SHARED',
-    labels: {},
-    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-    region: defaultAzureRegion,
+  errors: [],
+  status: 'RUNNING',
+  proxyUrls: {
+    cbas: 'https://lz-abc/terra-app-wfa-abc/cbas',
+    'cromwell-reader': 'https://lz-abc/terra-app-wfa-abc/cromwell',
   },
-];
+  appName: 'terra-app-wfa-abc',
+  appType: 'WORKFLOWS_APP',
+  diskName: null,
+  auditInfo,
+  accessScope: appAccessScopes.WORKSPACE_SHARED,
+  labels: {},
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  region: defaultAzureRegion,
+};
+
+export const mockWdsApp: App = {
+  workspaceId: 'abc-c07807929cd1',
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: 'path/to/cloud/resource',
+  },
+  errors: [],
+  status: 'RUNNING',
+  proxyUrls: {
+    wds: 'https://lz-abc/wds-abc-c07807929cd1/',
+  },
+  appName: 'wds-abc-c07807929cd1',
+  appType: 'WDS',
+  diskName: null,
+  auditInfo,
+  accessScope: 'WORKSPACE_SHARED',
+  labels: {},
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  region: defaultAzureRegion,
+};
+
+export const mockAzureApps: App[] = [mockCromwellApp, mockWdsApp];
+
+export const mockCollaborativeAzureApps: App[] = [mockWorkflowsApp, mockCromwellRunner('RUNNING'), mockWdsApp];
 
 export const mockAbortResponse = {
   run_set_id: '20000000-0000-0000-0000-200000000002',
