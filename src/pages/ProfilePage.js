@@ -3,8 +3,8 @@ import { Profile } from 'src/auth/profile/Profile';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
 
-const ProfilePage = ({ queryParams }) => {
-  return h(FooterWrapper, [h(TopBar, { title: 'User Profile' }), h(Profile, { queryParams })]);
+const ProfilePage = () => {
+  return h(FooterWrapper, [h(TopBar, { title: 'User Profile' }), h(Profile)]);
 };
 
 export const navPaths = [

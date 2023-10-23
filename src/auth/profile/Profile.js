@@ -454,7 +454,7 @@ const PersonalInfoTab = ({ setSaving }) => {
   ]);
 };
 
-export const Profile = ({ queryParams }) => {
+export const Profile = () => {
   // State
   const [saving, setSaving] = useState();
 
@@ -489,7 +489,7 @@ export const Profile = ({ queryParams }) => {
           Utils.switchCase(
             tab,
             ['personalInfo', () => h(PersonalInfoTab, { setSaving })],
-            ['externalIdentities', () => h(ExternalIdentitiesTab, { queryParams })],
+            ['externalIdentities', () => h(ExternalIdentitiesTab, { queryParams: query })],
             ['notificationSettings', () => h(NotificationSettingsTab, { setSaving })],
             [Utils.DEFAULT, () => null]
           ),
