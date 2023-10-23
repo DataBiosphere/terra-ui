@@ -430,7 +430,6 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
       if (accessError) {
         return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)]);
       }
-      //   silentlyRefreshWorkspace : (errorHandling?: ErrorCallback) => Promise<void>;
 
       return h(
         WorkspaceContainer,
