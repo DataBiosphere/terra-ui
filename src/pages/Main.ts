@@ -1,4 +1,3 @@
-import 'src/libs/ajax/ajax-override-utils';
 import 'src/libs/routes';
 
 import { ErrorBoundary, ThemeProvider } from '@terra-ui-packages/components';

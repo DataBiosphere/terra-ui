@@ -1,3 +1,4 @@
+import 'src/libs/ajax/ajax-override-utils';
 import 'src/style.css';
 
 import _ from 'lodash/fp';
