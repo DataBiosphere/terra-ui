@@ -104,7 +104,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
     ) || {};
   return h(FooterWrapper, {}, [
     loading && spinnerOverlay,
-    h(TopBar, { title: 'Upsert Dataset', href: '' }, []),
+    h(TopBar, { title: 'Create Dataset', href: '' }, []),
     h(StorageSystemSelectInput, {
       title: 'Storage System',
       isClearable: false,
