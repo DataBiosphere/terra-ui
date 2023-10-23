@@ -178,89 +178,93 @@ describe('SubmitWorkflowModal', () => {
     },
   ];
 
-  it.each(testCases)(
-    'should be able to submit with role=$role, feature flag enabled=$featureFlagEnabled, cromwell runner status=$cromwellRunnerStates: $canSubmit',
-    async ({ featureFlagEnabled, role, canSubmit, cromwellRunnerStates }) => {
-      // ** ARRANGE **
-      workflowsAppStore.reset();
-      asMockedFn(isFeaturePreviewEnabled).mockImplementation(
-        (id) => featureFlagEnabled && id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS
-      );
-      const userEmail = role === 'CREATOR' ? 'groot@gmail.com' : 'not-groot@gmail.com';
-      const appToSubmitTo = featureFlagEnabled ? mockWorkflowsApp : mockCromwellApp;
-      asMockedFn(getTerraUser).mockReturnValue({ email: userEmail });
+  it.each(
+    testCases.map((testCase) => ({
+      ...testCase,
+      testName: `should ${testCase.canSubmit ? '' : 'not '}be able to submit as workspace ${testCase.role}, ${
+        testCase.featureFlagEnabled ? 'with' : 'without'
+      } feature flag enabled, and initial cromwell runner status ${testCase.cromwellRunnerStates[0]}`,
+    }))
+  )('$testName', async ({ featureFlagEnabled, role, canSubmit, cromwellRunnerStates }) => {
+    // ** ARRANGE **
+    workflowsAppStore.reset();
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation(
+      (id) => featureFlagEnabled && id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS
+    );
+    const userEmail = role === 'CREATOR' ? 'groot@gmail.com' : 'not-groot@gmail.com';
+    const appToSubmitTo = featureFlagEnabled ? mockWorkflowsApp : mockCromwellApp;
+    asMockedFn(getTerraUser).mockReturnValue({ email: userEmail });
 
-      const user = userEvent.setup();
-      const postRunSetFunction = jest.fn();
-      const createAppV2 = jest.fn();
-      const listAppsV2 = cromwellRunnerStates.reduce(
-        (prev, current) =>
-          prev.mockImplementationOnce(() =>
-            Promise.resolve([
-              mockWdsApp,
-              appToSubmitTo,
-              ...(current !== 'NONE' ? [mockCromwellRunner(current, userEmail)] : []),
-            ])
-          ),
-        jest.fn(() => Promise.resolve([appToSubmitTo, mockWdsApp]))
-      );
+    const user = userEvent.setup();
+    const postRunSetFunction = jest.fn();
+    const createAppV2 = jest.fn();
+    const listAppsV2 = cromwellRunnerStates.reduce(
+      (prev, current) =>
+        prev.mockImplementationOnce(() =>
+          Promise.resolve([
+            mockWdsApp,
+            appToSubmitTo,
+            ...(current !== 'NONE' ? [mockCromwellRunner(current, userEmail)] : []),
+          ])
+        ),
+      jest.fn(() => Promise.resolve([appToSubmitTo, mockWdsApp]))
+    );
 
-      asMockedFn<() => DeepPartial<AjaxContract>>(Ajax).mockImplementation(() => {
-        return {
-          Apps: {
-            createAppV2,
-            listAppsV2,
+    asMockedFn<() => DeepPartial<AjaxContract>>(Ajax).mockImplementation(() => {
+      return {
+        Apps: {
+          createAppV2,
+          listAppsV2,
+        },
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
           },
-          Cbas: {
-            runSets: {
-              post: postRunSetFunction,
-            },
-          },
-        };
-      });
+        },
+      };
+    });
 
-      // ** ACT **
-      await act(async () =>
-        render(h(SubmitWorkflowModal, role === 'READER' ? submitModalPropsReader : baseSubmitModalProps))
-      );
+    // ** ACT **
+    await act(async () =>
+      render(h(SubmitWorkflowModal, role === 'READER' ? submitModalPropsReader : baseSubmitModalProps))
+    );
 
-      // ** ASSERT **
-      // Launch modal should be displayed
-      const modalSubmitButton = screen.getByLabelText('Launch Submission');
-      if (!canSubmit) {
-        screen.getByText(/you do not have permission to run workflows/i);
-        expect(modalSubmitButton).toHaveAttribute('disabled');
-      } else {
-        expect(modalSubmitButton).not.toHaveAttribute('disabled');
-      }
+    // ** ASSERT **
+    // Launch modal should be displayed
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
+    if (!canSubmit) {
+      screen.getByText(/you do not have permission to run workflows/i);
+      expect(modalSubmitButton).toHaveAttribute('disabled');
+    } else {
+      expect(modalSubmitButton).not.toHaveAttribute('disabled');
+    }
 
-      // ** ACT **
-      // user click on Submit button
-      await user.click(modalSubmitButton);
+    // ** ACT **
+    // user click on Submit button
+    await user.click(modalSubmitButton);
 
-      // ** ASSERT **
-      if (canSubmit) {
-        if (cromwellRunnerStates[0] === 'NONE') {
-          expect(createAppV2).toHaveBeenCalledWith(
-            expect.anything(),
-            mockAzureWorkspace.workspace.workspaceId,
-            appToolLabels.CROMWELL_RUNNER_APP,
-            appAccessScopes.USER_PRIVATE
-          );
-        } else {
-          expect(createAppV2).not.toHaveBeenCalled();
-        }
-        if (featureFlagEnabled) {
-          expect(listAppsV2).toHaveBeenCalledTimes(cromwellRunnerStates.length + 1); // + 1 to get proxy urls
-        } else {
-          expect(listAppsV2).toHaveBeenCalledTimes(2); // 1 to get proxy urls, 1 to check Cromwell vs cromwell runner
-        }
-        expect(postRunSetFunction).toHaveBeenCalledWith(appToSubmitTo.proxyUrls.cbas, postRunSetPayload);
+    // ** ASSERT **
+    if (canSubmit) {
+      if (cromwellRunnerStates[0] === 'NONE') {
+        expect(createAppV2).toHaveBeenCalledWith(
+          expect.anything(),
+          mockAzureWorkspace.workspace.workspaceId,
+          appToolLabels.CROMWELL_RUNNER_APP,
+          appAccessScopes.USER_PRIVATE
+        );
       } else {
         expect(createAppV2).not.toHaveBeenCalled();
-        expect(listAppsV2).not.toHaveBeenCalled();
-        expect(postRunSetFunction).not.toHaveBeenCalled();
       }
+      if (featureFlagEnabled) {
+        expect(listAppsV2).toHaveBeenCalledTimes(cromwellRunnerStates.length + 1); // + 1 to get proxy urls
+      } else {
+        expect(listAppsV2).toHaveBeenCalledTimes(2); // 1 to get proxy urls, 1 to check Cromwell vs cromwell runner
+      }
+      expect(postRunSetFunction).toHaveBeenCalledWith(appToSubmitTo.proxyUrls.cbas, postRunSetPayload);
+    } else {
+      expect(createAppV2).not.toHaveBeenCalled();
+      expect(listAppsV2).not.toHaveBeenCalled();
+      expect(postRunSetFunction).not.toHaveBeenCalled();
     }
-  );
+  });
 });
