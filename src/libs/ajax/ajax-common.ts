@@ -1,9 +1,11 @@
 import { abandonedPromise, delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { getAuthToken, signOut, SignOutCause } from 'src/libs/auth';
+// import { Ajax } from 'src/libs/ajax';
+import { AuthTokenState, getAuthToken, loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
-import { ajaxOverridesStore, oidcStore } from 'src/libs/state';
+// import Events from 'src/libs/events';
+import { ajaxOverridesStore } from 'src/libs/state';
 
 export const authOpts = (token = getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } });
 export const jsonBody = (body) => ({
@@ -67,20 +69,23 @@ export async function makeRequestRetry(request: Function, retryCount: number, ti
 
 const isUnauthorizedResponse = (error: unknown): boolean => error instanceof Response && error.status === 401;
 
-export const withAuthToken =
+export const withRetryAfterReloadingExpiredAuthToken =
   (wrappedFetch: FetchFn): FetchFn =>
   async (resource: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
     const requestHasAuthHeader = _.isMatch(authOpts(), options as object);
     try {
       return await wrappedFetch(resource, options);
     } catch (error) {
-      if (
-        isUnauthorizedResponse(error) &&
-        requestHasAuthHeader &&
-        oidcStore.get().authTokenState?.status !== 'success'
-      ) {
+      if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
+        const reloadedAuthTokenState: AuthTokenState = await loadAuthToken();
+        if (reloadedAuthTokenState.status === 'success') {
+          // Need to deal with recursive imports for testing to pass
+          // sendRetryMetric();
+          const optionsWithNewAuthToken = _.merge(options, authOpts());
+          return await wrappedFetch(resource, optionsWithNewAuthToken);
+        }
         const signOutCause: SignOutCause =
-          oidcStore.get().authTokenState?.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
+          reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
         signOut(signOutCause);
         throw new Error(sessionTimedOutErrorMessage);
       } else {
@@ -88,6 +93,10 @@ export const withAuthToken =
       }
     }
   };
+
+// export const sendRetryMetric = () => {
+// Ajax().Metrics.captureEvent(Events.user.authTokenLoad.retry, {});
+// }
 
 const withAppIdentifier = (wrappedFetch) => (url, options) => {
   return wrappedFetch(url, _.merge(options, appIdentifier));
@@ -150,57 +159,88 @@ const withErrorRejection =
 
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch);
 
-export const fetchLeo = _.flow(withUrlPrefix(`${getConfig().leoUrlRoot}/`), withAuthToken)(fetchOk);
+export const fetchLeo = _.flow(
+  withUrlPrefix(`${getConfig().leoUrlRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk);
 
-export const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier, withAuthToken)(fetchOk);
+export const fetchSam = _.flow(
+  withUrlPrefix(`${getConfig().samUrlRoot}/`),
+  withAppIdentifier,
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk);
 
 export const fetchRawls = _.flow(
   withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`),
   withAppIdentifier,
-  withAuthToken
+  withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
 export const fetchBillingProfileManager = _.flow(
   withUrlPrefix(`${getConfig().billingProfileManagerUrlRoot}/api/`),
   withAppIdentifier,
-  withAuthToken
+  withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
 export const fetchWorkspaceManager = _.flow(
   withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`),
   withAppIdentifier,
-  withAuthToken
+  withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
-export const fetchCatalog = _.flow(withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`), withAuthToken)(fetchOk);
+export const fetchCatalog = _.flow(
+  withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`),
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk);
 
-export const fetchDataRepo = _.flow(withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`), withAuthToken)(fetchOk);
+export const fetchDataRepo = _.flow(
+  withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`),
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk);
 
 export const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk);
 
 export const fetchAgora = _.flow(
   withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`),
   withAppIdentifier,
-  withAuthToken
+  withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
 export const fetchOrchestration = _.flow(
   withUrlPrefix(`${getConfig().orchestrationUrlRoot}/`),
   withAppIdentifier,
-  withAuthToken
+  withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
-export const fetchRex = _.flow(withUrlPrefix(`${getConfig().rexUrlRoot}/api/`), withAuthToken)(fetchOk);
+export const fetchRex = _.flow(
+  withUrlPrefix(`${getConfig().rexUrlRoot}/api/`),
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk);
 
-export const fetchBond = _.flow(withUrlPrefix(`${getConfig().bondUrlRoot}/`), withAuthToken)(fetchOk);
+export const fetchBond = _.flow(
+  withUrlPrefix(`${getConfig().bondUrlRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk);
 
-export const fetchMartha = _.flow(withUrlPrefix(`${getConfig().marthaUrlRoot}/`), withAuthToken)(fetchOk);
+export const fetchMartha = _.flow(
+  withUrlPrefix(`${getConfig().marthaUrlRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk);
 
-export const fetchDrsHub = _.flow(withUrlPrefix(`${getConfig().drsHubUrlRoot}/`), withAuthToken)(fetchOk);
+export const fetchDrsHub = _.flow(
+  withUrlPrefix(`${getConfig().drsHubUrlRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk);
 
-export const fetchBard = _.flow(withUrlPrefix(`${getConfig().bardRoot}/`), withAuthToken)(fetchOk);
+export const fetchBard = _.flow(
+  withUrlPrefix(`${getConfig().bardRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk);
 
-export const fetchEcm = _.flow(withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`), withAuthToken)(fetchOk);
+export const fetchEcm = _.flow(
+  withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk);
 
 // Google Forms does not set a CORS header that allows Terra to access the response.
 // Thus, we send the request in no-cors mode and, because the response is "opaque",
@@ -213,6 +253,7 @@ export const fetchGoogleForms = _.flow(
 )(fetch);
 
 export const fetchWDS = (wdsProxyUrlRoot: string): FetchFn =>
-  _.flow(withUrlPrefix(`${wdsProxyUrlRoot.replace(/\/$/, '')}/`), withAuthToken)(fetchOk);
+  _.flow(withUrlPrefix(`${wdsProxyUrlRoot.replace(/\/$/, '')}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
 
-export const fetchFromProxy = (proxyUrlRoot) => _.flow(withUrlPrefix(`${proxyUrlRoot}/`), withAuthToken)(fetchOk);
+export const fetchFromProxy = (proxyUrlRoot) =>
+  _.flow(withUrlPrefix(`${proxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
