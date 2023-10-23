@@ -3,13 +3,11 @@ import { Fragment, useState } from 'react';
 import { div, h, h2, h3, label, p, span } from 'react-hyperscript-helpers';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Checkbox, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
-import FooterWrapper from 'src/components/FooterWrapper';
 import { InfoBox } from 'src/components/InfoBox';
 import { TextInput, ValidatedInput } from 'src/components/input';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import ProfilePicture from 'src/components/ProfilePicture';
 import { SimpleTabBar } from 'src/components/tabBars';
-import TopBar from 'src/components/TopBar';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { makeSetUserProfileRequest } from 'src/libs/ajax/User';
@@ -456,7 +454,7 @@ const PersonalInfoTab = ({ setSaving }) => {
   ]);
 };
 
-const Profile = ({ queryParams }) => {
+export const Profile = ({ queryParams }) => {
   // State
   const [saving, setSaving] = useState();
 
@@ -471,9 +469,8 @@ const Profile = ({ queryParams }) => {
   ];
 
   // Render
-  return h(FooterWrapper, [
+  return h(Fragment, [
     saving && spinnerOverlay,
-    h(TopBar, { title: 'User Profile' }),
     div({ style: { flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [
         sectionTitle('Profile'),
@@ -501,24 +498,3 @@ const Profile = ({ queryParams }) => {
     ]),
   ]);
 };
-
-export const navPaths = [
-  {
-    name: 'profile',
-    path: '/profile',
-    component: Profile,
-    title: 'Profile',
-  },
-  {
-    name: 'fence-callback',
-    path: '/fence-callback',
-    component: Profile,
-    title: 'Profile',
-  },
-  {
-    name: 'ecm-callback',
-    path: '/ecm-callback',
-    component: Profile,
-    title: 'Profile',
-  },
-];
