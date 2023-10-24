@@ -1,10 +1,8 @@
 import { abandonedPromise, delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-// import { Ajax } from 'src/libs/ajax';
-import { AuthTokenState, getAuthToken, loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
+import { AuthTokenState, getAuthToken, loadAuthToken, sendRetryMetric, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
-// import Events from 'src/libs/events';
 import { ajaxOverridesStore } from 'src/libs/state';
 
 export const authOpts = (token = getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } });
@@ -79,8 +77,7 @@ export const withRetryAfterReloadingExpiredAuthToken =
       if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
         const reloadedAuthTokenState: AuthTokenState = await loadAuthToken();
         if (reloadedAuthTokenState.status === 'success') {
-          // Need to deal with recursive imports for testing to pass
-          // sendRetryMetric();
+          sendRetryMetric();
           const optionsWithNewAuthToken = _.merge(options, authOpts());
           return await wrappedFetch(resource, optionsWithNewAuthToken);
         }
@@ -93,10 +90,6 @@ export const withRetryAfterReloadingExpiredAuthToken =
       }
     }
   };
-
-// export const sendRetryMetric = () => {
-// Ajax().Metrics.captureEvent(Events.user.authTokenLoad.retry, {});
-// }
 
 const withAppIdentifier = (wrappedFetch) => (url, options) => {
   return wrappedFetch(url, _.merge(options, appIdentifier));

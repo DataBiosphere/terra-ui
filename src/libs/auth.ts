@@ -81,6 +81,10 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
   });
 };
 
+export const sendRetryMetric = () => {
+  Ajax().Metrics.captureEvent(Events.user.authTokenLoad.retry, {});
+};
+
 export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   sendSignOutMetrics(cause);
   if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {

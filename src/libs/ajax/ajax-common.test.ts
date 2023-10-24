@@ -43,9 +43,10 @@ beforeEach(() => {
 type AuthExports = typeof import('src/libs/auth');
 jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   return {
-    loadAuthToken: jest.fn(),
-    signOut: jest.fn(),
     getAuthToken: jest.fn(() => mockOidcUser.access_token),
+    loadAuthToken: jest.fn(),
+    sendRetryMetric: jest.fn(),
+    signOut: jest.fn(),
   };
 });
 
