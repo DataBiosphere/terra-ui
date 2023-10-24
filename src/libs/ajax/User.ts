@@ -84,6 +84,8 @@ export const makeSetUserProfileRequest = (terraUserProfile: TerraUserProfile): S
     programLocationState: terraUserProfile.programLocationState ?? 'N/A',
     programLocationCountry: terraUserProfile.programLocationCountry ?? 'N/A',
     department: terraUserProfile.department,
+    contactEmail: terraUserProfile.contactEmail,
+    researchArea: terraUserProfile.researchArea,
     interestInTerra: terraUserProfile.interestInTerra,
   };
 };
