@@ -7,10 +7,7 @@ import { TextInput, ValidatedInput } from 'src/components/input';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import ProfilePicture from 'src/components/ProfilePicture';
 import { Ajax } from 'src/libs/ajax';
-import { makeSetUserProfileRequest } from 'src/libs/ajax/User';
-import { refreshTerraProfile } from 'src/libs/auth';
 import colors from 'src/libs/colors';
-import { withErrorReporting } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import { authStore, getTerraUser, TerraUserProfile } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -68,14 +65,15 @@ const styles = {
 };
 
 export interface PersonalInfoProps {
-  setSaving: (saving: boolean) => void;
+  initialProfile: TerraUserProfile;
+  onSave: (newProfile: TerraUserProfile) => void;
 }
 
 export const PersonalInfo = (props: PersonalInfoProps): ReactNode => {
-  const { setSaving } = props;
+  const { initialProfile, onSave } = props;
 
   const [profileInfo, setProfileInfo] = useState<TerraUserProfile>(
-    () => _.mapValues((v) => (v === 'N/A' ? '' : v), authStore.get().profile) as TerraUserProfile
+    () => _.mapValues((v) => (v === 'N/A' ? '' : v), initialProfile) as TerraUserProfile
   );
   const [proxyGroup, setProxyGroup] = useState<string>();
   const { researchArea } = profileInfo;
@@ -237,13 +235,9 @@ export const PersonalInfo = (props: PersonalInfoProps): ReactNode => {
         h(
           ButtonPrimary,
           {
-            onClick: _.flow(
-              Utils.withBusyState(setSaving),
-              withErrorReporting('Error saving profile')
-            )(async () => {
-              await Ajax().User.profile.set(makeSetUserProfileRequest(profileInfo));
-              await refreshTerraProfile();
-            }),
+            onClick: () => {
+              onSave(profileInfo);
+            },
             disabled: !!errors,
             tooltip: !!errors && 'Please fill out all required fields',
           },

@@ -1,4 +1,4 @@
-import { CSSProperties, Fragment, ReactNode, useState } from 'react';
+import { CSSProperties, Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { SimpleTabBar } from 'src/components/tabBars';
@@ -9,6 +9,7 @@ import * as Utils from 'src/libs/utils';
 import { ExternalIdentities } from './ExternalIdentities';
 import { NotificationSettings } from './NotificationSettings';
 import { PersonalInfo } from './PersonalInfo';
+import { useUserProfile } from './useUserProfile';
 
 const styles = {
   pageHeading: {
@@ -21,10 +22,16 @@ const styles = {
 } as const satisfies Record<string, CSSProperties>;
 
 export const Profile = (): ReactNode => {
-  // State
-  const [saving, setSaving] = useState();
+  const { profile, update: updateProfile } = useUserProfile();
 
-  // Render
+  const profileStatus = profile.status;
+  const [hasLoadedProfile, setHasLoadedProfile] = useState(false);
+  useEffect(() => {
+    if (profileStatus === 'Ready') {
+      setHasLoadedProfile(true);
+    }
+  }, [profileStatus]);
+
   const { query, name } = Nav.useRoute();
   const tab: string = query.tab || (name === 'fence-callback' ? 'externalIdentities' : 'personalInfo');
 
@@ -34,9 +41,8 @@ export const Profile = (): ReactNode => {
     { key: 'notificationSettings', title: 'Notification Settings' },
   ] as const;
 
-  // Render
   return h(Fragment, [
-    saving && spinnerOverlay,
+    profileStatus === 'Loading' && spinnerOverlay,
     div({ style: { flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div(
         {
@@ -62,13 +68,15 @@ export const Profile = (): ReactNode => {
           tabs,
         },
         [
-          Utils.switchCase(
-            tab,
-            ['personalInfo', () => h(PersonalInfo, { setSaving })],
-            ['externalIdentities', () => h(ExternalIdentities, { queryParams: query })],
-            ['notificationSettings', () => h(NotificationSettings)],
-            [Utils.DEFAULT, () => null]
-          ),
+          // Wait for the profile to be loaded before showing any tabs.
+          hasLoadedProfile &&
+            Utils.switchCase(
+              tab,
+              ['personalInfo', () => h(PersonalInfo, { initialProfile: profile.state, onSave: updateProfile })],
+              ['externalIdentities', () => h(ExternalIdentities, { queryParams: query })],
+              ['notificationSettings', () => h(NotificationSettings)],
+              [Utils.DEFAULT, () => null]
+            ),
         ]
       ),
     ]),
