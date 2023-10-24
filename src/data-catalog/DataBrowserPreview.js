@@ -14,7 +14,8 @@ import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { datasetAccessTypes, getDatasetAccessType, useDataCatalog } from 'src/pages/library/dataBrowser-utils';
+
+import { datasetAccessTypes, getDatasetAccessType, useDataCatalog } from './data-browser-utils';
 
 const styles = {
   table: {

@@ -57,8 +57,7 @@ describe('WorkspaceDeletingBanner', () => {
     expect(detailsLink).toBeNull();
   });
 
-  // TODO: re-enable when https://broadworkbench.atlassian.net/browse/WOR-1283 is complete
-  xit('gives a link to display the workspace error message if present', () => {
+  it('gives a link to display the workspace error message if present', () => {
     // Arrange
     const workspace: Workspace = {
       ...defaultAzureWorkspace,
@@ -76,8 +75,7 @@ describe('WorkspaceDeletingBanner', () => {
     expect(detailsLink).not.toBeNull();
   });
 
-  // TODO: re-enable when https://broadworkbench.atlassian.net/browse/WOR-1283 is complete
-  xit('shows the error message in a modal when the details link is clicked', () => {
+  it('shows the error message in a modal when the details link is clicked', () => {
     // Arrange
     const workspace: Workspace = {
       ...defaultAzureWorkspace,

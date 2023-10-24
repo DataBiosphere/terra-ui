@@ -23,6 +23,46 @@ describe('BillingProjectParent', () => {
     jest.resetAllMocks();
   });
 
+  it('shows migrate all button if all workspaces are unscheduled, with a cancelable confirmation dialog', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const twoUnscheduledMigrationInfo: WorkspaceMigrationInfo[] = [
+      { migrationStep: 'Unscheduled', name: 'notmigrated1', namespace: 'CARBilling-2' },
+      { migrationStep: 'Unscheduled', name: 'notmigrated2', namespace: 'CARBilling-2' },
+    ];
+    const mockStartBatchBucketMigration = jest.fn().mockResolvedValue({});
+    const mockWorkspaces: Partial<AjaxWorkspacesContract> = {
+      startBatchBucketMigration: mockStartBatchBucketMigration,
+    };
+    const mockAjax: Partial<AjaxContract> = {
+      Workspaces: mockWorkspaces as AjaxWorkspacesContract,
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    // Act
+    render(
+      div({ role: 'list' }, [
+        h(BillingProjectParent, {
+          billingProjectMigrationInfo: {
+            namespace: 'CARBilling-2',
+            workspaces: twoUnscheduledMigrationInfo,
+          },
+          migrationStartedCallback: mockMigrationStartedCallback,
+        }),
+      ])
+    );
+    await user.click(screen.getByText('Migrate all workspaces'));
+
+    // Confirmation dialog
+    expect(screen.queryByText(/Are you sure you want to migrate all workspaces/i)).toBeTruthy();
+    await user.click(screen.getByText('Cancel'));
+
+    // Assert
+    expect(screen.queryByText(/Are you sure you want to migrate all workspaces/i)).toBeFalsy();
+    expect(mockStartBatchBucketMigration).not.toHaveBeenCalled();
+    expect(mockMigrationStartedCallback).not.toHaveBeenCalled();
+  });
+
   it('shows migrate all button if all workspaces are unscheduled, with no accessibility errors', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -53,6 +93,8 @@ describe('BillingProjectParent', () => {
     );
     expect(await axe(container)).toHaveNoViolations();
     await user.click(screen.getByText('Migrate all workspaces'));
+    // Confirmation dialog
+    await user.click(screen.getByText('Migrate All'));
 
     // Assert
     expect(mockStartBatchBucketMigration).toHaveBeenCalledWith([
@@ -86,8 +128,12 @@ describe('BillingProjectParent', () => {
       })
     );
     await user.click(screen.getByText('Migrate remaining workspaces'));
+    // Confirmation dialog
+    expect(screen.queryByText(/Are you sure you want to migrate all remaining workspaces/i)).toBeTruthy();
+    await user.click(screen.getByText('Migrate Remaining'));
 
     // Assert
+    expect(screen.queryByText(/Are you sure you want to migrate all remaining workspaces/i)).toBeFalsy();
     expect(mockStartBatchBucketMigration).toHaveBeenCalledWith([{ name: 'notmigrated', namespace: 'CARBilling-2' }]);
     await screen.findByText('1 Workspace Migrated');
     expect(mockMigrationStartedCallback).toHaveBeenCalledWith([{ name: 'notmigrated', namespace: 'CARBilling-2' }]);

@@ -20,6 +20,8 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, usePollingEffect } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderLabels } from 'src/libs/workspace-utils';
+import { commonStyles } from 'src/pages/library/SearchAndFilterComponent';
+
 import {
   DatasetAccess,
   datasetAccessTypes,
@@ -32,8 +34,7 @@ import {
   makeDatasetReleasePolicyDisplayInformation,
   uiMessaging,
   useDataCatalog,
-} from 'src/pages/library/dataBrowser-utils';
-import { commonStyles } from 'src/pages/library/SearchAndFilterComponent';
+} from './data-browser-utils';
 
 const activeTab = 'datasets';
 const styles = {

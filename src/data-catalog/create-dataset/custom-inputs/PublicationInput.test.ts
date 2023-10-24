@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { PublicationInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/PublicationInput';
+
+import { PublicationInput } from './PublicationInput';
 
 describe('PublicationInput', () => {
   it('Renders a PublicationInput with all fields and url validation', () => {

@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { DataCollectionInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/DataCollectionInput';
+
+import { DataCollectionInput } from './DataCollectionInput';
 
 describe('DataCollectionInput', () => {
   it('Renders a DataCollectionInput with all fields', () => {
