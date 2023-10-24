@@ -80,12 +80,17 @@ export const getSignInArgs = (includeBillingScope: boolean): ExtraSigninRequestA
   );
 };
 
-export type OIDCSignInArgs = {
+/**
+ * Args required for oidcSignIn
+ * @popUp whether signIn is attempted with a popup, or silently in the background.
+ * @includeBillingScope determines whether to include extra billing scope args in oidcSignIn
+ */
+export interface OidcSignInArgs {
   includeBillingScope: boolean;
   popUp: boolean;
-};
+}
 
-export const oidcSignIn = async (args: OIDCSignInArgs): Promise<OidcUser | null> => {
+export const oidcSignIn = async (args: OidcSignInArgs): Promise<OidcUser | null> => {
   const extraArgs: ExtraSigninRequestArgs = getSignInArgs(args.includeBillingScope);
   const authInstance: AuthContextProps = getAuthInstance();
 

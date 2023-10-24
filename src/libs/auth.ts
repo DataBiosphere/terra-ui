@@ -7,7 +7,7 @@ import {
   B2cIdTokenClaims,
   getCurrentOidcUser,
   oidcSignIn,
-  OIDCSignInArgs,
+  OidcSignInArgs,
   OidcUser,
   revokeTokens,
 } from 'src/auth/oidc-broker';
@@ -117,7 +117,6 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 };
 
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
-  // we should handle if we get back null or false here (if loading the authTokenFails)
   const authTokenState: AuthTokenState = await loadAuthToken({ includeBillingScope, popUp: true });
   if (authTokenState.status === 'success') {
     const sessionId = uuid();
@@ -163,10 +162,10 @@ export type AuthTokenState = AuthTokenSuccessState | AuthTokenExpiredState | Aut
  * When token is successfully loaded, returns an AuthTokenSuccessState.
  * When token fails to load because of an expired refresh token, returns an AuthTokenExpiredState
  * When tokens fails to load because of an error, returns an AuthTokenErrorState
- * @param args whether signIn is attempted with a popup, or silently in the background.
+ * @param args
  */
 export const loadAuthToken = async (
-  args: OIDCSignInArgs = { includeBillingScope: false, popUp: false }
+  args: OidcSignInArgs = { includeBillingScope: false, popUp: false }
 ): Promise<AuthTokenState> => {
   const oldAuthTokenMetadata: TokenMetadata = authStore.get().authTokenMetadata;
   const oldRefreshTokenMetadata: TokenMetadata = authStore.get().refreshTokenMetadata;
@@ -260,7 +259,7 @@ export const loadAuthToken = async (
 };
 
 const tryLoadAuthToken = async (
-  args: OIDCSignInArgs = { includeBillingScope: false, popUp: false }
+  args: OidcSignInArgs = { includeBillingScope: false, popUp: false }
 ): Promise<AuthTokenState> => {
   try {
     const loadedAuthTokenResponse: OidcUser | null = await oidcSignIn(args);

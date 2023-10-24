@@ -5,10 +5,10 @@ import { fetchOrchestration } from 'src/libs/ajax/ajax-common';
  the oidc client
  */
 
-export type OidcConfig = {
+export interface OidcConfig {
   authorityEndpoint?: string;
   clientId?: string;
-};
+}
 
 export const OAuth2 = (signal?: AbortSignal) => ({
   getConfiguration: async (): Promise<OidcConfig> => {
