@@ -36,7 +36,7 @@ export const AppErrorModal = (props: AppErrorModalProps) => {
   return h(
     Modal,
     {
-      title: `App of type '${app.appType}' is in error state`,
+      title: `Your '${app.appType}' app has an error`,
       showCancel: false,
       onDismiss,
     },
