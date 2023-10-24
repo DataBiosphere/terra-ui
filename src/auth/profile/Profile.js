@@ -56,7 +56,7 @@ export const Profile = () => {
             tab,
             ['personalInfo', () => h(PersonalInfo, { setSaving })],
             ['externalIdentities', () => h(ExternalIdentities, { queryParams: query })],
-            ['notificationSettings', () => h(NotificationSettings, { setSaving })],
+            ['notificationSettings', () => h(NotificationSettings)],
             [Utils.DEFAULT, () => null]
           ),
         ]

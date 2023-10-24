@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
+import { useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
-import { Checkbox } from 'src/components/common';
+import { Checkbox, spinnerOverlay } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import { useWorkspaces } from 'src/components/workspace-utils';
@@ -59,9 +60,10 @@ const NotificationCard = memoWithName('NotificationCard', ({ label, notification
   ]);
 });
 
-export const NotificationSettings = ({ setSaving }) => {
+export const NotificationSettings = () => {
   const { workspaces } = useWorkspaces();
   const [prefsData] = _.over(_.pickBy)((_v, k) => _.startsWith('notifications/', k), authStore.get().profile);
+  const [saving, setSaving] = useState(false);
 
   return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
     div({ style: Style.cardList.toolbarContainer }, [
@@ -125,5 +127,6 @@ export const NotificationSettings = ({ setSaving }) => {
         })
       )(workspaces)
     ),
+    saving && spinnerOverlay,
   ]);
 };
