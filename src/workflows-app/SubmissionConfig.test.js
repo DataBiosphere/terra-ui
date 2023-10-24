@@ -34,6 +34,11 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({}),
 }));
 
+jest.mock('src/libs/feature-previews', () => ({
+  ...jest.requireActual('src/libs/feature-previews'),
+  isFeaturePreviewEnabled: jest.fn(),
+}));
+
 jest.mock('src/libs/nav', () => ({
   getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
   getLink: jest.fn(),
@@ -42,7 +47,7 @@ jest.mock('src/libs/nav', () => ({
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
-  getTerraUser: jest.fn(),
+  getTerraUser: jest.fn().mockReturnValue({ id: 'foo' }),
 }));
 
 jest.mock('src/components/Modal', () => {
@@ -1365,7 +1370,6 @@ describe('Submitting a run set', () => {
       'call POST /run_sets endpoint with expected parameters',
       { workspace: mockAzureWorkspace, userEmail: mockAzureWorkspace.workspace.createdBy, submitAllowed: true },
     ],
-    ['not allow submit for non-creators', { workspace: mockAzureWorkspace, userEmail: 'someoneelse@gmail.com', submitAllowed: false }],
   ];
 
   it.each(submitTestCases)('should %s', async (_unused, { workspace, userEmail, submitAllowed }) => {
@@ -1376,11 +1380,15 @@ describe('Submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const listAppsV2 = jest.fn(() => Promise.resolve(mockAzureApps));
 
     const postRunSetFunction = jest.fn();
 
     await Ajax.mockImplementation(() => {
       return {
+        Apps: {
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
@@ -1480,6 +1488,7 @@ describe('Submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const listAppsV2 = jest.fn(() => Promise.resolve(mockAzureApps));
 
     const postRunSetSuccessResponse = { run_set_id: '00000000-0000-0000-000000000000' };
     const postRunSetErrorResponse = { errors: 'Sample Error Message' };
@@ -1489,6 +1498,9 @@ describe('Submitting a run set', () => {
 
     await Ajax.mockImplementation(() => {
       return {
+        Apps: {
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
@@ -1583,11 +1595,15 @@ describe('Submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const listAppsV2 = jest.fn(() => Promise.resolve(mockAzureApps));
 
     const postRunSetFunction = jest.fn();
 
     await Ajax.mockImplementation(() => {
       return {
+        Apps: {
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
@@ -1714,11 +1730,15 @@ describe('Submitting a run set', () => {
     const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const listAppsV2 = jest.fn(() => Promise.resolve(mockAzureApps));
 
     const postRunSetFunction = jest.fn();
 
     await Ajax.mockImplementation(() => {
       return {
+        Apps: {
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
@@ -1925,11 +1945,15 @@ describe('Submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const listAppsV2 = jest.fn(() => Promise.resolve(mockAzureApps));
 
     const postRunSetFunction = jest.fn();
 
     await Ajax.mockImplementation(() => {
       return {
+        Apps: {
+          listAppsV2,
+        },
         Cbas: {
           runSets: {
             post: postRunSetFunction,
