@@ -1,20 +1,17 @@
 import _ from 'lodash/fp';
-import { useState } from 'react';
+import { CSSProperties, ReactNode, useState } from 'react';
 import { div, h, h3, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
 import { TextInput, ValidatedInput } from 'src/components/input';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import ProfilePicture from 'src/components/ProfilePicture';
-import { Ajax } from 'src/libs/ajax';
-import { makeSetUserProfileRequest } from 'src/libs/ajax/User';
-import { refreshTerraProfile } from 'src/libs/auth';
 import colors from 'src/libs/colors';
-import { withErrorReporting } from 'src/libs/error';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import { authStore, getTerraUser } from 'src/libs/state';
+import { getTerraUser, TerraUserProfile } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import validate from 'validate.js';
+
+import { useProxyGroup } from './useProxyGroup';
 
 const styles = {
   page: {
@@ -60,22 +57,39 @@ const styles = {
       marginLeft: '0.5rem',
     },
   },
+} as const satisfies {
+  page: CSSProperties;
+  sectionHeading: CSSProperties;
+  header: Record<string, CSSProperties>;
+  form: Record<string, CSSProperties>;
 };
 
-export const PersonalInfo = ({ setSaving }) => {
-  const [profileInfo, setProfileInfo] = useState(() => _.mapValues((v) => (v === 'N/A' ? '' : v), authStore.get().profile));
-  const [proxyGroup, setProxyGroup] = useState();
+export interface PersonalInfoProps {
+  initialProfile: TerraUserProfile;
+  onSave: (newProfile: TerraUserProfile) => void;
+}
+
+export const PersonalInfo = (props: PersonalInfoProps): ReactNode => {
+  const { initialProfile, onSave } = props;
+
+  const [profileInfo, setProfileInfo] = useState<TerraUserProfile>(
+    () => _.mapValues((v) => (v === 'N/A' ? '' : v), initialProfile) as TerraUserProfile
+  );
   const { researchArea } = profileInfo;
 
-  const signal = useCancellation();
+  const { proxyGroup } = useProxyGroup(getTerraUser().email);
 
   // Helpers
-  const assignValue = _.curry((key, value) => {
+  const assignValue = _.curry((key: string, value: string | undefined) => {
     setProfileInfo(_.set(key, value));
   });
-  const line = (children) => div({ style: styles.form.line }, children);
-  const checkboxLine = (children) => div({ style: styles.form.container }, children);
-  const textField = (key, title, { placeholder, required } = {}) =>
+  const line = (children: ReactNode[]) => div({ style: styles.form.line }, children);
+  const checkboxLine = (children: ReactNode[]) => div({ style: styles.form.container }, children);
+  const textField = (
+    key: keyof TerraUserProfile,
+    title: string,
+    { placeholder, required }: { placeholder?: string; required?: boolean } = {}
+  ) =>
     h(IdContainer, [
       (id) =>
         div({ style: styles.form.container }, [
@@ -98,7 +112,7 @@ export const PersonalInfo = ({ setSaving }) => {
               }),
         ]),
     ]);
-  const researchAreaCheckbox = (title) =>
+  const researchAreaCheckbox = (title: string) =>
     div([
       h(
         LabeledCheckbox,
@@ -106,20 +120,16 @@ export const PersonalInfo = ({ setSaving }) => {
           checked: _.includes(title, researchArea),
           onChange: (v) => {
             const areasOfResearchList = _.isEmpty(researchArea) ? [] : _.split(',', researchArea);
-            const updatedAreasOfResearchList = v ? _.concat(areasOfResearchList, [title]) : _.without([title], areasOfResearchList);
+            const updatedAreasOfResearchList = v
+              ? _.concat(areasOfResearchList, [title])
+              : _.without([title], areasOfResearchList);
             assignValue('researchArea', _.join(',', updatedAreasOfResearchList));
           },
         },
         [span({ style: styles.form.checkboxLabel }, [title])]
       ),
     ]);
-  // Lifecycle
-  useOnMount(() => {
-    const loadProxyGroup = async () => {
-      setProxyGroup(await Ajax(signal).User.getProxyGroup(authStore.get().profile.email));
-    };
-    loadProxyGroup();
-  });
+
   // Render
   const { firstName, lastName } = profileInfo;
   const required = { presence: { allowEmpty: false } };
@@ -128,6 +138,7 @@ export const PersonalInfo = ({ setSaving }) => {
   return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
     div({ style: styles.header.line }, [
       div({ style: { position: 'relative' } }, [
+        // @ts-expect-error
         h(ProfilePicture, { size: 48 }),
         h(InfoBox, { style: { alignSelf: 'flex-end' } }, [
           'To change your profile image, visit your ',
@@ -145,19 +156,28 @@ export const PersonalInfo = ({ setSaving }) => {
     ]),
     div({ style: { display: 'flex' } }, [
       div({ style: styles.page }, [
-        line([textField('firstName', 'First Name', { required: true }), textField('lastName', 'Last Name', { required: true })]),
+        line([
+          textField('firstName', 'First Name', { required: true }),
+          textField('lastName', 'Last Name', { required: true }),
+        ]),
         line([
           textField('institute', 'Organization'), // keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
           textField('title', 'Title'),
           textField('department', 'Department'),
         ]),
-        line([textField('programLocationCity', 'City'), textField('programLocationState', 'State'), textField('programLocationCountry', 'Country')]),
+        line([
+          textField('programLocationCity', 'City'),
+          textField('programLocationState', 'State'),
+          textField('programLocationCountry', 'Country'),
+        ]),
         line([
           div({ style: styles.form.container }, [
             div({ style: styles.form.title }, ['Email']),
             div({ style: { margin: '0.5rem', width: 320 } }, [profileInfo.email]),
           ]),
-          textField('contactEmail', 'Contact Email for Notifications (if different)', { placeholder: profileInfo.email }),
+          textField('contactEmail', 'Contact Email for Notifications (if different)', {
+            placeholder: profileInfo.email,
+          }),
         ]),
 
         line([
@@ -176,13 +196,20 @@ export const PersonalInfo = ({ setSaving }) => {
                 ),
               ]),
             ]),
-            div({ style: { margin: '1rem' } }, proxyGroup || 'Loading...'),
+            div({ style: { margin: '1rem' } }, [
+              Utils.switchCase(
+                proxyGroup.status,
+                ['Loading', () => 'Loading proxy group...'],
+                ['Ready', () => proxyGroup.state],
+                ['Error', () => 'Unable to load proxy group.']
+              ),
+            ]),
           ]),
         ]),
 
         h3({ style: styles.sectionHeading }, ['What is your area of research?']),
 
-        p('Check all that apply.'),
+        p(['Check all that apply.']),
 
         div({ style: { marginBottom: '1rem', display: 'flex', justifyContent: 'normal' } }, [
           checkboxLine([
@@ -197,19 +224,19 @@ export const PersonalInfo = ({ setSaving }) => {
             researchAreaCheckbox('Medical and Population Genetics'),
             researchAreaCheckbox('Psychiatric disease'),
           ]),
-          checkboxLine([researchAreaCheckbox('Rare Disease'), researchAreaCheckbox('Single Cell Genomics'), researchAreaCheckbox('Agricultural')]),
+          checkboxLine([
+            researchAreaCheckbox('Rare Disease'),
+            researchAreaCheckbox('Single Cell Genomics'),
+            researchAreaCheckbox('Agricultural'),
+          ]),
         ]),
 
         h(
           ButtonPrimary,
           {
-            onClick: _.flow(
-              Utils.withBusyState(setSaving),
-              withErrorReporting('Error saving profile')
-            )(async () => {
-              await Ajax().User.profile.set(makeSetUserProfileRequest(profileInfo));
-              await refreshTerraProfile();
-            }),
+            onClick: () => {
+              onSave(profileInfo);
+            },
             disabled: !!errors,
             tooltip: !!errors && 'Please fill out all required fields',
           },
