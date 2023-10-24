@@ -37,6 +37,7 @@ export const useWorkspacesWithSubmissionStats = (): WorkspacesWithSubmissionStat
       'workspace.namespace',
       'workspace.workspaceId',
       'workspace.state',
+      'workspace.errorMessage',
     ],
     250
   );
