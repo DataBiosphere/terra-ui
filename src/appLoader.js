@@ -13,7 +13,6 @@ import Main from 'src/pages/Main';
 const rootElement = document.getElementById('root');
 
 RModal.defaultStyles = { overlay: {}, content: {} };
-RModal.setAppElement(rootElement);
 
 window._ = _;
 

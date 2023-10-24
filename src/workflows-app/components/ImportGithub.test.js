@@ -21,10 +21,6 @@ jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
   getTerraUser: jest.fn(),
 }));
-jest.mock('src/components/Modal', () => {
-  const mockModal = jest.requireActual('src/components/Modal.mock');
-  return mockModal.mockModalModule();
-});
 
 describe('Add a Workflow Link', () => {
   const workspace = {

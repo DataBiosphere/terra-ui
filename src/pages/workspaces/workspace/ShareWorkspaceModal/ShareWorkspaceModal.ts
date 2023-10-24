@@ -5,7 +5,7 @@ import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
-import Modal, { styles as modalStyles } from 'src/components/Modal';
+import Modal, { modalStyles } from 'src/components/Modal';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
