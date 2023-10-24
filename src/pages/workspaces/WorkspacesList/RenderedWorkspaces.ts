@@ -5,7 +5,9 @@ import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { Link } from 'src/components/common';
+import ErrorView from 'src/components/ErrorView';
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown';
+import Modal from 'src/components/Modal';
 import { FlexTable, HeaderRenderer } from 'src/components/table';
 import { WorkspaceStarControl } from 'src/components/WorkspaceStarControl';
 import { workspaceSubmissionStatus, WorkspaceSubmissionStatusIcon } from 'src/components/WorkspaceSubmissionStatusIcon';
@@ -201,7 +203,7 @@ const NameCell = (props: CellProps): ReactNode => {
     ]),
     Utils.cond(
       [state === 'Deleting', () => h(WorkspaceDeletingCell)],
-      [state === 'DeleteFailed', () => h(WorkspaceDeletionFailedCell)],
+      [state === 'DeleteFailed', () => h(WorkspaceDeletionFailedCell, { workspace: props.workspace })],
       [Utils.DEFAULT, () => h(WorkspaceDescriptionCell, { description })]
     ),
   ]);
@@ -243,7 +245,10 @@ const WorkspaceDeletingCell = (): ReactNode => {
   );
 };
 
-const WorkspaceDeletionFailedCell = (): ReactNode => {
+const WorkspaceDeletionFailedCell = (props: CellProps): ReactNode => {
+  const { workspace } = props;
+  const [showDetails, setShowDetails] = useState<boolean>(false);
+
   const errorIcon = icon('warning-standard', {
     size: 18,
     style: {
@@ -257,7 +262,33 @@ const WorkspaceDeletionFailedCell = (): ReactNode => {
         color: colors.danger(),
       },
     },
-    [errorIcon, 'Error deleting workspace']
+    [
+      errorIcon,
+      'Error deleting workspace',
+      workspace.workspace.errorMessage
+        ? h(
+            Link,
+            {
+              onClick: () => setShowDetails(true),
+              style: { fontSize: 14, marginRight: '0.5rem', marginLeft: '0.5rem' },
+            },
+            ['See error details.']
+          )
+        : null,
+      showDetails
+        ? h(
+            Modal,
+            {
+              width: 800,
+              title: 'Error deleting workspace',
+              showCancel: false,
+              showX: true,
+              onDismiss: () => setShowDetails(false),
+            },
+            [h(ErrorView, { error: workspace?.workspace.errorMessage ?? 'No error message available' })]
+          )
+        : null,
+    ]
   );
 };
 
