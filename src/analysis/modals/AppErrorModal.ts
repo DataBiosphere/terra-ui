@@ -26,9 +26,11 @@ export const AppErrorModal = (props: AppErrorModalProps) => {
     withErrorReporting('Error loading app details'),
     Utils.withBusyState(setLoadingAppDetails)
   )(async () => {
-    const { errors: appErrors } = await appProvider.get(app);
+    console.log('app', app)
+    const appDetails = await appProvider.get(app);
+    console.log(appDetails)
 
-    setError(appErrors[0]?.errorMessage || 'No error messages found for app.');
+    setError(appDetails?.errors[0]?.errorMessage || 'No error messages found for app.');
   });
 
   useOnMount(() => {

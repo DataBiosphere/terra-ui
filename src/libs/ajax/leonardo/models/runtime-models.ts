@@ -50,6 +50,7 @@ export type RuntimeLabels = Omit<LeoResourceLabels, 'tool'> & {
 };
 
 export interface RuntimeError extends LeoError {
+
   errorCode: number;
 }
 

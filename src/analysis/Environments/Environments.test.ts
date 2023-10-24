@@ -58,6 +58,7 @@ const getMockLeoAppProvider = (overrides?: Partial<LeoAppProvider>): LeoAppProvi
     listWithoutProject: jest.fn(),
     pause: jest.fn(),
     delete: jest.fn(),
+    get: jest.fn(),
   };
   asMockedFn(defaultProvider.listWithoutProject).mockResolvedValue([]);
 
@@ -618,6 +619,7 @@ describe('Environments', () => {
           expect.objectContaining({
             appName: app.appName,
             cloudContext: app.cloudContext,
+            workspaceId: app.workspaceId,
           } satisfies AppBasics)
         );
       } else {

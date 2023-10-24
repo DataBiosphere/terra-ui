@@ -6,7 +6,7 @@ import {
 } from 'src/analysis/utils/disk-utils';
 import { defaultGceMachineType, defaultLocation, generateRuntimeName } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
-import { App, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import {App, AppError, GetAppResponse, ListAppResponse} from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   AzureConfig,
@@ -237,6 +237,15 @@ export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): Runtim
     gpuConfig: undefined,
     ...overrides,
   } satisfies GceWithPdConfig);
+
+export const appError: AppError = {
+  action: '',
+  source: '',
+  errorMessage: 'test error message',
+  timestamp: '2022-09-19T15:37:11.035465Z',
+  googleErrorCode: null,
+  traceId: null,
+};
 
 // Use this if you only need to override top-level fields, otherwise use `getGoogleRuntime`
 export const generateTestGetGoogleRuntime = (overrides: Partial<GetRuntimeItem> = {}): GetRuntimeItem => {
@@ -633,6 +642,11 @@ export const generateTestAppWithGoogleWorkspace = (
   status: 'RUNNING',
   region: 'us-central1',
   ...overrides,
+});
+
+export const listAppToGetApp = (listApp: ListAppResponse): GetAppResponse => ({
+  ...listApp,
+  customEnvironmentVariables: {},
 });
 
 export const generateTestAppWithAzureWorkspace = (

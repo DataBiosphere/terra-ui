@@ -10,8 +10,8 @@ export interface KubernetesRuntimeConfig {
 export interface AppError extends LeoError {
   action: string;
   source: string;
-  googleErrorCode?: number;
-  traceId?: string;
+  googleErrorCode: number | null;
+  traceId: string | null;
 }
 
 export type LeoAppStatus =
