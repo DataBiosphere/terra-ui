@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { SimpleTabBar } from 'src/components/tabBars';
@@ -18,29 +18,39 @@ const styles = {
     fontWeight: 600,
     textTransform: 'uppercase',
   },
-};
+} as const satisfies Record<string, CSSProperties>;
 
-export const Profile = () => {
+export const Profile = (): ReactNode => {
   // State
   const [saving, setSaving] = useState();
 
   // Render
   const { query, name } = Nav.useRoute();
-  const tab = query.tab || (name === 'fence-callback' ? 'externalIdentities' : 'personalInfo');
+  const tab: string = query.tab || (name === 'fence-callback' ? 'externalIdentities' : 'personalInfo');
 
   const tabs = [
     { key: 'personalInfo', title: 'Personal Information' },
     { key: 'externalIdentities', title: 'External Identities' },
     { key: 'notificationSettings', title: 'Notification Settings' },
-  ];
+  ] as const;
 
   // Render
   return h(Fragment, [
     saving && spinnerOverlay,
     div({ style: { flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [
-        h2({ style: styles.pageHeading }, ['Profile']),
-      ]),
+      div(
+        {
+          style: {
+            color: colors.dark(),
+            fontSize: 18,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            marginLeft: '1rem',
+          },
+        },
+        [h2({ style: styles.pageHeading }, ['Profile'])]
+      ),
       h(
         SimpleTabBar,
         {
