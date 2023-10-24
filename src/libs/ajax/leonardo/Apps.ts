@@ -111,6 +111,13 @@ export const Apps = (signal: AbortSignal) => ({
       _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }])
     );
   },
+  getAppV2: (appName: string, workspaceId: string): Promise<GetAppResponse> => {
+    const res = fetchLeo(
+      `api/apps/v2/${workspaceId}/${appName}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }])
+    );
+    return res.json();
+  },
 });
 
 export type AppsAjaxContract = ReturnType<typeof Apps>;
