@@ -248,6 +248,7 @@ describe('ImportWorkflow', () => {
         },
       ] as WorkspaceWrapper[],
       refresh: () => Promise.resolve(),
+      refreshSilently: () => Promise.resolve(),
       loading: false,
     });
 

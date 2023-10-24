@@ -49,6 +49,7 @@ const setup = (opts: SetupOptions): void => {
     loading: false,
     refresh: () => Promise.resolve(),
     workspaces,
+    refreshSilently: () => Promise.resolve(),
   });
 
   render(
