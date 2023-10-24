@@ -8,11 +8,12 @@ import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
+import { User } from 'src/libs/ajax/User';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount, usePollingEffect, useStore } from 'src/libs/react-utils';
-import { AppProxyUrlStatus, authStore, workflowsAppStore } from 'src/libs/state';
+import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
+import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import {
@@ -31,7 +32,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [runSetsData, setRunSetData] = useState();
   const [loading, setLoading] = useState(false);
-  const { termsOfService } = useStore(authStore);
+  const [userId, setUserId] = useState();
 
   const signal = useCancellation();
   const scheduledRefresh = useRef();
@@ -126,6 +127,9 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
       }
     };
     loadWorkflowsApp();
+    User()
+      .getStatus()
+      .then((res) => setUserId(res.userSubjectId));
     refresh();
 
     return () => {
@@ -225,7 +229,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                             field: 'actions',
                             headerRenderer: () => h(TextCell, {}, ['Actions']),
                             cellRenderer: ({ rowIndex }) => {
-                              const permissionToAbort = paginatedPreviousRunSets[rowIndex].user_id === termsOfService.userId;
+                              const permissionToAbort = paginatedPreviousRunSets[rowIndex].user_id === userId;
                               return h(
                                 MenuTrigger,
                                 {
