@@ -95,11 +95,11 @@ describe('WorkspaceList', () => {
       render(h(WorkspacesList));
     });
     // trigger first poll
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(60000);
 
     // Assert
     await waitFor(() => expect(mockRefreshSilently).toBeCalledTimes(1));
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(60000);
     await waitFor(() => expect(mockRefreshSilently).toBeCalledTimes(2));
   });
 });

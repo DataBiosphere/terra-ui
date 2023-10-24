@@ -64,7 +64,7 @@ export const WorkspacesList = (): ReactNode => {
     loadFeatured();
   });
 
-  usePollingEffect(refreshSilently, { leading: false, ms: 30000 });
+  usePollingEffect(refreshSilently, { leading: false, ms: 60000 });
 
   const sortedWorkspaces = useMemo(() => categorizeWorkspaces(workspaces, featuredList), [workspaces, featuredList]);
 
