@@ -136,6 +136,30 @@ export interface RexFirstTimestampResponse {
   timestamp: Date;
 }
 
+export type SamUserAttributes = {
+  marketingConsent: boolean;
+};
+
+export type SamUserAttributesRequest = {
+  marketingConsent: boolean | undefined;
+};
+
+export type OrchestrationUserRegistrationRequest = object;
+
+const blankProfile = {
+  firstName: 'N/A',
+  lastName: 'N/A',
+  title: 'N/A',
+  institute: 'N/A',
+  department: 'N/A',
+  institutionalProgram: 'N/A',
+  programLocationCity: 'N/A',
+  programLocationState: 'N/A',
+  programLocationCountry: 'N/A',
+  pi: 'N/A',
+  nonProfitStatus: 'N/A',
+};
+
 // TODO: Remove this as a part of https://broadworkbench.atlassian.net/browse/ID-460
 const getFirstTimeStamp = Utils.memoizeAsync(
   async (token): Promise<RexFirstTimestampResponse> => {
@@ -152,6 +176,19 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
+    getUserAttributes: async (): Promise<SamUserAttributes> => {
+      const res = await fetchSam('api/users/v2/self/attributes', _.mergeAll([authOpts(), { signal }]));
+      return res.json();
+    },
+
+    setUserAttributes: async (userAttributes: SamUserAttributesRequest): Promise<SamUserAttributes> => {
+      const res = await fetchSam(
+        'api/users/v2/self/attributes',
+        _.mergeAll([authOpts(), jsonBody(userAttributes), { signal, method: 'PATCH' }])
+      );
+      return res.json();
+    },
+
     profile: {
       get: async (): Promise<TerraUserProfile> => {
         const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }));
@@ -160,20 +197,7 @@ export const User = (signal?: AbortSignal) => {
       },
 
       // We are not calling Thurloe directly because free credits logic was in orchestration
-      set: (keysAndValues) => {
-        const blankProfile = {
-          firstName: 'N/A',
-          lastName: 'N/A',
-          title: 'N/A',
-          institute: 'N/A',
-          department: 'N/A',
-          institutionalProgram: 'N/A',
-          programLocationCity: 'N/A',
-          programLocationState: 'N/A',
-          programLocationCountry: 'N/A',
-          pi: 'N/A',
-          nonProfitStatus: 'N/A',
-        };
+      set: (keysAndValues: OrchestrationUserRegistrationRequest) => {
         return fetchOrchestration(
           'register/profile',
           _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { signal, method: 'POST' }])

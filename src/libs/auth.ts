@@ -8,6 +8,7 @@ import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
+import { SamUserAttributes } from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage';
 import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
@@ -612,7 +613,8 @@ authStore.subscribe(
 
 export const refreshTerraProfile = async () => {
   const profile: TerraUserProfile = await Ajax().User.profile.get();
-  authStore.update((state: AuthState) => ({ ...state, profile }));
+  const terraUserAttributes: SamUserAttributes = await Ajax().User.getUserAttributes();
+  authStore.update((state: AuthState) => ({ ...state, profile, terraUserAttributes }));
 };
 
 authStore.subscribe(

@@ -2,7 +2,7 @@ import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
 import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
 import { Dataset } from 'src/libs/ajax/Catalog';
-import { BondFenceStatusResponse, NihDatasetPermission } from 'src/libs/ajax/User';
+import { BondFenceStatusResponse, NihDatasetPermission, SamUserAttributes } from 'src/libs/ajax/User';
 import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -88,6 +88,7 @@ export type AuthState = {
   sessionStartTime: number;
   termsOfService: TermsOfServiceStatus;
   terraUser: TerraUser;
+  terraUserAttributes: SamUserAttributes;
 };
 
 export type FenceStatus = {
@@ -147,6 +148,9 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     familyName: undefined,
     imageUrl: undefined,
     idp: undefined,
+  },
+  terraUserAttributes: {
+    marketingConsent: true,
   },
 });
 export const getTerraUser = (): TerraUser => authStore.get().terraUser;
