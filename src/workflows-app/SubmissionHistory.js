@@ -8,7 +8,6 @@ import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
-import { User } from 'src/libs/ajax/User';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
@@ -127,8 +126,8 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
       }
     };
     loadWorkflowsApp();
-    User()
-      .getStatus()
+    Ajax()
+      .User.getStatus()
       .then((res) => setUserId(res.userSubjectId));
     refresh();
 

@@ -4,7 +4,6 @@ import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
-import { useStore } from 'src/libs/react-utils';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { mockAbortResponse, mockAzureApps, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
@@ -25,14 +24,6 @@ jest.mock('src/components/PopupTrigger', () => {
     MenuTrigger: jest.fn(),
   };
 });
-jest.mock('src/libs/react-utils', () => ({
-  ...jest.requireActual('src/libs/react-utils'),
-  useStore: jest.fn().mockReturnValue({
-    termsOfService: {
-      userId: 'user-id-blah-blah',
-    },
-  }),
-}));
 // Mocking feature preview setup
 jest.mock('src/libs/feature-previews', () => ({
   ...jest.requireActual('src/libs/feature-previews'),
@@ -113,6 +104,7 @@ describe('SubmissionHistory tab', () => {
     const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -123,6 +115,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -184,6 +179,7 @@ describe('SubmissionHistory tab', () => {
     // Arrange
     const mockRunSetResponse = jest.fn(() => Promise.resolve([]));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -194,6 +190,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -219,6 +218,7 @@ describe('SubmissionHistory tab', () => {
   it('should correctly display previous 2 run sets', async () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -229,6 +229,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -310,6 +313,7 @@ describe('SubmissionHistory tab', () => {
 
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -320,6 +324,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -374,6 +381,7 @@ describe('SubmissionHistory tab', () => {
     const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(simpleRunSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -384,6 +392,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -427,25 +438,23 @@ describe('SubmissionHistory tab', () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(simpleRunSetData));
     const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: userId }));
 
     Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
             get: getRunSetsMethod,
-            cancel: jest.fn(cancelSubmissionFunction),
+            cancel: cancelSubmissionFunction,
           },
         },
         Apps: {
           listAppsV2: mockLeoResponse,
         },
+        User: {
+          getStatus: mockUserResponse,
+        },
       };
-    });
-
-    useStore.mockReturnValue({
-      termsOfService: {
-        userId,
-      },
     });
 
     // Act
