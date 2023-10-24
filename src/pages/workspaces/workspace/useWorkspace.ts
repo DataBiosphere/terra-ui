@@ -248,7 +248,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   )(doWorkspaceRefresh) as () => Promise<void>;
 
   // refresh the workspace without triggering busy indicators
-  // if an error handling function is passed, use that - otherwise ignpre errors
+  // if an error handling function is passed, use that - otherwise ignore errors
   const silentlyRefreshWorkspace = (errorHandling?: ErrorCallback): Promise<void> => {
     if (errorHandling) {
       return withErrorHandling(errorHandling, doWorkspaceRefresh)() as Promise<void>;

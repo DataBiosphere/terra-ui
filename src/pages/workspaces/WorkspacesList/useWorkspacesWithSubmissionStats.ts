@@ -7,8 +7,10 @@ import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceSubmissionStats, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
+type WorkspaceWithSubmissionStats = Workspace & { workspaceSubmissionStats?: WorkspaceSubmissionStats };
+
 interface WorkspacesWithSubmissionStatsReturn {
-  workspaces: Workspace[];
+  workspaces: WorkspaceWithSubmissionStats[];
   refresh: () => void;
   refreshSilently: () => Promise<void>;
   loadingWorkspaces: boolean;
@@ -61,7 +63,7 @@ export const useWorkspacesWithSubmissionStats = (): WorkspacesWithSubmissionStat
     }
   }, [workspaces, submissionStats, signal]);
 
-  const workspacesWithSubmissionStats = useMemo(() => {
+  const workspacesWithSubmissionStats = useMemo<WorkspaceWithSubmissionStats[]>(() => {
     return _.map(
       (ws) => _.set('workspaceSubmissionStats', _.get(ws.workspace.workspaceId, submissionStats), ws),
       workspaces
