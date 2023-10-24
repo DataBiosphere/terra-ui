@@ -1,22 +1,16 @@
-import { DelayedRender, icon, IconProps } from '@terra-ui-packages/components';
+import { Spinner, SpinnerProps } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, ReactNode } from 'react';
-import { div, h, span } from 'react-hyperscript-helpers';
+import { ReactNode } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
 import colors from 'src/libs/colors';
 
 export { icon } from '@terra-ui-packages/components';
 
-export interface SpinnerOptions extends IconProps {
-  message?: string;
-}
+export const spinner = (props: SpinnerProps = {}): ReactNode => {
+  return h(Spinner, props);
+};
 
-export const spinner = ({ message = 'Loading', ...props }: SpinnerOptions = {}): ReactNode =>
-  h(Fragment, [
-    icon('loadingSpinner', _.merge({ size: 24, style: { color: colors.primary() } }, props)),
-    h(DelayedRender, { delay: 150 }, [span({ className: 'sr-only', role: 'alert' }, [message])]),
-  ]);
-
-export const centeredSpinner = ({ size = 48, ...props }: SpinnerOptions = {}): ReactNode =>
+export const centeredSpinner = ({ size = 48, ...props }: SpinnerProps = {}): ReactNode =>
   spinner(
     _.merge(
       {
