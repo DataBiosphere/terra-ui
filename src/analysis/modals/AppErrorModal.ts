@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import Modal from 'src/components/Modal';
-import { Ajax } from 'src/libs/ajax';
 import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import colors from 'src/libs/colors';
@@ -26,10 +25,7 @@ export const AppErrorModal = (props: AppErrorModalProps) => {
     withErrorReporting('Error loading app details'),
     Utils.withBusyState(setLoadingAppDetails)
   )(async () => {
-    console.log('app', app)
     const appDetails = await appProvider.get(app);
-    console.log(appDetails)
-
     setError(appDetails?.errors[0]?.errorMessage || 'No error messages found for app.');
   });
 

@@ -6,7 +6,7 @@ import {
 } from 'src/analysis/utils/disk-utils';
 import { defaultGceMachineType, defaultLocation, generateRuntimeName } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
-import {App, AppError, GetAppResponse, ListAppResponse} from 'src/libs/ajax/leonardo/models/app-models';
+import { App, AppError, GetAppResponse, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   AzureConfig,

@@ -2,6 +2,7 @@ import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, ReactElement, useState } from 'react';
 import { Component, div, h, hr, img, span } from 'react-hyperscript-helpers';
+import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
 import { AzureComputeModalBase } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal';
 import { GcpComputeModalBase } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import { CromwellModalBase } from 'src/analysis/modals/CromwellModal';
@@ -11,7 +12,6 @@ import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/analysis/runt
 import { RuntimeErrorModal } from 'src/analysis/RuntimeManager';
 import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/analysis/utils/cost-utils';
-import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import {
   getCurrentPersistentDisk,
   getReadyPersistentDisk,
@@ -44,9 +44,10 @@ import hailLogo from 'src/images/hail-logo.svg';
 import jupyterLogo from 'src/images/jupyter-logo-long.png';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
-import {App, appStatuses, LeoAppStatus, ListAppResponse} from 'src/libs/ajax/leonardo/models/app-models';
+import { appStatuses, LeoAppStatus, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { LeoRuntimeStatus, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
@@ -63,7 +64,6 @@ import {
   getCloudProviderFromWorkspace,
 } from 'src/libs/workspace-utils';
 import { cromwellLinkProps, getCromwellUnsupportedMessage } from 'src/workflows-app/utils/app-utils';
-import {AppErrorModal} from "src/analysis/modals/AppErrorModal";
 
 const titleId = 'cloud-env-modal';
 
