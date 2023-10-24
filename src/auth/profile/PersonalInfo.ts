@@ -1,17 +1,17 @@
 import _ from 'lodash/fp';
-import { CSSProperties, ReactNode, useEffect, useState } from 'react';
+import { CSSProperties, ReactNode, useState } from 'react';
 import { div, h, h3, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
 import { TextInput, ValidatedInput } from 'src/components/input';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import ProfilePicture from 'src/components/ProfilePicture';
-import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
-import { useCancellation } from 'src/libs/react-utils';
-import { authStore, getTerraUser, TerraUserProfile } from 'src/libs/state';
+import { getTerraUser, TerraUserProfile } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import validate from 'validate.js';
+
+import { useProxyGroup } from './useProxyGroup';
 
 const styles = {
   page: {
@@ -75,10 +75,9 @@ export const PersonalInfo = (props: PersonalInfoProps): ReactNode => {
   const [profileInfo, setProfileInfo] = useState<TerraUserProfile>(
     () => _.mapValues((v) => (v === 'N/A' ? '' : v), initialProfile) as TerraUserProfile
   );
-  const [proxyGroup, setProxyGroup] = useState<string>();
   const { researchArea } = profileInfo;
 
-  const signal = useCancellation();
+  const { proxyGroup } = useProxyGroup(getTerraUser().email);
 
   // Helpers
   const assignValue = _.curry((key: string, value: string | undefined) => {
@@ -131,13 +130,6 @@ export const PersonalInfo = (props: PersonalInfoProps): ReactNode => {
       ),
     ]);
 
-  // Lifecycle
-  const userEmail = authStore.get().profile.email;
-  useEffect(() => {
-    if (userEmail) {
-      Ajax(signal).User.getProxyGroup(userEmail).then(setProxyGroup);
-    }
-  }, [signal, userEmail]);
   // Render
   const { firstName, lastName } = profileInfo;
   const required = { presence: { allowEmpty: false } };
@@ -204,7 +196,14 @@ export const PersonalInfo = (props: PersonalInfoProps): ReactNode => {
                 ),
               ]),
             ]),
-            div({ style: { margin: '1rem' } }, [proxyGroup || 'Loading...']),
+            div({ style: { margin: '1rem' } }, [
+              Utils.switchCase(
+                proxyGroup.status,
+                ['Loading', () => 'Loading proxy group...'],
+                ['Ready', () => proxyGroup.state],
+                ['Error', () => 'Unable to load proxy group.']
+              ),
+            ]),
           ]),
         ]),
 
