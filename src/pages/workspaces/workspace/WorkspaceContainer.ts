@@ -1,3 +1,4 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ComponentPropsWithRef, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers';
@@ -7,7 +8,7 @@ import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import TitleBar from 'src/components/TitleBar';
@@ -57,7 +58,7 @@ const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
 const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {
     title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center' } }, [
-      spinner({
+      h(Spinner, {
         size: 64,
         style: {
           position: 'relative',
