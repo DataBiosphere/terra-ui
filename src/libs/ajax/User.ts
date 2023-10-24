@@ -128,7 +128,7 @@ export const generateAPIBodyForUpdateUserProfile = (
     programLocationState: !_.isEmpty(request.programLocationState) ? request.programLocationState : 'N/A',
     programLocationCountry: !_.isEmpty(request.programLocationCountry) ? request.programLocationCountry : 'N/A',
 
-    // department and interestedInTerra NOT REQUIRED for this request,
+    // researchArea is NOT REQUIRED for this request,
     // but are not present during a registration. They could exist in setting profile
     researchArea: !_.isEmpty(request.researchArea) ? request.researchArea : undefined,
   };

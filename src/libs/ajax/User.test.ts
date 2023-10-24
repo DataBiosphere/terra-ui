@@ -31,7 +31,6 @@ const minimalCreateUserProfileRequest: CreateTerraUserProfileRequest = {
   contactEmail: completeUserProfile.contactEmail!,
 };
 
-/*
 const completeCreateUserProfileRequest: CreateTerraUserProfileRequest = {
   firstName: completeUserProfile.firstName!,
   lastName: completeUserProfile.lastName!,
@@ -42,6 +41,27 @@ const completeCreateUserProfileRequest: CreateTerraUserProfileRequest = {
   title: completeUserProfile.title,
 };
 
+// CreateTerraUserProfileRequest must have:
+// firstName: completeUserProfile.firstName!,
+//     lastName: completeUserProfile.lastName!,
+//     contactEmail: completeUserProfile.contactEmail!,
+//
+//     optionally can have:
+//     const   department: completeUserProfile.department,
+//     institute: completeUserProfile.institute,
+//     interestInTerra: completeUserProfile.interestInTerra,
+//     title: completeUserProfile.title,
+
+// TODO: figure out whether the above ^ completeCreateUserProfileRequest should include city state etc or not
+//  for testing the complete profile create request case
+// in initial profile registration you CANNOT set these fields:
+//  programLocationCity: 'testCity',
+//   programLocationCountry: 'testCountry',
+//   programLocationState: 'testState',
+//   researchArea: 'testResearchArea',
+//   starredWorkspaces: 'testStarredWorkspaces',
+
+/*
 const minimalUpdateUserProfileRequest: UpdateTerraUserProfileRequest = {
   firstName: completeUserProfile.firstName!,
   lastName: completeUserProfile.lastName!,
@@ -65,6 +85,7 @@ const completeUpdateUserProfileRequest: UpdateTerraUserProfileRequest = {
  */
 
 const NA = 'N/A';
+
 // test make setUserProfile request
 // when given any TerraUserProfile it should create a request with all fields to be nonempty strings
 /*
@@ -81,11 +102,141 @@ const NA = 'N/A';
   department?: string;
   interestInTerra?: string;
  */
-// An create user profile request
-// An update user profile request
-// complete profile
-// incomplete profile
-//
+
+// A create user profile request
+// - complete profile - WIP
+// - incomplete profile - DONE
+
+// A update user profile request
+// - complete profile
+// - incomplete profile
+
+// TODO: make sure to give this a complete profile from one the consts above
+//   maybe don't have to check each line individually?
+//  check if this should actually be passing or not
+
+describe('A create user profile request', () => {
+  describe('when given a fully filled out terra user profile', () => {
+    describe('should not modify or have undefined property', () => {
+      it('title', async () => {
+        // Arrange, Act
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+          completeCreateUserProfileRequest
+        );
+
+        // Assert
+        expect(apiBody.title).toBe(completeUserProfile.title);
+      });
+      it('institute', async () => {
+        // Arrange, Act
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+          completeCreateUserProfileRequest
+        );
+
+        // Assert
+        expect(apiBody.institute).toBe(completeUserProfile.institute);
+      });
+      it('programLocationCity', async () => {
+        // Arrange, Act
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+          completeCreateUserProfileRequest
+        );
+
+        // Assert
+        expect(apiBody.programLocationCity).toBe(NA);
+      });
+      it('programLocationState', async () => {
+        // Arrange, Act
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+          completeCreateUserProfileRequest
+        );
+
+        // Assert
+        expect(apiBody.programLocationState).toBe(NA);
+      });
+      it('programLocationCountry', async () => {
+        // Arrange, Act
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+          completeCreateUserProfileRequest
+        );
+
+        // Assert
+        expect(apiBody.programLocationCountry).toBe(NA);
+      });
+      it('interestInTerra', async () => {
+        // Arrange, Act
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+          completeCreateUserProfileRequest
+        );
+
+        // Assert
+        expect(apiBody.interestInTerra).toBe(minimalCreateUserProfileRequest.interestInTerra);
+      });
+      it('department', async () => {
+        // Arrange, Act
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+          completeCreateUserProfileRequest
+        );
+
+        // Assert
+        expect(apiBody.department).toBe(minimalCreateUserProfileRequest.department);
+      });
+      it('termsOfService', async () => {
+        // Arrange, Act
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+          completeCreateUserProfileRequest
+        );
+
+        // Assert
+        expect(apiBody.termsOfService).toBe(undefined);
+      });
+      it('researchArea', async () => {
+        // Arrange, Act
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+          completeCreateUserProfileRequest
+        );
+
+        // Assert
+        expect(apiBody.researchArea).toBe(undefined);
+      });
+      it('firstName', async () => {
+        // Arrange, Act
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+          completeCreateUserProfileRequest
+        );
+
+        // Assert
+        expect(apiBody.firstName).toBe(completeUserProfile.firstName);
+        expect(apiBody.firstName).not.toBe(undefined);
+        expect(apiBody.firstName).not.toBe(null);
+      });
+      it('lastName', async () => {
+        // Arrange, Act
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+          completeCreateUserProfileRequest
+        );
+
+        // Assert
+        expect(apiBody.lastName).toBe(completeUserProfile.lastName);
+        expect(apiBody.lastName).not.toBe(undefined);
+        expect(apiBody.lastName).not.toBe(null);
+      });
+      it('contactEmail', async () => {
+        // Arrange, Act
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+          completeCreateUserProfileRequest
+        );
+
+        // Assert
+        expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
+        expect(apiBody.contactEmail).not.toBe(undefined);
+        expect(apiBody.contactEmail).not.toBe(null);
+      });
+    });
+  });
+});
+
+// TODO: below are already existing tests
 
 describe('A create user profile request', () => {
   describe('when minimally filled out by the user', () => {
