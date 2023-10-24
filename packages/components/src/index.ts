@@ -12,6 +12,7 @@ export { Interactive } from './Interactive';
 export * from './Link';
 export * from './Modal';
 export * from './PopupTrigger';
+export * from './Spinner';
 export * from './Switch';
 export * from './theme';
 export * from './TooltipTrigger';

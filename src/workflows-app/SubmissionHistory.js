@@ -31,6 +31,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [runSetsData, setRunSetData] = useState();
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState();
 
   const signal = useCancellation();
   const scheduledRefresh = useRef();
@@ -125,6 +126,9 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
       }
     };
     loadWorkflowsApp();
+    Ajax()
+      .User.getStatus()
+      .then((res) => setUserId(res.userSubjectId));
     refresh();
 
     return () => {
@@ -224,6 +228,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                             field: 'actions',
                             headerRenderer: () => h(TextCell, {}, ['Actions']),
                             cellRenderer: ({ rowIndex }) => {
+                              const permissionToAbort = paginatedPreviousRunSets[rowIndex].user_id === userId;
                               return h(
                                 MenuTrigger,
                                 {
@@ -237,10 +242,21 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                       {
                                         style: { fontSize: 15 },
                                         disabled:
+                                          !permissionToAbort ||
                                           isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) ||
                                           paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
-                                        tooltip:
-                                          isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) && 'Cannot abort a terminal submission',
+                                        tooltip: Utils.cond(
+                                          [
+                                            isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state),
+                                            () => 'Cannot abort a terminal submission',
+                                          ],
+                                          [
+                                            paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
+                                            () => 'Cancel already requested on this submission.',
+                                          ],
+                                          [!permissionToAbort, () => 'You must be the original submitter to abort this submission'],
+                                          () => ''
+                                        ),
                                         onClick: () => cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id),
                                       },
                                       ['Abort']

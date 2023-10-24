@@ -24,10 +24,6 @@ jest.mock('src/components/PopupTrigger', () => {
     MenuTrigger: jest.fn(),
   };
 });
-jest.mock('src/libs/state', () => ({
-  ...jest.requireActual('src/libs/state'),
-  getTerraUser: jest.fn(),
-}));
 // Mocking feature preview setup
 jest.mock('src/libs/feature-previews', () => ({
   ...jest.requireActual('src/libs/feature-previews'),
@@ -36,6 +32,10 @@ jest.mock('src/libs/feature-previews', () => ({
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({}),
+}));
+jest.mock('src/libs/state', () => ({
+  ...jest.requireActual('src/libs/state'),
+  getTerraUser: jest.fn(),
 }));
 
 // SubmissionHistory component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
@@ -104,6 +104,7 @@ describe('SubmissionHistory tab', () => {
     const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -114,6 +115,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -175,6 +179,7 @@ describe('SubmissionHistory tab', () => {
     // Arrange
     const mockRunSetResponse = jest.fn(() => Promise.resolve([]));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -185,6 +190,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -210,6 +218,7 @@ describe('SubmissionHistory tab', () => {
   it('should correctly display previous 2 run sets', async () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -220,6 +229,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -301,6 +313,7 @@ describe('SubmissionHistory tab', () => {
 
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -311,6 +324,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -355,6 +371,7 @@ describe('SubmissionHistory tab', () => {
         run_count: 1,
         run_set_id: '20000000-0000-0000-0000-200000000002',
         state: 'RUNNING',
+        user_id: 'foo',
       },
     ],
     fully_updated: true,
@@ -364,6 +381,7 @@ describe('SubmissionHistory tab', () => {
     const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(simpleRunSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -374,6 +392,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -407,22 +428,31 @@ describe('SubmissionHistory tab', () => {
     });
   });
 
-  it('should abort successfully', async () => {
+  const abortTestCases = [
+    ['abort successfully', { workspace: mockAzureWorkspace, userId: 'foo', abortAllowed: true }],
+    ['not allow abort for non-submitter', { workspace: mockAzureWorkspace, userId: 'not-foo', abortAllowed: false }],
+  ];
+
+  it.each(abortTestCases)('should %s', async (_unused, { workspace, userId, abortAllowed }) => {
     const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(simpleRunSetData));
     const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: userId }));
 
     Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
             get: getRunSetsMethod,
-            cancel: jest.fn(cancelSubmissionFunction),
+            cancel: cancelSubmissionFunction,
           },
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -433,7 +463,7 @@ describe('SubmissionHistory tab', () => {
         h(BaseSubmissionHistory, {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
-          workspace: mockAzureWorkspace,
+          workspace,
         })
       );
     });
@@ -457,10 +487,12 @@ describe('SubmissionHistory tab', () => {
     });
 
     const abortButton = screen.getByText('Abort');
-    expect(abortButton).toHaveAttribute('aria-disabled', 'false');
+    expect(abortButton).toHaveAttribute('aria-disabled', (!abortAllowed).toString());
     await user.click(abortButton);
 
-    expect(cancelSubmissionFunction).toHaveBeenCalled();
-    expect(cancelSubmissionFunction).toBeCalledWith('https://lz-abc/terra-app-abc/cbas', '20000000-0000-0000-0000-200000000002');
+    if (abortAllowed) {
+      expect(cancelSubmissionFunction).toHaveBeenCalled();
+      expect(cancelSubmissionFunction).toBeCalledWith('https://lz-abc/terra-app-abc/cbas', '20000000-0000-0000-0000-200000000002');
+    }
   });
 });

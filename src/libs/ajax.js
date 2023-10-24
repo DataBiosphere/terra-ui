@@ -35,17 +35,6 @@ import { getConfig } from 'src/libs/config';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
-window.ajaxOverrideUtils = {
-  mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
-    const res = await wrappedFetch(...args);
-    return new Response(JSON.stringify(fn(await res.json())), res);
-  }),
-  makeError: _.curry(({ status, frequency = 1 }, wrappedFetch) => (...args) => {
-    return Math.random() < frequency ? Promise.resolve(new Response('Instrumented error', { status })) : wrappedFetch(...args);
-  }),
-  makeSuccess: (body) => (_wrappedFetch) => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 })),
-};
-
 const getSnapshotEntityMetadata = Utils.memoizeAsync(
   async (token, workspaceNamespace, workspaceName, googleProject, dataReference) => {
     const res = await fetchRawls(

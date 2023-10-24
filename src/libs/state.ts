@@ -32,6 +32,7 @@ export type TerraUserProfile = {
   programLocationCity: string | undefined;
   programLocationState: string | undefined;
   programLocationCountry: string | undefined;
+  researchArea: string | undefined;
   starredWorkspaces: string | undefined;
 };
 
@@ -119,6 +120,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     programLocationCity: undefined,
     programLocationState: undefined,
     programLocationCountry: undefined,
+    researchArea: undefined,
     interestInTerra: undefined,
     starredWorkspaces: undefined,
   },

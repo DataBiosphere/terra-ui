@@ -5,6 +5,7 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { libraryTopMatter } from 'src/components/library-common';
 import Modal from 'src/components/Modal';
 import TooltipTrigger from 'src/components/TooltipTrigger';
+import { Browser } from 'src/data-catalog/DataBrowser';
 import thousandGenomesAnvil from 'src/images/library/datasets/1000Genome-Anvil-logo.png';
 import thousandGenomesLogo from 'src/images/library/datasets/1000Genome-logo.png';
 import amppdLogo from 'src/images/library/datasets/Amp@2x.png';
@@ -29,7 +30,6 @@ import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { Browser } from 'src/pages/library/DataBrowser';
 import { DataBrowserPreviewToggler } from 'src/pages/library/DataBrowserToggler';
 
 const styles = {
