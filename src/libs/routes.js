@@ -24,7 +24,7 @@ import * as DataExplorer from 'src/pages/library/datasets/DataExplorer';
 import * as Showcase from 'src/pages/library/Showcase';
 import * as NotFound from 'src/pages/NotFound';
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy';
-import * as Profile from 'src/pages/Profile';
+import * as Profile from 'src/pages/ProfilePage';
 import * as TermsOfService from 'src/pages/TermsOfService';
 import * as UploadData from 'src/pages/UploadDataPage';
 import * as WorkflowsList from 'src/pages/workflows/List';
