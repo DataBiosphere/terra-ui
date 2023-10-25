@@ -1,7 +1,7 @@
 import { h } from 'react-hyperscript-helpers';
-import { Profile } from 'src/auth/profile/Profile';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
+import { Profile } from 'src/pages/profile/Profile';
 
 const ProfilePage = () => {
   return h(FooterWrapper, [h(TopBar, { title: 'User Profile' }), h(Profile)]);

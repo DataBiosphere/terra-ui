@@ -6,9 +6,9 @@ import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
 
-import { ExternalIdentities } from './ExternalIdentities';
-import { NotificationSettings } from './NotificationSettings';
-import { PersonalInfo } from './PersonalInfo';
+import { ExternalIdentities } from './external-identities/ExternalIdentities';
+import { NotificationSettings } from './notification-settings/NotificationSettings';
+import { PersonalInfo } from './personal-info/PersonalInfo';
 import { useUserProfile } from './useUserProfile';
 
 const styles = {

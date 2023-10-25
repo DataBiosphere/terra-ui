@@ -134,7 +134,7 @@ export const NotificationSettings = () => {
       }),
     ]),
     div({ style: Style.cardList.toolbarContainer }, [
-      h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
+      h2({ style: { ...Style.elements.sectionHeader, marginTop: '2rem', textTransform: 'uppercase' } }, [
         'Account Notifications',
         h(
           InfoBox,

@@ -3,7 +3,7 @@ import { h } from 'react-hyperscript-helpers';
 import { TerraUserProfile } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { PersonalInfo, PersonalInfoProps } from './PersonalInfo';
+import { PersonalInfo, PersonalInfoProps } from './personal-info/PersonalInfo';
 import { Profile } from './Profile';
 import { useUserProfile } from './useUserProfile';
 
@@ -18,7 +18,7 @@ jest.mock('src/libs/nav', (): NavExports => {
   };
 });
 
-type PersonalInfoExports = typeof import('./PersonalInfo');
+type PersonalInfoExports = typeof import('./personal-info/PersonalInfo');
 jest.mock('./PersonalInfo', (): PersonalInfoExports => {
   return {
     ...jest.requireActual<PersonalInfoExports>('./PersonalInfo'),
