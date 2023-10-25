@@ -19,9 +19,9 @@ jest.mock('src/libs/nav', (): NavExports => {
 });
 
 type PersonalInfoExports = typeof import('./personal-info/PersonalInfo');
-jest.mock('./PersonalInfo', (): PersonalInfoExports => {
+jest.mock('./personal-info/PersonalInfo', (): PersonalInfoExports => {
   return {
-    ...jest.requireActual<PersonalInfoExports>('./PersonalInfo'),
+    ...jest.requireActual<PersonalInfoExports>('./personal-info/PersonalInfo'),
     PersonalInfo: jest.fn().mockReturnValue(null),
   };
 });
