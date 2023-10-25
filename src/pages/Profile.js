@@ -289,14 +289,14 @@ const NotificationSettingsTab = ({ setSaving }) => {
     div({ role: 'list', 'aria-label': 'communication preferences from terra', style: { flexGrow: 1, width: '100%' } }, [
       h(UserAttributesCard, {
         value: true,
-        label: 'System Notifications',
+        label: 'Necessary communications related to platform operations',
         setSaving,
         notificationKeys: [],
         disabled: true,
       }),
       h(UserAttributesCard, {
         value: marketingConsent,
-        label: 'Marketing Communications',
+        label: 'Marketing communications including notifications for upcoming workshops and new flagship dataset additions',
         setSaving,
         notificationKeys: ['notifications/MarketingConsent'],
       }),
