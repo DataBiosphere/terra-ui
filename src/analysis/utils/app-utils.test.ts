@@ -12,6 +12,8 @@ import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
 import { cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -27,6 +29,11 @@ jest.mock('src/libs/state', (): StateExports => {
     getTerraUser: jest.fn(() => ({ email: 'workspace-creator@gmail.com' })),
   };
 });
+
+jest.mock('src/libs/feature-previews', () => ({
+  ...jest.requireActual('src/libs/feature-previews'),
+  isFeaturePreviewEnabled: jest.fn(),
+}));
 
 const cromwellRunning: App = {
   workspaceId: null,
@@ -473,21 +480,12 @@ const mockAppDisksSameWorkspace = [
   cromwellDisk1Workspace1,
 ];
 
-// note: WPP -> Workflows Public Preview
-const creatorWorkspaceBeforeWPP = {
+const creatorWorkspace = {
   createdDate: '2023-03-19T20:28:01.998494Z',
   createdBy: 'workspace-creator@gmail.com',
 };
-const creatorWorkspaceAfterWPP = {
-  createdDate: '2023-03-28T20:28:01.998494Z',
-  createdBy: 'workspace-creator@gmail.com',
-};
-const nonCreatorWorkspaceBeforeWPP = {
+const nonCreatorWorkspace = {
   createdDate: '2023-03-19T20:28:01.998494Z',
-  createdBy: 'non-workspace-creator@gmail.com',
-};
-const nonCreatorWorkspaceAfterWPP = {
-  createdDate: '2023-03-28T20:28:01.998494Z',
   createdBy: 'non-workspace-creator@gmail.com',
 };
 
@@ -594,148 +592,59 @@ describe('workspaceHasMultipleDisks', () => {
   });
 });
 
-describe('doesWorkspaceSupportCromwellAppForUser - Prod', () => {
+describe('doesWorkspaceSupportCromwellAppForUser', () => {
   const testCases = [
     // Azure workspaces
     {
-      workspaceInfo: creatorWorkspaceBeforeWPP,
+      workspaceInfo: creatorWorkspace,
+      cloudProvider: cloudProviderTypes.AZURE,
+      toolLabel: appToolLabels.CROMWELL,
+      expectedResult: true,
+    },
+    {
+      workspaceInfo: nonCreatorWorkspace,
       cloudProvider: cloudProviderTypes.AZURE,
       toolLabel: appToolLabels.CROMWELL,
       expectedResult: false,
     },
+    // Collaborative app types
     {
-      workspaceInfo: creatorWorkspaceAfterWPP,
+      workspaceInfo: creatorWorkspace,
       cloudProvider: cloudProviderTypes.AZURE,
-      toolLabel: appToolLabels.CROMWELL,
+      toolLabel: appToolLabels.WORKFLOWS_APP,
       expectedResult: true,
+      isFeaturePreviewEnabled: (id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
     },
     {
-      workspaceInfo: nonCreatorWorkspaceBeforeWPP,
+      workspaceInfo: nonCreatorWorkspace,
       cloudProvider: cloudProviderTypes.AZURE,
-      toolLabel: appToolLabels.CROMWELL,
+      toolLabel: appToolLabels.WORKFLOWS_APP,
+      expectedResult: true,
+      isFeaturePreviewEnabled: (id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
+    },
+    {
+      workspaceInfo: creatorWorkspace,
+      cloudProvider: cloudProviderTypes.AZURE,
+      toolLabel: appToolLabels.WORKFLOWS_APP,
       expectedResult: false,
+      isFeaturePreviewEnabled: (id) => id !== ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
     },
     {
-      workspaceInfo: nonCreatorWorkspaceAfterWPP,
+      workspaceInfo: nonCreatorWorkspace,
       cloudProvider: cloudProviderTypes.AZURE,
-      toolLabel: appToolLabels.CROMWELL,
+      toolLabel: appToolLabels.WORKFLOWS_APP,
       expectedResult: false,
-    },
-    // GCP workspaces
-    {
-      workspaceInfo: creatorWorkspaceBeforeWPP,
-      cloudProvider: cloudProviderTypes.GCP,
-      toolLabel: appToolLabels.CROMWELL,
-      expectedResult: true,
-    },
-    {
-      workspaceInfo: creatorWorkspaceAfterWPP,
-      cloudProvider: cloudProviderTypes.GCP,
-      toolLabel: appToolLabels.CROMWELL,
-      expectedResult: true,
-    },
-    {
-      workspaceInfo: nonCreatorWorkspaceBeforeWPP,
-      cloudProvider: cloudProviderTypes.GCP,
-      toolLabel: appToolLabels.CROMWELL,
-      expectedResult: true,
-    },
-    {
-      workspaceInfo: nonCreatorWorkspaceAfterWPP,
-      cloudProvider: cloudProviderTypes.GCP,
-      toolLabel: appToolLabels.CROMWELL,
-      expectedResult: true,
+      isFeaturePreviewEnabled: (id) => id !== ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
     },
     // Other app types
     {
-      workspaceInfo: nonCreatorWorkspaceBeforeWPP,
+      workspaceInfo: nonCreatorWorkspace,
       cloudProvider: cloudProviderTypes.GCP,
       toolLabel: appToolLabels.GALAXY,
       expectedResult: true,
     },
     {
-      workspaceInfo: nonCreatorWorkspaceAfterWPP,
-      cloudProvider: cloudProviderTypes.GCP,
-      toolLabel: appToolLabels.GALAXY,
-      expectedResult: true,
-    },
-  ];
-
-  beforeEach(() => {
-    asMockedFn(getConfig).mockReturnValue({ isProd: true });
-  });
-
-  test.each(testCases)(
-    'should return $expectedResult for $toolLabel app in $cloudProvider workspace based on workspace creator and creation date (Prod)',
-    ({ workspaceInfo, cloudProvider, toolLabel, expectedResult }) => {
-      expect(doesWorkspaceSupportCromwellAppForUser(workspaceInfo as WorkspaceInfo, cloudProvider, toolLabel)).toBe(
-        expectedResult
-      );
-    }
-  );
-});
-
-describe('doesWorkspaceSupportCromwellAppForUser - Non-Prod', () => {
-  const testCases = [
-    // Azure workspaces
-    {
-      workspaceInfo: creatorWorkspaceBeforeWPP,
-      cloudProvider: cloudProviderTypes.AZURE,
-      toolLabel: appToolLabels.CROMWELL,
-      expectedResult: true,
-    },
-    {
-      workspaceInfo: creatorWorkspaceAfterWPP,
-      cloudProvider: cloudProviderTypes.AZURE,
-      toolLabel: appToolLabels.CROMWELL,
-      expectedResult: true,
-    },
-    {
-      workspaceInfo: nonCreatorWorkspaceBeforeWPP,
-      cloudProvider: cloudProviderTypes.AZURE,
-      toolLabel: appToolLabels.CROMWELL,
-      expectedResult: false,
-    },
-    {
-      workspaceInfo: nonCreatorWorkspaceAfterWPP,
-      cloudProvider: cloudProviderTypes.AZURE,
-      toolLabel: appToolLabels.CROMWELL,
-      expectedResult: false,
-    },
-    // GCP workspaces
-    {
-      workspaceInfo: creatorWorkspaceBeforeWPP,
-      cloudProvider: cloudProviderTypes.GCP,
-      toolLabel: appToolLabels.CROMWELL,
-      expectedResult: true,
-    },
-    {
-      workspaceInfo: creatorWorkspaceAfterWPP,
-      cloudProvider: cloudProviderTypes.GCP,
-      toolLabel: appToolLabels.CROMWELL,
-      expectedResult: true,
-    },
-    {
-      workspaceInfo: nonCreatorWorkspaceBeforeWPP,
-      cloudProvider: cloudProviderTypes.GCP,
-      toolLabel: appToolLabels.CROMWELL,
-      expectedResult: true,
-    },
-    {
-      workspaceInfo: nonCreatorWorkspaceAfterWPP,
-      cloudProvider: cloudProviderTypes.GCP,
-      toolLabel: appToolLabels.CROMWELL,
-      expectedResult: true,
-    },
-    // Other app types
-    {
-      workspaceInfo: nonCreatorWorkspaceBeforeWPP,
-      cloudProvider: cloudProviderTypes.GCP,
-      toolLabel: appToolLabels.GALAXY,
-      expectedResult: true,
-    },
-    {
-      workspaceInfo: nonCreatorWorkspaceAfterWPP,
+      workspaceInfo: nonCreatorWorkspace,
       cloudProvider: cloudProviderTypes.GCP,
       toolLabel: appToolLabels.GALAXY,
       expectedResult: true,
@@ -748,7 +657,10 @@ describe('doesWorkspaceSupportCromwellAppForUser - Non-Prod', () => {
 
   test.each(testCases)(
     'should return $expectedResult for $toolLabel app in $cloudProvider workspace based on workspace creator and creation date (non-Prod)',
-    ({ workspaceInfo, cloudProvider, toolLabel, expectedResult }) => {
+    ({ workspaceInfo, cloudProvider, toolLabel, expectedResult, isFeaturePreviewEnabled: featurePreviewImpl }) => {
+      if (featurePreviewImpl) {
+        asMockedFn(isFeaturePreviewEnabled).mockImplementation(featurePreviewImpl);
+      }
       expect(doesWorkspaceSupportCromwellAppForUser(workspaceInfo as WorkspaceInfo, cloudProvider, toolLabel)).toBe(
         expectedResult
       );

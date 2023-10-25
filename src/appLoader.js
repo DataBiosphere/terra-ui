@@ -1,3 +1,4 @@
+import 'src/libs/ajax/ajax-override-utils';
 import 'src/style.css';
 
 import _ from 'lodash/fp';
@@ -14,7 +15,6 @@ import Main from 'src/pages/Main';
 const rootElement = document.getElementById('root');
 
 RModal.defaultStyles = { overlay: {}, content: {} };
-RModal.setAppElement(rootElement);
 
 window._ = _;
 

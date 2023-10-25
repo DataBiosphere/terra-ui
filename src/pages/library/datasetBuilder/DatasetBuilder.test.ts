@@ -24,12 +24,6 @@ jest.mock('src/libs/nav', () => ({
   useRoute: jest.fn(),
 }));
 
-type ModalMockExports = typeof import('src/components/Modal.mock');
-jest.mock('src/components/Modal', () => {
-  const mockModal = jest.requireActual<ModalMockExports>('src/components/Modal.mock');
-  return mockModal.mockModalModule();
-});
-
 jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
 jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {

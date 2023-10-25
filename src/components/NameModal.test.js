@@ -5,11 +5,6 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { NameModal } from './NameModal';
 
-jest.mock('src/components/Modal', () => {
-  const { mockModalModule } = jest.requireActual('src/components/Modal.mock');
-  return mockModalModule();
-});
-
 describe('NameModal', () => {
   it('renders a prompt for a new thing name', () => {
     // Act

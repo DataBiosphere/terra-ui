@@ -27,6 +27,7 @@ export type TerraUserProfile = {
   firstName: string | undefined;
   lastName: string | undefined;
   institute: string | undefined;
+  email: string | undefined;
   contactEmail: string | undefined;
   title: string | undefined;
   department: string | undefined;
@@ -34,6 +35,7 @@ export type TerraUserProfile = {
   programLocationCity: string | undefined;
   programLocationState: string | undefined;
   programLocationCountry: string | undefined;
+  researchArea: string | undefined;
   starredWorkspaces: string | undefined;
 };
 
@@ -114,6 +116,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   profile: {
     firstName: undefined,
     lastName: undefined,
+    email: undefined,
     contactEmail: undefined,
     title: undefined,
     institute: undefined,
@@ -121,6 +124,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     programLocationCity: undefined,
     programLocationState: undefined,
     programLocationCountry: undefined,
+    researchArea: undefined,
     interestInTerra: undefined,
     starredWorkspaces: undefined,
   },
@@ -151,6 +155,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     idp: undefined,
   },
 });
+
 export const getTerraUser = (): TerraUser => authStore.get().terraUser;
 
 export const getSessionId = () => authStore.get().sessionId;
@@ -231,7 +236,7 @@ export const snapshotStore = atom<unknown>(undefined);
 
 export const dataCatalogStore = atom<Dataset[]>([]);
 
-type AjaxOverride = {
+export type AjaxOverride = {
   fn: (fetch: AnyPromiseFn) => AnyPromiseFn;
   filter:
     | {
