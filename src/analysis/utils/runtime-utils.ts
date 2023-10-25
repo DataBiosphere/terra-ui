@@ -48,6 +48,7 @@ export const defaultLocation = 'US-CENTRAL1';
 
 export const defaultComputeZone = 'US-CENTRAL1-A';
 export const defaultComputeRegion = 'US-CENTRAL1';
+export const defaultAzureComputeRegion = 'eastus';
 
 export const defaultAutopauseThreshold = 30;
 // Leonardo considers autopause disabled when the threshold is set to 0
@@ -74,15 +75,15 @@ export type NormalizedComputeRegion = NominalType<string, 'ComputeRegion'>;
 // TODO: test when zone and region have types
 export const getNormalizedComputeRegion = (config: GoogleRuntimeConfig | AzureConfig): NormalizedComputeRegion => {
   if (isGceConfig(config) || isGceWithPdConfig(config)) {
-    return getRegionFromZone(config.zone).toUpperCase() as NormalizedComputeRegion;
+    return (getRegionFromZone(config.zone) || defaultComputeRegion).toUpperCase() as NormalizedComputeRegion;
   }
   if (isDataprocConfig(config)) {
-    return config.region.toUpperCase() as NormalizedComputeRegion;
+    return (config.region || defaultComputeRegion).toUpperCase() as NormalizedComputeRegion;
   }
   if (isAzureConfig(config)) {
-    return config.region.toUpperCase() as NormalizedComputeRegion;
+    return (config.region || defaultAzureComputeRegion).toUpperCase() as NormalizedComputeRegion;
   }
-  return defaultComputeRegion as NormalizedComputeRegion;
+  return defaultComputeRegion.toUpperCase() as NormalizedComputeRegion;
 };
 
 export const findMachineType = (name: string) => {
