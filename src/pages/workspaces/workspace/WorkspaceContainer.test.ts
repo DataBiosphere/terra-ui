@@ -219,4 +219,48 @@ describe('WorkspaceContainer', () => {
     await waitFor(() => expect(silentlyRefreshWorkspace).toBeCalledTimes(3));
     await waitFor(() => expect(goToPath).not.toBeCalled());
   });
+
+  it('does not poll for a workspace that is not deleting', async () => {
+    // Arrange
+    const pollResponse: Response = new Response(null, { status: 404 });
+    const silentlyRefreshWorkspace = jest.fn().mockImplementation((errorHandling?: ErrorCallback) => {
+      if (errorHandling) {
+        errorHandling(pollResponse);
+      }
+    });
+    const workspace: InitializedWorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspaceInitialized: true,
+    };
+    const props = {
+      namespace: workspace.workspace.namespace,
+      name: workspace.workspace.name,
+      workspace,
+      storageDetails: {
+        googleBucketLocation: '',
+        googleBucketType: '',
+        fetchedGoogleBucketLocation: undefined,
+      },
+      refresh: () => Promise.resolve(),
+      refreshWorkspace: () => {},
+      silentlyRefreshWorkspace,
+      breadcrumbs: [],
+      title: '',
+      analysesData: {
+        refreshApps: () => Promise.resolve(),
+        refreshRuntimes: () => Promise.resolve(),
+      },
+    };
+
+    jest.useFakeTimers();
+
+    // Act
+    render(h(WorkspaceContainer, props));
+    // trigger timing past poll timing multiple times
+    jest.advanceTimersByTime(30000);
+    await Promise.resolve();
+
+    // Assert
+    expect(silentlyRefreshWorkspace).not.toBeCalled();
+  });
 });
