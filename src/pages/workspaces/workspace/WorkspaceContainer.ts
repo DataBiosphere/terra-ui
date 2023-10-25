@@ -134,7 +134,15 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
     }
   };
   // poll workspace state every 30 seconds
-  usePollingEffect(() => silentlyRefreshWorkspace(handleWorkspaceError), { ms: 30000, leading: false });
+  usePollingEffect(
+    () => {
+      if (workspace?.workspace?.state === 'Deleting') {
+        return silentlyRefreshWorkspace(handleWorkspaceError);
+      }
+      return Promise.resolve();
+    },
+    { ms: 30000, leading: false }
+  );
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
