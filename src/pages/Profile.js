@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, h3, label, p, span } from 'react-hyperscript-helpers';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Checkbox, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
@@ -229,14 +229,81 @@ const NotificationCard = memoWithName('NotificationCard', ({ label, notification
   ]);
 });
 
+const UserAttributesCard = memoWithName('NotificationCard', ({ value, label, setSaving, notificationKeys, disabled = false }) => {
+  const notificationCardStyles = {
+    field: {
+      ...Style.noWrapEllipsis,
+      flex: 1,
+      height: '1rem',
+      paddingRight: '1rem',
+    },
+    row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' },
+  };
+
+  return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
+    div({ style: notificationCardStyles.row }, [
+      div({ style: { ...notificationCardStyles.field, display: 'flex', alignItems: 'center' } }, label),
+      div({ style: notificationCardStyles.field }, [h(UserAttributesCheckbox, { value, label, setSaving, notificationKeys, disabled })]),
+    ]),
+  ]);
+});
+
+const UserAttributesCheckbox = ({ value, label, setSaving, notificationKeys, disabled }) => {
+  const onChangeFunc = disabled
+    ? (_) => {}
+    : _.flow(
+        Utils.withBusyState(setSaving),
+        withErrorReporting('Error saving user attributes')
+      )(async (v) => {
+        await Ajax().User.setUserAttributes({ marketingConsent: v });
+        Ajax().Metrics.captureEvent(Events.notificationToggle, { notificationKeys, enabled: v });
+        await refreshTerraProfile();
+      });
+  return h(Checkbox, {
+    'aria-label': label,
+    checked: value,
+    onChange: onChangeFunc,
+    disabled,
+  });
+};
+
 const NotificationSettingsTab = ({ setSaving }) => {
   const { workspaces } = useWorkspaces();
+  const userAttributes = authStore.get().terraUserAttributes;
+  const [marketingConsent, setMarketingConsent] = useState(userAttributes.marketingConsent);
+
+  useEffect(() => {
+    setMarketingConsent(userAttributes.marketingConsent);
+  }, [userAttributes.marketingConsent]);
+
   const [prefsData] = _.over(_.pickBy)((_v, k) => _.startsWith('notifications/', k), authStore.get().profile);
 
   return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
     div({ style: Style.cardList.toolbarContainer }, [
       h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
-        'Account Notifications',
+        'System Notifications',
+        h(InfoBox, { style: { marginLeft: '0.5rem' } }, 'You may opt in or out of recieving marketing communications from Terra'),
+      ]),
+    ]),
+    h(NotificationCardHeaders),
+    div({ role: 'list', 'aria-label': 'communication preferences from terra', style: { flexGrow: 1, width: '100%' } }, [
+      h(UserAttributesCard, {
+        value: true,
+        label: 'System Notifications',
+        setSaving,
+        notificationKeys: [],
+        disabled: true,
+      }),
+      h(UserAttributesCard, {
+        value: marketingConsent,
+        label: 'Marketing Communications',
+        setSaving,
+        notificationKeys: ['notifications/MarketingConsent'],
+      }),
+    ]),
+    div({ style: Style.cardList.toolbarContainer }, [
+      h2({ style: { ...Style.elements.sectionHeader, marginTop: '2rem', textTransform: 'uppercase' } }, [
+        'Access Notifications',
         h(
           InfoBox,
           { style: { marginLeft: '0.5rem' } },

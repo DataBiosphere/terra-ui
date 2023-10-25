@@ -178,7 +178,10 @@ export const User = (signal?: AbortSignal) => {
 
     getUserAttributes: async (): Promise<SamUserAttributes> => {
       const res = await fetchSam('api/users/v2/self/attributes', _.mergeAll([authOpts(), { signal }]));
-      return res.json();
+      return res.json().then((obj) => {
+        const { userId: _, ...rest } = obj;
+        return rest;
+      });
     },
 
     setUserAttributes: async (userAttributes: SamUserAttributesRequest): Promise<SamUserAttributes> => {
