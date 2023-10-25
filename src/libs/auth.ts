@@ -2,14 +2,19 @@ import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
-import { ExtraSigninRequestArgs, IdTokenClaims, User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
-import { AuthContextProps } from 'react-oidc-context';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import {
+  B2cIdTokenClaims,
+  getCurrentOidcUser,
+  oidcSignIn,
+  OidcSignInArgs,
+  OidcUser,
+  revokeTokens,
+} from 'src/auth/oidc-broker';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
-import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage';
-import { getConfig } from 'src/libs/config';
+import { getSessionStorage } from 'src/libs/browser-storage';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications';
@@ -34,52 +39,10 @@ import {
 import * as Utils from 'src/libs/utils';
 import { v4 as uuid } from 'uuid';
 
-export interface OidcUser extends User {
-  profile: B2cIdTokenClaims;
-}
+export const getAuthToken = (): string | undefined => {
+  const oidcUser: OidcUser | undefined = oidcStore.get().user;
 
-// Our config for b2C claims are defined here: https://github.com/broadinstitute/terraform-ap-deployments/tree/master/azure/b2c/policies
-// The standard b2C claims are defined here: https://learn.microsoft.com/en-us/azure/active-directory/develop/id-token-claims-reference
-export interface B2cIdTokenClaims extends IdTokenClaims {
-  email_verified?: boolean;
-  idp?: string;
-  idp_access_token?: string;
-  tid?: string;
-  ver?: string;
-}
-
-export const getOidcConfig = () => {
-  const metadata = {
-    authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
-    token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`,
-  };
-  return {
-    authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
-    // The clientId from oidcStore.config is not undefined, setup in initializeClientId on appLoad
-    client_id: oidcStore.get().config.clientId!,
-    popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
-    silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
-    metadata,
-    prompt: 'consent login',
-    scope: 'openid email profile',
-    stateStore: new WebStorageStateStore({ store: getLocalStorage() }),
-    userStore: new WebStorageStateStore({ store: getLocalStorage() }),
-    automaticSilentRenew: true,
-    // Leo's setCookie interval is currently 5 min, set refresh auth then 5 min 30 seconds to guarantee that setCookie's token won't expire between 2 setCookie api calls
-    accessTokenExpiringNotificationTimeInSeconds: 330,
-    includeIdTokenInSilentRenew: true,
-    extraQueryParams: { access_type: 'offline' },
-    redirect_uri: '', // this field is not being used currently, but is expected from UserManager
-  };
-};
-
-const getAuthInstance = (): AuthContextProps => {
-  const authContext: AuthContextProps | undefined = oidcStore.get().authContext;
-  if (authContext === undefined) {
-    console.error('getAuthInstance must not be called before authContext is initialized.');
-    throw new Error('Error initializing authentication.');
-  }
-  return authContext;
+  return oidcUser?.access_token;
 };
 
 export type SignOutCause =
@@ -118,6 +81,10 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
   });
 };
 
+export const sendRetryMetric = () => {
+  Ajax().Metrics.captureEvent(Events.user.authTokenLoad.retry, {});
+};
+
 export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   sendSignOutMetrics(cause);
   if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
@@ -129,10 +96,8 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   getSessionStorage().clear();
   azurePreviewStore.set(false);
 
-  const auth: AuthContextProps = getAuthInstance();
-  revokeTokens()
-    .finally(() => auth.removeUser())
-    .finally(() => auth.clearStaleState());
+  revokeTokens();
+
   const cookiesAccepted: boolean | undefined = authStore.get().cookiesAccepted;
   const anonymousId: string | undefined = authStore.get().anonymousId;
   authStore.reset();
@@ -151,37 +116,8 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   }));
 };
 
-const revokeTokens = async () => {
-  // send back auth instance, so we can use it for remove and clear stale state
-  const auth: AuthContextProps = getAuthInstance();
-  if (auth.settings.metadata?.revocation_endpoint) {
-    // revokeTokens can fail if the token has already been revoked.
-    // Recover from invalid_token errors to make sure signOut completes successfully.
-    try {
-      await auth.revokeTokens();
-    } catch (e) {
-      if ((e as any).error === 'invalid_token') {
-        return null;
-      }
-      throw e;
-    }
-  }
-};
-
-const getSigninArgs = (includeBillingScope: boolean): ExtraSigninRequestArgs => {
-  return Utils.cond(
-    [!includeBillingScope, (): ExtraSigninRequestArgs => ({})],
-    // For B2C use a dedicated policy endpoint configured for the GCP cloud-billing scope.
-    (): ExtraSigninRequestArgs => ({
-      extraQueryParams: { access_type: 'offline', p: getConfig().b2cBillingPolicy },
-      extraTokenParams: { p: getConfig().b2cBillingPolicy },
-    })
-  );
-};
-
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
-  // we should handle if we get back null or false here (if loading the authTokenFails)
-  const authTokenState: AuthTokenState = await loadAuthToken(includeBillingScope, true);
+  const authTokenState: AuthTokenState = await loadAuthToken({ includeBillingScope, popUp: true });
   if (authTokenState.status === 'success') {
     const sessionId = uuid();
     const sessionStartTime: number = Date.now();
@@ -226,10 +162,11 @@ export type AuthTokenState = AuthTokenSuccessState | AuthTokenExpiredState | Aut
  * When token is successfully loaded, returns an AuthTokenSuccessState.
  * When token fails to load because of an expired refresh token, returns an AuthTokenExpiredState
  * When tokens fails to load because of an error, returns an AuthTokenErrorState
- * @param includeBillingScope
- * @param popUp whether signIn is attempted with a popup, or silently in the background.
+ * @param args
  */
-export const loadAuthToken = async (includeBillingScope = false, popUp = false): Promise<AuthTokenState> => {
+export const loadAuthToken = async (
+  args: OidcSignInArgs = { includeBillingScope: false, popUp: false }
+): Promise<AuthTokenState> => {
   const oldAuthTokenMetadata: TokenMetadata = authStore.get().authTokenMetadata;
   const oldRefreshTokenMetadata: TokenMetadata = authStore.get().refreshTokenMetadata;
 
@@ -242,10 +179,17 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     },
   }));
 
-  const loadedAuthTokenState: AuthTokenState = await tryLoadAuthToken(includeBillingScope, popUp);
-
+  const loadedAuthTokenState: AuthTokenState = await tryLoadAuthToken(args);
+  oidcStore.update((state) => ({
+    ...state,
+    authTokenState: loadedAuthTokenState,
+  }));
   if (loadedAuthTokenState.status === 'success') {
     const oidcUser: OidcUser = loadedAuthTokenState.oidcUser;
+    oidcStore.update((state) => ({
+      ...state,
+      user: oidcUser,
+    }));
     const oidcUserJWT: string = oidcUser.id_token!;
     const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(oidcUserJWT);
     const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
@@ -255,11 +199,6 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     const refreshToken: string | undefined = oidcUser.refresh_token;
     // for future might want to take refresh token and hash it to compare to a saved hashed token to see if they are the same
     const isNewRefreshToken = !!refreshToken && refreshToken !== oldRefreshTokenMetadata.token;
-
-    oidcStore.update((state) => ({
-      ...state,
-      user: oidcUser,
-    }));
 
     // for metrics, updates authToken metadata and refresh token metadata
     authStore.update((state) => ({
@@ -319,14 +258,11 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
   return loadedAuthTokenState;
 };
 
-const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Promise<AuthTokenState> => {
-  const args: ExtraSigninRequestArgs = getSigninArgs(includeBillingScope);
-  const authInstance: AuthContextProps = getAuthInstance();
+const tryLoadAuthToken = async (
+  args: OidcSignInArgs = { includeBillingScope: false, popUp: false }
+): Promise<AuthTokenState> => {
   try {
-    const loadedAuthTokenResponse: OidcUser | null = await (popUp
-      ? // returns Promise<OidcUser | null>, attempts to use the refresh token to get a new authToken
-        authInstance.signinPopup(args)
-      : authInstance.signinSilent(args));
+    const loadedAuthTokenResponse: OidcUser | null = await oidcSignIn(args);
 
     if (loadedAuthTokenResponse === null) {
       return {
@@ -376,7 +312,7 @@ export const hasBillingScope = (): boolean => authStore.get().hasGcpBillingScope
  */
 export const tryBillingScope = async () => {
   if (!hasBillingScope()) {
-    await loadAuthToken(true);
+    await loadAuthToken({ includeBillingScope: true, popUp: false });
   }
 };
 
@@ -435,9 +371,11 @@ export const isAzureUser = (): boolean => {
 };
 
 export const loadOidcUser = (user: OidcUser): void => {
-  return authStore.update((state) => {
+  oidcStore.update((state) => ({ ...state, user }));
+  authStore.update((state) => {
     const tokenClaims: B2cIdTokenClaims = user.profile;
     // according to IdTokenClaims, this is a mandatory claim and should always exist
+    // should be googleSubjectId or b2cId depending on how they authenticated
     const userId: string = tokenClaims.sub;
     return {
       ...state,
@@ -462,17 +400,13 @@ export const loadOidcUser = (user: OidcUser): void => {
 
 // this function is only called when the browser refreshes
 export const initializeAuth = _.memoize(async (): Promise<void> => {
-  // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
-  // All other auth usage should use the AuthContext from oidcStore.
-  const userManager: UserManager = new UserManager(getOidcConfig());
-
   const setSignedOut = () =>
     authStore.update((state) => ({
       ...state,
       signInStatus: 'signedOut',
     }));
   try {
-    const initialOidcUser: OidcUser | null = await userManager.getUser();
+    const initialOidcUser: OidcUser | null = await getCurrentOidcUser();
     if (initialOidcUser !== null) {
       loadOidcUser(initialOidcUser);
     } else {
@@ -485,19 +419,32 @@ export const initializeAuth = _.memoize(async (): Promise<void> => {
   }
 });
 
-// This is the first thing that happens on app load.
-export const initializeClientId = _.memoize(async () => {
-  const oidcConfig = await Ajax().OAuth2.getConfiguration();
-  oidcStore.update((state) => ({ ...state, config: oidcConfig }));
-});
+interface GoogleUserInfo {
+  sub: string;
+  name: string;
+  given_name: string;
+  family_name: string;
+  picture: string;
+  email: string;
+  email_verified: boolean;
+  locale: string;
+  hd: string;
+}
 
-// This is intended for tests to short circuit the login flow
+// This is intended for integration tests to short circuit the login flow
 window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) => {
   await initializeAuth(); // don't want this clobbered when real auth initializes
   const res = await fetchOk('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const data = await res.json();
+  const data: GoogleUserInfo = await res.json();
+  oidcStore.update((state) => ({
+    ...state,
+    user: {
+      ...data,
+      access_token: token,
+    } as unknown as OidcUser,
+  }));
   authStore.update((state) => {
     return {
       ...state,

@@ -1,6 +1,6 @@
 import { UserManager } from 'oidc-client-ts';
 import { div, img } from 'react-hyperscript-helpers';
-import { getOidcConfig } from 'src/libs/auth';
+import { getOidcConfig } from 'src/auth/oidc-broker';
 import { useOnMount } from 'src/libs/react-utils';
 
 const RedirectFromOAuth = () => {
