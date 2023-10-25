@@ -5,7 +5,7 @@ import { h } from 'react-hyperscript-helpers';
 import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
 import { getTerraUser, workflowsAppStore } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { SubmitWorkflowModal } from 'src/workflows-app/components/SubmitWorkflowModal';
@@ -184,7 +184,7 @@ describe('SubmitWorkflowModal', () => {
     // ** ARRANGE **
     workflowsAppStore.reset();
     asMockedFn(isFeaturePreviewEnabled).mockImplementation(
-      (id) => featureFlagEnabled && id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS
+      (id) => featureFlagEnabled && id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS
     );
     const userEmail = role === 'CREATOR' ? 'groot@gmail.com' : 'not-groot@gmail.com';
     const appToSubmitTo = featureFlagEnabled ? mockWorkflowsApp : mockCromwellApp;
