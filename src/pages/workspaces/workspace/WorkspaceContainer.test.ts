@@ -123,7 +123,7 @@ describe('WorkspaceContainer', () => {
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('polls for a workspace in the process of deleting and redirects when deleted', async () => {
+  xit('polls for a workspace in the process of deleting and redirects when deleted', async () => {
     // Arrange
     const pollResponse: Response = new Response(null, { status: 404 });
     const silentlyRefreshWorkspace = jest.fn().mockImplementation((errorHandling?: ErrorCallback) => {
@@ -172,7 +172,7 @@ describe('WorkspaceContainer', () => {
     await waitFor(() => expect(goToPath).toBeCalledWith('workspaces'));
   });
 
-  it('continues polling when a workspace has not been deleted', async () => {
+  xit('continues polling when a workspace has not been deleted', async () => {
     // Arrange
     const silentlyRefreshWorkspace = jest.fn().mockImplementation(() => Promise.resolve());
     const workspace: InitializedWorkspaceWrapper = {

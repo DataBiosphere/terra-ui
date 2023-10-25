@@ -20,7 +20,7 @@ import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { ErrorCallback, withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { useCancellation, useOnMount, usePollingEffect, withDisplayName } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -114,7 +114,6 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
     refresh,
     workspace,
     refreshWorkspace,
-    silentlyRefreshWorkspace,
     children,
   } = props;
   const [deletingWorkspace, setDeletingWorkspace] = useState(false);
@@ -128,22 +127,29 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
 
   // when the workspace refresh polling gets back an error for a workspace that is deleting
   // redirect to list view
+  /*
   const handleWorkspaceError = (error: unknown) => {
     if (error instanceof Response && error.status === 404) {
       Nav.goToPath('workspaces');
     }
   };
+  */
   // poll workspace state every 30 seconds
+  /*
+  this is temporarily disabled to avoid swamping sam with API calls
+  for some reason the conditional works in unit tests but not real runs, 
+  and it's better to completely disable it rather than push out something that's broken for an unknown reason
   usePollingEffect(
-    () => {
-      if (workspace?.workspace?.state === 'Deleting') {
+    (): Promise<void> => {
+      if (workspaceLoaded && workspace.workspace.state === 'Deleting') {
         return silentlyRefreshWorkspace(handleWorkspaceError);
+      } else {
+        return Promise.resolve();
       }
-      return Promise.resolve();
     },
     { ms: 30000, leading: false }
   );
-
+  */
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
