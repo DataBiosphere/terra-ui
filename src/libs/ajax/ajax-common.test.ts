@@ -1,23 +1,52 @@
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { loadAuthToken, OidcUser, signOut } from 'src/libs/auth';
-import { getTerraUser } from 'src/libs/state';
+import { OidcUser } from 'src/auth/oidc-broker';
+import { loadAuthToken, signOut } from 'src/libs/auth';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } from './ajax-common';
 
+let mockOidcUser: OidcUser;
+const token = 'testtoken';
+const newToken = 'newtesttoken';
+beforeEach(() => {
+  mockOidcUser = {
+    id_token: undefined,
+    session_state: null,
+    access_token: token,
+    refresh_token: '',
+    token_type: '',
+    scope: undefined,
+    profile: {
+      sub: '',
+      iss: '',
+      aud: '',
+      exp: 0,
+      iat: 0,
+    },
+    expires_at: undefined,
+    state: undefined,
+    expires_in: 0,
+    expired: undefined,
+    scopes: [],
+    toStorageString: (): string => '',
+  };
+
+  asMockedFn(loadAuthToken).mockImplementation(() => {
+    mockOidcUser.access_token = newToken;
+    return Promise.resolve({
+      status: 'success',
+      oidcUser: mockOidcUser,
+    });
+  });
+});
+
 type AuthExports = typeof import('src/libs/auth');
 jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   return {
+    getAuthToken: jest.fn(() => mockOidcUser.access_token),
     loadAuthToken: jest.fn(),
+    sendRetryMetric: jest.fn(),
     signOut: jest.fn(),
-  };
-});
-
-type StateExports = typeof import('src/libs/state');
-jest.mock('src/libs/state', (): StateExports => {
-  return {
-    ...jest.requireActual('src/libs/state'),
-    getTerraUser: jest.fn(() => ({ token: 'testtoken' })),
   };
 });
 
@@ -50,7 +79,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
 
     // Assert
     expect(response instanceof Response).toBe(true);
-    expect(response.json()).resolves.toEqual({ success: true });
+    await expect(response.json()).resolves.toEqual({ success: true });
     expect(response.status).toBe(200);
   });
 
@@ -60,44 +89,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
       Promise.reject(new Response(JSON.stringify({ success: false }), { status: 401 }))
     );
     const wrappedFetch = withRetryAfterReloadingExpiredAuthToken(originalFetch);
-
-    const token = 'testtoken';
     const makeAuthenticatedRequest = () => wrappedFetch('https://example.com', authOpts());
-
-    beforeEach(() => {
-      let mockTerraUser = { token };
-      const mockOidcUser: OidcUser = {
-        id_token: undefined,
-        session_state: null,
-        access_token: token,
-        refresh_token: '',
-        token_type: '',
-        scope: undefined,
-        profile: {
-          sub: '',
-          iss: '',
-          aud: '',
-          exp: 0,
-          iat: 0,
-        },
-        expires_at: undefined,
-        state: undefined,
-        expires_in: 0,
-        expired: undefined,
-        scopes: [],
-        toStorageString: (): string => '',
-      };
-
-      asMockedFn(getTerraUser).mockImplementation(() => mockTerraUser);
-
-      asMockedFn(loadAuthToken).mockImplementation(() => {
-        mockTerraUser = { token: 'newtesttoken' };
-        return Promise.resolve({
-          status: 'success',
-          oidcUser: mockOidcUser,
-        });
-      });
-    });
 
     it('attempts to reload auth token', async () => {
       // Act
@@ -108,7 +100,66 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
       expect(loadAuthToken).toHaveBeenCalled();
     });
 
-    it('retries request with new auth token if reloading auth token succeeds', async () => {
+    describe('if reloading auth token fails', () => {
+      describe('due to an error', () => {
+        beforeEach(() => {
+          asMockedFn(loadAuthToken).mockImplementation(() =>
+            Promise.resolve({
+              status: 'error',
+              internalErrorMsg: 'unexpected error',
+              userErrorMsg: 'unexpected error',
+              reason: {},
+            })
+          );
+        });
+
+        it('signs out user', async () => {
+          // Act
+          // Ignore errors because makeAuthenticatedRequest is expected to return a rejected promise here.
+          await Promise.allSettled([makeAuthenticatedRequest()]);
+
+          // Assert
+          expect(signOut).toHaveBeenCalledWith('errorRefreshingAuthToken');
+        });
+
+        it('throws an error', async () => {
+          // Act
+          const result = makeAuthenticatedRequest();
+
+          // Assert
+          await expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
+        });
+      });
+
+      describe('due to an expired refresh token', () => {
+        beforeEach(() => {
+          asMockedFn(loadAuthToken).mockImplementation(() =>
+            Promise.resolve({
+              status: 'expired',
+            })
+          );
+        });
+
+        it('signs out user', async () => {
+          // Act
+          // Ignore errors because makeAuthenticatedRequest is expected to return a rejected promise here.
+          await Promise.allSettled([makeAuthenticatedRequest()]);
+
+          // Assert
+          expect(signOut).toHaveBeenCalledWith('expiredRefreshToken');
+        });
+
+        it('throws an error', async () => {
+          // Act
+          const result = makeAuthenticatedRequest();
+
+          // Assert
+          await expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
+        });
+      });
+    });
+
+    it('and reloading the auth token succeeds it retries request with new auth token', async () => {
       // Act
       // Ignore errors because the mock originalFetch function always returns a rejected promise.
       await Promise.allSettled([makeAuthenticatedRequest()]);
@@ -116,40 +167,10 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
       // Assert
       expect(originalFetch).toHaveBeenCalledTimes(2);
       expect(originalFetch).toHaveBeenCalledWith('https://example.com', {
-        headers: { Authorization: 'Bearer testtoken' },
+        headers: { Authorization: `Bearer ${token}` },
       });
       expect(originalFetch).toHaveBeenLastCalledWith('https://example.com', {
-        headers: { Authorization: 'Bearer newtesttoken' },
-      });
-    });
-
-    describe('if reloading auth token fails', () => {
-      beforeEach(() => {
-        asMockedFn(loadAuthToken).mockImplementation(() =>
-          Promise.resolve({
-            status: 'error',
-            internalErrorMsg: 'unexpected error',
-            userErrorMsg: 'unexpected error',
-            reason: {},
-          })
-        );
-      });
-
-      it('signs out user', async () => {
-        // Act
-        // Ignore errors because makeAuthenticatedRequest is expected to return a rejected promise here.
-        await Promise.allSettled([makeAuthenticatedRequest()]);
-
-        // Assert
-        expect(signOut).toHaveBeenCalled();
-      });
-
-      it('throws an error', () => {
-        // Act
-        const result = makeAuthenticatedRequest();
-
-        // Assert
-        expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
+        headers: { Authorization: `Bearer ${newToken}` },
       });
     });
   });

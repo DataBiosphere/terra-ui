@@ -66,6 +66,7 @@ type WorkflowsAppNavPanelProps = {
   workspace: WorkspaceWrapper;
   analysesData: AnalysesData;
   launcherDisabled: boolean;
+  launching: boolean;
   createWorkflowsApp: Function;
   pageReady: boolean;
   setLoading: Function;
@@ -75,6 +76,7 @@ type WorkflowsAppNavPanelProps = {
 export const WorkflowsAppNavPanel = ({
   pageReady,
   launcherDisabled,
+  launching,
   loading,
   name,
   namespace,
@@ -260,7 +262,8 @@ export const WorkflowsAppNavPanel = ({
       ],
       [
         !pageReady,
-        () => div([h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, disabled: launcherDisabled })]),
+        () =>
+          div([h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, launching, disabled: launcherDisabled })]),
       ]
     ),
   ]);

@@ -7,12 +7,6 @@ import Modal from 'src/components/Modal';
 import { useModalHandler } from 'src/components/useModalHandler';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
-type ModalMockExports = typeof import('src/components/Modal.mock');
-jest.mock('src/components/Modal', () => {
-  const mockModal = jest.requireActual<ModalMockExports>('src/components/Modal.mock');
-  return mockModal.mockModalModule();
-});
-
 describe('useModalHandler helper hook', () => {
   interface TestComponentProps {
     onCloseThing: (args: string) => void;

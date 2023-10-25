@@ -20,12 +20,6 @@ jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
   };
 });
 
-type ModalExports = typeof import('src/components/Modal');
-jest.mock('src/components/Modal', (): ModalExports => {
-  const { mockModalModule } = jest.requireActual('src/components/Modal.mock');
-  return mockModalModule();
-});
-
 type ErrorExports = typeof import('src/libs/error');
 jest.mock(
   'src/libs/error',
