@@ -1,6 +1,5 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
-import _ from 'lodash/fp';
 import { Ajax } from 'src/libs/ajax';
 
 import { getServiceAlerts } from './service-alerts';
@@ -54,7 +53,7 @@ describe('getServiceAlerts', () => {
     } as AjaxContract);
 
     const serviceAlerts = await getServiceAlerts();
-    expect(_.map('id', serviceAlerts)).toEqual([
+    expect(serviceAlerts.map((alert) => alert.id)).toEqual([
       '94a2d01d8daeece88bce47cbfc702593005c5466dd021e677f3c293a62cec57e',
       '2e54894f36216834f591df1e1fb355789cf5622e02dd23e855c9639c3d080dc1',
     ]);
@@ -79,6 +78,6 @@ describe('getServiceAlerts', () => {
     } as AjaxContract);
 
     const serviceAlerts = await getServiceAlerts();
-    expect(_.map('severity', serviceAlerts)).toEqual(['warn', 'info']);
+    expect(serviceAlerts.map((alert) => alert.severity)).toEqual(['warn', 'info']);
   });
 });

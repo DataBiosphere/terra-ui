@@ -1,5 +1,4 @@
 import { fireEvent, screen, within } from '@testing-library/react';
-import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import * as Utils from 'src/libs/utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -51,10 +50,10 @@ describe('Alerts', () => {
     const alerts = screen.getAllByTestId('alert');
     expect(alerts.length).toBe(testAlerts.length);
 
-    _.forEach(([index, testAlert]) => {
+    Utils.toIndexPairs(testAlerts).forEach(([index, testAlert]) => {
       expect(within(alerts[index]).getByText(testAlert.title)).toBeTruthy();
       expect(within(alerts[index]).getByText(testAlert.message as string)).toBeTruthy();
-    }, Utils.toIndexPairs(testAlerts));
+    });
   });
 
   it('renders alerts for screen readers', () => {
@@ -63,12 +62,12 @@ describe('Alerts', () => {
 
     expect(screenReaderAlerts.length).toBe(testAlerts.length);
 
-    _.forEach(([index, testAlert]) => {
+    Utils.toIndexPairs(testAlerts).forEach(([index, testAlert]) => {
       expect(within(screenReaderAlerts[index]).getByText(testAlert.title)).toBeTruthy();
       expect(within(screenReaderAlerts[index]).getByText(testAlert.message as string)).toBeTruthy();
 
       expect(screenReaderAlerts[index]).toHaveClass('sr-only');
-    }, Utils.toIndexPairs(testAlerts));
+    });
   });
 
   it('renders message when there are no alerts', () => {
