@@ -181,7 +181,6 @@ const FileBrowser = (props: FileBrowserProps) => {
       h(
         Modal,
         {
-          'aria-label': 'File details',
           showCancel: false,
           title: basename(focusedFile.path),
           onDismiss: () => setFocusedFile(null),

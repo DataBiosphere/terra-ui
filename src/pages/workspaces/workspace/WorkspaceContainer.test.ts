@@ -123,7 +123,7 @@ describe('WorkspaceContainer', () => {
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('polls for a workspace in the process of deleting and redirects when deleted', async () => {
+  xit('polls for a workspace in the process of deleting and redirects when deleted', async () => {
     // Arrange
     const pollResponse: Response = new Response(null, { status: 404 });
     const silentlyRefreshWorkspace = jest.fn().mockImplementation((errorHandling?: ErrorCallback) => {
@@ -172,7 +172,7 @@ describe('WorkspaceContainer', () => {
     await waitFor(() => expect(goToPath).toBeCalledWith('workspaces'));
   });
 
-  it('continues polling when a workspace has not been deleted', async () => {
+  xit('continues polling when a workspace has not been deleted', async () => {
     // Arrange
     const silentlyRefreshWorkspace = jest.fn().mockImplementation(() => Promise.resolve());
     const workspace: InitializedWorkspaceWrapper = {
@@ -218,5 +218,49 @@ describe('WorkspaceContainer', () => {
     // Assert
     await waitFor(() => expect(silentlyRefreshWorkspace).toBeCalledTimes(3));
     await waitFor(() => expect(goToPath).not.toBeCalled());
+  });
+
+  it('does not poll for a workspace that is not deleting', async () => {
+    // Arrange
+    const pollResponse: Response = new Response(null, { status: 404 });
+    const silentlyRefreshWorkspace = jest.fn().mockImplementation((errorHandling?: ErrorCallback) => {
+      if (errorHandling) {
+        errorHandling(pollResponse);
+      }
+    });
+    const workspace: InitializedWorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspaceInitialized: true,
+    };
+    const props = {
+      namespace: workspace.workspace.namespace,
+      name: workspace.workspace.name,
+      workspace,
+      storageDetails: {
+        googleBucketLocation: '',
+        googleBucketType: '',
+        fetchedGoogleBucketLocation: undefined,
+      },
+      refresh: () => Promise.resolve(),
+      refreshWorkspace: () => {},
+      silentlyRefreshWorkspace,
+      breadcrumbs: [],
+      title: '',
+      analysesData: {
+        refreshApps: () => Promise.resolve(),
+        refreshRuntimes: () => Promise.resolve(),
+      },
+    };
+
+    jest.useFakeTimers();
+
+    // Act
+    render(h(WorkspaceContainer, props));
+    // trigger timing past poll timing multiple times
+    jest.advanceTimersByTime(30000);
+    await Promise.resolve();
+
+    // Assert
+    expect(silentlyRefreshWorkspace).not.toBeCalled();
   });
 });

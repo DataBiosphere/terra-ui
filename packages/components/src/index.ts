@@ -10,6 +10,7 @@ export type { IconId } from './icon-library';
 export * from './InfoBox';
 export { Interactive } from './Interactive';
 export * from './Link';
+export * from './Modal';
 export * from './PopupTrigger';
 export * from './Spinner';
 export * from './Switch';

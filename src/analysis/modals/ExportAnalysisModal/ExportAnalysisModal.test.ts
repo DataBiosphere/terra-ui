@@ -20,12 +20,6 @@ const analysis1: AnalysisFile = {
   cloudProvider: 'GCP',
 };
 
-type ModalExports = typeof import('src/components/Modal');
-jest.mock('src/components/Modal', (): ModalExports => {
-  const modalMock = jest.requireActual('src/components/Modal.mock');
-  return modalMock.mockModalModule();
-});
-
 type ExportAnalysisModalStateExports = typeof import('./useAnalysisExportState');
 jest.mock(
   './useAnalysisExportState',

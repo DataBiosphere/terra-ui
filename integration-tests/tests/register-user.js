@@ -11,6 +11,7 @@ const {
   getLabelledTextInputValue,
   assertLabelledTextInputValue,
   delay,
+  waitForNoSpinners,
 } = require('../utils/integration-utils');
 const { fillInReplace, gotoPage } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -37,14 +38,18 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
 
   // This is the hamburger menu
   await click(page, '/html/body/div[1]/div[2]/div/div[1]/div[1]/div[1]/div/div[1]');
-  await delay(1000);
+  // Wait for sidebar to transition in.
+  // Matches transition durations in ModalDrawer.
+  await delay(200);
 
   await findText(page, 'Integration Test');
   await click(page, clickable({ textContains: 'Integration Test' }));
-  await delay(1000);
+  // Wait for user menu to open.
+  // Matches transition duration on .ReactCollapse--collapse in style.css.
+  await delay(500);
 
   await click(page, clickable({ textContains: 'Profile' }));
-  await delay(1000);
+  await waitForNoSpinners(page);
 
   await findText(page, 'Hello again, Integration');
 

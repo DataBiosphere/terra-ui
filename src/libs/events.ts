@@ -83,6 +83,7 @@ const eventsList = {
       success: 'user:authTokenLoad:success',
       expired: 'user:authTokenLoad:expiredRefreshToken',
       error: 'user:authTokenLoad:error',
+      retry: 'user:authTokenLoad:retry',
     },
     login: {
       success: 'user:login:success',

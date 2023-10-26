@@ -1,9 +1,11 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
 import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
+import { OidcUser } from 'src/auth/oidc-broker';
 import { Dataset } from 'src/libs/ajax/Catalog';
+import { OidcConfig } from 'src/libs/ajax/OAuth2';
 import { BondFenceStatusResponse, NihDatasetPermission } from 'src/libs/ajax/User';
-import { OidcUser } from 'src/libs/auth';
+import { AuthTokenState } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
@@ -25,6 +27,7 @@ export type TerraUserProfile = {
   firstName: string | undefined;
   lastName: string | undefined;
   institute: string | undefined;
+  email: string | undefined;
   contactEmail: string | undefined;
   title: string | undefined;
   department: string | undefined;
@@ -32,6 +35,7 @@ export type TerraUserProfile = {
   programLocationCity: string | undefined;
   programLocationState: string | undefined;
   programLocationCountry: string | undefined;
+  researchArea: string | undefined;
   starredWorkspaces: string | undefined;
 };
 
@@ -112,6 +116,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   profile: {
     firstName: undefined,
     lastName: undefined,
+    email: undefined,
     contactEmail: undefined,
     title: undefined,
     institute: undefined,
@@ -119,6 +124,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     programLocationCity: undefined,
     programLocationState: undefined,
     programLocationCountry: undefined,
+    researchArea: undefined,
     interestInTerra: undefined,
     starredWorkspaces: undefined,
   },
@@ -149,17 +155,14 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     idp: undefined,
   },
 });
+
 export const getTerraUser = (): TerraUser => authStore.get().terraUser;
 
 export const getSessionId = () => authStore.get().sessionId;
 
-export type OidcConfig = {
-  authorityEndpoint?: string;
-  clientId?: string;
-};
-
 export type OidcState = {
   authContext: AuthContextProps | undefined;
+  authTokenState: AuthTokenState | undefined;
   user: OidcUser | undefined;
   userManager: UserManager | undefined;
   config: OidcConfig;
@@ -167,6 +170,7 @@ export type OidcState = {
 
 export const oidcStore: Atom<OidcState> = atom<OidcState>({
   authContext: undefined,
+  authTokenState: undefined,
   user: undefined,
   userManager: undefined,
   config: {
@@ -232,7 +236,7 @@ export const snapshotStore = atom<unknown>(undefined);
 
 export const dataCatalogStore = atom<Dataset[]>([]);
 
-type AjaxOverride = {
+export type AjaxOverride = {
   fn: (fetch: AnyPromiseFn) => AnyPromiseFn;
   filter:
     | {
