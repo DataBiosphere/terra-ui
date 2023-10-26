@@ -7845,10 +7845,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["crypto-js", [\
-        ["npm:4.1.1", {\
-          "packageLocation": "./.yarn/cache/crypto-js-npm-4.1.1-38a3b8c19d-b3747c12ee.zip/node_modules/crypto-js/",\
+        ["npm:4.2.0", {\
+          "packageLocation": "./.yarn/cache/crypto-js-npm-4.2.0-d6f7744e63-f051666dbc.zip/node_modules/crypto-js/",\
           "packageDependencies": [\
-            ["crypto-js", "npm:4.1.1"]\
+            ["crypto-js", "npm:4.2.0"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -14154,7 +14154,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/oidc-client-ts-npm-2.0.4-e87676be53-266b411794.zip/node_modules/oidc-client-ts/",\
           "packageDependencies": [\
             ["oidc-client-ts", "npm:2.0.4"],\
-            ["crypto-js", "npm:4.1.1"],\
+            ["crypto-js", "npm:4.2.0"],\
             ["jwt-decode", "npm:3.1.2"]\
           ],\
           "linkType": "HARD"\
