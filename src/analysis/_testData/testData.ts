@@ -532,7 +532,7 @@ export const listGoogleRuntime = ({
   };
 };
 
-export const galaxyRunning: App = {
+export const galaxyRunning: ListAppResponse = {
   workspaceId: null,
   accessScope: null,
   cloudContext: {
