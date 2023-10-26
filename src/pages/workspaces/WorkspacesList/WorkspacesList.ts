@@ -131,7 +131,7 @@ const useDeletetionPolling = (workspaces: Workspace[]) => {
     const checkWorkspaceDeletion = async (workspace: Workspace) => {
       try {
         const wsResp: Workspace = await Ajax(signal)
-          .Workspaces.workspace(workspace.workspace.namespace)
+          .Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
           .details(['workspace.state', 'workspace.errorMessage']);
         const state = wsResp.workspace.state;
         if (state === 'DeleteFailed') {
