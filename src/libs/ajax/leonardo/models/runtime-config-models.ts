@@ -1,3 +1,5 @@
+import { NormalizedComputeRegion } from 'src/analysis/utils/runtime-utils';
+
 export interface GpuConfig {
   gpuType: string;
   numOfGpus: number;
@@ -73,3 +75,7 @@ export const isGceConfig = (config: RuntimeConfig): config is GceConfig => {
 };
 
 export const isAzureConfig = (config: RuntimeConfig): config is AzureConfig => config.cloudService === 'AZURE_VM';
+
+export type NormalizedRuntimeConfig = {
+  normalizedRegion: NormalizedComputeRegion;
+} & RuntimeConfig;

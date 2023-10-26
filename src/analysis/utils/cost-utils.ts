@@ -18,7 +18,6 @@ import {
   defaultGceMachineType,
   findMachineType,
   getDisplayRuntimeStatus,
-  getNormalizedComputeRegion,
   isAzureContext,
 } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel, appToolLabels, appTools, RuntimeToolLabel, ToolLabel } from 'src/analysis/utils/tool-utils';
@@ -33,12 +32,12 @@ import {
 } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   AzureConfig,
-  GoogleRuntimeConfig,
   isAzureConfig,
   isDataprocConfig,
   isGceConfig,
   isGceRuntimeConfig,
   isGceWithPdConfig,
+  NormalizedRuntimeConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getAzurePricesForRegion, getDiskType } from 'src/libs/azure-utils';
@@ -80,9 +79,9 @@ export const getGpuCost = (gpuType: string, numGpus: number, region: string): nu
 // This function deals with runtimes that are paused
 // All disks referenced in this function are boot disks (aka the disk google needs to provision by default for OS storage)
 // The user pd cost for a runtime is calculated elsewhere
-export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
+export const runtimeConfigBaseCost = (config: NormalizedRuntimeConfig): number => {
   if (!config) return 0;
-  const computeRegion = getNormalizedComputeRegion(config);
+  const computeRegion = config.normalizedRegion;
 
   const costForDataproc: number = isDataprocConfig(config)
     ? (config.masterDiskSize + config.numberOfWorkers * (config.workerDiskSize ?? defaultDataprocWorkerDiskSize)) *
@@ -102,9 +101,9 @@ export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
   return _.sum([costForDataproc, costForGceWithoutUserDisk, costForGceWithUserDisk]);
 };
 
-export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
+export const runtimeConfigCost = (config: NormalizedRuntimeConfig): number => {
   if (!config) return 0;
-  const computeRegion = getNormalizedComputeRegion(config);
+  const computeRegion = config.normalizedRegion;
 
   const machineType: string = isGceRuntimeConfig(config)
     ? config.machineType
@@ -299,7 +298,7 @@ export const getPersistentDiskCostHourly = (
 
 export const getRuntimeCost = (runtime: Runtime): number => {
   if (!runtime) return 0;
-  const { runtimeConfig, status } = runtime;
+  const { runtimeConfig, status, normalizedRuntimeConfig } = runtime;
   if (isAzureConfig(runtimeConfig)) {
     return Utils.switchCase(
       status,
@@ -311,9 +310,9 @@ export const getRuntimeCost = (runtime: Runtime): number => {
   if (isGceRuntimeConfig(runtimeConfig) || isDataprocConfig(runtimeConfig)) {
     return Utils.switchCase(
       status,
-      [runtimeStatuses.stopped.leoLabel, () => runtimeConfigBaseCost(runtimeConfig)],
+      [runtimeStatuses.stopped.leoLabel, () => runtimeConfigBaseCost(normalizedRuntimeConfig)],
       [runtimeStatuses.error.leoLabel, () => 0.0],
-      [Utils.DEFAULT, () => runtimeConfigCost(runtimeConfig)]
+      [Utils.DEFAULT, () => runtimeConfigCost(normalizedRuntimeConfig)]
     );
   }
   throw new Error(`Unknown runtime config type ${runtimeConfig}`);

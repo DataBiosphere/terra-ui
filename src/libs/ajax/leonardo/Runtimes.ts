@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { version } from 'src/analysis/utils/gce-machines';
+import { getNormalizedComputeConfig } from 'src/analysis/utils/runtime-utils';
 import {
   appIdentifier,
   authOpts,
@@ -11,7 +12,12 @@ import {
   jsonBody,
   makeRequestRetry,
 } from 'src/libs/ajax/ajax-common';
-import { GetRuntimeItem, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
+import {
+  GetRuntimeItem,
+  ListRuntimeItem,
+  RawGetRuntimeItem,
+  RawListRuntimeItem,
+} from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getConfig } from 'src/libs/config';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
 
@@ -38,7 +44,8 @@ export const Runtimes = (signal: AbortSignal) => {
     return {
       details: async (): Promise<GetRuntimeItem> => {
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]));
-        return res.json();
+        const getItem: RawGetRuntimeItem = await res.json();
+        return { ...getItem, normalizedRuntimeConfig: getNormalizedComputeConfig(getItem.runtimeConfig) };
       },
 
       create: (options): Promise<void> => {
@@ -94,7 +101,8 @@ export const Runtimes = (signal: AbortSignal) => {
     return {
       details: async (): Promise<GetRuntimeItem> => {
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]));
-        return res.json();
+        const getItem: RawGetRuntimeItem = await res.json();
+        return { ...getItem, normalizedRuntimeConfig: getNormalizedComputeConfig(getItem.runtimeConfig) };
       },
 
       create: (options, useExistingDisk = false): Promise<void> => {
@@ -136,7 +144,9 @@ export const Runtimes = (signal: AbortSignal) => {
         `api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])
       );
-      return res.json();
+      const runtimes: RawListRuntimeItem[] = await res.json();
+      const normalizedRuntimes: ListRuntimeItem[] = _.map(getNormalizedListRuntime, runtimes);
+      return normalizedRuntimes;
     },
 
     invalidateCookie: () => {
@@ -186,13 +196,14 @@ export const Runtimes = (signal: AbortSignal) => {
       // [IA-3710] In order to keep the front-end backwards compatible, any Azure tool labels
       // will be changed to JupyterLab.
       const runtimeList = await res.json();
-      const runtimesWithToolLabelDecorated = _.map((runtime) => {
+      const runtimesWithToolLabelDecorated: RawListRuntimeItem[] = _.map((runtime) => {
         if (runtime.labels.tool === 'Azure') {
           runtime.labels.tool = 'JupyterLab';
         }
         return runtime;
       }, runtimeList);
-      return runtimesWithToolLabelDecorated;
+      const normalizedRuntimes = _.map(getNormalizedListRuntime, runtimesWithToolLabelDecorated);
+      return normalizedRuntimes;
     },
 
     listV2WithWorkspace: async (
@@ -203,7 +214,9 @@ export const Runtimes = (signal: AbortSignal) => {
         `api/v2/runtimes/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])
       );
-      return res.json();
+      const runtimes = await res.json();
+      const normalizedRuntimes = _.map(getNormalizedListRuntime, runtimes);
+      return normalizedRuntimes;
     },
 
     runtimeV2: v2Func,
@@ -280,6 +293,11 @@ export const Runtimes = (signal: AbortSignal) => {
     },
   };
 };
+
+const getNormalizedListRuntime = (runtime: RawListRuntimeItem): ListRuntimeItem => ({
+  ...runtime,
+  normalizedRuntimeConfig: getNormalizedComputeConfig(runtime.runtimeConfig),
+});
 
 export type RuntimesAjaxContract = ReturnType<typeof Runtimes>;
 export type RuntimeAjaxContractV1 = ReturnType<RuntimesAjaxContract['runtime']>;

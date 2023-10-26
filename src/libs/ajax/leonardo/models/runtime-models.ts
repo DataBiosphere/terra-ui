@@ -1,7 +1,7 @@
 import { ToolLabel } from 'src/analysis/utils/tool-utils';
 import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 import { DiskConfig } from 'src/libs/ajax/leonardo/models/disk-models';
-import { RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { NormalizedRuntimeConfig, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 
 export type LeoRuntimeStatus =
   | 'Running'
@@ -53,7 +53,7 @@ export interface RuntimeError extends LeoError {
   errorCode: number;
 }
 
-export interface ListRuntimeItem {
+export interface RawListRuntimeItem {
   id: number;
   workspaceId: string | null;
   runtimeName: string;
@@ -87,7 +87,7 @@ export interface LeoRuntimeImage {
   timestamp: string;
 }
 
-export interface GetRuntimeItem {
+export interface RawGetRuntimeItem {
   id: number;
   runtimeName: string;
   googleProject: string;
@@ -114,7 +114,16 @@ export interface GetRuntimeItem {
   patchInProgress: boolean;
 }
 
+export type ListRuntimeItem = {
+  normalizedRuntimeConfig: NormalizedRuntimeConfig;
+} & RawListRuntimeItem;
+
+export type GetRuntimeItem = {
+  normalizedRuntimeConfig: NormalizedRuntimeConfig;
+} & RawGetRuntimeItem;
+
 export type Runtime = GetRuntimeItem | ListRuntimeItem;
+
 export const isRuntime = (obj: any): obj is Runtime => {
   const castRuntime = obj as Runtime;
   return (

@@ -13,12 +13,7 @@ import {
 } from 'src/analysis/utils/cost-utils';
 import { workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import { getCreatorForCompute, getDisplayStatus, isComputePausable } from 'src/analysis/utils/resource-utils';
-import {
-  getDisplayRuntimeStatus,
-  getNormalizedComputeRegion,
-  getRegionFromZone,
-  isGcpContext,
-} from 'src/analysis/utils/runtime-utils';
+import { getDisplayRuntimeStatus, getRegionFromZone, isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel, appTools, getToolLabelFromCloudEnv, isPauseSupported } from 'src/analysis/utils/tool-utils';
 import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -708,8 +703,8 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                   if (isApp(cloudEnvironment)) {
                     return cloudEnvironment.region;
                   }
-                  if ('runtimeConfig' in cloudEnvironment) {
-                    return _.toLower(getNormalizedComputeRegion(cloudEnvironment.runtimeConfig));
+                  if (isRuntime(cloudEnvironment)) {
+                    return _.toLower(cloudEnvironment.normalizedRuntimeConfig.normalizedRegion);
                   }
                   return '';
                 },
