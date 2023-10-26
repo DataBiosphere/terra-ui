@@ -197,6 +197,7 @@ const NameCell = (props: CellProps): ReactNode => {
             !canView &&
             'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
           tooltipSide: 'right',
+          disabled: workspace.state === 'Deleted',
         },
         [name]
       ),
@@ -204,6 +205,7 @@ const NameCell = (props: CellProps): ReactNode => {
     Utils.cond(
       [state === 'Deleting', () => h(WorkspaceDeletingCell)],
       [state === 'DeleteFailed', () => h(WorkspaceDeletionFailedCell, { workspace: props.workspace })],
+      [state === 'Deleted', () => h(WorkspaceDeletedCell)],
       [Utils.DEFAULT, () => h(WorkspaceDescriptionCell, { description })]
     ),
   ]);
@@ -241,7 +243,7 @@ const WorkspaceDeletingCell = (): ReactNode => {
         color: colors.danger(),
       },
     },
-    [deletingIcon, 'Workspace deletion in progress']
+    [deletingIcon, 'Workspace deletion in progress.']
   );
 };
 
@@ -291,6 +293,16 @@ const WorkspaceDeletionFailedCell = (props: CellProps): ReactNode => {
     ]
   );
 };
+
+const WorkspaceDeletedCell = (): ReactNode =>
+  div(
+    {
+      style: {
+        color: colors.danger(),
+      },
+    },
+    ['Workspace has been deleted. Refresh to remove from list.']
+  );
 
 const LastModifiedCell = (props: CellProps): ReactNode => {
   const {
@@ -357,13 +369,16 @@ interface ActionsCellProps extends CellProps {
 const ActionsCell = (props: ActionsCellProps): ReactNode => {
   const {
     accessLevel,
-    workspace: { workspaceId, namespace, name },
+    workspace: { workspaceId, namespace, name, state },
   } = props.workspace;
   const { setUserActions } = useContext(WorkspaceUserActionsContext);
 
   if (!canRead(accessLevel)) {
     // No menu shown if user does not have read access.
     return div({ className: 'sr-only' }, ['You do not have permission to perform actions on this workspace.']);
+  }
+  if (state === 'Deleted') {
+    return null;
   }
   const getWorkspace = (id: string): Workspace => _.find({ workspace: { workspaceId: id } }, props.workspaces)!;
 
