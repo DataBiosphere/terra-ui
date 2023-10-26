@@ -35,7 +35,7 @@ export const Metrics = (signal?: AbortSignal) => {
         hostname: window.location.hostname,
         appPath: Nav.getCurrentRoute().name,
         appVersion: `https://github.com/DataBiosphere/terra-ui/commits/${getConfig().gitRevision}`,
-        appVersionPublishDate: new Date(parseInt(getConfig().buildTimestamp, 10)).toLocaleString(),
+        appVersionPublishDate: new Date(parseInt(getConfig().buildTimestamp, 10)).toISOString(),
         ...getDefaultProperties(),
       },
     };
