@@ -1,4 +1,4 @@
-import { fireEvent, getByText } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import * as Utils from 'src/libs/utils';
@@ -40,32 +40,32 @@ describe('Alerts', () => {
   });
 
   it('renders number of alerts', () => {
-    const { getByRole } = render(h(Alerts));
-    expect(getByRole('button')).toHaveTextContent(`${testAlerts.length}`);
+    render(h(Alerts));
+    expect(screen.getByRole('button')).toHaveTextContent(`${testAlerts.length}`);
   });
 
   it('renders popup with alerts', () => {
-    const { getByRole, getAllByTestId } = render(h(Alerts));
-    fireEvent.click(getByRole('button'));
+    render(h(Alerts));
+    fireEvent.click(screen.getByRole('button'));
 
-    const alerts = getAllByTestId('alert');
+    const alerts = screen.getAllByTestId('alert');
     expect(alerts.length).toBe(testAlerts.length);
 
     _.forEach(([index, testAlert]) => {
-      expect(getByText(alerts[index], testAlert.title)).toBeTruthy();
-      expect(getByText(alerts[index], testAlert.message as string)).toBeTruthy();
+      expect(within(alerts[index]).getByText(testAlert.title)).toBeTruthy();
+      expect(within(alerts[index]).getByText(testAlert.message as string)).toBeTruthy();
     }, Utils.toIndexPairs(testAlerts));
   });
 
   it('renders alerts for screen readers', () => {
-    const { getAllByRole } = render(h(Alerts));
-    const screenReaderAlerts = getAllByRole('alert');
+    render(h(Alerts));
+    const screenReaderAlerts = screen.getAllByRole('alert');
 
     expect(screenReaderAlerts.length).toBe(testAlerts.length);
 
     _.forEach(([index, testAlert]) => {
-      expect(getByText(screenReaderAlerts[index], testAlert.title)).toBeTruthy();
-      expect(getByText(screenReaderAlerts[index], testAlert.message as string)).toBeTruthy();
+      expect(within(screenReaderAlerts[index]).getByText(testAlert.title)).toBeTruthy();
+      expect(within(screenReaderAlerts[index]).getByText(testAlert.message as string)).toBeTruthy();
 
       expect(screenReaderAlerts[index]).toHaveClass('sr-only');
     }, Utils.toIndexPairs(testAlerts));
@@ -74,9 +74,9 @@ describe('Alerts', () => {
   it('renders message when there are no alerts', () => {
     asMockedFn(useServiceAlerts).mockReturnValue([]);
 
-    const { getByRole } = render(h(Alerts));
-    fireEvent.click(getByRole('button'));
+    render(h(Alerts));
+    fireEvent.click(screen.getByRole('button'));
 
-    expect(getByRole('dialog')).toHaveTextContent('No system alerts at this time.');
+    expect(screen.getByRole('dialog')).toHaveTextContent('No system alerts at this time.');
   });
 });
