@@ -1,5 +1,6 @@
+import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useEffect, useState } from 'react';
+import { CSSProperties, Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, li, p, span, ul } from 'react-hyperscript-helpers';
 import { Clickable, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -10,10 +11,17 @@ import { usePrevious } from 'src/libs/react-utils';
 import { useTermsOfServiceAlerts } from 'src/libs/terms-of-service-alerts';
 import * as Utils from 'src/libs/utils';
 
+import { Alert as AlertT } from './Alert';
 import { useServiceAlerts } from './service-alerts';
 
-const Alert = ({ alert }) => {
-  const { title, message, link, linkTitle, severity } = alert;
+interface AlertProps {
+  alert: AlertT;
+}
+
+const Alert = (props: AlertProps): ReactNode => {
+  const {
+    alert: { title, message, link, linkTitle, severity },
+  } = props;
 
   const [baseColor, ariaLabel] = Utils.switchCase(
     severity,
@@ -24,7 +32,7 @@ const Alert = ({ alert }) => {
     ['error', () => [colors.danger, 'error notification']],
     [Utils.DEFAULT, () => [colors.accent, 'notification']]
   );
-  const iconType = Utils.switchCase(
+  const iconType = Utils.switchCase<string | undefined, IconId>(
     severity,
     ['success', () => 'success-standard'],
     ['warn', () => 'warning-standard'],
@@ -49,14 +57,14 @@ const Alert = ({ alert }) => {
       div({ style: { display: 'flex', alignItems: 'center' } }, [
         !!iconType &&
           icon(iconType, {
-            'aria-hidden': false,
             'aria-label': ariaLabel,
             size: 26,
             style: { color: baseColor(), flexShrink: 0, marginRight: '0.5rem' },
           }),
         div({ style: { fontSize: 14, fontWeight: 600, overflowWrap: 'break-word' } }, [title]),
       ]),
-      !!message && div({ style: { marginTop: '0.5rem', fontSize: 12, fontWeight: 500, overflowWrap: 'break-word' } }, [message]),
+      !!message &&
+        div({ style: { marginTop: '0.5rem', fontSize: 12, fontWeight: 500, overflowWrap: 'break-word' } }, [message]),
       link &&
         div({ style: { marginTop: '0.25rem' } }, [
           h(Link, { ...Utils.newTabLinkProps, href: link, style: { fontWeight: 700 } }, [linkTitle || 'Read more']),
@@ -65,7 +73,12 @@ const Alert = ({ alert }) => {
   );
 };
 
-const AlertsList = ({ alerts }) => {
+interface AlertsListProps {
+  alerts: AlertT[];
+}
+
+const AlertsList = (props: AlertsListProps): ReactNode => {
+  const { alerts } = props;
   return ul(
     {
       style: {
@@ -90,13 +103,19 @@ const AlertsList = ({ alerts }) => {
   );
 };
 
-const AlertsIndicator = ({ style }) => {
+interface AlertsIndicatorProps {
+  style?: CSSProperties;
+}
+
+const AlertsIndicator = (props: AlertsIndicatorProps): ReactNode => {
+  const { style } = props;
+
   const [open, setOpen] = useState(false);
   const [animating, setAnimating] = useState(false);
 
-  const alerts = [...useServiceAlerts(), ...useLinkExpirationAlerts(), ...useTermsOfServiceAlerts()];
+  const alerts: AlertT[] = [...useServiceAlerts(), ...useLinkExpirationAlerts(), ...useTermsOfServiceAlerts()];
 
-  const previousAlertIds = usePrevious(_.map('id', alerts));
+  const previousAlertIds = usePrevious(_.map('id', alerts)) || [];
   const hasNewAlerts = _.size(_.difference(_.map('id', alerts), previousAlertIds)) > 0;
 
   const numAlerts = _.size(alerts);
@@ -164,7 +183,11 @@ const AlertsIndicator = ({ style }) => {
     ),
 
     // Have screen readers announce alerts.
-    _.map(({ id, title, message }) => div({ key: id, role: 'alert', className: 'sr-only' }, [div([title]), !!message && div([message])]), alerts),
+    _.map(
+      ({ id, title, message }) =>
+        div({ key: id, role: 'alert', className: 'sr-only' }, [div([title]), !!message && div([message])]),
+      alerts
+    ),
   ]);
 };
 

@@ -2,20 +2,22 @@ import { fireEvent, getByText } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import * as Utils from 'src/libs/utils';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
+import { Alert as AlertT } from './Alert';
 import Alerts from './Alerts';
 import { useServiceAlerts } from './service-alerts';
 
-jest.mock('./service-alerts', () => {
-  const originalModule = jest.requireActual('./service-alerts');
+type ServiceAlertsExports = typeof import('./service-alerts');
+jest.mock('./service-alerts', (): ServiceAlertsExports => {
+  const originalModule = jest.requireActual<ServiceAlertsExports>('./service-alerts');
   return {
     ...originalModule,
     useServiceAlerts: jest.fn(),
   };
 });
 
-const testAlerts = [
+const testAlerts: AlertT[] = [
   {
     id: 'abc',
     title: 'The systems are down!',
@@ -30,7 +32,7 @@ const testAlerts = [
 
 describe('Alerts', () => {
   beforeEach(() => {
-    useServiceAlerts.mockReturnValue(testAlerts);
+    asMockedFn(useServiceAlerts).mockReturnValue(testAlerts);
   });
 
   afterEach(() => {
@@ -51,7 +53,7 @@ describe('Alerts', () => {
 
     _.forEach(([index, testAlert]) => {
       expect(getByText(alerts[index], testAlert.title)).toBeTruthy();
-      expect(getByText(alerts[index], testAlert.message)).toBeTruthy();
+      expect(getByText(alerts[index], testAlert.message as string)).toBeTruthy();
     }, Utils.toIndexPairs(testAlerts));
   });
 
@@ -63,14 +65,14 @@ describe('Alerts', () => {
 
     _.forEach(([index, testAlert]) => {
       expect(getByText(screenReaderAlerts[index], testAlert.title)).toBeTruthy();
-      expect(getByText(screenReaderAlerts[index], testAlert.message)).toBeTruthy();
+      expect(getByText(screenReaderAlerts[index], testAlert.message as string)).toBeTruthy();
 
       expect(screenReaderAlerts[index]).toHaveClass('sr-only');
     }, Utils.toIndexPairs(testAlerts));
   });
 
   it('renders message when there are no alerts', () => {
-    useServiceAlerts.mockReturnValue([]);
+    asMockedFn(useServiceAlerts).mockReturnValue([]);
 
     const { getByRole } = render(h(Alerts));
     fireEvent.click(getByRole('button'));

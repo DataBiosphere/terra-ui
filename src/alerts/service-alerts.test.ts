@@ -1,3 +1,5 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { asMockedFn } from '@terra-ui-packages/test-utils';
 import _ from 'lodash/fp';
 import { Ajax } from 'src/libs/ajax';
 
@@ -5,8 +7,9 @@ import { getServiceAlerts } from './service-alerts';
 
 jest.mock('src/libs/ajax');
 
-jest.mock('src/libs/utils', () => {
-  const originalModule = jest.requireActual('src/libs/utils');
+type UtilsExports = typeof import('src/libs/utils');
+jest.mock('src/libs/utils', (): UtilsExports => {
+  const originalModule = jest.requireActual<UtilsExports>('src/libs/utils');
   const crypto = jest.requireActual('crypto');
   return {
     ...originalModule,
@@ -20,17 +23,21 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
+type AjaxContract = ReturnType<typeof Ajax>;
+
 describe('getServiceAlerts', () => {
   it('fetches service alerts from GCS', async () => {
     const mockGetServiceAlerts = jest.fn().mockReturnValue(Promise.resolve([]));
-    Ajax.mockReturnValue({ FirecloudBucket: { getServiceAlerts: mockGetServiceAlerts } });
+    asMockedFn(Ajax).mockReturnValue({
+      FirecloudBucket: { getServiceAlerts: mockGetServiceAlerts },
+    } as DeepPartial<AjaxContract> as AjaxContract);
 
     await getServiceAlerts();
     expect(mockGetServiceAlerts).toHaveBeenCalled();
   });
 
   it('adds IDs to alerts using hashes of alert content', async () => {
-    Ajax.mockReturnValue({
+    asMockedFn(Ajax).mockReturnValue({
       FirecloudBucket: {
         getServiceAlerts: () =>
           Promise.resolve([
@@ -44,7 +51,7 @@ describe('getServiceAlerts', () => {
             },
           ]),
       },
-    });
+    } as AjaxContract);
 
     const serviceAlerts = await getServiceAlerts();
     expect(_.map('id', serviceAlerts)).toEqual([
@@ -54,7 +61,7 @@ describe('getServiceAlerts', () => {
   });
 
   it('defaults severity to warning', async () => {
-    Ajax.mockReturnValue({
+    asMockedFn(Ajax).mockReturnValue({
       FirecloudBucket: {
         getServiceAlerts: () =>
           Promise.resolve([
@@ -69,7 +76,7 @@ describe('getServiceAlerts', () => {
             },
           ]),
       },
-    });
+    } as AjaxContract);
 
     const serviceAlerts = await getServiceAlerts();
     expect(_.map('severity', serviceAlerts)).toEqual(['warn', 'info']);
