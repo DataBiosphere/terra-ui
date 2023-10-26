@@ -74,16 +74,17 @@ export type NormalizedComputeRegion = NominalType<string, 'ComputeRegion'>;
 
 // TODO: test when zone and region have types
 export const getNormalizedComputeRegion = (config: GoogleRuntimeConfig | AzureConfig): NormalizedComputeRegion => {
+  const regionNotFoundPlaceholder = 'Unknown';
   if (isGceConfig(config) || isGceWithPdConfig(config)) {
-    return (getRegionFromZone(config.zone) || defaultComputeRegion).toUpperCase() as NormalizedComputeRegion;
+    return (getRegionFromZone(config.zone) || regionNotFoundPlaceholder).toUpperCase() as NormalizedComputeRegion;
   }
   if (isDataprocConfig(config)) {
-    return (config.region || defaultComputeRegion).toUpperCase() as NormalizedComputeRegion;
+    return (config.region || regionNotFoundPlaceholder).toUpperCase() as NormalizedComputeRegion;
   }
   if (isAzureConfig(config)) {
-    return (config.region || defaultAzureComputeRegion).toUpperCase() as NormalizedComputeRegion;
+    return (config.region || regionNotFoundPlaceholder).toUpperCase() as NormalizedComputeRegion;
   }
-  return defaultComputeRegion.toUpperCase() as NormalizedComputeRegion;
+  return regionNotFoundPlaceholder as NormalizedComputeRegion;
 };
 
 export const findMachineType = (name: string) => {
