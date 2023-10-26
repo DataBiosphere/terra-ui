@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { div, h, p } from 'react-hyperscript-helpers';
 import { Link, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -9,10 +9,11 @@ import { Ajax } from 'src/libs/ajax';
 import { isAzureUser } from 'src/libs/auth';
 import { withErrorIgnoring } from 'src/libs/error';
 import { updateSearch, useRoute } from 'src/libs/nav';
-import { useOnMount } from 'src/libs/react-utils';
+import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { workspacesStore, workspaceStore } from 'src/libs/state';
 import { elements as StyleElements } from 'src/libs/style';
-import { newTabLinkProps } from 'src/libs/utils';
-import { cloudProviderTypes, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { newTabLinkProps, pollWithCancellation } from 'src/libs/utils';
+import { cloudProviderTypes, WorkspaceState, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { categorizeWorkspaces } from 'src/pages/workspaces/WorkspacesList/CategorizedWorkspaces';
 import { RecentlyViewedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RecentlyViewedWorkspaces';
 import { useWorkspacesWithSubmissionStats } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
@@ -42,7 +43,7 @@ export const WorkspacesList = (): ReactNode => {
   } = useWorkspacesWithSubmissionStats();
 
   const [featuredList, setFeaturedList] = useState<{ name: string; namespace: string }[]>();
-
+  useDeletetionPolling(workspaces);
   const { query } = useRoute();
   const filters: WorkspaceFilterValues = getWorkspaceFiltersFromQuery(query);
 
@@ -109,4 +110,43 @@ export const WorkspacesList = (): ReactNode => {
       ]),
     ]),
   ]);
+};
+
+const useDeletetionPolling = (workspaces: Workspace[]) => {
+  const deletingWorkspaces = _.filter((ws) => ws.workspace.state === 'Deleting', workspaces);
+  const signal = useCancellation();
+
+  useEffect(() => {
+    const updateWorkspaces = (workspace: Workspace, state: WorkspaceState, errorMessage?: string): Workspace[] => {
+      const updateList = _.cloneDeep(workspaces);
+      const updateWS = _.find(
+        (ws: Workspace) => ws.workspace.workspaceId === workspace.workspace.workspaceId,
+        updateList
+      )!;
+      updateWS.workspace.state = state;
+      updateWS.workspace.errorMessage = errorMessage;
+      return updateList;
+    };
+
+    const checkWorkspaceDeletion = async (workspace: Workspace) => {
+      try {
+        const wsResp: Workspace = await Ajax(signal)
+          .Workspaces.workspace(workspace.workspace.namespace)
+          .details(['workspace.state', 'workspace.errorMessage']);
+        const state = wsResp.workspace.state;
+        if (state === 'DeleteFailed') {
+          workspacesStore.update(() => updateWorkspaces(workspace, state, wsResp.workspace.errorMessage));
+          workspaceStore.reset();
+        }
+      } catch (error) {
+        if (error instanceof Response && error.status === 404) {
+          workspacesStore.update(() => updateWorkspaces(workspace, 'Deleted'));
+          workspaceStore.reset();
+        }
+      }
+    };
+
+    pollWithCancellation(() => Promise.all(deletingWorkspaces.map(checkWorkspaceDeletion)), 30000, false, signal);
+    //  eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deletingWorkspaces, signal]);
 };
