@@ -48,7 +48,6 @@ export const defaultLocation = 'US-CENTRAL1';
 
 export const defaultComputeZone = 'US-CENTRAL1-A';
 export const defaultComputeRegion = 'US-CENTRAL1';
-export const defaultAzureComputeRegion = 'eastus';
 
 export const defaultAutopauseThreshold = 30;
 // Leonardo considers autopause disabled when the threshold is set to 0
