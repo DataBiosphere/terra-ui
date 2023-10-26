@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { Ajax } from 'src/libs/ajax';
-import { getServiceAlerts } from 'src/libs/service-alerts';
+
+import { getServiceAlerts } from './service-alerts';
 
 jest.mock('src/libs/ajax');
 

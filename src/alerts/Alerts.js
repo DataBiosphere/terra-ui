@@ -7,9 +7,10 @@ import PopupTrigger from 'src/components/PopupTrigger';
 import colors from 'src/libs/colors';
 import { useLinkExpirationAlerts } from 'src/libs/link-expiration-alerts';
 import { usePrevious } from 'src/libs/react-utils';
-import { useServiceAlerts } from 'src/libs/service-alerts';
 import { useTermsOfServiceAlerts } from 'src/libs/terms-of-service-alerts';
 import * as Utils from 'src/libs/utils';
+
+import { useServiceAlerts } from './service-alerts';
 
 const Alert = ({ alert }) => {
   const { title, message, link, linkTitle, severity } = alert;

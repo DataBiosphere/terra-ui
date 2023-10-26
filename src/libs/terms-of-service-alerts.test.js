@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import Alerts from 'src/components/Alerts';
+import Alerts from 'src/alerts/Alerts';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
 import * as TosAlerts from 'src/libs/terms-of-service-alerts';

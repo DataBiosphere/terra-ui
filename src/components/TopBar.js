@@ -4,7 +4,7 @@ import { Fragment, useRef, useState } from 'react';
 import { UnmountClosed as RCollapse } from 'react-collapse';
 import { a, div, h, h1, img, span } from 'react-hyperscript-helpers';
 import { Transition } from 'react-transition-group';
-import AlertsIndicator from 'src/components/Alerts';
+import AlertsIndicator from 'src/alerts/Alerts';
 import { Clickable, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextArea } from 'src/components/input';

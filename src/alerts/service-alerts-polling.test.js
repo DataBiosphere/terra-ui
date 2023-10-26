@@ -1,8 +1,8 @@
-import { getServiceAlerts, serviceAlertsStore } from 'src/libs/service-alerts';
-import { startPollingServiceAlerts } from 'src/libs/service-alerts-polling';
+import { getServiceAlerts, serviceAlertsStore } from './service-alerts';
+import { startPollingServiceAlerts } from './service-alerts-polling';
 
-jest.mock('src/libs/service-alerts', () => ({
-  ...jest.requireActual('src/libs/service-alerts'),
+jest.mock('./service-alerts', () => ({
+  ...jest.requireActual('./service-alerts'),
   getServiceAlerts: jest.fn(),
 }));
 
