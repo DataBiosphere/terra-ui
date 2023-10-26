@@ -75,10 +75,10 @@ export type NormalizedComputeRegion = NominalType<string, 'ComputeRegion'>;
 export const getNormalizedComputeRegion = (config: GoogleRuntimeConfig | AzureConfig): NormalizedComputeRegion => {
   const regionNotFoundPlaceholder = 'Unknown';
   if (isGceConfig(config) || isGceWithPdConfig(config)) {
-    return (getRegionFromZone(config.zone) || regionNotFoundPlaceholder).toUpperCase() as NormalizedComputeRegion;
+    return getRegionFromZone(config.zone).toUpperCase() as NormalizedComputeRegion;
   }
   if (isDataprocConfig(config)) {
-    return (config.region || regionNotFoundPlaceholder).toUpperCase() as NormalizedComputeRegion;
+    return config.region.toUpperCase() as NormalizedComputeRegion;
   }
   if (isAzureConfig(config)) {
     return (config.region || regionNotFoundPlaceholder).toUpperCase() as NormalizedComputeRegion;
