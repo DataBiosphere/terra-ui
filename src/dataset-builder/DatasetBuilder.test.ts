@@ -5,7 +5,9 @@ import { h } from 'react-hyperscript-helpers';
 import { DataRepo, DataRepoContract, DatasetModel } from 'src/libs/ajax/DataRepo';
 import { Cohort, ConceptSet } from 'src/libs/ajax/DatasetBuilder';
 import * as Nav from 'src/libs/nav';
-import { cohortEditorState, newCohort, Updater } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+
+import { cohortEditorState, newCohort, Updater } from './dataset-builder-types';
 import {
   CohortSelector,
   ConceptSetSelector,
@@ -14,9 +16,8 @@ import {
   DatasetBuilderView,
   OnStateChangeHandler,
   ValuesSelector,
-} from 'src/pages/library/datasetBuilder/DatasetBuilder';
-import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+} from './DatasetBuilder';
+import { dummyDatasetDetails } from './TestConstants';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),

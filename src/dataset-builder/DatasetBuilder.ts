@@ -31,19 +31,14 @@ import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { CohortEditor } from 'src/pages/library/datasetBuilder/CohortEditor';
-import { ConceptSetCreator } from 'src/pages/library/datasetBuilder/ConceptSetCreator';
-import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
-import {
-  AnyDatasetBuilderState,
-  cohortEditorState,
-  homepageState,
-  newCohort,
-  Updater,
-} from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilderHeader';
-import { DomainCriteriaSelector } from 'src/pages/library/datasetBuilder/DomainCriteriaSelector';
 import { validate } from 'validate.js';
+
+import { CohortEditor } from './CohortEditor';
+import { ConceptSetCreator } from './ConceptSetCreator';
+import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
+import { AnyDatasetBuilderState, cohortEditorState, homepageState, newCohort, Updater } from './dataset-builder-types';
+import { DatasetBuilderHeader } from './DatasetBuilderHeader';
+import { DomainCriteriaSelector } from './DomainCriteriaSelector';
 
 const SelectorSubHeader = ({ children }) => div({ style: { fontSize: 12, fontWeight: 600 } }, children);
 
@@ -730,12 +725,3 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
       ])
     : spinnerOverlay;
 };
-
-export const navPaths = [
-  {
-    name: 'create-dataset',
-    path: '/library/builder/:datasetId/build',
-    component: DatasetBuilderView,
-    title: 'Build Dataset',
-  },
-];

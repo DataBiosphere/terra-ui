@@ -5,9 +5,10 @@ import { SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption as Domai
 import { DatasetBuilder, DomainCriteria, GetConceptsResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useOnMount } from 'src/libs/react-utils';
-import { ConceptSelector } from 'src/pages/library/datasetBuilder/ConceptSelector';
-import { cohortEditorState, DomainCriteriaSelectorState } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+
+import { ConceptSelector } from './ConceptSelector';
+import { cohortEditorState, DomainCriteriaSelectorState } from './dataset-builder-types';
+import { OnStateChangeHandler } from './DatasetBuilder';
 
 interface DomainCriteriaSelectorProps {
   readonly state: DomainCriteriaSelectorState;
