@@ -12,10 +12,11 @@
 /src/libs/ajax/Catalog.ts @DataBiosphere/data-explorer-eng
 /src/libs/ajax/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
 /src/pages/library/DataBrowser* @DataBiosphere/data-explorer-eng
-/src/pages/library/dataBrowser-utils* @DataBiosphere/data-explorer-eng
 /src/pages/library/Datasets* @DataBiosphere/data-explorer-eng
 /src/pages/library/SearchAndFilterComponent* @DataBiosphere/data-explorer-eng
 /src/pages/library/test-datasets.ts @DataBiosphere/data-explorer-eng
+/src/dataset-builder/* @DataBiosphere/data-explorer-eng
+/src/data-catalog/* @DataBiosphere/data-explorer-eng
 /src/pages/LandingPage* @DataBiosphere/terra-cobranding
 /src/pages/billing/ @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/workspaces/* @DataBiosphere/broadworkspaces-terra-ui
