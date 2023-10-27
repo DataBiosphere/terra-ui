@@ -1,4 +1,4 @@
-import { getAllByRole, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as clipboard from 'clipboard-polyfill/text';
 import { h } from 'react-hyperscript-helpers';
@@ -83,7 +83,7 @@ describe('WdsTroubleshooter', () => {
     // Assert
     const tableRows = screen.getAllByRole('row');
     const statusLabelAndValueCells = tableRows.map((row) => {
-      const cells = getAllByRole(row, 'cell');
+      const cells = within(row).getAllByRole('cell');
       return cells.slice(1).map((el) => el.textContent);
     });
 
@@ -240,7 +240,7 @@ describe('WdsTroubleshooter', () => {
     // Assert
     const tableRows = screen.getAllByRole('row');
     const statusLabelAndValueCells = tableRows.map((row) => {
-      const cells = getAllByRole(row, 'cell');
+      const cells = within(row).getAllByRole('cell');
       return cells.slice(1).map((el) => el.textContent);
     });
 
@@ -333,7 +333,7 @@ describe('WdsTroubleshooter', () => {
     // Assert
     const tableRows = screen.getAllByRole('row');
     const statusLabelAndValueCells = tableRows.map((row) => {
-      const cells = getAllByRole(row, 'cell');
+      const cells = within(row).getAllByRole('cell');
       return cells.slice(1).map((el) => el.textContent);
     });
 
