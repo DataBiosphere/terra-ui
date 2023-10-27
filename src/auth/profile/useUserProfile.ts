@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { makeSetUserProfileRequest, User } from 'src/libs/ajax/User';
+import { Ajax } from 'src/libs/ajax';
+import { generateAPIBodyForUpdateUserProfile, UpdateTerraUserProfileRequest } from 'src/libs/ajax/User';
 import { refreshTerraProfile } from 'src/libs/auth';
 import { reportError } from 'src/libs/error';
 import { useStore } from 'src/libs/react-utils';
@@ -45,8 +46,21 @@ export const useUserProfile = (): UseUserProfileResult => {
 
   const update = useCallback(async (updatedProfile: TerraUserProfile): Promise<void> => {
     setStatus('Loading');
+    const updateProfileRequest: UpdateTerraUserProfileRequest = {
+      firstName: updatedProfile.firstName!,
+      lastName: updatedProfile.lastName!,
+      contactEmail: updatedProfile.contactEmail!,
+      department: updatedProfile.department,
+      institute: updatedProfile.institute,
+      interestInTerra: updatedProfile.interestInTerra,
+      title: updatedProfile.title,
+      programLocationCity: updatedProfile.programLocationCity,
+      programLocationState: updatedProfile.programLocationState,
+      programLocationCountry: updatedProfile.programLocationCountry,
+      researchArea: updatedProfile.researchArea,
+    };
     try {
-      await User().profile.set(makeSetUserProfileRequest(updatedProfile));
+      await Ajax().User.profile.update(generateAPIBodyForUpdateUserProfile(updateProfileRequest));
       await refreshTerraProfile();
       setStatus('Ready');
     } catch (err) {

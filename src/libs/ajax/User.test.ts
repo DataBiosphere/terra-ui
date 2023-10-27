@@ -15,6 +15,8 @@ const completeUserProfile: TerraUserProfile = {
   firstName: 'testFirstName',
   lastName: 'testFirstName',
   contactEmail: 'testFirstName',
+  // email isn't getting set at registration
+  email: '',
   department: 'testDepartment',
   institute: 'testInstitute',
   interestInTerra: 'testInterestInTerra',
