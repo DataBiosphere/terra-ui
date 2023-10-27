@@ -243,7 +243,7 @@ const WorkspaceDeletingCell = (): ReactNode => {
         color: colors.danger(),
       },
     },
-    [deletingIcon, 'Workspace deletion in progress.']
+    [deletingIcon, 'Workspace deletion in progress']
   );
 };
 

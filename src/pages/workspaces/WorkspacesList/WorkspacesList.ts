@@ -9,7 +9,7 @@ import { Ajax } from 'src/libs/ajax';
 import { isAzureUser } from 'src/libs/auth';
 import { withErrorIgnoring } from 'src/libs/error';
 import { updateSearch, useRoute } from 'src/libs/nav';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { useOnMount } from 'src/libs/react-utils';
 import { workspacesStore, workspaceStore } from 'src/libs/state';
 import { elements as StyleElements } from 'src/libs/style';
 import { newTabLinkProps, pollWithCancellation } from 'src/libs/utils';
@@ -113,11 +113,15 @@ export const WorkspacesList = (): ReactNode => {
 };
 
 const useDeletetionPolling = (workspaces: Workspace[]) => {
-  const deletingWorkspaces = _.filter((ws) => ws.workspace.state === 'Deleting', workspaces);
-  const signal = useCancellation();
-
+  // we have to do the signal/abort manually instead of with useCancelable so that the it can be cleaned up in the
+  // this component's useEffect, instead of the useEffect in useCancelable
+  const [controller, setController] = useState(new window.AbortController());
+  const abort = () => {
+    controller.abort();
+    setController(new window.AbortController());
+  };
   useEffect(() => {
-    const updateWorkspaces = (workspace: Workspace, state: WorkspaceState, errorMessage?: string): Workspace[] => {
+    const updateWorkspacesStore = (workspace: Workspace, state: WorkspaceState, errorMessage?: string): Workspace[] => {
       const updateList = _.cloneDeep(workspaces);
       const updateWS = _.find(
         (ws: Workspace) => ws.workspace.workspaceId === workspace.workspace.workspaceId,
@@ -130,23 +134,34 @@ const useDeletetionPolling = (workspaces: Workspace[]) => {
 
     const checkWorkspaceDeletion = async (workspace: Workspace) => {
       try {
-        const wsResp: Workspace = await Ajax(signal)
+        const wsResp: Workspace = await Ajax(controller.signal)
           .Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
           .details(['workspace.state', 'workspace.errorMessage']);
         const state = wsResp.workspace.state;
         if (state === 'DeleteFailed') {
-          workspacesStore.update(() => updateWorkspaces(workspace, state, wsResp.workspace.errorMessage));
+          abort();
+          workspacesStore.update(() => updateWorkspacesStore(workspace, state, wsResp.workspace.errorMessage));
           workspaceStore.reset();
         }
       } catch (error) {
         if (error instanceof Response && error.status === 404) {
-          workspacesStore.update(() => updateWorkspaces(workspace, 'Deleted'));
+          abort();
+          workspacesStore.update(() => updateWorkspacesStore(workspace, 'Deleted'));
           workspaceStore.reset();
         }
       }
     };
+    const iterateDeletingWorkspaces = async () => {
+      const deletingWorkspaces = _.filter((ws) => ws.workspace.state === 'Deleting', workspaces);
+      for (const ws of deletingWorkspaces) {
+        await checkWorkspaceDeletion(ws);
+      }
+    };
 
-    pollWithCancellation(() => Promise.all(deletingWorkspaces.map(checkWorkspaceDeletion)), 30000, false, signal);
+    pollWithCancellation(() => iterateDeletingWorkspaces(), 30000, false, controller.signal);
+    return () => {
+      abort();
+    };
     //  eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deletingWorkspaces, signal]);
+  }, [workspaces]); // adding the controller to deps causes a double fire of the effect
 };

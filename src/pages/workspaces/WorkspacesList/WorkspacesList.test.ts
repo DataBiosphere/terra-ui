@@ -147,10 +147,9 @@ describe('WorkspaceList', () => {
     });
     // trigger first poll
     jest.advanceTimersByTime(30000);
-    // wait for any promises to complete
-    await Promise.resolve();
+    // Waiting on the assertion here also ensures promises have time to complete
+    await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
     jest.advanceTimersByTime(30000);
-    await Promise.resolve();
 
     // Assert
     await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(2));
@@ -216,16 +215,13 @@ describe('WorkspaceList', () => {
     await act(async () => {
       render(h(WorkspacesList));
     });
-    // trigger first poll
-    await Promise.resolve();
 
     jest.advanceTimersByTime(30000);
-    // wait for any promises to complete
-    await Promise.resolve();
-    jest.advanceTimersByTime(30000);
-    await Promise.resolve();
 
     // Assert
+    await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(2));
+
+    jest.advanceTimersByTime(30000);
 
     await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(4));
     expect(mockWorkspacesFn).toHaveBeenNthCalledWith(
