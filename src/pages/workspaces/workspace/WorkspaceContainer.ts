@@ -1,3 +1,4 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ComponentPropsWithRef, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers';
@@ -7,7 +8,7 @@ import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import TitleBar from 'src/components/TitleBar';
@@ -18,7 +19,7 @@ import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
-import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
+import { ErrorCallback, withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
@@ -57,7 +58,7 @@ const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
 const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {
     title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center' } }, [
-      spinner({
+      h(Spinner, {
         size: 64,
         style: {
           position: 'relative',
@@ -99,6 +100,7 @@ interface WorkspaceContainerProps extends PropsWithChildren {
   refresh: () => Promise<void>;
   workspace: Workspace;
   refreshWorkspace: () => void;
+  silentlyRefreshWorkspace: (errorHandling?: ErrorCallback) => Promise<void>;
 }
 
 export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
@@ -124,6 +126,31 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const isGoogleWorkspaceSyncing =
     workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
 
+  // when the workspace refresh polling gets back an error for a workspace that is deleting
+  // redirect to list view
+  /*
+  const handleWorkspaceError = (error: unknown) => {
+    if (error instanceof Response && error.status === 404) {
+      Nav.goToPath('workspaces');
+    }
+  };
+  */
+  // poll workspace state every 30 seconds
+  /*
+  this is temporarily disabled to avoid swamping sam with API calls
+  for some reason the conditional works in unit tests but not real runs, 
+  and it's better to completely disable it rather than push out something that's broken for an unknown reason
+  usePollingEffect(
+    (): Promise<void> => {
+      if (workspaceLoaded && workspace.workspace.state === 'Deleting') {
+        return silentlyRefreshWorkspace(handleWorkspaceError);
+      } else {
+        return Promise.resolve();
+      }
+    },
+    { ms: 30000, leading: false }
+  );
+  */
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -404,10 +431,8 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
       const { namespace, name } = props;
       const child = useRef<unknown>();
 
-      const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace } = useWorkspace(
-        namespace,
-        name
-      );
+      const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace, silentlyRefreshWorkspace } =
+        useWorkspace(namespace, name);
       const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(workspace);
       const { apps, refreshApps } = useAppPolling(workspace);
 
@@ -420,6 +445,7 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
       if (accessError) {
         return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)]);
       }
+
       return h(
         WorkspaceContainer,
         {
@@ -438,6 +464,7 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
               child.current.refresh();
             }
           },
+          silentlyRefreshWorkspace,
         },
         [
           workspace &&

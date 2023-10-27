@@ -1,16 +1,17 @@
-import { Clickable } from '@terra-ui-packages/components';
+import { Clickable, Spinner } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
 import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import { ValidatedInput, ValidatedTextArea } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
+import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   DataRepo,
   datasetIncludeTypes,
@@ -30,7 +31,6 @@ import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
 import { CohortEditor } from 'src/pages/library/datasetBuilder/CohortEditor';
 import { ConceptSetCreator } from 'src/pages/library/datasetBuilder/ConceptSetCreator';
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
@@ -645,7 +645,7 @@ export const DatasetBuilderContents = ({
       requestValid &&
         h(ActionBar, {
           prompt: h(Fragment, [
-            datasetRequestParticipantCount.status === 'Ready' ? datasetRequestParticipantCount.state : spinner(),
+            datasetRequestParticipantCount.status === 'Ready' ? datasetRequestParticipantCount.state : h(Spinner),
             ' Participants in this dataset',
           ]),
           actionText: 'Request access to this dataset',

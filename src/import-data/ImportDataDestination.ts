@@ -130,6 +130,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     // That information needs to be fetched here.
     'accessLevel',
     'policies',
+    // When using a template workspace, the NewWorkspaceModal reads the description attribute
+    // from the template.
+    'workspace.attributes',
     'workspace.authorizationDomain',
     'workspace.bucketName',
     'workspace.cloudPlatform',

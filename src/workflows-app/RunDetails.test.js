@@ -19,11 +19,6 @@ import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-
 
 jest.mock('src/libs/ajax');
 
-jest.mock('src/components/Modal', () => {
-  const mockModal = jest.requireActual('src/components/Modal.mock');
-  return mockModal.mockModalModule();
-});
-
 const wdsUrlRoot = 'https://lz-abc/wds-abc-c07807929cd1/';
 const cbasUrlRoot = 'https://lz-abc/terra-app-abc/cbas';
 const cromwellUrlRoot = 'https://lz-abc/terra-app-abc/cromwell';

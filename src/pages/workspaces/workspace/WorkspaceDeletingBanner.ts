@@ -1,6 +1,8 @@
-import { icon } from '@terra-ui-packages/components';
-import { Fragment, ReactNode } from 'react';
+import { icon, Link } from '@terra-ui-packages/components';
+import { Fragment, ReactNode, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
+import ErrorView from 'src/components/ErrorView';
+import Modal from 'src/components/Modal';
 import TitleBar from 'src/components/TitleBar';
 import colors from 'src/libs/colors';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
@@ -44,9 +46,8 @@ const DeletingStateBanner = (): ReactNode => {
 };
 
 const DeleteFailedStateBanner = (props: WorkspaceDeletingBannerProps): ReactNode => {
-  // TODO: re-enable when https://broadworkbench.atlassian.net/browse/WOR-1283 is complete
-  // const { workspace } = props;
-  // const [showDetails, setShowDetails] = useState<boolean>(false);
+  const { workspace } = props;
+  const [showDetails, setShowDetails] = useState<boolean>(false);
   return h(Fragment, [
     h(TitleBar, {
       title: div(
@@ -59,8 +60,7 @@ const DeleteFailedStateBanner = (props: WorkspaceDeletingBannerProps): ReactNode
           span({ style: { color: colors.dark(), fontSize: 14, marginRight: '0.5rem' } }, [
             'Error deleting workspace. Analyses, Workflow, and Data tools are no longer accessible.',
           ]),
-          /*
-          // TODO: re-enable when https://broadworkbench.atlassian.net/browse/WOR-1283 is complete
+
           workspace?.workspace.errorMessage
             ? h(
                 Link,
@@ -71,15 +71,13 @@ const DeleteFailedStateBanner = (props: WorkspaceDeletingBannerProps): ReactNode
                 ['See error details.']
               )
             : null,
-            */
         ]
       ),
       style: { backgroundColor: colors.warning(0.1), borderBottom: `1px solid ${colors.accent()}` },
       onDismiss: () => {},
       hideCloseButton: true,
     }),
-    /*
-    // TODO: re-enable when https://broadworkbench.atlassian.net/browse/WOR-1283 is complete
+
     showDetails
       ? h(
           Modal,
@@ -93,6 +91,5 @@ const DeleteFailedStateBanner = (props: WorkspaceDeletingBannerProps): ReactNode
           [h(ErrorView, { error: workspace?.workspace.errorMessage ?? 'No error message available' })]
         )
       : null,
-      */
   ]);
 };

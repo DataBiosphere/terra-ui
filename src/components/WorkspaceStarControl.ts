@@ -1,8 +1,9 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -92,7 +93,7 @@ export const WorkspaceStarControl = (props: WorkspaceStarControlProps): ReactNod
     },
     [
       updatingStars
-        ? spinner({ size: 20 })
+        ? h(Spinner, { size: 20 })
         : icon('star', { size: 20, color: isStarred ? colors.warning() : colors.light(2) }),
     ]
   );

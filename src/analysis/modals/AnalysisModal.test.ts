@@ -11,6 +11,10 @@ import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorag
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import {
+  ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
+  HAIL_BATCH_AZURE_FEATURE_ID,
+} from 'src/libs/feature-previews-config';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -296,9 +300,20 @@ describe('AnalysisModal', () => {
     expect(screen.getByText('Create'));
   });
 
+  it('Azure - Does not render Cromwell when feature flag is enabled', async () => {
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS);
+    // Act
+    render(h(AnalysisModal, defaultAzureModalProps));
+
+    // Assert
+    expect(screen.queryByAltText('Create new Cromwell app')).not.toBeInTheDocument();
+    expect(screen.queryByText('You already have a Cromwell instance')).not.toBeInTheDocument();
+  });
+
   it('Azure - Renders Hail Batch when feature flag is enabled', () => {
     // Arrange
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((preview) => preview === HAIL_BATCH_AZURE_FEATURE_ID);
+
     // Act
     render(h(AnalysisModal, defaultAzureModalProps));
     // Assert

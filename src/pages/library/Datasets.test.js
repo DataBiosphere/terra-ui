@@ -1,8 +1,8 @@
 import { h } from 'react-hyperscript-helpers';
+import { prepareDatasetsForDisplay } from 'src/data-catalog/data-browser-utils';
 import { brands } from 'src/libs/brands';
 import * as Nav from 'src/libs/nav';
 import { dataCatalogStore } from 'src/libs/state';
-import { prepareDatasetsForDisplay } from 'src/pages/library/dataBrowser-utils';
 import { Datasets } from 'src/pages/library/Datasets';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
