@@ -75,7 +75,6 @@ export interface UpdateTerraUserProfileRequest extends CreateTerraUserProfileReq
   programLocationCity?: string;
   programLocationState?: string;
   programLocationCountry?: string;
-  termsOfService?: string;
   researchArea?: string;
 }
 
@@ -104,7 +103,6 @@ export const generateAPIBodyForUpdateUserProfile = (
   request: UpdateTerraUserProfileRequest
 ): OrchestrationUpsertTerraUserProfileRequest => {
   return {
-    // TODO: this is the logic to look at when writing the tests
     // first name and last name are REQUIRED for this request, and they are populated from the oidc token claims,
     // so they should not be undefined
     firstName: request.firstName!,
