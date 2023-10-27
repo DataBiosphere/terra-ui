@@ -3,15 +3,11 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { DatasetBuilder, DatasetBuilderContract, getConceptForId } from 'src/libs/ajax/DatasetBuilder';
-import {
-  cohortEditorState,
-  domainCriteriaSelectorState,
-  newCohort,
-  newCriteriaGroup,
-} from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { DomainCriteriaSelector, toCriteria } from 'src/pages/library/datasetBuilder/DomainCriteriaSelector';
-import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+
+import { cohortEditorState, domainCriteriaSelectorState, newCohort, newCriteriaGroup } from './dataset-builder-types';
+import { DomainCriteriaSelector, toCriteria } from './DomainCriteriaSelector';
+import { dummyDatasetDetails } from './TestConstants';
 
 type DatasetBuilderExports = typeof import('src/libs/ajax/DatasetBuilder');
 jest.mock('src/libs/ajax/DatasetBuilder', (): DatasetBuilderExports => {

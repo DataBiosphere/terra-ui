@@ -10,7 +10,8 @@ import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
-import { DatasetBuilderBreadcrumbs } from 'src/pages/library/datasetBuilder/Breadcrumbs';
+
+import { DatasetBuilderBreadcrumbs } from './Breadcrumbs';
 
 interface DomainDisplayProps {
   title: string;
