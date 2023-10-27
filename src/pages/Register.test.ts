@@ -2,7 +2,7 @@ import { fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { User } from 'src/libs/ajax/User';
+import { CreateTerraUserProfileRequest, User } from 'src/libs/ajax/User';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import Register from './Register';
@@ -86,7 +86,7 @@ describe('Register', () => {
 
   it('fires off a request to Orch to register a user', async () => {
     // Arrange
-    const profileSetFunction = jest.fn().mockReturnValue({});
+    const createProfileFunction = jest.fn().mockReturnValue({});
 
     asMockedFn(Ajax).mockImplementation(
       () =>
@@ -94,12 +94,22 @@ describe('Register', () => {
           Metrics: { captureEvent: jest.fn() } as MetricsPartial,
           User: {
             profile: {
-              set: profileSetFunction,
+              create: createProfileFunction,
               get: jest.fn().mockReturnValue({}),
             } as ProfilePartial,
           } as UserPartial,
         } as AjaxContract)
     );
+
+    const expectedCallBody: CreateTerraUserProfileRequest = {
+      firstName: 'Test Name',
+      lastName: 'Test Last Name',
+      contactEmail: 'testemail@noreply.com',
+      title: 'Test Title',
+      department: 'Test Department',
+      institute: 'Test Organization',
+      interestInTerra: '',
+    };
 
     // Act
     render(h(Register));
@@ -117,14 +127,6 @@ describe('Register', () => {
     fireEvent.click(registerButton);
 
     // Assert
-    expect(profileSetFunction).toHaveBeenCalledWith({
-      firstName: 'Test Name',
-      lastName: 'Test Last Name',
-      contactEmail: 'testemail@noreply.com',
-      title: 'Test Title',
-      department: 'Test Department',
-      institute: 'Test Organization',
-      interestInTerra: '',
-    });
+    expect(createProfileFunction).toHaveBeenCalledWith(expectedCallBody);
   });
 });

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Ajax } from 'src/libs/ajax';
-import { generateAPIBodyForUpdateUserProfile, UpdateTerraUserProfileRequest } from 'src/libs/ajax/User';
+import { UpdateTerraUserProfileRequest, User } from 'src/libs/ajax/User';
 import { refreshTerraProfile } from 'src/libs/auth';
 import { reportError } from 'src/libs/error';
 import { useStore } from 'src/libs/react-utils';
@@ -60,7 +59,7 @@ export const useUserProfile = (): UseUserProfileResult => {
       researchArea: updatedProfile.researchArea,
     };
     try {
-      await Ajax().User.profile.update(generateAPIBodyForUpdateUserProfile(updateProfileRequest));
+      await User().profile.update(updateProfileRequest);
       await refreshTerraProfile();
       setStatus('Ready');
     } catch (err) {

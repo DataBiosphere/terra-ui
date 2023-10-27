@@ -34,7 +34,7 @@ const mockProfile: TerraUserProfile = {
   firstName: 'Test',
   lastName: 'User',
 
-  email: 'user@example.com',
+  // email: 'user@example.com',
   contactEmail: '',
 
   institute: '',
@@ -162,7 +162,7 @@ describe('useUserProfile', () => {
       asMockedFn(User).mockImplementation(() => {
         return {
           profile: {
-            set: setProfile,
+            update: setProfile,
           },
         } as unknown as UserContract;
       });

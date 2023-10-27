@@ -6,7 +6,7 @@ import { centeredSpinner } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import planet from 'src/images/register-planet.svg';
 import { Ajax } from 'src/libs/ajax';
-import { CreateTerraUserProfileRequest, generateAPIBodyForCreateUserProfile } from 'src/libs/ajax/User';
+import { CreateTerraUserProfileRequest } from 'src/libs/ajax/User';
 import { refreshTerraProfile, signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
@@ -91,7 +91,7 @@ const Register = () => {
         department,
         title,
       };
-      await Ajax().User.profile.create(generateAPIBodyForCreateUserProfile(createTerraUserProfileRequest));
+      await Ajax().User.profile.create(createTerraUserProfileRequest);
       authStore.update((state: AuthState) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
       await refreshTerraProfile();
       Ajax().Metrics.captureEvent(Events.user.register);

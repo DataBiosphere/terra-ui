@@ -28,7 +28,6 @@ export type TerraUserProfile = {
   firstName: string | undefined;
   lastName: string | undefined;
   institute: string | undefined;
-  email: string | undefined;
   contactEmail: string | undefined;
   title: string | undefined;
   department: string | undefined;
@@ -117,8 +116,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   profile: {
     firstName: undefined,
     lastName: undefined,
-    // email does not actually get set during registration
-    email: undefined,
     contactEmail: undefined,
     title: undefined,
     institute: undefined,
