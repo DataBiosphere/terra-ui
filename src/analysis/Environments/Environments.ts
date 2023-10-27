@@ -704,7 +704,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                     return cloudEnvironment.region;
                   }
                   if (isRuntime(cloudEnvironment)) {
-                    return _.toLower(cloudEnvironment.normalizedRuntimeConfig.normalizedRegion);
+                    return _.toLower(cloudEnvironment.runtimeConfig.normalizedRegion);
                   }
                   return '';
                 },

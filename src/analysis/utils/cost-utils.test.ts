@@ -17,7 +17,11 @@ import {
 } from 'src/analysis/utils/cost-utils';
 import { appToolLabels, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { diskStatuses, googlePdTypes, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { cloudServiceTypes, GoogleRuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import {
+  cloudServiceTypes,
+  GoogleRuntimeConfig,
+  NormalizedComputeRegion,
+} from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getNormalizedComputeConfig } from 'src/libs/ajax/leonardo/Runtimes';
 import { getAzurePricesForRegion } from 'src/libs/azure-utils';
@@ -438,6 +442,7 @@ describe('runtimeConfigCost for dataproc', () => {
     numberOfPreemptibleWorkers: 0,
     workerDiskSize: 0,
     workerPrivateAccess: false,
+    normalizedRegion: 'us-central' as NormalizedComputeRegion,
   };
 
   const defaultSparkCluster: GoogleRuntimeConfig = {
@@ -452,6 +457,7 @@ describe('runtimeConfigCost for dataproc', () => {
     workerMachineType: 'n1-standard-4',
     workerDiskSize: 150,
     workerPrivateAccess: false,
+    normalizedRegion: 'us-central' as NormalizedComputeRegion,
   };
   it('gets cost for a dataproc cluster', () => {
     // Act

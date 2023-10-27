@@ -37,7 +37,7 @@ import {
   isGceConfig,
   isGceRuntimeConfig,
   isGceWithPdConfig,
-  NormalizedRuntimeConfig,
+  RuntimeConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getAzurePricesForRegion, getDiskType } from 'src/libs/azure-utils';
@@ -79,7 +79,7 @@ export const getGpuCost = (gpuType: string, numGpus: number, region: string): nu
 // This function deals with runtimes that are paused
 // All disks referenced in this function are boot disks (aka the disk google needs to provision by default for OS storage)
 // The user pd cost for a runtime is calculated elsewhere
-export const runtimeConfigBaseCost = (config: NormalizedRuntimeConfig): number => {
+export const runtimeConfigBaseCost = (config: RuntimeConfig): number => {
   if (!config) return 0;
   const computeRegion = config.normalizedRegion;
 
@@ -101,7 +101,7 @@ export const runtimeConfigBaseCost = (config: NormalizedRuntimeConfig): number =
   return _.sum([costForDataproc, costForGceWithoutUserDisk, costForGceWithUserDisk]);
 };
 
-export const runtimeConfigCost = (config: NormalizedRuntimeConfig): number => {
+export const runtimeConfigCost = (config: RuntimeConfig): number => {
   if (!config) return 0;
   const computeRegion = config.normalizedRegion;
 
@@ -298,7 +298,7 @@ export const getPersistentDiskCostHourly = (
 
 export const getRuntimeCost = (runtime: Runtime): number => {
   if (!runtime) return 0;
-  const { runtimeConfig, status, normalizedRuntimeConfig } = runtime;
+  const { runtimeConfig, status } = runtime;
   if (isAzureConfig(runtimeConfig)) {
     return Utils.switchCase(
       status,
@@ -310,9 +310,9 @@ export const getRuntimeCost = (runtime: Runtime): number => {
   if (isGceRuntimeConfig(runtimeConfig) || isDataprocConfig(runtimeConfig)) {
     return Utils.switchCase(
       status,
-      [runtimeStatuses.stopped.leoLabel, () => runtimeConfigBaseCost(normalizedRuntimeConfig)],
+      [runtimeStatuses.stopped.leoLabel, () => runtimeConfigBaseCost(runtimeConfig)],
       [runtimeStatuses.error.leoLabel, () => 0.0],
-      [Utils.DEFAULT, () => runtimeConfigCost(normalizedRuntimeConfig)]
+      [Utils.DEFAULT, () => runtimeConfigCost(runtimeConfig)]
     );
   }
   throw new Error(`Unknown runtime config type ${runtimeConfig}`);

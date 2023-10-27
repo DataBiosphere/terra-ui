@@ -14,6 +14,7 @@ export const cloudServiceTypes: Record<ComputeType, ComputeType> = {
 
 export interface BaseRuntimeConfig {
   cloudService: ComputeType;
+  normalizedRegion: NormalizedComputeRegion;
 }
 
 export interface GceConfig extends BaseRuntimeConfig {
@@ -77,7 +78,3 @@ export const isGceConfig = (config: RuntimeConfig): config is GceConfig => {
 export const isAzureConfig = (config: RuntimeConfig): config is AzureConfig => config.cloudService === 'AZURE_VM';
 
 export type NormalizedComputeRegion = NominalType<string, 'ComputeRegion'>;
-
-export type NormalizedRuntimeConfig = {
-  normalizedRegion: NormalizedComputeRegion;
-} & RuntimeConfig;

@@ -1,7 +1,7 @@
 import { ToolLabel } from 'src/analysis/utils/tool-utils';
 import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 import { DiskConfig } from 'src/libs/ajax/leonardo/models/disk-models';
-import { NormalizedRuntimeConfig, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 
 export type LeoRuntimeStatus =
   | 'Running'
@@ -115,12 +115,12 @@ export interface RawGetRuntimeItem {
 }
 
 export type ListRuntimeItem = {
-  normalizedRuntimeConfig: NormalizedRuntimeConfig;
-} & RawListRuntimeItem;
+  runtimeConfig: RuntimeConfig;
+} & Omit<RawListRuntimeItem, 'runtimeConfig'>;
 
 export type GetRuntimeItem = {
-  normalizedRuntimeConfig: NormalizedRuntimeConfig;
-} & RawGetRuntimeItem;
+  runtimeConfig: RuntimeConfig;
+} & Omit<RawGetRuntimeItem, 'runtimeConfig'>;
 
 export type Runtime = GetRuntimeItem | ListRuntimeItem;
 

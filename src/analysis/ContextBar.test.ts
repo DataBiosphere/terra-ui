@@ -262,15 +262,7 @@ const rstudioRuntime: ListRuntimeItem = {
     bootDiskSize: 120,
     zone: 'us-central1-a',
     gpuConfig: undefined,
-  },
-  normalizedRuntimeConfig: {
-    machineType: 'n1-standard-4',
-    persistentDiskId: 15778,
-    cloudService: 'GCE',
-    bootDiskSize: 120,
-    zone: 'us-central1-a',
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
-    gpuConfig: undefined,
   },
   proxyUrl:
     'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-98897219/saturn-48afb74a-15b1-4aad-8b23-d039cf8253fb/rstudio',
@@ -314,15 +306,7 @@ const jupyter: Runtime = {
     bootDiskSize: 120,
     zone: 'us-central1-a',
     gpuConfig: undefined,
-  },
-  normalizedRuntimeConfig: {
-    machineType: 'n1-standard-4',
-    persistentDiskId: 15778,
-    cloudService: 'GCE',
-    bootDiskSize: 120,
-    zone: 'us-central1-a',
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
-    gpuConfig: undefined,
   },
   proxyUrl:
     'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-cf677740/saturn-eae9168f-9b99-4910-945e-dbab66e04d91/jupyter',
@@ -377,12 +361,6 @@ const jupyterLabRunning: Runtime = {
   proxyUrl:
     'https://relay-ns-2a77dcb5-882c-46b9-a3bc-5d251aff14d0.servicebus.windows.net/saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
   runtimeConfig: {
-    cloudService: 'AZURE_VM',
-    machineType: defaultAzureMachineType,
-    persistentDiskId: 15778,
-    region: defaultAzureRegion,
-  },
-  normalizedRuntimeConfig: {
     cloudService: 'AZURE_VM',
     machineType: defaultAzureMachineType,
     persistentDiskId: 15778,

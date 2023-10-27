@@ -209,13 +209,14 @@ const randomMaxInt = 10000;
 export const getJupyterRuntimeConfig = ({
   diskId = getRandomInt(randomMaxInt),
   machineType = defaultGceMachineType,
-} = {}) => ({
+} = {}): RuntimeConfig => ({
   machineType,
   persistentDiskId: diskId,
   cloudService: cloudServiceTypes.GCE,
   bootDiskSize: defaultGceBootDiskSize,
   zone: 'us-central1-a',
   gpuConfig: undefined,
+  normalizedRegion: 'us-central1' as NormalizedComputeRegion,
 });
 
 export const getRandomInt = (max) => Math.floor(Math.random() * max);
@@ -237,6 +238,7 @@ export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): Runtim
     bootDiskSize: defaultGceBootDiskSize,
     zone: 'us-central1-a',
     gpuConfig: undefined,
+    normalizedRegion: 'us-central1' as NormalizedComputeRegion,
     ...overrides,
   } satisfies GceWithPdConfig);
 
@@ -253,8 +255,7 @@ export const generateTestGetGoogleRuntime = (overrides: Partial<GetRuntimeItem> 
     googleProject: 'terra-test-e4000484',
     serviceAccount: 'testuser123@broad.com',
     auditInfo: defaultAuditInfo,
-    runtimeConfig,
-    normalizedRuntimeConfig: getNormalizedComputeConfig(runtimeConfig),
+    runtimeConfig: getNormalizedComputeConfig(runtimeConfig),
     proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-test-e4000484/test-runtime/jupyter',
     status: runtimeStatuses.running.leoLabel,
     labels: {
@@ -330,7 +331,6 @@ export const generateTestListGoogleRuntime = (overrides: Partial<ListRuntimeItem
     googleProject: 'terra-test-e4000484',
     auditInfo: defaultAuditInfo,
     runtimeConfig,
-    normalizedRuntimeConfig: getNormalizedComputeConfig(runtimeConfig),
     proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-test-e4000484/test-runtime/jupyter',
     status: runtimeStatuses.running.leoLabel,
     labels: {
@@ -375,8 +375,7 @@ export const getGoogleDataProcRuntime = ({
       destroyedDate: null,
       dateAccessed: '2023-05-24T20:38:28.651Z',
     },
-    runtimeConfig,
-    normalizedRuntimeConfig: getNormalizedComputeConfig(runtimeConfig),
+    runtimeConfig: getNormalizedComputeConfig(runtimeConfig),
     proxyUrl: `https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-21d47fdd/${runtimeName}/jupyter`,
     status,
     labels: {
@@ -426,7 +425,6 @@ export const getGoogleRuntime = ({
     serviceAccount: 'testuser123@broad.com',
     auditInfo: defaultAuditInfo,
     runtimeConfig,
-    normalizedRuntimeConfig: getNormalizedComputeConfig(runtimeConfig),
     proxyUrl: `https://leonardo.dsde-dev.broadinstitute.org/proxy/${googleProject}/${runtimeName}/${_.toLower(
       tool.label
     )}`,
@@ -510,7 +508,6 @@ export const listGoogleRuntime = ({
     },
     auditInfo: defaultAuditInfo,
     runtimeConfig,
-    normalizedRuntimeConfig: getNormalizedComputeConfig(runtimeConfig),
     proxyUrl: `https://leonardo.dsde-dev.broadinstitute.org/proxy/${googleProject}/${runtimeName}/${_.toLower(
       tool.label
     )}`,
@@ -844,14 +841,8 @@ export const azureRuntime: ListRuntimeItem = {
     machineType: 'Standard_DS2_v2',
     persistentDiskId: 16902,
     region: 'eastus',
-  } satisfies AzureConfig,
-  normalizedRuntimeConfig: {
-    cloudService: cloudServiceTypes.AZURE_VM,
-    machineType: 'Standard_DS2_v2',
-    persistentDiskId: 16902,
-    region: 'eastus',
     normalizedRegion: 'eastus' as NormalizedComputeRegion,
-  },
+  } satisfies AzureConfig,
   proxyUrl:
     'https://lzf07312d05014dcfc2a6d8244c0f9b166a3801f44ec2b003d.servicebus.windows.net/saturn-42a4398b-10f8-4626-9025-7abda26aedab',
   status: 'Running',
@@ -884,19 +875,6 @@ export const dataprocRuntime: ListRuntimeItem = {
     dateAccessed: '2023-05-03T19:53:23.559367Z',
   },
   runtimeConfig: {
-    numberOfWorkers: 2,
-    masterMachineType: 'n1-standard-4',
-    masterDiskSize: 150,
-    workerMachineType: 'n1-standard-4',
-    workerDiskSize: 150,
-    numberOfWorkerLocalSSDs: 0,
-    numberOfPreemptibleWorkers: 1,
-    cloudService: 'DATAPROC',
-    region: 'us-central1',
-    componentGatewayEnabled: true,
-    workerPrivateAccess: false,
-  },
-  normalizedRuntimeConfig: {
     numberOfWorkers: 2,
     masterMachineType: 'n1-standard-4',
     masterDiskSize: 150,
