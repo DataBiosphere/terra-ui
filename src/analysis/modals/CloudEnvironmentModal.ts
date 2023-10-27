@@ -648,8 +648,7 @@ export const CloudEnvironmentModal = ({
     }),
     viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
     getView(),
-    errorAppId &&
-      errorApp &&
+    errorApp &&
       h(AppErrorModal, {
         app: errorApp,
         onDismiss: () => setErrorAppId(undefined),

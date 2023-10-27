@@ -959,8 +959,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         }),
       deleteDiskId && renderDeleteDiskModal(_.find({ id: deleteDiskId }, disks) as DiskWithWorkspace),
       deleteAppModal.maybeRender(),
-      errorAppId &&
-        appWithErrors &&
+      appWithErrors &&
         h(AppErrorModal, {
           app: appWithErrors,
           onDismiss: () => setErrorAppId(undefined),
