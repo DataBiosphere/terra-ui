@@ -72,7 +72,8 @@ export const List = (props: ListProps) => {
   )(async ({ projectName }) => {
     const index = _.findIndex({ projectName }, billingProjects);
     // fetch the project to error if it doesn't exist/user can't access
-    const project = await Ajax(signal).Billing.getProject(selectedName);
+    // The component that calls this function is only rendered when selectedName is non-null.
+    const project = await Ajax(signal).Billing.getProject(selectedName!);
     setBillingProjects(_.set([index], project));
   });
 

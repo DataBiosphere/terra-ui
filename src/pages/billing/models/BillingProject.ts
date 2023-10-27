@@ -6,6 +6,11 @@ export type BillingRole = 'Owner' | 'User';
 
 export const allBillingRoles: BillingRole[] = ['Owner', 'User'];
 
+export interface BillingProjectMember {
+  email: string;
+  role: BillingRole;
+}
+
 interface BaseBillingProject {
   cloudPlatform: CloudPlatform;
   projectName: string;
