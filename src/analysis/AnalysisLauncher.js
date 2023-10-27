@@ -384,6 +384,7 @@ const PreviewHeader = ({
     if (lastLockedBy && lastLockedBy !== hashedUser && lockExpirationDate > Date.now()) {
       setLocked(true);
       setLockedBy(lastLockedBy);
+      setLocked(false);
     }
   });
 
