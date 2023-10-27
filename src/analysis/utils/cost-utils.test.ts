@@ -15,6 +15,7 @@ import {
   getRuntimeCost,
   runtimeConfigCost,
 } from 'src/analysis/utils/cost-utils';
+import { getNormalizedComputeConfig } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { diskStatuses, googlePdTypes, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, GoogleRuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
@@ -454,13 +455,13 @@ describe('runtimeConfigCost for dataproc', () => {
   };
   it('gets cost for a dataproc cluster', () => {
     // Act
-    const result = runtimeConfigCost(defaultSparkCluster);
+    const result = runtimeConfigCost(getNormalizedComputeConfig(defaultSparkCluster));
     // Assert
     expect(result).toBeGreaterThan(0);
   });
   it('gets cost for single node cluster', () => {
     // Act
-    const result = runtimeConfigCost(defaultSparkSingleNode);
+    const result = runtimeConfigCost(getNormalizedComputeConfig(defaultSparkSingleNode));
 
     // Assert
     expect(result).toBeGreaterThan(0);

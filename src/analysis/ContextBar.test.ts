@@ -12,12 +12,13 @@ import {
   getRuntimeCost,
   runtimeConfigCost,
 } from 'src/analysis/utils/cost-utils';
+import { NormalizedComputeRegion } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels, isToolHidden, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils';
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -239,7 +240,7 @@ const cromwellOnAzureRunning: App = {
   region: 'us-central1',
 };
 
-const rstudioRuntime: Runtime = {
+const rstudioRuntime: ListRuntimeItem = {
   id: 76979,
   workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
   runtimeName: 'saturn-48afb74a-15b1-4aad-8b23-d039cf8253fb',
@@ -260,6 +261,15 @@ const rstudioRuntime: Runtime = {
     cloudService: 'GCE',
     bootDiskSize: 120,
     zone: 'us-central1-a',
+    gpuConfig: undefined,
+  },
+  normalizedRuntimeConfig: {
+    machineType: 'n1-standard-4',
+    persistentDiskId: 15778,
+    cloudService: 'GCE',
+    bootDiskSize: 120,
+    zone: 'us-central1-a',
+    normalizedRegion: 'us-central1' as NormalizedComputeRegion,
     gpuConfig: undefined,
   },
   proxyUrl:
@@ -303,6 +313,15 @@ const jupyter: Runtime = {
     cloudService: 'GCE',
     bootDiskSize: 120,
     zone: 'us-central1-a',
+    gpuConfig: undefined,
+  },
+  normalizedRuntimeConfig: {
+    machineType: 'n1-standard-4',
+    persistentDiskId: 15778,
+    cloudService: 'GCE',
+    bootDiskSize: 120,
+    zone: 'us-central1-a',
+    normalizedRegion: 'us-central1' as NormalizedComputeRegion,
     gpuConfig: undefined,
   },
   proxyUrl:
@@ -362,6 +381,13 @@ const jupyterLabRunning: Runtime = {
     machineType: defaultAzureMachineType,
     persistentDiskId: 15778,
     region: defaultAzureRegion,
+  },
+  normalizedRuntimeConfig: {
+    cloudService: 'AZURE_VM',
+    machineType: defaultAzureMachineType,
+    persistentDiskId: 15778,
+    region: defaultAzureRegion,
+    normalizedRegion: defaultAzureRegion as NormalizedComputeRegion,
   },
   workspaceId: '2a77dcb5-882c-46b9-a3bc-5d251aff14d0',
   status: 'Running',
