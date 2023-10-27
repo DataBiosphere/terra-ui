@@ -1,4 +1,3 @@
-import { NominalType } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { gpuTypes, machineTypes, zonesToGpus } from 'src/analysis/utils/gce-machines';
 import {
@@ -17,6 +16,7 @@ import {
   isDataprocConfig,
   isGceConfig,
   isGceWithPdConfig,
+  NormalizedComputeRegion,
   NormalizedRuntimeConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import {
@@ -69,8 +69,6 @@ export const getDefaultMachineType = (isDataproc: boolean, tool: ToolLabel): str
 
 // GCP zones look like 'US-CENTRAL1-A'. To get the region, remove the last two characters.
 export const getRegionFromZone = (zone: string) => zone.slice(0, -2);
-
-export type NormalizedComputeRegion = NominalType<string, 'ComputeRegion'>;
 
 // TODO: test when zone and region have types
 export const getNormalizedComputeRegion = (config: GoogleRuntimeConfig | AzureConfig): NormalizedComputeRegion => {

@@ -9,7 +9,6 @@ import {
   defaultLocation,
   generateRuntimeName,
   getNormalizedComputeConfig,
-  NormalizedComputeRegion,
 } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
 import { App, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
@@ -18,6 +17,7 @@ import {
   AzureConfig,
   cloudServiceTypes,
   GceWithPdConfig,
+  NormalizedComputeRegion,
   RuntimeConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { GetRuntimeItem, ListRuntimeItem, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';

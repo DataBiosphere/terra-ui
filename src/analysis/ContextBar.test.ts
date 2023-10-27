@@ -12,7 +12,6 @@ import {
   getRuntimeCost,
   runtimeConfigCost,
 } from 'src/analysis/utils/cost-utils';
-import { NormalizedComputeRegion } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels, isToolHidden, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
