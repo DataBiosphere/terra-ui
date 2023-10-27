@@ -16,10 +16,9 @@ jest.mock('src/libs/notifications', () => ({
   notify: jest.fn(),
 }));
 
-type ModalMockExports = typeof import('src/components/Modal.mock');
 jest.mock('src/components/Modal', () => {
-  const mockModal = jest.requireActual<ModalMockExports>('src/components/Modal.mock');
-  return mockModal.mockModalModule();
+  const { mockModalModule } = jest.requireActual('src/components/Modal.mock');
+  return mockModalModule();
 });
 
 const getMockLeoAppProvider = (overrides?: Partial<LeoAppProvider>): LeoAppProvider => {
