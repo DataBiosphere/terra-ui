@@ -1,8 +1,8 @@
+import { Spinner } from '@terra-ui-packages/components';
 import { Fragment } from 'react';
 import { h, p, pre, span } from 'react-hyperscript-helpers';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { useFileDownloadCommand } from 'src/components/file-browser/useFileDownloadCommand';
-import { spinner } from 'src/components/icons';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import colors from 'src/libs/colors';
 
@@ -19,7 +19,7 @@ export const DownloadFileCommand = (props: DownloadFileCommandProps) => {
   return h(Fragment, [
     p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, [
       'Terminal download command',
-      status === 'Loading' && spinner({ size: 12, style: { color: '#000', marginLeft: '1ch' } }),
+      status === 'Loading' && h(Spinner, { size: 12, style: { color: '#000', marginLeft: '1ch' } }),
     ]),
     pre(
       {

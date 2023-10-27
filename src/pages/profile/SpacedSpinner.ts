@@ -1,9 +1,9 @@
-import { div } from 'react-hyperscript-helpers';
-import { spinner } from 'src/components/icons';
+import { Spinner } from '@terra-ui-packages/components';
+import { div, h } from 'react-hyperscript-helpers';
 
 export const SpacedSpinner = ({ children }) => {
   return div({ style: { display: 'flex', alignItems: 'center' } }, [
-    spinner({ style: { marginRight: '1rem' } }),
+    h(Spinner, { style: { marginRight: '1rem' } }),
     children,
   ]);
 };
