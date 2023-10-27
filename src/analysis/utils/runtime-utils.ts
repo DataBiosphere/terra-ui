@@ -17,7 +17,6 @@ import {
   isGceConfig,
   isGceWithPdConfig,
   NormalizedComputeRegion,
-  NormalizedRuntimeConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import {
   DisplayRuntimeStatus,
@@ -84,11 +83,6 @@ export const getNormalizedComputeRegion = (config: GoogleRuntimeConfig | AzureCo
   }
   return regionNotFoundPlaceholder as NormalizedComputeRegion;
 };
-
-export const getNormalizedComputeConfig = (config: GoogleRuntimeConfig | AzureConfig): NormalizedRuntimeConfig => ({
-  ...config,
-  normalizedRegion: getNormalizedComputeRegion(config),
-});
 
 export const findMachineType = (name: string) => {
   return _.find({ name }, machineTypes) || { name, cpu: 0, memory: 0, price: 0, preemptiblePrice: 0 };

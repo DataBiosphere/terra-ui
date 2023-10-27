@@ -1,7 +1,6 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { version } from 'src/analysis/utils/gce-machines';
-import { getNormalizedComputeConfig } from 'src/analysis/utils/runtime-utils';
 import {
   appIdentifier,
   authOpts,
@@ -12,6 +11,11 @@ import {
   jsonBody,
   makeRequestRetry,
 } from 'src/libs/ajax/ajax-common';
+import {
+  AzureConfig,
+  GoogleRuntimeConfig,
+  NormalizedRuntimeConfig,
+} from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import {
   GetRuntimeItem,
   ListRuntimeItem,
@@ -36,6 +40,11 @@ const isAzureRuntimeWrapper = (obj: any): obj is AzureRuntimeWrapper => {
   const castObj = obj as AzureRuntimeWrapper;
   return castObj && !!castObj.workspaceId && !!castObj.runtimeName;
 };
+
+export const getNormalizedComputeConfig = (config: GoogleRuntimeConfig | AzureConfig): NormalizedRuntimeConfig => ({
+  ...config,
+  normalizedRegion: getNormalizedComputeRegion(config),
+});
 
 export const Runtimes = (signal: AbortSignal) => {
   const v1Func = (project: string, name: string) => {

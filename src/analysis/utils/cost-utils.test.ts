@@ -15,11 +15,11 @@ import {
   getRuntimeCost,
   runtimeConfigCost,
 } from 'src/analysis/utils/cost-utils';
-import { getNormalizedComputeConfig } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { diskStatuses, googlePdTypes, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, GoogleRuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { getNormalizedComputeConfig } from 'src/libs/ajax/leonardo/Runtimes';
 import { getAzurePricesForRegion } from 'src/libs/azure-utils';
 
 const jupyterDisk: PersistentDisk = {
