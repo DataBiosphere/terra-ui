@@ -6,7 +6,12 @@ export type BillingRole = 'Owner' | 'User';
 
 export const allBillingRoles: BillingRole[] = ['Owner', 'User'];
 
-export interface BillingProject {
+export interface BillingProjectMember {
+  email: string;
+  role: BillingRole;
+}
+
+interface BaseBillingProject {
   cloudPlatform: CloudPlatform;
   projectName: string;
   invalidBillingAccount: boolean;
@@ -15,17 +20,23 @@ export interface BillingProject {
   message?: string;
 }
 
-export interface AzureBillingProject extends BillingProject {
+export interface AzureBillingProject extends BaseBillingProject {
   cloudPlatform: 'AZURE';
   managedAppCoordinates: AzureManagedAppCoordinates;
   landingZoneId: string;
 }
 
-export interface GCPBillingProject extends BillingProject {
+export interface GCPBillingProject extends BaseBillingProject {
   cloudPlatform: 'GCP';
   billingAccount: string;
   servicePerimeter?: string;
 }
+
+export interface UnknownBillingProject extends BaseBillingProject {
+  cloudPlatform: 'UNKNOWN';
+}
+
+export type BillingProject = AzureBillingProject | GCPBillingProject | UnknownBillingProject;
 
 export const isCreating = (project: BillingProject) =>
   project.status === 'Creating' || project.status === 'CreatingLandingZone';

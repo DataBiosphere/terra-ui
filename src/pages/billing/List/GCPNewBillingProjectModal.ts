@@ -32,7 +32,8 @@ export const GCPNewBillingProjectModal = (props: GCPNewBillingProjectModalProps)
     Utils.withBusyState(setIsBusy)
   )(async () => {
     try {
-      await Ajax().Billing.createGCPProject(billingProjectName, chosenBillingAccount?.accountName);
+      // Submit is only enabled when choseBillingAccount is non-null.
+      await Ajax().Billing.createGCPProject(billingProjectName, chosenBillingAccount!.accountName);
       props.onSuccess(billingProjectName);
     } catch (error: any) {
       if (error?.status === 409) {
