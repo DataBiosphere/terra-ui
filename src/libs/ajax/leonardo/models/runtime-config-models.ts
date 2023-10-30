@@ -101,30 +101,24 @@ export type RuntimeConfig = AzureConfig | GoogleRuntimeConfig;
 export type RawRuntimeConfig = RawAzureConfig | RawGceWithPdConfig | RawGceConfig | RawDataprocConfig;
 
 // TODO: should really add a kind in the backend, WIP
-export const isDataprocConfig = (
-  config: RuntimeConfig | RawRuntimeConfig
-): config is DataprocConfig | RawDataprocConfig => {
+export const isDataprocConfig = (config: RuntimeConfig | RawRuntimeConfig): config is DataprocConfig => {
   return config.cloudService === 'DATAPROC';
 };
-export const isGceRuntimeConfig = (
-  config: RuntimeConfig | RawRuntimeConfig
-): config is GceWithPdConfig | GceConfig | RawGceConfig | RawGceWithPdConfig => {
+export const isGceRuntimeConfig = (config: RuntimeConfig | RawRuntimeConfig): config is GceWithPdConfig | GceConfig => {
   return config.cloudService === 'GCE';
 };
-export const isGceWithPdConfig = (
-  config: RuntimeConfig | RawRuntimeConfig
-): config is GceWithPdConfig | RawGceWithPdConfig => {
+export const isGceWithPdConfig = (config: RuntimeConfig | RawRuntimeConfig): config is GceWithPdConfig => {
   const castConfig = config as GceWithPdConfig;
   return (
     config.cloudService === 'GCE' && castConfig.persistentDiskId !== undefined && castConfig.bootDiskSize !== undefined
   );
 };
-export const isGceConfig = (config: RuntimeConfig | RawRuntimeConfig): config is GceConfig | RawGceConfig => {
+export const isGceConfig = (config: RuntimeConfig | RawRuntimeConfig): config is GceConfig => {
   const castConfig = config as GceConfig;
   return config.cloudService === 'GCE' && castConfig.diskSize !== undefined;
 };
 
-export const isAzureConfig = (config: RuntimeConfig | RawRuntimeConfig): config is AzureConfig | RawAzureConfig =>
+export const isAzureConfig = (config: RuntimeConfig | RawRuntimeConfig): config is AzureConfig =>
   config.cloudService === 'AZURE_VM';
 
 export type NormalizedComputeRegion = NominalType<string, 'ComputeRegion'>;

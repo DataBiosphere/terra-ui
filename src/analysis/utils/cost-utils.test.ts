@@ -441,7 +441,7 @@ describe('runtimeConfigCost for dataproc', () => {
     numberOfPreemptibleWorkers: 0,
     workerDiskSize: 0,
     workerPrivateAccess: false,
-    normalizedRegion: 'us-central' as NormalizedComputeRegion,
+    normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   };
 
   const defaultSparkCluster: GoogleRuntimeConfig = {
@@ -456,7 +456,7 @@ describe('runtimeConfigCost for dataproc', () => {
     workerMachineType: 'n1-standard-4',
     workerDiskSize: 150,
     workerPrivateAccess: false,
-    normalizedRegion: 'us-central' as NormalizedComputeRegion,
+    normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   };
   it('gets cost for a dataproc cluster', () => {
     // Act

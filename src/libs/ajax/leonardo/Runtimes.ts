@@ -51,7 +51,6 @@ export const getNormalizedComputeConfig = (config: RawRuntimeConfig): RuntimeCon
   normalizedRegion: getNormalizedComputeRegion(config),
 });
 
-// TODO: test when zone and region have types
 export const getNormalizedComputeRegion = (config: RawRuntimeConfig): NormalizedComputeRegion => {
   const regionNotFoundPlaceholder = 'Unknown';
   if (isGceConfig(config) || isGceWithPdConfig(config)) {
