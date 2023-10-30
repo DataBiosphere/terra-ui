@@ -46,7 +46,6 @@ const isAzureRuntimeWrapper = (obj: any): obj is AzureRuntimeWrapper => {
   return castObj && !!castObj.workspaceId && !!castObj.runtimeName;
 };
 
-// @ts-ignore
 export const getNormalizedComputeConfig = (config: RawRuntimeConfig): RuntimeConfig => ({
   ...config,
   normalizedRegion: getNormalizedComputeRegion(config),
