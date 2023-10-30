@@ -24,6 +24,10 @@ export const Metrics = (signal?: AbortSignal) => {
       }));
     }
 
+    // Send event to Appcues and refresh Appcues state
+    window.Appcues?.track(event, details);
+    window.Appcues?.page();
+
     const body = {
       event,
       properties: {

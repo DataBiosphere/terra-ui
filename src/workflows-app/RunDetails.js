@@ -5,6 +5,8 @@ import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { collapseStatus } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
+import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
+import Events from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus } from 'src/libs/state';
@@ -51,6 +53,7 @@ export const BaseRunDetails = (
 
   const signal = useCancellation();
   const stateRefreshTimer = useRef();
+  const { captureEvent } = useMetricsEvent();
 
   const [sasToken, setSasToken] = useState('');
   const showLogModal = useCallback((modalTitle, logsArray) => {
@@ -242,7 +245,15 @@ export const BaseRunDetails = (
               }),
             ]
           ),
-          showLog && h(LogViewer, { modalTitle: logsModalTitle, logs: logsArray, onDismiss: () => setShowLog(false) }),
+          showLog &&
+            h(LogViewer, {
+              modalTitle: logsModalTitle,
+              logs: logsArray,
+              onDismiss: () => {
+                setShowLog(false);
+                captureEvent(Events.workflowsAppCloseLogViewer);
+              },
+            }),
           showTaskData &&
             h(InputOutputModal, { title: taskDataTitle, jsonData: taskDataJson, onDismiss: () => setShowTaskData(false), sasToken }, []),
         ])
