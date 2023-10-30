@@ -1,6 +1,7 @@
 module.exports = {
   dev: {
     billingProject: 'saturn-integration-test-dev',
+    billingProjectAzure: 'mnolting20231030_azBpDev-1',
     snapshotColumnName: 'name',
     snapshotId: 'f90f5d7f-c507-4e56-abfc-b965a66023fb',
     snapshotTableName: 'tableA',

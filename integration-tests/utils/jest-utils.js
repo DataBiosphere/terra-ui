@@ -8,6 +8,7 @@ const envs = require('./terra-envs');
 
 const {
   BILLING_PROJECT: billingProject,
+  BILLING_PROJECT_AZURE: billingProjectAzure,
   ENVIRONMENT: environment = 'dev',
   SNAPSHOT_COLUMN_NAME: snapshotColumnName,
   SNAPSHOT_ID: snapshotId,
@@ -24,7 +25,7 @@ const {
 
 const targetEnvParams = _.merge(
   { ...envs[environment], environment },
-  { billingProject, snapshotColumnName, snapshotId, snapshotTableName, testUrl, workflowName }
+  { billingProject, billingProjectAzure, snapshotColumnName, snapshotId, snapshotTableName, testUrl, workflowName }
 );
 
 const registerTest = ({ fn, name, timeout = defaultTimeout, targetEnvironments = _.keys(envs) }) => {
