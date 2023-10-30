@@ -2,9 +2,10 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { SnapshotBuilderConcept as Concept, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 import { ConceptSet } from 'src/libs/ajax/DatasetBuilder';
-import { ConceptSelector } from 'src/pages/library/datasetBuilder/ConceptSelector';
-import { homepageState, Updater } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+
+import { ConceptSelector } from './ConceptSelector';
+import { homepageState, Updater } from './dataset-builder-types';
+import { OnStateChangeHandler } from './DatasetBuilder';
 
 export type ConceptSetCreatorProps = {
   readonly onStateChange: OnStateChangeHandler;

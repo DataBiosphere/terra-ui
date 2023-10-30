@@ -5,20 +5,11 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 import { AnyCriteria, Cohort, CriteriaGroup, DomainCriteria } from 'src/libs/ajax/DatasetBuilder';
-import {
-  CohortEditor,
-  criteriaFromOption,
-  CriteriaGroupView,
-  CriteriaView,
-} from 'src/pages/library/datasetBuilder/CohortEditor';
-import {
-  domainCriteriaSelectorState,
-  homepageState,
-  newCohort,
-  newCriteriaGroup,
-} from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
+
+import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';
+import { domainCriteriaSelectorState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
+import { dummyDatasetDetails } from './TestConstants';
 
 describe('CohortEditor', () => {
   type CriteriaViewPropsOverrides = {

@@ -1,3 +1,4 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ComponentPropsWithRef, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers';
@@ -7,7 +8,7 @@ import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import TitleBar from 'src/components/TitleBar';
@@ -20,7 +21,7 @@ import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { ErrorCallback, withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { useCancellation, useOnMount, usePollingEffect, withDisplayName } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -57,7 +58,7 @@ const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
 const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {
     title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center' } }, [
-      spinner({
+      h(Spinner, {
         size: 64,
         style: {
           position: 'relative',
@@ -114,7 +115,6 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
     refresh,
     workspace,
     refreshWorkspace,
-    silentlyRefreshWorkspace,
     children,
   } = props;
   const [deletingWorkspace, setDeletingWorkspace] = useState(false);
@@ -128,14 +128,29 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
 
   // when the workspace refresh polling gets back an error for a workspace that is deleting
   // redirect to list view
+  /*
   const handleWorkspaceError = (error: unknown) => {
     if (error instanceof Response && error.status === 404) {
       Nav.goToPath('workspaces');
     }
   };
+  */
   // poll workspace state every 30 seconds
-  usePollingEffect(() => silentlyRefreshWorkspace(handleWorkspaceError), { ms: 30000, leading: false });
-
+  /*
+  this is temporarily disabled to avoid swamping sam with API calls
+  for some reason the conditional works in unit tests but not real runs, 
+  and it's better to completely disable it rather than push out something that's broken for an unknown reason
+  usePollingEffect(
+    (): Promise<void> => {
+      if (workspaceLoaded && workspace.workspace.state === 'Deleting') {
+        return silentlyRefreshWorkspace(handleWorkspaceError);
+      } else {
+        return Promise.resolve();
+      }
+    },
+    { ms: 30000, leading: false }
+  );
+  */
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [

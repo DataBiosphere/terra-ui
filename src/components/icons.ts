@@ -6,12 +6,9 @@ import colors from 'src/libs/colors';
 
 export { icon } from '@terra-ui-packages/components';
 
-export const spinner = (props: SpinnerProps = {}): ReactNode => {
-  return h(Spinner, props);
-};
-
 export const centeredSpinner = ({ size = 48, ...props }: SpinnerProps = {}): ReactNode =>
-  spinner(
+  h(
+    Spinner,
     _.merge(
       {
         size,

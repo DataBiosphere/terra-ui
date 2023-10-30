@@ -1,3 +1,4 @@
+import { Spinner } from '@terra-ui-packages/components';
 import filesize from 'filesize';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
@@ -7,7 +8,6 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
 import { Link } from 'src/components/common';
 import { parseGsUri } from 'src/components/data/data-utils';
-import { spinner } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { bucketBrowserUrl } from 'src/libs/auth';
@@ -165,7 +165,7 @@ export const UriViewer = _.flow(
   };
 
   const renderLoadingSymbol = (uri) =>
-    h(Fragment, [isGsUri(uri) || isAzureUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...', spinner({ style: { marginLeft: 4 } })]);
+    h(Fragment, [isGsUri(uri) || isAzureUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...', h(Spinner, { style: { marginLeft: 4 } })]);
 
   if (isAzureUri(uri)) {
     const { azureSasStorageUrl, fileName, size } = metadata || {};

@@ -21,14 +21,10 @@ import {
 } from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
-import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
-import {
-  domainCriteriaSelectorState,
-  homepageState,
-  newCriteriaGroup,
-  Updater,
-} from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+
+import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
+import { domainCriteriaSelectorState, homepageState, newCriteriaGroup, Updater } from './dataset-builder-types';
+import { OnStateChangeHandler } from './DatasetBuilder';
 
 const flexWithBaseline = {
   display: 'flex',
