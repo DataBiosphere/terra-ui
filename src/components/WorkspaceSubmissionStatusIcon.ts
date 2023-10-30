@@ -1,10 +1,9 @@
-import { DelayedRender, icon, TooltipTrigger } from '@terra-ui-packages/components';
+import { DelayedRender, icon, Spinner, TooltipTrigger } from '@terra-ui-packages/components';
 import { cond, switchCase } from '@terra-ui-packages/core-utils';
 import { isAfter, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
-import { spinner } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
@@ -43,7 +42,7 @@ export const WorkspaceSubmissionStatusIcon = (props: WorkspaceSubmissionStatusIc
               content: 'Loading submission status',
               side: 'left',
             },
-            [spinner({ size })]
+            [h(Spinner, { size })]
           ),
         ]),
     ],

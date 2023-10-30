@@ -1,3 +1,4 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import qs from 'qs';
 import { Fragment, useState } from 'react';
@@ -5,7 +6,7 @@ import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscrip
 import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common';
 import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { centeredSpinner, icon, spinner } from 'src/components/icons';
+import { centeredSpinner, icon } from 'src/components/icons';
 import { libraryTopMatter } from 'src/components/library-common';
 import { MarkdownViewer } from 'src/components/markdown';
 import Modal from 'src/components/Modal';
@@ -350,7 +351,7 @@ const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }) => {
     },
     [
       div({ style: { display: 'flex', alignItems: 'center' } }, [
-        spinner({ size: 100 }),
+        h(Spinner, { size: 100 }),
         div({ style: { marginLeft: 10 } }, ['Your dataset is being prepared for analysis. This may take a minute or two.']),
       ]),
     ]

@@ -1,4 +1,4 @@
-import { getAllByRole, screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as clipboard from 'clipboard-polyfill/text';
 import { h } from 'react-hyperscript-helpers';
@@ -83,7 +83,7 @@ describe('WdsTroubleshooter', () => {
     // Assert
     const tableRows = screen.getAllByRole('row');
     const statusLabelAndValueCells = tableRows.map((row) => {
-      const cells = getAllByRole(row, 'cell');
+      const cells = within(row).getAllByRole('cell');
       return cells.slice(1).map((el) => el.textContent);
     });
 
@@ -107,6 +107,72 @@ describe('WdsTroubleshooter', () => {
       ['Data app IAM status', 'UP'],
       ['Default Instance exists', 'true'],
     ]);
+  });
+
+  describe('renders no value while loading a field', () => {
+    // Arrange
+    const baseMockStatus: WdsStatus = {
+      numApps: '1',
+      wdsResponsive: 'true',
+      version: 'c87286c',
+      chartVersion: 'wds-0.24.0',
+      image: 'us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service:eaf3f31',
+      wdsStatus: 'UP',
+      wdsDbStatus: 'UP',
+      wdsPingStatus: 'UP',
+      wdsIamStatus: 'UP',
+      appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
+      appStatus: 'RUNNING',
+      proxyUrl:
+        'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
+      defaultInstanceExists: 'true',
+      cloneSourceWorkspaceId: null,
+      cloneStatus: null,
+      cloneErrorMessage: null,
+    };
+
+    it.each([
+      { field: 'numApps', label: 'App listing' },
+      { field: 'wdsResponsive', label: 'Data app responding' },
+      { field: 'version', label: 'Data app version' },
+      { field: 'chartVersion', label: 'Data app chart version' },
+      { field: 'image', label: 'Data app image' },
+      { field: 'wdsStatus', label: 'Data app status' },
+      { field: 'wdsDbStatus', label: 'Data app DB status' },
+      { field: 'wdsPingStatus', label: 'Data app ping status' },
+      { field: 'wdsIamStatus', label: 'Data app IAM status' },
+      { field: 'appName', label: 'Data app name' },
+      { field: 'appStatus', label: 'Data app running?' },
+      { field: 'proxyUrl', label: 'Data app proxy url' },
+      { field: 'defaultInstanceExists', label: 'Default Instance exists' },
+    ])('$field', ({ field, label }) => {
+      // Arrange
+      // This mock status isn't necessarily realistic, but that's ok because
+      // the logic for rendering a field is generally independent of other fields.
+      const mockStatus: WdsStatus = {
+        ...baseMockStatus,
+        [field]: null,
+      };
+
+      asMockedFn(useWdsStatus).mockReturnValue({
+        status: mockStatus,
+        refreshStatus: jest.fn(),
+      });
+
+      // Act
+      render(
+        h(WdsTroubleshooter, {
+          workspaceId: 'test-workspace',
+          mrgId: 'test-mrg',
+          onDismiss: jest.fn(),
+        })
+      );
+
+      // Assert
+      const row = screen.getByRole('cell', { name: label }).parentElement!;
+      const cells = within(row).getAllByRole('cell');
+      expect(cells[2]).toHaveTextContent('');
+    });
   });
 
   it('shows clone status if present', () => {
@@ -174,7 +240,7 @@ describe('WdsTroubleshooter', () => {
     // Assert
     const tableRows = screen.getAllByRole('row');
     const statusLabelAndValueCells = tableRows.map((row) => {
-      const cells = getAllByRole(row, 'cell');
+      const cells = within(row).getAllByRole('cell');
       return cells.slice(1).map((el) => el.textContent);
     });
 
@@ -267,7 +333,7 @@ describe('WdsTroubleshooter', () => {
     // Assert
     const tableRows = screen.getAllByRole('row');
     const statusLabelAndValueCells = tableRows.map((row) => {
-      const cells = getAllByRole(row, 'cell');
+      const cells = within(row).getAllByRole('cell');
       return cells.slice(1).map((el) => el.textContent);
     });
 

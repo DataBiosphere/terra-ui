@@ -110,7 +110,7 @@ describe('AzureSubscriptionStep', () => {
     // Arrange
     renderAzureSubscriptionStep({});
     // Mock managed app Ajax call, should not be called
-    const listAzureManagedApplications = jest.fn(() => Promise.resolve());
+    const listAzureManagedApplications = jest.fn(() => Promise.resolve({ managedApps: [] }));
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({

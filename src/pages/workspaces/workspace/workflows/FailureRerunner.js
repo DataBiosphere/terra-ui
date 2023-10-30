@@ -1,7 +1,8 @@
+import { Spinner } from '@terra-ui-packages/components';
 import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import { launch } from 'src/libs/analysis';
 import colors from 'src/libs/colors';
@@ -17,7 +18,7 @@ const ToastMessageComponent = () => {
   return div({ style: { padding: '0.5rem 0', display: 'flex', alignItems: 'center', fontSize: 14 } }, [
     done
       ? icon('success-standard', { size: 24, style: { color: colors.success(), marginRight: '1rem' } })
-      : spinner({ style: { marginRight: '1rem' } }),
+      : h(Spinner, { style: { marginRight: '1rem' } }),
     text,
   ]);
 };

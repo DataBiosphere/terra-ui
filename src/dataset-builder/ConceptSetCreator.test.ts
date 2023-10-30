@@ -2,10 +2,11 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
-import { ConceptSetCreator, toConceptSet } from 'src/pages/library/datasetBuilder/ConceptSetCreator';
-import { homepageState } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { dummyDatasetDetails } from 'src/pages/library/datasetBuilder/TestConstants';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
+
+import { ConceptSetCreator, toConceptSet } from './ConceptSetCreator';
+import { homepageState } from './dataset-builder-types';
+import { dummyDatasetDetails } from './TestConstants';
 
 describe('ConceptSetCreator', () => {
   const datasetDetails = dummyDatasetDetails('0');

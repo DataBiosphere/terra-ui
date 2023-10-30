@@ -1,9 +1,9 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary } from 'src/components/common';
 import { getUserProjectForWorkspace } from 'src/components/data/data-utils';
-import { spinner } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -67,8 +67,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
   });
 
   const loadingSpinner = () => {
-    // @ts-ignore
-    return h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })]);
+    return h(Fragment, ['Generating download link...', h(Spinner, { style: { color: 'white', marginLeft: 4 } })]);
   };
 
   const azureDownloadButton = () => {
