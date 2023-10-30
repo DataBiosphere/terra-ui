@@ -1,9 +1,10 @@
+import { icon } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { Clickable, Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { centeredSpinner, wdlIcon } from 'src/components/icons';
+import { centeredSpinner } from 'src/components/icons';
 import { libraryTopMatter } from 'src/components/library-common';
 import broadSquare from 'src/images/library/code/broad-square.svg';
 import dockstoreLogo from 'src/images/library/code/dockstore.svg';
@@ -51,7 +52,7 @@ export const MethodCard = ({ method, ...props }) => {
         div({ style: { color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
         div({ style: { lineHeight: '20px', ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', height: 60 } }, [description]),
       ]),
-      wdlIcon({ style: { position: 'absolute', top: 0, right: 8 } }),
+      icon('wdl', { size: 20, style: { position: 'absolute', top: 0, right: 8 } }),
     ]
   );
 };
