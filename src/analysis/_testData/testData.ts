@@ -16,7 +16,6 @@ import {
   RuntimeConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { GetRuntimeItem, ListRuntimeItem, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { getNormalizedComputeConfig } from 'src/libs/ajax/leonardo/Runtimes';
 import { defaultAzureRegion } from 'src/libs/azure-utils';
 import * as Utils from 'src/libs/utils';
 import { AzureWorkspace, cloudProviderTypes, GoogleWorkspace } from 'src/libs/workspace-utils';
@@ -255,7 +254,7 @@ export const generateTestGetGoogleRuntime = (overrides: Partial<GetRuntimeItem> 
     googleProject: 'terra-test-e4000484',
     serviceAccount: 'testuser123@broad.com',
     auditInfo: defaultAuditInfo,
-    runtimeConfig: getNormalizedComputeConfig(runtimeConfig),
+    runtimeConfig,
     proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-test-e4000484/test-runtime/jupyter',
     status: runtimeStatuses.running.leoLabel,
     labels: {
@@ -375,7 +374,7 @@ export const getGoogleDataProcRuntime = ({
       destroyedDate: null,
       dateAccessed: '2023-05-24T20:38:28.651Z',
     },
-    runtimeConfig: getNormalizedComputeConfig(runtimeConfig),
+    runtimeConfig,
     proxyUrl: `https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-21d47fdd/${runtimeName}/jupyter`,
     status,
     labels: {

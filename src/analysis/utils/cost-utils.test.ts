@@ -23,7 +23,6 @@ import {
   NormalizedComputeRegion,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { getNormalizedComputeConfig } from 'src/libs/ajax/leonardo/Runtimes';
 import { getAzurePricesForRegion } from 'src/libs/azure-utils';
 
 const jupyterDisk: PersistentDisk = {
@@ -461,13 +460,13 @@ describe('runtimeConfigCost for dataproc', () => {
   };
   it('gets cost for a dataproc cluster', () => {
     // Act
-    const result = runtimeConfigCost(getNormalizedComputeConfig(defaultSparkCluster));
+    const result = runtimeConfigCost(defaultSparkCluster);
     // Assert
     expect(result).toBeGreaterThan(0);
   });
   it('gets cost for single node cluster', () => {
     // Act
-    const result = runtimeConfigCost(getNormalizedComputeConfig(defaultSparkSingleNode));
+    const result = runtimeConfigCost(defaultSparkSingleNode);
 
     // Assert
     expect(result).toBeGreaterThan(0);

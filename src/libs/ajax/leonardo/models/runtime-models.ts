@@ -1,7 +1,7 @@
 import { ToolLabel } from 'src/analysis/utils/tool-utils';
 import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 import { DiskConfig } from 'src/libs/ajax/leonardo/models/disk-models';
-import { RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { RawRuntimeConfig, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 
 export type LeoRuntimeStatus =
   | 'Running'
@@ -60,7 +60,7 @@ export interface RawListRuntimeItem {
   googleProject: string;
   cloudContext: CloudContext;
   auditInfo: AuditInfo;
-  runtimeConfig: RuntimeConfig;
+  runtimeConfig: RawRuntimeConfig;
   proxyUrl: string;
   status: LeoRuntimeStatus;
   labels: RuntimeLabels;
@@ -95,7 +95,7 @@ export interface RawGetRuntimeItem {
   serviceAccount: string;
   asyncRuntimeFields: AsyncRuntimeFields | null;
   auditInfo: AuditInfo;
-  runtimeConfig: RuntimeConfig;
+  runtimeConfig: RawRuntimeConfig;
   proxyUrl: string;
   status: LeoRuntimeStatus;
   labels: RuntimeLabels;

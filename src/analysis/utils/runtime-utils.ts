@@ -10,15 +10,6 @@ import {
 } from 'src/analysis/utils/tool-utils';
 import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models';
 import {
-  AzureConfig,
-  GoogleRuntimeConfig,
-  isAzureConfig,
-  isDataprocConfig,
-  isGceConfig,
-  isGceWithPdConfig,
-  NormalizedComputeRegion,
-} from 'src/libs/ajax/leonardo/models/runtime-config-models';
-import {
   DisplayRuntimeStatus,
   GetRuntimeItem,
   LeoRuntimeImage,
@@ -65,24 +56,6 @@ export const getDefaultMachineType = (isDataproc: boolean, tool: ToolLabel): str
     [tool === runtimeToolLabels.RStudio, () => defaultRStudioMachineType],
     [Utils.DEFAULT, () => defaultGceMachineType]
   );
-
-// GCP zones look like 'US-CENTRAL1-A'. To get the region, remove the last two characters.
-export const getRegionFromZone = (zone: string) => zone.slice(0, -2);
-
-// TODO: test when zone and region have types
-export const getNormalizedComputeRegion = (config: GoogleRuntimeConfig | AzureConfig): NormalizedComputeRegion => {
-  const regionNotFoundPlaceholder = 'Unknown';
-  if (isGceConfig(config) || isGceWithPdConfig(config)) {
-    return getRegionFromZone(config.zone).toUpperCase() as NormalizedComputeRegion;
-  }
-  if (isDataprocConfig(config)) {
-    return config.region.toUpperCase() as NormalizedComputeRegion;
-  }
-  if (isAzureConfig(config)) {
-    return (config.region || regionNotFoundPlaceholder).toUpperCase() as NormalizedComputeRegion;
-  }
-  return regionNotFoundPlaceholder as NormalizedComputeRegion;
-};
 
 export const findMachineType = (name: string) => {
   return _.find({ name }, machineTypes) || { name, cpu: 0, memory: 0, price: 0, preemptiblePrice: 0 };
