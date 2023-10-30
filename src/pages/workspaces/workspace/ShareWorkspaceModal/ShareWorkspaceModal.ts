@@ -8,6 +8,7 @@ import { AutocompleteTextInput } from 'src/components/input';
 import Modal, { modalStyles } from 'src/components/Modal';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
+import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -36,7 +37,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
 
   // State
   const [shareSuggestions, setShareSuggestions] = useState<string[]>([]);
-  const [groups, setGroups] = useState([]);
+  const [groups, setGroups] = useState<CurrentUserGroupMembership[]>([]);
   const [originalAcl, setOriginalAcl] = useState<WorkspaceAcl>([]);
   const [searchValue, setSearchValue] = useState('');
   const [acl, setAcl] = useState<WorkspaceAcl>([]);
