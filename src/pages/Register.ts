@@ -13,7 +13,7 @@ import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { registrationLogo } from 'src/libs/logos';
-import { authStore, getTerraUser, TerraUser, TerraUserProfile } from 'src/libs/state';
+import { authStore, getTerraUser, TerraUser } from 'src/libs/state';
 import validate from 'validate.js';
 
 const constraints = (partOfOrg) => {
@@ -29,17 +29,16 @@ const constraints = (partOfOrg) => {
 
 const Register = () => {
   const user: TerraUser = getTerraUser();
-  const profile: TerraUserProfile = authStore.get().profile;
   const userAttributes: SamUserAttributes = authStore.get().terraUserAttributes;
   const [busy, setBusy] = useState(false);
   const [givenName, setGivenName] = useState(user.givenName || '');
   const [familyName, setFamilyName] = useState(user.familyName || '');
   const [email, setEmail] = useState(user.email || '');
   const [partOfOrganization, setPartOfOrganization] = useState(true);
-  const [institute, setInstitute] = useState(profile.institute ?? ''); // keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
-  const [title, setTitle] = useState(profile.title ?? '');
-  const [department, setDepartment] = useState(profile.department ?? '');
-  const [interestInTerra, setInterestInTerra] = useState(profile.interestInTerra ?? '');
+  const [institute, setInstitute] = useState(''); // keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
+  const [title, setTitle] = useState('');
+  const [department, setDepartment] = useState('');
+  const [interestInTerra, setInterestInTerra] = useState('');
   const [marketingConsent, setMarketingConsent] = useState(userAttributes.marketingConsent);
 
   const checkboxLine = (children) =>
