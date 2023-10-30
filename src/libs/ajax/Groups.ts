@@ -44,7 +44,7 @@ export const Groups = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      listMembers: async (): Promise<string> => {
+      listMembers: async (): Promise<string[]> => {
         const res = await fetchSam(`${root}/member`, _.merge(authOpts(), { signal }));
         return res.json();
       },
