@@ -1,8 +1,7 @@
 import { Spinner, SpinnerProps } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
-import colors from 'src/libs/colors';
+import { h } from 'react-hyperscript-helpers';
 
 export { icon } from '@terra-ui-packages/components';
 
@@ -23,20 +22,4 @@ export const centeredSpinner = ({ size = 48, ...props }: SpinnerProps = {}): Rea
       },
       props
     )
-  );
-
-export const wdlIcon = ({ style = {}, ...props }: JSX.IntrinsicElements['div'] = {}): ReactNode =>
-  div(
-    {
-      style: {
-        color: 'white',
-        fontSize: 6,
-        fontWeight: 'bold',
-        backgroundColor: colors.dark(),
-        padding: '10px 2px 3px 2px',
-        ...style,
-      },
-      ...props,
-    },
-    ['WDL']
   );
