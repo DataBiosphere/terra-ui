@@ -51,7 +51,7 @@ const getNormalizedComputeConfig = (config: RawRuntimeConfig): RuntimeConfig => 
   normalizedRegion: getNormalizedComputeRegion(config),
 });
 
-export const getNormalizedComputeRegion = (config: RawRuntimeConfig): NormalizedComputeRegion => {
+const getNormalizedComputeRegion = (config: RawRuntimeConfig): NormalizedComputeRegion => {
   const regionNotFoundPlaceholder = 'Unknown';
   if (isGceConfig(config) || isGceWithPdConfig(config)) {
     return getRegionFromZone(config.zone).toUpperCase() as NormalizedComputeRegion;
