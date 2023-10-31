@@ -15,7 +15,7 @@ jest.mock(
   })
 );
 
-describe('useWorkspaces (composed)', () => {
+describe('useWorkspaces hook', () => {
   it('calls workspaces provider and retains state in workspacesStore', async () => {
     // Arrange
 

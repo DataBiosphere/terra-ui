@@ -1,24 +1,45 @@
 import { FieldsArg, workspaceProvider } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
-import { useSettableStore } from 'src/libs/react-utils';
+import { useCancellation } from 'src/libs/react-utils';
 import { workspacesStore } from 'src/libs/state';
-import {
-  useWorkspacesComposable,
-  UseWorkspacesState,
-  UseWorkspacesStateResult,
-} from 'src/workspaces/useWorkspaces.composable';
+import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { useWorkspacesData, UseWorkspacesStateResult } from 'src/workspaces/useWorkspacesData';
 
-export const useWorkspaces: UseWorkspacesState = (
-  fieldsArg?: FieldsArg,
-  stringAttributeMaxLength?: number
-): UseWorkspacesStateResult => {
-  const useWorkspacesStore = () => useSettableStore(workspacesStore);
+const defaultFieldsArgs: FieldsArg = [
+  'accessLevel',
+  'public',
+  'workspace',
+  'workspace.state',
+  'workspace.attributes.description',
+  'workspace.attributes.tag:tags',
+  'workspace.workspaceVersion',
+];
 
-  return useWorkspacesComposable(
-    {
-      workspaceProvider,
-      useWorkspacesStore,
+/**
+ * A composed version of useWorkspacesData hook that adds Terra-UI specific data-access and concerns.
+ * Honors expected hook return contract.
+ * @param fieldsArg
+ * @param stringAttributeMaxLength
+ */
+export const useWorkspaces = (fieldsArg?: FieldsArg, stringAttributeMaxLength?: number): UseWorkspacesStateResult => {
+  const signal = useCancellation();
+  const fields: FieldsArg = fieldsArg || defaultFieldsArgs;
+
+  const getData = async (): Promise<WorkspaceWrapper[]> =>
+    await workspaceProvider.list(fields, { stringAttributeMaxLength, signal });
+
+  const workspacesResult = useWorkspacesData({
+    getData,
+    onError: () => {
+      reportError('Error loading workspace list');
     },
-    fieldsArg,
-    stringAttributeMaxLength
-  );
+    onSuccess: (result) => {
+      // update application source-off-truth
+      workspacesStore.set(result.state);
+    },
+  });
+
+  return {
+    ...workspacesResult,
+    workspaces: workspacesStore.get(), // reflect application source-of-truth
+  };
 };

@@ -8,7 +8,7 @@ import { MetricsProvider, useMetricsEvent } from 'src/libs/ajax/metrics/useMetri
 import { terraNavKey, TerraNavLinkProvider } from 'src/libs/nav';
 import { asMockedFn } from 'src/testing/test-utils';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
-import { UseWorkspacesState } from 'src/workspaces/useWorkspaces.composable';
+import { UseWorkspacesState } from 'src/workspaces/useWorkspacesData';
 
 import { EnvironmentsPage, makeNavProvider, navProvider } from './EnvironmentsPage';
 
