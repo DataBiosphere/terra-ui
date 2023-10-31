@@ -128,6 +128,23 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
   }
 });
 
+const deleteWorkspaceV2 = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
+  try {
+    await page.evaluate(
+      async (name, billingProject) => {
+        await window.Ajax().Workspaces.workspaceV2(billingProject, name).delete();
+      },
+      workspaceName,
+      billingProject
+    );
+    console.info(`Deleted workspace: ${workspaceName}`);
+  } catch (e) {
+    console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`);
+    console.error(e);
+    throw e;
+  }
+});
+
 const withWorkspace = (test) => async (options) => {
   console.log('withWorkspace ...');
   const { workspaceName } = await makeWorkspaceGcp(options);
@@ -152,8 +169,8 @@ const withWorkspaceAzure = (test) => async (options) => {
   try {
     await test({ ...options, workspaceName });
   } finally {
-    console.log('withWorkspaceAzure cleanup ...');
-    await deleteWorkspace({ ...options, workspaceName });
+    console.log('withWorkspaceAzure cleanup ...', options, workspaceName);
+    await deleteWorkspaceV2({ ...options, workspaceName });
   }
 };
 
