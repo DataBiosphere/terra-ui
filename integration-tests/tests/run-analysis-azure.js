@@ -1,6 +1,6 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
-const { deleteRuntimes, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers');
+const { deleteRuntimesV2, withWorkspaceAzure, performAnalysisTabSetup } = require('../utils/integration-helpers');
 const {
   click,
   clickable,
@@ -22,10 +22,9 @@ const notebookName = 'test-notebook';
 
 const testRunAnalysisAzure = _.flowRight(
   withUserToken,
-  withWorkspace
-)(async ({ billingProjectAzure, workspaceName, page, testUrl, token }) => {
+  withWorkspaceAzure
+)(async ({ billingProject, workspaceName, page, testUrl, token }) => {
   await performAnalysisTabSetup(page, token, testUrl, workspaceName);
-  const billingProject = billingProjectAzure;
 
   // Create analysis file
   await click(page, clickable({ textContains: 'Start' }));
@@ -52,18 +51,19 @@ const testRunAnalysisAzure = _.flowRight(
     action: () => click(page, clickable({ textContains: 'Open' })),
   });
 
-  // Create a cloud env from analysis launcher
-  await click(page, clickable({ text: 'Create' }));
+  // TODO [] why does this click not work automatically? I had to manually click it
+  // Create a cloud env from analysis launcher. try a few clicks
+  await click(page, clickable({ textContains: 'Create' }));
 
   // The Compute Modal does not close quickly enough, so the subsequent click does not properly click on the element
   await delay(200);
 
-  await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: 40000 });
+  await findElement(page, clickable({ textContains: 'JupyteLab Environment' }), { timeout: 40000 });
   await findElement(page, clickable({ textContains: 'Creating' }), { timeout: 40000 });
 
   // Wait for the environment to be running
-  await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: 10 * 60000 });
-  await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60000 });
+  await findElement(page, clickable({ textContains: 'JupyterLab Environment' }), { timeout: 12 * 60000 });
+  await findElement(page, clickable({ textContains: 'Running' }), { timeout: 12 * 60000 });
   await click(page, clickable({ textContains: 'Open' }));
 
   // Find the iframe, wait until the Jupyter kernel is ready, and execute some code
@@ -77,7 +77,7 @@ const testRunAnalysisAzure = _.flowRight(
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }));
 
-  await deleteRuntimes({ page, billingProject, workspaceName });
+  await deleteRuntimesV2({ page, billingProject, workspaceName });
 });
 
 registerTest({

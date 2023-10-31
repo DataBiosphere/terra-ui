@@ -96,14 +96,20 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
       billingProject
     );
     console.info(`Created workspace: ${workspaceName}`);
-    await waitForAccessToWorkspaceBucket({ page, billingProject, workspaceName });
   } catch (e) {
     console.error(`Failed to create workspace: ${workspaceName} with billing project: ${billingProject}`);
     console.error(e);
     throw e;
   }
-  return workspaceName;
+  return { page, billingProject, workspaceName };
 });
+
+const waitForAccess = async ({ page, billingProject, workspaceName }) => {
+  await waitForAccessToWorkspaceBucket();
+  return { page, billingProject, workspaceName };
+};
+
+const makeWorkspaceGcp = _.flow(makeWorkspace, waitForAccess);
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
@@ -124,12 +130,29 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
 
 const withWorkspace = (test) => async (options) => {
   console.log('withWorkspace ...');
-  const workspaceName = await makeWorkspace(options);
+  const { workspaceName } = await makeWorkspaceGcp(options);
 
   try {
     await test({ ...options, workspaceName });
   } finally {
     console.log('withWorkspace cleanup ...');
+    await deleteWorkspace({ ...options, workspaceName });
+  }
+};
+
+const withWorkspaceAzure = (test) => async (options) => {
+  console.log('withWorkspaceAzure ...');
+  options = {
+    ...options,
+    billingProject: options.billingProjectAzure,
+  };
+  const { workspaceName } = await makeWorkspace(options);
+  console.log(`withWorkspaceAzure made workspace ${workspaceName}`);
+
+  try {
+    await test({ ...options, workspaceName });
+  } finally {
+    console.log('withWorkspaceAzure cleanup ...');
     await deleteWorkspace({ ...options, workspaceName });
   }
 };
@@ -184,6 +207,26 @@ const deleteRuntimes = async ({ page, billingProject, workspaceName }) => {
   console.info(`deleted runtimes: ${deletedRuntimes}`);
 };
 
+const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
+  const deletedRuntimes = await page.evaluate(
+    async (workspaceName) => {
+      const {
+        workspace: { workspaceId },
+      } = await window.Ajax().Workspaces.workspaceV2(billingProject, workspaceName).details(['workspace.workspaceId']);
+      const runtimes = await window.Ajax().Runtimes.listV2WithWorkspace(workspaceId, { role: 'creator' });
+      return Promise.all(
+        _.map(async (runtime) => {
+          await window.Ajax().Runtimes.runtimeV2(runtime.workspaceId, runtime.runtimeName).delete(true); // true = also delete persistent disk.
+          return runtime.runtimeName;
+        }, _.remove({ status: 'Deleting' }, runtimes))
+      );
+    },
+    billingProject,
+    workspaceName
+  );
+  console.info(`deleted v2 runtimes: ${deletedRuntimes}`);
+};
+
 const navigateToDataCatalog = async (page, testUrl, token) => {
   await gotoPage(page, testUrl);
   await waitForNoSpinners(page);
@@ -226,11 +269,13 @@ module.exports = {
   createEntityInWorkspace,
   defaultTimeout,
   deleteRuntimes,
+  deleteRuntimesV2,
   navigateToDataCatalog,
   enableDataCatalog,
   testWorkspaceNamePrefix,
   testWorkspaceName: getTestWorkspaceName,
   withWorkspace,
+  withWorkspaceAzure,
   withUser,
   performAnalysisTabSetup,
   viewWorkspaceDashboard,
