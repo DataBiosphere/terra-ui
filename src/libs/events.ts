@@ -255,7 +255,7 @@ export const PageViewReporter = (): ReactNode => {
 
     Ajax().Metrics.captureEvent(`${eventsList.pageView}:${name}`, {
       ...(isWorkspace ? extractWorkspaceDetails(params) : {}),
-      sendToAppcues: false, // page targeting is built into Appcues
+      pushToAppcues: false, // page targeting is built into Appcues
     });
   }, [name, params]);
 

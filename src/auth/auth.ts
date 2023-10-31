@@ -533,6 +533,8 @@ declare global {
         ((eventName: 'all', callbackFn: (eventName: string, event: any) => void | Promise<void>) => void);
       /** Clears all known information about the current user in this session */
       reset: () => void;
+      /** Tracks a custom event (by name) taken by the current user. */
+      track: (eventName: MetricsEventName) => void;
     };
     forceSignIn: any;
   }
