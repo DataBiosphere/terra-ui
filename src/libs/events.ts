@@ -253,10 +253,10 @@ export const PageViewReporter = (): ReactNode => {
   useEffect(() => {
     const isWorkspace = /^#workspaces\/.+\/.+/.test(window.location.hash);
 
-    Ajax().Metrics.captureEvent(
-      `${eventsList.pageView}:${name}`,
-      isWorkspace ? extractWorkspaceDetails(params) : undefined
-    );
+    Ajax().Metrics.captureEvent(`${eventsList.pageView}:${name}`, {
+      ...(isWorkspace ? extractWorkspaceDetails(params) : {}),
+      sendToAppcues: false, // page targeting is built into Appcues
+    });
   }, [name, params]);
 
   return null;
