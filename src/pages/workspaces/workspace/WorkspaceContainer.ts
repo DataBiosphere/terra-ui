@@ -22,10 +22,11 @@ import colors from 'src/libs/colors';
 import { ErrorCallback, withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
-import { getTerraUser } from 'src/libs/state';
+import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import { pollWithCancellation } from 'src/libs/utils';
+import { isAzureWorkspace, isGoogleWorkspace, WorkspaceState } from 'src/libs/workspace-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
@@ -126,31 +127,8 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const isGoogleWorkspaceSyncing =
     workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
 
-  // when the workspace refresh polling gets back an error for a workspace that is deleting
-  // redirect to list view
-  /*
-  const handleWorkspaceError = (error: unknown) => {
-    if (error instanceof Response && error.status === 404) {
-      Nav.goToPath('workspaces');
-    }
-  };
-  */
-  // poll workspace state every 30 seconds
-  /*
-  this is temporarily disabled to avoid swamping sam with API calls
-  for some reason the conditional works in unit tests but not real runs, 
-  and it's better to completely disable it rather than push out something that's broken for an unknown reason
-  usePollingEffect(
-    (): Promise<void> => {
-      if (workspaceLoaded && workspace.workspace.state === 'Deleting') {
-        return silentlyRefreshWorkspace(handleWorkspaceError);
-      } else {
-        return Promise.resolve();
-      }
-    },
-    { ms: 30000, leading: false }
-  );
-  */
+  useDeletetionPolling(workspace);
+
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -482,4 +460,51 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
     };
     return withDisplayName('wrapWorkspace', Wrapper);
   };
+};
+
+const useDeletetionPolling = (workspace?: Workspace) => {
+  // we have to do the signal/abort manually instead of with useCancelable so that the it can be cleaned up in the
+  // this component's useEffect, instead of the useEffect in useCancelable
+  const [controller, setController] = useState(new window.AbortController());
+  const abort = () => {
+    controller.abort();
+    setController(new window.AbortController());
+  };
+  useEffect(() => {
+    const updateWorkspace = (ws: Workspace, state: WorkspaceState, errorMessage?: string) => ({
+      ...ws,
+      workspace: {
+        ...ws.workspace,
+        state,
+        errorMessage,
+      },
+    });
+
+    const checkWorkspaceDeletion = async (workspace: Workspace) => {
+      try {
+        const wsResp: Workspace = await Ajax(controller.signal)
+          .Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
+          .details(['workspace.state', 'workspace.errorMessage']);
+        const state = wsResp.workspace.state;
+        if (state === 'DeleteFailed') {
+          abort();
+          workspaceStore.update((ws) => updateWorkspace(ws, state, wsResp.workspace.errorMessage));
+        }
+      } catch (error) {
+        if (error instanceof Response && error.status === 404) {
+          abort();
+          Nav.goToPath('workspaces');
+          workspaceStore.reset();
+        }
+      }
+    };
+
+    if (workspace?.workspace?.state === 'Deleting') {
+      pollWithCancellation(() => checkWorkspaceDeletion(workspace), 30000, false, controller.signal);
+    }
+    return () => {
+      abort();
+    };
+    //  eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspace]); // adding the controller to deps causes a double fire of the effect
 };
