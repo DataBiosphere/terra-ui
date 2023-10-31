@@ -16,7 +16,7 @@ import { registrationLogo } from 'src/libs/logos';
 import { authStore, getTerraUser, TerraUser } from 'src/libs/state';
 import validate from 'validate.js';
 
-const constraints = (partOfOrg) => {
+const constraints = (partOfOrg: boolean) => {
   return {
     givenName: { presence: { allowEmpty: false } },
     familyName: { presence: { allowEmpty: false } },
