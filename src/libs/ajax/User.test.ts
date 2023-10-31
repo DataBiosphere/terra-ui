@@ -64,62 +64,30 @@ const completeUpdateUserProfileRequest: UpdateTerraUserProfileRequest = {
   researchArea: completeUserProfile.researchArea,
 };
 
+// it.each(['title', 'institute', ...])('sets undefined %s to "N/A"', async (field) => {
+//   const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+//       minimalCreateUserProfileRequest
+//   );
+//
+//   expect(apiBody[field]).toBe(NA);
+// });
 // update user profile
 describe('An update user profile request', () => {
   describe('when minimally filled out by the user', () => {
-    describe('should change the property', () => {
-      it('title to "N/A"', async () => {
+    it.each(['title', 'institute', 'programLocationCity', 'programLocationState', 'programLocationCountry'])(
+      'sets undefined property %s to "N/A"',
+      async (field) => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           minimalUpdateUserProfileRequest
         );
 
         // Assert
-        expect(apiBody.title).toBe(NA);
-      });
-
-      it('institute to "N/A"', async () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          minimalUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.institute).toBe(NA);
-      });
-
-      it('programLocationCity to "N/A"', async () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          minimalUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.programLocationCity).toBe(NA);
-      });
-
-      it('programLocationState to "N/A"', async () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          minimalUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.programLocationState).toBe(NA);
-      });
-
-      it('programLocationCountry to "N/A"', async () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          minimalUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.programLocationCountry).toBe(NA);
-      });
-    });
+        expect(apiBody[field]).toBe(NA);
+      }
+    );
     describe('should not modify property', () => {
-      // these required fields that the user filled out should not be changed
+      // these required fields that the user filled out should not be changed but may be undefined
       it('interestInTerra', async () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
