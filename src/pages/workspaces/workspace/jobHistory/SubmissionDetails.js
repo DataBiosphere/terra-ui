@@ -43,13 +43,13 @@ const deletionDelayYears = 1;
 const deletionDelayString = `${deletionDelayYears} year${deletionDelayYears > 1 ? 's' : ''}`;
 const isDeleted = (statusLastChangedDate) => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > deletionDelayYears * 365;
 
-const deletedInfoIcon = ({ name, icon }) => {
+const deletedInfoIcon = ({ name, icon: iconName }) => {
   return h(
     InfoBox,
     {
       style: { color: colors.secondary(), margin: '0.5rem' },
       tooltip: `${name} unavailable. Click to learn more.`,
-      icon,
+      icon: iconName,
     },
     [
       div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
