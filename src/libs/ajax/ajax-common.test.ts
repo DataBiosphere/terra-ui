@@ -1,6 +1,6 @@
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { OidcUser } from 'src/auth/oidc-broker';
-import { loadAuthToken, signOut } from 'src/libs/auth';
+import { getAuthToken, loadAuthToken, signOut } from 'src/libs/auth';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } from './ajax-common';
@@ -113,15 +113,31 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
           );
         });
 
-        it('signs out user', async () => {
-          // Act
-          // Ignore errors because makeAuthenticatedRequest is expected to return a rejected promise here.
-          await Promise.allSettled([makeAuthenticatedRequest()]);
+        describe('and the authToken the request used was completed with the current authToken', () => {
+          it('signs out user', async () => {
+            // Act
+            // Ignore errors because makeAuthenticatedRequest is expected to return a rejected promise here.
+            await Promise.allSettled([makeAuthenticatedRequest()]);
 
-          // Assert
-          expect(signOut).toHaveBeenCalledWith('errorRefreshingAuthToken');
+            // Assert
+            expect(signOut).toHaveBeenCalledWith('errorRefreshingAuthToken');
+          });
         });
 
+        describe('and the authToken the request used was completed with a different authToken than the current one', () => {
+          it('does not sign out user', async () => {
+            // Arrange
+            asMockedFn(getAuthToken)
+              .mockImplementationOnce(() => token)
+              .mockImplementationOnce(() => newToken);
+            // Act
+            // Ignore errors because makeAuthenticatedRequest is expected to return a rejected promise here.
+            await Promise.allSettled([makeAuthenticatedRequest()]);
+
+            // Assert
+            expect(signOut).not.toHaveBeenCalled();
+          });
+        });
         it('throws an error', async () => {
           // Act
           const result = makeAuthenticatedRequest();
@@ -140,13 +156,30 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
           );
         });
 
-        it('signs out user', async () => {
-          // Act
-          // Ignore errors because makeAuthenticatedRequest is expected to return a rejected promise here.
-          await Promise.allSettled([makeAuthenticatedRequest()]);
+        describe('and the authToken the request used was completed with the current authToken', () => {
+          it('signs out user', async () => {
+            // Act
+            // Ignore errors because makeAuthenticatedRequest is expected to return a rejected promise here.
+            await Promise.allSettled([makeAuthenticatedRequest()]);
 
-          // Assert
-          expect(signOut).toHaveBeenCalledWith('expiredRefreshToken');
+            // Assert
+            expect(signOut).toHaveBeenCalledWith('expiredRefreshToken');
+          });
+        });
+
+        describe('and the authToken the request used was completed with a different authToken than the current one', () => {
+          it('does not sign out user', async () => {
+            // Arrange
+            asMockedFn(getAuthToken)
+              .mockImplementationOnce(() => token)
+              .mockImplementationOnce(() => newToken);
+            // Act
+            // Ignore errors because makeAuthenticatedRequest is expected to return a rejected promise here.
+            await Promise.allSettled([makeAuthenticatedRequest()]);
+
+            // Assert
+            expect(signOut).not.toHaveBeenCalled();
+          });
         });
 
         it('throws an error', async () => {

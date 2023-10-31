@@ -70,20 +70,24 @@ const isUnauthorizedResponse = (error: unknown): boolean => error instanceof Res
 export const withRetryAfterReloadingExpiredAuthToken =
   (wrappedFetch: FetchFn): FetchFn =>
   async (resource: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
+    const preRequestAuthToken = getAuthToken();
     const requestHasAuthHeader = _.isMatch(authOpts(), options as object);
     try {
       return await wrappedFetch(resource, options);
     } catch (error) {
       if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
         const reloadedAuthTokenState: AuthTokenState = await loadAuthToken();
+        const postRequestAuthToken = getAuthToken();
         if (reloadedAuthTokenState.status === 'success') {
           sendRetryMetric();
           const optionsWithNewAuthToken = _.merge(options, authOpts());
           return await wrappedFetch(resource, optionsWithNewAuthToken);
         }
-        const signOutCause: SignOutCause =
-          reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
-        signOut(signOutCause);
+        if (preRequestAuthToken === postRequestAuthToken) {
+          const signOutCause: SignOutCause =
+            reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
+          signOut(signOutCause);
+        }
         throw new Error(sessionTimedOutErrorMessage);
       } else {
         throw error;
