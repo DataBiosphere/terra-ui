@@ -24,10 +24,6 @@ export const Metrics = (signal?: AbortSignal) => {
       }));
     }
 
-    // Send event to Appcues and refresh Appcues state
-    window.Appcues?.track(event, details);
-    window.Appcues?.page();
-
     const body = {
       event,
       properties: {
@@ -56,7 +52,7 @@ export const Metrics = (signal?: AbortSignal) => {
         },
         { signal, method: 'POST' },
       ])
-    );
+    ).then(() => window.Appcues?.page());
   };
   return {
     captureEvent: withErrorIgnoring(captureEventFn) as unknown as typeof captureEventFn,
