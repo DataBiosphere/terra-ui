@@ -1,7 +1,10 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import { BillingProject, CloudPlatform } from 'src/pages/billing/models/BillingProject';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 
 import NewWorkspaceModal from './NewWorkspaceModal';
@@ -13,7 +16,7 @@ jest.mock('src/libs/nav', () => ({
   getLink: jest.fn().mockReturnValue(''),
 }));
 
-const gcpBillingProject = {
+const gcpBillingProject: BillingProject = {
   billingAccount: 'billingAccounts/FOO-BAR-BAZ',
   cloudPlatform: 'GCP',
   invalidBillingAccount: false,
@@ -22,16 +25,23 @@ const gcpBillingProject = {
   status: 'Ready',
 };
 
-const azureBillingProject = {
-  billingAccount: 'billingAccounts/BAA-RAM-EWE',
+const azureBillingProject: BillingProject = {
   cloudPlatform: 'AZURE',
+  landingZoneId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+  managedAppCoordinates: {
+    tenantId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+    subscriptionId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+    managedResourceGroupId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+  },
   invalidBillingAccount: false,
   projectName: 'Azure Billing Project',
   roles: ['Owner'],
   status: 'Ready',
 };
 
-const nonBillingAjax = {
+type AjaxContract = ReturnType<typeof Ajax>;
+
+const nonBillingAjax: DeepPartial<AjaxContract> = {
   Groups: {
     list: async () => {
       return [];
@@ -82,25 +92,21 @@ describe('NewWorkspaceModal', () => {
     // Arrange
     const user = userEvent.setup();
 
-    Ajax.mockImplementation(() => ({
-      Billing: {
-        listProjects: async () => [gcpBillingProject, azureBillingProject],
-      },
-      ...nonBillingAjax,
-    }));
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject, azureBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
 
     await act(async () => {
-      // eslint-disable-line require-await
       render(
         h(NewWorkspaceModal, {
-          cloneWorkspace: false,
-          onSuccess: () => null,
-          onDismiss: () => null,
-          customMessage: null,
-          requiredAuthDomain: false,
-          title: null,
-          buttonText: null,
-          // workflowImport: false <== Not specified. False should be the default
+          onSuccess: () => {},
+          onDismiss: () => {},
         })
       );
     });
@@ -119,66 +125,63 @@ describe('NewWorkspaceModal', () => {
   it.each([
     { cloudPlatform: 'AZURE', expectedBillingProjects: ['Azure Billing Project'] },
     { cloudPlatform: 'GCP', expectedBillingProjects: ['Google Billing Project'] },
-  ])('can limit billing projects to one cloud platform', async ({ cloudPlatform, expectedBillingProjects }) => {
-    // Arrange
-    const user = userEvent.setup();
+  ] as { cloudPlatform: CloudPlatform; expectedBillingProjects: string[] }[])(
+    'can limit billing projects to one cloud platform',
+    async ({ cloudPlatform, expectedBillingProjects }) => {
+      // Arrange
+      const user = userEvent.setup();
 
-    Ajax.mockImplementation(() => ({
-      Billing: {
-        listProjects: async () => [gcpBillingProject, azureBillingProject],
-      },
-      ...nonBillingAjax,
-    }));
-
-    // Act
-    await act(async () => {
-      render(
-        h(NewWorkspaceModal, {
-          buttonText: null,
-          cloneWorkspace: false,
-          cloudPlatform,
-          customMessage: null,
-          requiredAuthDomain: false,
-          title: null,
-          workflowImport: false,
-          onDismiss: () => null,
-          onSuccess: () => null,
-        })
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [gcpBillingProject, azureBillingProject],
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
       );
-    });
 
-    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
-    const availableBillingProjectOptions = await projectSelect.getOptions();
-    // Remove icon name from option label.
-    // The icon names are only present in tests. They're the result of a configured transform.
-    const availableBillingProjects = availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
+      // Act
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            cloudPlatform,
+            onDismiss: () => {},
+            onSuccess: () => {},
+          })
+        );
+      });
 
-    // Assert
-    expect(availableBillingProjects).toEqual(expectedBillingProjects);
-  });
+      const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+      const availableBillingProjectOptions = await projectSelect.getOptions();
+      // Remove icon name from option label.
+      // The icon names are only present in tests. They're the result of a configured transform.
+      const availableBillingProjects = availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
+
+      // Assert
+      expect(availableBillingProjects).toEqual(expectedBillingProjects);
+    }
+  );
 
   it('Hides azure billing projects if part of workflow import', async () => {
     // Arrange
     const user = userEvent.setup();
 
-    Ajax.mockImplementation(() => ({
-      Billing: {
-        listProjects: async () => [gcpBillingProject, azureBillingProject],
-      },
-      ...nonBillingAjax,
-    }));
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject, azureBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
 
     await act(async () => {
-      // eslint-disable-line require-await
       render(
         h(NewWorkspaceModal, {
-          cloneWorkspace: false,
-          onSuccess: () => null,
-          onDismiss: () => null,
-          customMessage: null,
-          requiredAuthDomain: false,
-          title: null,
-          buttonText: null,
+          onSuccess: () => {},
+          onDismiss: () => {},
           workflowImport: true,
         })
       );
@@ -200,24 +203,21 @@ describe('NewWorkspaceModal', () => {
     // Arrange
     const user = userEvent.setup();
 
-    Ajax.mockImplementation(() => ({
-      Billing: {
-        listProjects: async () => [gcpBillingProject],
-      },
-      ...nonBillingAjax,
-    }));
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
 
     await act(async () => {
-      // eslint-disable-line require-await
       render(
         h(NewWorkspaceModal, {
-          cloneWorkspace: false,
-          onSuccess: () => null,
-          onDismiss: () => null,
-          customMessage: null,
-          requiredAuthDomain: false,
-          title: null,
-          buttonText: null,
+          onSuccess: () => {},
+          onDismiss: () => {},
           workflowImport: true,
         })
       );
@@ -241,25 +241,21 @@ describe('NewWorkspaceModal', () => {
     // Arrange
     const user = userEvent.setup();
 
-    Ajax.mockImplementation(() => ({
-      Billing: {
-        listProjects: async () => [gcpBillingProject, azureBillingProject],
-      },
-      ...nonBillingAjax,
-    }));
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject, azureBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
 
     await act(async () => {
-      // eslint-disable-line require-await
       render(
         h(NewWorkspaceModal, {
-          cloneWorkspace: false,
-          onSuccess: () => null,
-          onDismiss: () => null,
-          customMessage: null,
-          requiredAuthDomain: false,
-          title: null,
-          buttonText: null,
-          // workflowImport: false <== Not specified. False should be the default
+          onSuccess: () => {},
+          onDismiss: () => {},
         })
       );
     });
@@ -281,25 +277,21 @@ describe('NewWorkspaceModal', () => {
     // Arrange
     const user = userEvent.setup();
 
-    Ajax.mockImplementation(() => ({
-      Billing: {
-        listProjects: async () => [gcpBillingProject, azureBillingProject],
-      },
-      ...nonBillingAjax,
-    }));
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject, azureBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
 
     await act(async () => {
-      // eslint-disable-line require-await
       render(
         h(NewWorkspaceModal, {
-          cloneWorkspace: false,
-          onSuccess: () => null,
-          onDismiss: () => null,
-          customMessage: null,
-          requiredAuthDomain: false,
-          title: null,
-          buttonText: null,
-          // workflowImport: false <== Not specified. False should be the default
+          onSuccess: () => {},
+          onDismiss: () => {},
         })
       );
     });
@@ -318,26 +310,22 @@ describe('NewWorkspaceModal', () => {
     // Arrange
     const user = userEvent.setup();
 
-    Ajax.mockImplementation(() => ({
-      Billing: {
-        listProjects: async () => [gcpBillingProject, azureBillingProject],
-      },
-      ...nonBillingAjax,
-    }));
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject, azureBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
 
     await act(async () => {
-      // eslint-disable-line require-await
       render(
         h(NewWorkspaceModal, {
-          cloneWorkspace: false,
-          onSuccess: () => null,
-          onDismiss: () => null,
-          customMessage: null,
-          requiredAuthDomain: false,
+          onSuccess: () => {},
+          onDismiss: () => {},
           requireEnhancedBucketLogging: true,
-          title: null,
-          buttonText: null,
-          // workflowImport: false <== Not specified. False should be the default
         })
       );
     });
@@ -358,26 +346,21 @@ describe('NewWorkspaceModal', () => {
     // Arrange
     const user = userEvent.setup();
 
-    Ajax.mockImplementation(() => ({
-      Billing: {
-        listProjects: async () => [gcpBillingProject, azureBillingProject],
-      },
-      ...hasGroupsAjax,
-    }));
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject, azureBillingProject],
+          },
+          ...hasGroupsAjax,
+        } as AjaxContract)
+    );
 
     await act(async () => {
-      // eslint-disable-line require-await
       render(
         h(NewWorkspaceModal, {
-          cloneWorkspace: false,
-          onSuccess: () => null,
-          onDismiss: () => null,
-          customMessage: null,
-          requiredAuthDomain: false,
-          requireEnhancedBucketLogging: true,
-          title: null,
-          buttonText: null,
-          // workflowImport: false <== Not specified. False should be the default
+          onSuccess: () => {},
+          onDismiss: () => {},
         })
       );
     });
@@ -405,24 +388,21 @@ describe('NewWorkspaceModal', () => {
     // Arrange
     const user = userEvent.setup();
 
-    Ajax.mockImplementation(() => ({
-      Billing: {
-        listProjects: async () => [gcpBillingProject, azureBillingProject],
-      },
-      ...nonBillingAjax,
-    }));
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject, azureBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
 
     await act(async () => {
-      // eslint-disable-line require-await
       render(
         h(NewWorkspaceModal, {
-          cloneWorkspace: false,
-          onSuccess: () => null,
-          onDismiss: () => null,
-          customMessage: null,
-          requiredAuthDomain: false,
-          title: null,
-          buttonText: null,
+          onSuccess: () => {},
+          onDismiss: () => {},
           requireEnhancedBucketLogging: true,
         })
       );
