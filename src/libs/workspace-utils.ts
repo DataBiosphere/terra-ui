@@ -79,7 +79,8 @@ export type WorkspaceState =
   | 'Updating'
   | 'UpdateFailed'
   | 'Deleting'
-  | 'DeleteFailed';
+  | 'DeleteFailed'
+  | 'Deleted'; // For UI only - not a state in rawls
 
 export interface BaseWorkspace {
   owners?: string[];

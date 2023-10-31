@@ -5,7 +5,9 @@ import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { Link } from 'src/components/common';
+import ErrorView from 'src/components/ErrorView';
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown';
+import Modal from 'src/components/Modal';
 import { FlexTable, HeaderRenderer } from 'src/components/table';
 import { WorkspaceStarControl } from 'src/components/WorkspaceStarControl';
 import { workspaceSubmissionStatus, WorkspaceSubmissionStatusIcon } from 'src/components/WorkspaceSubmissionStatusIcon';
@@ -195,13 +197,15 @@ const NameCell = (props: CellProps): ReactNode => {
             !canView &&
             'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
           tooltipSide: 'right',
+          disabled: workspace.state === 'Deleted',
         },
         [name]
       ),
     ]),
     Utils.cond(
       [state === 'Deleting', () => h(WorkspaceDeletingCell)],
-      [state === 'DeleteFailed', () => h(WorkspaceDeletionFailedCell)],
+      [state === 'DeleteFailed', () => h(WorkspaceDeletionFailedCell, { workspace: props.workspace })],
+      [state === 'Deleted', () => h(WorkspaceDeletedCell)],
       [Utils.DEFAULT, () => h(WorkspaceDescriptionCell, { description })]
     ),
   ]);
@@ -243,7 +247,10 @@ const WorkspaceDeletingCell = (): ReactNode => {
   );
 };
 
-const WorkspaceDeletionFailedCell = (): ReactNode => {
+const WorkspaceDeletionFailedCell = (props: CellProps): ReactNode => {
+  const { workspace } = props;
+  const [showDetails, setShowDetails] = useState<boolean>(false);
+
   const errorIcon = icon('warning-standard', {
     size: 18,
     style: {
@@ -257,9 +264,45 @@ const WorkspaceDeletionFailedCell = (): ReactNode => {
         color: colors.danger(),
       },
     },
-    [errorIcon, 'Error deleting workspace']
+    [
+      errorIcon,
+      'Error deleting workspace',
+      workspace.workspace.errorMessage
+        ? h(
+            Link,
+            {
+              onClick: () => setShowDetails(true),
+              style: { fontSize: 14, marginRight: '0.5rem', marginLeft: '0.5rem' },
+            },
+            ['See error details.']
+          )
+        : null,
+      showDetails
+        ? h(
+            Modal,
+            {
+              width: 800,
+              title: 'Error deleting workspace',
+              showCancel: false,
+              showX: true,
+              onDismiss: () => setShowDetails(false),
+            },
+            [h(ErrorView, { error: workspace?.workspace.errorMessage ?? 'No error message available' })]
+          )
+        : null,
+    ]
   );
 };
+
+const WorkspaceDeletedCell = (): ReactNode =>
+  div(
+    {
+      style: {
+        color: colors.danger(),
+      },
+    },
+    ['Workspace has been deleted. Refresh to remove from list.']
+  );
 
 const LastModifiedCell = (props: CellProps): ReactNode => {
   const {
@@ -326,13 +369,16 @@ interface ActionsCellProps extends CellProps {
 const ActionsCell = (props: ActionsCellProps): ReactNode => {
   const {
     accessLevel,
-    workspace: { workspaceId, namespace, name },
+    workspace: { workspaceId, namespace, name, state },
   } = props.workspace;
   const { setUserActions } = useContext(WorkspaceUserActionsContext);
 
   if (!canRead(accessLevel)) {
     // No menu shown if user does not have read access.
     return div({ className: 'sr-only' }, ['You do not have permission to perform actions on this workspace.']);
+  }
+  if (state === 'Deleted') {
+    return null;
   }
   const getWorkspace = (id: string): Workspace => _.find({ workspace: { workspaceId: id } }, props.workspaces)!;
 

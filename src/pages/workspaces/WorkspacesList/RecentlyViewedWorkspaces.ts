@@ -25,7 +25,10 @@ export const RecentlyViewedWorkspaces = (props: RecentlyViewedWorkspacesProps): 
   // A user may have lost access to a workspace after viewing it, so we'll filter those out just in case
   const recentlyViewed = useMemo(() => {
     const recent = getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || [];
-    return _.filter((w) => getWorkspace(w.workspaceId, workspaces), recent);
+    return _.filter((w) => {
+      const ws = getWorkspace(w.workspaceId, workspaces);
+      return !!ws && ws.workspace.state !== 'Deleted';
+    }, recent);
   }, [workspaces]);
 
   return !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed)
