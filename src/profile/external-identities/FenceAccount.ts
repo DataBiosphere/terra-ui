@@ -9,10 +9,10 @@ import * as Nav from 'src/libs/nav';
 import { useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { FrameworkServiceLink } from 'src/pages/profile/external-identities/FrameworkServiceLink';
-import { linkStyles as styles } from 'src/pages/profile/external-identities/LinkStyles';
-import { UnlinkFenceAccount } from 'src/pages/profile/external-identities/UnlinkFenceAccount';
-import { SpacedSpinner } from 'src/pages/profile/SpacedSpinner';
+import { FrameworkServiceLink } from 'src/profile/external-identities/FrameworkServiceLink';
+import { linkStyles as styles } from 'src/profile/external-identities/LinkStyles';
+import { UnlinkFenceAccount } from 'src/profile/external-identities/UnlinkFenceAccount';
+import { SpacedSpinner } from 'src/profile/SpacedSpinner';
 
 export const FenceAccount = ({ provider: { key, name, expiresAfter, short } }) => {
   // State

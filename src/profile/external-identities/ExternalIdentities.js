@@ -12,9 +12,9 @@ import * as Nav from 'src/libs/nav';
 import allProviders from 'src/libs/providers';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { FenceAccount } from 'src/pages/profile/external-identities/FenceAccount';
-import { NihAccount } from 'src/pages/profile/external-identities/NihAccount';
-import { SpacedSpinner } from 'src/pages/profile/SpacedSpinner';
+import { FenceAccount } from 'src/profile/external-identities/FenceAccount';
+import { NihAccount } from 'src/profile/external-identities/NihAccount';
+import { SpacedSpinner } from 'src/profile/SpacedSpinner';
 
 const styles = {
   idLink: {
