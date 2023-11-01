@@ -11,7 +11,6 @@ import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import TitleBar from 'src/components/TitleBar';
 import TopBar from 'src/components/TopBar';
-import { Ajax } from 'src/libs/ajax';
 import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { ErrorCallback } from 'src/libs/error';
@@ -20,8 +19,13 @@ import { withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { pollWithCancellation } from 'src/libs/utils';
-import { isAzureWorkspace, isGoogleWorkspace, WorkspaceState } from 'src/libs/workspace-utils';
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import { AppDetails, useAppPolling } from 'src/pages/workspaces/hooks/useAppPolling';
+import {
+  CloudEnvironmentDetails,
+  useCloudEnvironmentPolling,
+} from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
+import { useSingleWorkspaceDeletetionPolling } from 'src/pages/workspaces/hooks/useDeletionPolling';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
@@ -122,7 +126,13 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const isGoogleWorkspaceSyncing =
     workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
 
-  useDeletetionPolling(workspace);
+  useSingleWorkspaceDeletetionPolling(workspace);
+  useEffect(() => {
+    if (workspace?.workspace?.state === 'Deleted') {
+      Nav.goToPath('workspaces');
+      workspaceStore.reset();
+    }
+  }, [workspace]);
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -337,51 +347,4 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
     };
     return withDisplayName('wrapWorkspace', Wrapper);
   };
-};
-
-const useDeletetionPolling = (workspace?: Workspace) => {
-  // we have to do the signal/abort manually instead of with useCancelable so that the it can be cleaned up in the
-  // this component's useEffect, instead of the useEffect in useCancelable
-  const [controller, setController] = useState(new window.AbortController());
-  const abort = () => {
-    controller.abort();
-    setController(new window.AbortController());
-  };
-  useEffect(() => {
-    const updateWorkspace = (ws: Workspace, state: WorkspaceState, errorMessage?: string) => ({
-      ...ws,
-      workspace: {
-        ...ws.workspace,
-        state,
-        errorMessage,
-      },
-    });
-
-    const checkWorkspaceDeletion = async (workspace: Workspace) => {
-      try {
-        const wsResp: Workspace = await Ajax(controller.signal)
-          .Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
-          .details(['workspace.state', 'workspace.errorMessage']);
-        const state = wsResp.workspace.state;
-        if (state === 'DeleteFailed') {
-          abort();
-          workspaceStore.update((ws) => updateWorkspace(ws, state, wsResp.workspace.errorMessage));
-        }
-      } catch (error) {
-        if (error instanceof Response && error.status === 404) {
-          abort();
-          Nav.goToPath('workspaces');
-          workspaceStore.reset();
-        }
-      }
-    };
-
-    if (workspace?.workspace?.state === 'Deleting') {
-      pollWithCancellation(() => checkWorkspaceDeletion(workspace), 30000, false, controller.signal);
-    }
-    return () => {
-      abort();
-    };
-    //  eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workspace]); // adding the controller to deps causes a double fire of the effect
 };
