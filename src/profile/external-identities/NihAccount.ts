@@ -14,9 +14,9 @@ import { notify } from 'src/libs/notifications';
 import { useOnMount, useStore } from 'src/libs/react-utils';
 import { AuthState, authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { linkStyles as styles } from 'src/pages/profile/external-identities/LinkStyles';
-import { ShibbolethLink } from 'src/pages/profile/external-identities/ShibbolethLink';
-import { SpacedSpinner } from 'src/pages/profile/SpacedSpinner';
+import { linkStyles as styles } from 'src/profile/external-identities/LinkStyles';
+import { ShibbolethLink } from 'src/profile/external-identities/ShibbolethLink';
+import { SpacedSpinner } from 'src/profile/SpacedSpinner';
 
 export const NihAccount = ({ nihToken }) => {
   // State

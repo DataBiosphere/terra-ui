@@ -1,21 +1,22 @@
 import _ from 'lodash/fp';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { div, h, h3, label, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import planet from 'src/images/register-planet.svg';
 import { Ajax } from 'src/libs/ajax';
+import { SamUserAttributes } from 'src/libs/ajax/User';
 import { refreshTerraProfile, signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { registrationLogo } from 'src/libs/logos';
-import { authStore, getTerraUser, TerraUser, TerraUserProfile } from 'src/libs/state';
+import { authStore, getTerraUser, TerraUser } from 'src/libs/state';
 import validate from 'validate.js';
 
-const constraints = (partOfOrg) => {
+const constraints = (partOfOrg: boolean) => {
   return {
     givenName: { presence: { allowEmpty: false } },
     familyName: { presence: { allowEmpty: false } },
@@ -28,16 +29,17 @@ const constraints = (partOfOrg) => {
 
 const Register = () => {
   const user: TerraUser = getTerraUser();
-  const profile: TerraUserProfile = authStore.get().profile;
+  const userAttributes: SamUserAttributes = authStore.get().terraUserAttributes;
   const [busy, setBusy] = useState(false);
   const [givenName, setGivenName] = useState(user.givenName || '');
   const [familyName, setFamilyName] = useState(user.familyName || '');
   const [email, setEmail] = useState(user.email || '');
   const [partOfOrganization, setPartOfOrganization] = useState(true);
-  const [institute, setInstitute] = useState(profile.institute ?? ''); // keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
-  const [title, setTitle] = useState(profile.title ?? '');
-  const [department, setDepartment] = useState(profile.department ?? '');
-  const [interestInTerra, setInterestInTerra] = useState(profile.interestInTerra ?? '');
+  const [institute, setInstitute] = useState(''); // keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
+  const [title, setTitle] = useState('');
+  const [department, setDepartment] = useState('');
+  const [interestInTerra, setInterestInTerra] = useState('');
+  const [marketingConsent, setMarketingConsent] = useState(userAttributes.marketingConsent);
 
   const checkboxLine = (children) =>
     div(
@@ -48,7 +50,33 @@ const Register = () => {
       },
       children
     );
-  const interestInTerraCheckbox = (title) =>
+
+  const communicationPreferencesCheckbox = (
+    title: string,
+    value: boolean,
+    setFunc: React.Dispatch<React.SetStateAction<boolean>> | undefined
+  ) =>
+    div({ style: { marginTop: '.25rem' } }, [
+      h(
+        LabeledCheckbox,
+        {
+          checked: value,
+          disabled: setFunc === undefined,
+          onChange: setFunc,
+        },
+        [
+          span(
+            {
+              style: {
+                marginLeft: '0.5rem',
+              },
+            },
+            [title]
+          ),
+        ]
+      ),
+    ]);
+  const interestInTerraCheckbox = (title: string) =>
     div({ style: { marginTop: '.25rem' } }, [
       h(
         LabeledCheckbox,
@@ -90,6 +118,7 @@ const Register = () => {
         interestInTerra,
         ...orgFields,
       });
+      await Ajax().User.setUserAttributes({ marketingConsent });
       authStore.update((state) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
       await refreshTerraProfile();
       Ajax().Metrics.captureEvent(Events.user.register);
@@ -241,6 +270,13 @@ const Register = () => {
         interestInTerraCheckbox('Complete interactive analyses'),
         interestInTerraCheckbox('Build Tools'),
       ]),
+      h3({ style: { marginTop: '2rem' } }, ['Communication Preferences']),
+      communicationPreferencesCheckbox('Necessary communications related to platform operations', true, undefined),
+      communicationPreferencesCheckbox(
+        'Marketing communications including notifications for upcoming workshops and new flagship dataset additions',
+        marketingConsent,
+        setMarketingConsent
+      ),
       div({ style: { marginTop: '3rem' } }, [
         h(ButtonPrimary, { disabled: errors || busy, onClick: register }, ['Register']),
         h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: () => signOut('requested') }, ['Cancel']),

@@ -4,7 +4,7 @@ import { AuthContextProps } from 'react-oidc-context';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { Dataset } from 'src/libs/ajax/Catalog';
 import { OidcConfig } from 'src/libs/ajax/OAuth2';
-import { BondFenceStatusResponse, NihDatasetPermission } from 'src/libs/ajax/User';
+import { BondFenceStatusResponse, NihDatasetPermission, SamUserAttributes } from 'src/libs/ajax/User';
 import { AuthTokenState } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -92,6 +92,7 @@ export type AuthState = {
   sessionStartTime: number;
   termsOfService: TermsOfServiceStatus;
   terraUser: TerraUser;
+  terraUserAttributes: SamUserAttributes;
 };
 
 export type FenceStatus = {
@@ -153,6 +154,9 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     familyName: undefined,
     imageUrl: undefined,
     idp: undefined,
+  },
+  terraUserAttributes: {
+    marketingConsent: true,
   },
 });
 

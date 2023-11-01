@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { authStore, FenceStatus } from 'src/libs/state';
-import { FenceAccount } from 'src/pages/profile/external-identities/FenceAccount';
+import { FenceAccount } from 'src/profile/external-identities/FenceAccount';
 import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
 
 // Mocking for Nav.getLink
