@@ -384,7 +384,6 @@ const PreviewHeader = ({
     if (lastLockedBy && lastLockedBy !== hashedUser && lockExpirationDate > Date.now()) {
       setLocked(true);
       setLockedBy(lastLockedBy);
-      setLocked(false);
     }
   });
 
@@ -780,10 +779,10 @@ const AnalysisEditorFrame = ({ styles, mode, analysisName, toolLabel, workspace,
     [runtimeToolLabels.JupyterLab, () => `${name}/safe`],
     [runtimeToolLabels.RStudio, () => '']
   );
-
+  // eslint-disable-next-line
+  console.log(getPatternFromRuntimeTool(toolLabel));
   useOnMount(() => {
     const cloudStorageDirectory = `gs://${bucketName}/notebooks`;
-
     const setUpAnalysis = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis')
