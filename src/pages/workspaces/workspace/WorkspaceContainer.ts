@@ -301,12 +301,6 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
       const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(workspace);
       const { apps, refreshApps } = useAppPolling(workspace);
 
-      // The following is necessary to support the context bar properly loading runtimes for google/azure
-      useEffect(() => {
-        refreshRuntimes(true);
-        refreshApps(true);
-      }, [workspace]); // eslint-disable-line react-hooks/exhaustive-deps
-
       if (accessError) {
         return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)]);
       }

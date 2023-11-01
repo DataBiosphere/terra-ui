@@ -1,12 +1,12 @@
 import _ from 'lodash/fp';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { Ajax } from 'src/libs/ajax';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { useCancellation } from 'src/libs/react-utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/workspace/useWorkspace';
 
 export interface CloudEnvironmentDetails {
@@ -73,9 +73,10 @@ export const useCloudEnvironmentPolling = (workspace: Workspace): CloudEnvironme
     maybeStale?: boolean
   ) => Promise<void>;
   const refreshRuntimesSilently = withErrorIgnoring(load);
-  useOnMount(() => {
+  useEffect(() => {
     refreshRuntimes();
     return () => clearTimeout(timeout.current);
-  });
+    //  eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspace]);
   return { runtimes, refreshRuntimes, persistentDisks, appDataDisks };
 };

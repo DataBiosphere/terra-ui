@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { useCancellation } from 'src/libs/react-utils';
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/workspace/useWorkspace';
 
@@ -46,9 +46,10 @@ export const useAppPolling = (workspace: Workspace): AppDetails => {
   };
   const refreshApps = withErrorReporting('Error loading apps', loadApps) as (maybeStale?: boolean) => Promise<void>;
   const refreshAppsSilently = withErrorIgnoring(loadApps);
-  useOnMount(() => {
+  useEffect(() => {
     refreshApps();
     return () => clearTimeout(timeout.current);
-  });
+    //  eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspace]);
   return { apps, refreshApps };
 };
