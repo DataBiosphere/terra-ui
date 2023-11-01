@@ -4,8 +4,6 @@ import { ComponentPropsWithRef, PropsWithChildren, ReactNode, useEffect, useRef,
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers';
 import { ContextBar } from 'src/analysis/ContextBar';
 import RuntimeManager from 'src/analysis/RuntimeManager';
-import { getDiskAppType } from 'src/analysis/utils/app-utils';
-import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
@@ -14,14 +12,11 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import TitleBar from 'src/components/TitleBar';
 import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
-import { ErrorCallback, withErrorIgnoring, withErrorReporting } from 'src/libs/error';
+import { ErrorCallback } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
+import { withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -257,124 +252,6 @@ const WorkspaceAccessError = () => {
       ['Return to Workspace List']
     ),
   ]);
-};
-
-interface CloudEnvironmentDetails {
-  runtimes?: ListRuntimeItem[];
-  refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
-  persistentDisks?: PersistentDisk[];
-  appDataDisks?: PersistentDisk[];
-}
-
-const useCloudEnvironmentPolling = (workspace: Workspace): CloudEnvironmentDetails => {
-  const signal = useCancellation();
-  const timeout = useRef<NodeJS.Timeout>();
-  const [runtimes, setRuntimes] = useState<ListRuntimeItem[]>();
-  const [persistentDisks, setPersistentDisks] = useState<PersistentDisk[]>();
-  const [appDataDisks, setAppDataDisks] = useState<PersistentDisk[]>();
-
-  const saturnWorkspaceNamespace = workspace?.workspace.namespace;
-  const saturnWorkspaceName = workspace?.workspace.name;
-
-  const reschedule = (ms) => {
-    clearTimeout(timeout.current);
-    timeout.current = setTimeout(refreshRuntimesSilently, ms);
-  };
-  const load = async (maybeStale?: boolean): Promise<void> => {
-    try {
-      const cloudEnvFilters = _.pickBy((l) => !_.isUndefined(l), {
-        role: 'creator',
-        saturnWorkspaceName,
-        saturnWorkspaceNamespace,
-      });
-
-      // Disks.list API takes includeLabels to specify which labels to return in the response
-      // Runtimes.listV2 API always returns all labels for a runtime
-      const [newDisks, newRuntimes] = workspace
-        ? await Promise.all([
-            Ajax(signal)
-              .Disks.disksV1()
-              .list({
-                ...cloudEnvFilters,
-                includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace',
-              }),
-            Ajax(signal).Runtimes.listV2(cloudEnvFilters),
-          ])
-        : [[], []];
-
-      setRuntimes(newRuntimes);
-      setAppDataDisks(_.remove((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
-      setPersistentDisks(_.filter((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
-      const runtime = getCurrentRuntime(newRuntimes);
-      reschedule(
-        maybeStale ||
-          ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring'].includes(
-            getConvertedRuntimeStatus(runtime) ?? ''
-          )
-          ? 10000
-          : 120000
-      );
-    } catch (error) {
-      reschedule(30000);
-      throw error;
-    }
-  };
-  const refreshRuntimes = withErrorReporting('Error loading cloud environments', load) as (
-    maybeStale?: boolean
-  ) => Promise<void>;
-  const refreshRuntimesSilently = withErrorIgnoring(load);
-  useOnMount(() => {
-    refreshRuntimes();
-    return () => clearTimeout(timeout.current);
-  });
-  return { runtimes, refreshRuntimes, persistentDisks, appDataDisks };
-};
-
-interface AppDetails {
-  apps?: ListAppResponse[];
-  refreshApps: (maybeStale?: boolean) => Promise<void>;
-}
-
-const useAppPolling = (workspace: Workspace): AppDetails => {
-  const signal = useCancellation();
-  const timeout = useRef<NodeJS.Timeout>();
-  const [apps, setApps] = useState<ListAppResponse[]>();
-
-  const reschedule = (ms) => {
-    clearTimeout(timeout.current);
-    timeout.current = setTimeout(refreshAppsSilently, ms);
-  };
-  const loadApps = async (maybeStale?: boolean): Promise<void> => {
-    try {
-      const newGoogleApps =
-        !!workspace && isGoogleWorkspace(workspace)
-          ? await Ajax(signal).Apps.list(workspace.workspace.googleProject, {
-              role: 'creator',
-              saturnWorkspaceName: workspace.workspace.name,
-            })
-          : [];
-      const newAzureApps =
-        !!workspace && isAzureWorkspace(workspace)
-          ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId)
-          : [];
-      const combinedNewApps = [...newGoogleApps, ...newAzureApps];
-
-      setApps(combinedNewApps);
-      Object.values(combinedNewApps).forEach((app) => {
-        reschedule(maybeStale || (app && ['PROVISIONING', 'PREDELETING'].includes(app.status)) ? 10000 : 120000);
-      });
-    } catch (error) {
-      reschedule(30000);
-      throw error;
-    }
-  };
-  const refreshApps = withErrorReporting('Error loading apps', loadApps) as (maybeStale?: boolean) => Promise<void>;
-  const refreshAppsSilently = withErrorIgnoring(loadApps);
-  useOnMount(() => {
-    refreshApps();
-    return () => clearTimeout(timeout.current);
-  });
-  return { apps, refreshApps };
 };
 
 interface WrapWorkspaceProps {
