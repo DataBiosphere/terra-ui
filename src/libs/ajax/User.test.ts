@@ -1,7 +1,7 @@
 import { kvArrayToObject } from './User';
 
 // Workaround for circular import issues.
-jest.mock('src/libs/auth');
+jest.mock('src/auth/auth');
 
 describe('kvArrayToObject', () => {
   it('converts an array of key/value objects to an object', () => {

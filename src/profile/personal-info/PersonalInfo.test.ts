@@ -6,7 +6,7 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { PersonalInfo } from './PersonalInfo';
 
 // Workaround for import cycle.
-jest.mock('src/libs/auth');
+jest.mock('src/auth/auth');
 
 type UseProxyGroupExports = typeof import('./useProxyGroup');
 jest.mock('./useProxyGroup', (): UseProxyGroupExports => {

@@ -1,11 +1,11 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
 import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
+import { AuthTokenState } from 'src/auth/auth';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { Dataset } from 'src/libs/ajax/Catalog';
 import { OidcConfig } from 'src/libs/ajax/OAuth2';
 import { BondFenceStatusResponse, NihDatasetPermission, SamUserAttributes } from 'src/libs/ajax/User';
-import { AuthTokenState } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 

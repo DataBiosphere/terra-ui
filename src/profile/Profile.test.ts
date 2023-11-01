@@ -8,7 +8,7 @@ import { Profile } from './Profile';
 import { useUserProfile } from './useUserProfile';
 
 // Workaround for import cycle.
-jest.mock('src/libs/auth');
+jest.mock('src/auth/auth');
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock('src/libs/nav', (): NavExports => {
