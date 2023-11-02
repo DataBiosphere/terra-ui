@@ -32,12 +32,12 @@ import {
 } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   AzureConfig,
+  GoogleRuntimeConfig,
   isAzureConfig,
   isDataprocConfig,
   isGceConfig,
   isGceRuntimeConfig,
   isGceWithPdConfig,
-  RuntimeConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getAzurePricesForRegion, getDiskType } from 'src/libs/azure-utils';
@@ -79,7 +79,7 @@ export const getGpuCost = (gpuType: string, numGpus: number, region: string): nu
 // This function deals with runtimes that are paused
 // All disks referenced in this function are boot disks (aka the disk google needs to provision by default for OS storage)
 // The user pd cost for a runtime is calculated elsewhere
-export const runtimeConfigBaseCost = (config: RuntimeConfig): number => {
+export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
   if (!config) return 0;
   const computeRegion = config.normalizedRegion;
 
@@ -101,7 +101,7 @@ export const runtimeConfigBaseCost = (config: RuntimeConfig): number => {
   return _.sum([costForDataproc, costForGceWithoutUserDisk, costForGceWithUserDisk]);
 };
 
-export const runtimeConfigCost = (config: RuntimeConfig): number => {
+export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
   if (!config) return 0;
   const computeRegion = config.normalizedRegion;
 
