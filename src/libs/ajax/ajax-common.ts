@@ -83,6 +83,9 @@ export const withRetryAfterReloadingExpiredAuthToken =
           const optionsWithNewAuthToken = _.merge(options, authOpts());
           return await wrappedFetch(resource, optionsWithNewAuthToken);
         }
+        // if the auth token the request was made with does not match the current auth token
+        // that means that the user has already been signed out and signed in again to receive a new token
+        // in this case, we should not sign the user out again
         if (preRequestAuthToken === postRequestAuthToken) {
           const signOutCause: SignOutCause =
             reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
