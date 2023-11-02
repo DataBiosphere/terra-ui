@@ -126,7 +126,7 @@ describe('AzureBillingProjectWizard', () => {
     expect(captureEvent).toHaveBeenNthCalledWith(4, Events.billingAzureCreationNoUsersToAdd);
     expect(captureEvent).toHaveBeenNthCalledWith(5, Events.billingAzureCreationProjectNameStep);
     expect(captureEvent).toHaveBeenCalledTimes(5);
-    expect(onSuccess).toBeCalledWith(billingProjectName);
+    expect(onSuccess).toBeCalledWith(billingProjectName, false);
   });
 
   it('should support happy path of submitting with owners and users and protected data', async () => {
@@ -169,7 +169,7 @@ describe('AzureBillingProjectWizard', () => {
     expect(captureEvent).toHaveBeenNthCalledWith(4, Events.billingAzureCreationWillAddUsers);
     expect(captureEvent).toHaveBeenNthCalledWith(5, Events.billingAzureCreationProjectNameStep);
     expect(captureEvent).toHaveBeenCalledTimes(5);
-    expect(onSuccess).toBeCalledWith(billingProjectName);
+    expect(onSuccess).toBeCalledWith(billingProjectName, true);
   });
 
   it('shows error if billing project already exists with the name', async () => {
