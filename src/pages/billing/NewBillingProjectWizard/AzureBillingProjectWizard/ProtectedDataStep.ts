@@ -25,7 +25,10 @@ export const ProtectedDataStep = (props: ProtectedDataStepProps) => {
     h(StepFields, { style: { flexDirection: 'column' } }, [
       h(StepFieldLegend, { style: { width: '100%' } }, [
         'Will you be working with protected data? ',
-        ExternalLink({ text: 'Read more about Terra security and policy', url: 'TODO' }),
+        ExternalLink({
+          text: 'Read more about Terra security and policy',
+          url: 'https://support.terra.bio/hc/en-us/articles/360030793091',
+        }),
       ]),
       p({ style: { ...legendDetailsStyle, width: '95%' } }, [
         'Clicking Yes will set up your environment with additional security monitoring. Please note this will incur additional usage cost. ',
@@ -35,7 +38,7 @@ export const ProtectedDataStep = (props: ProtectedDataStepProps) => {
           LabeledRadioButton({
             text: 'Yes, set up my environment with additional security',
             name: 'protected-data',
-            checked: props.protectedData,
+            checked: !!props.protectedData,
             onChange: (changed) => {
               props.onSetProtectedData(changed.target.checked);
             },
