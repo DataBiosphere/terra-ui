@@ -104,7 +104,7 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
                   // TODO: Get link for learn how to get access
                   href: !hasAggregateDataViewerAccess
                     ? encodeURIComponent(Nav.getLink('root'))
-                    : Nav.getLink('create-dataset', { datasetId }),
+                    : Nav.getLink('dataset-builder', { datasetId }),
                 },
                 [hasAggregateDataViewerAccess ? 'Start creating datasets' : 'Learn how to gain access']
               ),
