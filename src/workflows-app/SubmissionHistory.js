@@ -13,6 +13,7 @@ import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
+import { differenceFromDatesInSeconds } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import {
@@ -36,6 +37,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   const signal = useCancellation();
   const scheduledRefresh = useRef();
   const workspaceId = workspace.workspace.workspaceId;
+  const workspaceCreated = workspace.workspace.createdDate;
 
   const loadRunSets = useCallback(
     async (cbasUrlRoot) => {
@@ -45,12 +47,19 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
           (r) => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }),
           runSets.run_sets
         );
-        return _.merge(runSets, { run_sets: durationEnhancedRunSets });
+        // TODO: Remove filtering once WM-2232 is complete
+        const onlyWorkspaceRunSets = durationEnhancedRunSets.filter(
+          (runSet) => differenceFromDatesInSeconds(workspaceCreated, runSet.submission_timestamp) > 0
+        );
+        return {
+          ...runSets,
+          run_sets: onlyWorkspaceRunSets,
+        };
       } catch (error) {
         notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [signal]
+    [signal, workspaceCreated]
   );
 
   const loadAllRunSets = useCallback(
