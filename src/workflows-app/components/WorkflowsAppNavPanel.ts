@@ -150,7 +150,7 @@ export const WorkflowsAppNavPanel = ({
               ['Find & add workflows']
             ),
             tooltip: !workspace.canCompute
-              ? 'You must be a workspace writer/owner to add workflows to this workspace.'
+              ? 'You must be a workspace writer/owner to add workflows to this workspace. To import (and run) workflows, you can clone this workspace.'
               : undefined,
             initialOpenState: pageReady && workspace.canCompute,
             titleFirst: true,
