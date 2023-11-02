@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { ButtonPrimary, ButtonSecondary, LabeledCheckbox } from 'src/components/common';
@@ -14,7 +15,6 @@ import { FormLabel } from 'src/libs/forms';
 import { registrationLogo } from 'src/libs/logos';
 import { authStore, getTerraUser, TerraUser } from 'src/libs/state';
 import validate from 'validate.js';
-import { useUniqueId } from '@terra-ui-packages/components';
 
 const constraints = (partOfOrg: boolean) => {
   return {
@@ -73,6 +73,30 @@ const CommunicationPreferencesCheckbox = (props: CommunicationPreferencesCheckbo
   </div>
 );
 
+type InterestInTerraCheckboxProps = {
+  title: string;
+  interestInTerra: string;
+  setFunc: (interest: string) => void;
+};
+
+const InterestInTerraCheckbox = (props: InterestInTerraCheckboxProps) => (
+  <div style={{ marginTop: '.25rem' }}>
+    <LabeledCheckbox
+      checked={_.includes(props.title, props.interestInTerra)}
+      disabled={false}
+      onChange={(v: string) => {
+        const interestsList = _.isEmpty(props.interestInTerra) ? [] : _.split(',', props.interestInTerra);
+        const updatedInterestsList = v
+          ? _.concat(interestsList, [props.title])
+          : _.without([props.title], interestsList);
+        props.setFunc(_.join(',', updatedInterestsList));
+      }}
+    >
+      <span style={{ marginLeft: '0.5rem' }}>{props.title}</span>
+    </LabeledCheckbox>
+  </div>
+);
+
 const Register = () => {
   const user: TerraUser = getTerraUser();
   const userAttributes: SamUserAttributes = authStore.get().terraUserAttributes;
@@ -118,28 +142,6 @@ const Register = () => {
     constraints(partOfOrganization)
   );
 
-  type InterestInTerraCheckboxProps = {
-    title: string;
-  };
-
-  const InterestInTerraCheckbox = (props: InterestInTerraCheckboxProps) => (
-    <div style={{ marginTop: '.25rem' }}>
-      <LabeledCheckbox
-        checked={_.includes(props.title, interestInTerra)}
-        disabled={false}
-        onChange={(v: string) => {
-          const interestsList = _.isEmpty(interestInTerra) ? [] : _.split(',', interestInTerra);
-          const updatedInterestsList = v
-            ? _.concat(interestsList, [props.title])
-            : _.without([props.title], interestsList);
-          setInterestInTerra(_.join(',', updatedInterestsList));
-        }}
-      >
-        <span style={{ marginLeft: '0.5rem' }}>{props.title}</span>
-      </LabeledCheckbox>
-    </div>
-  );
-
   return (
     <div
       role="main"
@@ -166,11 +168,11 @@ const Register = () => {
       <div style={{ marginTop: '1rem', display: 'flex' }}>
         <div style={{ lineHeight: '170%' }}>
           <LabelledTextInput
-            required={true}
+            required
             value={givenName}
             onChange={setGivenName}
             inputStyle={{ display: 'block' }}
-            label={'First Name'}
+            label="First Name"
           />
         </div>
         <div style={{ width: '1rem' }} />
@@ -179,18 +181,18 @@ const Register = () => {
             value={familyName}
             onChange={setFamilyName}
             inputStyle={{ display: 'block' }}
-            label={'Last Name'}
+            label="Last Name"
           />
         </div>
       </div>
       <div style={{ lineHeight: '170%' }}>
         <LabelledTextInput
           value={email}
-          required={true}
+          required
           onChange={setEmail}
           labelStyle={{ display: 'block', marginTop: '2rem' }}
           inputStyle={{ width: '66ex' }}
-          label={'Contact Email for Notifications'}
+          label="Contact Email for Notifications"
         />
       </div>
       <div style={{ lineHeight: '170%' }}>
@@ -200,7 +202,7 @@ const Register = () => {
           disabled={!partOfOrganization}
           onChange={setInstitute}
           inputStyle={{ width: '66ex' }}
-          label={'Organization'}
+          label="Organization"
         />
       </div>
       <div style={{ lineHeight: '170%', marginTop: '0.25rem' }}>
@@ -220,7 +222,7 @@ const Register = () => {
             disabled={!partOfOrganization}
             onChange={setDepartment}
             labelStyle={{ display: 'block' }}
-            label={'Department'}
+            label="Department"
           />
         </div>
         <div style={{ width: '1rem' }} />
@@ -230,31 +232,49 @@ const Register = () => {
             required={partOfOrganization}
             disabled={!partOfOrganization}
             onChange={setTitle}
-            label={'Title'}
+            label="Title"
             labelStyle={{ display: 'block' }}
           />
         </div>
       </div>
       <h3 style={{ marginTop: '2rem' }}>I am most interested in using Terra to (Check all that apply):</h3>
       <CheckboxLine>
-        <InterestInTerraCheckbox title={'Collaborate with individuals within my organization'} />
-        <InterestInTerraCheckbox title={'Collaborate with individuals outside of my organization'} />
-        <InterestInTerraCheckbox title={'Access data'} />
-        <InterestInTerraCheckbox title={'Manage datasets'} />
-        <InterestInTerraCheckbox title={'Launch workflows'} />
-        <InterestInTerraCheckbox title={'Complete interactive analyses'} />
-        <InterestInTerraCheckbox title={'Build Tools'} />
+        <InterestInTerraCheckbox
+          title="Collaborate with individuals within my organization"
+          interestInTerra={interestInTerra}
+          setFunc={setInterestInTerra}
+        />
+        <InterestInTerraCheckbox
+          title="Collaborate with individuals outside of my organization"
+          interestInTerra={interestInTerra}
+          setFunc={setInterestInTerra}
+        />
+        <InterestInTerraCheckbox title="Access data" interestInTerra={interestInTerra} setFunc={setInterestInTerra} />
+        <InterestInTerraCheckbox
+          title="Manage datasets"
+          interestInTerra={interestInTerra}
+          setFunc={setInterestInTerra}
+        />
+        <InterestInTerraCheckbox
+          title="Launch workflows"
+          interestInTerra={interestInTerra}
+          setFunc={setInterestInTerra}
+        />
+        <InterestInTerraCheckbox
+          title="Complete interactive analyses"
+          interestInTerra={interestInTerra}
+          setFunc={setInterestInTerra}
+        />
+        <InterestInTerraCheckbox title="Build Tools" interestInTerra={interestInTerra} setFunc={setInterestInTerra} />
       </CheckboxLine>
       <h3 style={{ marginTop: '2rem' }}>Communication Preferences</h3>
       <CommunicationPreferencesCheckbox
-        title={'Necessary communications related to platform operations'}
-        value={true}
+        title="Necessary communications related to platform operations"
+        value
         setFunc={undefined}
       />
       <CommunicationPreferencesCheckbox
-        title={
-          'Marketing communications including notifications for upcoming workshops and new flagship dataset additions'
-        }
+        title="Marketing communications including notifications for upcoming workshops and new flagship dataset additions"
         value={marketingConsent}
         setFunc={setMarketingConsent}
       />
