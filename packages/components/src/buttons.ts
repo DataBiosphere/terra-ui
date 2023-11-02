@@ -1,4 +1,4 @@
-import { CSSProperties, ReactNode } from 'react';
+import { CSSProperties, ReactElement, ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 
 import { Clickable, ClickableProps } from './Clickable';
@@ -20,7 +20,7 @@ export interface ButtonPrimaryProps extends ClickableProps {
   danger?: boolean;
 }
 
-export const ButtonPrimary = (props: ButtonPrimaryProps): ReactNode => {
+export const ButtonPrimary = (props: ButtonPrimaryProps): ReactElement => {
   const { children, danger = false, disabled, hover, style, ...otherProps } = props;
 
   const { colors } = useThemeFromContext();
@@ -53,7 +53,7 @@ export const ButtonPrimary = (props: ButtonPrimaryProps): ReactNode => {
 
 export type ButtonSecondaryProps = ClickableProps;
 
-export const ButtonSecondary = (props: ButtonSecondaryProps): ReactNode => {
+export const ButtonSecondary = (props: ButtonSecondaryProps): ReactElement => {
   const { children, disabled, hover, style, ...otherProps } = props;
 
   const { colors } = useThemeFromContext();
