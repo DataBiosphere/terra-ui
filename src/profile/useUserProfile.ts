@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import { refreshTerraProfile } from 'src/auth/auth';
 import { makeSetUserProfileRequest, User } from 'src/libs/ajax/User';
-import { refreshTerraProfile } from 'src/libs/auth';
 import { reportError } from 'src/libs/error';
 import { useStore } from 'src/libs/react-utils';
 import { authStore, TerraUserProfile } from 'src/libs/state';

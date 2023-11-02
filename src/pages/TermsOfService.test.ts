@@ -31,11 +31,11 @@ jest.mock(
     goToPath: jest.fn(),
   })
 );
-type AuthExports = typeof import('src/libs/auth');
+type AuthExports = typeof import('src/auth/auth');
 jest.mock(
-  'src/libs/auth',
+  'src/auth/auth',
   (): AuthExports => ({
-    ...jest.requireActual<AuthExports>('src/libs/auth'),
+    ...jest.requireActual<AuthExports>('src/auth/auth'),
     signOut: jest.fn(),
   })
 );

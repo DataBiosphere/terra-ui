@@ -1,13 +1,13 @@
 import _ from 'lodash/fp';
 import React, { useState } from 'react';
 import { div, h, h3, label, span } from 'react-hyperscript-helpers';
+import { refreshTerraProfile, signOut } from 'src/auth/auth';
 import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import planet from 'src/images/register-planet.svg';
 import { Ajax } from 'src/libs/ajax';
 import { SamUserAttributes } from 'src/libs/ajax/User';
-import { refreshTerraProfile, signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';

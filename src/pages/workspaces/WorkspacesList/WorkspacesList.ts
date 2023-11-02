@@ -1,12 +1,12 @@
 import _ from 'lodash/fp';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { div, h, p } from 'react-hyperscript-helpers';
+import { isAzureUser } from 'src/auth/auth';
 import { Link, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
-import { isAzureUser } from 'src/libs/auth';
 import { withErrorIgnoring } from 'src/libs/error';
 import { updateSearch, useRoute } from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
