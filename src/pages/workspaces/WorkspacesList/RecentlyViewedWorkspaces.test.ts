@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { recentlyViewedPersistenceId } from 'src/components/workspace-utils';
 import { getLocalPref } from 'src/libs/prefs';
+import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { RecentlyViewedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RecentlyViewedWorkspaces';
 import { persistenceId } from 'src/pages/workspaces/WorkspacesList/WorkspacesList';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -106,5 +107,38 @@ describe('The recently viewed workspaces component', () => {
     expect(renderedAzureWS).toHaveLength(1);
     const renderedGoogleWS = screen.queryAllByText(defaultGoogleWorkspace.workspace.name);
     expect(renderedGoogleWS).toHaveLength(0);
+  });
+
+  it('does not render deleted workspaces', () => {
+    // Arrange
+    const recentlyViewed = [
+      { workspaceId: defaultAzureWorkspace.workspace.workspaceId, timestamp: Date.now() },
+      { workspaceId: defaultGoogleWorkspace.workspace.workspaceId, timestamp: Date.now() },
+    ];
+    asMockedFn(getLocalPref).mockImplementation((key) => {
+      if (key === persistenceId) return { recentlyViewedOpen: true };
+      if (key === recentlyViewedPersistenceId) return { recentlyViewed };
+      return {};
+    });
+
+    // Act
+
+    const workspaces: Workspace[] = [
+      {
+        ...defaultAzureWorkspace,
+        workspace: {
+          ...defaultAzureWorkspace.workspace,
+          state: 'Deleted',
+        },
+      },
+      defaultGoogleWorkspace,
+    ];
+    render(h(RecentlyViewedWorkspaces, { workspaces, loadingSubmissionStats: false }));
+
+    // Assert
+    const renderedAzureWS = screen.queryAllByText(defaultAzureWorkspace.workspace.name);
+    expect(renderedAzureWS).toHaveLength(0);
+    const renderedGoogleWS = screen.queryAllByText(defaultGoogleWorkspace.workspace.name);
+    expect(renderedGoogleWS).toHaveLength(1);
   });
 });

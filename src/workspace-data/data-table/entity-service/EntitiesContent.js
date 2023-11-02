@@ -1,3 +1,4 @@
+import { Spinner } from '@terra-ui-packages/components';
 import * as clipboard from 'clipboard-polyfill/text';
 import FileSaver from 'file-saver';
 import JSZip from 'jszip';
@@ -9,7 +10,7 @@ import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/analysis/u
 import { tools } from 'src/analysis/utils/tool-utils';
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
 import { ButtonSecondary } from 'src/components/common';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import IGVBrowser from 'src/components/IGVBrowser';
 import IGVFileSelector from 'src/components/IGVFileSelector';
 import { MenuButton } from 'src/components/MenuButton';
@@ -628,7 +629,7 @@ const EntitiesContent = ({
             },
             [
               Utils.cond(
-                [loadingColumnProvenance, () => p([spinner({ size: 12, style: { marginRight: '1ch' } }), 'Loading provenance...'])],
+                [loadingColumnProvenance, () => p([h(Spinner, { size: 12, style: { marginRight: '1ch' } }), 'Loading provenance...'])],
                 [columnProvenanceError, () => p(['Error loading column provenance'])],
                 () =>
                   h(DataTableColumnProvenance, {

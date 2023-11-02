@@ -1,8 +1,9 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { b, div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, Link } from 'src/components/common';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { ValidatedTextArea } from 'src/components/input';
 import Modal from 'src/components/Modal';
@@ -227,7 +228,7 @@ const LaunchAnalysisModal = ({
           },
           ['(Duplicate entities are only processed once.)']
         ),
-      message && div({ style: { display: 'flex' } }, [spinner({ style: { marginRight: '0.5rem' } }), message]),
+      message && div({ style: { display: 'flex' } }, [h(Spinner, { style: { marginRight: '0.5rem' } }), message]),
       div(
         {
           style: { color: colors.danger(), overflowWrap: 'break-word' },

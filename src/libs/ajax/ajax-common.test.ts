@@ -1,6 +1,6 @@
+import { getAuthToken, loadAuthToken, signOut } from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { OidcUser } from 'src/auth/oidc-broker';
-import { getAuthToken, loadAuthToken, signOut } from 'src/libs/auth';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } from './ajax-common';
@@ -40,8 +40,8 @@ beforeEach(() => {
   });
 });
 
-type AuthExports = typeof import('src/libs/auth');
-jest.mock('src/libs/auth', (): Partial<AuthExports> => {
+type AuthExports = typeof import('src/auth/auth');
+jest.mock('src/auth/auth', (): Partial<AuthExports> => {
   return {
     getAuthToken: jest.fn(() => mockOidcUser.access_token),
     loadAuthToken: jest.fn(),

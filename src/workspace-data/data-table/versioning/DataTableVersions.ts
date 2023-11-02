@@ -1,9 +1,9 @@
+import { Spinner } from '@terra-ui-packages/components';
 import { cond } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode } from 'react';
 import { div, h, li, ol } from 'react-hyperscript-helpers';
 import { ButtonSecondary, IdContainer } from 'src/components/common';
-import { spinner } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -25,7 +25,7 @@ export const DataTableVersions = (props: DataTableVerionsProps): ReactNode => {
         loading,
         () =>
           div({ style: { display: 'flex', alignItems: 'center' } }, [
-            spinner({ size: 16, style: { marginRight: '1ch' } }),
+            h(Spinner, { size: 16, style: { marginRight: '1ch' } }),
             'Loading version history',
           ]),
       ],
@@ -38,7 +38,7 @@ export const DataTableVersions = (props: DataTableVerionsProps): ReactNode => {
               div({ id, style: { marginBottom: '0.5rem' } }, ['Version history']),
               savingNewVersion &&
                 div({ style: { display: 'flex', alignItems: 'center' } }, [
-                  spinner({ size: 16, style: { marginRight: '1ch' } }),
+                  h(Spinner, { size: 16, style: { marginRight: '1ch' } }),
                   'Saving new version',
                 ]),
               ol(

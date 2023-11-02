@@ -194,7 +194,7 @@ describe('ImportWorkflow', () => {
           isMember: async () => {
             return true;
           },
-        };
+        } as Partial<ReturnType<AjaxContract['Groups']['group']>>;
       },
     } as Partial<AjaxContract['Groups']>,
     Metrics: {

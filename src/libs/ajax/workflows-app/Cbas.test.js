@@ -18,7 +18,7 @@ jest.mock('src/libs/ajax/ajax-common', () => ({
   authOpts: jest.fn(),
 }));
 
-jest.mock('src/libs/auth', () => {
+jest.mock('src/auth/auth', () => {
   return {
     reloadAuthToken: jest.fn(),
     signOutAfterSessionTimeout: jest.fn(),

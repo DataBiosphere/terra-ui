@@ -2,7 +2,6 @@ export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
 export const ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS = 'enableCollborativeWorkflowReaders';
-export const ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS = 'enableCollborativeWorkflowRunners';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -88,12 +87,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Azure Collaborative Workflows experience'
     )}`,
-  },
-  {
-    id: ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS,
-    title: 'Azure Collaborative Workflows Manual Runners',
-    description: 'Enabling this feature will allow for Cromwell runner manual startup and shutdown',
-    groups: ['workflow-management-develop'],
   },
 ];
 

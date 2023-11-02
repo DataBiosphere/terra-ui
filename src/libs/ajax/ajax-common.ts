@@ -1,7 +1,7 @@
 import { abandonedPromise, delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
+import { AuthTokenState, getAuthToken, loadAuthToken, sendRetryMetric, signOut, SignOutCause } from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { AuthTokenState, getAuthToken, loadAuthToken, sendRetryMetric, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore } from 'src/libs/state';
 

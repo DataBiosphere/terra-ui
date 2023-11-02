@@ -1,11 +1,11 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
+import { refreshTerraProfile } from 'src/auth/auth';
 import { LabeledCheckbox } from 'src/components/common';
-import { spinner } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { Ajax } from 'src/libs/ajax';
-import { refreshTerraProfile } from 'src/libs/auth';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { authStore } from 'src/libs/state';
@@ -63,7 +63,7 @@ export const WorkspaceNotifications = (props: WorkspaceNotificationsProps): Reac
       h(InfoBox, { style: { marginLeft: '1ch' } }, [
         'Receive email notifications when a submission in this workspace has succeeded, failed, or been aborted.',
       ]),
-      saving && spinner({ size: 12, style: { marginLeft: '1ch' } }),
+      saving && h(Spinner, { size: 12, style: { marginLeft: '1ch' } }),
     ]),
   ]);
 };

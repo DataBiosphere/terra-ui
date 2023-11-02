@@ -1,3 +1,4 @@
+import { Spinner } from '@terra-ui-packages/components';
 import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
@@ -5,7 +6,7 @@ import { b, div, h, input, label, p } from 'react-hyperscript-helpers';
 import { getConvertedRuntimeStatus, usableStatuses } from 'src/analysis/utils/runtime-utils';
 import { ButtonPrimary, IdContainer, Link, spinnerOverlay } from 'src/components/common';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
@@ -19,7 +20,7 @@ import { cloudProviderTypes } from 'src/libs/workspace-utils';
 
 export const StatusMessage = ({ hideSpinner, children }) => {
   return div({ style: { paddingLeft: '2rem', display: 'flex', alignItems: 'center' } }, [
-    !hideSpinner && spinner({ style: { marginRight: '0.5rem' } }),
+    !hideSpinner && h(Spinner, { style: { marginRight: '0.5rem' } }),
     div([children]),
   ]);
 };

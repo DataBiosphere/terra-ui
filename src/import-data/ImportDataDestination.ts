@@ -1,4 +1,4 @@
-import { IconId } from '@terra-ui-packages/components';
+import { icon, IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { AriaAttributes, CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, h2, img, p, span } from 'react-hyperscript-helpers';
@@ -11,7 +11,6 @@ import {
   RadioButton,
   spinnerOverlay,
 } from 'src/components/common';
-import { icon, wdlIcon } from 'src/components/icons';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
@@ -130,6 +129,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     // That information needs to be fetched here.
     'accessLevel',
     'policies',
+    // When using a template workspace, the NewWorkspaceModal reads the description attribute
+    // from the template.
+    'workspace.attributes',
     'workspace.authorizationDomain',
     'workspace.bucketName',
     'workspace.cloudPlatform',
@@ -256,13 +258,12 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                         hasNotebooks &&
                           img({ src: jupyterLogo, style: { height: 23, width: 23, marginLeft: '0.5rem' } }),
                         hasWorkflows &&
-                          wdlIcon({
+                          icon('wdl', {
                             style: {
                               height: 23,
                               width: 23,
                               marginLeft: '0.5rem',
                               borderRadius: 3,
-                              padding: '8px 4px 7px 4px',
                             },
                           }),
                       ]),

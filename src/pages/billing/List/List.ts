@@ -2,13 +2,13 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { useEffect, useRef, useState } from 'react';
 import { div, h, h2, p, span } from 'react-hyperscript-helpers';
+import * as Auth from 'src/auth/auth';
 import Collapse from 'src/components/Collapse';
 import { customSpinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
-import * as Auth from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -72,7 +72,8 @@ export const List = (props: ListProps) => {
   )(async ({ projectName }) => {
     const index = _.findIndex({ projectName }, billingProjects);
     // fetch the project to error if it doesn't exist/user can't access
-    const project = await Ajax(signal).Billing.getProject(selectedName);
+    // The component that calls this function is only rendered when selectedName is non-null.
+    const project = await Ajax(signal).Billing.getProject(selectedName!);
     setBillingProjects(_.set([index], project));
   });
 

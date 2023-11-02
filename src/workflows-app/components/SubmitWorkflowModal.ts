@@ -1,3 +1,4 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -5,7 +6,7 @@ import { generateAppName, getCurrentApp } from 'src/analysis/utils/app-utils';
 import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary } from 'src/components/common';
 import { styles as errorStyles } from 'src/components/ErrorView';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import { TextArea, TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
 import { TextCell } from 'src/components/table';
@@ -14,7 +15,7 @@ import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS } from 'src/libs/feature-previews-config';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { getTerraUser } from 'src/libs/state';
@@ -66,7 +67,7 @@ export const SubmitWorkflowModal = ({
 
   const { captureEvent } = useMetricsEvent();
   const canSubmit =
-    (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_RUNNERS) && canCompute) ||
+    (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS) && canCompute) ||
     getTerraUser().email === createdBy;
 
   const submitRun = async () => {
@@ -210,7 +211,7 @@ export const SubmitWorkflowModal = ({
           isSubmitting &&
           h(Fragment, [
             div({ style: { display: 'flex', flexDirection: 'row', marginTop: '0.5rem' } }, [
-              spinner(),
+              h(Spinner),
               div({ style: { marginLeft: '1rem' } }, ['Cromwell is launching...']),
             ]),
             'Your workflow will submit automatically when Cromwell is running',
