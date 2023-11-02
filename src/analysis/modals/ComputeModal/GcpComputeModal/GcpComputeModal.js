@@ -552,7 +552,7 @@ export const GcpComputeModalBase = ({
     const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig();
     const toolLabel = getToolLabelFromCloudEnv(desiredRuntime);
     const gceMachineType = desiredRuntime.machineType || getDefaultMachineType(false, toolLabel);
-    return {
+    const config = {
       cloudService: desiredRuntime.cloudService,
       autopauseThreshold: desiredAutopauseThreshold,
       ...(desiredRuntime.cloudService === cloudServices.GCE
@@ -574,6 +574,9 @@ export const GcpComputeModalBase = ({
             workerDiskSize: desiredRuntime.workerDiskSize || 0,
           }),
     };
+    // TODO [IA-4653] I think this is the problem - region appears to be undefined in the cost calculations.
+    // console.log('formatRuntimeConfigForCosts', { config });
+    return config;
   };
 
   const getWorkspaceObject = () => workspace?.workspace;
