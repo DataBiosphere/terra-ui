@@ -8,8 +8,8 @@ import Register from './Register';
 
 jest.mock('src/libs/ajax');
 
-jest.mock('src/libs/auth', () => ({
-  ...jest.requireActual('src/libs/auth'),
+jest.mock('src/auth/auth', () => ({
+  ...jest.requireActual('src/auth/auth'),
   signOut: jest.fn(),
 }));
 

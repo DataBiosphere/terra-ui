@@ -1,7 +1,7 @@
 import { Spinner } from '@terra-ui-packages/components';
 import { h } from 'react-hyperscript-helpers';
+import { isAuthSettled, signIn } from 'src/auth/auth';
 import { ButtonPrimary } from 'src/components/common';
-import { isAuthSettled, signIn } from 'src/libs/auth';
 import { useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 

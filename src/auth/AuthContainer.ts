@@ -1,8 +1,8 @@
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
+import { isAzureUser } from 'src/auth/auth';
 import { fixedSpinnerOverlay } from 'src/components/common';
-import { isAzureUser } from 'src/libs/auth';
 import { useRoute } from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
 import { authStore, azurePreviewStore } from 'src/libs/state';
