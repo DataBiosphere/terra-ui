@@ -53,6 +53,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer';
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
+import { getNormalizedComputeRegion } from 'src/libs/ajax/leonardo/Runtimes';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
@@ -552,19 +553,20 @@ export const GcpComputeModalBase = ({
     const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig();
     const toolLabel = getToolLabelFromCloudEnv(desiredRuntime);
     const gceMachineType = desiredRuntime.machineType || getDefaultMachineType(false, toolLabel);
+    const normalizedRegion = getNormalizedComputeRegion(desiredRuntime.region);
     const config = {
       cloudService: desiredRuntime.cloudService,
       autopauseThreshold: desiredAutopauseThreshold,
       ...(desiredRuntime.cloudService === cloudServices.GCE
         ? {
             machineType: gceMachineType,
-            region: desiredRuntime.region,
+            region: normalizedRegion,
             zone: desiredRuntime.zone,
             ...(desiredRuntime.gpuConfig ? { gpuConfig: desiredRuntime.gpuConfig } : {}),
             diskSize: desiredRuntime.bootDiskSize,
           }
         : {
-            region: desiredRuntime.region,
+            region: normalizedRegion,
             masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
             masterDiskSize: desiredRuntime.masterDiskSize,
             numberOfWorkers: desiredRuntime.numberOfWorkers,

@@ -51,7 +51,8 @@ const getNormalizedComputeConfig = (config: RawRuntimeConfig): RuntimeConfig => 
   normalizedRegion: getNormalizedComputeRegion(config),
 });
 
-const getNormalizedComputeRegion = (config: RawRuntimeConfig): NormalizedComputeRegion => {
+// TODO [] remove `export` to make this private. For now, GcpComputeModal needs this to create mock configs for cost calculation.
+export const getNormalizedComputeRegion = (config: RawRuntimeConfig): NormalizedComputeRegion => {
   const regionNotFoundPlaceholder = 'Unknown';
   if (isGceConfig(config) || isGceWithPdConfig(config)) {
     return getRegionFromZone(config.zone).toUpperCase() as NormalizedComputeRegion;
