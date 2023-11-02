@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, label, p, strong } from 'react-hyperscript-helpers';
-import { cloudProviders, defaultLocation } from 'src/analysis/utils/runtime-utils';
+import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -18,6 +18,7 @@ import {
 } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
+import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
@@ -27,10 +28,17 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderLabels, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import {
+  cloudProviderLabels,
+  isAzureWorkspace,
+  isGoogleWorkspace,
+  WorkspaceInfo,
+  WorkspaceWrapper,
+} from 'src/libs/workspace-utils';
+import { BillingProject, CloudPlatform } from 'src/pages/billing/models/BillingProject';
 import validate from 'validate.js';
 
-const warningStyle = {
+const warningStyle: CSSProperties = {
   border: `1px solid ${colors.warning(0.8)}`,
   borderRadius: '5px',
   backgroundColor: colors.warning(0.15),
@@ -56,11 +64,26 @@ const constraints = {
   },
 };
 
-const invalidBillingAccountMsg = 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra';
+const invalidBillingAccountMsg =
+  'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra';
 
-const ariaInvalidBillingAccountMsg = (invalidBillingAccount) => {
+const ariaInvalidBillingAccountMsg = (invalidBillingAccount: boolean): string => {
   return invalidBillingAccount ? ` with warning "${invalidBillingAccountMsg}"` : '';
 };
+
+export interface NewWorkspaceModalProps {
+  buttonText?: string;
+  cloneWorkspace?: WorkspaceWrapper;
+  cloudPlatform?: CloudPlatform;
+  customMessage?: ReactNode;
+  requiredAuthDomain?: string;
+  requireEnhancedBucketLogging?: boolean;
+  title?: string;
+  workflowImport?: boolean;
+  onDismiss: () => void;
+  onSuccess: (newWorkspace: WorkspaceInfo) => void;
+}
+
 const NewWorkspaceModal = withDisplayName(
   'NewWorkspaceModal',
   ({
@@ -74,27 +97,27 @@ const NewWorkspaceModal = withDisplayName(
     title,
     buttonText,
     workflowImport,
-  }) => {
+  }: NewWorkspaceModalProps) => {
     // State
-    const [billingProjects, setBillingProjects] = useState();
+    const [billingProjects, setBillingProjects] = useState<BillingProject[]>();
     const [azureBillingProjectsExist, setAzureBillingProjectsExist] = useState(false);
-    const [allGroups, setAllGroups] = useState();
+    const [allGroups, setAllGroups] = useState<CurrentUserGroupMembership[]>();
     const [name, setName] = useState(cloneWorkspace ? `${cloneWorkspace.workspace.name} copy` : '');
     const [namespace, setNamespace] = useState(cloneWorkspace ? cloneWorkspace.workspace.namespace : undefined);
-    const [description, setDescription] = useState(cloneWorkspace ? cloneWorkspace.workspace.attributes.description : '');
-    const [groups, setGroups] = useState([]);
+    const [description, setDescription] = useState(cloneWorkspace?.workspace.attributes?.description || '');
+    const [groups, setGroups] = useState<string[]>([]);
     const [enhancedBucketLogging, setEnhancedBucketLogging] = useState(!!requireEnhancedBucketLogging);
     const [nameModified, setNameModified] = useState(false);
     const [loading, setLoading] = useState(false);
     const [creating, setCreating] = useState(false);
-    const [createError, setCreateError] = useState();
+    const [createError, setCreateError] = useState<string>();
     const [bucketLocation, setBucketLocation] = useState(defaultLocation);
     const [sourceWorkspaceLocation, setSourceWorkspaceLocation] = useState(defaultLocation);
     const [isAlphaRegionalityUser, setIsAlphaRegionalityUser] = useState(false);
     const signal = useCancellation();
 
     // Helpers
-    const getRequiredGroups = () =>
+    const getRequiredGroups = (): string[] =>
       _.uniq([
         ...(cloneWorkspace ? _.map('membersGroupName', cloneWorkspace.workspace.authorizationDomain) : []),
         ...(requiredAuthDomain ? [requiredAuthDomain] : []),
@@ -104,7 +127,7 @@ const NewWorkspaceModal = withDisplayName(
       setIsAlphaRegionalityUser(await Ajax(signal).Groups.group(getConfig().alphaRegionalityGroup).isMember());
     });
 
-    const create = async () => {
+    const create = async (): Promise<void> => {
       try {
         setCreateError(undefined);
         setCreating(true);
@@ -120,13 +143,18 @@ const NewWorkspaceModal = withDisplayName(
         };
         const createdWorkspace = await Utils.cond(
           [
-            cloneWorkspace,
+            !!cloneWorkspace,
             async () => {
-              const workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body);
+              const workspace = await Ajax()
+                .Workspaces.workspace(cloneWorkspace!.workspace.namespace, cloneWorkspace!.workspace.name)
+                .clone(body);
               const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces();
               Ajax().Metrics.captureEvent(Events.workspaceClone, {
-                featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
-                ...extractCrossWorkspaceDetails(cloneWorkspace, {
+                featured: _.some(
+                  { namespace: cloneWorkspace!.workspace.namespace, name: cloneWorkspace!.workspace.name },
+                  featuredList
+                ),
+                ...extractCrossWorkspaceDetails(cloneWorkspace!, {
                   // Clone response does not include cloudPlatform, cross-cloud cloning is not supported.
                   workspace: _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() }),
                 }),
@@ -148,8 +176,8 @@ const NewWorkspaceModal = withDisplayName(
         );
 
         onSuccess(createdWorkspace);
-      } catch (error) {
-        const { message } = await error.json();
+      } catch (error: unknown) {
+        const { message } = await (error as Response).json();
         setCreating(false);
         setCreateError(message);
       }
@@ -164,14 +192,14 @@ const NewWorkspaceModal = withDisplayName(
           .Billing.listProjects()
           .then(_.filter({ status: 'Ready' }))
           .then(
-            _.forEach((project) => {
+            _.forEach((project: BillingProject) => {
               if (isAzureBillingProject(project)) {
                 setAzureBillingProjectsExist(true);
               }
             })
           )
-          .then(_.filter((project) => isBillingProjectApplicable(project)))
-          .then((projects) => {
+          .then(_.filter((project: BillingProject) => isBillingProjectApplicable(project)))
+          .then((projects: BillingProject[]) => {
             setBillingProjects(projects);
             setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined);
           }),
@@ -193,26 +221,30 @@ const NewWorkspaceModal = withDisplayName(
       return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation;
     };
 
-    const isAzureBillingProject = (project) => isCloudProviderBillingProject(project, cloudProviders.azure.label);
+    const isAzureBillingProject = (project?: BillingProject): boolean =>
+      isCloudProviderBillingProject(project, 'AZURE');
 
-    const isGoogleBillingProject = (project) => isCloudProviderBillingProject(project, cloudProviders.gcp.label);
+    const isGoogleBillingProject = (project?: BillingProject): boolean => isCloudProviderBillingProject(project, 'GCP');
 
-    const isCloudProviderBillingProject = (project, cloudProvider) => getProjectCloudPlatform(project) === cloudProvider;
+    const isCloudProviderBillingProject = (
+      project: BillingProject | undefined,
+      cloudProvider: CloudPlatform
+    ): boolean => getProjectCloudPlatform(project) === cloudProvider;
 
-    const getProjectCloudPlatform = (project) => {
+    const getProjectCloudPlatform = (project?: BillingProject): CloudPlatform | undefined => {
       if (project === undefined) {
         project = _.find({ projectName: namespace }, billingProjects);
       }
       return project?.cloudPlatform;
     };
 
-    const isBillingProjectApplicable = (project) => {
+    const isBillingProjectApplicable = (project: BillingProject): boolean => {
       // Only support cloning a workspace to the same cloud environment. If this changes, also update
       // the Events.workspaceClone event data.
       // As of AJ-1164, if requireEnhancedBucketLogging is true, then azure billing projects are ineligible.
       // This coupling of enhanced bucket logging and billing project may change in the future.
       return Utils.cond(
-        [!!workflowImport || requireEnhancedBucketLogging, () => !isAzureBillingProject(project)],
+        [!!workflowImport || !!requireEnhancedBucketLogging, () => !isAzureBillingProject(project)],
         [!!cloneWorkspace && isAzureWorkspace(cloneWorkspace), () => isAzureBillingProject(project)],
         [!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace), () => isGoogleBillingProject(project)],
         [Utils.DEFAULT, () => true]
@@ -251,7 +283,11 @@ const NewWorkspaceModal = withDisplayName(
           h(
             Modal,
             {
-              title: Utils.cond([title, () => title], [cloneWorkspace, () => 'Clone this workspace'], () => 'Create a New Workspace'),
+              title: Utils.cond(
+                [!!title, () => title],
+                [!!cloneWorkspace, () => 'Clone this workspace'],
+                () => 'Create a New Workspace'
+              ),
               onDismiss,
               okButton: h(
                 ButtonPrimary,
@@ -260,7 +296,13 @@ const NewWorkspaceModal = withDisplayName(
                   tooltip: Utils.summarizeErrors(errors),
                   onClick: create,
                 },
-                Utils.cond([buttonText, () => buttonText], [cloneWorkspace, () => 'Clone Workspace'], () => 'Create Workspace')
+                [
+                  Utils.cond(
+                    [!!buttonText, () => buttonText],
+                    [!!cloneWorkspace, () => 'Clone Workspace'],
+                    () => 'Create Workspace'
+                  ),
+                ]
               ),
             },
             [
@@ -287,17 +329,20 @@ const NewWorkspaceModal = withDisplayName(
                 (id) =>
                   h(Fragment, [
                     h(FormLabel, { htmlFor: id, required: true }, ['Billing project']),
-                    h(Select, {
+                    h(Select<string>, {
                       id,
                       isClearable: false,
                       placeholder: 'Select a billing project',
-                      value: namespace,
+                      value: namespace || null,
                       ariaLiveMessages: { onFocus: onFocusAria, onChange: onChangeAria },
-                      onChange: ({ value }) => setNamespace(value),
+                      onChange: (opt) => setNamespace(opt!.value),
                       styles: { option: (provided) => ({ ...provided, padding: 10 }) },
+                      // @ts-expect-error
                       options: _.map(
-                        ({ projectName, invalidBillingAccount, cloudPlatform }) => ({
-                          'aria-label': `${cloudProviderLabels[cloudPlatform]} ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
+                        ({ projectName, invalidBillingAccount, cloudPlatform }: BillingProject) => ({
+                          'aria-label': `${
+                            cloudProviderLabels[cloudPlatform]
+                          } ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
                           label: h(
                             TooltipTrigger,
                             {
@@ -306,7 +351,12 @@ const NewWorkspaceModal = withDisplayName(
                             },
                             [
                               div({ style: { display: 'flex', alignItems: 'center' } }, [
-                                h(CloudProviderIcon, { key: projectName, cloudProvider: cloudPlatform, style: { marginRight: '0.5rem' } }),
+                                (cloudPlatform === 'GCP' || cloudPlatform === 'AZURE') &&
+                                  h(CloudProviderIcon, {
+                                    key: projectName,
+                                    cloudProvider: cloudPlatform,
+                                    style: { marginRight: '0.5rem' },
+                                  }),
                                 projectName,
                               ]),
                             ]
@@ -314,7 +364,10 @@ const NewWorkspaceModal = withDisplayName(
                           value: projectName,
                           isDisabled: invalidBillingAccount,
                         }),
-                        _.sortBy('projectName', _.uniq(cloudPlatform ? _.filter({ cloudPlatform }, billingProjects) : billingProjects))
+                        _.sortBy(
+                          'projectName',
+                          _.uniq(cloudPlatform ? _.filter({ cloudPlatform }, billingProjects) : billingProjects)
+                        )
                       ),
                     }),
                   ]),
@@ -343,32 +396,47 @@ const NewWorkspaceModal = withDisplayName(
                           ),
                         ]),
                       ]),
-                      h(Select, {
+                      h(Select<string>, {
                         id,
                         value: bucketLocation,
-                        onChange: ({ value }) => setBucketLocation(value),
+                        onChange: (opt) => setBucketLocation(opt!.value),
                         options: isAlphaRegionalityUser ? allRegions : availableBucketRegions,
                       }),
                     ]),
                 ]),
               isLocationMultiRegion(bucketLocation) &&
                 div({ style: { ...warningStyle } }, [
-                  icon('warning-standard', { size: 24, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+                  icon('warning-standard', {
+                    size: 24,
+                    style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
+                  }),
                   div({ style: { flex: 1 } }, [
                     'Effective October 1, 2022, Google Cloud will charge egress fees on data stored in multi-region storage buckets.',
-                    p('Choosing a multi-region bucket location may result in additional storage costs for your workspace.'),
+                    p([
+                      'Choosing a multi-region bucket location may result in additional storage costs for your workspace.',
+                    ]),
                     p([
                       'Unless you require geo-redundancy for maximum availabity for your data, you should choose a single region bucket location.',
-                      h(Link, { href: 'https://terra.bio/moving-away-from-multi-regional-storage-buckets', ...Utils.newTabLinkProps }, [
-                        ' For more information see this blog post.',
-                        icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
-                      ]),
+                      h(
+                        Link,
+                        {
+                          href: 'https://terra.bio/moving-away-from-multi-regional-storage-buckets',
+                          ...Utils.newTabLinkProps,
+                        },
+                        [
+                          ' For more information see this blog post.',
+                          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
+                        ]
+                      ),
                     ]),
                   ]),
                 ]),
               shouldShowDifferentRegionWarning() &&
                 div({ style: { ...warningStyle } }, [
-                  icon('warning-standard', { size: 24, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+                  icon('warning-standard', {
+                    size: 24,
+                    style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
+                  }),
                   div({ style: { flex: 1 } }, [
                     'Copying data from ',
                     strong([getRegionInfo(sourceWorkspaceLocation, sourceLocationType).regionDescription]),
@@ -376,10 +444,14 @@ const NewWorkspaceModal = withDisplayName(
                     strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
                     ' may incur network egress charges. ',
                     'To prevent charges, the new bucket location needs to stay in the same region as the original one. ',
-                    h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
-                      'For more information please read the documentation.',
-                      icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
-                    ]),
+                    h(
+                      Link,
+                      { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps },
+                      [
+                        'For more information please read the documentation.',
+                        icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
+                      ]
+                    ),
                   ]),
                 ]),
               h(IdContainer, [
@@ -409,7 +481,11 @@ const NewWorkspaceModal = withDisplayName(
                             onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
                             'aria-describedby': id,
                           },
-                          [label({ style: { ...Style.elements.sectionHeader } }, ['Workspace will have protected data'])]
+                          [
+                            label({ style: { ...Style.elements.sectionHeader } }, [
+                              'Workspace will have protected data',
+                            ]),
+                          ]
                         ),
                         h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
                           'If checked, Terra will log all data access requests to the workspace bucket. ' +
@@ -445,12 +521,12 @@ const NewWorkspaceModal = withDisplayName(
                           div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
                           ...existingGroups.join(', '),
                         ]),
-                      h(Select, {
+                      h(Select<string, true>, {
                         id,
                         isClearable: false,
                         isMulti: true,
                         placeholder: 'Select groups',
-                        disabled: !allGroups || !billingProjects,
+                        isDisabled: !allGroups || !billingProjects,
                         value: groups,
                         onChange: (data) => {
                           setGroups(_.map('value', data));
@@ -515,7 +591,7 @@ const NewWorkspaceModal = withDisplayName(
               {
                 onClick: () => Nav.goToPath('billing'),
               },
-              'Go to Billing'
+              ['Go to Billing']
             ),
           },
           [

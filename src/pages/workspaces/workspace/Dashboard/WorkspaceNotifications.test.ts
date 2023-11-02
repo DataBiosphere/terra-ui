@@ -70,6 +70,7 @@ describe('WorkspaceNotifications', () => {
             captureEvent: jest.fn(),
           } as Partial<AjaxContract['Metrics']>,
           User: {
+            getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
             profile: {
               get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
               setPreferences,

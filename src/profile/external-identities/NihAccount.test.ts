@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
-import { NihAccount } from 'src/pages/profile/external-identities/NihAccount';
+import { NihAccount } from 'src/profile/external-identities/NihAccount';
 import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({
@@ -11,8 +11,8 @@ jest.mock('src/libs/nav', () => ({
   getLink: jest.fn(() => 'externalIdentities'),
 }));
 
-jest.mock('src/libs/auth', () => ({
-  ...jest.requireActual('src/libs/auth'),
+jest.mock('src/auth/auth', () => ({
+  ...jest.requireActual('src/auth/auth'),
   signOut: jest.fn(),
 }));
 

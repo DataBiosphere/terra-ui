@@ -7,7 +7,7 @@ import { renderHookInAct } from 'src/testing/test-utils';
 import { useProxyGroup } from './useProxyGroup';
 
 // Workaround for import cycle.
-jest.mock('src/libs/auth');
+jest.mock('src/auth/auth');
 
 type UserExports = typeof import('src/libs/ajax/User');
 jest.mock('src/libs/ajax/User', (): UserExports => {
