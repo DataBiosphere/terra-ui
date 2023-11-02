@@ -19,7 +19,7 @@ import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard
 import { validate } from 'validate.js';
 
 interface AzureBillingProjectWizardProps {
-  onSuccess: (string) => void;
+  onSuccess: (string, boolean) => void;
 }
 
 export const userInfoListToProjectAccessObjects = (
@@ -67,7 +67,7 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
         members,
         !!protectedData
       );
-      onSuccess(billingProjectName);
+      onSuccess(billingProjectName, protectedData);
       // No need to event success, as that is done in the onSuccess callback
     } catch (error: any) {
       if (error?.status === 409) {
