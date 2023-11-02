@@ -105,7 +105,7 @@ export const AddUsersStep = ({ isActive, inputDebounce = 1000, ...props }: AddUs
   const [ownerEmailErrors, setOwnerEmailErrors] = useState<ReactNode>();
 
   return h(Step, { isActive, style: { minHeight: '22.5rem', paddingBottom: '0.5rem' } }, [
-    h(StepHeader, { title: 'STEP 2' }),
+    h(StepHeader, { title: 'STEP 3' }),
     h(StepFields, { style: { flexDirection: 'column' } }, [
       h(StepFieldLegend, { style: { width: '100%' } }, [
         'Add additional owners and users to your Terra Billing Project ',
