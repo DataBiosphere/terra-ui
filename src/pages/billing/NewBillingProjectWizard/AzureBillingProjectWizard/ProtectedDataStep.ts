@@ -1,4 +1,4 @@
-import { div, h, p } from 'react-hyperscript-helpers';
+import { div, h, p, span } from 'react-hyperscript-helpers';
 import { columnStyle } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/styles';
 import { ExternalLink } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import {
@@ -25,10 +25,10 @@ export const ProtectedDataStep = (props: ProtectedDataStepProps) => {
     h(StepFields, { style: { flexDirection: 'column' } }, [
       h(StepFieldLegend, { style: { width: '100%' } }, ['Will you be working with controlled access data?']),
       p({ style: { ...legendDetailsStyle, width: '95%' } }, [
-        div([
+        span([
           'Choosing "Yes" will set up your environment with additional security monitoring. Please note this will incur additional usage cost.',
         ]),
-        div([
+        span({ style: { display: 'block' } }, [
           ExternalLink({
             text: 'Read more about Terra security and policy',
             url: 'https://support.terra.bio/hc/en-us/articles/360030793091',
