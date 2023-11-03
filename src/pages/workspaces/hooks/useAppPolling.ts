@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import { useCancellation } from 'src/libs/react-utils';
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/workspace/useWorkspace';
 
@@ -11,8 +10,13 @@ export interface AppDetails {
   refreshApps: (maybeStale?: boolean) => Promise<void>;
 }
 
-export const useAppPolling = (workspace: Workspace): AppDetails => {
-  const signal = useCancellation();
+export const useAppPolling = (name: string, namespace: string, workspace?: Workspace): AppDetails => {
+  const [controller, setController] = useState(new window.AbortController());
+  const abort = () => {
+    controller.abort();
+    setController(new window.AbortController());
+  };
+  const signal = controller.signal;
   const timeout = useRef<NodeJS.Timeout>();
   const [apps, setApps] = useState<ListAppResponse[]>();
 
@@ -23,14 +27,14 @@ export const useAppPolling = (workspace: Workspace): AppDetails => {
   const loadApps = async (maybeStale?: boolean): Promise<void> => {
     try {
       const newGoogleApps =
-        !!workspace && isGoogleWorkspace(workspace)
+        workspace?.workspaceInitialized && isGoogleWorkspace(workspace)
           ? await Ajax(signal).Apps.list(workspace.workspace.googleProject, {
               role: 'creator',
               saturnWorkspaceName: workspace.workspace.name,
             })
           : [];
       const newAzureApps =
-        !!workspace && isAzureWorkspace(workspace)
+        workspace?.workspaceInitialized && isAzureWorkspace(workspace)
           ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId)
           : [];
       const combinedNewApps = [...newGoogleApps, ...newAzureApps];
@@ -47,8 +51,17 @@ export const useAppPolling = (workspace: Workspace): AppDetails => {
   const refreshApps = withErrorReporting('Error loading apps', loadApps) as (maybeStale?: boolean) => Promise<void>;
   const refreshAppsSilently = withErrorIgnoring(loadApps);
   useEffect(() => {
-    refreshApps();
-    return () => clearTimeout(timeout.current);
+    if (
+      workspace?.workspaceInitialized &&
+      workspace.workspace.name === name &&
+      workspace.workspace.namespace === namespace
+    ) {
+      refreshApps();
+    }
+    return () => {
+      abort();
+      clearTimeout(timeout.current);
+    };
     //  eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspace]);
   return { apps, refreshApps };

@@ -12,7 +12,7 @@ import { saToken } from 'src/libs/ajax/GoogleStorage';
 import { ErrorCallback, withErrorHandling, withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { clearNotification, notify } from 'src/libs/notifications';
-import { useCancellation, useStore } from 'src/libs/react-utils';
+import { useStore } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import { differenceFromNowInSeconds, withBusyState } from 'src/libs/utils';
 import { canWrite, isAzureWorkspace, isGoogleWorkspace, isOwner, WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -46,6 +46,13 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   const accessNotificationId = useRef();
   const workspace: InitializedWorkspaceWrapper | undefined = useStore<InitializedWorkspaceWrapper>(workspaceStore);
 
+  // reset store first if we need to switch workspaces
+  // this prevents rendering and data fetching based off of a missmatching or stale workspace
+  useEffect(() => {
+    if (!!workspace && (workspace.workspace.name !== name || workspace.workspace.namespace !== namespace)) {
+      workspaceStore.reset();
+    }
+  }, [name, namespace, workspace]);
   const [{ location, locationType, fetchedLocation }, setGoogleStorage] = useState<{
     fetchedLocation: 'SUCCESS' | 'ERROR' | undefined;
     location: string;
@@ -64,7 +71,13 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   }>();
   const workspaceInitialized = workspace?.workspaceInitialized; // will be stored in cached workspace
 
-  const signal = useCancellation();
+  const [controller, setController] = useState(new window.AbortController());
+  const abort = () => {
+    controller.abort();
+    setController(new window.AbortController());
+  };
+  const signal = controller.signal;
+  // const signal = useCancellation();
   const checkInitializationTimeout = useRef<number>();
 
   const updateWorkspaceInStore = (workspace, initialized) => {
@@ -259,9 +272,12 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     } else {
       checkWorkspaceInitialization(workspace);
     }
-    return () => clearTimeout(checkInitializationTimeout.current);
+    return () => {
+      abort();
+      clearTimeout(checkInitializationTimeout.current);
+    };
     //  eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, namespace, workspace]);
+  }, [name, namespace]);
 
   const storageDetails = {
     googleBucketLocation: location,

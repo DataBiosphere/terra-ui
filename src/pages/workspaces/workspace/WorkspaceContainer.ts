@@ -298,8 +298,12 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
         namespace,
         name
       );
-      const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(workspace);
-      const { apps, refreshApps } = useAppPolling(workspace);
+      const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(
+        name,
+        namespace,
+        workspace
+      );
+      const { apps, refreshApps } = useAppPolling(name, namespace, workspace);
 
       if (accessError) {
         return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)]);

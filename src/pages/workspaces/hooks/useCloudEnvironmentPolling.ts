@@ -6,7 +6,6 @@ import { Ajax } from 'src/libs/ajax';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import { useCancellation } from 'src/libs/react-utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/workspace/useWorkspace';
 
 export interface CloudEnvironmentDetails {
@@ -16,15 +15,25 @@ export interface CloudEnvironmentDetails {
   appDataDisks?: PersistentDisk[];
 }
 
-export const useCloudEnvironmentPolling = (workspace: Workspace): CloudEnvironmentDetails => {
-  const signal = useCancellation();
+export const useCloudEnvironmentPolling = (
+  name: string,
+  namespace: string,
+  workspace?: Workspace
+): CloudEnvironmentDetails => {
+  const [controller, setController] = useState(new window.AbortController());
+  const abort = () => {
+    controller.abort();
+    setController(new window.AbortController());
+  };
+  const signal = controller.signal;
+
   const timeout = useRef<NodeJS.Timeout>();
   const [runtimes, setRuntimes] = useState<ListRuntimeItem[]>();
   const [persistentDisks, setPersistentDisks] = useState<PersistentDisk[]>();
   const [appDataDisks, setAppDataDisks] = useState<PersistentDisk[]>();
 
-  const saturnWorkspaceNamespace = workspace?.workspace.namespace;
-  const saturnWorkspaceName = workspace?.workspace.name;
+  const saturnWorkspaceNamespace = workspace?.workspace?.namespace;
+  const saturnWorkspaceName = workspace?.workspace?.name;
 
   const reschedule = (ms) => {
     clearTimeout(timeout.current);
@@ -40,17 +49,15 @@ export const useCloudEnvironmentPolling = (workspace: Workspace): CloudEnvironme
 
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
-      const [newDisks, newRuntimes] = workspace
-        ? await Promise.all([
-            Ajax(signal)
-              .Disks.disksV1()
-              .list({
-                ...cloudEnvFilters,
-                includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace',
-              }),
-            Ajax(signal).Runtimes.listV2(cloudEnvFilters),
-          ])
-        : [[], []];
+      const [newDisks, newRuntimes] = await Promise.all([
+        Ajax(signal)
+          .Disks.disksV1()
+          .list({
+            ...cloudEnvFilters,
+            includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace',
+          }),
+        Ajax(signal).Runtimes.listV2(cloudEnvFilters),
+      ]);
 
       setRuntimes(newRuntimes);
       setAppDataDisks(_.remove((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
@@ -74,9 +81,18 @@ export const useCloudEnvironmentPolling = (workspace: Workspace): CloudEnvironme
   ) => Promise<void>;
   const refreshRuntimesSilently = withErrorIgnoring(load);
   useEffect(() => {
-    refreshRuntimes();
-    return () => clearTimeout(timeout.current);
+    if (
+      workspace?.workspaceInitialized &&
+      workspace.workspace.name === name &&
+      workspace.workspace.namespace === namespace
+    ) {
+      refreshRuntimes();
+    }
+    return () => {
+      clearTimeout(timeout.current);
+      abort();
+    };
     //  eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workspace]);
+  }, [name, namespace, workspace]);
   return { runtimes, refreshRuntimes, persistentDisks, appDataDisks };
 };
