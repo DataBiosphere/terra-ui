@@ -68,7 +68,8 @@ describe('AzureBillingProjectWizard', () => {
   const onSuccess = jest.fn();
   const captureEvent = jest.fn();
 
-  const getProtectedDataRadio = () => screen.getByLabelText('Yes, set up my environment with additional security');
+  const getProtectedDataRadio = () =>
+    screen.getByLabelText('Yes, set up my environment with additional security monitoring');
   const getNoProtectedDataRadio = () => screen.getByLabelText('No');
 
   beforeEach(() => {

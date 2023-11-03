@@ -20,23 +20,25 @@ interface ProtectedDataStepProps {
 }
 
 export const ProtectedDataStep = (props: ProtectedDataStepProps) => {
-  return h(Step, { isActive: props.isActive, style: { minHeight: '14.0rem', paddingBottom: '0.5rem' } }, [
+  return h(Step, { isActive: props.isActive, style: { minHeight: '15.0rem', paddingBottom: '0.5rem' } }, [
     h(StepHeader, { title: 'STEP 2' }),
     h(StepFields, { style: { flexDirection: 'column' } }, [
-      h(StepFieldLegend, { style: { width: '100%' } }, [
-        'Will you be working with protected data? ',
-        ExternalLink({
-          text: 'Read more about Terra security and policy',
-          url: 'https://support.terra.bio/hc/en-us/articles/360030793091',
-        }),
-      ]),
+      h(StepFieldLegend, { style: { width: '100%' } }, ['Will you be working with controlled access data?']),
       p({ style: { ...legendDetailsStyle, width: '95%' } }, [
-        'Clicking Yes will set up your environment with additional security monitoring. Please note this will incur additional usage cost. ',
+        div([
+          'Choosing "Yes" will set up your environment with additional security monitoring. Please note this will incur additional usage cost.',
+        ]),
+        div([
+          ExternalLink({
+            text: 'Read more about Terra security and policy',
+            url: 'https://support.terra.bio/hc/en-us/articles/360030793091',
+          }),
+        ]),
       ]),
       div({ style: columnStyle }, [
         h(LabeledRadioGroup, { style: { marginTop: 0, marginBottom: 0 } }, [
           LabeledRadioButton({
-            text: 'Yes, set up my environment with additional security',
+            text: 'Yes, set up my environment with additional security monitoring',
             name: 'protected-data',
             checked: !!props.protectedData,
             onChange: (changed) => {
