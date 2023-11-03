@@ -1,21 +1,16 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { CreateTerraUserProfileRequest, User } from 'src/libs/ajax/User';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import Register from './Register';
 
-jest.mock('src/libs/ajax', () => ({
-  ...jest.requireActual('src/libs/ajax'),
-  Ajax: jest.fn(),
-}));
+jest.mock('src/libs/ajax');
 
-jest.mock('src/libs/auth', () => ({
-  ...jest.requireActual('src/libs/auth'),
+jest.mock('src/auth/auth', () => ({
+  ...jest.requireActual('src/auth/auth'),
   signOut: jest.fn(),
-  refreshTerraProfile: jest.fn(),
 }));
 
 jest.mock('react-notifications-component', () => {
@@ -30,7 +25,7 @@ jest.mock('react-notifications-component', () => {
 type AjaxContract = ReturnType<typeof Ajax>;
 type MetricsPartial = Partial<AjaxContract['Metrics']>;
 type UserPartial = Partial<AjaxContract['User']>;
-type ProfilePartial = Partial<ReturnType<typeof User>['profile']>;
+type ProfilePartial = Partial<UserPartial['profile']>;
 
 describe('Register', () => {
   it('requires Organization, Department, and Title if the checkbox is unchecked', async () => {
@@ -84,32 +79,35 @@ describe('Register', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it('fires off a request to Orch to register a user', async () => {
+  it('defaults the marketing communications checkbox to true', async () => {
     // Arrange
-    const createProfileFunction = jest.fn().mockReturnValue({});
+    // Act
+    render(h(Register));
+    // Assert
+    const commsCheckbox = screen.getByLabelText(/Marketing communications.*/);
+    expect(commsCheckbox.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('fires off a request to Orch and Sam to register a user', async () => {
+    // Arrange
+    const profileSetFunction = jest.fn().mockResolvedValue({});
+    const setUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
+    const getUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
 
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
           Metrics: { captureEvent: jest.fn() } as MetricsPartial,
           User: {
+            setUserAttributes: setUserAttributesFunction,
+            getUserAttributes: getUserAttributesFunction,
             profile: {
-              create: createProfileFunction,
+              set: profileSetFunction,
               get: jest.fn().mockReturnValue({}),
             } as ProfilePartial,
           } as UserPartial,
         } as AjaxContract)
     );
-
-    const expectedCallBody: CreateTerraUserProfileRequest = {
-      firstName: 'Test Name',
-      lastName: 'Test Last Name',
-      contactEmail: 'testemail@noreply.com',
-      title: 'Test Title',
-      department: 'Test Department',
-      institute: 'Test Organization',
-      interestInTerra: '',
-    };
 
     // Act
     render(h(Register));
@@ -122,11 +120,23 @@ describe('Register', () => {
     fireEvent.change(screen.getByLabelText(/Organization/), { target: { value: 'Test Organization' } });
     fireEvent.change(screen.getByLabelText(/Department/), { target: { value: 'Test Department' } });
     fireEvent.change(screen.getByLabelText(/Title/), { target: { value: 'Test Title' } });
+    fireEvent.click(screen.getByLabelText(/Marketing communications.*/));
 
     const registerButton = screen.getByText('Register');
-    fireEvent.click(registerButton);
+    await act(() => fireEvent.click(registerButton));
 
     // Assert
-    expect(createProfileFunction).toHaveBeenCalledWith(expectedCallBody);
+    expect(profileSetFunction).toHaveBeenCalledWith({
+      firstName: 'Test Name',
+      lastName: 'Test Last Name',
+      contactEmail: 'testemail@noreply.com',
+      title: 'Test Title',
+      department: 'Test Department',
+      institute: 'Test Organization',
+      interestInTerra: '',
+    });
+
+    expect(setUserAttributesFunction).toHaveBeenCalledWith({ marketingConsent: false });
+    expect(getUserAttributesFunction).toHaveBeenCalled();
   });
 });

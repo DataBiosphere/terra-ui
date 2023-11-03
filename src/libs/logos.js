@@ -26,7 +26,7 @@ export const topBarLogo = () =>
 
 export const footerLogo = () => (isTerra() ? terraLogoMaker(brands.terra.logos.white, { height: 40 }) : brandLogoMaker(40));
 
-export const versionTag = (version, styles) =>
+const versionTag = (version, styles) =>
   b(
     {
       style: {

@@ -31,11 +31,11 @@ jest.mock(
     goToPath: jest.fn(),
   })
 );
-type AuthExports = typeof import('src/libs/auth');
+type AuthExports = typeof import('src/auth/auth');
 jest.mock(
-  'src/libs/auth',
+  'src/auth/auth',
   (): AuthExports => ({
-    ...jest.requireActual<AuthExports>('src/libs/auth'),
+    ...jest.requireActual<AuthExports>('src/auth/auth'),
     signOut: jest.fn(),
   })
 );
@@ -48,7 +48,9 @@ interface TermsOfServiceSetupResult {
   rejectTosFn: jest.Mock;
 }
 
-const setupMockAjax = (termsOfService: SamUserTosComplianceStatusResponse): TermsOfServiceSetupResult => {
+const setupMockAjax = async (
+  termsOfService: SamUserTosComplianceStatusResponse
+): Promise<TermsOfServiceSetupResult> => {
   const userSubjectId = 'testSubjectId';
   const userEmail = 'test@email.com';
 
@@ -98,6 +100,7 @@ const setupMockAjax = (termsOfService: SamUserTosComplianceStatusResponse): Term
           captureEvent: jest.fn(),
         } as Partial<MetricsContract>,
         User: {
+          getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
           profile: {
             get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
             create: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
@@ -120,14 +123,16 @@ const setupMockAjax = (termsOfService: SamUserTosComplianceStatusResponse): Term
   );
 
   const signInStatus = 'signedIn';
-  authStore.update((state: AuthState) => ({ ...state, termsOfService, signInStatus }));
-  return {
+  await act(async () => {
+    authStore.update((state: AuthState) => ({ ...state, termsOfService, signInStatus }));
+  });
+  return Promise.resolve({
     getTosFn: getTos,
     getStatusFn: getStatus,
     getTermsOfServiceComplianceStatusFn: getTermsOfServiceComplianceStatus,
     acceptTosFn: acceptTos,
     rejectTosFn: rejectTos,
-  };
+  });
 };
 
 describe('TermsOfService', () => {
@@ -139,7 +144,7 @@ describe('TermsOfService', () => {
       permitsSystemUsage: true,
     };
 
-    const { getTosFn } = setupMockAjax(termsOfService);
+    const { getTosFn } = await setupMockAjax(termsOfService);
 
     // Act
     await act(async () => {
@@ -160,7 +165,7 @@ describe('TermsOfService', () => {
       permitsSystemUsage: true,
     };
 
-    setupMockAjax(termsOfService);
+    await setupMockAjax(termsOfService);
 
     // Act
     await act(async () => {
@@ -178,7 +183,7 @@ describe('TermsOfService', () => {
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: false,
     };
-    setupMockAjax(termsOfService);
+    await setupMockAjax(termsOfService);
 
     // Act
     await act(async () => {
@@ -198,7 +203,7 @@ describe('TermsOfService', () => {
       permitsSystemUsage: true,
     };
 
-    setupMockAjax(termsOfService);
+    await setupMockAjax(termsOfService);
 
     // Act
     await act(async () => {
@@ -221,7 +226,7 @@ describe('TermsOfService', () => {
       permitsSystemUsage: true,
     };
 
-    const { acceptTosFn } = setupMockAjax(termsOfService);
+    const { acceptTosFn } = await setupMockAjax(termsOfService);
 
     // Act
     await act(async () => {
@@ -242,7 +247,7 @@ describe('TermsOfService', () => {
       permitsSystemUsage: false,
     };
 
-    const { rejectTosFn } = setupMockAjax(termsOfService);
+    const { rejectTosFn } = await setupMockAjax(termsOfService);
 
     // Act
     await act(async () => {

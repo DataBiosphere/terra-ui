@@ -1,13 +1,13 @@
 import _ from 'lodash/fp';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { div, h, h3, label, span } from 'react-hyperscript-helpers';
+import { refreshTerraProfile, signOut } from 'src/auth/auth';
 import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import planet from 'src/images/register-planet.svg';
 import { Ajax } from 'src/libs/ajax';
-import { CreateTerraUserProfileRequest } from 'src/libs/ajax/User';
-import { refreshTerraProfile, signOut } from 'src/libs/auth';
+import { CreateTerraUserProfileRequest, SamUserAttributes } from 'src/libs/ajax/User';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -31,6 +31,7 @@ const Register = () => {
   // this terra user has the data populated in it from the loadOidc user method on login
   // these are accessToken props
   const user: TerraUser = getTerraUser();
+  const userAttributes: SamUserAttributes = authStore.get().terraUserAttributes;
   const [busy, setBusy] = useState(false);
   const [givenName, setGivenName] = useState(user.givenName || '');
   const [familyName, setFamilyName] = useState(user.familyName || '');
@@ -42,6 +43,7 @@ const Register = () => {
   const [title, setTitle] = useState('');
   const [department, setDepartment] = useState('');
   const [interestInTerra, setInterestInTerra] = useState('');
+  const [marketingConsent, setMarketingConsent] = useState(userAttributes.marketingConsent);
 
   const checkboxLine = (children) =>
     div(
@@ -52,6 +54,32 @@ const Register = () => {
       },
       children
     );
+
+  const communicationPreferencesCheckbox = (
+    title: string,
+    value: boolean,
+    setFunc: React.Dispatch<React.SetStateAction<boolean>> | undefined
+  ) =>
+    div({ style: { marginTop: '.25rem' } }, [
+      h(
+        LabeledCheckbox,
+        {
+          checked: value,
+          disabled: setFunc === undefined,
+          onChange: setFunc,
+        },
+        [
+          span(
+            {
+              style: {
+                marginLeft: '0.5rem',
+              },
+            },
+            [title]
+          ),
+        ]
+      ),
+    ]);
   const interestInTerraCheckbox = (title: string) =>
     div({ style: { marginTop: '.25rem' } }, [
       h(
@@ -243,6 +271,13 @@ const Register = () => {
         interestInTerraCheckbox('Complete interactive analyses'),
         interestInTerraCheckbox('Build Tools'),
       ]),
+      h3({ style: { marginTop: '2rem' } }, ['Communication Preferences']),
+      communicationPreferencesCheckbox('Necessary communications related to platform operations', true, undefined),
+      communicationPreferencesCheckbox(
+        'Marketing communications including notifications for upcoming workshops and new flagship dataset additions',
+        marketingConsent,
+        setMarketingConsent
+      ),
       div({ style: { marginTop: '3rem' } }, [
         h(ButtonPrimary, { disabled: errors || busy, onClick: register }, ['Register']),
         h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: () => signOut('requested') }, ['Cancel']),

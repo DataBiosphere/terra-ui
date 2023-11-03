@@ -181,6 +181,16 @@ export interface RexFirstTimestampResponse {
   timestamp: Date;
 }
 
+export type SamUserAttributes = {
+  marketingConsent: boolean;
+};
+
+export type SamUserAttributesRequest = {
+  marketingConsent: boolean | undefined;
+};
+
+export type OrchestrationUserRegistrationRequest = object;
+
 // TODO: Remove this as a part of https://broadworkbench.atlassian.net/browse/ID-460
 const getFirstTimeStamp = Utils.memoizeAsync(
   async (token): Promise<RexFirstTimestampResponse> => {
@@ -194,6 +204,22 @@ export const User = (signal?: AbortSignal) => {
   return {
     getStatus: async (): Promise<SamUserRegistrationStatusResponse> => {
       const res = await fetchSam('register/user/v2/self/info', _.mergeAll([authOpts(), { signal }]));
+      return res.json();
+    },
+
+    getUserAttributes: async (): Promise<SamUserAttributes> => {
+      const res = await fetchSam('api/users/v2/self/attributes', _.mergeAll([authOpts(), { signal }]));
+      return res.json().then((obj) => {
+        const { userId: _, ...rest } = obj;
+        return rest;
+      });
+    },
+
+    setUserAttributes: async (userAttributes: SamUserAttributesRequest): Promise<SamUserAttributes> => {
+      const res = await fetchSam(
+        'api/users/v2/self/attributes',
+        _.mergeAll([authOpts(), jsonBody(userAttributes), { signal, method: 'PATCH' }])
+      );
       return res.json();
     },
 

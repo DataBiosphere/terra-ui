@@ -6,9 +6,9 @@ import { getEnabledBrand } from 'src/libs/brand-utils';
 import * as Nav from 'src/libs/nav';
 import allProviders from 'src/libs/providers';
 import { authStore } from 'src/libs/state';
-import { FrameworkServiceLink } from 'src/pages/profile/external-identities/FrameworkServiceLink';
-import { ShibbolethLink } from 'src/pages/profile/external-identities/ShibbolethLink';
-import { UnlinkFenceAccount } from 'src/pages/profile/external-identities/UnlinkFenceAccount';
+import { FrameworkServiceLink } from 'src/profile/external-identities/FrameworkServiceLink';
+import { ShibbolethLink } from 'src/profile/external-identities/ShibbolethLink';
+import { UnlinkFenceAccount } from 'src/profile/external-identities/UnlinkFenceAccount';
 
 const getNihAccountLinkExpirationAlert = (status, now) => {
   // Orchestration API returns NIH link expiration time in seconds since epoch
