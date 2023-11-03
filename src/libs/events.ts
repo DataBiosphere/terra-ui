@@ -2,7 +2,12 @@ import _ from 'lodash/fp';
 import { ReactNode, useEffect } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { useRoute } from 'src/libs/nav';
-import { containsProtectedDataPolicy, WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import {
+  containsProtectedDataPolicy,
+  WorkspaceAccessLevel,
+  WorkspaceInfo,
+  WorkspaceWrapper,
+} from 'src/libs/workspace-utils';
 
 /*
  * NOTE: In order to show up in reports, new events MUST be marked as expected in the Mixpanel
@@ -170,6 +175,7 @@ export type EventWorkspaceAttributes =
   | {
       workspace: Pick<WorkspaceInfo, 'namespace' | 'name' | 'cloudPlatform'>;
       policies?: WorkspaceWrapper['policies'];
+      accessLevel?: WorkspaceWrapper['accessLevel'];
     }
   // A WorkspaceInfo object, from which it extracts a few fields.
   | Pick<WorkspaceInfo, 'namespace' | 'name' | 'cloudPlatform'>
@@ -182,6 +188,7 @@ export interface EventWorkspaceDetails {
   workspaceName: string;
   cloudPlatform?: string;
   hasProtectedData?: boolean;
+  workspaceAccessLevel?: WorkspaceAccessLevel;
 }
 
 /**
@@ -193,6 +200,7 @@ export const extractWorkspaceDetails = (workspaceObject: EventWorkspaceAttribute
   // If a WorkspaceWrapper is provided, get the inner WorkspaceInfo. Otherwise, use the provided object directly.
   const workspaceDetails = 'workspace' in workspaceObject ? workspaceObject.workspace : workspaceObject;
   const { name, namespace, cloudPlatform } = workspaceDetails;
+  const accessLevel = 'accessLevel' in workspaceObject ? workspaceObject.accessLevel : undefined;
 
   // Policies are only available if a WorkspaceWrapper object is passed.
   // For other types of input, whether the workspace has protected data is unknown.
@@ -202,6 +210,7 @@ export const extractWorkspaceDetails = (workspaceObject: EventWorkspaceAttribute
   return {
     workspaceNamespace: namespace,
     workspaceName: name,
+    workspaceAccessLevel: accessLevel,
     cloudPlatform: cloudPlatform ? cloudPlatform.toUpperCase() : undefined,
     hasProtectedData,
   };

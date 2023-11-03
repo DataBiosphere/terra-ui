@@ -26,6 +26,7 @@ export type AuthorizationDomain = {
 interface BaseWorkspaceInfo {
   namespace: string;
   name: string;
+  accessLevel: string;
   workspaceId: string;
   authorizationDomain: AuthorizationDomain[];
   createdDate: string;
