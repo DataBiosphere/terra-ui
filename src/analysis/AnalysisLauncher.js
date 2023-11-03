@@ -779,8 +779,7 @@ const AnalysisEditorFrame = ({ styles, mode, analysisName, toolLabel, workspace,
     [runtimeToolLabels.JupyterLab, () => `${name}/safe`],
     [runtimeToolLabels.RStudio, () => '']
   );
-  // eslint-disable-next-line
-  console.log(getPatternFromRuntimeTool(toolLabel));
+
   useOnMount(() => {
     const cloudStorageDirectory = `gs://${bucketName}/notebooks`;
     const setUpAnalysis = _.flow(
