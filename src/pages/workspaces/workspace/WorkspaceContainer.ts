@@ -13,7 +13,6 @@ import TitleBar from 'src/components/TitleBar';
 import TopBar from 'src/components/TopBar';
 import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
-import { ErrorCallback } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
@@ -100,7 +99,6 @@ interface WorkspaceContainerProps extends PropsWithChildren {
   refresh: () => Promise<void>;
   workspace: Workspace;
   refreshWorkspace: () => void;
-  silentlyRefreshWorkspace: (errorHandling?: ErrorCallback) => Promise<void>;
 }
 
 export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
@@ -296,8 +294,10 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
       const { namespace, name } = props;
       const child = useRef<unknown>();
 
-      const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace, silentlyRefreshWorkspace } =
-        useWorkspace(namespace, name);
+      const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace } = useWorkspace(
+        namespace,
+        name
+      );
       const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(workspace);
       const { apps, refreshApps } = useAppPolling(workspace);
 
@@ -323,7 +323,6 @@ export const wrapWorkspace = <T extends WrappedComponentProps>(
               child.current.refresh();
             }
           },
-          silentlyRefreshWorkspace,
         },
         [
           workspace &&
