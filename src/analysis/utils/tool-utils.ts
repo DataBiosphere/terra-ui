@@ -182,7 +182,7 @@ export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string =
   const patterns: Record<RuntimeToolLabel, string> = {
     // Adding suffixes to conda, pip, and poetry environments (only conda supports R)
     [runtimeToolLabels.RStudio]: '.+(\\.R|\\.Rmd|\\.yml)$',
-    [runtimeToolLabels.Jupyter]: '.+(\\.yml|\\.txt|\\.lock|\\.toml)$',
+    [runtimeToolLabels.Jupyter]: '.+(\\.ipynb|\\.yml|\\.txt|\\.lock|\\.toml)$',
     [runtimeToolLabels.JupyterLab]: '.+(\\.ipynb|\\.yml|\\.txt|\\.lock|\\.toml)$',
   };
   return patterns[toolLabel];
