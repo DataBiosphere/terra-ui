@@ -196,20 +196,20 @@ const select = async (page, labelContains, text) => {
   return click(page, `//div[starts-with(@id, "react-select-") and @role="option" and contains(normalize-space(.),"${text}")]`);
 };
 
-const waitForNoSpinners = (page) => {
-  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true });
+const waitForNoSpinners = (page, { timeout = 30000 } = {}) => {
+  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true, timeout });
 };
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
 // the action to ensure that the spinner rendering is captured by the observer, followed by
 // waiting for the spinner to be removed
-const noSpinnersAfter = async (page, { action, debugMessage }) => {
+const noSpinnersAfter = async (page, { action, debugMessage, timeout = 30000 }) => {
   if (debugMessage) {
     console.log(`About to perform an action and wait for spinners. \n\tDebug message: ${debugMessage}`);
   }
-  const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]');
+  const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]', { timeout });
   await Promise.all([foundSpinner, action()]);
-  return waitForNoSpinners(page);
+  return waitForNoSpinners(page, { timeout });
 };
 
 const delay = (ms) => {
@@ -497,6 +497,46 @@ const verifyAccessibility = async (page, allowedViolations) => {
   }
 };
 
+/** Converts various time units to milliseconds. */
+const Millis = (() => {
+  const MS_IN_SEC = 1000;
+  const SEC_IN_MIN = 60;
+  const MIN_IN_HR = 60;
+  const NONE = 0;
+  const none = NONE;
+  const ofMillis = (millis) => +millis;
+  const ofMilli = ofMillis(1);
+  const ofSeconds = (seconds) => +seconds * ofMillis(MS_IN_SEC);
+  const ofSecond = ofSeconds(1);
+  const ofMinutes = (minutes) => +minutes * ofSeconds(SEC_IN_MIN);
+  const ofMinute = ofMinutes(1);
+  const ofHours = (hours) => +hours * ofMinutes(MIN_IN_HR);
+  const ofHour = ofHours(1);
+  const ofObject = ({ hours = 0, minutes = 0, seconds = 0, millis = 0 }) =>
+    ofHours(hours) + ofMinutes(minutes) + ofSeconds(seconds) + ofMillis(millis);
+  const of = (countOrHms) => {
+    if (typeof countOrHms === 'number') {
+      return ofMillis(countOrHms);
+    }
+    if (typeof countOrHms === 'object') {
+      return ofObject(countOrHms);
+    }
+    throw new Error('Millis.of() expects number or object { hours, minutes, seconds, millis }');
+  };
+  return Object.freeze({
+    none,
+    of,
+    ofMilli,
+    ofMillis,
+    ofSecond,
+    ofSeconds,
+    ofMinute,
+    ofMinutes,
+    ofHour,
+    ofHours,
+  });
+})();
+
 module.exports = {
   assertNavChildNotFound,
   assertTextNotFound,
@@ -542,4 +582,5 @@ module.exports = {
   verifyAccessibility,
   assertLabelledTextInputValue,
   getLabelledTextInputValue,
+  Millis,
 };

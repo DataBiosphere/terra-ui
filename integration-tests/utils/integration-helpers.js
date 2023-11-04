@@ -229,7 +229,7 @@ const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
     async (workspaceName) => {
       const {
         workspace: { workspaceId },
-      } = await window.Ajax().Workspaces.workspaceV2(billingProject, workspaceName).details(['workspace.workspaceId']);
+      } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace.workspaceId']);
       const runtimes = await window.Ajax().Runtimes.listV2WithWorkspace(workspaceId, { role: 'creator' });
       return Promise.all(
         _.map(async (runtime) => {
