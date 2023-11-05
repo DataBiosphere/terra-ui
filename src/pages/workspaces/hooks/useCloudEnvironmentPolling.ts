@@ -45,7 +45,7 @@ export const useCloudEnvironmentPolling = (
         role: 'creator',
         saturnWorkspaceName,
         saturnWorkspaceNamespace,
-      });
+      }) as Record<string, string>; // we literally just filtered out the undefined values, but ts doesn't know this
 
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
