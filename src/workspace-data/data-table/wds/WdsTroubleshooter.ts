@@ -83,7 +83,12 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
   const troubleShooterText: [string, string | null, boolean, boolean, ReactNode?][] = [
     ['Workspace Id', workspaceId, false, !!workspaceId],
     ['Resource Group Id', mrgId, false, !!mrgId],
-    ['App listing', `${numApps} app(s) total`, numApps == null, !!numApps && numApps !== 'unknown'],
+    [
+      'App listing',
+      numApps === null ? null : `${numApps} app(s) total`,
+      numApps == null,
+      !!numApps && numApps !== 'unknown',
+    ],
     ['Data app name', appName, appName === null, !!appName && appName !== 'unknown'],
     [
       'Data app running?',

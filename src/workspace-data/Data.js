@@ -1,4 +1,4 @@
-import { Interactive } from '@terra-ui-packages/components';
+import { Interactive, Spinner } from '@terra-ui-packages/components';
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -10,7 +10,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs';
 import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
 import FileBrowser from 'src/components/data/FileBrowser';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
@@ -1112,7 +1112,7 @@ export const WorkspaceData = _.flow(
                                         {
                                           style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' },
                                         },
-                                        ['Loading snapshot contents...', spinner({ style: { marginLeft: '1rem' } })]
+                                        ['Loading snapshot contents...', h(Spinner, { style: { marginLeft: '1rem' } })]
                                       ),
                                   ],
                                   () =>

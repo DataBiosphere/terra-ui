@@ -27,6 +27,7 @@ describe('ProjectListItem', () => {
     billingProject = {
       cloudPlatform: 'GCP',
       projectName: 'testProject',
+      billingAccount: 'billingAccounts/123456-ABCDEF-ABCDEF',
       invalidBillingAccount: false,
       roles: ['Owner'],
       status: 'Ready',

@@ -2,6 +2,7 @@ import ReactJson from '@microlink/react-json-view';
 import _ from 'lodash/fp';
 import { Fragment, useMemo, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
+import { bucketBrowserUrl } from 'src/auth/auth';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
@@ -17,7 +18,6 @@ import {
 } from 'src/components/job-common';
 import WDLViewer from 'src/components/WDLViewer';
 import { Ajax } from 'src/libs/ajax';
-import { bucketBrowserUrl } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';

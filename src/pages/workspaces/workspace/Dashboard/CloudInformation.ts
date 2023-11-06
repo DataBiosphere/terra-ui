@@ -1,13 +1,13 @@
 import { cond } from '@terra-ui-packages/core-utils';
 import { Fragment, ReactNode } from 'react';
 import { div, dl, h } from 'react-hyperscript-helpers';
+import { bucketBrowserUrl } from 'src/auth/auth';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TooltipCell } from 'src/components/table';
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg';
 import { Ajax } from 'src/libs/ajax';
-import { bucketBrowserUrl } from 'src/libs/auth';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { newTabLinkProps } from 'src/libs/utils';
 import {

@@ -4,6 +4,7 @@ import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { div, h, h4 } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
+import { bucketBrowserUrl } from 'src/auth/auth';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonSecondary, Link, Select } from 'src/components/common';
@@ -22,7 +23,6 @@ import { SimpleTabBar } from 'src/components/tabBars';
 import { FlexTable, flexTableDefaultRowHeight, Sortable, TextCell, TooltipCell } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
-import { bucketBrowserUrl } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
@@ -43,13 +43,13 @@ const deletionDelayYears = 1;
 const deletionDelayString = `${deletionDelayYears} year${deletionDelayYears > 1 ? 's' : ''}`;
 const isDeleted = (statusLastChangedDate) => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > deletionDelayYears * 365;
 
-const deletedInfoIcon = ({ name, icon }) => {
+const deletedInfoIcon = ({ name, icon: iconName }) => {
   return h(
     InfoBox,
     {
       style: { color: colors.secondary(), margin: '0.5rem' },
       tooltip: `${name} unavailable. Click to learn more.`,
-      icon,
+      icon: iconName,
     },
     [
       div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),

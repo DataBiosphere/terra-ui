@@ -1,3 +1,4 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -5,7 +6,7 @@ import { generateAppName, getCurrentApp } from 'src/analysis/utils/app-utils';
 import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary } from 'src/components/common';
 import { styles as errorStyles } from 'src/components/ErrorView';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import { TextArea, TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
 import { TextCell } from 'src/components/table';
@@ -210,7 +211,7 @@ export const SubmitWorkflowModal = ({
           isSubmitting &&
           h(Fragment, [
             div({ style: { display: 'flex', flexDirection: 'row', marginTop: '0.5rem' } }, [
-              spinner(),
+              h(Spinner),
               div({ style: { marginLeft: '1rem' } }, ['Cromwell is launching...']),
             ]),
             'Your workflow will submit automatically when Cromwell is running',
