@@ -2,8 +2,9 @@ import { Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers';
+import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
 import { SaveFilesHelp, SaveFilesHelpAzure } from 'src/analysis/runtime-common-components';
-import { AppErrorModal, RuntimeErrorModal } from 'src/analysis/RuntimeManager';
+import { RuntimeErrorModal } from 'src/analysis/RuntimeManager';
 import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import {
   getAppCost,
@@ -213,7 +214,7 @@ export type UseWorkspacesState = (
   stringAttributeMaxLength?: string | number
 ) => UseWorkspacesStateResult;
 
-type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'pause' | 'delete'>;
+type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'pause' | 'delete' | 'get'>;
 type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
 
@@ -342,9 +343,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
   const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (compute: DecoratedComputeResource) => {
     const wrappedPauseCompute = withErrorReporting('Error pausing compute', async () => {
-      if (isRuntime(compute) && isGoogleWorkspaceInfo(compute.workspace)) {
-        return leoRuntimeData.stop(compute);
-      }
       if (isRuntime(compute)) {
         return leoRuntimeData.stop(compute);
       }
@@ -624,6 +622,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   };
 
   const runtimeToDelete: RuntimeWithWorkspace | undefined = _.find({ id: deleteRuntimeId }, runtimes);
+  const appWithErrors: AppWithWorkspace | undefined = _.find({ appName: errorAppId }, apps);
 
   return h(Fragment, [
     div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
@@ -959,10 +958,11 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         }),
       deleteDiskId && renderDeleteDiskModal(_.find({ id: deleteDiskId }, disks) as DiskWithWorkspace),
       deleteAppModal.maybeRender(),
-      errorAppId &&
+      appWithErrors &&
         h(AppErrorModal, {
-          app: _.find({ appName: errorAppId }, apps),
+          app: appWithErrors,
           onDismiss: () => setErrorAppId(undefined),
+          appProvider: leoAppData,
         }),
     ]),
     contactUsActive.get() && h(SupportRequestWrapper),

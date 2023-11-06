@@ -15,7 +15,7 @@ import {
 import { appToolLabels, isToolHidden, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
-import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { App, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { NormalizedComputeRegion } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
@@ -201,7 +201,7 @@ const cromwellDisk: PersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const cromwellOnAzureRunning: App = {
+const cromwellOnAzureRunning: ListAppResponse = {
   workspaceId: null,
   accessScope: null,
   appName: 'test-cromwell-app',
@@ -223,7 +223,6 @@ const cromwellOnAzureRunning: App = {
     cromwell: 'https://lz123.servicebus.windows.net/test-cromwell-app/cromwell',
     wds: 'https://lz123.servicebus.windows.net/test-cromwell-app/wds',
   },
-  customEnvironmentVariables: {},
   auditInfo: {
     creator: 'abc.testerson@gmail.com',
     createdDate: '2023-01-18T23:28:47.605176Z',
@@ -427,7 +426,7 @@ const contextBarPropsForAzure: ContextBarProps = {
   workspace: defaultAzureWorkspace,
 };
 
-const hailBatchAppRunning: App = {
+const hailBatchAppRunning: ListAppResponse = {
   workspaceId: null,
   accessScope: null,
   appName: 'test-hail-batch-app',
@@ -446,7 +445,6 @@ const hailBatchAppRunning: App = {
   proxyUrls: {
     batch: 'https://lz123.servicebus.windows.net/test-hail-batch-app/batch',
   },
-  customEnvironmentVariables: {},
   auditInfo: {
     creator: 'abc.testerson@gmail.com',
     createdDate: '2023-01-18T23:28:47.605176Z',
