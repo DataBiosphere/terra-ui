@@ -107,7 +107,7 @@ interface AlertsIndicatorProps {
   style?: CSSProperties;
 }
 
-const AlertsIndicator = (props: AlertsIndicatorProps): ReactNode => {
+export const AlertsIndicator = (props: AlertsIndicatorProps): ReactNode => {
   const { style } = props;
 
   const [open, setOpen] = useState(false);
@@ -190,5 +190,3 @@ const AlertsIndicator = (props: AlertsIndicatorProps): ReactNode => {
     ),
   ]);
 };
-
-export default AlertsIndicator;
