@@ -552,19 +552,23 @@ export const GcpComputeModalBase = ({
     const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig();
     const toolLabel = getToolLabelFromCloudEnv(desiredRuntime);
     const gceMachineType = desiredRuntime.machineType || getDefaultMachineType(false, toolLabel);
-    return {
+    // Hack: uppercase the region to "normalize" it - TODO rely on the real RuntimeConfig type
+    const normalizedRegion = desiredRuntime.region.toUpperCase();
+    const config = {
       cloudService: desiredRuntime.cloudService,
       autopauseThreshold: desiredAutopauseThreshold,
       ...(desiredRuntime.cloudService === cloudServices.GCE
         ? {
             machineType: gceMachineType,
             region: desiredRuntime.region,
+            normalizedRegion,
             zone: desiredRuntime.zone,
             ...(desiredRuntime.gpuConfig ? { gpuConfig: desiredRuntime.gpuConfig } : {}),
             diskSize: desiredRuntime.bootDiskSize,
           }
         : {
             region: desiredRuntime.region,
+            normalizedRegion,
             masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
             masterDiskSize: desiredRuntime.masterDiskSize,
             numberOfWorkers: desiredRuntime.numberOfWorkers,
@@ -574,6 +578,7 @@ export const GcpComputeModalBase = ({
             workerDiskSize: desiredRuntime.workerDiskSize || 0,
           }),
     };
+    return config;
   };
 
   const getWorkspaceObject = () => workspace?.workspace;

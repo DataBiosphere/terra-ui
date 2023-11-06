@@ -12,6 +12,7 @@ import {
   AzureConfig,
   cloudServiceTypes,
   GceWithPdConfig,
+  NormalizedComputeRegion,
   RuntimeConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { GetRuntimeItem, ListRuntimeItem, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
@@ -207,13 +208,14 @@ const randomMaxInt = 10000;
 export const getJupyterRuntimeConfig = ({
   diskId = getRandomInt(randomMaxInt),
   machineType = defaultGceMachineType,
-} = {}) => ({
+} = {}): RuntimeConfig => ({
   machineType,
   persistentDiskId: diskId,
   cloudService: cloudServiceTypes.GCE,
   bootDiskSize: defaultGceBootDiskSize,
   zone: 'us-central1-a',
   gpuConfig: undefined,
+  normalizedRegion: 'us-central1' as NormalizedComputeRegion,
 });
 
 export const getRandomInt = (max) => Math.floor(Math.random() * max);
@@ -235,11 +237,13 @@ export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): Runtim
     bootDiskSize: defaultGceBootDiskSize,
     zone: 'us-central1-a',
     gpuConfig: undefined,
+    normalizedRegion: 'us-central1' as NormalizedComputeRegion,
     ...overrides,
   } satisfies GceWithPdConfig);
 
 // Use this if you only need to override top-level fields, otherwise use `getGoogleRuntime`
 export const generateTestGetGoogleRuntime = (overrides: Partial<GetRuntimeItem> = {}): GetRuntimeItem => {
+  const runtimeConfig = getRuntimeConfig();
   const runtime: GetRuntimeItem = {
     id: getRandomInt(randomMaxInt),
     runtimeName: 'test-runtime',
@@ -250,7 +254,7 @@ export const generateTestGetGoogleRuntime = (overrides: Partial<GetRuntimeItem> 
     googleProject: 'terra-test-e4000484',
     serviceAccount: 'testuser123@broad.com',
     auditInfo: defaultAuditInfo,
-    runtimeConfig: getRuntimeConfig(),
+    runtimeConfig,
     proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-test-e4000484/test-runtime/jupyter',
     status: runtimeStatuses.running.leoLabel,
     labels: {
@@ -314,6 +318,7 @@ export const generateTestGetGoogleRuntime = (overrides: Partial<GetRuntimeItem> 
 
 // Use this if you only need to override top-level fields, otherwise use `listGoogleRuntime`
 export const generateTestListGoogleRuntime = (overrides: Partial<ListRuntimeItem> = {}): ListRuntimeItem => {
+  const runtimeConfig = getRuntimeConfig();
   const runtime: ListRuntimeItem = {
     id: getRandomInt(randomMaxInt),
     workspaceId: null,
@@ -324,7 +329,7 @@ export const generateTestListGoogleRuntime = (overrides: Partial<ListRuntimeItem
     },
     googleProject: 'terra-test-e4000484',
     auditInfo: defaultAuditInfo,
-    runtimeConfig: getRuntimeConfig(),
+    runtimeConfig,
     proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-test-e4000484/test-runtime/jupyter',
     status: runtimeStatuses.running.leoLabel,
     labels: {
@@ -835,6 +840,7 @@ export const azureRuntime: ListRuntimeItem = {
     machineType: 'Standard_DS2_v2',
     persistentDiskId: 16902,
     region: 'eastus',
+    normalizedRegion: 'eastus' as NormalizedComputeRegion,
   } satisfies AzureConfig,
   proxyUrl:
     'https://lzf07312d05014dcfc2a6d8244c0f9b166a3801f44ec2b003d.servicebus.windows.net/saturn-42a4398b-10f8-4626-9025-7abda26aedab',
@@ -879,6 +885,7 @@ export const dataprocRuntime: ListRuntimeItem = {
     region: 'us-central1',
     componentGatewayEnabled: true,
     workerPrivateAccess: false,
+    normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   },
   proxyUrl:
     'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-941380db/saturn-a5eec7f3-857d-4fab-b26c-6f1291082641/jupyter',
