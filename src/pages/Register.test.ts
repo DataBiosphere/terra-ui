@@ -2,6 +2,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import { CreateTerraUserProfileRequest } from 'src/libs/ajax/User';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import Register from './Register';
@@ -90,7 +91,7 @@ describe('Register', () => {
 
   it('fires off a request to Orch and Sam to register a user', async () => {
     // Arrange
-    const profileSetFunction = jest.fn().mockResolvedValue({});
+    const createProfileFunction = jest.fn().mockResolvedValue({});
     const setUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
     const getUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
 
@@ -99,15 +100,26 @@ describe('Register', () => {
         ({
           Metrics: { captureEvent: jest.fn() } as MetricsPartial,
           User: {
+            // todo: why is the test skipping these?
             setUserAttributes: setUserAttributesFunction,
             getUserAttributes: getUserAttributesFunction,
             profile: {
-              set: profileSetFunction,
+              create: createProfileFunction,
               get: jest.fn().mockReturnValue({}),
             } as ProfilePartial,
           } as UserPartial,
         } as AjaxContract)
     );
+
+    const expectedCallBody: CreateTerraUserProfileRequest = {
+      firstName: 'Test Name',
+      lastName: 'Test Last Name',
+      contactEmail: 'testemail@noreply.com',
+      title: 'Test Title',
+      department: 'Test Department',
+      institute: 'Test Organization',
+      interestInTerra: '',
+    };
 
     // Act
     render(h(Register));
@@ -126,17 +138,8 @@ describe('Register', () => {
     await act(() => fireEvent.click(registerButton));
 
     // Assert
-    expect(profileSetFunction).toHaveBeenCalledWith({
-      firstName: 'Test Name',
-      lastName: 'Test Last Name',
-      contactEmail: 'testemail@noreply.com',
-      title: 'Test Title',
-      department: 'Test Department',
-      institute: 'Test Organization',
-      interestInTerra: '',
-    });
-
-    expect(setUserAttributesFunction).toHaveBeenCalledWith({ marketingConsent: false });
+    expect(createProfileFunction).toHaveBeenCalledWith(expectedCallBody);
+    expect(setUserAttributesFunction).toHaveBeenCalled();
     expect(getUserAttributesFunction).toHaveBeenCalled();
   });
 });

@@ -31,7 +31,6 @@ const Register = () => {
   // this terra user has the data populated in it from the loadOidc user method on login
   // these are accessToken props
   const user: TerraUser = getTerraUser();
-  const userAttributes: SamUserAttributes = authStore.get().terraUserAttributes;
   const [busy, setBusy] = useState(false);
   const [givenName, setGivenName] = useState(user.givenName || '');
   const [familyName, setFamilyName] = useState(user.familyName || '');
@@ -43,6 +42,8 @@ const Register = () => {
   const [title, setTitle] = useState('');
   const [department, setDepartment] = useState('');
   const [interestInTerra, setInterestInTerra] = useState('');
+  // userAttributes will pull a default value of 'true' for marketingConsent
+  const userAttributes: SamUserAttributes = authStore.get().terraUserAttributes;
   const [marketingConsent, setMarketingConsent] = useState(userAttributes.marketingConsent);
 
   const checkboxLine = (children) =>
@@ -120,6 +121,7 @@ const Register = () => {
         title,
       };
       await Ajax().User.profile.create(createTerraUserProfileRequest);
+      await Ajax().User.setUserAttributes({ marketingConsent });
       authStore.update((state: AuthState) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
       await refreshTerraProfile();
       Ajax().Metrics.captureEvent(Events.user.register);
