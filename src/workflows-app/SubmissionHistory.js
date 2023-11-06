@@ -48,6 +48,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
           runSets.run_sets
         );
         // TODO: Remove filtering once WM-2232 is complete
+        // We are doing this filtering to ensure submissions from cloned workspaces are not displayed in the workspace clone.
         const onlyWorkspaceRunSets = durationEnhancedRunSets.filter(
           (runSet) => differenceFromDatesInSeconds(workspaceCreated, runSet.submission_timestamp) > 0
         );
