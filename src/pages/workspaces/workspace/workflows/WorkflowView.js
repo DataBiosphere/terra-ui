@@ -31,6 +31,8 @@ import { Ajax } from 'src/libs/ajax';
 import colors, { terraSpecial } from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_WORKFLOW_RESOURCE_MONITORING } from 'src/libs/feature-previews-config';
 import { HiddenLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withCancellationSignal } from 'src/libs/react-utils';
@@ -742,6 +744,7 @@ const WorkflowView = _.flow(
         retryWithMoreMemory,
         retryMemoryFactor,
         ignoreEmptyOutputs,
+        expandResourceMonitoring,
         currentSnapRedacted,
         savedSnapRedacted,
         wdl,
@@ -1111,6 +1114,22 @@ const WorkflowView = _.flow(
                   ),
                 ]),
                 h(InfoBox, ['Do not create output columns if the data is null/empty. ']),
+                isFeaturePreviewEnabled(ENABLE_WORKFLOW_RESOURCE_MONITORING) &&
+                  span({ style: styles.checkBoxSpanMargins }, [
+                    h(
+                      LabeledCheckbox,
+                      {
+                        checked: expandResourceMonitoring,
+                        onChange: (v) => this.setState({ expandResourceMonitoring: v }),
+                        style: styles.checkBoxLeftMargin,
+                      },
+                      [' Resource monitoring']
+                    ),
+                  ]),
+                h(InfoBox, [
+                  'Specify user-provided tools to monitor task resources. ',
+                  h(Link, { href: 'https://cromwell.readthedocs.io/en/stable/wf_options/Google/', ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                ]),
               ]),
               h(StepButtons, {
                 tabs: [
