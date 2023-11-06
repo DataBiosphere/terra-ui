@@ -24,7 +24,7 @@ import {
   CloudEnvironmentDetails,
   useCloudEnvironmentPolling,
 } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
-import { useSingleWorkspaceDeletetionPolling } from 'src/pages/workspaces/hooks/useDeletionPolling';
+import { useSingleWorkspaceDeletionPolling } from 'src/pages/workspaces/hooks/useDeletionPolling';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
@@ -124,7 +124,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const isGoogleWorkspaceSyncing =
     workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
 
-  useSingleWorkspaceDeletetionPolling(workspace);
+  useSingleWorkspaceDeletionPolling(workspace);
   useEffect(() => {
     if (workspace?.workspace?.state === 'Deleted') {
       Nav.goToPath('workspaces');

@@ -70,10 +70,10 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     setController(new window.AbortController());
   };
   const signal = controller.signal;
-  // const signal = useCancellation();
   const checkInitializationTimeout = useRef<number>();
 
   const updateWorkspaceInStore = (workspace, initialized) => {
+    // clone the workspace to force React to re-render components that depend on workspace
     const update = _.clone(workspace);
     update.workspaceInitialized = initialized;
     workspaceStore.set(update);

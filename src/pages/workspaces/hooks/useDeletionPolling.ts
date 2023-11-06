@@ -10,16 +10,7 @@ const updateWorkspacesList = (
   workspaceId: string,
   state: WorkspaceState,
   errorMessage?: string
-): Workspace[] =>
-  workspaces.map((ws) => {
-    if (ws.workspace.workspaceId === workspaceId) {
-      const update = _.cloneDeep(ws);
-      update.workspace.state = state;
-      update.workspace.errorMessage = errorMessage;
-      return update;
-    }
-    return ws;
-  });
+): Workspace[] => workspaces.map((ws) => updateWorkspace(ws, workspaceId, state, errorMessage));
 
 const updateWorkspace = (
   workspace: Workspace,
@@ -36,10 +27,16 @@ const updateWorkspace = (
   return workspace;
 };
 
-export const useDeletetionPolling = (workspaces: Workspace[]) => {
+const doUpdate = (abort: () => void, workspace: Workspace, state: WorkspaceState, errorMessage?: string) => {
+  const workspaceId = workspace.workspace.workspaceId;
+  abort();
+  workspacesStore.update((wsList) => updateWorkspacesList(wsList, workspaceId, state, errorMessage));
+  workspaceStore.update((ws) => updateWorkspace(ws, workspaceId, state, errorMessage));
+};
+
+export const useDeletionPolling = (workspaces: Workspace[]) => {
   // we have to do the signal/abort manually instead of with useCancelable so that the it can be cleaned up in the
   // this component's useEffect, instead of the useEffect in useCancelable
-  // const workspaces: Workspace[] = useStore<Workspace[]>(workspacesStore)
   const [controller, setController] = useState(new window.AbortController());
   const abort = () => {
     controller.abort();
@@ -48,25 +45,18 @@ export const useDeletetionPolling = (workspaces: Workspace[]) => {
 
   useEffect(() => {
     const checkWorkspaceDeletion = async (workspace: Workspace) => {
-      const doUpdate = (state: WorkspaceState, errorMessage?: string) => {
-        const workspaceId = workspace.workspace.workspaceId;
-        abort();
-        workspacesStore.update((wsList) => updateWorkspacesList(wsList, workspaceId, state, errorMessage));
-        workspaceStore.update((ws) => updateWorkspace(ws, workspaceId, state, errorMessage));
-      };
-
       try {
         const wsResp: Workspace = await Ajax(controller.signal)
           .Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
           .details(['workspace.state', 'workspace.errorMessage']);
         const state = wsResp.workspace.state;
 
-        if (state === 'DeleteFailed') {
-          doUpdate(state);
+        if (!!state && state !== 'Deleting') {
+          doUpdate(abort, workspace, state, wsResp.workspace.errorMessage);
         }
       } catch (error) {
         if (error instanceof Response && error.status === 404) {
-          doUpdate('Deleted');
+          doUpdate(abort, workspace, 'Deleted');
         }
       }
     };
@@ -87,7 +77,7 @@ export const useDeletetionPolling = (workspaces: Workspace[]) => {
 
 // we need a separate implementation of this, because using useDeletetionPolling with a list
 // containing a single workspace in the WorkspaceContainer causes a rendering loop
-export const useSingleWorkspaceDeletetionPolling = (workspace: Workspace) => {
+export const useSingleWorkspaceDeletionPolling = (workspace: Workspace) => {
   const [controller, setController] = useState(new window.AbortController());
   const abort = () => {
     controller.abort();
@@ -96,25 +86,18 @@ export const useSingleWorkspaceDeletetionPolling = (workspace: Workspace) => {
 
   useEffect(() => {
     const checkWorkspaceDeletion = async () => {
-      const doUpdate = (state: WorkspaceState, errorMessage?: string) => {
-        const workspaceId = workspace.workspace.workspaceId;
-        abort();
-        workspacesStore.update((wsList) => updateWorkspacesList(wsList, workspaceId, state, errorMessage));
-        workspaceStore.update((ws) => updateWorkspace(ws, workspaceId, state, errorMessage));
-      };
-
       try {
         const wsResp: Workspace = await Ajax(controller.signal)
           .Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
           .details(['workspace.state', 'workspace.errorMessage']);
         const state = wsResp.workspace.state;
 
-        if (state === 'DeleteFailed') {
-          doUpdate(state);
+        if (!!state && state !== 'Deleting') {
+          doUpdate(abort, workspace, state, wsResp.workspace.errorMessage);
         }
       } catch (error) {
         if (error instanceof Response && error.status === 404) {
-          doUpdate('Deleted');
+          doUpdate(abort, workspace, 'Deleted');
         }
       }
     };

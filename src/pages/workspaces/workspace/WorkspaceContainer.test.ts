@@ -152,7 +152,7 @@ describe('WorkspaceContainer', () => {
   it('does not poll for a workspace that is not deleting', async () => {
     // Arrange
 
-    const mockDetailsFn = jest.fn().mockResolvedValue({ state: 'Deleting' });
+    const mockDetailsFn = jest.fn();
 
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
@@ -208,7 +208,7 @@ describe('WorkspaceContainer', () => {
         state: 'Deleting',
       },
     };
-    const mockDetailsFn = jest.fn().mockResolvedValue({ state: 'Deleting' });
+    const mockDetailsFn = jest.fn().mockResolvedValue({ workspace: { state: 'Deleting' } });
 
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
@@ -290,6 +290,77 @@ describe('WorkspaceContainer', () => {
     mockUpdateWsListFn.mockImplementation((updateFn) => {
       const updated = updateFn([workspace]);
       expect(updated[0].workspace.state).toBe('Deleted');
+    });
+
+    const props = {
+      namespace: workspace.workspace.namespace,
+      name: workspace.workspace.name,
+      workspace,
+      storageDetails: {
+        googleBucketLocation: '',
+        googleBucketType: '',
+        fetchedGoogleBucketLocation: undefined,
+      },
+      refresh: () => Promise.resolve(),
+      refreshWorkspace: () => {},
+      breadcrumbs: [],
+      title: '',
+      analysesData: {
+        refreshApps: () => Promise.resolve(),
+        refreshRuntimes: () => Promise.resolve(),
+      },
+    };
+
+    jest.useFakeTimers();
+
+    // Act
+
+    render(h(WorkspaceContainer, props));
+    // trigger first poll
+    jest.advanceTimersByTime(30000);
+
+    // Assert
+    await waitFor(() => expect(mockDetailsFn).toBeCalled());
+    await waitFor(() => expect(mockUpdateWsListFn).toBeCalled());
+    await waitFor(() => expect(mockUpdateWsFn).toBeCalled());
+  });
+
+  it('sets the error message and stops polling when the deletion fails', async () => {
+    // Arrange
+    const errorMessage = 'this is an error message';
+    const mockDetailsFn = jest.fn().mockResolvedValue({ workspace: { state: 'DeleteFailed', errorMessage } });
+
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () =>
+          ({
+            details: mockDetailsFn,
+          } as Partial<AjaxWorkspacesContract['workspace']>),
+      },
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    const workspace: InitializedWorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'Deleting',
+      },
+      workspaceInitialized: true,
+    };
+
+    const mockUpdateWsFn = asMockedFn(workspaceStore.update);
+    const mockUpdateWsListFn = asMockedFn(workspacesStore.update);
+    mockUpdateWsFn.mockImplementation((updateFn) => {
+      const updated = updateFn(workspace);
+      expect(updated.workspace.state).toBe('DeleteFailed');
+      expect(updated.workspace.errorMessage).toBe(errorMessage);
+    });
+
+    mockUpdateWsListFn.mockImplementation((updateFn) => {
+      const updated = updateFn([workspace]);
+      expect(updated[0].workspace.state).toBe('DeleteFailed');
+      expect(updated[0].workspace.errorMessage).toBe(errorMessage);
     });
 
     const props = {
