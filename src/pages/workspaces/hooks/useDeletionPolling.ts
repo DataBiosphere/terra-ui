@@ -27,11 +27,28 @@ const updateWorkspace = (
   return workspace;
 };
 
-const doUpdate = (abort: () => void, workspace: Workspace, state: WorkspaceState, errorMessage?: string) => {
-  const workspaceId = workspace.workspace.workspaceId;
-  abort();
-  workspacesStore.update((wsList) => updateWorkspacesList(wsList, workspaceId, state, errorMessage));
-  workspaceStore.update((ws) => updateWorkspace(ws, workspaceId, state, errorMessage));
+const checkWorkspaceDeletion = async (workspace: Workspace, abort: () => void, signal: AbortSignal) => {
+  const doUpdate = (abort: () => void, workspace: Workspace, state: WorkspaceState, errorMessage?: string) => {
+    const workspaceId = workspace.workspace.workspaceId;
+    abort();
+    workspacesStore.update((wsList) => updateWorkspacesList(wsList, workspaceId, state, errorMessage));
+    workspaceStore.update((ws) => updateWorkspace(ws, workspaceId, state, errorMessage));
+  };
+
+  try {
+    const wsResp: Workspace = await Ajax(signal)
+      .Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
+      .details(['workspace.state', 'workspace.errorMessage']);
+    const state = wsResp.workspace.state;
+
+    if (!!state && state !== 'Deleting') {
+      doUpdate(abort, workspace, state, wsResp.workspace.errorMessage);
+    }
+  } catch (error) {
+    if (error instanceof Response && error.status === 404) {
+      doUpdate(abort, workspace, 'Deleted');
+    }
+  }
 };
 
 export const useDeletionPolling = (workspaces: Workspace[]) => {
@@ -44,26 +61,10 @@ export const useDeletionPolling = (workspaces: Workspace[]) => {
   };
 
   useEffect(() => {
-    const checkWorkspaceDeletion = async (workspace: Workspace) => {
-      try {
-        const wsResp: Workspace = await Ajax(controller.signal)
-          .Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
-          .details(['workspace.state', 'workspace.errorMessage']);
-        const state = wsResp.workspace.state;
-
-        if (!!state && state !== 'Deleting') {
-          doUpdate(abort, workspace, state, wsResp.workspace.errorMessage);
-        }
-      } catch (error) {
-        if (error instanceof Response && error.status === 404) {
-          doUpdate(abort, workspace, 'Deleted');
-        }
-      }
-    };
     const iterateDeletingWorkspaces = async () => {
       const deletingWorkspaces = _.filter((ws) => ws?.workspace?.state === 'Deleting', workspaces);
       for (const ws of deletingWorkspaces) {
-        await checkWorkspaceDeletion(ws);
+        await checkWorkspaceDeletion(ws, abort, controller.signal);
       }
     };
 
@@ -85,27 +86,10 @@ export const useSingleWorkspaceDeletionPolling = (workspace: Workspace) => {
   };
 
   useEffect(() => {
-    const checkWorkspaceDeletion = async () => {
-      try {
-        const wsResp: Workspace = await Ajax(controller.signal)
-          .Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
-          .details(['workspace.state', 'workspace.errorMessage']);
-        const state = wsResp.workspace.state;
-
-        if (!!state && state !== 'Deleting') {
-          doUpdate(abort, workspace, state, wsResp.workspace.errorMessage);
-        }
-      } catch (error) {
-        if (error instanceof Response && error.status === 404) {
-          doUpdate(abort, workspace, 'Deleted');
-        }
-      }
-    };
-
     pollWithCancellation(
       async () => {
         if (workspace?.workspace?.state === 'Deleting') {
-          await checkWorkspaceDeletion();
+          await checkWorkspaceDeletion(workspace, abort, controller.signal);
         }
       },
       30000,
