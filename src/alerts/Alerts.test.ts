@@ -3,7 +3,7 @@ import { h } from 'react-hyperscript-helpers';
 import * as Utils from 'src/libs/utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { Alert as AlertT } from './Alert';
+import { Alert as AlertType } from './Alert';
 import Alerts from './Alerts';
 import { useServiceAlerts } from './service-alerts';
 
@@ -16,7 +16,7 @@ jest.mock('./service-alerts', (): ServiceAlertsExports => {
   };
 });
 
-const testAlerts: AlertT[] = [
+const testAlerts: AlertType[] = [
   {
     id: 'abc',
     title: 'The systems are down!',

@@ -11,11 +11,11 @@ import { usePrevious } from 'src/libs/react-utils';
 import { useTermsOfServiceAlerts } from 'src/libs/terms-of-service-alerts';
 import * as Utils from 'src/libs/utils';
 
-import { Alert as AlertT } from './Alert';
+import { Alert as AlertType } from './Alert';
 import { useServiceAlerts } from './service-alerts';
 
 interface AlertProps {
-  alert: AlertT;
+  alert: AlertType;
 }
 
 const Alert = (props: AlertProps): ReactNode => {
@@ -74,7 +74,7 @@ const Alert = (props: AlertProps): ReactNode => {
 };
 
 interface AlertsListProps {
-  alerts: AlertT[];
+  alerts: AlertType[];
 }
 
 const AlertsList = (props: AlertsListProps): ReactNode => {
@@ -113,7 +113,7 @@ const AlertsIndicator = (props: AlertsIndicatorProps): ReactNode => {
   const [open, setOpen] = useState(false);
   const [animating, setAnimating] = useState(false);
 
-  const alerts: AlertT[] = [...useServiceAlerts(), ...useLinkExpirationAlerts(), ...useTermsOfServiceAlerts()];
+  const alerts: AlertType[] = [...useServiceAlerts(), ...useLinkExpirationAlerts(), ...useTermsOfServiceAlerts()];
 
   const previousAlertIds = usePrevious(_.map('id', alerts)) || [];
   const hasNewAlerts = _.size(_.difference(_.map('id', alerts), previousAlertIds)) > 0;
