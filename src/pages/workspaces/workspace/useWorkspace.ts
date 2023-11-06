@@ -46,13 +46,6 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   const accessNotificationId = useRef();
   const workspace: InitializedWorkspaceWrapper | undefined = useStore<InitializedWorkspaceWrapper>(workspaceStore);
 
-  // reset store first if we need to switch workspaces
-  // this prevents rendering and data fetching based off of a missmatching or stale workspace
-  useEffect(() => {
-    if (!!workspace && (workspace.workspace.name !== name || workspace.workspace.namespace !== namespace)) {
-      workspaceStore.reset();
-    }
-  }, [name, namespace, workspace]);
   const [{ location, locationType, fetchedLocation }, setGoogleStorage] = useState<{
     fetchedLocation: 'SUCCESS' | 'ERROR' | undefined;
     location: string;
@@ -267,7 +260,11 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   };
 
   useEffect(() => {
-    if (!workspace || workspace.workspace.namespace !== namespace || workspace.workspace.name !== name) {
+    if (!workspace) {
+      refreshWorkspace();
+    } else if (workspace.workspace.namespace !== namespace || workspace.workspace.name !== name) {
+      // if the workspace is missmatched, clear store before fetching workspace
+      workspaceStore.reset();
       refreshWorkspace();
     } else {
       checkWorkspaceInitialization(workspace);
