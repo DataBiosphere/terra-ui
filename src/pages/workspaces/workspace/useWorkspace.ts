@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { Link } from 'src/components/common';
@@ -12,7 +12,7 @@ import { saToken } from 'src/libs/ajax/GoogleStorage';
 import { ErrorCallback, withErrorHandling, withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { clearNotification, notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { useStore } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import { differenceFromNowInSeconds, withBusyState } from 'src/libs/utils';
 import { canWrite, isAzureWorkspace, isGoogleWorkspace, isOwner, WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -44,11 +44,8 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   const [accessError, setAccessError] = useState(false);
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
   const accessNotificationId = useRef();
-  const cachedWorkspace = useStore(workspaceStore);
-  const workspace =
-    cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace))
-      ? cachedWorkspace
-      : undefined;
+  const workspace: InitializedWorkspaceWrapper | undefined = useStore<InitializedWorkspaceWrapper>(workspaceStore);
+
   const [{ location, locationType, fetchedLocation }, setGoogleStorage] = useState<{
     fetchedLocation: 'SUCCESS' | 'ERROR' | undefined;
     location: string;
@@ -67,13 +64,19 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   }>();
   const workspaceInitialized = workspace?.workspaceInitialized; // will be stored in cached workspace
 
-  const signal = useCancellation();
+  const [controller, setController] = useState(new window.AbortController());
+  const abort = () => {
+    controller.abort();
+    setController(new window.AbortController());
+  };
+  const signal = controller.signal;
   const checkInitializationTimeout = useRef<number>();
 
   const updateWorkspaceInStore = (workspace, initialized) => {
-    workspace.workspaceInitialized = initialized;
     // clone the workspace to force React to re-render components that depend on workspace
-    workspaceStore.set(_.clone(workspace));
+    const update = _.clone(workspace);
+    update.workspaceInitialized = initialized;
+    workspaceStore.set(update);
   };
 
   const checkWorkspaceInitialization = (workspace, times = 0) => {
@@ -256,14 +259,22 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     return withErrorIgnoring('Error loading workspace', doWorkspaceRefresh) as Promise<void>;
   };
 
-  useOnMount(() => {
+  useEffect(() => {
     if (!workspace) {
+      refreshWorkspace();
+    } else if (workspace.workspace.namespace !== namespace || workspace.workspace.name !== name) {
+      // if the workspace is missmatched, clear store before fetching workspace
+      workspaceStore.reset();
       refreshWorkspace();
     } else {
       checkWorkspaceInitialization(workspace);
     }
-    return () => clearTimeout(checkInitializationTimeout.current);
-  });
+    return () => {
+      abort();
+      clearTimeout(checkInitializationTimeout.current);
+    };
+    //  eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, namespace]);
 
   const storageDetails = {
     googleBucketLocation: location,
