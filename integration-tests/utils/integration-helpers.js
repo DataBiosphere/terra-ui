@@ -88,7 +88,7 @@ const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceN
   );
 };
 
-const makeWorkspace = withSignedInPage(async ({ page, billingProject, waitForAccessToWorkspaceBucket = null }) => {
+const makeWorkspace = withSignedInPage(async ({ page, billingProject, hasBucket = false }) => {
   const workspaceName = getTestWorkspaceName();
   try {
     await page.evaluate(
@@ -99,7 +99,7 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject, waitForAcc
       billingProject
     );
     console.info(`Created workspace: ${workspaceName}`);
-    if (waitForAccessToWorkspaceBucket) {
+    if (hasBucket) {
       await waitForAccessToWorkspaceBucket({ page, billingProject, workspaceName });
     }
   } catch (e) {
@@ -111,7 +111,7 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject, waitForAcc
 });
 
 const makeGcpWorkspace = async (options) => {
-  return await makeWorkspace({ ...options, waitForAccessToWorkspaceBucket });
+  return await makeWorkspace({ ...options, hasBucket: true });
 };
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {

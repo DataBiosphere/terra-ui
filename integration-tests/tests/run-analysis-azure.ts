@@ -16,6 +16,7 @@ const {
   image,
   input,
   noSpinnersAfter,
+  openError,
   waitForNoModal,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -38,7 +39,11 @@ const testRunAnalysisAzure = _.flowRight(
 
   // Dismiss the create env modal for now
   await noSpinnersAfter(page, {
-    action: () => findText(page, 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).'),
+    action: () =>
+      findText(
+        page,
+        'A cloud environment consists of application configuration, cloud compute and persistent disk(s).'
+      ),
   });
   await click(page, clickable({ textContains: 'Close' }));
   await waitForNoModal(page);
@@ -58,15 +63,22 @@ const testRunAnalysisAzure = _.flowRight(
   await findElement(page, clickable({ textContains: 'JupyterLab Environment' }));
   await findElement(page, clickable({ textContains: 'Creating' }));
 
-  // Wait for env to finish creating
+  // Wait for env to finish creating, or break early on error
   await Promise.race([
     findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(15) }),
     findErrorPopup(page, { timeout: Millis.ofMinutes(15) }),
   ]);
+  const hasError = await openError(page);
+  if (hasError) {
+    throw new Error('Failed to create cloud environment');
+  }
+
   await click(page, clickable({ textContains: 'Open' }));
 
   // Find the iframe and wait until the Jupyter kernel is ready
-  const frame = await findIframe(page, '//iframe[@title="Interactive JupyterLab iframe"]', { timeout: Millis.ofMinutes(2) });
+  const frame = await findIframe(page, '//iframe[@title="Interactive JupyterLab iframe"]', {
+    timeout: Millis.ofMinutes(2),
+  });
   await findText(frame, 'Kernel status: Idle', { timeout: Millis.ofMinutes(4) });
 
   // Run a command
