@@ -35,7 +35,7 @@ const withSignedInPage = (fn) => async (options) => {
 const clipToken = (str) => str.toString().substr(-10, 10);
 
 const testWorkspaceNamePrefix = 'terra-ui-test-workspace-';
-const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`; // "terra-ui-test-workspace-0b1f749b-98b2-413b-9e93-91e36e5f47d5"; //
+const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`;
 
 /**
  * GCP IAM changes may take a few minutes to propagate after creating a workspace or granting a
@@ -145,31 +145,31 @@ const deleteWorkspaceV2 = withSignedInPage(async ({ page, billingProject, worksp
   }
 });
 
-const withWorkspace = (test) => async (options) => {
-  console.log('withWorkspace ...');
+const withGcpWorkspace = (test) => async (options) => {
+  console.log('withGcpWorkspace ...');
   const { workspaceName } = await makeGcpWorkspace(options);
 
   try {
     await test({ ...options, workspaceName });
   } finally {
-    console.log('withWorkspace cleanup ...');
+    console.log('withGcpWorkspace cleanup ...');
     await deleteWorkspace({ ...options, workspaceName });
   }
 };
 
-const withWorkspaceAzure = (test) => async (options) => {
-  console.log('withWorkspaceAzure ...');
+const withAzureWorkspace = (test) => async (options) => {
+  console.log('withAzureWorkspace ...');
   options = {
     ...options,
     billingProject: options.billingProjectAzure,
   };
   const { workspaceName } = await makeWorkspace(options);
-  console.log(`withWorkspaceAzure made workspace ${workspaceName}`);
+  console.log(`withAzureWorkspace made workspace ${workspaceName}`);
 
   try {
     await test({ ...options, workspaceName });
   } finally {
-    console.log('withWorkspaceAzure cleanup ...', options, workspaceName);
+    console.log('withAzureWorkspace cleanup ...', options, workspaceName);
     await deleteWorkspaceV2({ ...options, workspaceName });
   }
 };
@@ -273,7 +273,7 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) });
 };
 
-const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
+const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
   await gotoPage(page, testUrl);
   await findText(page, 'View Workspaces');
   await viewWorkspaceDashboard(page, token, workspaceName);
@@ -293,9 +293,9 @@ module.exports = {
   enableDataCatalog,
   testWorkspaceNamePrefix,
   testWorkspaceName: getTestWorkspaceName,
-  withWorkspace,
-  withWorkspaceAzure,
+  withGcpWorkspace,
+  withAzureWorkspace,
   withUser,
-  performAnalysisTabSetup,
+  gotoAnalysisTab,
   viewWorkspaceDashboard,
 };

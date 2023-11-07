@@ -1,7 +1,7 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
 const uuid = require('uuid');
-const { deleteRuntimesV2, withWorkspaceAzure, performAnalysisTabSetup } = require('../utils/integration-helpers');
+const { deleteRuntimesV2, withAzureWorkspace, gotoAnalysisTab } = require('../utils/integration-helpers');
 const {
   Millis,
   click,
@@ -25,9 +25,9 @@ const notebookName = `test-notebook-${uuid.v4()}`;
 
 const testRunAnalysisAzure = _.flowRight(
   withUserToken,
-  withWorkspaceAzure
+  withAzureWorkspace
 )(async ({ billingProject, workspaceName, page, testUrl, token }) => {
-  await performAnalysisTabSetup(page, token, testUrl, workspaceName);
+  await gotoAnalysisTab(page, token, testUrl, workspaceName);
 
   // Create analysis file
   await click(page, clickable({ textContains: 'Start' }));
@@ -49,7 +49,9 @@ const testRunAnalysisAzure = _.flowRight(
   await findText(page, 'PREVIEW (READ-ONLY)');
 
   // Attempt to open analysis; create a cloud env
-  await click(page, clickable({ textContains: 'Open' }));
+  await noSpinnersAfter(page, {
+    action: () => click(page, clickable({ textContains: 'Open' })),
+  });
   await findText(page, 'Azure Cloud Environment');
   await click(page, clickable({ textContains: 'Create' }));
   await waitForNoModal(page);

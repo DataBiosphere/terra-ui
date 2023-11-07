@@ -1,5 +1,5 @@
 const _ = require('lodash/fp');
-const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers');
+const { withGcpWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
 const {
@@ -15,7 +15,7 @@ const {
 } = require('../utils/integration-utils');
 
 const testPreviewDrsUriFn = _.flow(
-  withWorkspace,
+  withGcpWorkspace,
   withUserToken
 )(async ({ billingProject, page, testUrl, token, workspaceName }) => {
   const testEntity = {

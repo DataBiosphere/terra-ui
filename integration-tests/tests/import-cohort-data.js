@@ -1,5 +1,5 @@
 const _ = require('lodash/fp');
-const { withWorkspace } = require('../utils/integration-helpers');
+const { withGcpWorkspace } = require('../utils/integration-helpers');
 const {
   findInGrid,
   click,
@@ -20,7 +20,7 @@ const { withUserToken } = require('../utils/terra-sa-utils');
 const cohortName = 'terra-ui-test-cohort';
 
 const testImportCohortDataFn = _.flow(
-  withWorkspace,
+  withGcpWorkspace,
   withUserToken
 )(async ({ page, testUrl, token, workspaceName }) => {
   await signIntoTerra(page, { token, testUrl });

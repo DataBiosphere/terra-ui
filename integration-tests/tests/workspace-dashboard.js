@@ -1,6 +1,6 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp');
-const { viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers');
+const { viewWorkspaceDashboard, withGcpWorkspace } = require('../utils/integration-helpers');
 const { assertNavChildNotFound, click, clickable, findText, gotoPage, navChild, verifyAccessibility } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
@@ -52,7 +52,7 @@ const setGcpAjaxMockValues = async (testPage, namespace, name) => {
 };
 
 const testGoogleWorkspace = _.flow(
-  withWorkspace,
+  withGcpWorkspace,
   withUserToken
 )(async ({ page, token, testUrl, billingProject, workspaceName }) => {
   await gotoPage(page, testUrl);

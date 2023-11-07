@@ -1,6 +1,6 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
-const { deleteRuntimes, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers');
+const { deleteRuntimes, withGcpWorkspace, gotoAnalysisTab } = require('../utils/integration-helpers');
 const {
   click,
   clickable,
@@ -22,9 +22,9 @@ const rFileName = 'test-rmd';
 
 const testRunRStudioFn = _.flowRight(
   withUserToken,
-  withWorkspace
+  withGcpWorkspace
 )(async ({ billingProject, workspaceName, page, testUrl, token }) => {
-  await performAnalysisTabSetup(page, token, testUrl, workspaceName);
+  await gotoAnalysisTab(page, token, testUrl, workspaceName);
 
   // Create analysis file
   await click(page, clickable({ textContains: 'Start' }));
