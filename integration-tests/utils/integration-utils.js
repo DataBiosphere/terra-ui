@@ -165,6 +165,7 @@ const label = ({ labelContains }) => {
 
 const fillIn = async (page, xpath, text) => {
   const input = await page.waitForXPath(xpath, defaultToVisibleTrue());
+  await delay(1000);
   await input.type(text, { delay: 20 });
   // There are several places (e.g. workspace list search) where the page responds dynamically to
   // typed input. That behavior could involve extra renders as component state settles. We strive to
@@ -198,6 +199,10 @@ const select = async (page, labelContains, text) => {
 
 const waitForNoSpinners = (page, { timeout = 30000 } = {}) => {
   return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true, timeout });
+};
+
+const waitForNoModal = (page, { timeout = 30000 } = {}) => {
+  return page.waitForXPath('//*[contains(@class, "ReactModal__Overlay")]', { hidden: true, timeout });
 };
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
@@ -268,6 +273,10 @@ const signIntoTerra = async (page, { token, testUrl }) => {
 
 const findElement = (page, xpath, options) => {
   return page.waitForXPath(xpath, defaultToVisibleTrue(options));
+};
+
+const findErrorPopup = (page, options) => {
+  return page.waitForXPath('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss")][contains(@aria-label,"error")]', options);
 };
 
 const heading = ({ level, text, textContains, isDescendant = false }) => {
@@ -553,6 +562,7 @@ module.exports = {
   findText,
   fillIn,
   fillInReplace,
+  findErrorPopup,
   getAnimatedDrawer,
   getTableCellPath,
   getTableColIndex,
@@ -570,6 +580,7 @@ module.exports = {
   withScreenshot,
   logPageConsoleMessages,
   noSpinnersAfter,
+  waitForNoModal,
   waitForNoSpinners,
   withPageLogging,
   enablePageLogging,

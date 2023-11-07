@@ -35,7 +35,7 @@ const withSignedInPage = (fn) => async (options) => {
 const clipToken = (str) => str.toString().substr(-10, 10);
 
 const testWorkspaceNamePrefix = 'terra-ui-test-workspace-';
-const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`;
+const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`; // "terra-ui-test-workspace-0b1f749b-98b2-413b-9e93-91e36e5f47d5"; //
 
 /**
  * GCP IAM changes may take a few minutes to propagate after creating a workspace or granting a
@@ -226,7 +226,7 @@ const deleteRuntimes = async ({ page, billingProject, workspaceName }) => {
 
 const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
   const deletedRuntimes = await page.evaluate(
-    async (workspaceName) => {
+    async (billingProject, workspaceName) => {
       const {
         workspace: { workspaceId },
       } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace.workspaceId']);
@@ -246,7 +246,7 @@ const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
 
 const deleteAppsV2 = async ({ page, billingProject, workspaceName }) => {
   const deletedApps = await page.evaluate(
-    async (workspaceName) => {
+    async (billingProject, workspaceName) => {
       const {
         workspace: { workspaceId },
       } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace.workspaceId']);
@@ -298,6 +298,8 @@ const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
   await findText(page, 'View Workspaces');
   await viewWorkspaceDashboard(page, token, workspaceName);
   await clickNavChildAndLoad(page, 'analyses');
+  await findText(page, 'Your Analyses');
+  await waitForNoSpinners(page);
   await dismissNotifications(page);
 };
 

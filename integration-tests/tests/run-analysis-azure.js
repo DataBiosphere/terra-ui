@@ -3,84 +3,79 @@ const _ = require('lodash/fp');
 const uuid = require('uuid');
 const { deleteAppsV2, deleteRuntimesV2, withWorkspaceAzure, performAnalysisTabSetup } = require('../utils/integration-helpers');
 const {
+  Millis,
   click,
   clickable,
-  delay,
-  findElement,
-  noSpinnersAfter,
+  dismissNotifications,
   fillIn,
+  findElement,
+  findErrorPopup,
   findIframe,
   findText,
-  dismissNotifications,
   getAnimatedDrawer,
   image,
   input,
-  Millis,
+  noSpinnersAfter,
+  waitForNoModal,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
 
 const notebookName = `test-notebook-${uuid.v4()}`;
-const waitAMinute = { timeout: Millis.ofMinute };
 
 const testRunAnalysisAzure = _.flowRight(
   withUserToken,
   withWorkspaceAzure
 )(async ({ billingProject, workspaceName, page, testUrl, token }) => {
   await performAnalysisTabSetup(page, token, testUrl, workspaceName);
-  await delay(Millis.ofSeconds(10));
 
   // Create analysis file
-  await click(page, clickable({ textContains: 'Start' }), waitAMinute);
-  await findElement(page, getAnimatedDrawer('Select an application'), waitAMinute);
-  await click(page, image({ text: 'Create new notebook' }), waitAMinute);
+  await click(page, clickable({ textContains: 'Start' }));
+  await findElement(page, getAnimatedDrawer('Select an application'));
+  await click(page, image({ text: 'Create new notebook' }));
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName);
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' }), waitAMinute) });
-  await delay(Millis.ofSeconds(20));
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' })) });
 
-  // Close the create cloud env modal that pops up
+  // Dismiss the create env modal for now
   await noSpinnersAfter(page, {
-    action: () => findText(page, 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).', waitAMinute),
-    timeout: Millis.ofSeconds(45),
-  }).catch(() => findText(page, 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).', waitAMinute));
-
-  await click(page, clickable({ textContains: 'Close' }), waitAMinute);
-
-  // The Compute Modal does not close quickly enough, so the subsequent click does not properly click on the element
-  await delay(Millis.ofSeconds(20));
+    action: () => findText(page, 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).'),
+  });
+  await click(page, clickable({ textContains: 'Close' }));
+  await waitForNoModal(page);
 
   // Navigate to analysis launcher
-  await click(page, `//*[@title="${notebookName}.ipynb"]`, waitAMinute);
+  await click(page, `//*[@title="${notebookName}.ipynb"]`);
   await dismissNotifications(page);
-  await delay(Millis.ofSeconds(10));
+  await findText(page, 'PREVIEW (READ-ONLY)');
 
-  await click(page, clickable({ textContains: 'Open' }), { timeout: Millis.ofMinutes(2) });
+  // Attempt to open analysis; create a cloud env
+  await click(page, clickable({ textContains: 'Open' }));
+  await findText(page, 'Azure Cloud Environment');
+  await click(page, clickable({ textContains: 'Create' }));
+  await waitForNoModal(page);
 
-  // Create a cloud env from analysis launcher
-  await click(page, clickable({ textContains: 'Create' }), waitAMinute);
+  // Wait for env to begin creating
+  await findElement(page, clickable({ textContains: 'JupyterLab Environment' }));
+  await findElement(page, clickable({ textContains: 'Creating' }));
 
-  // The Compute Modal does not close quickly enough, so the subsequent click does not properly click on the element
-  await delay(Millis.ofSeconds(2));
+  // Wait for env to finish creating
+  await Promise.race([
+    findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(15) }),
+    findErrorPopup(page, { timeout: Millis.ofMinutes(15) }),
+  ]);
+  await click(page, clickable({ textContains: 'Open' }));
 
-  await findElement(page, clickable({ textContains: 'JupyterLab Environment' }), waitAMinute);
-  await findElement(page, clickable({ textContains: 'Creating' }), waitAMinute);
-
-  // Wait for the environment to be running
-  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(15) });
-  await click(page, clickable({ textContains: 'Open' }), waitAMinute);
-
-  // Find the iframe, wait until the Jupyter kernel is ready, and execute some code
+  // Find the iframe and wait until the Jupyter kernel is ready
   const frame = await findIframe(page, '//iframe[@title="Interactive JupyterLab iframe"]', { timeout: Millis.ofMinutes(2) });
-
   await findText(frame, 'Kernel status: Idle', { timeout: Millis.ofMinutes(2) });
-  await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)');
-  await delay(Millis.ofSeconds(2));
 
-  await click(frame, clickable({ textContains: 'Run the selected cells and advance' }));
+  // Run a command
+  await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)');
+  await click(frame, '//button[starts-with(@title, "Run the selected cells and advance")]');
   await findText(frame, '123456789099886419754209');
 
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
-  await click(frame, clickable({ text: 'Save and create checkpoint' }));
+  await click(frame, '//button[starts-with(@title, "Save and create checkpoint")]');
 
   // Cleanup
   await deleteRuntimesV2({ page, billingProject, workspaceName });
