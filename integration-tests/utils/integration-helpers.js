@@ -45,6 +45,7 @@ const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`;
 const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceName, timeout = defaultTimeout }) => {
   await page.evaluate(
     async ({ billingProject, workspaceName, timeout }) => {
+      console.info('waitForAccessToWorkspaceBucket ...');
       const {
         workspace: { googleProject, bucketName },
       } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace', 'azureContext']);
@@ -104,12 +105,11 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   return { page, billingProject, workspaceName };
 });
 
-const waitForAccess = async ({ page, billingProject, workspaceName }) => {
-  await waitForAccessToWorkspaceBucket();
-  return { page, billingProject, workspaceName };
+const makeGcpWorkspace = async (options) => {
+  const workspaceOptions = await makeWorkspace(options);
+  await waitForAccessToWorkspaceBucket(workspaceOptions);
+  return workspaceOptions;
 };
-
-const makeGcpWorkspace = _.flow(makeWorkspace, waitForAccess);
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
