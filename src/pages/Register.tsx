@@ -239,33 +239,22 @@ const Register = () => {
       </div>
       <h3 style={{ marginTop: '2rem' }}>I am most interested in using Terra to (Check all that apply):</h3>
       <CheckboxLine>
-        <InterestInTerraCheckbox
-          title="Collaborate with individuals within my organization"
-          interestInTerra={interestInTerra}
-          setFunc={setInterestInTerra}
-        />
-        <InterestInTerraCheckbox
-          title="Collaborate with individuals outside of my organization"
-          interestInTerra={interestInTerra}
-          setFunc={setInterestInTerra}
-        />
-        <InterestInTerraCheckbox title="Access data" interestInTerra={interestInTerra} setFunc={setInterestInTerra} />
-        <InterestInTerraCheckbox
-          title="Manage datasets"
-          interestInTerra={interestInTerra}
-          setFunc={setInterestInTerra}
-        />
-        <InterestInTerraCheckbox
-          title="Launch workflows"
-          interestInTerra={interestInTerra}
-          setFunc={setInterestInTerra}
-        />
-        <InterestInTerraCheckbox
-          title="Complete interactive analyses"
-          interestInTerra={interestInTerra}
-          setFunc={setInterestInTerra}
-        />
-        <InterestInTerraCheckbox title="Build Tools" interestInTerra={interestInTerra} setFunc={setInterestInTerra} />
+        {_.map(
+          (title: string) => {
+            return (
+              <InterestInTerraCheckbox title={title} interestInTerra={interestInTerra} setFunc={setInterestInTerra} />
+            );
+          },
+          [
+            'Collaborate with individuals within my organization',
+            'Collaborate with individuals outside of my organization',
+            'Access data',
+            'Manage datasets',
+            'Launch workflows',
+            'Complete interactive analyses',
+            'Build Tools',
+          ]
+        )}
       </CheckboxLine>
       <h3 style={{ marginTop: '2rem' }}>Communication Preferences</h3>
       <CommunicationPreferencesCheckbox
