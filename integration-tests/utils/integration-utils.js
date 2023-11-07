@@ -462,7 +462,7 @@ const withPageLogging = (fn) => async (options) => {
   return await fn(options);
 };
 
-const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['networkidle0'], timeout });
+const navOptionNetworkIdle = (timeout = Millis.ofMinute) => ({ waitUntil: ['networkidle0'], timeout });
 
 const gotoPage = async (page, url) => {
   const retryOptions = {

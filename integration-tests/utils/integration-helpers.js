@@ -1,20 +1,22 @@
 const _ = require('lodash/fp');
 const uuid = require('uuid');
 const {
+  Millis,
   click,
   clickable,
+  delay,
   dismissNotifications,
+  enablePageLogging,
   fillIn,
   findText,
   gotoPage,
   input,
   label,
+  navChild,
+  navOptionNetworkIdle,
+  noSpinnersAfter,
   signIntoTerra,
   waitForNoSpinners,
-  navChild,
-  noSpinnersAfter,
-  navOptionNetworkIdle,
-  enablePageLogging,
 } = require('./integration-utils');
 const { fetchLyle } = require('./lyle-utils');
 
@@ -262,7 +264,14 @@ const enableDataCatalog = async (page) => {
 
 const clickNavChildAndLoad = async (page, tab) => {
   // click triggers a page navigation event
-  await Promise.all([page.waitForNavigation(navOptionNetworkIdle()), noSpinnersAfter(page, { action: () => click(page, navChild(tab)) })]);
+  await Promise.all([
+    page.waitForNavigation(navOptionNetworkIdle(Millis.ofMinute)),
+    noSpinnersAfter(page, {
+      action: () => click(page, navChild(tab)),
+      timeout: Millis.ofMinute,
+      debugMessage: `clickNavChildAndLoad ${tab}`,
+    }),
+  ]);
 };
 
 const viewWorkspaceDashboard = async (page, token, workspaceName) => {
@@ -272,6 +281,9 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   await dismissNotifications(page);
   await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) });
+
+  // TODO [IA-4682] fix race condition that causes infinite spinner on Analyses page without this delay
+  await delay(Millis.ofSecond);
 };
 
 const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
@@ -280,7 +292,6 @@ const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
   await viewWorkspaceDashboard(page, token, workspaceName);
   await clickNavChildAndLoad(page, 'analyses');
   await findText(page, 'Your Analyses');
-  await waitForNoSpinners(page);
   await dismissNotifications(page);
 };
 
