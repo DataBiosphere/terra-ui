@@ -19,7 +19,7 @@ module.exports = {
   },
   staging: {
     billingProject: 'saturn-integration-test-stage',
-    billingProjectAzure: 'dsp-general-azure-sc-20230916',
+    billingProjectAzure: 'dsp-staging-testing-20230915',
     snapshotColumnName: 'VCF_File_Name',
     snapshotId: 'a5624b5c-df41-4a02-8013-d3b6cd51b22a',
     snapshotTableName: 'vcf_file',
