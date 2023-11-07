@@ -1,6 +1,6 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { abandonedPromise, DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { act, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
@@ -414,5 +414,59 @@ describe('NewWorkspaceModal', () => {
     // Assert
     screen.getByText('Google Billing Project');
     expect(screen.queryByText('Azure Billing Project')).toBeNull();
+  });
+
+  describe('while creating a workspace', () => {
+    beforeEach(async () => {
+      // Arrange
+      const user = userEvent.setup();
+
+      const createWorkspace = jest.fn().mockReturnValue(abandonedPromise());
+
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [gcpBillingProject, azureBillingProject],
+            },
+            Workspaces: {
+              create: createWorkspace,
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
+      );
+
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            onSuccess: () => {},
+            onDismiss: () => {},
+          })
+        );
+      });
+
+      // Act
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      act(() => {
+        fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+      });
+
+      const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+      await projectSelect.selectOption(/Google Billing Project/);
+
+      const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+      await user.click(createWorkspaceButton);
+    });
+
+    it('shows message', () => {
+      // Assert
+      screen.getByText(/Creating and provisioning your workspace./);
+      screen.getByText(/This may take a few minutes./);
+    });
+
+    it('hides buttons', () => {
+      // Assert
+      expect(screen.queryByRole('button')).toBeNull();
+    });
   });
 });
