@@ -44,7 +44,7 @@ import { contactUsActive, getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { UseWorkspacesState, UseWorkspacesStateResult } from 'src/workspaces/useWorkspacesData';
+import { UseWorkspacesState, UseWorkspacesStateResult } from 'src/workspaces/useWorkspaces.models';
 
 import { DeleteAppModal } from './DeleteAppModal';
 import { DeleteButton } from './DeleteButton';

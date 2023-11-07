@@ -34,6 +34,8 @@ describe('useAutoLoadedData', () => {
       state: 'happy data',
     };
 
+    expect(onSuccess).toBeCalledTimes(1);
+    expect(onSuccess).toBeCalledWith(expectedStateFinal);
     expect(hookResult1[0]).toEqual(expectedState1);
     expect(hookResultFinal[0]).toEqual(expectedStateFinal);
   });

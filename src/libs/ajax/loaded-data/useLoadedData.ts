@@ -2,7 +2,7 @@ import { ErrorState, LoadedState, ReadyState } from '@terra-ui-packages/core-uti
 import { useCallback, useEffect, useState } from 'react';
 import { usePrevious } from 'src/libs/react-utils';
 
-export interface UseLoadedDataArgs<T> {
+export interface UseLoadedDataArgs<S, E = unknown> {
   /**
    * An optional handler that will be called if there is an error.
    * Note that LoadedData object typing already allows expression of error status, convenient for consumption by
@@ -14,7 +14,7 @@ export interface UseLoadedDataArgs<T> {
    *   onError: (errState) => ReportError(errState.error)
    * })
    */
-  onError?: (state: ErrorState<T, unknown>) => void;
+  onError?: (state: ErrorState<S, E>) => void;
 
   /**
    * An optional handler that will be called on successful data load.
@@ -27,13 +27,31 @@ export interface UseLoadedDataArgs<T> {
    *   onError: (readyState) => doSomething(readyState.state)
    * })
    */
-  onSuccess?: (state: ReadyState<T>) => void;
+  onSuccess?: (state: ReadyState<S>) => void;
 }
 
 /**
  * The Tuple returned by useLoadedData custom helper hook
  */
-export type UseLoadedDataResult<T> = [LoadedState<T, unknown>, (dataCall: () => Promise<T>) => Promise<void>];
+export type UseLoadedDataResult<T, E = unknown> = [LoadedState<T, E>, (dataCall: () => Promise<T>) => Promise<void>];
+
+export type LoadedDataEvents<S, E = unknown> = Pick<UseLoadedDataArgs<S, E>, 'onSuccess' | 'onError'>;
+
+export const useLoadedDataEvents = <S, E = unknown>(loadedData: LoadedState<S, E>, events: LoadedDataEvents<S, E>) => {
+  const { onSuccess, onError } = events;
+  const previousStatus = usePrevious(loadedData.status);
+
+  useEffect(() => {
+    if (loadedData.status === 'Error' && previousStatus !== 'Error') {
+      onError?.(loadedData);
+    }
+  }, [loadedData, previousStatus, onError]);
+  useEffect(() => {
+    if (loadedData.status === 'Ready' && previousStatus === 'Loading') {
+      onSuccess?.(loadedData);
+    }
+  }, [loadedData, previousStatus, onSuccess]);
+};
 
 /**
  * A custom helper hook that will handle typical async data call mechanics and translate the possible outcomes to
@@ -58,45 +76,35 @@ export type UseLoadedDataResult<T> = [LoadedState<T, unknown>, (dataCall: () => 
  */
 export const useLoadedData = <T>(hookArgs?: UseLoadedDataArgs<T>): UseLoadedDataResult<T> => {
   const args: UseLoadedDataArgs<T> = hookArgs || {};
-  const { onError, onSuccess } = args;
   const [loadedData, setLoadedData] = useState<LoadedState<T, unknown>>({ status: 'None' });
-  const previousStatus = usePrevious(loadedData.status);
-  useEffect(() => {
-    if (loadedData.status === 'Error' && previousStatus !== 'Error') {
-      onError?.(loadedData);
-    }
-  }, [loadedData, previousStatus, onError]);
-  const updateDataFn = useCallback(
-    async (dataCall: () => Promise<T>) => {
+  useLoadedDataEvents(loadedData, args);
+  const updateDataFn = useCallback(async (dataCall: () => Promise<T>) => {
+    setLoadedData((previousLoadedData) => {
+      const previousState = previousLoadedData.status !== 'None' ? previousLoadedData.state : null;
+      return {
+        status: 'Loading',
+        state: previousState,
+      };
+    });
+    try {
+      const result = await dataCall();
+      const readyState: ReadyState<T> = {
+        status: 'Ready',
+        state: result,
+      };
+      setLoadedData(readyState);
+    } catch (err: unknown) {
+      const error = err instanceof Response ? Error(await err.text()) : err;
       setLoadedData((previousLoadedData) => {
         const previousState = previousLoadedData.status !== 'None' ? previousLoadedData.state : null;
-        return {
-          status: 'Loading',
+        const errorResult: ErrorState<T, unknown> = {
+          status: 'Error',
           state: previousState,
+          error,
         };
+        return errorResult;
       });
-      try {
-        const result = await dataCall();
-        const readyState: ReadyState<T> = {
-          status: 'Ready',
-          state: result,
-        };
-        setLoadedData(readyState);
-        onSuccess?.(readyState);
-      } catch (err: unknown) {
-        const error = err instanceof Response ? Error(await err.text()) : err;
-        setLoadedData((previousLoadedData) => {
-          const previousState = previousLoadedData.status !== 'None' ? previousLoadedData.state : null;
-          const errorResult: ErrorState<T, unknown> = {
-            status: 'Error',
-            state: previousState,
-            error,
-          };
-          return errorResult;
-        });
-      }
-    },
-    [onSuccess]
-  );
+    }
+  }, []);
   return [loadedData, updateDataFn];
 };

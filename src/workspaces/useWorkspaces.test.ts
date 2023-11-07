@@ -1,5 +1,6 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { workspaceProvider } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
+import { reportError } from 'src/libs/error';
 import { workspacesStore } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
@@ -15,10 +16,21 @@ jest.mock(
   })
 );
 
+type ErrorExports = typeof import('src/libs/error');
+jest.mock(
+  'src/libs/error',
+  (): ErrorExports => ({
+    ...jest.requireActual('src/libs/error'),
+    reportError: jest.fn(),
+  })
+);
+
 describe('useWorkspaces hook', () => {
+  beforeEach(() => {
+    workspacesStore.set([]);
+  });
   it('calls workspaces provider and retains state in workspacesStore', async () => {
     // Arrange
-
     asMockedFn(workspaceProvider.list).mockResolvedValue([
       { workspace: { name: 'myWorkspace' } } satisfies DeepPartial<WorkspaceWrapper> as WorkspaceWrapper,
     ]);
@@ -31,5 +43,20 @@ describe('useWorkspaces hook', () => {
     expect(workspaceProvider.list).toBeCalledTimes(1);
     expect(hookRender1.result.current.workspaces).toEqual(expectedWorkspaces);
     expect(workspacesStore.get()).toEqual(expectedWorkspaces);
+  });
+
+  it('handles error', async () => {
+    // Arrange
+    asMockedFn(workspaceProvider.list).mockRejectedValue(new Error('BOOM!'));
+
+    // Act
+    const hookRender1 = await renderHookInAct(useWorkspaces);
+
+    // Assert
+    expect(workspaceProvider.list).toBeCalledTimes(1);
+    expect(hookRender1.result.current.workspaces).toEqual([]);
+    expect(workspacesStore.get()).toEqual([]);
+    expect(reportError).toBeCalledTimes(1);
+    expect(reportError).toBeCalledWith('Error loading workspace list');
   });
 });
