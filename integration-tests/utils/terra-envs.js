@@ -10,6 +10,7 @@ module.exports = {
   },
   alpha: {
     billingProject: 'saturn-integration-test-alpha',
+    billingProjectAzure: '',
     snapshotColumnName: 'VCF_File_Name',
     snapshotId: 'd56f4db5-b6c6-4a7e-8be2-ff6aa21c4fa6',
     snapshotTableName: 'vcf_file',
@@ -18,6 +19,7 @@ module.exports = {
   },
   staging: {
     billingProject: 'saturn-integration-test-stage',
+    billingProjectAzure: 'dsp-general-azure-sc-20230916',
     snapshotColumnName: 'VCF_File_Name',
     snapshotId: 'a5624b5c-df41-4a02-8013-d3b6cd51b22a',
     snapshotTableName: 'vcf_file',
