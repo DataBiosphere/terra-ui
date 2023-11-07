@@ -118,6 +118,7 @@ const eventsList = {
   workflowRerun: 'workflow:rerun',
   workflowUploadIO: 'workflow:uploadIO',
   workflowUseDefaultOutputs: 'workflow:useDefaultOutputs',
+  workflowsAppImport: 'workflowsApp:import',
   workflowsAppLaunchWorkflow: 'workflowsApp:launchWorkflow',
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
