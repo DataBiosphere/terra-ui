@@ -18,7 +18,7 @@ import {
 import Dropzone from 'src/components/Dropzone';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
-import { DelayedAutocompleteTextArea, DelayedSearchInput, NumberInput } from 'src/components/input';
+import { DelayedAutocompleteTextArea, DelayedSearchInput, NumberInput, TextInput } from 'src/components/input';
 import { MarkdownViewer } from 'src/components/markdown';
 import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
@@ -745,6 +745,9 @@ const WorkflowView = _.flow(
         retryMemoryFactor,
         ignoreEmptyOutputs,
         expandResourceMonitoring,
+        resourceMonitoringScript,
+        resourceMonitoringImage,
+        resourceMonitoringImageScript,
         currentSnapRedacted,
         savedSnapRedacted,
         wdl,
@@ -1114,21 +1117,57 @@ const WorkflowView = _.flow(
                   ),
                 ]),
                 h(InfoBox, ['Do not create output columns if the data is null/empty. ']),
-                isFeaturePreviewEnabled(ENABLE_WORKFLOW_RESOURCE_MONITORING) &&
-                  span({ style: styles.checkBoxSpanMargins }, [
-                    h(
-                      LabeledCheckbox,
-                      {
-                        checked: expandResourceMonitoring,
-                        onChange: (v) => this.setState({ expandResourceMonitoring: v }),
-                        style: styles.checkBoxLeftMargin,
-                      },
-                      [' Resource monitoring']
-                    ),
-                  ]),
-                h(InfoBox, [
-                  'Specify user-provided tools to monitor task resources. ',
-                  h(Link, { href: 'https://cromwell.readthedocs.io/en/stable/wf_options/Google/', ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                div({}, [
+                  isFeaturePreviewEnabled(ENABLE_WORKFLOW_RESOURCE_MONITORING) &&
+                    span({ style: styles.checkBoxSpanMargins }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          checked: expandResourceMonitoring,
+                          onChange: (v) => this.setState({ expandResourceMonitoring: v }),
+                          style: styles.checkBoxLeftMargin,
+                        },
+                        [' Resource monitoring']
+                      ),
+                    ]),
+                  isFeaturePreviewEnabled(ENABLE_WORKFLOW_RESOURCE_MONITORING) &&
+                    h(InfoBox, [
+                      'Specify user-provided tools to monitor task resources. ',
+                      h(Link, { href: 'https://cromwell.readthedocs.io/en/stable/wf_options/Google/', ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    ]),
+                  expandResourceMonitoring &&
+                    div({ style: { display: 'flex', flexDirection: 'column', marginLeft: '2.0rem', width: '20rem', key: 'textFieldsParent' } }, [
+                      div({ display: 'flex', flexDirection: 'row' }, [
+                        h(TextInput, {
+                          id: 'resource-monitoring-script',
+                          placeholder: 'Script',
+                          value: resourceMonitoringScript,
+                          onChange: (v) => this.setState({ resourceMonitoringScript: v }),
+                          style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
+                        }),
+                        h(InfoBox, ['Standalone .sh script that runs inside task container']),
+                      ]),
+                      div({ display: 'flex', flexDirection: 'row' }, [
+                        h(TextInput, {
+                          id: 'resource-monitoring-image',
+                          placeholder: 'Image',
+                          value: resourceMonitoringImage,
+                          onChange: (v) => this.setState({ resourceMonitoringImage: v }),
+                          style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
+                        }),
+                        h(InfoBox, ['Image that runs as a sibling alongside task container']),
+                      ]),
+                      div({ display: 'flex', flexDirection: 'row' }, [
+                        h(TextInput, {
+                          id: 'resource-monitoring-image-script',
+                          placeholder: 'Image script',
+                          value: resourceMonitoringImageScript,
+                          onChange: (v) => this.setState({ resourceMonitoringImageScript: v }),
+                          style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
+                        }),
+                        h(InfoBox, ['Script that runs inside the sibling container']),
+                      ]),
+                    ]),
                 ]),
               ]),
               h(StepButtons, {
