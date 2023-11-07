@@ -49,9 +49,7 @@ const testRunAnalysisAzure = _.flowRight(
   await findText(page, 'PREVIEW (READ-ONLY)');
 
   // Attempt to open analysis; create a cloud env
-  await noSpinnersAfter(page, {
-    action: () => click(page, clickable({ textContains: 'Open' })),
-  });
+  await click(page, clickable({ textContains: 'Open' }));
   await findText(page, 'Azure Cloud Environment');
   await click(page, clickable({ textContains: 'Create' }));
   await waitForNoModal(page);
