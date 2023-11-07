@@ -54,7 +54,7 @@ const TitleBar = ({
             {
               'aria-label': 'Close',
               style: {
-                /* marginLeft: '2rem' */
+                marginLeft: '2rem',
               },
               tabIndex: hideCloseButton ? -1 : 0,
               'aria-disabled': hideCloseButton,

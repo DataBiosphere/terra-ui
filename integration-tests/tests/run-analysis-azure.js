@@ -1,7 +1,7 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
 const uuid = require('uuid');
-const { deleteAppsV2, deleteRuntimesV2, withWorkspaceAzure, performAnalysisTabSetup } = require('../utils/integration-helpers');
+const { deleteRuntimesV2, withWorkspaceAzure, performAnalysisTabSetup } = require('../utils/integration-helpers');
 const {
   Millis,
   click,
@@ -79,7 +79,6 @@ const testRunAnalysisAzure = _.flowRight(
 
   // Cleanup
   await deleteRuntimesV2({ page, billingProject, workspaceName });
-  await deleteAppsV2({ page, billingProject, workspaceName });
 });
 
 registerTest({

@@ -109,7 +109,7 @@ const waitForAccess = async ({ page, billingProject, workspaceName }) => {
   return { page, billingProject, workspaceName };
 };
 
-const makeWorkspaceGcp = _.flow(makeWorkspace, waitForAccess);
+const makeGcpWorkspace = _.flow(makeWorkspace, waitForAccess);
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
@@ -147,7 +147,7 @@ const deleteWorkspaceV2 = withSignedInPage(async ({ page, billingProject, worksp
 
 const withWorkspace = (test) => async (options) => {
   console.log('withWorkspace ...');
-  const { workspaceName } = await makeWorkspaceGcp(options);
+  const { workspaceName } = await makeGcpWorkspace(options);
 
   try {
     await test({ ...options, workspaceName });
@@ -244,26 +244,6 @@ const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
   console.info(`deleted v2 runtimes: ${deletedRuntimes}`);
 };
 
-const deleteAppsV2 = async ({ page, billingProject, workspaceName }) => {
-  const deletedApps = await page.evaluate(
-    async (billingProject, workspaceName) => {
-      const {
-        workspace: { workspaceId },
-      } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace.workspaceId']);
-      const apps = await window.Ajax().Apps.listAppsV2(workspaceId);
-      return Promise.all(
-        _.map(async (app) => {
-          await window.Ajax().Apps.app(app.cloudContext.cloudResource, app.appName).delete();
-          return app.appName;
-        }, _.remove({ status: 'Deleting' }, apps))
-      );
-    },
-    billingProject,
-    workspaceName
-  );
-  console.info(`deleted v2 apps: ${deletedApps}`);
-};
-
 const navigateToDataCatalog = async (page, testUrl, token) => {
   await gotoPage(page, testUrl);
   await waitForNoSpinners(page);
@@ -307,7 +287,6 @@ module.exports = {
   clickNavChildAndLoad,
   createEntityInWorkspace,
   defaultTimeout,
-  deleteAppsV2,
   deleteRuntimes,
   deleteRuntimesV2,
   navigateToDataCatalog,

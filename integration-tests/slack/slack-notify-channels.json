@@ -22,6 +22,9 @@
         },
         {
           "name": "analysis-context-bar"
+        },
+        {
+          "name": "run-analysis-azure"
         }
       ]
     },
