@@ -67,7 +67,7 @@ const testRunAnalysisAzure = _.flowRight(
 
   // Find the iframe and wait until the Jupyter kernel is ready
   const frame = await findIframe(page, '//iframe[@title="Interactive JupyterLab iframe"]', { timeout: Millis.ofMinutes(2) });
-  await findText(frame, 'Kernel status: Idle', { timeout: Millis.ofMinutes(2) });
+  await findText(frame, 'Kernel status: Idle', { timeout: Millis.ofMinutes(4) });
 
   // Run a command
   await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)');

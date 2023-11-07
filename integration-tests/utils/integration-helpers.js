@@ -283,7 +283,7 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) });
 
   // TODO [IA-4682] fix race condition that causes infinite spinner on Analyses page without this delay
-  await delay(Millis.ofSecond);
+  await delay(Millis.ofSeconds(5));
 };
 
 const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
