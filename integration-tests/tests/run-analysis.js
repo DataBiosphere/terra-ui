@@ -50,7 +50,7 @@ const testRunAnalysisFn = _.flowRight(
   await noSpinnersAfter(page, {
     action: () => click(page, clickable({ textContains: 'Open' })),
   });
-  await findText(page, 'Azure Cloud Environment');
+  await findText(page, 'Jupyter Cloud Environment');
   await click(page, clickable({ text: 'Create' }));
   await waitForNoModal(page);
 
