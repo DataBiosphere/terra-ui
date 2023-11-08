@@ -172,7 +172,7 @@ const withAzureWorkspace = (test) => async (options) => {
   try {
     await test({ ...options, workspaceName });
   } finally {
-    console.log('withAzureWorkspace cleanup ...', options, workspaceName);
+    console.log('withAzureWorkspace cleanup ...');
     await deleteWorkspaceV2({ ...options, workspaceName });
   }
 };
@@ -265,7 +265,7 @@ const enableDataCatalog = async (page) => {
 const clickNavChildAndLoad = async (page, tab) => {
   // click triggers a page navigation event
   await Promise.all([
-    page.waitForNavigation(navOptionNetworkIdle(Millis.ofMinute)),
+    page.waitForNavigation(navOptionNetworkIdle()),
     noSpinnersAfter(page, {
       action: () => click(page, navChild(tab)),
       timeout: Millis.ofMinute,
@@ -281,15 +281,14 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   await dismissNotifications(page);
   await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) });
-
-  // TODO [IA-4682] fix race condition that causes infinite spinner on Analyses page without this delay
-  await delay(Millis.ofSeconds(5));
 };
 
 const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
   await gotoPage(page, testUrl);
   await findText(page, 'View Workspaces');
   await viewWorkspaceDashboard(page, token, workspaceName);
+  // TODO [IA-4682] fix race condition that causes infinite spinner on Analyses page without this delay
+  await delay(Millis.ofSeconds(5));
   await clickNavChildAndLoad(page, 'analyses');
   await findText(page, 'Your Analyses');
   await dismissNotifications(page);
