@@ -514,8 +514,6 @@ export const BaseAnalyses = (
         .Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name)
         .listActiveFileTransfers();
       setActiveFileTransfers(!_.isEmpty(fileTransfers));
-
-      await refreshRuntimes();
     });
     if (workspace?.workspaceInitialized) {
       load();
