@@ -100,20 +100,17 @@ jobs:
         shell: bash
         run: cd terraui && yarn install
 
-      # Current (Jul 2023) test implementation requires SA Keys to be made available (lyle-utilts.js, terra-sa-utils.js)
-      - name: "assemble Service Account Keys"
+      - name: Auth Lyle to GCP
+        id: 'lyle-auth'
+        uses: google-github-actions/auth@v0
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
+          service_account: 'dsp-artifact-registry-push@dsp-artifact-registry.iam.gserviceaccount.com'
+
+      - name: "set env vars"
         run: |
-          echo \
-          LYLE_SA_KEY=$(jq --null-input \
-          --arg client_email "${{ secrets.LYLE_CLIENT_EMAIL }}" \
-          --arg key"${{ secrets.LYLE_PRIVATE_KEY }}" \
-          '{"client_email": $client_email, "key": $key}') >> $GITHUB_ENV
-          
-          echo \
-          TERRA_SA_KEY=$(jq --null-input \
-          --arg client_email "${{ secrets.FIRECLOUD_ACCOUNT_CLIENT_EMAIL }}" \
-          --arg key "${{ secrets.FIRECLOUD_ACCOUNT_PRIVATE_KEY }}" \
-          '{"client_email": $client_email, "key": $key}') >> $GITHUB_ENV
+          echo "LYLE_ACCESS_TOKEN=${{ steps.auth.outputs.access_token }}" >> $GITHUB_ENV
 
       - name: "Run Integration Tests"
         shell: bash
