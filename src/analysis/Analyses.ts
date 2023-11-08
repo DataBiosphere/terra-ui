@@ -17,7 +17,7 @@ import {
   getDisplayName,
   getExtension,
   getFileName,
-  notebookLockHash,
+  notebookLockHash
 } from 'src/analysis/utils/file-utils';
 import { getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import {
@@ -26,7 +26,7 @@ import {
   RuntimeToolLabel,
   runtimeToolLabels,
   runtimeTools,
-  ToolLabel,
+  ToolLabel
 } from 'src/analysis/utils/tool-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
@@ -37,7 +37,7 @@ import {
   DeleteConfirmationModal,
   IdContainer,
   Link,
-  spinnerOverlay,
+  spinnerOverlay
 } from 'src/components/common';
 import Dropzone from 'src/components/Dropzone';
 import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal';
@@ -70,7 +70,7 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { canWrite, isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo } from 'src/libs/workspace-utils';
-import { InitializedWorkspaceWrapper, StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
+import { InitializedWorkspaceWrapper, StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const tableFields = {

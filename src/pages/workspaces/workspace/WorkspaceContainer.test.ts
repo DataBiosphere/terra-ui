@@ -9,7 +9,7 @@ import { WorkspaceContainer } from 'src/pages/workspaces/workspace/WorkspaceCont
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
-import { InitializedWorkspaceWrapper } from './useWorkspace';
+import { InitializedWorkspaceWrapper } from '../hooks/useWorkspace';
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock(
