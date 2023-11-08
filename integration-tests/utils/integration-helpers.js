@@ -20,7 +20,8 @@ const {
 } = require('./integration-utils');
 const { fetchLyle } = require('./lyle-utils');
 
-const defaultTimeout = 5 * 60 * 1000;
+/** Long timeout for bucket propagation and full test runs. */
+const defaultTimeout = Millis.ofMinutes(5);
 
 const withSignedInPage = (fn) => async (options) => {
   const { context, testUrl, token } = options;
@@ -280,6 +281,8 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   await click(page, clickable({ textContains: 'View Workspaces' }));
   await dismissNotifications(page);
   await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
+  // Wait for workspace table to rerender filtered items
+  await delay(Millis.of(300));
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) });
 };
 

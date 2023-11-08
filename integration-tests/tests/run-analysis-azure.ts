@@ -82,7 +82,7 @@ const testRunAnalysisAzure = _.flowRight(
   await findText(frame, 'Kernel status: Idle', { timeout: Millis.ofMinutes(4) });
 
   // Run a command
-  await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)');
+  await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)', { initialDelay: Millis.ofSecond });
   await click(frame, '//button[starts-with(@title, "Run the selected cells and advance")]');
   await findText(frame, '123456789099886419754209');
 

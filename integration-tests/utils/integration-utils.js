@@ -163,10 +163,15 @@ const label = ({ labelContains }) => {
   return `(//label[contains(normalize-space(.),"${labelContains}")])`;
 };
 
-const fillIn = async (page, xpath, text) => {
+const fillIn = async (page, xpath, text, { initialDelay = Millis.none } = {}) => {
   const input = await page.waitForXPath(xpath, defaultToVisibleTrue());
-  await delay(1000);
-  await input.type(text, { delay: 20 });
+
+  // Sometimes the first few characters of the typed text are dropped; explicit focus + a delay helps avoid this
+  await input.focus();
+  await delay(initialDelay);
+
+  // Actually type the text
+  await input.type(text, { delay: Millis.of(20) });
   // There are several places (e.g. workspace list search) where the page responds dynamically to
   // typed input. That behavior could involve extra renders as component state settles. We strive to
   // avoid the kinds of complex, multi-stage state transitions that can result in extra renders.
@@ -178,7 +183,7 @@ const fillIn = async (page, xpath, text) => {
   // unnecessary renders. It is to check that some specific critical paths through the application
   // (Critical User Journeys) are not broken. Therefore, we'll delay briefly here instead of
   // charging forward at a super-human pace.
-  return delay(300); // withDebouncedChange in input.js specifies 250ms, so waiting longer than that
+  return delay(Millis.of(300)); // withDebouncedChange in input.js specifies 250ms, so waiting longer than that
 };
 
 // Replace pre-existing value
