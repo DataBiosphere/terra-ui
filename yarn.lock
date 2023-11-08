@@ -3027,6 +3027,7 @@ __metadata:
   resolution: "@terra-ui-packages/test-utils@workspace:packages/test-utils"
   dependencies:
     "@babel/core": ^7.16.0
+    "@babel/template": ^7.22.15
     "@jest/types": ^27.5.1
     "@terra-ui-packages/build-utils": ^1.0.0
     "@testing-library/jest-dom": ^5.17.0
