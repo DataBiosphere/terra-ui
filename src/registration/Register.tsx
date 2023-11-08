@@ -181,7 +181,7 @@ const Register = () => {
                 title={title}
                 interestInTerra={interestInTerra}
                 setFunc={setInterestInTerra}
-                key={_.uniqueId('')}
+                key={_.uniqueId('interest_')}
               />
             );
           },
