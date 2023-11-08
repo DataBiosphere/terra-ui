@@ -520,7 +520,8 @@ export const BaseAnalyses = (
     if (workspace?.workspaceInitialized) {
       load();
     }
-  }, [workspace, workspaceInfo.name, workspaceInfo.namespace, authState.terraUser.email, signal, refreshRuntimes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspace, workspaceInfo.name, workspaceInfo.namespace]);
 
   // We reference the analyses from `useAnalysisStore`, and on change, we decorate them from `AnalysisFile[]` to `DisplayAnalysisFile[]` and update state history
   useEffect(() => {
