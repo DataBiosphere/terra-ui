@@ -20,13 +20,16 @@ interface ProtectedDataStepProps {
 }
 
 export const ProtectedDataStep = (props: ProtectedDataStepProps) => {
-  return h(Step, { isActive: props.isActive, style: { minHeight: '15.0rem', paddingBottom: '0.5rem' } }, [
+  return h(Step, { isActive: props.isActive, style: { minHeight: '16.5rem', paddingBottom: '0.5rem' } }, [
     h(StepHeader, { title: 'STEP 2' }),
     h(StepFields, { style: { flexDirection: 'column' } }, [
-      h(StepFieldLegend, { style: { width: '100%' } }, ['Will you be working with controlled access data?']),
+      h(StepFieldLegend, { style: { width: '100%' } }, [
+        'Will you be working with data that requires additional security monitoring?',
+      ]),
       p({ style: { ...legendDetailsStyle, width: '95%' } }, [
         span([
-          'Choosing "Yes" will set up your environment with additional security monitoring. Please note this will incur additional usage cost.',
+          'Additional security monitoring is intended to fulfill requirements you may have for data governed by a compliance standard, such as federal controlled-access data or HIPAA protected data. ' +
+            'Please note this will incur additional usage cost.',
         ]),
         span({ style: { display: 'block' } }, [
           ExternalLink({
