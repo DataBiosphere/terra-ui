@@ -135,7 +135,6 @@ describe('WorkspaceContainer', () => {
       },
       refresh: () => Promise.resolve(),
       refreshWorkspace: () => {},
-      silentlyRefreshWorkspace: () => Promise.resolve(),
       breadcrumbs: [],
       title: '',
       analysesData: {
