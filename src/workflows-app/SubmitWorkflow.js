@@ -8,8 +8,8 @@ import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
-import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
-import { AppProxyUrlStatus, getTerraUser } from 'src/libs/state';
+import { useCancellation, usePollingEffect } from 'src/libs/react-utils';
+import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
@@ -62,20 +62,9 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       leading: false,
     });
 
-    useOnMount(() => {
-      const load = Utils.withBusyState(setLoading, async () => {
-        const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
-
-        if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-          await refreshApps(true);
-        }
-      });
-      load();
-    });
-
     usePollingEffect(
       () => {
-        const refresh = async () => await refreshApps(true);
+        const refresh = async () => await loadAppUrls(workspaceId, 'cbasProxyUrlState');
         if (!currentApp || getIsAppBusy(currentApp)) {
           refresh();
         }
