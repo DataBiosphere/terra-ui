@@ -11,6 +11,7 @@ import {
   jsonBody,
   makeRequestRetry,
 } from 'src/libs/ajax/ajax-common';
+import { RawRuntimeConfig } from 'src/libs/ajax/leonardo/models/api-runtime-config';
 import {
   getRegionFromZone,
   isAzureConfig,
@@ -18,7 +19,6 @@ import {
   isGceConfig,
   isGceWithPdConfig,
   NormalizedComputeRegion,
-  RawRuntimeConfig,
   RuntimeConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import {

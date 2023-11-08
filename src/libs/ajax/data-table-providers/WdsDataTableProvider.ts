@@ -12,7 +12,7 @@ import {
   TsvUploadButtonTooltipOptions,
   UploadParameters,
 } from 'src/libs/ajax/data-table-providers/DataTableProvider';
-import { LeoAppStatus, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { withErrorReporting } from 'src/libs/error';
 import { notify } from 'src/libs/notifications';
 import { notificationStore } from 'src/libs/state';
@@ -91,7 +91,7 @@ const getRelationParts = (val: unknown): string[] => {
 // Invokes logic to determine the appropriate app for WDS
 // If WDS is not running, a URL will not be present -- in some cases, this function may invoke
 // a new call to Leo to instantiate a WDS being available, thus having a valid URL
-export const resolveWdsApp = (apps: ListAppResponse[]): ListAppResponse | undefined => {
+export const resolveWdsApp = (apps: ListAppItem[]): ListAppItem | undefined => {
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING

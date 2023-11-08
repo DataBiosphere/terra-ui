@@ -2,7 +2,7 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { LeoAppStatus, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
@@ -63,7 +63,7 @@ describe('WorkspaceData', () => {
   };
   type SetupResult = {
     workspaceDataProps: WorkspaceDataProps;
-    listAppResponse: DeepPartial<ListAppResponse>;
+    listAppResponse: DeepPartial<ListAppItem>;
     mockGetSchema: jest.Mock;
     mockListAppsV2: jest.Mock;
   };
@@ -90,7 +90,7 @@ describe('WorkspaceData', () => {
     status = 'RUNNING',
     wdsUrl = 'http://fake.wds.url',
   }: SetupOptions): SetupResult {
-    const listAppResponse: DeepPartial<ListAppResponse> = {
+    const listAppResponse: DeepPartial<ListAppItem> = {
       proxyUrls: {
         wds: wdsUrl,
       },
