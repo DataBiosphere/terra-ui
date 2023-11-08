@@ -319,7 +319,7 @@ export const featuredWorkflowsData = [
               source: {
                 type: 'literal',
                 parameter_value:
-                  'https://lze033433beed5b4a6a47de6.blob.core.windows.net/sc-e3ac5af2-dc4f-42cc-9111-a6f37acfe21a/ref-sarscov2-NC_045512.2.fasta',
+                  'https://lza6bdb4ac5ff7bbc4bf6359.blob.core.windows.net/sc-fa554638-fc2b-42bd-b376-99db48fefd72/ref-sarscov2-NC_045512.2.fasta',
               },
             },
             {

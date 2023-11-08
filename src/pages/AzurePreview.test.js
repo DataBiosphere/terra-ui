@@ -1,14 +1,14 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { signOut } from 'src/libs/auth';
+import { signOut } from 'src/auth/auth';
 import { azurePreviewStore } from 'src/libs/state';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import AzurePreview from './AzurePreview';
 
-jest.mock('src/libs/auth', () => ({
-  ...jest.requireActual('src/libs/auth'),
+jest.mock('src/auth/auth', () => ({
+  ...jest.requireActual('src/auth/auth'),
   signOut: jest.fn(),
 }));
 

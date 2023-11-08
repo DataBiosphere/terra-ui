@@ -20,7 +20,6 @@ import {
   EnvironmentsProps,
   PauseButton,
 } from 'src/analysis/Environments/Environments';
-import { getNormalizedComputeRegion } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { AzureConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
@@ -58,6 +57,7 @@ const getMockLeoAppProvider = (overrides?: Partial<LeoAppProvider>): LeoAppProvi
     listWithoutProject: jest.fn(),
     pause: jest.fn(),
     delete: jest.fn(),
+    get: jest.fn(),
   };
   asMockedFn(defaultProvider.listWithoutProject).mockResolvedValue([]);
 
@@ -154,9 +154,7 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstRuntimeRow, 2)).toBe(runtime1.runtimeConfig.cloudService);
       expect(getTextContentForColumn(firstRuntimeRow, 3)).toBe(runtime1.labels.tool);
       expect(getTextContentForColumn(firstRuntimeRow, 5)).toBe(runtime1.status);
-      expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe(
-        _.toLower(getNormalizedComputeRegion(runtime1.runtimeConfig))
-      );
+      expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe(_.toLower(runtime1.runtimeConfig.normalizedRegion));
       expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(Utils.makeCompleteDate(runtime1.auditInfo.createdDate));
       expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(Utils.makeCompleteDate(runtime1.auditInfo.dateAccessed));
     });
@@ -195,9 +193,7 @@ describe('Environments', () => {
       expect(getTextContentForColumn(tableRows[2], 2)).toBe(runtime1.runtimeConfig.cloudService);
       expect(getTextContentForColumn(tableRows[2], 3)).toBe(runtime1.labels.tool);
       expect(getTextContentForColumn(tableRows[2], 5)).toBe(runtime1.status);
-      expect(getTextContentForColumn(tableRows[2], 6)).toBe(
-        _.toLower(getNormalizedComputeRegion(runtime1.runtimeConfig))
-      );
+      expect(getTextContentForColumn(tableRows[2], 6)).toBe(_.toLower(runtime1.runtimeConfig.normalizedRegion));
       expect(getTextContentForColumn(tableRows[2], 7)).toBe(Utils.makeCompleteDate(runtime1.auditInfo.createdDate));
       expect(getTextContentForColumn(tableRows[2], 8)).toBe(Utils.makeCompleteDate(runtime1.auditInfo.dateAccessed));
     });
@@ -618,6 +614,7 @@ describe('Environments', () => {
           expect.objectContaining({
             appName: app.appName,
             cloudContext: app.cloudContext,
+            workspaceId: app.workspaceId,
           } satisfies AppBasics)
         );
       } else {

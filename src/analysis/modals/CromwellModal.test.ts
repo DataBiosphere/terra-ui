@@ -19,6 +19,7 @@ const defaultAjaxImpl = {
   listAppsV2: jest.fn(),
   createAppV2: jest.fn(),
   deleteAppV2: jest.fn(),
+  getAppV2: jest.fn(),
 };
 
 const defaultCromwellProps = {

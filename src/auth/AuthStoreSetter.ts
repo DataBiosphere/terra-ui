@@ -1,8 +1,8 @@
 import _ from 'lodash/fp';
 import { useEffect } from 'react';
 import { AuthContextProps, useAuth } from 'react-oidc-context';
+import { loadAuthToken, loadOidcUser } from 'src/auth/auth';
 import { OidcUser } from 'src/auth/oidc-broker';
-import { loadAuthToken, loadOidcUser } from 'src/libs/auth';
 import { useOnMount } from 'src/libs/react-utils';
 import { oidcStore } from 'src/libs/state';
 
