@@ -15,7 +15,6 @@ import { CommunicationPreferencesCheckbox } from 'src/registration/Communication
 import { InterestInTerraCheckbox } from 'src/registration/InterestInTerraCheckbox';
 import { LabelledTextInput } from 'src/registration/LabelledTextInput';
 import validate from 'validate.js';
-import { useUniqueId } from '@terra-ui-packages/components';
 
 const constraints = (partOfOrg: boolean) => {
   return {
@@ -182,7 +181,7 @@ const Register = () => {
                 title={title}
                 interestInTerra={interestInTerra}
                 setFunc={setInterestInTerra}
-                key={useUniqueId()}
+                key={_.uniqueId('')}
               />
             );
           },
