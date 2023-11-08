@@ -3,6 +3,7 @@
  * See https://github.com/DataBiosphere/terra-ui/wiki/Mocking-API-Responses.
  */
 
+import { ensureAuthSettled } from 'src/auth/auth';
 import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { AjaxOverride, ajaxOverridesStore, getTerraUser } from 'src/libs/state';
 
@@ -121,6 +122,21 @@ export const overrideAppsWithLocalWDS = async (workspaceId?: string) => {
 
   ajaxOverridesStore.set(ajaxOverrides);
 };
+
+/**
+ * Allow automatically overriding apps for a workspace by starting the Terra UI
+ * dev server with an environment variable set.
+ * TERRA_UI_USE_LOCAL_WDS_FOR_WORKSPACE should contain the ID of the workspace
+ * to use the local WDS instance for.
+ */
+if (import.meta.env.TERRA_UI_USE_LOCAL_WDS_FOR_WORKSPACE) {
+  (async () => {
+    // A token is needed to make requests to the local WDS.
+    // Wait for the user to be loaded before attempting to do so.
+    await ensureAuthSettled();
+    overrideAppsWithLocalWDS(import.meta.env.TERRA_UI_USE_LOCAL_WDS_FOR_WORKSPACE);
+  })();
+}
 
 /**
  * Utilities to be exposed as globals.
