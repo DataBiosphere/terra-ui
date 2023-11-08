@@ -89,10 +89,12 @@ export const WorkflowsAppNavPanel = ({
   const [selectedSubHeader, setSelectedSubHeader] = useQueryParameter('tab');
 
   useEffect(() => {
-    if (!(selectedSubHeader in subHeadersMap || selectedSubHeader in findAndAddSubheadersMap)) {
+    if (
+      !(selectedSubHeader in subHeadersMap || (workspace.canCompute && selectedSubHeader in findAndAddSubheadersMap))
+    ) {
       setSelectedSubHeader('workspace-workflows');
     }
-  }, [selectedSubHeader, setSelectedSubHeader]);
+  }, [workspace, selectedSubHeader, setSelectedSubHeader]);
 
   const isSubHeaderActive = (subHeader: string) => pageReady && selectedSubHeader === subHeader;
 
@@ -138,13 +140,22 @@ export const WorkflowsAppNavPanel = ({
           Collapse,
           {
             style: { borderBottom: `1px solid ${colors.dark(0.2)}` },
-            title: span({ style: { color: !pageReady ? colors.disabled() : colors.accent(), fontSize: 15 } }, [
-              'Find & add workflows',
-            ]),
-            initialOpenState: pageReady,
+            title: span(
+              {
+                style: {
+                  color: !pageReady || !workspace.canCompute ? colors.disabled() : colors.accent(),
+                  fontSize: 15,
+                },
+              },
+              ['Find & add workflows']
+            ),
+            tooltip: !workspace.canCompute
+              ? 'You must be a workspace writer/owner to add workflows to this workspace. To import (and run) workflows, you can clone this workspace.'
+              : undefined,
+            initialOpenState: pageReady && workspace.canCompute,
             titleFirst: true,
             summaryStyle: { padding: '1rem 1rem 1rem 1.5rem' },
-            disabled: !pageReady,
+            disabled: !pageReady || !workspace.canCompute,
           },
           [
             div(
