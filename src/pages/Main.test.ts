@@ -44,19 +44,19 @@ jest.mock('src/analysis/runtime-common-components', (): RuntimeCommonComponentsE
   };
 });
 
-type AuthContainerExports = typeof import('src/components/AuthContainer') & { __esModule: true };
-jest.mock('src/components/AuthContainer', (): AuthContainerExports => {
+type AuthContainerExports = typeof import('src/auth/AuthContainer') & { __esModule: true };
+jest.mock('src/auth/AuthContainer', (): AuthContainerExports => {
   return {
-    ...jest.requireActual<AuthContainerExports>('src/components/AuthContainer'),
+    ...jest.requireActual<AuthContainerExports>('src/auth/AuthContainer'),
     default: jest.fn().mockImplementation(({ children }) => children),
     __esModule: true,
   };
 });
 
-type AuthStoreSetterExports = typeof import('src/components/AuthStoreSetter') & { __esModule: true };
-jest.mock('src/components/AuthStoreSetter', (): AuthStoreSetterExports => {
+type AuthStoreSetterExports = typeof import('src/auth/AuthStoreSetter') & { __esModule: true };
+jest.mock('src/auth/AuthStoreSetter', (): AuthStoreSetterExports => {
   return {
-    ...jest.requireActual<AuthStoreSetterExports>('src/components/AuthStoreSetter'),
+    ...jest.requireActual<AuthStoreSetterExports>('src/auth/AuthStoreSetter'),
     default: jest.fn().mockImplementation(({ children }) => children),
     __esModule: true,
   };

@@ -1,12 +1,12 @@
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h, h1, img } from 'react-hyperscript-helpers';
+import { signOut } from 'src/auth/auth';
 import { ButtonOutline, ButtonPrimary, ButtonSecondary } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown';
 import scienceBackground from 'src/images/science-background.jpg';
 import { Ajax } from 'src/libs/ajax';
-import { signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';

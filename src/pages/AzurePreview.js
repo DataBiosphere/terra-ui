@@ -1,9 +1,9 @@
 import { Fragment } from 'react';
 import { div, h, h1, p } from 'react-hyperscript-helpers';
+import { signOut } from 'src/auth/auth';
 import { ButtonOutline, ButtonPrimary } from 'src/components/common';
 import planet from 'src/images/register-planet.svg';
 import { ReactComponent as TerraOnAzureLogo } from 'src/images/terra-ms-logo.svg';
-import { signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { azurePreviewStore } from 'src/libs/state';
 

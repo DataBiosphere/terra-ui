@@ -1,7 +1,7 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { div, h, h2, span } from 'react-hyperscript-helpers';
-import { spinner } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow, withErrorIgnoring } from 'src/libs/error';
@@ -85,7 +85,7 @@ export const BillingProjectList = (): ReactNode => {
     h2({ style: { fontSize, marginLeft: '1.0rem' } }, ['Billing Projects']),
     loadingMigrationInformation &&
       div({ style: { display: 'flex', alignItems: 'center', marginLeft: '1.0rem' } }, [
-        spinner({ size: 36 }),
+        h(Spinner, { size: 36 }),
         span({ style: { fontSize, marginLeft: '0.5rem', marginTop: '0.5rem', fontStyle: 'italic' } }, [
           'Fetching billing projects',
         ]),

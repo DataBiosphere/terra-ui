@@ -1,18 +1,19 @@
 import _ from 'lodash/fp';
 import { ReactNode, useMemo, useState } from 'react';
 import { div, h, p } from 'react-hyperscript-helpers';
+import { isAzureUser } from 'src/auth/auth';
 import { Link, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
-import { isAzureUser } from 'src/libs/auth';
 import { withErrorIgnoring } from 'src/libs/error';
 import { updateSearch, useRoute } from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import { elements as StyleElements } from 'src/libs/style';
 import { newTabLinkProps } from 'src/libs/utils';
 import { cloudProviderTypes, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { useDeletionPolling } from 'src/pages/workspaces/hooks/useDeletionPolling';
 import { categorizeWorkspaces } from 'src/pages/workspaces/WorkspacesList/CategorizedWorkspaces';
 import { RecentlyViewedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RecentlyViewedWorkspaces';
 import { useWorkspacesWithSubmissionStats } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
@@ -42,7 +43,7 @@ export const WorkspacesList = (): ReactNode => {
   } = useWorkspacesWithSubmissionStats();
 
   const [featuredList, setFeaturedList] = useState<{ name: string; namespace: string }[]>();
-
+  useDeletionPolling(workspaces);
   const { query } = useRoute();
   const filters: WorkspaceFilterValues = getWorkspaceFiltersFromQuery(query);
 

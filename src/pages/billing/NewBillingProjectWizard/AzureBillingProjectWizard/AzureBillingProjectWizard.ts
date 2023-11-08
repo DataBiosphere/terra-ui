@@ -58,9 +58,10 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       const members = _.concat(users, owners);
       await Ajax().Billing.createAzureProject(
         billingProjectName,
-        managedApp?.tenantId,
-        subscriptionId,
-        managedApp?.managedResourceGroupId,
+        // managedApp and subscriptionId are set in previous steps before this function is called.
+        managedApp!.tenantId,
+        subscriptionId!,
+        managedApp!.managedResourceGroupId,
         members
       );
       onSuccess(billingProjectName);

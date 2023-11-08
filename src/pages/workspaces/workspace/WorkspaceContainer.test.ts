@@ -1,9 +1,12 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { screen, waitFor, within } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { ErrorCallback } from 'src/libs/error';
+import { Ajax } from 'src/libs/ajax';
 import { goToPath } from 'src/libs/nav';
+import { workspacesStore, workspaceStore } from 'src/libs/state';
+import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { WorkspaceContainer } from 'src/pages/workspaces/workspace/WorkspaceContainer';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { InitializedWorkspaceWrapper } from './useWorkspace';
@@ -19,12 +22,37 @@ jest.mock(
 );
 
 type AjaxExports = typeof import('src/libs/ajax');
+type AjaxContract = ReturnType<typeof Ajax>;
+type AjaxWorkspacesContract = AjaxContract['Workspaces'];
+
 jest.mock('src/libs/ajax', (): AjaxExports => {
   return {
     ...jest.requireActual('src/libs/ajax'),
     Ajax: jest.fn(),
   };
 });
+
+type StateExports = typeof import('src/libs/state');
+jest.mock<StateExports>(
+  'src/libs/state',
+  (): StateExports => ({
+    ...jest.requireActual('src/libs/state'),
+    workspaceStore: {
+      get: jest.fn(),
+      set: jest.fn(),
+      reset: jest.fn(),
+      subscribe: jest.fn(),
+      update: jest.fn(),
+    },
+    workspacesStore: {
+      get: jest.fn(),
+      set: jest.fn(),
+      reset: jest.fn(),
+      subscribe: jest.fn(),
+      update: jest.fn(),
+    },
+  })
+);
 
 type WorkspaceMenuExports = typeof import('src/pages/workspaces/workspace/WorkspaceMenu');
 jest.mock<WorkspaceMenuExports>('src/pages/workspaces/workspace/WorkspaceMenu', () => ({
@@ -51,7 +79,6 @@ describe('WorkspaceContainer', () => {
       },
       refresh: () => Promise.resolve(),
       refreshWorkspace: () => {},
-      silentlyRefreshWorkspace: () => Promise.resolve(),
       breadcrumbs: [],
       title: '',
       analysesData: {
@@ -81,7 +108,6 @@ describe('WorkspaceContainer', () => {
       },
       refresh: () => Promise.resolve(),
       refreshWorkspace: () => {},
-      silentlyRefreshWorkspace: () => Promise.resolve(),
       breadcrumbs: [],
       title: '',
       analysesData: {
@@ -123,111 +149,21 @@ describe('WorkspaceContainer', () => {
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  xit('polls for a workspace in the process of deleting and redirects when deleted', async () => {
-    // Arrange
-    const pollResponse: Response = new Response(null, { status: 404 });
-    const silentlyRefreshWorkspace = jest.fn().mockImplementation((errorHandling?: ErrorCallback) => {
-      if (errorHandling) {
-        errorHandling(pollResponse);
-      }
-    });
-    const workspace: InitializedWorkspaceWrapper = {
-      ...defaultAzureWorkspace,
-      workspace: {
-        ...defaultAzureWorkspace.workspace,
-        state: 'Deleting',
-      },
-      workspaceInitialized: true,
-    };
-    const props = {
-      namespace: workspace.workspace.namespace,
-      name: workspace.workspace.name,
-      workspace,
-      storageDetails: {
-        googleBucketLocation: '',
-        googleBucketType: '',
-        fetchedGoogleBucketLocation: undefined,
-      },
-      refresh: () => Promise.resolve(),
-      refreshWorkspace: () => {},
-      silentlyRefreshWorkspace,
-      breadcrumbs: [],
-      title: '',
-      analysesData: {
-        refreshApps: () => Promise.resolve(),
-        refreshRuntimes: () => Promise.resolve(),
-      },
-    };
-
-    jest.useFakeTimers();
-
-    // Act
-
-    render(h(WorkspaceContainer, props));
-    // trigger first poll
-    jest.advanceTimersByTime(30000);
-
-    // Assert
-    await waitFor(() => expect(silentlyRefreshWorkspace).toBeCalled());
-    await waitFor(() => expect(goToPath).toBeCalledWith('workspaces'));
-  });
-
-  xit('continues polling when a workspace has not been deleted', async () => {
-    // Arrange
-    const silentlyRefreshWorkspace = jest.fn().mockImplementation(() => Promise.resolve());
-    const workspace: InitializedWorkspaceWrapper = {
-      ...defaultAzureWorkspace,
-      workspace: {
-        ...defaultAzureWorkspace.workspace,
-        state: 'Deleting',
-      },
-      workspaceInitialized: true,
-    };
-    const props = {
-      namespace: workspace.workspace.namespace,
-      name: workspace.workspace.name,
-      workspace,
-      storageDetails: {
-        googleBucketLocation: '',
-        googleBucketType: '',
-        fetchedGoogleBucketLocation: undefined,
-      },
-      refresh: () => Promise.resolve(),
-      refreshWorkspace: () => {},
-      silentlyRefreshWorkspace,
-      breadcrumbs: [],
-      title: '',
-      analysesData: {
-        refreshApps: () => Promise.resolve(),
-        refreshRuntimes: () => Promise.resolve(),
-      },
-    };
-
-    jest.useFakeTimers();
-
-    // Act
-
-    render(h(WorkspaceContainer, props));
-    // trigger polls
-    jest.advanceTimersByTime(30000);
-    await waitFor(() => expect(silentlyRefreshWorkspace).toBeCalledTimes(1));
-    jest.advanceTimersByTime(30000);
-    await waitFor(() => expect(silentlyRefreshWorkspace).toBeCalledTimes(2));
-    jest.advanceTimersByTime(30000);
-
-    // Assert
-    await waitFor(() => expect(silentlyRefreshWorkspace).toBeCalledTimes(3));
-    await waitFor(() => expect(goToPath).not.toBeCalled());
-  });
-
   it('does not poll for a workspace that is not deleting', async () => {
     // Arrange
-    const pollResponse: Response = new Response(null, { status: 404 });
-    const silentlyRefreshWorkspace = jest.fn().mockImplementation((errorHandling?: ErrorCallback) => {
-      if (errorHandling) {
-        errorHandling(pollResponse);
-      }
-    });
+
+    const mockDetailsFn = jest.fn();
+
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () =>
+          ({
+            details: mockDetailsFn,
+          } as Partial<AjaxWorkspacesContract['workspace']>),
+      },
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
     const workspace: InitializedWorkspaceWrapper = {
       ...defaultAzureWorkspace,
       workspaceInitialized: true,
@@ -243,7 +179,6 @@ describe('WorkspaceContainer', () => {
       },
       refresh: () => Promise.resolve(),
       refreshWorkspace: () => {},
-      silentlyRefreshWorkspace,
       breadcrumbs: [],
       title: '',
       analysesData: {
@@ -261,6 +196,241 @@ describe('WorkspaceContainer', () => {
     await Promise.resolve();
 
     // Assert
-    expect(silentlyRefreshWorkspace).not.toBeCalled();
+    expect(mockDetailsFn).not.toBeCalled();
+  });
+
+  it('continues polling when a workspace has not been deleted', async () => {
+    // Arrange
+    const workspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'Deleting',
+      },
+    };
+    const mockDetailsFn = jest.fn().mockResolvedValue({ workspace: { state: 'Deleting' } });
+
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () =>
+          ({
+            details: mockDetailsFn,
+          } as Partial<AjaxWorkspacesContract['workspace']>),
+      },
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    const props = {
+      namespace: workspace.workspace.namespace,
+      name: workspace.workspace.name,
+      workspace: { ...workspace, workspaceInitialized: true },
+      storageDetails: {
+        googleBucketLocation: '',
+        googleBucketType: '',
+        fetchedGoogleBucketLocation: undefined,
+      },
+      refresh: () => Promise.resolve(),
+      refreshWorkspace: () => {},
+      breadcrumbs: [],
+      title: '',
+      analysesData: {
+        refreshApps: () => Promise.resolve(),
+        refreshRuntimes: () => Promise.resolve(),
+      },
+    };
+
+    jest.useFakeTimers();
+
+    // Act
+
+    render(h(WorkspaceContainer, props));
+
+    // trigger polls
+    jest.advanceTimersByTime(30000);
+    await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
+    jest.advanceTimersByTime(30000);
+    await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(2));
+    jest.advanceTimersByTime(30000);
+
+    // Assert
+    await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(3));
+    await waitFor(() => expect(goToPath).not.toBeCalled());
+  });
+
+  it('polls for a workspace in the process of deleting and updates the store when deleted', async () => {
+    // Arrange
+    const mockDetailsFn = jest.fn().mockRejectedValue(new Response(null, { status: 404 }));
+
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () =>
+          ({
+            details: mockDetailsFn,
+          } as Partial<AjaxWorkspacesContract['workspace']>),
+      },
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    const workspace: InitializedWorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'Deleting',
+      },
+      workspaceInitialized: true,
+    };
+
+    const mockUpdateWsFn = asMockedFn(workspaceStore.update);
+    const mockUpdateWsListFn = asMockedFn(workspacesStore.update);
+    mockUpdateWsFn.mockImplementation((updateFn) => {
+      const updated = updateFn(workspace);
+      expect(updated.workspace.state).toBe('Deleted');
+    });
+
+    mockUpdateWsListFn.mockImplementation((updateFn) => {
+      const updated = updateFn([workspace]);
+      expect(updated[0].workspace.state).toBe('Deleted');
+    });
+
+    const props = {
+      namespace: workspace.workspace.namespace,
+      name: workspace.workspace.name,
+      workspace,
+      storageDetails: {
+        googleBucketLocation: '',
+        googleBucketType: '',
+        fetchedGoogleBucketLocation: undefined,
+      },
+      refresh: () => Promise.resolve(),
+      refreshWorkspace: () => {},
+      breadcrumbs: [],
+      title: '',
+      analysesData: {
+        refreshApps: () => Promise.resolve(),
+        refreshRuntimes: () => Promise.resolve(),
+      },
+    };
+
+    jest.useFakeTimers();
+
+    // Act
+
+    render(h(WorkspaceContainer, props));
+    // trigger first poll
+    jest.advanceTimersByTime(30000);
+
+    // Assert
+    await waitFor(() => expect(mockDetailsFn).toBeCalled());
+    await waitFor(() => expect(mockUpdateWsListFn).toBeCalled());
+    await waitFor(() => expect(mockUpdateWsFn).toBeCalled());
+  });
+
+  it('sets the error message and stops polling when the deletion fails', async () => {
+    // Arrange
+    const errorMessage = 'this is an error message';
+    const mockDetailsFn = jest.fn().mockResolvedValue({ workspace: { state: 'DeleteFailed', errorMessage } });
+
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () =>
+          ({
+            details: mockDetailsFn,
+          } as Partial<AjaxWorkspacesContract['workspace']>),
+      },
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    const workspace: InitializedWorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'Deleting',
+      },
+      workspaceInitialized: true,
+    };
+
+    const mockUpdateWsFn = asMockedFn(workspaceStore.update);
+    const mockUpdateWsListFn = asMockedFn(workspacesStore.update);
+    mockUpdateWsFn.mockImplementation((updateFn) => {
+      const updated = updateFn(workspace);
+      expect(updated.workspace.state).toBe('DeleteFailed');
+      expect(updated.workspace.errorMessage).toBe(errorMessage);
+    });
+
+    mockUpdateWsListFn.mockImplementation((updateFn) => {
+      const updated = updateFn([workspace]);
+      expect(updated[0].workspace.state).toBe('DeleteFailed');
+      expect(updated[0].workspace.errorMessage).toBe(errorMessage);
+    });
+
+    const props = {
+      namespace: workspace.workspace.namespace,
+      name: workspace.workspace.name,
+      workspace,
+      storageDetails: {
+        googleBucketLocation: '',
+        googleBucketType: '',
+        fetchedGoogleBucketLocation: undefined,
+      },
+      refresh: () => Promise.resolve(),
+      refreshWorkspace: () => {},
+      breadcrumbs: [],
+      title: '',
+      analysesData: {
+        refreshApps: () => Promise.resolve(),
+        refreshRuntimes: () => Promise.resolve(),
+      },
+    };
+
+    jest.useFakeTimers();
+
+    // Act
+
+    render(h(WorkspaceContainer, props));
+    // trigger first poll
+    jest.advanceTimersByTime(30000);
+
+    // Assert
+    await waitFor(() => expect(mockDetailsFn).toBeCalled());
+    await waitFor(() => expect(mockUpdateWsListFn).toBeCalled());
+    await waitFor(() => expect(mockUpdateWsFn).toBeCalled());
+  });
+
+  it('redirects for a deleted workspace', async () => {
+    // Arrange
+    const workspace: InitializedWorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'Deleted',
+      },
+      workspaceInitialized: true,
+    };
+
+    const props = {
+      namespace: workspace.workspace.namespace,
+      name: workspace.workspace.name,
+      workspace,
+      storageDetails: {
+        googleBucketLocation: '',
+        googleBucketType: '',
+        fetchedGoogleBucketLocation: undefined,
+      },
+      refresh: () => Promise.resolve(),
+      refreshWorkspace: () => {},
+      breadcrumbs: [],
+      title: '',
+      analysesData: {
+        refreshApps: () => Promise.resolve(),
+        refreshRuntimes: () => Promise.resolve(),
+      },
+    };
+
+    // Act
+
+    render(h(WorkspaceContainer, props));
+
+    // Assert
+    await waitFor(() => expect(goToPath).toBeCalledWith('workspaces'));
   });
 });

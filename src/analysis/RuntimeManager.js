@@ -1,9 +1,13 @@
+// This file is where any notifications not tied to a specific action are managed for leonardo-related resource
+// For example, if you load a page and your apps/runtimes are in an error state, this component is responsible for that notification
+
 import { isToday } from 'date-fns';
 import { isAfter } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import PropTypes from 'prop-types';
 import { Fragment, useEffect, useState } from 'react';
 import { div, h, p } from 'react-hyperscript-helpers';
+import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
 import { appLauncherTabName, GalaxyLaunchButton, GalaxyWarning } from 'src/analysis/runtime-common-components';
 import { getCurrentApp } from 'src/analysis/utils/app-utils';
 import { dataSyncingDocUrl } from 'src/analysis/utils/gce-machines';
@@ -12,6 +16,7 @@ import { appTools, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common';
 import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
+import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { getDynamic, getSessionStorage, setDynamic } from 'src/libs/browser-storage';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -89,36 +94,6 @@ const RuntimeErrorNotification = ({ runtime }) => {
   ]);
 };
 
-export const AppErrorModal = ({ app, onDismiss }) => {
-  const [error, setError] = useState();
-  const [loadingAppDetails, setLoadingAppDetails] = useState(false);
-
-  const loadAppError = _.flow(
-    withErrorReporting('Error loading app details'),
-    Utils.withBusyState(setLoadingAppDetails)
-  )(async () => {
-    const { errors: appErrors } = await Ajax().Apps.app(app.cloudContext.cloudResource, app.appName).details();
-    setError(appErrors[0]?.errorMessage);
-  });
-
-  useOnMount(() => {
-    loadAppError();
-  });
-
-  return h(
-    Modal,
-    {
-      title: 'Galaxy App is in error state',
-      showCancel: false,
-      onDismiss,
-    },
-    [
-      div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.light() } }, [error]),
-      loadingAppDetails && spinnerOverlay,
-    ]
-  );
-};
-
 const AppErrorNotification = ({ app }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -140,6 +115,7 @@ const AppErrorNotification = ({ app }) => {
       h(AppErrorModal, {
         app,
         onDismiss: () => setModalOpen(false),
+        appProvider: leoAppProvider,
       }),
   ]);
 };

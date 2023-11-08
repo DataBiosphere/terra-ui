@@ -1,3 +1,4 @@
+import { Spinner } from '@terra-ui-packages/components';
 import { cond } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import {
@@ -15,7 +16,7 @@ import {
 import { div, h, i, span } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common';
-import { centeredSpinner, icon, spinner } from 'src/components/icons';
+import { centeredSpinner, icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown';
 import { SimpleTable } from 'src/components/table';
@@ -433,7 +434,7 @@ const WorkspaceDashboardComponent = (
         {
           title: 'Tags',
           info: span({}, [
-            (busy || !tagsList) && tagsPanelOpen && spinner({ size: 1, style: { marginLeft: '0.5rem' } }),
+            (busy || !tagsList) && tagsPanelOpen && h(Spinner, { size: 1, style: { marginLeft: '0.5rem' } }),
           ]),
           initialOpenState: tagsPanelOpen,
           onClick: () => setTagsPanelOpen(!tagsPanelOpen),
