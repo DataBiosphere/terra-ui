@@ -9,9 +9,9 @@ import { authStore, azurePreviewStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import AzurePreview from 'src/pages/AzurePreview';
 import { Disabled } from 'src/pages/Disabled';
-import Register from 'src/pages/Register';
 import SignIn from 'src/pages/SignIn';
 import TermsOfService from 'src/pages/TermsOfService';
+import Register from 'src/registration/Register';
 
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute();

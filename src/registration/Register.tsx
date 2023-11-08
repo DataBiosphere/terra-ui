@@ -1,19 +1,19 @@
-import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { refreshTerraProfile, signOut } from 'src/auth/auth';
 import { ButtonPrimary, ButtonSecondary, LabeledCheckbox } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
-import { TextInput } from 'src/components/input';
 import planet from 'src/images/register-planet.svg';
 import { Ajax } from 'src/libs/ajax';
 import { SamUserAttributes } from 'src/libs/ajax/User';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
-import { FormLabel } from 'src/libs/forms';
 import { RegistrationLogo } from 'src/libs/logos';
 import { authStore, getTerraUser, TerraUser } from 'src/libs/state';
+import { CommunicationPreferencesCheckbox } from 'src/registration/CommunicationPreferencesCheckbox';
+import { InterestInTerraCheckbox } from 'src/registration/InterestInTerraCheckbox';
+import { LabelledTextInput } from 'src/registration/LabelledTextInput';
 import validate from 'validate.js';
 
 const constraints = (partOfOrg: boolean) => {
@@ -27,75 +27,10 @@ const constraints = (partOfOrg: boolean) => {
   };
 };
 
-type CheckboxLineProps = {
+interface CheckboxLineProps {
   children: ReactNode[];
-};
+}
 const CheckboxLine = (props: CheckboxLineProps) => <div style={{ marginRight: '1rem' }}>{props.children}</div>;
-
-type CommunicationPreferencesCheckboxProps = {
-  title: string;
-  value: boolean;
-  setFunc: React.Dispatch<React.SetStateAction<boolean>> | undefined;
-};
-
-type LabelledTextInputProps = {
-  disabled?: boolean;
-  required?: boolean;
-  value: string;
-  onChange: (value: string) => void;
-  labelStyle?: object;
-  inputStyle?: object;
-  label: string;
-};
-const LabelledTextInput = (props: LabelledTextInputProps) => {
-  const id = useUniqueId();
-  return (
-    <div>
-      <FormLabel htmlFor={id} required={props.required} style={props.labelStyle}>
-        {props.label}
-      </FormLabel>
-      <TextInput
-        id={id}
-        required={props.required}
-        disabled={props.disabled}
-        value={props.value}
-        onChange={props.onChange}
-        style={props.inputStyle}
-      />
-    </div>
-  );
-};
-const CommunicationPreferencesCheckbox = (props: CommunicationPreferencesCheckboxProps) => (
-  <div style={{ marginTop: '.25rem' }}>
-    <LabeledCheckbox checked={props.value} disabled={props.setFunc === undefined} onChange={props.setFunc}>
-      <span style={{ marginLeft: '0.5rem' }}>{props.title}</span>
-    </LabeledCheckbox>
-  </div>
-);
-
-type InterestInTerraCheckboxProps = {
-  title: string;
-  interestInTerra: string;
-  setFunc: (interest: string) => void;
-};
-
-const InterestInTerraCheckbox = (props: InterestInTerraCheckboxProps) => (
-  <div style={{ marginTop: '.25rem' }}>
-    <LabeledCheckbox
-      checked={_.includes(props.title, props.interestInTerra)}
-      disabled={false}
-      onChange={(v: string) => {
-        const interestsList = _.isEmpty(props.interestInTerra) ? [] : _.split(',', props.interestInTerra);
-        const updatedInterestsList = v
-          ? _.concat(interestsList, [props.title])
-          : _.without([props.title], interestsList);
-        props.setFunc(_.join(',', updatedInterestsList));
-      }}
-    >
-      <span style={{ marginLeft: '0.5rem' }}>{props.title}</span>
-    </LabeledCheckbox>
-  </div>
-);
 
 const Register = () => {
   const user: TerraUser = getTerraUser();
