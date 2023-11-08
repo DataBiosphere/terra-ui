@@ -2,18 +2,19 @@
 const _ = require('lodash/fp');
 const { deleteRuntimes, withGcpWorkspace, gotoAnalysisTab } = require('../utils/integration-helpers');
 const {
+  Millis,
   click,
   clickable,
   delay,
-  findElement,
-  noSpinnersAfter,
+  dismissNotifications,
   fillIn,
+  findElement,
   findIframe,
   findText,
-  dismissNotifications,
   getAnimatedDrawer,
   image,
   input,
+  noSpinnersAfter,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
@@ -44,7 +45,7 @@ const testRunRStudioFn = _.flowRight(
   await delay(200);
 
   // Navigate to analysis launcher
-  await click(page, `//*[@title="${rFileName}.Rmd"]`, { timeout: 30000 });
+  await click(page, `//*[@title="${rFileName}.Rmd"]`, { timeout: Millis.ofSeconds(30) });
   await dismissNotifications(page);
 
   await noSpinnersAfter(page, {
@@ -57,19 +58,18 @@ const testRunRStudioFn = _.flowRight(
   // The Compute Modal does not close quickly enough, so the subsequent click does not properly click on the element
   await delay(200);
 
-  await findElement(page, clickable({ textContains: 'RStudio Environment' }), { timeout: 10 * 60000 });
-  await findElement(page, clickable({ textContains: 'Creating' }), { timeout: 40000 });
+  await findElement(page, clickable({ textContains: 'RStudio Environment' }), { timeout: Millis.ofMinutes(2) });
+  await findElement(page, clickable({ textContains: 'Creating' }), { timeout: Millis.ofSeconds(40) });
 
   // Wait for the environment to be running
-  await findElement(page, clickable({ textContains: 'RStudio Environment' }), { timeout: 10 * 60000 });
-  await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60000 });
+  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(10) });
   await dismissNotifications(page);
   await click(page, clickable({ textContains: 'Open' }));
 
   // Find the iframe, wait until the RStudio iframe is loaded, and execute some code
   const frame = await findIframe(page, '//iframe[@title="Interactive RStudio iframe"]');
 
-  await findElement(frame, '//*[@id="rstudio_container"]', { timeout: 60000 });
+  await findElement(frame, '//*[@id="rstudio_container"]', { timeout: Millis.ofMinute });
   await fillIn(frame, '//textarea', 'x=1;x');
   await page.keyboard.press('Enter');
   await findText(frame, '[1] 1');
@@ -82,5 +82,5 @@ const testRunRStudioFn = _.flowRight(
 registerTest({
   name: 'run-rstudio',
   fn: testRunRStudioFn,
-  timeout: 20 * 60 * 1000,
+  timeout: Millis.ofMinutes(12),
 });
