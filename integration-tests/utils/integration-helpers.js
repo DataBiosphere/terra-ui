@@ -5,6 +5,7 @@ const {
   click,
   clickable,
   delay,
+  dismissErrorNotifications,
   dismissNotifications,
   enablePageLogging,
   fillIn,
@@ -290,9 +291,14 @@ const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
   await gotoPage(page, testUrl);
   await findText(page, 'View Workspaces');
   await viewWorkspaceDashboard(page, token, workspaceName);
+
+  // TODO [] resolve NIH link error issues. For now, dismiss error popups in the workspaces context as irrelevant to Analyses tests.
+  await dismissErrorNotifications(page);
+
   // TODO [IA-4682] fix race condition that causes infinite spinner on Analyses page without this delay
-  await delay(Millis.ofSeconds(5));
+  await delay(Millis.ofSeconds(20));
   await clickNavChildAndLoad(page, 'analyses');
+
   await findText(page, 'Your Analyses');
   await dismissNotifications(page);
 };

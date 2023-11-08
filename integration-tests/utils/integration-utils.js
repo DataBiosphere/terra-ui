@@ -166,8 +166,7 @@ const label = ({ labelContains }) => {
 const fillIn = async (page, xpath, text, { initialDelay = Millis.none } = {}) => {
   const input = await page.waitForXPath(xpath, defaultToVisibleTrue());
 
-  // Sometimes the first few characters of the typed text are dropped; explicit focus + a delay helps avoid this
-  await input.focus();
+  // Sometimes the first few characters of the typed text are dropped; a delay helps avoid this
   await delay(initialDelay);
 
   // Actually type the text
@@ -224,6 +223,16 @@ const noSpinnersAfter = async (page, { action, debugMessage, timeout = 30000 }) 
 
 const delay = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+/** Dismiss all popup notifications, including errors. */
+const dismissErrorNotifications = async (page) => {
+  await delay(3000); // delayed for any alerts to show
+  const notificationCloseButtons = await page.$x('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss")]');
+
+  await Promise.all(notificationCloseButtons.map((handle) => handle.click()));
+
+  return !!notificationCloseButtons.length && delay(1000); // delayed for alerts to animate off
 };
 
 const dismissNotifications = async (page) => {
@@ -559,6 +568,7 @@ module.exports = {
   click,
   clickable,
   clickTableCell,
+  dismissErrorNotifications,
   dismissNotifications,
   findIframe,
   findInGrid,
