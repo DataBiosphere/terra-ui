@@ -12,7 +12,7 @@ import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
-import { registrationLogo } from 'src/libs/logos';
+import { RegistrationLogo } from 'src/libs/logos';
 import { authStore, getTerraUser, TerraUser } from 'src/libs/state';
 import validate from 'validate.js';
 
@@ -154,7 +154,7 @@ const Register = () => {
         backgroundPosition: 'right 0px bottom -600px',
       }}
     >
-      {registrationLogo()}
+      <RegistrationLogo />
       <div
         style={{
           marginTop: '4rem',
@@ -211,7 +211,7 @@ const Register = () => {
           onChange={() => setPartOfOrganization(!partOfOrganization)}
           disabled={false}
         >
-          <label style={{ marginLeft: '0.25rem' }}>I am not a part of an organization</label>
+          <span style={{ marginLeft: '0.25rem' }}>I am not a part of an organization</span>
         </LabeledCheckbox>
       </div>
       <div style={{ display: 'flex' }}>
