@@ -134,7 +134,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
           getCloudProviderFromWorkspace(workspace),
           isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS) ? appToolLabels.WORKFLOWS_APP : appToolLabels.CROMWELL
         ),
-        () => h(WorkflowsAppNavPanel, { pageReady, launching, launcherDisabled: !canLaunch, loading, createWorkflowsApp }),
+        () => h(WorkflowsAppNavPanel, { pageReady, launching, launcherDisabled: !canLaunch, loading, createWorkflowsApp, workspace }),
       ],
       [Utils.DEFAULT, () => div({ style: { ...styles.card, width: '50rem', margin: '2rem 4rem' } }, [getCromwellUnsupportedMessage()])]
     );
