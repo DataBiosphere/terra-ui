@@ -111,7 +111,7 @@ jobs:
 
       - name: "set env vars"
         run: |
-          echo "LYLE_ACCESS_TOKEN=${{ steps.auth.outputs.access_token }}" >> $GITHUB_ENV
+          echo "LYLE_ACCESS_TOKEN=${{ steps.lyle-auth.outputs.access_token }}" >> $GITHUB_ENV
 
       - name: "Run Integration Tests"
         shell: bash
