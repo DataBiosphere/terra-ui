@@ -18,7 +18,7 @@ import {
 import Dropzone from 'src/components/Dropzone';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
-import { DelayedAutocompleteTextArea, DelayedSearchInput, NumberInput } from 'src/components/input';
+import { DelayedAutocompleteTextArea, DelayedSearchInput, NumberInput, TextInput } from 'src/components/input';
 import { MarkdownViewer } from 'src/components/markdown';
 import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
@@ -31,6 +31,8 @@ import { Ajax } from 'src/libs/ajax';
 import colors, { terraSpecial } from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_WORKFLOW_RESOURCE_MONITORING } from 'src/libs/feature-previews-config';
 import { HiddenLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withCancellationSignal } from 'src/libs/react-utils';
@@ -374,6 +376,9 @@ const WorkflowView = _.flow(
         retryWithMoreMemory: false,
         retryMemoryFactor: 1.2,
         ignoreEmptyOutputs: false,
+        monitoringScript: null,
+        monitoringImage: null,
+        monitoringImageScript: null,
         includeOptionalInputs: true,
         filter: '',
         errors: { inputs: {}, outputs: {} },
@@ -433,6 +438,9 @@ const WorkflowView = _.flow(
         retryWithMoreMemory,
         retryMemoryFactor,
         ignoreEmptyOutputs,
+        monitoringScript,
+        monitoringImage,
+        monitoringImageScript,
         entitySelectionModel,
         variableSelected,
         modifiedConfig,
@@ -468,6 +476,9 @@ const WorkflowView = _.flow(
                 retryWithMoreMemory,
                 retryMemoryFactor,
                 ignoreEmptyOutputs,
+                monitoringScript,
+                monitoringImage,
+                monitoringImageScript,
                 onDismiss: () => this.setState({ launching: false }),
                 onSuccess: (submissionId) => {
                   const {
@@ -742,6 +753,10 @@ const WorkflowView = _.flow(
         retryWithMoreMemory,
         retryMemoryFactor,
         ignoreEmptyOutputs,
+        expandResourceMonitoring,
+        monitoringScript,
+        monitoringImage,
+        monitoringImageScript,
         currentSnapRedacted,
         savedSnapRedacted,
         wdl,
@@ -1111,6 +1126,58 @@ const WorkflowView = _.flow(
                   ),
                 ]),
                 h(InfoBox, ['Do not create output columns if the data is null/empty. ']),
+                div({}, [
+                  isFeaturePreviewEnabled(ENABLE_WORKFLOW_RESOURCE_MONITORING) &&
+                    span({ style: styles.checkBoxSpanMargins }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          checked: expandResourceMonitoring,
+                          onChange: (v) => this.setState({ expandResourceMonitoring: v }),
+                          style: styles.checkBoxLeftMargin,
+                        },
+                        [' Resource monitoring']
+                      ),
+                    ]),
+                  isFeaturePreviewEnabled(ENABLE_WORKFLOW_RESOURCE_MONITORING) &&
+                    h(InfoBox, [
+                      'Specify user-provided tools to monitor task resources. ',
+                      h(Link, { href: 'https://cromwell.readthedocs.io/en/stable/wf_options/Google/', ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    ]),
+                  expandResourceMonitoring &&
+                    div({ style: { display: 'flex', flexDirection: 'column', marginLeft: '2.0rem', width: '20rem', key: 'textFieldsParent' } }, [
+                      div({ display: 'flex', flexDirection: 'row' }, [
+                        h(TextInput, {
+                          id: 'resource-monitoring-script',
+                          placeholder: 'Script',
+                          value: monitoringScript,
+                          onChange: (v) => this.setState({ monitoringScript: v }),
+                          style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
+                        }),
+                        h(InfoBox, ['Standalone .sh script that runs inside task container']),
+                      ]),
+                      div({ display: 'flex', flexDirection: 'row' }, [
+                        h(TextInput, {
+                          id: 'resource-monitoring-image',
+                          placeholder: 'Image',
+                          value: monitoringImage,
+                          onChange: (v) => this.setState({ monitoringImage: v }),
+                          style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
+                        }),
+                        h(InfoBox, ['Image that runs as a sibling alongside task container']),
+                      ]),
+                      div({ display: 'flex', flexDirection: 'row' }, [
+                        h(TextInput, {
+                          id: 'resource-monitoring-image-script',
+                          placeholder: 'Image script',
+                          value: monitoringImageScript,
+                          onChange: (v) => this.setState({ monitoringImageScript: v }),
+                          style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
+                        }),
+                        h(InfoBox, ['Script that runs inside the sibling container']),
+                      ]),
+                    ]),
+                ]),
               ]),
               h(StepButtons, {
                 tabs: [
