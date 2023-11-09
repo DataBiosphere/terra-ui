@@ -90,7 +90,7 @@ jobs:
       - name: "Checkout terra-ui code"
         uses: actions/checkout@v3
         with:
-          ref: ${{ inputs.target-branch }}
+          ref: ${{ inputs.target_branch }}
           repository: databiosphere/terra-ui
           path: terraui
 
