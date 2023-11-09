@@ -1,4 +1,5 @@
 import { ButtonPrimary, Clickable, Link, Modal, icon } from '@terra-ui-packages/components';
+import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -10,7 +11,7 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { useStore } from 'src/libs/react-utils';
 import { notificationStore } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
-import * as Utils from 'src/libs/utils';
+import { append } from 'src/libs/utils';
 import { v4 as uuid } from 'uuid';
 
 // documentation: https://github.com/teodosii/react-notifications-component
@@ -26,7 +27,7 @@ export const notify = (type, title, props) => {
   const notification = makeNotification({ type, title, ...props });
   if (!isNotificationMuted(notification.id)) {
     const visibleNotificationIds = _.map('id', notificationStore.get());
-    notificationStore.update(Utils.append(notification));
+    notificationStore.update(append(notification));
     if (!_.includes(notification.id, visibleNotificationIds)) {
       showNotification(notification);
     }
@@ -47,7 +48,7 @@ const muteNotificationPreferenceKey = (id) => `mute-notification/${id}`;
 
 export const isNotificationMuted = (id) => {
   const mutedUntil = getLocalPref(muteNotificationPreferenceKey(id));
-  return Utils.switchCase(mutedUntil, [undefined, () => false], [-1, () => true], [Utils.DEFAULT, () => mutedUntil > Date.now()]);
+  return switchCase(mutedUntil, [undefined, () => false], [-1, () => true], [DEFAULT, () => mutedUntil > Date.now()]);
 };
 
 export const muteNotification = (id, until = -1) => {
@@ -64,16 +65,16 @@ const NotificationDisplay = ({ id }) => {
   const onLast = notificationNumber + 1 === notifications.length;
 
   const { title, message, detail, type, action, onDismiss } = notifications[notificationNumber];
-  const [baseColor, ariaLabel] = Utils.switchCase(
+  const [baseColor, ariaLabel] = switchCase(
     type,
     ['success', () => [colors.success, 'success notification']],
     ['info', () => [colors.accent, 'info notification']],
     ['welcome', () => [colors.accent, 'welcome notification']],
     ['warn', () => [colors.warning, 'warning notification']],
     ['error', () => [colors.danger, 'error notification']],
-    [Utils.DEFAULT, () => [colors.accent, 'notification']]
+    [DEFAULT, () => [colors.accent, 'notification']]
   );
-  const iconType = Utils.switchCase(
+  const iconType = switchCase(
     type,
     ['success', () => 'success-standard'],
     ['warn', () => 'warning-standard'],
