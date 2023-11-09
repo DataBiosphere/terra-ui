@@ -13,7 +13,6 @@ import {
   UploadParameters,
 } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import { asyncImportJobStore } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
 
 export class EntityServiceDataTableProvider implements DataTableProvider {
@@ -107,9 +106,10 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     const { jobId } = await workspace.importFlexibleEntitiesFileAsync(uploadParams.file, {
       deleteEmptyValues: uploadParams.deleteEmptyValues,
     });
-    asyncImportJobStore.update(
-      Utils.append({ targetWorkspace: { namespace: uploadParams.namespace, name: uploadParams.name }, jobId })
-    );
+    asyncImportJobStore.update((prevAsyncImportJobStore) => [
+      ...prevAsyncImportJobStore,
+      { targetWorkspace: { namespace: uploadParams.namespace, name: uploadParams.name }, jobId },
+    ]);
     notifyDataImportProgress(jobId, 'Data will show up incrementally as the job progresses.');
   };
 }

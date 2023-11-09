@@ -139,7 +139,7 @@ function RuntimeManager({ namespace, name, runtimes, apps }) {
       notify('error', 'Error Creating Cloud Environment', {
         message: h(RuntimeErrorNotification, { runtime }),
       });
-      errorNotifiedRuntimes.update(Utils.append(runtime.id));
+      errorNotifiedRuntimes.update((prevErrorNotifiedRuntimes) => [...prevErrorNotifiedRuntimes, runtime.id]);
     } else if (
       runtime?.status === 'Running' &&
       prevRuntime?.status &&
@@ -191,7 +191,7 @@ function RuntimeManager({ namespace, name, runtimes, apps }) {
       notify('error', 'Error Creating Galaxy App', {
         message: h(AppErrorNotification, { app: galaxyApp }),
       });
-      errorNotifiedApps.update(Utils.append(galaxyApp.appName));
+      errorNotifiedApps.update((prevErrorNotifiedApps) => [...prevErrorNotifiedApps, galaxyApp.appName]);
     }
   }, [runtimes, apps, namespace, name]); // eslint-disable-line react-hooks/exhaustive-deps
 

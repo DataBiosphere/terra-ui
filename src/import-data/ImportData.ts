@@ -67,7 +67,10 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     const { jobId } = await Ajax()
       .Workspaces.workspace(namespace, name)
       .importJob(importRequest.url.toString(), 'pfb', null);
-    asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
+    asyncImportJobStore.update((prevAsyncImportJobStore) => [
+      ...prevAsyncImportJobStore,
+      { targetWorkspace: { namespace, name }, jobId },
+    ]);
     notifyDataImportProgress(jobId);
   };
 
@@ -99,7 +102,10 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
       .importJob(importRequest.manifestUrl.toString(), 'tdrexport', {
         tdrSyncPermissions: importRequest.syncPermissions,
       });
-    asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
+    asyncImportJobStore.update((prevAsyncImportJobStore) => [
+      ...prevAsyncImportJobStore,
+      { targetWorkspace: { namespace, name }, jobId },
+    ]);
     notifyDataImportProgress(jobId);
   };
 
