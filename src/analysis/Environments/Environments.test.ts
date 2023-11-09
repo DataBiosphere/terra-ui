@@ -800,7 +800,6 @@ describe('Environments', () => {
         await act(async () => {
           render(
             h(PauseButton, {
-              computeType: 'app',
               cloudEnvironment: app,
               currentUser: app.auditInfo.creator,
               pauseComputeAndRefresh,
