@@ -294,10 +294,11 @@ const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
   await findText(page, 'View Workspaces');
   await viewWorkspaceDashboard(page, token, workspaceName);
 
-  // TODO [] resolve NIH link error issues. For now, dismiss error popups in the workspaces context as irrelevant to Analyses tests.
+  // TODO [https://broadinstitute.slack.com/archives/C03GMG4DUSE/p1699467686195939] resolve NIH link error issues.
+  // For now, dismiss error popups in the workspaces context as irrelevant to Analyses tests.
   await dismissErrorNotifications(page);
 
-  // TODO [IA-4682] fix race condition that causes infinite spinner on Analyses page without this delay
+  // TODO [IA-4682, WM-2367] fix race condition that causes infinite spinner on Analyses page without this delay
   await delay(Millis.ofSeconds(20));
   await clickNavChildAndLoad(page, 'analyses');
 
