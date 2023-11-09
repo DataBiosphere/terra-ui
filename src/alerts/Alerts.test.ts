@@ -31,22 +31,24 @@ const testAlerts: AlertType[] = [
 
 describe('Alerts', () => {
   beforeEach(() => {
+    // Arrange
     asMockedFn(useServiceAlerts).mockReturnValue(testAlerts);
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it('renders number of alerts', () => {
+    // Act
     render(h(AlertsIndicator));
+
+    // Assert
     expect(screen.getByRole('button')).toHaveTextContent(`${testAlerts.length}`);
   });
 
   it('renders popup with alerts', () => {
+    // Act
     render(h(AlertsIndicator));
     fireEvent.click(screen.getByRole('button'));
 
+    // Assert
     const alerts = screen.getAllByTestId('alert');
     expect(alerts.length).toBe(testAlerts.length);
 
@@ -57,9 +59,11 @@ describe('Alerts', () => {
   });
 
   it('renders alerts for screen readers', () => {
+    // Act
     render(h(AlertsIndicator));
-    const screenReaderAlerts = screen.getAllByRole('alert');
 
+    // Assert
+    const screenReaderAlerts = screen.getAllByRole('alert');
     expect(screenReaderAlerts.length).toBe(testAlerts.length);
 
     Utils.toIndexPairs(testAlerts).forEach(([index, testAlert]) => {
@@ -71,11 +75,14 @@ describe('Alerts', () => {
   });
 
   it('renders message when there are no alerts', () => {
+    // Arrange
     asMockedFn(useServiceAlerts).mockReturnValue([]);
 
+    // Act
     render(h(AlertsIndicator));
     fireEvent.click(screen.getByRole('button'));
 
+    // Assert
     expect(screen.getByRole('dialog')).toHaveTextContent('No system alerts at this time.');
   });
 });
