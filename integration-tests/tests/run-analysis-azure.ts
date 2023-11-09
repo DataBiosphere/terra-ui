@@ -6,6 +6,7 @@ const {
   Millis,
   click,
   clickable,
+  delay,
   dismissNotifications,
   fillIn,
   findElement,
