@@ -86,7 +86,7 @@ export const WorkspaceAttributes = ({
   const creatingNewVariable = editIndex === initialAttributes.length;
   const amendedAttributes = _.flow(
     _.filter(([key, value, description]) => Utils.textMatch(textFilter, `${key} ${value} ${description}`)),
-    creatingNewVariable ? Utils.append(['', '', '']) : _.identity
+    creatingNewVariable ? (attributes) => [...attributes, ['', '', '']] : _.identity
   )(initialAttributes);
 
   const DESCRIPTION_MAX_LENGTH = 200;

@@ -58,7 +58,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
     } catch (err) {
       setIsBusy(false);
       if (err.status === 409) {
-        setTakenNames((prevTakenNames) => _.uniq(Utils.append(entityName, prevTakenNames)));
+        setTakenNames((prevTakenNames) => _.uniq([entityName, ...prevTakenNames]));
       } else {
         onDismiss();
         reportError('Unable to add row.', err);

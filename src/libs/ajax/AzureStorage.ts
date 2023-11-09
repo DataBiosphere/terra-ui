@@ -5,7 +5,6 @@ import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common';
 import { getConfig } from 'src/libs/config';
-import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 
 type SasInfo = {
@@ -81,7 +80,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     const azureContainerUrl = _.flow(
       _.split('?'),
       _.head,
-      Utils.append(`?restype=container&comp=list&${token}`),
+      (head) => [head, `?restype=container&comp=list&${token}`],
       _.join('')
     )(url);
 
@@ -189,7 +188,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       const azureStorageUrl = _.flow(
         _.split('?'),
         _.head,
-        Utils.append(`/${encodedBlobName}?&${token}`),
+        (head) => [head, `/${encodedBlobName}?&${token}`],
         _.join('')
       )(url);
 

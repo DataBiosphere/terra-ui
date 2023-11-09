@@ -339,7 +339,7 @@ const isSet = _.endsWith('_set');
 const findPossibleSets = (listOfExistingEntities) => {
   return _.reduce(
     (acc, entityType) => {
-      return isSet(entityType) || _.includes(`${entityType}_set`, listOfExistingEntities) ? acc : Utils.append(`${entityType}_set`, acc);
+      return isSet(entityType) || _.includes(`${entityType}_set`, listOfExistingEntities) ? acc : [...acc, `${entityType}_set`];
     },
     [],
     listOfExistingEntities
