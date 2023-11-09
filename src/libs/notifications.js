@@ -1,12 +1,10 @@
-import { ButtonPrimary, Clickable, Link } from '@terra-ui-packages/components';
+import { ButtonPrimary, Clickable, Link, Modal, icon } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { Store } from 'react-notifications-component';
 import ErrorView from 'src/components/ErrorView';
-import Modal from 'src/components/Modal';
 import { IdContainer } from 'src/components/common';
-import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { useStore } from 'src/libs/react-utils';
