@@ -36,12 +36,13 @@ describe('useWorkspaces hook', () => {
     ]);
 
     // Act
-    const hookRender1 = await renderHookInAct(useWorkspaces);
+    const hookRender = await renderHookInAct(useWorkspaces);
+    const hookResult1 = hookRender.result.current;
 
     // Assert
     const expectedWorkspaces: DeepPartial<WorkspaceWrapper>[] = [{ workspace: { name: 'myWorkspace' } }];
     expect(workspaceProvider.list).toBeCalledTimes(1);
-    expect(hookRender1.result.current.workspaces).toEqual(expectedWorkspaces);
+    expect(hookResult1.workspaces).toEqual(expectedWorkspaces);
     expect(workspacesStore.get()).toEqual(expectedWorkspaces);
   });
 
@@ -50,11 +51,12 @@ describe('useWorkspaces hook', () => {
     asMockedFn(workspaceProvider.list).mockRejectedValue(new Error('BOOM!'));
 
     // Act
-    const hookRender1 = await renderHookInAct(useWorkspaces);
+    const hookRender = await renderHookInAct(useWorkspaces);
+    const hookResult1 = hookRender.result.current;
 
     // Assert
     expect(workspaceProvider.list).toBeCalledTimes(1);
-    expect(hookRender1.result.current.workspaces).toEqual([]);
+    expect(hookResult1.workspaces).toEqual([]);
     expect(workspacesStore.get()).toEqual([]);
     expect(reportError).toBeCalledTimes(1);
     expect(reportError).toBeCalledWith('Error loading workspace list');

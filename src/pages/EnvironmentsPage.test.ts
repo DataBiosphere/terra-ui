@@ -84,9 +84,8 @@ describe('Environments Page navProvider', () => {
     pageNav.getUrl('workspace-view', { name: 'myName', namespace: 'myNamespace' });
 
     // Assert
-    const getLinkWatcher = asMockedFn(mockNav.getLink);
-    expect(getLinkWatcher).toBeCalledTimes(1);
-    expect(getLinkWatcher).toBeCalledWith(terraNavKey('workspace-dashboard'), {
+    expect(mockNav.getLink).toBeCalledTimes(1);
+    expect(mockNav.getLink).toBeCalledWith(terraNavKey('workspace-dashboard'), {
       name: 'myName',
       namespace: 'myNamespace',
     });
@@ -104,9 +103,8 @@ describe('Environments Page navProvider', () => {
     pageNav.navTo('workspace-view', { name: 'myName', namespace: 'myNamespace' });
 
     // Assert
-    const goToPathWatcher = asMockedFn(mockNav.goToPath);
-    expect(goToPathWatcher).toBeCalledTimes(1);
-    expect(goToPathWatcher).toBeCalledWith(terraNavKey('workspace-dashboard'), {
+    expect(mockNav.goToPath).toBeCalledTimes(1);
+    expect(mockNav.goToPath).toBeCalledWith(terraNavKey('workspace-dashboard'), {
       name: 'myName',
       namespace: 'myNamespace',
     });

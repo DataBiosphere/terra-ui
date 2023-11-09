@@ -5,8 +5,8 @@ import { useSettableStore } from 'src/libs/react-utils';
 /**
  * adds durable in-memory caching of the last good data result from a useLoadedData-like data hook.
  *
- * @param useLoadedDataHook - a parameterless data request hook with the same return signature as he useLoadedData family of hooks.
- * Data request hooks that require parameters should first be wrapped into a paramaterless hook so that it can be generically invoked by useCachedData.
+ * @param useLoadedDataHook - a parameterless data request hook with the same return signature as the useLoadedData family of hooks.
+ * Data request hooks that require parameters should first be wrapped into a parameterless hook so that it can be generically invoked by useCachedData.
  * @param store - the Atom to use for durable application in-memory storage
  */
 export const useCachedData = <S, HookResult extends LoadedState<S, unknown>>(
