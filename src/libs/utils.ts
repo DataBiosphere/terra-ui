@@ -153,8 +153,6 @@ export const convertValue = _.curry((type, value) => {
  */
 export const normalizeLabel = _.flow(_.camelCase, _.startCase);
 
-export const append = _.curry((value, arr) => _.concat(arr, [value]));
-
 const withBusyStateFn =
   <R, F extends AnyPromiseFn>(
     setBusy: (value: boolean) => void,
