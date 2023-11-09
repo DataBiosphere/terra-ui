@@ -28,7 +28,7 @@ const fetchLyle = async (path, email) => {
 
   // TODO: remove, these are shortlived tokens so should be fine though.
   console.log(`bearerToken: ${JSON.stringify(bearerToken)}`);
-  // console.log(`lyleToken: ${JSON.stringify(lyleToken)}`);
+  console.log(`lyleToken: ${JSON.stringify(lyleToken)}`);
   // const bearerToken = (await authClient.getRequestHeaders(url));
 
   try {
