@@ -1,57 +1,13 @@
 import { ErrorState, LoadedState, ReadyState } from '@terra-ui-packages/core-utils';
-import { useCallback, useEffect, useState } from 'react';
-import { usePrevious } from 'src/libs/react-utils';
+import { useCallback, useState } from 'react';
+import { LoadedDataEvents, useLoadedDataEvents } from 'src/libs/ajax/loaded-data/useLoadedDataEvents';
 
-export interface UseLoadedDataArgs<S, E = unknown> {
-  /**
-   * An optional handler that will be called if there is an error.
-   * Note that LoadedData object typing already allows expression of error status, convenient for consumption by
-   * visual components.  This handler is to accommodate additional side effects within the hook consuming
-   * useLoadedData hook
-   * @param state - the error state as of when the error happened
-   * @example
-   * const [pendingCreate, setPendingCreate] = useLoadedData<true>({
-   *   onError: (errState) => ReportError(errState.error)
-   * })
-   */
-  onError?: (state: ErrorState<S, E>) => void;
-
-  /**
-   * An optional handler that will be called on successful data load.
-   * Note that LoadedData object typing already allows expression of error status, convenient for consumption by
-   * visual components.  This handler is to accommodate additional side effects within the hook consuming
-   * useLoadedData hook
-   * @param state - the ready state as of when the error happened
-   * @example
-   * const [pendingCreate, setPendingCreate] = useLoadedData<true>({
-   *   onError: (readyState) => doSomething(readyState.state)
-   * })
-   */
-  onSuccess?: (state: ReadyState<S>) => void;
-}
+export type UseLoadedDataArgs<S, E = unknown> = LoadedDataEvents<S, E>;
 
 /**
  * The Tuple returned by useLoadedData custom helper hook
  */
 export type UseLoadedDataResult<T, E = unknown> = [LoadedState<T, E>, (dataCall: () => Promise<T>) => Promise<void>];
-
-export type LoadedDataEvents<S, E = unknown> = Pick<UseLoadedDataArgs<S, E>, 'onSuccess' | 'onError'>;
-
-export const useLoadedDataEvents = <S, E = unknown>(loadedData: LoadedState<S, E>, events: LoadedDataEvents<S, E>) => {
-  const { onSuccess, onError } = events;
-  const previousStatus = usePrevious(loadedData.status);
-
-  useEffect(() => {
-    if (loadedData.status === 'Error' && previousStatus !== 'Error') {
-      onError?.(loadedData);
-    }
-  }, [loadedData, previousStatus, onError]);
-  useEffect(() => {
-    if (loadedData.status === 'Ready' && previousStatus === 'Loading') {
-      onSuccess?.(loadedData);
-    }
-  }, [loadedData, previousStatus, onSuccess]);
-};
 
 /**
  * A custom helper hook that will handle typical async data call mechanics and translate the possible outcomes to

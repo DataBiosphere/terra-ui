@@ -16,7 +16,8 @@ export type UseAutoLoadedDataResult<T, E = unknown> = [
 ];
 
 /**
- * Provides the same basic mechanics of useLoadedData hook, but will auto-load the data 'on init', or in response to reloadDeps (dependencies) argument
+ * Provides the same basic mechanics of useLoadedData hook, but will auto-load the data 'on init',
+ * or in response to the reloadDeps (dependencies) argument changing
  * @param dataCall - the promise-based data call to make
  * @param reloadDeps - any reload dependencies that should trigger a reload automatically
  * @param hookArgs - same as for useLoadedData

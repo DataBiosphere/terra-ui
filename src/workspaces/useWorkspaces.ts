@@ -1,6 +1,6 @@
 import { useAutoLoadedData } from 'src/libs/ajax/loaded-data/useAutoLoadedData';
 import { useCachedData } from 'src/libs/ajax/loaded-data/useCachedData';
-import { useLoadedDataEvents } from 'src/libs/ajax/loaded-data/useLoadedData';
+import { useLoadedDataEvents } from 'src/libs/ajax/loaded-data/useLoadedDataEvents';
 import { FieldsArg, workspaceProvider } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
 import { reportError } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
