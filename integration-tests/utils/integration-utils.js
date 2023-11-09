@@ -168,7 +168,7 @@ const fillIn = async (page, xpath, text, { initialDelay = Millis.none } = {}) =>
 
   // Sometimes the first few characters of the typed text are dropped.
   // Click the input, then wait, if so configured, to avoid this
-  input.click();
+  await input.click();
   await delay(initialDelay);
 
   // Actually type the text
