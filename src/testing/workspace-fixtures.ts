@@ -3,9 +3,8 @@ import _ from 'lodash/fp';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
 import { AzureWorkspace, GoogleWorkspace, WorkspacePolicy } from 'src/libs/workspace-utils';
-import { InitializedWorkspaceWrapper } from 'src/pages/workspaces/workspace/useWorkspace';
 
-export const defaultAzureWorkspace: InitializedWorkspaceWrapper = {
+export const defaultAzureWorkspace: AzureWorkspace = {
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Azure',
@@ -21,7 +20,6 @@ export const defaultAzureWorkspace: InitializedWorkspaceWrapper = {
     subscriptionId: 'test-sub-id',
     tenantId: 'test-tenant-id',
   },
-  workspaceInitialized: true,
   accessLevel: 'OWNER',
   canShare: true,
   canCompute: true,
@@ -71,7 +69,7 @@ export const defaultAzureStorageOptions = {
   azureContainerSasUrl: undefined,
 };
 
-export const defaultGoogleWorkspace: InitializedWorkspaceWrapper = {
+export const defaultGoogleWorkspace: GoogleWorkspace = {
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Gcp',
@@ -84,7 +82,6 @@ export const defaultGoogleWorkspace: InitializedWorkspaceWrapper = {
     createdBy: 'groot@gmail.com',
     lastModified: '2023-03-15T19:17:15.711Z',
   },
-  workspaceInitialized: true,
   accessLevel: 'OWNER',
   canShare: true,
   canCompute: true,
