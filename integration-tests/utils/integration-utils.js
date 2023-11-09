@@ -166,7 +166,9 @@ const label = ({ labelContains }) => {
 const fillIn = async (page, xpath, text, { initialDelay = Millis.none } = {}) => {
   const input = await page.waitForXPath(xpath, defaultToVisibleTrue());
 
-  // Sometimes the first few characters of the typed text are dropped; a delay helps avoid this
+  // Sometimes the first few characters of the typed text are dropped.
+  // Click the input, then wait, if so configured, to avoid this
+  input.click();
   await delay(initialDelay);
 
   // Actually type the text

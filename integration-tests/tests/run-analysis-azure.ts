@@ -1,7 +1,7 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
 const uuid = require('uuid');
-const { deleteRuntimesV2, withAzureWorkspace, gotoAnalysisTab } = require('../utils/integration-helpers');
+const { withAzureWorkspace, gotoAnalysisTab } = require('../utils/integration-helpers');
 const {
   Millis,
   click,
@@ -27,7 +27,7 @@ const notebookName = `test-notebook-${uuid.v4()}`;
 const testRunAnalysisAzure = _.flowRight(
   withUserToken,
   withAzureWorkspace
-)(async ({ billingProject, workspaceName, page, testUrl, token }) => {
+)(async ({ workspaceName, page, testUrl, token }) => {
   await gotoAnalysisTab(page, token, testUrl, workspaceName);
 
   // Create analysis file
@@ -81,16 +81,24 @@ const testRunAnalysisAzure = _.flowRight(
   });
   await findText(frame, 'Kernel status: Idle', { timeout: Millis.ofMinutes(4) });
 
+  // Test runs occasionally swallow the entered text; will a timeout stabilize this?
+  await delay(Millis.ofSeconds(10));
+
   // Run a command
-  await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)', { initialDelay: Millis.ofSecond });
+  await fillIn(
+    frame,
+    '//*[contains(@class,"jp-Notebook-cell")][last()]//textArea',
+    'print(123456789099876543210990+9876543219)',
+    { initialDelay: Millis.ofSecond }
+  );
   await click(frame, '//button[starts-with(@title, "Run the selected cells and advance")]');
   await findText(frame, '123456789099886419754209');
 
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, '//button[starts-with(@title, "Save and create checkpoint")]');
 
-  // Cleanup
-  await deleteRuntimesV2({ page, billingProject, workspaceName });
+  // Cleanup: rely on workspace deletion to delete the runtime. "Deleting" status is not considered deletable by Leonardo,
+  // so deletes are not idempotent (a second request to delete will trigger an error 409 and block workspace deletion)
 });
 
 registerTest({
