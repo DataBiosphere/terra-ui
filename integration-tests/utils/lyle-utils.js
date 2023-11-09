@@ -24,7 +24,7 @@ const fetchLyle = async (path, email) => {
 
   // there's some formatting differences between the getRequestHeaders and the token as provided by GHA auth.
   // getRequestHeaders uses the lyle JWT to grab an access token
-  const bearerToken = lyleToken == null ? await authClient.getRequestHeaders(url) : { Authorization: lyleToken };
+  const bearerToken = lyleToken == null ? await authClient.getRequestHeaders(url) : { Authorization: `Bearer ${lyleToken}` };
 
   // TODO: remove, these are shortlived tokens so should be fine though.
   console.log(`bearerToken: ${JSON.stringify(bearerToken)}`);
