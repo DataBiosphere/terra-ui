@@ -8,7 +8,6 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
 
 export const dataTableVersionsPathRoot = '.data-table-versions';
 
@@ -210,7 +209,7 @@ export const useDataTableVersions = (workspace) => {
             [entityType, 'versions'],
             _.flow(
               _.defaultTo([]),
-              Utils.append(newVersion),
+              (oldVersions) => [...oldVersions, newVersion],
               _.sortBy((version) => -version.timestamp)
             )
           )

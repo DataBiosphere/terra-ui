@@ -66,7 +66,11 @@ const getColumnProvenance = async (workspace, entityType, { signal } = {}) => {
         configuration,
         output,
       };
-      return _.update(column, _.flow(_.defaultTo([]), Utils.append(provenanceEntry)), acc);
+      return _.update(
+        column,
+        _.flow(_.defaultTo([]), (oldAcc) => [...oldAcc, provenanceEntry]),
+        acc
+      );
     }, {})
   )(submissions);
 };

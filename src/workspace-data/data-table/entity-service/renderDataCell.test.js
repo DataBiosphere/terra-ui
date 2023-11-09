@@ -1,5 +1,4 @@
 import _ from 'lodash/fp';
-import * as Utils from 'src/libs/utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { renderDataCell } from './renderDataCell';
@@ -62,7 +61,7 @@ describe('renderDataCell', () => {
             testWorkspace
           )
         ).container
-      ).toHaveTextContent(_.flow(_.map(_.toString), Utils.append('and 900 more'), _.join(','))(_.range(0, 100)));
+      ).toHaveTextContent(_.flow(_.map(_.toString), (arr) => [...arr, 'and 900 more'], _.join(','))(_.range(0, 100)));
     }
   );
 

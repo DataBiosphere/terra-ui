@@ -25,7 +25,7 @@ const renderDataCellTooltip = (attributeValue) => {
   const renderArrayTooltip = (items) => {
     return _.flow(
       _.slice(0, maxListItemsRendered),
-      items.length > maxListItemsRendered ? Utils.append(`and ${items.length - maxListItemsRendered} more`) : _.identity,
+      items.length > maxListItemsRendered ? (oldItems) => [...oldItems, `and ${items.length - maxListItemsRendered} more`] : _.identity,
       _.join(', ')
     )(items);
   };
@@ -53,7 +53,7 @@ export const renderDataCell = (attributeValue, workspace) => {
   const renderArray = (items) => {
     return _.flow(
       _.slice(0, maxListItemsRendered),
-      items.length > maxListItemsRendered ? Utils.append(`and ${items.length - maxListItemsRendered} more`) : _.identity,
+      items.length > maxListItemsRendered ? (oldItems) => [...oldItems, `and ${items.length - maxListItemsRendered} more`] : _.identity,
       Utils.toIndexPairs,
       _.flatMap(([i, v]) =>
         h(Fragment, { key: i }, [i > 0 && span({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ','), renderCell(v)])

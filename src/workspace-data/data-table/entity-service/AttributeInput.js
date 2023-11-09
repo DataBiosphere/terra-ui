@@ -258,7 +258,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, initialValue
               style: { display: 'block', marginTop: '1rem' },
               onClick: () => {
                 focusLastListItemInput.current = true;
-                const newAttributeValue = _.update('items', Utils.append(defaultValue), attributeValue);
+                const newAttributeValue = _.update('items', (arr) => [...arr, defaultValue], attributeValue);
                 setEdited(true);
                 onChange(newAttributeValue);
               },
