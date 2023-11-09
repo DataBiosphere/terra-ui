@@ -18,6 +18,9 @@ export const launch = async ({
   memoryRetryMultiplier,
   userComment,
   ignoreEmptyOutputs,
+  monitoringScript,
+  monitoringImage,
+  monitoringImageScript,
   onProgress,
 }) => {
   const createSet = () => {
@@ -86,5 +89,8 @@ export const launch = async ({
       memoryRetryMultiplier,
       userComment,
       ignoreEmptyOutputs,
+      monitoringScript,
+      monitoringImage,
+      monitoringImageScript,
     });
 };
