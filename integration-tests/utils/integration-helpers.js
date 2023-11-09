@@ -1,24 +1,28 @@
 const _ = require('lodash/fp');
 const uuid = require('uuid');
 const {
+  Millis,
   click,
   clickable,
+  delay,
+  dismissErrorNotifications,
   dismissNotifications,
+  enablePageLogging,
   fillIn,
   findText,
   gotoPage,
   input,
   label,
+  navChild,
+  navOptionNetworkIdle,
+  noSpinnersAfter,
   signIntoTerra,
   waitForNoSpinners,
-  navChild,
-  noSpinnersAfter,
-  navOptionNetworkIdle,
-  enablePageLogging,
 } = require('./integration-utils');
 const { fetchLyle } = require('./lyle-utils');
 
-const defaultTimeout = 5 * 60 * 1000;
+/** Long timeout for bucket propagation and full test runs. */
+const defaultTimeout = Millis.ofMinutes(5);
 
 const withSignedInPage = (fn) => async (options) => {
   const { context, testUrl, token } = options;
@@ -45,6 +49,7 @@ const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`;
 const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceName, timeout = defaultTimeout }) => {
   await page.evaluate(
     async ({ billingProject, workspaceName, timeout }) => {
+      console.info('waitForAccessToWorkspaceBucket ...');
       const {
         workspace: { googleProject, bucketName },
       } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace', 'azureContext']);
@@ -85,7 +90,7 @@ const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceN
   );
 };
 
-const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
+const makeWorkspace = withSignedInPage(async ({ page, billingProject, hasBucket = false }) => {
   const workspaceName = getTestWorkspaceName();
   try {
     await page.evaluate(
@@ -96,14 +101,20 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
       billingProject
     );
     console.info(`Created workspace: ${workspaceName}`);
-    await waitForAccessToWorkspaceBucket({ page, billingProject, workspaceName });
+    if (hasBucket) {
+      await waitForAccessToWorkspaceBucket({ page, billingProject, workspaceName });
+    }
   } catch (e) {
     console.error(`Failed to create workspace: ${workspaceName} with billing project: ${billingProject}`);
     console.error(e);
     throw e;
   }
-  return workspaceName;
+  return { page, billingProject, workspaceName };
 });
+
+const makeGcpWorkspace = async (options) => {
+  return await makeWorkspace({ ...options, hasBucket: true });
+};
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
@@ -122,15 +133,51 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
   }
 });
 
+const deleteWorkspaceV2 = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
+  try {
+    await page.evaluate(
+      async (name, billingProject) => {
+        await window.Ajax().Workspaces.workspaceV2(billingProject, name).delete();
+      },
+      workspaceName,
+      billingProject
+    );
+    console.info(`Deleted workspace: ${workspaceName}`);
+  } catch (e) {
+    console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`);
+    console.error(e);
+    throw e;
+  }
+});
+
+/** Create a GCP workspace, run the given test, then delete the workspace. */
 const withWorkspace = (test) => async (options) => {
   console.log('withWorkspace ...');
-  const workspaceName = await makeWorkspace(options);
+  const { workspaceName } = await makeGcpWorkspace(options);
 
   try {
     await test({ ...options, workspaceName });
   } finally {
     console.log('withWorkspace cleanup ...');
     await deleteWorkspace({ ...options, workspaceName });
+  }
+};
+
+/** Create an Azure workspace, run the given test, then delete the workspace. */
+const withAzureWorkspace = (test) => async (options) => {
+  console.log('withAzureWorkspace ...');
+  options = {
+    ...options,
+    billingProject: options.billingProjectAzure,
+  };
+  const { workspaceName } = await makeWorkspace(options);
+  console.log(`withAzureWorkspace made workspace ${workspaceName}`);
+
+  try {
+    await test({ ...options, workspaceName });
+  } finally {
+    console.log('withAzureWorkspace cleanup ...');
+    await deleteWorkspaceV2({ ...options, workspaceName });
   }
 };
 
@@ -184,6 +231,26 @@ const deleteRuntimes = async ({ page, billingProject, workspaceName }) => {
   console.info(`deleted runtimes: ${deletedRuntimes}`);
 };
 
+const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
+  const deletedRuntimes = await page.evaluate(
+    async (billingProject, workspaceName) => {
+      const {
+        workspace: { workspaceId },
+      } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace.workspaceId']);
+      const runtimes = await window.Ajax().Runtimes.listV2WithWorkspace(workspaceId, { role: 'creator' });
+      return Promise.all(
+        _.map(async (runtime) => {
+          await window.Ajax().Runtimes.runtimeV2(runtime.workspaceId, runtime.runtimeName).delete(true); // true = also delete persistent disk.
+          return runtime.runtimeName;
+        }, _.remove({ status: 'Deleting' }, runtimes))
+      );
+    },
+    billingProject,
+    workspaceName
+  );
+  console.info(`deleted v2 runtimes: ${deletedRuntimes}`);
+};
+
 const navigateToDataCatalog = async (page, testUrl, token) => {
   await gotoPage(page, testUrl);
   await waitForNoSpinners(page);
@@ -201,7 +268,14 @@ const enableDataCatalog = async (page) => {
 
 const clickNavChildAndLoad = async (page, tab) => {
   // click triggers a page navigation event
-  await Promise.all([page.waitForNavigation(navOptionNetworkIdle()), noSpinnersAfter(page, { action: () => click(page, navChild(tab)) })]);
+  await Promise.all([
+    page.waitForNavigation(navOptionNetworkIdle()),
+    noSpinnersAfter(page, {
+      action: () => click(page, navChild(tab)),
+      timeout: Millis.ofMinute,
+      debugMessage: `clickNavChildAndLoad ${tab}`,
+    }),
+  ]);
 };
 
 const viewWorkspaceDashboard = async (page, token, workspaceName) => {
@@ -210,14 +284,25 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   await click(page, clickable({ textContains: 'View Workspaces' }));
   await dismissNotifications(page);
   await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
+  // Wait for workspace table to rerender filtered items
+  await delay(Millis.of(300));
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) });
 };
 
-const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
+const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
   await gotoPage(page, testUrl);
   await findText(page, 'View Workspaces');
   await viewWorkspaceDashboard(page, token, workspaceName);
+
+  // TODO [https://broadinstitute.slack.com/archives/C03GMG4DUSE/p1699467686195939] resolve NIH link error issues.
+  // For now, dismiss error popups in the workspaces context as irrelevant to Analyses tests.
+  await dismissErrorNotifications(page);
+
+  // TODO [IA-4682, WM-2367] fix race condition that causes infinite spinner on Analyses page without this delay
+  await delay(Millis.ofSeconds(20));
   await clickNavChildAndLoad(page, 'analyses');
+
+  await findText(page, 'Your Analyses');
   await dismissNotifications(page);
 };
 
@@ -226,12 +311,14 @@ module.exports = {
   createEntityInWorkspace,
   defaultTimeout,
   deleteRuntimes,
+  deleteRuntimesV2,
   navigateToDataCatalog,
   enableDataCatalog,
   testWorkspaceNamePrefix,
   testWorkspaceName: getTestWorkspaceName,
   withWorkspace,
+  withAzureWorkspace,
   withUser,
-  performAnalysisTabSetup,
+  gotoAnalysisTab,
   viewWorkspaceDashboard,
 };
