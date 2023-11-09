@@ -1,6 +1,6 @@
 const _ = require('lodash/fp');
 const fetch = require('node-fetch');
-const { withGcpWorkspace } = require('../utils/integration-helpers');
+const { withWorkspace } = require('../utils/integration-helpers');
 const { click, clickable, findText, select, signIntoTerra } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
@@ -19,7 +19,7 @@ const withDockstoreCheck = (test) => async (options) => {
 };
 
 const testImportDockstoreWorkflowFn = _.flow(
-  withGcpWorkspace,
+  withWorkspace,
   withUserToken,
   withDockstoreCheck
 )(async ({ page, testUrl: testUrlRoot, token, workspaceName }) => {

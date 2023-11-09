@@ -1,11 +1,11 @@
 const _ = require('lodash/fp');
-const { withGcpWorkspace } = require('../utils/integration-helpers');
+const { withWorkspace } = require('../utils/integration-helpers');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
 const { testExportToWorkspace } = require('../utils/catalog-utils');
 
 const exportWorkspaceDatasetToWorkspace = _.flow(
-  withGcpWorkspace,
+  withWorkspace,
   withUserToken
 )(async ({ billingProject, page, testUrl, token, workspaceName }) => {
   await testExportToWorkspace(billingProject, page, testUrl, token, 'Readable Catalog Workspace 1', workspaceName);

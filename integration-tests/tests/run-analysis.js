@@ -1,6 +1,6 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
-const { deleteRuntimes, withGcpWorkspace, gotoAnalysisTab } = require('../utils/integration-helpers');
+const { deleteRuntimes, withWorkspace, gotoAnalysisTab } = require('../utils/integration-helpers');
 const {
   Millis,
   click,
@@ -23,7 +23,7 @@ const notebookName = 'test-notebook';
 
 const testRunAnalysisFn = _.flowRight(
   withUserToken,
-  withGcpWorkspace
+  withWorkspace
 )(async ({ billingProject, workspaceName, page, testUrl, token }) => {
   await gotoAnalysisTab(page, token, testUrl, workspaceName);
 

@@ -1,5 +1,5 @@
 const _ = require('lodash/fp');
-const { withGcpWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers');
+const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers');
 const {
   click,
   clickable,
@@ -19,7 +19,7 @@ const testEntity = { name: 'test_entity_1', entityType: 'test_entity', attribute
 const findWorkflowButton = clickable({ textContains: 'Find a Workflow' });
 
 const testRunWorkflowFn = _.flow(
-  withGcpWorkspace,
+  withWorkspace,
   withUserToken
 )(async ({ billingProject, page, testUrl, token, workflowName, workspaceName }) => {
   await signIntoTerra(page, { token, testUrl });

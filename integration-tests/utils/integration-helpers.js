@@ -150,18 +150,20 @@ const deleteWorkspaceV2 = withSignedInPage(async ({ page, billingProject, worksp
   }
 });
 
-const withGcpWorkspace = (test) => async (options) => {
-  console.log('withGcpWorkspace ...');
+/** Create a GCP workspace, run the given test, then delete the workspace. */
+const withWorkspace = (test) => async (options) => {
+  console.log('withWorkspace ...');
   const { workspaceName } = await makeGcpWorkspace(options);
 
   try {
     await test({ ...options, workspaceName });
   } finally {
-    console.log('withGcpWorkspace cleanup ...');
+    console.log('withWorkspace cleanup ...');
     await deleteWorkspace({ ...options, workspaceName });
   }
 };
 
+/** Create an Azure workspace, run the given test, then delete the workspace. */
 const withAzureWorkspace = (test) => async (options) => {
   console.log('withAzureWorkspace ...');
   options = {
@@ -313,7 +315,7 @@ module.exports = {
   enableDataCatalog,
   testWorkspaceNamePrefix,
   testWorkspaceName: getTestWorkspaceName,
-  withGcpWorkspace,
+  withWorkspace,
   withAzureWorkspace,
   withUser,
   gotoAnalysisTab,
