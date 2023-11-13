@@ -11,7 +11,7 @@ import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   AzureConfig,
   cloudServiceTypes,
-  GceWithPdConfig,
+  GoogleRuntimeConfig,
   NormalizedComputeRegion,
   RuntimeConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
@@ -229,17 +229,16 @@ export const defaultAuditInfo = {
 
 export const generateGoogleProject = () => `terra-test-${uuid().substring(0, 8)}`;
 
-export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): GceWithPdConfig =>
+export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): GoogleRuntimeConfig =>
   ({
     machineType: defaultGceMachineType,
     persistentDiskId: getRandomInt(randomMaxInt),
     cloudService: cloudServiceTypes.GCE,
-    bootDiskSize: defaultGceBootDiskSize,
     zone: 'us-central1-a',
     gpuConfig: null,
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
     ...overrides,
-  } satisfies GceWithPdConfig as GceWithPdConfig);
+  } as GoogleRuntimeConfig satisfies GoogleRuntimeConfig);
 
 export const appError: AppError = {
   action: '',
