@@ -5,6 +5,8 @@ import { authOpts, fetchBard, jsonBody } from 'src/libs/ajax/ajax-common';
 import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring } from 'src/libs/error';
 import { MetricsEventName } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { APPCUES_OPT_IN } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { AuthState, authStore, getSessionId } from 'src/libs/state';
 import { v4 as uuid } from 'uuid';
@@ -25,7 +27,7 @@ export const Metrics = (signal?: AbortSignal) => {
     }
 
     // Send event to Appcues and refresh Appcues state
-    if (details.pushToAppcues !== false) {
+    if (isFeaturePreviewEnabled(APPCUES_OPT_IN)) {
       window.Appcues?.track(event);
       window.Appcues?.page();
     }
