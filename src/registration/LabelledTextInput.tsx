@@ -1,5 +1,5 @@
 import { useUniqueId } from '@terra-ui-packages/components';
-import React, { CSSProperties } from 'react';
+import React, { CSSProperties, ReactNode } from 'react';
 import { TextInput } from 'src/components/input';
 import { FormLabel } from 'src/libs/forms';
 
@@ -12,7 +12,7 @@ interface LabelledTextInputProps {
   inputStyle?: CSSProperties;
   label: string;
 }
-export const LabelledTextInput = (props: LabelledTextInputProps) => {
+export const LabelledTextInput = (props: LabelledTextInputProps): ReactNode => {
   const { disabled, required, value, onChange, labelStyle, inputStyle, label } = props;
   const id = useUniqueId();
   return (

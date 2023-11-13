@@ -346,8 +346,8 @@ export const isAuthSettled = (state: AuthState) => {
   );
 };
 
-export const hasAcceptedTermsOfService = (state: AuthState) => {
-  return state.termsOfService.permitsSystemUsage;
+export const hasAcceptedTermsOfService = (state: AuthState): boolean => {
+  return state.termsOfService.permitsSystemUsage ?? false;
 };
 
 export const ensureAuthSettled = () => {
@@ -567,7 +567,7 @@ export const refreshTerraProfile = async () => {
   authStore.update((state: AuthState) => ({ ...state, profile }));
 };
 
-export const refreshSamUserAttributes = async () => {
+export const refreshSamUserAttributes = async (): Promise<void> => {
   const terraUserAttributes: SamUserAttributes = await Ajax().User.getUserAttributes();
 
   authStore.update((state: AuthState) => ({ ...state, terraUserAttributes }));
@@ -582,7 +582,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting('Error loading user attributes from Sam', async (state: AuthState, oldState: AuthState) => {
+  withErrorReporting('Error loading user attributes', async (state: AuthState, oldState: AuthState) => {
     if (isNowSignedIn(oldState, state) && hasAcceptedTermsOfService(state)) {
       await refreshSamUserAttributes();
     }

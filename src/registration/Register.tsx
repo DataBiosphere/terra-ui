@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { refreshSamUserAttributes, refreshTerraProfile, signOut } from 'src/auth/auth';
 import { ButtonPrimary, ButtonSecondary, LabeledCheckbox } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
@@ -27,7 +27,7 @@ const constraints = ({ partOfOrganization }: { partOfOrganization: boolean }) =>
   };
 };
 
-export const Register = () => {
+export const Register = (): ReactNode => {
   const user: TerraUser = getTerraUser();
   const userAttributes: SamUserAttributes = authStore.get().terraUserAttributes;
   const [busy, setBusy] = useState(false);
@@ -180,7 +180,7 @@ export const Register = () => {
         })}
       </div>
       <FormLabel style={{ marginTop: '2rem' }}>Communication Preferences</FormLabel>
-      <CommunicationPreferencesCheckbox title="Necessary communications related to platform operations" value />
+      <CommunicationPreferencesCheckbox title="Necessary communications related to platform operations" value={true} />
       <CommunicationPreferencesCheckbox
         title="Marketing communications including notifications for upcoming workshops and new flagship dataset additions"
         value={marketingConsent}
