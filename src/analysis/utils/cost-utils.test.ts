@@ -428,7 +428,20 @@ describe('getPersistentDiskCostMonthly', () => {
     expect(result).toBe(getAzurePricesForRegion('eastus')!['S6 LRS']);
   });
 });
-
+// export interface DataprocConfig extends BaseRuntimeConfig {
+//   numberOfWorkers: number;
+//   autopauseThreshold: number | null; // TODO: Add to base config
+//   masterMachineType: string;
+//   masterDiskSize: number;
+//   workerMachineType: string | null;
+//   workerDiskSize: number | null;
+//   numberOfWorkerLocalSSDs: number | null;
+//   numberOfPreemptibleWorkers: number | null;
+//   // properties: Record<string, string> TODO: Where is this used?
+//   region: string;
+//   componentGatewayEnabled: boolean;
+//   workerPrivateAccess: boolean;
+// }
 describe('runtimeConfigCost for dataproc', () => {
   const defaultSparkSingleNode: GoogleRuntimeConfig = {
     cloudService: cloudServiceTypes.DATAPROC,
@@ -441,6 +454,8 @@ describe('runtimeConfigCost for dataproc', () => {
     numberOfPreemptibleWorkers: 0,
     workerDiskSize: 0,
     workerPrivateAccess: false,
+    workerMachineType: null,
+    numberOfWorkerLocalSSDs: null,
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   };
 
@@ -456,6 +471,7 @@ describe('runtimeConfigCost for dataproc', () => {
     workerMachineType: 'n1-standard-4',
     workerDiskSize: 150,
     workerPrivateAccess: false,
+    numberOfWorkerLocalSSDs: null,
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   };
   it('gets cost for a dataproc cluster', () => {
