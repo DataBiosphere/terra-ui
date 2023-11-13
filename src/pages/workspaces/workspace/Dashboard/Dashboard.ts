@@ -41,9 +41,8 @@ import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/W
 import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceNotifications';
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
 import { displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
+import { WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
-
-import { WorkspaceAcl } from '../WorkspaceAcl';
 
 const styles: Record<string, CSSProperties> = {
   authDomain: {
