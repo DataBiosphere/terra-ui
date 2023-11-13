@@ -4,7 +4,6 @@ import { ButtonPrimary, ButtonSecondary, LabeledCheckbox } from 'src/components/
 import { centeredSpinner } from 'src/components/icons';
 import planet from 'src/images/register-planet.svg';
 import { Ajax } from 'src/libs/ajax';
-import { SamUserAttributes } from 'src/libs/ajax/User';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -29,7 +28,6 @@ const constraints = ({ partOfOrganization }: { partOfOrganization: boolean }) =>
 
 export const Register = (): ReactNode => {
   const user: TerraUser = getTerraUser();
-  const userAttributes: SamUserAttributes = authStore.get().terraUserAttributes;
   const [busy, setBusy] = useState(false);
   const [givenName, setGivenName] = useState(user.givenName || '');
   const [familyName, setFamilyName] = useState(user.familyName || '');
@@ -39,7 +37,7 @@ export const Register = (): ReactNode => {
   const [title, setTitle] = useState('');
   const [department, setDepartment] = useState('');
   const [interestInTerra, setInterestInTerra] = useState('');
-  const [marketingConsent, setMarketingConsent] = useState(userAttributes.marketingConsent);
+  const [marketingConsent, setMarketingConsent] = useState(true);
 
   const register = async () => {
     try {
@@ -180,7 +178,7 @@ export const Register = (): ReactNode => {
         })}
       </div>
       <FormLabel style={{ marginTop: '2rem' }}>Communication Preferences</FormLabel>
-      <CommunicationPreferencesCheckbox title="Necessary communications related to platform operations" value={true} />
+      <CommunicationPreferencesCheckbox title="Necessary communications related to platform operations" value />
       <CommunicationPreferencesCheckbox
         title="Marketing communications including notifications for upcoming workshops and new flagship dataset additions"
         value={marketingConsent}
