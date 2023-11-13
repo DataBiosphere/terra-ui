@@ -178,10 +178,10 @@ export const Register = (): ReactNode => {
         })}
       </div>
       <FormLabel style={{ marginTop: '2rem' }}>Communication Preferences</FormLabel>
-      <CommunicationPreferencesCheckbox title="Necessary communications related to platform operations" value />
+      <CommunicationPreferencesCheckbox title="Necessary communications related to platform operations" checked />
       <CommunicationPreferencesCheckbox
         title="Marketing communications including notifications for upcoming workshops and new flagship dataset additions"
-        value={marketingConsent}
+        checked={marketingConsent}
         onChange={setMarketingConsent}
       />
       <div style={{ marginTop: '3rem' }}>
