@@ -403,7 +403,6 @@ describe('getPersistentDiskCostMonthly', () => {
         dateAccessed: '2020-10-13T15:00:00.000Z',
         destroyedDate: null,
       },
-      // diskType: googlePdTypes.standard,
     };
 
     // Act
@@ -428,20 +427,7 @@ describe('getPersistentDiskCostMonthly', () => {
     expect(result).toBe(getAzurePricesForRegion('eastus')!['S6 LRS']);
   });
 });
-// export interface DataprocConfig extends BaseRuntimeConfig {
-//   numberOfWorkers: number;
-//   autopauseThreshold: number | null; // TODO: Add to base config
-//   masterMachineType: string;
-//   masterDiskSize: number;
-//   workerMachineType: string | null;
-//   workerDiskSize: number | null;
-//   numberOfWorkerLocalSSDs: number | null;
-//   numberOfPreemptibleWorkers: number | null;
-//   // properties: Record<string, string> TODO: Where is this used?
-//   region: string;
-//   componentGatewayEnabled: boolean;
-//   workerPrivateAccess: boolean;
-// }
+
 describe('runtimeConfigCost for dataproc', () => {
   const defaultSparkSingleNode: GoogleRuntimeConfig = {
     cloudService: cloudServiceTypes.DATAPROC,
