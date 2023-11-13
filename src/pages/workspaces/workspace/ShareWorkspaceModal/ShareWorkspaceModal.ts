@@ -18,6 +18,7 @@ import { cond, withBusyState } from 'src/libs/utils';
 import { hasProtectedData, isAzureWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { CurrentCollaborators } from 'src/pages/workspaces/workspace/ShareWorkspaceModal/CurrentCollaborators';
 import {
+  AccessEntry,
   aclEntryIsTerraSupport,
   terraSupportAccessLevel,
   terraSupportEmail,
@@ -97,7 +98,10 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   const addCollaborator = (collaboratorEmail) => {
     if (!validate.single(collaboratorEmail, { email: true, exclusion: aclEmails })) {
       setSearchValue('');
-      setAcl((prevAcl: WorkspaceAcl) => [...prevAcl, { email: collaboratorEmail, accessLevel: 'READER' }]);
+      setAcl((prevAcl: WorkspaceAcl) => [
+        ...prevAcl,
+        { email: collaboratorEmail, accessLevel: 'READER' } as AccessEntry,
+      ]);
       setLastAddedEmail(collaboratorEmail);
     }
   };
