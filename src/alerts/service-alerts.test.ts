@@ -1,11 +1,14 @@
-import _ from 'lodash/fp';
+import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { Ajax } from 'src/libs/ajax';
-import { getServiceAlerts } from 'src/libs/service-alerts';
+
+import { getServiceAlerts } from './service-alerts';
 
 jest.mock('src/libs/ajax');
 
-jest.mock('src/libs/utils', () => {
-  const originalModule = jest.requireActual('src/libs/utils');
+type UtilsExports = typeof import('src/libs/utils');
+jest.mock('src/libs/utils', (): UtilsExports => {
+  const originalModule = jest.requireActual<UtilsExports>('src/libs/utils');
   const crypto = jest.requireActual('crypto');
   return {
     ...originalModule,
@@ -19,17 +22,26 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
+type AjaxContract = ReturnType<typeof Ajax>;
+
 describe('getServiceAlerts', () => {
   it('fetches service alerts from GCS', async () => {
+    // Arrange
     const mockGetServiceAlerts = jest.fn().mockReturnValue(Promise.resolve([]));
-    Ajax.mockReturnValue({ FirecloudBucket: { getServiceAlerts: mockGetServiceAlerts } });
+    asMockedFn(Ajax).mockReturnValue({
+      FirecloudBucket: { getServiceAlerts: mockGetServiceAlerts },
+    } as DeepPartial<AjaxContract> as AjaxContract);
 
+    // Act
     await getServiceAlerts();
+
+    // Assert
     expect(mockGetServiceAlerts).toHaveBeenCalled();
   });
 
   it('adds IDs to alerts using hashes of alert content', async () => {
-    Ajax.mockReturnValue({
+    // Arrange
+    asMockedFn(Ajax).mockReturnValue({
       FirecloudBucket: {
         getServiceAlerts: () =>
           Promise.resolve([
@@ -43,17 +55,21 @@ describe('getServiceAlerts', () => {
             },
           ]),
       },
-    });
+    } as AjaxContract);
 
+    // Act
     const serviceAlerts = await getServiceAlerts();
-    expect(_.map('id', serviceAlerts)).toEqual([
+
+    // Assert
+    expect(serviceAlerts.map((alert) => alert.id)).toEqual([
       '94a2d01d8daeece88bce47cbfc702593005c5466dd021e677f3c293a62cec57e',
       '2e54894f36216834f591df1e1fb355789cf5622e02dd23e855c9639c3d080dc1',
     ]);
   });
 
   it('defaults severity to warning', async () => {
-    Ajax.mockReturnValue({
+    // Arrange
+    asMockedFn(Ajax).mockReturnValue({
       FirecloudBucket: {
         getServiceAlerts: () =>
           Promise.resolve([
@@ -68,9 +84,12 @@ describe('getServiceAlerts', () => {
             },
           ]),
       },
-    });
+    } as AjaxContract);
 
+    // Act
     const serviceAlerts = await getServiceAlerts();
-    expect(_.map('severity', serviceAlerts)).toEqual(['warn', 'info']);
+
+    // Assert
+    expect(serviceAlerts.map((alert) => alert.severity)).toEqual(['warn', 'info']);
   });
 });
