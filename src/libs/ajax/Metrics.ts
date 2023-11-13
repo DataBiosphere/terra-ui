@@ -32,6 +32,7 @@ export const Metrics = (signal?: AbortSignal) => {
       window.Appcues?.page();
     }
 
+    const { buildTimestamp, gitRevision, terraDeploymentEnv } = getConfig();
     const body = {
       event,
       properties: {
@@ -41,9 +42,10 @@ export const Metrics = (signal?: AbortSignal) => {
         sessionId: getSessionId(),
         appId: 'Saturn',
         hostname: window.location.hostname,
+        env: terraDeploymentEnv,
         appPath: Nav.getCurrentRoute().name,
-        appVersion: getConfig().gitRevision,
-        appVersionBuildTime: new Date(getConfig().buildTimestamp).toISOString(),
+        appVersion: gitRevision,
+        appVersionBuildTime: new Date(buildTimestamp).toISOString(),
         ...getDefaultProperties(),
       },
     };
