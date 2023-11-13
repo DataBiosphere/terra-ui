@@ -40,7 +40,7 @@ describe('getServiceAlerts', () => {
   });
 
   it('adds IDs to alerts using hashes of alert content', async () => {
-    // Assert
+    // Arrange
     asMockedFn(Ajax).mockReturnValue({
       FirecloudBucket: {
         getServiceAlerts: () =>
