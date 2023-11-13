@@ -53,9 +53,9 @@ jest.mock<WorkspaceFiltersExports>('src/pages/workspaces/WorkspacesList/Workspac
 }));
 
 jest.mock<UseWorkspaceWithSubmissionStatsExports>(
-  'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats',
+  'src/pages/workspaces/hooks/useWorkspacesWithSubmissionStats',
   () => ({
-    ...jest.requireActual('src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats'),
+    ...jest.requireActual('src/pages/workspaces/hooks/useWorkspacesWithSubmissionStats'),
     useWorkspacesWithSubmissionStats: jest.fn(),
   })
 );
