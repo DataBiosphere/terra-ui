@@ -11,7 +11,7 @@ import AzurePreview from 'src/pages/AzurePreview';
 import { Disabled } from 'src/pages/Disabled';
 import SignIn from 'src/pages/SignIn';
 import TermsOfService from 'src/pages/TermsOfService';
-import Register from 'src/registration/Register';
+import { Register } from 'src/registration/Register';
 
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute();

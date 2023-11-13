@@ -1,6 +1,5 @@
-import _ from 'lodash/fp';
-import React, { ReactNode, useState } from 'react';
-import { refreshTerraProfile, signOut } from 'src/auth/auth';
+import React, { useState } from 'react';
+import { refreshSamUserAttributes, refreshTerraProfile, signOut } from 'src/auth/auth';
 import { ButtonPrimary, ButtonSecondary, LabeledCheckbox } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import planet from 'src/images/register-planet.svg';
@@ -9,6 +8,7 @@ import { SamUserAttributes } from 'src/libs/ajax/User';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
+import { FormLabel } from 'src/libs/forms';
 import { RegistrationLogo } from 'src/libs/logos';
 import { authStore, getTerraUser, TerraUser } from 'src/libs/state';
 import { CommunicationPreferencesCheckbox } from 'src/registration/CommunicationPreferencesCheckbox';
@@ -16,23 +16,18 @@ import { InterestInTerraCheckbox } from 'src/registration/InterestInTerraCheckbo
 import { LabelledTextInput } from 'src/registration/LabelledTextInput';
 import validate from 'validate.js';
 
-const constraints = (partOfOrg: boolean) => {
+const constraints = ({ partOfOrganization }: { partOfOrganization: boolean }) => {
   return {
     givenName: { presence: { allowEmpty: false } },
     familyName: { presence: { allowEmpty: false } },
     email: { presence: { allowEmpty: false } },
-    institute: { presence: { allowEmpty: !partOfOrg } },
-    department: { presence: { allowEmpty: !partOfOrg } },
-    title: { presence: { allowEmpty: !partOfOrg } },
+    institute: { presence: { allowEmpty: !partOfOrganization } },
+    department: { presence: { allowEmpty: !partOfOrganization } },
+    title: { presence: { allowEmpty: !partOfOrganization } },
   };
 };
 
-interface CheckboxLineProps {
-  children: ReactNode[];
-}
-const CheckboxLine = (props: CheckboxLineProps) => <div style={{ marginRight: '1rem' }}>{props.children}</div>;
-
-const Register = () => {
+export const Register = () => {
   const user: TerraUser = getTerraUser();
   const userAttributes: SamUserAttributes = authStore.get().terraUserAttributes;
   const [busy, setBusy] = useState(false);
@@ -66,6 +61,7 @@ const Register = () => {
       await Ajax().User.setUserAttributes({ marketingConsent });
       authStore.update((state) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
       await refreshTerraProfile();
+      await refreshSamUserAttributes();
       Ajax().Metrics.captureEvent(Events.user.register);
     } catch (error) {
       reportError('Error registering', error);
@@ -74,7 +70,7 @@ const Register = () => {
   };
   const errors = validate(
     { givenName, familyName, email, institute, title, department },
-    constraints(partOfOrganization)
+    constraints({ partOfOrganization })
   );
 
   return (
@@ -90,7 +86,7 @@ const Register = () => {
       }}
     >
       <RegistrationLogo />
-      <div
+      <h1
         style={{
           marginTop: '4rem',
           color: colors.dark(0.6),
@@ -99,26 +95,21 @@ const Register = () => {
         }}
       >
         New User Registration
-      </div>
-      <div style={{ marginTop: '1rem', display: 'flex' }}>
-        <div style={{ lineHeight: '170%' }}>
-          <LabelledTextInput
-            required
-            value={givenName}
-            onChange={setGivenName}
-            inputStyle={{ display: 'block' }}
-            label="First Name"
-          />
-        </div>
-        <div style={{ width: '1rem' }} />
-        <div style={{ lineHeight: '170%' }}>
-          <LabelledTextInput
-            value={familyName}
-            onChange={setFamilyName}
-            inputStyle={{ display: 'block' }}
-            label="Last Name"
-          />
-        </div>
+      </h1>
+      <div style={{ marginTop: '1rem', display: 'flex', lineHeight: '170%' }}>
+        <LabelledTextInput
+          required
+          value={givenName}
+          onChange={setGivenName}
+          inputStyle={{ display: 'block' }}
+          label="First Name"
+        />
+        <LabelledTextInput
+          value={familyName}
+          onChange={setFamilyName}
+          inputStyle={{ display: 'block' }}
+          label="Last Name"
+        />
       </div>
       <div style={{ lineHeight: '170%' }}>
         <LabelledTextInput
@@ -129,8 +120,6 @@ const Register = () => {
           inputStyle={{ width: '66ex' }}
           label="Contact Email for Notifications"
         />
-      </div>
-      <div style={{ lineHeight: '170%' }}>
         <LabelledTextInput
           value={institute}
           required={partOfOrganization}
@@ -149,63 +138,53 @@ const Register = () => {
           <span style={{ marginLeft: '0.25rem' }}>I am not a part of an organization</span>
         </LabeledCheckbox>
       </div>
-      <div style={{ display: 'flex' }}>
-        <div style={{ lineHeight: '170%' }}>
-          <LabelledTextInput
-            value={department}
-            required={partOfOrganization}
-            disabled={!partOfOrganization}
-            onChange={setDepartment}
-            labelStyle={{ display: 'block' }}
-            label="Department"
-          />
-        </div>
-        <div style={{ width: '1rem' }} />
-        <div style={{ lineHeight: '170%' }}>
-          <LabelledTextInput
-            value={title}
-            required={partOfOrganization}
-            disabled={!partOfOrganization}
-            onChange={setTitle}
-            label="Title"
-            labelStyle={{ display: 'block' }}
-          />
-        </div>
+      <div style={{ display: 'flex', lineHeight: '170%' }}>
+        <LabelledTextInput
+          value={department}
+          required={partOfOrganization}
+          disabled={!partOfOrganization}
+          onChange={setDepartment}
+          labelStyle={{ display: 'block' }}
+          label="Department"
+        />
+        <LabelledTextInput
+          value={title}
+          required={partOfOrganization}
+          disabled={!partOfOrganization}
+          onChange={setTitle}
+          label="Title"
+          labelStyle={{ display: 'block' }}
+        />
       </div>
-      <h3 style={{ marginTop: '2rem' }}>I am most interested in using Terra to (Check all that apply):</h3>
-      <CheckboxLine>
-        {_.map(
-          (title: string) => {
-            return (
-              <InterestInTerraCheckbox
-                title={title}
-                interestInTerra={interestInTerra}
-                setFunc={setInterestInTerra}
-                key={_.uniqueId('interest_')}
-              />
-            );
-          },
-          [
-            'Collaborate with individuals within my organization',
-            'Collaborate with individuals outside of my organization',
-            'Access data',
-            'Manage datasets',
-            'Launch workflows',
-            'Complete interactive analyses',
-            'Build Tools',
-          ]
-        )}
-      </CheckboxLine>
-      <h3 style={{ marginTop: '2rem' }}>Communication Preferences</h3>
-      <CommunicationPreferencesCheckbox
-        title="Necessary communications related to platform operations"
-        value
-        setFunc={undefined}
-      />
+      <FormLabel style={{ marginTop: '2rem' }}>
+        I am most interested in using Terra to (Check all that apply):
+      </FormLabel>
+      <div style={{ marginRight: '1rem' }}>
+        {[
+          'Collaborate with individuals within my organization',
+          'Collaborate with individuals outside of my organization',
+          'Access data',
+          'Manage datasets',
+          'Launch workflows',
+          'Complete interactive analyses',
+          'Build tools',
+        ].map((title: string) => {
+          return (
+            <InterestInTerraCheckbox
+              key={title}
+              title={title}
+              interestInTerra={interestInTerra}
+              onChange={setInterestInTerra}
+            />
+          );
+        })}
+      </div>
+      <FormLabel style={{ marginTop: '2rem' }}>Communication Preferences</FormLabel>
+      <CommunicationPreferencesCheckbox title="Necessary communications related to platform operations" value />
       <CommunicationPreferencesCheckbox
         title="Marketing communications including notifications for upcoming workshops and new flagship dataset additions"
         value={marketingConsent}
-        setFunc={setMarketingConsent}
+        onChange={setMarketingConsent}
       />
       <div style={{ marginTop: '3rem' }}>
         <ButtonPrimary disabled={errors || busy} onClick={register}>
@@ -220,4 +199,3 @@ const Register = () => {
     </div>
   );
 };
-export default Register;

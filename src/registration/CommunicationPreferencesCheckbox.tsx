@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { LabeledCheckbox } from 'src/components/common';
 
 interface CommunicationPreferencesCheckboxProps {
   title: string;
   value: boolean;
-  setFunc: React.Dispatch<React.SetStateAction<boolean>> | undefined;
+  onChange?: (value: boolean) => void;
 }
 
-export const CommunicationPreferencesCheckbox = (props: CommunicationPreferencesCheckboxProps) => (
-  <div style={{ marginTop: '.25rem' }}>
-    <LabeledCheckbox checked={props.value} disabled={props.setFunc === undefined} onChange={props.setFunc}>
-      <span style={{ marginLeft: '0.5rem' }}>{props.title}</span>
-    </LabeledCheckbox>
-  </div>
-);
+export const CommunicationPreferencesCheckbox = (props: CommunicationPreferencesCheckboxProps): ReactNode => {
+  const { title, value, onChange } = props;
+  return (
+    <div style={{ marginTop: '.25rem' }}>
+      <LabeledCheckbox checked={value} disabled={onChange === undefined} onChange={onChange}>
+        <span style={{ marginLeft: '0.5rem' }}>{title}</span>
+      </LabeledCheckbox>
+    </div>
+  );
+};
