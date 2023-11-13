@@ -348,10 +348,13 @@ const WorkspaceDashboardForwardRefRenderFunction = (
             'aria-label': 'dataset attributes table',
             rows: _.flow(
               _.map(({ key, title }) => ({ name: title, value: displayAttributeValue(attributes[key]) })),
-              append({
-                name: 'Structured Data Use Limitations',
-                value: attributes['library:orsp'] ? consentStatus : h(DataUseLimitations, { attributes }),
-              }),
+              (originalMap) => [
+                ...originalMap,
+                {
+                  name: 'Structured Data Use Limitations',
+                  value: attributes['library:orsp'] ? consentStatus : h(DataUseLimitations, { attributes }),
+                },
+              ],
               _.filter('value')
             )(displayLibraryAttributes),
             columns: [

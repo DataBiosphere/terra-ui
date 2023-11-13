@@ -97,7 +97,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   const addCollaborator = (collaboratorEmail) => {
     if (!validate.single(collaboratorEmail, { email: true, exclusion: aclEmails })) {
       setSearchValue('');
-      setAcl(append({ email: collaboratorEmail, accessLevel: 'READER' }));
+      setAcl({ email: collaboratorEmail, accessLevel: 'READER' });
       setLastAddedEmail(collaboratorEmail);
     }
   };
