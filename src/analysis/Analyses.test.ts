@@ -93,7 +93,7 @@ const defaultUseAnalysisStore = {
 };
 
 const defaultAnalysesProps: AnalysesProps = {
-  workspace: defaultGoogleWorkspace,
+  workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true },
   analysesData: defaultAnalysesData,
   onRequesterPaysError: () => {},
   storageDetails: { googleBucketLocation: '', googleBucketType: '', fetchedGoogleBucketLocation: undefined },
@@ -194,7 +194,12 @@ describe('Analyses', () => {
     // Act
     await act(async () => {
       // eslint-disable-line require-await
-      render(h(BaseAnalyses, { ...defaultAnalysesProps, workspace: defaultAzureWorkspace }));
+      render(
+        h(BaseAnalyses, {
+          ...defaultAnalysesProps,
+          workspace: { ...defaultAzureWorkspace, workspaceInitialized: true },
+        })
+      );
     });
 
     // Assert
