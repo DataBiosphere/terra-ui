@@ -214,7 +214,7 @@ export const getJupyterRuntimeConfig = ({
   cloudService: cloudServiceTypes.GCE,
   bootDiskSize: defaultGceBootDiskSize,
   zone: 'us-central1-a',
-  gpuConfig: undefined,
+  gpuConfig: null,
   normalizedRegion: 'us-central1' as NormalizedComputeRegion,
 });
 
@@ -236,7 +236,7 @@ export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): Runtim
     cloudService: cloudServiceTypes.GCE,
     bootDiskSize: defaultGceBootDiskSize,
     zone: 'us-central1-a',
-    gpuConfig: undefined,
+    gpuConfig: null,
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
     ...overrides,
   } satisfies GceWithPdConfig);
