@@ -1,10 +1,16 @@
-import { getServiceAlerts, serviceAlertsStore } from 'src/libs/service-alerts';
-import { startPollingServiceAlerts } from 'src/libs/service-alerts-polling';
+import { asMockedFn } from '@terra-ui-packages/test-utils';
 
-jest.mock('src/libs/service-alerts', () => ({
-  ...jest.requireActual('src/libs/service-alerts'),
-  getServiceAlerts: jest.fn(),
-}));
+import { getServiceAlerts, serviceAlertsStore } from './service-alerts';
+import { startPollingServiceAlerts } from './service-alerts-polling';
+
+type ServiceAlertsExports = typeof import('./service-alerts');
+jest.mock(
+  './service-alerts',
+  (): ServiceAlertsExports => ({
+    ...jest.requireActual<ServiceAlertsExports>('./service-alerts'),
+    getServiceAlerts: jest.fn(),
+  })
+);
 
 const flushPromises = () => new Promise(jest.requireActual('timers').setImmediate);
 
@@ -18,9 +24,11 @@ describe('startPollingServiceAlerts', () => {
   });
 
   it('periodically fetches service alerts and updates store', async () => {
-    getServiceAlerts.mockReturnValue(
+    // Arrange
+    asMockedFn(getServiceAlerts).mockReturnValue(
       Promise.resolve([
         {
+          id: 'scheduled-maintenance',
           title: 'Scheduled maintenance',
           message: 'Offline tomorrow',
           severity: 'info',
@@ -28,10 +36,12 @@ describe('startPollingServiceAlerts', () => {
       ])
     );
 
+    // Act
     const stopPolling = startPollingServiceAlerts();
     await flushPromises();
 
-    expect(getServiceAlerts.mock.calls.length).toBe(1);
+    // Assert
+    expect(asMockedFn(getServiceAlerts).mock.calls.length).toBe(1);
     expect(serviceAlertsStore.get()).toEqual([
       expect.objectContaining({
         title: 'Scheduled maintenance',
@@ -40,12 +50,17 @@ describe('startPollingServiceAlerts', () => {
       }),
     ]);
 
+    // Act
     jest.advanceTimersByTime(60000);
-    expect(getServiceAlerts.mock.calls.length).toBe(2);
 
+    // Assert
+    expect(asMockedFn(getServiceAlerts).mock.calls.length).toBe(2);
+
+    // Act
     stopPolling();
-
     jest.advanceTimersByTime(60000);
-    expect(getServiceAlerts.mock.calls.length).toBe(2);
+
+    // Assert
+    expect(asMockedFn(getServiceAlerts).mock.calls.length).toBe(2);
   });
 });
