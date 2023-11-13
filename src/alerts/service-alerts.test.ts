@@ -26,16 +26,21 @@ type AjaxContract = ReturnType<typeof Ajax>;
 
 describe('getServiceAlerts', () => {
   it('fetches service alerts from GCS', async () => {
+    // Arrange
     const mockGetServiceAlerts = jest.fn().mockReturnValue(Promise.resolve([]));
     asMockedFn(Ajax).mockReturnValue({
       FirecloudBucket: { getServiceAlerts: mockGetServiceAlerts },
     } as DeepPartial<AjaxContract> as AjaxContract);
 
+    // Act
     await getServiceAlerts();
+
+    // Assert
     expect(mockGetServiceAlerts).toHaveBeenCalled();
   });
 
   it('adds IDs to alerts using hashes of alert content', async () => {
+    // Assert
     asMockedFn(Ajax).mockReturnValue({
       FirecloudBucket: {
         getServiceAlerts: () =>
@@ -52,7 +57,10 @@ describe('getServiceAlerts', () => {
       },
     } as AjaxContract);
 
+    // Act
     const serviceAlerts = await getServiceAlerts();
+
+    // Assert
     expect(serviceAlerts.map((alert) => alert.id)).toEqual([
       '94a2d01d8daeece88bce47cbfc702593005c5466dd021e677f3c293a62cec57e',
       '2e54894f36216834f591df1e1fb355789cf5622e02dd23e855c9639c3d080dc1',
@@ -60,6 +68,7 @@ describe('getServiceAlerts', () => {
   });
 
   it('defaults severity to warning', async () => {
+    // Arrange
     asMockedFn(Ajax).mockReturnValue({
       FirecloudBucket: {
         getServiceAlerts: () =>
@@ -77,7 +86,10 @@ describe('getServiceAlerts', () => {
       },
     } as AjaxContract);
 
+    // Act
     const serviceAlerts = await getServiceAlerts();
+
+    // Assert
     expect(serviceAlerts.map((alert) => alert.severity)).toEqual(['warn', 'info']);
   });
 });

@@ -24,6 +24,7 @@ describe('startPollingServiceAlerts', () => {
   });
 
   it('periodically fetches service alerts and updates store', async () => {
+    // Arrange
     asMockedFn(getServiceAlerts).mockReturnValue(
       Promise.resolve([
         {
@@ -35,9 +36,11 @@ describe('startPollingServiceAlerts', () => {
       ])
     );
 
+    // Act
     const stopPolling = startPollingServiceAlerts();
     await flushPromises();
 
+    // Assert
     expect(asMockedFn(getServiceAlerts).mock.calls.length).toBe(1);
     expect(serviceAlertsStore.get()).toEqual([
       expect.objectContaining({
@@ -47,12 +50,17 @@ describe('startPollingServiceAlerts', () => {
       }),
     ]);
 
+    // Act
     jest.advanceTimersByTime(60000);
+
+    // Assert
     expect(asMockedFn(getServiceAlerts).mock.calls.length).toBe(2);
 
+    // Act
     stopPolling();
-
     jest.advanceTimersByTime(60000);
+
+    // Assert
     expect(asMockedFn(getServiceAlerts).mock.calls.length).toBe(2);
   });
 });
