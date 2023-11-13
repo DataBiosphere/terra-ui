@@ -229,7 +229,7 @@ export const defaultAuditInfo = {
 
 export const generateGoogleProject = () => `terra-test-${uuid().substring(0, 8)}`;
 
-export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): RuntimeConfig =>
+export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): GceWithPdConfig =>
   ({
     machineType: defaultGceMachineType,
     persistentDiskId: getRandomInt(randomMaxInt),
@@ -239,7 +239,7 @@ export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): Runtim
     gpuConfig: null,
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
     ...overrides,
-  } satisfies GceWithPdConfig);
+  } satisfies GceWithPdConfig as GceWithPdConfig);
 
 export const appError: AppError = {
   action: '',
@@ -888,6 +888,7 @@ export const dataprocRuntime: ListRuntimeItem = {
     dateAccessed: '2023-05-03T19:53:23.559367Z',
   },
   runtimeConfig: {
+    autopauseThreshold: null,
     numberOfWorkers: 2,
     masterMachineType: 'n1-standard-4',
     masterDiskSize: 150,
