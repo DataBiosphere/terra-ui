@@ -4,7 +4,6 @@ import _ from 'lodash/fp';
 import {
   CSSProperties,
   ForwardedRef,
-  ForwardRefRenderFunction,
   Fragment,
   ReactNode,
   useCallback,
@@ -103,7 +102,7 @@ interface WorkspaceDashboardComponentProps extends WorkspaceDashboardProps {
   workspace: Workspace;
 }
 
-const WorkspaceDashboardComponent = (
+const WorkspaceDashboardForwardRefRenderFunction = (
   props: WorkspaceDashboardComponentProps,
   ref: ForwardedRef<unknown>
 ): ReactNode => {
@@ -493,16 +492,14 @@ const WorkspaceDashboardComponent = (
   ]);
 };
 
-const WorkspaceDashboard: (
-  props: WorkspaceDashboardProps
-) => ForwardRefRenderFunction<typeof WorkspaceDashboardComponent, WorkspaceDashboardProps> = _.flow(
+const WorkspaceDashboard: (props: WorkspaceDashboardProps) => ReactNode = _.flow(
   forwardRefWithName('WorkspaceDashboard'),
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
     activeTab: 'dashboard',
     title: 'Dashboard',
   })
-)(WorkspaceDashboardComponent);
+)(WorkspaceDashboardForwardRefRenderFunction);
 
 export const navPaths = [
   {
