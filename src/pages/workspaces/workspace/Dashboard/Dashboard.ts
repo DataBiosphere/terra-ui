@@ -29,7 +29,7 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
-import { append, formatBytes, newTabLinkProps, withBusyState } from 'src/libs/utils';
+import { formatBytes, newTabLinkProps, withBusyState } from 'src/libs/utils';
 import { canEditWorkspace, canWrite, isGoogleWorkspace, isOwner } from 'src/libs/workspace-utils';
 import SignIn from 'src/pages/SignIn';
 import { CloudInformation } from 'src/pages/workspaces/workspace/Dashboard/CloudInformation';
