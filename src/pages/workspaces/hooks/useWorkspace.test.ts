@@ -12,7 +12,7 @@ import {
   azureBucketRecheckRate,
   googlePermissionsRecheckRate,
   useWorkspace,
-} from 'src/pages/workspaces/workspace/useWorkspace';
+} from 'src/pages/workspaces/hooks/useWorkspace';
 import { renderHookInAct } from 'src/testing/test-utils';
 import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
 
