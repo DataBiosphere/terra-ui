@@ -14,7 +14,6 @@ export const InterestInTerraCheckbox = (props: InterestInTerraCheckboxProps): Re
     <div style={{ marginTop: '.25rem' }}>
       <LabeledCheckbox
         checked={_.includes(title, interestInTerra)}
-        disabled={false}
         onChange={(v: boolean) => {
           const interestsList = _.isEmpty(interestInTerra) ? [] : _.split(',', interestInTerra);
           const updatedInterestsList = v ? _.concat(interestsList, [title]) : _.without([title], interestsList);
