@@ -97,9 +97,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-      - name: "Run Yarn Install"
-        shell: bash
-        run: cd terraui && yarn install
 
       - name: Auth Lyle to GCP
         id: 'lyle-auth'
@@ -108,13 +105,17 @@ jobs:
           token_format: 'access_token'
           workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
           service_account: 'dsp-artifact-registry-push@dsp-artifact-registry.iam.gserviceaccount.com'
-          audience: 'https://terra-lyle.appspot.com'
+          audience: 'https://iam.googleapis.com/projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider, https://terra-lyle.appspot.com'
           export_environment_variables: false
 
       - name: "set env vars"
         run: |
           echo "LYLE_ACCESS_TOKEN=${{ steps.lyle-auth.outputs.access_token }}" >> $GITHUB_ENV
           echo "TERRA_SA_KEY=dummykey" >> $GITHUB_ENV
+
+      - name: "Run Yarn Install"
+        shell: bash
+        run: cd terraui && yarn install
 
       - name: "Run Integration Tests"
         shell: bash
