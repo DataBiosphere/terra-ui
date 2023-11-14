@@ -21,7 +21,7 @@ import { Ajax } from 'src/libs/ajax';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
-import { reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
+import { reportErrorAndRethrow, withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
@@ -201,7 +201,7 @@ const NewWorkspaceModal = withDisplayName(
     };
 
     const loadData = _.flow(
-      withErrorReporting('Error loading data'),
+      withErrorReportingInModal('Error loading data', onDismiss),
       Utils.withBusyState(setLoading)
     )(() =>
       Promise.all([
