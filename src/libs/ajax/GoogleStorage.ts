@@ -8,6 +8,7 @@ import {
   runtimeTools,
   ToolLabel,
 } from 'src/analysis/utils/tool-utils';
+import { getAuthToken } from 'src/auth/auth';
 import {
   authOpts,
   checkRequesterPaysError,
@@ -19,12 +20,7 @@ import {
 } from 'src/libs/ajax/ajax-common';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
 import { getConfig } from 'src/libs/config';
-import {
-  getTerraUser,
-  knownBucketRequesterPaysStatuses,
-  requesterPaysProjectStore,
-  workspaceStore,
-} from 'src/libs/state';
+import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { canWrite, cloudProviderTypes } from 'src/libs/workspace-utils';
 
@@ -98,8 +94,8 @@ const getServiceAccountToken: (googleProject: string, token: string) => Promise<
   }
 );
 
-export const saToken = (googleProject: string): Promise<string> =>
-  getServiceAccountToken(googleProject, getTerraUser().token!);
+export const saToken = async (googleProject: string): Promise<string> =>
+  getServiceAccountToken(googleProject, getAuthToken()!);
 
 export type GCSMetadata = { [key: string]: string };
 
