@@ -123,11 +123,7 @@ describe('ImportDataDestination', () => {
     {
       importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
       requiredAuthorizationDomain: undefined,
-      expectedArgs: {
-        cloudPlatform: 'GCP',
-        isProtectedData: false,
-        requiredAuthorizationDomain: undefined,
-      },
+      expectedArgs: { cloudPlatform: 'GCP', isProtectedData: false, requiredAuthorizationDomain: undefined },
     },
     {
       importRequest: {
@@ -178,11 +174,7 @@ describe('ImportDataDestination', () => {
   ] as {
     importRequest: ImportRequest;
     requiredAuthorizationDomain?: string;
-    expectedArgs: {
-      cloudPlatform?: CloudProvider;
-      isProtectedData: boolean;
-      requiredAuthorizationDomain?: string;
-    };
+    expectedArgs: { cloudPlatform?: CloudProvider; isProtectedData: boolean; requiredAuthorizationDomain?: string };
   }[])(
     'should filter workspaces through canImportIntoWorkspace',
     async ({ importRequest, requiredAuthorizationDomain, expectedArgs }) => {
