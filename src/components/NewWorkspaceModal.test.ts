@@ -469,4 +469,96 @@ describe('NewWorkspaceModal', () => {
       expect(screen.queryByRole('button')).toBeNull();
     });
   });
+
+  it('shows an error message if create workspace request returned an error response', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const createWorkspace = jest
+      .fn()
+      .mockRejectedValue(new Response('{"message":"Something went wrong."}', { status: 500 }));
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [azureBillingProject],
+          },
+          Workspaces: {
+            create: createWorkspace,
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          onSuccess: () => {},
+          onDismiss: () => {},
+        })
+      );
+    });
+
+    // Act
+    const workspaceNameInput = screen.getByLabelText('Workspace name *');
+    act(() => {
+      fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+    });
+
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    await projectSelect.selectOption(/Azure Billing Project/);
+
+    const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+    await user.click(createWorkspaceButton);
+
+    // Assert
+    screen.getByText('Something went wrong.');
+  });
+
+  it('shows an error message if creating a workspace throws an error', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const createWorkspace = jest.fn().mockImplementation(() => {
+      throw new Error('Something went wrong.');
+    });
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [azureBillingProject],
+          },
+          Workspaces: {
+            create: createWorkspace,
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          onSuccess: () => {},
+          onDismiss: () => {},
+        })
+      );
+    });
+
+    // Act
+    const workspaceNameInput = screen.getByLabelText('Workspace name *');
+    act(() => {
+      fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+    });
+
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    await projectSelect.selectOption(/Azure Billing Project/);
+
+    const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+    await user.click(createWorkspaceButton);
+
+    // Assert
+    screen.getByText('Something went wrong.');
+  });
 });
