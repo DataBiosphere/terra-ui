@@ -163,9 +163,16 @@ const label = ({ labelContains }) => {
   return `(//label[contains(normalize-space(.),"${labelContains}")])`;
 };
 
-const fillIn = async (page, xpath, text) => {
+const fillIn = async (page, xpath, text, { initialDelay = Millis.none } = {}) => {
   const input = await page.waitForXPath(xpath, defaultToVisibleTrue());
-  await input.type(text, { delay: 20 });
+
+  // Sometimes the first few characters of the typed text are dropped.
+  // Click the input, then wait, if so configured, to avoid this
+  await input.click();
+  await delay(initialDelay);
+
+  // Actually type the text
+  await input.type(text, { delay: Millis.of(20) });
   // There are several places (e.g. workspace list search) where the page responds dynamically to
   // typed input. That behavior could involve extra renders as component state settles. We strive to
   // avoid the kinds of complex, multi-stage state transitions that can result in extra renders.
@@ -177,13 +184,14 @@ const fillIn = async (page, xpath, text) => {
   // unnecessary renders. It is to check that some specific critical paths through the application
   // (Critical User Journeys) are not broken. Therefore, we'll delay briefly here instead of
   // charging forward at a super-human pace.
-  return delay(300); // withDebouncedChange in input.js specifies 250ms, so waiting longer than that
+  return delay(Millis.of(300)); // withDebouncedChange in input.js specifies 250ms, so waiting longer than that
 };
 
 // Replace pre-existing value
 const fillInReplace = async (page, xpath, text) => {
-  await (await findElement(page, xpath)).click({ clickCount: 3 }); // triple-click to replace the default text
-  return await fillIn(page, xpath, text);
+  const input = await findElement(page, xpath);
+  await input.click({ clickCount: 3 }); // triple-click to select the existing text
+  await input.type(text, { delay: Millis.of(20) });
 };
 
 const select = async (page, labelContains, text) => {
@@ -196,24 +204,38 @@ const select = async (page, labelContains, text) => {
   return click(page, `//div[starts-with(@id, "react-select-") and @role="option" and contains(normalize-space(.),"${text}")]`);
 };
 
-const waitForNoSpinners = (page) => {
-  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true });
+const waitForNoSpinners = (page, { timeout = 30000 } = {}) => {
+  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true, timeout });
+};
+
+const waitForNoModal = (page, { timeout = 30000 } = {}) => {
+  return page.waitForXPath('//*[contains(@class, "ReactModal__Overlay")]', { hidden: true, timeout });
 };
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
 // the action to ensure that the spinner rendering is captured by the observer, followed by
 // waiting for the spinner to be removed
-const noSpinnersAfter = async (page, { action, debugMessage }) => {
+const noSpinnersAfter = async (page, { action, debugMessage, timeout = 30000 }) => {
   if (debugMessage) {
     console.log(`About to perform an action and wait for spinners. \n\tDebug message: ${debugMessage}`);
   }
-  const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]');
+  const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]', { timeout });
   await Promise.all([foundSpinner, action()]);
-  return waitForNoSpinners(page);
+  return waitForNoSpinners(page, { timeout });
 };
 
 const delay = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+/** Dismiss all popup notifications, including errors. */
+const dismissErrorNotifications = async (page) => {
+  await delay(3000); // delayed for any alerts to show
+  const notificationCloseButtons = await page.$x('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss")]');
+
+  await Promise.all(notificationCloseButtons.map((handle) => handle.click()));
+
+  return !!notificationCloseButtons.length && delay(1000); // delayed for alerts to animate off
 };
 
 const dismissNotifications = async (page) => {
@@ -268,6 +290,10 @@ const signIntoTerra = async (page, { token, testUrl }) => {
 
 const findElement = (page, xpath, options) => {
   return page.waitForXPath(xpath, defaultToVisibleTrue(options));
+};
+
+const findErrorPopup = (page, options) => {
+  return page.waitForXPath('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss")][contains(@aria-label,"error")]', options);
 };
 
 const heading = ({ level, text, textContains, isDescendant = false }) => {
@@ -453,7 +479,7 @@ const withPageLogging = (fn) => async (options) => {
   return await fn(options);
 };
 
-const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['networkidle0'], timeout });
+const navOptionNetworkIdle = (timeout = Millis.ofMinute) => ({ waitUntil: ['networkidle0'], timeout });
 
 const gotoPage = async (page, url) => {
   const retryOptions = {
@@ -497,6 +523,46 @@ const verifyAccessibility = async (page, allowedViolations) => {
   }
 };
 
+/** Converts various time units to milliseconds. */
+const Millis = (() => {
+  const MS_IN_SEC = 1000;
+  const SEC_IN_MIN = 60;
+  const MIN_IN_HR = 60;
+  const NONE = 0;
+  const none = NONE;
+  const ofMillis = (millis) => +millis;
+  const ofMilli = ofMillis(1);
+  const ofSeconds = (seconds) => +seconds * ofMillis(MS_IN_SEC);
+  const ofSecond = ofSeconds(1);
+  const ofMinutes = (minutes) => +minutes * ofSeconds(SEC_IN_MIN);
+  const ofMinute = ofMinutes(1);
+  const ofHours = (hours) => +hours * ofMinutes(MIN_IN_HR);
+  const ofHour = ofHours(1);
+  const ofObject = ({ hours = 0, minutes = 0, seconds = 0, millis = 0 }) =>
+    ofHours(hours) + ofMinutes(minutes) + ofSeconds(seconds) + ofMillis(millis);
+  const of = (countOrHms) => {
+    if (typeof countOrHms === 'number') {
+      return ofMillis(countOrHms);
+    }
+    if (typeof countOrHms === 'object') {
+      return ofObject(countOrHms);
+    }
+    throw new Error('Millis.of() expects number or object { hours, minutes, seconds, millis }');
+  };
+  return Object.freeze({
+    none,
+    of,
+    ofMilli,
+    ofMillis,
+    ofSecond,
+    ofSeconds,
+    ofMinute,
+    ofMinutes,
+    ofHour,
+    ofHours,
+  });
+})();
+
 module.exports = {
   assertNavChildNotFound,
   assertTextNotFound,
@@ -505,6 +571,7 @@ module.exports = {
   click,
   clickable,
   clickTableCell,
+  dismissErrorNotifications,
   dismissNotifications,
   findIframe,
   findInGrid,
@@ -513,6 +580,7 @@ module.exports = {
   findText,
   fillIn,
   fillInReplace,
+  findErrorPopup,
   getAnimatedDrawer,
   getTableCellPath,
   getTableColIndex,
@@ -530,6 +598,7 @@ module.exports = {
   withScreenshot,
   logPageConsoleMessages,
   noSpinnersAfter,
+  waitForNoModal,
   waitForNoSpinners,
   withPageLogging,
   enablePageLogging,
@@ -542,4 +611,5 @@ module.exports = {
   verifyAccessibility,
   assertLabelledTextInputValue,
   getLabelledTextInputValue,
+  Millis,
 };
