@@ -115,7 +115,7 @@ describe('ImportDataDestination', () => {
       importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
       requiredAuthorizationDomain: 'test-auth-domain',
       expectedArgs: {
-        cloudPlatform: undefined,
+        cloudPlatform: 'GCP',
         isProtectedData: true,
         requiredAuthorizationDomain: 'test-auth-domain',
         importType: 'pfb',
@@ -125,7 +125,7 @@ describe('ImportDataDestination', () => {
       importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
       requiredAuthorizationDomain: undefined,
       expectedArgs: {
-        cloudPlatform: undefined,
+        cloudPlatform: 'GCP',
         isProtectedData: false,
         requiredAuthorizationDomain: undefined,
         importType: 'pfb',
@@ -313,7 +313,7 @@ describe('ImportDataDestination', () => {
         requiredAuthorizationDomain: undefined,
       },
       expectedNewWorkspaceModalProps: {
-        cloudPlatform: undefined,
+        cloudPlatform: 'GCP',
         requiredAuthDomain: undefined,
         requireEnhancedBucketLogging: false,
       },
@@ -325,7 +325,7 @@ describe('ImportDataDestination', () => {
         requiredAuthorizationDomain: 'test-auth-domain',
       },
       expectedNewWorkspaceModalProps: {
-        cloudPlatform: undefined,
+        cloudPlatform: 'GCP',
         requiredAuthDomain: 'test-auth-domain',
         requireEnhancedBucketLogging: true,
       },
