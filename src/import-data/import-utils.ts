@@ -32,9 +32,6 @@ export type ImportOptions = {
 
   /** Authorization domain required for the source data. */
   requiredAuthorizationDomain?: string;
-
-  /** The import request, used to calculate feature flags */
-  importType?: string;
 };
 
 /**
@@ -47,7 +44,7 @@ export type ImportOptions = {
  * @param workspace - Candidate workspace.
  */
 export const canImportIntoWorkspace = (importOptions: ImportOptions, workspace: WorkspaceWrapper): boolean => {
-  const { cloudPlatform, isProtectedData, requiredAuthorizationDomain, importType } = importOptions;
+  const { cloudPlatform, isProtectedData, requiredAuthorizationDomain } = importOptions;
 
   // The user must be able to write to the workspace to import data.
   if (!canWrite(workspace.accessLevel)) {
@@ -70,15 +67,6 @@ export const canImportIntoWorkspace = (importOptions: ImportOptions, workspace: 
     !workspace.workspace.authorizationDomain.some(
       ({ membersGroupName }) => membersGroupName === requiredAuthorizationDomain
     )
-  ) {
-    return false;
-  }
-
-  // Check feature flags to see if this particular import use case is supported
-  if (
-    importType === 'pfb' &&
-    getCloudProviderFromWorkspace(workspace) === 'AZURE' &&
-    !isFeaturePreviewEnabled(ENABLE_AZURE_PFB_IMPORT)
   ) {
     return false;
   }

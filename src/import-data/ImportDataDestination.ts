@@ -191,7 +191,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                     cloudPlatform: requiredCloudPlatform,
                     isProtectedData,
                     requiredAuthorizationDomain,
-                    importType: importRequest.type,
                   },
                   workspace
                 );

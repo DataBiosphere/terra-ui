@@ -118,7 +118,6 @@ describe('ImportDataDestination', () => {
         cloudPlatform: 'GCP',
         isProtectedData: true,
         requiredAuthorizationDomain: 'test-auth-domain',
-        importType: 'pfb',
       },
     },
     {
@@ -128,7 +127,6 @@ describe('ImportDataDestination', () => {
         cloudPlatform: 'GCP',
         isProtectedData: false,
         requiredAuthorizationDomain: undefined,
-        importType: 'pfb',
       },
     },
     {
@@ -156,7 +154,6 @@ describe('ImportDataDestination', () => {
         cloudPlatform: 'GCP',
         isProtectedData: false,
         requiredAuthorizationDomain: undefined,
-        importType: 'tdr-snapshot-export',
       },
     },
     {
@@ -184,7 +181,6 @@ describe('ImportDataDestination', () => {
         cloudPlatform: 'AZURE',
         isProtectedData: false,
         requiredAuthorizationDomain: undefined,
-        importType: 'tdr-snapshot-export',
       },
     },
   ] as {
@@ -194,7 +190,6 @@ describe('ImportDataDestination', () => {
       cloudPlatform?: CloudProvider;
       isProtectedData: boolean;
       requiredAuthorizationDomain?: string;
-      importType?: string;
     };
   }[])(
     'should filter workspaces through canImportIntoWorkspace',
