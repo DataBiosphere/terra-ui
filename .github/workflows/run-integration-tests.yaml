@@ -102,7 +102,7 @@ jobs:
         id: 'lyle-auth'
         uses: google-github-actions/auth@v0
         with:
-          token_format: 'access_token'
+          token_format: 'id_token'
           workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
           service_account: 'dsp-artifact-registry-push@dsp-artifact-registry.iam.gserviceaccount.com'
           audience: 'https://terra-lyle.appspot.com'
@@ -112,14 +112,6 @@ jobs:
         run: |
           echo "LYLE_ACCESS_TOKEN=${{ steps.lyle-auth.outputs.access_token }}" >> $GITHUB_ENV
           echo "TERRA_SA_KEY=dummykey" >> $GITHUB_ENV
-          echo `env` >> debug.env
-
-      - name: 'Debug - Upload Working Dir'
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: working-dir2
-          path: './'
 
       - name: "Run Yarn Install"
         shell: bash
