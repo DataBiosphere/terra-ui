@@ -1,14 +1,15 @@
 import { atom } from '@terra-ui-packages/core-utils';
 import { act, renderHook } from '@testing-library/react';
-import { useCachedData } from 'src/libs/ajax/loaded-data/useCachedData';
 import { useLoadedData, UseLoadedDataResult } from 'src/libs/ajax/loaded-data/useLoadedData';
+import { withCachedData } from 'src/libs/ajax/loaded-data/withCachedData';
 import { controlledPromise } from 'src/testing/test-utils';
 
-describe('useCachedData', () => {
+describe('withCachedData', () => {
   it('calls data method and retains state in store', async () => {
     // Arrange
     const store = atom('');
-    const hookRender1 = await renderHook(() => useCachedData(() => useLoadedData<string>(), store));
+    const useData = withCachedData(store, useLoadedData<string>);
+    const hookRender1 = renderHook(() => useData());
     const hookResult1: UseLoadedDataResult<string> = hookRender1.result.current;
     const updateData = hookResult1[1];
 
@@ -31,7 +32,8 @@ describe('useCachedData', () => {
   it('handles external update to store (during None state)', async () => {
     // Arrange
     const store = atom('');
-    const hookRender1 = await renderHook(() => useCachedData(() => useLoadedData<string>(), store));
+    const useData = withCachedData(store, useLoadedData<string>);
+    const hookRender1 = renderHook(() => useData());
 
     // Act
     act(() => {
@@ -47,7 +49,8 @@ describe('useCachedData', () => {
   it('handles external update to store (after None state)', async () => {
     // Arrange
     const store = atom('');
-    const hookRender1 = await renderHook(() => useCachedData(() => useLoadedData<string>(), store));
+    const useData = withCachedData(store, useLoadedData<string>);
+    const hookRender1 = renderHook(() => useData());
     const hookResult1: UseLoadedDataResult<string> = hookRender1.result.current;
     const updateData = hookResult1[1];
 

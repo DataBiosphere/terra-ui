@@ -1,12 +1,12 @@
 import { useAutoLoadedData } from 'src/libs/ajax/loaded-data/useAutoLoadedData';
-import { useCachedData } from 'src/libs/ajax/loaded-data/useCachedData';
 import { useLoadedDataEvents } from 'src/libs/ajax/loaded-data/useLoadedDataEvents';
+import { withCachedData } from 'src/libs/ajax/loaded-data/withCachedData';
 import { FieldsArg, workspaceProvider } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
 import { reportError } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import { workspacesStore } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { UseWorkspacesStateResult } from 'src/workspaces/useWorkspaces.models';
+import { UseWorkspacesResult } from 'src/workspaces/useWorkspaces.models';
 
 const defaultFieldsArgs: FieldsArg = [
   'accessLevel',
@@ -24,15 +24,15 @@ const defaultFieldsArgs: FieldsArg = [
  * @param fieldsArg
  * @param stringAttributeMaxLength
  */
-export const useWorkspaces = (fieldsArg?: FieldsArg, stringAttributeMaxLength?: number): UseWorkspacesStateResult => {
+export const useWorkspaces = (fieldsArg?: FieldsArg, stringAttributeMaxLength?: number): UseWorkspacesResult => {
   const signal = useCancellation();
   const fields: FieldsArg = fieldsArg || defaultFieldsArgs;
   const getData = async (): Promise<WorkspaceWrapper[]> =>
     await workspaceProvider.list(fields, { stringAttributeMaxLength, signal });
 
-  const useAutoLoadedWorkspaces = () => useAutoLoadedData(getData, []);
+  const useData = withCachedData(workspacesStore, useAutoLoadedData);
 
-  const [workspaces, updateWorkspaces] = useCachedData(useAutoLoadedWorkspaces, workspacesStore);
+  const [workspaces, updateWorkspaces] = useData(getData, []);
 
   useLoadedDataEvents(workspaces, {
     onError: () => {
@@ -40,7 +40,7 @@ export const useWorkspaces = (fieldsArg?: FieldsArg, stringAttributeMaxLength?: 
     },
   });
 
-  const hookResult: UseWorkspacesStateResult = {
+  const hookResult: UseWorkspacesResult = {
     workspaces: workspaces.state !== null ? workspaces.state : [],
     refresh: () => updateWorkspaces(getData),
     loading: workspaces.status === 'Loading',

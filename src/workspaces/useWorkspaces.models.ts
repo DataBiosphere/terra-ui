@@ -4,7 +4,7 @@ import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 /**
  * the expected hook return for useWorkpaces hook usage.
  */
-export interface UseWorkspacesStateResult {
+export interface UseWorkspacesResult {
   workspaces: WorkspaceWrapper[];
   refresh: () => Promise<void>;
   loading: boolean;
@@ -13,4 +13,4 @@ export interface UseWorkspacesStateResult {
 /**
  * the hook signature for expected useWorkspaces hook usage.
  */
-export type UseWorkspacesState = (fields?: FieldsArg, stringAttributeMaxLength?: number) => UseWorkspacesStateResult;
+export type UseWorkspaces = (fields?: FieldsArg, stringAttributeMaxLength?: number) => UseWorkspacesResult;

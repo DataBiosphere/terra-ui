@@ -8,7 +8,7 @@ import { MetricsProvider, useMetricsEvent } from 'src/libs/ajax/metrics/useMetri
 import { terraNavKey, TerraNavLinkProvider } from 'src/libs/nav';
 import { asMockedFn } from 'src/testing/test-utils';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
-import { UseWorkspacesState } from 'src/workspaces/useWorkspaces.models';
+import { UseWorkspaces } from 'src/workspaces/useWorkspaces.models';
 
 import { EnvironmentsPage, makeNavProvider, navProvider } from './EnvironmentsPage';
 
@@ -60,7 +60,7 @@ describe('Environments Page', () => {
     expect(Environments).toBeCalledWith(
       expect.objectContaining({
         nav: navProvider,
-        useWorkspacesState: useWorkspaces as UseWorkspacesState,
+        useWorkspaces: useWorkspaces as UseWorkspaces,
         leoAppData: leoAppProvider,
         leoRuntimeData: leoRuntimeProvider,
         leoDiskData: leoDiskProvider,

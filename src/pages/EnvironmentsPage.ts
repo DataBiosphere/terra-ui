@@ -42,7 +42,7 @@ export const EnvironmentsPage = (): ReactNode => {
     h(TopBar, { title: 'Cloud Environments', href: '' }, []),
     h(Environments, {
       nav: navProvider,
-      useWorkspacesState: useWorkspaces,
+      useWorkspaces,
       leoAppData: leoAppProvider,
       leoRuntimeData: leoRuntimeProvider,
       leoDiskData: leoDiskProvider,
