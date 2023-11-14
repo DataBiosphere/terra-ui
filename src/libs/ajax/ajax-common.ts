@@ -103,6 +103,7 @@ const createRequestWithNewAuthToken = (
 export const withRetryAfterReloadingExpiredAuthToken =
   (wrappedFetch: FetchFn): FetchFn =>
   async (resource: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
+    const preRequestAuthToken = getAuthToken();
     const requestHasAuthHeader = _.isMatch(authOpts(), options as object);
     try {
       if (requestHasAuthHeader) {
@@ -113,13 +114,19 @@ export const withRetryAfterReloadingExpiredAuthToken =
     } catch (error: unknown) {
       if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
         const reloadedAuthTokenState: AuthTokenState = await loadAuthToken();
+        const postRequestAuthToken = getAuthToken();
         if (reloadedAuthTokenState.status === 'success') {
           sendRetryMetric();
           return await createRequestWithStoredAuthToken(wrappedFetch, resource, options);
         }
-        const signOutCause: SignOutCause =
-          reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
-        signOut(signOutCause);
+        // if the auth token the request was made with does not match the current auth token
+        // that means that the user has already been signed out and signed in again to receive a new token
+        // in this case, we should not sign the user out again
+        if (preRequestAuthToken === postRequestAuthToken) {
+          const signOutCause: SignOutCause =
+            reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
+          signOut(signOutCause);
+        }
         throw new Error(sessionTimedOutErrorMessage);
       } else {
         throw error;

@@ -1,9 +1,10 @@
+import { AppWithWorkspace } from 'src/analysis/Environments/Environments.models';
 import { Ajax } from 'src/libs/ajax';
 import { AbortOption } from 'src/libs/ajax/data-provider-common';
-import { App, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { GetAppResponse, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 
-export type AppBasics = Pick<App, 'appName'> & {
-  cloudContext: Pick<App['cloudContext'], 'cloudProvider' | 'cloudResource'>;
+export type AppBasics = Pick<ListAppResponse, 'appName' | 'workspaceId'> & {
+  cloudContext: Pick<AppWithWorkspace['cloudContext'], 'cloudProvider' | 'cloudResource'>;
 };
 
 export type DeleteAppOptions = AbortOption & {
@@ -14,6 +15,7 @@ export interface LeoAppProvider {
   listWithoutProject: (listArgs: Record<string, string>, options?: AbortOption) => Promise<ListAppResponse[]>;
   delete: (app: AppBasics, options?: DeleteAppOptions) => Promise<void>;
   pause: (app: AppBasics, options?: AbortOption) => Promise<void>;
+  get: (app: AppBasics, options?: AbortOption) => Promise<GetAppResponse>;
 }
 
 export const leoAppProvider: LeoAppProvider = {
@@ -26,16 +28,41 @@ export const leoAppProvider: LeoAppProvider = {
     const { cloudProvider, cloudResource } = app.cloudContext;
     const { deleteDisk, signal } = options;
 
+    const { appName, workspaceId } = app;
     if (cloudProvider === 'GCP') {
-      const { appName } = app;
       return Ajax(signal).Apps.app(cloudResource, appName).delete(!!deleteDisk);
     }
-    throw new Error('Deleting apps is currently only supported on GCP');
+    if (cloudProvider === 'AZURE' && !!workspaceId) {
+      return Ajax(signal).Apps.deleteAppV2(appName, workspaceId);
+    }
+    throw new Error(
+      `Deleting apps is currently only supported for azure or google apps. Azure apps must have a workspace id. App: ${app.appName} workspaceId: ${workspaceId}`
+    );
   },
   pause: (app: AppBasics, options: AbortOption = {}): Promise<void> => {
-    const { cloudResource } = app.cloudContext;
+    const { cloudResource, cloudProvider } = app.cloudContext;
     const { signal } = options;
 
+    if (cloudProvider === 'AZURE') {
+      throw new Error('Pausing apps is not supported for azure');
+    }
+
     return Ajax(signal).Apps.app(cloudResource, app.appName).pause();
+  },
+  get: (app: AppBasics, options: AbortOption = {}): Promise<GetAppResponse> => {
+    const { cloudResource, cloudProvider } = app.cloudContext;
+    const { signal } = options;
+    const { workspaceId } = app;
+
+    if (cloudProvider === 'GCP') {
+      return Ajax(signal).Apps.app(cloudResource, app.appName).details();
+    }
+    if (cloudProvider === 'AZURE' && !!workspaceId) {
+      return Ajax(signal).Apps.getAppV2(app.appName, workspaceId);
+    }
+
+    throw new Error(
+      `Getting apps is currently only supported for azure or google apps. Azure apps must have a workspace id. App: ${app.appName} workspaceId: ${workspaceId}`
+    );
   },
 };
