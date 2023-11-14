@@ -12,8 +12,6 @@ import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
 import { cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -613,28 +611,24 @@ describe('doesWorkspaceSupportCromwellAppForUser', () => {
       cloudProvider: cloudProviderTypes.AZURE,
       toolLabel: appToolLabels.WORKFLOWS_APP,
       expectedResult: true,
-      isFeaturePreviewEnabled: (id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
     },
     {
       workspaceInfo: nonCreatorWorkspace,
       cloudProvider: cloudProviderTypes.AZURE,
       toolLabel: appToolLabels.WORKFLOWS_APP,
       expectedResult: true,
-      isFeaturePreviewEnabled: (id) => id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
     },
     {
       workspaceInfo: creatorWorkspace,
       cloudProvider: cloudProviderTypes.AZURE,
       toolLabel: appToolLabels.WORKFLOWS_APP,
       expectedResult: false,
-      isFeaturePreviewEnabled: (id) => id !== ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
     },
     {
       workspaceInfo: nonCreatorWorkspace,
       cloudProvider: cloudProviderTypes.AZURE,
       toolLabel: appToolLabels.WORKFLOWS_APP,
       expectedResult: false,
-      isFeaturePreviewEnabled: (id) => id !== ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
     },
     // Other app types
     {
@@ -657,10 +651,7 @@ describe('doesWorkspaceSupportCromwellAppForUser', () => {
 
   test.each(testCases)(
     'should return $expectedResult for $toolLabel app in $cloudProvider workspace based on workspace creator and creation date (non-Prod)',
-    ({ workspaceInfo, cloudProvider, toolLabel, expectedResult, isFeaturePreviewEnabled: featurePreviewImpl }) => {
-      if (featurePreviewImpl) {
-        asMockedFn(isFeaturePreviewEnabled).mockImplementation(featurePreviewImpl);
-      }
+    ({ workspaceInfo, cloudProvider, toolLabel, expectedResult }) => {
       expect(doesWorkspaceSupportCromwellAppForUser(workspaceInfo as WorkspaceInfo, cloudProvider, toolLabel)).toBe(
         expectedResult
       );

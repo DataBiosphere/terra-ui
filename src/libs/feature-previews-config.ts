@@ -1,7 +1,6 @@
 export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
-export const ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS = 'enableCollborativeWorkflowReaders';
 export const ENABLE_WORKFLOW_RESOURCE_MONITORING = 'enableWorkflowResourceMonitoring';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
@@ -80,14 +79,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     description: 'Enabling this feature will allow you to launch the Hail Batch app in Azure workspaces.',
     groups: ['preview-hail-batch-azure'],
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Hail Batch (Azure)')}`,
-  },
-  {
-    id: ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
-    title: 'Azure Collaborative Workflows',
-    description: 'Enabling this feature will allow for Azure workspaces to become collaborative with other users.',
-    feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
-      'Feedback on Azure Collaborative Workflows experience'
-    )}`,
   },
   {
     id: ENABLE_WORKFLOW_RESOURCE_MONITORING,
