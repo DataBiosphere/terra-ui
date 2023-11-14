@@ -188,7 +188,7 @@ const importIntoExistingWorkspace = async (user: UserEvent, workspaceName: strin
   await user.click(existingWorkspace);
 
   const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
-  await workspaceSelect.selectOption(workspaceName);
+  await workspaceSelect.selectOption(new RegExp(workspaceName));
 
   await user.click(screen.getByRole('button', { name: 'Import' }));
 };

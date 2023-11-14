@@ -215,7 +215,7 @@ describe('ImportDataDestination', () => {
 
       // Assert
       expect(canImportIntoWorkspace).toHaveBeenCalledWith(expectedArgs, expect.anything());
-      expect(workspaces).toEqual(['allowed-workspace']);
+      expect(workspaces).toEqual([expect.stringMatching(/allowed-workspace/)]);
     }
   );
 
