@@ -4,7 +4,9 @@ import { Ajax } from 'src/libs/ajax';
 import { useStore } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
-export const getServiceAlerts = async () => {
+import { Alert } from './Alert';
+
+export const getServiceAlerts = async (): Promise<Alert[]> => {
   const serviceAlerts = await Ajax().FirecloudBucket.getServiceAlerts();
   const hashes = await Promise.all(_.map(_.flow(JSON.stringify, Utils.sha256), serviceAlerts));
   return _.flow(
@@ -15,6 +17,6 @@ export const getServiceAlerts = async () => {
   )(serviceAlerts);
 };
 
-export const serviceAlertsStore = atom([]);
+export const serviceAlertsStore = atom<Alert[]>([]);
 
 export const useServiceAlerts = () => useStore(serviceAlertsStore);
