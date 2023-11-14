@@ -150,11 +150,7 @@ describe('ImportDataDestination', () => {
         syncPermissions: false,
       },
       requiredAuthorizationDomain: undefined,
-      expectedArgs: {
-        cloudPlatform: 'GCP',
-        isProtectedData: false,
-        requiredAuthorizationDomain: undefined,
-      },
+      expectedArgs: { cloudPlatform: 'GCP', isProtectedData: false, requiredAuthorizationDomain: undefined },
     },
     {
       importRequest: {
@@ -177,11 +173,7 @@ describe('ImportDataDestination', () => {
         syncPermissions: false,
       },
       requiredAuthorizationDomain: undefined,
-      expectedArgs: {
-        cloudPlatform: 'AZURE',
-        isProtectedData: false,
-        requiredAuthorizationDomain: undefined,
-      },
+      expectedArgs: { cloudPlatform: 'AZURE', isProtectedData: false, requiredAuthorizationDomain: undefined },
     },
   ] as {
     importRequest: ImportRequest;
