@@ -13,8 +13,8 @@ jest.mock('src/libs/ajax/ajax-common', () => ({
 
 const completeUserProfile: TerraUserProfile = {
   firstName: 'testFirstName',
-  lastName: 'testFirstName',
-  contactEmail: 'testFirstName',
+  lastName: 'testLastName',
+  contactEmail: 'user@example.com',
   department: 'testDepartment',
   institute: 'testInstitute',
   interestInTerra: 'testInterestInTerra',
@@ -72,7 +72,7 @@ describe('A create user profile request', () => {
     // those optional fields should be changed to 'N/A' in the request
     it.each(['title', 'institute', 'programLocationCity', 'programLocationState', 'programLocationCountry'])(
       'sets undefined property %s to "N/A"',
-      async (field) => {
+      (field) => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           minimalCreateUserProfileRequest
@@ -84,7 +84,7 @@ describe('A create user profile request', () => {
     );
     describe('should not modify property', () => {
       // these required fields that the user filled out should not be changed
-      it('interestInTerra', async () => {
+      it('interestInTerra', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           minimalCreateUserProfileRequest
@@ -93,7 +93,7 @@ describe('A create user profile request', () => {
         // Assert
         expect(apiBody.interestInTerra).toBe(minimalCreateUserProfileRequest.interestInTerra);
       });
-      it('department', async () => {
+      it('department', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           minimalCreateUserProfileRequest
@@ -106,7 +106,7 @@ describe('A create user profile request', () => {
     describe('should have undefined properties', () => {
       // because the user is registering for the first time research area should be 'undefined'
       // these are not required to be initialized as 'N/A'
-      it('researchArea', async () => {
+      it('researchArea', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           minimalCreateUserProfileRequest
@@ -118,7 +118,7 @@ describe('A create user profile request', () => {
     });
     describe('should not modify or have undefined property', () => {
       // these properties should not be modified and should not have a value of 'N/A'
-      it('firstName', async () => {
+      it('firstName', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           minimalCreateUserProfileRequest
@@ -126,11 +126,11 @@ describe('A create user profile request', () => {
 
         // Assert
         expect(apiBody.firstName).toBe(completeUserProfile.firstName);
-        expect(apiBody.firstName).not.toBe(undefined);
+        expect(apiBody.firstName).toBeDefined();
         expect(apiBody.firstName).not.toBe(null);
       });
 
-      it('lastName', async () => {
+      it('lastName', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           minimalCreateUserProfileRequest
@@ -138,11 +138,11 @@ describe('A create user profile request', () => {
 
         // Assert
         expect(apiBody.lastName).toBe(completeUserProfile.lastName);
-        expect(apiBody.lastName).not.toBe(undefined);
+        expect(apiBody.lastName).toBeDefined();
         expect(apiBody.lastName).not.toBe(null);
       });
 
-      it('contactEmail', async () => {
+      it('contactEmail', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           minimalCreateUserProfileRequest
@@ -150,14 +150,14 @@ describe('A create user profile request', () => {
 
         // Assert
         expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
-        expect(apiBody.contactEmail).not.toBe(undefined);
+        expect(apiBody.contactEmail).toBeDefined();
         expect(apiBody.contactEmail).not.toBe(null);
       });
     });
   });
   describe('when completely filled out by the user', () => {
     describe('should not modify or have undefined property', () => {
-      it('title', async () => {
+      it('title', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           completeCreateUserProfileRequest
@@ -166,7 +166,7 @@ describe('A create user profile request', () => {
         // Assert
         expect(apiBody.title).toBe(completeUserProfile.title);
       });
-      it('institute', async () => {
+      it('institute', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           completeCreateUserProfileRequest
@@ -177,7 +177,7 @@ describe('A create user profile request', () => {
       });
       it.each(['programLocationCity', 'programLocationState', 'programLocationCountry'])(
         'should set property %s to "N/A"',
-        async (field) => {
+        (field) => {
           // Arrange, Act
           const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
             completeCreateUserProfileRequest
@@ -187,7 +187,7 @@ describe('A create user profile request', () => {
           expect(apiBody[field]).toBe(NA);
         }
       );
-      it('interestInTerra', async () => {
+      it('interestInTerra', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           completeCreateUserProfileRequest
@@ -196,7 +196,7 @@ describe('A create user profile request', () => {
         // Assert
         expect(apiBody.interestInTerra).toBe(completeCreateUserProfileRequest.interestInTerra);
       });
-      it('department', async () => {
+      it('department', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           completeCreateUserProfileRequest
@@ -205,7 +205,7 @@ describe('A create user profile request', () => {
         // Assert
         expect(apiBody.department).toBe(completeCreateUserProfileRequest.department);
       });
-      it('researchArea', async () => {
+      it('researchArea', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           completeCreateUserProfileRequest
@@ -214,7 +214,7 @@ describe('A create user profile request', () => {
         // Assert
         expect(apiBody.researchArea).toBe(undefined);
       });
-      it('firstName', async () => {
+      it('firstName', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           completeCreateUserProfileRequest
@@ -222,10 +222,10 @@ describe('A create user profile request', () => {
 
         // Assert
         expect(apiBody.firstName).toBe(completeUserProfile.firstName);
-        expect(apiBody.firstName).not.toBe(undefined);
+        expect(apiBody.firstName).toBeDefined();
         expect(apiBody.firstName).not.toBe(null);
       });
-      it('lastName', async () => {
+      it('lastName', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           completeCreateUserProfileRequest
@@ -233,10 +233,10 @@ describe('A create user profile request', () => {
 
         // Assert
         expect(apiBody.lastName).toBe(completeUserProfile.lastName);
-        expect(apiBody.lastName).not.toBe(undefined);
+        expect(apiBody.lastName).toBeDefined();
         expect(apiBody.lastName).not.toBe(null);
       });
-      it('contactEmail', async () => {
+      it('contactEmail', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           completeCreateUserProfileRequest
@@ -244,7 +244,7 @@ describe('A create user profile request', () => {
 
         // Assert
         expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
-        expect(apiBody.contactEmail).not.toBe(undefined);
+        expect(apiBody.contactEmail).toBeDefined();
         expect(apiBody.contactEmail).not.toBe(null);
       });
     });
@@ -256,7 +256,7 @@ describe('An update user profile request', () => {
   describe('when minimally filled out by the user', () => {
     it.each(['title', 'institute', 'programLocationCity', 'programLocationState', 'programLocationCountry'])(
       'sets undefined property %s to "N/A"',
-      async (field) => {
+      (field) => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           minimalUpdateUserProfileRequest
@@ -267,20 +267,17 @@ describe('An update user profile request', () => {
       }
     );
     // these required fields that the user filled out should not be changed but may be undefined
-    it.each(['interestInTerra', 'department'])(
-      'should not modify property %s which may be undefined',
-      async (field) => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          minimalUpdateUserProfileRequest
-        );
+    it.each(['interestInTerra', 'department'])('should not modify property %s which may be undefined', (field) => {
+      // Arrange, Act
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
+        minimalUpdateUserProfileRequest
+      );
 
-        // Assert
-        expect(apiBody[field]).toBe(undefined);
-      }
-    );
+      // Assert
+      expect(apiBody[field]).toBe(undefined);
+    });
     describe('should have undefined properties', () => {
-      it('researchArea', async () => {
+      it('researchArea', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           minimalUpdateUserProfileRequest
@@ -292,7 +289,7 @@ describe('An update user profile request', () => {
     });
     describe('should not modify or have undefined property', () => {
       // these properties should not be modified and should not have a value of undefined
-      it('firstName', async () => {
+      it('firstName', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           minimalUpdateUserProfileRequest
@@ -300,11 +297,11 @@ describe('An update user profile request', () => {
 
         // Assert
         expect(apiBody.firstName).toBe(completeUserProfile.firstName);
-        expect(apiBody.firstName).not.toBe(undefined);
+        expect(apiBody.firstName).toBeDefined();
         expect(apiBody.firstName).not.toBe(null);
       });
 
-      it('lastName', async () => {
+      it('lastName', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           minimalUpdateUserProfileRequest
@@ -312,11 +309,11 @@ describe('An update user profile request', () => {
 
         // Assert
         expect(apiBody.lastName).toBe(completeUserProfile.lastName);
-        expect(apiBody.lastName).not.toBe(undefined);
+        expect(apiBody.lastName).toBeDefined();
         expect(apiBody.lastName).not.toBe(null);
       });
 
-      it('contactEmail', async () => {
+      it('contactEmail', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           minimalUpdateUserProfileRequest
@@ -324,14 +321,14 @@ describe('An update user profile request', () => {
 
         // Assert
         expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
-        expect(apiBody.contactEmail).not.toBe(undefined);
+        expect(apiBody.contactEmail).toBeDefined();
         expect(apiBody.contactEmail).not.toBe(null);
       });
     });
   });
   describe('when completely filled out by the user', () => {
     describe('should not modify or have undefined property', () => {
-      it('title', async () => {
+      it('title', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           completeUpdateUserProfileRequest
@@ -340,7 +337,7 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.title).toBe(completeUserProfile.title);
       });
-      it('institute', async () => {
+      it('institute', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           completeUpdateUserProfileRequest
@@ -349,7 +346,7 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.institute).toBe(completeUserProfile.institute);
       });
-      it('programLocationCity', async () => {
+      it('programLocationCity', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           completeUpdateUserProfileRequest
@@ -358,7 +355,7 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.programLocationCity).toBe(completeUserProfile.programLocationCity);
       });
-      it('programLocationState', async () => {
+      it('programLocationState', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           completeUpdateUserProfileRequest
@@ -367,7 +364,7 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.programLocationState).toBe(completeUserProfile.programLocationState);
       });
-      it('programLocationCountry', async () => {
+      it('programLocationCountry', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           completeUpdateUserProfileRequest
@@ -376,7 +373,7 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.programLocationCountry).toBe(completeUserProfile.programLocationCountry);
       });
-      it('interestInTerra', async () => {
+      it('interestInTerra', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           completeUpdateUserProfileRequest
@@ -385,7 +382,7 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.interestInTerra).toBe(completeUpdateUserProfileRequest.interestInTerra);
       });
-      it('department', async () => {
+      it('department', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           completeUpdateUserProfileRequest
@@ -394,7 +391,7 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.department).toBe(completeUpdateUserProfileRequest.department);
       });
-      it('researchArea', async () => {
+      it('researchArea', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           completeUpdateUserProfileRequest
@@ -403,7 +400,7 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.researchArea).toBe(completeUserProfile.researchArea);
       });
-      it('firstName', async () => {
+      it('firstName', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           completeUpdateUserProfileRequest
@@ -411,10 +408,10 @@ describe('An update user profile request', () => {
 
         // Assert
         expect(apiBody.firstName).toBe(completeUserProfile.firstName);
-        expect(apiBody.firstName).not.toBe(undefined);
+        expect(apiBody.firstName).toBeDefined();
         expect(apiBody.firstName).not.toBe(null);
       });
-      it('lastName', async () => {
+      it('lastName', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           completeUpdateUserProfileRequest
@@ -422,10 +419,10 @@ describe('An update user profile request', () => {
 
         // Assert
         expect(apiBody.lastName).toBe(completeUserProfile.lastName);
-        expect(apiBody.lastName).not.toBe(undefined);
+        expect(apiBody.lastName).toBeDefined();
         expect(apiBody.lastName).not.toBe(null);
       });
-      it('contactEmail', async () => {
+      it('contactEmail', () => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           completeUpdateUserProfileRequest
@@ -433,7 +430,7 @@ describe('An update user profile request', () => {
 
         // Assert
         expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
-        expect(apiBody.contactEmail).not.toBe(undefined);
+        expect(apiBody.contactEmail).toBeDefined();
         expect(apiBody.contactEmail).not.toBe(null);
       });
     });
