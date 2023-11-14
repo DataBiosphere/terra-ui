@@ -45,7 +45,7 @@ export const useWorkspacesWithSubmissionStats = (): WorkspacesWithSubmissionStat
   useEffect(() => {
     // After the inital load, workspaces are refreshed after deleting a workspace or locking a workspace.
     // We don't need to reload submission stats in those cases.
-    if (workspaces && !submissionStats) {
+    if (workspaces && workspaces.length > 0 && !submissionStats) {
       const loadSubmissionStats: () => Promise<void> = _.flow(
         withErrorReporting('Error loading submission stats'),
         Utils.withBusyState(setLoadingSubmissionStats)

@@ -34,7 +34,6 @@ export interface WorkspaceDetails {
   loadingWorkspace: boolean;
   storageDetails: StorageDetails;
   refreshWorkspace: () => Promise<void>;
-  silentlyRefreshWorkspace: (errorHandling?: ErrorCallback) => Promise<void>;
 }
 
 export const googlePermissionsRecheckRate = 15000;
@@ -250,15 +249,6 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     withBusyState(setLoadingWorkspace)
   )(doWorkspaceRefresh) as () => Promise<void>;
 
-  // refresh the workspace without triggering busy indicators
-  // if an error handling function is passed, use that - otherwise ignpre errors
-  const silentlyRefreshWorkspace = (errorHandling?: ErrorCallback): Promise<void> => {
-    if (errorHandling) {
-      return withErrorHandling(errorHandling, doWorkspaceRefresh)() as Promise<void>;
-    }
-    return withErrorIgnoring('Error loading workspace', doWorkspaceRefresh) as Promise<void>;
-  };
-
   useEffect(() => {
     if (!workspace) {
       refreshWorkspace();
@@ -285,5 +275,5 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     azureContainerSasUrl: azureStorage?.sasUrl,
   };
 
-  return { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace, silentlyRefreshWorkspace };
+  return { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace };
 };

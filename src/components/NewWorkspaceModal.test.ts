@@ -4,6 +4,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import { AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { BillingProject, CloudPlatform } from 'src/pages/billing/models/BillingProject';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 
@@ -469,6 +470,89 @@ describe('NewWorkspaceModal', () => {
       expect(screen.queryByRole('button')).toBeNull();
     });
   });
+
+  it.each([
+    { billingProjectName: azureBillingProject.projectName, cloudPlatform: 'Azure' },
+    { billingProjectName: gcpBillingProject.projectName, cloudPlatform: 'Gcp' },
+  ] as { billingProjectName: string; cloudPlatform: WorkspaceInfo['cloudPlatform'] }[])(
+    'adds $cloudPlatform cloud platform to workspace',
+    async ({ billingProjectName, cloudPlatform }) => {
+      // Arrange
+      const user = userEvent.setup();
+
+      // Create workspace response does not include cloudPlatform.
+      // The modal should add it to the workspace passed to onSuccess.
+      const mockWorkspaces: {
+        Azure: Omit<AzureWorkspaceInfo, 'cloudPlatform'>;
+        Gcp: Omit<GoogleWorkspaceInfo, 'cloudPlatform'>;
+      } = {
+        Azure: {
+          namespace: azureBillingProject.projectName,
+          name: 'test-workspace',
+          workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+          createdBy: 'user@example.com',
+          createdDate: '2023-11-13T18:39:32.267Z',
+          lastModified: '2023-11-13T18:39:32.267Z',
+          authorizationDomain: [],
+        },
+        Gcp: {
+          namespace: gcpBillingProject.projectName,
+          name: 'test-workspace',
+          workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+          googleProject: 'test-project',
+          bucketName: 'fc-aaaabbbb-cccc-dddd-0000-111122223333',
+          createdBy: 'user@example.com',
+          createdDate: '2023-11-13T18:39:32.267Z',
+          lastModified: '2023-11-13T18:39:32.267Z',
+          authorizationDomain: [],
+        },
+      };
+      const createdWorkspace = mockWorkspaces[cloudPlatform];
+
+      const createWorkspace = jest.fn().mockResolvedValue(createdWorkspace);
+
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [azureBillingProject, gcpBillingProject],
+            },
+            Workspaces: {
+              create: createWorkspace,
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
+      );
+
+      const onSuccess = jest.fn();
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            onSuccess,
+            onDismiss: () => {},
+          })
+        );
+      });
+
+      // Act
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      act(() => {
+        fireEvent.change(workspaceNameInput, { target: { value: createdWorkspace.name } });
+      });
+
+      const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+      await projectSelect.selectOption(new RegExp(billingProjectName));
+
+      const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+      await user.click(createWorkspaceButton);
+
+      // Assert
+      expect(onSuccess).toHaveBeenCalledWith({
+        ...createdWorkspace,
+        cloudPlatform,
+      });
+    }
+  );
 
   it('shows an error message if create workspace request returned an error response', async () => {
     // Arrange

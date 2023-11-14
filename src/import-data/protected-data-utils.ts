@@ -15,6 +15,7 @@ const protectedSources: ProtectedSource[] = [
   { type: 's3', bucket: 'edu-ucsc-gi-platform-anvil-prod-storage-anvilprod.us-east-1' },
   // AnVIL development
   { type: 'http', host: 'service.anvil.gi.ucsc.edu' },
+  { type: 's3', bucket: 'edu-ucsc-gi-platform-anvil-dev-storage-anvildev.us-east-1' },
   //  BioData Catalyst
   { type: 'http', host: 'gen3.biodatacatalyst.nhlbi.nih.gov' },
   { type: 's3', bucket: 'gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export' },

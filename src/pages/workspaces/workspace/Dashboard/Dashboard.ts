@@ -32,6 +32,7 @@ import * as Style from 'src/libs/style';
 import { append, formatBytes, newTabLinkProps, withBusyState } from 'src/libs/utils';
 import { canEditWorkspace, canWrite, isGoogleWorkspace, isOwner } from 'src/libs/workspace-utils';
 import SignIn from 'src/pages/SignIn';
+import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
 import { CloudInformation } from 'src/pages/workspaces/workspace/Dashboard/CloudInformation';
 import { DataUseLimitations, displayAttributeValue } from 'src/pages/workspaces/workspace/Dashboard/DataUseLimitations';
 import { OwnerNotice } from 'src/pages/workspaces/workspace/Dashboard/OwnerNotice';
@@ -40,10 +41,8 @@ import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/W
 import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceNotifications';
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
 import { displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
-import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
+import { WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
-
-import { WorkspaceAcl } from '../WorkspaceAcl';
 
 const styles: Record<string, CSSProperties> = {
   authDomain: {
