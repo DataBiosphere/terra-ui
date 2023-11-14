@@ -90,16 +90,17 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
       const wdsDataTableProvider = new WdsDataTableProvider(workspace.workspaceId, wdsUrl);
 
       // call import snapshot
-      wdsDataTableProvider.importTdr(workspace.workspaceId, importRequest.snapshot.id);
+      await wdsDataTableProvider.importTdr(workspace.workspaceId, importRequest.snapshot.id);
+    } else {
+      const { namespace, name } = workspace;
+      const { jobId } = await Ajax()
+        .Workspaces.workspace(namespace, name)
+        .importJob(importRequest.manifestUrl.toString(), 'tdrexport', {
+          tdrSyncPermissions: importRequest.syncPermissions,
+        });
+      asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
+      notifyDataImportProgress(jobId);
     }
-    const { namespace, name } = workspace;
-    const { jobId } = await Ajax()
-      .Workspaces.workspace(namespace, name)
-      .importJob(importRequest.manifestUrl.toString(), 'tdrexport', {
-        tdrSyncPermissions: importRequest.syncPermissions,
-      });
-    asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
-    notifyDataImportProgress(jobId);
   };
 
   const importSnapshot = async (importRequest: TDRSnapshotReferenceImportRequest, workspace: WorkspaceInfo) => {
