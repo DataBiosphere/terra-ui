@@ -278,23 +278,9 @@ describe('AnalysisModal', () => {
     // Assert
     screen.getByText('Select an application');
     screen.getByAltText('Create new notebook');
-    screen.getByAltText('Create new Cromwell app');
     expect(screen.queryByAltText('Create new R file')).toBeNull();
     expect(screen.queryByAltText('Create new Galaxy app')).toBeNull();
     expect(screen.queryByAltText('Create new Hail Batch app')).toBeNull();
-  });
-
-  it('Azure - Cromwell renders correctly', async () => {
-    const user = userEvent.setup();
-    // Act
-    render(h(AnalysisModal, defaultAzureModalProps));
-
-    // Act
-    const button = screen.getByAltText('Create new Cromwell app');
-    await user.click(button);
-
-    expect(screen.getByText('Cromwell Cloud Environment'));
-    expect(screen.getByText('Create'));
   });
 
   it('Azure - Does not render Cromwell', async () => {
@@ -315,7 +301,6 @@ describe('AnalysisModal', () => {
     // Assert
     screen.getByText('Select an application');
     screen.getByAltText('Create new notebook');
-    screen.getByAltText('Create new Cromwell app');
     screen.getByAltText('Create new Hail Batch app');
     expect(screen.queryByAltText('Create new R file')).toBeNull();
     expect(screen.queryByAltText('Create new Galaxy app')).toBeNull();
