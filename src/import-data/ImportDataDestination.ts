@@ -332,6 +332,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                 cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
                 customMessage: importMayTakeTime && importMayTakeTimeMessage,
                 requireEnhancedBucketLogging: isProtectedData,
+                waitForServices: {
+                  wds: true,
+                },
                 onDismiss: () => setIsCreateOpen(false),
                 onSuccess: (w) => {
                   setMode('existing');

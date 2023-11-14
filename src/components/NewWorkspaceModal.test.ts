@@ -1,9 +1,10 @@
 import { abandonedPromise, DeepPartial } from '@terra-ui-packages/core-utils';
-import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { asMockedFn, withFakeTimers } from '@terra-ui-packages/test-utils';
 import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { BillingProject, CloudPlatform } from 'src/pages/billing/models/BillingProject';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -645,4 +646,236 @@ describe('NewWorkspaceModal', () => {
     // Assert
     screen.getByText('Something went wrong.');
   });
+
+  it(
+    'can wait for WDS to start for Azure workspaces',
+    withFakeTimers(async () => {
+      // Arrange
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+
+      // Create workspace endpoint response does not include cloudPlatform.
+      const newWorkspace: Omit<AzureWorkspaceInfo, 'cloudPlatform'> = {
+        namespace: azureBillingProject.projectName,
+        name: 'test-workspace',
+        workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+        createdBy: 'user@example.com',
+        createdDate: '2023-11-13T18:39:32.267Z',
+        lastModified: '2023-11-13T18:39:32.267Z',
+        authorizationDomain: [],
+      };
+      const createWorkspace = jest.fn().mockResolvedValue(newWorkspace);
+
+      const wdsApp: ListAppResponse = {
+        workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+        cloudContext: {
+          cloudProvider: 'AZURE',
+          cloudResource:
+            '0cb7a640-45a2-4ed6-be9f-63519f86e04b/ffd1069e-e34f-4d87-a8b8-44abfcba39af/mrg-terra-dev-previ-20230623095104',
+        },
+        kubernetesRuntimeConfig: {
+          numNodes: 1,
+          machineType: 'Standard_A2_v2',
+          autoscalingEnabled: false,
+        },
+        errors: [],
+        status: 'RUNNING',
+        proxyUrls: {
+          wds: 'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-aaaabbbb-cccc-dddd-0000-111122223333-aaaabbbb-cccc-dddd-0000-111122223333/',
+        },
+        appName: 'wds-aaaabbbb-cccc-dddd-0000-111122223333',
+        appType: 'WDS',
+        diskName: null,
+        auditInfo: {
+          creator: 'user@example.com',
+          createdDate: '2023-11-13T18:41:32.267Z',
+          destroyedDate: null,
+          dateAccessed: '2023-11-13T18:41:32.267Z',
+        },
+        accessScope: 'WORKSPACE_SHARED',
+        labels: {},
+        region: 'us-central1',
+      };
+
+      const listAppsV2 = jest
+        .fn()
+        .mockResolvedValue([wdsApp])
+        .mockResolvedValueOnce([{ ...wdsApp, status: 'PROVISIONING', proxyUrls: {} }]);
+
+      const listInstances = jest
+        .fn()
+        .mockResolvedValue(['aaaabbbb-cccc-dddd-0000-111122223333'])
+        .mockResolvedValueOnce([]);
+
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Apps: {
+              listAppsV2,
+            },
+            Billing: {
+              listProjects: async () => [azureBillingProject],
+            },
+            Workspaces: {
+              create: createWorkspace,
+            },
+            WorkspaceData: {
+              listInstances,
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
+      );
+
+      const onSuccess = jest.fn();
+
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            waitForServices: {
+              wds: true,
+            },
+            onSuccess,
+            onDismiss: () => {},
+          })
+        );
+      });
+
+      // Act
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      await user.type(workspaceNameInput, newWorkspace.name);
+
+      const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+      await projectSelect.selectOption(/Azure Billing Project/);
+
+      const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+      await user.click(createWorkspaceButton);
+
+      // Assert
+      expect(onSuccess).not.toHaveBeenCalled();
+
+      // Act
+      await act(() => jest.advanceTimersByTime(30000));
+
+      // Assert
+      expect(listAppsV2).toHaveBeenCalledTimes(1);
+      expect(onSuccess).not.toHaveBeenCalled();
+
+      // Act
+      await act(() => jest.advanceTimersByTime(15000));
+
+      // Assert
+      expect(listAppsV2).toHaveBeenCalledTimes(2);
+      expect(listInstances).toHaveBeenCalledTimes(1);
+      expect(onSuccess).not.toHaveBeenCalled();
+
+      // Act
+      await act(() => jest.advanceTimersByTime(5000));
+
+      // Assert
+      expect(listAppsV2).toHaveBeenCalledTimes(2);
+      expect(listInstances).toHaveBeenCalledTimes(2);
+
+      expect(onSuccess).toHaveBeenCalled();
+    })
+  );
+
+  it(
+    'shows an error if WDS fails to start',
+    withFakeTimers(async () => {
+      // Arrange
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+
+      // Create workspace endpoint response does not include cloudPlatform.
+      const newWorkspace: Omit<AzureWorkspaceInfo, 'cloudPlatform'> = {
+        namespace: azureBillingProject.projectName,
+        name: 'test-workspace',
+        workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+        createdBy: 'user@example.com',
+        createdDate: '2023-11-13T18:39:32.267Z',
+        lastModified: '2023-11-13T18:39:32.267Z',
+        authorizationDomain: [],
+      };
+      const createWorkspace = jest.fn().mockResolvedValue(newWorkspace);
+
+      const wdsApp: ListAppResponse = {
+        workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+        cloudContext: {
+          cloudProvider: 'AZURE',
+          cloudResource:
+            '0cb7a640-45a2-4ed6-be9f-63519f86e04b/ffd1069e-e34f-4d87-a8b8-44abfcba39af/mrg-terra-dev-previ-20230623095104',
+        },
+        kubernetesRuntimeConfig: {
+          numNodes: 1,
+          machineType: 'Standard_A2_v2',
+          autoscalingEnabled: false,
+        },
+        errors: [],
+        status: 'ERROR',
+        proxyUrls: {},
+        appName: 'wds-aaaabbbb-cccc-dddd-0000-111122223333',
+        appType: 'WDS',
+        diskName: null,
+        auditInfo: {
+          creator: 'user@example.com',
+          createdDate: '2023-11-13T18:41:32.267Z',
+          destroyedDate: null,
+          dateAccessed: '2023-11-13T18:41:32.267Z',
+        },
+        accessScope: 'WORKSPACE_SHARED',
+        labels: {},
+        region: 'us-central1',
+      };
+
+      const listAppsV2 = jest
+        .fn()
+        .mockResolvedValue([wdsApp])
+        .mockResolvedValueOnce([{ ...wdsApp, status: 'PROVISIONING', proxyUrls: {} }]);
+
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Apps: {
+              listAppsV2,
+            },
+            Billing: {
+              listProjects: async () => [azureBillingProject],
+            },
+            Workspaces: {
+              create: createWorkspace,
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
+      );
+
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            waitForServices: {
+              wds: true,
+            },
+            onSuccess: () => {},
+            onDismiss: () => {},
+          })
+        );
+      });
+
+      // Act
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      await user.type(workspaceNameInput, newWorkspace.name);
+
+      const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+      await projectSelect.selectOption(/Azure Billing Project/);
+
+      const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+      await user.click(createWorkspaceButton);
+
+      // Act
+      await act(() => jest.advanceTimersByTime(30000));
+      await act(() => jest.advanceTimersByTime(15000));
+
+      // Assert
+      expect(listAppsV2).toHaveBeenCalledTimes(2);
+
+      screen.getByText('Failed to provision data services for new workspace.');
+    })
+  );
 });

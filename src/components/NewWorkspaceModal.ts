@@ -1,3 +1,4 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, label, p, strong } from 'react-hyperscript-helpers';
@@ -18,7 +19,9 @@ import {
 } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
+import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
+import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { reportErrorAndRethrow, withErrorReportingInModal } from 'src/libs/error';
@@ -80,6 +83,9 @@ export interface NewWorkspaceModalProps {
   requiredAuthDomain?: string;
   requireEnhancedBucketLogging?: boolean;
   title?: string;
+  waitForServices?: {
+    wds?: boolean;
+  };
   workflowImport?: boolean;
   onDismiss: () => void;
   onSuccess: (newWorkspace: WorkspaceInfo) => void;
@@ -97,6 +103,7 @@ const NewWorkspaceModal = withDisplayName(
     requireEnhancedBucketLogging,
     title,
     buttonText,
+    waitForServices,
     workflowImport,
   }: NewWorkspaceModalProps) => {
     // State
@@ -191,6 +198,42 @@ const NewWorkspaceModal = withDisplayName(
               return undefined;
           }
         })();
+
+        if (getProjectCloudPlatform() === 'AZURE' && waitForServices?.wds) {
+          // WDS takes some time to start up, so there's no need to immediately start checking if it's running.
+          await delay(30000);
+
+          // Wait for the WDS app to be running.
+          const wds = await Utils.poll(
+            async () => {
+              const workspaceApps: ListAppResponse[] = await Ajax().Apps.listAppsV2(createdWorkspace.workspaceId);
+              const wdsApp = resolveWdsApp(workspaceApps);
+              if (wdsApp?.status === 'RUNNING') {
+                return { shouldContinue: false, result: wdsApp };
+              }
+              if (wdsApp?.status === 'ERROR') {
+                throw new Error('Failed to provision data services for new workspace.');
+              }
+              return { shouldContinue: true, result: null };
+            },
+            15000,
+            true
+          );
+
+          // Wait for the default WDS instance to exist.
+          const proxyUrl = wds!.proxyUrls.wds;
+          await Utils.poll(
+            async () => {
+              const instances: string[] = await Ajax().WorkspaceData.listInstances(proxyUrl);
+              if (instances.includes(createdWorkspace.workspaceId)) {
+                return { shouldContinue: false, result: true };
+              }
+              return { shouldContinue: true, result: false };
+            },
+            5000,
+            true
+          );
+        }
 
         onSuccess({ ...createdWorkspace, cloudPlatform: workspaceCloudPlatform });
       } catch (error: unknown) {
