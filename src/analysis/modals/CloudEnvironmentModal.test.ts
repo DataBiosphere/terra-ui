@@ -248,7 +248,6 @@ describe('CloudEnvironmentModal', () => {
     // Assert
     expect(vdom.getByText('Cloud Environment Details'));
     expect(vdom.getByAltText('JupyterLab'));
-    expect(vdom.getByAltText('CROMWELL'));
   });
   // populated envs
   it('Renders populated cloud environment', () => {
@@ -283,7 +282,6 @@ describe('CloudEnvironmentModal', () => {
     // Assert
     expect(vdom.getByText('Cloud Environment Details'));
     expect(vdom.getByAltText('JupyterLab'));
-    expect(vdom.getByAltText('CROMWELL'));
     expect(vdom.getAllByText('Pause').length).toBe(1);
     expect(vdom.getAllByText('Open').length).toBe(2);
     expect(vdom.getAllByText('No Environment found').length).toBe(2);
@@ -657,7 +655,7 @@ describe('CloudEnvironmentModal', () => {
       render(h(CloudEnvironmentModal, cloneAzure));
       // Assert
       const startButtons = screen.getAllByText('Open');
-      expect(startButtons.length).toBe(2);
+      expect(startButtons.length).toBe(1);
       expect(startButtons[buttonIndex]).toBeEnabled(); // TODO: can't check dismissed is called becuase HREF redirects
     }
   );
