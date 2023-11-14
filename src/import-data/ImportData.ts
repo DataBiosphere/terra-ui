@@ -84,8 +84,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   };
 
   const importTdrExport = async (importRequest: TDRSnapshotExportImportRequest, workspace: WorkspaceInfo) => {
-    // For new workspaces, cloudPlatform is blank
-    if (workspace.cloudPlatform === 'Azure' || workspace.googleProject === '') {
+    if (workspace.cloudPlatform === 'Azure') {
       // find wds for this workspace
       const wdsUrl = await Ajax().Apps.listAppsV2(workspace.workspaceId).then(resolveWdsUrl);
       const wdsDataTableProvider = new WdsDataTableProvider(workspace.workspaceId, wdsUrl);

@@ -176,7 +176,23 @@ const NewWorkspaceModal = withDisplayName(
           }
         );
 
-        onSuccess(createdWorkspace);
+        // The create/clone workspace responses do not include the cloudPlatform field.
+        // Add it based on the billing project used to create the workspace.
+
+        // Translate between billing project cloud platform and workspace cloud platform constants.
+        const workspaceCloudPlatform: WorkspaceInfo['cloudPlatform'] | undefined = (() => {
+          const billingProjectCloudPlatform = getProjectCloudPlatform();
+          switch (billingProjectCloudPlatform) {
+            case 'AZURE':
+              return 'Azure';
+            case 'GCP':
+              return 'Gcp';
+            default:
+              return undefined;
+          }
+        })();
+
+        onSuccess({ ...createdWorkspace, cloudPlatform: workspaceCloudPlatform });
       } catch (error: unknown) {
         const { message } = await (error as Response).json();
         setCreating(false);
