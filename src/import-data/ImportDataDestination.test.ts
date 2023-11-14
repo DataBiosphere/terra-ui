@@ -118,12 +118,18 @@ describe('ImportDataDestination', () => {
         cloudPlatform: undefined,
         isProtectedData: true,
         requiredAuthorizationDomain: 'test-auth-domain',
+        importType: 'pfb',
       },
     },
     {
       importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { cloudPlatform: undefined, isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedArgs: {
+        cloudPlatform: undefined,
+        isProtectedData: false,
+        requiredAuthorizationDomain: undefined,
+        importType: 'pfb',
+      },
     },
     {
       importRequest: {
@@ -146,7 +152,12 @@ describe('ImportDataDestination', () => {
         syncPermissions: false,
       },
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { cloudPlatform: 'GCP', isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedArgs: {
+        cloudPlatform: 'GCP',
+        isProtectedData: false,
+        requiredAuthorizationDomain: undefined,
+        importType: 'tdr-snapshot-export',
+      },
     },
     {
       importRequest: {
@@ -169,12 +180,22 @@ describe('ImportDataDestination', () => {
         syncPermissions: false,
       },
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { cloudPlatform: 'AZURE', isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedArgs: {
+        cloudPlatform: 'AZURE',
+        isProtectedData: false,
+        requiredAuthorizationDomain: undefined,
+        importType: 'tdr-snapshot-export',
+      },
     },
   ] as {
     importRequest: ImportRequest;
     requiredAuthorizationDomain?: string;
-    expectedArgs: { cloudPlatform?: CloudProvider; isProtectedData: boolean; requiredAuthorizationDomain?: string };
+    expectedArgs: {
+      cloudPlatform?: CloudProvider;
+      isProtectedData: boolean;
+      requiredAuthorizationDomain?: string;
+      importType?: string;
+    };
   }[])(
     'should filter workspaces through canImportIntoWorkspace',
     async ({ importRequest, requiredAuthorizationDomain, expectedArgs }) => {
