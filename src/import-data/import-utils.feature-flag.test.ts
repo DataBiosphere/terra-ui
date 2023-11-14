@@ -18,6 +18,6 @@ describe('getRequiredCloudPlatformForImport', () => {
     const cloudPlatform = getCloudPlatformRequiredForImport(importRequest);
 
     // Assert
-    expect(cloudPlatform).toEqual(undefined);
+    expect(cloudPlatform).toBeUndefined();
   });
 });
