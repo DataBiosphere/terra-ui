@@ -25,6 +25,8 @@ export type TerraUser = {
 
 export type TerraUserProfile = {
   // TODO: anonymousGroup is here from getProfile from orch
+  // TODO: for future ticket, separate items updated via register/profile (personal info)
+  //  from things that are updated via api/profile/preferences (starred workspaces, notification settings)
   firstName: string | undefined;
   lastName: string | undefined;
   institute: string | undefined;

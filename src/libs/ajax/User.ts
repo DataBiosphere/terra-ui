@@ -105,8 +105,8 @@ export const generateAPIBodyForUpdateUserProfile = (
   return {
     // first name and last name are REQUIRED for this request, and they are populated from the oidc token claims,
     // so they should not be undefined
-    firstName: request.firstName!,
-    lastName: request.lastName!,
+    firstName: request.firstName,
+    lastName: request.lastName,
 
     // contact email is NOT REQUIRED for this request, but it is populated from the oidc token claims,
     // so it should not be undefined
@@ -114,8 +114,8 @@ export const generateAPIBodyForUpdateUserProfile = (
 
     // title and institute are REQUIRED for this request, but they do not necessarily
     // get set during registration
-    title: !_.isEmpty(request.title) ? request.title : 'N/A',
-    institute: !_.isEmpty(request.institute) ? request.institute : 'N/A',
+    title: _.isEmpty(request.title) ? 'N/A' : request.title,
+    institute: _.isEmpty(request.institute) ? 'N/A' : request.institute,
     // department and interestedInTerra NOT REQUIRED for this request, and they do not necessarily
     // get set during registration
     department: !_.isEmpty(request.department) ? request.department : undefined,
