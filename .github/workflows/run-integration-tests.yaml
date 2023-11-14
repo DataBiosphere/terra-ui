@@ -112,6 +112,14 @@ jobs:
         run: |
           echo "LYLE_ACCESS_TOKEN=${{ steps.lyle-auth.outputs.access_token }}" >> $GITHUB_ENV
           echo "TERRA_SA_KEY=dummykey" >> $GITHUB_ENV
+          echo `env` >> debug.env
+
+      - name: 'Debug - Upload Working Dir'
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: working-dir2
+          path: './'
 
       - name: "Run Yarn Install"
         shell: bash
