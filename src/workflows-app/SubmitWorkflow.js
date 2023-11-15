@@ -12,7 +12,7 @@ import { useCancellation, usePollingEffect } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { getCloudProviderFromWorkspace, isOwner } from 'src/libs/workspace-utils';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { doesAppProxyUrlExist, getCromwellUnsupportedMessage, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
@@ -38,7 +38,7 @@ const detectSomeoneElsesCromwell = (apps, createdBy, userEmail, accessLevel, cre
   // 1. There is no Cromwell app belonging to somebody else
   // 2. The user is an owner of the workspace (and can see all the apps) OR the workspace was created after 12/1/2023 (after the feature flag was made permanent)
   const guaranteedNobodyElsesCromwell =
-    !someoneElsesCromwell && (accessLevel === 'OWNER' || Date.parse(createdDate) > Date.parse('2023-12-01T00:00:00.000Z'));
+    !someoneElsesCromwell && (isOwner(accessLevel) || Date.parse(createdDate) > Date.parse('2023-12-01T00:00:00.000Z'));
   return { someoneElsesCromwell, guaranteedNobodyElsesCromwell };
 };
 

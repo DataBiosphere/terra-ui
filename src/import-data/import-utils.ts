@@ -1,4 +1,6 @@
 import { Snapshot } from 'src/libs/ajax/DataRepo';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
 import { canWrite, CloudProvider, getCloudProviderFromWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 import { ImportRequest } from './import-types';
@@ -13,6 +15,9 @@ export const getCloudPlatformRequiredForImport = (importRequest: ImportRequest):
         gcp: 'GCP',
       };
       return tdrCloudPlatformToCloudProvider[importRequest.snapshot.cloudPlatform];
+    case 'pfb':
+      // restrict PFB imports to GCP unless the user has the right feature flag enabled
+      return isFeaturePreviewEnabled(ENABLE_AZURE_PFB_IMPORT) ? undefined : 'GCP';
     default:
       return undefined;
   }
