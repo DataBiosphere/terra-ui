@@ -185,7 +185,7 @@ export const groupConstraintMessage = (workspace: WorkspaceWrapper): string | un
     _.sortBy(_.identity)
   )(groupConstraintPolicies);
   return `Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be members of the following ${pluralize(
-    'groups',
+    'group',
     requiredGroups.length
   )}: ${requiredGroups.join(', ')}.`;
 };
