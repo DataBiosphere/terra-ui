@@ -104,9 +104,10 @@ jobs:
         with:
           token_format: 'id_token'
           workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
-          service_account: 'dsp-artifact-registry-push@dsp-artifact-registry.iam.gserviceaccount.com'
+          service_account: 'lyle-user@terra-lyle.iam.gserviceaccount.com'
           id_token_audience: 'https://terra-lyle.appspot.com'
           export_environment_variables: false
+          id_token_include_email: true
 
       - name: "set env vars"
         run: |
