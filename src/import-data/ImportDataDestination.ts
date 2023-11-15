@@ -121,20 +121,21 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     refresh: refreshWorkspaces,
     loading: loadingWorkspaces,
   } = useWorkspaces([
-    'workspace.workspaceId',
-    'workspace.namespace',
-    'workspace.name',
     // The decision on whether or data can be imported into a workspace is based on the user's level of access
     // to the workspace and the workspace's authorization domain, protected status and cloud platform.
-    // That information needs to be fetched here.
-    'accessLevel',
-    'policies',
     // When using a template workspace, the NewWorkspaceModal reads the description attribute
     // from the template.
-    'workspace.attributes',
-    'workspace.authorizationDomain',
-    'workspace.bucketName',
-    'workspace.cloudPlatform',
+
+    // Default fields
+    'accessLevel',
+    'public',
+    'workspace',
+    'workspace.state',
+    'workspace.attributes.description',
+    'workspace.attributes.tag:tags',
+    'workspace.workspaceVersion',
+    // Additional fields
+    'policies',
   ]);
   const [mode, setMode] = useState<'existing' | 'template' | undefined>(
     initialSelectedWorkspaceId ? 'existing' : undefined
