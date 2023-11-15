@@ -31,7 +31,7 @@ export const Checkbox = ({ checked, onChange, disabled = false, ...props }) => {
   );
 };
 
-export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...props }) => {
+export const LabeledCheckbox = ({ checked, onChange, disabled = false, children, ...props }) => {
   const { colors } = useThemeFromContext();
   return h(IdContainer, [
     (id) =>
