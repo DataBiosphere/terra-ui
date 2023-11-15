@@ -2,8 +2,8 @@ import { ReactNode } from 'react';
 import { dl, h } from 'react-hyperscript-helpers';
 import { InfoBox } from 'src/components/InfoBox';
 import {
-  groupConstraintMessage,
-  hasGroupConstraint,
+  dataAccessControlsMessage,
+  hasDataAccessControls,
   hasProtectedData,
   hasRegionConstraint,
   protectedDataMessage,
@@ -38,10 +38,10 @@ export const WorkspaceInformation = (props: WorkspaceInformationProps): ReactNod
         'Yes',
         h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [regionConstraintMessage(workspace)]),
       ]),
-    hasGroupConstraint(workspace) &&
+    hasDataAccessControls(workspace) &&
       h(InfoRow, { title: 'Data Access Controls' }, [
         'Yes',
-        h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [groupConstraintMessage(workspace)]),
+        h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [dataAccessControlsMessage(workspace)]),
       ]),
   ]);
 };

@@ -1,6 +1,5 @@
 import { cond, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import pluralize from 'pluralize';
 import { azureRegions } from 'src/libs/azure-regions';
 
 export type CloudProvider = 'AZURE' | 'GCP';
@@ -169,25 +168,17 @@ const isGroupConstraintPolicy = (policy: WorkspacePolicy): boolean => {
   return policy.namespace === 'terra' && policy.name === 'group-constraint';
 };
 
-export const hasGroupConstraint = (workspace: WorkspaceWrapper): boolean => {
+/**
+ * Returns true if the workspace has any data access controls (group constraint policies).
+ */
+export const hasDataAccessControls = (workspace: WorkspaceWrapper): boolean => {
   return (workspace.policies || []).some(isGroupConstraintPolicy);
 };
 
-export const groupConstraintMessage = (workspace: WorkspaceWrapper): string | undefined => {
-  if (!hasGroupConstraint(workspace)) {
-    return undefined;
-  }
-
-  const groupConstraintPolicies = (workspace.policies || []).filter(isGroupConstraintPolicy);
-  const requiredGroups = _.flow(
-    _.flatMap((policy: WorkspacePolicy) => policy.additionalData.map((d) => d.group)),
-    _.uniq,
-    _.sortBy(_.identity)
-  )(groupConstraintPolicies);
-  return `Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be members of the following ${pluralize(
-    'group',
-    requiredGroups.length
-  )}: ${requiredGroups.join(', ')}.`;
+export const dataAccessControlsMessage = (workspace: WorkspaceWrapper): string | undefined => {
+  return hasDataAccessControls(workspace)
+    ? 'Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be current users on an approved Data Access Request (DAR).'
+    : undefined;
 };
 
 export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {

@@ -136,7 +136,7 @@ describe('WorkspaceInformation', () => {
         screen.getByText('Data Access Controls');
 
         await user.click(screen.getByLabelText('More info'));
-        screen.getByText(/All workspace collaborators must also be members of the following groups: bar, foo./);
+        screen.getByText(/Data Access Controls add additional permission restrictions to a workspace/);
       }
     }
   );

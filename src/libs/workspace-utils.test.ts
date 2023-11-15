@@ -9,11 +9,11 @@ import {
 import {
   canEditWorkspace,
   canRunAnalysisInWorkspace,
+  dataAccessControlsMessage,
   getRegionConstraintLabels,
   getWorkspaceAnalysisControlProps,
   getWorkspaceEditControlProps,
-  groupConstraintMessage,
-  hasGroupConstraint,
+  hasDataAccessControls,
   hasProtectedData,
   hasRegionConstraint,
   isValidWsExportTarget,
@@ -161,7 +161,7 @@ describe('hasRegionConstraint', () => {
   });
 });
 
-describe('hasGroupConstraint', () => {
+describe('hasDataAccessControls', () => {
   it.each([
     { policies: [], expectedResult: false },
     {
@@ -184,13 +184,13 @@ describe('hasGroupConstraint', () => {
       expectedResult: true,
     },
   ] as { policies: WorkspacePolicy[]; expectedResult: boolean }[])(
-    'returns true if workspace has at least one group constraint policies',
+    'returns true if workspace has at least one group constraint policy',
     ({ policies, expectedResult }) => {
       // Arrange
       const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies };
 
       // Act
-      const result = hasGroupConstraint(workspace);
+      const result = hasDataAccessControls(workspace);
 
       // Assert
       expect(result).toBe(expectedResult);
@@ -198,72 +198,37 @@ describe('hasGroupConstraint', () => {
   );
 });
 
-describe('groupConstraintMessage', () => {
-  it('returns undefined if workspace has no group constraint policies', () => {
+describe('dataAccessControlsMessage', () => {
+  it('returns undefined if workspace has no data access controls', () => {
     // Arrange
     const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies: [] };
 
     // Act
-    const message = groupConstraintMessage(workspace);
+    const message = dataAccessControlsMessage(workspace);
 
     // Assert
     expect(message).toBeUndefined();
   });
 
-  it.each([
-    {
+  it('returns a message if workspace does have access controls', () => {
+    // Arrange
+    const workspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
       policies: [
         {
           namespace: 'terra',
           name: 'group-constraint',
-          additionalData: [{ group: 'foo' }],
+          additionalData: [{ group: 'test-group' }],
         },
       ],
-      expectedText: 'All workspace collaborators must also be members of the following group: foo.',
-    },
-    {
-      policies: [
-        {
-          namespace: 'terra',
-          name: 'group-constraint',
-          additionalData: [{ group: 'foo' }],
-        },
-        {
-          namespace: 'terra',
-          name: 'group-constraint',
-          additionalData: [{ group: 'bar' }],
-        },
-      ],
-      expectedText: 'All workspace collaborators must also be members of the following groups: bar, foo.',
-    },
-    {
-      policies: [
-        {
-          namespace: 'terra',
-          name: 'group-constraint',
-          additionalData: [{ group: 'foo' }, { group: 'bar' }],
-        },
-        {
-          namespace: 'terra',
-          name: 'group-constraint',
-          additionalData: [{ group: 'foo' }, { group: 'baz' }],
-        },
-      ],
-      expectedText: 'All workspace collaborators must also be members of the following groups: bar, baz, foo.',
-    },
-  ] as { policies: WorkspacePolicy[]; expectedText: string }[])(
-    'includes groups from group constraint policies',
-    ({ policies, expectedText }) => {
-      // Arrange
-      const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies };
+    };
 
-      // Act
-      const message = groupConstraintMessage(workspace);
+    // Act
+    const message = dataAccessControlsMessage(workspace);
 
-      // Assert
-      expect(message).toMatch(expectedText);
-    }
-  );
+    // Assert
+    expect(typeof message).toBe('string');
+  });
 });
 
 describe('canEditWorkspace', () => {
