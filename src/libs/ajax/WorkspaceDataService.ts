@@ -42,6 +42,17 @@ export type WDSCloneStatusResponse = {
   updated: string;
 };
 
+export interface WDSJob {
+  created: string;
+  errorMessage: string | null;
+  input: null;
+  jobId: string;
+  jobType: 'DATA_IMPORT' | 'UNKNOWN';
+  result: null;
+  status: 'CREATED' | 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'ERROR' | 'CANCELLED' | 'UNKNOWN';
+  updated: string;
+}
+
 export const WorkspaceData = (signal) => ({
   getSchema: async (root: string, instanceId: string): Promise<RecordTypeSchema[]> => {
     const res = await fetchWDS(root)(`${instanceId}/types/v0.2`, _.merge(authOpts(), { signal }));
@@ -95,6 +106,17 @@ export const WorkspaceData = (signal) => ({
   getCloneStatus: async (root: string): Promise<WDSCloneStatusResponse> => {
     const res = await fetchWDS(root)('clone/v0.2', _.merge(authOpts(), { signal }));
     return res.json();
+  },
+  startImportJob: async (
+    root: string,
+    instanceId: string,
+    file: { url: string; type: 'PFB' | 'TDRMANIFEST' }
+  ): Promise<WDSJob> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/import/v1`,
+      _.mergeAll([authOpts(), { method: 'POST' }, jsonBody(file)])
+    );
+    return await res.json();
   },
   importTdr: async (root: string, instanceId: string, snapshotId: string): Promise<Response> => {
     const res = await fetchWDS(root)(

@@ -5,6 +5,8 @@ import { h } from 'react-hyperscript-helpers';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
 import { useRoute } from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -32,6 +34,15 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
     DataRepo: jest.fn(),
   };
 });
+
+type FeaturePreviewExports = typeof import('src/libs/feature-previews');
+jest.mock(
+  'src/libs/feature-previews',
+  (): FeaturePreviewExports => ({
+    ...jest.requireActual('src/libs/feature-previews'),
+    isFeaturePreviewEnabled: jest.fn().mockReturnValue(false),
+  })
+);
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock('src/libs/nav', (): NavExports => {
@@ -125,6 +136,7 @@ const setup = async (opts: SetupOptions) => {
   });
 
   const importTdr = jest.fn().mockResolvedValue(undefined);
+  const startImportJob = jest.fn().mockResolvedValue(undefined);
 
   const wdsProxyUrl = 'https://proxyurl';
   const mockAjax: DeepPartial<AjaxContract> = {
@@ -153,6 +165,7 @@ const setup = async (opts: SetupOptions) => {
       captureEvent: jest.fn(),
     },
     WorkspaceData: {
+      startImportJob,
       importTdr,
     },
     Workspaces: {
@@ -179,6 +192,7 @@ const setup = async (opts: SetupOptions) => {
     importJSON,
     importSnapshot,
     importTdr,
+    startImportJob,
     wdsProxyUrl,
   };
 };
@@ -204,28 +218,58 @@ describe('ImportData', () => {
   });
 
   describe('files', () => {
-    it('imports PFB files', async () => {
-      // Arrange
-      const user = userEvent.setup();
+    describe('PFB files', () => {
+      it('imports PFB files into GCP workspaces', async () => {
+        // Arrange
+        const user = userEvent.setup();
 
-      const importUrl = 'https://example.com/path/to/file.pfb';
-      const { getWorkspaceApi, importJob } = await setup({
-        queryParams: {
-          format: 'PFB',
-          url: importUrl,
-        },
+        const importUrl = 'https://example.com/path/to/file.pfb';
+        const { getWorkspaceApi, importJob, startImportJob } = await setup({
+          queryParams: {
+            format: 'PFB',
+            url: importUrl,
+          },
+        });
+
+        // Act
+        await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
+
+        // Assert
+        expect(getWorkspaceApi).toHaveBeenCalledWith(
+          defaultGoogleWorkspace.workspace.namespace,
+          defaultGoogleWorkspace.workspace.name
+        );
+
+        expect(importJob).toHaveBeenCalledWith(importUrl, 'pfb', null);
+        expect(startImportJob).not.toHaveBeenCalled();
       });
 
-      // Act
-      await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
+      it('imports PFB files into Azure workspaces', async () => {
+        // Arrange
+        const user = userEvent.setup();
 
-      // Assert
-      expect(getWorkspaceApi).toHaveBeenCalledWith(
-        defaultGoogleWorkspace.workspace.namespace,
-        defaultGoogleWorkspace.workspace.name
-      );
+        asMockedFn(isFeaturePreviewEnabled).mockImplementation(
+          (featurePreview) => featurePreview === ENABLE_AZURE_PFB_IMPORT
+        );
 
-      expect(importJob).toHaveBeenCalledWith(importUrl, 'pfb', null);
+        const importUrl = 'https://example.com/path/to/file.pfb';
+        const { importJob, startImportJob, wdsProxyUrl } = await setup({
+          queryParams: {
+            format: 'PFB',
+            url: importUrl,
+          },
+        });
+
+        // Act
+        await importIntoExistingWorkspace(user, defaultAzureWorkspace.workspace.name);
+
+        // Assert
+        expect(startImportJob).toHaveBeenCalledWith(wdsProxyUrl, defaultAzureWorkspace.workspace.workspaceId, {
+          url: importUrl,
+          type: 'PFB',
+        });
+        expect(importJob).not.toHaveBeenCalled();
+      });
     });
 
     it('imports BagIt files when format is unspecified', async () => {
