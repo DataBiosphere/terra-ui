@@ -612,24 +612,21 @@ describe('CloudEnvironmentModal', () => {
     }
   );
 
-  it.each([0, 1])(
-    'Invokes dismiss call for launch button on a populated azure cloud environments instance',
-    async (buttonIndex) => {
-      // Arrange
-      const cloneAzure = {
-        ...AzureCloudEnvironmentModalDefaultProps,
-        // workspace: defaultAzureWorkspace,
-        // runtime: azureRuntime,
-      };
+  it('Invokes dismiss call for launch button on a populated azure cloud environments instance', async () => {
+    // Arrange
+    const cloneAzure = {
+      ...AzureCloudEnvironmentModalDefaultProps,
+      // workspace: defaultAzureWorkspace,
+      // runtime: azureRuntime,
+    };
 
-      // Act
-      render(h(CloudEnvironmentModal, cloneAzure));
-      // Assert
-      const startButtons = screen.getAllByText('Open');
-      expect(startButtons.length).toBe(1);
-      expect(startButtons[buttonIndex]).toBeEnabled(); // TODO: can't check dismissed is called becuase HREF redirects
-    }
-  );
+    // Act
+    render(h(CloudEnvironmentModal, cloneAzure));
+    // Assert
+    const startButtons = screen.getAllByText('Open');
+    expect(startButtons.length).toBe(1);
+    expect(startButtons[0]).toBeEnabled(); // TODO: can't check dismissed is called becuase HREF redirects
+  });
 
   // button tests(settings)
   it.each([
