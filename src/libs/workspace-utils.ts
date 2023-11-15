@@ -1,5 +1,6 @@
 import { cond, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
+import pluralize from 'pluralize';
 import { azureRegions } from 'src/libs/azure-regions';
 
 export type CloudProvider = 'AZURE' | 'GCP';
@@ -183,9 +184,10 @@ export const groupConstraintMessage = (workspace: WorkspaceWrapper): string | un
     _.uniq,
     _.sortBy(_.identity)
   )(groupConstraintPolicies);
-  return `Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be members of the following groups: ${requiredGroups.join(
-    ', '
-  )}.`;
+  return `Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be members of the following ${pluralize(
+    'groups',
+    requiredGroups.length
+  )}: ${requiredGroups.join(', ')}.`;
 };
 
 export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {
