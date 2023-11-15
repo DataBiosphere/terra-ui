@@ -175,7 +175,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       h2({ style: styles.title }, ['Start with an existing workspace']),
       isProtectedData &&
         div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
-          icon('info-circle', { size: 15, style: { marginRight: '0.25rem' }, color: colors.accent() }),
           ' You may only import into workspaces that have additional security monitoring enabled.',
         ]),
       h(IdContainer, [
@@ -300,8 +299,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         () => {
           return h(Fragment, [
             h2({ style: styles.title }, ['Destination of the prepared data']),
-            (canUseTemplateWorkspace || canUseNewWorkspace) &&
-              div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
             !userHasBillingProjects && h(linkAccountPrompt),
             canUseTemplateWorkspace &&
               h(ChoiceButton, {

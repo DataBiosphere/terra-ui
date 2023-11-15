@@ -54,7 +54,7 @@ export const ImportDataOverview = (props: ImportDataOverviewProps): ReactNode =>
   return div({ style: styles.card }, [
     h2({ style: styles.title }, [getTitleForImportRequest(importRequest)]),
     h4({ style: { fontSize: 16 } }, ['Dataset source:']),
-    div({ style: { marginTop: '1rem' } }, [`${importRequest.url}`]),
+    div({ style: { marginTop: '1rem' } }, [`${importRequest.url.href.split('?')[0]}`]),
     h4({ style: { fontSize: 16 } }, ['Dataset security requirements:']),
     div(
       { style: { marginTop: '1rem' } },
