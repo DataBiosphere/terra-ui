@@ -244,5 +244,5 @@ export const getWorkspaceAnalysisControlProps = (
 };
 
 export const requestAccessMessage =
-  'We recommend that you ask the person who invited you to this workspace if there is any controlled access data in this workspace. ' +
-  'If so, the person who invited you may be able to help you gain access; for example, by assisting you with a valid Data Access Request (DAR).';
+  'We recommend asking the person who invited you to the workspace if it includes any controlled-access data. ' +
+  'If it does, they may be able to help you gain access by assisting with a valid Data Access Request (DAR), for example.';
