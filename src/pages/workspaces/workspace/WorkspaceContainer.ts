@@ -18,7 +18,7 @@ import { withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import { isAzureWorkspace, isGoogleWorkspace, requestAccessMessage } from 'src/libs/workspace-utils';
 import { AppDetails, useAppPolling } from 'src/pages/workspaces/hooks/useAppPolling';
 import {
   CloudEnvironmentDetails,
@@ -247,10 +247,7 @@ const WorkspaceAccessError = () => {
       h(Link, { ...Utils.newTabLinkProps, href: groupURL }, ['Group']),
       ' of which you are a member.',
     ]),
-    p([
-      'We recommend that you ask the person who invited you to this workspace if there is any controlled access data in this workspace. ',
-      'If so, the person who invited you may be able to help you gain access; for example, by assisting you with a valid Data Access Request (DAR).',
-    ]),
+    p([requestAccessMessage]),
     h(
       ButtonPrimary,
       {

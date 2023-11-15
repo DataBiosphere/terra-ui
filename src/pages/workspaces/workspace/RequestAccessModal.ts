@@ -11,7 +11,12 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { cond, withBusyState } from 'src/libs/utils';
-import { GoogleWorkspaceInfo, isAzureWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import {
+  GoogleWorkspaceInfo,
+  isAzureWorkspace,
+  requestAccessMessage,
+  WorkspaceWrapper as Workspace,
+} from 'src/libs/workspace-utils';
 
 interface RequestAccessModalProps {
   onDismiss: () => void;
@@ -165,10 +170,7 @@ const AzureRequestAccessModal = (props: AzureRequestAccessModalProps): ReactNode
         },
         ['Learn more about linking your NIH account', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
       ),
-      p([
-        'We recommend that you ask the person who invited you to this workspace if there is any controlled access data in this workspace. ',
-        'If so, the person who invited you may be able to help you gain access; for example, by assisting you with a valid Data Access Request (DAR).',
-      ]),
+      p([requestAccessMessage]),
     ]
   );
 };

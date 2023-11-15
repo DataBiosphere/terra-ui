@@ -242,3 +242,7 @@ export const getWorkspaceAnalysisControlProps = (
   const { value, message } = canRunAnalysisInWorkspace(workspace);
   return value ? {} : { disabled: true, tooltip: message };
 };
+
+export const requestAccessMessage =
+  'We recommend that you ask the person who invited you to this workspace if there is any controlled access data in this workspace. ' +
+  'If so, the person who invited you may be able to help you gain access; for example, by assisting you with a valid Data Access Request (DAR).';
