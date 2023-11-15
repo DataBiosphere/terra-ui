@@ -188,7 +188,7 @@ const importIntoExistingWorkspace = async (user: UserEvent, workspaceName: strin
   await user.click(existingWorkspace);
 
   const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
-  await workspaceSelect.selectOption(workspaceName);
+  await workspaceSelect.selectOption(new RegExp(workspaceName));
 
   await user.click(screen.getByRole('button', { name: 'Import' }));
 };
@@ -293,7 +293,7 @@ describe('ImportData', () => {
           ...commonSnapshotExportQueryParams,
           snapshotId: googleSnapshotFixture.id,
         };
-        const { getWorkspaceApi, importJob } = await setup({ queryParams });
+        const { getWorkspaceApi, importJob, importTdr } = await setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
@@ -305,6 +305,7 @@ describe('ImportData', () => {
         );
 
         expect(importJob).toHaveBeenCalledWith(queryParams.tdrmanifest, 'tdrexport', { tdrSyncPermissions: true });
+        expect(importTdr).not.toHaveBeenCalled();
       });
 
       it('imports snapshots into Azure workspaces', async () => {
@@ -315,7 +316,7 @@ describe('ImportData', () => {
           ...commonSnapshotExportQueryParams,
           snapshotId: azureSnapshotFixture.id,
         };
-        const { importTdr, wdsProxyUrl } = await setup({ queryParams });
+        const { importJob, importTdr, wdsProxyUrl } = await setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultAzureWorkspace.workspace.name);
@@ -326,6 +327,7 @@ describe('ImportData', () => {
           defaultAzureWorkspace.workspace.workspaceId,
           queryParams.snapshotId
         );
+        expect(importJob).not.toHaveBeenCalled();
       });
     });
 
