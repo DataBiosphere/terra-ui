@@ -165,6 +165,15 @@ describe('hasGroupConstraint', () => {
   it.each([
     { policies: [], expectedResult: false },
     {
+      polices: [
+        {
+          namespace: 'terra',
+          name: 'protected-data',
+        },
+      ],
+      expectedResult: false,
+    },
+    {
       policies: [
         {
           namespace: 'terra',
