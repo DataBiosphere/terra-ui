@@ -5,6 +5,7 @@ import { ButtonPrimary, Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
+import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
@@ -32,15 +33,13 @@ interface GcpRequestAccessModalProps {
 }
 
 const GcpRequestAccessModal = (props: GcpRequestAccessModalProps): ReactNode => {
-  const [groups, setGroups] = useState([]);
+  const [groups, setGroups] = useState<CurrentUserGroupMembership[]>([]);
   const [loading, setLoading] = useState(false);
   const signal = useCancellation();
   const workspace = props.workspaceInfo;
 
-  const { Groups } = Ajax(signal);
-
   const fetchGroups = async () => {
-    setGroups(await Groups.list());
+    setGroups(await Ajax(signal).Groups.list());
   };
 
   useOnMount(() => {
@@ -167,8 +166,8 @@ const AzureRequestAccessModal = (props: AzureRequestAccessModalProps): ReactNode
         ['Learn more about linking your NIH account', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
       ),
       p([
-        'We recommend that you ask the person that invited you to this workspace if there is any controlled access data in this workspace. ',
-        'They may be able to help you gain access; for example, by assisting you with a valid Data Access Request (DAR).',
+        'We recommend that you ask the person who invited you to this workspace if there is any controlled access data in this workspace. ',
+        'If so, the person who invited you may be able to help you gain access; for example, by assisting you with a valid Data Access Request (DAR).',
       ]),
     ]
   );

@@ -248,8 +248,8 @@ const WorkspaceAccessError = () => {
       ' of which you are a member.',
     ]),
     p([
-      'We recommend that you ask the person that invited you to this workspace if there is any controlled access data in this workspace. ',
-      'They may be able to help you gain access; for example, by assisting you with a valid Data Access Request (DAR).',
+      'We recommend that you ask the person who invited you to this workspace if there is any controlled access data in this workspace. ',
+      'If so, the person who invited you may be able to help you gain access; for example, by assisting you with a valid Data Access Request (DAR).',
     ]),
     h(
       ButtonPrimary,
