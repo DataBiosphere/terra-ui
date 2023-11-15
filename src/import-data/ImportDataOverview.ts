@@ -1,5 +1,5 @@
-import { CSSProperties, ReactNode } from 'react';
-import { div, h2, h3 } from 'react-hyperscript-helpers';
+import { CSSProperties, Fragment, ReactNode } from 'react';
+import { div, h, h2, h3 } from 'react-hyperscript-helpers';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 
@@ -53,8 +53,11 @@ export const ImportDataOverview = (props: ImportDataOverviewProps): ReactNode =>
 
   return div({ style: styles.card }, [
     h2({ style: styles.title }, [getTitleForImportRequest(importRequest)]),
-    h3({ style: { fontSize: 16 } }, ['Dataset source:']),
-    'url' in importRequest && div({ style: { marginTop: '1rem' } }, [`${importRequest.url.href.split('?')[0]}`]),
+    'url' in importRequest &&
+      h(Fragment, [
+        h3({ style: { fontSize: 16 } }, ['Dataset source:']),
+        div({ style: { marginTop: '1rem' } }, [`${importRequest.url.href.split('?')[0]}`]),
+      ]),
     h3({ style: { fontSize: 16 } }, ['Dataset security requirements:']),
     div(
       { style: { marginTop: '1rem' } },
