@@ -7,9 +7,14 @@ import {
 } from 'src/libs/ajax/User';
 import { TerraUserProfile } from 'src/libs/state';
 
-jest.mock('src/libs/ajax/ajax-common', () => ({
-  authOpts: jest.fn(() => ''),
-}));
+type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
+jest.mock(
+  'src/auth/auth',
+  (): AjaxCommonExports => ({
+    ...jest.requireActual<AjaxCommonExports>('src/libs/ajax/ajax-common'),
+    authOpts: jest.fn().mockReturnValue({ headers: { Authorization: 'testToken' } }),
+  })
+);
 
 const completeUserProfile: TerraUserProfile = {
   firstName: 'testFirstName',
@@ -24,7 +29,7 @@ const completeUserProfile: TerraUserProfile = {
   starredWorkspaces: 'testStarredWorkspaces',
   title: 'testTitle',
   researchArea: 'testResearchArea',
-};
+} as const satisfies TerraUserProfile;
 
 const minimalCreateUserProfileRequest: CreateTerraUserProfileRequest = {
   firstName: completeUserProfile.firstName!,
@@ -127,7 +132,6 @@ describe('A create user profile request', () => {
         // Assert
         expect(apiBody.firstName).toBe(completeUserProfile.firstName);
         expect(apiBody.firstName).toBeDefined();
-        expect(apiBody.firstName).not.toBe(null);
       });
 
       it('lastName', () => {
@@ -139,7 +143,6 @@ describe('A create user profile request', () => {
         // Assert
         expect(apiBody.lastName).toBe(completeUserProfile.lastName);
         expect(apiBody.lastName).toBeDefined();
-        expect(apiBody.lastName).not.toBe(null);
       });
 
       it('contactEmail', () => {
@@ -151,7 +154,6 @@ describe('A create user profile request', () => {
         // Assert
         expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
         expect(apiBody.contactEmail).toBeDefined();
-        expect(apiBody.contactEmail).not.toBe(null);
       });
     });
   });
@@ -223,7 +225,6 @@ describe('A create user profile request', () => {
         // Assert
         expect(apiBody.firstName).toBe(completeUserProfile.firstName);
         expect(apiBody.firstName).toBeDefined();
-        expect(apiBody.firstName).not.toBe(null);
       });
       it('lastName', () => {
         // Arrange, Act
@@ -234,7 +235,6 @@ describe('A create user profile request', () => {
         // Assert
         expect(apiBody.lastName).toBe(completeUserProfile.lastName);
         expect(apiBody.lastName).toBeDefined();
-        expect(apiBody.lastName).not.toBe(null);
       });
       it('contactEmail', () => {
         // Arrange, Act
@@ -245,7 +245,6 @@ describe('A create user profile request', () => {
         // Assert
         expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
         expect(apiBody.contactEmail).toBeDefined();
-        expect(apiBody.contactEmail).not.toBe(null);
       });
     });
   });
@@ -298,7 +297,6 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.firstName).toBe(completeUserProfile.firstName);
         expect(apiBody.firstName).toBeDefined();
-        expect(apiBody.firstName).not.toBe(null);
       });
 
       it('lastName', () => {
@@ -310,7 +308,6 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.lastName).toBe(completeUserProfile.lastName);
         expect(apiBody.lastName).toBeDefined();
-        expect(apiBody.lastName).not.toBe(null);
       });
 
       it('contactEmail', () => {
@@ -322,7 +319,6 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
         expect(apiBody.contactEmail).toBeDefined();
-        expect(apiBody.contactEmail).not.toBe(null);
       });
     });
   });
@@ -409,7 +405,6 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.firstName).toBe(completeUserProfile.firstName);
         expect(apiBody.firstName).toBeDefined();
-        expect(apiBody.firstName).not.toBe(null);
       });
       it('lastName', () => {
         // Arrange, Act
@@ -420,7 +415,6 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.lastName).toBe(completeUserProfile.lastName);
         expect(apiBody.lastName).toBeDefined();
-        expect(apiBody.lastName).not.toBe(null);
       });
       it('contactEmail', () => {
         // Arrange, Act
@@ -431,7 +425,6 @@ describe('An update user profile request', () => {
         // Assert
         expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
         expect(apiBody.contactEmail).toBeDefined();
-        expect(apiBody.contactEmail).not.toBe(null);
       });
     });
   });

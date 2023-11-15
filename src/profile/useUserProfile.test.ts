@@ -153,16 +153,16 @@ describe('useUserProfile', () => {
   });
 
   describe('updating the profile', () => {
-    let setProfile;
+    let updateProfile;
 
     beforeEach(() => {
       asMockedFn(refreshTerraProfile).mockReturnValue(Promise.resolve());
 
-      setProfile = jest.fn().mockReturnValue(abandonedPromise());
+      updateProfile = jest.fn().mockReturnValue(abandonedPromise());
       asMockedFn(User).mockImplementation(() => {
         return {
           profile: {
-            update: setProfile,
+            update: updateProfile,
           },
         } as unknown as UserContract;
       });
@@ -184,7 +184,7 @@ describe('useUserProfile', () => {
 
       // Assert
       // Not all profile fields are updated via this request.
-      expect(setProfile).toHaveBeenCalledWith(_.omit(['email', 'starredWorkspaces'], updatedProfile));
+      expect(updateProfile).toHaveBeenCalledWith(_.omit(['email', 'starredWorkspaces'], updatedProfile));
     });
 
     it('returns loading status while profile is updating', async () => {
@@ -202,7 +202,7 @@ describe('useUserProfile', () => {
 
     it('refreshes profile after updating profile', async () => {
       // Arrange
-      setProfile.mockReturnValue(Promise.resolve());
+      updateProfile.mockReturnValue(Promise.resolve());
       const { result: hookReturnRef } = await renderHookInAct(() => useUserProfile());
 
       // Reset mock after initial refresh.
@@ -218,7 +218,7 @@ describe('useUserProfile', () => {
 
     it('returns ready status after profile has updated and refreshed', async () => {
       // Arrange
-      setProfile.mockReturnValue(Promise.resolve());
+      updateProfile.mockReturnValue(Promise.resolve());
 
       // Act
       const { result: hookReturnRef } = await renderHookInAct(() => useUserProfile());
@@ -229,7 +229,7 @@ describe('useUserProfile', () => {
 
     it('returns error status if profile update fails', async () => {
       // Arrange
-      asMockedFn(setProfile).mockRejectedValue(new Error('Something went wrong'));
+      asMockedFn(updateProfile).mockRejectedValue(new Error('Something went wrong'));
 
       const { result: hookReturnRef } = await renderHookInAct(() => useUserProfile());
 
@@ -242,7 +242,7 @@ describe('useUserProfile', () => {
 
     it('returns reports error if profile update fails', async () => {
       // Arrange
-      asMockedFn(setProfile).mockRejectedValue(new Error('Something went wrong'));
+      asMockedFn(updateProfile).mockRejectedValue(new Error('Something went wrong'));
 
       const { result: hookReturnRef } = await renderHookInAct(() => useUserProfile());
 
