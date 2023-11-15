@@ -125,6 +125,7 @@ const setup = async (opts: SetupOptions) => {
   });
 
   const importTdr = jest.fn().mockResolvedValue(undefined);
+  const startImportJob = jest.fn().mockResolvedValue(undefined);
 
   const wdsProxyUrl = 'https://proxyurl';
   const mockAjax: DeepPartial<AjaxContract> = {
@@ -153,6 +154,7 @@ const setup = async (opts: SetupOptions) => {
       captureEvent: jest.fn(),
     },
     WorkspaceData: {
+      startImportJob,
       importTdr,
     },
     Workspaces: {
@@ -179,6 +181,7 @@ const setup = async (opts: SetupOptions) => {
     importJSON,
     importSnapshot,
     importTdr,
+    startImportJob,
     wdsProxyUrl,
   };
 };
@@ -204,28 +207,54 @@ describe('ImportData', () => {
   });
 
   describe('files', () => {
-    it('imports PFB files', async () => {
-      // Arrange
-      const user = userEvent.setup();
+    describe('PFB files', () => {
+      it('imports PFB files into GCP workspaces', async () => {
+        // Arrange
+        const user = userEvent.setup();
 
-      const importUrl = 'https://example.com/path/to/file.pfb';
-      const { getWorkspaceApi, importJob } = await setup({
-        queryParams: {
-          format: 'PFB',
-          url: importUrl,
-        },
+        const importUrl = 'https://example.com/path/to/file.pfb';
+        const { getWorkspaceApi, importJob, startImportJob } = await setup({
+          queryParams: {
+            format: 'PFB',
+            url: importUrl,
+          },
+        });
+
+        // Act
+        await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
+
+        // Assert
+        expect(getWorkspaceApi).toHaveBeenCalledWith(
+          defaultGoogleWorkspace.workspace.namespace,
+          defaultGoogleWorkspace.workspace.name
+        );
+
+        expect(importJob).toHaveBeenCalledWith(importUrl, 'pfb', null);
+        expect(startImportJob).not.toHaveBeenCalled();
       });
 
-      // Act
-      await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
+      it('imports PFB files into Azure workspaces', async () => {
+        // Arrange
+        const user = userEvent.setup();
 
-      // Assert
-      expect(getWorkspaceApi).toHaveBeenCalledWith(
-        defaultGoogleWorkspace.workspace.namespace,
-        defaultGoogleWorkspace.workspace.name
-      );
+        const importUrl = 'https://example.com/path/to/file.pfb';
+        const { importJob, startImportJob, wdsProxyUrl } = await setup({
+          queryParams: {
+            format: 'PFB',
+            url: importUrl,
+          },
+        });
 
-      expect(importJob).toHaveBeenCalledWith(importUrl, 'pfb', null);
+        // Act
+        await importIntoExistingWorkspace(user, defaultAzureWorkspace.workspace.name);
+
+        // Assert
+        expect(startImportJob).toHaveBeenCalledWith(wdsProxyUrl, defaultAzureWorkspace.workspace.workspaceId, {
+          url: importUrl,
+          type: 'PFB',
+        });
+        expect(importJob).not.toHaveBeenCalled();
+      });
     });
 
     it('imports BagIt files when format is unspecified', async () => {
