@@ -5,6 +5,8 @@ import { h } from 'react-hyperscript-helpers';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
 import { useRoute } from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -32,6 +34,15 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
     DataRepo: jest.fn(),
   };
 });
+
+type FeaturePreviewExports = typeof import('src/libs/feature-previews');
+jest.mock(
+  'src/libs/feature-previews',
+  (): FeaturePreviewExports => ({
+    ...jest.requireActual('src/libs/feature-previews'),
+    isFeaturePreviewEnabled: jest.fn().mockReturnValue(false),
+  })
+);
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock('src/libs/nav', (): NavExports => {
@@ -236,6 +247,10 @@ describe('ImportData', () => {
       it('imports PFB files into Azure workspaces', async () => {
         // Arrange
         const user = userEvent.setup();
+
+        asMockedFn(isFeaturePreviewEnabled).mockImplementation(
+          (featurePreview) => featurePreview === ENABLE_AZURE_PFB_IMPORT
+        );
 
         const importUrl = 'https://example.com/path/to/file.pfb';
         const { importJob, startImportJob, wdsProxyUrl } = await setup({
