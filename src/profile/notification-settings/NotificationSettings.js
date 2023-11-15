@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
-import { refreshTerraProfile } from 'src/auth/auth';
+import { refreshSamUserAttributes, refreshTerraProfile } from 'src/auth/auth';
 import { Checkbox, spinnerOverlay } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
@@ -88,7 +88,7 @@ const UserAttributesCheckbox = ({ value, label, setSaving, notificationKeys, dis
       )(async (v) => {
         await Ajax().User.setUserAttributes({ marketingConsent: v });
         Ajax().Metrics.captureEvent(Events.notificationToggle, { notificationKeys, enabled: v });
-        await refreshTerraProfile();
+        await refreshSamUserAttributes();
       });
   return h(Checkbox, {
     'aria-label': label,
