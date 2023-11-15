@@ -3031,6 +3031,7 @@ __metadata:
     "@jest/types": ^27.5.1
     "@terra-ui-packages/build-utils": ^1.0.0
     "@testing-library/jest-dom": ^5.17.0
+    "@testing-library/react": ^14.0.0
     "@types/jest": ^28.1.8
     "@types/node": ^20.6.2
     babel-jest: ^27.4.2
@@ -3047,6 +3048,8 @@ __metadata:
     typescript: ~5.1.6
     vite: ^4.3.9
     whatwg-fetch: ^3.6.2
+  peerDependencies:
+    "@testing-library/react": ^14.0.0
   languageName: unknown
   linkType: soft
 
