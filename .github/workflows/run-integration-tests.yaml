@@ -97,6 +97,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache: 'yarn'
 
       - name: Auth Lyle to GCP
         id: 'lyle-auth'
@@ -109,9 +110,19 @@ jobs:
           export_environment_variables: false
           id_token_include_email: true
 
+      - name: Auth firecloud to GCP
+        id: 'terra-auth'
+        uses: google-github-actions/auth@v0
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
+          service_account: 'firecloud-alpha@broad-dsde-alpha.iam.gserviceaccount.com'
+          export_environment_variables: false
+
       - name: "set env vars"
         run: |
-          echo "LYLE_ACCESS_TOKEN=${{ steps.lyle-auth.outputs.id_token }}" >> $GITHUB_ENV
+          echo "LYLE_ID_TOKEN=${{ steps.lyle-auth.outputs.id_token }}" >> $GITHUB_ENV
+          echo "TERRA_SA_ACCESS_TOKEN=${{ steps.terra-auth.outputs.access_token }}" >> $GITHUB_ENV
           echo "TERRA_SA_KEY=dummykey" >> $GITHUB_ENV
 
       - name: "Run Yarn Install"
