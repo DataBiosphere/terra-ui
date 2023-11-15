@@ -21,7 +21,7 @@ import { Ajax } from 'src/libs/ajax';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
-import { reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
+import { reportErrorAndRethrow, withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
@@ -176,16 +176,41 @@ const NewWorkspaceModal = withDisplayName(
           }
         );
 
-        onSuccess(createdWorkspace);
+        // The create/clone workspace responses do not include the cloudPlatform field.
+        // Add it based on the billing project used to create the workspace.
+
+        // Translate between billing project cloud platform and workspace cloud platform constants.
+        const workspaceCloudPlatform: WorkspaceInfo['cloudPlatform'] | undefined = (() => {
+          const billingProjectCloudPlatform = getProjectCloudPlatform();
+          switch (billingProjectCloudPlatform) {
+            case 'AZURE':
+              return 'Azure';
+            case 'GCP':
+              return 'Gcp';
+            default:
+              return undefined;
+          }
+        })();
+
+        onSuccess({ ...createdWorkspace, cloudPlatform: workspaceCloudPlatform });
       } catch (error: unknown) {
-        const { message } = await (error as Response).json();
+        const errorMessage = await (async () => {
+          if (error instanceof Response) {
+            const { message } = await error.json();
+            return message;
+          }
+          if (error instanceof Error) {
+            return error.message;
+          }
+          return 'Unknown error.';
+        })();
         setCreating(false);
-        setCreateError(message);
+        setCreateError(errorMessage);
       }
     };
 
     const loadData = _.flow(
-      withErrorReporting('Error loading data'),
+      withErrorReportingInModal('Error loading data', onDismiss),
       Utils.withBusyState(setLoading)
     )(() =>
       Promise.all([

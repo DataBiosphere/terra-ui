@@ -15,7 +15,7 @@ import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } f
 import { workspacesStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { cloudProviderLabels, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 
 export const useWorkspaces = (fieldsArg, stringAttributeMaxLength) => {
   const signal = useCancellation();
@@ -82,6 +82,7 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label
   const options = _.flow(
     _.sortBy((ws) => ws.workspace.name.toLowerCase()),
     _.map(({ workspace: { workspaceId, name, cloudPlatform, bucketName } }) => ({
+      'aria-label': `${cloudProviderLabels[cloudPlatform]} ${name}`,
       value: workspaceId,
       label: name,
       workspace: { cloudPlatform, bucketName },
@@ -95,6 +96,20 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label
     value,
     onChange: ({ value }) => onChange(value),
     options,
+    formatOptionLabel: (opt) => {
+      const {
+        label,
+        workspace: { cloudPlatform },
+      } = opt;
+      return div({ style: { display: 'flex', alignItems: 'center' } }, [
+        h(CloudProviderIcon, {
+          // Convert workspace cloudPlatform (Azure, Gcp) to CloudProvider (AZURE, GCP).
+          cloudProvider: cloudPlatform.toUpperCase(),
+          style: { marginRight: '0.5rem' },
+        }),
+        label,
+      ]);
+    },
     ...props,
   });
 };
