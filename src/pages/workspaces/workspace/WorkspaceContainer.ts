@@ -1,7 +1,7 @@
 import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ComponentPropsWithRef, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
-import { br, div, h, h2, p, span } from 'react-hyperscript-helpers';
+import { br, div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
 import { ContextBar } from 'src/analysis/ContextBar';
 import RuntimeManager from 'src/analysis/RuntimeManager';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
@@ -233,11 +233,10 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
 const WorkspaceAccessError = () => {
   const groupURL =
     'https://support.terra.bio/hc/en-us/articles/360024617851-Managing-access-to-shared-resources-data-and-tools-';
-  const authorizationURL =
-    'https://support.terra.bio/hc/en-us/articles/360026775691-Managing-access-to-controlled-data-with-Authorization-Domains';
   return div({ style: { padding: '2rem', flexGrow: 1 } }, [
     h2(['Could not display workspace']),
-    p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
+    p(['You cannot access this workspace because it either does not exist or you do not have access to it. ']),
+    h3(['Troubleshooting access:']),
     p([
       'You are currently logged in as ',
       span({ style: { fontWeight: 600 } }, [getTerraUser().email]),
@@ -246,12 +245,12 @@ const WorkspaceAccessError = () => {
     p([
       'To view an existing workspace, the owner of the workspace must share it with you or with a ',
       h(Link, { ...Utils.newTabLinkProps, href: groupURL }, ['Group']),
-      ' of which you are a member. ',
-      'If the workspace is protected under an ',
-      h(Link, { ...Utils.newTabLinkProps, href: authorizationURL }, ['Authorization Domain']),
-      ', you must be a member of every group within the Authorization Domain.',
+      ' of which you are a member.',
     ]),
-    p(['If you think the workspace exists but you do not have access, please contact the workspace owner.']),
+    p([
+      'We recommend that you ask the person that invited you to this workspace if there is any controlled access data in this workspace. ',
+      'They may be able to help you gain access; for example, by assisting you with a valid Data Access Request (DAR).',
+    ]),
     h(
       ButtonPrimary,
       {
