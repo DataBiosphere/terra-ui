@@ -3,9 +3,11 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { azureRegions } from 'src/libs/azure-regions';
+import { WorkspacePolicy } from 'src/libs/workspace-utils';
 import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
+  defaultAzureWorkspace,
   defaultGoogleWorkspace,
   protectedAzureWorkspace,
   regionRestrictedAzureWorkspace,
@@ -99,4 +101,43 @@ describe('WorkspaceInformation', () => {
     // Accessibility
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it.each([
+    { policies: [] },
+    {
+      policies: [
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'foo' }],
+        },
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'foo' }, { group: 'bar' }],
+        },
+      ],
+    },
+  ] as { policies: WorkspacePolicy[] }[])(
+    'shows data access controls item based on group constraint policies',
+    async ({ policies }) => {
+      // Arrange
+      const user = userEvent.setup();
+
+      // Act
+      render(
+        h(WorkspaceInformation, { workspace: { ...defaultAzureWorkspace, policies, workspaceInitialized: true } })
+      );
+
+      // Assert
+      if (policies.length === 0) {
+        expect(screen.queryByText('Data Access Controls')).toBeNull();
+      } else {
+        screen.getByText('Data Access Controls');
+
+        await user.click(screen.getByLabelText('More info'));
+        screen.getByText(/All workspace collaborators must also be members of the following groups: bar, foo./);
+      }
+    }
+  );
 });
