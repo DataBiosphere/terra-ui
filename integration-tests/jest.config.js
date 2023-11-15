@@ -3,7 +3,7 @@ module.exports = {
   preset: 'jest-puppeteer',
   testEnvironment: '<rootDir>/jest-circus-environment.js',
   setupFilesAfterEnv: ['<rootDir>/jest.test-setup.js'],
-  testMatch: ['<rootDir>/tests/*.js'],
+  testMatch: ['<rootDir>/tests/*.js', '<rootDir>/tests/*.ts'],
   reporters: [
     'default',
     '<rootDir>/jest-reporter.js',

@@ -63,12 +63,20 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   });
 
   const importPFB = async (importRequest: PFBImportRequest, workspace: WorkspaceInfo) => {
-    const { namespace, name } = workspace;
-    const { jobId } = await Ajax()
-      .Workspaces.workspace(namespace, name)
-      .importJob(importRequest.url.toString(), 'pfb', null);
-    asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
-    notifyDataImportProgress(jobId);
+    if (workspace.cloudPlatform === 'Azure') {
+      const wdsUrl = await Ajax().Apps.listAppsV2(workspace.workspaceId).then(resolveWdsUrl);
+      await Ajax().WorkspaceData.startImportJob(wdsUrl, workspace.workspaceId, {
+        url: importRequest.url.toString(),
+        type: 'PFB',
+      });
+    } else {
+      const { namespace, name } = workspace;
+      const { jobId } = await Ajax()
+        .Workspaces.workspace(namespace, name)
+        .importJob(importRequest.url.toString(), 'pfb', null);
+      asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
+      notifyDataImportProgress(jobId);
+    }
   };
 
   const importBagit = async (importRequest: BagItImportRequest, workspace: WorkspaceInfo) => {
@@ -84,23 +92,23 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   };
 
   const importTdrExport = async (importRequest: TDRSnapshotExportImportRequest, workspace: WorkspaceInfo) => {
-    // For new workspaces, cloudPlatform is blank
-    if (workspace.cloudPlatform === 'Azure' || workspace.googleProject === '') {
+    if (workspace.cloudPlatform === 'Azure') {
       // find wds for this workspace
       const wdsUrl = await Ajax().Apps.listAppsV2(workspace.workspaceId).then(resolveWdsUrl);
       const wdsDataTableProvider = new WdsDataTableProvider(workspace.workspaceId, wdsUrl);
 
       // call import snapshot
-      wdsDataTableProvider.importTdr(workspace.workspaceId, importRequest.snapshot.id);
+      await wdsDataTableProvider.importTdr(workspace.workspaceId, importRequest.snapshot.id);
+    } else {
+      const { namespace, name } = workspace;
+      const { jobId } = await Ajax()
+        .Workspaces.workspace(namespace, name)
+        .importJob(importRequest.manifestUrl.toString(), 'tdrexport', {
+          tdrSyncPermissions: importRequest.syncPermissions,
+        });
+      asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
+      notifyDataImportProgress(jobId);
     }
-    const { namespace, name } = workspace;
-    const { jobId } = await Ajax()
-      .Workspaces.workspace(namespace, name)
-      .importJob(importRequest.manifestUrl.toString(), 'tdrexport', {
-        tdrSyncPermissions: importRequest.syncPermissions,
-      });
-    asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
-    notifyDataImportProgress(jobId);
   };
 
   const importSnapshot = async (importRequest: TDRSnapshotReferenceImportRequest, workspace: WorkspaceInfo) => {

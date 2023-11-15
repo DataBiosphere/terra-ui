@@ -1,9 +1,10 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { abandonedPromise, DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { act, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import { AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { BillingProject, CloudPlatform } from 'src/pages/billing/models/BillingProject';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 
@@ -414,5 +415,246 @@ describe('NewWorkspaceModal', () => {
     // Assert
     screen.getByText('Google Billing Project');
     expect(screen.queryByText('Azure Billing Project')).toBeNull();
+  });
+
+  describe('while creating a workspace', () => {
+    beforeEach(async () => {
+      // Arrange
+      const user = userEvent.setup();
+
+      const createWorkspace = jest.fn().mockReturnValue(abandonedPromise());
+
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [gcpBillingProject, azureBillingProject],
+            },
+            Workspaces: {
+              create: createWorkspace,
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
+      );
+
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            onSuccess: () => {},
+            onDismiss: () => {},
+          })
+        );
+      });
+
+      // Act
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      act(() => {
+        fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+      });
+
+      const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+      await projectSelect.selectOption(/Google Billing Project/);
+
+      const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+      await user.click(createWorkspaceButton);
+    });
+
+    it('shows message', () => {
+      // Assert
+      screen.getByText(/Creating and provisioning your workspace./);
+      screen.getByText(/This may take a few minutes./);
+    });
+
+    it('hides buttons', () => {
+      // Assert
+      expect(screen.queryByRole('button')).toBeNull();
+    });
+  });
+
+  it.each([
+    { billingProjectName: azureBillingProject.projectName, cloudPlatform: 'Azure' },
+    { billingProjectName: gcpBillingProject.projectName, cloudPlatform: 'Gcp' },
+  ] as { billingProjectName: string; cloudPlatform: WorkspaceInfo['cloudPlatform'] }[])(
+    'adds $cloudPlatform cloud platform to workspace',
+    async ({ billingProjectName, cloudPlatform }) => {
+      // Arrange
+      const user = userEvent.setup();
+
+      // Create workspace response does not include cloudPlatform.
+      // The modal should add it to the workspace passed to onSuccess.
+      const mockWorkspaces: {
+        Azure: Omit<AzureWorkspaceInfo, 'cloudPlatform'>;
+        Gcp: Omit<GoogleWorkspaceInfo, 'cloudPlatform'>;
+      } = {
+        Azure: {
+          namespace: azureBillingProject.projectName,
+          name: 'test-workspace',
+          workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+          createdBy: 'user@example.com',
+          createdDate: '2023-11-13T18:39:32.267Z',
+          lastModified: '2023-11-13T18:39:32.267Z',
+          authorizationDomain: [],
+        },
+        Gcp: {
+          namespace: gcpBillingProject.projectName,
+          name: 'test-workspace',
+          workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+          googleProject: 'test-project',
+          bucketName: 'fc-aaaabbbb-cccc-dddd-0000-111122223333',
+          createdBy: 'user@example.com',
+          createdDate: '2023-11-13T18:39:32.267Z',
+          lastModified: '2023-11-13T18:39:32.267Z',
+          authorizationDomain: [],
+        },
+      };
+      const createdWorkspace = mockWorkspaces[cloudPlatform];
+
+      const createWorkspace = jest.fn().mockResolvedValue(createdWorkspace);
+
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [azureBillingProject, gcpBillingProject],
+            },
+            Workspaces: {
+              create: createWorkspace,
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
+      );
+
+      const onSuccess = jest.fn();
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            onSuccess,
+            onDismiss: () => {},
+          })
+        );
+      });
+
+      // Act
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      act(() => {
+        fireEvent.change(workspaceNameInput, { target: { value: createdWorkspace.name } });
+      });
+
+      const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+      await projectSelect.selectOption(new RegExp(billingProjectName));
+
+      const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+      await user.click(createWorkspaceButton);
+
+      // Assert
+      expect(onSuccess).toHaveBeenCalledWith({
+        ...createdWorkspace,
+        cloudPlatform,
+      });
+    }
+  );
+
+  it.each([
+    {
+      response: new Response('{"message":"Something went wrong."}', { status: 500 }),
+      format: 'JSON',
+      expectedMessage: 'Something went wrong.',
+    },
+    {
+      response: new Response('Something went wrong.', { status: 500 }),
+      format: 'text',
+      expectedMessage: 'Unknown error.',
+    },
+  ] as { response: Response; format: string; expectedMessage: string }[])(
+    'shows an error message if create workspace request returns a $format error response',
+    async ({ response, expectedMessage }) => {
+      // Arrange
+      const user = userEvent.setup();
+
+      const createWorkspace = jest.fn().mockRejectedValue(response);
+
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [azureBillingProject],
+            },
+            Workspaces: {
+              create: createWorkspace,
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
+      );
+
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            onSuccess: () => {},
+            onDismiss: () => {},
+          })
+        );
+      });
+
+      // Act
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      act(() => {
+        fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+      });
+
+      const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+      await projectSelect.selectOption(/Azure Billing Project/);
+
+      const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+      await user.click(createWorkspaceButton);
+
+      // Assert
+      screen.getByText(expectedMessage);
+    }
+  );
+
+  it('shows an error message if creating a workspace throws an error', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const createWorkspace = jest.fn().mockImplementation(() => {
+      throw new Error('Something went wrong.');
+    });
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [azureBillingProject],
+          },
+          Workspaces: {
+            create: createWorkspace,
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          onSuccess: () => {},
+          onDismiss: () => {},
+        })
+      );
+    });
+
+    // Act
+    const workspaceNameInput = screen.getByLabelText('Workspace name *');
+    act(() => {
+      fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+    });
+
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    await projectSelect.selectOption(/Azure Billing Project/);
+
+    const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+    await user.click(createWorkspaceButton);
+
+    // Assert
+    screen.getByText('Something went wrong.');
   });
 });

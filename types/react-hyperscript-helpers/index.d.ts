@@ -3,17 +3,7 @@
 import type * as React from 'react';
 
 declare module 'react-hyperscript-helpers' {
-  // TODO: After upgrading to TypeScript >= 5.1, replace this with React.FunctionComponent.
-  // For TypeScript 5.1, @types/react defines FunctionComponent as returning ReactNode.
-  // For earlier versions of TypeScript, it defines FunctionComponent as returning
-  // ReactElement<any, any> | null. That limitation is related to JSX, which Terra UI
-  // does not use. Thus, we can use the updated type signature without TypeScript 5.1.
-  interface FunctionComponent<P = {}> {
-    (props: P, context?: any): ReactNode;
-    displayName?: string;
-  }
-
-  type Component<P> = FunctionComponent<P> | React.ComponentClass<P>;
+  type Component<P> = React.FunctionComponent<P> | React.ComponentClass<P>;
 
   type Children<Props> = Props extends { children?: React.ReactNode }
     ? React.ReactNode[]

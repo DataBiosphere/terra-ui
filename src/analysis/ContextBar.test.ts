@@ -15,9 +15,10 @@ import {
 import { appToolLabels, isToolHidden, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
-import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { App, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { NormalizedComputeRegion } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils';
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -200,7 +201,7 @@ const cromwellDisk: PersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const cromwellOnAzureRunning: App = {
+const cromwellOnAzureRunning: ListAppResponse = {
   workspaceId: null,
   accessScope: null,
   appName: 'test-cromwell-app',
@@ -222,7 +223,6 @@ const cromwellOnAzureRunning: App = {
     cromwell: 'https://lz123.servicebus.windows.net/test-cromwell-app/cromwell',
     wds: 'https://lz123.servicebus.windows.net/test-cromwell-app/wds',
   },
-  customEnvironmentVariables: {},
   auditInfo: {
     creator: 'abc.testerson@gmail.com',
     createdDate: '2023-01-18T23:28:47.605176Z',
@@ -239,7 +239,7 @@ const cromwellOnAzureRunning: App = {
   region: 'us-central1',
 };
 
-const rstudioRuntime: Runtime = {
+const rstudioRuntime: ListRuntimeItem = {
   id: 76979,
   workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
   runtimeName: 'saturn-48afb74a-15b1-4aad-8b23-d039cf8253fb',
@@ -261,6 +261,7 @@ const rstudioRuntime: Runtime = {
     bootDiskSize: 120,
     zone: 'us-central1-a',
     gpuConfig: undefined,
+    normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   },
   proxyUrl:
     'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-98897219/saturn-48afb74a-15b1-4aad-8b23-d039cf8253fb/rstudio',
@@ -304,6 +305,7 @@ const jupyter: Runtime = {
     bootDiskSize: 120,
     zone: 'us-central1-a',
     gpuConfig: undefined,
+    normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   },
   proxyUrl:
     'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-cf677740/saturn-eae9168f-9b99-4910-945e-dbab66e04d91/jupyter',
@@ -362,6 +364,7 @@ const jupyterLabRunning: Runtime = {
     machineType: defaultAzureMachineType,
     persistentDiskId: 15778,
     region: defaultAzureRegion,
+    normalizedRegion: defaultAzureRegion as NormalizedComputeRegion,
   },
   workspaceId: '2a77dcb5-882c-46b9-a3bc-5d251aff14d0',
   status: 'Running',
@@ -423,7 +426,7 @@ const contextBarPropsForAzure: ContextBarProps = {
   workspace: defaultAzureWorkspace,
 };
 
-const hailBatchAppRunning: App = {
+const hailBatchAppRunning: ListAppResponse = {
   workspaceId: null,
   accessScope: null,
   appName: 'test-hail-batch-app',
@@ -442,7 +445,6 @@ const hailBatchAppRunning: App = {
   proxyUrls: {
     batch: 'https://lz123.servicebus.windows.net/test-hail-batch-app/batch',
   },
-  customEnvironmentVariables: {},
   auditInfo: {
     creator: 'abc.testerson@gmail.com',
     createdDate: '2023-01-18T23:28:47.605176Z',

@@ -2,13 +2,14 @@ import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, ReactElement, useState } from 'react';
 import { Component, div, h, hr, img, span } from 'react-hyperscript-helpers';
+import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
 import { AzureComputeModalBase } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal';
 import { GcpComputeModalBase } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import { CromwellModalBase } from 'src/analysis/modals/CromwellModal';
 import { GalaxyModalBase } from 'src/analysis/modals/GalaxyModal';
 import { HailBatchModal } from 'src/analysis/modals/HailBatchModal';
 import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/analysis/runtime-common-components';
-import { AppErrorModal, RuntimeErrorModal } from 'src/analysis/RuntimeManager';
+import { RuntimeErrorModal } from 'src/analysis/RuntimeManager';
 import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/analysis/utils/cost-utils';
 import {
@@ -43,9 +44,10 @@ import hailLogo from 'src/images/hail-logo.svg';
 import jupyterLogo from 'src/images/jupyter-logo-long.png';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
-import { App, appStatuses, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
+import { appStatuses, LeoAppStatus, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { LeoRuntimeStatus, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
@@ -87,7 +89,7 @@ export const CloudEnvironmentModal = ({
   onDismiss: () => void;
   canCompute: boolean;
   runtimes: Runtime[];
-  apps: App[];
+  apps: ListAppResponse[];
   appDataDisks: PersistentDisk[];
   refreshRuntimes: () => Promise<void>;
   refreshApps: () => Promise<void>;
@@ -634,6 +636,7 @@ export const CloudEnvironmentModal = ({
     [Utils.DEFAULT, () => 430]
   );
 
+  const errorApp: ListAppResponse | undefined = _.find({ appName: errorAppId }, apps);
   const modalBody = h(Fragment, [
     h(TitleBar, {
       id: titleId,
@@ -645,10 +648,11 @@ export const CloudEnvironmentModal = ({
     }),
     viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
     getView(),
-    errorAppId &&
+    errorApp &&
       h(AppErrorModal, {
-        app: _.find({ appName: errorAppId }, apps),
+        app: errorApp,
         onDismiss: () => setErrorAppId(undefined),
+        appProvider: leoAppProvider,
       }),
     errorRuntimeId &&
       h(RuntimeErrorModal, {

@@ -6,7 +6,12 @@ import { AnalysisFile } from 'src/analysis/useAnalysisFiles';
 import { AbsolutePath, DisplayName, FileExtension, FileName } from 'src/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { asMockedFn, renderWithAppContexts as render, setUpAutoSizerTesting } from 'src/testing/test-utils';
+import {
+  asMockedFn,
+  renderWithAppContexts as render,
+  SelectHelper,
+  setUpAutoSizerTesting,
+} from 'src/testing/test-utils';
 
 import { ExportAnalysisModal } from './ExportAnalysisModal';
 
@@ -155,15 +160,13 @@ describe('ExportAnalysisModal', () => {
     );
 
     // Act
-    const destDropdown = screen.getByLabelText('Destination *');
-    await user.click(destDropdown);
-    const destOptions = screen.getAllByRole('option').map((el: HTMLElement) => el.textContent);
-    const destOption = screen.getByText('name2');
-    await user.click(destOption);
+    const destDropdown = new SelectHelper(screen.getByLabelText('Destination *'), user);
+    const destOptions = await destDropdown.getOptions();
+    await destDropdown.selectOption(/name2/);
 
     // Assert
     // drop-down should only list options that are not same as source workspace (name1)
-    expect(destOptions).toEqual(['name2', 'name3']);
+    expect(destOptions).toEqual([expect.stringMatching(/name2/), expect.stringMatching(/name3/)]);
     expect(selectWorkspaceWatcher).toBeCalledTimes(1);
     expect(selectWorkspaceWatcher).toBeCalledWith('Workspace2');
   });

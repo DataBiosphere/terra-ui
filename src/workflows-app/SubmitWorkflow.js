@@ -8,11 +8,11 @@ import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
-import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
-import { AppProxyUrlStatus, getTerraUser } from 'src/libs/state';
+import { useCancellation, usePollingEffect } from 'src/libs/react-utils';
+import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { getCloudProviderFromWorkspace, isOwner } from 'src/libs/workspace-utils';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { doesAppProxyUrlExist, getCromwellUnsupportedMessage, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
@@ -31,6 +31,17 @@ const styles = {
   },
 };
 
+const detectSomeoneElsesCromwell = (apps, createdBy, userEmail, accessLevel, createdDate) => {
+  // Whether someone else (ie the workspace creator) has already started a CROMWELL instance:
+  const someoneElsesCromwell = getCurrentApp(appToolLabels.CROMWELL, apps) && createdBy !== userEmail;
+  // We can be sure nobody else is running an old style Cromwell app here if:
+  // 1. There is no Cromwell app belonging to somebody else
+  // 2. The user is an owner of the workspace (and can see all the apps) OR the workspace was created after 12/1/2023 (after the feature flag was made permanent)
+  const guaranteedNobodyElsesCromwell =
+    !someoneElsesCromwell && (isOwner(accessLevel) || Date.parse(createdDate) > Date.parse('2023-12-01T00:00:00.000Z'));
+  return { someoneElsesCromwell, guaranteedNobodyElsesCromwell };
+};
+
 export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
   (
     {
@@ -38,8 +49,9 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       namespace,
       workspace,
       workspace: {
-        workspace: { createdBy, workspaceId },
+        workspace: { createdBy, workspaceId, createdDate },
         canCompute,
+        accessLevel,
       },
       analysesData,
       analysesData: { apps, refreshApps },
@@ -52,9 +64,18 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const signal = useCancellation();
     const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
     const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps) || getCurrentApp(appToolLabels.WORKFLOWS_APP, apps);
+    const { someoneElsesCromwell, guaranteedNobodyElsesCromwell } = detectSomeoneElsesCromwell(
+      apps,
+      createdBy,
+      getTerraUser().email,
+      accessLevel,
+      createdDate
+    );
     const pageReady = cbasReady && currentApp && !getIsAppBusy(currentApp);
-    const launching = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady);
-    const canLaunch = createdBy === getTerraUser().email || (canCompute && isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS));
+    const launching = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady && !someoneElsesCromwell);
+    const canLaunch =
+      guaranteedNobodyElsesCromwell &&
+      (createdBy === getTerraUser().email || (canCompute && isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS)));
 
     // poll if we're missing CBAS proxy url and stop polling when we have it
     usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState'), {
@@ -62,20 +83,9 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       leading: false,
     });
 
-    useOnMount(() => {
-      const load = Utils.withBusyState(setLoading, async () => {
-        const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
-
-        if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-          await refreshApps(true);
-        }
-      });
-      load();
-    });
-
     usePollingEffect(
       () => {
-        const refresh = async () => await refreshApps(true);
+        const refresh = async () => await loadAppUrls(workspaceId, 'cbasProxyUrlState');
         if (!currentApp || getIsAppBusy(currentApp)) {
           refresh();
         }
@@ -134,7 +144,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
           getCloudProviderFromWorkspace(workspace),
           isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS) ? appToolLabels.WORKFLOWS_APP : appToolLabels.CROMWELL
         ),
-        () => h(WorkflowsAppNavPanel, { pageReady, launching, launcherDisabled: !canLaunch, loading, createWorkflowsApp }),
+        () => h(WorkflowsAppNavPanel, { pageReady, launching, launcherDisabled: !canLaunch, loading, createWorkflowsApp, workspace }),
       ],
       [Utils.DEFAULT, () => div({ style: { ...styles.card, width: '50rem', margin: '2rem 4rem' } }, [getCromwellUnsupportedMessage()])]
     );

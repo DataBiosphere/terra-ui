@@ -120,22 +120,38 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     workspaces,
     refresh: refreshWorkspaces,
     loading: loadingWorkspaces,
-  } = useWorkspaces([
-    'workspace.workspaceId',
-    'workspace.namespace',
-    'workspace.name',
-    // The decision on whether or data can be imported into a workspace is based on the user's level of access
-    // to the workspace and the workspace's authorization domain, protected status and cloud platform.
-    // That information needs to be fetched here.
-    'accessLevel',
-    'policies',
-    // When using a template workspace, the NewWorkspaceModal reads the description attribute
-    // from the template.
-    'workspace.attributes',
-    'workspace.authorizationDomain',
-    'workspace.bucketName',
-    'workspace.cloudPlatform',
-  ]);
+  } = useWorkspaces(
+    [
+      // The decision on whether or data can be imported into a workspace is based on the user's level of access
+      // to the workspace and the workspace's authorization domain, protected status and cloud platform.
+      // When using a template workspace, the NewWorkspaceModal reads the description attribute
+      // from the template.
+
+      // Load the same fields that are loaded by the workspaces list page so that a user can navigate to the
+      // workspaces list without a render error. See AJ-1470 for details.
+      'accessLevel',
+      'public',
+      'workspace.attributes.description',
+      'workspace.attributes.tag:tags',
+      'workspace.authorizationDomain',
+      'workspace.cloudPlatform',
+      'workspace.createdBy',
+      'workspace.lastModified',
+      'workspace.name',
+      'workspace.namespace',
+      'workspace.workspaceId',
+      'workspace.state',
+      'workspace.errorMessage',
+
+      // Add policies field because we need it to decide if a workspace is suitable for importing protected data.
+      'policies',
+      // Add bucket name so we can determine if GCP workspaces have secure monitoring enabled.
+      'workspace.bucketName',
+    ],
+    // Truncate description to save bytes.
+    // This matches the limit used by the workspaces list.
+    250
+  );
   const [mode, setMode] = useState<'existing' | 'template' | undefined>(
     initialSelectedWorkspaceId ? 'existing' : undefined
   );
