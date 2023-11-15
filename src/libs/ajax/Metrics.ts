@@ -6,7 +6,7 @@ import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring } from 'src/libs/error';
 import { MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { AuthState, authStore, getSessionId } from 'src/libs/state';
+import { AuthState, authStore, getSessionId, getTerraUser } from 'src/libs/state';
 import { v4 as uuid } from 'uuid';
 
 export const Metrics = (signal?: AbortSignal) => {
@@ -24,19 +24,26 @@ export const Metrics = (signal?: AbortSignal) => {
       }));
     }
     const { buildTimestamp, gitRevision, terraDeploymentEnv } = getConfig();
+    const signedInProps =
+      state.signInStatus === 'signedIn'
+        ? {
+            authProvider: getTerraUser().idp,
+          }
+        : {};
     const body = {
       event,
       properties: {
         ...details,
-        // Users who have not registered are considered anonymous users. Send an anonymized distinct_id in that case; otherwise the user identity is captured via the auth token.
-        distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
-        sessionId: getSessionId(),
+        ...signedInProps,
         appId: 'Saturn',
-        hostname: window.location.hostname,
-        env: terraDeploymentEnv,
         appPath: Nav.getCurrentRoute().name,
         appVersion: gitRevision,
         appVersionBuildTime: new Date(buildTimestamp).toISOString(),
+        // Users who have not registered are considered anonymous users. Send an anonymized distinct_id in that case; otherwise the user identity is captured via the auth token.
+        distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
+        env: terraDeploymentEnv,
+        hostname: window.location.hostname,
+        sessionId: getSessionId(),
         ...getDefaultProperties(),
       },
     };

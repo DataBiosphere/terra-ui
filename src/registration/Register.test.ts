@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import Register from './Register';
+import { Register } from './Register';
 
 jest.mock('src/libs/ajax');
 

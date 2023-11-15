@@ -8,7 +8,7 @@ describe('getRequiredCloudPlatformForImport', () => {
   it.each([
     {
       importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
-      expectedCloudPlatfrom: undefined,
+      expectedCloudPlatform: 'GCP',
     },
     {
       importRequest: {
