@@ -566,7 +566,7 @@ describe('NewWorkspaceModal', () => {
       expectedMessage: 'Unknown error.',
     },
   ] as { response: Response; format: string; expectedMessage: string }[])(
-    'shows an error message if create workspace request returns an error response',
+    'shows an error message if create workspace request returns a $format error response',
     async ({ response, expectedMessage }) => {
       // Arrange
       const user = userEvent.setup();
