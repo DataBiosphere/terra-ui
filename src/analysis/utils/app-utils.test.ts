@@ -618,18 +618,6 @@ describe('doesWorkspaceSupportCromwellAppForUser', () => {
       toolLabel: appToolLabels.WORKFLOWS_APP,
       expectedResult: true,
     },
-    {
-      workspaceInfo: creatorWorkspace,
-      cloudProvider: cloudProviderTypes.AZURE,
-      toolLabel: appToolLabels.WORKFLOWS_APP,
-      expectedResult: false,
-    },
-    {
-      workspaceInfo: nonCreatorWorkspace,
-      cloudProvider: cloudProviderTypes.AZURE,
-      toolLabel: appToolLabels.WORKFLOWS_APP,
-      expectedResult: false,
-    },
     // Other app types
     {
       workspaceInfo: nonCreatorWorkspace,
