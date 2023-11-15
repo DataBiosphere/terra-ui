@@ -99,7 +99,7 @@ describe('ImportDataDestination', () => {
 
       // Assert
       const protectedDataWarning = screen.queryByText(
-        'You may only import to workspaces with an Authorization Domain and/or protected data setting.',
+        'You may only import into workspaces that have additional security monitoring enabled.',
         {
           exact: false,
         }

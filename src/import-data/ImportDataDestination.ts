@@ -176,7 +176,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       isProtectedData &&
         div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
           icon('info-circle', { size: 15, style: { marginRight: '0.25rem' }, color: colors.accent() }),
-          ' You may only import to workspaces with an Authorization Domain and/or protected data setting.',
+          ' You may only import into workspaces that have additional security monitoring enabled.',
         ]),
       h(IdContainer, [
         (id) =>
