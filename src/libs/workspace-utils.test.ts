@@ -12,10 +12,13 @@ import {
   getRegionConstraintLabels,
   getWorkspaceAnalysisControlProps,
   getWorkspaceEditControlProps,
+  groupConstraintMessage,
+  hasGroupConstraint,
   hasProtectedData,
   hasRegionConstraint,
   isValidWsExportTarget,
   WorkspaceAccessLevel,
+  WorkspacePolicy,
   WorkspaceWrapper,
 } from './workspace-utils';
 
@@ -156,6 +159,102 @@ describe('hasRegionConstraint', () => {
     expect(hasRegionConstraint(protectedAzureWorkspace)).toBe(false);
     expect(getRegionConstraintLabels(protectedAzureWorkspace.policies).length).toBe(0);
   });
+});
+
+describe('hasGroupConstraint', () => {
+  it.each([
+    { policies: [], expectedResult: false },
+    {
+      policies: [
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'foo' }],
+        },
+      ],
+      expectedResult: true,
+    },
+  ] as { policies: WorkspacePolicy[]; expectedResult: boolean }[])(
+    'returns true if workspace has at least one group constraint policies',
+    ({ policies, expectedResult }) => {
+      // Arrange
+      const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies };
+
+      // Act
+      const result = hasGroupConstraint(workspace);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+    }
+  );
+});
+
+describe('groupConstraintMessage', () => {
+  it('returns undefined if workspace has no group constraint policies', () => {
+    // Arrange
+    const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies: [] };
+
+    // Act
+    const message = groupConstraintMessage(workspace);
+
+    // Assert
+    expect(message).toBeUndefined();
+  });
+
+  it.each([
+    {
+      policies: [
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'foo' }],
+        },
+      ],
+      expectedText: 'All workspace collaborators must also be members of the following group: foo.',
+    },
+    {
+      policies: [
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'foo' }],
+        },
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'bar' }],
+        },
+      ],
+      expectedText: 'All workspace collaborators must also be members of the following groups: bar, foo.',
+    },
+    {
+      policies: [
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'foo' }, { group: 'bar' }],
+        },
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'foo' }, { group: 'baz' }],
+        },
+      ],
+      expectedText: 'All workspace collaborators must also be members of the following groups: bar, baz, foo.',
+    },
+  ] as { policies: WorkspacePolicy[]; expectedText: string }[])(
+    'includes groups from group constraint policies',
+    ({ policies, expectedText }) => {
+      // Arrange
+      const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies };
+
+      // Act
+      const message = groupConstraintMessage(workspace);
+
+      // Assert
+      expect(message).toMatch(expectedText);
+    }
+  );
 });
 
 describe('canEditWorkspace', () => {

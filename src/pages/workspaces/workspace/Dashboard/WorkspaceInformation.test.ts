@@ -114,7 +114,7 @@ describe('WorkspaceInformation', () => {
         {
           namespace: 'terra',
           name: 'group-constraint',
-          additionalData: [{ group: 'foo' }, { group: 'bar' }],
+          additionalData: [{ group: 'bar' }],
         },
       ],
     },
