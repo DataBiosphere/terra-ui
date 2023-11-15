@@ -25,14 +25,14 @@ import {
   useCloudEnvironmentPolling,
 } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
 import { useSingleWorkspaceDeletionPolling } from 'src/pages/workspaces/hooks/useDeletionPolling';
-import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
-import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
-import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import {
   InitializedWorkspaceWrapper as Workspace,
   StorageDetails,
   useWorkspace,
-} from 'src/pages/workspaces/workspace/useWorkspace';
+} from 'src/pages/workspaces/hooks/useWorkspace';
+import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
+import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
+import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import { WorkspaceDeletingBanner } from 'src/pages/workspaces/workspace/WorkspaceDeletingBanner';
 import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
 

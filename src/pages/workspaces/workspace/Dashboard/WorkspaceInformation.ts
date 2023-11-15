@@ -7,8 +7,8 @@ import {
   protectedDataMessage,
   regionConstraintMessage,
 } from 'src/libs/workspace-utils';
+import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
 import { InfoRow } from 'src/pages/workspaces/workspace/Dashboard/InfoRow';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/workspace/useWorkspace';
 
 const roleString = {
   READER: 'Reader',
