@@ -327,7 +327,7 @@ const CallTable = ({
                               tooltip: 'Call Cache Debug Wizard',
                               onClick: () => setWizardSelection({ callFqn: taskName, index }),
                             },
-                            [icon('search', { size: 18, 'data-testid': 'cc-icon' })]
+                            [icon('search', { size: 18, 'aria-label': 'call cache debug wizard' })]
                           ),
                       ])
                     : div({ style: { color: colors.dark(0.7) } }, ['No Information']);

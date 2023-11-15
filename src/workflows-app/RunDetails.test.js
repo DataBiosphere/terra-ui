@@ -589,7 +589,7 @@ describe('BaseRunDetails - render smoke test', () => {
   it('loads the call cache diff wizard', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const showWizard = screen.getByTestId('cc-icon');
+    const showWizard = screen.getByLabelText('call cache debug wizard');
     await user.click(showWizard); // Open the modal
 
     const wizard = screen.getByRole('dialog');
