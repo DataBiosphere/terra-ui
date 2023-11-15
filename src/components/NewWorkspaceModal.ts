@@ -194,9 +194,22 @@ const NewWorkspaceModal = withDisplayName(
 
         onSuccess({ ...createdWorkspace, cloudPlatform: workspaceCloudPlatform });
       } catch (error: unknown) {
-        const { message } = await (error as Response).json();
+        const errorMessage = await (async () => {
+          if (error instanceof Response) {
+            try {
+              const { message } = await error.json();
+              return message;
+            } catch (readResponseError) {
+              return 'Unknown error.';
+            }
+          }
+          if (error instanceof Error) {
+            return error.message;
+          }
+          return 'Unknown error.';
+        })();
         setCreating(false);
-        setCreateError(message);
+        setCreateError(errorMessage);
       }
     };
 
