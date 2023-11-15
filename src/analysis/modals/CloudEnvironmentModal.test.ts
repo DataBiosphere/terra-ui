@@ -283,7 +283,7 @@ describe('CloudEnvironmentModal', () => {
     expect(vdom.getByText('Cloud Environment Details'));
     expect(vdom.getByAltText('JupyterLab'));
     expect(vdom.getAllByText('Pause').length).toBe(1);
-    expect(vdom.getAllByText('Open').length).toBe(2);
+    expect(vdom.getAllByText('Open').length).toBe(1);
     expect(vdom.getAllByText('No Environment found').length).toBe(2);
     expect(vdom.getAllByText('No Environment found')[0]).not.toBeVisible();
   });
