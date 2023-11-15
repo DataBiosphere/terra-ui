@@ -82,7 +82,7 @@ jobs:
 
       - name: Auth Lyle to GCP
         id: 'lyle-auth'
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           token_format: 'id_token'
           workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
@@ -93,7 +93,7 @@ jobs:
 
       - name: Auth firecloud to GCP
         id: 'terra-auth'
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
