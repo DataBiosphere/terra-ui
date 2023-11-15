@@ -196,8 +196,12 @@ const NewWorkspaceModal = withDisplayName(
       } catch (error: unknown) {
         const errorMessage = await (async () => {
           if (error instanceof Response) {
-            const { message } = await error.json();
-            return message;
+            try {
+              const { message } = await error.json();
+              return message;
+            } catch (readResponseError) {
+              return 'Unknown error.';
+            }
           }
           if (error instanceof Error) {
             return error.message;

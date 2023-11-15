@@ -554,51 +554,63 @@ describe('NewWorkspaceModal', () => {
     }
   );
 
-  it('shows an error message if create workspace request returned an error response', async () => {
-    // Arrange
-    const user = userEvent.setup();
+  it.each([
+    {
+      response: new Response('{"message":"Something went wrong."}', { status: 500 }),
+      format: 'JSON',
+      expectedMessage: 'Something went wrong.',
+    },
+    {
+      response: new Response('Something went wrong.', { status: 500 }),
+      format: 'text',
+      expectedMessage: 'Unknown error.',
+    },
+  ] as { response: Response; format: string; expectedMessage: string }[])(
+    'shows an error message if create workspace request returns a $format error response',
+    async ({ response, expectedMessage }) => {
+      // Arrange
+      const user = userEvent.setup();
 
-    const createWorkspace = jest
-      .fn()
-      .mockRejectedValue(new Response('{"message":"Something went wrong."}', { status: 500 }));
+      const createWorkspace = jest.fn().mockRejectedValue(response);
 
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [azureBillingProject],
-          },
-          Workspaces: {
-            create: createWorkspace,
-          },
-          ...nonBillingAjax,
-        } as AjaxContract)
-    );
-
-    await act(async () => {
-      render(
-        h(NewWorkspaceModal, {
-          onSuccess: () => {},
-          onDismiss: () => {},
-        })
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [azureBillingProject],
+            },
+            Workspaces: {
+              create: createWorkspace,
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
       );
-    });
 
-    // Act
-    const workspaceNameInput = screen.getByLabelText('Workspace name *');
-    act(() => {
-      fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
-    });
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            onSuccess: () => {},
+            onDismiss: () => {},
+          })
+        );
+      });
 
-    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
-    await projectSelect.selectOption(/Azure Billing Project/);
+      // Act
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      act(() => {
+        fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+      });
 
-    const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
-    await user.click(createWorkspaceButton);
+      const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+      await projectSelect.selectOption(/Azure Billing Project/);
 
-    // Assert
-    screen.getByText('Something went wrong.');
-  });
+      const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+      await user.click(createWorkspaceButton);
+
+      // Assert
+      screen.getByText(expectedMessage);
+    }
+  );
 
   it('shows an error message if creating a workspace throws an error', async () => {
     // Arrange
