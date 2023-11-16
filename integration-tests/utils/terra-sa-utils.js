@@ -21,11 +21,12 @@ const getToken = async (subject, key) => {
 const withUserToken = (testFn) => async (options) => {
   const { terraSaToken, terraSaKeyJson } = await getSecrets();
   if (terraSaToken != null) {
-    console.log("using terraSaToken...");
-    return testFn({ ...options, terraSaToken });
+    console.log('using terraSaToken...');
+    const token = terraSaToken;
+    return testFn({ ...options, token });
   }
   const token = await getToken(userEmail, JSON.parse(terraSaKeyJson));
-  console.log("using getToken token...");
+  console.log('using getToken token...');
   return testFn({ ...options, token });
 };
 
