@@ -49,6 +49,7 @@ interface ChoiceButtonProps {
   style?: CSSProperties;
   title: string;
   onClick: () => void;
+  tooltip: string;
 }
 
 const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
