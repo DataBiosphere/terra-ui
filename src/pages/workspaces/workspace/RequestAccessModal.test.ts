@@ -95,11 +95,14 @@ describe('RequestAccessModal', () => {
 
   it('renders a message for GCP workspaces with no accessibility violations', async () => {
     // Arrange
-    asMockedFn(Ajax).mockImplementation(() => ({
-      Groups: {
-        list: jest.fn().mockReturnValue(Promise.resolve([])),
-      } as AjaxContract,
-    }));
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Groups: {
+            list: jest.fn().mockReturnValue(Promise.resolve([])),
+          } as Partial<AjaxContract['Groups']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
     const props = { onDismiss: jest.fn(), workspace: googleWorkspace };
     // Act
     await act(async () => {
@@ -115,11 +118,14 @@ describe('RequestAccessModal', () => {
     // Arrange
     const onDismiss = jest.fn();
     const props = { onDismiss, workspace: googleWorkspace };
-    asMockedFn(Ajax).mockImplementation(() => ({
-      Groups: {
-        list: jest.fn().mockReturnValue(Promise.resolve([])),
-      } as AjaxContract,
-    }));
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Groups: {
+            list: jest.fn().mockReturnValue(Promise.resolve([])),
+          } as Partial<AjaxContract['Groups']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
 
     // Act
     await act(async () => {
@@ -138,23 +144,26 @@ describe('RequestAccessModal', () => {
     const requestAccessMock = jest.fn();
     const groupMock = jest.fn().mockReturnValue({
       requestAccess: requestAccessMock,
-    });
+    } as Partial<ReturnType<AjaxContract['Groups']['group']>>);
     const props = { onDismiss: jest.fn(), workspace: googleWorkspace };
-    asMockedFn(Ajax).mockImplementation(() => ({
-      Groups: {
-        list: jest.fn().mockReturnValue(
-          Promise.resolve([
-            // User is already a member of this group
-            {
-              groupName: 'group-2',
-              groupEmail: 'preview-group@test.firecloud.org',
-              role: 'member',
-            },
-          ])
-        ),
-        group: groupMock,
-      } as AjaxContract,
-    }));
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Groups: {
+            list: jest.fn().mockReturnValue(
+              Promise.resolve([
+                // User is already a member of this group
+                {
+                  groupName: 'group-2',
+                  groupEmail: 'preview-group@test.firecloud.org',
+                  role: 'member',
+                },
+              ])
+            ),
+            group: groupMock,
+          } as Partial<AjaxContract['Groups']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
 
     // Act
     await act(async () => {
