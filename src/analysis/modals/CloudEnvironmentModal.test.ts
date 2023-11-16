@@ -16,7 +16,6 @@ import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -151,34 +150,6 @@ const CloudEnvironmentModalDefaultProps: any = {
   filterForTool: undefined,
 };
 
-const cromwellRunning: App = {
-  workspaceId: null,
-  accessScope: null,
-  appName: 'terra-app-83f46705-524c-4fc8-xcyc-97fdvcfby14f',
-  appType: 'CROMWELL',
-  auditInfo: {
-    creator: 'cahrens@gmail.com',
-    createdDate: '2021-11-28T20:28:01.998494Z',
-    destroyedDate: null,
-    dateAccessed: '2021-11-28T20:28:01.998494Z',
-  },
-  diskName: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8',
-  errors: [],
-  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-  labels: {},
-  cloudContext: {
-    cloudProvider: cloudProviderTypes.AZURE,
-    cloudResource: 'path/to/cloud/resource',
-  },
-  proxyUrls: {
-    'cromwell-service':
-      'https://leonardo-fiab.dsde-dev.broadinstitute.org/fd0cfbb14f/cromwell-service/swagger/cromwell.yaml',
-    'cbas-ui': 'testValue',
-  },
-  status: 'RUNNING',
-  region: 'us-central1',
-};
-
 const hailBatchAppRunning: App = {
   workspaceId: null,
   accessScope: null,
@@ -248,7 +219,6 @@ describe('CloudEnvironmentModal', () => {
     // Assert
     expect(vdom.getByText('Cloud Environment Details'));
     expect(vdom.getByAltText('JupyterLab'));
-    expect(vdom.getByAltText('CROMWELL'));
   });
   // populated envs
   it('Renders populated cloud environment', () => {
@@ -283,9 +253,8 @@ describe('CloudEnvironmentModal', () => {
     // Assert
     expect(vdom.getByText('Cloud Environment Details'));
     expect(vdom.getByAltText('JupyterLab'));
-    expect(vdom.getByAltText('CROMWELL'));
     expect(vdom.getAllByText('Pause').length).toBe(1);
-    expect(vdom.getAllByText('Open').length).toBe(2);
+    expect(vdom.getAllByText('Open').length).toBe(1);
     expect(vdom.getAllByText('No Environment found').length).toBe(2);
     expect(vdom.getAllByText('No Environment found')[0]).not.toBeVisible();
   });
@@ -643,24 +612,21 @@ describe('CloudEnvironmentModal', () => {
     }
   );
 
-  it.each([0, 1])(
-    'Invokes dismiss call for launch button on a populated azure cloud environments instance',
-    async (buttonIndex) => {
-      // Arrange
-      const cloneAzure = {
-        ...AzureCloudEnvironmentModalDefaultProps,
-        // workspace: defaultAzureWorkspace,
-        // runtime: azureRuntime,
-      };
+  it('Invokes dismiss call for launch button on a populated azure cloud environments instance', async () => {
+    // Arrange
+    const cloneAzure = {
+      ...AzureCloudEnvironmentModalDefaultProps,
+      // workspace: defaultAzureWorkspace,
+      // runtime: azureRuntime,
+    };
 
-      // Act
-      render(h(CloudEnvironmentModal, cloneAzure));
-      // Assert
-      const startButtons = screen.getAllByText('Open');
-      expect(startButtons.length).toBe(2);
-      expect(startButtons[buttonIndex]).toBeEnabled(); // TODO: can't check dismissed is called becuase HREF redirects
-    }
-  );
+    // Act
+    render(h(CloudEnvironmentModal, cloneAzure));
+    // Assert
+    const startButtons = screen.getAllByText('Open');
+    expect(startButtons.length).toBe(1);
+    expect(startButtons[0]).toBeEnabled(); // TODO: can't check dismissed is called becuase HREF redirects
+  });
 
   // button tests(settings)
   it.each([
@@ -738,31 +704,6 @@ describe('CloudEnvironmentModal', () => {
 });
 
 describe('renderToolButtons', () => {
-  it('should render PeriodicAzureCookieSetter for Cromwell', async () => {
-    // Arrange
-    const mockRuntimes: Partial<RuntimesContract> = {
-      invalidateCookie: jest.fn(),
-      setCookie: jest.fn(),
-      runtime: jest.fn(),
-      azureProxy: jest.fn(),
-      listV2: jest.fn(),
-      listV2WithWorkspace: jest.fn(),
-      runtimeV2: jest.fn(),
-      fileSyncing: jest.fn(),
-    };
-
-    asMockedFn(Runtimes).mockImplementation(() => mockRuntimes as RuntimesContract);
-
-    const testProps = {
-      ...AzureCloudEnvironmentModalDefaultProps,
-      apps: [cromwellRunning],
-    };
-    // Act
-    render(h(CloudEnvironmentModal, testProps));
-
-    // Assert
-    expect(PeriodicAzureCookieSetter).toHaveBeenCalled();
-  });
   it('should render PeriodicAzureCookieSetter for Hail Batch', async () => {
     // Arrange
     const mockRuntimes: Partial<RuntimesContract> = {

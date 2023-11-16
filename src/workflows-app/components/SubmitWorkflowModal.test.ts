@@ -4,15 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
 import { getTerraUser, workflowsAppStore } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { SubmitWorkflowModal } from 'src/workflows-app/components/SubmitWorkflowModal';
 import { methodDataWithVersions } from 'src/workflows-app/utils/mock-data';
 import {
   mockAzureWorkspace,
-  mockCromwellApp,
   mockCromwellRunner,
   mockWdsApp,
   mockWorkflowsApp,
@@ -94,79 +91,51 @@ const postRunSetPayload = expect.objectContaining({
 
 describe('SubmitWorkflowModal', () => {
   const testCases: Array<{
-    featureFlagEnabled: boolean;
     role: 'CREATOR' | 'WRITER' | 'READER';
     canSubmit: boolean;
     cromwellRunnerStates: Array<'NONE' | 'RUNNING' | 'PROVISIONING'>;
   }> = [
     {
-      featureFlagEnabled: false,
-      role: 'CREATOR',
-      canSubmit: true,
-      cromwellRunnerStates: [],
-    },
-    {
-      featureFlagEnabled: false,
-      role: 'WRITER',
-      canSubmit: false,
-      cromwellRunnerStates: [],
-    },
-    {
-      featureFlagEnabled: false,
-      role: 'READER',
-      canSubmit: false,
-      cromwellRunnerStates: [],
-    },
-    {
-      featureFlagEnabled: true,
       role: 'CREATOR',
       canSubmit: true,
       cromwellRunnerStates: ['RUNNING'],
     },
     {
-      featureFlagEnabled: true,
       role: 'WRITER',
       canSubmit: true,
       cromwellRunnerStates: ['RUNNING'],
     },
     {
-      featureFlagEnabled: true,
       role: 'READER',
       canSubmit: false,
       cromwellRunnerStates: [],
     },
     {
-      featureFlagEnabled: true,
       role: 'CREATOR',
       canSubmit: true,
       cromwellRunnerStates: ['PROVISIONING', 'RUNNING'],
     },
     {
-      featureFlagEnabled: true,
       role: 'WRITER',
       canSubmit: true,
       cromwellRunnerStates: ['PROVISIONING', 'RUNNING'],
     },
     {
-      featureFlagEnabled: true,
       role: 'READER',
       canSubmit: false,
       cromwellRunnerStates: [],
     },
     {
-      featureFlagEnabled: true,
       role: 'CREATOR',
       canSubmit: true,
       cromwellRunnerStates: ['NONE', 'PROVISIONING', 'RUNNING'],
     },
     {
-      featureFlagEnabled: true,
       role: 'WRITER',
       canSubmit: true,
       cromwellRunnerStates: ['NONE', 'PROVISIONING', 'PROVISIONING', 'RUNNING'],
     },
     {
-      featureFlagEnabled: true,
       role: 'READER',
       canSubmit: false,
       cromwellRunnerStates: [],
@@ -176,18 +145,15 @@ describe('SubmitWorkflowModal', () => {
   it.each(
     testCases.map((testCase) => ({
       ...testCase,
-      testName: `should ${testCase.canSubmit ? '' : 'not '}be able to submit as workspace ${testCase.role}, ${
-        testCase.featureFlagEnabled ? 'with' : 'without'
-      } feature flag enabled, and initial cromwell runner status ${testCase.cromwellRunnerStates[0]}`,
+      testName: `should ${testCase.canSubmit ? '' : 'not '}be able to submit as workspace ${
+        testCase.role
+      } and initial cromwell runner status ${testCase.cromwellRunnerStates[0]}`,
     }))
-  )('$testName', async ({ featureFlagEnabled, role, canSubmit, cromwellRunnerStates }) => {
+  )('$testName', async ({ role, canSubmit, cromwellRunnerStates }) => {
     // ** ARRANGE **
     workflowsAppStore.reset();
-    asMockedFn(isFeaturePreviewEnabled).mockImplementation(
-      (id) => featureFlagEnabled && id === ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS
-    );
     const userEmail = role === 'CREATOR' ? 'groot@gmail.com' : 'not-groot@gmail.com';
-    const appToSubmitTo = featureFlagEnabled ? mockWorkflowsApp : mockCromwellApp;
+    const appToSubmitTo = mockWorkflowsApp;
     asMockedFn(getTerraUser).mockReturnValue({ email: userEmail });
 
     const user = userEvent.setup();
@@ -250,11 +216,7 @@ describe('SubmitWorkflowModal', () => {
       } else {
         expect(createAppV2).not.toHaveBeenCalled();
       }
-      if (featureFlagEnabled) {
-        expect(listAppsV2).toHaveBeenCalledTimes(cromwellRunnerStates.length + 1); // + 1 to get proxy urls
-      } else {
-        expect(listAppsV2).toHaveBeenCalledTimes(2); // 1 to get proxy urls, 1 to check Cromwell vs cromwell runner
-      }
+      expect(listAppsV2).toHaveBeenCalledTimes(cromwellRunnerStates.length + 1); // + 1 to get proxy urls
       expect(postRunSetFunction).toHaveBeenCalledWith(appToSubmitTo.proxyUrls.cbas, postRunSetPayload);
     } else {
       expect(createAppV2).not.toHaveBeenCalled();

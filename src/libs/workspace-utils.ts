@@ -164,6 +164,23 @@ export const regionConstraintMessage = (workspace: BaseWorkspace): string | unde
     : `Workspace storage and compute resources must remain in the following region(s): ${regions.join(', ')}.`;
 };
 
+const isGroupConstraintPolicy = (policy: WorkspacePolicy): boolean => {
+  return policy.namespace === 'terra' && policy.name === 'group-constraint';
+};
+
+/**
+ * Returns true if the workspace has any data access controls (group constraint policies).
+ */
+export const hasDataAccessControls = (workspace: WorkspaceWrapper): boolean => {
+  return (workspace.policies || []).some(isGroupConstraintPolicy);
+};
+
+export const dataAccessControlsMessage = (workspace: WorkspaceWrapper): string | undefined => {
+  return hasDataAccessControls(workspace)
+    ? 'Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be current users on an approved Data Access Request (DAR).'
+    : undefined;
+};
+
 export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {
   const {
     workspace: { workspaceId: sourceId, authorizationDomain: sourceAD },
