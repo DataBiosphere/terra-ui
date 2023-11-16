@@ -9,13 +9,16 @@ import {
 import {
   canEditWorkspace,
   canRunAnalysisInWorkspace,
+  dataAccessControlsMessage,
   getRegionConstraintLabels,
   getWorkspaceAnalysisControlProps,
   getWorkspaceEditControlProps,
+  hasDataAccessControls,
   hasProtectedData,
   hasRegionConstraint,
   isValidWsExportTarget,
   WorkspaceAccessLevel,
+  WorkspacePolicy,
   WorkspaceWrapper,
 } from './workspace-utils';
 
@@ -155,6 +158,76 @@ describe('hasRegionConstraint', () => {
 
     expect(hasRegionConstraint(protectedAzureWorkspace)).toBe(false);
     expect(getRegionConstraintLabels(protectedAzureWorkspace.policies).length).toBe(0);
+  });
+});
+
+describe('hasDataAccessControls', () => {
+  it.each([
+    { policies: [], expectedResult: false },
+    {
+      polices: [
+        {
+          namespace: 'terra',
+          name: 'protected-data',
+        },
+      ],
+      expectedResult: false,
+    },
+    {
+      policies: [
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'foo' }],
+        },
+      ],
+      expectedResult: true,
+    },
+  ] as { policies: WorkspacePolicy[]; expectedResult: boolean }[])(
+    'returns true if workspace has at least one group constraint policy',
+    ({ policies, expectedResult }) => {
+      // Arrange
+      const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies };
+
+      // Act
+      const result = hasDataAccessControls(workspace);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+    }
+  );
+});
+
+describe('dataAccessControlsMessage', () => {
+  it('returns undefined if workspace has no data access controls', () => {
+    // Arrange
+    const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies: [] };
+
+    // Act
+    const message = dataAccessControlsMessage(workspace);
+
+    // Assert
+    expect(message).toBeUndefined();
+  });
+
+  it('returns a message if workspace does have access controls', () => {
+    // Arrange
+    const workspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      policies: [
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'test-group' }],
+        },
+      ],
+    };
+
+    // Act
+    const message = dataAccessControlsMessage(workspace);
+
+    // Assert
+    expect(typeof message).toBe('string');
   });
 });
 
