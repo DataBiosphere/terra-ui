@@ -5,7 +5,6 @@ import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
 
@@ -233,7 +232,7 @@ export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider)
           [
             cloudProvider === cloudProviderTypes.AZURE,
             () => {
-              return isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS);
+              return true;
             },
           ],
           [Utils.DEFAULT, () => false]
