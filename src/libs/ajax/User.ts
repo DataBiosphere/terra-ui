@@ -138,6 +138,17 @@ export interface RexFirstTimestampResponse {
   timestamp: Date;
 }
 
+export interface SamUserResponse {
+  id: string;
+  googleSubjectId?: string;
+  email: string;
+  azureB2CId?: string;
+  allowed: boolean;
+  createdAt: Date;
+  registeredAt?: Date;
+  updatedAt: Date;
+}
+
 export type SamUserAttributes = {
   marketingConsent: boolean;
 };
@@ -190,6 +201,22 @@ export const User = (signal?: AbortSignal) => {
       const res = await fetchSam(
         'api/users/v2/self/attributes',
         _.mergeAll([authOpts(), jsonBody(userAttributes), { signal, method: 'PATCH' }])
+      );
+      return res.json();
+    },
+
+    registerWithProfile: async (
+      acceptsTermsOfService: boolean,
+      profile: OrchestrationUserRegistrationRequest
+    ): Promise<SamUserResponse> => {
+      // call orchestration and convert the response to json
+      const res = await fetchOrchestration(
+        'api/users/v1/registerWithProfile',
+        _.mergeAll([
+          authOpts(),
+          jsonBody({ acceptsTermsOfService, profile: _.merge(blankProfile, profile) }),
+          { signal, method: 'POST' },
+        ])
       );
       return res.json();
     },
