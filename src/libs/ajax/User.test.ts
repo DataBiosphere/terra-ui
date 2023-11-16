@@ -87,165 +87,89 @@ describe('A create user profile request', () => {
         expect(apiBody[field]).toBe(NA);
       }
     );
-    describe('should not modify property', () => {
-      // these required fields that the user filled out should not be changed
-      it('interestInTerra', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-          minimalCreateUserProfileRequest
-        );
+    it.each(['interestInTerra', 'department'])('should not modify property %s', (field) => {
+      // Arrange, Act
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+        minimalCreateUserProfileRequest
+      );
 
-        // Assert
-        expect(apiBody.interestInTerra).toBe(minimalCreateUserProfileRequest.interestInTerra);
-      });
-      it('department', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-          minimalCreateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.department).toBe(minimalCreateUserProfileRequest.department);
-      });
+      // Assert
+      expect(apiBody[field]).toBe(minimalCreateUserProfileRequest[field]);
     });
-    describe('should have undefined properties', () => {
+    it('should have undefined property researchArea', () => {
       // because the user is registering for the first time research area should be 'undefined'
       // these are not required to be initialized as 'N/A'
-      it('researchArea', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-          minimalCreateUserProfileRequest
-        );
+      // Arrange, Act
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+        minimalCreateUserProfileRequest
+      );
 
-        // Assert
-        expect(apiBody.researchArea).toBe(undefined);
-      });
+      // Assert
+      expect(apiBody.researchArea).toBe(undefined);
     });
-    describe('should not modify or have undefined property', () => {
-      // these properties should not be modified and should not have a value of 'N/A'
-      it('firstName', () => {
+    it.each(['firstName', 'lastName', 'contactEmail'])(
+      'should not modify property or have undefined property %s',
+      (field) => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           minimalCreateUserProfileRequest
         );
 
         // Assert
-        expect(apiBody.firstName).toBe(completeUserProfile.firstName);
-        expect(apiBody.firstName).toBeDefined();
-      });
-
-      it('lastName', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-          minimalCreateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.lastName).toBe(completeUserProfile.lastName);
-        expect(apiBody.lastName).toBeDefined();
-      });
-
-      it('contactEmail', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-          minimalCreateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
-        expect(apiBody.contactEmail).toBeDefined();
-      });
-    });
+        expect(apiBody[field]).toBe(completeUserProfile[field]);
+        expect(apiBody[field]).toBeDefined();
+      }
+    );
   });
   describe('when completely filled out by the user', () => {
-    describe('should not modify or have undefined property', () => {
-      it('title', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-          completeCreateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.title).toBe(completeUserProfile.title);
-      });
-      it('institute', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-          completeCreateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.institute).toBe(completeUserProfile.institute);
-      });
-      it.each(['programLocationCity', 'programLocationState', 'programLocationCountry'])(
-        'should set property %s to "N/A"',
-        (field) => {
-          // Arrange, Act
-          const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-            completeCreateUserProfileRequest
-          );
-
-          // Assert
-          expect(apiBody[field]).toBe(NA);
-        }
+    it.each(['title', 'institute'])('should not modify property %s', (field) => {
+      // Arrange, Act
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+        completeCreateUserProfileRequest
       );
-      it('interestInTerra', () => {
+
+      // Assert
+      expect(apiBody[field]).toBe(completeUserProfile[field]);
+    });
+    it.each(['programLocationCity', 'programLocationState', 'programLocationCountry'])(
+      'should set property %s to "N/A"',
+      (field) => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
           completeCreateUserProfileRequest
         );
 
         // Assert
-        expect(apiBody.interestInTerra).toBe(completeCreateUserProfileRequest.interestInTerra);
-      });
-      it('department', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-          completeCreateUserProfileRequest
-        );
+        expect(apiBody[field]).toBe(NA);
+      }
+    );
+    it.each(['interestInTerra', 'department'])('should not modify or have undefined property %s', (field) => {
+      // Arrange, Act
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+        completeCreateUserProfileRequest
+      );
 
-        // Assert
-        expect(apiBody.department).toBe(completeCreateUserProfileRequest.department);
-      });
-      it('researchArea', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-          completeCreateUserProfileRequest
-        );
+      // Assert
+      expect(apiBody[field]).toBe(completeCreateUserProfileRequest[field]);
+    });
+    it('should have undefined property researchArea', () => {
+      // Arrange, Act
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+        completeCreateUserProfileRequest
+      );
 
-        // Assert
-        expect(apiBody.researchArea).toBe(undefined);
-      });
-      it('firstName', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-          completeCreateUserProfileRequest
-        );
+      // Assert
+      expect(apiBody.researchArea).toBe(undefined);
+    });
+    it.each(['firstName', 'lastName', 'contactEmail'])('should not modify or have undefined property %s', (field) => {
+      // Arrange, Act
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
+        completeCreateUserProfileRequest
+      );
 
-        // Assert
-        expect(apiBody.firstName).toBe(completeUserProfile.firstName);
-        expect(apiBody.firstName).toBeDefined();
-      });
-      it('lastName', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-          completeCreateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.lastName).toBe(completeUserProfile.lastName);
-        expect(apiBody.lastName).toBeDefined();
-      });
-      it('contactEmail', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(
-          completeCreateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
-        expect(apiBody.contactEmail).toBeDefined();
-      });
+      // Assert
+      expect(apiBody[field]).toBe(completeUserProfile[field]);
+      expect(apiBody[field]).toBeDefined();
     });
   });
 });
@@ -275,157 +199,57 @@ describe('An update user profile request', () => {
       // Assert
       expect(apiBody[field]).toBe(undefined);
     });
-    describe('should have undefined properties', () => {
-      it('researchArea', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          minimalUpdateUserProfileRequest
-        );
+    describe('should have undefined property researchArea', () => {
+      // Arrange, Act
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
+        minimalUpdateUserProfileRequest
+      );
 
-        // Assert
-        expect(apiBody.researchArea).toBe(undefined);
-      });
+      // Assert
+      expect(apiBody.researchArea).toBe(undefined);
     });
-    describe('should not modify or have undefined property', () => {
-      // these properties should not be modified and should not have a value of undefined
-      it('firstName', () => {
+    it.each(['firstName', 'lastName', 'contactEmail'])(
+      'should not modify property or have undefined property %s',
+      (field) => {
         // Arrange, Act
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
           minimalUpdateUserProfileRequest
         );
 
         // Assert
-        expect(apiBody.firstName).toBe(completeUserProfile.firstName);
-        expect(apiBody.firstName).toBeDefined();
-      });
-
-      it('lastName', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          minimalUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.lastName).toBe(completeUserProfile.lastName);
-        expect(apiBody.lastName).toBeDefined();
-      });
-
-      it('contactEmail', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          minimalUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
-        expect(apiBody.contactEmail).toBeDefined();
-      });
-    });
+        expect(apiBody[field]).toBe(completeUserProfile[field]);
+        expect(apiBody[field]).toBeDefined();
+      }
+    );
   });
   describe('when completely filled out by the user', () => {
-    describe('should not modify or have undefined property', () => {
-      it('title', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          completeUpdateUserProfileRequest
-        );
+    it.each([
+      'title',
+      'institute',
+      'programLocationCity',
+      'programLocationState',
+      'programLocationCountry',
+      'interestInTerra',
+      'department',
+      'researchArea',
+    ])('should not modify property %s', (field) => {
+      // Arrange, Act
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
+        completeUpdateUserProfileRequest
+      );
 
-        // Assert
-        expect(apiBody.title).toBe(completeUserProfile.title);
-      });
-      it('institute', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          completeUpdateUserProfileRequest
-        );
+      // Assert
+      expect(apiBody[field]).toBe(completeUserProfile[field]);
+    });
+    it.each(['firstName', 'lastName', 'contactEmail'])('should not modify or have undefined property %s', (field) => {
+      // Arrange, Act
+      const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
+        completeUpdateUserProfileRequest
+      );
 
-        // Assert
-        expect(apiBody.institute).toBe(completeUserProfile.institute);
-      });
-      it('programLocationCity', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          completeUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.programLocationCity).toBe(completeUserProfile.programLocationCity);
-      });
-      it('programLocationState', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          completeUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.programLocationState).toBe(completeUserProfile.programLocationState);
-      });
-      it('programLocationCountry', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          completeUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.programLocationCountry).toBe(completeUserProfile.programLocationCountry);
-      });
-      it('interestInTerra', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          completeUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.interestInTerra).toBe(completeUpdateUserProfileRequest.interestInTerra);
-      });
-      it('department', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          completeUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.department).toBe(completeUpdateUserProfileRequest.department);
-      });
-      it('researchArea', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          completeUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.researchArea).toBe(completeUserProfile.researchArea);
-      });
-      it('firstName', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          completeUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.firstName).toBe(completeUserProfile.firstName);
-        expect(apiBody.firstName).toBeDefined();
-      });
-      it('lastName', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          completeUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.lastName).toBe(completeUserProfile.lastName);
-        expect(apiBody.lastName).toBeDefined();
-      });
-      it('contactEmail', () => {
-        // Arrange, Act
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(
-          completeUpdateUserProfileRequest
-        );
-
-        // Assert
-        expect(apiBody.contactEmail).toBe(completeUserProfile.contactEmail);
-        expect(apiBody.contactEmail).toBeDefined();
-      });
+      // Assert
+      expect(apiBody[field]).toBe(completeUserProfile[field]);
+      expect(apiBody[field]).toBeDefined();
     });
   });
 });
