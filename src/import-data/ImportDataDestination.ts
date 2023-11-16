@@ -330,7 +330,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               iconName: 'fileSearchSolid',
               title: 'Start with an existing workspace',
               detail: 'Select one of your workspaces',
-              disabled: !userHasBillingProjects || (isProtectedData && protectedWorkspaces),
+              disabled: !userHasBillingProjects || (isProtectedData && protectedWorkspaces.length === 0),
             }),
             canUseNewWorkspace &&
               h(ChoiceButton, {
