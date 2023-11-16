@@ -186,6 +186,17 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     ]);
   };
 
+  const protectedWorkspaces = workspaces.filter((workspace) => {
+    return canImportIntoWorkspace(
+      {
+        cloudPlatform: requiredCloudPlatform,
+        isProtectedData,
+        requiredAuthorizationDomain,
+      },
+      workspace
+    );
+  });
+
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, ['Start with an existing workspace']),
@@ -200,16 +211,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             // @ts-expect-error
             h(WorkspaceSelector, {
               id,
-              workspaces: workspaces.filter((workspace) => {
-                return canImportIntoWorkspace(
-                  {
-                    cloudPlatform: requiredCloudPlatform,
-                    isProtectedData,
-                    requiredAuthorizationDomain,
-                  },
-                  workspace
-                );
-              }),
+              workspaces: protectedWorkspaces,
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
             }),
@@ -328,7 +330,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               iconName: 'fileSearchSolid',
               title: 'Start with an existing workspace',
               detail: 'Select one of your workspaces',
-              disabled: !userHasBillingProjects,
+              disabled: !userHasBillingProjects || (isProtectedData && protectedWorkspaces),
             }),
             canUseNewWorkspace &&
               h(ChoiceButton, {
