@@ -1,8 +1,8 @@
 export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
-export const ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS = 'enableCollborativeWorkflowReaders';
 export const ENABLE_WORKFLOW_RESOURCE_MONITORING = 'enableWorkflowResourceMonitoring';
+export const ENABLE_AZURE_PFB_IMPORT = 'enableAzurePfbImport';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -82,20 +82,21 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Hail Batch (Azure)')}`,
   },
   {
-    id: ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS,
-    title: 'Azure Collaborative Workflows',
-    description: 'Enabling this feature will allow for Azure workspaces to become collaborative with other users.',
-    feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
-      'Feedback on Azure Collaborative Workflows experience'
-    )}`,
-  },
-  {
     id: ENABLE_WORKFLOW_RESOURCE_MONITORING,
     title: 'Workflow Resource Monitoring',
     description:
       "Configure the 'monitoring_script', 'monitoring_image', and 'monitoring_image_script' options for sending to Cromwell.",
     feedbackUrl: `mailto:dsp-workflow-execution@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on workflow resource monitoring'
+    )}`,
+  },
+  {
+    id: ENABLE_AZURE_PFB_IMPORT,
+    title: 'Azure PFB Import',
+    description: 'Enabling this feature will allow PFB import into Azure workspaces.',
+    groups: ['preview-azure-pfb-import'],
+    feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent(
+      'Feedback on Azure PFB Import'
     )}`,
   },
 ];

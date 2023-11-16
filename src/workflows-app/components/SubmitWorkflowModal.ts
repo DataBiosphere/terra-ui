@@ -14,11 +14,8 @@ import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { getTerraUser } from 'src/libs/state';
 import { poll } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { MethodVersion, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
@@ -53,7 +50,7 @@ export const SubmitWorkflowModal = ({
   namespace,
   workspace,
   workspace: {
-    workspace: { workspaceId, createdBy },
+    workspace: { workspaceId },
     canCompute,
   },
 }: SubmitWorkflowModalProps) => {
@@ -66,9 +63,7 @@ export const SubmitWorkflowModal = ({
   const [workflowSubmissionError, setWorkflowSubmissionError] = useState<string>();
 
   const { captureEvent } = useMetricsEvent();
-  const canSubmit =
-    (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS) && canCompute) ||
-    getTerraUser().email === createdBy;
+  const canSubmit = canCompute;
 
   const submitRun = async () => {
     const runSetsPayload = {
