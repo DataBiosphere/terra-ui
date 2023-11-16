@@ -194,8 +194,7 @@ const NameCell = (props: CellProps): ReactNode => {
             !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, extractWorkspaceDetails(workspace));
           },
           tooltip:
-            !canView &&
-            'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
+            !canView && 'You do not have access to this workspace. Select the workspace to learn about gaining access.',
           tooltipSide: 'right',
           disabled: workspace.state === 'Deleted',
         },
