@@ -30,7 +30,7 @@ describe('ImportDataOverview', () => {
       renderImportDataOverview({ importRequest });
 
       const protectedDataWarning = screen.queryByText(
-        'The data you chose to import to Terra are identified as protected',
+        'The data you have selected requires additional security monitoring',
         {
           exact: false,
         }

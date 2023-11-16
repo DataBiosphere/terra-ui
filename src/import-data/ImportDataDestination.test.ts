@@ -99,7 +99,7 @@ describe('ImportDataDestination', () => {
 
       // Assert
       const protectedDataWarning = screen.queryByText(
-        'You may only import to workspaces with an Authorization Domain and/or protected data setting.',
+        'You may only import into workspaces that have additional security monitoring enabled.',
         {
           exact: false,
         }
@@ -115,7 +115,7 @@ describe('ImportDataDestination', () => {
       importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
       requiredAuthorizationDomain: 'test-auth-domain',
       expectedArgs: {
-        cloudPlatform: undefined,
+        cloudPlatform: 'GCP',
         isProtectedData: true,
         requiredAuthorizationDomain: 'test-auth-domain',
       },
@@ -123,7 +123,7 @@ describe('ImportDataDestination', () => {
     {
       importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { cloudPlatform: undefined, isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedArgs: { cloudPlatform: 'GCP', isProtectedData: false, requiredAuthorizationDomain: undefined },
     },
     {
       importRequest: {
@@ -292,7 +292,7 @@ describe('ImportDataDestination', () => {
         requiredAuthorizationDomain: undefined,
       },
       expectedNewWorkspaceModalProps: {
-        cloudPlatform: undefined,
+        cloudPlatform: 'GCP',
         requiredAuthDomain: undefined,
         requireEnhancedBucketLogging: false,
       },
@@ -304,7 +304,7 @@ describe('ImportDataDestination', () => {
         requiredAuthorizationDomain: 'test-auth-domain',
       },
       expectedNewWorkspaceModalProps: {
-        cloudPlatform: undefined,
+        cloudPlatform: 'GCP',
         requiredAuthDomain: 'test-auth-domain',
         requireEnhancedBucketLogging: true,
       },

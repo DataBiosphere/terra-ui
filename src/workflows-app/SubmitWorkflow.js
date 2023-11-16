@@ -6,13 +6,11 @@ import { centeredSpinner } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS } from 'src/libs/feature-previews-config';
 import { useCancellation, usePollingEffect } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { getCloudProviderFromWorkspace, isOwner } from 'src/libs/workspace-utils';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { doesAppProxyUrlExist, getCromwellUnsupportedMessage, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
@@ -38,7 +36,7 @@ const detectSomeoneElsesCromwell = (apps, createdBy, userEmail, accessLevel, cre
   // 1. There is no Cromwell app belonging to somebody else
   // 2. The user is an owner of the workspace (and can see all the apps) OR the workspace was created after 12/1/2023 (after the feature flag was made permanent)
   const guaranteedNobodyElsesCromwell =
-    !someoneElsesCromwell && (accessLevel === 'OWNER' || Date.parse(createdDate) > Date.parse('2023-12-01T00:00:00.000Z'));
+    !someoneElsesCromwell && (isOwner(accessLevel) || Date.parse(createdDate) > Date.parse('2023-12-01T00:00:00.000Z'));
   return { someoneElsesCromwell, guaranteedNobodyElsesCromwell };
 };
 
@@ -73,9 +71,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     );
     const pageReady = cbasReady && currentApp && !getIsAppBusy(currentApp);
     const launching = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady && !someoneElsesCromwell);
-    const canLaunch =
-      guaranteedNobodyElsesCromwell &&
-      (createdBy === getTerraUser().email || (canCompute && isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS)));
+    const canLaunch = guaranteedNobodyElsesCromwell && canCompute;
 
     // poll if we're missing CBAS proxy url and stop polling when we have it
     usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState'), {
@@ -99,16 +95,13 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const createWorkflowsApp = Utils.withBusyState(setCreating, async () => {
       try {
         setCreating(true);
-        if (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS)) {
-          await Ajax().Apps.createAppV2(
-            generateAppName(),
-            workspace.workspace.workspaceId,
-            appToolLabels.WORKFLOWS_APP,
-            appAccessScopes.WORKSPACE_SHARED
-          );
-        } else {
-          await Ajax().Apps.createAppV2(generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL, appAccessScopes.USER_PRIVATE);
-        }
+        await Ajax().Apps.createAppV2(
+          generateAppName(),
+          workspace.workspace.workspaceId,
+          appToolLabels.WORKFLOWS_APP,
+          appAccessScopes.WORKSPACE_SHARED
+        );
+
         await Ajax(signal).Metrics.captureEvent(Events.applicationCreate, {
           app: appTools.CROMWELL.label,
           ...extractWorkspaceDetails(workspace),
@@ -139,11 +132,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       [loading, () => centeredSpinner()],
       [pageReady, () => renderSubmitWorkflow()],
       [
-        doesWorkspaceSupportCromwellAppForUser(
-          workspace.workspace,
-          getCloudProviderFromWorkspace(workspace),
-          isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS) ? appToolLabels.WORKFLOWS_APP : appToolLabels.CROMWELL
-        ),
+        doesWorkspaceSupportCromwellAppForUser(workspace.workspace, getCloudProviderFromWorkspace(workspace), appToolLabels.WORKFLOWS_APP),
         () => h(WorkflowsAppNavPanel, { pageReady, launching, launcherDisabled: !canLaunch, loading, createWorkflowsApp, workspace }),
       ],
       [Utils.DEFAULT, () => div({ style: { ...styles.card, width: '50rem', margin: '2rem 4rem' } }, [getCromwellUnsupportedMessage()])]
