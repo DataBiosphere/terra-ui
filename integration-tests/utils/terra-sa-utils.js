@@ -18,11 +18,13 @@ const getToken = async (subject, key) => {
   return token;
 };
 
+// runs a command with a user bearer access token
+// if no token exists, uses a service account key to generate a user access token as set in integration-config.userEmail
 const withUserToken = (testFn) => async (options) => {
-  const { terraSaToken, terraSaKeyJson } = await getSecrets();
-  if (terraSaToken != null) {
-    console.log('using terraSaToken...');
-    const token = terraSaToken;
+  const { userAccessToken, terraSaKeyJson } = await getSecrets();
+  if (userAccessToken != null) {
+    console.log('using userAccessToken...');
+    const token = userAccessToken;
     return testFn({ ...options, token });
   }
   const token = await getToken(userEmail, JSON.parse(terraSaKeyJson));

@@ -98,16 +98,14 @@ jobs:
           token_format: 'access_token'
           workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
           service_account: 'firecloud-alpha@broad-dsde-alpha.iam.gserviceaccount.com'
-          #access_token_scopes: 'profile, email, openid'
-          access_token_lifetime: '3600s'
-          access_token_scopes: 'https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/userinfo.email,openid,https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/userinfo.email'
+          access_token_scopes: 'profile, email, openid'
           access_token_subject: 'Scarlett.Flowerpicker@test.firecloud.org'
           export_environment_variables: false
 
       - name: "set env vars"
         run: |
           echo "LYLE_ID_TOKEN=${{ steps.lyle-auth.outputs.id_token }}" >> $GITHUB_ENV
-          echo "TERRA_SA_ACCESS_TOKEN=${{ steps.terra-auth.outputs.access_token }}" >> $GITHUB_ENV
+          echo "USER_ACCESS_TOKEN=${{ steps.terra-auth.outputs.access_token }}" >> $GITHUB_ENV
 
       - name: "Run Yarn Install"
         shell: bash

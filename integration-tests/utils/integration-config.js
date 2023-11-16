@@ -22,18 +22,18 @@ const {
 
 const project = process.env.GCP_PROJECT || 'terra-bueller';
 
-// TODO: cleanup default getSecret behavior, enforce explicit import of secrets? or use an env var to explicity set
 const getSecrets = _.once(async () => {
   const lyleToken = process.env.LYLE_ID_TOKEN;
-  const terraSaToken = process.env.TERRA_SA_ACCESS_TOKEN;
+  const userAccessToken = process.env.USER_ACCESS_TOKEN;
 
-  // If terraSaToken exists, ignore the sa key and leave it null. Otherwise try to pull the value from google secret manager.
-  const terraSaKeyJson = terraSaToken == null ? process.env.TERRA_SA_KEY || (await getSecret({ project, secretName: 'terra-sa-key' })) : null;
+  // If the corresponding token already exists, ignore the sa key and leave it null.
+  const lyleKey = lyleToken == null ? process.env.LYLE_SA_KEY || (await getSecret({ project, secretName: 'lyle-sa-key' })) : null;
+  const terraSaKeyJson = userAccessToken == null ? process.env.TERRA_SA_KEY || (await getSecret({ project, secretName: 'terra-sa-key' })) : null;
 
   return {
     lyleToken,
-    terraSaToken,
-    lyleKey: process.env.LYLE_SA_KEY, // || (await getSecret({ project, secretName: 'lyle-sa-key' })),
+    userAccessToken,
+    lyleKey,
     terraSaKeyJson,
   };
 });
