@@ -4,6 +4,13 @@ import { getLinkExpirationAlerts } from 'src/libs/link-expiration-alerts';
 import * as Nav from 'src/libs/nav';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
+jest.mock('src/auth/auth', () => {
+  return {
+    getAuthToken: jest.fn(),
+    getAuthTokenFromLocalStorage: jest.fn(),
+  };
+});
+
 jest.mock('src/libs/providers', () => [
   {
     key: 'anvil',
