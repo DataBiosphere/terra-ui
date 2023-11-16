@@ -32,6 +32,16 @@ jest.mock('src/libs/state', (): StateExports => {
   };
 });
 
+type AuthExports = typeof import('src/auth/auth');
+jest.mock('src/auth/auth', (): AuthExports => {
+  return {
+    ...jest.requireActual('src/auth/auth'),
+    getAuthToken: jest.fn(() => 'testToken'),
+    getAuthTokenFromLocalStorage: jest.fn(() => Promise.resolve('localToken')),
+    sendAuthTokenDesyncMetric: jest.fn(),
+  };
+});
+
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({}),
