@@ -64,7 +64,7 @@ describe('WorkspaceInformation', () => {
     await user.click(screen.getByLabelText('More info'));
 
     // Assert
-    expect(screen.getAllByText(/protected or sensitive data/)).not.toBeNull();
+    expect(screen.getAllByText(/controlled-access data/)).not.toBeNull();
 
     // Accessibility
     expect(await axe(container)).toHaveNoViolations();
