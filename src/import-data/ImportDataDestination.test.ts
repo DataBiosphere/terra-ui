@@ -86,6 +86,11 @@ describe('ImportDataDestination', () => {
     async ({ importRequest, shouldShowProtectedDataWarning }) => {
       // Arrange
       const user = userEvent.setup();
+      asMockedFn(canImportIntoWorkspace).mockImplementation(
+        (_importOptions: ImportOptions, workspace: WorkspaceWrapper): boolean => {
+          return workspace.workspace.name === 'allowed-workspace';
+        }
+      );
 
       setup({
         props: {

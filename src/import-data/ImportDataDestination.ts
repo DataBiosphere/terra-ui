@@ -197,6 +197,8 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     );
   });
 
+  const protectedWorkspacesPresent = isProtectedData && protectedWorkspaces.length > 0;
+
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, ['Start with an existing workspace']),
@@ -330,7 +332,10 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               iconName: 'fileSearchSolid',
               title: 'Start with an existing workspace',
               detail: 'Select one of your workspaces',
-              disabled: !userHasBillingProjects || (isProtectedData && protectedWorkspaces.length === 0),
+              disabled: !userHasBillingProjects || !protectedWorkspacesPresent,
+              tooltip:
+                (!userHasBillingProjects || !protectedWorkspacesPresent) &&
+                'No existing protected workspace is present.',
             }),
             canUseNewWorkspace &&
               h(ChoiceButton, {
