@@ -10,8 +10,8 @@ import * as Utils from 'src/libs/utils';
 import AzurePreview from 'src/pages/AzurePreview';
 import { Disabled } from 'src/pages/Disabled';
 import SignIn from 'src/pages/SignIn';
-import TermsOfService from 'src/pages/TermsOfService';
 import { Register } from 'src/registration/Register';
+import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfServicePage';
 
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute();
@@ -26,7 +26,7 @@ const AuthContainer = ({ children }) => {
     [seenAzurePreview === false && isAzureUser(), () => h(AzurePreview)],
     [registrationStatus === 'uninitialized' && !isPublic, authspinner],
     [registrationStatus === 'unregistered', () => h(Register)],
-    [displayTosPage && name !== 'privacy', () => h(TermsOfService)],
+    [displayTosPage && name !== 'privacy', () => h(TermsOfServicePage)],
     [registrationStatus === 'disabled', () => h(Disabled)],
     [_.isEmpty(profile) && !isPublic, authspinner],
     () => children

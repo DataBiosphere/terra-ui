@@ -15,7 +15,7 @@ import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
-const TermsOfServicePage = () => {
+export const TermsOfServicePage = () => {
   const [busy, setBusy] = useState<boolean>();
   const { signInStatus, termsOfService } = useStore(authStore);
   const acceptedLatestTos = signInStatus === 'signedIn' && termsOfService.userHasAcceptedLatestTos;
@@ -27,7 +27,7 @@ const TermsOfServicePage = () => {
       Utils.withBusyState(setBusy),
       withErrorReporting('There was an error retrieving our terms of service.')
     )(async () => {
-      setTosText(await Ajax().User.getTos());
+      setTosText(await Ajax().TermsOfService.getTermsOfServiceText());
     });
     loadTosAndUpdateState();
   });
@@ -144,9 +144,6 @@ const TermsOfServicePage = () => {
     ]
   );
 };
-
-export default TermsOfServicePage;
-
 export const navPaths = [
   {
     name: 'terms-of-service',

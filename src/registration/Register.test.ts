@@ -26,6 +26,7 @@ type AjaxContract = ReturnType<typeof Ajax>;
 type MetricsPartial = Partial<AjaxContract['Metrics']>;
 type UserPartial = Partial<AjaxContract['User']>;
 type ProfilePartial = Partial<UserPartial['profile']>;
+type TermsOfServicePartial = Partial<AjaxContract['TermsOfService']>;
 
 describe('Register', () => {
   it('requires Organization, Department, and Title if the checkbox is unchecked', async () => {
@@ -106,6 +107,9 @@ describe('Register', () => {
               get: jest.fn().mockReturnValue({}),
             } as ProfilePartial,
           } as UserPartial,
+          TermsOfService: {
+            getTermsOfServiceText: jest.fn().mockResolvedValue(''),
+          } as TermsOfServicePartial,
         } as AjaxContract)
     );
 

@@ -3,6 +3,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { Groups } from 'src/libs/ajax/Groups';
 import { Metrics } from 'src/libs/ajax/Metrics';
+import { TermsOfService } from 'src/libs/ajax/TermsOfService';
 import {
   SamUserRegistrationStatusResponse,
   SamUserTosComplianceStatusResponse,
@@ -10,7 +11,7 @@ import {
   User,
 } from 'src/libs/ajax/User';
 import { AuthState, authStore } from 'src/libs/state';
-import TermsOfServicePage from 'src/pages/TermsOfService';
+import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfServicePage';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
@@ -54,7 +55,7 @@ const setupMockAjax = async (
   const userSubjectId = 'testSubjectId';
   const userEmail = 'test@email.com';
 
-  const getTos = jest.fn().mockResolvedValue('some text');
+  const getTermsOfServiceText = jest.fn().mockResolvedValue('some text');
   const getTermsOfServiceComplianceStatus = jest
     .fn()
     .mockResolvedValue(termsOfService satisfies SamUserTosComplianceStatusResponse);
@@ -92,6 +93,7 @@ const setupMockAjax = async (
   type UserContract = ReturnType<typeof User>;
   type MetricsContract = ReturnType<typeof Metrics>;
   type GroupsContract = ReturnType<typeof Groups>;
+  type TermsOfServiceContract = ReturnType<typeof TermsOfService>;
 
   asMockedFn(Ajax).mockImplementation(
     () =>
@@ -107,7 +109,6 @@ const setupMockAjax = async (
             setPreferences: jest.fn().mockResolvedValue({}),
             preferLegacyFirecloud: jest.fn().mockResolvedValue({}),
           },
-          getTos,
           getTermsOfServiceComplianceStatus,
           getStatus,
           acceptTos,
@@ -115,6 +116,9 @@ const setupMockAjax = async (
           getFenceStatus,
           getNihStatus,
         } as Partial<UserContract>,
+        TermsOfService: {
+          getTermsOfServiceText,
+        } as Partial<TermsOfServiceContract>,
         Groups: {
           list: jest.fn(),
         } as Partial<GroupsContract>,
@@ -126,7 +130,7 @@ const setupMockAjax = async (
     authStore.update((state: AuthState) => ({ ...state, termsOfService, signInStatus }));
   });
   return Promise.resolve({
-    getTosFn: getTos,
+    getTosFn: getTermsOfServiceText,
     getStatusFn: getStatus,
     getTermsOfServiceComplianceStatusFn: getTermsOfServiceComplianceStatus,
     acceptTosFn: acceptTos,

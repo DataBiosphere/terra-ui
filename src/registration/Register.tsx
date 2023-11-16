@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import React, { ReactNode, useState } from 'react';
 import { refreshSamUserAttributes, refreshTerraProfile, signOut } from 'src/auth/auth';
 import { ButtonPrimary, ButtonSecondary, LabeledCheckbox } from 'src/components/common';
@@ -10,9 +11,10 @@ import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { RegistrationLogo } from 'src/libs/logos';
 import { authStore, getTerraUser, TerraUser } from 'src/libs/state';
-import { CommunicationPreferencesCheckbox } from 'src/registration/CommunicationPreferencesCheckbox';
+import { RemoteMarkdown } from 'src/libs/util/RemoteMarkdown';
 import { InterestInTerraCheckbox } from 'src/registration/InterestInTerraCheckbox';
 import { LabelledTextInput } from 'src/registration/LabelledTextInput';
+import { RegistrationPageCheckbox } from 'src/registration/RegistrationPageCheckbox';
 import validate from 'validate.js';
 
 const constraints = ({ partOfOrganization }: { partOfOrganization: boolean }) => {
@@ -23,6 +25,15 @@ const constraints = ({ partOfOrganization }: { partOfOrganization: boolean }) =>
     institute: { presence: { allowEmpty: !partOfOrganization } },
     department: { presence: { allowEmpty: !partOfOrganization } },
     title: { presence: { allowEmpty: !partOfOrganization } },
+    termsOfServiceAccepted: {
+      presence: {
+        message: '^You must accept the Terms of Service',
+      },
+      inclusion: {
+        within: [true],
+        message: '^You must accept the Terms of Service',
+      },
+    },
   };
 };
 
@@ -39,6 +50,13 @@ export const Register = (): ReactNode => {
   const [interestInTerra, setInterestInTerra] = useState('');
   const [marketingConsent, setMarketingConsent] = useState(true);
 
+  const [showTermsOfService, setShowTermsOfService] = useState(false);
+  const [termsOfServiceSeen, setTermsOfServiceSeen] = useState(false);
+  const [termsOfServiceAccepted, setTermsOfServiceAccepted] = useState(false);
+  const termsOfServiceViewed = () => {
+    setTermsOfServiceSeen(true);
+    setShowTermsOfService(false);
+  };
   const register = async () => {
     try {
       setBusy(true);
@@ -67,7 +85,7 @@ export const Register = (): ReactNode => {
     }
   };
   const errors = validate(
-    { givenName, familyName, email, institute, title, department },
+    { givenName, familyName, email, institute, title, department, termsOfServiceAccepted },
     constraints({ partOfOrganization })
   );
 
@@ -80,19 +98,19 @@ export const Register = (): ReactNode => {
     backgroundPosition: 'right 0px bottom -600px',
   };
 
+  const headerStyle = (marginTop: string) => {
+    return {
+      marginTop,
+      color: colors.dark(0.6),
+      fontSize: '1.5rem',
+      fontWeight: 500,
+    };
+  };
+
   return (
     <div role="main" style={mainStyle}>
       <RegistrationLogo />
-      <h1
-        style={{
-          marginTop: '4rem',
-          color: colors.dark(0.6),
-          fontSize: '1.5rem',
-          fontWeight: 500,
-        }}
-      >
-        New User Registration
-      </h1>
+      <h1 style={headerStyle('4rem')}>New User Registration</h1>
       <div style={{ marginTop: '1rem', display: 'flex', lineHeight: '170%' }}>
         <LabelledTextInput
           required
@@ -177,12 +195,33 @@ export const Register = (): ReactNode => {
         })}
       </div>
       <FormLabel style={{ marginTop: '2rem' }}>Communication Preferences</FormLabel>
-      <CommunicationPreferencesCheckbox title="Necessary communications related to platform operations" checked />
-      <CommunicationPreferencesCheckbox
+      <RegistrationPageCheckbox title="Necessary communications related to platform operations" checked />
+      <RegistrationPageCheckbox
         title="Marketing communications including notifications for upcoming workshops and new flagship dataset additions"
         checked={marketingConsent}
         onChange={setMarketingConsent}
       />
+      <hr style={{ marginTop: '2rem', marginBottom: '2rem', color: colors.dark(0.2) }} />
+      <h1 style={headerStyle('1rem')}>Terra Terms of Service</h1>
+      <h4>Please accept the Terms of Service to Continue</h4>
+      <ButtonSecondary
+        style={{ textDecoration: 'underline', textTransform: 'none' }}
+        onClick={() => setShowTermsOfService(true)}
+      >
+        Read Terra Platform Terms of Service here
+      </ButtonSecondary>
+      {showTermsOfService && (
+        <Modal width="90%" title="Terra Terms of Service" showCancel={false} onDismiss={termsOfServiceViewed}>
+          <RemoteMarkdown getRemoteText={() => Ajax().TermsOfService.getTermsOfServiceText()} />
+        </Modal>
+      )}
+      <RegistrationPageCheckbox
+        title="By checking this box, you are agreeing to the Terra Terms of Service"
+        checked={termsOfServiceAccepted}
+        onChange={setTermsOfServiceAccepted}
+        disabled={!termsOfServiceSeen}
+      />
+
       <div style={{ marginTop: '3rem' }}>
         <ButtonPrimary disabled={errors || busy} onClick={register}>
           Register

@@ -11,7 +11,7 @@ const PrivacyPolicy = () => {
 
   useOnMount(() => {
     const loadPrivacyPolicyAndUpdateState = withErrorReporting('There was an error retrieving our privacy policy.')(async () => {
-      setPrivacyPolicy(await Ajax().User.getPrivacyPolicy());
+      setPrivacyPolicy(await Ajax().TermsOfService.getPrivacyText());
     });
     loadPrivacyPolicyAndUpdateState();
   });
