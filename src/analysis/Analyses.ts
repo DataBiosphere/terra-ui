@@ -1,3 +1,4 @@
+import { Switch } from '@terra-ui-packages/components';
 import { withHandlers } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
@@ -37,7 +38,6 @@ import {
   IdContainer,
   Link,
   spinnerOverlay,
-  Switch,
 } from 'src/components/common';
 import Dropzone from 'src/components/Dropzone';
 import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal';
@@ -64,19 +64,13 @@ import { ENABLE_JUPYTERLAB_ID, JUPYTERLAB_GCP_FEATURE_ID } from 'src/libs/featur
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
-import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { forwardRefWithName, useCancellation, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import {
-  canWrite,
-  isAzureWorkspace,
-  isGoogleWorkspace,
-  isGoogleWorkspaceInfo,
-  WorkspaceWrapper,
-} from 'src/libs/workspace-utils';
-import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
+import { canWrite, isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo } from 'src/libs/workspace-utils';
+import { InitializedWorkspaceWrapper, StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const tableFields = {
@@ -427,7 +421,7 @@ export interface AnalysesData {
 }
 
 export interface AnalysesProps {
-  workspace: WorkspaceWrapper;
+  workspace: InitializedWorkspaceWrapper;
   analysesData: AnalysesData;
   onRequesterPaysError: () => void;
   storageDetails: StorageDetails;
@@ -500,7 +494,7 @@ export const BaseAnalyses = (
   });
 
   // Lifecycle
-  useOnMount(() => {
+  useEffect(() => {
     const load = _.flow(
       withErrorReporting('Error loading analyses'),
       Utils.withBusyState(setBusy)
@@ -520,12 +514,12 @@ export const BaseAnalyses = (
         .Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name)
         .listActiveFileTransfers();
       setActiveFileTransfers(!_.isEmpty(fileTransfers));
-
-      await refreshRuntimes();
     });
-
-    load();
-  });
+    if (workspace?.workspaceInitialized) {
+      load();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspace, workspaceInfo.name, workspaceInfo.namespace]);
 
   // We reference the analyses from `useAnalysisStore`, and on change, we decorate them from `AnalysisFile[]` to `DisplayAnalysisFile[]` and update state history
   useEffect(() => {
@@ -854,7 +848,6 @@ const Analyses = _.flow(
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Analyses',
     activeTab: 'analyses',
-    topBarContent: null,
   }),
   withViewToggle('analysesTab')
 )(BaseAnalyses);

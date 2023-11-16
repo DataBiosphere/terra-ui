@@ -1,8 +1,9 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 
 jest.mock('src/libs/ajax');
@@ -20,10 +21,6 @@ jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
   getTerraUser: jest.fn(),
 }));
-jest.mock('src/components/Modal', () => {
-  const mockModal = jest.requireActual('src/components/Modal.mock');
-  return mockModal.mockModalModule();
-});
 
 describe('Add a Workflow Link', () => {
   const workspace = {

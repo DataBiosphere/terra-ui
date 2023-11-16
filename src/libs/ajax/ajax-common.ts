@@ -1,12 +1,11 @@
-import { delay } from '@terra-ui-packages/core-utils';
+import { abandonedPromise, delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
+import { AuthTokenState, getAuthToken, loadAuthToken, sendRetryMetric, signOut, SignOutCause } from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { AuthTokenState, loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
-import { ajaxOverridesStore, getTerraUser } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
+import { ajaxOverridesStore } from 'src/libs/state';
 
-export const authOpts = (token = getTerraUser().token) => ({ headers: { Authorization: `Bearer ${token}` } });
+export const authOpts = (token = getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } });
 export const jsonBody = (body) => ({
   body: JSON.stringify(body),
   headers: { 'Content-Type': 'application/json' },
@@ -71,19 +70,27 @@ const isUnauthorizedResponse = (error: unknown): boolean => error instanceof Res
 export const withRetryAfterReloadingExpiredAuthToken =
   (wrappedFetch: FetchFn): FetchFn =>
   async (resource: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
+    const preRequestAuthToken = getAuthToken();
     const requestHasAuthHeader = _.isMatch(authOpts(), options as object);
     try {
       return await wrappedFetch(resource, options);
     } catch (error) {
       if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
         const reloadedAuthTokenState: AuthTokenState = await loadAuthToken();
+        const postRequestAuthToken = getAuthToken();
         if (reloadedAuthTokenState.status === 'success') {
+          sendRetryMetric();
           const optionsWithNewAuthToken = _.merge(options, authOpts());
           return await wrappedFetch(resource, optionsWithNewAuthToken);
         }
-        const signOutCause: SignOutCause =
-          reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
-        signOut(signOutCause);
+        // if the auth token the request was made with does not match the current auth token
+        // that means that the user has already been signed out and signed in again to receive a new token
+        // in this case, we should not sign the user out again
+        if (preRequestAuthToken === postRequestAuthToken) {
+          const signOutCause: SignOutCause =
+            reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
+          signOut(signOutCause);
+        }
         throw new Error(sessionTimedOutErrorMessage);
       } else {
         throw error;
@@ -133,7 +140,7 @@ const withCancellation =
       return await wrappedFetch(...args);
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        return Utils.abandonedPromise();
+        return abandonedPromise();
       }
       throw error;
     }
@@ -245,8 +252,8 @@ export const fetchGoogleForms = _.flow(
   (wrappedFetch) => (url, options) => wrappedFetch(url, _.merge(options, { mode: 'no-cors' }))
 )(fetch);
 
-export const fetchWDS = (wdsProxyUrlRoot) =>
-  _.flow(withUrlPrefix(`${wdsProxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
+export const fetchWDS = (wdsProxyUrlRoot: string): FetchFn =>
+  _.flow(withUrlPrefix(`${wdsProxyUrlRoot.replace(/\/$/, '')}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
 
 export const fetchFromProxy = (proxyUrlRoot) =>
   _.flow(withUrlPrefix(`${proxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);

@@ -1,20 +1,13 @@
-import { useUniqueId } from '@terra-ui-packages/components';
+import { Switch, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { a, div, h, h2, label, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
-import { Switch } from 'src/components/common/Switch';
-import { styles as errorStyles } from 'src/components/ErrorView';
 import { centeredSpinner, icon } from 'src/components/icons';
-import { TextArea, TextInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
-import { InfoBox } from 'src/components/PopupTrigger';
+import { InfoBox } from 'src/components/InfoBox';
 import StepButtons from 'src/components/StepButtons';
-import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
-import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
-import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
@@ -25,10 +18,11 @@ import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import InputsTable from 'src/workflows-app/components/InputsTable';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
 import RecordsTable from 'src/workflows-app/components/RecordsTable';
+import { SubmitWorkflowModal } from 'src/workflows-app/components/SubmitWorkflowModal';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
-import { CbasPollInterval, convertArrayType, parseMethodString, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
+import { autofillOutputDef, CbasPollInterval, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionConfig = (
@@ -62,15 +56,9 @@ export const BaseSubmissionConfig = (
   const [viewWorkflowScriptModal, setViewWorkflowScriptModal] = useState(false);
   const [isCallCachingEnabled, setIsCallCachingEnabled] = useState(true);
 
-  const [runSetName, setRunSetName] = useState('');
-  const [runSetDescription, setRunSetDescription] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [workflowSubmissionError, setWorkflowSubmissionError] = useState();
-
   const [displayLaunchModal, setDisplayLaunchModal] = useState(false);
   const [noRecordTypeData, setNoRecordTypeData] = useState(null);
 
-  const { captureEvent } = useMetricsEvent();
   const dataTableRef = useRef();
   const signal = useCancellation();
   const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
@@ -118,13 +106,8 @@ export const BaseSubmissionConfig = (
         const newRunSetData = runSet.run_sets[0];
 
         setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
-        setConfiguredOutputDefinition(
-          _.map((outputDef) =>
-            _.get('destination.type', outputDef) === 'none'
-              ? _.set('destination', { type: 'record_update', record_attribute: parseMethodString(outputDef.output_name).variable || '' })(outputDef)
-              : outputDef
-          )(maybeParseJSON(newRunSetData.output_definition))
-        );
+        const outputDef = autofillOutputDef(newRunSetData.output_definition, newRunSetData.run_count);
+        setConfiguredOutputDefinition(outputDef);
         setSelectedRecordType(newRunSetData.record_type);
 
         let callCache = maybeParseJSON(newRunSetData.call_caching_enabled);
@@ -225,54 +208,6 @@ export const BaseSubmissionConfig = (
     },
     [loadMethodsData, loadRunSet, loadWdsData, workspaceId]
   );
-
-  const updateRunSetName = () => {
-    const timestamp = new Date().toISOString().slice(0, -5); // slice off milliseconds at the end for readability.
-    if (runSetName === '') {
-      setRunSetName(`${_.kebabCase(method.name)}_${_.kebabCase(selectedRecordType)}_${timestamp}`);
-    }
-  };
-
-  const submitRun = async () => {
-    try {
-      const runSetsPayload = {
-        run_set_name: runSetName,
-        run_set_description: runSetDescription,
-        method_version_id: selectedMethodVersion.method_version_id,
-        workflow_input_definitions: _.map(convertArrayType)(configuredInputDefinition),
-        workflow_output_definitions: configuredOutputDefinition,
-        wds_records: {
-          record_type: selectedRecordType,
-          record_ids: _.keys(selectedRecords),
-        },
-        call_caching_enabled: isCallCachingEnabled,
-      };
-      setIsSubmitting(true);
-      const {
-        cbasProxyUrlState: { state: cbasUrl },
-      } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
-      const runSetObject = await Ajax(signal).Cbas.runSets.post(cbasUrl, runSetsPayload);
-      notify('success', 'Workflow successfully submitted', {
-        message: 'You may check on the progress of workflow on this page anytime.',
-        timeout: 5000,
-      });
-      captureEvent(Events.workflowsAppLaunchWorkflow, {
-        ...extractWorkspaceDetails(workspace),
-        methodUrl: selectedMethodVersion.url,
-        methodVersion: selectedMethodVersion.name,
-        methodSource: method.source,
-        previouslyRun: method.last_run.previously_run,
-      });
-      Nav.goToPath('workspace-workflows-app-submission-details', {
-        name,
-        namespace,
-        submissionId: runSetObject.run_set_id,
-      });
-    } catch (error) {
-      setIsSubmitting(false);
-      setWorkflowSubmissionError(JSON.stringify(error instanceof Response ? await error.json() : error, null, 2));
-    }
-  };
 
   useOnMount(() => {
     const loadWorkflowsApp = async () => {
@@ -482,80 +417,25 @@ export const BaseSubmissionConfig = (
                 [errorMessageCount > 0, () => `${errorMessageCount} input(s) have missing/invalid values`],
                 () => ''
               ),
-              onClick: () => {
-                updateRunSetName();
-                setDisplayLaunchModal(true);
-              },
+              onClick: () => setDisplayLaunchModal(true),
             },
             ['Submit']
           ),
         }),
         displayLaunchModal &&
-          h(
-            Modal,
-            {
-              title: 'Send submission',
-              width: 600,
-              onDismiss: () => {
-                if (!isSubmitting) {
-                  setDisplayLaunchModal(false);
-                  setWorkflowSubmissionError(undefined);
-                }
-              },
-              showCancel: !isSubmitting,
-              okButton: h(
-                ButtonPrimary,
-                {
-                  disabled: isSubmitting,
-                  'aria-label': 'Launch Submission',
-                  onClick: () => submitRun(),
-                },
-                [isSubmitting ? 'Submitting...' : 'Submit']
-              ),
-            },
-            [
-              div({ style: { lineHeight: 2.0 } }, [
-                h(TextCell, { style: { marginTop: '1.5rem', fontSize: 16, fontWeight: 'bold' } }, ['Submission name']),
-                h(TextInput, {
-                  disabled: isSubmitting,
-                  'aria-label': 'Submission name',
-                  value: runSetName,
-                  onChange: setRunSetName,
-                  placeholder: 'Enter submission name',
-                }),
-              ]),
-              div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
-                span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Comment ']),
-                '(optional)',
-                h(TextArea, {
-                  style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0 },
-                  'aria-label': 'Enter a comment',
-                  disabled: isSubmitting,
-                  value: runSetDescription,
-                  onChange: setRunSetDescription,
-                  placeholder: 'Enter comments',
-                }),
-              ]),
-              div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
-                div([h(TextCell, ['This will launch ', span({ style: { fontWeight: 'bold' } }, [_.keys(selectedRecords).length]), ' workflow(s).'])]),
-                h(TextCell, { style: { marginTop: '1rem' } }, ['Running workflows will generate cloud compute charges.']),
-                workflowSubmissionError &&
-                  div([
-                    div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-                      icon('warning-standard', { size: 16, style: { color: colors.danger() } }),
-                      h(TextCell, { style: { marginLeft: '0.5rem' } }, ['Error submitting workflow:']),
-                    ]),
-                    div(
-                      {
-                        style: { ...errorStyles.jsonFrame, overflowY: 'scroll', maxHeight: 160 },
-                        'aria-label': 'Modal submission error',
-                      },
-                      [workflowSubmissionError]
-                    ),
-                  ]),
-              ]),
-            ]
-          ),
+          h(SubmitWorkflowModal, {
+            method,
+            methodVersion: selectedMethodVersion,
+            recordType: selectedRecordType,
+            selectedRecords,
+            inputDefinition: configuredInputDefinition,
+            outputDefinition: configuredOutputDefinition,
+            callCachingEnabled: isCallCachingEnabled,
+            onDismiss: () => setDisplayLaunchModal(false),
+            name,
+            namespace,
+            workspace,
+          }),
         viewWorkflowScriptModal &&
           h(ViewWorkflowScriptModal, {
             workflowScript,

@@ -1,5 +1,5 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
-import { act, render, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { AnalysesData, AnalysesProps, BaseAnalyses, getUniqueFileName } from 'src/analysis/Analyses';
@@ -12,7 +12,7 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_JUPYTERLAB_ID, JUPYTERLAB_GCP_FEATURE_ID } from 'src/libs/feature-previews-config';
 import { goToPath } from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 type NavExports = typeof import('src/libs/nav');
@@ -93,7 +93,7 @@ const defaultUseAnalysisStore = {
 };
 
 const defaultAnalysesProps: AnalysesProps = {
-  workspace: defaultGoogleWorkspace,
+  workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true },
   analysesData: defaultAnalysesData,
   onRequesterPaysError: () => {},
   storageDetails: { googleBucketLocation: '', googleBucketType: '', fetchedGoogleBucketLocation: undefined },
@@ -194,7 +194,12 @@ describe('Analyses', () => {
     // Act
     await act(async () => {
       // eslint-disable-line require-await
-      render(h(BaseAnalyses, { ...defaultAnalysesProps, workspace: defaultAzureWorkspace }));
+      render(
+        h(BaseAnalyses, {
+          ...defaultAnalysesProps,
+          workspace: { ...defaultAzureWorkspace, workspaceInitialized: true },
+        })
+      );
     });
 
     // Assert

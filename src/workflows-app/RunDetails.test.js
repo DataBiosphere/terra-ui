@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
@@ -6,7 +6,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import * as configStore from 'src/libs/config';
 import { makeCompleteDate } from 'src/libs/utils';
-import { SelectHelper } from 'src/testing/test-utils';
+import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { appendSASTokenIfNecessary, getFilenameFromAzureBlobPath } from 'src/workflows-app/components/InputOutputModal';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
 import { failedTasks as failedTasksMetadata } from 'src/workflows-app/fixtures/failed-tasks';
@@ -18,11 +18,6 @@ import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
 jest.mock('src/libs/ajax');
-
-jest.mock('src/components/Modal', () => {
-  const mockModal = jest.requireActual('src/components/Modal.mock');
-  return mockModal.mockModalModule();
-});
 
 const wdsUrlRoot = 'https://lz-abc/wds-abc-c07807929cd1/';
 const cbasUrlRoot = 'https://lz-abc/terra-app-abc/cbas';
@@ -449,7 +444,7 @@ describe('BaseRunDetails - render smoke test', () => {
   it('input/output modal file functions work as expected', () => {
     const mockWorkspaceId = 'd4564046-bbba-495c-afec-14f7d3a8283a';
     jest.spyOn(configStore, 'getConfig').mockReturnValue({ workspaceId: mockWorkspaceId });
-    const publicURI = 'https://lze033433beed5b4a6a47de6.blob.core.windows.net/sc-e3ac5af2-dc4f-42cc-9111-a6f37acfe21a/ref-sarscov2-NC_045512.2.fasta';
+    const publicURI = 'https://lza6bdb4ac5ff7bbc4bf6359.blob.core.windows.net/sc-fa554638-fc2b-42bd-b376-99db48fefd72/ref-sarscov2-NC_045512.2.fasta';
     const privateURI =
       'https://lz43a8a3d21540dfd25f5ace.blob.core.windows.net/sc-d4564046-bbba-495c-afec-14f7d3a8283a/workspace-services/cbas/terra-app-566e92a0-e55e-4250-b4c1-d0925dd03916/assemble_refbased/43d15a0d-848b-46e3-a1da-02b37caaa761/call-align_to_ref/shard-0/execution/stdout';
     const mockSAS = 'mockSAS';

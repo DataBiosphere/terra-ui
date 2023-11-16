@@ -5,7 +5,7 @@ import {
   forwardRef,
   ForwardRefRenderFunction,
   memo,
-  ReactElement,
+  ReactNode,
   useEffect,
   useRef,
   useState,
@@ -89,7 +89,7 @@ export const useCancellation = (): AbortSignal => {
 };
 
 type ComponentWithDisplayName = {
-  (props: any, context?: any): ReactElement<any, any> | null;
+  (props: any, context?: any): ReactNode;
   displayName?: string | undefined;
 };
 

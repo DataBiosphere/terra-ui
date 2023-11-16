@@ -11,6 +11,7 @@ import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorag
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { HAIL_BATCH_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -277,34 +278,29 @@ describe('AnalysisModal', () => {
     // Assert
     screen.getByText('Select an application');
     screen.getByAltText('Create new notebook');
-    screen.getByAltText('Create new Cromwell app');
     expect(screen.queryByAltText('Create new R file')).toBeNull();
     expect(screen.queryByAltText('Create new Galaxy app')).toBeNull();
     expect(screen.queryByAltText('Create new Hail Batch app')).toBeNull();
   });
 
-  it('Azure - Cromwell renders correctly', async () => {
-    const user = userEvent.setup();
+  it('Azure - Does not render Cromwell', async () => {
     // Act
     render(h(AnalysisModal, defaultAzureModalProps));
 
-    // Act
-    const button = screen.getByAltText('Create new Cromwell app');
-    await user.click(button);
-
-    expect(screen.getByText('Cromwell Cloud Environment'));
-    expect(screen.getByText('Create'));
+    // Assert
+    expect(screen.queryByAltText('Create new Cromwell app')).not.toBeInTheDocument();
+    expect(screen.queryByText('You already have a Cromwell instance')).not.toBeInTheDocument();
   });
 
   it('Azure - Renders Hail Batch when feature flag is enabled', () => {
     // Arrange
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((preview) => preview === HAIL_BATCH_AZURE_FEATURE_ID);
+
     // Act
     render(h(AnalysisModal, defaultAzureModalProps));
     // Assert
     screen.getByText('Select an application');
     screen.getByAltText('Create new notebook');
-    screen.getByAltText('Create new Cromwell app');
     screen.getByAltText('Create new Hail Batch app');
     expect(screen.queryByAltText('Create new R file')).toBeNull();
     expect(screen.queryByAltText('Create new Galaxy app')).toBeNull();

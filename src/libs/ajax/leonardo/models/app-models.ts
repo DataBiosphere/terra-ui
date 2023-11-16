@@ -10,8 +10,8 @@ export interface KubernetesRuntimeConfig {
 export interface AppError extends LeoError {
   action: string;
   source: string;
-  googleErrorCode?: number;
-  traceId?: string;
+  googleErrorCode: number | null;
+  traceId: string | null;
 }
 
 export type LeoAppStatus =
@@ -69,6 +69,7 @@ export interface GetAppResponse {
   appType: AppToolLabel;
   accessScope: string | null;
   labels: LeoResourceLabels;
+  region: string;
 }
 
 export interface ListAppResponse {
@@ -84,6 +85,7 @@ export interface ListAppResponse {
   appType: AppToolLabel;
   accessScope: string | null;
   labels: LeoResourceLabels;
+  region: string;
 }
 
 export interface CreateAppV1Request {

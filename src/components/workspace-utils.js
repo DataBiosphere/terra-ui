@@ -5,7 +5,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { AsyncCreatableSelect, Clickable, Link, VirtualizedSelect } from 'src/components/common';
 import { WorkspaceSubmissionStatusIcon } from 'src/components/WorkspaceSubmissionStatusIcon';
-import { Ajax, useReplaceableAjaxExperimental } from 'src/libs/ajax';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -15,13 +15,12 @@ import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } f
 import { workspacesStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { cloudProviderLabels, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 
 export const useWorkspaces = (fieldsArg, stringAttributeMaxLength) => {
   const signal = useCancellation();
   const [loading, setLoading] = useState(false);
   const workspaces = useStore(workspacesStore);
-  const ajax = useReplaceableAjaxExperimental();
 
   const fields = fieldsArg || [
     'accessLevel',
@@ -37,7 +36,7 @@ export const useWorkspaces = (fieldsArg, stringAttributeMaxLength) => {
     withErrorReporting('Error loading workspace list'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const ws = await ajax(signal).Workspaces.list(fields, stringAttributeMaxLength);
+    const ws = await Ajax(signal).Workspaces.list(fields, stringAttributeMaxLength);
     workspacesStore.set(ws);
   });
   useOnMount(() => {
@@ -83,6 +82,7 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label
   const options = _.flow(
     _.sortBy((ws) => ws.workspace.name.toLowerCase()),
     _.map(({ workspace: { workspaceId, name, cloudPlatform, bucketName } }) => ({
+      'aria-label': `${cloudProviderLabels[cloudPlatform]} ${name}`,
       value: workspaceId,
       label: name,
       workspace: { cloudPlatform, bucketName },
@@ -96,6 +96,20 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label
     value,
     onChange: ({ value }) => onChange(value),
     options,
+    formatOptionLabel: (opt) => {
+      const {
+        label,
+        workspace: { cloudPlatform },
+      } = opt;
+      return div({ style: { display: 'flex', alignItems: 'center' } }, [
+        h(CloudProviderIcon, {
+          // Convert workspace cloudPlatform (Azure, Gcp) to CloudProvider (AZURE, GCP).
+          cloudProvider: cloudPlatform.toUpperCase(),
+          style: { marginRight: '0.5rem' },
+        }),
+        label,
+      ]);
+    },
     ...props,
   });
 };

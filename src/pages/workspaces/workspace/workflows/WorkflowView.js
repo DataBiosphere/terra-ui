@@ -17,11 +17,12 @@ import {
 } from 'src/components/common';
 import Dropzone from 'src/components/Dropzone';
 import { centeredSpinner, icon } from 'src/components/icons';
-import { DelayedAutocompleteTextArea, DelayedSearchInput, NumberInput } from 'src/components/input';
+import { InfoBox } from 'src/components/InfoBox';
+import { DelayedAutocompleteTextArea, DelayedSearchInput, NumberInput, TextInput } from 'src/components/input';
 import { MarkdownViewer } from 'src/components/markdown';
 import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
-import { InfoBox, makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
+import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import StepButtons from 'src/components/StepButtons';
 import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
@@ -30,6 +31,8 @@ import { Ajax } from 'src/libs/ajax';
 import colors, { terraSpecial } from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_WORKFLOW_RESOURCE_MONITORING } from 'src/libs/feature-previews-config';
 import { HiddenLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withCancellationSignal } from 'src/libs/react-utils';
@@ -45,6 +48,7 @@ import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } f
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
+import { sanitizeAttributeUpdateString } from 'src/pages/workspaces/workspace/workflows/workflow-view-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const sideMargin = '3rem';
@@ -372,6 +376,9 @@ const WorkflowView = _.flow(
         retryWithMoreMemory: false,
         retryMemoryFactor: 1.2,
         ignoreEmptyOutputs: false,
+        monitoringScript: null,
+        monitoringImage: null,
+        monitoringImageScript: null,
         includeOptionalInputs: true,
         filter: '',
         errors: { inputs: {}, outputs: {} },
@@ -431,6 +438,9 @@ const WorkflowView = _.flow(
         retryWithMoreMemory,
         retryMemoryFactor,
         ignoreEmptyOutputs,
+        monitoringScript,
+        monitoringImage,
+        monitoringImageScript,
         entitySelectionModel,
         variableSelected,
         modifiedConfig,
@@ -466,6 +476,9 @@ const WorkflowView = _.flow(
                 retryWithMoreMemory,
                 retryMemoryFactor,
                 ignoreEmptyOutputs,
+                monitoringScript,
+                monitoringImage,
+                monitoringImageScript,
                 onDismiss: () => this.setState({ launching: false }),
                 onSuccess: (submissionId) => {
                   const {
@@ -740,6 +753,10 @@ const WorkflowView = _.flow(
         retryWithMoreMemory,
         retryMemoryFactor,
         ignoreEmptyOutputs,
+        expandResourceMonitoring,
+        monitoringScript,
+        monitoringImage,
+        monitoringImageScript,
         currentSnapRedacted,
         savedSnapRedacted,
         wdl,
@@ -821,8 +838,7 @@ const WorkflowView = _.flow(
                         h(
                           MenuButton,
                           {
-                            disabled: !!WorkspaceUtils.editWorkspaceError(ws),
-                            tooltip: WorkspaceUtils.editWorkspaceError(ws),
+                            ...WorkspaceUtils.getWorkspaceEditControlProps(ws),
                             tooltipSide: 'right',
                             onClick: () => this.setState({ deleting: true }),
                           },
@@ -846,7 +862,7 @@ const WorkflowView = _.flow(
                     div({ style: { display: 'inline-block', marginLeft: '0.25rem', width: sourceRepo === 'agora' ? 75 : 200 } }, [
                       h(Select, {
                         id,
-                        isDisabled: !!WorkspaceUtils.editWorkspaceError(ws),
+                        isDisabled: !WorkspaceUtils.canEditWorkspace(ws).value,
                         isClearable: false,
                         isSearchable: false,
                         value: methodVersion,
@@ -881,7 +897,7 @@ const WorkflowView = _.flow(
               div({ role: 'radiogroup', 'aria-label': 'Select number of target entities', style: { marginBottom: '1rem' } }, [
                 div([
                   h(RadioButton, {
-                    disabled: !!WorkspaceUtils.editWorkspaceError(ws) || currentSnapRedacted,
+                    disabled: !WorkspaceUtils.canEditWorkspace(ws).value || currentSnapRedacted,
                     text: 'Run workflow with inputs defined by file paths',
                     name: 'process-workflows',
                     checked: this.isSingle(),
@@ -891,7 +907,7 @@ const WorkflowView = _.flow(
                 ]),
                 div([
                   h(RadioButton, {
-                    disabled: !!WorkspaceUtils.editWorkspaceError(ws) || currentSnapRedacted,
+                    disabled: !WorkspaceUtils.canEditWorkspace(ws).value || currentSnapRedacted,
                     text: 'Run workflow(s) with inputs defined by data table',
                     name: 'process-workflows',
                     checked: this.isMultiple(),
@@ -905,16 +921,20 @@ const WorkflowView = _.flow(
                       div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
                       label(['Select root entity type:']),
                       snapshotReferenceError &&
-                        h(TooltipTrigger, { content: Utils.snapshotReferenceMissingError(modifiedConfig.dataReferenceName) }, [
-                          icon('error-standard', {
-                            size: 14,
-                            style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' },
-                          }),
-                        ]),
+                        h(
+                          TooltipTrigger,
+                          { content: `The requested snapshot reference '${modifiedConfig.dataReferenceName}' could not be found in this workspace.` },
+                          [
+                            icon('error-standard', {
+                              size: 14,
+                              style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' },
+                            }),
+                          ]
+                        ),
                       h(GroupedSelect, {
                         'aria-label': 'Entity type selector',
                         isClearable: false,
-                        isDisabled: currentSnapRedacted || this.isSingle() || !!WorkspaceUtils.editWorkspaceError(ws),
+                        isDisabled: currentSnapRedacted || this.isSingle() || !WorkspaceUtils.canEditWorkspace(ws).value,
                         isSearchable: true,
                         placeholder: 'Select data type...',
                         styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
@@ -962,7 +982,7 @@ const WorkflowView = _.flow(
                     entitySelectionModel.type === processSnapshotTable
                       ? div({ style: { margin: '2rem 0 0 2rem' } }, [
                           h(Select, {
-                            isDisabled: !!WorkspaceUtils.editWorkspaceError(ws) || !!snapshotReferenceError,
+                            isDisabled: !WorkspaceUtils.canEditWorkspace(ws).value || !!snapshotReferenceError,
                             'aria-label': 'Snapshot table selector',
                             isClearable: false,
                             value: modifiedConfig.dataReferenceName && !snapshotReferenceError ? modifiedConfig.rootEntityType : undefined,
@@ -984,10 +1004,9 @@ const WorkflowView = _.flow(
                                   currentSnapRedacted ||
                                   this.isSingle() ||
                                   !rootEntityType ||
-                                  !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) ||
-                                  !!WorkspaceUtils.editWorkspaceError(ws),
-                                tooltip: WorkspaceUtils.editWorkspaceError(ws),
+                                  !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]),
                                 onClick: () => this.setState({ selectingData: true }),
+                                ...WorkspaceUtils.getWorkspaceEditControlProps(ws),
                               },
                               ['Select Data']
                             ),
@@ -1003,7 +1022,7 @@ const WorkflowView = _.flow(
                     h(
                       LabeledCheckbox,
                       {
-                        disabled: currentSnapRedacted || !!Utils.computeWorkspaceError(ws),
+                        disabled: currentSnapRedacted || !WorkspaceUtils.canRunAnalysisInWorkspace(ws).value,
                         checked: useCallCache,
                         onChange: (v) => this.setState({ useCallCache: v }),
                       },
@@ -1087,7 +1106,7 @@ const WorkflowView = _.flow(
                 // We show either an info message or a warning, based on whether increasing memory on retries is
                 // enabled and the value of the retry multiplier.
                 retryWithMoreMemory && retryMemoryFactor > 2
-                  ? h(InfoBox, { style: { color: colors.warning() }, iconOverride: 'warning-standard' }, [
+                  ? h(InfoBox, { style: { color: colors.warning() }, icon: 'warning-standard' }, [
                       'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
                       h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ])
@@ -1107,6 +1126,58 @@ const WorkflowView = _.flow(
                   ),
                 ]),
                 h(InfoBox, ['Do not create output columns if the data is null/empty. ']),
+                div({}, [
+                  isFeaturePreviewEnabled(ENABLE_WORKFLOW_RESOURCE_MONITORING) &&
+                    span({ style: styles.checkBoxSpanMargins }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          checked: expandResourceMonitoring,
+                          onChange: (v) => this.setState({ expandResourceMonitoring: v }),
+                          style: styles.checkBoxLeftMargin,
+                        },
+                        [' Resource monitoring']
+                      ),
+                    ]),
+                  isFeaturePreviewEnabled(ENABLE_WORKFLOW_RESOURCE_MONITORING) &&
+                    h(InfoBox, [
+                      'Specify user-provided tools to monitor task resources. ',
+                      h(Link, { href: 'https://cromwell.readthedocs.io/en/stable/wf_options/Google/', ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    ]),
+                  expandResourceMonitoring &&
+                    div({ style: { display: 'flex', flexDirection: 'column', marginLeft: '2.0rem', width: '20rem', key: 'textFieldsParent' } }, [
+                      div({ display: 'flex', flexDirection: 'row' }, [
+                        h(TextInput, {
+                          id: 'resource-monitoring-script',
+                          placeholder: 'Script',
+                          value: monitoringScript,
+                          onChange: (v) => this.setState({ monitoringScript: v }),
+                          style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
+                        }),
+                        h(InfoBox, ['Standalone .sh script that runs inside task container']),
+                      ]),
+                      div({ display: 'flex', flexDirection: 'row' }, [
+                        h(TextInput, {
+                          id: 'resource-monitoring-image',
+                          placeholder: 'Image',
+                          value: monitoringImage,
+                          onChange: (v) => this.setState({ monitoringImage: v }),
+                          style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
+                        }),
+                        h(InfoBox, ['Image that runs as a sibling alongside task container']),
+                      ]),
+                      div({ display: 'flex', flexDirection: 'row' }, [
+                        h(TextInput, {
+                          id: 'resource-monitoring-image-script',
+                          placeholder: 'Image script',
+                          value: monitoringImageScript,
+                          onChange: (v) => this.setState({ monitoringImageScript: v }),
+                          style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
+                        }),
+                        h(InfoBox, ['Script that runs inside the sibling container']),
+                      ]),
+                    ]),
+                ]),
               ]),
               h(StepButtons, {
                 tabs: [
@@ -1120,8 +1191,9 @@ const WorkflowView = _.flow(
                   ButtonPrimary,
                   {
                     style: { marginLeft: '1rem' },
-                    disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
-                    tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
+                    disabled: !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
+                    tooltip: noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
+                    ...WorkspaceUtils.getWorkspaceAnalysisControlProps(ws),
                     onClick: () => this.setState({ launching: true }),
                   },
                   ['Run analysis']
@@ -1220,9 +1292,7 @@ const WorkflowView = _.flow(
     async uploadJson(key, file) {
       try {
         const rawUpdates = JSON.parse(await readFileAsText(file));
-        const updates = _.mapValues((v) => (_.isString(v) && v.match(/\${(.*)}/) ? v.replace(/\${(.*)}/, (_, match) => match) : JSON.stringify(v)))(
-          rawUpdates
-        );
+        const updates = _.mapValues((v) => sanitizeAttributeUpdateString(v))(rawUpdates);
         this.setState(({ modifiedConfig, modifiedInputsOutputs }) => {
           const existing = _.map('name', modifiedInputsOutputs[key]);
           return {
@@ -1319,7 +1389,7 @@ const WorkflowView = _.flow(
       }, data);
 
       const isSingleAndOutputs = key === 'outputs' && this.isSingle();
-      const isEditable = !currentSnapRedacted && !WorkspaceUtils.editWorkspaceError(workspace) && !isSingleAndOutputs;
+      const isEditable = !currentSnapRedacted && WorkspaceUtils.canEditWorkspace(workspace).value && !isSingleAndOutputs;
 
       const linkStyle = { color: colors.accent(1.05) }; // Get to 4.5:1 contrast on the gray background
 
@@ -1329,7 +1399,7 @@ const WorkflowView = _.flow(
           key,
           accept: '.json',
           multiple: false,
-          disabled: currentSnapRedacted || !!WorkspaceUtils.editWorkspaceError(workspace) || data.length === 0,
+          disabled: currentSnapRedacted || !WorkspaceUtils.canEditWorkspace(workspace).value || data.length === 0,
           style: {
             ...styles.tabContents,
             flex: 'auto',

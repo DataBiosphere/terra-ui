@@ -1,12 +1,14 @@
+import { Switch } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { Fragment, useLayoutEffect, useRef, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
-import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay, Switch } from 'src/components/common';
+import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
-import Modal, { styles as modalStyles } from 'src/components/Modal';
+import Modal, { modalStyles } from 'src/components/Modal';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
+import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -35,7 +37,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
 
   // State
   const [shareSuggestions, setShareSuggestions] = useState<string[]>([]);
-  const [groups, setGroups] = useState([]);
+  const [groups, setGroups] = useState<CurrentUserGroupMembership[]>([]);
   const [originalAcl, setOriginalAcl] = useState<WorkspaceAcl>([]);
   const [searchValue, setSearchValue] = useState('');
   const [acl, setAcl] = useState<WorkspaceAcl>([]);

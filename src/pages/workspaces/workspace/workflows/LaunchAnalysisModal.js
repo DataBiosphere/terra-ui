@@ -1,11 +1,12 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { b, div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, Link } from 'src/components/common';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
+import { InfoBox } from 'src/components/InfoBox';
 import { ValidatedTextArea } from 'src/components/input';
 import Modal from 'src/components/Modal';
-import { InfoBox } from 'src/components/PopupTrigger';
 import { getRegionInfo } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { launch } from 'src/libs/analysis';
@@ -34,6 +35,9 @@ const LaunchAnalysisModal = ({
   retryWithMoreMemory,
   retryMemoryFactor,
   ignoreEmptyOutputs,
+  monitoringScript,
+  monitoringImage,
+  monitoringImageScript,
   onSuccess,
 }) => {
   const [launching, setLaunching] = useState(undefined);
@@ -88,6 +92,9 @@ const LaunchAnalysisModal = ({
         memoryRetryMultiplier: retryWithMoreMemory ? retryMemoryFactor : undefined,
         userComment: _.trim(userComment),
         ignoreEmptyOutputs,
+        monitoringScript,
+        monitoringImage,
+        monitoringImageScript,
         onProgress: (stage) => {
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage]);
         },
@@ -227,7 +234,7 @@ const LaunchAnalysisModal = ({
           },
           ['(Duplicate entities are only processed once.)']
         ),
-      message && div({ style: { display: 'flex' } }, [spinner({ style: { marginRight: '0.5rem' } }), message]),
+      message && div({ style: { display: 'flex' } }, [h(Spinner, { style: { marginRight: '0.5rem' } }), message]),
       div(
         {
           style: { color: colors.danger(), overflowWrap: 'break-word' },

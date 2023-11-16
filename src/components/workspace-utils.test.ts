@@ -1,14 +1,16 @@
 import { getAllByRole, getByRole, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { WorkspaceSelector } from './workspace-utils';
 
 describe('WorkspaceSelector', () => {
-  const workspaces = [
-    { workspace: { workspaceId: 'workspace-a', name: 'Workspace A' } },
-    { workspace: { workspaceId: 'workspace-b', name: 'Workspace B' } },
-    { workspace: { workspaceId: 'workspace-c', name: 'Workspace C' } },
+  const workspaces: Workspace[] = [
+    makeGoogleWorkspace({ workspace: { workspaceId: 'workspace-a', name: 'Workspace A' } }),
+    makeGoogleWorkspace({ workspace: { workspaceId: 'workspace-b', name: 'Workspace B' } }),
+    makeGoogleWorkspace({ workspace: { workspaceId: 'workspace-c', name: 'Workspace C' } }),
   ];
 
   it('renders a list of workspaces', async () => {
@@ -33,7 +35,11 @@ describe('WorkspaceSelector', () => {
     const options = getAllByRole(listbox, 'option');
     const optionLabels = options.map((opt) => opt.textContent!);
 
-    expect(optionLabels).toEqual(['Workspace A', 'Workspace B', 'Workspace C']);
+    expect(optionLabels).toEqual([
+      expect.stringMatching(/Workspace A/),
+      expect.stringMatching(/Workspace B/),
+      expect.stringMatching(/Workspace C/),
+    ]);
   });
 
   it('calls onChange with workspace ID when a workspace is selected', async () => {
@@ -56,7 +62,7 @@ describe('WorkspaceSelector', () => {
     const listboxId = selectInput.getAttribute('aria-controls')!;
     const listbox = document.getElementById(listboxId)!;
 
-    const workspaceBOption = getByRole(listbox, 'option', { name: 'Workspace B' });
+    const workspaceBOption = getByRole(listbox, 'option', { name: /Workspace B/ });
     await user.click(workspaceBOption);
 
     // Assert

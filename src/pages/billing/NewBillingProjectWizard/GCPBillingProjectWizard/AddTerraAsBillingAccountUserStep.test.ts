@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import * as Preferences from 'src/libs/prefs';
@@ -6,7 +6,7 @@ import {
   AddTerraAsBillingAccountUserStep,
   AddTerraAsBillingAccountUserStepProps,
 } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/AddTerraAsBillingAccountUserStep';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
 jest.spyOn(Preferences, 'getLocalPref');

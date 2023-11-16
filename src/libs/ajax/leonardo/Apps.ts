@@ -6,7 +6,7 @@ import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-
 import { CreateAppV1Request, GetAppResponse, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 
-export const Apps = (signal) => ({
+export const Apps = (signal: AbortSignal) => ({
   list: async (project: string, labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {
     const res = await fetchLeo(
       `api/google/v1/apps/${project}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
@@ -21,7 +21,7 @@ export const Apps = (signal) => ({
     );
     return res.json();
   },
-  app: (project, name) => {
+  app: (project: string, name: string) => {
     const root = `api/google/v1/apps/${project}/${name}`;
     return {
       delete: (deleteDisk = false): Promise<void> => {
@@ -111,12 +111,14 @@ export const Apps = (signal) => ({
       _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }])
     );
   },
-  deleteAllAppsV2: async (workspaceId: string, deleteDisk = true): Promise<void> => {
+  getAppV2: async (appName: string, workspaceId: string): Promise<GetAppResponse> => {
     const res = await fetchLeo(
-      `api/apps/v2/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal, method: 'POST' }])
+      `api/apps/v2/${workspaceId}/${appName}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }])
     );
-
-    return res;
+    return res.json();
   },
 });
+
+export type AppsAjaxContract = ReturnType<typeof Apps>;
+export type AppAjaxContract = ReturnType<AppsAjaxContract['app']>;

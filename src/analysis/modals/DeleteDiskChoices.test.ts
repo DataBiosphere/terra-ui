@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { azureRuntime, getAzureDisk, getDisk, getRuntimeConfig } from 'src/analysis/_testData/testData';
@@ -10,6 +10,7 @@ import { ButtonPrimary } from 'src/components/common';
 import { cloudServiceTypes } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { formatUSD } from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 const renderActionButton = () => h(ButtonPrimary, {}, ['Delete']);
 

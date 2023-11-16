@@ -13,7 +13,8 @@ const brandLogoMaker = (size, color = false) =>
     style: { height: size, marginRight: '1.5rem' },
   });
 
-export const registrationLogo = () =>
+// Needs to be capitalized to be a TSX Component
+export const RegistrationLogo = () =>
   isTerra()
     ? div({ style: { display: 'flex', alignItems: 'center' } }, [
         terraLogoMaker(brands.terra.logos.color, { height: 100, marginRight: 20 }),
@@ -26,7 +27,7 @@ export const topBarLogo = () =>
 
 export const footerLogo = () => (isTerra() ? terraLogoMaker(brands.terra.logos.white, { height: 40 }) : brandLogoMaker(40));
 
-export const versionTag = (version, styles) =>
+const versionTag = (version, styles) =>
   b(
     {
       style: {

@@ -1,11 +1,13 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { icon, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useContext, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { Link } from 'src/components/common';
+import ErrorView from 'src/components/ErrorView';
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown';
+import Modal from 'src/components/Modal';
 import { FlexTable, HeaderRenderer } from 'src/components/table';
 import { WorkspaceStarControl } from 'src/components/WorkspaceStarControl';
 import { workspaceSubmissionStatus, WorkspaceSubmissionStatusIcon } from 'src/components/WorkspaceSubmissionStatusIcon';
@@ -24,7 +26,7 @@ import {
   WorkspaceInfo,
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
-import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
+import { WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceMenu';
 import { WorkspaceUserActionsContext } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
 
 // This is actually the sort type from the FlexTable component
@@ -165,7 +167,7 @@ const NameCell = (props: CellProps): ReactNode => {
   const {
     accessLevel,
     workspace,
-    workspace: { workspaceId, namespace, name, attributes },
+    workspace: { workspaceId, namespace, name, attributes, state },
   } = props.workspace;
   const { setUserActions } = useContext(WorkspaceUserActionsContext);
 
@@ -195,27 +197,112 @@ const NameCell = (props: CellProps): ReactNode => {
             !canView &&
             'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
           tooltipSide: 'right',
+          disabled: workspace.state === 'Deleted',
         },
         [name]
       ),
     ]),
-    div({ style: { ...styles.tableCellContent } }, [
-      h(
-        FirstParagraphMarkdownViewer,
-        {
-          style: {
-            height: '1.5rem',
-            margin: 0,
-            ...Style.noWrapEllipsis,
-            color: description ? undefined : colors.dark(0.75),
-            fontSize: 14,
-          },
-        },
-        [description?.toString() || 'No description added']
-      ),
-    ]),
+    Utils.cond(
+      [state === 'Deleting', () => h(WorkspaceDeletingCell)],
+      [state === 'DeleteFailed', () => h(WorkspaceDeletionFailedCell, { workspace: props.workspace })],
+      [state === 'Deleted', () => h(WorkspaceDeletedCell)],
+      [Utils.DEFAULT, () => h(WorkspaceDescriptionCell, { description })]
+    ),
   ]);
 };
+
+const WorkspaceDescriptionCell = (props: { description: unknown | undefined }) => {
+  return div({ style: { ...styles.tableCellContent } }, [
+    h(
+      FirstParagraphMarkdownViewer,
+      {
+        style: {
+          height: '1.5rem',
+          margin: 0,
+          ...Style.noWrapEllipsis,
+          color: props.description ? undefined : colors.dark(0.75),
+          fontSize: 14,
+        },
+      },
+      [props.description?.toString() || 'No description added']
+    ),
+  ]);
+};
+
+const WorkspaceDeletingCell = (): ReactNode => {
+  const deletingIcon = icon('syncAlt', {
+    size: 18,
+    style: {
+      animation: 'rotation 2s infinite linear',
+      marginRight: '0.5rem',
+    },
+  });
+  return div(
+    {
+      style: {
+        color: colors.danger(),
+      },
+    },
+    [deletingIcon, 'Workspace deletion in progress']
+  );
+};
+
+const WorkspaceDeletionFailedCell = (props: CellProps): ReactNode => {
+  const { workspace } = props;
+  const [showDetails, setShowDetails] = useState<boolean>(false);
+
+  const errorIcon = icon('warning-standard', {
+    size: 18,
+    style: {
+      color: colors.danger(),
+      marginRight: '0.5rem',
+    },
+  });
+  return div(
+    {
+      style: {
+        color: colors.danger(),
+      },
+    },
+    [
+      errorIcon,
+      'Error deleting workspace',
+      workspace.workspace.errorMessage
+        ? h(
+            Link,
+            {
+              onClick: () => setShowDetails(true),
+              style: { fontSize: 14, marginRight: '0.5rem', marginLeft: '0.5rem' },
+            },
+            ['See error details.']
+          )
+        : null,
+      showDetails
+        ? h(
+            Modal,
+            {
+              width: 800,
+              title: 'Error deleting workspace',
+              showCancel: false,
+              showX: true,
+              onDismiss: () => setShowDetails(false),
+            },
+            [h(ErrorView, { error: workspace?.workspace.errorMessage ?? 'No error message available' })]
+          )
+        : null,
+    ]
+  );
+};
+
+const WorkspaceDeletedCell = (): ReactNode =>
+  div(
+    {
+      style: {
+        color: colors.danger(),
+      },
+    },
+    ['Workspace has been deleted. Refresh to remove from list.']
+  );
 
 const LastModifiedCell = (props: CellProps): ReactNode => {
   const {
@@ -282,13 +369,16 @@ interface ActionsCellProps extends CellProps {
 const ActionsCell = (props: ActionsCellProps): ReactNode => {
   const {
     accessLevel,
-    workspace: { workspaceId, namespace, name },
+    workspace: { workspaceId, namespace, name, state },
   } = props.workspace;
   const { setUserActions } = useContext(WorkspaceUserActionsContext);
 
   if (!canRead(accessLevel)) {
     // No menu shown if user does not have read access.
     return div({ className: 'sr-only' }, ['You do not have permission to perform actions on this workspace.']);
+  }
+  if (state === 'Deleted') {
+    return null;
   }
   const getWorkspace = (id: string): Workspace => _.find({ workspace: { workspaceId: id } }, props.workspaces)!;
 
@@ -304,7 +394,6 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
         iconSize: 20,
         popupLocation: 'left',
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-        // @ts-expect-error
         workspaceInfo: { namespace, name },
       }),
     ]),

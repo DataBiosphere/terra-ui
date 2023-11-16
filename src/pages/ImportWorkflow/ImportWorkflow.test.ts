@@ -9,7 +9,7 @@ import { errorWatcher } from 'src/libs/error.mock';
 import * as Nav from 'src/libs/nav';
 import { getTerraUser } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
 import { ImportWorkflow } from './ImportWorkflow';
@@ -20,12 +20,6 @@ type AppsContract = ReturnType<typeof Apps>;
 
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/ajax/leonardo/Apps');
-
-type ModalExports = typeof import('src/components/Modal');
-jest.mock('src/components/Modal', (): ModalExports => {
-  const { mockModalModule } = jest.requireActual('src/components/Modal.mock');
-  return mockModalModule();
-});
 
 type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
 jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
@@ -200,7 +194,7 @@ describe('ImportWorkflow', () => {
           isMember: async () => {
             return true;
           },
-        };
+        } as Partial<ReturnType<AjaxContract['Groups']['group']>>;
       },
     } as Partial<AjaxContract['Groups']>,
     Metrics: {
@@ -217,7 +211,7 @@ describe('ImportWorkflow', () => {
         {
           workspace: {
             namespace: 'test',
-            name: 'workspace1',
+            name: 'gcp-workspace1',
             workspaceId: '6771d2c8-cd58-47da-a54c-6cdafacc4175',
             cloudPlatform: 'Gcp',
           },
@@ -226,7 +220,7 @@ describe('ImportWorkflow', () => {
         {
           workspace: {
             namespace: 'test',
-            name: 'workspace2',
+            name: 'gcp-workspace2',
             workspaceId: '5cfa16d8-d604-4de8-8e8a-acde05d71b99',
             cloudPlatform: 'Gcp',
           },
@@ -337,10 +331,8 @@ describe('ImportWorkflow', () => {
     render(h(ImportWorkflow, { ...testWorkflow }));
 
     // Act
-    const workspaceMenu = screen.getByLabelText('Destination Workspace');
-    await user.click(workspaceMenu);
-    const option = screen.getAllByRole('option').find((el) => el.textContent === 'workspace1')!;
-    await user.click(option);
+    const workspaceMenu = new SelectHelper(screen.getByLabelText('Destination Workspace'), user);
+    await workspaceMenu.selectOption(/gcp-workspace1/);
 
     const importButton = screen.getByText('Import');
     await user.click(importButton);
@@ -348,7 +340,7 @@ describe('ImportWorkflow', () => {
     // Assert
     expect(importDockstoreWorkflow).toHaveBeenCalledWith(
       expect.objectContaining({
-        workspace: expect.objectContaining({ namespace: 'test', name: 'workspace1' }),
+        workspace: expect.objectContaining({ namespace: 'test', name: 'gcp-workspace1' }),
         workflow: testWorkflow,
       }),
       { overwrite: false }
@@ -393,10 +385,8 @@ describe('ImportWorkflow', () => {
     render(h(ImportWorkflow, { ...testWorkflow }));
 
     // Act
-    const workspaceMenu = screen.getByLabelText('Destination Workspace');
-    await user.click(workspaceMenu);
-    const option = screen.getAllByRole('option').find((el) => el.textContent === 'azure-workspace1')!;
-    await user.click(option);
+    const workspaceMenu = new SelectHelper(screen.getByLabelText('Destination Workspace'), user);
+    await workspaceMenu.selectOption(/azure-workspace1/);
 
     const importButton = screen.getByText('Import');
     await user.click(importButton);
@@ -445,10 +435,8 @@ describe('ImportWorkflow', () => {
     render(h(ImportWorkflow, { ...testWorkflow }));
 
     // Act
-    const workspaceMenu = screen.getByLabelText('Destination Workspace');
-    await user.click(workspaceMenu);
-    const option = screen.getAllByRole('option').find((el) => el.textContent === 'azure-workspace2')!;
-    await user.click(option);
+    const workspaceMenu = new SelectHelper(screen.getByLabelText('Destination Workspace'), user);
+    await workspaceMenu.selectOption(/azure-workspace2/);
 
     const importButton = screen.getByText('Import');
     await user.click(importButton);
@@ -495,10 +483,8 @@ describe('ImportWorkflow', () => {
     render(h(ImportWorkflow, { ...testWorkflow }));
 
     // Act
-    const workspaceMenu = screen.getByLabelText('Destination Workspace');
-    await user.click(workspaceMenu);
-    const option = screen.getAllByRole('option').find((el) => el.textContent === 'workspace1')!;
-    await user.click(option);
+    const workspaceMenu = new SelectHelper(screen.getByLabelText('Destination Workspace'), user);
+    await workspaceMenu.selectOption(/gcp-workspace1/);
 
     const importButton = screen.getByText('Import');
     await user.click(importButton);
@@ -514,7 +500,7 @@ describe('ImportWorkflow', () => {
     // Assert
     expect(firstImportDockstoreWorkflowCallArgs).toEqual([
       expect.objectContaining({
-        workspace: expect.objectContaining({ namespace: 'test', name: 'workspace1' }),
+        workspace: expect.objectContaining({ namespace: 'test', name: 'gcp-workspace1' }),
         workflow: testWorkflow,
       }),
       { overwrite: false },
@@ -524,7 +510,7 @@ describe('ImportWorkflow', () => {
 
     expect(secondImportDockstoreWorkflowCallArgs).toEqual([
       expect.objectContaining({
-        workspace: expect.objectContaining({ namespace: 'test', name: 'workspace1' }),
+        workspace: expect.objectContaining({ namespace: 'test', name: 'gcp-workspace1' }),
         workflow: testWorkflow,
       }),
       { overwrite: true },

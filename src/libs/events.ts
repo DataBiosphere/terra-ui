@@ -1,8 +1,8 @@
 import _ from 'lodash/fp';
-import { useEffect } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { useRoute } from 'src/libs/nav';
-import { containsProtectedDataPolicy } from 'src/libs/workspace-utils';
+import { containsProtectedDataPolicy, WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 /*
  * NOTE: In order to show up in reports, new events MUST be marked as expected in the Mixpanel
@@ -53,11 +53,13 @@ const eventsList = {
   cloudEnvironmentDelete: 'cloudEnvironment:delete',
   cloudEnvironmentUpdate: 'cloudEnvironment:update',
   cloudEnvironmentDetailsLoad: 'analysis:details:load',
-  catalogFilter: 'catalog:filter',
+  catalogFilterSearch: 'catalog:filter:search',
+  catalogFilterSidebar: 'catalog:filter:sidebar',
   catalogRequestAccess: 'catalog:requestAccess',
   catalogToggle: 'catalog:toggle',
   catalogLandingPageBanner: 'catalog:landingPageBanner',
-  catalogView: 'catalog:view',
+  catalogViewDetails: 'catalog:view:details',
+  catalogViewPreviewData: 'catalog:view:previewData',
   catalogWorkspaceLink: 'catalog:workspaceLink',
   catalogWorkspaceLinkExportFinished: 'catalog:workspaceLink:completed',
   datasetLibraryBrowseData: 'library:browseData',
@@ -81,8 +83,13 @@ const eventsList = {
       success: 'user:authTokenLoad:success',
       expired: 'user:authTokenLoad:expiredRefreshToken',
       error: 'user:authTokenLoad:error',
+      retry: 'user:authTokenLoad:retry',
     },
-    login: 'user:login',
+    login: {
+      success: 'user:login:success',
+      expired: 'user:login:expiredRefreshToken',
+      error: 'user:login:error',
+    },
     signOut: {
       requested: 'user:signOut:requested',
       disabled: 'user:signOut:disabled',
@@ -138,28 +145,80 @@ const eventsList = {
   workspaceSnapshotDelete: 'workspace:snapshot:delete',
   workspaceSnapshotContentsView: 'workspace:snapshot:contents:view',
   workspaceStar: 'workspace:star',
-};
+} as const;
+
+// Helper type to create BaseMetricsEventName.
+type MetricsEventsMap<EventName> = { [key: string]: EventName | MetricsEventsMap<EventName> };
+// Union type of all event names configured in eventsList.
+type BaseMetricsEventName = typeof eventsList extends MetricsEventsMap<infer EventName> ? EventName : never;
+// Each route has its own page view event, where the event name includes the name of the route.
+type PageViewMetricsEventName = `${typeof eventsList.pageView}:${string}`;
 
 /**
- * Extracts name, namespace, and cloudPlatform and policies (if present) from an object. The object can either have these
- * as top-level properties (such as would be returned from parseNav), or nested within a workspace object
- * (such as would be returned from the ajax workspace details API).
+ * Union type of all metrics event names.
  */
-export const extractWorkspaceDetails = (workspaceObject) => {
-  // A "workspace" as returned from the workspace list or details API method has as "workspace" object within it
-  // containing the workspace details.
+export type MetricsEventName = BaseMetricsEventName | PageViewMetricsEventName;
+
+// extractWorkspaceDetails accepts multiple types of input...
+export type EventWorkspaceAttributes =
+  // A WorkspaceWrapper object, from which it extracts the policies and a few fields from the inner WorkspaceInfo.
+  | {
+      workspace: Pick<WorkspaceInfo, 'namespace' | 'name' | 'cloudPlatform'>;
+      policies?: WorkspaceWrapper['policies'];
+    }
+  // A WorkspaceInfo object, from which it extracts a few fields.
+  | Pick<WorkspaceInfo, 'namespace' | 'name' | 'cloudPlatform'>
+  // A workspace namespace and name on their own.
+  // cloudPlatform may also be passed, but it's mainly here to make the types easier in extractWorkspaceDetails.
+  | { namespace: string; name: string; cloudPlatform?: WorkspaceInfo['cloudPlatform'] };
+
+export interface EventWorkspaceDetails {
+  workspaceNamespace: string;
+  workspaceName: string;
+  cloudPlatform?: string;
+  hasProtectedData?: boolean;
+}
+
+/**
+ * Extracts name, namespace, cloudPlatform, and policies (if present) from an object.
+ *
+ * @param workspace - Workspace attributes. These can be provided with a WorkspaceWrapper object, a WorkspaceInfo object, or a plain { namespace, name } object.
+ */
+export const extractWorkspaceDetails = (workspaceObject: EventWorkspaceAttributes): EventWorkspaceDetails => {
+  // If a WorkspaceWrapper is provided, get the inner WorkspaceInfo. Otherwise, use the provided object directly.
   const workspaceDetails = 'workspace' in workspaceObject ? workspaceObject.workspace : workspaceObject;
   const { name, namespace, cloudPlatform } = workspaceDetails;
-  const hasProtectedData = containsProtectedDataPolicy(workspaceObject.policies ?? workspaceDetails.policies);
-  const data = { workspaceName: name, workspaceNamespace: namespace };
-  // When workspace details are obtained from the nav path, the cloudPlatform will not be available.
-  // Uppercase cloud platform because we mix camelcase and uppercase depending on which server API it came from (rawls/workspace vs. leo).
-  return _.isUndefined(cloudPlatform)
-    ? data
-    : _.merge(data, { cloudPlatform: _.toUpper(cloudPlatform), hasProtectedData });
+
+  // Policies are only available if a WorkspaceWrapper object is passed.
+  // For other types of input, whether the workspace has protected data is unknown.
+  const hasProtectedData =
+    'policies' in workspaceObject ? containsProtectedDataPolicy(workspaceObject.policies) : undefined;
+
+  return {
+    workspaceNamespace: namespace,
+    workspaceName: name,
+    cloudPlatform: cloudPlatform ? cloudPlatform.toUpperCase() : undefined,
+    hasProtectedData,
+  };
 };
 
-export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
+export interface CrossWorkspaceEventWorkspaceAttributes {
+  workspace: Pick<WorkspaceWrapper['workspace'], 'namespace' | 'name' | 'cloudPlatform'>;
+}
+
+export interface CrossWorkspaceEventWorkspaceDetails {
+  fromWorkspaceNamespace: string;
+  fromWorkspaceName: string;
+  fromWorkspaceCloudPlatform: string;
+  toWorkspaceNamespace: string;
+  toWorkspaceName: string;
+  toWorkspaceCloudPlatform: string;
+}
+
+export const extractCrossWorkspaceDetails = (
+  fromWorkspace: CrossWorkspaceEventWorkspaceAttributes,
+  toWorkspace: CrossWorkspaceEventWorkspaceAttributes
+): CrossWorkspaceEventWorkspaceDetails => {
   return {
     fromWorkspaceNamespace: fromWorkspace.workspace.namespace,
     fromWorkspaceName: fromWorkspace.workspace.name,
@@ -170,14 +229,24 @@ export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
   };
 };
 
-export const extractBillingDetails = (billingProject) => {
+export interface EventBillingProjectAttributes {
+  projectName: string;
+  cloudPlatform: string;
+}
+
+export interface EventBillingDetails {
+  billingProjectName: string;
+  cloudPlatform: string;
+}
+
+export const extractBillingDetails = (billingProject: EventBillingProjectAttributes): EventBillingDetails => {
   return {
     billingProjectName: billingProject.projectName,
     cloudPlatform: _.toUpper(billingProject.cloudPlatform), // Should already be uppercase, but enforce for consistency.
   };
 };
 
-export function PageViewReporter() {
+export const PageViewReporter = (): ReactNode => {
   const { name, params } = useRoute();
 
   useEffect(() => {
@@ -190,9 +259,9 @@ export function PageViewReporter() {
   }, [name, params]);
 
   return null;
-}
+};
 
-export const captureAppcuesEvent = (eventName, event) => {
+export const captureAppcuesEvent = (eventName: string, event: any) => {
   // Only record "public-facing events" (and related properties) as documented by Appcues: https://docs.appcues.com/article/301-client-side-events-reference
   const publicEvents = [
     'flow_started',

@@ -225,8 +225,18 @@ export const isPauseSupported = (toolLabel: ToolLabel): boolean =>
 export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider): boolean =>
   Utils.cond(
     [
-      toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.GCP && !isCromwellAppVisible(),
-      () => true,
+      toolLabel === appToolLabels.CROMWELL,
+      () =>
+        Utils.cond(
+          [cloudProvider === cloudProviderTypes.GCP, () => !isCromwellAppVisible()],
+          [
+            cloudProvider === cloudProviderTypes.AZURE,
+            () => {
+              return true;
+            },
+          ],
+          [Utils.DEFAULT, () => false]
+        ),
     ],
     [
       toolLabel === appToolLabels.HAIL_BATCH &&

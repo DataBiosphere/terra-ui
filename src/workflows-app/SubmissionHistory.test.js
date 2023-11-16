@@ -1,10 +1,11 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
-import { SelectHelper } from 'src/testing/test-utils';
+import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { mockAbortResponse, mockAzureApps, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
@@ -24,10 +25,6 @@ jest.mock('src/components/PopupTrigger', () => {
     MenuTrigger: jest.fn(),
   };
 });
-jest.mock('src/libs/state', () => ({
-  ...jest.requireActual('src/libs/state'),
-  getTerraUser: jest.fn(),
-}));
 // Mocking feature preview setup
 jest.mock('src/libs/feature-previews', () => ({
   ...jest.requireActual('src/libs/feature-previews'),
@@ -36,6 +33,10 @@ jest.mock('src/libs/feature-previews', () => ({
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({}),
+}));
+jest.mock('src/libs/state', () => ({
+  ...jest.requireActual('src/libs/state'),
+  getTerraUser: jest.fn(),
 }));
 
 // SubmissionHistory component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
@@ -48,9 +49,18 @@ const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 const runSetData = {
   run_sets: [
     {
-      error_count: 0,
+      error_count: 2,
       submission_timestamp: '2022-01-01T12:00:00.000+00:00',
       last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
+      record_type: 'FOO',
+      run_count: 4,
+      run_set_id: '1f496c9a-e2ab-4f33-9298-e444c53c7d9d',
+      state: 'COMPLETE',
+    },
+    {
+      error_count: 0,
+      submission_timestamp: '2023-08-01T12:00:00.000+00:00',
+      last_modified_timestamp: '2023-08-02T13:01:01.000+00:00',
       record_type: 'FOO',
       run_count: 1,
       run_set_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
@@ -58,8 +68,8 @@ const runSetData = {
     },
     {
       error_count: 1,
-      submission_timestamp: '2021-07-10T12:00:00.000+00:00',
-      last_modified_timestamp: '2021-08-11T13:01:01.000+00:00',
+      submission_timestamp: '2023-07-10T12:00:00.000+00:00',
+      last_modified_timestamp: '2023-08-11T13:01:01.000+00:00',
       record_type: 'FOO',
       run_count: 2,
       run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
@@ -104,6 +114,7 @@ describe('SubmissionHistory tab', () => {
     const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -114,6 +125,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -146,11 +160,11 @@ describe('SubmissionHistory tab', () => {
     // Click on "Date Submitted" column and check that the top column is correct for:
     // * ascending order
     await user.click(await within(headers[headerPosition['Date Submitted']]).getByRole('button'));
-    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jul 10, 2021/);
+    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jul 10, 2023/);
 
     // * descending order
     await user.click(await within(headers[headerPosition['Date Submitted']]).getByRole('button'));
-    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jan 1, 2022/);
+    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Aug 1, 2023/);
 
     // Click on "Status" column and check that the top column is correct for:
     // * ascending order
@@ -175,6 +189,7 @@ describe('SubmissionHistory tab', () => {
     // Arrange
     const mockRunSetResponse = jest.fn(() => Promise.resolve([]));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -185,6 +200,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -210,6 +228,7 @@ describe('SubmissionHistory tab', () => {
   it('should correctly display previous 2 run sets', async () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -220,6 +239,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -245,7 +267,7 @@ describe('SubmissionHistory tab', () => {
     expect(table).toHaveAttribute('aria-rowcount', '3');
 
     const rows = within(table).getAllByRole('row');
-    expect(rows.length).toBe(3);
+    expect(rows.length).toBe(3); // header + 2 submissions after workspace creation
 
     const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(6);
@@ -263,7 +285,7 @@ describe('SubmissionHistory tab', () => {
     within(cellsFromDataRow1[headerPosition.Submission]).getByText('Data used: FOO');
     within(cellsFromDataRow1[headerPosition.Submission]).getByText('1 workflows');
     within(cellsFromDataRow1[headerPosition.Status]).getByText('Success');
-    within(cellsFromDataRow1[headerPosition['Date Submitted']]).getByText(/Jan 1, 2022/);
+    within(cellsFromDataRow1[headerPosition['Date Submitted']]).getByText(/Aug 1, 2023/);
     within(cellsFromDataRow1[headerPosition.Duration]).getByText('1 day 1 hour 1 minute 1 second');
 
     const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
@@ -271,36 +293,26 @@ describe('SubmissionHistory tab', () => {
     within(headers[headerPosition.Actions]).getByText('Actions');
     within(cellsFromDataRow2[headerPosition.Submission]).getByText('Data used: FOO');
     within(cellsFromDataRow2[headerPosition.Status]).getByText('Failed with 1 errors');
-    within(cellsFromDataRow2[headerPosition['Date Submitted']]).getByText(/Jul 10, 2021/);
+    within(cellsFromDataRow2[headerPosition['Date Submitted']]).getByText(/Jul 10, 2023/);
     within(cellsFromDataRow2[headerPosition.Duration]).getByText('1 month 1 day 1 hour 1 minute 1 second');
   });
 
   it('should support canceled and canceling submissions', async () => {
-    const runSetData = {
-      run_sets: [
+    const newRunSetData = {
+      run_sets: _.merge(runSetData.run_sets, [
+        {},
         {
-          error_count: 0,
-          submission_timestamp: '2022-01-01T12:00:00.000+00:00',
-          last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
-          record_type: 'FOO',
-          run_count: 1,
-          run_set_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
           state: 'CANCELED',
         },
         {
-          error_count: 0,
-          submission_timestamp: '2021-07-10T12:00:00.000+00:00',
-          last_modified_timestamp: '2021-08-11T13:01:01.000+00:00',
-          record_type: 'FOO',
-          run_count: 2,
-          run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
           state: 'CANCELING',
         },
-      ],
+      ]),
     };
 
-    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(newRunSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -311,6 +323,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -349,12 +364,13 @@ describe('SubmissionHistory tab', () => {
     run_sets: [
       {
         error_count: 0,
-        submission_timestamp: '2022-01-01T12:00:00.000+00:00',
-        last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
+        submission_timestamp: '2023-08-01T12:00:00.000+00:00',
+        last_modified_timestamp: '2023-08-02T13:01:01.000+00:00',
         record_type: 'FOO',
         run_count: 1,
         run_set_id: '20000000-0000-0000-0000-200000000002',
         state: 'RUNNING',
+        user_id: 'foo',
       },
     ],
     fully_updated: true,
@@ -364,6 +380,7 @@ describe('SubmissionHistory tab', () => {
     const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(simpleRunSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
     Ajax.mockImplementation(() => {
       return {
@@ -374,6 +391,9 @@ describe('SubmissionHistory tab', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -407,22 +427,31 @@ describe('SubmissionHistory tab', () => {
     });
   });
 
-  it('should abort successfully', async () => {
+  const abortTestCases = [
+    ['abort successfully', { workspace: mockAzureWorkspace, userId: 'foo', abortAllowed: true }],
+    ['not allow abort for non-submitter', { workspace: mockAzureWorkspace, userId: 'not-foo', abortAllowed: false }],
+  ];
+
+  it.each(abortTestCases)('should %s', async (_unused, { workspace, userId, abortAllowed }) => {
     const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(simpleRunSetData));
     const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: userId }));
 
     Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
             get: getRunSetsMethod,
-            cancel: jest.fn(cancelSubmissionFunction),
+            cancel: cancelSubmissionFunction,
           },
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
         },
       };
     });
@@ -433,7 +462,7 @@ describe('SubmissionHistory tab', () => {
         h(BaseSubmissionHistory, {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
-          workspace: mockAzureWorkspace,
+          workspace,
         })
       );
     });
@@ -457,10 +486,12 @@ describe('SubmissionHistory tab', () => {
     });
 
     const abortButton = screen.getByText('Abort');
-    expect(abortButton).toHaveAttribute('aria-disabled', 'false');
+    expect(abortButton).toHaveAttribute('aria-disabled', (!abortAllowed).toString());
     await user.click(abortButton);
 
-    expect(cancelSubmissionFunction).toHaveBeenCalled();
-    expect(cancelSubmissionFunction).toBeCalledWith('https://lz-abc/terra-app-abc/cbas', '20000000-0000-0000-0000-200000000002');
+    if (abortAllowed) {
+      expect(cancelSubmissionFunction).toHaveBeenCalled();
+      expect(cancelSubmissionFunction).toBeCalledWith('https://lz-abc/terra-app-abc/cbas', '20000000-0000-0000-0000-200000000002');
+    }
   });
 });

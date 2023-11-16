@@ -1,19 +1,20 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
-const { deleteRuntimes, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers');
+const { deleteRuntimes, withWorkspace, gotoAnalysisTab } = require('../utils/integration-helpers');
 const {
+  Millis,
   click,
   clickable,
-  delay,
-  findElement,
-  noSpinnersAfter,
+  dismissNotifications,
   fillIn,
+  findElement,
   findIframe,
   findText,
-  dismissNotifications,
   getAnimatedDrawer,
   image,
   input,
+  noSpinnersAfter,
+  waitForNoModal,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
@@ -24,7 +25,7 @@ const testRunAnalysisFn = _.flowRight(
   withUserToken,
   withWorkspace
 )(async ({ billingProject, workspaceName, page, testUrl, token }) => {
-  await performAnalysisTabSetup(page, token, testUrl, workspaceName);
+  await gotoAnalysisTab(page, token, testUrl, workspaceName);
 
   // Create analysis file
   await click(page, clickable({ textContains: 'Start' }));
@@ -33,43 +34,39 @@ const testRunAnalysisFn = _.flowRight(
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName);
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' })) });
 
-  // Close the create cloud env modal that pops up
+  // Dismiss the create env modal for now
   await noSpinnersAfter(page, {
     action: () => findText(page, 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).'),
   });
-
   await click(page, clickable({ textContains: 'Close' }));
-
-  // The Compute Modal does not close quickly enough, so the subsequent click does not properly click on the element
-  await delay(200);
+  await waitForNoModal(page);
 
   // Navigate to analysis launcher
-  await click(page, `//*[@title="${notebookName}.ipynb"]`, { timeout: 30000 });
+  await click(page, `//*[@title="${notebookName}.ipynb"]`);
   await dismissNotifications(page);
+  await findText(page, 'PREVIEW (READ-ONLY)');
 
+  // Attempt to open analysis; create a cloud env
   await noSpinnersAfter(page, {
     action: () => click(page, clickable({ textContains: 'Open' })),
   });
-
-  // Create a cloud env from analysis launcher
+  await findText(page, 'Jupyter Cloud Environment');
   await click(page, clickable({ text: 'Create' }));
+  await waitForNoModal(page);
 
-  // The Compute Modal does not close quickly enough, so the subsequent click does not properly click on the element
-  await delay(200);
-
-  await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: 40000 });
-  await findElement(page, clickable({ textContains: 'Creating' }), { timeout: 40000 });
-  await click(page, clickable({ textContains: 'Open' }));
+  // Wait for env to begin creating
+  await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: Millis.ofSeconds(40) });
+  await findElement(page, clickable({ textContains: 'Creating' }), { timeout: Millis.ofSeconds(40) });
 
   // Wait for the environment to be running
-  await findText(page, 'Creating cloud environment');
-  await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: 10 * 60000 });
-  await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60000 });
+  await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: Millis.ofMinutes(10) });
+  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(10) });
+  await click(page, clickable({ textContains: 'Open' }));
 
   // Find the iframe, wait until the Jupyter kernel is ready, and execute some code
-  const frame = await findIframe(page, '//iframe[@id="analysis-iframe"]');
+  const frame = await findIframe(page, '//iframe[@id="analysis-iframe"]', { timeout: Millis.ofMinute });
 
-  await findElement(frame, '//*[@title="Kernel Idle"]', { timeout: 60000 });
+  await findElement(frame, '//*[@title="Kernel Idle"]', { timeout: Millis.ofMinute });
   await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)');
   await click(frame, clickable({ text: 'Run' }));
   await findText(frame, '123456789099886419754209');
@@ -83,5 +80,5 @@ const testRunAnalysisFn = _.flowRight(
 registerTest({
   name: 'run-analysis',
   fn: testRunAnalysisFn,
-  timeout: 20 * 60 * 1000,
+  timeout: Millis.ofMinutes(20),
 });

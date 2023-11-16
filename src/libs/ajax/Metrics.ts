@@ -1,37 +1,49 @@
 import { getDefaultProperties } from '@databiosphere/bard-client';
 import _ from 'lodash/fp';
+import { ensureAuthSettled } from 'src/auth/auth';
 import { authOpts, fetchBard, jsonBody } from 'src/libs/ajax/ajax-common';
-import { ensureAuthSettled } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring } from 'src/libs/error';
+import { MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { authStore, getSessionId } from 'src/libs/state';
+import { AuthState, authStore, getSessionId, getTerraUser } from 'src/libs/state';
 import { v4 as uuid } from 'uuid';
 
 export const Metrics = (signal?: AbortSignal) => {
-  const captureEventFn = async (event, details = {}) => {
+  const captureEventFn = async (event: MetricsEventName, details: Record<string, any> = {}): Promise<void> => {
     await ensureAuthSettled();
-    const { signInStatus, registrationStatus } = authStore.get(); // NOTE: This is intentionally read after ensureAuthSettled
-    const isRegistered = signInStatus === 'signedIn' && registrationStatus === 'registered';
-    if (!isRegistered) {
-      authStore.update(
-        _.update('anonymousId', (id) => {
-          return id || uuid();
-        })
-      );
+    const state: AuthState = authStore.get();
+    const isRegistered = state.registrationStatus === 'registered';
+    // If a user has not logged in, or has logged in but has not registered, ensure an anonymous ID has been generated.
+    // The anonymous ID is used to associate events triggered by the anonymous user.
+    // If the anonymous user registers during this session, the anonymous ID will be linked to their actual user ID.
+    if (!isRegistered && state.anonymousId === undefined) {
+      authStore.update((oldState: AuthState) => ({
+        ...oldState,
+        anonymousId: uuid(),
+      }));
     }
+    const { buildTimestamp, gitRevision, terraDeploymentEnv } = getConfig();
+    const signedInProps =
+      state.signInStatus === 'signedIn'
+        ? {
+            authProvider: getTerraUser().idp,
+          }
+        : {};
     const body = {
       event,
       properties: {
         ...details,
+        ...signedInProps,
+        appId: 'Saturn',
+        appPath: Nav.getCurrentRoute().name,
+        appVersion: gitRevision,
+        appVersionBuildTime: new Date(buildTimestamp).toISOString(),
         // Users who have not registered are considered anonymous users. Send an anonymized distinct_id in that case; otherwise the user identity is captured via the auth token.
         distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
-        sessionId: getSessionId(),
-        appId: 'Saturn',
+        env: terraDeploymentEnv,
         hostname: window.location.hostname,
-        appPath: Nav.getCurrentRoute().name,
-        appVersion: `https://github.com/DataBiosphere/terra-ui/commits/${getConfig().gitRevision}`,
-        appVersionPublishDate: new Date(parseInt(getConfig().buildTimestamp, 10)).toLocaleString(),
+        sessionId: getSessionId(),
         ...getDefaultProperties(),
       },
     };
@@ -55,11 +67,11 @@ export const Metrics = (signal?: AbortSignal) => {
 
     syncProfile: withErrorIgnoring(() => {
       return fetchBard('api/syncProfile', _.merge(authOpts(), { signal, method: 'POST' }));
-    }),
+    }) as () => Promise<void>,
 
-    identify: withErrorIgnoring((anonId) => {
+    identify: withErrorIgnoring((anonId: string) => {
       const body = { anonId };
       return fetchBard('api/identify', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
-    }),
+    }) as (anonId: string) => Promise<void>,
   };
 };

@@ -93,6 +93,7 @@ import { ReactComponent as talkBubble } from './icons/talk-bubble.svg';
 import { ReactComponent as times } from './icons/times-light.svg';
 import { ReactComponent as trashCircleFilled } from './icons/trash-circle-filled.svg';
 import { ReactComponent as warningInfo } from './icons/warning-info.svg';
+import { ReactComponent as wdl } from './icons/wdl.svg';
 
 const fa = _.curry((shape, { size, ...props }) =>
   h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props))
@@ -198,6 +199,7 @@ const iconLibrary = {
   virus: fa(faVirus),
   'warning-info': custom(warningInfo),
   'warning-standard': fa(faExclamationTriangle),
+  wdl: custom(wdl),
 };
 
 export type IconId = keyof typeof iconLibrary;

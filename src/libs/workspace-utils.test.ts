@@ -7,10 +7,18 @@ import {
 } from 'src/testing/workspace-fixtures';
 
 import {
+  canEditWorkspace,
+  canRunAnalysisInWorkspace,
+  dataAccessControlsMessage,
   getRegionConstraintLabels,
+  getWorkspaceAnalysisControlProps,
+  getWorkspaceEditControlProps,
+  hasDataAccessControls,
   hasProtectedData,
   hasRegionConstraint,
   isValidWsExportTarget,
+  WorkspaceAccessLevel,
+  WorkspacePolicy,
   WorkspaceWrapper,
 } from './workspace-utils';
 
@@ -150,5 +158,204 @@ describe('hasRegionConstraint', () => {
 
     expect(hasRegionConstraint(protectedAzureWorkspace)).toBe(false);
     expect(getRegionConstraintLabels(protectedAzureWorkspace.policies).length).toBe(0);
+  });
+});
+
+describe('hasDataAccessControls', () => {
+  it.each([
+    { policies: [], expectedResult: false },
+    {
+      polices: [
+        {
+          namespace: 'terra',
+          name: 'protected-data',
+        },
+      ],
+      expectedResult: false,
+    },
+    {
+      policies: [
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'foo' }],
+        },
+      ],
+      expectedResult: true,
+    },
+  ] as { policies: WorkspacePolicy[]; expectedResult: boolean }[])(
+    'returns true if workspace has at least one group constraint policy',
+    ({ policies, expectedResult }) => {
+      // Arrange
+      const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies };
+
+      // Act
+      const result = hasDataAccessControls(workspace);
+
+      // Assert
+      expect(result).toBe(expectedResult);
+    }
+  );
+});
+
+describe('dataAccessControlsMessage', () => {
+  it('returns undefined if workspace has no data access controls', () => {
+    // Arrange
+    const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies: [] };
+
+    // Act
+    const message = dataAccessControlsMessage(workspace);
+
+    // Assert
+    expect(message).toBeUndefined();
+  });
+
+  it('returns a message if workspace does have access controls', () => {
+    // Arrange
+    const workspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      policies: [
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'test-group' }],
+        },
+      ],
+    };
+
+    // Act
+    const message = dataAccessControlsMessage(workspace);
+
+    // Assert
+    expect(typeof message).toBe('string');
+  });
+});
+
+describe('canEditWorkspace', () => {
+  it.each(['WRITER', 'OWNER'] as WorkspaceAccessLevel[])(
+    'Returns true if passed parameters permit editing.',
+    (accessLevel) => {
+      // Act
+      const result = canEditWorkspace({ accessLevel, workspace: { isLocked: false } });
+
+      // Assert
+      expect(result).toStrictEqual({ value: true });
+    }
+  );
+  it.each(['WRITER', 'OWNER'] as WorkspaceAccessLevel[])(
+    'Returns false with a locked message if passed parameters include locked.',
+    (accessLevel) => {
+      // Act
+      const result = canEditWorkspace({ accessLevel, workspace: { isLocked: true } });
+
+      // Assert
+      expect(result).toStrictEqual({
+        value: false,
+        message: 'This workspace is locked.',
+      });
+    }
+  );
+  it('Returns false with a permissions message if passed parameters do not have the right access level.', () => {
+    // Act
+    const result = canEditWorkspace({ accessLevel: 'READER', workspace: { isLocked: false } });
+
+    // Assert
+    expect(result).toStrictEqual({
+      value: false,
+      message: 'You do not have permission to modify this workspace.',
+    });
+  });
+  // Documenting incorrect behavior.
+  it('Incorrectly provides one reason if multiple reasons apply.', () => {
+    // Act
+    const result = canEditWorkspace({ accessLevel: 'READER', workspace: { isLocked: true } });
+
+    // Assert
+    expect(result).toStrictEqual({
+      value: false,
+      message: 'You do not have permission to modify this workspace.',
+    });
+  });
+});
+
+describe('getWorkspaceEditControlProps', () => {
+  it("Doesn't touch anything when editing should be enabled.", () => {
+    // Act
+    const result = {
+      tooltip: 'foo',
+      ...getWorkspaceEditControlProps({ accessLevel: 'WRITER', workspace: { isLocked: false } }),
+    };
+
+    // Assert
+    expect(result).toStrictEqual({ tooltip: 'foo' });
+  });
+  it('Disables the control with a message when appropriate.', () => {
+    // Act
+    const result = {
+      tooltip: 'foo',
+      ...getWorkspaceEditControlProps({ accessLevel: 'WRITER', workspace: { isLocked: true } }),
+    };
+
+    // Assert
+    expect(result).toStrictEqual({ disabled: true, tooltip: 'This workspace is locked.' });
+  });
+});
+
+describe('canRunAnalysisInWorkspace', () => {
+  it('returns false if the user cannot compute in the workspace', () => {
+    // Act
+    const result = canRunAnalysisInWorkspace({
+      canCompute: false,
+      workspace: { isLocked: false },
+    });
+
+    // Assert
+    expect(result).toEqual({ value: false, message: 'You do not have access to run analyses on this workspace.' });
+  });
+
+  it('returns false if the workspace is locked', () => {
+    // Act
+    const result = canRunAnalysisInWorkspace({
+      canCompute: true,
+      workspace: { isLocked: true },
+    });
+
+    // Assert
+    expect(result).toEqual({ value: false, message: 'This workspace is locked.' });
+  });
+
+  it('returns true otherwise', () => {
+    // Act
+    const result = canRunAnalysisInWorkspace({
+      canCompute: true,
+      workspace: { isLocked: false },
+    });
+
+    // Assert
+    expect(result).toEqual({ value: true, message: undefined });
+  });
+});
+
+describe('getWorkspaceAnalysisControlProps', () => {
+  it('adds no props when analysis is enabled', () => {
+    // Act
+    const props = {
+      tooltip: 'This is a control',
+      ...getWorkspaceAnalysisControlProps({ canCompute: true, workspace: { isLocked: false } }),
+    };
+
+    // Assert
+    expect(props).toEqual({ tooltip: 'This is a control' });
+  });
+
+  it('disables the control and adds a tooltip when the user cannot run analyses in the workspace', () => {
+    // Act
+    const props = {
+      tooltip: 'This is a control',
+      ...getWorkspaceAnalysisControlProps({ canCompute: false, workspace: { isLocked: false } }),
+    };
+
+    // Assert
+    expect(props).toEqual({ disabled: true, tooltip: 'You do not have access to run analyses on this workspace.' });
   });
 });

@@ -1,19 +1,20 @@
+import 'src/libs/ajax/ajax-override-utils';
 import 'src/style.css';
 
 import _ from 'lodash/fp';
 import { createRoot } from 'react-dom/client';
 import { h } from 'react-hyperscript-helpers';
 import RModal from 'react-modal';
-import { initializeAuth, initializeClientId } from 'src/libs/auth';
+import { startPollingServiceAlerts } from 'src/alerts/service-alerts-polling';
+import { initializeAuth } from 'src/auth/auth';
+import { initializeClientId } from 'src/auth/oidc-broker';
 import { isAxeEnabled } from 'src/libs/config';
-import { startPollingServiceAlerts } from 'src/libs/service-alerts-polling';
 import { initializeTCell } from 'src/libs/tcell';
 import Main from 'src/pages/Main';
 
 const rootElement = document.getElementById('root');
 
 RModal.defaultStyles = { overlay: {}, content: {} };
-RModal.setAppElement(rootElement);
 
 window._ = _;
 

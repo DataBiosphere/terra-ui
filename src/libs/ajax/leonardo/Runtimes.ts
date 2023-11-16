@@ -11,7 +11,22 @@ import {
   jsonBody,
   makeRequestRetry,
 } from 'src/libs/ajax/ajax-common';
-import { GetRuntimeItem, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
+import {
+  getRegionFromZone,
+  isAzureConfig,
+  isDataprocConfig,
+  isGceConfig,
+  isGceWithPdConfig,
+  NormalizedComputeRegion,
+  RawRuntimeConfig,
+  RuntimeConfig,
+} from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import {
+  GetRuntimeItem,
+  ListRuntimeItem,
+  RawGetRuntimeItem,
+  RawListRuntimeItem,
+} from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getConfig } from 'src/libs/config';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
 
@@ -24,19 +39,41 @@ export interface AzureRuntimeWrapper {
   runtimeName: string;
 }
 
+export type RuntimeWrapper = GoogleRuntimeWrapper | AzureRuntimeWrapper;
+
 const isAzureRuntimeWrapper = (obj: any): obj is AzureRuntimeWrapper => {
   const castObj = obj as AzureRuntimeWrapper;
   return castObj && !!castObj.workspaceId && !!castObj.runtimeName;
 };
 
-export const Runtimes = (signal) => {
+const getNormalizedComputeConfig = (config: RawRuntimeConfig): RuntimeConfig => ({
+  ...config,
+  normalizedRegion: getNormalizedComputeRegion(config),
+});
+
+const getNormalizedComputeRegion = (config: RawRuntimeConfig): NormalizedComputeRegion => {
+  const regionNotFoundPlaceholder = 'Unknown';
+  if (isGceConfig(config) || isGceWithPdConfig(config)) {
+    return getRegionFromZone(config.zone).toUpperCase() as NormalizedComputeRegion;
+  }
+  if (isDataprocConfig(config)) {
+    return config.region.toUpperCase() as NormalizedComputeRegion;
+  }
+  if (isAzureConfig(config)) {
+    return (config.region || regionNotFoundPlaceholder).toUpperCase() as NormalizedComputeRegion;
+  }
+  return regionNotFoundPlaceholder as NormalizedComputeRegion;
+};
+
+export const Runtimes = (signal: AbortSignal) => {
   const v1Func = (project: string, name: string) => {
     const root = `api/google/v1/runtimes/${project}/${name}`;
 
     return {
       details: async (): Promise<GetRuntimeItem> => {
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]));
-        return res.json();
+        const getItem: RawGetRuntimeItem = await res.json();
+        return { ...getItem, runtimeConfig: getNormalizedComputeConfig(getItem.runtimeConfig) };
       },
 
       create: (options): Promise<void> => {
@@ -92,7 +129,8 @@ export const Runtimes = (signal) => {
     return {
       details: async (): Promise<GetRuntimeItem> => {
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]));
-        return res.json();
+        const getItem: RawGetRuntimeItem = await res.json();
+        return { ...getItem, runtimeConfig: getNormalizedComputeConfig(getItem.runtimeConfig) };
       },
 
       create: (options, useExistingDisk = false): Promise<void> => {
@@ -134,7 +172,9 @@ export const Runtimes = (signal) => {
         `api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])
       );
-      return res.json();
+      const runtimes: RawListRuntimeItem[] = await res.json();
+      const normalizedRuntimes: ListRuntimeItem[] = _.map(getNormalizedListRuntime, runtimes);
+      return normalizedRuntimes;
     },
 
     invalidateCookie: () => {
@@ -184,13 +224,14 @@ export const Runtimes = (signal) => {
       // [IA-3710] In order to keep the front-end backwards compatible, any Azure tool labels
       // will be changed to JupyterLab.
       const runtimeList = await res.json();
-      const runtimesWithToolLabelDecorated = _.map((runtime) => {
+      const runtimesWithToolLabelDecorated: RawListRuntimeItem[] = _.map((runtime) => {
         if (runtime.labels.tool === 'Azure') {
           runtime.labels.tool = 'JupyterLab';
         }
         return runtime;
       }, runtimeList);
-      return runtimesWithToolLabelDecorated;
+      const normalizedRuntimes = _.map(getNormalizedListRuntime, runtimesWithToolLabelDecorated);
+      return normalizedRuntimes;
     },
 
     listV2WithWorkspace: async (
@@ -201,20 +242,15 @@ export const Runtimes = (signal) => {
         `api/v2/runtimes/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])
       );
-      return res.json();
-    },
-
-    deleteAll: (workspaceId: string, deleteDisk = true): Promise<void> => {
-      return fetchLeo(
-        `api/v2/runtimes/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-        _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier])
-      );
+      const runtimes = await res.json();
+      const normalizedRuntimes = _.map(getNormalizedListRuntime, runtimes);
+      return normalizedRuntimes;
     },
 
     runtimeV2: v2Func,
 
     // TODO: Consider refactoring to not use this wrapper
-    runtimeWrapper: (props: GoogleRuntimeWrapper | AzureRuntimeWrapper) => {
+    runtimeWrapper: (props: RuntimeWrapper) => {
       return {
         stop: () => {
           const stopFunc = isAzureRuntimeWrapper(props)
@@ -285,3 +321,13 @@ export const Runtimes = (signal) => {
     },
   };
 };
+
+const getNormalizedListRuntime = (runtime: RawListRuntimeItem): ListRuntimeItem => ({
+  ...runtime,
+  runtimeConfig: getNormalizedComputeConfig(runtime.runtimeConfig),
+});
+
+export type RuntimesAjaxContract = ReturnType<typeof Runtimes>;
+export type RuntimeAjaxContractV1 = ReturnType<RuntimesAjaxContract['runtime']>;
+export type RuntimeAjaxContractV2 = ReturnType<RuntimesAjaxContract['runtimeV2']>;
+export type RuntimeWrapperAjaxContract = ReturnType<RuntimesAjaxContract['runtimeWrapper']>;

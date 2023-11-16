@@ -1,4 +1,4 @@
-import { IconId } from '@terra-ui-packages/components';
+import { icon, IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { AriaAttributes, CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, h2, img, p, span } from 'react-hyperscript-helpers';
@@ -11,7 +11,6 @@ import {
   RadioButton,
   spinnerOverlay,
 } from 'src/components/common';
-import { icon, wdlIcon } from 'src/components/icons';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
@@ -21,8 +20,9 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
 
-import { TemplateWorkspaceInfo } from './import-types';
-import { canImportIntoWorkspace } from './import-utils';
+import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
+import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
+import { isProtectedSource } from './protected-data-utils';
 
 const styles = {
   card: {
@@ -82,10 +82,9 @@ const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
   );
 };
 
-interface ImportDataDestinationProps {
-  importMayTakeTime: boolean;
+export interface ImportDataDestinationProps {
+  importRequest: ImportRequest;
   initialSelectedWorkspaceId: string | undefined;
-  isProtectedData: boolean;
   requiredAuthorizationDomain: string | undefined;
   template: string | undefined;
   templateWorkspaces: { [key: string]: TemplateWorkspaceInfo[] } | undefined;
@@ -95,16 +94,64 @@ interface ImportDataDestinationProps {
 
 export const ImportDataDestination = (props: ImportDataDestinationProps): ReactNode => {
   const {
+    importRequest,
     initialSelectedWorkspaceId,
+    requiredAuthorizationDomain,
     templateWorkspaces,
     template,
     userHasBillingProjects,
-    importMayTakeTime,
-    requiredAuthorizationDomain,
     onImport,
-    isProtectedData,
   } = props;
-  const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces();
+
+  const isProtectedData = isProtectedSource(importRequest);
+  const requiredCloudPlatform = getCloudPlatformRequiredForImport(importRequest);
+
+  // There is not yet a way to create a protected Azure via Terra UI.
+  // Thus, there is no way to create a new workspace that satisfies the requirements
+  // for a protected Azure snapshot.
+  const canUseNewWorkspace = !(isProtectedData && requiredCloudPlatform === 'AZURE');
+
+  // Some import types are finished in a single request.
+  // For most though, the import request starts a background task that takes time to complete.
+  const immediateImportTypes: ImportRequest['type'][] = ['tdr-snapshot-reference'];
+  const importMayTakeTime = !immediateImportTypes.includes(importRequest.type);
+
+  const {
+    workspaces,
+    refresh: refreshWorkspaces,
+    loading: loadingWorkspaces,
+  } = useWorkspaces(
+    [
+      // The decision on whether or data can be imported into a workspace is based on the user's level of access
+      // to the workspace and the workspace's authorization domain, protected status and cloud platform.
+      // When using a template workspace, the NewWorkspaceModal reads the description attribute
+      // from the template.
+
+      // Load the same fields that are loaded by the workspaces list page so that a user can navigate to the
+      // workspaces list without a render error. See AJ-1470 for details.
+      'accessLevel',
+      'public',
+      'workspace.attributes.description',
+      'workspace.attributes.tag:tags',
+      'workspace.authorizationDomain',
+      'workspace.cloudPlatform',
+      'workspace.createdBy',
+      'workspace.lastModified',
+      'workspace.name',
+      'workspace.namespace',
+      'workspace.workspaceId',
+      'workspace.state',
+      'workspace.errorMessage',
+
+      // Add policies field because we need it to decide if a workspace is suitable for importing protected data.
+      'policies',
+      // Add bucket name so we can determine if GCP workspaces have secure monitoring enabled.
+      'workspace.bucketName',
+    ],
+    // Truncate description to save bytes.
+    // This matches the limit used by the workspaces list.
+    250
+  );
   const [mode, setMode] = useState<'existing' | 'template' | undefined>(
     initialSelectedWorkspaceId ? 'existing' : undefined
   );
@@ -125,6 +172,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
       )(_.castArray(template))
     : [];
+  const canUseTemplateWorkspace = filteredTemplates.length > 0;
 
   const importMayTakeTimeMessage =
     'Note that the import process may take some time after you are redirected into your destination workspace.';
@@ -156,6 +204,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               workspaces: workspaces.filter((workspace) => {
                 return canImportIntoWorkspace(
                   {
+                    cloudPlatform: requiredCloudPlatform,
                     isProtectedData,
                     requiredAuthorizationDomain,
                   },
@@ -169,7 +218,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       ]),
       importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-        h(ButtonSecondary, { onClick: setMode, style: { marginLeft: 'auto' } }, ['Back']),
+        h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
         h(
           ButtonPrimary,
           {
@@ -225,13 +274,12 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                         hasNotebooks &&
                           img({ src: jupyterLogo, style: { height: 23, width: 23, marginLeft: '0.5rem' } }),
                         hasWorkflows &&
-                          wdlIcon({
+                          icon('wdl', {
                             style: {
                               height: 23,
                               width: 23,
                               marginLeft: '0.5rem',
                               borderRadius: 3,
-                              padding: '8px 4px 7px 4px',
                             },
                           }),
                       ]),
@@ -245,7 +293,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         ]
       ),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-        h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: setMode }, ['Back']),
+        h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: () => setMode(undefined) }, ['Back']),
         h(
           ButtonPrimary,
           {
@@ -268,9 +316,10 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         () => {
           return h(Fragment, [
             h2({ style: styles.title }, ['Destination of the prepared data']),
-            div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
+            (canUseTemplateWorkspace || canUseNewWorkspace) &&
+              div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
             !userHasBillingProjects && h(linkAccountPrompt),
-            !!filteredTemplates.length &&
+            canUseTemplateWorkspace &&
               h(ChoiceButton, {
                 onClick: () => setMode('template'),
                 iconName: 'copySolid',
@@ -284,19 +333,24 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               detail: 'Select one of your workspaces',
               disabled: !userHasBillingProjects,
             }),
-            h(ChoiceButton, {
-              onClick: () => setIsCreateOpen(true),
-              iconName: 'plus-circle',
-              title: 'Start with a new workspace',
-              detail: 'Set up an empty workspace that you will configure for analysis',
-              'aria-haspopup': 'dialog',
-              disabled: !userHasBillingProjects,
-            }),
+            canUseNewWorkspace &&
+              h(ChoiceButton, {
+                onClick: () => setIsCreateOpen(true),
+                iconName: 'plus-circle',
+                title: 'Start with a new workspace',
+                detail: 'Set up an empty workspace that you will configure for analysis',
+                'aria-haspopup': 'dialog',
+                disabled: !userHasBillingProjects,
+              }),
             isCreateOpen &&
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
+                cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
                 customMessage: importMayTakeTime && importMayTakeTimeMessage,
                 requireEnhancedBucketLogging: isProtectedData,
+                waitForServices: {
+                  wds: true,
+                },
                 onDismiss: () => setIsCreateOpen(false),
                 onSuccess: (w) => {
                   setMode('existing');

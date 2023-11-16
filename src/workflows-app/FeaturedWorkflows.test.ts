@@ -1,10 +1,10 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { act, render, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
 import { featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';

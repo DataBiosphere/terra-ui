@@ -1,10 +1,12 @@
+import { FocusTrap } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useRef, useState } from 'react';
 import { UnmountClosed as RCollapse } from 'react-collapse';
 import { a, div, h, h1, img, span } from 'react-hyperscript-helpers';
 import { Transition } from 'react-transition-group';
-import AlertsIndicator from 'src/components/Alerts';
-import { Clickable, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
+import { AlertsIndicator } from 'src/alerts/Alerts';
+import { signIn, signOut } from 'src/auth/auth';
+import { Clickable, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextArea } from 'src/components/input';
 import Modal from 'src/components/Modal';
@@ -14,13 +16,12 @@ import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg';
 import headerLeftHexes from 'src/images/header-left-hexes.svg';
 import headerRightHexes from 'src/images/header-right-hexes.svg';
 import { Ajax } from 'src/libs/ajax';
-import { signIn, signOut } from 'src/libs/auth';
 import { isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
-import { topBarLogo, versionTag } from 'src/libs/logos';
+import { topBarLogo } from 'src/libs/logos';
 import * as Nav from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
 import { authStore, contactUsActive } from 'src/libs/state';
@@ -201,9 +202,9 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
     } = authState;
 
     return h(
-      FocusTrapper,
+      FocusTrap,
       {
-        onBreakout: () => setNavShown(false),
+        onEscape: () => setNavShown(false),
         role: 'navigation',
         'aria-label': 'Main menu',
         style: navShown ? styles.nav.background : undefined,
@@ -608,12 +609,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                 [
                   topBarLogo(),
                   div({}, [
-                    div(
-                      {
-                        style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 },
-                      },
-                      [versionTag('Beta')]
-                    ),
                     title &&
                       h1(
                         {
@@ -661,7 +656,7 @@ const PreferFirecloudModal = ({ onDismiss }) => {
   )(async () => {
     await Ajax().User.profile.preferLegacyFirecloud();
     if (emailAgreed === true || reason.length !== 0) {
-      await Ajax().User.createSupportRequest({
+      await Ajax().Support.createSupportRequest({
         name: `${firstName} ${lastName}`,
         email,
         description: reason,

@@ -1,7 +1,11 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
 import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
-import { OidcUser } from 'src/libs/auth';
+import { AuthTokenState } from 'src/auth/auth';
+import { OidcUser } from 'src/auth/oidc-broker';
+import { Dataset } from 'src/libs/ajax/Catalog';
+import { OidcConfig } from 'src/libs/ajax/OAuth2';
+import { BondFenceStatusResponse, NihDatasetPermission, SamUserAttributes } from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
@@ -20,10 +24,19 @@ export type TerraUser = {
 };
 
 export type TerraUserProfile = {
+  firstName: string | undefined;
+  lastName: string | undefined;
   institute: string | undefined;
+  email: string | undefined;
+  contactEmail: string | undefined;
   title: string | undefined;
   department: string | undefined;
   interestInTerra: string | undefined;
+  programLocationCity: string | undefined;
+  programLocationState: string | undefined;
+  programLocationCountry: string | undefined;
+  researchArea: string | undefined;
+  starredWorkspaces: string | undefined;
 };
 
 export type TerraUserRegistrationStatus =
@@ -52,6 +65,12 @@ export type TokenMetadata = {
   totalTokenLoadAttemptsThisSession: number;
 };
 
+export type NihStatus = {
+  linkedNihUsername: string;
+  linkExpireTime: number;
+  datasetPermissions: NihDatasetPermission[];
+};
+
 export type Initializable<T> = T | 'uninitialized';
 
 export type SignInStatus = Initializable<'signedIn' | 'signedOut'>;
@@ -60,22 +79,24 @@ export type AuthState = {
   anonymousId: string | undefined;
   authTokenMetadata: TokenMetadata;
   cookiesAccepted: boolean | undefined;
-  fenceStatus: {};
+  fenceStatus: FenceStatus;
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   signInStatus: SignInStatus;
   isTimeoutEnabled?: boolean | undefined;
-  nihStatus?: {
-    linkedNihUsername: string;
-    linkExpireTime: number;
-  };
-  // props in the TerraUserProfile are always present, but there may be more props
-  profile: TerraUserProfile & any;
+  nihStatus?: NihStatus;
+  nihStatusLoaded: boolean;
+  profile: TerraUserProfile;
   refreshTokenMetadata: TokenMetadata;
   registrationStatus: TerraUserRegistrationStatus;
   sessionId?: string | undefined;
   sessionStartTime: number;
   termsOfService: TermsOfServiceStatus;
   terraUser: TerraUser;
+  terraUserAttributes: SamUserAttributes;
+};
+
+export type FenceStatus = {
+  [key: string]: BondFenceStatusResponse;
 };
 
 export const authStore: Atom<AuthState> = atom<AuthState>({
@@ -92,11 +113,21 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
+  nihStatusLoaded: false,
   profile: {
-    institute: undefined,
+    firstName: undefined,
+    lastName: undefined,
+    email: undefined,
+    contactEmail: undefined,
     title: undefined,
+    institute: undefined,
     department: undefined,
+    programLocationCity: undefined,
+    programLocationState: undefined,
+    programLocationCountry: undefined,
+    researchArea: undefined,
     interestInTerra: undefined,
+    starredWorkspaces: undefined,
   },
   refreshTokenMetadata: {
     token: undefined,
@@ -124,19 +155,18 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     imageUrl: undefined,
     idp: undefined,
   },
+  terraUserAttributes: {
+    marketingConsent: true,
+  },
 });
 
 export const getTerraUser = (): TerraUser => authStore.get().terraUser;
 
 export const getSessionId = () => authStore.get().sessionId;
 
-export type OidcConfig = {
-  authorityEndpoint?: string;
-  clientId?: string;
-};
-
 export type OidcState = {
   authContext: AuthContextProps | undefined;
+  authTokenState: AuthTokenState | undefined;
   user: OidcUser | undefined;
   userManager: UserManager | undefined;
   config: OidcConfig;
@@ -144,6 +174,7 @@ export type OidcState = {
 
 export const oidcStore: Atom<OidcState> = atom<OidcState>({
   authContext: undefined,
+  authTokenState: undefined,
   user: undefined,
   userManager: undefined,
   config: {
@@ -207,9 +238,9 @@ export const snapshotsListStore = atom<unknown>(undefined);
 
 export const snapshotStore = atom<unknown>(undefined);
 
-export const dataCatalogStore = atom<any[]>([]);
+export const dataCatalogStore = atom<Dataset[]>([]);
 
-type AjaxOverride = {
+export type AjaxOverride = {
   fn: (fetch: AnyPromiseFn) => AnyPromiseFn;
   filter:
     | {

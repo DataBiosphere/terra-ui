@@ -1,3 +1,4 @@
+import { Spinner } from '@terra-ui-packages/components';
 import * as clipboard from 'clipboard-polyfill/text';
 import FileSaver from 'file-saver';
 import JSZip from 'jszip';
@@ -9,8 +10,7 @@ import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/analysis/u
 import { tools } from 'src/analysis/utils/tool-utils';
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
 import { ButtonSecondary } from 'src/components/common';
-import { DataTableColumnProvenance } from 'src/components/data/data-table-provenance';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import IGVBrowser from 'src/components/IGVBrowser';
 import IGVFileSelector from 'src/components/IGVFileSelector';
 import { MenuButton } from 'src/components/MenuButton';
@@ -28,7 +28,6 @@ import wdlLogo from 'src/images/wdl-logo.png';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import colors from 'src/libs/colors';
-import { useColumnProvenance } from 'src/libs/data-table-provenance';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -39,6 +38,8 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
 
+import { DataTableColumnProvenance } from '../../provenance/DataTableColumnProvenance';
+import { useColumnProvenance } from '../../provenance/workspace-data-provenance-utils';
 import DataTable from '../shared/DataTable';
 import { AddColumnModal } from './AddColumnModal';
 import { AddEntityModal } from './AddEntityModal';
@@ -327,8 +328,6 @@ const EntitiesContent = ({
   };
 
   const entitiesSelected = !_.isEmpty(selectedEntities);
-  const editErrorMessage = WorkspaceUtils.editWorkspaceError(workspace);
-  const canEdit = !editErrorMessage;
 
   const renderEditMenu = () => {
     return (
@@ -388,8 +387,8 @@ const EntitiesContent = ({
           h(
             ButtonSecondary,
             {
-              disabled: !canEdit,
-              tooltip: Utils.cond([!canEdit, () => editErrorMessage], () => 'Edit data'),
+              tooltip: 'Edit data',
+              ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
               style: { marginRight: '1.5rem' },
             },
             [icon('edit', { style: { marginRight: '0.5rem' } }), 'Edit']
@@ -487,7 +486,7 @@ const EntitiesContent = ({
           dataProvider,
           persist: true,
           refreshKey,
-          editable: !snapshotName && !WorkspaceUtils.editWorkspaceError(workspace),
+          editable: !snapshotName && WorkspaceUtils.canEditWorkspace(workspace).value,
           entityType: entityKey,
           activeCrossTableTextFilter,
           entityMetadata,
@@ -630,7 +629,7 @@ const EntitiesContent = ({
             },
             [
               Utils.cond(
-                [loadingColumnProvenance, () => p([spinner({ size: 12, style: { marginRight: '1ch' } }), 'Loading provenance...'])],
+                [loadingColumnProvenance, () => p([h(Spinner, { size: 12, style: { marginRight: '1ch' } }), 'Loading provenance...'])],
                 [columnProvenanceError, () => p(['Error loading column provenance'])],
                 () =>
                   h(DataTableColumnProvenance, {

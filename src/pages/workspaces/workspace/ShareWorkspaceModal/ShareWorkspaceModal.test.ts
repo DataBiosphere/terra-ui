@@ -1,5 +1,5 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
@@ -7,19 +7,12 @@ import { getTerraUser } from 'src/libs/state';
 import { AzureWorkspace, GoogleWorkspace } from 'src/libs/workspace-utils';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import { AccessEntry, RawWorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
   getTerraUser: jest.fn(),
 }));
-
-type ModalMockExports = typeof import('src/components/Modal.mock');
-
-jest.mock('src/components/Modal', () => {
-  const mockModal = jest.requireActual<ModalMockExports>('src/components/Modal.mock');
-  return mockModal.mockModalModule();
-});
 
 jest.mock('src/libs/ajax');
 

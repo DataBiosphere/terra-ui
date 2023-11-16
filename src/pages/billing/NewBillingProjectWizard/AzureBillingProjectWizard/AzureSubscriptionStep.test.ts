@@ -1,9 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import { getRegionLabel } from 'src/libs/azure-utils';
 import { AzureSubscriptionStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionStep';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { v4 as uuid } from 'uuid';
 
 type AjaxContract = ReturnType<typeof Ajax>;
@@ -58,7 +59,7 @@ export const selectManagedApp = async (captureEvent = jest.fn(), createAzureProj
 
   // Act - Select one of the managed apps
   await userEvent.click(getManagedAppInput());
-  const selectOption = await screen.findByText(`${appName} (${appRegion})`);
+  const selectOption = await screen.findByText(`${appName} (${getRegionLabel(appRegion)})`);
   await userEvent.click(selectOption);
   return selectedManagedApp;
 };
@@ -109,7 +110,7 @@ describe('AzureSubscriptionStep', () => {
     // Arrange
     renderAzureSubscriptionStep({});
     // Mock managed app Ajax call, should not be called
-    const listAzureManagedApplications = jest.fn(() => Promise.resolve());
+    const listAzureManagedApplications = jest.fn(() => Promise.resolve({ managedApps: [] }));
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({

@@ -13,6 +13,7 @@ import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
+import { differenceFromDatesInSeconds } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import {
@@ -23,7 +24,6 @@ import {
   makeStatusLine,
   statusType,
 } from 'src/workflows-app/utils/submission-utils';
-import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   // State
@@ -32,10 +32,12 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [runSetsData, setRunSetData] = useState();
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState();
 
   const signal = useCancellation();
   const scheduledRefresh = useRef();
   const workspaceId = workspace.workspace.workspaceId;
+  const workspaceCreated = workspace.workspace.createdDate;
 
   const loadRunSets = useCallback(
     async (cbasUrlRoot) => {
@@ -45,12 +47,20 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
           (r) => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }),
           runSets.run_sets
         );
-        return _.merge(runSets, { run_sets: durationEnhancedRunSets });
+        // TODO: Remove filtering once WM-2232 is complete
+        // We are doing this filtering to ensure submissions from cloned workspaces are not displayed in the workspace clone.
+        const onlyWorkspaceRunSets = durationEnhancedRunSets.filter(
+          (runSet) => differenceFromDatesInSeconds(workspaceCreated, runSet.submission_timestamp) > 0
+        );
+        return {
+          ...runSets,
+          run_sets: onlyWorkspaceRunSets,
+        };
       } catch (error) {
         notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [signal]
+    [signal, workspaceCreated]
   );
 
   const loadAllRunSets = useCallback(
@@ -126,6 +136,9 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
       }
     };
     loadWorkflowsApp();
+    Ajax()
+      .User.getStatus()
+      .then((res) => setUserId(res.userSubjectId));
     refresh();
 
     return () => {
@@ -225,6 +238,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                             field: 'actions',
                             headerRenderer: () => h(TextCell, {}, ['Actions']),
                             cellRenderer: ({ rowIndex }) => {
+                              const permissionToAbort = paginatedPreviousRunSets[rowIndex].user_id === userId;
                               return h(
                                 MenuTrigger,
                                 {
@@ -238,10 +252,21 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                       {
                                         style: { fontSize: 15 },
                                         disabled:
+                                          !permissionToAbort ||
                                           isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) ||
                                           paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
-                                        tooltip:
-                                          isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) && 'Cannot abort a terminal submission',
+                                        tooltip: Utils.cond(
+                                          [
+                                            isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state),
+                                            () => 'Cannot abort a terminal submission',
+                                          ],
+                                          [
+                                            paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
+                                            () => 'Cancel already requested on this submission.',
+                                          ],
+                                          [!permissionToAbort, () => 'You must be the original submitter to abort this submission'],
+                                          () => ''
+                                        ),
                                         onClick: () => cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id),
                                       },
                                       ['Abort']
@@ -270,13 +295,11 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                 h(
                                   Link,
                                   {
-                                    onClick: () => {
-                                      Nav.goToPath('workspace-workflows-app-submission-details', {
-                                        name: workspace.workspace.name,
-                                        namespace,
-                                        submissionId: paginatedPreviousRunSets[rowIndex].run_set_id,
-                                      });
-                                    },
+                                    href: Nav.getLink('workspace-workflows-app-submission-details', {
+                                      name: workspace.workspace.name,
+                                      namespace,
+                                      submissionId: paginatedPreviousRunSets[rowIndex].run_set_id,
+                                    }),
                                     style: { fontWeight: 'bold' },
                                   },
                                   [paginatedPreviousRunSets[rowIndex].run_set_name || 'No name']
@@ -357,5 +380,3 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
         ]),
       ]);
 };
-
-export const SubmissionHistory = wrapWorkflowsPage({ name: 'SubmissionHistory' })(BaseSubmissionHistory);

@@ -2,7 +2,6 @@ import _ from 'lodash/fp';
 import { allAppTypes, AppToolLabel, appToolLabels, isAppToolLabel, ToolLabel } from 'src/analysis/utils/tool-utils';
 import { App, DisplayAppStatus, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { getConfig } from 'src/libs/config';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
@@ -25,22 +24,8 @@ export const doesWorkspaceSupportCromwellAppForUser = (
   cloudProvider: CloudProvider,
   toolLabel: ToolLabel
 ): boolean => {
-  // deploy to prod happened around 9:45 AM EST
-  const workflowsPublicPreviewDate = new Date(Date.parse('Tue Mar 21 2023 10:00:00 GMT-0400')); // 10 AM EST
-
   // note: for all environments, we want to show Cromwell app modal (both Settings and Open buttons) only for workspace creators
   return Utils.cond(
-    // for prod env, the ability to create and view Cromwell app for Azure workspaces is being introduced on March 21st, 2023 as part
-    // of the Workflows Public Preview. Azure workspaces before this would only have WDS app created when the workspace is created.
-    // Hence, for Azure workspaces that predate this launch date, we don't want to display the Cromwell app icon in Context bar and
-    // in Cloud Environment Modal we would like to display message asking users to create new workspace to use Cromwell app.
-    // Note: the date we are comparing against is March 21st since that's when the ability to create Cromwell app was merged into Prod.
-    [
-      toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.AZURE && getConfig().isProd,
-      () =>
-        new Date(workspaceInfo.createdDate).valueOf() > workflowsPublicPreviewDate.valueOf() &&
-        workspaceInfo.createdBy === getTerraUser()?.email,
-    ],
     [
       toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.AZURE,
       () => workspaceInfo.createdBy === getTerraUser()?.email,

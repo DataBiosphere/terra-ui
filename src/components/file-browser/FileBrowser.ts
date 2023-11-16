@@ -13,10 +13,10 @@ import FileBrowserProvider, {
   FileBrowserFile,
 } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import colors from 'src/libs/colors';
-import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import { dataTableVersionsPathRoot } from 'src/workspace-data/data-table/versioning/data-table-versioning-utils';
 
 interface FileBrowserProps {
   initialPath?: string;
@@ -57,21 +57,21 @@ const FileBrowser = (props: FileBrowserProps) => {
     }
   }, []);
 
-  const editWorkspaceError = WorkspaceUtils.editWorkspaceError(workspace);
-  const { editDisabled, editDisabledReason } = Utils.cond<{
-    editDisabled: boolean;
-    editDisabledReason: string | undefined;
-  }>(
-    [!!editWorkspaceError, () => ({ editDisabled: true, editDisabledReason: editWorkspaceError })],
-    [
-      path.startsWith(`${dataTableVersionsPathRoot}/`),
-      () => ({
-        editDisabled: true,
-        editDisabledReason: 'This folder is managed by data table versioning and cannot be edited here.',
-      }),
-    ],
-    () => ({ editDisabled: false, editDisabledReason: undefined })
-  );
+  const { editDisabled, editDisabledReason } = (({ value, message }) =>
+    Utils.cond<{
+      editDisabled: boolean;
+      editDisabledReason: string | undefined;
+    }>(
+      [!value, () => ({ editDisabled: true, editDisabledReason: message })],
+      [
+        path.startsWith(`${dataTableVersionsPathRoot}/`),
+        () => ({
+          editDisabled: true,
+          editDisabledReason: 'This folder is managed by data table versioning and cannot be edited here.',
+        }),
+      ],
+      () => ({ editDisabled: false, editDisabledReason: undefined })
+    ))(WorkspaceUtils.canEditWorkspace(workspace));
 
   const reloadRequests = subscribable();
 
@@ -181,7 +181,6 @@ const FileBrowser = (props: FileBrowserProps) => {
       h(
         Modal,
         {
-          'aria-label': 'File details',
           showCancel: false,
           title: basename(focusedFile.path),
           onDismiss: () => setFocusedFile(null),

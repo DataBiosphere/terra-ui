@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { CSSProperties, useState } from 'react';
+import { CSSProperties, useEffect } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
 import Collapse from 'src/components/Collapse';
@@ -7,6 +7,7 @@ import { Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
+import { useQueryParameter } from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -65,6 +66,7 @@ type WorkflowsAppNavPanelProps = {
   workspace: WorkspaceWrapper;
   analysesData: AnalysesData;
   launcherDisabled: boolean;
+  launching: boolean;
   createWorkflowsApp: Function;
   pageReady: boolean;
   setLoading: Function;
@@ -74,6 +76,7 @@ type WorkflowsAppNavPanelProps = {
 export const WorkflowsAppNavPanel = ({
   pageReady,
   launcherDisabled,
+  launching,
   loading,
   name,
   namespace,
@@ -83,7 +86,15 @@ export const WorkflowsAppNavPanel = ({
   setLoading,
   signal,
 }: WorkflowsAppNavPanelProps) => {
-  const [selectedSubHeader, setSelectedSubHeader] = useState<string>('workspace-workflows');
+  const [selectedSubHeader, setSelectedSubHeader] = useQueryParameter('tab');
+
+  useEffect(() => {
+    if (
+      !(selectedSubHeader in subHeadersMap || (workspace.canCompute && selectedSubHeader in findAndAddSubheadersMap))
+    ) {
+      setSelectedSubHeader('workspace-workflows');
+    }
+  }, [workspace, selectedSubHeader, setSelectedSubHeader]);
 
   const isSubHeaderActive = (subHeader: string) => pageReady && selectedSubHeader === subHeader;
 
@@ -129,13 +140,22 @@ export const WorkflowsAppNavPanel = ({
           Collapse,
           {
             style: { borderBottom: `1px solid ${colors.dark(0.2)}` },
-            title: span({ style: { color: !pageReady ? colors.disabled() : colors.accent(), fontSize: 15 } }, [
-              'Find & add workflows',
-            ]),
-            initialOpenState: pageReady,
+            title: span(
+              {
+                style: {
+                  color: !pageReady || !workspace.canCompute ? colors.disabled() : colors.accent(),
+                  fontSize: 15,
+                },
+              },
+              ['Find & add workflows']
+            ),
+            tooltip: !workspace.canCompute
+              ? 'You must be a workspace writer/owner to add workflows to this workspace. To import (and run) workflows, you can clone this workspace.'
+              : undefined,
+            initialOpenState: pageReady && workspace.canCompute,
             titleFirst: true,
             summaryStyle: { padding: '1rem 1rem 1rem 1.5rem' },
-            disabled: !pageReady,
+            disabled: !pageReady || !workspace.canCompute,
           },
           [
             div(
@@ -253,7 +273,8 @@ export const WorkflowsAppNavPanel = ({
       ],
       [
         !pageReady,
-        () => div([h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, disabled: launcherDisabled })]),
+        () =>
+          div([h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, launching, disabled: launcherDisabled })]),
       ]
     ),
   ]);

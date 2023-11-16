@@ -1,8 +1,8 @@
+import { Spinner } from '@terra-ui-packages/components';
 import { h } from 'react-hyperscript-helpers';
 import { ButtonPrimary } from 'src/components/common';
 import { basename } from 'src/components/file-browser/file-browser-utils';
 import { useFileDownloadUrl } from 'src/components/file-browser/useFileDownloadUrl';
-import { spinner } from 'src/components/icons';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import * as Utils from 'src/libs/utils';
 
@@ -22,8 +22,9 @@ export const DownloadFileLink = (props: DownloadFileLinkProps) => {
       ...Utils.newTabLinkProps,
       disabled: !downloadUrl,
       download: basename(file.path),
-      href: downloadUrl,
+      // downloadUrl is typed string | null, but Clickable wants string | undefined.
+      href: downloadUrl || undefined,
     },
-    ['Download', status === 'Loading' && spinner({ size: 12, style: { color: '#fff', marginLeft: '1ch' } })]
+    ['Download', status === 'Loading' && h(Spinner, { size: 12, style: { color: '#fff', marginLeft: '1ch' } })]
   );
 };

@@ -18,7 +18,7 @@ jest.mock('src/libs/ajax/ajax-common', () => ({
   authOpts: jest.fn(),
 }));
 
-jest.mock('src/libs/auth', () => {
+jest.mock('src/auth/auth', () => {
   return {
     reloadAuthToken: jest.fn(),
     signOutAfterSessionTimeout: jest.fn(),
@@ -128,7 +128,7 @@ describe('Cbas tests', () => {
 
     await cbasPact.addInteraction({
       states: [
-        { description: 'user has compute permission' },
+        { description: 'user has write permission' },
         { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
         { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
         { description: 'ready to receive exactly 1 call to POST run_sets' },
@@ -182,7 +182,7 @@ describe('Cbas tests', () => {
 
     await cbasPact.addInteraction({
       states: [
-        { description: 'user has compute permission' },
+        { description: 'user has write permission' },
         { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
         { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
         { description: 'ready to receive exactly 1 call to POST run_sets' },
@@ -236,7 +236,7 @@ describe('Cbas tests', () => {
 
     await cbasPact.addInteraction({
       states: [
-        { description: 'user has compute permission' },
+        { description: 'user has write permission' },
         { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
         { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
         { description: 'ready to receive exactly 1 call to POST run_sets' },
@@ -279,7 +279,7 @@ describe('Cbas tests', () => {
     const headers = { 'Content-Type': 'application/json' };
 
     await cbasPact.addInteraction({
-      states: [{ description: 'user has compute permission' }, { description: 'a run set with UUID 20000000-0000-0000-0000-000000000002 exists' }],
+      states: [{ description: 'user has write permission' }, { description: 'a run set with UUID 20000000-0000-0000-0000-000000000002 exists' }],
       uponReceiving: 'a POST request to abort a run set',
       withRequest: { method: 'POST', path: '/api/batch/v1/run_sets/abort', query: { run_set_id: runSetId } },
       willRespondWith: { status: 200, body: expectedResponse },
@@ -350,7 +350,7 @@ describe('Cbas tests', () => {
 
   it('should fail to POST a simple run_set without proper permissions', async () => {
     const expectedResponse = {
-      message: string('User doesnt have compute permission on workspace resource'),
+      message: string('User doesnt have write permission on workspace resource'),
     };
 
     const payload = {

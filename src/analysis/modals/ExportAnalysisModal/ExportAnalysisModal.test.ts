@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { useAnalysisExportState } from 'src/analysis/modals/ExportAnalysisModal/useAnalysisExportState';
@@ -6,7 +6,12 @@ import { AnalysisFile } from 'src/analysis/useAnalysisFiles';
 import { AbsolutePath, DisplayName, FileExtension, FileName } from 'src/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { asMockedFn, setUpAutoSizerTesting } from 'src/testing/test-utils';
+import {
+  asMockedFn,
+  renderWithAppContexts as render,
+  SelectHelper,
+  setUpAutoSizerTesting,
+} from 'src/testing/test-utils';
 
 import { ExportAnalysisModal } from './ExportAnalysisModal';
 
@@ -19,12 +24,6 @@ const analysis1: AnalysisFile = {
   tool: runtimeToolLabels.Jupyter,
   cloudProvider: 'GCP',
 };
-
-type ModalExports = typeof import('src/components/Modal');
-jest.mock('src/components/Modal', (): ModalExports => {
-  const modalMock = jest.requireActual('src/components/Modal.mock');
-  return modalMock.mockModalModule();
-});
 
 type ExportAnalysisModalStateExports = typeof import('./useAnalysisExportState');
 jest.mock(
@@ -161,15 +160,13 @@ describe('ExportAnalysisModal', () => {
     );
 
     // Act
-    const destDropdown = screen.getByLabelText('Destination *');
-    await user.click(destDropdown);
-    const destOptions = screen.getAllByRole('option').map((el: HTMLElement) => el.textContent);
-    const destOption = screen.getByText('name2');
-    await user.click(destOption);
+    const destDropdown = new SelectHelper(screen.getByLabelText('Destination *'), user);
+    const destOptions = await destDropdown.getOptions();
+    await destDropdown.selectOption(/name2/);
 
     // Assert
     // drop-down should only list options that are not same as source workspace (name1)
-    expect(destOptions).toEqual(['name2', 'name3']);
+    expect(destOptions).toEqual([expect.stringMatching(/name2/), expect.stringMatching(/name3/)]);
     expect(selectWorkspaceWatcher).toBeCalledTimes(1);
     expect(selectWorkspaceWatcher).toBeCalledWith('Workspace2');
   });

@@ -1,18 +1,32 @@
 {
   "name": "@terra-ui-packages/test-utils",
-  "version": "0.0.2",
+  "version": "0.0.4",
+  "scripts": {
+    "build": "vite build --emptyOutDir",
+    "dev": "vite build --mode=development --watch",
+    "test": "yarn run build >/dev/null && jest",
+    "check-dts": "check-dts"
+  },
   "type": "module",
-  "module": "./src/index.mjs",
+  "module": "./lib/es/index.js",
+  "main": "./lib/cjs/index.cjs",
+  "types": "./lib/types/index.d.ts",
   "exports": {
     ".": {
-      "import": "./src/index.mjs"
+      "import": "./lib/es/index.js",
+      "require": "./lib/cjs/index.cjs",
+      "types": "./lib/types/index.d.ts"
     }
   },
-  "scripts": {
-    "build": "true"
-  },
+  "files": [
+    "lib/cjs/**",
+    "lib/es/**",
+    "lib/types/**",
+    "transforms/**"
+  ],
   "dependencies": {
     "@babel/core": "^7.16.0",
+    "@babel/template": "^7.22.15",
     "@testing-library/jest-dom": "^5.17.0",
     "babel-jest": "^27.4.2",
     "babel-preset-react-app": "^10.0.1",
@@ -25,5 +39,18 @@
     "jest-fail-on-console": "^3.1.1",
     "jest-watch-typeahead": "^1.0.0",
     "whatwg-fetch": "^3.6.2"
+  },
+  "peerDependencies": {
+    "@testing-library/react": "^14.0.0"
+  },
+  "devDependencies": {
+    "@jest/types": "^27.5.1",
+    "@terra-ui-packages/build-utils": "^1.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@types/jest": "^28.1.8",
+    "@types/node": "^20.6.2",
+    "check-dts": "^0.7.2",
+    "typescript": "~5.1.6",
+    "vite": "^4.3.9"
   }
 }

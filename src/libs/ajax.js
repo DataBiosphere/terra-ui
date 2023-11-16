@@ -1,6 +1,5 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { createContext, useContext } from 'react';
 import {
   appIdentifier,
   authOpts,
@@ -24,7 +23,9 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { Disks } from 'src/libs/ajax/leonardo/Disks';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
+import { OAuth2 } from 'src/libs/ajax/OAuth2';
 import { SamResources } from 'src/libs/ajax/SamResources';
+import { Support } from 'src/libs/ajax/Support';
 import { User } from 'src/libs/ajax/User';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import { CromwellApp } from 'src/libs/ajax/workflows-app/CromwellApp';
@@ -34,17 +35,6 @@ import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResourc
 import { getConfig } from 'src/libs/config';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-
-window.ajaxOverrideUtils = {
-  mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
-    const res = await wrappedFetch(...args);
-    return new Response(JSON.stringify(fn(await res.json())), res);
-  }),
-  makeError: _.curry(({ status, frequency = 1 }, wrappedFetch) => (...args) => {
-    return Math.random() < frequency ? Promise.resolve(new Response('Instrumented error', { status })) : wrappedFetch(...args);
-  }),
-  makeSuccess: (body) => (_wrappedFetch) => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 })),
-};
 
 const getSnapshotEntityMetadata = Utils.memoizeAsync(
   async (token, workspaceNamespace, workspaceName, googleProject, dataReference) => {
@@ -134,6 +124,39 @@ const Workspaces = (signal) => ({
       url += `?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`;
     }
     const response = await fetchRawls(url, _.mergeAll([authOpts(), { signal }]));
+    return response.json();
+  },
+
+  workspaceV2: (namespace, name) => {
+    const root = `workspaces/v2/${namespace}/${name}`;
+
+    return {
+      delete: () => {
+        return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
+      },
+
+      migrateWorkspace: async () => {
+        const response = await fetchRawls(`${root}/bucketMigration`, _.merge(authOpts(), { signal, method: 'POST' }));
+        return response.json();
+      },
+    };
+  },
+
+  bucketMigrationInfo: async () => {
+    const response = await fetchRawls('workspaces/v2/bucketMigration', _.merge(authOpts(), { signal }));
+    return response.json();
+  },
+
+  bucketMigrationProgress: async (body) => {
+    const response = await fetchRawls(
+      'workspaces/v2/bucketMigration/getProgress',
+      _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }])
+    );
+    return response.json();
+  },
+
+  startBatchBucketMigration: async (body) => {
+    const response = await fetchRawls('workspaces/v2/bucketMigration', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
     return response.json();
   },
 
@@ -712,56 +735,42 @@ const Duos = (signal) => ({
   },
 });
 
-const OAuth2 = (signal) => ({
-  getConfiguration: async () => {
-    const res = await fetchOrchestration('/oauth2/configuration', _.merge(authOpts(), { signal }));
-    return res.json();
-  },
-});
-
 const Surveys = (signal) => ({
   submitForm: (formId, data) => fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal }),
 });
 
 export const Ajax = (signal) => {
   return {
-    User: User(signal),
-    Groups: Groups(signal),
-    SamResources: SamResources(signal),
-    Billing: Billing(signal),
-    Workspaces: Workspaces(signal),
-    Catalog: Catalog(signal),
-    DataRepo: DataRepo(signal),
-    AzureStorage: AzureStorage(signal),
-    Buckets: GoogleStorage(signal),
-    Methods: Methods(signal),
-    Submissions: Submissions(signal),
-    Runtimes: Runtimes(signal),
     Apps: Apps(signal),
+    AzureStorage: AzureStorage(signal),
+    Billing: Billing(signal),
+    Buckets: GoogleStorage(signal),
+    Catalog: Catalog(signal),
+    Cbas: Cbas(signal),
+    CromIAM: CromIAM(signal),
+    CromwellApp: CromwellApp(signal),
+    DataRepo: DataRepo(signal),
+    Disks: Disks(signal),
     Dockstore: Dockstore(signal),
     DrsUriResolver: DrsUriResolver(signal),
     Duos: Duos(signal),
-    Metrics: Metrics(signal),
-    Disks: Disks(signal),
-    CromIAM: CromIAM(signal),
     FirecloudBucket: FirecloudBucket(signal),
+    Groups: Groups(signal),
+    Methods: Methods(signal),
+    Metrics: Metrics(signal),
     OAuth2: OAuth2(signal),
+    Runtimes: Runtimes(signal),
+    SamResources: SamResources(signal),
+    Submissions: Submissions(signal),
+    Support: Support(signal),
     Surveys: Surveys(signal),
+    User: User(signal),
+    WorkflowScript: WorkflowScript(signal),
     WorkspaceData: WorkspaceData(signal),
     WorkspaceManagerResources: WorkspaceManagerResources(signal),
-    Cbas: Cbas(signal),
-    CromwellApp: CromwellApp(signal),
-    WorkflowScript: WorkflowScript(signal),
+    Workspaces: Workspaces(signal),
   };
 };
 
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
 window.Ajax = Ajax;
-
-// Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
-// https://github.com/DataBiosphere/terra-ui/pull/3669
-export const ajaxContext = createContext(Ajax);
-
-// Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
-// https://github.com/DataBiosphere/terra-ui/pull/3669
-export const useReplaceableAjaxExperimental = () => useContext(ajaxContext);

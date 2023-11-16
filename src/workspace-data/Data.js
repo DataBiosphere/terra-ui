@@ -1,4 +1,4 @@
-import { Interactive } from '@terra-ui-packages/components';
+import { Interactive, Spinner } from '@terra-ui-packages/components';
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -9,9 +9,8 @@ import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
-import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions';
 import FileBrowser from 'src/components/data/FileBrowser';
-import { icon, spinner } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
@@ -21,7 +20,6 @@ import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/a
 import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
-import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions';
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -42,11 +40,14 @@ import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnS
 import { SnapshotContent } from './data-table/entity-service/SnapshotContent';
 import { getRootTypeForSetTable } from './data-table/entity-service/table-utils';
 import { EntityUploader } from './data-table/shared/EntityUploader';
+import { dataTableVersionsPathRoot, useDataTableVersions } from './data-table/versioning/data-table-versioning-utils';
+import { DataTableSaveVersionModal } from './data-table/versioning/DataTableSaveVersionModal';
+import { DataTableVersion } from './data-table/versioning/DataTableVersion';
+import { DataTableVersions } from './data-table/versioning/DataTableVersions';
 import WDSContent from './data-table/wds/WDSContent';
 import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
 import { useImportJobs } from './import-jobs';
-import { getReferenceData } from './reference-data/reference-data-utils';
-import { getReferenceLabel } from './reference-data/reference-metadata';
+import { getReferenceData, getReferenceLabel } from './reference-data/reference-data-utils';
 import { ReferenceDataContent } from './reference-data/ReferenceDataContent';
 import { ReferenceDataDeleter } from './reference-data/ReferenceDataDeleter';
 import { ReferenceDataImporter } from './reference-data/ReferenceDataImporter';
@@ -83,6 +84,15 @@ const styles = {
   },
 };
 
+// Truncates an integer to the thousands, i.e. 10363 -> 10k
+const formatSearchResultsCount = (integer) => {
+  if (integer < 10000) {
+    return `${integer}`;
+  }
+
+  return `${Math.floor(integer / 1000)}k`;
+};
+
 const SearchResultsPill = ({ filteredCount, searching }) => {
   return div(
     {
@@ -97,7 +107,7 @@ const SearchResultsPill = ({ filteredCount, searching }) => {
         color: 'white',
       },
     },
-    searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${Utils.truncateInteger(filteredCount)}`
+    searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${formatSearchResultsCount(filteredCount)}`
   );
 };
 
@@ -300,7 +310,7 @@ const DataTableActions = ({
   const isSetOfSets = tableName.endsWith('_set_set');
   const setTableNames = _.filter((v) => v.match(`${tableName}(_set)+$`), _.keys(entityMetadata));
 
-  const editWorkspaceErrorMessage = WorkspaceUtils.editWorkspaceError(workspace);
+  const buttonProps = WorkspaceUtils.getWorkspaceEditControlProps(workspace);
 
   const downloadForm = useRef();
   const signal = useCancellation();
@@ -383,8 +393,7 @@ const DataTableActions = ({
                 onClick: () => {
                   setRenaming(true);
                 },
-                disabled: !!editWorkspaceErrorMessage,
-                tooltip: editWorkspaceErrorMessage || '',
+                ...buttonProps,
               },
               'Rename table'
             ),
@@ -393,8 +402,7 @@ const DataTableActions = ({
               MenuButton,
               {
                 onClick: () => setDeleting(true),
-                disabled: !!editWorkspaceErrorMessage,
-                tooltip: editWorkspaceErrorMessage || '',
+                ...buttonProps,
               },
               'Delete table'
             ),
@@ -780,8 +788,7 @@ export const WorkspaceData = _.flow(
     const sortedEntityPairs = toSortedPairs(entityMetadata);
     const sortedSnapshotPairs = toSortedPairs(snapshotDetails);
 
-    const editWorkspaceErrorMessage = WorkspaceUtils.editWorkspaceError(workspace);
-    const canEditWorkspace = !editWorkspaceErrorMessage;
+    const { value: canEditWorkspace, message: editWorkspaceErrorMessage } = WorkspaceUtils.canEditWorkspace(workspace);
 
     // convenience vars for WDS
     const wdsReady = wdsApp.status === 'Ready' && wdsTypes.status === 'Ready';
@@ -1105,7 +1112,7 @@ export const WorkspaceData = _.flow(
                                         {
                                           style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' },
                                         },
-                                        ['Loading snapshot contents...', spinner({ style: { marginLeft: '1rem' } })]
+                                        ['Loading snapshot contents...', h(Spinner, { style: { marginLeft: '1rem' } })]
                                       ),
                                   ],
                                   () =>
@@ -1190,8 +1197,8 @@ export const WorkspaceData = _.flow(
                                   Link,
                                   {
                                     style: { flex: 0 },
-                                    disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
-                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || `Delete ${getReferenceLabel(type)} reference`,
+                                    tooltip: `Delete ${getReferenceLabel(type)} reference`,
+                                    ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
                                     onClick: (e) => {
                                       e.stopPropagation();
                                       setDeletingReference(type);
