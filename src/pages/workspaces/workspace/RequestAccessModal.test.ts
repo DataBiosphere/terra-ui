@@ -8,8 +8,9 @@ import {
   requestAccessMessage as azureRequestAccessMessage,
 } from 'src/libs/workspace-utils';
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
+type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');
 
 const azureWorkspace: AzureWorkspace = {
@@ -94,7 +95,7 @@ describe('RequestAccessModal', () => {
 
   it('renders a message for GCP workspaces with no accessibility violations', async () => {
     // Arrange
-    Ajax.mockImplementation(() => ({
+    asMockedFn(Ajax).mockImplementation(() => ({
       Groups: {
         list: jest.fn().mockReturnValue(Promise.resolve([])),
       },
@@ -114,7 +115,7 @@ describe('RequestAccessModal', () => {
     // Arrange
     const onDismiss = jest.fn();
     const props = { onDismiss, workspace: googleWorkspace };
-    Ajax.mockImplementation(() => ({
+    asMockedFn(Ajax).mockImplementation(() => ({
       Groups: {
         list: jest.fn().mockReturnValue(Promise.resolve([])),
       },
@@ -139,7 +140,7 @@ describe('RequestAccessModal', () => {
       requestAccess: requestAccessMock,
     });
     const props = { onDismiss: jest.fn(), workspace: googleWorkspace };
-    Ajax.mockImplementation(() => ({
+    asMockedFn(Ajax).mockImplementation(() => ({
       Groups: {
         list: jest.fn().mockReturnValue(
           Promise.resolve([
