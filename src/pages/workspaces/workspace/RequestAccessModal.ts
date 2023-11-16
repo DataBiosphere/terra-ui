@@ -137,6 +137,7 @@ const RequestAccessButton = (props: RequestAccessButtonProps): ReactNode => {
     ButtonPrimary,
     {
       disabled: requesting || requested,
+      'aria-label': `Request access to ${props.groupName}`,
       onClick: async () => {
         await requestAccess();
       },
