@@ -12,9 +12,9 @@ import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { cond, withBusyState } from 'src/libs/utils';
 import {
+  azureControlledAccessRequestMessage,
   GoogleWorkspaceInfo,
   isAzureWorkspace,
-  requestAccessMessage,
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
 
@@ -171,7 +171,7 @@ const AzureRequestAccessModal = (props: AzureRequestAccessModalProps): ReactNode
         },
         ['Learn more about linking your NIH account', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
       ),
-      p([requestAccessMessage]),
+      p([azureControlledAccessRequestMessage]),
     ]
   );
 };

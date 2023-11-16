@@ -22,7 +22,6 @@ export const useWorkspacesWithSubmissionStats = (): WorkspacesWithSubmissionStat
   } = useWorkspaces(
     [
       'accessLevel',
-      'policies',
       'public',
       'workspace.attributes.description',
       'workspace.attributes.tag:tags',

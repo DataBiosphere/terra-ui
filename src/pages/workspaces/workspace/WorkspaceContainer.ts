@@ -18,7 +18,7 @@ import { withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { isAzureWorkspace, isGoogleWorkspace, requestAccessMessage } from 'src/libs/workspace-utils';
+import { azureControlledAccessRequestMessage, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { AppDetails, useAppPolling } from 'src/pages/workspaces/hooks/useAppPolling';
 import {
   CloudEnvironmentDetails,
@@ -247,7 +247,7 @@ const WorkspaceAccessError = () => {
       h(Link, { ...Utils.newTabLinkProps, href: groupURL }, ['Group']),
       ' of which you are a member.',
     ]),
-    p([requestAccessMessage]),
+    p([azureControlledAccessRequestMessage]),
     h(
       ButtonPrimary,
       {

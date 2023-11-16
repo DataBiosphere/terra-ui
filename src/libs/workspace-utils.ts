@@ -243,6 +243,6 @@ export const getWorkspaceAnalysisControlProps = (
   return value ? {} : { disabled: true, tooltip: message };
 };
 
-export const requestAccessMessage =
+export const azureControlledAccessRequestMessage =
   'We recommend asking the person who invited you to the workspace if it includes any controlled-access data. ' +
   'If it does, they may be able to help you gain access by assisting with a valid Data Access Request (DAR), for example.';

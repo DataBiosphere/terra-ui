@@ -2,11 +2,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import {
-  AzureWorkspace,
-  GoogleWorkspace,
-  requestAccessMessage as azureRequestAccessMessage,
-} from 'src/libs/workspace-utils';
+import { azureControlledAccessRequestMessage, AzureWorkspace, GoogleWorkspace } from 'src/libs/workspace-utils';
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -22,6 +18,13 @@ const azureWorkspace: AzureWorkspace = {
     tenantId: 'tenant-id',
     subscriptionId: 'sub-id,',
   },
+  policies: [
+    {
+      namespace: 'terra',
+      name: 'group-constraint',
+      additionalData: [{ group: 'foo' }],
+    },
+  ],
   workspace: {
     namespace: 'namespace',
     name: 'name',
@@ -29,7 +32,7 @@ const azureWorkspace: AzureWorkspace = {
     cloudPlatform: 'Azure',
     authorizationDomain: [
       {
-        membersGroupName: 'group-1',
+        membersGroupName: 'foo',
       },
     ],
     createdDate: '',
@@ -74,7 +77,7 @@ describe('RequestAccessModal', () => {
     });
     // Assert
     expect(screen.queryByText(new RegExp(authorizationDomainMessage))).toBeNull();
-    expect(screen.queryByText(azureRequestAccessMessage)).not.toBeNull();
+    expect(screen.queryByText(azureControlledAccessRequestMessage)).not.toBeNull();
   });
 
   it('for an Azure workspace, it calls the onDismiss callback when closed', async () => {
@@ -110,7 +113,7 @@ describe('RequestAccessModal', () => {
       expect(await axe(container)).toHaveNoViolations();
     });
     // Assert
-    expect(screen.queryByText(azureRequestAccessMessage)).toBeNull();
+    expect(screen.queryByText(azureControlledAccessRequestMessage)).toBeNull();
     expect(screen.queryByText(new RegExp(authorizationDomainMessage))).not.toBeNull();
   });
 
