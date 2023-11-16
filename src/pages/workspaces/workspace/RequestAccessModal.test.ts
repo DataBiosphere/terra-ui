@@ -10,8 +10,8 @@ import {
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');
+type AjaxContract = ReturnType<typeof Ajax>;
 
 const azureWorkspace: AzureWorkspace = {
   accessLevel: 'PROJECT_OWNER',
@@ -98,7 +98,7 @@ describe('RequestAccessModal', () => {
     asMockedFn(Ajax).mockImplementation(() => ({
       Groups: {
         list: jest.fn().mockReturnValue(Promise.resolve([])),
-      },
+      } as AjaxContract,
     }));
     const props = { onDismiss: jest.fn(), workspace: googleWorkspace };
     // Act
@@ -118,7 +118,7 @@ describe('RequestAccessModal', () => {
     asMockedFn(Ajax).mockImplementation(() => ({
       Groups: {
         list: jest.fn().mockReturnValue(Promise.resolve([])),
-      },
+      } as AjaxContract,
     }));
 
     // Act
@@ -153,7 +153,7 @@ describe('RequestAccessModal', () => {
           ])
         ),
         group: groupMock,
-      } as Partial<AjaxContract['Groups']>,
+      } as AjaxContract,
     }));
 
     // Act
