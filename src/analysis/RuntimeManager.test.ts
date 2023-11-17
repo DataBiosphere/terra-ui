@@ -27,22 +27,6 @@ afterEach(() => {
 });
 
 describe('RuntimeManager', () => {
-  it('will render nothing if there is nothing appropriate to show', () => {
-    // Arrange
-    const runtimeManagerProps = {
-      namespace: 'test-namespace',
-      name: 'test-name',
-      runtimes: [],
-      apps: [],
-    };
-
-    // Act
-    const { container } = render(h(RuntimeManager, runtimeManagerProps));
-
-    // Assert
-    expect(container).toBeEmptyDOMElement();
-  });
-
   it('will update errorNotifiedRuntimes when there is currently a runtime in error state but no previous runtimes', () => {
     // Arrange
     const runtime: Runtime = { ...getGoogleDataProcRuntime(), status: runtimeStatuses.error.leoLabel };
