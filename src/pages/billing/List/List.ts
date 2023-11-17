@@ -2,13 +2,12 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { useEffect, useRef, useState } from 'react';
 import { div, h, h2, p, span } from 'react-hyperscript-helpers';
+import * as Auth from 'src/auth/auth';
 import Collapse from 'src/components/Collapse';
 import { customSpinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
-import * as Auth from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -27,6 +26,7 @@ import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAcco
 import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard';
 import { GCPBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard';
 import ProjectDetail from 'src/pages/billing/Project';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 const BillingProjectSubheader = ({ title, children }) =>
   h(

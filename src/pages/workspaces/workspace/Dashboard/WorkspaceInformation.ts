@@ -2,13 +2,15 @@ import { ReactNode } from 'react';
 import { dl, h } from 'react-hyperscript-helpers';
 import { InfoBox } from 'src/components/InfoBox';
 import {
+  dataAccessControlsMessage,
+  hasDataAccessControls,
   hasProtectedData,
   hasRegionConstraint,
   protectedDataMessage,
   regionConstraintMessage,
 } from 'src/libs/workspace-utils';
+import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
 import { InfoRow } from 'src/pages/workspaces/workspace/Dashboard/InfoRow';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/workspace/useWorkspace';
 
 const roleString = {
   READER: 'Reader',
@@ -35,6 +37,11 @@ export const WorkspaceInformation = (props: WorkspaceInformationProps): ReactNod
       h(InfoRow, { title: 'Region Constraint' }, [
         'Yes',
         h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [regionConstraintMessage(workspace)]),
+      ]),
+    hasDataAccessControls(workspace) &&
+      h(InfoRow, { title: 'Data Access Controls' }, [
+        'Yes',
+        h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [dataAccessControlsMessage(workspace)]),
       ]),
   ]);
 };

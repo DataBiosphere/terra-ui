@@ -1,7 +1,16 @@
 import { abandonedPromise, delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
+import {
+  AuthTokenState,
+  getAuthToken,
+  getAuthTokenFromLocalStorage,
+  loadAuthToken,
+  sendAuthTokenDesyncMetric,
+  sendRetryMetric,
+  signOut,
+  SignOutCause,
+} from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { AuthTokenState, getAuthToken, loadAuthToken, sendRetryMetric, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore } from 'src/libs/state';
 
@@ -67,23 +76,57 @@ export async function makeRequestRetry(request: Function, retryCount: number, ti
 
 const isUnauthorizedResponse = (error: unknown): boolean => error instanceof Response && error.status === 401;
 
+const createRequestWithStoredAuthToken = async (
+  wrappedFetch: FetchFn,
+  resource: RequestInfo | URL,
+  options?: RequestInit
+): Promise<Response> => {
+  const localToken = (await getAuthTokenFromLocalStorage())!;
+  const localHeaderJson = JSON.stringify(authOpts(localToken));
+  const memoryHeaderJson = JSON.stringify(authOpts());
+  if (localHeaderJson !== memoryHeaderJson) {
+    sendAuthTokenDesyncMetric();
+  }
+  return createRequestWithNewAuthToken(localToken, wrappedFetch, resource, options);
+};
+
+const createRequestWithNewAuthToken = (
+  token: string,
+  wrappedFetch: FetchFn,
+  resource: RequestInfo | URL,
+  options?: RequestInit
+): Promise<Response> => {
+  const optionsWithNewAuthToken = _.merge(options, authOpts(token));
+  return wrappedFetch(resource, optionsWithNewAuthToken);
+};
+
 export const withRetryAfterReloadingExpiredAuthToken =
   (wrappedFetch: FetchFn): FetchFn =>
   async (resource: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
+    const preRequestAuthToken = getAuthToken();
     const requestHasAuthHeader = _.isMatch(authOpts(), options as object);
     try {
+      if (requestHasAuthHeader) {
+        // use auth token in local storage
+        return await createRequestWithStoredAuthToken(wrappedFetch, resource, options);
+      }
       return await wrappedFetch(resource, options);
-    } catch (error) {
+    } catch (error: unknown) {
       if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
         const reloadedAuthTokenState: AuthTokenState = await loadAuthToken();
+        const postRequestAuthToken = getAuthToken();
         if (reloadedAuthTokenState.status === 'success') {
           sendRetryMetric();
-          const optionsWithNewAuthToken = _.merge(options, authOpts());
-          return await wrappedFetch(resource, optionsWithNewAuthToken);
+          return await createRequestWithStoredAuthToken(wrappedFetch, resource, options);
         }
-        const signOutCause: SignOutCause =
-          reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
-        signOut(signOutCause);
+        // if the auth token the request was made with does not match the current auth token
+        // that means that the user has already been signed out and signed in again to receive a new token
+        // in this case, we should not sign the user out again
+        if (preRequestAuthToken === postRequestAuthToken) {
+          const signOutCause: SignOutCause =
+            reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
+          signOut(signOutCause);
+        }
         throw new Error(sessionTimedOutErrorMessage);
       } else {
         throw error;

@@ -12,7 +12,7 @@ import { reportError } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import { GoogleWorkspace } from 'src/libs/workspace-utils';
-import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
+import { StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
 
 interface BucketLocationProps {
   workspace: GoogleWorkspace & { workspaceInitialized: boolean };

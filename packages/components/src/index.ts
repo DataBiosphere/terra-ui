@@ -8,6 +8,7 @@ export * from './hooks/useWindowDimensions';
 export * from './icon';
 export type { IconId } from './icon-library';
 export * from './InfoBox';
+export * from './injectStyle';
 export { Interactive } from './Interactive';
 export * from './Link';
 export * from './Modal';

@@ -1,3 +1,4 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, label, p, strong } from 'react-hyperscript-helpers';
@@ -18,10 +19,12 @@ import {
 } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
+import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
+import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
-import { reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
+import { reportErrorAndRethrow, withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
@@ -36,6 +39,7 @@ import {
   WorkspaceWrapper,
 } from 'src/libs/workspace-utils';
 import { BillingProject, CloudPlatform } from 'src/pages/billing/models/BillingProject';
+import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
 import validate from 'validate.js';
 
 const warningStyle: CSSProperties = {
@@ -79,6 +83,9 @@ export interface NewWorkspaceModalProps {
   requiredAuthDomain?: string;
   requireEnhancedBucketLogging?: boolean;
   title?: string;
+  waitForServices?: {
+    wds?: boolean;
+  };
   workflowImport?: boolean;
   onDismiss: () => void;
   onSuccess: (newWorkspace: WorkspaceInfo) => void;
@@ -96,6 +103,7 @@ const NewWorkspaceModal = withDisplayName(
     requireEnhancedBucketLogging,
     title,
     buttonText,
+    waitForServices,
     workflowImport,
   }: NewWorkspaceModalProps) => {
     // State
@@ -175,16 +183,81 @@ const NewWorkspaceModal = withDisplayName(
           }
         );
 
-        onSuccess(createdWorkspace);
+        // The create/clone workspace responses do not include the cloudPlatform field.
+        // Add it based on the billing project used to create the workspace.
+
+        // Translate between billing project cloud platform and workspace cloud platform constants.
+        const workspaceCloudPlatform: WorkspaceInfo['cloudPlatform'] | undefined = (() => {
+          const billingProjectCloudPlatform = getProjectCloudPlatform();
+          switch (billingProjectCloudPlatform) {
+            case 'AZURE':
+              return 'Azure';
+            case 'GCP':
+              return 'Gcp';
+            default:
+              return undefined;
+          }
+        })();
+
+        if (getProjectCloudPlatform() === 'AZURE' && waitForServices?.wds) {
+          // WDS takes some time to start up, so there's no need to immediately start checking if it's running.
+          await delay(30000);
+
+          // Wait for the WDS app to be running.
+          const wds = await Utils.poll(
+            async () => {
+              const workspaceApps: ListAppResponse[] = await Ajax().Apps.listAppsV2(createdWorkspace.workspaceId);
+              const wdsApp = resolveWdsApp(workspaceApps);
+              if (wdsApp?.status === 'RUNNING') {
+                return { shouldContinue: false, result: wdsApp };
+              }
+              if (wdsApp?.status === 'ERROR') {
+                throw new Error('Failed to provision data services for new workspace.');
+              }
+              return { shouldContinue: true, result: null };
+            },
+            15000,
+            true
+          );
+
+          // Wait for the default WDS instance to exist.
+          const proxyUrl = wds!.proxyUrls.wds;
+          await Utils.poll(
+            async () => {
+              const instances: string[] = await Ajax().WorkspaceData.listInstances(proxyUrl);
+              if (instances.includes(createdWorkspace.workspaceId)) {
+                return { shouldContinue: false, result: true };
+              }
+              return { shouldContinue: true, result: false };
+            },
+            5000,
+            true
+          );
+        }
+
+        onSuccess({ ...createdWorkspace, cloudPlatform: workspaceCloudPlatform });
       } catch (error: unknown) {
-        const { message } = await (error as Response).json();
+        const errorMessage = await (async () => {
+          if (error instanceof Response) {
+            try {
+              const { message } = await error.json();
+              return message;
+            } catch (readResponseError) {
+              return 'Unknown error.';
+            }
+          }
+          if (error instanceof Error) {
+            return error.message;
+          }
+          return 'Unknown error.';
+        })();
         setCreating(false);
-        setCreateError(message);
+        setCreateError(errorMessage);
       }
     };
 
     const loadData = _.flow(
-      withErrorReporting('Error loading data'),
+      withErrorReportingInModal('Error loading data', onDismiss),
       Utils.withBusyState(setLoading)
     )(() =>
       Promise.all([
@@ -288,6 +361,10 @@ const NewWorkspaceModal = withDisplayName(
                 [!!cloneWorkspace, () => 'Clone this workspace'],
                 () => 'Create a New Workspace'
               ),
+              // Hold modal open while waiting for create workspace request.
+              shouldCloseOnOverlayClick: !creating,
+              shouldCloseOnEsc: !creating,
+              showButtons: !creating,
               onDismiss,
               okButton: h(
                 ButtonPrimary,
@@ -306,276 +383,288 @@ const NewWorkspaceModal = withDisplayName(
               ),
             },
             [
-              h(IdContainer, [
-                (id) =>
-                  h(Fragment, [
-                    h(FormLabel, { htmlFor: id, required: true }, ['Workspace name']),
-                    h(ValidatedInput, {
-                      inputProps: {
-                        id,
-                        autoFocus: true,
-                        placeholder: 'Enter a name',
-                        value: name,
-                        onChange: (v) => {
-                          setName(v);
-                          setNameModified(true);
-                        },
-                      },
-                      error: Utils.summarizeErrors(nameModified && errors?.name),
-                    }),
-                  ]),
-              ]),
-              h(IdContainer, [
-                (id) =>
-                  h(Fragment, [
-                    h(FormLabel, { htmlFor: id, required: true }, ['Billing project']),
-                    h(Select<string>, {
-                      id,
-                      isClearable: false,
-                      placeholder: 'Select a billing project',
-                      value: namespace || null,
-                      ariaLiveMessages: { onFocus: onFocusAria, onChange: onChangeAria },
-                      onChange: (opt) => setNamespace(opt!.value),
-                      styles: { option: (provided) => ({ ...provided, padding: 10 }) },
-                      // @ts-expect-error
-                      options: _.map(
-                        ({ projectName, invalidBillingAccount, cloudPlatform }: BillingProject) => ({
-                          'aria-label': `${
-                            cloudProviderLabels[cloudPlatform]
-                          } ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
-                          label: h(
-                            TooltipTrigger,
-                            {
-                              content: invalidBillingAccount && invalidBillingAccountMsg,
-                              side: 'left',
+              creating
+                ? h(CreatingWorkspaceMessage)
+                : h(Fragment, [
+                    h(IdContainer, [
+                      (id) =>
+                        h(Fragment, [
+                          h(FormLabel, { htmlFor: id, required: true }, ['Workspace name']),
+                          h(ValidatedInput, {
+                            inputProps: {
+                              id,
+                              autoFocus: true,
+                              placeholder: 'Enter a name',
+                              value: name,
+                              onChange: (v) => {
+                                setName(v);
+                                setNameModified(true);
+                              },
                             },
-                            [
-                              div({ style: { display: 'flex', alignItems: 'center' } }, [
-                                (cloudPlatform === 'GCP' || cloudPlatform === 'AZURE') &&
-                                  h(CloudProviderIcon, {
-                                    key: projectName,
-                                    cloudProvider: cloudPlatform,
-                                    style: { marginRight: '0.5rem' },
-                                  }),
-                                projectName,
+                            error: Utils.summarizeErrors(nameModified && errors?.name),
+                          }),
+                        ]),
+                    ]),
+                    h(IdContainer, [
+                      (id) =>
+                        h(Fragment, [
+                          h(FormLabel, { htmlFor: id, required: true }, ['Billing project']),
+                          h(Select<string>, {
+                            id,
+                            isClearable: false,
+                            placeholder: 'Select a billing project',
+                            value: namespace || null,
+                            ariaLiveMessages: { onFocus: onFocusAria, onChange: onChangeAria },
+                            onChange: (opt) => setNamespace(opt!.value),
+                            styles: { option: (provided) => ({ ...provided, padding: 10 }) },
+                            // @ts-expect-error
+                            options: _.map(
+                              ({ projectName, invalidBillingAccount, cloudPlatform }: BillingProject) => ({
+                                'aria-label': `${
+                                  cloudProviderLabels[cloudPlatform]
+                                } ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
+                                label: h(
+                                  TooltipTrigger,
+                                  {
+                                    content: invalidBillingAccount && invalidBillingAccountMsg,
+                                    side: 'left',
+                                  },
+                                  [
+                                    div({ style: { display: 'flex', alignItems: 'center' } }, [
+                                      (cloudPlatform === 'GCP' || cloudPlatform === 'AZURE') &&
+                                        h(CloudProviderIcon, {
+                                          key: projectName,
+                                          cloudProvider: cloudPlatform,
+                                          style: { marginRight: '0.5rem' },
+                                        }),
+                                      projectName,
+                                    ]),
+                                  ]
+                                ),
+                                value: projectName,
+                                isDisabled: invalidBillingAccount,
+                              }),
+                              _.sortBy(
+                                'projectName',
+                                _.uniq(cloudPlatform ? _.filter({ cloudPlatform }, billingProjects) : billingProjects)
+                              )
+                            ),
+                          }),
+                        ]),
+                    ]),
+                    isGoogleBillingProject() &&
+                      h(IdContainer, [
+                        (id) =>
+                          h(Fragment, [
+                            h(FormLabel, { htmlFor: id }, [
+                              'Bucket location',
+                              h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+                                'A bucket location can only be set when creating a workspace. ',
+                                'Once set, it cannot be changed. ',
+                                'A cloned workspace will automatically inherit the bucket location from the original workspace but this may be changed at clone time.',
+                                p([
+                                  'By default, workflow and Cloud Environments will run in the same region as the workspace bucket. ',
+                                  'Changing bucket or Cloud Environment locations from the defaults can lead to network egress charges.',
+                                ]),
+                                h(
+                                  Link,
+                                  {
+                                    href: 'https://support.terra.bio/hc/en-us/articles/360058964552',
+                                    ...Utils.newTabLinkProps,
+                                  },
+                                  ['Read more about bucket locations']
+                                ),
                               ]),
-                            ]
-                          ),
-                          value: projectName,
-                          isDisabled: invalidBillingAccount,
-                        }),
-                        _.sortBy(
-                          'projectName',
-                          _.uniq(cloudPlatform ? _.filter({ cloudPlatform }, billingProjects) : billingProjects)
-                        )
-                      ),
-                    }),
-                  ]),
-              ]),
-              isGoogleBillingProject() &&
-                h(IdContainer, [
-                  (id) =>
-                    h(Fragment, [
-                      h(FormLabel, { htmlFor: id }, [
-                        'Bucket location',
-                        h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-                          'A bucket location can only be set when creating a workspace. ',
-                          'Once set, it cannot be changed. ',
-                          'A cloned workspace will automatically inherit the bucket location from the original workspace but this may be changed at clone time.',
-                          p([
-                            'By default, workflow and Cloud Environments will run in the same region as the workspace bucket. ',
-                            'Changing bucket or Cloud Environment locations from the defaults can lead to network egress charges.',
+                            ]),
+                            h(Select<string>, {
+                              id,
+                              value: bucketLocation,
+                              onChange: (opt) => setBucketLocation(opt!.value),
+                              options: isAlphaRegionalityUser ? allRegions : availableBucketRegions,
+                            }),
                           ]),
+                      ]),
+                    isLocationMultiRegion(bucketLocation) &&
+                      div({ style: { ...warningStyle } }, [
+                        icon('warning-standard', {
+                          size: 24,
+                          style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
+                        }),
+                        div({ style: { flex: 1 } }, [
+                          'Effective October 1, 2022, Google Cloud will charge egress fees on data stored in multi-region storage buckets.',
+                          p([
+                            'Choosing a multi-region bucket location may result in additional storage costs for your workspace.',
+                          ]),
+                          p([
+                            'Unless you require geo-redundancy for maximum availabity for your data, you should choose a single region bucket location.',
+                            h(
+                              Link,
+                              {
+                                href: 'https://terra.bio/moving-away-from-multi-regional-storage-buckets',
+                                ...Utils.newTabLinkProps,
+                              },
+                              [
+                                ' For more information see this blog post.',
+                                icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
+                              ]
+                            ),
+                          ]),
+                        ]),
+                      ]),
+                    shouldShowDifferentRegionWarning() &&
+                      div({ style: { ...warningStyle } }, [
+                        icon('warning-standard', {
+                          size: 24,
+                          style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
+                        }),
+                        div({ style: { flex: 1 } }, [
+                          'Copying data from ',
+                          strong([getRegionInfo(sourceWorkspaceLocation, sourceLocationType).regionDescription]),
+                          ' to ',
+                          strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
+                          ' may incur network egress charges. ',
+                          'To prevent charges, the new bucket location needs to stay in the same region as the original one. ',
                           h(
                             Link,
                             {
                               href: 'https://support.terra.bio/hc/en-us/articles/360058964552',
                               ...Utils.newTabLinkProps,
                             },
-                            ['Read more about bucket locations']
+                            [
+                              'For more information please read the documentation.',
+                              icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
+                            ]
                           ),
                         ]),
                       ]),
-                      h(Select<string>, {
-                        id,
-                        value: bucketLocation,
-                        onChange: (opt) => setBucketLocation(opt!.value),
-                        options: isAlphaRegionalityUser ? allRegions : availableBucketRegions,
-                      }),
-                    ]),
-                ]),
-              isLocationMultiRegion(bucketLocation) &&
-                div({ style: { ...warningStyle } }, [
-                  icon('warning-standard', {
-                    size: 24,
-                    style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
-                  }),
-                  div({ style: { flex: 1 } }, [
-                    'Effective October 1, 2022, Google Cloud will charge egress fees on data stored in multi-region storage buckets.',
-                    p([
-                      'Choosing a multi-region bucket location may result in additional storage costs for your workspace.',
-                    ]),
-                    p([
-                      'Unless you require geo-redundancy for maximum availabity for your data, you should choose a single region bucket location.',
-                      h(
-                        Link,
-                        {
-                          href: 'https://terra.bio/moving-away-from-multi-regional-storage-buckets',
-                          ...Utils.newTabLinkProps,
-                        },
-                        [
-                          ' For more information see this blog post.',
-                          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
-                        ]
-                      ),
-                    ]),
-                  ]),
-                ]),
-              shouldShowDifferentRegionWarning() &&
-                div({ style: { ...warningStyle } }, [
-                  icon('warning-standard', {
-                    size: 24,
-                    style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
-                  }),
-                  div({ style: { flex: 1 } }, [
-                    'Copying data from ',
-                    strong([getRegionInfo(sourceWorkspaceLocation, sourceLocationType).regionDescription]),
-                    ' to ',
-                    strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
-                    ' may incur network egress charges. ',
-                    'To prevent charges, the new bucket location needs to stay in the same region as the original one. ',
-                    h(
-                      Link,
-                      { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps },
-                      [
-                        'For more information please read the documentation.',
-                        icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
-                      ]
-                    ),
-                  ]),
-                ]),
-              h(IdContainer, [
-                (id) =>
-                  h(Fragment, [
-                    h(FormLabel, { htmlFor: id }, ['Description']),
-                    h(TextArea, {
-                      id,
-                      style: { height: 100 },
-                      placeholder: 'Enter a description',
-                      value: description,
-                      onChange: setDescription,
-                    }),
-                  ]),
-              ]),
-              isGoogleBillingProject() &&
-                div({ style: { margin: '1rem 0.25rem 0.25rem 0' } }, [
-                  h(IdContainer, [
-                    (id) =>
-                      h(Fragment, [
-                        h(
-                          LabeledCheckbox,
-                          {
-                            style: { margin: '0rem 0.25rem 0.25rem 0' },
-                            checked: enhancedBucketLogging,
-                            disabled: !!requireEnhancedBucketLogging || groups.length > 0,
-                            onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
-                            'aria-describedby': id,
-                          },
-                          [
-                            label({ style: { ...Style.elements.sectionHeader } }, [
-                              'Workspace will have protected data',
-                            ]),
-                          ]
-                        ),
-                        h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
-                          'If checked, Terra will log all data access requests to the workspace bucket. ' +
-                            'This feature is automatically enabled when a workspace is created with Authorization Domains.',
+                    h(IdContainer, [
+                      (id) =>
+                        h(Fragment, [
+                          h(FormLabel, { htmlFor: id }, ['Description']),
+                          h(TextArea, {
+                            id,
+                            style: { height: 100 },
+                            placeholder: 'Enter a description',
+                            value: description,
+                            onChange: setDescription,
+                          }),
                         ]),
-                        p({ id, style: { marginTop: '.25rem' } }, ['Access to data will be logged by Terra']),
+                    ]),
+                    isGoogleBillingProject() &&
+                      div({ style: { margin: '1rem 0.25rem 0.25rem 0' } }, [
+                        h(IdContainer, [
+                          (id) =>
+                            h(Fragment, [
+                              h(
+                                LabeledCheckbox,
+                                {
+                                  style: { margin: '0rem 0.25rem 0.25rem 0' },
+                                  checked: enhancedBucketLogging,
+                                  disabled: !!requireEnhancedBucketLogging || groups.length > 0,
+                                  onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
+                                  'aria-describedby': id,
+                                },
+                                [
+                                  label({ style: { ...Style.elements.sectionHeader } }, [
+                                    'Workspace will have protected data',
+                                  ]),
+                                ]
+                              ),
+                              h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
+                                'If checked, Terra will log all data access requests to the workspace bucket. ' +
+                                  'This feature is automatically enabled when a workspace is created with Authorization Domains.',
+                              ]),
+                              p({ id, style: { marginTop: '.25rem' } }, ['Access to data will be logged by Terra']),
+                            ]),
+                        ]),
                       ]),
-                  ]),
-                ]),
-              isGoogleBillingProject() &&
-                h(IdContainer, [
-                  (id) =>
-                    h(Fragment, [
-                      h(FormLabel, { htmlFor: id }, [
-                        'Authorization domain (optional)',
-                        h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-                          'An authorization domain can only be set when creating a workspace. ',
-                          'Once set, it cannot be changed. ',
-                          'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
+                    isGoogleBillingProject() &&
+                      h(IdContainer, [
+                        (id) =>
+                          h(Fragment, [
+                            h(FormLabel, { htmlFor: id }, [
+                              'Authorization domain (optional)',
+                              h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+                                'An authorization domain can only be set when creating a workspace. ',
+                                'Once set, it cannot be changed. ',
+                                'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
+                                h(
+                                  Link,
+                                  {
+                                    href: 'https://support.terra.bio/hc/en-us/articles/360026775691',
+                                    ...Utils.newTabLinkProps,
+                                  },
+                                  ['Read more about authorization domains']
+                                ),
+                              ]),
+                            ]),
+                            p({ style: { marginTop: '.25rem' } }, ['Additional group management controls']),
+                            !!existingGroups.length &&
+                              div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
+                                div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
+                                ...existingGroups.join(', '),
+                              ]),
+                            h(Select<string, true>, {
+                              id,
+                              isClearable: false,
+                              isMulti: true,
+                              placeholder: 'Select groups',
+                              isDisabled: !allGroups || !billingProjects,
+                              value: groups,
+                              onChange: (data) => {
+                                setGroups(_.map('value', data));
+                                setEnhancedBucketLogging(!!requireEnhancedBucketLogging || data.length > 0);
+                              },
+                              options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort(),
+                            }),
+                          ]),
+                      ]),
+                    customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
+                    workflowImport &&
+                      azureBillingProjectsExist &&
+                      div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
+                        icon('info-circle', { size: 16, style: { marginRight: '0.5rem', color: colors.accent() } }),
+                        div([
+                          'Importing directly into new Azure workspaces is not currently supported. To create a new workspace with an Azure billing project, visit the main ',
                           h(
                             Link,
                             {
-                              href: 'https://support.terra.bio/hc/en-us/articles/360026775691',
+                              href: Nav.getLink('workspaces'),
+                            },
+                            ['Workspaces']
+                          ),
+                          ' page.',
+                        ]),
+                      ]),
+                    isAzureBillingProject() &&
+                      div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
+                        icon('warning-standard', {
+                          size: 16,
+                          style: { marginRight: '0.5rem', color: colors.warning() },
+                        }),
+                        div([
+                          'Creating a workspace currently costs about $5 per day. ',
+                          h(
+                            Link,
+                            {
+                              href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
                               ...Utils.newTabLinkProps,
                             },
-                            ['Read more about authorization domains']
+                            [
+                              'Learn more and follow changes',
+                              icon('pop-out', { size: 14, style: { marginLeft: '0.25rem' } }),
+                            ]
                           ),
                         ]),
                       ]),
-                      p({ style: { marginTop: '.25rem' } }, ['Additional group management controls']),
-                      !!existingGroups.length &&
-                        div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
-                          div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
-                          ...existingGroups.join(', '),
-                        ]),
-                      h(Select<string, true>, {
-                        id,
-                        isClearable: false,
-                        isMulti: true,
-                        placeholder: 'Select groups',
-                        isDisabled: !allGroups || !billingProjects,
-                        value: groups,
-                        onChange: (data) => {
-                          setGroups(_.map('value', data));
-                          setEnhancedBucketLogging(!!requireEnhancedBucketLogging || data.length > 0);
+                    createError &&
+                      div(
+                        {
+                          style: { marginTop: '1rem', color: colors.danger() },
                         },
-                        options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort(),
-                      }),
-                    ]),
-                ]),
-              customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
-              workflowImport &&
-                azureBillingProjectsExist &&
-                div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
-                  icon('info-circle', { size: 16, style: { marginRight: '0.5rem', color: colors.accent() } }),
-                  div([
-                    'Importing directly into new Azure workspaces is not currently supported. To create a new workspace with an Azure billing project, visit the main ',
-                    h(
-                      Link,
-                      {
-                        href: Nav.getLink('workspaces'),
-                      },
-                      ['Workspaces']
-                    ),
-                    ' page.',
+                        [createError]
+                      ),
                   ]),
-                ]),
-              isAzureBillingProject() &&
-                div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
-                  icon('warning-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
-                  div([
-                    'Creating a workspace currently costs about $5 per day. ',
-                    h(
-                      Link,
-                      {
-                        href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
-                        ...Utils.newTabLinkProps,
-                      },
-                      ['Learn more and follow changes', icon('pop-out', { size: 14, style: { marginLeft: '0.25rem' } })]
-                    ),
-                  ]),
-                ]),
-              createError &&
-                div(
-                  {
-                    style: { marginTop: '1rem', color: colors.danger() },
-                  },
-                  [createError]
-                ),
-              creating && spinnerOverlay,
             ]
           ),
       ],

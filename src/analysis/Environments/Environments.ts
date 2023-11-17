@@ -2,8 +2,9 @@ import { Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers';
+import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
 import { SaveFilesHelp, SaveFilesHelpAzure } from 'src/analysis/runtime-common-components';
-import { AppErrorModal, RuntimeErrorModal } from 'src/analysis/RuntimeManager';
+import { RuntimeErrorModal } from 'src/analysis/RuntimeManager';
 import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import {
   getAppCost,
@@ -13,12 +14,7 @@ import {
 } from 'src/analysis/utils/cost-utils';
 import { workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import { getCreatorForCompute, getDisplayStatus, isComputePausable } from 'src/analysis/utils/resource-utils';
-import {
-  getDisplayRuntimeStatus,
-  getNormalizedComputeRegion,
-  getRegionFromZone,
-  isGcpContext,
-} from 'src/analysis/utils/runtime-utils';
+import { getDisplayRuntimeStatus, isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel, appTools, getToolLabelFromCloudEnv, isPauseSupported } from 'src/analysis/utils/tool-utils';
 import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -30,7 +26,11 @@ import TooltipTrigger from 'src/components/TooltipTrigger';
 import { useModalHandler } from 'src/components/useModalHandler';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { isAzureConfig, isGceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import {
+  getRegionFromZone,
+  isAzureConfig,
+  isGceWithPdConfig,
+} from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { isRuntime, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
@@ -44,6 +44,7 @@ import { contactUsActive, getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { UseWorkspaces, UseWorkspacesResult } from 'src/workspaces/useWorkspaces.models';
 
 import { DeleteAppModal } from './DeleteAppModal';
 import { DeleteButton } from './DeleteButton';
@@ -203,24 +204,13 @@ export function PauseButton(props: PauseButtonProps): ReactNode {
     : null;
 }
 
-export interface UseWorkspacesStateResult {
-  workspaces: WorkspaceWrapper[];
-  refresh: () => Promise<void>;
-  loading: boolean;
-}
-
-export type UseWorkspacesState = (
-  fields?: Record<string, string>,
-  stringAttributeMaxLength?: string | number
-) => UseWorkspacesStateResult;
-
-type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'pause' | 'delete'>;
+type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | 'pause' | 'delete'>;
 type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
 
 export interface EnvironmentsProps {
   nav: NavLinkProvider<EnvironmentNavActions>;
-  useWorkspacesState: UseWorkspacesState;
+  useWorkspaces: UseWorkspaces;
   leoAppData: LeoAppProviderNeeds;
   leoRuntimeData: LeoRuntimeProviderNeeds;
   leoDiskData: LeoDiskProviderNeeds;
@@ -228,14 +218,14 @@ export interface EnvironmentsProps {
 }
 
 export const Environments = (props: EnvironmentsProps): ReactNode => {
-  const { nav, useWorkspacesState, leoAppData, leoDiskData, leoRuntimeData, metrics } = props;
+  const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, metrics } = props;
   const signal = useCancellation();
 
   type WorkspaceWrapperLookup = { [namespace: string]: { [name: string]: WorkspaceWrapper } };
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
-    useWorkspacesState,
+    useWorkspaces,
     _.update('workspaces', _.flow(_.groupBy('workspace.namespace'), _.mapValues(_.keyBy('workspace.name'))))
-  )() as Mutate<UseWorkspacesStateResult, 'workspaces', WorkspaceWrapperLookup>;
+  )() as Mutate<UseWorkspacesResult, 'workspaces', WorkspaceWrapperLookup>;
 
   const getWorkspaces = useGetter(workspaces);
   const [runtimes, setRuntimes] = useState<RuntimeWithWorkspace[]>();
@@ -343,9 +333,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
   const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (compute: DecoratedComputeResource) => {
     const wrappedPauseCompute = withErrorReporting('Error pausing compute', async () => {
-      if (isRuntime(compute) && isGoogleWorkspaceInfo(compute.workspace)) {
-        return leoRuntimeData.stop(compute);
-      }
       if (isRuntime(compute)) {
         return leoRuntimeData.stop(compute);
       }
@@ -625,6 +612,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   };
 
   const runtimeToDelete: RuntimeWithWorkspace | undefined = _.find({ id: deleteRuntimeId }, runtimes);
+  const appWithErrors: AppWithWorkspace | undefined = _.find({ appName: errorAppId }, apps);
 
   return h(Fragment, [
     div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
@@ -708,8 +696,8 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                   if (isApp(cloudEnvironment)) {
                     return cloudEnvironment.region;
                   }
-                  if ('runtimeConfig' in cloudEnvironment) {
-                    return _.toLower(getNormalizedComputeRegion(cloudEnvironment.runtimeConfig));
+                  if (isRuntime(cloudEnvironment)) {
+                    return _.toLower(cloudEnvironment.runtimeConfig.normalizedRegion);
                   }
                   return '';
                 },
@@ -960,10 +948,11 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         }),
       deleteDiskId && renderDeleteDiskModal(_.find({ id: deleteDiskId }, disks) as DiskWithWorkspace),
       deleteAppModal.maybeRender(),
-      errorAppId &&
+      appWithErrors &&
         h(AppErrorModal, {
-          app: _.find({ appName: errorAppId }, apps),
+          app: appWithErrors,
           onDismiss: () => setErrorAppId(undefined),
+          appProvider: leoAppData,
         }),
     ]),
     contactUsActive.get() && h(SupportRequestWrapper),

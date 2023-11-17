@@ -14,7 +14,7 @@ import {
 import { getImportRequest } from './useImportRequest';
 
 // Workaround for circular import errors.
-jest.mock('src/libs/auth');
+jest.mock('src/auth/auth');
 
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
 jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {

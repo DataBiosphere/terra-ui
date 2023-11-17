@@ -3,6 +3,7 @@
  * See https://github.com/DataBiosphere/terra-ui/wiki/Mocking-API-Responses.
  */
 
+import { ensureAuthSettled } from 'src/auth/auth';
 import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { AjaxOverride, ajaxOverridesStore, getTerraUser } from 'src/libs/state';
 
@@ -60,9 +61,13 @@ export const makeSuccess = (body: any): FetchWrapper => {
 };
 
 /**
- * Override WDS app listings to use a local instance of WDS for relevant workspaces.
+ * Override WDS app listings to use a local instance of WDS for a specific workspace.
  */
-export const overrideAppsWithLocalWDS = async () => {
+export const overrideAppsWithLocalWDS = async (workspaceId?: string) => {
+  if (!workspaceId) {
+    throw new Error('A workspace ID is required');
+  }
+
   const wdsUrl = 'http://localhost:8080';
   const token = getTerraUser().token;
 
@@ -78,14 +83,25 @@ export const overrideAppsWithLocalWDS = async () => {
       'Content-Type': 'application/json',
     },
   });
-  const instances: string[] = await instancesResponse.json();
+  const instanceIds: string[] = await instancesResponse.json();
 
-  // For each instance on the local WDS, override the Leo apps list
-  // for the corresponding workspace to return the local WDS' URL
-  // as the WDS proxy URL for that workspace.
-  const ajaxOverrides: AjaxOverride[] = instances.map((instanceId) => {
-    const workspaceId = instanceId;
-    return {
+  // Create an instance for the given workspace if one does not already exist.
+  if (!instanceIds.includes(workspaceId)) {
+    const createInstanceResponse = await fetch(`${wdsUrl}/instances/v0.2/${workspaceId}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!createInstanceResponse.ok) {
+      throw new Error(`Failed to create instance for workspace ${workspaceId}`);
+    }
+  }
+
+  // Override the Leo apps list for the given workspace to return the local
+  // WDS' URL as the WDS proxy URL for that workspace.
+  const ajaxOverrides: AjaxOverride[] = [
+    {
       filter: { url: new RegExp(`/apps/v2/${workspaceId}`) },
       fn: mapJsonBody((apps: ListAppResponse[]): ListAppResponse[] => {
         return apps.map((app) => {
@@ -101,11 +117,26 @@ export const overrideAppsWithLocalWDS = async () => {
           return app;
         });
       }),
-    };
-  });
+    },
+  ];
 
   ajaxOverridesStore.set(ajaxOverrides);
 };
+
+/**
+ * Allow automatically overriding apps for a workspace by starting the Terra UI
+ * dev server with an environment variable set.
+ * TERRA_UI_USE_LOCAL_WDS_FOR_WORKSPACE should contain the ID of the workspace
+ * to use the local WDS instance for.
+ */
+if (import.meta.env.TERRA_UI_USE_LOCAL_WDS_FOR_WORKSPACE) {
+  (async () => {
+    // A token is needed to make requests to the local WDS.
+    // Wait for the user to be loaded before attempting to do so.
+    await ensureAuthSettled();
+    overrideAppsWithLocalWDS(import.meta.env.TERRA_UI_USE_LOCAL_WDS_FOR_WORKSPACE);
+  })();
+}
 
 /**
  * Utilities to be exposed as globals.

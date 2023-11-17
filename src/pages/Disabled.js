@@ -1,6 +1,6 @@
 import { div, h } from 'react-hyperscript-helpers';
+import { signOut } from 'src/auth/auth';
 import { Link } from 'src/components/common';
-import { signOut } from 'src/libs/auth';
 
 export const Disabled = () => {
   return div({ role: 'main', style: { padding: '1rem' } }, [

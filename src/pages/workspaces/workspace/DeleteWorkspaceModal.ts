@@ -2,16 +2,16 @@ import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import { useState } from 'react';
 import { b, div, h, label, p, span } from 'react-hyperscript-helpers';
+import { bucketBrowserUrl } from 'src/auth/auth';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
-import { bucketBrowserUrl } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { warningBoxStyle } from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
-import { useDeleteWorkspaceState } from 'src/pages/workspaces/workspace/useDeleteWorkspaceState';
+import { useDeleteWorkspaceState } from 'src/pages/workspaces/hooks/useDeleteWorkspaceState';
 
 interface DeleteWorkspaceModalProps {
   workspace: Workspace;

@@ -2,11 +2,11 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { CloudProvider, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportRequest } from './import-types';
 import { canImportIntoWorkspace, ImportOptions } from './import-utils';
@@ -29,10 +29,10 @@ jest.mock('src/components/NewWorkspaceModal', (): NewWorkspaceModalExports => {
   };
 });
 
-type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
-jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
+type UseWorkspacesExports = typeof import('src/workspaces/useWorkspaces');
+jest.mock('src/workspaces/useWorkspaces', (): UseWorkspacesExports => {
   return {
-    ...jest.requireActual<WorkspaceUtilsExports>('src/components/workspace-utils'),
+    ...jest.requireActual<UseWorkspacesExports>('src/workspaces/useWorkspaces'),
     useWorkspaces: jest.fn(),
   };
 });
@@ -99,7 +99,7 @@ describe('ImportDataDestination', () => {
 
       // Assert
       const protectedDataWarning = screen.queryByText(
-        'You may only import to workspaces with an Authorization Domain and/or protected data setting.',
+        'You may only import into workspaces that have additional security monitoring enabled.',
         {
           exact: false,
         }
@@ -115,7 +115,7 @@ describe('ImportDataDestination', () => {
       importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
       requiredAuthorizationDomain: 'test-auth-domain',
       expectedArgs: {
-        cloudPlatform: undefined,
+        cloudPlatform: 'GCP',
         isProtectedData: true,
         requiredAuthorizationDomain: 'test-auth-domain',
       },
@@ -123,7 +123,7 @@ describe('ImportDataDestination', () => {
     {
       importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { cloudPlatform: undefined, isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedArgs: { cloudPlatform: 'GCP', isProtectedData: false, requiredAuthorizationDomain: undefined },
     },
     {
       importRequest: {
@@ -215,7 +215,7 @@ describe('ImportDataDestination', () => {
 
       // Assert
       expect(canImportIntoWorkspace).toHaveBeenCalledWith(expectedArgs, expect.anything());
-      expect(workspaces).toEqual(['allowed-workspace']);
+      expect(workspaces).toEqual([expect.stringMatching(/allowed-workspace/)]);
     }
   );
 
@@ -292,7 +292,7 @@ describe('ImportDataDestination', () => {
         requiredAuthorizationDomain: undefined,
       },
       expectedNewWorkspaceModalProps: {
-        cloudPlatform: undefined,
+        cloudPlatform: 'GCP',
         requiredAuthDomain: undefined,
         requireEnhancedBucketLogging: false,
       },
@@ -304,7 +304,7 @@ describe('ImportDataDestination', () => {
         requiredAuthorizationDomain: 'test-auth-domain',
       },
       expectedNewWorkspaceModalProps: {
-        cloudPlatform: undefined,
+        cloudPlatform: 'GCP',
         requiredAuthDomain: 'test-auth-domain',
         requireEnhancedBucketLogging: true,
       },

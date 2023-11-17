@@ -4,12 +4,12 @@ import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { isGoogleWorkspace } from 'src/libs/workspace-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 const requesterPaysHelpInfo = div({ style: { paddingTop: '1rem' } }, [
   h(

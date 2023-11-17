@@ -92,6 +92,43 @@ describe('Workflows App Navigation Panel', () => {
     expect(submissionHistoryButton).toHaveAttribute('aria-disabled', 'true');
   });
 
+  it('disables find and add workflows when user is reader', async () => {
+    await act(() =>
+      render(
+        h(WorkflowsAppNavPanel, {
+          loading: false,
+          launcherDisabled: true,
+          launching: false,
+          createWorkflowsApp: jest.fn(),
+          pageReady: true,
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: {
+            ...mockAzureWorkspace,
+            canCompute: false,
+          },
+          analysesData: defaultAnalysesData,
+          setLoading: jest.fn(),
+          signal: jest.fn(),
+        })
+      )
+    );
+
+    expect(screen.queryByText('Featured workflows')).not.toBeInTheDocument();
+    expect(screen.queryByText('Import a workflow')).not.toBeInTheDocument();
+    expect(screen.queryByText('Dockstore')).not.toBeInTheDocument();
+
+    const workflowsInWorkspaceButton = screen.getAllByRole('button')[0];
+    const submissionHistoryButton = screen.getAllByRole('button')[1];
+
+    expect(workflowsInWorkspaceButton).not.toHaveAttribute('aria-disabled', 'true');
+    expect(submissionHistoryButton).not.toHaveAttribute('aria-disabled', 'true');
+
+    const findAndAddWorkflowsCollapse = screen.getByRole('button', { name: 'Find & add workflows' });
+
+    expect(findAndAddWorkflowsCollapse).toHaveAttribute('aria-disabled', 'true');
+  });
+
   it('renders workflow launch card when page is not ready', async () => {
     const { rerender } = render(
       h(WorkflowsAppNavPanel, {

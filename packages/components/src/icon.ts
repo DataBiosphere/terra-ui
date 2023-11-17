@@ -1,14 +1,12 @@
-import { CSSProperties, ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 import iconLibrary, { IconId } from './icon-library';
 
-export interface IconProps {
-  'aria-label'?: string;
-  'aria-labelledby'?: string;
-  className?: string;
+type SvgProps = JSX.IntrinsicElements['svg'];
+
+export interface IconProps extends SvgProps {
   color?: string;
   size?: number;
-  style?: CSSProperties;
 }
 
 /**

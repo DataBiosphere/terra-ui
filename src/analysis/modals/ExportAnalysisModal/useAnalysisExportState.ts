@@ -3,13 +3,13 @@ import _ from 'lodash/fp';
 import { useState } from 'react';
 import { AnalysisFile } from 'src/analysis/useAnalysisFiles';
 import { ToolLabel } from 'src/analysis/utils/tool-utils';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import Events, { extractCrossWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 export type LoadedAnalysisFiles = LoadedState<AnalysisFile[], unknown>;
 

@@ -5,7 +5,7 @@ import {
   forwardRef,
   ForwardRefRenderFunction,
   memo,
-  ReactElement,
+  ReactNode,
   useEffect,
   useRef,
   useState,
@@ -89,7 +89,7 @@ export const useCancellation = (): AbortSignal => {
 };
 
 type ComponentWithDisplayName = {
-  (props: any, context?: any): ReactElement<any, any> | null;
+  (props: any, context?: any): ReactNode;
   displayName?: string | undefined;
 };
 
@@ -180,6 +180,18 @@ export const useStore = <T>(theStore: Atom<T>): T => {
     return theStore.subscribe((v) => setValue(v)).unsubscribe;
   }, [theStore]);
   return value;
+};
+
+/**
+ * Hook that returns a tuple with [currentValue, setValueFn] for a given store.  This provides an alternative
+ * to useStore hook above that more closely emulates the tuple return of built-in useState hook.
+ * When the store changes, the component will re-render.
+ * @param theStore
+ */
+export const useSettableStore = <T>(theStore: Atom<T>): [T, (value: T) => void] => {
+  const currentStoreValue = useStore(theStore);
+
+  return [currentStoreValue, theStore.set];
 };
 
 export const useDebouncedValue = <T>(value: T, wait: number): T => {

@@ -133,7 +133,7 @@ export class SelectHelper {
     return optionLabels;
   }
 
-  async selectOption(optionLabel: string): Promise<void> {
+  async selectOption(optionLabel: string | RegExp): Promise<void> {
     await this.openMenu();
     const listboxId = this.inputElement.getAttribute('aria-controls')!;
     const listBox = document.getElementById(listboxId)!;

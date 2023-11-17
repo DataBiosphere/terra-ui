@@ -81,11 +81,14 @@ const eventsList = {
   permissionsSynchronizationDelay: 'permissions:propagationDelay',
   resourceLeave: 'resource:leave',
   user: {
-    authTokenLoad: {
-      success: 'user:authTokenLoad:success',
-      expired: 'user:authTokenLoad:expiredRefreshToken',
-      error: 'user:authTokenLoad:error',
-      retry: 'user:authTokenLoad:retry',
+    authToken: {
+      load: {
+        success: 'user:authTokenLoad:success',
+        expired: 'user:authTokenLoad:expiredRefreshToken',
+        error: 'user:authTokenLoad:error',
+        retry: 'user:authTokenLoad:retry',
+      },
+      desync: 'user:authToken:desync',
     },
     login: {
       success: 'user:login:success',
