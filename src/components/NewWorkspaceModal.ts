@@ -18,6 +18,7 @@ import {
   isSupportedBucketLocation,
 } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
+import { isProtectedWorkspace } from 'src/import-data/protected-data-utils';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
@@ -38,7 +39,7 @@ import {
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/libs/workspace-utils';
-import { BillingProject, CloudPlatform } from 'src/pages/billing/models/BillingProject';
+import { AzureBillingProject, BillingProject, CloudPlatform } from 'src/pages/billing/models/BillingProject';
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
 import validate from 'validate.js';
 
@@ -318,7 +319,17 @@ const NewWorkspaceModal = withDisplayName(
       // This coupling of enhanced bucket logging and billing project may change in the future.
       return Utils.cond(
         [!!workflowImport || !!requireEnhancedBucketLogging, () => !isAzureBillingProject(project)],
-        [!!cloneWorkspace && isAzureWorkspace(cloneWorkspace), () => isAzureBillingProject(project)],
+        [
+          !!cloneWorkspace && isAzureWorkspace(cloneWorkspace),
+          () => {
+            if (!isAzureBillingProject(project)) {
+              return false;
+            }
+            const azureBillingProject = project as AzureBillingProject;
+            const sourceWorkspace = cloneWorkspace as WorkspaceWrapper;
+            return isProtectedWorkspace(sourceWorkspace) ? azureBillingProject.protectedData : true;
+          },
+        ],
         [!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace), () => isGoogleBillingProject(project)],
         [Utils.DEFAULT, () => true]
       );
@@ -409,7 +420,7 @@ const NewWorkspaceModal = withDisplayName(
                       (id) =>
                         h(Fragment, [
                           h(FormLabel, { htmlFor: id, required: true }, ['Billing project']),
-                          h(Select<string>, {
+                          h(Select as typeof Select<string>, {
                             id,
                             isClearable: false,
                             placeholder: 'Select a billing project',
@@ -476,7 +487,7 @@ const NewWorkspaceModal = withDisplayName(
                                 ),
                               ]),
                             ]),
-                            h(Select<string>, {
+                            h(Select as typeof Select<string>, {
                               id,
                               value: bucketLocation,
                               onChange: (opt) => setBucketLocation(opt!.value),
@@ -604,7 +615,7 @@ const NewWorkspaceModal = withDisplayName(
                                 div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
                                 ...existingGroups.join(', '),
                               ]),
-                            h(Select<string, true>, {
+                            h(Select as typeof Select<string, true>, {
                               id,
                               isClearable: false,
                               isMulti: true,
@@ -672,9 +683,8 @@ const NewWorkspaceModal = withDisplayName(
         h(
           Modal,
           {
-            title: 'Set up Billing',
+            title: 'Set Up Billing',
             onDismiss,
-            showCancel: false,
             okButton: h(
               ButtonPrimary,
               {
@@ -686,9 +696,9 @@ const NewWorkspaceModal = withDisplayName(
           [
             div([
               icon('error-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
-              'You need a billing project to ',
-              cloneWorkspace ? 'clone a' : 'create a new',
-              ' workspace.',
+              cloneWorkspace
+                ? 'You do not have a billing project that is able to clone this workspace.'
+                : 'You need a billing project to create a new workspace.',
             ]),
           ]
         )

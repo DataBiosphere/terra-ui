@@ -1,24 +1,31 @@
 import { abandonedPromise, DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn, withFakeTimers } from '@terra-ui-packages/test-utils';
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
-import { AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
-import { BillingProject, CloudPlatform } from 'src/pages/billing/models/BillingProject';
+import { goToPath } from 'src/libs/nav';
+import { AzureWorkspace, AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
+import { AzureBillingProject, CloudPlatform, GCPBillingProject } from 'src/pages/billing/models/BillingProject';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import NewWorkspaceModal from './NewWorkspaceModal';
 
 jest.mock('src/libs/ajax');
 
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
-  getLink: jest.fn().mockReturnValue(''),
-}));
+type NavExports = typeof import('src/libs/nav');
+jest.mock(
+  'src/libs/nav',
+  (): NavExports => ({
+    ...jest.requireActual<NavExports>('src/libs/nav'),
+    getLink: jest.fn(() => '/'),
+    goToPath: jest.fn(),
+  })
+);
 
-const gcpBillingProject: BillingProject = {
+const gcpBillingProject: GCPBillingProject = {
   billingAccount: 'billingAccounts/FOO-BAR-BAZ',
   cloudPlatform: 'GCP',
   invalidBillingAccount: false,
@@ -27,7 +34,7 @@ const gcpBillingProject: BillingProject = {
   status: 'Ready',
 };
 
-const azureBillingProject: BillingProject = {
+const azureBillingProject: AzureBillingProject = {
   cloudPlatform: 'AZURE',
   landingZoneId: 'aaaabbbb-cccc-dddd-0000-111122223333',
   managedAppCoordinates: {
@@ -39,6 +46,22 @@ const azureBillingProject: BillingProject = {
   projectName: 'Azure Billing Project',
   roles: ['Owner'],
   status: 'Ready',
+  protectedData: false,
+};
+
+const azureProtectedDataBillingProject: AzureBillingProject = {
+  cloudPlatform: 'AZURE',
+  landingZoneId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+  managedAppCoordinates: {
+    tenantId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+    subscriptionId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+    managedResourceGroupId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+  },
+  invalidBillingAccount: false,
+  projectName: 'Protected Azure Billing Project',
+  roles: ['Owner'],
+  status: 'Ready',
+  protectedData: true,
 };
 
 type AjaxContract = ReturnType<typeof Ajax>;
@@ -90,6 +113,89 @@ const hasGroupsAjax = {
 };
 
 describe('NewWorkspaceModal', () => {
+  it('shows a message if there are no billing projects to use for creation', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: defaultAzureWorkspace,
+          onSuccess: () => {},
+          onDismiss: () => {},
+        })
+      );
+    });
+
+    // Assert
+    screen.getByText('You do not have a billing project that is able to clone this workspace.');
+  });
+
+  it('shows a message if there are no billing projects to use for cloning', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          onSuccess: () => {},
+          onDismiss: () => {},
+        })
+      );
+    });
+
+    // Assert
+    screen.getByText('You need a billing project to create a new workspace.');
+  });
+
+  it('redirects to billing if there are no billing projects', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    // Arrange
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: defaultAzureWorkspace,
+          onSuccess: () => {},
+          onDismiss: () => {},
+        })
+      );
+    });
+    const goToBilling = screen.getByText('Go to Billing');
+    await user.click(goToBilling);
+
+    // Assert
+    await waitFor(() => expect(goToPath).toBeCalledWith('billing'));
+  });
+
   it('Shows all available billing projects by default', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -164,6 +270,123 @@ describe('NewWorkspaceModal', () => {
       expect(availableBillingProjects).toEqual(expectedBillingProjects);
     }
   );
+
+  it('Hides Azure billing projects when cloning a GCP workspace', async () => {
+    const user = userEvent.setup();
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () => ({
+          checkBucketLocation: jest.fn().mockResolvedValue({
+            location: 'US-CENTRAL1',
+            locationType: 'location-type',
+          }),
+        }),
+      },
+      Billing: {
+        listProjects: async () => [gcpBillingProject, azureBillingProject],
+      },
+      ...nonBillingAjax,
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: defaultGoogleWorkspace,
+          onDismiss: () => {},
+          onSuccess: () => {},
+        })
+      );
+    });
+
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    const availableBillingProjectOptions = await projectSelect.getOptions();
+    // Remove icon name from option label.
+    // The icon names are only present in tests. They're the result of a configured transform.
+    const availableBillingProjects = availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
+
+    // Assert
+    expect(availableBillingProjects).toEqual(['Google Billing Project']);
+  });
+
+  it('Hides GCP billing projects when cloning an Azure workspace', async () => {
+    const user = userEvent.setup();
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject, azureBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: defaultAzureWorkspace,
+          onDismiss: () => {},
+          onSuccess: () => {},
+        })
+      );
+    });
+
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    const availableBillingProjectOptions = await projectSelect.getOptions();
+    // Remove icon name from option label.
+    // The icon names are only present in tests. They're the result of a configured transform.
+    const availableBillingProjects = availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
+
+    // Assert
+    expect(availableBillingProjects).toEqual(['Azure Billing Project']);
+  });
+
+  it('Hides billing projects that cannot be used for cloning a protected data Azure workspace', async () => {
+    const user = userEvent.setup();
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+    const protectedAzureWorkspace: AzureWorkspace = {
+      ...defaultAzureWorkspace,
+      policies: [
+        {
+          additionalData: [],
+          namespace: 'terra',
+          name: 'protected-data',
+        },
+      ],
+    };
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: protectedAzureWorkspace,
+          onDismiss: () => {},
+          onSuccess: () => {},
+        })
+      );
+    });
+
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    const availableBillingProjectOptions = await projectSelect.getOptions();
+    // Remove icon name from option label.
+    // The icon names are only present in tests. They're the result of a configured transform.
+    const availableBillingProjects = availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
+
+    // Assert
+    expect(availableBillingProjects).toEqual(['Protected Azure Billing Project']);
+  });
 
   it('Hides azure billing projects if part of workflow import', async () => {
     // Arrange
