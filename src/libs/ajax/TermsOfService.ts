@@ -3,11 +3,11 @@ import { fetchSam } from 'src/libs/ajax/ajax-common';
 export const TermsOfService = (signal?: AbortSignal) => {
   return {
     getTermsOfServiceText: async (): Promise<string> => {
-      const res = await fetchSam('termsOfService/v1/docs?doc=termsOfService', { signal });
+      const res = await fetchSam('tos/text', { signal });
       return res.text();
     },
     getPrivacyText: async (): Promise<string> => {
-      const res = await fetchSam('termsOfService/v1/docs?doc=privacyPolicy', { signal });
+      const res = await fetchSam('privacy/text', { signal });
       return res.text();
     },
   };

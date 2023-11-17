@@ -220,10 +220,21 @@ export const Register = (): ReactNode => {
         checked={termsOfServiceAccepted}
         onChange={setTermsOfServiceAccepted}
         disabled={!termsOfServiceSeen}
+        tooltip={!termsOfServiceSeen ? 'You must read the Terms of Service before continuing' : undefined}
+        tooltipSide="right"
       />
 
       <div style={{ marginTop: '3rem' }}>
-        <ButtonPrimary disabled={errors || busy} onClick={register}>
+        <ButtonPrimary
+          disabled={errors || busy}
+          onClick={register}
+          tooltip={
+            errors
+              ? 'You must fill out all required fields and accept the Terms of Service before continuing'
+              : undefined
+          }
+          tooltipSide="right"
+        >
           Register
         </ButtonPrimary>
         <ButtonSecondary style={{ marginLeft: '1rem' }} onClick={() => signOut('requested')}>

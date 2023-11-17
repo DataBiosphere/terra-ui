@@ -1,4 +1,4 @@
-import { Interactive, useThemeFromContext } from '@terra-ui-packages/components';
+import { Interactive, TooltipTrigger, useThemeFromContext } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { h, span } from 'react-hyperscript-helpers';
@@ -7,9 +7,9 @@ import * as Utils from 'src/libs/utils';
 
 import { IdContainer } from './IdContainer';
 
-export const Checkbox = ({ checked, onChange, disabled = false, ...props }) => {
+export const Checkbox = ({ checked, onChange, disabled = false, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, ...props }) => {
   const { colors } = useThemeFromContext();
-  return h(
+  const checkbox = h(
     Interactive,
     _.merge(
       {
@@ -29,6 +29,10 @@ export const Checkbox = ({ checked, onChange, disabled = false, ...props }) => {
       checked && icon('check', { size: 8, style: { color: disabled ? colors.dark(0.75) : 'white' } }), // check
     ]
   );
+  if (tooltip) {
+    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel }, [checkbox]);
+  }
+  return checkbox;
 };
 
 export const LabeledCheckbox = ({ checked, onChange, disabled = false, children, ...props }) => {
