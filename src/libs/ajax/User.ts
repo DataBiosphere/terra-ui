@@ -37,6 +37,13 @@ export interface SamUserTosComplianceStatusResponse {
   permitsSystemUsage: boolean;
 }
 
+export interface SamUserTermsOfServiceDetails {
+  latestAcceptedVersion: string;
+  acceptedOn: Date;
+  permitsSystemUsage: boolean;
+  isCurrentVersion: boolean;
+}
+
 export type TerraUserPreferences = {
   starredWorkspaces?: string;
 } & {
@@ -257,11 +264,6 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
-    getTos: async (): Promise<string> => {
-      const response = await fetchSam('tos/text', _.merge(authOpts(), { signal }));
-      return response.text();
-    },
-
     acceptTos: async (): Promise<SamUserTosStatusResponse> => {
       const response = await fetchSam(
         'register/user/v1/termsofservice',
@@ -284,11 +286,6 @@ export const User = (signal?: AbortSignal) => {
         _.merge(authOpts(), { signal })
       );
       return res.json();
-    },
-
-    getPrivacyPolicy: async (): Promise<string> => {
-      const response = await fetchSam('privacy/text', _.merge(authOpts(), { signal }));
-      return response.text();
     },
 
     firstTimestamp: (): Promise<RexFirstTimestampResponse> => {
