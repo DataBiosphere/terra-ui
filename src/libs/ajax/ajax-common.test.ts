@@ -1,4 +1,4 @@
-import { getAuthToken, loadAuthToken, signOut } from 'src/auth/auth';
+import { getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken, signOut } from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -44,7 +44,9 @@ type AuthExports = typeof import('src/auth/auth');
 jest.mock('src/auth/auth', (): Partial<AuthExports> => {
   return {
     getAuthToken: jest.fn(() => mockOidcUser.access_token),
+    getAuthTokenFromLocalStorage: jest.fn(() => Promise.resolve(mockOidcUser.access_token)),
     loadAuthToken: jest.fn(),
+    sendAuthTokenDesyncMetric: jest.fn(),
     sendRetryMetric: jest.fn(),
     signOut: jest.fn(),
   };
@@ -81,6 +83,27 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
     expect(response instanceof Response).toBe(true);
     await expect(response.json()).resolves.toEqual({ success: true });
     expect(response.status).toBe(200);
+  });
+
+  describe('uses locally stored auth token for authenticated requests', () => {
+    const localToken = 'local token';
+    asMockedFn(getAuthTokenFromLocalStorage).mockImplementationOnce(() => Promise.resolve(localToken));
+    it('when tokens are different', async () => {
+      // Arrange
+      const originalFetch = jest.fn(() =>
+        Promise.resolve(new Response(JSON.stringify({ success: true }), { status: 200 }))
+      );
+      const wrappedFetch = withRetryAfterReloadingExpiredAuthToken(originalFetch);
+      const makeAuthenticatedRequest = () => wrappedFetch('https://example.com', authOpts());
+
+      // Act
+      await Promise.allSettled([makeAuthenticatedRequest()]);
+
+      // Assert
+      expect(originalFetch).toHaveBeenCalledWith('https://example.com', {
+        headers: { Authorization: `Bearer ${localToken}` },
+      });
+    });
   });
 
   describe('if an authenticated request fails with a 401 status', () => {

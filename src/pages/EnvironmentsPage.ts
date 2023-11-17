@@ -1,15 +1,15 @@
 import { NavLinkProvider } from '@terra-ui-packages/core-utils';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { EnvironmentNavActions, Environments, UseWorkspacesState } from 'src/analysis/Environments/Environments';
+import { EnvironmentNavActions, Environments } from 'src/analysis/Environments/Environments';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import { terraNavKey, TerraNavLinkProvider, terraNavLinkProvider } from 'src/libs/nav';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 type NavMap<NavTypes, FnReturn> = {
   [Property in keyof NavTypes]: (args: NavTypes[Property]) => FnReturn;
@@ -42,7 +42,7 @@ export const EnvironmentsPage = (): ReactNode => {
     h(TopBar, { title: 'Cloud Environments', href: '' }, []),
     h(Environments, {
       nav: navProvider,
-      useWorkspacesState: useWorkspaces as UseWorkspacesState,
+      useWorkspaces,
       leoAppData: leoAppProvider,
       leoRuntimeData: leoRuntimeProvider,
       leoDiskData: leoDiskProvider,

@@ -95,7 +95,7 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
  * Returns the rendered status line, based on icon function, label, and style.
  */
 export const makeStatusLine = (iconFn, label, style) =>
-  div({ style: { display: 'flex', alignItems: 'center', fontSize: 14, ...style } }, [iconFn({ marginRight: '0.5rem' }), label]);
+  div({ style: { display: 'flex', alignItems: 'center', fontSize: 14, flexWrap: 'wrap', ...style } }, [iconFn({ marginRight: '0.5rem' }), label]);
 
 /**
  * Returns the rendered status line for Cromwell status.
