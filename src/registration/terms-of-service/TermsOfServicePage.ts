@@ -18,7 +18,7 @@ import * as Utils from 'src/libs/utils';
 export const TermsOfServicePage = () => {
   const [busy, setBusy] = useState<boolean>();
   const { signInStatus, termsOfService } = useStore(authStore);
-  const acceptedLatestTos = signInStatus === 'signedIn' && termsOfService.userHasAcceptedLatestTos;
+  const acceptedLatestTos = signInStatus === 'signedIn' && termsOfService.isCurrentVersion;
   const usageAllowed = signInStatus === 'signedIn' && termsOfService.permitsSystemUsage;
   const [tosText, setTosText] = useState<string>();
 
@@ -35,22 +35,11 @@ export const TermsOfServicePage = () => {
   const accept = async () => {
     try {
       setBusy(true);
-      const { enabled } = await Ajax().User.acceptTos();
-      // This is actually a bug, enabled is being treated as a boolean when it is actually a truthy object
-      // I am choosing to not change the functionality of the code, so we can change it in a dedicated pr
-      // https://broadworkbench.atlassian.net/browse/ID-852
-      if (enabled) {
-        const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus();
-
-        const registrationStatus = 'registered';
-        authStore.update((state) => ({ ...state, registrationStatus, termsOfService }));
-        Nav.goToPath('root');
-      } else {
-        reportError(
-          'Error accepting terms of service, unexpected backend error occurred.',
-          new Error('Unexpected backend error')
-        );
-      }
+      await Ajax().TermsOfService.acceptTermsOfService();
+      const termsOfService = await Ajax().TermsOfService.getUserTermsOfServiceDetails();
+      const registrationStatus = 'registered';
+      authStore.update((state) => ({ ...state, registrationStatus, termsOfService }));
+      Nav.goToPath('root');
     } catch (error) {
       reportError('Error accepting Terms of Service', error);
     } finally {
@@ -61,7 +50,7 @@ export const TermsOfServicePage = () => {
   const reject = async () => {
     try {
       setBusy(true);
-      await Ajax().User.rejectTos();
+      await Ajax().TermsOfService.rejectTermsOfService();
     } catch (error) {
       reportError('Error rejecting Terms of Service', error);
     } finally {

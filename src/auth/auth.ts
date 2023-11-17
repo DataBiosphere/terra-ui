@@ -474,10 +474,14 @@ authStore.subscribe(
   withErrorReporting('Error checking registration', async (state: AuthState, oldState: AuthState) => {
     const getRegistrationStatus = async (): Promise<TerraUserRegistrationStatus> => {
       try {
-        const { enabled } = await Ajax().User.getStatus();
-        if (enabled) {
-          // When Terra is first loaded, termsOfService.permitsSystemUsage will be undefined while the user's ToS status is fetched from Sam
-          return state.termsOfService.permitsSystemUsage ? 'registered' : 'registeredWithoutTos';
+        const { allowed, details } = await Ajax().User.getUserAllowances();
+        const { enabled, termsOfService } = details;
+        if (allowed) {
+          return 'registered';
+        }
+        if (enabled && !termsOfService) {
+          await refreshUserTermsOfService();
+          return 'registeredWithoutTos';
         }
         return 'disabled';
       } catch (error) {
@@ -499,11 +503,11 @@ authStore.subscribe(
 
 authStore.subscribe(
   withErrorReporting('Error checking TOS', async (state: AuthState, oldState: AuthState): Promise<void> => {
-    if (!isNowSignedIn(oldState, state)) {
+    if (!becameRegistered(oldState, state)) {
       return;
     }
     try {
-      const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus();
+      const termsOfService = await Ajax().TermsOfService.getUserTermsOfServiceDetails();
       authStore.update((state: AuthState) => ({ ...state, termsOfService }));
     } catch (error) {
       // If the resp is 404 it means the user has not accepted ANY tos yet, we want to handle this gracefully.
@@ -511,7 +515,7 @@ authStore.subscribe(
         // If the user is now logged in, but there's no ToS status from Sam,
         // then they haven't accepted it yet and Sam hasn't caught up.
         const termsOfService = {
-          userHasAcceptedLatestTos: false,
+          isCurrentVersion: false,
           permitsSystemUsage: false,
         };
         authStore.update((state: AuthState) => ({ ...state, termsOfService }));
@@ -574,7 +578,7 @@ export const refreshSamUserAttributes = async (): Promise<void> => {
 };
 
 export const refreshUserTermsOfService = async (): Promise<void> => {
-  const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus();
+  const termsOfService = await Ajax().TermsOfService.getUserTermsOfServiceDetails();
   authStore.update((state: AuthState) => ({ ...state, termsOfService }));
 };
 

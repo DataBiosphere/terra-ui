@@ -69,7 +69,7 @@ describe('terms-of-service-alerts', () => {
     jest.spyOn(TosAlerts, 'useTermsOfServiceAlerts');
 
     const termsOfService = {
-      userHasAcceptedLatestTos: false,
+      isCurrentVersion: false,
       permitsSystemUsage: true,
     };
 
@@ -87,7 +87,7 @@ describe('terms-of-service-alerts', () => {
     jest.spyOn(TosAlerts, 'useTermsOfServiceAlerts');
 
     const termsOfService = {
-      userHasAcceptedLatestTos: true,
+      isCurrentVersion: true,
       permitsSystemUsage: true,
     };
 

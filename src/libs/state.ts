@@ -53,7 +53,7 @@ export type TerraUserRegistrationStatus =
 
 export type TermsOfServiceStatus = {
   permitsSystemUsage: boolean | undefined;
-  userHasAcceptedLatestTos: boolean | undefined;
+  isCurrentVersion: boolean | undefined;
 };
 
 export type TokenMetadata = {
@@ -142,7 +142,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   sessionStartTime: -1,
   termsOfService: {
     permitsSystemUsage: undefined,
-    userHasAcceptedLatestTos: undefined,
+    isCurrentVersion: undefined,
   },
   terraUser: {
     token: undefined,

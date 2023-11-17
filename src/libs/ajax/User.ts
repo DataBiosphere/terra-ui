@@ -19,29 +19,14 @@ export interface SamUserRegistrationStatusResponse {
   enabled: boolean;
 }
 
-export interface SamUserTosStatusResponse {
-  userInfo: {
-    userSubjectId: string;
-    userEmail: string;
-  };
-  enabled: {
-    ldap: boolean;
-    allUsersGroup: boolean;
-    google: boolean;
-  };
+export interface SamUserAllowancesDetails {
+  enabled: boolean;
+  termsOfService: boolean;
 }
 
-export interface SamUserTosComplianceStatusResponse {
-  userId: string;
-  userHasAcceptedLatestTos: boolean;
-  permitsSystemUsage: boolean;
-}
-
-export interface SamUserTermsOfServiceDetails {
-  latestAcceptedVersion: string;
-  acceptedOn: Date;
-  permitsSystemUsage: boolean;
-  isCurrentVersion: boolean;
+export interface SamUserAllowances {
+  allowed: boolean;
+  details: SamUserAllowancesDetails;
 }
 
 export type TerraUserPreferences = {
@@ -196,6 +181,11 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
+    getUserAllowances: async (): Promise<SamUserRegistrationStatusResponse> => {
+      const res = await fetchSam('api/users/v2/self/allowed', _.mergeAll([authOpts(), { signal }]));
+      return res.json();
+    },
+
     getUserAttributes: async (): Promise<SamUserAttributes> => {
       const res = await fetchSam('api/users/v2/self/attributes', _.mergeAll([authOpts(), { signal }]));
       return res.json().then((obj) => {
@@ -259,30 +249,6 @@ export const User = (signal?: AbortSignal) => {
     getProxyGroup: async (email: string): Promise<string> => {
       const res = await fetchOrchestration(
         `api/proxyGroup/${encodeURIComponent(email)}`,
-        _.merge(authOpts(), { signal })
-      );
-      return res.json();
-    },
-
-    acceptTos: async (): Promise<SamUserTosStatusResponse> => {
-      const response = await fetchSam(
-        'register/user/v1/termsofservice',
-        _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
-      );
-      return response.json();
-    },
-
-    rejectTos: async (): Promise<SamUserTosStatusResponse> => {
-      const response = await fetchSam(
-        'register/user/v1/termsofservice',
-        _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
-      );
-      return response.json();
-    },
-
-    getTermsOfServiceComplianceStatus: async (): Promise<SamUserTosComplianceStatusResponse> => {
-      const res = await fetchSam(
-        'register/user/v2/self/termsOfServiceComplianceStatus',
         _.merge(authOpts(), { signal })
       );
       return res.json();
