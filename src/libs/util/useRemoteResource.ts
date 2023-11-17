@@ -15,9 +15,6 @@ interface RemoteResourceLoadedState<T> {
 export interface UseRemoteResourceResult<T> {
   /** The remote ressource and its refresh status. */
   resourceState: RemoteResourceLoadedState<T>;
-
-  /** Refresh the remote resource. */
-  refresh: () => Promise<void>;
 }
 
 export const useRemoteResource = <T>(
@@ -29,7 +26,7 @@ export const useRemoteResource = <T>(
 
   const [status, setStatus] = useState<'Loading' | 'Ready' | 'Error'>('Loading');
 
-  const refresh = useCallback(async () => {
+  const load = useCallback(async () => {
     setStatus('Loading');
     try {
       const newResource = await callback();
@@ -39,16 +36,13 @@ export const useRemoteResource = <T>(
       reportError(errorMessage, err);
       setStatus('Error');
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [callback, errorMessage]);
 
-  // exhaustive-deps is disabled because this should run only once, when the hook mounts.
-  // It should not re-run in the event refresh is recreated.
   useEffect(() => {
-    refresh();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    load();
+  }, [load]);
 
   return {
     resourceState: { status, resource },
-    refresh,
   };
 };

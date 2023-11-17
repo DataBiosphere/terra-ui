@@ -28,16 +28,41 @@ type UserPartial = Partial<AjaxContract['User']>;
 type ProfilePartial = Partial<UserPartial['profile']>;
 type TermsOfServicePartial = Partial<AjaxContract['TermsOfService']>;
 
+const fillInPersonalInfo = (): void => {
+  fireEvent.change(screen.getByLabelText(/First Name/), { target: { value: 'Test Name' } });
+  fireEvent.change(screen.getByLabelText(/Last Name/), { target: { value: 'Test Last Name' } });
+  fireEvent.change(screen.getByLabelText(/Contact Email for Notifications/), {
+    target: { value: 'ltcommanderdata@neighborhood.horse' },
+  });
+};
+const fillInOrgInfo = (): void => {
+  fireEvent.change(screen.getByLabelText(/Organization/), { target: { value: 'Test Organization' } });
+  fireEvent.change(screen.getByLabelText(/Department/), { target: { value: 'Test Department' } });
+  fireEvent.change(screen.getByLabelText(/Title/), { target: { value: 'Test Title' } });
+};
+const acceptTermsOfService = (): void => {
+  asMockedFn(Ajax).mockImplementation(
+    () =>
+      ({
+        TermsOfService: {
+          getTermsOfServiceText: jest.fn().mockResolvedValue('Terra Terms of Service'),
+        } as TermsOfServicePartial,
+      } as AjaxContract)
+  );
+
+  fireEvent.click(screen.getByText('Read Terra Platform Terms of Service here'));
+
+  fireEvent.click(screen.getByText('OK'));
+  fireEvent.click(screen.getByLabelText('By checking this box, you are agreeing to the Terra Terms of Service'));
+};
+
 describe('Register', () => {
   it('requires Organization, Department, and Title if the checkbox is unchecked', async () => {
     // Arrange
     // Act
     const { container } = render(h(Register));
-    fireEvent.change(screen.getByLabelText(/First Name/), { target: { value: 'Test Name' } });
-    fireEvent.change(screen.getByLabelText(/Last Name/), { target: { value: 'Test Last Name' } });
-    fireEvent.change(screen.getByLabelText(/Contact Email for Notifications/), {
-      target: { value: 'testemail@noreply.com' },
-    });
+    fillInPersonalInfo();
+
     // Assert
     const registerButton = screen.getByText('Register');
     // expect(registerButton).toBeDisabled doesn't seem to work.
@@ -49,12 +74,9 @@ describe('Register', () => {
     // Arrange
     // Act
     render(h(Register));
-    fireEvent.change(screen.getByLabelText(/First Name/), { target: { value: 'Test Name' } });
-    fireEvent.change(screen.getByLabelText(/Last Name/), { target: { value: 'Test Last Name' } });
-    fireEvent.change(screen.getByLabelText(/Contact Email for Notifications/), {
-      target: { value: 'testemail@noreply.com' },
-    });
+    fillInPersonalInfo();
     fireEvent.click(screen.getByLabelText('I am not a part of an organization'));
+    acceptTermsOfService();
 
     // Assert
     const registerButton = screen.getByText('Register');
@@ -65,14 +87,9 @@ describe('Register', () => {
     // Arrange
     // Act
     const { container } = render(h(Register));
-    fireEvent.change(screen.getByLabelText(/First Name/), { target: { value: 'Test Name' } });
-    fireEvent.change(screen.getByLabelText(/Last Name/), { target: { value: 'Test Last Name' } });
-    fireEvent.change(screen.getByLabelText(/Contact Email for Notifications/), {
-      target: { value: 'testemail@noreply.com' },
-    });
-    fireEvent.change(screen.getByLabelText(/Organization/), { target: { value: 'Test Organization' } });
-    fireEvent.change(screen.getByLabelText(/Department/), { target: { value: 'Test Department' } });
-    fireEvent.change(screen.getByLabelText(/Title/), { target: { value: 'Test Title' } });
+    fillInPersonalInfo();
+    fillInOrgInfo();
+    acceptTermsOfService();
 
     // Assert
     const registerButton = screen.getByText('Register');
@@ -91,9 +108,17 @@ describe('Register', () => {
 
   it('fires off a request to Orch and Sam to register a user', async () => {
     // Arrange
-    const profileSetFunction = jest.fn().mockResolvedValue({});
+    const registerUserFunction = jest.fn().mockResolvedValue({});
     const setUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
     const getUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
+
+    // Act
+    render(h(Register));
+
+    fillInPersonalInfo();
+    fillInOrgInfo();
+    fireEvent.click(screen.getByLabelText(/Marketing communications.*/));
+    acceptTermsOfService();
 
     asMockedFn(Ajax).mockImplementation(
       () =>
@@ -102,38 +127,23 @@ describe('Register', () => {
           User: {
             setUserAttributes: setUserAttributesFunction,
             getUserAttributes: getUserAttributesFunction,
+            registerWithProfile: registerUserFunction,
             profile: {
-              set: profileSetFunction,
               get: jest.fn().mockReturnValue({}),
             } as ProfilePartial,
           } as UserPartial,
-          TermsOfService: {
-            getTermsOfServiceText: jest.fn().mockResolvedValue(''),
-          } as TermsOfServicePartial,
         } as AjaxContract)
     );
 
-    // Act
-    render(h(Register));
-
-    fireEvent.change(screen.getByLabelText(/First Name/), { target: { value: 'Test Name' } });
-    fireEvent.change(screen.getByLabelText(/Last Name/), { target: { value: 'Test Last Name' } });
-    fireEvent.change(screen.getByLabelText(/Contact Email for Notifications/), {
-      target: { value: 'testemail@noreply.com' },
-    });
-    fireEvent.change(screen.getByLabelText(/Organization/), { target: { value: 'Test Organization' } });
-    fireEvent.change(screen.getByLabelText(/Department/), { target: { value: 'Test Department' } });
-    fireEvent.change(screen.getByLabelText(/Title/), { target: { value: 'Test Title' } });
-    fireEvent.click(screen.getByLabelText(/Marketing communications.*/));
-
     const registerButton = screen.getByText('Register');
+    expect(registerButton).not.toHaveAttribute('disabled');
     await act(() => fireEvent.click(registerButton));
 
     // Assert
-    expect(profileSetFunction).toHaveBeenCalledWith({
+    expect(registerUserFunction).toHaveBeenCalledWith(true, {
       firstName: 'Test Name',
       lastName: 'Test Last Name',
-      contactEmail: 'testemail@noreply.com',
+      contactEmail: 'ltcommanderdata@neighborhood.horse',
       title: 'Test Title',
       department: 'Test Department',
       institute: 'Test Organization',

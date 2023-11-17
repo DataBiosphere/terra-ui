@@ -67,7 +67,7 @@ export const Register = (): ReactNode => {
             title,
           }
         : {};
-      await Ajax().User.profile.set({
+      await Ajax().User.registerWithProfile(termsOfServiceAccepted, {
         firstName: givenName,
         lastName: familyName,
         contactEmail: email,
@@ -203,7 +203,7 @@ export const Register = (): ReactNode => {
       />
       <hr style={{ marginTop: '2rem', marginBottom: '2rem', color: colors.dark(0.2) }} />
       <h1 style={headerStyle('1rem')}>Terra Terms of Service</h1>
-      <h4>Please accept the Terms of Service to Continue</h4>
+      <h2 style={{ fontSize: '14px' }}>Please accept the Terms of Service to Continue</h2>
       <ButtonSecondary
         style={{ textDecoration: 'underline', textTransform: 'none' }}
         onClick={() => setShowTermsOfService(true)}
