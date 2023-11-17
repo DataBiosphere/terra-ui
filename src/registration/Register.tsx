@@ -77,6 +77,7 @@ export const Register = (): ReactNode => {
       await Ajax().User.setUserAttributes({ marketingConsent });
       await refreshUserTermsOfService();
       authStore.update((state) => ({ ...state, registrationStatus: 'registered' }));
+      document.getElementById('root')!.scrollTop = 0;
       await refreshTerraProfile();
       await refreshSamUserAttributes();
       Ajax().Metrics.captureEvent(Events.user.register);
@@ -212,8 +213,11 @@ export const Register = (): ReactNode => {
         Read Terra Platform Terms of Service here
       </ButtonSecondary>
       {showTermsOfService && (
-        <Modal width="90%" title="Terra Terms of Service" showCancel={false} onDismiss={termsOfServiceViewed}>
-          <RemoteMarkdown getRemoteText={() => Ajax().TermsOfService.getTermsOfServiceText()} />
+        <Modal width="80%" title="Terra Terms of Service" showCancel={false} onDismiss={termsOfServiceViewed}>
+          <RemoteMarkdown
+            style={{ height: '75vh', overflowY: 'auto' }}
+            getRemoteText={() => Ajax().TermsOfService.getTermsOfServiceText()}
+          />
         </Modal>
       )}
       <RegistrationPageCheckbox
