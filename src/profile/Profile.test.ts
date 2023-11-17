@@ -39,7 +39,6 @@ describe('Profile', () => {
     firstName: 'Test',
     lastName: 'User',
 
-    email: 'user@example.com',
     contactEmail: '',
 
     institute: 'Broad Institute',
