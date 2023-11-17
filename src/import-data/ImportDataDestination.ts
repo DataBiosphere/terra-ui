@@ -49,7 +49,7 @@ interface ChoiceButtonProps {
   style?: CSSProperties;
   title: string;
   onClick: () => void;
-  tooltip?: boolean;
+  tooltip?: string;
 }
 
 const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
@@ -335,8 +335,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               detail: 'Select one of your workspaces',
               disabled: !userHasBillingProjects || !protectedWorkspacesPresent,
               tooltip:
-                (!userHasBillingProjects || !protectedWorkspacesPresent) &&
-                'No existing protected workspace is present.',
+                !userHasBillingProjects || !protectedWorkspacesPresent
+                  ? 'No existing protected workspace is present.'
+                  : undefined,
             }),
             canUseNewWorkspace &&
               h(ChoiceButton, {
