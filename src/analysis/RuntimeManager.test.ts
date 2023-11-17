@@ -1,6 +1,7 @@
 import { h } from 'react-hyperscript-helpers';
 import { getGoogleDataProcRuntime } from 'src/analysis/_testData/testData';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { notify } from 'src/libs/notifications';
 import { errorNotifiedRuntimes } from 'src/libs/state';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -38,10 +39,29 @@ describe('RuntimeManager', () => {
     };
 
     // Act
-    const { container } = render(h(RuntimeManager, runtimeManagerProps));
+    render(h(RuntimeManager, runtimeManagerProps));
 
     // Assert
-    expect(container).toBeEmptyDOMElement();
     expect(errorNotifiedRuntimes.get()).toEqual([runtime.id]);
+    expect(notify).toHaveBeenCalled();
+  });
+
+  it('will not add duplicates to errorNotifiedRuntimes', () => {
+    // Arrange
+    const runtime: Runtime = { ...getGoogleDataProcRuntime(), status: runtimeStatuses.error.leoLabel };
+    const runtimeManagerProps = {
+      namespace: 'test-namespace',
+      name: 'test-name',
+      runtimes: [runtime],
+      apps: [],
+    };
+
+    // Act
+    render(h(RuntimeManager, runtimeManagerProps));
+    render(h(RuntimeManager, runtimeManagerProps));
+
+    // Assert
+    expect(errorNotifiedRuntimes.get()).toEqual([runtime.id]);
+    expect(notify).toHaveBeenCalledTimes(1);
   });
 });
