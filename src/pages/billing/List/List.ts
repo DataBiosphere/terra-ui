@@ -7,7 +7,6 @@ import Collapse from 'src/components/Collapse';
 import { customSpinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
@@ -27,6 +26,7 @@ import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAcco
 import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard';
 import { GCPBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard';
 import ProjectDetail from 'src/pages/billing/Project';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 const BillingProjectSubheader = ({ title, children }) =>
   h(

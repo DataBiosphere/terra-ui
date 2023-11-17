@@ -5,7 +5,6 @@ import { refreshSamUserAttributes, refreshTerraProfile } from 'src/auth/auth';
 import { Checkbox, spinnerOverlay } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -13,6 +12,7 @@ import { memoWithName } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 const NotificationCheckbox = ({ notificationKeys, label, setSaving, prefsData }) => {
   const notificationKeysWithValue = ({ notificationKeys, value }) => {

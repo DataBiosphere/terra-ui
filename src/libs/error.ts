@@ -3,7 +3,7 @@ import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { notify } from 'src/libs/notifications';
 
-export const reportError = async (title, obj) => {
+export const reportError = async (title, obj?: unknown) => {
   console.error(title, obj); // helpful when the notify component fails to render
   // Do not show an error notification when a session times out.
   // Notification for this case is handled elsewhere.

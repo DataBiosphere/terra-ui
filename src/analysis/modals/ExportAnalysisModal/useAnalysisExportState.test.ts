@@ -2,11 +2,11 @@ import { act, renderHook } from '@testing-library/react';
 import { AnalysisFile } from 'src/analysis/useAnalysisFiles';
 import { AbsolutePath, DisplayName, FileExtension, FileName } from 'src/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { errors, useAnalysisExportState } from './useAnalysisExportState';
 
@@ -39,11 +39,11 @@ jest.mock(
   })
 );
 
-type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
+type WorkspaceUtilsExports = typeof import('src/workspaces/useWorkspaces');
 jest.mock(
-  'src/components/workspace-utils',
+  'src/workspaces/useWorkspaces',
   (): WorkspaceUtilsExports => ({
-    ...jest.requireActual('src/components/workspace-utils'),
+    ...jest.requireActual('src/workspaces/useWorkspaces'),
     useWorkspaces: jest.fn(),
   })
 );
