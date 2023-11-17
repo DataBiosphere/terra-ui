@@ -1,6 +1,6 @@
 import { Modal } from '@terra-ui-packages/components';
 import React, { ReactNode, useState } from 'react';
-import { refreshSamUserAttributes, refreshTerraProfile, signOut } from 'src/auth/auth';
+import { refreshSamUserAttributes, refreshTerraProfile, refreshUserTermsOfService, signOut } from 'src/auth/auth';
 import { ButtonPrimary, ButtonSecondary, LabeledCheckbox } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import planet from 'src/images/register-planet.svg';
@@ -75,7 +75,8 @@ export const Register = (): ReactNode => {
         ...orgFields,
       });
       await Ajax().User.setUserAttributes({ marketingConsent });
-      authStore.update((state) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
+      await refreshUserTermsOfService();
+      authStore.update((state) => ({ ...state, registrationStatus: 'registered' }));
       await refreshTerraProfile();
       await refreshSamUserAttributes();
       Ajax().Metrics.captureEvent(Events.user.register);

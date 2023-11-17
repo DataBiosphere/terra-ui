@@ -573,6 +573,11 @@ export const refreshSamUserAttributes = async (): Promise<void> => {
   authStore.update((state: AuthState) => ({ ...state, terraUserAttributes }));
 };
 
+export const refreshUserTermsOfService = async (): Promise<void> => {
+  const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus();
+  authStore.update((state: AuthState) => ({ ...state, termsOfService }));
+};
+
 authStore.subscribe(
   withErrorReporting('Error loading user profile', async (state: AuthState, oldState: AuthState) => {
     if (isNowSignedIn(oldState, state)) {
