@@ -4,7 +4,7 @@ import { b, div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
-import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils';
+import { WorkspaceSelector } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
@@ -14,6 +14,7 @@ import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { isValidWsExportTarget } from 'src/libs/workspace-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 import validate from 'validate.js';
 
 const InfoTile = ({ isError = false, content }) => {

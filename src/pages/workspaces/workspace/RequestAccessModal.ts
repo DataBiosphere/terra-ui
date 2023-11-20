@@ -1,47 +1,71 @@
 import _ from 'lodash/fp';
-import { useState } from 'react';
-import { div, h, span, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers';
+import { ReactNode, useState } from 'react';
+import { div, h, p, span, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
+import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { getTerraUser } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 import { cond, withBusyState } from 'src/libs/utils';
+import {
+  azureControlledAccessRequestMessage,
+  GoogleWorkspaceInfo,
+  isAzureWorkspace,
+  WorkspaceWrapper as Workspace,
+} from 'src/libs/workspace-utils';
 
-export const RequestAccessModal = ({ onDismiss, workspace }) => {
-  const [groups, setGroups] = useState([]);
-  const [accessInstructions, setAccessInstructions] = useState([]);
+interface RequestAccessModalProps {
+  onDismiss: () => void;
+  workspace: Workspace;
+}
+
+export const RequestAccessModal = (props: RequestAccessModalProps): ReactNode => {
+  return isAzureWorkspace(props.workspace)
+    ? h(AzureRequestAccessModal, { onDismiss: props.onDismiss })
+    : h(GcpRequestAccessModal, {
+        onDismiss: props.onDismiss,
+        workspaceInfo: props.workspace.workspace,
+      });
+};
+
+interface GcpRequestAccessModalProps {
+  onDismiss: () => void;
+  workspaceInfo: GoogleWorkspaceInfo;
+}
+
+const GcpRequestAccessModal = (props: GcpRequestAccessModalProps): ReactNode => {
+  const [groups, setGroups] = useState<CurrentUserGroupMembership[]>([]);
   const [loading, setLoading] = useState(false);
   const signal = useCancellation();
+  const workspace = props.workspaceInfo;
 
-  const { Groups, Workspaces } = Ajax(signal);
-
-  const fetchGroups = withErrorReporting('Error loading groups')(async () => {
-    setGroups(await Groups.list());
-  });
-
-  const fetchAccessInstructions = withErrorReporting('Error loading instructions')(async () => {
-    setAccessInstructions(await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name).accessInstructions());
-  });
-
-  const fetchAll = withBusyState(setLoading)(async () => {
-    await Promise.all([fetchGroups(), fetchAccessInstructions()]);
-  });
+  const fetchGroups = async () => {
+    setGroups(await Ajax(signal).Groups.list());
+  };
 
   useOnMount(() => {
-    fetchAll();
+    const load = _.flow(
+      withBusyState(setLoading),
+      withErrorReporting('Error loading groups')
+    )(async () => {
+      await fetchGroups();
+    });
+    load();
   });
 
   const groupNames = _.map('groupName', groups);
-  const authDomain = workspace.workspace.authorizationDomain;
+
   return h(
     Modal,
     {
       title: 'Request Access',
       width: '40rem',
       showCancel: false,
-      onDismiss,
+      onDismiss: props.onDismiss,
     },
     [
       div([
@@ -55,6 +79,7 @@ export const RequestAccessModal = ({ onDismiss, workspace }) => {
           Link,
           {
             href: 'https://support.terra.bio/hc/en-us/articles/360026775691',
+            ...Utils.newTabLinkProps,
           },
           ['Learn more about Authorization Domains', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
         ),
@@ -78,11 +103,10 @@ export const RequestAccessModal = ({ onDismiss, workspace }) => {
                         ? span({ style: { fontWeight: 600 } }, ['Yes'])
                         : h(RequestAccessButton, {
                             groupName,
-                            instructions: accessInstructions[groupName],
                           }),
                     ]),
                   ]),
-                authDomain
+                workspace.authorizationDomain
               )
             ),
           ]),
@@ -90,7 +114,11 @@ export const RequestAccessModal = ({ onDismiss, workspace }) => {
   );
 };
 
-const RequestAccessButton = ({ groupName }) => {
+interface RequestAccessButtonProps {
+  groupName: string;
+}
+
+const RequestAccessButton = (props: RequestAccessButtonProps): ReactNode => {
   const [requesting, setRequesting] = useState(false);
   const [requested, setRequested] = useState(false);
   const signal = useCancellation();
@@ -101,7 +129,7 @@ const RequestAccessButton = ({ groupName }) => {
     withBusyState(setRequesting),
     withErrorReporting('Error requesting group access')
   )(async () => {
-    await Groups.group(groupName).requestAccess();
+    await Groups.group(props.groupName).requestAccess();
     setRequested(true);
   });
 
@@ -109,10 +137,41 @@ const RequestAccessButton = ({ groupName }) => {
     ButtonPrimary,
     {
       disabled: requesting || requested,
+      'aria-label': `Request access to ${props.groupName}`,
       onClick: async () => {
         await requestAccess();
       },
     },
     [cond([requested, () => 'Request Sent'], [requesting, () => 'Sending Request...'], () => 'Request Access')]
+  );
+};
+
+interface AzureRequestAccessModalProps {
+  onDismiss: () => void;
+}
+
+const AzureRequestAccessModal = (props: AzureRequestAccessModalProps): ReactNode => {
+  return h(
+    Modal,
+    {
+      title: 'No Workspace Access',
+      width: '40rem',
+      showCancel: false,
+      onDismiss: props.onDismiss,
+    },
+    [
+      'You are currently logged in as ',
+      span({ style: { fontWeight: 600 } }, [getTerraUser().email]),
+      '. You may have access with a different account, or your linked identity may have expired. ',
+      h(
+        Link,
+        {
+          href: 'https://support.terra.bio/hc/en-us/articles/19124069598235',
+          ...Utils.newTabLinkProps,
+        },
+        ['Learn more about linking your NIH account', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+      ),
+      p([azureControlledAccessRequestMessage]),
+    ]
   );
 };

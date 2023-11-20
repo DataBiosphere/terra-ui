@@ -182,6 +182,18 @@ export const useStore = <T>(theStore: Atom<T>): T => {
   return value;
 };
 
+/**
+ * Hook that returns a tuple with [currentValue, setValueFn] for a given store.  This provides an alternative
+ * to useStore hook above that more closely emulates the tuple return of built-in useState hook.
+ * When the store changes, the component will re-render.
+ * @param theStore
+ */
+export const useSettableStore = <T>(theStore: Atom<T>): [T, (value: T) => void] => {
+  const currentStoreValue = useStore(theStore);
+
+  return [currentStoreValue, theStore.set];
+};
+
 export const useDebouncedValue = <T>(value: T, wait: number): T => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 

@@ -2,7 +2,6 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -10,15 +9,16 @@ import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
 import { useRoute } from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportDataContainer } from './ImportData';
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
 
-type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
-jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
+type WorkspaceUtilsExports = typeof import('src/workspaces/useWorkspaces');
+jest.mock('src/workspaces/useWorkspaces', (): WorkspaceUtilsExports => {
   return {
-    ...jest.requireActual<WorkspaceUtilsExports>('src/components/workspace-utils'),
+    ...jest.requireActual<WorkspaceUtilsExports>('src/workspaces/useWorkspaces'),
     useWorkspaces: jest.fn(),
   };
 });

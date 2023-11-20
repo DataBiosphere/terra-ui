@@ -57,8 +57,8 @@ const setupMockAjax = async (termsOfService: SamUserTermsOfServiceDetails): Prom
     userEmail,
     enabled: true,
   } satisfies SamUserRegistrationStatusResponse);
-  const acceptTermsOfService = jest.fn().mock(Promise.resolve());
-  const rejectTermsOfService = jest.fn().mock(Promise.resolve());
+  const acceptTermsOfService = jest.fn().mockResolvedValue(undefined);
+  const rejectTermsOfService = jest.fn().mockResolvedValue(undefined);
   const getFenceStatus = jest.fn();
   const getNihStatus = jest.fn();
 
@@ -76,9 +76,14 @@ const setupMockAjax = async (termsOfService: SamUserTermsOfServiceDetails): Prom
         } as Partial<MetricsContract>,
         User: {
           getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
+          getUserAllowances: jest.fn().mockResolvedValue({
+            allowed: termsOfService.permitsSystemUsage,
+            details: { enabled: true, termsOfService: termsOfService.permitsSystemUsage },
+          }),
           profile: {
             get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
-            set: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
+            create: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
+            update: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
             setPreferences: jest.fn().mockResolvedValue({}),
             preferLegacyFirecloud: jest.fn().mockResolvedValue({}),
           },
@@ -139,8 +144,8 @@ describe('TermsOfService', () => {
     const termsOfService = {
       latestAcceptedVersion: '0',
       acceptedOn: new Date(),
-      permitsSystemUsage: false,
-      isCurrentVersion: true,
+      permitsSystemUsage: true,
+      isCurrentVersion: false,
     };
 
     await setupMockAjax(termsOfService);

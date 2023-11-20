@@ -44,6 +44,7 @@ import { contactUsActive, getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { UseWorkspaces, UseWorkspacesResult } from 'src/workspaces/useWorkspaces.models';
 
 import { DeleteAppModal } from './DeleteAppModal';
 import { DeleteButton } from './DeleteButton';
@@ -203,24 +204,13 @@ export function PauseButton(props: PauseButtonProps): ReactNode {
     : null;
 }
 
-export interface UseWorkspacesStateResult {
-  workspaces: WorkspaceWrapper[];
-  refresh: () => Promise<void>;
-  loading: boolean;
-}
-
-export type UseWorkspacesState = (
-  fields?: Record<string, string>,
-  stringAttributeMaxLength?: string | number
-) => UseWorkspacesStateResult;
-
-type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'pause' | 'delete' | 'get'>;
+type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | 'pause' | 'delete'>;
 type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
 
 export interface EnvironmentsProps {
   nav: NavLinkProvider<EnvironmentNavActions>;
-  useWorkspacesState: UseWorkspacesState;
+  useWorkspaces: UseWorkspaces;
   leoAppData: LeoAppProviderNeeds;
   leoRuntimeData: LeoRuntimeProviderNeeds;
   leoDiskData: LeoDiskProviderNeeds;
@@ -228,14 +218,14 @@ export interface EnvironmentsProps {
 }
 
 export const Environments = (props: EnvironmentsProps): ReactNode => {
-  const { nav, useWorkspacesState, leoAppData, leoDiskData, leoRuntimeData, metrics } = props;
+  const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, metrics } = props;
   const signal = useCancellation();
 
   type WorkspaceWrapperLookup = { [namespace: string]: { [name: string]: WorkspaceWrapper } };
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
-    useWorkspacesState,
+    useWorkspaces,
     _.update('workspaces', _.flow(_.groupBy('workspace.namespace'), _.mapValues(_.keyBy('workspace.name'))))
-  )() as Mutate<UseWorkspacesStateResult, 'workspaces', WorkspaceWrapperLookup>;
+  )() as Mutate<UseWorkspacesResult, 'workspaces', WorkspaceWrapperLookup>;
 
   const getWorkspaces = useGetter(workspaces);
   const [runtimes, setRuntimes] = useState<RuntimeWithWorkspace[]>();

@@ -7,7 +7,16 @@ import * as Utils from 'src/libs/utils';
 
 import { IdContainer } from './IdContainer';
 
-export const Checkbox = ({ checked, onChange, disabled = false, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, ...props }) => {
+export const Checkbox = ({
+  checked,
+  onChange,
+  disabled = false,
+  tooltip = undefined,
+  tooltipSide = undefined,
+  tooltipDelay = undefined,
+  useTooltipAsLabel = undefined,
+  ...props
+}) => {
   const { colors } = useThemeFromContext();
   const checkbox = h(
     Interactive,

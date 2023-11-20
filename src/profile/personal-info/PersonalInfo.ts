@@ -173,10 +173,10 @@ export const PersonalInfo = (props: PersonalInfoProps): ReactNode => {
         line([
           div({ style: styles.form.container }, [
             div({ style: styles.form.title }, ['Email']),
-            div({ style: { margin: '0.5rem', width: 320 } }, [profileInfo.email]),
+            div({ style: { margin: '0.5rem', width: 320 } }, [getTerraUser().email]),
           ]),
           textField('contactEmail', 'Contact Email for Notifications (if different)', {
-            placeholder: profileInfo.email,
+            placeholder: getTerraUser().email,
           }),
         ]),
 
