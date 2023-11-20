@@ -27,7 +27,7 @@ export const FailuresViewer = ({ failures }) => {
   };
 
   return h(ReactJson, {
-    style: { whiteSpace: 'pre-wrap' },
+    style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
     name: false,
     collapsed: 4,
     enableClipboard: false,
@@ -45,7 +45,7 @@ export const FailuresModal = ({ callFqn, index, attempt, failures, onDismiss }) 
       onDismiss,
       showButtons: false,
       showX: true,
-      width: '600px',
+      width: '800px',
     },
     [`Failures in ${callFqn} / index ${index} / attempt ${attempt}`, h(FailuresViewer, { failures })]
   );

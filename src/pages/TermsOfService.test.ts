@@ -103,7 +103,8 @@ const setupMockAjax = async (
           getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
           profile: {
             get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
-            set: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
+            create: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
+            update: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
             setPreferences: jest.fn().mockResolvedValue({}),
             preferLegacyFirecloud: jest.fn().mockResolvedValue({}),
           },
