@@ -201,6 +201,7 @@ describe('ImportDataDestination', () => {
           makeGoogleWorkspace({
             workspace: {
               name: 'allowed-workspace',
+              bucketName: 'fc-secure-00001111-2222-3333-aaaa-bbbbccccdddd',
             },
           }),
           makeGoogleWorkspace({
