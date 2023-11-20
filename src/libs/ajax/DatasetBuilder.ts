@@ -12,23 +12,30 @@ import {
 } from 'src/libs/ajax/DataRepo';
 
 /** A specific criteria based on a type. */
-export interface Criteria {
+export interface Criteria extends CriteriaAPI {
+  count?: number;
+}
+export interface CriteriaAPI {
   kind: 'domain' | 'range' | 'list';
   name: string;
   id: number;
-  count?: number;
+}
+export interface DomainCriteriaAPI extends Criteria {
+  kind: 'domain';
 }
 
-export interface DomainCriteria extends Criteria {
-  kind: 'domain';
+export interface DomainCriteria extends DomainCriteriaAPI {
   domainOption: DomainOption;
 }
 
-export interface ProgramDataRangeCriteria extends Criteria {
+export interface ProgramDataRangeCriteriaAPI extends Criteria {
   kind: 'range';
-  rangeOption: ProgramDataRangeOption;
   low: number;
   high: number;
+}
+
+export interface ProgramDataRangeCriteria extends ProgramDataRangeCriteriaAPI {
+  rangeOption: ProgramDataRangeOption;
 }
 
 export interface ProgramDataListCriteria extends Criteria {
@@ -37,7 +44,14 @@ export interface ProgramDataListCriteria extends Criteria {
   values: ProgramDataListValue[];
 }
 
+export interface ProgramDataListCriteriaAPI extends Criteria {
+  kind: 'list';
+  values: number[];
+}
+
 export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
+
+export type AnyCriteriaAPI = DomainCriteriaAPI | ProgramDataRangeCriteriaAPI | ProgramDataListCriteriaAPI;
 
 /** A group of criteria. */
 export interface CriteriaGroup {
@@ -48,8 +62,20 @@ export interface CriteriaGroup {
   count: number;
 }
 
+export interface CriteriaGroupAPI {
+  name: string;
+  criteria: AnyCriteriaAPI[];
+  mustMeet: boolean;
+  meetAll: boolean;
+  count: number;
+}
+
 export interface Cohort extends DatasetBuilderType {
   criteriaGroups: CriteriaGroup[];
+}
+
+export interface CohortAPI extends DatasetBuilderType {
+  criteriaGroups: CriteriaGroupAPI[];
 }
 
 export interface ConceptSet extends DatasetBuilderType {
@@ -69,13 +95,78 @@ export interface GetConceptsResponse {
 type DatasetRequest = {
   cohorts: Cohort[];
   conceptSets: ConceptSet[];
-  valuesSets: { domain: string; values: DatasetBuilderValue[] }[];
+  valueSets: { domain: string; values: DatasetBuilderValue[] }[];
 };
 
-type DatasetAccessRequest = {
+export type DatasetRequestAPI = {
+  cohorts: CohortAPI[];
+  conceptSets: ConceptSet[];
+  valueSets: { id: number; name: string; values: string[] }[];
+};
+
+export type DatasetAccessRequest = {
   name: string;
   researchPurposeStatement: string;
   datasetRequest: DatasetRequest;
+};
+
+export type DatasetAccessRequestAPI = {
+  name: string;
+  researchPurposeStatement: string;
+  datasetRequest: DatasetRequestAPI;
+};
+
+export const convertValueSets = (valueSets: { domain: string; values: DatasetBuilderValue[] }[]) => {
+  return _.map(
+    (valueSet) => ({ id: 0, name: valueSet.domain, values: _.map(({ name }) => name, valueSets.values) }),
+    valueSets
+  );
+};
+
+export const convertCohorts = (cohorts: Cohort[]) => {
+  return _.map(
+    (cohort) => ({
+      name: cohort.name,
+      criteriaGroups: _.map(
+        (criteriaGroup) => ({
+          name: criteriaGroup.name,
+          mustMeet: criteriaGroup.mustMeet,
+          meetAll: criteriaGroup.meetAll,
+          count: criteriaGroup.count,
+          criteria: _.map((criteria) => convertCriteria(criteria), criteriaGroup.criteria),
+        }),
+        cohort.criteriaGroups
+      ),
+    }),
+    cohorts
+  );
+};
+
+export const convertCriteria = (criteria: AnyCriteria) => {
+  if (criteria.kind === 'range') {
+    return { kind: criteria.kind, name: criteria.name, id: criteria.id, low: criteria.low, high: criteria.high };
+  }
+  if (criteria.kind === 'list') {
+    return {
+      kind: criteria.kind,
+      name: criteria.name,
+      id: criteria.id,
+      values: _.map((value) => value.id, criteria.values),
+    };
+  }
+  return { kind: criteria.kind, name: criteria.name, id: criteria.id };
+};
+
+export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessRequest) => {
+  return {
+    name: datasetAccessRequest.name,
+    researchPurposeStatement: datasetAccessRequest.researchPurposeStatement,
+    datasetRequest: {
+      cohorts: convertCohorts(datasetAccessRequest.datasetRequest.cohorts),
+      conceptSets: datasetAccessRequest.datasetRequest.conceptSets,
+      valueSets: convertValueSets(datasetAccessRequest.datasetRequest.valueSets),
+    },
+  };
 };
 
 type DatasetParticipantCountRequest = {
@@ -85,7 +176,7 @@ type DatasetParticipantCountRequest = {
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetModel>;
   getConcepts: (parent: Concept) => Promise<GetConceptsResponse>;
-  requestAccess: (request: DatasetAccessRequest) => Promise<void>;
+  requestAccess: (datasetId: string, request: DatasetAccessRequest) => Promise<DatasetAccessRequestAPI>;
   getParticipantCount: (request: DatasetParticipantCountRequest) => Promise<number>;
 }
 
@@ -155,6 +246,8 @@ export const DatasetBuilder = (): DatasetBuilderContract => ({
       .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
   },
   getConcepts: (parent: Concept) => Promise.resolve(getDummyConcepts(parent)),
-  requestAccess: (_request) => Promise.resolve(),
+  requestAccess: async (datasetId, _request) => {
+    return await Ajax().DataRepo.dataset(datasetId).createDatasetRequest(convertDatasetAccessRequest(_request));
+  },
   getParticipantCount: (_request) => Promise.resolve(100),
 });
