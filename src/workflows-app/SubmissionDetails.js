@@ -353,21 +353,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           field: 'record_id',
                           headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['Sample ID']),
                           cellRenderer: ({ rowIndex }) => {
-                            return div({ style: { width: '100%', textAlign: 'left' } }, [
-                              h(
-                                Link,
-                                {
-                                  href: Nav.getLink('workspace-workflows-app-run-details', {
-                                    namespace,
-                                    name,
-                                    submissionId,
-                                    workflowId: paginatedPreviousRuns[rowIndex].engine_id,
-                                  }),
-                                  style: { fontWeight: 'bold' },
-                                },
-                                [paginatedPreviousRuns[rowIndex].record_id]
-                              ),
-                            ]);
+                            return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id]);
                           },
                         },
                         {
@@ -398,6 +384,26 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                           cellRenderer: ({ rowIndex }) => {
                             return h(TextCell, [customFormatDuration(paginatedPreviousRuns[rowIndex].duration)]);
+                          },
+                        },
+                        {
+                          size: { basis: 400, grow: 0 },
+                          field: 'duration',
+                          headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Workflow ID']),
+                          cellRenderer: ({ rowIndex }) => {
+                            return h(
+                              Link,
+                              {
+                                href: Nav.getLink('workspace-workflows-app-run-details', {
+                                  namespace,
+                                  name,
+                                  submissionId,
+                                  workflowId: paginatedPreviousRuns[rowIndex].engine_id,
+                                }),
+                                style: { fontWeight: 'bold' },
+                              },
+                              [paginatedPreviousRuns[rowIndex].engine_id]
+                            );
                           },
                         },
                       ],
