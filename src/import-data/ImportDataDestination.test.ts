@@ -62,6 +62,7 @@ const setup = (opts: SetupOptions): void => {
       templateWorkspaces: {},
       template: undefined,
       userHasBillingProjects: true,
+      protectedWorkspacesPresent: true,
       onImport: () => {},
       ...props,
     })
@@ -186,12 +187,6 @@ describe('ImportDataDestination', () => {
       // Arrange
       const user = userEvent.setup();
 
-      asMockedFn(canImportIntoWorkspace).mockImplementation(
-        (_importOptions: ImportOptions, workspace: WorkspaceWrapper): boolean => {
-          return workspace.workspace.name === 'allowed-workspace';
-        }
-      );
-
       setup({
         props: {
           importRequest,
@@ -201,7 +196,6 @@ describe('ImportDataDestination', () => {
           makeGoogleWorkspace({
             workspace: {
               name: 'allowed-workspace',
-              bucketName: 'fc-secure-00001111-2222-3333-aaaa-bbbbccccdddd',
             },
           }),
           makeGoogleWorkspace({
