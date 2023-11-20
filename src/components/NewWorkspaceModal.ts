@@ -39,7 +39,12 @@ import {
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/libs/workspace-utils';
-import { AzureBillingProject, BillingProject, CloudPlatform } from 'src/pages/billing/models/BillingProject';
+import {
+  AzureBillingProject,
+  BillingProject,
+  CloudPlatform,
+  GCPBillingProject,
+} from 'src/pages/billing/models/BillingProject';
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
 import validate from 'validate.js';
 
@@ -295,10 +300,11 @@ const NewWorkspaceModal = withDisplayName(
       return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation;
     };
 
-    const isAzureBillingProject = (project?: BillingProject): boolean =>
+    const isAzureBillingProject = (project?: BillingProject): project is AzureBillingProject =>
       isCloudProviderBillingProject(project, 'AZURE');
 
-    const isGoogleBillingProject = (project?: BillingProject): boolean => isCloudProviderBillingProject(project, 'GCP');
+    const isGoogleBillingProject = (project?: BillingProject): project is GCPBillingProject =>
+      isCloudProviderBillingProject(project, 'GCP');
 
     const isCloudProviderBillingProject = (
       project: BillingProject | undefined,
@@ -313,26 +319,23 @@ const NewWorkspaceModal = withDisplayName(
     };
 
     const isBillingProjectApplicable = (project: BillingProject): boolean => {
-      // Only support cloning a workspace to the same cloud environment. If this changes, also update
-      // the Events.workspaceClone event data.
       // As of AJ-1164, if requireEnhancedBucketLogging is true, then azure billing projects are ineligible.
       // This coupling of enhanced bucket logging and billing project may change in the future.
-      return Utils.cond(
-        [!!workflowImport || !!requireEnhancedBucketLogging, () => !isAzureBillingProject(project)],
-        [
-          !!cloneWorkspace && isAzureWorkspace(cloneWorkspace),
-          () => {
-            if (!isAzureBillingProject(project)) {
-              return false;
-            }
-            const azureBillingProject = project as AzureBillingProject;
-            const sourceWorkspace = cloneWorkspace as WorkspaceWrapper;
-            return isProtectedWorkspace(sourceWorkspace) ? azureBillingProject.protectedData : true;
-          },
-        ],
-        [!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace), () => isGoogleBillingProject(project)],
-        [Utils.DEFAULT, () => true]
-      );
+      if (!!workflowImport || !!requireEnhancedBucketLogging) {
+        return !isAzureBillingProject(project);
+      }
+      // Only support cloning a workspace to the same cloud environment. If this changes, also update
+      // the Events.workspaceClone event data.
+      if (!!cloneWorkspace && isAzureWorkspace(cloneWorkspace)) {
+        if (isAzureBillingProject(project)) {
+          return isProtectedWorkspace(cloneWorkspace) ? project.protectedData : true;
+        }
+        return false;
+      }
+      if (!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace)) {
+        return isGoogleBillingProject(project);
+      }
+      return true;
     };
 
     // Lifecycle
