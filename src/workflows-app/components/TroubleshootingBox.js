@@ -35,10 +35,12 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
           Link,
           {
             onClick: () => {
-              showLogModal('Execution Log', [{ logUri, logTitle: 'Execution Log', logKey: 'execution_log', logFilename: 'workflow.log' }]);
+              showLogModal('Workflow Execution Log', [
+                { logUri, logTitle: 'Workflow Execution Log', logKey: 'execution_log', logFilename: 'workflow.log' },
+              ]);
             },
           },
-          [div({ style: { marginRight: '1.5rem' } }, [icon('fileAlt', { size: 18 }), ' Execution Log'], {})]
+          [div({ style: { marginRight: '1.5rem' } }, [icon('fileAlt', { size: 18 }), ' Workflow Execution Log'], {})]
         ),
         h(Link, { href: Nav.getLink('workspace-files', { name, namespace }), target: '_blank' }, [
           icon('folder-open', { size: 18 }),
