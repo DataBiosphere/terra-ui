@@ -62,7 +62,6 @@ const setup = (opts: SetupOptions): void => {
       templateWorkspaces: {},
       template: undefined,
       userHasBillingProjects: true,
-      protectedWorkspacesPresent: true,
       onImport: () => {},
       ...props,
     })
@@ -186,6 +185,12 @@ describe('ImportDataDestination', () => {
     async ({ importRequest, requiredAuthorizationDomain, expectedArgs }) => {
       // Arrange
       const user = userEvent.setup();
+
+      asMockedFn(canImportIntoWorkspace).mockImplementation(
+        (_importOptions: ImportOptions, workspace: WorkspaceWrapper): boolean => {
+          return workspace.workspace.name === 'allowed-workspace';
+        }
+      );
 
       setup({
         props: {

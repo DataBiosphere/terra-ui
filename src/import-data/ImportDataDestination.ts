@@ -198,7 +198,8 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     );
   });
 
-  const protectedWorkspacesPresent = isProtectedData && protectedWorkspaces.length > 0;
+  // disable import into existing workspaces if data is marked as protected but no protected workspaces are available
+  const disableExportIntoExisting = isProtectedData && protectedWorkspaces.length === 0;
 
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
@@ -333,9 +334,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               iconName: 'fileSearchSolid',
               title: 'Start with an existing workspace',
               detail: 'Select one of your workspaces',
-              disabled: !userHasBillingProjects || !protectedWorkspacesPresent,
+              disabled: !userHasBillingProjects || disableExportIntoExisting,
               tooltip:
-                !userHasBillingProjects || !protectedWorkspacesPresent
+                !userHasBillingProjects || disableExportIntoExisting
                   ? 'No existing protected workspace is present.'
                   : undefined,
             }),
