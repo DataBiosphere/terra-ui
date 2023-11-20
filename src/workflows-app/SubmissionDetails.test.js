@@ -89,30 +89,33 @@ describe('Submission Details page', () => {
     const table = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '3');
+    expect(table).toHaveAttribute('aria-colcount', '4');
     expect(table).toHaveAttribute('aria-rowcount', '3');
 
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(3);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(3);
+    expect(headers.length).toBe(4);
     within(headers[0]).getByText('Sample ID');
     within(headers[1]).getByText('Status');
     within(headers[2]).getByText('Duration');
+    within(headers[3]).getByText('Workflow ID');
 
     // check data rows are rendered as expected (default sorting is by duration in desc order)
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromDataRow1.length).toBe(3);
+    expect(cellsFromDataRow1.length).toBe(4);
     within(cellsFromDataRow1[0]).getByText('FOO2');
     within(cellsFromDataRow1[1]).getByText('Failed');
     within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds');
+    within(cellsFromDataRow1[3]).getByText('b29e84b1-ad1b-4462-a9a0-7ec849bf30a8');
 
     const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
-    expect(cellsFromDataRow2.length).toBe(3);
+    expect(cellsFromDataRow2.length).toBe(4);
     within(cellsFromDataRow2[0]).getByText('FOO1');
     within(cellsFromDataRow2[1]).getByText('Succeeded');
     within(cellsFromDataRow2[2]).getByText('37 seconds');
+    within(cellsFromDataRow2[3]).getByText('d16721eb-8745-4aa2-b71e-9ade2d6575aa');
   });
 
   it('should display standard message when there are no saved workflows', async () => {
@@ -158,7 +161,7 @@ describe('Submission Details page', () => {
     const table = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '3');
+    expect(table).toHaveAttribute('aria-colcount', '4');
     expect(table).toHaveAttribute('aria-rowcount', '1');
 
     // check that noContentMessage shows up as expected
@@ -200,7 +203,7 @@ describe('Submission Details page', () => {
     expect(rows.length).toBe(3);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(3);
+    expect(headers.length).toBe(4);
 
     // Act - click on sort button on Duration column to sort by ascending order
     await user.click(await within(headers[2]).findByRole('button'));
@@ -208,16 +211,18 @@ describe('Submission Details page', () => {
     // Assert
     // check that rows are now sorted by duration in ascending order
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromDataRow1.length).toBe(3);
+    expect(cellsFromDataRow1.length).toBe(4);
     within(cellsFromDataRow1[0]).getByText('FOO1');
     within(cellsFromDataRow1[1]).getByText('Succeeded');
     within(cellsFromDataRow1[2]).getByText('37 seconds');
+    within(cellsFromDataRow1[3]).getByText('d16721eb-8745-4aa2-b71e-9ade2d6575aa');
 
     const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
-    expect(cellsFromDataRow2.length).toBe(3);
+    expect(cellsFromDataRow2.length).toBe(4);
     within(cellsFromDataRow2[0]).getByText('FOO2');
     within(cellsFromDataRow2[1]).getByText('Failed');
     within(cellsFromDataRow2[2]).getByText('52 minutes 10 seconds');
+    within(cellsFromDataRow2[3]).getByText('b29e84b1-ad1b-4462-a9a0-7ec849bf30a8');
 
     // Act - click on sort button on Duration column to sort by descending order
     await user.click(await within(headers[2]).findByRole('button'));
@@ -225,16 +230,18 @@ describe('Submission Details page', () => {
     // Assert
     // check that rows are now sorted by duration in descending order
     const cellsFromUpdatedDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromUpdatedDataRow1.length).toBe(3);
+    expect(cellsFromUpdatedDataRow1.length).toBe(4);
     within(cellsFromUpdatedDataRow1[0]).getByText('FOO2');
     within(cellsFromUpdatedDataRow1[1]).getByText('Failed');
     within(cellsFromUpdatedDataRow1[2]).getByText('52 minutes 10 seconds');
+    within(cellsFromUpdatedDataRow1[3]).getByText('b29e84b1-ad1b-4462-a9a0-7ec849bf30a8');
 
     const cellsFromUpdatedDataRow2 = within(rows[2]).getAllByRole('cell');
-    expect(cellsFromUpdatedDataRow2.length).toBe(3);
+    expect(cellsFromUpdatedDataRow2.length).toBe(4);
     within(cellsFromUpdatedDataRow2[0]).getByText('FOO1');
     within(cellsFromUpdatedDataRow2[1]).getByText('Succeeded');
     within(cellsFromUpdatedDataRow2[2]).getByText('37 seconds');
+    within(cellsFromUpdatedDataRow2[3]).getByText('d16721eb-8745-4aa2-b71e-9ade2d6575aa');
   });
 
   it('display run set details', async () => {
@@ -337,31 +344,33 @@ describe('Submission Details page', () => {
     const table = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '3');
+    expect(table).toHaveAttribute('aria-colcount', '4');
     expect(table).toHaveAttribute('aria-rowcount', '2');
 
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(2);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(3);
+    expect(headers.length).toBe(4);
     within(headers[0]).getByText('Sample ID');
     within(headers[1]).getByText('Status');
     within(headers[2]).getByText('Duration');
+    within(headers[3]).getByText('Workflow ID');
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromDataRow1.length).toBe(3);
+    expect(cellsFromDataRow1.length).toBe(4);
     within(cellsFromDataRow1[0]).getByText('FOO2');
     within(cellsFromDataRow1[1]).getByText('Failed');
     within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds');
+    within(cellsFromDataRow1[3]).getByText('b29e84b1-ad1b-4462-a9a0-7ec849bf30a8');
   });
 
   it('should correctly display a very recently started run', async () => {
     const recentRunsData = {
       runs: [
         {
-          run_id: 'b29e84b1-ad1b-4462-a9a0-7ec849bf30a8',
+          run_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
           engine_id: 'b29e84b1-ad1b-4462-a9a0-7ec849bf30a8',
           run_set_id: '0cd15673-7342-4cfa-883d-819660184a16',
           record_id: 'FOO2',
@@ -403,24 +412,25 @@ describe('Submission Details page', () => {
     const table = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '3');
+    expect(table).toHaveAttribute('aria-colcount', '4');
     expect(table).toHaveAttribute('aria-rowcount', '2');
 
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(2);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(3);
+    expect(headers.length).toBe(4);
     within(headers[0]).getByText('Sample ID');
     within(headers[1]).getByText('Status');
     within(headers[2]).getByText('Duration');
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromDataRow1.length).toBe(3);
+    expect(cellsFromDataRow1.length).toBe(4);
     within(cellsFromDataRow1[0]).getByText('FOO2');
     within(cellsFromDataRow1[1]).getByText('Initializing'); // Note: not UNKNOWN!
     // << Don't validate duration here since it depends on the test rendering time and is not particularly relevant >>
+    within(cellsFromDataRow1[3]).getByText('b29e84b1-ad1b-4462-a9a0-7ec849bf30a8');
   });
 
   it('should indicate fully updated polls', async () => {
