@@ -31,9 +31,14 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await fillIn(page, input({ labelContains: 'Department' }), 'Test Department');
   await fillIn(page, input({ labelContains: 'Title' }), 'Test Title');
   await fillInReplace(page, input({ labelContains: 'Contact Email for Notifications' }), 'ltcommanderdata@neighborhood.horse');
+
+  // Accept the Terms of Service
+  await click(page, clickable({ textContains: 'Read Terra Platform Terms of Service here' }));
+  await click(page, clickable({ textContains: 'OK' }));
+  await click(page, clickable({ textContains: 'By checking this box, you are agreeing to the Terra Terms of Service' }));
+
   await verifyAccessibility(page);
-  await click(page, clickable({ textContains: 'Register' }));
-  await click(page, clickable({ textContains: 'Accept' }), { timeout: 90000 });
+  await click(page, clickable({ textContains: 'Register' }), { timeout: 90000 });
   await findText(page, 'Welcome to Terra Community Workbench');
 
   // This is the hamburger menu

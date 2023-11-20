@@ -19,6 +19,7 @@ import { SamUserAttributes } from 'src/libs/ajax/User';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications';
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs';
 import allProviders from 'src/libs/providers';
@@ -109,8 +110,8 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 
   revokeTokens();
 
-  const cookiesAccepted: boolean | undefined = authStore.get().cookiesAccepted;
-  const anonymousId: string | undefined = authStore.get().anonymousId;
+  const { anonymousId, cookiesAccepted, system } = authStore.get();
+
   authStore.reset();
   authStore.update((state) => ({
     ...state,
@@ -120,6 +121,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
     // Load whether a user has input a cookie acceptance in a previous session on this system,
     // or whether they input cookie acceptance previously in this session
     cookiesAccepted,
+    system,
   }));
   oidcStore.update((state) => ({
     ...state,
@@ -137,6 +139,7 @@ export const signIn = async (includeBillingScope = false): Promise<OidcUser> => 
       hasGcpBillingScopeThroughB2C: includeBillingScope,
       sessionId,
       sessionStartTime,
+      forceTermsOfServiceAcceptance: true,
     }));
     Ajax().Metrics.captureEvent(Events.user.login.success, {
       sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
@@ -341,8 +344,18 @@ export const ensureBillingScope = async () => {
   }
 };
 
-const userBecameLoaded = (oldState: AuthState, state: AuthState) => {
-  return oldState.signInStatus !== 'userLoaded' && state.signInStatus === 'userLoaded';
+const userCanNowUseTerra = (oldState: AuthState, state: AuthState) => {
+  return (
+    // The user was not loaded, and became loaded and is allowed to use the system.
+    (oldState.signInStatus !== 'userLoaded' &&
+      state.signInStatus === 'userLoaded' &&
+      state.terraUserAllowances.allowed) ||
+    // The user was loaded and not allowed, but became allowed to use the system
+    (oldState.signInStatus === 'userLoaded' &&
+      !oldState.terraUserAllowances.allowed &&
+      state.signInStatus === 'userLoaded' &&
+      state.terraUserAllowances.allowed)
+  );
 };
 
 const isNowSignedIn = (oldState: AuthState, state: AuthState) => {
@@ -510,7 +523,7 @@ authStore.subscribe((state: AuthState) => {
 
 authStore.subscribe(
   withErrorReporting('Error checking groups for timeout status', async (state: AuthState, oldState: AuthState) => {
-    if (userBecameLoaded(oldState, state)) {
+    if (userCanNowUseTerra(oldState, state)) {
       const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list());
       authStore.update((state) => ({ ...state, isTimeoutEnabled }));
     }
@@ -530,7 +543,7 @@ export const refreshSamUserAttributes = async (): Promise<void> => {
 
 authStore.subscribe(
   withErrorReporting('Error getting user Terms of Service status', async (state: AuthState, oldState: AuthState) => {
-    if (userBecameLoaded(oldState, state)) {
+    if (userCanNowUseTerra(oldState, state)) {
       await refreshUserTermsOfService();
     }
   })
@@ -577,8 +590,16 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
+  withErrorReporting('Error forcing Terms of Service acceptance', async (state: AuthState, oldState: AuthState) => {
+    if (userCanNowUseTerra(oldState, state) && state.system.termsOfServiceConfig.inRollingAcceptanceWindow) {
+      Nav.goToPath('terms-of-service');
+    }
+  })
+);
+
+authStore.subscribe(
   withErrorReporting('Error loading NIH account link status', async (state: AuthState, oldState: AuthState) => {
-    if (userBecameLoaded(oldState, state)) {
+    if (userCanNowUseTerra(oldState, state)) {
       const nihStatus = await Ajax().User.getNihStatus();
       authStore.update((state: AuthState) => ({ ...state, nihStatus, nihStatusLoaded: true }));
     }
@@ -587,7 +608,7 @@ authStore.subscribe(
 
 authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
-    if (userBecameLoaded(oldState, state)) {
+    if (userCanNowUseTerra(oldState, state)) {
       await Ajax().Metrics.syncProfile();
     }
   })
@@ -595,7 +616,7 @@ authStore.subscribe(
 
 authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
-    if (userBecameLoaded(oldState, state)) {
+    if (userCanNowUseTerra(oldState, state)) {
       if (state.anonymousId) {
         return await Ajax().Metrics.identify(state.anonymousId);
       }
@@ -607,7 +628,7 @@ authStore.subscribe(
   withErrorReporting(
     'Error loading Framework Services account status',
     async (state: AuthState, oldState: AuthState) => {
-      if (userBecameLoaded(oldState, state)) {
+      if (userCanNowUseTerra(oldState, state)) {
         await Promise.all(
           _.map(async ({ key }) => {
             const status = await Ajax().User.getFenceStatus(key);

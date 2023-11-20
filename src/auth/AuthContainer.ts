@@ -15,12 +15,12 @@ import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfSer
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute();
   const { signInStatus, terraUserAllowances } = useStore(authStore);
-  const userIsDisabled = signInStatus === 'userLoaded' && !terraUserAllowances.details.enabled;
+  const userIsDisabled = signInStatus === 'userLoaded' && terraUserAllowances.details.enabled === false;
   const userMustRegister = signInStatus === 'unregistered';
   const displayTosPage =
-    signInStatus === 'authenticated' &&
-    terraUserAllowances.details.enabled &&
-    !terraUserAllowances.details.termsOfService;
+    signInStatus === 'userLoaded' &&
+    terraUserAllowances.details.enabled === true &&
+    terraUserAllowances.details.termsOfService === false;
   const seenAzurePreview = useStore(azurePreviewStore) || false;
   const authspinner = () => fixedSpinnerOverlay;
 

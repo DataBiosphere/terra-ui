@@ -5,6 +5,7 @@ import { AuthTokenState } from 'src/auth/auth';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { Dataset } from 'src/libs/ajax/Catalog';
 import { OidcConfig } from 'src/libs/ajax/OAuth2';
+import { SamTermsOfServiceConfig } from 'src/libs/ajax/TermsOfService';
 import {
   BondFenceStatusResponse,
   NihDatasetPermission,
@@ -92,6 +93,10 @@ export type SignInStatusState =
 
 export type SignInStatus = Initializable<SignInStatusState>;
 
+export type SystemProperties = {
+  termsOfServiceConfig: SamTermsOfServiceConfig;
+};
+
 export type AuthState = {
   anonymousId: string | undefined;
   authTokenMetadata: TokenMetadata;
@@ -100,12 +105,14 @@ export type AuthState = {
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   signInStatus: SignInStatus;
   isTimeoutEnabled?: boolean | undefined;
+  forceTermsOfServiceAcceptance: boolean;
   nihStatus?: NihStatus;
   nihStatusLoaded: boolean;
   profile: TerraUserProfile;
   refreshTokenMetadata: TokenMetadata;
   sessionId?: string | undefined;
   sessionStartTime: number;
+  system: SystemProperties;
   termsOfService: TermsOfServiceStatus;
   terraUser: TerraUser;
   terraUserAllowances: SamUserAllowances;
@@ -128,6 +135,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   },
   cookiesAccepted: undefined,
   fenceStatus: {},
+  forceTermsOfServiceAcceptance: false,
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
   nihStatusLoaded: false,
@@ -154,6 +162,13 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   },
   sessionId: undefined,
   sessionStartTime: -1,
+  system: {
+    termsOfServiceConfig: {
+      enforced: false,
+      currentVersion: '',
+      inRollingAcceptanceWindow: false,
+    },
+  },
   termsOfService: {
     permitsSystemUsage: undefined,
     isCurrentVersion: undefined,
