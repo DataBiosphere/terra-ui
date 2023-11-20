@@ -57,7 +57,7 @@ const renderAlerts = async (termsOfService) => {
   });
   setupMockAjax(termsOfService);
 
-  const signInStatus = 'signedIn';
+  const signInStatus = 'authenticated';
   await act(async () => {
     authStore.update((state) => ({ ...state, termsOfService, signInStatus }));
   });

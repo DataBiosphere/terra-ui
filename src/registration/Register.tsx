@@ -1,6 +1,6 @@
 import { Modal } from '@terra-ui-packages/components';
 import React, { ReactNode, useState } from 'react';
-import { refreshSamUserAttributes, refreshTerraProfile, refreshUserTermsOfService, signOut } from 'src/auth/auth';
+import { loadTerraUser, signOut } from 'src/auth/auth';
 import { ButtonPrimary, ButtonSecondary, LabeledCheckbox } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import planet from 'src/images/register-planet.svg';
@@ -10,7 +10,7 @@ import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { RegistrationLogo } from 'src/libs/logos';
-import { authStore, getTerraUser, TerraUser } from 'src/libs/state';
+import { getTerraUser, TerraUser } from 'src/libs/state';
 import { RemoteMarkdown } from 'src/libs/util/RemoteMarkdown';
 import { InterestInTerraCheckbox } from 'src/registration/InterestInTerraCheckbox';
 import { LabelledTextInput } from 'src/registration/LabelledTextInput';
@@ -75,11 +75,11 @@ export const Register = (): ReactNode => {
         ...orgFields,
       });
       await Ajax().User.setUserAttributes({ marketingConsent });
-      await refreshUserTermsOfService();
-      authStore.update((state) => ({ ...state, registrationStatus: 'registered' }));
-      document.getElementById('root')!.scrollTop = 0;
-      await refreshTerraProfile();
-      await refreshSamUserAttributes();
+      await loadTerraUser();
+      const rootElement = document.getElementById('root');
+      if (rootElement) {
+        rootElement!.scrollTop = 0;
+      }
       Ajax().Metrics.captureEvent(Events.user.register);
     } catch (error) {
       reportError('Error registering', error);

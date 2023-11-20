@@ -4,7 +4,7 @@ import { Ajax } from 'src/libs/ajax';
 import { Groups } from 'src/libs/ajax/Groups';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { SamUserTermsOfServiceDetails, TermsOfService } from 'src/libs/ajax/TermsOfService';
-import { SamUserRegistrationStatusResponse, User } from 'src/libs/ajax/User';
+import { User } from 'src/libs/ajax/User';
 import { AuthState, authStore } from 'src/libs/state';
 import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfServicePage';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -38,25 +38,16 @@ jest.mock(
 
 interface TermsOfServiceSetupResult {
   getTosFn: jest.Mock;
-  getStatusFn: jest.Mock;
   getTermsOfServiceComplianceStatusFn: jest.Mock;
   acceptTosFn: jest.Mock;
   rejectTosFn: jest.Mock;
 }
 
 const setupMockAjax = async (termsOfService: SamUserTermsOfServiceDetails): Promise<TermsOfServiceSetupResult> => {
-  const userSubjectId = 'testSubjectId';
-  const userEmail = 'test@email.com';
-
   const getTermsOfServiceText = jest.fn().mockResolvedValue('some text');
   const getUserTermsOfServiceDetails = jest
     .fn()
     .mockResolvedValue(termsOfService satisfies SamUserTermsOfServiceDetails);
-  const getStatus = jest.fn().mockResolvedValue({
-    userSubjectId,
-    userEmail,
-    enabled: true,
-  } satisfies SamUserRegistrationStatusResponse);
   const acceptTermsOfService = jest.fn().mockResolvedValue(undefined);
   const rejectTermsOfService = jest.fn().mockResolvedValue(undefined);
   const getFenceStatus = jest.fn();
@@ -87,7 +78,6 @@ const setupMockAjax = async (termsOfService: SamUserTermsOfServiceDetails): Prom
             setPreferences: jest.fn().mockResolvedValue({}),
             preferLegacyFirecloud: jest.fn().mockResolvedValue({}),
           },
-          getStatus,
           getFenceStatus,
           getNihStatus,
         } as Partial<UserContract>,
@@ -103,13 +93,12 @@ const setupMockAjax = async (termsOfService: SamUserTermsOfServiceDetails): Prom
       } as Partial<AjaxContract> as AjaxContract)
   );
 
-  const signInStatus = 'signedIn';
+  const signInStatus = 'authenticated';
   await act(async () => {
     authStore.update((state: AuthState) => ({ ...state, termsOfService, signInStatus }));
   });
   return Promise.resolve({
     getTosFn: getTermsOfServiceText,
-    getStatusFn: getStatus,
     getTermsOfServiceComplianceStatusFn: getUserTermsOfServiceDetails,
     acceptTosFn: acceptTermsOfService,
     rejectTosFn: rejectTermsOfService,

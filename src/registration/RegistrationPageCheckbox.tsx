@@ -20,6 +20,7 @@ export const RegistrationPageCheckbox = (props: RegistrationPageCheckboxProps): 
         onChange={onChange}
         tooltip={tooltip}
         tooltipSide={tooltipSide}
+        aria-label={title}
       >
         <span style={{ marginLeft: '0.5rem' }}>{title}</span>
       </LabeledCheckbox>

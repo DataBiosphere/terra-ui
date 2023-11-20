@@ -1,4 +1,5 @@
 import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
@@ -25,7 +26,15 @@ describe('WorkspaceNotifications', () => {
   };
 
   afterEach(() => {
-    authStore.reset();
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          TermsOfService: {
+            getUserTermsOfServiceDetails: jest.fn().mockResolvedValue({}),
+          } as Partial<AjaxContract['TermsOfService']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+    act(() => authStore.reset());
     jest.resetAllMocks();
   });
 
@@ -51,8 +60,16 @@ describe('WorkspaceNotifications', () => {
       expectedState: false,
     },
   ])('renders checkbox with submission notifications status', ({ profile, expectedState }) => {
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          TermsOfService: {
+            getUserTermsOfServiceDetails: jest.fn().mockResolvedValue({}),
+          } as Partial<AjaxContract['TermsOfService']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
     // @ts-expect-error
-    authStore.update((state) => ({ ...state, profile }));
+    act(() => authStore.update((state) => ({ ...state, profile })));
 
     const { getByLabelText } = render(h(WorkspaceNotifications, { workspace: testWorkspace }));
     const submissionNotificationsCheckbox = getByLabelText('Receive submission notifications');
@@ -71,11 +88,18 @@ describe('WorkspaceNotifications', () => {
           } as Partial<AjaxContract['Metrics']>,
           User: {
             getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
+            getUserAllowances: jest.fn().mockResolvedValue({
+              allowed: true,
+              details: { enabled: true, termsOfService: true },
+            }),
             profile: {
               get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
               setPreferences,
             } as Partial<AjaxContract['User']['profile']>,
           } as Partial<AjaxContract['User']>,
+          TermsOfService: {
+            getUserTermsOfServiceDetails: jest.fn().mockResolvedValue({}),
+          } as Partial<AjaxContract['TermsOfService']>,
         } as Partial<AjaxContract> as AjaxContract)
     );
 

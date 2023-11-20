@@ -1,4 +1,3 @@
-import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { isAzureUser } from 'src/auth/auth';
@@ -15,8 +14,13 @@ import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfSer
 
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute();
-  const { signInStatus, registrationStatus, termsOfService, profile } = useStore(authStore);
-  const displayTosPage = signInStatus === 'signedIn' && termsOfService.permitsSystemUsage === false;
+  const { signInStatus, terraUserAllowances } = useStore(authStore);
+  const userIsDisabled = signInStatus === 'userLoaded' && !terraUserAllowances.details.enabled;
+  const userMustRegister = signInStatus === 'unregistered';
+  const displayTosPage =
+    signInStatus === 'authenticated' &&
+    terraUserAllowances.details.enabled &&
+    !terraUserAllowances.details.termsOfService;
   const seenAzurePreview = useStore(azurePreviewStore) || false;
   const authspinner = () => fixedSpinnerOverlay;
 
@@ -24,11 +28,9 @@ const AuthContainer = ({ children }) => {
     [signInStatus === 'uninitialized' && !isPublic, authspinner],
     [signInStatus === 'signedOut' && !isPublic, () => h(SignIn)],
     [seenAzurePreview === false && isAzureUser(), () => h(AzurePreview)],
-    [registrationStatus === 'uninitialized' && !isPublic, authspinner],
-    [registrationStatus === 'unregistered', () => h(Register)],
+    [userMustRegister, () => h(Register)],
     [displayTosPage && name !== 'privacy', () => h(TermsOfServicePage)],
-    [registrationStatus === 'disabled', () => h(Disabled)],
-    [_.isEmpty(profile) && !isPublic, authspinner],
+    [userIsDisabled, () => h(Disabled)],
     () => children
   );
 };

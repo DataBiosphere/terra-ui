@@ -1,6 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
+import { loadTerraUser } from 'src/auth/auth';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -10,6 +11,7 @@ jest.mock('src/libs/ajax');
 
 jest.mock('src/auth/auth', () => ({
   ...jest.requireActual('src/auth/auth'),
+  loadTerraUser: jest.fn(),
   signOut: jest.fn(),
 }));
 
@@ -135,6 +137,9 @@ describe('Register', () => {
         } as AjaxContract)
     );
 
+    const loadTerraUserFn = jest.fn().mockResolvedValue(undefined);
+    asMockedFn(loadTerraUser).mockImplementation(loadTerraUserFn);
+
     const registerButton = screen.getByText('Register');
     expect(registerButton).not.toHaveAttribute('disabled');
     await act(() => fireEvent.click(registerButton));
@@ -151,6 +156,6 @@ describe('Register', () => {
     });
 
     expect(setUserAttributesFunction).toHaveBeenCalledWith({ marketingConsent: false });
-    expect(getUserAttributesFunction).toHaveBeenCalled();
+    expect(loadTerraUserFn).toHaveBeenCalled();
   });
 });

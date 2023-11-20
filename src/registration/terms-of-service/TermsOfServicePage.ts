@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h, h1, img } from 'react-hyperscript-helpers';
-import { signOut } from 'src/auth/auth';
+import { refreshUserTermsOfService, signOut } from 'src/auth/auth';
 import { ButtonOutline, ButtonPrimary, ButtonSecondary } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown';
@@ -18,8 +18,8 @@ import * as Utils from 'src/libs/utils';
 export const TermsOfServicePage = () => {
   const [busy, setBusy] = useState<boolean>();
   const { signInStatus, termsOfService } = useStore(authStore);
-  const acceptedLatestTos = signInStatus === 'signedIn' && termsOfService.isCurrentVersion;
-  const usageAllowed = signInStatus === 'signedIn' && termsOfService.permitsSystemUsage;
+  const acceptedLatestTos = signInStatus === 'userLoaded' && termsOfService.isCurrentVersion;
+  const usageAllowed = signInStatus === 'userLoaded' && termsOfService.permitsSystemUsage;
   const [tosText, setTosText] = useState<string>();
 
   useOnMount(() => {
@@ -36,9 +36,7 @@ export const TermsOfServicePage = () => {
     try {
       setBusy(true);
       await Ajax().TermsOfService.acceptTermsOfService();
-      const termsOfService = await Ajax().TermsOfService.getUserTermsOfServiceDetails();
-      const registrationStatus = 'registered';
-      authStore.update((state) => ({ ...state, registrationStatus, termsOfService }));
+      await refreshUserTermsOfService();
       Nav.goToPath('root');
     } catch (error) {
       reportError('Error accepting Terms of Service', error);
