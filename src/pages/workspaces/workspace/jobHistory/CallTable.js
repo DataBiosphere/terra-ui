@@ -121,6 +121,8 @@ const CallTable = ({
   showLogModal,
   showTaskDataModal,
   loadWorkflow,
+  loadCallCacheDiff,
+  loadCallCacheMetadata,
   enableExplorer = false,
   workflowName,
   workflowId,
@@ -330,7 +332,7 @@ const CallTable = ({
                               tooltip: 'Call Cache Debug Wizard',
                               onClick: () => setWizardSelection({ callFqn: taskName, index }),
                             },
-                            [icon('search', { size: 18 })]
+                            [icon('search', { size: 18, 'aria-label': 'call cache debug wizard' })]
                           ),
                       ])
                     : div({ style: { color: colors.dark(0.7) } }, ['No Information']);
@@ -428,7 +430,16 @@ const CallTable = ({
     ]),
     failuresModalParams && h(FailuresModal, { ...failuresModalParams, onDismiss: () => setFailuresModalParams(undefined) }),
     wizardSelection &&
-      h(CallCacheWizard, { onDismiss: () => setWizardSelection(undefined), namespace, name, submissionId, workflowId, ...wizardSelection }),
+      h(CallCacheWizard, {
+        onDismiss: () => setWizardSelection(undefined),
+        namespace,
+        name,
+        submissionId,
+        workflowId,
+        ...wizardSelection,
+        loadCallCacheDiff,
+        loadCallCacheMetadata,
+      }),
   ]);
 };
 
