@@ -27,7 +27,6 @@ export const TermsOfServicePage = () => {
       Utils.withBusyState(setBusy),
       withErrorReporting('There was an error retrieving our terms of service.')
     )(async () => {
-      await loadTerraUser();
       setTosText(await Ajax().TermsOfService.getTermsOfServiceText());
     });
     loadTosAndUpdateState();
@@ -59,6 +58,10 @@ export const TermsOfServicePage = () => {
   };
 
   const onContinueUnderGracePeriod = () => {
+    Nav.goToPath('root');
+  };
+
+  const backToTerra = () => {
     Nav.goToPath('root');
   };
 
@@ -126,6 +129,12 @@ export const TermsOfServicePage = () => {
                 ['Continue under grace period']
               ),
               h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept']),
+            ]),
+          acceptedLatestTos &&
+            usageAllowed &&
+            !!tosText &&
+            div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
+              h(ButtonPrimary, { onClick: backToTerra, disabled: busy }, ['Back To Terra']),
             ]),
         ]
       ),

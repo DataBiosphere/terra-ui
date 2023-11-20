@@ -105,7 +105,6 @@ export type AuthState = {
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   signInStatus: SignInStatus;
   isTimeoutEnabled?: boolean | undefined;
-  forceTermsOfServiceAcceptance: boolean;
   nihStatus?: NihStatus;
   nihStatusLoaded: boolean;
   profile: TerraUserProfile;
@@ -135,7 +134,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   },
   cookiesAccepted: undefined,
   fenceStatus: {},
-  forceTermsOfServiceAcceptance: false,
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
   nihStatusLoaded: false,

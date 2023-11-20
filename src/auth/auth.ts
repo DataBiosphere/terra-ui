@@ -139,7 +139,6 @@ export const signIn = async (includeBillingScope = false): Promise<OidcUser> => 
       hasGcpBillingScopeThroughB2C: includeBillingScope,
       sessionId,
       sessionStartTime,
-      forceTermsOfServiceAcceptance: true,
     }));
     Ajax().Metrics.captureEvent(Events.user.login.success, {
       sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
@@ -585,14 +584,9 @@ authStore.subscribe(
   withErrorReporting('Error loading user', async (state: AuthState, oldState: AuthState) => {
     if (isNowSignedIn(oldState, state)) {
       await loadTerraUser();
-    }
-  })
-);
-
-authStore.subscribe(
-  withErrorReporting('Error forcing Terms of Service acceptance', async (state: AuthState, oldState: AuthState) => {
-    if (userCanNowUseTerra(oldState, state) && state.system.termsOfServiceConfig.inRollingAcceptanceWindow) {
-      Nav.goToPath('terms-of-service');
+      if (state.system.termsOfServiceConfig.inRollingAcceptanceWindow) {
+        Nav.goToPath('terms-of-service');
+      }
     }
   })
 );
