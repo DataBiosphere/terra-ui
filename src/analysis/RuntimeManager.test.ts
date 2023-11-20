@@ -46,6 +46,25 @@ describe('RuntimeManager', () => {
     expect(notify).toHaveBeenCalled();
   });
 
+  it('will update errorNotifiedRuntimes when there is currently a runtime in error state with one pre-existing runtime', () => {
+    // Arrange
+    const runtime: Runtime = { ...getGoogleDataProcRuntime(), status: runtimeStatuses.error.leoLabel, id: 5000 };
+    const runtimeManagerProps = {
+      namespace: 'test-namespace',
+      name: 'test-name',
+      runtimes: [runtime],
+      apps: [],
+    };
+    errorNotifiedRuntimes.set([runtime.id - 1]);
+
+    // Act
+    render(h(RuntimeManager, runtimeManagerProps));
+
+    // Assert
+    expect(errorNotifiedRuntimes.get()).toEqual([runtime.id - 1, runtime.id]);
+    expect(notify).toHaveBeenCalled();
+  });
+
   it('will not add duplicates to errorNotifiedRuntimes', () => {
     // Arrange
     const runtime: Runtime = { ...getGoogleDataProcRuntime(), status: runtimeStatuses.error.leoLabel };
