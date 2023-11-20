@@ -113,7 +113,41 @@ const hasGroupsAjax = {
 };
 
 describe('NewWorkspaceModal', () => {
+  const getAvailableBillingProjects = async (user) => {
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    const availableBillingProjectOptions = await projectSelect.getOptions();
+    // Remove icon name from option label.
+    // The icon names are only present in tests. They're the result of a configured transform.
+    return availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
+  };
+
   it('shows a message if there are no billing projects to use for creation', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          onSuccess: () => {},
+          onDismiss: () => {},
+        })
+      );
+    });
+
+    // Assert
+    screen.getByText('You need a billing project to create a new workspace.');
+  });
+
+  it('shows a message if there are no billing projects to use for cloning', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(
       () =>
@@ -140,33 +174,7 @@ describe('NewWorkspaceModal', () => {
     screen.getByText('You do not have a billing project that is able to clone this workspace.');
   });
 
-  it('shows a message if there are no billing projects to use for cloning', async () => {
-    // Arrange
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [],
-          },
-          ...nonBillingAjax,
-        } as AjaxContract)
-    );
-
-    // Act
-    await act(async () => {
-      render(
-        h(NewWorkspaceModal, {
-          onSuccess: () => {},
-          onDismiss: () => {},
-        })
-      );
-    });
-
-    // Assert
-    screen.getByText('You need a billing project to create a new workspace.');
-  });
-
-  it('redirects to billing if there are no billing projects', async () => {
+  it('redirects to billing if there are no suitable billing projects', async () => {
     // Arrange
     const user = userEvent.setup();
     asMockedFn(Ajax).mockImplementation(
@@ -260,14 +268,8 @@ describe('NewWorkspaceModal', () => {
         );
       });
 
-      const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
-      const availableBillingProjectOptions = await projectSelect.getOptions();
-      // Remove icon name from option label.
-      // The icon names are only present in tests. They're the result of a configured transform.
-      const availableBillingProjects = availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
-
       // Assert
-      expect(availableBillingProjects).toEqual(expectedBillingProjects);
+      expect(await getAvailableBillingProjects(user)).toEqual(expectedBillingProjects);
     }
   );
 
@@ -300,14 +302,8 @@ describe('NewWorkspaceModal', () => {
       );
     });
 
-    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
-    const availableBillingProjectOptions = await projectSelect.getOptions();
-    // Remove icon name from option label.
-    // The icon names are only present in tests. They're the result of a configured transform.
-    const availableBillingProjects = availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
-
     // Assert
-    expect(availableBillingProjects).toEqual(['Google Billing Project']);
+    expect(await getAvailableBillingProjects(user)).toEqual(['Google Billing Project']);
   });
 
   it('Hides GCP billing projects when cloning an Azure workspace', async () => {
@@ -334,14 +330,8 @@ describe('NewWorkspaceModal', () => {
       );
     });
 
-    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
-    const availableBillingProjectOptions = await projectSelect.getOptions();
-    // Remove icon name from option label.
-    // The icon names are only present in tests. They're the result of a configured transform.
-    const availableBillingProjects = availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
-
     // Assert
-    expect(availableBillingProjects).toEqual(['Azure Billing Project']);
+    expect(await getAvailableBillingProjects(user)).toEqual(['Azure Billing Project']);
   });
 
   it('Hides billing projects that cannot be used for cloning a protected data Azure workspace', async () => {
@@ -378,14 +368,8 @@ describe('NewWorkspaceModal', () => {
       );
     });
 
-    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
-    const availableBillingProjectOptions = await projectSelect.getOptions();
-    // Remove icon name from option label.
-    // The icon names are only present in tests. They're the result of a configured transform.
-    const availableBillingProjects = availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
-
     // Assert
-    expect(availableBillingProjects).toEqual(['Protected Azure Billing Project']);
+    expect(await getAvailableBillingProjects(user)).toEqual(['Protected Azure Billing Project']);
   });
 
   it('Hides azure billing projects if part of workflow import', async () => {
