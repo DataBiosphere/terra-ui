@@ -260,7 +260,7 @@ const rstudioRuntime: ListRuntimeItem = {
     cloudService: 'GCE',
     bootDiskSize: 120,
     zone: 'us-central1-a',
-    gpuConfig: undefined,
+    gpuConfig: null,
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   },
   proxyUrl:
@@ -304,7 +304,7 @@ const jupyter: Runtime = {
     cloudService: 'GCE',
     bootDiskSize: 120,
     zone: 'us-central1-a',
-    gpuConfig: undefined,
+    gpuConfig: null,
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   },
   proxyUrl:
