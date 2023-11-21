@@ -162,20 +162,20 @@ describe('CohortEditor', () => {
       criteria,
     });
     // Act
-    await user.click(await screen.findByLabelText('Remove list 0'));
+    await user.click(await screen.findByLabelText('Remove value 0'));
     // Assert
     expect(updateCriteria).toBeCalledWith({ ...criteria, values: [] });
     // Act
     await user.click(screen.getByLabelText('Select one or more list'));
-    await user.click((await screen.findAllByText('list 0'))[0]);
+    await user.click((await screen.findAllByText('value 0'))[0]);
     await user.click(screen.getByLabelText('Select one or more list'));
-    await user.click((await screen.findAllByText('list 1'))[0]);
+    await user.click((await screen.findAllByText('value 1'))[0]);
     // Assert
     expect(updateCriteria).toBeCalledWith({
       ...criteria,
       values: [
-        { id: 0, name: 'list 0' },
-        { id: 1, name: 'list 1' },
+        { id: 0, name: 'value 0' },
+        { id: 1, name: 'value 1' },
       ],
     });
   });
