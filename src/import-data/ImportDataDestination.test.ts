@@ -81,16 +81,12 @@ describe('ImportDataDestination', () => {
   ] as {
     importRequest: ImportRequest;
     shouldShowProtectedDataWarning: boolean;
+    expectedArgs: { cloudPlatform?: CloudProvider; isProtectedData: boolean };
   }[])(
     'should explain protected data restricts eligible workspaces',
     async ({ importRequest, shouldShowProtectedDataWarning }) => {
       // Arrange
       const user = userEvent.setup();
-      asMockedFn(canImportIntoWorkspace).mockImplementation(
-        (_importOptions: ImportOptions, workspace: WorkspaceWrapper): boolean => {
-          return workspace.workspace.name === 'allowed-workspace';
-        }
-      );
 
       setup({
         props: {
@@ -131,17 +127,30 @@ describe('ImportDataDestination', () => {
     {
       importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
       shouldSelectExisting: false,
+      expectedArgs: {
+        cloudPlatform: 'GCP',
+        isProtectedData: true,
+      },
     },
     {
       importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
       shouldSelectExisting: true,
+      expectedArgs: {
+        cloudPlatform: 'GCP',
+        isProtectedData: false,
+      },
     },
   ] as {
     importRequest: ImportRequest;
-    shouldShowProtectedDataWarning: boolean;
+    shouldSelectExisting: boolean;
   }[])('should disable start with an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
     // Arrange
     const user = userEvent.setup();
+    asMockedFn(canImportIntoWorkspace).mockImplementation(
+      (_importOptions: ImportOptions, workspace: WorkspaceWrapper): boolean => {
+        return workspace.workspace.name === 'allowed-workspace-not';
+      }
+    );
 
     setup({
       props: {
@@ -165,12 +174,12 @@ describe('ImportDataDestination', () => {
     await user.click(existingWorkspace); // select start with existing workspace
 
     // Assert
-    const protectedDataWarning = screen.queryByText('Select a workspaces', {
+    const protectedDataWarning = screen.queryByText('Select a workspace', {
       exact: false,
     });
 
-    const isWarningShown = !!protectedDataWarning;
-    expect(isWarningShown).toEqual(shouldSelectExisting);
+    const isSelectWorkspaceShown = !!protectedDataWarning;
+    expect(isSelectWorkspaceShown).toEqual(shouldSelectExisting);
   });
 
   it.each([
