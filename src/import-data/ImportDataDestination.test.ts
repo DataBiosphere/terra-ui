@@ -81,7 +81,6 @@ describe('ImportDataDestination', () => {
   ] as {
     importRequest: ImportRequest;
     shouldShowProtectedDataWarning: boolean;
-    expectedArgs: { cloudPlatform?: CloudProvider; isProtectedData: boolean };
   }[])(
     'should explain protected data restricts eligible workspaces',
     async ({ importRequest, shouldShowProtectedDataWarning }) => {
@@ -127,18 +126,10 @@ describe('ImportDataDestination', () => {
     {
       importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
       shouldSelectExisting: false,
-      expectedArgs: {
-        cloudPlatform: 'GCP',
-        isProtectedData: true,
-      },
     },
     {
       importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
       shouldSelectExisting: true,
-      expectedArgs: {
-        cloudPlatform: 'GCP',
-        isProtectedData: false,
-      },
     },
   ] as {
     importRequest: ImportRequest;
