@@ -1,7 +1,7 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
 const uuid = require('uuid');
-const { withAzureWorkspace, gotoAnalysisTab } = require('../utils/integration-helpers');
+const { gotoAnalysisTab, withAzureWorkspace } = require('../utils/integration-helpers');
 const {
   Millis,
   click,
@@ -97,14 +97,11 @@ const testRunAnalysisAzure = _.flowRight(
 
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, '//button[starts-with(@title, "Save and create checkpoint")]');
-
-  // Cleanup: rely on workspace deletion to delete the runtime. "Deleting" status is not considered deletable by Leonardo,
-  // so deletes are not idempotent (a second request to delete will trigger an error 409 and block workspace deletion)
 });
 
 registerTest({
   name: 'run-analysis-azure',
   fn: testRunAnalysisAzure,
-  targetEnvironments: ['dev'],
+  targetEnvironments: ['dev', 'staging'],
   timeout: Millis.ofMinutes(20),
 });
