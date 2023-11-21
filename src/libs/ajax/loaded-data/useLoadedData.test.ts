@@ -1,4 +1,4 @@
-import { LoadedState } from '@terra-ui-packages/core-utils';
+import { ErrorState, LoadedState, ReadyState } from '@terra-ui-packages/core-utils';
 import { act, renderHook } from '@testing-library/react';
 import { useLoadedData, UseLoadedDataResult } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { controlledPromise } from 'src/testing/test-utils';
@@ -41,7 +41,7 @@ describe('useLoadedData hook', () => {
     // Assert
     const expectedState1: LoadedState<TestData> = { status: 'None' };
     const expectedState2: LoadedState<TestData> = { status: 'Loading', state: null };
-    const expectedStateFinal: LoadedState<TestData> = {
+    const expectedStateFinal: ReadyState<TestData> = {
       status: 'Ready',
       state: {
         propA: 'abc',
@@ -74,7 +74,7 @@ describe('useLoadedData hook', () => {
     // Assert
     const expectedState1: LoadedState<TestData> = { status: 'None' };
     const expectedState2: LoadedState<TestData> = { status: 'Loading', state: null };
-    const expectedStateFinal: LoadedState<TestData> = {
+    const expectedStateFinal: ErrorState<TestData> = {
       status: 'Error',
       state: null,
       error: Error('BOOM!'),
@@ -107,7 +107,7 @@ describe('useLoadedData hook', () => {
     // Assert
     const expectedState1: LoadedState<TestData> = { status: 'None' };
     const expectedState2: LoadedState<TestData> = { status: 'Loading', state: null };
-    const expectedStateFinal: LoadedState<TestData> = {
+    const expectedStateFinal: ErrorState<TestData> = {
       status: 'Error',
       state: null,
       error: Error('BOOM!'),
@@ -159,7 +159,7 @@ describe('useLoadedData hook', () => {
     // Assert
     const expectedState1: LoadedState<TestData> = { status: 'None' };
     const expectedState2: LoadedState<TestData> = { status: 'Loading', state: null };
-    const expectedStateReady: LoadedState<TestData> = {
+    const expectedStateReady: ReadyState<TestData> = {
       status: 'Ready',
       state: { propA: 'abc', propB: 123 },
     };
@@ -169,7 +169,7 @@ describe('useLoadedData hook', () => {
       status: 'Loading',
       state: { propA: 'abc', propB: 123 },
     };
-    const expectedStateFinal: LoadedState<TestData> = {
+    const expectedStateFinal: ErrorState<TestData> = {
       status: 'Error',
       state: { propA: 'abc', propB: 123 },
       error: Error('BOOM!'),

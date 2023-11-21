@@ -12,10 +12,10 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');
 
-type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
-jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
+type WorkspaceUtilsExports = typeof import('src/workspaces/useWorkspaces');
+jest.mock('src/workspaces/useWorkspaces', (): WorkspaceUtilsExports => {
   return {
-    ...jest.requireActual('src/components/workspace-utils'),
+    ...jest.requireActual('src/workspaces/useWorkspaces'),
     useWorkspaces: jest.fn(),
   };
 });

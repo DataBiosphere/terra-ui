@@ -145,7 +145,7 @@ const thousandGenomesHighCoverage = () =>
       description:
         '1000 Genomes project phase 3 samples sequenced to 30x coverage. This dataset is delivered as a workspace. You may clone ' +
         'this workspace to run analyses or copy specific samples to a workspace of your choice.',
-      sizeText: 'Participants: 2,504',
+      sizeText: 'Participants: 3,202',
     },
     [
       h(
