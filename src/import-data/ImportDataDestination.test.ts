@@ -137,11 +137,9 @@ describe('ImportDataDestination', () => {
   }[])('should disable start with an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
     // Arrange
     const user = userEvent.setup();
-    asMockedFn(canImportIntoWorkspace).mockImplementation(
-      (_importOptions: ImportOptions, workspace: WorkspaceWrapper): boolean => {
-        return workspace.workspace.name === 'allowed-workspace-not';
-      }
-    );
+    asMockedFn(canImportIntoWorkspace).mockImplementation((_importOptions: ImportOptions): boolean => {
+      return false;
+    });
 
     setup({
       props: {

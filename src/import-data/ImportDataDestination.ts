@@ -188,7 +188,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     ]);
   };
 
-  const protectedWorkspaces = workspaces.filter((workspace) => {
+  const workspacesToImportTo = workspaces.filter((workspace) => {
     return canImportIntoWorkspace(
       {
         cloudPlatform: requiredCloudPlatform,
@@ -200,7 +200,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
   });
 
   // disable import into existing workspaces if data is marked as protected but no protected workspaces are available
-  const disableExportIntoExisting = isProtectedData && protectedWorkspaces.length === 0;
+  const disableExportIntoExisting = isProtectedData && workspacesToImportTo.length === 0;
 
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
@@ -216,7 +216,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             // @ts-expect-error
             h(WorkspaceSelector, {
               id,
-              workspaces: protectedWorkspaces,
+              workspaces: workspacesToImportTo,
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
             }),
