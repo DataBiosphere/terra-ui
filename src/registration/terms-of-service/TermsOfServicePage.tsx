@@ -63,6 +63,7 @@ export const TermsOfServicePage = () => {
     boxShadow: Style.standardShadow,
   };
   const headerStyles = { color: colors.dark(), fontSize: 38, fontWeight: 400 };
+
   return (
     <div role="main" style={mainStyles}>
       <img src={scienceBackground} alt="" style={{ position: 'fixed', top: 0, left: 0, zIndex: -1 }} />
@@ -76,7 +77,7 @@ export const TermsOfServicePage = () => {
           getRemoteText={() => Ajax().TermsOfService.getTermsOfServiceText()}
           failureMessage="Could not get Terms of Service"
         />
-        {requiredToAcceptTermsOfService && (
+        {requiredToAcceptTermsOfService ? (
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
             <ButtonSecondary style={{ marginRight: '1rem' }} onClick={reject} disabled={busy}>
               Decline and Sign Out
@@ -85,8 +86,7 @@ export const TermsOfServicePage = () => {
               Accept
             </ButtonPrimary>
           </div>
-        )}
-        {!requiredToAcceptTermsOfService && (
+        ) : (
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
             <ButtonPrimary onClick={backToTerra} disabled={busy}>
               Back to Terra

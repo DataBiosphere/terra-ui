@@ -589,7 +589,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                     },
                     [
                       icon('bars', {
-                        'aria-hidden': false,
+                        'aria-hidden': true,
                         size: 36,
                         style: {
                           color: isTerra() ? 'white' : colors.accent(),
