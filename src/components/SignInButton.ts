@@ -1,14 +1,15 @@
 import { Spinner } from '@terra-ui-packages/components';
+import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { signIn } from 'src/auth/auth';
 import { ButtonPrimary } from 'src/components/common';
 import { useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 
-const SignInButton = () => {
-  const auth = useStore(authStore);
+const SignInButton = (): ReactNode => {
+  const { signInStatus } = useStore(authStore);
 
-  const isAuthInitialized = auth.signInStatus !== 'uninitialized';
+  const isAuthInitialized = signInStatus !== 'uninitialized';
 
   return isAuthInitialized
     ? h(
