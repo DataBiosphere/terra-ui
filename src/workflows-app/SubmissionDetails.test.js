@@ -433,6 +433,73 @@ describe('Submission Details page', () => {
     within(cellsFromDataRow1[3]).getByText('b29e84b1-ad1b-4462-a9a0-7ec849bf30a8');
   });
 
+  it('should correctly display a run with undefined engine id', async () => {
+    const recentRunsData = {
+      runs: [
+        {
+          run_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
+          // engine_id is undefined
+          run_set_id: '0cd15673-7342-4cfa-883d-819660184a16',
+          record_id: 'FOO2',
+          workflow_url: 'https://xyz.wdl',
+          state: 'UNKNOWN',
+          workflow_params:
+            "[{'input_name':'wf_hello.hello.addressee','input_type':{'type':'primitive','primitive_type':'String'},'source':{'type':'record_lookup','record_attribute':'foo_name'}}]",
+          workflow_outputs: '[]',
+          submission_date: new Date().toISOString(),
+          last_modified_timestamp: new Date().toISOString(),
+          error_messages: [],
+        },
+      ],
+    };
+
+    const getRecentRunsMethod = jest.fn(() => Promise.resolve(recentRunsData));
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRecentRunsMethod,
+          },
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(BaseSubmissionDetails, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          submissionId,
+        })
+      );
+    });
+
+    const table = await screen.findByRole('table');
+
+    // Assert
+    expect(table).toHaveAttribute('aria-colcount', '4');
+    expect(table).toHaveAttribute('aria-rowcount', '2');
+
+    const rows = within(table).getAllByRole('row');
+    expect(rows.length).toBe(2);
+
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    expect(headers.length).toBe(4);
+    within(headers[0]).getByText('Sample ID');
+    within(headers[1]).getByText('Status');
+    within(headers[2]).getByText('Duration');
+
+    // check data rows are rendered as expected
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
+    expect(cellsFromDataRow1.length).toBe(4);
+    within(cellsFromDataRow1[0]).getByText('FOO2');
+    within(cellsFromDataRow1[1]).getByText('Initializing'); // Note: not UNKNOWN!
+    // << Don't validate duration here since it depends on the test rendering time and is not particularly relevant >>
+    within(cellsFromDataRow1[3]).getByText('');
+  });
+
   it('should indicate fully updated polls', async () => {
     const getRecentRunsMethod = jest.fn(() => Promise.resolve(simpleRunsData));
     Ajax.mockImplementation(() => {
