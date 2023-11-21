@@ -24,6 +24,7 @@ export interface AzureBillingProject extends BaseBillingProject {
   cloudPlatform: 'AZURE';
   managedAppCoordinates: AzureManagedAppCoordinates;
   landingZoneId: string;
+  protectedData: boolean;
 }
 
 export interface GCPBillingProject extends BaseBillingProject {

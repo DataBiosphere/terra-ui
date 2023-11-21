@@ -7,7 +7,7 @@ import { AzureStorageDetails } from 'src/pages/workspaces/workspace/Dashboard/Az
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
 
-describe('AzureDetails', () => {
+describe('AzureStorageDetails', () => {
   const azureContext = {
     managedResourceGroupId: 'dummy-mrg-id',
     subscriptionId: 'dummy-subscription-id',
