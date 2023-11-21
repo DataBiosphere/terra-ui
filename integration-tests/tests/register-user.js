@@ -16,7 +16,6 @@ const {
   waitForNoModal,
   checkbox,
   waitForModal,
-  ariaLabel,
 } = require('../utils/integration-utils');
 const { fillInReplace, gotoPage } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -30,7 +29,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await verifyAccessibility(page);
 
   // This is the hamburger menu
-  await click(page, ariaLabel({ labelContains: 'Toggle main menu' }));
+  await click(page, clickable({ textContains: 'Toggle main menu' }));
   // Wait for sidebar to transition in.
   // Matches transition durations in ModalDrawer.
   await delay(200);
@@ -57,7 +56,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await click(page, clickable({ textContains: 'Register' }), { timeout: 90000 });
   await findText(page, 'Welcome to Terra Community Workbench');
 
-  await click(page, ariaLabel({ labelContains: 'Toggle main menu' }));
+  await click(page, clickable({ textContains: 'Toggle main menu' }));
   // Wait for sidebar to transition in.
   // Matches transition durations in ModalDrawer.
   await delay(200);

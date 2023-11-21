@@ -585,10 +585,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                       style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
                       onClick: navShown ? hideNav : showNav,
                       'aria-expanded': navShown,
+                      'aria-label': 'Toggle main menu',
                     },
                     [
                       icon('bars', {
-                        'aria-label': 'Toggle main menu',
                         'aria-hidden': false,
                         size: 36,
                         style: {
