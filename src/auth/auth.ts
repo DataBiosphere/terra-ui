@@ -12,6 +12,7 @@ import {
   OidcUser,
   revokeTokens,
 } from 'src/auth/oidc-broker';
+import { cookieProvider } from 'src/components/CookieProvider';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
@@ -27,9 +28,7 @@ import {
   asyncImportJobStore,
   AuthState,
   authStore,
-  azureCookieReadyStore,
   azurePreviewStore,
-  cookieReadyStore,
   getTerraUser,
   MetricState,
   metricStore,
@@ -106,12 +105,11 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
     notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
   }
-  // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
-  cookieReadyStore.reset();
-  azureCookieReadyStore.reset();
-  getSessionStorage().clear();
+
   azurePreviewStore.set(false);
 
+  cookieProvider.invalidateCookies();
+  getSessionStorage().clear();
   revokeTokens();
 
   const { cookiesAccepted } = authStore.get();
