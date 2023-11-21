@@ -6,18 +6,20 @@ import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
 import {
-  ProgramDataListOption,
-  ProgramDataListValue,
-  ProgramDataRangeOption,
+  DatasetModel,
   SnapshotBuilderDomainOption as DomainOption,
-  SnapshotBuilderSettings,
+  SnapshotBuilderProgramDataOption,
 } from 'src/libs/ajax/DataRepo';
 import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
+  DatasetBuilder,
   ProgramDataListCriteria,
+  ProgramDataListOption,
+  ProgramDataListValue,
   ProgramDataRangeCriteria,
+  ProgramDataRangeOption,
 } from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
@@ -151,27 +153,37 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
   );
 
 let criteriaCount = 1;
-const createDefaultListCriteria = (listOption: ProgramDataListOption): ProgramDataListCriteria => {
-  return {
-    kind: 'list',
-    listOption,
-    name: listOption.name,
-    id: Number(_.uniqueId('')),
-    count: 100,
-    values: [listOption.values[0]],
-  };
-};
-
-const createDefaultRangeCriteria = (rangeOption: ProgramDataRangeOption): ProgramDataRangeCriteria => {
-  return {
-    kind: 'range',
-    rangeOption,
-    name: rangeOption.name,
-    id: criteriaCount++,
-    count: 100,
-    low: rangeOption.min,
-    high: rangeOption.max,
-  };
+const createDefaultProgramDataCriteria = async (
+  datasetId: string,
+  option: SnapshotBuilderProgramDataOption
+): Promise<ProgramDataRangeCriteria | ProgramDataListCriteria> => {
+  const generatedOptions = await DatasetBuilder().getProgramDataStatistics(datasetId, option);
+  switch (generatedOptions.kind) {
+    case 'range':
+      const rangeOption = generatedOptions as ProgramDataRangeOption;
+      return {
+        kind: 'range',
+        rangeOption,
+        name: rangeOption.name,
+        id: criteriaCount++,
+        count: 100,
+        low: rangeOption.min,
+        high: rangeOption.max,
+      };
+    case 'list': {
+      const listOption = generatedOptions as ProgramDataListOption;
+      return {
+        kind: 'list',
+        listOption,
+        name: option.name,
+        id: Number(_.uniqueId('')),
+        count: 100,
+        values: [listOption.values[0]],
+      };
+    }
+    default:
+      throw new Error('Unknown option');
+  }
 };
 
 const addKindToDomainOption = (domainOption: DomainOption): DomainOptionWithKind => ({
@@ -183,19 +195,20 @@ interface DomainOptionWithKind extends DomainOption {
   kind: 'domain';
 }
 
-type CriteriaOption = DomainOptionWithKind | ProgramDataRangeOption | ProgramDataListOption;
+type CriteriaOption = DomainOptionWithKind | SnapshotBuilderProgramDataOption;
 
-export function criteriaFromOption(option: DomainOptionWithKind): undefined;
-export function criteriaFromOption(option: ProgramDataListOption): ProgramDataListCriteria;
-export function criteriaFromOption(option: ProgramDataRangeOption): ProgramDataRangeCriteria;
-export function criteriaFromOption(option: CriteriaOption): AnyCriteria;
+export function criteriaFromOption(datasetId: string, option: DomainOptionWithKind): Promise<undefined>;
+export function criteriaFromOption(
+  datasetId: string,
+  option: SnapshotBuilderProgramDataOption
+): Promise<ProgramDataListCriteria | ProgramDataRangeCriteria>;
+export function criteriaFromOption(datasetId: string, option: CriteriaOption): Promise<AnyCriteria>;
 
-export function criteriaFromOption(option: CriteriaOption): AnyCriteria | undefined {
+export async function criteriaFromOption(datasetId: string, option: CriteriaOption): Promise<AnyCriteria | undefined> {
   switch (option.kind) {
     case 'list':
-      return createDefaultListCriteria(option);
     case 'range':
-      return createDefaultRangeCriteria(option);
+      return createDefaultProgramDataCriteria(datasetId, option);
     case 'domain':
     default:
       return undefined;
@@ -206,13 +219,13 @@ type AddCriteriaSelectorProps = {
   index: number;
   criteriaGroup: CriteriaGroup;
   updateCohort: Updater<Cohort>;
-  snapshotBuilderSettings: SnapshotBuilderSettings;
+  dataset: DatasetModel;
   onStateChange: OnStateChangeHandler;
   cohort: Cohort;
 };
 
 const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
-  const { index, criteriaGroup, updateCohort, snapshotBuilderSettings, onStateChange, cohort } = props;
+  const { index, criteriaGroup, updateCohort, dataset, onStateChange, cohort } = props;
   return h(GroupedSelect<CriteriaOption>, {
     styles: { container: (provided) => ({ ...provided, width: '230px', marginTop: wideMargin }) },
     isClearable: false,
@@ -225,7 +238,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
             value: addKindToDomainOption(domainOption),
             label: domainOption.category,
           }),
-          snapshotBuilderSettings.domainOptions
+          dataset.snapshotBuilderSettings!.domainOptions
         ),
       },
       {
@@ -235,20 +248,27 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
             value: programDataOption,
             label: programDataOption.name,
           };
-        }, snapshotBuilderSettings.programDataOptions),
+        }, dataset.snapshotBuilderSettings!.programDataOptions),
       },
     ],
     'aria-label': addCriteriaText,
     placeholder: addCriteriaText,
     value: null,
-    onChange: (x) => {
+    onChange: async (x) => {
       if (x !== null) {
         if (x.value.kind === 'domain') {
           onStateChange(domainCriteriaSelectorState.new(cohort, criteriaGroup, x.value));
         } else {
-          const criteria = criteriaFromOption(x.value);
+          updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, { loading: true }));
+          const criteria = await criteriaFromOption(dataset.id, x.value);
           if (criteria !== undefined) {
-            updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
+            const firstLoading = _.findIndex((criteria) => criteria.loading === true, criteriaGroup.criteria);
+            updateCohort(
+              _.set(
+                `criteriaGroups.${index}.criteria.${firstLoading >= 0 ? firstLoading : criteriaGroup.criteria.length}`,
+                criteria
+              )
+            );
           }
         }
       }
@@ -261,12 +281,12 @@ type CriteriaGroupViewProps = {
   criteriaGroup: CriteriaGroup;
   updateCohort: Updater<Cohort>;
   cohort: Cohort;
-  snapshotBuilderSettings: SnapshotBuilderSettings;
+  dataset: DatasetModel;
   onStateChange: OnStateChangeHandler;
 };
 
 export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
-  const { index, criteriaGroup, updateCohort, cohort, snapshotBuilderSettings, onStateChange } = props;
+  const { index, criteriaGroup, updateCohort, cohort, dataset, onStateChange } = props;
 
   const deleteCriteria = (criteria: AnyCriteria) =>
     updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)));
@@ -336,12 +356,14 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
           criteriaGroup.criteria.length !== 0
             ? _.map(
                 (criteria) =>
-                  h(CriteriaView, {
-                    deleteCriteria,
-                    updateCriteria,
-                    criteria,
-                    key: criteria.id,
-                  }),
+                  criteria.loading
+                    ? div({ style: { display: 'flex', alignItems: 'center' } }, [icon('loadingSpinner', { size: 24 })])
+                    : h(CriteriaView, {
+                        deleteCriteria,
+                        updateCriteria,
+                        criteria,
+                        key: criteria.id,
+                      }),
                 criteriaGroup.criteria
               )
             : div({ style: { marginTop: 15 } }, [
@@ -351,7 +373,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
                 ]),
               ]),
         ]),
-        h(AddCriteriaSelector, { index, criteriaGroup, updateCohort, snapshotBuilderSettings, onStateChange, cohort }),
+        h(AddCriteriaSelector, { index, criteriaGroup, updateCohort, dataset, onStateChange, cohort }),
       ]),
       div(
         {
@@ -373,12 +395,12 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
 
 type CohortGroupsProps = {
   cohort: Cohort | undefined;
-  snapshotBuilderSettings: SnapshotBuilderSettings;
+  dataset: DatasetModel;
   updateCohort: Updater<Cohort>;
   onStateChange: OnStateChangeHandler;
 };
 const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
-  const { snapshotBuilderSettings, cohort, updateCohort, onStateChange } = props;
+  const { dataset, cohort, updateCohort, onStateChange } = props;
   return div({ style: { width: '47rem' } }, [
     cohort == null
       ? 'No cohort found'
@@ -391,7 +413,7 @@ const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
                   criteriaGroup,
                   updateCohort,
                   cohort,
-                  snapshotBuilderSettings,
+                  dataset,
                   onStateChange,
                 }),
                 div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'center' } }, [
@@ -427,11 +449,11 @@ const editorBackgroundColor = colors.light(0.7);
 type CohortEditorContentsProps = {
   updateCohort: Updater<Cohort>;
   cohort: Cohort;
-  snapshotBuilderSettings: SnapshotBuilderSettings;
+  dataset: DatasetModel;
   onStateChange: OnStateChangeHandler;
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
-  const { updateCohort, cohort, snapshotBuilderSettings, onStateChange } = props;
+  const { updateCohort, cohort, dataset, onStateChange } = props;
   return div(
     {
       style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` },
@@ -454,7 +476,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
       div({ style: { display: 'flow' } }, [
         h(CohortGroups, {
           key: cohort.name,
-          snapshotBuilderSettings,
+          dataset,
           cohort,
           updateCohort,
           onStateChange,
@@ -478,18 +500,18 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
 
 interface CohortEditorProps {
   readonly onStateChange: OnStateChangeHandler;
-  readonly snapshotBuilderSettings: SnapshotBuilderSettings;
+  readonly dataset: DatasetModel;
   readonly originalCohort: Cohort;
   readonly updateCohorts: Updater<Cohort[]>;
 }
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
-  const { onStateChange, snapshotBuilderSettings, originalCohort, updateCohorts } = props;
+  const { onStateChange, dataset, originalCohort, updateCohorts } = props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
   const updateCohort = (updateCohort: (Cohort) => Cohort) => _.flow(updateCohort, setCohort)(cohort);
 
   return h(Fragment, [
-    h(CohortEditorContents, { updateCohort, cohort, snapshotBuilderSettings, onStateChange }),
+    h(CohortEditorContents, { updateCohort, cohort, dataset, onStateChange }),
     // add div to cover page to footer
     div(
       {

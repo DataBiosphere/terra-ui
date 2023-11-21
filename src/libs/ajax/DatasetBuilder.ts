@@ -2,13 +2,12 @@
 import _ from 'lodash/fp';
 import { Ajax } from 'src/libs/ajax';
 import {
+  ColumnStatisticsIntOrDoubleModel,
   datasetIncludeTypes,
   DatasetModel,
-  ProgramDataListOption,
-  ProgramDataListValue,
-  ProgramDataRangeOption,
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderDomainOption as DomainOption,
+  SnapshotBuilderProgramDataOption,
 } from 'src/libs/ajax/DataRepo';
 
 /** A specific criteria based on a type. */
@@ -23,9 +22,22 @@ export interface CriteriaApi {
   kind: 'domain' | 'range' | 'list';
   name: string;
   id: number;
+  count?: number;
+  loading?: boolean;
 }
 export interface DomainCriteriaApi extends CriteriaApi {
   kind: 'domain';
+}
+
+export interface ProgramDataOption {
+  kind: 'range' | 'list';
+}
+
+export interface ProgramDataRangeOption extends ProgramDataOption {
+  kind: 'range';
+  name: string;
+  min: number;
+  max: number;
 }
 
 export interface ProgramDataRangeCriteriaApi extends CriteriaApi {
@@ -80,6 +92,17 @@ export interface ProgramDataRangeCriteria extends ProgramDataRangeCriteriaApi, C
   rangeOption: ProgramDataRangeOption;
 }
 
+export interface ProgramDataListValue {
+  id: number;
+  name: string;
+}
+
+export interface ProgramDataListOption extends ProgramDataOption {
+  kind: 'list';
+  name: string;
+  values: ProgramDataListValue[];
+}
+
 export interface ProgramDataListCriteria extends Criteria, CriteriaApi {
   kind: 'list';
   listOption: ProgramDataListOption;
@@ -91,7 +114,7 @@ export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDat
 /** A group of criteria. */
 export interface CriteriaGroup {
   name: string;
-  criteria: AnyCriteria[];
+  criteria: (AnyCriteria | { loading: true })[];
   mustMeet: boolean;
   meetAll: boolean;
   count: number;
@@ -189,6 +212,10 @@ type DatasetParticipantCountRequest = {
 
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetModel>;
+  getProgramDataStatistics: (
+    datasetId,
+    programDataOption: SnapshotBuilderProgramDataOption
+  ) => Promise<ProgramDataRangeOption | ProgramDataListOption>;
   getConcepts: (parent: Concept) => Promise<GetConceptsResponse>;
   requestAccess: (datasetId: string, request: DatasetAccessRequest) => Promise<DatasetAccessRequestApi>;
   getParticipantCount: (request: DatasetParticipantCountRequest) => Promise<number>;
@@ -253,15 +280,53 @@ const getDummyConcepts = async (parent: Concept): Promise<GetConceptsResponse> =
   };
 };
 
-export const DatasetBuilder = (): DatasetBuilderContract => ({
-  retrieveDataset: async (datasetId) => {
-    return await Ajax()
-      .DataRepo.dataset(datasetId)
-      .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
-  },
-  getConcepts: (parent: Concept) => Promise.resolve(getDummyConcepts(parent)),
-  requestAccess: async (datasetId, request) => {
-    return await Ajax().DataRepo.dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(request));
-  },
-  getParticipantCount: (_request) => Promise.resolve(100),
-});
+export const DatasetBuilder = (): DatasetBuilderContract => {
+  return {
+    retrieveDataset: async (datasetId) => {
+      return await Ajax()
+        .DataRepo.dataset(datasetId)
+        .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
+    },
+    getProgramDataStatistics: async (datasetId, programDataOption) => {
+      switch (programDataOption.kind) {
+        case 'list':
+          return {
+            name: programDataOption.name,
+            kind: programDataOption.kind,
+            values: _.map(
+              (num) => ({
+                id: num,
+                name: `${programDataOption.name} ${num}`,
+              }),
+              [0, 1, 2, 3, 4]
+            ),
+          };
+        case 'range':
+          const statistics = await Ajax()
+            .DataRepo.dataset(datasetId)
+            .lookupDatasetColumnStatisticsById(programDataOption.tableName, programDataOption.columnName);
+
+          switch (statistics.dataType) {
+            case 'integer' || 'int64' || 'numeric':
+              return {
+                name: programDataOption.name,
+                kind: programDataOption.kind,
+                min: (statistics as ColumnStatisticsIntOrDoubleModel).minValue,
+                max: (statistics as ColumnStatisticsIntOrDoubleModel).maxValue,
+              } as ProgramDataRangeOption;
+            default:
+              throw new Error(
+                `Datatype for ${programDataOption.tableName}/${programDataOption.columnName} is not numeric`
+              );
+          }
+        default:
+          throw new Error('Unexpected option');
+      }
+    },
+    getConcepts: (parent: Concept) => Promise.resolve(getDummyConcepts(parent)),
+    requestAccess: async (datasetId, request) => {
+      return await Ajax().DataRepo.dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(request));
+    },
+    getParticipantCount: (_request) => Promise.resolve(100),
+  };
+};

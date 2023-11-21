@@ -17,26 +17,12 @@ export type SnapshotBuilderDomainOption = {
   root: SnapshotBuilderConcept;
 };
 
-export interface ProgramDataOption {
+export interface SnapshotBuilderProgramDataOption {
   kind: 'range' | 'list';
   id: number;
   name: string;
-}
-
-export interface ProgramDataRangeOption extends ProgramDataOption {
-  kind: 'range';
-  min: number;
-  max: number;
-}
-
-export interface ProgramDataListValue {
-  id: number;
-  name: string;
-}
-
-export interface ProgramDataListOption extends ProgramDataOption {
-  kind: 'list';
-  values: ProgramDataListValue[];
+  tableName: string;
+  columnName: string;
 }
 
 export type SnapshotBuilderFeatureValueGroup = {
@@ -52,7 +38,7 @@ export type SnapshotBuilderDatasetConceptSets = {
 
 export type SnapshotBuilderSettings = {
   domainOptions: SnapshotBuilderDomainOption[];
-  programDataOptions: (ProgramDataListOption | ProgramDataRangeOption)[];
+  programDataOptions: SnapshotBuilderProgramDataOption[];
   featureValueGroups: SnapshotBuilderFeatureValueGroup[];
   datasetConceptSets?: SnapshotBuilderDatasetConceptSets[];
 };
@@ -100,10 +86,32 @@ export interface Snapshot {
   cloudPlatform: 'azure' | 'gcp';
 }
 
+export interface ColumnStatisticsModel {
+  dataType: string;
+}
+
+export interface ColumnStatisticsIntOrDoubleModel extends ColumnStatisticsModel {
+  minValue: number;
+  maxValue: number;
+}
+
+export interface ColumnStatisticsTextModel extends ColumnStatisticsModel {
+  values: ColumnStatisticsTextValue[];
+}
+
+interface ColumnStatisticsTextValue {
+  value: string;
+  count: number;
+}
+
 export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
+    lookupDatasetColumnStatisticsById: (
+      tableName: string,
+      columnName: string
+    ) => Promise<ColumnStatisticsIntOrDoubleModel | ColumnStatisticsTextModel>;
     createSnapshotRequest(request: DatasetAccessRequestApi): Promise<DatasetAccessRequestApi>;
   };
   snapshot: (snapshotId: string) => {
@@ -135,6 +143,8 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
     roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
     createSnapshotRequest: async (request): Promise<DatasetAccessRequestApi> =>
       callDataRepoPost(`repository/v1/datasets/${datasetId}/createSnapshotRequest`, signal, request),
+    lookupDatasetColumnStatisticsById: async (tableName, columnName) =>
+      callDataRepo(`repository/v1/datasets/${datasetId}/data/${tableName}/statistics/${columnName}`, signal),
   }),
   snapshot: (snapshotId) => {
     return {

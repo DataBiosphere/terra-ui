@@ -704,7 +704,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   ? h(CohortEditor, {
                       onStateChange,
                       originalCohort: datasetBuilderState.cohort,
-                      snapshotBuilderSettings: datasetDetails.state.snapshotBuilderSettings,
+                      dataset: datasetDetails.state,
                       updateCohorts: setCohorts,
                     })
                   : div(['No Dataset Builder Settings Found']);
