@@ -165,11 +165,11 @@ describe('ImportDataDestination', () => {
     await user.click(existingWorkspace); // select start with existing workspace
 
     // Assert
-    const protectedDataWarning = screen.queryByText('Select a workspace', {
+    const selectWorkspace = screen.queryByText('Select a workspace', {
       exact: false,
     });
 
-    const isSelectWorkspaceShown = !!protectedDataWarning;
+    const isSelectWorkspaceShown = !!selectWorkspace;
     expect(isSelectWorkspaceShown).toEqual(shouldSelectExisting);
   });
 
