@@ -95,7 +95,6 @@ describe('ImportDataDestination', () => {
       setup({
         props: {
           importRequest,
-          requiredAuthorizationDomain,
         },
         workspaces: [
           makeGoogleWorkspace({
