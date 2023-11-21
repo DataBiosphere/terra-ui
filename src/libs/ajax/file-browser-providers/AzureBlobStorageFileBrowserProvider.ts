@@ -1,8 +1,9 @@
-import { fetchOk } from 'src/libs/ajax/ajax-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import IncrementalResponse from 'src/libs/ajax/incremental-response/IncrementalResponse';
 import * as Utils from 'src/libs/utils';
+
+import { fetchOk } from '../network-core/fetch-core';
 
 export interface AzureBlobStorageFileBrowserProviderParams {
   workspaceId: string;

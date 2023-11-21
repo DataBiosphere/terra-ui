@@ -1,15 +1,20 @@
 import * as qs from 'qs';
-import { fetchOk } from 'src/libs/ajax/ajax-common';
 import { AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import AzureBlobStorageFileBrowserProvider from 'src/libs/ajax/file-browser-providers/AzureBlobStorageFileBrowserProvider';
 import { FileBrowserDirectory, FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import * as Utils from '../../utils';
+import { fetchOk } from '../network-core/fetch-core';
 
-jest.mock('src/libs/ajax/ajax-common', () => ({
-  fetchOk: jest.fn(),
-}));
+type FetchCoreExports = typeof import('src/libs/ajax/network-core/fetch-core');
+jest.mock(
+  'src/libs/ajax/network-core/fetch-core',
+  (): FetchCoreExports => ({
+    ...jest.requireActual<FetchCoreExports>('src/libs/ajax/network-core/fetch-core'),
+    fetchOk: jest.fn(),
+  })
+);
 
 jest.mock('src/libs/ajax/AzureStorage', () => ({
   AzureStorage: () =>

@@ -7,7 +7,6 @@ import {
   fetchDrsHub,
   fetchGoogleForms,
   fetchMartha,
-  fetchOk,
   fetchOrchestration,
   fetchRawls,
   jsonBody,
@@ -36,6 +35,8 @@ import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResourc
 import { getConfig } from 'src/libs/config';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+
+import { fetchOk } from './ajax/network-core/fetch-core';
 
 const getSnapshotEntityMetadata = Utils.memoizeAsync(
   async (token, workspaceNamespace, workspaceName, googleProject, dataReference) => {
