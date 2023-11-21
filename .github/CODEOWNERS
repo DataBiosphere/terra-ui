@@ -30,6 +30,7 @@
 /integration-tests/tests/workspace-janitor.js @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/workspace-dashboard.js @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/run-analysis.js @DataBiosphere/broad-interactive-analysis
+/integration-tests/tests/run-analysis-azure.js @DataBiosphere/broad-interactive-analysis
 /integration-tests/tests/run-rstudio.js @DataBiosphere/broad-interactive-analysis
 /integration-tests/tests/analysis-context-bar.js @DataBiosphere/broad-interactive-analysis
 /integration-tests/tests/export-*-dataset-to-workspace.js @DataBiosphere/data-explorer-eng
