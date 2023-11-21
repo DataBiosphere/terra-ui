@@ -133,7 +133,7 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
   }
 });
 
-const deleteWorkspaceV2 = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
+const deleteWorkspaceV2AsUser = async ({ page, billingProject, workspaceName }) => {
   try {
     const isAppsEmpty = await deleteAppsV2({ page, billingProject, workspaceName });
     const isRuntimesEmpty = await deleteRuntimesV2({ page, billingProject, workspaceName });
@@ -154,7 +154,9 @@ const deleteWorkspaceV2 = withSignedInPage(async ({ page, billingProject, worksp
     console.error(e);
     throw e;
   }
-});
+};
+
+const deleteWorkspaceV2 = withSignedInPage(deleteWorkspaceV2AsUser);
 
 /** Create a GCP workspace, run the given test, then delete the workspace. */
 const withWorkspace = (test) => async (options) => {
@@ -290,7 +292,7 @@ const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
     const disksById = _.groupBy(({ id }) => id, disks);
     return runtimes.map((runtime) => ({
       runtime,
-      disk: disksById[runtime.runtimeConfig.persistentDiskId].at(0),
+      disk: disksById[runtime.runtimeConfig.persistentDiskId]?.at(0),
     }));
   }, workspaceId);
   const deletedRuntimesAndDisks = await Promise.all(
@@ -303,7 +305,7 @@ const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
           isDeleted: isRuntimeDeleted,
         },
         disk: {
-          name: disk.diskName,
+          name: disk?.diskName,
           isDeleted: isDiskDeleted,
         },
       };
@@ -320,7 +322,7 @@ const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
 
 /**
  * Delete a v2 disk, returning `true` when deletion is complete.
- * Will return `false`` if disk is not deletable.
+ * Will return `false` if disk is not deletable.
  */
 const fullyDeleteApp = async (page, app) => {
   const { workspaceId, appName, status } = app;
@@ -363,9 +365,13 @@ const fullyDeleteApp = async (page, app) => {
 
 /**
  * Delete a v2 disk, returning `true` when deletion is complete.
- * Will return `false`` if disk is not deletable.
+ * Will return `false` if disk is not deletable.
  */
 const fullyDeleteDisk = async (page, disk) => {
+  if (!disk) {
+    console.log('Disk does not exist');
+    return true;
+  }
   const { id, cloudContext, name, status } = disk;
   const isDeletable = isResourceDeletable('disk', status);
   if (!isDeletable) {
@@ -404,7 +410,7 @@ const fullyDeleteDisk = async (page, disk) => {
 
 /**
  * Delete a v2 runtime, returning `true` when deletion is complete. Does not delete the associated disk.
- * Will return `false`` if runtime is not deletable.
+ * Will return `false` if runtime is not deletable.
  */
 const fullyDeleteRuntime = async (page, runtime) => {
   const { workspaceId, runtimeName, status } = runtime;
@@ -526,13 +532,15 @@ module.exports = {
   defaultTimeout,
   deleteRuntimes,
   deleteRuntimesV2,
-  navigateToDataCatalog,
+  deleteWorkspaceV2,
+  deleteWorkspaceV2AsUser,
   enableDataCatalog,
-  testWorkspaceNamePrefix,
+  gotoAnalysisTab,
+  navigateToDataCatalog,
   testWorkspaceName: getTestWorkspaceName,
-  withWorkspace,
+  testWorkspaceNamePrefix,
+  viewWorkspaceDashboard,
   withAzureWorkspace,
   withUser,
-  gotoAnalysisTab,
-  viewWorkspaceDashboard,
+  withWorkspace,
 };
