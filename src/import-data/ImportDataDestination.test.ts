@@ -130,6 +130,52 @@ describe('ImportDataDestination', () => {
   it.each([
     {
       importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+      shouldSelectExisting: false,
+    },
+    {
+      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      shouldSelectExisting: true,
+    },
+  ] as {
+    importRequest: ImportRequest;
+    shouldShowProtectedDataWarning: boolean;
+  }[])('should disable start with an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
+    // Arrange
+    const user = userEvent.setup();
+
+    setup({
+      props: {
+        importRequest,
+      },
+      workspaces: [
+        makeGoogleWorkspace({
+          workspace: {
+            name: 'allowed-workspace',
+          },
+        }),
+        makeGoogleWorkspace({
+          workspace: {
+            name: 'other-workspace',
+          },
+        }),
+      ],
+    });
+    // Act
+    const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
+    await user.click(existingWorkspace); // select start with existing workspace
+
+    // Assert
+    const protectedDataWarning = screen.queryByText('Select a workspaces', {
+      exact: false,
+    });
+
+    const isWarningShown = !!protectedDataWarning;
+    expect(isWarningShown).toEqual(shouldSelectExisting);
+  });
+
+  it.each([
+    {
+      importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
       requiredAuthorizationDomain: 'test-auth-domain',
       expectedArgs: {
         cloudPlatform: 'GCP',
