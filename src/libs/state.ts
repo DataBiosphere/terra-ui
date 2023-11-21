@@ -230,6 +230,7 @@ export type AsyncImportJob = {
     namespace: string;
     name: string;
   };
+  proxyUrl?: string;
 };
 
 export const asyncImportJobStore = atom<AsyncImportJob[]>([]);

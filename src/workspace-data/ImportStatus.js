@@ -8,6 +8,7 @@ import { clearNotification, notify } from 'src/libs/notifications';
 import { useCancellation, usePollingEffect, useStore } from 'src/libs/react-utils';
 import { asyncImportJobStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { isAzureWorkspace } from 'src/libs/workspace-utils';
 
 const ImportStatus = () => {
   const jobs = useStore(asyncImportJobStore);
@@ -27,7 +28,7 @@ const ImportStatus = () => {
   );
 };
 
-function ImportStatusItem({ job: { targetWorkspace, jobId }, onDone }) {
+function ImportStatusItem({ job: { targetWorkspace, jobId, proxyUrl }, onDone }) {
   const signal = useCancellation();
 
   usePollingEffect(
@@ -40,6 +41,9 @@ function ImportStatusItem({ job: { targetWorkspace, jobId }, onDone }) {
   const checkForCompletion = async ({ namespace, name }, jobId) => {
     const fetchImportStatus = async () => {
       try {
+        if (isAzureWorkspace(targetWorkspace)) {
+          return await Ajax(signal).WorkspaceData.getJobStatus(proxyUrl, jobId);
+        }
         return await Ajax(signal).Workspaces.workspace(namespace, name).getImportJobStatus(jobId);
       } catch (error) {
         // Ignore 404; We're probably asking for status before the status endpoint knows about the job
@@ -78,10 +82,11 @@ function ImportStatusItem({ job: { targetWorkspace, jobId }, onDone }) {
 
     const errorNotify = () => notify('error', 'Error importing data.', { message });
 
-    if (!_.includes(status, ['Pending', 'Translating', 'ReadyForUpsert', 'Upserting'])) {
+    if (!_.includes(status, ['Pending', 'Translating', 'ReadyForUpsert', 'Upserting', 'RUNNING'])) {
       Utils.switchCase(
         status,
         ['Done', successNotify],
+        ['SUCCEEDED', successNotify],
         ['Error', errorNotify],
         [Utils.DEFAULT, () => notify('error', 'Unexpected error importing data', response)]
       );

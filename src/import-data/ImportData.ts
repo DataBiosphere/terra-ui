@@ -65,16 +65,29 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   const importPFB = async (importRequest: PFBImportRequest, workspace: WorkspaceInfo) => {
     if (workspace.cloudPlatform === 'Azure') {
       const wdsUrl = await Ajax().Apps.listAppsV2(workspace.workspaceId).then(resolveWdsUrl);
-      await Ajax().WorkspaceData.startImportJob(wdsUrl, workspace.workspaceId, {
+      const { namespace, name, cloudPlatform } = workspace;
+      const { jobId } = await Ajax().WorkspaceData.startImportJob(wdsUrl, workspace.workspaceId, {
         url: importRequest.url.toString(),
         type: 'PFB',
       });
+      // TODO a better way to make this conform to expected shape?
+      asyncImportJobStore.update(
+        Utils.append({
+          targetWorkspace: { namespace, name, workspace: { cloudPlatform, workspaceId: workspace.workspaceId } },
+          jobId,
+          proxyUrl: wdsUrl,
+        })
+      );
+      notifyDataImportProgress(jobId);
     } else {
       const { namespace, name } = workspace;
       const { jobId } = await Ajax()
         .Workspaces.workspace(namespace, name)
         .importJob(importRequest.url.toString(), 'pfb', null);
-      asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
+      // TODO does it make sense to include cloudPlatform both places here or is there another way
+      asyncImportJobStore.update(
+        Utils.append({ targetWorkspace: { namespace, name, workspace: { cloudPlatform: 'gcp' } }, jobId })
+      );
       notifyDataImportProgress(jobId);
     }
   };
