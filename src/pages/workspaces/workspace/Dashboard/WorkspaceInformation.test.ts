@@ -10,6 +10,7 @@ import {
   defaultAzureWorkspace,
   defaultGoogleWorkspace,
   protectedAzureWorkspace,
+  protectedGoogleWorkspace,
   regionRestrictedAzureWorkspace,
 } from 'src/testing/workspace-fixtures';
 
@@ -40,12 +41,42 @@ describe('WorkspaceInformation', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it('renders information for a protected workspace and does not fail accessibility tests', async () => {
+  it('renders information for an Azure protected workspace and does not fail accessibility tests', async () => {
     const user = userEvent.setup();
 
     // Act
     const { container } = render(
       h(WorkspaceInformation, { workspace: { ...protectedAzureWorkspace, workspaceInitialized: true } })
+    );
+
+    // Assert
+    // Access Level
+    expect(screen.getAllByText('Owner')).not.toBeNull();
+    // Created date
+    expect(screen.getAllByText('2/15/2023')).not.toBeNull();
+    // Last updated date
+    expect(screen.getAllByText('3/15/2023')).not.toBeNull();
+    // Should show protected workspace information.
+    expect(screen.getAllByText('Workspace Protected')).not.toBeNull();
+    // Should not have region constraint
+    expect(screen.queryByText('Region Constraint')).toBeNull();
+
+    // Act, click on the info button to get tooltip text to render.
+    await user.click(screen.getByLabelText('More info'));
+
+    // Assert
+    expect(screen.getAllByText(/controlled-access data/)).not.toBeNull();
+
+    // Accessibility
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('renders information for a GCP protected workspace and does not fail accessibility tests', async () => {
+    const user = userEvent.setup();
+
+    // Act
+    const { container } = render(
+      h(WorkspaceInformation, { workspace: { ...protectedGoogleWorkspace, workspaceInitialized: true } })
     );
 
     // Assert
