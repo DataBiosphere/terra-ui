@@ -313,7 +313,7 @@ describe('NewWorkspaceModal', () => {
       () =>
         ({
           Billing: {
-            listProjects: async () => [gcpBillingProject, azureBillingProject],
+            listProjects: async () => [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject],
           },
           ...nonBillingAjax,
         } as AjaxContract)
@@ -331,7 +331,10 @@ describe('NewWorkspaceModal', () => {
     });
 
     // Assert
-    expect(await getAvailableBillingProjects(user)).toEqual(['Azure Billing Project']);
+    expect(await getAvailableBillingProjects(user)).toEqual([
+      'Azure Billing Project',
+      'Protected Azure Billing Project',
+    ]);
   });
 
   it('Hides billing projects that cannot be used for cloning a protected data Azure workspace', async () => {

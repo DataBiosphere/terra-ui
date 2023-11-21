@@ -324,7 +324,7 @@ const NewWorkspaceModal = withDisplayName(
       if (!!workflowImport || !!requireEnhancedBucketLogging) {
         return !isAzureBillingProject(project);
       }
-      // Only support cloning a workspace to the same cloud environment. If this changes, also update
+      // Only support cloning a workspace to the same cloud platform. If this changes, also update
       // the Events.workspaceClone event data.
       if (!!cloneWorkspace && isAzureWorkspace(cloneWorkspace)) {
         if (isAzureBillingProject(project)) {
