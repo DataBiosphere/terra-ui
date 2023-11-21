@@ -128,7 +128,7 @@ describe('TermsOfService', () => {
     screen.getByText('some text');
   });
 
-  it('shows "Continue under grace period" when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
+  it('shows only require terms of service buttons when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
     // Arrange
     const termsOfService = {
       latestAcceptedVersion: '0',
@@ -145,10 +145,13 @@ describe('TermsOfService', () => {
     });
 
     // Assert
-    screen.getByText('Continue under grace period');
+    const backToTerraButton = screen.queryByText('Back to Terra');
+    expect(backToTerraButton).toBeNull();
+    screen.getByText('Accept');
+    screen.getByText('Decline and Sign Out');
   });
 
-  it('does not show "Continue under grace period" when the user has not accepted the latest ToS and is not allowed to use Terra', async () => {
+  it('show only require terms of service buttons when the user has not accepted the latest ToS and is not allowed to use Terra', async () => {
     // Arrange
     const termsOfService = {
       latestAcceptedVersion: '0',
@@ -165,8 +168,10 @@ describe('TermsOfService', () => {
     });
 
     // Assert
-    const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');
-    expect(continueUnderGracePeriodButton).toBeNull();
+    const backToTerraButton = screen.queryByText('Back to Terra');
+    expect(backToTerraButton).toBeNull();
+    screen.getByText('Accept');
+    screen.getByText('Decline and Sign Out');
   });
 
   it('does not show any buttons when the user has accepted the latest ToS and is allowed to use Terra', async () => {
