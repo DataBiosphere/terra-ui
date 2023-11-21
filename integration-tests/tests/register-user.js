@@ -2,6 +2,7 @@ const { withUser } = require('../utils/integration-helpers');
 const {
   fillIn,
   findText,
+  button,
   click,
   clickable,
   input,
@@ -12,6 +13,9 @@ const {
   assertLabelledTextInputValue,
   delay,
   waitForNoSpinners,
+  waitForNoModal,
+  checkbox,
+  waitForModal,
 } = require('../utils/integration-utils');
 const { fillInReplace, gotoPage } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -23,7 +27,15 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   // We wait here for the cookie message to disappear, it has a fixed duration fading animation of 300ms
   await delay(350);
   await verifyAccessibility(page);
-  await click(page, clickable({ textContains: 'View Workspaces' }));
+
+  // This is the hamburger menu
+  await click(page, '/html/body/div[1]/div[2]/div/div[1]/div[1]/div[1]/div/div[1]');
+  // Wait for sidebar to transition in.
+  // Matches transition durations in ModalDrawer.
+  await delay(200);
+
+  await click(page, clickable({ textContains: 'Sign In' }));
+
   await signIntoTerra(page, { token });
   await fillInReplace(page, input({ labelContains: 'First Name' }), 'Integration');
   await fillIn(page, input({ labelContains: 'Last Name' }), 'Test');
@@ -34,8 +46,12 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
 
   // Accept the Terms of Service
   await click(page, clickable({ textContains: 'Read Terra Platform Terms of Service here' }));
-  await click(page, clickable({ textContains: 'OK' }));
-  await click(page, clickable({ textContains: 'By checking this box, you are agreeing to the Terra Terms of Service' }));
+  await waitForModal(page);
+  // We seem to need a small delay here
+  await delay(500);
+  await click(page, button({ text: 'OK' }));
+  await waitForNoModal(page);
+  await click(page, checkbox({ textContains: 'By checking this box, you are agreeing to the Terra Terms of Service' }));
 
   await verifyAccessibility(page);
   await click(page, clickable({ textContains: 'Register' }), { timeout: 90000 });

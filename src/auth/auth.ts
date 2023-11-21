@@ -584,7 +584,10 @@ authStore.subscribe(
   withErrorReporting('Error loading user', async (state: AuthState, oldState: AuthState) => {
     if (isNowSignedIn(oldState, state)) {
       await loadTerraUser();
-      if (state.system.termsOfServiceConfig.inRollingAcceptanceWindow) {
+      if (
+        state.system.termsOfServiceConfig.inRollingAcceptanceWindow &&
+        state.termsOfService.isCurrentVersion === false
+      ) {
         Nav.goToPath('terms-of-service');
       }
     }

@@ -66,6 +66,11 @@ const checkbox = ({ text, textContains, isDescendant = false }) => {
   return getClickablePath(base, text, textContains, isDescendant);
 };
 
+const button = ({ text, textContains, isDescendant = false }) => {
+  const base = '(//button | //*[@role="button"])';
+  return getClickablePath(base, text, textContains, isDescendant);
+};
+
 const getTableCellPath = (tableName, row, column) => {
   return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`;
 };
@@ -210,6 +215,10 @@ const waitForNoSpinners = (page, { timeout = 30000 } = {}) => {
 
 const waitForNoModal = (page, { timeout = 30000 } = {}) => {
   return page.waitForXPath('//*[contains(@class, "ReactModal__Overlay")]', { hidden: true, timeout });
+};
+
+const waitForModal = (page, { timeout = 30000 } = {}) => {
+  return page.waitForXPath('//*[contains(@class, "ReactModal__Overlay")]', { hidden: false, timeout });
 };
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
@@ -567,6 +576,7 @@ module.exports = {
   assertNavChildNotFound,
   assertTextNotFound,
   assertRowHas,
+  button,
   checkbox,
   click,
   clickable,
@@ -598,6 +608,7 @@ module.exports = {
   withScreenshot,
   logPageConsoleMessages,
   noSpinnersAfter,
+  waitForModal,
   waitForNoModal,
   waitForNoSpinners,
   withPageLogging,
