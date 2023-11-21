@@ -2,7 +2,6 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { errorWatcher } from 'src/libs/error.mock';
@@ -10,6 +9,7 @@ import * as Nav from 'src/libs/nav';
 import { getTerraUser } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
 import { ImportWorkflow } from './ImportWorkflow';
@@ -21,33 +21,11 @@ type AppsContract = ReturnType<typeof Apps>;
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/ajax/leonardo/Apps');
 
-type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
-jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
-  const { h } = jest.requireActual('react-hyperscript-helpers');
-
-  const useWorkspaces = jest.fn();
+type UseWorkspacesExports = typeof import('src/workspaces/useWorkspaces');
+jest.mock('src/workspaces/useWorkspaces', (): UseWorkspacesExports => {
   return {
-    ...jest.requireActual('src/components/workspace-utils'),
-    useWorkspaces,
-    // WorkspaceImporter is wrapped in withWorkspaces to fetch the list of workspaces.
-    // withWorkspaces calls useWorkspaces.
-    // However, since withWorkspaces and useWorkspaces are in the same module, simply
-    // mocking useWorkspaces won't work: withWorkspaces will use the unmocked version.
-    // So we have to mock withWorkspaces.
-    // And since WorkspaceImporter calls withWorkspaces at the module level, it must
-    // be mocked here, not in a before... block.
-    // Thus, we also mock useWorkspaces to allow tests to control the returned workspaces.
-    withWorkspaces: (Component) => {
-      return (props) => {
-        const { workspaces, refresh, loading } = useWorkspaces();
-        return h(Component, {
-          ...props,
-          workspaces,
-          refreshWorkspaces: refresh,
-          loadingWorkspaces: loading,
-        });
-      };
-    },
+    ...jest.requireActual<UseWorkspacesExports>('src/workspaces/useWorkspaces'),
+    useWorkspaces: jest.fn(),
   };
 });
 

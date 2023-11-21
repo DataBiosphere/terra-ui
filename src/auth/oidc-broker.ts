@@ -53,11 +53,15 @@ export const initializeClientId = _.memoize(async (): Promise<void> => {
   oidcStore.update((state) => ({ ...state, config: oidcConfig }));
 });
 
+export const initializeOidcUserManager = () => {
+  const userManager: UserManager = new UserManager(getOidcConfig());
+  oidcStore.update((state) => ({ ...state, userManager }));
+};
+
 // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
 // All other auth usage should use the AuthContext from oidcStore.
 export const getCurrentOidcUser = async (): Promise<OidcUser | null> => {
-  const userManager: UserManager = new UserManager(getOidcConfig());
-  return userManager.getUser();
+  return oidcStore.get().userManager!.getUser();
 };
 
 export const getAuthInstance = (): AuthContextProps => {

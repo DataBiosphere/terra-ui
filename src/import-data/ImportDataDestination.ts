@@ -12,13 +12,14 @@ import {
   spinnerOverlay,
 } from 'src/components/common';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
-import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils';
+import { WorkspaceSelector } from 'src/components/workspace-utils';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
 import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
@@ -191,8 +192,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       h2({ style: styles.title }, ['Start with an existing workspace']),
       isProtectedData &&
         div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
-          icon('info-circle', { size: 15, style: { marginRight: '0.25rem' }, color: colors.accent() }),
-          ' You may only import to workspaces with an Authorization Domain and/or protected data setting.',
+          ' You may only import into workspaces that have additional security monitoring enabled.',
         ]),
       h(IdContainer, [
         (id) =>
@@ -316,8 +316,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         () => {
           return h(Fragment, [
             h2({ style: styles.title }, ['Destination of the prepared data']),
-            (canUseTemplateWorkspace || canUseNewWorkspace) &&
-              div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
             !userHasBillingProjects && h(linkAccountPrompt),
             canUseTemplateWorkspace &&
               h(ChoiceButton, {

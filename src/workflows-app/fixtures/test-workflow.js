@@ -71,8 +71,10 @@ export const metadata = {
           memory: '6 GB',
         },
         callCaching: {
-          allowResultReuse: false,
-          effectiveCallCachingMode: 'CallCachingOff',
+          allowResultReuse: true,
+          effectiveCallCachingMode: 'ReadAndWriteCache',
+          hit: false,
+          result: 'Cache Miss',
         },
         inputs: {
           docker: 'quay.io/broadinstitute/ncbi-tools:2.10.7.10',

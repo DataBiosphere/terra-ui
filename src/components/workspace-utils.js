@@ -11,39 +11,11 @@ import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
-import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils';
-import { workspacesStore } from 'src/libs/state';
+import { useCancellation, useInstance, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderLabels, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
-
-export const useWorkspaces = (fieldsArg, stringAttributeMaxLength) => {
-  const signal = useCancellation();
-  const [loading, setLoading] = useState(false);
-  const workspaces = useStore(workspacesStore);
-
-  const fields = fieldsArg || [
-    'accessLevel',
-    'public',
-    'workspace',
-    'workspace.state',
-    'workspace.attributes.description',
-    'workspace.attributes.tag:tags',
-    'workspace.workspaceVersion',
-  ];
-
-  const refresh = _.flow(
-    withErrorReporting('Error loading workspace list'),
-    Utils.withBusyState(setLoading)
-  )(async () => {
-    const ws = await Ajax(signal).Workspaces.list(fields, stringAttributeMaxLength);
-    workspacesStore.set(ws);
-  });
-  useOnMount(() => {
-    refresh();
-  });
-  return { workspaces, refresh, loading };
-};
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 export const useWorkspaceDetails = ({ namespace, name }, fields) => {
   const [workspace, setWorkspace] = useState();

@@ -8,7 +8,7 @@ const { withUserToken } = require('../utils/terra-sa-utils');
 
 const olderThanDays = 2;
 
-const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }) => {
+const runJanitor = withUserToken(async ({ page, testUrl, token }) => {
   // Sign into Terra so we have the correct credentials.
   await signIntoTerra(page, { token, testUrl });
 
@@ -16,23 +16,25 @@ const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }
   // process was prematurely terminated, but a few also appear in alpha and staging indicating that
   // ci test runs also sometimes leak workspaces.
   const workspaces = await page.evaluate(async () => await window.Ajax().Workspaces.list());
-  const oldWorkspaces = _.filter(({ workspace: { namespace, name, createdDate } }) => {
+  const oldWorkspaces = _.filter(({ workspace: { name, createdDate } }) => {
     const age = dateFns.differenceInDays(new Date(createdDate), new Date());
     // console.info(`${namespace} ${name}, age ${age} days`)
-    return namespace === billingProject && _.startsWith(testWorkspaceNamePrefix, name) && age > olderThanDays;
+    return _.startsWith(testWorkspaceNamePrefix, name) && age > olderThanDays;
   }, workspaces);
 
-  console.log(`Deleting ${oldWorkspaces.length} workspaces with prefix "${testWorkspaceNamePrefix}" created more than ${olderThanDays} days ago.`);
-
+  console.log(
+    `Attempting to delete ${oldWorkspaces.length} workspaces with prefix "${testWorkspaceNamePrefix}" created more than ${olderThanDays} days ago.`
+  );
+  console.log(`${_.filter({ workspace: { cloudPlatform: 'Azure' } }, oldWorkspaces).length} of the old workspaces are Azure workspaces.`);
   return Promise.all(
-    _.map(async ({ workspace: { namespace, name } }) => {
+    _.map(async ({ workspace: { namespace, name, cloudPlatform } }) => {
       try {
         // Unlock the workspace in case it was left in a locked state during a test (locked workspaces can't be deleted).
         await page.evaluate((namespace, name) => window.Ajax().Workspaces.workspace(namespace, name).unlock(), namespace, name);
         await page.evaluate((namespace, name) => window.Ajax().Workspaces.workspace(namespace, name).delete(), namespace, name);
         console.info(`Deleted old workspace: ${name}`);
       } catch (e) {
-        console.info(`Failed to delete old workspace: ${name} with billing project ${namespace}`);
+        console.info(`Failed to delete old ${cloudPlatform} workspace: ${name} with billing project ${namespace}`);
       }
     }, oldWorkspaces)
   );

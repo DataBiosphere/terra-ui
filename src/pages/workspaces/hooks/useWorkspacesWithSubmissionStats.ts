@@ -1,11 +1,11 @@
 import _ from 'lodash/fp';
 import { useEffect, useMemo, useState } from 'react';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceSubmissionStats, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 interface WorkspacesWithSubmissionStatsReturn {
   workspaces: Workspace[];

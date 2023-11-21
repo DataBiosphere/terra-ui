@@ -22,4 +22,19 @@ export const CromwellApp = (signal) => ({
       },
     };
   },
+  callCacheDiff: async (cromwellUrlRoot, thisWorkflow, thatWorkflow) => {
+    const { workflowId: thisWorkflowId, callFqn: thisCallFqn, index: thisIndex } = thisWorkflow;
+    const { workflowId: thatWorkflowId, callFqn: thatCallFqn, index: thatIndex } = thatWorkflow;
+
+    const params = {
+      workflowA: thisWorkflowId,
+      callA: thisCallFqn,
+      indexA: thisIndex !== -1 ? thisIndex : undefined,
+      workflowB: thatWorkflowId,
+      callB: thatCallFqn,
+      indexB: thatIndex !== -1 ? thatIndex : undefined,
+    };
+    const res = await fetchFromProxy(cromwellUrlRoot)(`api/workflows/v1/callcaching/diff?${qs.stringify(params)}`, _.merge(authOpts(), { signal }));
+    return res.json();
+  },
 });
