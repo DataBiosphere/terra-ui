@@ -388,8 +388,8 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                         },
                         {
                           size: { basis: 400, grow: 0 },
-                          field: 'duration',
-                          headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Workflow ID']),
+                          field: 'workflowId',
+                          headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
                           cellRenderer: ({ rowIndex }) => {
                             return h(
                               Link,
