@@ -168,6 +168,10 @@ const label = ({ labelContains }) => {
   return `(//label[contains(normalize-space(.),"${labelContains}")])`;
 };
 
+const ariaLabel = ({ labelContains }) => {
+  return `(//*[@aria-label="${labelContains}"])`;
+};
+
 const fillIn = async (page, xpath, text, { initialDelay = Millis.none } = {}) => {
   const input = await page.waitForXPath(xpath, defaultToVisibleTrue());
 
@@ -573,6 +577,7 @@ const Millis = (() => {
 })();
 
 module.exports = {
+  ariaLabel,
   assertNavChildNotFound,
   assertTextNotFound,
   assertRowHas,

@@ -16,6 +16,7 @@ const {
   waitForNoModal,
   checkbox,
   waitForModal,
+  ariaLabel,
 } = require('../utils/integration-utils');
 const { fillInReplace, gotoPage } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -29,7 +30,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await verifyAccessibility(page);
 
   // This is the hamburger menu
-  await click(page, '/html/body/div[1]/div[2]/div/div[1]/div[1]/div[1]/div/div[1]');
+  await click(page, ariaLabel({ labelContains: 'Toggle main menu' }));
   // Wait for sidebar to transition in.
   // Matches transition durations in ModalDrawer.
   await delay(200);
@@ -47,8 +48,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   // Accept the Terms of Service
   await click(page, clickable({ textContains: 'Read Terra Platform Terms of Service here' }));
   await waitForModal(page);
-  // We seem to need a small delay here
-  await delay(500);
+  await waitForNoSpinners(page);
   await click(page, button({ text: 'OK' }));
   await waitForNoModal(page);
   await click(page, checkbox({ textContains: 'By checking this box, you are agreeing to the Terra Terms of Service' }));
@@ -57,8 +57,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await click(page, clickable({ textContains: 'Register' }), { timeout: 90000 });
   await findText(page, 'Welcome to Terra Community Workbench');
 
-  // This is the hamburger menu
-  await click(page, '/html/body/div[1]/div[2]/div/div[1]/div[1]/div[1]/div/div[1]');
+  await click(page, ariaLabel({ labelContains: 'Toggle main menu' }));
   // Wait for sidebar to transition in.
   // Matches transition durations in ModalDrawer.
   await delay(200);
