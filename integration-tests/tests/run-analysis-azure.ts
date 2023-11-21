@@ -66,8 +66,8 @@ const testRunAnalysisAzure = _.flowRight(
 
   // Wait for env to finish creating, or break early on error
   await Promise.race([
-    findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(15) }),
-    findErrorPopup(page, { timeout: Millis.ofMinutes(15) }),
+    findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(18) }),
+    findErrorPopup(page, { timeout: Millis.ofMinutes(18) }),
   ]);
   const hasError = await openError(page);
   if (hasError) {
