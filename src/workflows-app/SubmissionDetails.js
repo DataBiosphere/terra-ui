@@ -354,6 +354,11 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           field: 'record_id',
                           headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['Sample ID']),
                           cellRenderer: ({ rowIndex }) => {
+                            const engineId = paginatedPreviousRuns[rowIndex].engine_id;
+
+                            // Engine id may be undefined if CBAS failed to submit to Cromwell
+                            if (engineId === undefined) return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id]);
+
                             return div({ style: { width: '100%', textAlign: 'left' } }, [
                               h(
                                 Link,
@@ -362,7 +367,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                                     namespace,
                                     name,
                                     submissionId,
-                                    workflowId: paginatedPreviousRuns[rowIndex].engine_id,
+                                    workflowId: engineId,
                                   }),
                                   style: { fontWeight: 'bold' },
                                 },
@@ -407,10 +412,12 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
                           cellRenderer: ({ rowIndex }) => {
                             const engineId = paginatedPreviousRuns[rowIndex].engine_id;
-                            return h(TextCell, [
-                              span({ style: { marginRight: '0.5rem' } }, [engineId]),
-                              span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
-                            ]);
+                            if (engineId !== undefined) {
+                              return h(TextCell, [
+                                span({ style: { marginRight: '0.5rem' } }, [engineId]),
+                                span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
+                              ]);
+                            }
                           },
                         },
                       ],
