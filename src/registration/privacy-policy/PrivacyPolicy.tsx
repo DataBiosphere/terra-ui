@@ -5,7 +5,7 @@ import { RemoteMarkdown } from 'src/libs/util/RemoteMarkdown';
 const PrivacyPolicy = () => {
   return (
     <RemoteMarkdown
-      getRemoteText={() => Ajax().TermsOfService.getPrivacyText()}
+      getRemoteText={() => Ajax().TermsOfService.getPrivacyPolicyText()}
       failureMessage="Could not get Privacy Policy"
     />
   );
