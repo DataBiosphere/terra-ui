@@ -400,7 +400,8 @@ const WorkspaceDashboardForwardRefRenderFunction = (
           ),
         ]
       ),
-      !_.isEmpty(authorizationDomain) &&
+      isGoogleWorkspace(workspace) &&
+        !_.isEmpty(authorizationDomain) &&
         h(
           RightBoxSection,
           {
