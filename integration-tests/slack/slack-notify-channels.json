@@ -51,7 +51,7 @@
           "name": "billing-projects"
         },
         {
-          "name": "janitor"
+          "name": "day-janitor"
         },
         {
           "name": "workspace-dashboard"
