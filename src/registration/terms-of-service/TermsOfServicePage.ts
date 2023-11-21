@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h, h1, img } from 'react-hyperscript-helpers';
 import { loadTerraUser, signOut } from 'src/auth/auth';
-import { ButtonOutline, ButtonPrimary, ButtonSecondary } from 'src/components/common';
+import { ButtonPrimary, ButtonSecondary } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown';
 import scienceBackground from 'src/images/science-background.jpg';
@@ -57,13 +57,11 @@ export const TermsOfServicePage = () => {
     }
   };
 
-  const onContinueUnderGracePeriod = () => {
-    Nav.goToPath('root');
-  };
-
   const backToTerra = () => {
     Nav.goToPath('root');
   };
+
+  const requiredToAcceptTermsOfService = !(acceptedLatestTos && usageAllowed);
 
   return div(
     {
@@ -108,7 +106,7 @@ export const TermsOfServicePage = () => {
                   ),
             ]
           ),
-          !usageAllowed &&
+          requiredToAcceptTermsOfService &&
             !!tosText &&
             div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
               h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: reject, disabled: busy }, [
@@ -116,22 +114,7 @@ export const TermsOfServicePage = () => {
               ]),
               h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept']),
             ]),
-          !acceptedLatestTos &&
-            usageAllowed &&
-            !!tosText &&
-            div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
-              h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: reject, disabled: busy }, [
-                'Decline and Sign Out',
-              ]),
-              h(
-                ButtonOutline,
-                { style: { marginRight: '1rem' }, onClick: onContinueUnderGracePeriod, disabled: busy },
-                ['Continue under grace period']
-              ),
-              h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept']),
-            ]),
-          acceptedLatestTos &&
-            usageAllowed &&
+          !requiredToAcceptTermsOfService &&
             !!tosText &&
             div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
               h(ButtonPrimary, { onClick: backToTerra, disabled: busy }, ['Back To Terra']),
