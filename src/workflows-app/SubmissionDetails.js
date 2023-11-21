@@ -1,7 +1,8 @@
 import _ from 'lodash/fp';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { div, h, h2, h3 } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
+import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
@@ -353,7 +354,21 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           field: 'record_id',
                           headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['Sample ID']),
                           cellRenderer: ({ rowIndex }) => {
-                            return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id]);
+                            return div({ style: { width: '100%', textAlign: 'left' } }, [
+                              h(
+                                Link,
+                                {
+                                  href: Nav.getLink('workspace-workflows-app-run-details', {
+                                    namespace,
+                                    name,
+                                    submissionId,
+                                    workflowId: paginatedPreviousRuns[rowIndex].engine_id,
+                                  }),
+                                  style: { fontWeight: 'bold' },
+                                },
+                                [paginatedPreviousRuns[rowIndex].record_id]
+                              ),
+                            ]);
                           },
                         },
                         {
@@ -391,19 +406,11 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           field: 'workflowId',
                           headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
                           cellRenderer: ({ rowIndex }) => {
-                            return h(
-                              Link,
-                              {
-                                href: Nav.getLink('workspace-workflows-app-run-details', {
-                                  namespace,
-                                  name,
-                                  submissionId,
-                                  workflowId: paginatedPreviousRuns[rowIndex].engine_id,
-                                }),
-                                style: { fontWeight: 'bold' },
-                              },
-                              [paginatedPreviousRuns[rowIndex].engine_id]
-                            );
+                            const engineId = paginatedPreviousRuns[rowIndex].engine_id;
+                            return h(TextCell, [
+                              span({ style: { marginRight: '0.5rem' } }, [engineId]),
+                              span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
+                            ]);
                           },
                         },
                       ],
