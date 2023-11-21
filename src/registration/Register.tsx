@@ -217,6 +217,7 @@ export const Register = (): ReactNode => {
           <RemoteMarkdown
             style={{ height: '75vh', overflowY: 'auto' }}
             getRemoteText={() => Ajax().TermsOfService.getTermsOfServiceText()}
+            failureMessage="Could not get Terms of Service"
           />
         </Modal>
       )}

@@ -5,10 +5,11 @@ import { useRemoteResource } from 'src/libs/util/useRemoteResource';
 
 interface RemoteMarkdownProps extends HTMLProps<HTMLDivElement> {
   getRemoteText: () => Promise<string>;
+  failureMessage: string;
 }
 export const RemoteMarkdown = (props: RemoteMarkdownProps): ReactNode => {
-  const { getRemoteText, style } = props;
-  const { resourceState } = useRemoteResource('', getRemoteText, 'Could not get Terms of Service');
+  const { getRemoteText, failureMessage, style } = props;
+  const { resourceState } = useRemoteResource('', getRemoteText, failureMessage);
   const remoteTextStatus = resourceState.status;
   const [hasLoadedRemoteText, setHasLoadedRemoteText] = useState(false);
 
