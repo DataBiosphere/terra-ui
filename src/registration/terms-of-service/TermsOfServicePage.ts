@@ -18,8 +18,9 @@ import * as Utils from 'src/libs/utils';
 export const TermsOfServicePage = () => {
   const [busy, setBusy] = useState<boolean>();
   const { signInStatus, termsOfService, terraUserAllowances } = useStore(authStore);
-  const acceptedLatestTos = signInStatus === 'userLoaded' && termsOfService.isCurrentVersion === true;
-  const usageAllowed = signInStatus === 'userLoaded' && terraUserAllowances.details.termsOfService === true;
+  const acceptedLatestTos = termsOfService.isCurrentVersion === true;
+  const usageAllowed = terraUserAllowances.details.termsOfService === true;
+  const requiredToAcceptTermsOfService = signInStatus === 'userLoaded' && !(acceptedLatestTos && usageAllowed);
   const [tosText, setTosText] = useState<string>();
 
   useOnMount(() => {
@@ -60,8 +61,6 @@ export const TermsOfServicePage = () => {
   const backToTerra = () => {
     Nav.goToPath('root');
   };
-
-  const requiredToAcceptTermsOfService = !(acceptedLatestTos && usageAllowed);
 
   return div(
     {
@@ -117,7 +116,7 @@ export const TermsOfServicePage = () => {
           !requiredToAcceptTermsOfService &&
             !!tosText &&
             div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
-              h(ButtonPrimary, { onClick: backToTerra, disabled: busy }, ['Back To Terra']),
+              h(ButtonPrimary, { onClick: backToTerra, disabled: busy }, ['Back to Terra']),
             ]),
         ]
       ),

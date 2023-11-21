@@ -254,16 +254,6 @@ export const User = (signal?: AbortSignal) => {
         return kvArrayToObject(rawResponseJson.keyValuePairs) as TerraUserProfile;
       },
 
-      // even though both create and update call the same URL, the body of the request will differ depending on
-      // whether we are registering a user vs updating their profile
-      create: async (request: CreateTerraUserProfileRequest): Promise<void> => {
-        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(request);
-        return fetchOrchestration(
-          'register/profile',
-          _.mergeAll([authOpts(), jsonBody(apiBody), { signal, method: 'POST' }])
-        );
-      },
-
       update: async (request: UpdateTerraUserProfileRequest): Promise<void> => {
         const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForUpdateUserProfile(request);
         return fetchOrchestration(

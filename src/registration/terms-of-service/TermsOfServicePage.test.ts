@@ -4,7 +4,7 @@ import { Ajax } from 'src/libs/ajax';
 import { Groups } from 'src/libs/ajax/Groups';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { SamUserTermsOfServiceDetails, TermsOfService } from 'src/libs/ajax/TermsOfService';
-import { User } from 'src/libs/ajax/User';
+import { SamUserAllowances, User } from 'src/libs/ajax/User';
 import { AuthState, authStore } from 'src/libs/state';
 import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfServicePage';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -43,7 +43,16 @@ interface TermsOfServiceSetupResult {
   rejectTosFn: jest.Mock;
 }
 
-const setupMockAjax = async (termsOfService: SamUserTermsOfServiceDetails): Promise<TermsOfServiceSetupResult> => {
+const setupMockAjax = async (
+  termsOfService: SamUserTermsOfServiceDetails,
+  signedIn = true
+): Promise<TermsOfServiceSetupResult> => {
+  const signInStatus = signedIn ? 'userLoaded' : 'signedOut';
+  const terraUserAllowances: SamUserAllowances = {
+    allowed: termsOfService.permitsSystemUsage,
+    details: { enabled: true, termsOfService: termsOfService.permitsSystemUsage },
+  };
+
   const getTermsOfServiceText = jest.fn().mockResolvedValue('some text');
   const getUserTermsOfServiceDetails = jest
     .fn()
@@ -67,13 +76,9 @@ const setupMockAjax = async (termsOfService: SamUserTermsOfServiceDetails): Prom
         } as Partial<MetricsContract>,
         User: {
           getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
-          getUserAllowances: jest.fn().mockResolvedValue({
-            allowed: termsOfService.permitsSystemUsage,
-            details: { enabled: true, termsOfService: termsOfService.permitsSystemUsage },
-          }),
+          getUserAllowances: jest.fn().mockResolvedValue(terraUserAllowances),
           profile: {
             get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
-            create: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
             update: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
             setPreferences: jest.fn().mockResolvedValue({}),
             preferLegacyFirecloud: jest.fn().mockResolvedValue({}),
@@ -93,10 +98,10 @@ const setupMockAjax = async (termsOfService: SamUserTermsOfServiceDetails): Prom
       } as Partial<AjaxContract> as AjaxContract)
   );
 
-  const signInStatus = 'authenticated';
   await act(async () => {
-    authStore.update((state: AuthState) => ({ ...state, termsOfService, signInStatus }));
+    authStore.update((state: AuthState) => ({ ...state, termsOfService, signInStatus, terraUserAllowances }));
   });
+
   return Promise.resolve({
     getTosFn: getTermsOfServiceText,
     getTermsOfServiceComplianceStatusFn: getUserTermsOfServiceDetails,
@@ -174,7 +179,7 @@ describe('TermsOfService', () => {
     screen.getByText('Decline and Sign Out');
   });
 
-  it('does not show any buttons when the user has accepted the latest ToS and is allowed to use Terra', async () => {
+  it('only shows the back button when the user has accepted the latest ToS and is allowed to use Terra', async () => {
     // Arrange
     const termsOfService = {
       latestAcceptedVersion: '0',
@@ -191,11 +196,35 @@ describe('TermsOfService', () => {
     });
 
     // Assert
-    const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');
-    expect(continueUnderGracePeriodButton).not.toBeInTheDocument();
-
+    screen.getByText('Back to Terra');
     const acceptButton = screen.queryByText('Accept');
     expect(acceptButton).toBeNull();
+    const declineButton = screen.queryByText('Decline and Sign Out');
+    expect(declineButton).toBeNull();
+  });
+
+  it('only shows the back button when the user has not signed in to Terra', async () => {
+    // Arrange
+    const termsOfService = {
+      latestAcceptedVersion: '0',
+      acceptedOn: new Date(),
+      permitsSystemUsage: false,
+      isCurrentVersion: false,
+    };
+
+    await setupMockAjax(termsOfService, false);
+
+    // Act
+    await act(async () => {
+      render(h(TermsOfServicePage));
+    });
+
+    // Assert
+    screen.getByText('Back to Terra');
+    const acceptButton = screen.queryByText('Accept');
+    expect(acceptButton).toBeNull();
+    const declineButton = screen.queryByText('Decline and Sign Out');
+    expect(declineButton).toBeNull();
   });
 
   it('calls the acceptTos endpoint when the accept tos button is clicked', async () => {
