@@ -283,7 +283,7 @@ describe('BaseRunDetails - render smoke test', () => {
     screen.getByText('Messages');
   });
 
-  it('opens the log viewer modal when Execution Logs is clicked', async () => {
+  it('opens the log viewer modal when Workflow Execution Logs is clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const executionLogButton = screen.getByText('Workflow Execution Log');
