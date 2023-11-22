@@ -56,7 +56,7 @@ export const appStatuses: { [label: string]: AppStatusObject } = {
   status_unspecified: { status: 'STATUS_UNSPECIFIED', statusDisplay: 'Status_unspecified' },
 };
 
-export interface GetAppResponse {
+export interface GetAppItem {
   appName: string;
   cloudContext: CloudContext;
   kubernetesRuntimeConfig: KubernetesRuntimeConfig;
@@ -72,7 +72,7 @@ export interface GetAppResponse {
   region: string;
 }
 
-export interface ListAppResponse {
+export interface ListAppItem {
   workspaceId: string | null;
   appName: string;
   cloudContext: CloudContext;
@@ -100,7 +100,7 @@ export interface CreateAppV1Request {
   workspaceName: string;
 }
 
-export type App = GetAppResponse | ListAppResponse;
+export type App = GetAppItem | ListAppItem;
 
 export const isApp = (obj: any): obj is App => {
   const castApp = obj as App;
