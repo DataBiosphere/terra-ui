@@ -59,6 +59,7 @@ function ImportStatusItem({ job: { targetWorkspace, jobId, proxyUrl }, onDone })
     const { message, status } = response;
 
     // import service statuses: Pending, Translating, ReadyForUpsert, Upserting, Done, Error
+    // WDS import statuses: CREATED, QUEUED, RUNNING, SUCCEEDED, ERROR, CANCELLED, UNKNOWN
     const successNotify = () =>
       notify('success', 'Data imported successfully.', {
         message: h(Fragment, [
@@ -82,12 +83,13 @@ function ImportStatusItem({ job: { targetWorkspace, jobId, proxyUrl }, onDone })
 
     const errorNotify = () => notify('error', 'Error importing data.', { message });
 
-    if (!_.includes(status, ['Pending', 'Translating', 'ReadyForUpsert', 'Upserting', 'RUNNING'])) {
+    if (!_.includes(status, ['Pending', 'Translating', 'ReadyForUpsert', 'Upserting', 'RUNNING', 'CREATED', 'QUEUED'])) {
       Utils.switchCase(
         status,
         ['Done', successNotify],
         ['SUCCEEDED', successNotify],
         ['Error', errorNotify],
+        ['ERROR', errorNotify],
         [Utils.DEFAULT, () => notify('error', 'Unexpected error importing data', response)]
       );
       clearNotification(jobId);

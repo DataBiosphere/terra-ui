@@ -27,6 +27,7 @@ export const useImportJobs = (workspace: WorkspaceWrapper): UseImportJobsResult 
       workspace: { namespace, name },
     } = workspace;
     try {
+      // Azure workspaces know about running jobs from the asyncImportJobStore
       if (!isAzureWorkspace(workspace)) {
         const runningJobsInWorkspace: { jobId: string }[] = await Ajax(signal)
           .Workspaces.workspace(namespace, name)
@@ -43,14 +44,6 @@ export const useImportJobs = (workspace: WorkspaceWrapper): UseImportJobsResult 
       reportError('Error loading running import jobs in this workspace', error);
     }
   }, [workspace, signal]);
-
-  // Azure workspaces don't import data using async import jobs.
-  // if (isAzureWorkspace(workspace)) {
-  //   return {
-  //     runningJobs: [],
-  //     refresh: () => Promise.resolve(),
-  //   };
-  // }
 
   const runningJobsInWorkspace = allRunningJobs.filter((job) => isJobInWorkspace(job, workspace));
   return {

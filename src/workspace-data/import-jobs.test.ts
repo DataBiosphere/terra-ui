@@ -96,17 +96,28 @@ describe('useImportJobs', () => {
       canCompute: true,
     };
 
-    it('returns empty list of jobs', () => {
+    it('returns list of jobs', () => {
+      // Arrange
+      asyncImportJobStore.set([
+        { targetWorkspace: { namespace: 'test-workspaces', name: 'azure-workspace' }, jobId: 'workspace-job' },
+        { targetWorkspace: { namespace: 'test-workspaces', name: 'azure-workspace' }, jobId: 'workspace-job-2' },
+      ]);
+
       // Act
       const { result: hookReturnRef } = renderHook(() => useImportJobs(workspace));
 
       // Assert
-      expect(hookReturnRef.current.runningJobs).toEqual([]);
+      expect(hookReturnRef.current.runningJobs).toEqual(['workspace-job', 'workspace-job-2']);
     });
 
     it('returns a no-op for refreshing jobs', async () => {
       // Arrange
-      const listImportJobs = jest.fn().mockResolvedValue([]);
+      asyncImportJobStore.set([
+        { targetWorkspace: { namespace: 'test-workspaces', name: 'azure-workspace' }, jobId: 'workspace-job' },
+        { targetWorkspace: { namespace: 'test-workspaces', name: 'azure-workspace' }, jobId: 'workspace-job-2' },
+      ]);
+
+      const listImportJobs = jest.fn().mockResolvedValue([{ jobId: 'workspace-job' }, { jobId: 'workspace-job-2' }]);
       const mockAjax: DeepPartial<AjaxContract> = {
         Workspaces: {
           workspace: () => ({ listImportJobs }),
@@ -121,7 +132,7 @@ describe('useImportJobs', () => {
 
       // Assert
       expect(listImportJobs).not.toHaveBeenCalled();
-      expect(hookReturnRef.current.runningJobs).toEqual([]);
+      expect(hookReturnRef.current.runningJobs).toEqual(['workspace-job', 'workspace-job-2']);
     });
   });
 });
