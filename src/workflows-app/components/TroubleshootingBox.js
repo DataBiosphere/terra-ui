@@ -18,6 +18,7 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
         lineHeight: '24px',
         alignSelf: 'flex-start',
         maxHeight: 'fit-content',
+        margin: '0 10px',
       },
     },
     [
