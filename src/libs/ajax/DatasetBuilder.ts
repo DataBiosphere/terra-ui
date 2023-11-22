@@ -88,6 +88,16 @@ export interface DatasetBuilderType {
 
 export type DatasetBuilderValue = DatasetBuilderType;
 
+type ValueSet = {
+  domain: string;
+  values: DatasetBuilderValue[];
+};
+
+type ValueSetApi = {
+  name: string;
+  values: string[];
+};
+
 export interface GetConceptsResponse {
   result: Concept[];
 }
@@ -95,13 +105,13 @@ export interface GetConceptsResponse {
 type DatasetRequest = {
   cohorts: Cohort[];
   conceptSets: ConceptSet[];
-  valueSets: { domain: string; values: DatasetBuilderValue[] }[];
+  valueSets: ValueSet[];
 };
 
 export type DatasetRequestApi = {
   cohorts: CohortApi[];
   conceptSets: ConceptSet[];
-  valueSets: { name: string; values: string[] }[];
+  valueSets: ValueSetApi[];
 };
 
 export type DatasetAccessRequest = {
