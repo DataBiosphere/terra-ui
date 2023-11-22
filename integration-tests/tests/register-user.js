@@ -52,8 +52,8 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await click(page, checkbox({ textContains: 'By checking this box, you are agreeing to the Terra Terms of Service' }));
 
   await verifyAccessibility(page);
-  await click(page, clickable({ textContains: 'Register' }), { timeout: 90000 });
-  await findText(page, 'Welcome to Terra Community Workbench');
+  await click(page, clickable({ textContains: 'Register' }));
+  await findText(page, 'Welcome to Terra Community Workbench', { timeout: 90000 });
 
   await click(page, clickable({ textContains: 'Toggle main menu' }));
   // Wait for sidebar to transition in.
