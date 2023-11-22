@@ -27,6 +27,7 @@ jest.mock(
     goToPath: jest.fn(),
   })
 );
+
 type AuthExports = typeof import('src/auth/auth');
 jest.mock(
   'src/auth/auth',
