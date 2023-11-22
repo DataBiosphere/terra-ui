@@ -10,6 +10,8 @@ import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-
 import { appendSASTokenIfNecessary, getFilenameFromAzureBlobPath } from 'src/workflows-app/components/InputOutputModal';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
 import { failedTasks as failedTasksMetadata } from 'src/workflows-app/fixtures/failed-tasks';
+import { diff as callCacheDiff } from 'src/workflows-app/fixtures/test-callcache-diff';
+import { metadata as callCacheDiffMetadata } from 'src/workflows-app/fixtures/test-callcache-from-workflow';
 import { metadata as childMetadata } from 'src/workflows-app/fixtures/test-child-workflow';
 import { metadata as parentMetadata } from 'src/workflows-app/fixtures/test-parent-workflow';
 import { metadata as runDetailsMetadata } from 'src/workflows-app/fixtures/test-workflow';
@@ -55,6 +57,9 @@ const mockObj = {
         }),
       };
     },
+    callCacheDiff: jest.fn(() => {
+      return Promise.resolve(callCacheDiff);
+    }),
   },
   AzureStorage: {
     blobMetadata: jest.fn(() => ({
@@ -579,5 +584,51 @@ describe('BaseRunDetails - render smoke test', () => {
     const targetEndText = makeCompleteDate(end);
     expect(targetRow.textContent).toContain(targetStartText);
     expect(targetRow.textContent).toContain(targetEndText);
+  });
+
+  it('loads the call cache diff wizard', async () => {
+    const user = userEvent.setup();
+    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+    const showWizard = screen.getByLabelText('call cache debug wizard');
+    await user.click(showWizard); // Open the modal
+
+    const wizard = screen.getByRole('dialog');
+
+    // Adjust to load other workflow metadata
+    const modifiedMock = {
+      ..._.cloneDeep(mockObj),
+      CromwellApp: {
+        workflows: () => {
+          return {
+            metadata: () => {
+              return callCacheDiffMetadata;
+            },
+            failedTasks: () => {
+              return Promise.reject();
+            },
+          };
+        },
+      },
+    };
+
+    Ajax.mockImplementation(() => {
+      return modifiedMock;
+    });
+
+    // Enter the workflow id in the text box and submit
+    const wfIdTextBox = within(wizard).getByLabelText('Workflow ID:');
+    await user.type(wfIdTextBox, 'some-random-uuid');
+    const continueButton = within(wizard).getByText('Continue');
+    await user.click(continueButton);
+
+    // Select the call from the dropdown
+    const callDropdown = within(wizard).getByLabelText('Call name:');
+    const select = new SelectHelper(callDropdown, user);
+    await select.selectOption('fetch_sra_to_bam.Fetch_SRA_to_BAM');
+    const continueAgainButton = within(wizard).getByText('Continue');
+    await user.click(continueAgainButton);
+
+    // Ensure the diff is rendered
+    screen.getByText('Result: View cache diff');
   });
 });

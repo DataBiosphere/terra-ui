@@ -1,6 +1,6 @@
 import ReactJson from '@microlink/react-json-view';
 import _ from 'lodash/fp';
-import { Fragment, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { bucketBrowserUrl } from 'src/auth/auth';
 import * as breadcrumbs from 'src/components/breadcrumbs';
@@ -128,6 +128,22 @@ const WorkflowDashboard = _.flow(
       clearTimeout(stateRefreshTimer.current);
     };
   });
+
+  //  Below two methods are data fetchers used in the call cache wizard. Defined
+  // here so we can easily use the cloud context (we're in GCP).
+  const loadCallCacheDiff = useCallback(
+    async (thisWorkflow, thatWorkflow) => {
+      return Ajax(signal).CromIAM.callCacheDiff(thisWorkflow, thatWorkflow);
+    },
+    [signal]
+  );
+
+  const loadCallCacheMetadata = useCallback(
+    async (wfId, includeKey, excludeKey) => {
+      return Ajax(signal).CromIAM.workflowMetadata(wfId, includeKey, excludeKey);
+    },
+    [signal]
+  );
 
   /*
    * Page render
@@ -280,9 +296,13 @@ const WorkflowDashboard = _.flow(
                     : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.']),
                 ]),
                 !_.isEmpty(callObjects) &&
-                  makeSection('Call Lists', [h(CallTable, { namespace, name, submissionId, workflowId, callObjects })], {
-                    style: { overflow: 'visible' },
-                  }),
+                  makeSection(
+                    'Call Lists',
+                    [h(CallTable, { namespace, name, submissionId, workflowId, callObjects, loadCallCacheDiff, loadCallCacheMetadata })],
+                    {
+                      style: { overflow: 'visible' },
+                    }
+                  ),
               ]),
             ]
           ),
