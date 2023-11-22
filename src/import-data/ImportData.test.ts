@@ -136,7 +136,7 @@ const setup = async (opts: SetupOptions) => {
   });
 
   const importTdr = jest.fn().mockResolvedValue(undefined);
-  const startImportJob = jest.fn().mockResolvedValue(undefined);
+  const startImportJob = jest.fn().mockResolvedValue({ jobId: 'new-job' });
 
   const wdsProxyUrl = 'https://proxyurl';
   const mockAjax: DeepPartial<AjaxContract> = {
