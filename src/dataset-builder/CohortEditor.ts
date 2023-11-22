@@ -166,7 +166,6 @@ const createDefaultProgramDataCriteria = async (
         rangeOption,
         name: rangeOption.name,
         id: criteriaCount++,
-        count: 100,
         low: rangeOption.min,
         high: rangeOption.max,
       };
@@ -177,8 +176,7 @@ const createDefaultProgramDataCriteria = async (
         listOption,
         name: option.name,
         id: Number(_.uniqueId('')),
-        count: 100,
-        values: [listOption.values[0]],
+        values: [],
       };
     }
     default:
@@ -225,55 +223,67 @@ type AddCriteriaSelectorProps = {
 };
 
 const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
-  const { index, criteriaGroup, updateCohort, dataset, onStateChange, cohort } = props;
-  return h(GroupedSelect<CriteriaOption>, {
-    styles: { container: (provided) => ({ ...provided, width: '230px', marginTop: wideMargin }) },
-    isClearable: false,
-    isSearchable: false,
-    options: [
-      {
-        label: 'Domains',
-        options: _.map(
-          (domainOption) => ({
-            value: addKindToDomainOption(domainOption),
-            label: domainOption.category,
-          }),
-          dataset.snapshotBuilderSettings!.domainOptions
-        ),
-      },
-      {
-        label: 'Program Data',
-        options: _.map((programDataOption) => {
-          return {
-            value: programDataOption,
-            label: programDataOption.name,
-          };
-        }, dataset.snapshotBuilderSettings!.programDataOptions),
-      },
-    ],
-    'aria-label': addCriteriaText,
-    placeholder: addCriteriaText,
-    value: null,
-    onChange: async (x) => {
-      if (x !== null) {
-        if (x.value.kind === 'domain') {
-          onStateChange(domainCriteriaSelectorState.new(cohort, criteriaGroup, x.value));
-        } else {
-          updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, { loading: true }));
-          const criteria = await criteriaFromOption(dataset.id, x.value);
-          if (criteria !== undefined) {
-            const firstLoading = _.findIndex((criteria) => criteria.loading === true, criteriaGroup.criteria);
-            updateCohort(
-              _.set(
-                `criteriaGroups.${index}.criteria.${firstLoading >= 0 ? firstLoading : criteriaGroup.criteria.length}`,
-                criteria
-              )
-            );
+  const {
+    index,
+    criteriaGroup,
+    updateCohort,
+    dataset: { id: datasetId, snapshotBuilderSettings },
+    onStateChange,
+    cohort,
+  } = props;
+  return (
+    snapshotBuilderSettings &&
+    h(GroupedSelect<CriteriaOption>, {
+      styles: { container: (provided) => ({ ...provided, width: '230px', marginTop: wideMargin }) },
+      isClearable: false,
+      isSearchable: false,
+      options: [
+        {
+          label: 'Domains',
+          options: _.map(
+            (domainOption) => ({
+              value: addKindToDomainOption(domainOption),
+              label: domainOption.category,
+            }),
+            snapshotBuilderSettings.domainOptions
+          ),
+        },
+        {
+          label: 'Program Data',
+          options: _.map((programDataOption) => {
+            return {
+              value: programDataOption,
+              label: programDataOption.name,
+            };
+          }, snapshotBuilderSettings.programDataOptions),
+        },
+      ],
+      'aria-label': addCriteriaText,
+      placeholder: addCriteriaText,
+      value: null,
+      onChange: async (x) => {
+        if (x !== null) {
+          if (x.value.kind === 'domain') {
+            onStateChange(domainCriteriaSelectorState.new(cohort, criteriaGroup, x.value));
+          } else {
+            updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, { loading: true }));
+            const criteria = await criteriaFromOption(datasetId, x.value);
+            if (criteria !== undefined) {
+              const firstLoading = _.findIndex((criteria) => criteria.loading === true, criteriaGroup.criteria);
+              updateCohort(
+                _.set(
+                  `criteriaGroups.${index}.criteria.${
+                    firstLoading >= 0 ? firstLoading : criteriaGroup.criteria.length
+                  }`,
+                  criteria
+                )
+              );
+            }
           }
         }
-      }
-    },
-  });
+      },
+    })
+  );
 };
 
 type CriteriaGroupViewProps = {
