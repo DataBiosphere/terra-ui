@@ -543,12 +543,12 @@ export const refreshSamUserAttributes = async (): Promise<void> => {
 authStore.subscribe(
   withErrorReporting('Error getting user Terms of Service status', async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
-      await refreshUserTermsOfService();
+      await loadUserTermsOfService();
     }
   })
 );
 
-export const refreshUserTermsOfService = async (): Promise<void> => {
+export const loadUserTermsOfService = async (): Promise<void> => {
   const termsOfService = await Ajax().TermsOfService.getUserTermsOfServiceDetails();
   authStore.update((state: AuthState) => ({ ...state, termsOfService }));
 };
@@ -575,6 +575,8 @@ export const loadTerraUser = async (): Promise<void> => {
     if ((error as Response).status !== 403) {
       throw error;
     }
+    // If the call to User endpoints fail with a 403, it means the user is not registered.
+    // Update the AuthStore state to forward them to the registration page.
     const signInStatus = 'unregistered';
     authStore.update((state: AuthState) => ({ ...state, signInStatus }));
   }
@@ -588,6 +590,9 @@ authStore.subscribe(
         state.system.termsOfServiceConfig.inRollingAcceptanceWindow &&
         state.termsOfService.isCurrentVersion === false
       ) {
+        // The user could theoretically navigate away from the Terms of Service page during the Rolling Acceptance Window.
+        // This is not a concern, since the user will be denied access to the system once the Rolling Acceptance Window ends.
+        // This is really just a convenience to make sure the user is not disrupted once the Rolling Acceptance Window ends.
         Nav.goToPath('terms-of-service');
       }
     }
