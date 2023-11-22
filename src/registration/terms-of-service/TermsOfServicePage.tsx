@@ -3,13 +3,12 @@ import { loadTerraUser, signOut } from 'src/auth/auth';
 import { ButtonPrimary, ButtonSecondary } from 'src/components/common';
 import scienceBackground from 'src/images/science-background.jpg';
 import { Ajax } from 'src/libs/ajax';
-import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
-import * as Style from 'src/libs/style';
 import { RemoteMarkdown } from 'src/libs/util/RemoteMarkdown';
+import { docContainerStyles, headerStyles, mainStyles } from 'src/registration/legal-doc-styles';
 
 export const TermsOfServicePage = () => {
   const [busy, setBusy] = useState<boolean>();
@@ -43,37 +42,16 @@ export const TermsOfServicePage = () => {
     }
   };
 
-  const backToTerra = () => {
-    Nav.goToPath('root');
-  };
-
-  const mainStyles = {
-    padding: '1rem',
-    minHeight: '100%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  };
-  const tosContainerStyles = {
-    backgroundColor: 'white',
-    borderRadius: 5,
-    width: 800,
-    maxHeight: '100%',
-    padding: '2rem',
-    boxShadow: Style.standardShadow,
-  };
-  const headerStyles = { color: colors.dark(), fontSize: 38, fontWeight: 400 };
-
   return (
     <div role="main" style={mainStyles}>
       <img src={scienceBackground} alt="" style={{ position: 'fixed', top: 0, left: 0, zIndex: -1 }} />
-      <div style={tosContainerStyles}>
+      <div style={docContainerStyles}>
         <h1 style={headerStyles}>Terra Terms of Service</h1>
         {requiredToAcceptTermsOfService && (
           <h2 style={{ fontSize: 18, fontWeight: 600 }}>Please accept the Terms of Service to continue.</h2>
         )}
         <RemoteMarkdown
-          style={{ height: '50vh', overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' }}
+          style={{ height: '60vh', overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' }}
           getRemoteText={() => Ajax().TermsOfService.getTermsOfServiceText()}
           failureMessage="Could not get Terms of Service"
         />
@@ -88,7 +66,7 @@ export const TermsOfServicePage = () => {
           </div>
         ) : (
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
-            <ButtonPrimary onClick={backToTerra} disabled={busy}>
+            <ButtonPrimary onClick={() => Nav.goToPath('root')} disabled={busy}>
               Back to Terra
             </ButtonPrimary>
           </div>
