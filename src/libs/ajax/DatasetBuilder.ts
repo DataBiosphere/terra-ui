@@ -3,8 +3,6 @@ import _ from 'lodash/fp';
 import { Ajax } from 'src/libs/ajax';
 import {
   ColumnStatisticsIntOrDoubleModel,
-  datasetIncludeTypes,
-  DatasetModel,
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderDomainOption as DomainOption,
   SnapshotBuilderProgramDataOption,
@@ -211,7 +209,6 @@ type DatasetParticipantCountRequest = {
 };
 
 export interface DatasetBuilderContract {
-  retrieveDataset: (datasetId: string) => Promise<DatasetModel>;
   getProgramDataStatistics: (
     datasetId,
     programDataOption: SnapshotBuilderProgramDataOption
@@ -282,11 +279,6 @@ const getDummyConcepts = async (parent: Concept): Promise<GetConceptsResponse> =
 
 export const DatasetBuilder = (): DatasetBuilderContract => {
   return {
-    retrieveDataset: async (datasetId) => {
-      return await Ajax()
-        .DataRepo.dataset(datasetId)
-        .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
-    },
     getProgramDataStatistics: async (datasetId, programDataOption) => {
       switch (programDataOption.kind) {
         case 'list':
@@ -307,13 +299,13 @@ export const DatasetBuilder = (): DatasetBuilderContract => {
             .lookupDatasetColumnStatisticsById(programDataOption.tableName, programDataOption.columnName);
 
           switch (statistics.dataType) {
-            case 'integer' || 'int64' || 'numeric':
+            case 'float' || 'float64' || 'integer' || 'int64' || 'numeric':
               return {
                 name: programDataOption.name,
                 kind: programDataOption.kind,
                 min: (statistics as ColumnStatisticsIntOrDoubleModel).minValue,
                 max: (statistics as ColumnStatisticsIntOrDoubleModel).maxValue,
-              } as ProgramDataRangeOption;
+              };
             default:
               throw new Error(
                 `Datatype for ${programDataOption.tableName}/${programDataOption.columnName} is not numeric`

@@ -87,15 +87,33 @@ export interface Snapshot {
 }
 
 export interface ColumnStatisticsModel {
-  dataType: string;
+  dataType:
+    | 'string'
+    | 'boolean'
+    | 'bytes'
+    | 'date'
+    | 'datetime'
+    | 'dirref'
+    | 'fileref'
+    | 'float'
+    | 'float64'
+    | 'integer'
+    | 'int64'
+    | 'numeric'
+    | 'record'
+    | 'text'
+    | 'time'
+    | 'timestamp';
 }
 
 export interface ColumnStatisticsIntOrDoubleModel extends ColumnStatisticsModel {
+  dataType: 'float' | 'float64' | 'integer' | 'int64' | 'numeric';
   minValue: number;
   maxValue: number;
 }
 
 export interface ColumnStatisticsTextModel extends ColumnStatisticsModel {
+  dataType: 'string' | 'text';
   values: ColumnStatisticsTextValue[];
 }
 
