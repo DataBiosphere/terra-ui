@@ -11,7 +11,7 @@ import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   AzureConfig,
   cloudServiceTypes,
-  GceWithPdConfig,
+  GoogleRuntimeConfig,
   NormalizedComputeRegion,
   RuntimeConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
@@ -214,7 +214,7 @@ export const getJupyterRuntimeConfig = ({
   cloudService: cloudServiceTypes.GCE,
   bootDiskSize: defaultGceBootDiskSize,
   zone: 'us-central1-a',
-  gpuConfig: undefined,
+  gpuConfig: null,
   normalizedRegion: 'us-central1' as NormalizedComputeRegion,
 });
 
@@ -229,17 +229,16 @@ export const defaultAuditInfo = {
 
 export const generateGoogleProject = () => `terra-test-${uuid().substring(0, 8)}`;
 
-export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): RuntimeConfig =>
+export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): GoogleRuntimeConfig =>
   ({
     machineType: defaultGceMachineType,
     persistentDiskId: getRandomInt(randomMaxInt),
     cloudService: cloudServiceTypes.GCE,
-    bootDiskSize: defaultGceBootDiskSize,
     zone: 'us-central1-a',
-    gpuConfig: undefined,
+    gpuConfig: null,
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
     ...overrides,
-  } satisfies GceWithPdConfig);
+  } as GoogleRuntimeConfig satisfies GoogleRuntimeConfig);
 
 export const appError: AppError = {
   action: '',
@@ -888,6 +887,7 @@ export const dataprocRuntime: ListRuntimeItem = {
     dateAccessed: '2023-05-03T19:53:23.559367Z',
   },
   runtimeConfig: {
+    autopauseThreshold: null,
     numberOfWorkers: 2,
     masterMachineType: 'n1-standard-4',
     masterDiskSize: 150,

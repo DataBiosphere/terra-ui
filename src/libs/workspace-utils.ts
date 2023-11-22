@@ -134,7 +134,7 @@ export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefi
   _.any((policy) => policy.namespace === 'terra' && policy.name === 'protected-data', policies);
 
 export const protectedDataMessage =
-  'Enhanced logging and monitoring are enabled to support the use of protected or sensitive data in this workspace.';
+  'Enhanced logging and monitoring are enabled to support the use of controlled-access data in this workspace.';
 
 export const hasRegionConstraint = (workspace: BaseWorkspace): boolean =>
   getRegionConstraintLabels(workspace.policies).length > 0;

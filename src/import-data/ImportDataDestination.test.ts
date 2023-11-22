@@ -91,6 +91,18 @@ describe('ImportDataDestination', () => {
         props: {
           importRequest,
         },
+        workspaces: [
+          makeGoogleWorkspace({
+            workspace: {
+              name: 'allowed-workspace',
+            },
+          }),
+          makeGoogleWorkspace({
+            workspace: {
+              name: 'other-workspace',
+            },
+          }),
+        ],
       });
 
       // Act
@@ -109,6 +121,55 @@ describe('ImportDataDestination', () => {
       expect(isWarningShown).toEqual(shouldShowProtectedDataWarning);
     }
   );
+
+  it.each([
+    {
+      importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+      shouldSelectExisting: false,
+    },
+    {
+      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      shouldSelectExisting: true,
+    },
+  ] as {
+    importRequest: ImportRequest;
+    shouldSelectExisting: boolean;
+  }[])('should disable start with an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
+    // Arrange
+    const user = userEvent.setup();
+    asMockedFn(canImportIntoWorkspace).mockImplementation((_importOptions: ImportOptions): boolean => {
+      return false;
+    });
+
+    setup({
+      props: {
+        importRequest,
+      },
+      workspaces: [
+        makeGoogleWorkspace({
+          workspace: {
+            name: 'allowed-workspace',
+          },
+        }),
+        makeGoogleWorkspace({
+          workspace: {
+            name: 'other-workspace',
+          },
+        }),
+      ],
+    });
+    // Act
+    const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
+    await user.click(existingWorkspace); // select start with existing workspace
+
+    // Assert
+    const selectWorkspace = screen.queryByText('Select a workspace', {
+      exact: false,
+    });
+
+    const isSelectWorkspaceShown = !!selectWorkspace;
+    expect(isSelectWorkspaceShown).toEqual(shouldSelectExisting);
+  });
 
   it.each([
     {
