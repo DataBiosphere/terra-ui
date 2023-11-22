@@ -1,7 +1,7 @@
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import TopBar from 'src/components/TopBar';
-import { AuthState, authStore } from 'src/libs/state';
+import { authStore, SignInStatus } from 'src/libs/state';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type AjaxExports = typeof import('src/libs/ajax');
@@ -30,43 +30,25 @@ jest.mock(
     getLink: jest.fn(),
   })
 );
-
-const itDoesNotShowTheSignInButton = (newState: Partial<AuthState>) => {
-  it('does not display the Sign In button in the menu', () => {
-    // Arrange
-    authStore.update((state) => ({ ...state, ...newState }));
-
-    // Act
-    render(h(TopBar));
-
-    // Assert
-    expect(screen.queryByText('Sign In')).not.toBeInTheDocument();
-  });
-};
-
-const itShowsTheSignInButton = (newState: Partial<AuthState>) => {
-  it('displays the Sign In button in the menu', () => {
-    // Arrange
-    authStore.update((state) => ({ ...state, ...newState }));
-
-    // Act
-    render(h(TopBar));
-
-    // Assert
-    expect(screen.queryByText('Sign In')).not.toBeInTheDocument();
-  });
-};
 describe('TopBar', () => {
-  describe('when signInStatus is userLoaded', () => {
-    itDoesNotShowTheSignInButton({ signInStatus: 'userLoaded' });
-  });
-  describe('when signInStatus is authenticated', () => {
-    itDoesNotShowTheSignInButton({ signInStatus: 'authenticated' });
-  });
-  describe('when signInStatus is uninitialized', () => {
-    itShowsTheSignInButton({ signInStatus: 'uninitialized' });
-  });
-  describe('when signInStatus is signedOut', () => {
-    itShowsTheSignInButton({ signInStatus: 'signedOut' });
+  it.each([
+    { signInStatus: 'uninitialized' satisfies SignInStatus, signInShown: true },
+    { signInStatus: 'authenticated' satisfies SignInStatus, signInShown: false },
+    { signInStatus: 'userLoaded' satisfies SignInStatus, signInShown: false },
+    { signInStatus: 'signedOut' satisfies SignInStatus, signInShown: true },
+  ])('when signInStatus is $signInStatus, Sign In button shown is: $signInShown', ({ signInStatus, signInShown }) => {
+    // Arrange
+    authStore.update((authState) => ({ ...authState, signInStatus: signInStatus as SignInStatus }));
+
+    // Act
+    render(h(TopBar));
+    fireEvent.click(screen.getByLabelText('Toggle main menu'));
+
+    // Assert
+    if (signInShown) {
+      screen.getByText('Sign In');
+    } else {
+      expect(screen.queryByText('Sign In')).not.toBeInTheDocument();
+    }
   });
 });
