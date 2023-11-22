@@ -1,7 +1,7 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import TopBar from 'src/components/TopBar';
-import { authStore } from 'src/libs/state';
+import { AuthState, authStore } from 'src/libs/state';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type AjaxExports = typeof import('src/libs/ajax');
@@ -31,53 +31,42 @@ jest.mock(
   })
 );
 
-describe('TopBar', () => {
-  describe('displays the menu dropdown', () => {
-    it('when signInStatus is userLoaded', () => {
-      // Arrange
-      authStore.update((state) => ({ ...state, signInStatus: 'userLoaded' }));
+const itDoesNotShowTheSignInButton = (newState: Partial<AuthState>) => {
+  it('does not display the Sign In button in the menu', () => {
+    // Arrange
+    authStore.update((state) => ({ ...state, ...newState }));
 
-      // Act
-      render(h(TopBar));
+    // Act
+    render(h(TopBar));
 
-      // Assert
-      // const icon = document.querySelector('[data-icon="loadingSpinner"]');
-      // expect(icon).toBeInTheDocument();
-    });
-    it('when signInStatus is authenticated', () => {
-      // Arrange
-      authStore.update((state) => ({ ...state, signInStatus: 'authenticated' }));
-
-      // Act
-      render(h(TopBar));
-
-      // Assert
-      // screen.getByText('Sign In');
-    });
+    // Assert
+    expect(screen.queryByText('Sign In')).not.toBeInTheDocument();
   });
-  describe('does not display the menu dropdown', () => {
-    it('when signInStatus is uninitialized', () => {
-      // Arrange
-      authStore.update((state) => ({ ...state, signInStatus: 'uninitialized' }));
+};
 
-      // Act
-      render(h(TopBar));
+const itShowsTheSignInButton = (newState: Partial<AuthState>) => {
+  it('displays the Sign In button in the menu', () => {
+    // Arrange
+    authStore.update((state) => ({ ...state, ...newState }));
 
-      // Assert
+    // Act
+    render(h(TopBar));
 
-      screen.getByText('Sign In');
-      // const icon = document.querySelector('[data-icon="loadingSpinner"]');
-      // expect(icon).toBeInTheDocument();
-    });
-    it('when signInStatus is signedOut', () => {
-      // Arrange
-      authStore.update((state) => ({ ...state, signInStatus: 'signedOut' }));
-      fireEvent.click(screen.getByText('Skip to main content'));
-      // Act
-      render(h(TopBar));
-
-      // Assert
-      screen.getByText('Sign In');
-    });
+    // Assert
+    expect(screen.queryByText('Sign In')).not.toBeInTheDocument();
+  });
+};
+describe('TopBar', () => {
+  describe('when signInStatus is userLoaded', () => {
+    itDoesNotShowTheSignInButton({ signInStatus: 'userLoaded' });
+  });
+  describe('when signInStatus is authenticated', () => {
+    itDoesNotShowTheSignInButton({ signInStatus: 'authenticated' });
+  });
+  describe('when signInStatus is uninitialized', () => {
+    itShowsTheSignInButton({ signInStatus: 'uninitialized' });
+  });
+  describe('when signInStatus is signedOut', () => {
+    itShowsTheSignInButton({ signInStatus: 'signedOut' });
   });
 });
