@@ -24,17 +24,17 @@ export interface RawBaseRuntimeConfig {
 export interface GceConfig extends BaseRuntimeConfig {
   machineType: string;
   diskSize: number;
-  bootDiskSize?: number; // This is optional for supporting old runtimes which only have 1 disk. All new runtime will have a boot disk
+  bootDiskSize: number | null; // This is optional for supporting old runtimes which only have 1 disk. All new runtime will have a boot disk
   zone: string;
-  gpuConfig?: GpuConfig;
+  gpuConfig: GpuConfig | null;
 }
 
 export interface RawGceConfig extends RawBaseRuntimeConfig {
   machineType: string;
   diskSize: number;
-  bootDiskSize?: number; // This is optional for supporting old runtimes which only have 1 disk. All new runtime will have a boot disk
+  bootDiskSize: number | null; // This is optional for supporting old runtimes which only have 1 disk. All new runtime will have a boot disk
   zone: string;
-  gpuConfig?: GpuConfig;
+  gpuConfig: GpuConfig | null;
 }
 
 export interface GceWithPdConfig extends BaseRuntimeConfig {
@@ -42,7 +42,7 @@ export interface GceWithPdConfig extends BaseRuntimeConfig {
   persistentDiskId: number;
   bootDiskSize: number;
   zone: string;
-  gpuConfig?: GpuConfig;
+  gpuConfig: GpuConfig | null;
 }
 
 export interface RawGceWithPdConfig extends RawBaseRuntimeConfig {
@@ -50,18 +50,18 @@ export interface RawGceWithPdConfig extends RawBaseRuntimeConfig {
   persistentDiskId: number;
   bootDiskSize: number;
   zone: string;
-  gpuConfig?: GpuConfig;
+  gpuConfig: GpuConfig | null;
 }
 
 export interface DataprocConfig extends BaseRuntimeConfig {
   numberOfWorkers: number;
-  autopauseThreshold?: number; // TODO: Add to base config
+  autopauseThreshold: number | null; // TODO: Add to base config
   masterMachineType: string;
   masterDiskSize: number;
-  workerMachineType?: string;
-  workerDiskSize?: number;
-  numberOfWorkerLocalSSDs?: number;
-  numberOfPreemptibleWorkers?: number;
+  workerMachineType: string | null;
+  workerDiskSize: number | null;
+  numberOfWorkerLocalSSDs: number | null;
+  numberOfPreemptibleWorkers: number | null;
   // properties: Record<string, string> TODO: Where is this used?
   region: string;
   componentGatewayEnabled: boolean;
@@ -70,13 +70,13 @@ export interface DataprocConfig extends BaseRuntimeConfig {
 
 export interface RawDataprocConfig extends RawBaseRuntimeConfig {
   numberOfWorkers: number;
-  autopauseThreshold?: number; // TODO: Add to base config
+  autopauseThreshold: number | null; // TODO: Add to base config
   masterMachineType: string;
   masterDiskSize: number;
-  workerMachineType?: string;
-  workerDiskSize?: number;
-  numberOfWorkerLocalSSDs?: number;
-  numberOfPreemptibleWorkers?: number;
+  workerMachineType: string | null;
+  workerDiskSize: number | null;
+  numberOfWorkerLocalSSDs: number | null;
+  numberOfPreemptibleWorkers: number | null;
   // properties: Record<string, string> TODO: Where is this used?
   region: string;
   componentGatewayEnabled: boolean;

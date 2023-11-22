@@ -1,7 +1,8 @@
 import _ from 'lodash/fp';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { div, h, h2, h3 } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
+import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
@@ -353,6 +354,11 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           field: 'record_id',
                           headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['Sample ID']),
                           cellRenderer: ({ rowIndex }) => {
+                            const engineId = paginatedPreviousRuns[rowIndex].engine_id;
+
+                            // Engine id may be undefined if CBAS failed to submit to Cromwell
+                            if (engineId === undefined) return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id]);
+
                             return div({ style: { width: '100%', textAlign: 'left' } }, [
                               h(
                                 Link,
@@ -361,7 +367,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                                     namespace,
                                     name,
                                     submissionId,
-                                    workflowId: paginatedPreviousRuns[rowIndex].engine_id,
+                                    workflowId: engineId,
                                   }),
                                   style: { fontWeight: 'bold' },
                                 },
@@ -398,6 +404,20 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                           cellRenderer: ({ rowIndex }) => {
                             return h(TextCell, [customFormatDuration(paginatedPreviousRuns[rowIndex].duration)]);
+                          },
+                        },
+                        {
+                          size: { basis: 400, grow: 0 },
+                          field: 'workflowId',
+                          headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
+                          cellRenderer: ({ rowIndex }) => {
+                            const engineId = paginatedPreviousRuns[rowIndex].engine_id;
+                            if (engineId !== undefined) {
+                              return h(TextCell, [
+                                span({ style: { marginRight: '0.5rem' } }, [engineId]),
+                                span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
+                              ]);
+                            }
                           },
                         },
                       ],

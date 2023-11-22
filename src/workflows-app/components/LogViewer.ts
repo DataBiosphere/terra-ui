@@ -60,6 +60,34 @@ const logLoadingErrorMessage =
 const modalMaxWidth = 1100;
 const tabMaxWidth = modalMaxWidth / 4 - 20;
 
+/**
+ * We want to show different tooltips for the info icon depending on which log files the
+ * user is viewing.
+ */
+type InfoBoxItemProps = {
+  title: string;
+  text: string;
+  logKeys: string[];
+};
+
+const infoBoxItemPerLogType: InfoBoxItemProps[] = [
+  {
+    title: 'Workflow Execution Log:',
+    text: 'Each workflow has a single execution log which comes from the engine running your workflow. Errors in this log might indicate a Terra systems issue, or a problem parsing your WDL.',
+    logKeys: ['execution_log'],
+  },
+  {
+    title: 'Task Standard Out/Error:',
+    text: "Task logs are from user-defined commands in your WDL. You might see an error in these logs if there was a logic or syntax error in a command, or if something went wrong with the tool you're running.",
+    logKeys: ['stdout', 'stderr'],
+  },
+  {
+    title: 'Backend Standard Out/Error:',
+    text: "Backend logs are from the Azure Cloud compute job that prepares your task to run and cleans up afterwards. You might see errors in these logs if the there was a problem downloading the task's input files or pulling its container, or if something went wrong on the compute node while the task was running.",
+    logKeys: ['tes_stdout', 'tes_stderr'],
+  },
+];
+
 export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
   const [currentlyActiveLog, setCurrentlyActiveLog] = useState<LogInfo | undefined>(
     _.isEmpty(logs) ? undefined : logs[0]
@@ -86,6 +114,24 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
     },
     [signal]
   );
+
+  /**
+   * Iterate through the available tooltip messages and choose to show the ones
+   * that correspond to the given list of logs (the ones currently displayed).
+   */
+  const infoBoxContents = useCallback((logs: LogInfo[]) => {
+    const logKeysInUse = logs.map((log) => log.logKey);
+    const infoBoxItems = infoBoxItemPerLogType.flatMap((ib) => {
+      if (ib.logKeys.filter((value) => logKeysInUse.includes(value)).length > 0) {
+        return [
+          dt({ style: { fontWeight: 'bold' } }, [ib.title]),
+          dd({ style: { marginBottom: '0.5rem' } }, [ib.text]),
+        ];
+      }
+      return [];
+    });
+    return dl(infoBoxItems);
+  }, []);
 
   useEffect(() => {
     const loadAzureLog = async (logUri: string) => {
@@ -151,22 +197,7 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
           size: undefined,
           side: undefined,
         },
-        [
-          dl([
-            dt({ style: { fontWeight: 'bold' } }, ['Execution:']),
-            dd({ style: { marginBottom: '0.5rem' } }, [
-              'Each workflow has a single execution log which comes from the engine running your workflow. Errors in this log might indicate a Terra systems issue, or a problem parsing your WDL.',
-            ]),
-            dt({ style: { fontWeight: 'bold' } }, ['Task Standard Out/Error:']),
-            dd({ style: { marginBottom: '0.5rem' } }, [
-              "Task logs are from user-defined commands in your WDL. You might see an error in these logs if there was a logic or syntax error in a command, or if something went wrong with the tool you're running.",
-            ]),
-            dt({ style: { fontWeight: 'bold' } }, ['Backend Standard Out/Error:']),
-            dd({ style: { marginBottom: '0.5rem' } }, [
-              "Backend logs are from the Azure Cloud compute job that prepares your task to run and cleans up afterwards. You might see errors in these logs if the there was a problem downloading the task's input files or pulling its container, or if something went wrong on the compute node while the task was running.",
-            ]),
-          ]),
-        ]
+        [infoBoxContents(logs)]
       ),
       showCancel: false,
       showX: true,

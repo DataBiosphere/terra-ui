@@ -50,6 +50,7 @@ interface ChoiceButtonProps {
   style?: CSSProperties;
   title: string;
   onClick: () => void;
+  tooltip?: string;
 }
 
 const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
@@ -187,6 +188,20 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     ]);
   };
 
+  const workspacesToImportTo = workspaces.filter((workspace) => {
+    return canImportIntoWorkspace(
+      {
+        cloudPlatform: requiredCloudPlatform,
+        isProtectedData,
+        requiredAuthorizationDomain,
+      },
+      workspace
+    );
+  });
+
+  // disable import into existing workspaces if data is marked as protected but no protected workspaces are available
+  const disableExportIntoExisting = isProtectedData && workspacesToImportTo.length === 0;
+
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, ['Start with an existing workspace']),
@@ -201,16 +216,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             // @ts-expect-error
             h(WorkspaceSelector, {
               id,
-              workspaces: workspaces.filter((workspace) => {
-                return canImportIntoWorkspace(
-                  {
-                    cloudPlatform: requiredCloudPlatform,
-                    isProtectedData,
-                    requiredAuthorizationDomain,
-                  },
-                  workspace
-                );
-              }),
+              workspaces: workspacesToImportTo,
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
             }),
@@ -329,7 +335,11 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               iconName: 'fileSearchSolid',
               title: 'Start with an existing workspace',
               detail: 'Select one of your workspaces',
-              disabled: !userHasBillingProjects,
+              disabled: !userHasBillingProjects || disableExportIntoExisting,
+              tooltip:
+                !userHasBillingProjects || disableExportIntoExisting
+                  ? 'No existing protected workspace is present.'
+                  : undefined,
             }),
             canUseNewWorkspace &&
               h(ChoiceButton, {

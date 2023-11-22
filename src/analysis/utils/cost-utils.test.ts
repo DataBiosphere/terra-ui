@@ -403,7 +403,6 @@ describe('getPersistentDiskCostMonthly', () => {
         dateAccessed: '2020-10-13T15:00:00.000Z',
         destroyedDate: null,
       },
-      // diskType: googlePdTypes.standard,
     };
 
     // Act
@@ -441,6 +440,8 @@ describe('runtimeConfigCost for dataproc', () => {
     numberOfPreemptibleWorkers: 0,
     workerDiskSize: 0,
     workerPrivateAccess: false,
+    workerMachineType: null,
+    numberOfWorkerLocalSSDs: null,
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   };
 
@@ -456,6 +457,7 @@ describe('runtimeConfigCost for dataproc', () => {
     workerMachineType: 'n1-standard-4',
     workerDiskSize: 150,
     workerPrivateAccess: false,
+    numberOfWorkerLocalSSDs: null,
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   };
   it('gets cost for a dataproc cluster', () => {
