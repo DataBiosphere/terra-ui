@@ -3,6 +3,7 @@ import _ from 'lodash/fp';
 import { Ajax } from 'src/libs/ajax';
 import {
   ColumnStatisticsIntOrDoubleModel,
+  ColumnStatisticsTextModel,
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderDomainOption as DomainOption,
   SnapshotBuilderProgramDataOption,
@@ -19,12 +20,14 @@ export interface Criteria {
 export interface CriteriaApi {
   kind: 'domain' | 'range' | 'list';
   name: string;
-  id: number;
+  index: number;
   count?: number;
   loading?: boolean;
 }
 export interface DomainCriteriaApi extends CriteriaApi {
   kind: 'domain';
+  domainOption: DomainOption;
+  id: number;
 }
 
 export interface ProgramDataOption {
@@ -112,7 +115,7 @@ export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDat
 /** A group of criteria. */
 export interface CriteriaGroup {
   name: string;
-  criteria: (AnyCriteria | { loading: true })[];
+  criteria: (AnyCriteria | { loading: true; index: number })[];
   mustMeet: boolean;
   meetAll: boolean;
   count: number;
@@ -277,40 +280,54 @@ const getDummyConcepts = async (parent: Concept): Promise<GetConceptsResponse> =
   };
 };
 
+const convertProgramDataOptionToListOption = (
+  programDataOption: SnapshotBuilderProgramDataOption
+): ProgramDataListOption => ({
+  name: programDataOption.name,
+  kind: 'list',
+  values: _.map(
+    (num) => ({
+      id: num,
+      name: `${programDataOption.name} ${num}`,
+    }),
+    [0, 1, 2, 3, 4]
+  ),
+});
+
+const convertProgramDataOptionToRangeOption = (
+  programDataOption: SnapshotBuilderProgramDataOption,
+  statistics: ColumnStatisticsIntOrDoubleModel | ColumnStatisticsTextModel
+): ProgramDataRangeOption => {
+  switch (statistics.dataType) {
+    case 'float':
+    case 'float64':
+    case 'integer':
+    case 'int64':
+    case 'numeric':
+      return {
+        name: programDataOption.name,
+        kind: 'range',
+        min: statistics.minValue,
+        max: statistics.maxValue,
+      };
+    default:
+      throw new Error(
+        `Datatype ${statistics.dataType} for ${programDataOption.tableName}/${programDataOption.columnName} is not numeric`
+      );
+  }
+};
+
 export const DatasetBuilder = (): DatasetBuilderContract => {
   return {
     getProgramDataStatistics: async (datasetId, programDataOption) => {
       switch (programDataOption.kind) {
         case 'list':
-          return {
-            name: programDataOption.name,
-            kind: programDataOption.kind,
-            values: _.map(
-              (num) => ({
-                id: num,
-                name: `${programDataOption.name} ${num}`,
-              }),
-              [0, 1, 2, 3, 4]
-            ),
-          };
+          return convertProgramDataOptionToListOption(programDataOption);
         case 'range':
           const statistics = await Ajax()
             .DataRepo.dataset(datasetId)
             .lookupDatasetColumnStatisticsById(programDataOption.tableName, programDataOption.columnName);
-
-          switch (statistics.dataType) {
-            case 'float' || 'float64' || 'integer' || 'int64' || 'numeric':
-              return {
-                name: programDataOption.name,
-                kind: programDataOption.kind,
-                min: (statistics as ColumnStatisticsIntOrDoubleModel).minValue,
-                max: (statistics as ColumnStatisticsIntOrDoubleModel).maxValue,
-              };
-            default:
-              throw new Error(
-                `Datatype for ${programDataOption.tableName}/${programDataOption.columnName} is not numeric`
-              );
-          }
+          return convertProgramDataOptionToRangeOption(programDataOption, statistics);
         default:
           throw new Error('Unexpected option');
       }

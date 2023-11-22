@@ -113,6 +113,7 @@ describe('CohortEditor', () => {
     const criteria: DomainCriteria = {
       kind: 'domain',
       id: 0,
+      index: 0,
       name: 'test criteria',
       count: 0,
       domainOption: {
@@ -132,7 +133,7 @@ describe('CohortEditor', () => {
   it('renders list criteria', async () => {
     // Arrange
     mockListStatistics();
-    const criteria = (await criteriaFromOption(datasetDetails.id, {
+    const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
       id: 0,
       name: 'list',
       kind: 'list',
@@ -142,7 +143,7 @@ describe('CohortEditor', () => {
     renderCriteriaView({ criteria });
 
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
-    expect(screen.getByText(criteria.values[0].name)).toBeTruthy();
+    expect(criteria.values.length).toBe(0);
   });
 
   it('updates when list updated', async () => {
@@ -150,13 +151,14 @@ describe('CohortEditor', () => {
     const user = userEvent.setup();
     const updateCriteria = jest.fn();
     mockListStatistics();
-    const criteria = (await criteriaFromOption(datasetDetails.id, {
+    const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
       id: 0,
       name: 'list',
       kind: 'list',
       tableName: 'table',
       columnName: 'column',
     })) as ProgramDataListCriteria;
+    criteria.values = [{ id: 0, name: 'value 0' }];
     renderCriteriaView({
       updateCriteria,
       criteria,
@@ -183,7 +185,7 @@ describe('CohortEditor', () => {
   it('renders range criteria', async () => {
     // Arrange
     mockRangeStatistics();
-    const criteria = (await criteriaFromOption(datasetDetails.id, {
+    const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
       id: 0,
       name: 'range',
       kind: 'range',
@@ -203,7 +205,7 @@ describe('CohortEditor', () => {
     // Arrange
     const user = userEvent.setup();
     mockRangeStatistics();
-    const criteria = (await criteriaFromOption(datasetDetails.id, {
+    const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
       id: 0,
       name: 'range',
       kind: 'range',
@@ -234,7 +236,7 @@ describe('CohortEditor', () => {
     const max = 99;
     mockRangeStatistics(min, max);
 
-    const criteria = (await criteriaFromOption(datasetDetails.id, {
+    const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
       id: 0,
       name: 'range',
       kind: 'range',
@@ -259,7 +261,7 @@ describe('CohortEditor', () => {
   it('can delete criteria', async () => {
     // Arrange
     mockRangeStatistics();
-    const criteria = (await criteriaFromOption(datasetDetails.id, {
+    const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
       id: 0,
       name: 'range',
       kind: 'range',
@@ -364,11 +366,11 @@ describe('CohortEditor', () => {
     expect(updateCohort).toHaveBeenCalledTimes(2);
 
     const updatedCohortWithLoading: Cohort = updateCohort.mock.calls[0][0](cohort);
-    expect(updatedCohortWithLoading.criteriaGroups[0].criteria).toMatchObject([{ loading: true }]);
+    expect(updatedCohortWithLoading.criteriaGroups[0].criteria).toMatchObject([{ loading: true, index: 2 }]);
 
-    const updatedCohort: Cohort = updateCohort.mock.calls[1][0](cohort);
+    const updatedCohort: Cohort = updateCohort.mock.calls[1][0](updatedCohortWithLoading);
     // Remove ID since it won't match up.
-    const { id: _, ...expectedCriteria } = await criteriaFromOption(datasetDetails.id, option);
+    const { index: _, ...expectedCriteria } = await criteriaFromOption(datasetDetails.id, 2, option);
     expect(updatedCohort.criteriaGroups[0].criteria).toMatchObject([expectedCriteria]);
   });
 
@@ -376,7 +378,7 @@ describe('CohortEditor', () => {
     // Arrange
     const option = datasetDetails!.snapshotBuilderSettings!.programDataOptions[0];
     mockOption(option);
-    const criteria = await criteriaFromOption(datasetDetails.id, option);
+    const criteria = await criteriaFromOption(datasetDetails.id, 0, option);
     const { cohort, updateCohort } = showCriteriaGroup((criteriaGroup) => criteriaGroup.criteria.push(criteria));
     const user = userEvent.setup();
     // Act

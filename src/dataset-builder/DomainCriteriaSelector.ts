@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
+import { getNextCriteriaIndex } from 'src/dataset-builder/CohortEditor';
 import { SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption as DomainOption } from 'src/libs/ajax/DataRepo';
 import { DatasetBuilder, DomainCriteria, GetConceptsResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
@@ -22,6 +23,7 @@ export const toCriteria =
       kind: 'domain',
       name: concept.name,
       id: concept.id,
+      index: getNextCriteriaIndex(),
       count: concept.count,
       domainOption,
     };

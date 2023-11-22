@@ -1,3 +1,4 @@
+import { atom } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import React, { Fragment, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
@@ -152,9 +153,15 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
     ]
   );
 
-let criteriaCount = 1;
+const criteriaCount = atom(1);
+export const getNextCriteriaIndex = () => {
+  const localCriteriaCount = criteriaCount.get() + 1;
+  criteriaCount.set(localCriteriaCount);
+  return localCriteriaCount;
+};
 const createDefaultProgramDataCriteria = async (
   datasetId: string,
+  index: number,
   option: SnapshotBuilderProgramDataOption
 ): Promise<ProgramDataRangeCriteria | ProgramDataListCriteria> => {
   const generatedOptions = await DatasetBuilder().getProgramDataStatistics(datasetId, option);
@@ -165,7 +172,7 @@ const createDefaultProgramDataCriteria = async (
         kind: 'range',
         rangeOption,
         name: rangeOption.name,
-        id: criteriaCount++,
+        index,
         low: rangeOption.min,
         high: rangeOption.max,
       };
@@ -175,7 +182,7 @@ const createDefaultProgramDataCriteria = async (
         kind: 'list',
         listOption,
         name: option.name,
-        id: Number(_.uniqueId('')),
+        index,
         values: [],
       };
     }
@@ -195,18 +202,23 @@ interface DomainOptionWithKind extends DomainOption {
 
 type CriteriaOption = DomainOptionWithKind | SnapshotBuilderProgramDataOption;
 
-export function criteriaFromOption(datasetId: string, option: DomainOptionWithKind): Promise<undefined>;
+export function criteriaFromOption(datasetId: string, index: number, option: DomainOptionWithKind): Promise<undefined>;
 export function criteriaFromOption(
   datasetId: string,
+  index: number,
   option: SnapshotBuilderProgramDataOption
 ): Promise<ProgramDataListCriteria | ProgramDataRangeCriteria>;
-export function criteriaFromOption(datasetId: string, option: CriteriaOption): Promise<AnyCriteria>;
+export function criteriaFromOption(datasetId: string, index: number, option: CriteriaOption): Promise<AnyCriteria>;
 
-export async function criteriaFromOption(datasetId: string, option: CriteriaOption): Promise<AnyCriteria | undefined> {
+export async function criteriaFromOption(
+  datasetId: string,
+  index: number,
+  option: CriteriaOption
+): Promise<AnyCriteria | undefined> {
   switch (option.kind) {
     case 'list':
     case 'range':
-      return createDefaultProgramDataCriteria(datasetId, option);
+      return createDefaultProgramDataCriteria(datasetId, index, option);
     case 'domain':
     default:
       return undefined;
@@ -266,18 +278,26 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
           if (x.value.kind === 'domain') {
             onStateChange(domainCriteriaSelectorState.new(cohort, criteriaGroup, x.value));
           } else {
-            updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, { loading: true }));
-            const criteria = await criteriaFromOption(datasetId, x.value);
-            if (criteria !== undefined) {
-              const firstLoading = _.findIndex((criteria) => criteria.loading === true, criteriaGroup.criteria);
-              updateCohort(
-                _.set(
-                  `criteriaGroups.${index}.criteria.${
-                    firstLoading >= 0 ? firstLoading : criteriaGroup.criteria.length
-                  }`,
-                  criteria
-                )
-              );
+            const criteriaIndex = getNextCriteriaIndex();
+            updateCohort(
+              _.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, {
+                loading: true,
+                index: criteriaIndex,
+              })
+            );
+            const loadedCriteria = await criteriaFromOption(datasetId, criteriaIndex, x.value);
+
+            if (loadedCriteria !== undefined) {
+              updateCohort((cohort) => {
+                const loading = _.findIndex(
+                  (criteria) => criteria.index === criteriaIndex,
+                  cohort.criteriaGroups[index].criteria
+                );
+                if (loading >= 0) {
+                  return _.set(`criteriaGroups.${index}.criteria.${loading}`, loadedCriteria, cohort);
+                }
+                return cohort;
+              });
             }
           }
         }
@@ -304,7 +324,10 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   const updateCriteria = (criteria: AnyCriteria) => {
     updateCohort(
       _.set(
-        `criteriaGroups.${index}.criteria.${_.findIndex({ id: criteria.id }, cohort.criteriaGroups[index].criteria)}`,
+        `criteriaGroups.${index}.criteria.${_.findIndex(
+          { index: criteria.index },
+          cohort.criteriaGroups[index].criteria
+        )}`,
         criteria
       )
     );
@@ -364,18 +387,18 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
         ),
         div([
           criteriaGroup.criteria.length !== 0
-            ? _.map(
-                (criteria) =>
-                  criteria.loading
-                    ? div({ style: { display: 'flex', alignItems: 'center' } }, [icon('loadingSpinner', { size: 24 })])
-                    : h(CriteriaView, {
-                        deleteCriteria,
-                        updateCriteria,
-                        criteria,
-                        key: criteria.id,
-                      }),
-                criteriaGroup.criteria
-              )
+            ? _.map(([criteriaIndex, criteria]) => {
+                return criteria.loading
+                  ? div({ style: { display: 'flex', alignItems: 'center' }, key: criteriaIndex }, [
+                      icon('loadingSpinner', { size: 24 }),
+                    ])
+                  : h(CriteriaView, {
+                      deleteCriteria,
+                      updateCriteria,
+                      criteria,
+                      key: criteriaIndex,
+                    });
+              }, Utils.toIndexPairs(criteriaGroup.criteria))
             : div({ style: { marginTop: 15 } }, [
                 div({ style: { fontWeight: 'bold', fontStyle: 'italic' } }, ['No criteria yet']),
                 div({ style: { fontStyle: 'italic', marginTop: narrowMargin } }, [
@@ -518,7 +541,7 @@ interface CohortEditorProps {
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
   const { onStateChange, dataset, originalCohort, updateCohorts } = props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
-  const updateCohort = (updateCohort: (Cohort) => Cohort) => _.flow(updateCohort, setCohort)(cohort);
+  const updateCohort = (updateCohort: (Cohort) => Cohort) => setCohort(updateCohort);
 
   return h(Fragment, [
     h(CohortEditorContents, { updateCohort, cohort, dataset, onStateChange }),
