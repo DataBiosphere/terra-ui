@@ -88,12 +88,12 @@ export interface DatasetBuilderType {
 
 export type DatasetBuilderValue = DatasetBuilderType;
 
-type ValueSet = {
+export type ValueSet = {
   domain: string;
   values: DatasetBuilderValue[];
 };
 
-type ValueSetApi = {
+export type ValueSetApi = {
   name: string;
   values: string[];
 };
@@ -102,7 +102,7 @@ export interface GetConceptsResponse {
   result: Concept[];
 }
 
-type DatasetRequest = {
+export type DatasetRequest = {
   cohorts: Cohort[];
   conceptSets: ConceptSet[];
   valueSets: ValueSet[];
