@@ -246,8 +246,8 @@ export const DatasetBuilder = (): DatasetBuilderContract => ({
       .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
   },
   getConcepts: (parent: Concept) => Promise.resolve(getDummyConcepts(parent)),
-  requestAccess: async (datasetId, _request) => {
-    return await Ajax().DataRepo.dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(_request));
+  requestAccess: async (datasetId, request) => {
+    return await Ajax().DataRepo.dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(request));
   },
   getParticipantCount: (_request) => Promise.resolve(100),
 });
