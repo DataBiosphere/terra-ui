@@ -1,6 +1,6 @@
 import * as _ from 'lodash/fp';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
-import { DatasetAccessRequestAPI } from 'src/libs/ajax/DatasetBuilder';
+import { DatasetAccessRequestApi } from 'src/libs/ajax/DatasetBuilder';
 
 export type SnapshotBuilderConcept = {
   id: number;
@@ -104,7 +104,7 @@ export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
-    createDatasetRequest(_request: DatasetAccessRequestAPI): Promise<DatasetAccessRequestAPI>;
+    createSnapshotRequest(request: DatasetAccessRequestApi): Promise<DatasetAccessRequestApi>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
@@ -122,7 +122,10 @@ const callDataRepo = async (url: string, signal?: AbortSignal) => {
 };
 
 const callDataRepoPost = async (url: string, signal: AbortSignal | undefined, jsonBodyArg?: object): Promise<any> => {
-  return await fetchDataRepo(url, _.mergeAll([authOpts(), jsonBody(jsonBodyArg), { signal, method: 'POST' }]));
+  return await fetchDataRepo(
+    url,
+    _.mergeAll([authOpts(), jsonBodyArg && jsonBody(jsonBodyArg), { signal, method: 'POST' }])
+  );
 };
 
 export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
@@ -130,7 +133,7 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
     details: async (include): Promise<DatasetModel> =>
       callDataRepo(`repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`, signal),
     roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
-    createDatasetRequest: async (_request): Promise<DatasetAccessRequestAPI> =>
+    createSnapshotRequest: async (_request): Promise<DatasetAccessRequestApi> =>
       callDataRepoPost(`repository/v1/datasets/${datasetId}/createSnapshotRequest`, signal, _request),
   }),
   snapshot: (snapshotId) => {

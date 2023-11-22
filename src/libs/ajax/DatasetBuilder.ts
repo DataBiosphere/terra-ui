@@ -12,29 +12,29 @@ import {
 } from 'src/libs/ajax/DataRepo';
 
 /** A specific criteria based on a type. */
-export interface Criteria extends CriteriaAPI {
+export interface Criteria extends CriteriaApi {
   count?: number;
 }
-export interface CriteriaAPI {
+export interface CriteriaApi {
   kind: 'domain' | 'range' | 'list';
   name: string;
   id: number;
 }
-export interface DomainCriteriaAPI extends Criteria {
+export interface DomainCriteriaApi extends Criteria {
   kind: 'domain';
 }
 
-export interface DomainCriteria extends DomainCriteriaAPI {
+export interface DomainCriteria extends DomainCriteriaApi {
   domainOption: DomainOption;
 }
 
-export interface ProgramDataRangeCriteriaAPI extends Criteria {
+export interface ProgramDataRangeCriteriaApi extends Criteria {
   kind: 'range';
   low: number;
   high: number;
 }
 
-export interface ProgramDataRangeCriteria extends ProgramDataRangeCriteriaAPI {
+export interface ProgramDataRangeCriteria extends ProgramDataRangeCriteriaApi {
   rangeOption: ProgramDataRangeOption;
 }
 
@@ -44,14 +44,14 @@ export interface ProgramDataListCriteria extends Criteria {
   values: ProgramDataListValue[];
 }
 
-export interface ProgramDataListCriteriaAPI extends Criteria {
+export interface ProgramDataListCriteriaApi extends Criteria {
   kind: 'list';
   values: number[];
 }
 
 export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
-export type AnyCriteriaAPI = DomainCriteriaAPI | ProgramDataRangeCriteriaAPI | ProgramDataListCriteriaAPI;
+export type AnyCriteriaApi = DomainCriteriaApi | ProgramDataRangeCriteriaApi | ProgramDataListCriteriaApi;
 
 /** A group of criteria. */
 export interface CriteriaGroup {
@@ -62,9 +62,9 @@ export interface CriteriaGroup {
   count: number;
 }
 
-export interface CriteriaGroupAPI {
+export interface CriteriaGroupApi {
   name: string;
-  criteria: AnyCriteriaAPI[];
+  criteria: AnyCriteriaApi[];
   mustMeet: boolean;
   meetAll: boolean;
   count: number;
@@ -74,8 +74,8 @@ export interface Cohort extends DatasetBuilderType {
   criteriaGroups: CriteriaGroup[];
 }
 
-export interface CohortAPI extends DatasetBuilderType {
-  criteriaGroups: CriteriaGroupAPI[];
+export interface CohortApi extends DatasetBuilderType {
+  criteriaGroups: CriteriaGroupApi[];
 }
 
 export interface ConceptSet extends DatasetBuilderType {
@@ -98,10 +98,10 @@ type DatasetRequest = {
   valueSets: { domain: string; values: DatasetBuilderValue[] }[];
 };
 
-export type DatasetRequestAPI = {
-  cohorts: CohortAPI[];
+export type DatasetRequestApi = {
+  cohorts: CohortApi[];
   conceptSets: ConceptSet[];
-  valueSets: { id: number; name: string; values: string[] }[];
+  valueSets: { name: string; values: string[] }[];
 };
 
 export type DatasetAccessRequest = {
@@ -110,15 +110,15 @@ export type DatasetAccessRequest = {
   datasetRequest: DatasetRequest;
 };
 
-export type DatasetAccessRequestAPI = {
+export type DatasetAccessRequestApi = {
   name: string;
   researchPurposeStatement: string;
-  datasetRequest: DatasetRequestAPI;
+  datasetRequest: DatasetRequestApi;
 };
 
 export const convertValueSets = (valueSets: { domain: string; values: DatasetBuilderValue[] }[]) => {
   return _.map(
-    (valueSet) => ({ id: 0, name: valueSet.domain, values: _.map(({ name }) => name, valueSets.values) }),
+    (valueSet) => ({ name: valueSet.domain, values: _.map(({ name }) => name, valueSets.values) }),
     valueSets
   );
 };
@@ -176,7 +176,7 @@ type DatasetParticipantCountRequest = {
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetModel>;
   getConcepts: (parent: Concept) => Promise<GetConceptsResponse>;
-  requestAccess: (datasetId: string, request: DatasetAccessRequest) => Promise<DatasetAccessRequestAPI>;
+  requestAccess: (datasetId: string, request: DatasetAccessRequest) => Promise<DatasetAccessRequestApi>;
   getParticipantCount: (request: DatasetParticipantCountRequest) => Promise<number>;
 }
 
@@ -247,7 +247,7 @@ export const DatasetBuilder = (): DatasetBuilderContract => ({
   },
   getConcepts: (parent: Concept) => Promise.resolve(getDummyConcepts(parent)),
   requestAccess: async (datasetId, _request) => {
-    return await Ajax().DataRepo.dataset(datasetId).createDatasetRequest(convertDatasetAccessRequest(_request));
+    return await Ajax().DataRepo.dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(_request));
   },
   getParticipantCount: (_request) => Promise.resolve(100),
 });
