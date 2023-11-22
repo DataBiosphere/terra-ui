@@ -2,7 +2,6 @@ const { withUser } = require('../utils/integration-helpers');
 const {
   fillIn,
   findText,
-  button,
   click,
   clickable,
   input,
@@ -48,7 +47,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await click(page, clickable({ textContains: 'Read Terra Platform Terms of Service here' }));
   await waitForModal(page);
   await waitForNoSpinners(page);
-  await click(page, button({ text: 'OK' }));
+  await click(page, clickable({ text: 'OK' }));
   await waitForNoModal(page);
   await click(page, checkbox({ textContains: 'By checking this box, you are agreeing to the Terra Terms of Service' }));
 

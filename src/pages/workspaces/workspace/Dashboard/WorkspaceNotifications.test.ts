@@ -25,7 +25,7 @@ describe('WorkspaceNotifications', () => {
     },
   };
 
-  afterEach(() => {
+  beforeEach(() => {
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -34,6 +34,9 @@ describe('WorkspaceNotifications', () => {
           } as Partial<AjaxContract['TermsOfService']>,
         } as Partial<AjaxContract> as AjaxContract)
     );
+  });
+
+  afterEach(() => {
     act(() => authStore.reset());
     jest.resetAllMocks();
   });
@@ -60,14 +63,6 @@ describe('WorkspaceNotifications', () => {
       expectedState: false,
     },
   ])('renders checkbox with submission notifications status', ({ profile, expectedState }) => {
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          TermsOfService: {
-            getUserTermsOfServiceDetails: jest.fn().mockResolvedValue({}),
-          } as Partial<AjaxContract['TermsOfService']>,
-        } as Partial<AjaxContract> as AjaxContract)
-    );
     // @ts-expect-error
     act(() => authStore.update((state) => ({ ...state, profile })));
 

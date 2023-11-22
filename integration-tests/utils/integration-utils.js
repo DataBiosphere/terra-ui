@@ -66,11 +66,6 @@ const checkbox = ({ text, textContains, isDescendant = false }) => {
   return getClickablePath(base, text, textContains, isDescendant);
 };
 
-const button = ({ text, textContains, isDescendant = false }) => {
-  const base = '(//button | //*[@role="button"])';
-  return getClickablePath(base, text, textContains, isDescendant);
-};
-
 const getTableCellPath = (tableName, row, column) => {
   return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`;
 };
@@ -576,7 +571,6 @@ module.exports = {
   assertNavChildNotFound,
   assertTextNotFound,
   assertRowHas,
-  button,
   checkbox,
   click,
   clickable,
