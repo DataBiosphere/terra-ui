@@ -126,45 +126,43 @@ export type DatasetAccessRequestApi = {
   datasetRequest: DatasetRequestApi;
 };
 
-export const convertValueSets = (valueSets: { domain: string; values: DatasetBuilderValue[] }[]) => {
-  return _.map(
-    (valueSet) => ({ name: valueSet.domain, values: _.map(({ name }) => name, valueSets.values) }),
-    valueSets
-  );
+export const convertValueSet = (valueSet: ValueSet): ValueSetApi => {
+  return {
+    name: valueSet.domain,
+    values: _.map('name', valueSet.values),
+  };
 };
 
-export const convertCohorts = (cohorts: Cohort[]) => {
-  return _.map(
-    (cohort) => ({
-      name: cohort.name,
-      criteriaGroups: _.map(
-        (criteriaGroup) => ({
-          name: criteriaGroup.name,
-          mustMeet: criteriaGroup.mustMeet,
-          meetAll: criteriaGroup.meetAll,
-          count: criteriaGroup.count,
-          criteria: _.map((criteria) => convertCriteria(criteria), criteriaGroup.criteria),
-        }),
-        cohort.criteriaGroups
-      ),
-    }),
-    cohorts
-  );
+export const convertCohort = (cohort: Cohort): CohortApi => {
+  return {
+    name: cohort.name,
+    criteriaGroups: _.map(
+      (criteriaGroup) => ({
+        name: criteriaGroup.name,
+        mustMeet: criteriaGroup.mustMeet,
+        meetAll: criteriaGroup.meetAll,
+        count: criteriaGroup.count,
+        criteria: _.map((criteria) => convertCriteria(criteria), criteriaGroup.criteria),
+      }),
+      cohort.criteriaGroups
+    ),
+  };
 };
 
-export const convertCriteria = (criteria: AnyCriteria) => {
-  if (criteria.kind === 'range') {
-    return { kind: criteria.kind, name: criteria.name, id: criteria.id, low: criteria.low, high: criteria.high };
+export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
+  const mergeObject = { kind: criteria.kind, name: criteria.name, id: criteria.id };
+  switch (criteria.kind) {
+    case 'range':
+      return <ProgramDataRangeCriteriaApi>_.merge(mergeObject, { low: criteria.low, high: criteria.high });
+    case 'list':
+      return <ProgramDataListCriteriaApi>_.merge(mergeObject, {
+        values: _.map((value) => value.id, criteria.values),
+      });
+    case 'domain':
+      return <DomainCriteriaApi>mergeObject;
+    default:
+      throw new Error('Criteria not of type range, list, or domain.');
   }
-  if (criteria.kind === 'list') {
-    return {
-      kind: criteria.kind,
-      name: criteria.name,
-      id: criteria.id,
-      values: _.map((value) => value.id, criteria.values),
-    };
-  }
-  return { kind: criteria.kind, name: criteria.name, id: criteria.id };
 };
 
 export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessRequest) => {
@@ -172,9 +170,9 @@ export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessR
     name: datasetAccessRequest.name,
     researchPurposeStatement: datasetAccessRequest.researchPurposeStatement,
     datasetRequest: {
-      cohorts: convertCohorts(datasetAccessRequest.datasetRequest.cohorts),
+      cohorts: _.map(convertCohort, datasetAccessRequest.datasetRequest.cohorts),
       conceptSets: datasetAccessRequest.datasetRequest.conceptSets,
-      valueSets: convertValueSets(datasetAccessRequest.datasetRequest.valueSets),
+      valueSets: _.map(convertValueSet, datasetAccessRequest.datasetRequest.valueSets),
     },
   };
 };
