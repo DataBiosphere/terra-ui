@@ -44,7 +44,7 @@ export interface GetDiskItem {
   diskType: GoogleDiskType;
   blockSize: number;
   labels: LeoResourceLabels;
-  formattedBy?: string;
+  formattedBy: string | null;
 }
 
 export interface ListDiskItem {
