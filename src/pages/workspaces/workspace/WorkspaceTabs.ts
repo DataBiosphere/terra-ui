@@ -3,9 +3,9 @@ import { Dispatch, ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { analysisTabName } from 'src/analysis/runtime-common-components';
 import { TabBar } from 'src/components/tabBars';
+import { isProtectedWorkspace } from 'src/import-data/protected-data-utils';
 import * as Nav from 'src/libs/nav';
 import {
-  hasProtectedData,
   isAzureWorkspace,
   isGoogleWorkspace,
   isOwner,
@@ -68,7 +68,7 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
         h(WorkspaceAttributeNotice, {
           accessLevel: workspace.accessLevel,
           isLocked,
-          workspaceProtectedMessage: hasProtectedData(workspace) ? protectedDataMessage : undefined,
+          workspaceProtectedMessage: isProtectedWorkspace(workspace) ? protectedDataMessage : undefined,
           workspaceRegionConstraintMessage: regionConstraintMessage(workspace),
         }),
       h(WorkspaceMenu, {
