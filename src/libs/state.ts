@@ -11,7 +11,63 @@ import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 
-export type TerraUser = {
+export type TerraUserRegistrationStatus =
+  // User is logged in through B2C but has not registered in Terra.
+  | 'unregistered'
+  // User has registered in Terra but has not accepted the terms of service.
+  | 'registeredWithoutTos'
+  // User has registered in Terra and accepted the terms of service.
+  | 'registered'
+  // User's account has been disabled.
+  | 'disabled'
+  // Registration status has not yet been determined.
+  | 'uninitialized';
+
+export interface TermsOfServiceStatus {
+  permitsSystemUsage: boolean | undefined;
+  userHasAcceptedLatestTos: boolean | undefined;
+}
+
+export interface NihStatus {
+  linkedNihUsername: string;
+  linkExpireTime: number;
+  datasetPermissions: NihDatasetPermission[];
+}
+
+export type Initializable<T> = T | 'uninitialized';
+
+export type SignInStatus = Initializable<'signedIn' | 'signedOut'>;
+
+export interface FenceStatus {
+  [key: string]: BondFenceStatusResponse;
+}
+
+export interface AuthState {
+  cookiesAccepted: boolean | undefined;
+  fenceStatus: FenceStatus;
+  hasGcpBillingScopeThroughB2C: boolean | undefined;
+  signInStatus: SignInStatus;
+  isTimeoutEnabled?: boolean | undefined;
+  nihStatus?: NihStatus;
+  nihStatusLoaded: boolean;
+  registrationStatus: TerraUserRegistrationStatus;
+  termsOfService: TermsOfServiceStatus;
+}
+
+export const authStore: Atom<AuthState> = atom<AuthState>({
+  cookiesAccepted: undefined,
+  fenceStatus: {},
+  hasGcpBillingScopeThroughB2C: false,
+  signInStatus: 'uninitialized',
+  nihStatusLoaded: false,
+  registrationStatus: 'uninitialized',
+  termsOfService: {
+    permitsSystemUsage: undefined,
+    userHasAcceptedLatestTos: undefined,
+  },
+});
+
+export interface TerraUser {
   token?: string | undefined;
   scope?: string | undefined;
   id?: string | undefined;
@@ -21,9 +77,9 @@ export type TerraUser = {
   familyName?: string | undefined;
   imageUrl?: string | undefined;
   idp?: string | undefined;
-};
+}
 
-export type TerraUserProfile = {
+export interface TerraUserProfile {
   // TODO: anonymousGroup is here from getProfile from orch
   // TODO: for future ticket, separate items updated via register/profile (personal info)
   //  from things that are updated via api/profile/preferences (starred workspaces, notification settings)
@@ -39,69 +95,12 @@ export type TerraUserProfile = {
   programLocationCountry?: string;
   researchArea?: string;
   starredWorkspaces?: string;
-};
-
-export type TerraUserRegistrationStatus =
-  // User is logged in through B2C but has not registered in Terra.
-  | 'unregistered'
-  // User has registered in Terra but has not accepted the terms of service.
-  | 'registeredWithoutTos'
-  // User has registered in Terra and accepted the terms of service.
-  | 'registered'
-  // User's account has been disabled.
-  | 'disabled'
-  // Registration status has not yet been determined.
-  | 'uninitialized';
-
-export type TermsOfServiceStatus = {
-  permitsSystemUsage: boolean | undefined;
-  userHasAcceptedLatestTos: boolean | undefined;
-};
-
-export type TokenMetadata = {
-  token: string | undefined; // do not log or send this to mixpanel
-  id: string | undefined;
-  createdAt: number;
-  expiresAt: number;
-  totalTokensUsedThisSession: number;
-  totalTokenLoadAttemptsThisSession: number;
-};
-
-export type NihStatus = {
-  linkedNihUsername: string;
-  linkExpireTime: number;
-  datasetPermissions: NihDatasetPermission[];
-};
-
-export type Initializable<T> = T | 'uninitialized';
-
-export type SignInStatus = Initializable<'signedIn' | 'signedOut'>;
-
-export type AuthState = {
-  anonymousId: string | undefined;
-  authTokenMetadata: TokenMetadata;
-  cookiesAccepted: boolean | undefined;
-  fenceStatus: FenceStatus;
-  hasGcpBillingScopeThroughB2C: boolean | undefined;
-  signInStatus: SignInStatus;
-  isTimeoutEnabled?: boolean | undefined;
-  nihStatus?: NihStatus;
-  nihStatusLoaded: boolean;
-  refreshTokenMetadata: TokenMetadata;
-  registrationStatus: TerraUserRegistrationStatus;
-  sessionId?: string | undefined;
-  sessionStartTime: number;
-  termsOfService: TermsOfServiceStatus;
-  terraUserAttributes: SamUserAttributes;
-};
-
-export type FenceStatus = {
-  [key: string]: BondFenceStatusResponse;
-};
+}
 
 export interface TerraUserState {
   profile: TerraUserProfile;
   terraUser: TerraUser;
+  terraUserAttributes: SamUserAttributes;
 }
 
 export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
@@ -129,9 +128,31 @@ export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
     imageUrl: undefined,
     idp: undefined,
   },
+  terraUserAttributes: {
+    marketingConsent: true,
+  },
 });
 
-export const authStore: Atom<AuthState> = atom<AuthState>({
+export const getTerraUser = (): TerraUser => userStore.get().terraUser;
+
+export interface TokenMetadata {
+  token: string | undefined; // do not log or send this to mixpanel
+  id: string | undefined;
+  createdAt: number;
+  expiresAt: number;
+  totalTokensUsedThisSession: number;
+  totalTokenLoadAttemptsThisSession: number;
+}
+
+export interface MetricState {
+  anonymousId: string | undefined;
+  authTokenMetadata: TokenMetadata;
+  refreshTokenMetadata: TokenMetadata;
+  sessionId?: string | undefined;
+  sessionStartTime: number;
+}
+
+export const metricStore: Atom<MetricState> = atom<MetricState>({
   anonymousId: undefined,
   authTokenMetadata: {
     token: undefined,
@@ -141,12 +162,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     totalTokenLoadAttemptsThisSession: 0,
     totalTokensUsedThisSession: 0,
   },
-  cookiesAccepted: undefined,
-  fenceStatus: {},
-  hasGcpBillingScopeThroughB2C: false,
-  signInStatus: 'uninitialized',
-  nihStatusLoaded: false,
-
   refreshTokenMetadata: {
     token: undefined,
     id: undefined,
@@ -155,29 +170,19 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     totalTokenLoadAttemptsThisSession: 0,
     totalTokensUsedThisSession: 0,
   },
-  registrationStatus: 'uninitialized',
   sessionId: undefined,
   sessionStartTime: -1,
-  termsOfService: {
-    permitsSystemUsage: undefined,
-    userHasAcceptedLatestTos: undefined,
-  },
-  terraUserAttributes: {
-    marketingConsent: true,
-  },
 });
 
-export const getTerraUser = (): TerraUser => userStore.get().terraUser;
+export const getSessionId = () => metricStore.get().sessionId;
 
-export const getSessionId = () => authStore.get().sessionId;
-
-export type OidcState = {
+export interface OidcState {
   authContext: AuthContextProps | undefined;
   authTokenState: AuthTokenState | undefined;
   user: OidcUser | undefined;
   userManager: UserManager | undefined;
   config: OidcConfig;
-};
+}
 
 export const oidcStore: Atom<OidcState> = atom<OidcState>({
   authContext: undefined,

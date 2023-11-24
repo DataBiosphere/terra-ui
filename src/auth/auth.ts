@@ -30,6 +30,8 @@ import {
   azurePreviewStore,
   cookieReadyStore,
   getTerraUser,
+  MetricState,
+  metricStore,
   oidcStore,
   requesterPaysProjectStore,
   TerraUserProfile,
@@ -77,17 +79,17 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
     [DEFAULT, () => Events.user.signOut.unspecified]
   );
   const sessionEndTime: number = Date.now();
-  const authStoreState: AuthState = authStore.get();
-  const tokenMetadata: TokenMetadata = authStoreState.authTokenMetadata;
+  const metricStoreState: MetricState = metricStore.get();
+  const tokenMetadata: TokenMetadata = metricStoreState.authTokenMetadata;
 
   await Ajax().Metrics.captureEvent(eventToFire, {
     sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
     sessionDurationInSeconds:
-      authStoreState.sessionStartTime < 0 ? undefined : (sessionEndTime - authStoreState.sessionStartTime) / 1000.0,
+      metricStoreState.sessionStartTime < 0 ? undefined : (sessionEndTime - metricStoreState.sessionStartTime) / 1000.0,
     authTokenCreatedAt: getTimestampMetricLabel(tokenMetadata.createdAt),
     authTokenExpiresAt: getTimestampMetricLabel(tokenMetadata.expiresAt),
-    totalAuthTokensUsedThisSession: authStoreState.authTokenMetadata.totalTokensUsedThisSession,
-    totalAuthTokenLoadAttemptsThisSession: authStoreState.authTokenMetadata.totalTokenLoadAttemptsThisSession,
+    totalAuthTokensUsedThisSession: metricStoreState.authTokenMetadata.totalTokensUsedThisSession,
+    totalAuthTokenLoadAttemptsThisSession: metricStoreState.authTokenMetadata.totalTokenLoadAttemptsThisSession,
   });
 };
 
@@ -113,11 +115,8 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   revokeTokens();
 
   const cookiesAccepted: boolean | undefined = authStore.get().cookiesAccepted;
-  const anonymousId: string | undefined = authStore.get().anonymousId;
-  authStore.reset();
   authStore.update((state) => ({
     ...state,
-    anonymousId,
     signInStatus: 'signedOut',
     // TODO: If allowed, this should be moved to the cookie store
     // Load whether a user has input a cookie acceptance in a previous session on this system,
@@ -127,6 +126,12 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   oidcStore.update((state) => ({
     ...state,
     user: undefined,
+  }));
+  const anonymousId: string | undefined = metricStore.get().anonymousId;
+  metricStore.reset();
+  metricStore.update((state) => ({
+    ...state,
+    anonymousId,
   }));
 };
 
@@ -181,15 +186,15 @@ export type AuthTokenState = AuthTokenSuccessState | AuthTokenExpiredState | Aut
 export const loadAuthToken = async (
   args: OidcSignInArgs = { includeBillingScope: false, popUp: false }
 ): Promise<AuthTokenState> => {
-  const oldAuthTokenMetadata: TokenMetadata = authStore.get().authTokenMetadata;
-  const oldRefreshTokenMetadata: TokenMetadata = authStore.get().refreshTokenMetadata;
+  const oldAuthTokenMetadata: TokenMetadata = metricStore.get().authTokenMetadata;
+  const oldRefreshTokenMetadata: TokenMetadata = metricStore.get().refreshTokenMetadata;
 
   // for metrics, updates number of authToken load attempts for this session
-  authStore.update((state) => ({
+  metricStore.update((state) => ({
     ...state,
     authTokenMetadata: {
       ...oldAuthTokenMetadata,
-      totalTokenLoadAttemptsThisSession: authStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
+      totalTokenLoadAttemptsThisSession: metricStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
     },
   }));
 
@@ -215,32 +220,33 @@ export const loadAuthToken = async (
     const isNewRefreshToken = !!refreshToken && refreshToken !== oldRefreshTokenMetadata.token;
 
     // for metrics, updates authToken metadata and refresh token metadata
-    authStore.update((state) => ({
+    metricStore.update((state) => ({
       ...state,
       authTokenMetadata: {
-        ...authStore.get().authTokenMetadata,
+        ...metricStore.get().authTokenMetadata,
         token: oidcUser.access_token,
         createdAt: authTokenCreatedAt,
         expiresAt: authTokenExpiresAt,
         id: authTokenId,
         totalTokensUsedThisSession:
           oldAuthTokenMetadata.token !== undefined &&
-          oldAuthTokenMetadata.token === authStore.get().authTokenMetadata.token
+          oldAuthTokenMetadata.token === metricStore.get().authTokenMetadata.token
             ? oldAuthTokenMetadata.totalTokensUsedThisSession
             : oldAuthTokenMetadata.totalTokensUsedThisSession + 1,
       },
       refreshTokenMetadata: isNewRefreshToken
         ? {
-            ...authStore.get().refreshTokenMetadata,
+            ...metricStore.get().refreshTokenMetadata,
             id: uuid(),
             token: refreshToken,
             createdAt: authTokenCreatedAt,
             // Auth token expiration is set to 24 hours in B2C configuration.
             expiresAt: authTokenCreatedAt + 86400, // 24 hours in seconds
-            totalTokensUsedThisSession: authStore.get().authTokenMetadata.totalTokensUsedThisSession + 1,
-            totalTokenLoadAttemptsThisSession: authStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
+            totalTokensUsedThisSession: metricStore.get().authTokenMetadata.totalTokensUsedThisSession + 1,
+            totalTokenLoadAttemptsThisSession:
+              metricStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
           }
-        : { ...authStore.get().refreshTokenMetadata },
+        : { ...metricStore.get().refreshTokenMetadata },
     }));
     Ajax().Metrics.captureEvent(Events.user.authToken.load.success, {
       authProvider: oidcUser.profile.idp,
@@ -248,25 +254,25 @@ export const loadAuthToken = async (
       authTokenCreatedAt: getTimestampMetricLabel(authTokenCreatedAt),
       authTokenExpiresAt: getTimestampMetricLabel(authTokenExpiresAt),
       authTokenId,
-      refreshTokenId: authStore.get().refreshTokenMetadata.id,
-      refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
+      refreshTokenId: metricStore.get().refreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(metricStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(metricStore.get().refreshTokenMetadata.expiresAt),
       jwtExpiresAt: getTimestampMetricLabel(jwtExpiresAt),
     });
   } else if (loadedAuthTokenState.status === 'expired') {
     Ajax().Metrics.captureEvent(Events.user.authToken.load.expired, {
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
-      refreshTokenId: authStore.get().refreshTokenMetadata.id,
-      refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
+      refreshTokenId: metricStore.get().refreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(metricStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(metricStore.get().refreshTokenMetadata.expiresAt),
     });
   } else {
     Ajax().Metrics.captureEvent(Events.user.authToken.load.error, {
       // we could potentially log the reason, but I don't know if that data is safe to log
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
-      refreshTokenId: authStore.get().refreshTokenMetadata.id,
-      refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
+      refreshTokenId: metricStore.get().refreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(metricStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(metricStore.get().refreshTokenMetadata.expiresAt),
     });
   }
   return loadedAuthTokenState;
@@ -592,7 +598,7 @@ export const refreshTerraProfile = async () => {
 export const refreshSamUserAttributes = async (): Promise<void> => {
   const terraUserAttributes: SamUserAttributes = await Ajax().User.getUserAttributes();
 
-  authStore.update((state: AuthState) => ({ ...state, terraUserAttributes }));
+  userStore.update((state: TerraUserState) => ({ ...state, terraUserAttributes }));
 };
 
 authStore.subscribe(
@@ -631,8 +637,9 @@ authStore.subscribe(
 authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (becameRegistered(oldState, state)) {
-      if (state.anonymousId) {
-        return await Ajax().Metrics.identify(state.anonymousId);
+      const { anonymousId } = metricStore.get();
+      if (anonymousId) {
+        return await Ajax().Metrics.identify(anonymousId);
       }
     }
   })
