@@ -24,7 +24,7 @@ import { FormLabel } from 'src/libs/forms';
 import { topBarLogo } from 'src/libs/logos';
 import * as Nav from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
-import { authStore, contactUsActive } from 'src/libs/state';
+import { authStore, contactUsActive, userStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
@@ -178,6 +178,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
   const [openFirecloudModal, setOpenFirecloudModal] = useState(false);
 
   const authState = useStore(authStore);
+  const userState = useStore(userStore);
 
   const showNav = () => {
     setNavShown(true);
@@ -196,10 +197,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
   };
 
   const buildNav = (transitionState) => {
+    const { signInStatus } = authState;
     const {
-      signInStatus,
       profile: { firstName = 'Loading...', lastName = '' },
-    } = authState;
+    } = userState;
 
     return h(
       FocusTrap,
@@ -629,7 +630,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               openFirecloudModal &&
                 h(PreferFirecloudModal, {
                   onDismiss: () => setOpenFirecloudModal(false),
-                  authState,
                 }),
             ]
           ),

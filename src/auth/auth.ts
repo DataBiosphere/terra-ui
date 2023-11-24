@@ -34,7 +34,9 @@ import {
   requesterPaysProjectStore,
   TerraUserProfile,
   TerraUserRegistrationStatus,
+  TerraUserState,
   TokenMetadata,
+  userStore,
   workspacesStore,
   workspaceStore,
 } from 'src/libs/state';
@@ -576,7 +578,7 @@ authStore.subscribe(
 
 export const refreshTerraProfile = async () => {
   const profile: TerraUserProfile = await Ajax().User.profile.get();
-  authStore.update((state: AuthState) => ({ ...state, profile }));
+  userStore.update((state: TerraUserState) => ({ ...state, profile }));
 };
 
 export const refreshSamUserAttributes = async (): Promise<void> => {

@@ -87,7 +87,6 @@ export type AuthState = {
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: NihStatus;
   nihStatusLoaded: boolean;
-  profile: TerraUserProfile;
   refreshTokenMetadata: TokenMetadata;
   registrationStatus: TerraUserRegistrationStatus;
   sessionId?: string | undefined;
@@ -100,6 +99,26 @@ export type AuthState = {
 export type FenceStatus = {
   [key: string]: BondFenceStatusResponse;
 };
+
+export interface TerraUserState {
+  profile: TerraUserProfile;
+}
+
+export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
+  profile: {
+    firstName: undefined,
+    lastName: undefined,
+    contactEmail: undefined,
+    title: undefined,
+    institute: undefined,
+    department: undefined,
+    programLocationCity: undefined,
+    programLocationState: undefined,
+    programLocationCountry: undefined,
+    interestInTerra: undefined,
+    starredWorkspaces: undefined,
+  },
+});
 
 export const authStore: Atom<AuthState> = atom<AuthState>({
   anonymousId: undefined,
@@ -116,19 +135,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
   nihStatusLoaded: false,
-  profile: {
-    firstName: undefined,
-    lastName: undefined,
-    contactEmail: undefined,
-    title: undefined,
-    institute: undefined,
-    department: undefined,
-    programLocationCity: undefined,
-    programLocationState: undefined,
-    programLocationCountry: undefined,
-    interestInTerra: undefined,
-    starredWorkspaces: undefined,
-  },
+
   refreshTokenMetadata: {
     token: undefined,
     id: undefined,

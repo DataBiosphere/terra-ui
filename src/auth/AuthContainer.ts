@@ -1,4 +1,3 @@
-import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { isAzureUser } from 'src/auth/auth';
@@ -15,7 +14,7 @@ import { Register } from 'src/registration/Register';
 
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute();
-  const { signInStatus, registrationStatus, termsOfService, profile } = useStore(authStore);
+  const { signInStatus, registrationStatus, termsOfService } = useStore(authStore);
   const displayTosPage = signInStatus === 'signedIn' && termsOfService.permitsSystemUsage === false;
   const seenAzurePreview = useStore(azurePreviewStore) || false;
   const authspinner = () => fixedSpinnerOverlay;
@@ -28,7 +27,6 @@ const AuthContainer = ({ children }) => {
     [registrationStatus === 'unregistered', () => h(Register)],
     [displayTosPage && name !== 'privacy', () => h(TermsOfService)],
     [registrationStatus === 'disabled', () => h(Disabled)],
-    [_.isEmpty(profile) && !isPublic, authspinner],
     () => children
   );
 };
