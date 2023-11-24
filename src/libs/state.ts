@@ -92,7 +92,6 @@ export type AuthState = {
   sessionId?: string | undefined;
   sessionStartTime: number;
   termsOfService: TermsOfServiceStatus;
-  terraUser: TerraUser;
   terraUserAttributes: SamUserAttributes;
 };
 
@@ -102,6 +101,7 @@ export type FenceStatus = {
 
 export interface TerraUserState {
   profile: TerraUserProfile;
+  terraUser: TerraUser;
 }
 
 export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
@@ -117,6 +117,17 @@ export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
     programLocationCountry: undefined,
     interestInTerra: undefined,
     starredWorkspaces: undefined,
+  },
+  terraUser: {
+    token: undefined,
+    scope: undefined,
+    id: undefined,
+    email: undefined,
+    name: undefined,
+    givenName: undefined,
+    familyName: undefined,
+    imageUrl: undefined,
+    idp: undefined,
   },
 });
 
@@ -151,23 +162,12 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     permitsSystemUsage: undefined,
     userHasAcceptedLatestTos: undefined,
   },
-  terraUser: {
-    token: undefined,
-    scope: undefined,
-    id: undefined,
-    email: undefined,
-    name: undefined,
-    givenName: undefined,
-    familyName: undefined,
-    imageUrl: undefined,
-    idp: undefined,
-  },
   terraUserAttributes: {
     marketingConsent: true,
   },
 });
 
-export const getTerraUser = (): TerraUser => authStore.get().terraUser;
+export const getTerraUser = (): TerraUser => userStore.get().terraUser;
 
 export const getSessionId = () => authStore.get().sessionId;
 

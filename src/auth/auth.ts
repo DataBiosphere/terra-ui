@@ -390,7 +390,11 @@ export const isAzureUser = (): boolean => {
 
 export const loadOidcUser = (user: OidcUser): void => {
   oidcStore.update((state) => ({ ...state, user }));
-  authStore.update((state) => {
+  const tokenClaims: B2cIdTokenClaims = user.profile;
+  // according to IdTokenClaims, this is a mandatory claim and should always exist
+  // should be googleSubjectId or b2cId depending on how they authenticated
+  const userId: string = tokenClaims.sub;
+  authStore.update((state: AuthState) => {
     const tokenClaims: B2cIdTokenClaims = user.profile;
     // according to IdTokenClaims, this is a mandatory claim and should always exist
     // should be googleSubjectId or b2cId depending on how they authenticated
@@ -401,19 +405,22 @@ export const loadOidcUser = (user: OidcUser): void => {
       // Load whether a user has input a cookie acceptance in a previous session on this system,
       // or whether they input cookie acceptance previously in this session
       cookiesAccepted: state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey),
-      terraUser: {
-        token: user.access_token,
-        scope: user.scope,
-        id: userId,
-        email: tokenClaims.email,
-        name: tokenClaims.name,
-        givenName: tokenClaims.given_name,
-        familyName: tokenClaims.family_name,
-        imageUrl: tokenClaims.picture,
-        idp: tokenClaims.idp,
-      },
     };
   });
+  userStore.update((state) => ({
+    ...state,
+    terraUser: {
+      token: user.access_token,
+      scope: user.scope,
+      id: userId,
+      email: tokenClaims.email,
+      name: tokenClaims.name,
+      givenName: tokenClaims.given_name,
+      familyName: tokenClaims.family_name,
+      imageUrl: tokenClaims.picture,
+      idp: tokenClaims.idp,
+    },
+  }));
 };
 
 // this function is only called when the browser refreshes
@@ -464,24 +471,25 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
       access_token: token,
     } as unknown as OidcUser,
   }));
-  authStore.update((state) => {
-    return {
-      ...state,
-      signInStatus: 'signedIn',
-      registrationStatus: 'uninitialized',
-      isTimeoutEnabled: undefined,
-      cookiesAccepted: true,
-      terraUser: {
-        token,
-        id: data.sub,
-        email: data.email,
-        name: data.name,
-        givenName: data.given_name,
-        familyName: data.family_name,
-        imageUrl: data.picture,
-      },
-    };
-  });
+  authStore.update((state) => ({
+    ...state,
+    signInStatus: 'signedIn',
+    registrationStatus: 'uninitialized',
+    isTimeoutEnabled: undefined,
+    cookiesAccepted: true,
+  }));
+  userStore.update((state) => ({
+    ...state,
+    terraUser: {
+      token,
+      id: data.sub,
+      email: data.email,
+      name: data.name,
+      givenName: data.given_name,
+      familyName: data.family_name,
+      imageUrl: data.picture,
+    },
+  }));
 });
 
 authStore.subscribe(
@@ -548,7 +556,7 @@ authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
-        window.Appcues.identify(state.terraUser.id, {
+        window.Appcues.identify(userStore.get().terraUser.id, {
           dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime(),
         });
         window.Appcues.on('all', captureAppcuesEvent);
