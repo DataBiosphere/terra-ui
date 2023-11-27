@@ -2,8 +2,8 @@ import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ComponentPropsWithRef, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
 import { br, div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
+import AnalysisNotificationManager from 'src/analysis/AnalysisNotificationManager';
 import { ContextBar } from 'src/analysis/ContextBar';
-import RuntimeManager from 'src/analysis/RuntimeManager';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
@@ -160,7 +160,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
             div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools']),
           ]
         ),
-      h(RuntimeManager, { namespace, name, runtimes, apps }),
+      h(AnalysisNotificationManager, { namespace, name, runtimes, apps }),
     ]),
     h(WorkspaceTabs, {
       namespace,

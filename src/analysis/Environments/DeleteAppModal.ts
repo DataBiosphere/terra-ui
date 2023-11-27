@@ -5,7 +5,7 @@ import { SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-components';
 import { appTools } from 'src/analysis/utils/tool-utils';
 import { LabeledCheckbox, spinnerOverlay } from 'src/components/common';
 import Modal from 'src/components/Modal';
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { withErrorReportingInModal } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
@@ -13,7 +13,7 @@ import * as Utils from 'src/libs/utils';
 export type DeleteAppProvider = Pick<LeoAppProvider, 'delete'>;
 
 export interface DeleteAppModalProps {
-  app: ListAppResponse;
+  app: ListAppItem;
   onDismiss: () => void;
   onSuccess: () => void;
   deleteProvider: DeleteAppProvider;

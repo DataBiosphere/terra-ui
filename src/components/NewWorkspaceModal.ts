@@ -22,7 +22,7 @@ import { isProtectedWorkspace } from 'src/import-data/protected-data-utils';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { reportErrorAndRethrow, withErrorReportingInModal } from 'src/libs/error';
@@ -212,7 +212,7 @@ const NewWorkspaceModal = withDisplayName(
           // Wait for the WDS app to be running.
           const wds = await Utils.poll(
             async () => {
-              const workspaceApps: ListAppResponse[] = await Ajax().Apps.listAppsV2(createdWorkspace.workspaceId);
+              const workspaceApps: ListAppItem[] = await Ajax().Apps.listAppsV2(createdWorkspace.workspaceId);
               const wdsApp = resolveWdsApp(workspaceApps);
               if (wdsApp?.status === 'RUNNING') {
                 return { shouldContinue: false, result: wdsApp };

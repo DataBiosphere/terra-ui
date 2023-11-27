@@ -4,7 +4,7 @@
  */
 
 import { ensureAuthSettled } from 'src/auth/auth';
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { AjaxOverride, ajaxOverridesStore, getTerraUser } from 'src/libs/state';
 
 type FetchFn = typeof fetch;
@@ -103,7 +103,7 @@ export const overrideAppsWithLocalWDS = async (workspaceId?: string) => {
   const ajaxOverrides: AjaxOverride[] = [
     {
       filter: { url: new RegExp(`/apps/v2/${workspaceId}`) },
-      fn: mapJsonBody((apps: ListAppResponse[]): ListAppResponse[] => {
+      fn: mapJsonBody((apps: ListAppItem[]): ListAppItem[] => {
         return apps.map((app) => {
           if (app.appType === 'WDS') {
             return {

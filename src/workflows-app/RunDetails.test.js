@@ -147,7 +147,7 @@ describe('BaseRunDetails - render smoke test', () => {
     screen.getByText('Troubleshooting?');
     screen.getByText(runDetailsProps.workflowId);
     screen.getByText(runDetailsProps.submissionId);
-    screen.getByText('Execution Log');
+    screen.getByText('Workflow Execution Log');
   });
 
   it('has copy buttons', async () => {
@@ -283,13 +283,20 @@ describe('BaseRunDetails - render smoke test', () => {
     screen.getByText('Messages');
   });
 
-  it('opens the log viewer modal when Execution Logs is clicked', async () => {
+  it('opens the log viewer modal when Workflow Execution Logs is clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const executionLogButton = screen.getByText('Execution Log');
+    const executionLogButton = screen.getByText('Workflow Execution Log');
     await user.click(executionLogButton);
     screen.getByText('workflow.log');
     screen.getByText('this is the text of a mock file');
+
+    // Make sure the info box only include execution log info
+    const logInfoBox = screen.getByLabelText('More info');
+    await user.click(logInfoBox);
+    screen.getByText('Each workflow has a single execution log', { exact: false });
+    expect(screen.queryByText('Task logs are from user-defined commands', { exact: false })).toBeNull;
+    expect(screen.queryByText('Backend logs are from the Azure Cloud compute job', { exact: false })).toBeNull;
   });
 
   it('opens the log viewer modal when Logs is clicked', async () => {
@@ -299,6 +306,13 @@ describe('BaseRunDetails - render smoke test', () => {
     const logsLink = within(table).getAllByText('Logs');
     await user.click(logsLink[0]);
     screen.getByText('Task Standard Out');
+
+    // Make sure the info box only includes task and and backend log info
+    const logInfoBox = screen.getByLabelText('More info');
+    await user.click(logInfoBox);
+    expect(screen.queryByText('Each workflow has a single execution log', { exact: false })).toBeNull;
+    screen.getByText('Task logs are from user-defined commands', { exact: false });
+    screen.getByText('Backend logs are from the Azure Cloud compute job', { exact: false });
   });
 
   it('shows a static error message on LogViewer if log cannot be retrieved', async () => {
