@@ -153,13 +153,13 @@ export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
   const mergeObject = { kind: criteria.kind, name: criteria.name, id: criteria.id };
   switch (criteria.kind) {
     case 'range':
-      return <ProgramDataRangeCriteriaApi>_.merge(mergeObject, { low: criteria.low, high: criteria.high });
+      return _.merge(mergeObject, { low: criteria.low, high: criteria.high }) as ProgramDataRangeCriteriaApi;
     case 'list':
-      return <ProgramDataListCriteriaApi>_.merge(mergeObject, {
+      return _.merge(mergeObject, {
         values: _.map((value) => value.id, criteria.values),
-      });
+      }) as ProgramDataListCriteriaApi;
     case 'domain':
-      return <DomainCriteriaApi>mergeObject;
+      return mergeObject as DomainCriteriaApi;
     default:
       throw new Error('Criteria not of type range, list, or domain.');
   }
