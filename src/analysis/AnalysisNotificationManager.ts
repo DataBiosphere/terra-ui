@@ -4,8 +4,7 @@
 import { isToday } from 'date-fns';
 import { isAfter } from 'date-fns/fp';
 import _ from 'lodash/fp';
-import PropTypes from 'prop-types';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, PropsWithChildren, useEffect, useState } from 'react';
 import { div, h, p } from 'react-hyperscript-helpers';
 import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
 import { appLauncherTabName, GalaxyLaunchButton, GalaxyWarning } from 'src/analysis/runtime-common-components';
@@ -16,6 +15,8 @@ import { appTools, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common';
 import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { getDynamic, getSessionStorage, setDynamic } from 'src/libs/browser-storage';
 import colors from 'src/libs/colors';
@@ -27,7 +28,7 @@ import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
-  const [error, setError] = useState();
+  const [error, setError] = useState('');
   const [userscriptError, setUserscriptError] = useState(false);
   const [loadingRuntimeDetails, setLoadingRuntimeDetails] = useState(false);
 
@@ -42,12 +43,21 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), runtimeErrors)) {
       setError(
         await Ajax()
-          .Buckets.getObjectPreview(runtime.googleProject, runtime.asyncRuntimeFields.stagingBucket, 'userscript_output.txt', true)
+          .Buckets.getObjectPreview(
+            runtime.googleProject,
+            runtime.asyncRuntimeFields.stagingBucket,
+            'userscript_output.txt',
+            true
+          )
           .then((res) => res.text())
       );
       setUserscriptError(true);
     } else {
-      setError(runtimeErrors && runtimeErrors.length > 0 ? runtimeErrors[0].errorMessage : 'An unknown error has occurred with the runtime');
+      setError(
+        runtimeErrors && runtimeErrors.length > 0
+          ? runtimeErrors[0].errorMessage
+          : 'An unknown error has occurred with the runtime'
+      );
     }
   });
 
@@ -63,7 +73,18 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
       onDismiss,
     },
     [
-      div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.light() } }, [error]),
+      div(
+        {
+          style: {
+            whiteSpace: 'pre-wrap',
+            overflowWrap: 'break-word',
+            overflowY: 'auto',
+            maxHeight: 500,
+            background: colors.light(),
+          },
+        },
+        [error]
+      ),
       loadingRuntimeDetails && spinnerOverlay,
     ]
   );
@@ -120,30 +141,43 @@ const AppErrorNotification = ({ app }) => {
   ]);
 };
 
-function RuntimeManager({ namespace, name, runtimes, apps }) {
-  const prevRuntimes = usePrevious(runtimes);
-  const prevApps = usePrevious(apps);
+interface AnalysisNotificationManagerProps extends PropsWithChildren {
+  namespace: string;
+  name: string;
+  runtimes: Runtime[];
+  apps: App[];
+}
+
+export const AnalysisNotificationManager = (props: AnalysisNotificationManagerProps) => {
+  const { namespace, name, runtimes, apps } = props;
+  const prevRuntimes: Runtime[] = usePrevious(runtimes) || [];
+  const prevApps: App[] = usePrevious(apps) || [];
 
   useEffect(() => {
-    const runtime = getCurrentRuntime(runtimes) || {};
-    const prevRuntime = _.last(_.sortBy('auditInfo.createdDate', _.remove({ status: 'Deleting' }, prevRuntimes))) || {};
+    const runtime: Runtime | undefined = getCurrentRuntime(runtimes);
+    const prevRuntime: Runtime | undefined = _.last(
+      _.sortBy('auditInfo.createdDate', _.remove({ status: 'Deleting' }, prevRuntimes))
+    );
     const twoMonthsAgo = _.tap((d) => d.setMonth(d.getMonth() - 2), new Date());
     const welderCutOff = new Date('2019-08-01');
-    const createdDate = new Date(runtime?.createdDate);
+    const createdDate = runtime ? new Date(runtime.auditInfo.createdDate) : new Date();
     const dateNotified = getDynamic(getSessionStorage(), `notifiedOutdatedRuntime${runtime?.id}`) || {};
     const rStudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' });
     const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps);
-    const prevGalaxyApp = getCurrentApp(appTools.GALAXY.label, prevApps);
+    const prevGalaxyApp = getCurrentApp(appTools.GALAXY.label, prevApps || []);
 
-    if (runtime.status === 'Error' && prevRuntime.status !== 'Error' && !_.includes(runtime.id, errorNotifiedRuntimes.get())) {
+    if (
+      runtime?.status === 'Error' &&
+      prevRuntime?.status !== 'Error' &&
+      !_.includes(runtime.id, errorNotifiedRuntimes.get())
+    ) {
       notify('error', 'Error Creating Cloud Environment', {
         message: h(RuntimeErrorNotification, { runtime }),
       });
       errorNotifiedRuntimes.update(Utils.append(runtime.id));
     } else if (
       runtime?.status === 'Running' &&
-      prevRuntime?.status &&
-      prevRuntime.status !== 'Running' &&
+      prevRuntime?.status !== 'Running' &&
       runtime?.labels?.tool === runtimeToolLabels.RStudio &&
       window.location.hash !== rStudioLaunchLink
     ) {
@@ -154,27 +188,29 @@ function RuntimeManager({ namespace, name, runtimes, apps }) {
             href: rStudioLaunchLink,
             onClick: () => clearNotification(rStudioNotificationId),
           },
-          'Open RStudio'
+          ['Open RStudio']
         ),
       });
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) {
       // TODO: remove this notification some time after the data syncing release
-      setDynamic(getSessionStorage(), `notifiedOutdatedRuntime${runtime.id}`, Date.now());
+      setDynamic(getSessionStorage(), `notifiedOutdatedRuntime${runtime?.id}`, Date.now());
       notify('warn', 'Please Update Your Cloud Environment', {
         message: h(Fragment, [
           p([
             'Last year, we introduced important updates to Terra that are not compatible with the older cloud environment associated with this workspace. You are no longer able to save new changes to notebooks using this older cloud environment.',
           ]),
-          h(Link, { 'aria-label': 'Welder cutoff link', href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.']),
+          h(Link, { 'aria-label': 'Welder cutoff link', href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, [
+            'Read here for more details.',
+          ]),
         ]),
       });
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {
-      setDynamic(getSessionStorage(), `notifiedOutdatedRuntime${runtime.id}`, Date.now());
+      setDynamic(getSessionStorage(), `notifiedOutdatedRuntime${runtime?.id}`, Date.now());
       notify('warn', 'Outdated Cloud Environment', {
         message:
           'Your cloud environment is over two months old. Please consider deleting and recreating your cloud environment in order to access the latest features and security updates.',
       });
-    } else if (runtime.status === 'Running' && prevRuntime.status === 'Updating') {
+    } else if (runtime?.status === 'Running' && prevRuntime?.status === 'Updating') {
       notify('success', 'Number of workers has updated successfully.');
     }
     if (prevGalaxyApp && prevGalaxyApp.status !== 'RUNNING' && galaxyApp?.status === 'RUNNING') {
@@ -195,14 +231,7 @@ function RuntimeManager({ namespace, name, runtimes, apps }) {
     }
   }, [runtimes, apps, namespace, name]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return null;
-}
-
-RuntimeManager.propTypes = {
-  namespace: PropTypes.string.isRequired,
-  name: PropTypes.string.isRequired,
-  runtimes: PropTypes.array,
-  apps: PropTypes.array,
+  return h(Fragment);
 };
 
-export default RuntimeManager;
+export default AnalysisNotificationManager;

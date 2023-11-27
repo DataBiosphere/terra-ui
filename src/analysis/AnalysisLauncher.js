@@ -481,7 +481,7 @@ const PreviewHeader = ({
 
         [currentRuntimeToolLabel !== currentFileToolLabel, () => createNewRuntimeOpenButton],
         // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
-        // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the RuntimeManager to prompt user the app is ready to launch
+        // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the AnalysisNotificationManager to prompt user the app is ready to launch
         // Then open can be clicked again
         [
           currentFileToolLabel === runtimeToolLabels.RStudio && _.includes(runtimeStatus, ['Running', null]),

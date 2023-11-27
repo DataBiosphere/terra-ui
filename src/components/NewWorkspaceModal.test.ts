@@ -4,7 +4,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { goToPath } from 'src/libs/nav';
 import { AzureWorkspace, AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { AzureBillingProject, CloudPlatform, GCPBillingProject } from 'src/pages/billing/models/BillingProject';
@@ -887,7 +887,7 @@ describe('NewWorkspaceModal', () => {
       };
       const createWorkspace = jest.fn().mockResolvedValue(newWorkspace);
 
-      const wdsApp: ListAppResponse = {
+      const wdsApp: ListAppItem = {
         workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
         cloudContext: {
           cloudProvider: 'AZURE',
@@ -1018,7 +1018,7 @@ describe('NewWorkspaceModal', () => {
       };
       const createWorkspace = jest.fn().mockResolvedValue(newWorkspace);
 
-      const wdsApp: ListAppResponse = {
+      const wdsApp: ListAppItem = {
         workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
         cloudContext: {
           cloudProvider: 'AZURE',
