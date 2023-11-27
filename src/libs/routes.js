@@ -23,7 +23,9 @@ import * as Datasets from 'src/pages/library/Datasets';
 import * as DataExplorer from 'src/pages/library/datasets/DataExplorer';
 import * as Showcase from 'src/pages/library/Showcase';
 import * as NotFound from 'src/pages/NotFound';
+import * as PrivacyPolicy from 'src/pages/PrivacyPolicy';
 import * as Profile from 'src/pages/ProfilePage';
+import * as TermsOfService from 'src/pages/TermsOfService';
 import * as UploadData from 'src/pages/UploadDataPage';
 import * as WorkflowsList from 'src/pages/workflows/List';
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails';
@@ -36,8 +38,6 @@ import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/Su
 import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard';
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows';
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView';
-import * as PrivacyPolicy from 'src/registration/privacy-policy/PrivacyPolicy';
-import * as TermsOfService from 'src/registration/terms-of-service/TermsOfServicePage';
 import * as WorkflowsApp from 'src/workflows-app/routes';
 import * as Data from 'src/workspace-data/Data';
 

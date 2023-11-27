@@ -9,7 +9,7 @@ import { useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 
 const getNewTermsOfServiceNeedsAcceptingAlert = async (termsOfServiceState) => {
-  const shouldNotify = !termsOfServiceState.isCurrentVersion && termsOfServiceState.permitsSystemUsage;
+  const shouldNotify = !termsOfServiceState.userHasAcceptedLatestTos && termsOfServiceState.permitsSystemUsage;
   if (!shouldNotify) {
     return null;
   }
