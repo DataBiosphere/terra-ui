@@ -147,7 +147,7 @@ export const WorkspaceData = (signal) => ({
       await res.json()
     );
   },
-  getJobStatus: async (root: string, jobId: string): Promise<any> => {
+  getJobStatus: async (root: string, jobId: string): Promise<WDSJob> => {
     const res = await fetchWDS(root)(`job/v1/${jobId}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
