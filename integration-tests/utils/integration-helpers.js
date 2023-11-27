@@ -133,11 +133,35 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
   }
 });
 
+/* TODO
+const deleteWorkspaceInUi = async ({ page, testUrl, token, workspaceName }) => {
+  await gotoPage(page, testUrl);
+  await findText(page, 'View Workspaces');
+  await viewWorkspaceDashboard(page, token, workspaceName, { isSignedIn: true });
+  await findText(page, clickable({ textContains: 'Delete' }));
+  await noSpinnersAfter(page, {
+    action: () => click(page, clickable({ textContains: 'Delete' })),
+    timeout: Millis.ofMinute,
+    debugMessage: 'deleteWorkspaceInUi - opened delete',
+  });
+  await findText(page, "Please type 'Delete Workspace' to continue:");
+  await fillIn(page, input({ placeholder: 'Delete Workspace' }), 'Delete Workspace');
+  await noSpinnersAfter(page, {
+    action: () => click(page, clickable({ textContains: 'Delete Workspace' })),
+    timeout: Millis.ofMinutes(2),
+    debugMessage: 'deleteWorkspaceInUi - submitted delete',
+  });
+};
+*/
+
 const deleteWorkspaceV2AsUser = async ({ page, billingProject, workspaceName }) => {
   try {
     const isAppsEmpty = await deleteAppsV2({ page, billingProject, workspaceName });
     const isRuntimesEmpty = await deleteRuntimesV2({ page, billingProject, workspaceName });
     if (isAppsEmpty && isRuntimesEmpty) {
+      // TODO [IA-4337] fix disk delete as part of runtime delete
+      // Once that's done, should not need to wait
+      await delay(Millis.ofMinutes(3));
       await page.evaluate(
         async (name, billingProject) => {
           await window.Ajax().Workspaces.workspaceV2(billingProject, name).delete();
@@ -146,7 +170,7 @@ const deleteWorkspaceV2AsUser = async ({ page, billingProject, workspaceName }) 
         billingProject
       );
     } else {
-      throw new Error(`Failed to delete workspace ${workspaceName} with billing project: ${billingProject}: unable to delete child resource`);
+      throw new Error(`Cannot attempt to delete workspace ${workspaceName} with billing project: ${billingProject}: unable to delete child resource`);
     }
     console.info(`Deleted workspace: ${workspaceName}`);
   } catch (e) {
@@ -235,7 +259,6 @@ const deleteAppsV2 = async ({ page, billingProject, workspaceName }) => {
     const apps = await window.Ajax().Apps.listAppsV2(workspaceId);
     return apps;
   }, workspaceId);
-  console.log('deletableApps', deletableApps);
   const deletedApps = await Promise.all(
     deletableApps.map(async (app) => {
       const isAppDeleted = await fullyDeleteApp(page, app);
@@ -286,43 +309,26 @@ const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
     billingProject,
     workspaceName
   );
-  const deletableRuntimesAndDisks = await page.evaluate(async (workspaceId) => {
-    const runtimes = await window.Ajax().Runtimes.listV2WithWorkspace(workspaceId, { role: 'creator' });
-    const disks = await window.Ajax().Disks.disksV1().list();
-    const disksById = _.groupBy(({ id }) => id, disks);
-    return runtimes.map((runtime) => ({
-      runtime,
-      disk: disksById[runtime.runtimeConfig.persistentDiskId]?.at(0),
-    }));
+  const deletableRuntimes = await page.evaluate(async (workspaceId) => {
+    return await window.Ajax().Runtimes.listV2WithWorkspace(workspaceId, { role: 'creator' });
   }, workspaceId);
-  const deletedRuntimesAndDisks = await Promise.all(
-    deletableRuntimesAndDisks.map(async ({ runtime, disk }) => {
+  const deletedRuntimes = await Promise.all(
+    deletableRuntimes.map(async (runtime) => {
       const isRuntimeDeleted = await fullyDeleteRuntime(page, runtime);
-      const isDiskDeleted = await fullyDeleteDisk(page, disk);
       return {
-        runtime: {
-          name: runtime.runtimeName,
-          isDeleted: isRuntimeDeleted,
-        },
-        disk: {
-          name: disk?.diskName,
-          isDeleted: isDiskDeleted,
-        },
+        name: runtime.runtimeName,
+        isDeleted: isRuntimeDeleted,
       };
     })
   );
-  const deletedRuntimesAndDisksLog = deletedRuntimesAndDisks.map(async ({ runtime, disk }) => {
-    const runtimeLog = runtime.isDeleted ? runtime.name : `FAILED:${runtime.name}`;
-    const diskLog = disk.isDeleted ? disk.name : `FAILED:${disk.name}`;
-    return `${runtimeLog} (${diskLog})`;
-  });
-  console.info(`deleted v2 runtimes (and disks): ${deletedRuntimesAndDisksLog}`);
-  return deletedRuntimesAndDisks.every(({ runtime, disk }) => runtime.isDeleted && disk.isDeleted);
+  const deletedRuntimesLog = deletedRuntimes.map(async ({ name, isDeleted }) => (isDeleted ? name : `FAILED:${name}`));
+  console.info(`deleted v2 runtimes (and disks): ${deletedRuntimesLog}`);
+  return deletedRuntimes.every((runtime) => runtime.isDeleted);
 };
 
 /**
- * Delete a v2 disk, returning `true` when deletion is complete.
- * Will return `false` if disk is not deletable.
+ * Delete a v2 app, returning `true` when deletion is complete.
+ * Will return `false` if app is not deletable.
  */
 const fullyDeleteApp = async (page, app) => {
   const { workspaceId, appName, status } = app;
@@ -347,8 +353,15 @@ const fullyDeleteApp = async (page, app) => {
     await delay(Millis.ofSeconds(10));
     newStatus = await page.evaluate(
       async (workspaceId, appName) => {
-        const appState = window.Ajax().Apps.getAppV2(appName, workspaceId);
-        return appState.status;
+        try {
+          const appState = window.Ajax().Apps.getAppV2(appName, workspaceId);
+          return appState.status;
+        } catch (response) {
+          if (response.status === 404) {
+            return 'Deleted';
+          }
+          throw response;
+        }
       },
       workspaceId,
       appName
@@ -391,15 +404,21 @@ const fullyDeleteDisk = async (page, disk) => {
     await delay(Millis.ofSeconds(10));
     newStatus = await page.evaluate(
       async (cloudContext, diskName) => {
-        const diskV1Api = window.Ajax().Disks.disksV1().disk(cloudContext, diskName);
-        const diskState = await diskV1Api.details();
-        return diskState.status;
+        try {
+          const diskV1Api = window.Ajax().Disks.disksV1().disk(cloudContext, diskName);
+          const diskState = await diskV1Api.details();
+          return diskState.status;
+        } catch (response) {
+          if (response.status === 404) {
+            return 'Deleted';
+          }
+          throw response;
+        }
       },
       cloudContext,
       name
     );
   } while (newStatus === 'Deleting' && count < 18);
-
   if (newStatus === 'Deleted') {
     console.log(`deleted disk: ${name}`);
     return true;
@@ -409,8 +428,8 @@ const fullyDeleteDisk = async (page, disk) => {
 };
 
 /**
- * Delete a v2 runtime, returning `true` when deletion is complete. Does not delete the associated disk.
- * Will return `false` if runtime is not deletable.
+ * Delete a v2 runtime, returning `true` when deletion is complete. Deletes the associated disk.
+ * Will return `false` if runtime or disk is not deletable.
  */
 const fullyDeleteRuntime = async (page, runtime) => {
   const { workspaceId, runtimeName, status } = runtime;
@@ -424,7 +443,7 @@ const fullyDeleteRuntime = async (page, runtime) => {
   await page.evaluate(
     async (workspaceId, runtimeName) => {
       const runtimeApi = window.Ajax().Runtimes.runtimeV2(workspaceId, runtimeName);
-      const willDeleteDisk = false;
+      const willDeleteDisk = true;
       await runtimeApi.delete(willDeleteDisk);
     },
     workspaceId,
@@ -438,15 +457,21 @@ const fullyDeleteRuntime = async (page, runtime) => {
     await delay(Millis.ofSeconds(10));
     newStatus = await page.evaluate(
       async (workspaceId, runtimeName) => {
-        const runtimeApi = window.Ajax().Runtimes.runtimeV2(workspaceId, runtimeName);
-        const runtimeState = await runtimeApi.details();
-        return runtimeState.status;
+        try {
+          const runtimeApi = window.Ajax().Runtimes.runtimeV2(workspaceId, runtimeName);
+          const runtimeState = await runtimeApi.details();
+          return runtimeState.status;
+        } catch (response) {
+          if (response.status === 404) {
+            return 'Deleted';
+          }
+          throw response;
+        }
       },
       workspaceId,
       runtimeName
     );
   } while (newStatus === 'Deleting' && count < 18);
-
   if (newStatus === 'Deleted') {
     console.log(`deleted runtime: ${runtimeName}`);
     return true;
@@ -482,9 +507,11 @@ const clickNavChildAndLoad = async (page, tab) => {
   ]);
 };
 
-const viewWorkspaceDashboard = async (page, token, workspaceName) => {
-  // Sign in to handle unexpected NPS survey popup and "Loading Terra..." spinner
-  await signIntoTerra(page, { token });
+const viewWorkspaceDashboard = async (page, token, workspaceName, { isSignedIn = false } = {}) => {
+  if (!isSignedIn) {
+    // Sign in to handle unexpected NPS survey popup and "Loading Terra..." spinner
+    await signIntoTerra(page, { token });
+  }
   await click(page, clickable({ textContains: 'View Workspaces' }));
   await dismissNotifications(page);
   await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
@@ -496,7 +523,7 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
 const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
   await gotoPage(page, testUrl);
   await findText(page, 'View Workspaces');
-  await viewWorkspaceDashboard(page, token, workspaceName);
+  await viewWorkspaceDashboard(page, token, workspaceName, { isSignedIn: true });
 
   // TODO [https://broadinstitute.slack.com/archives/C03GMG4DUSE/p1699467686195939] resolve NIH link error issues.
   // For now, dismiss error popups in the workspaces context as irrelevant to Analyses tests.
@@ -530,6 +557,8 @@ module.exports = {
   clickNavChildAndLoad,
   createEntityInWorkspace,
   defaultTimeout,
+  deleteAppsV2,
+  fullyDeleteDisk,
   deleteRuntimes,
   deleteRuntimesV2,
   deleteWorkspaceV2,

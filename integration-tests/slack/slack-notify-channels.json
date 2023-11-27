@@ -51,7 +51,7 @@
           "name": "billing-projects"
         },
         {
-          "name": "janitor"
+          "name": "delete-orphaned-workspaces"
         },
         {
           "name": "workspace-dashboard"
