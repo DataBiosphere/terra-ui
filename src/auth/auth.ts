@@ -100,7 +100,7 @@ export const sendAuthTokenDesyncMetric = () => {
   Ajax().Metrics.captureEvent(Events.user.authToken.desync, {});
 };
 
-export const signOut = (cause: SignOutCause = 'unspecified'): void => {
+export const signOut = async (cause: SignOutCause = 'unspecified') => {
   sendSignOutMetrics(cause);
   if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
     notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
@@ -108,9 +108,9 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 
   azurePreviewStore.set(false);
 
-  cookieProvider.invalidateCookies();
+  await cookieProvider.invalidateCookies();
   getSessionStorage().clear();
-  revokeTokens();
+  await revokeTokens();
 
   const { cookiesAccepted } = authStore.get();
 
