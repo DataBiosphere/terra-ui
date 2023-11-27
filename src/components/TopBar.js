@@ -647,7 +647,7 @@ const PreferFirecloudModal = ({ onDismiss }) => {
 
   const {
     profile: { email, firstName, lastName },
-  } = useStore(authStore);
+  } = useStore(userStore);
   const currUrl = window.location.href;
 
   const returnToLegacyFC = _.flow(
