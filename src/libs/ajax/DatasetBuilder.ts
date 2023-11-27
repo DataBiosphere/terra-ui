@@ -12,46 +12,81 @@ import {
 } from 'src/libs/ajax/DataRepo';
 
 /** A specific criteria based on a type. */
-export interface Criteria extends CriteriaApi {
+export interface Criteria {
   count?: number;
 }
+
+/** API types represent the data of UI types in the format expected by the backend.
+ * They are generally subsets or mappings of the UI types. */
+
 export interface CriteriaApi {
   kind: 'domain' | 'range' | 'list';
   name: string;
   id: number;
 }
-export interface DomainCriteriaApi extends Criteria {
+export interface DomainCriteriaApi extends CriteriaApi {
   kind: 'domain';
 }
 
-export interface DomainCriteria extends DomainCriteriaApi {
-  domainOption: DomainOption;
-}
-
-export interface ProgramDataRangeCriteriaApi extends Criteria {
+export interface ProgramDataRangeCriteriaApi extends CriteriaApi {
   kind: 'range';
   low: number;
   high: number;
 }
 
-export interface ProgramDataRangeCriteria extends ProgramDataRangeCriteriaApi {
+export interface ProgramDataListCriteriaApi extends CriteriaApi {
+  kind: 'list';
+  values: number[];
+}
+
+export type AnyCriteriaApi = DomainCriteriaApi | ProgramDataRangeCriteriaApi | ProgramDataListCriteriaApi;
+
+export interface CriteriaGroupApi {
+  name: string;
+  criteria: AnyCriteriaApi[];
+  mustMeet: boolean;
+  meetAll: boolean;
+  count: number;
+}
+
+export interface CohortApi extends DatasetBuilderType {
+  criteriaGroups: CriteriaGroupApi[];
+}
+
+export type ValueSetApi = {
+  name: string;
+  values: string[];
+};
+
+export type DatasetRequestApi = {
+  cohorts: CohortApi[];
+  conceptSets: ConceptSet[];
+  valueSets: ValueSetApi[];
+};
+
+export type DatasetAccessRequestApi = {
+  name: string;
+  researchPurposeStatement: string;
+  datasetRequest: DatasetRequestApi;
+};
+
+/** Below are the UI types */
+
+export interface DomainCriteria extends DomainCriteriaApi, Criteria {
+  domainOption: DomainOption;
+}
+
+export interface ProgramDataRangeCriteria extends ProgramDataRangeCriteriaApi, Criteria {
   rangeOption: ProgramDataRangeOption;
 }
 
-export interface ProgramDataListCriteria extends Criteria {
+export interface ProgramDataListCriteria extends Criteria, CriteriaApi {
   kind: 'list';
   listOption: ProgramDataListOption;
   values: ProgramDataListValue[];
 }
 
-export interface ProgramDataListCriteriaApi extends Criteria {
-  kind: 'list';
-  values: number[];
-}
-
 export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
-
-export type AnyCriteriaApi = DomainCriteriaApi | ProgramDataRangeCriteriaApi | ProgramDataListCriteriaApi;
 
 /** A group of criteria. */
 export interface CriteriaGroup {
@@ -62,20 +97,8 @@ export interface CriteriaGroup {
   count: number;
 }
 
-export interface CriteriaGroupApi {
-  name: string;
-  criteria: AnyCriteriaApi[];
-  mustMeet: boolean;
-  meetAll: boolean;
-  count: number;
-}
-
 export interface Cohort extends DatasetBuilderType {
   criteriaGroups: CriteriaGroup[];
-}
-
-export interface CohortApi extends DatasetBuilderType {
-  criteriaGroups: CriteriaGroupApi[];
 }
 
 export interface ConceptSet extends DatasetBuilderType {
@@ -93,11 +116,6 @@ export type ValueSet = {
   values: DatasetBuilderValue[];
 };
 
-export type ValueSetApi = {
-  name: string;
-  values: string[];
-};
-
 export interface GetConceptsResponse {
   result: Concept[];
 }
@@ -108,22 +126,10 @@ export type DatasetRequest = {
   valueSets: ValueSet[];
 };
 
-export type DatasetRequestApi = {
-  cohorts: CohortApi[];
-  conceptSets: ConceptSet[];
-  valueSets: ValueSetApi[];
-};
-
 export type DatasetAccessRequest = {
   name: string;
   researchPurposeStatement: string;
   datasetRequest: DatasetRequest;
-};
-
-export type DatasetAccessRequestApi = {
-  name: string;
-  researchPurposeStatement: string;
-  datasetRequest: DatasetRequestApi;
 };
 
 export const convertValueSet = (valueSet: ValueSet): ValueSetApi => {
