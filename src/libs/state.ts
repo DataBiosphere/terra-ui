@@ -237,7 +237,6 @@ export type AzureAsyncImportJob = {
   targetWorkspace: {
     namespace: string;
     name: string;
-    workspace: { workspaceId: string };
   };
   wdsProxyUrl: string;
 };

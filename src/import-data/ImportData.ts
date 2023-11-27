@@ -71,7 +71,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         type: 'PFB',
       });
       const newJob: AzureAsyncImportJob = {
-        targetWorkspace: { namespace, name, workspace: { workspaceId: workspace.workspaceId } },
+        targetWorkspace: { namespace, name },
         jobId,
         wdsProxyUrl: wdsUrl,
       };

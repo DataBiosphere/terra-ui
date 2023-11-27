@@ -54,7 +54,7 @@ function ImportStatusItem(props: ImportStatusItemProps) {
     const fetchImportStatus = async () => {
       try {
         if (wdsProxyUrl) {
-          return await Ajax(signal).WorkspaceData.getJobStatus(wdsProxyUrl as string, jobId);
+          return await Ajax(signal).WorkspaceData.getJobStatus(wdsProxyUrl, jobId);
         }
         return await Ajax(signal).Workspaces.workspace(namespace, name).getImportJobStatus(jobId);
       } catch (error: any) {
