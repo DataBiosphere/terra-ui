@@ -212,6 +212,10 @@ const waitForNoModal = (page, { timeout = 30000 } = {}) => {
   return page.waitForXPath('//*[contains(@class, "ReactModal__Overlay")]', { hidden: true, timeout });
 };
 
+const waitForModal = (page, { timeout = 30000 } = {}) => {
+  return page.waitForXPath('//*[contains(@class, "ReactModal__Overlay")]', { hidden: false, timeout });
+};
+
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
 // the action to ensure that the spinner rendering is captured by the observer, followed by
 // waiting for the spinner to be removed
@@ -598,6 +602,7 @@ module.exports = {
   withScreenshot,
   logPageConsoleMessages,
   noSpinnersAfter,
+  waitForModal,
   waitForNoModal,
   waitForNoSpinners,
   withPageLogging,
