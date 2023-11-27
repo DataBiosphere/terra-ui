@@ -19,14 +19,22 @@ export interface SamUserRegistrationStatusResponse {
   enabled: boolean;
 }
 
-export interface SamUserAllowancesDetails {
-  enabled: boolean;
-  termsOfService: boolean;
+export interface SamUserTosStatusResponse {
+  userInfo: {
+    userSubjectId: string;
+    userEmail: string;
+  };
+  enabled: {
+    ldap: boolean;
+    allUsersGroup: boolean;
+    google: boolean;
+  };
 }
 
-export interface SamUserAllowances {
-  allowed: boolean;
-  details: SamUserAllowancesDetails;
+export interface SamUserTosComplianceStatusResponse {
+  userId: string;
+  userHasAcceptedLatestTos: boolean;
+  permitsSystemUsage: boolean;
 }
 
 export type TerraUserPreferences = {
@@ -173,17 +181,6 @@ export interface RexFirstTimestampResponse {
   timestamp: Date;
 }
 
-export interface SamUserResponse {
-  id: string;
-  googleSubjectId?: string;
-  email: string;
-  azureB2CId?: string;
-  allowed: boolean;
-  createdAt: Date;
-  registeredAt?: Date;
-  updatedAt: Date;
-}
-
 export type SamUserAttributes = {
   marketingConsent: boolean;
 };
@@ -210,11 +207,6 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
-    getUserAllowances: async (): Promise<SamUserAllowances> => {
-      const res = await fetchSam('api/users/v2/self/allowed', _.mergeAll([authOpts(), { signal }]));
-      return res.json();
-    },
-
     getUserAttributes: async (): Promise<SamUserAttributes> => {
       const res = await fetchSam('api/users/v2/self/attributes', _.mergeAll([authOpts(), { signal }]));
       return res.json().then((obj) => {
@@ -231,27 +223,21 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
-    registerWithProfile: async (
-      acceptsTermsOfService: boolean,
-      profile: CreateTerraUserProfileRequest
-    ): Promise<SamUserResponse> => {
-      // call orchestration and convert the response to json
-      const res = await fetchOrchestration(
-        'api/users/v1/registerWithProfile',
-        _.mergeAll([
-          authOpts(),
-          jsonBody({ acceptsTermsOfService, profile: generateAPIBodyForCreateUserProfile(profile) }),
-          { signal, method: 'POST' },
-        ])
-      );
-      return res.json();
-    },
-
     profile: {
       get: async (): Promise<TerraUserProfile> => {
         const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }));
         const rawResponseJson: OrchestrationUserProfileResponse = await res.json();
         return kvArrayToObject(rawResponseJson.keyValuePairs) as TerraUserProfile;
+      },
+
+      // even though both create and update call the same URL, the body of the request will differ depending on
+      // whether we are registering a user vs updating their profile
+      create: async (request: CreateTerraUserProfileRequest): Promise<void> => {
+        const apiBody: OrchestrationUpsertTerraUserProfileRequest = generateAPIBodyForCreateUserProfile(request);
+        return fetchOrchestration(
+          'register/profile',
+          _.mergeAll([authOpts(), jsonBody(apiBody), { signal, method: 'POST' }])
+        );
       },
 
       update: async (request: UpdateTerraUserProfileRequest): Promise<void> => {
@@ -281,6 +267,40 @@ export const User = (signal?: AbortSignal) => {
         _.merge(authOpts(), { signal })
       );
       return res.json();
+    },
+
+    getTos: async (): Promise<string> => {
+      const response = await fetchSam('tos/text', _.merge(authOpts(), { signal }));
+      return response.text();
+    },
+
+    acceptTos: async (): Promise<SamUserTosStatusResponse> => {
+      const response = await fetchSam(
+        'register/user/v1/termsofservice',
+        _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
+      );
+      return response.json();
+    },
+
+    rejectTos: async (): Promise<SamUserTosStatusResponse> => {
+      const response = await fetchSam(
+        'register/user/v1/termsofservice',
+        _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
+      );
+      return response.json();
+    },
+
+    getTermsOfServiceComplianceStatus: async (): Promise<SamUserTosComplianceStatusResponse> => {
+      const res = await fetchSam(
+        'register/user/v2/self/termsOfServiceComplianceStatus',
+        _.merge(authOpts(), { signal })
+      );
+      return res.json();
+    },
+
+    getPrivacyPolicy: async (): Promise<string> => {
+      const response = await fetchSam('privacy/text', _.merge(authOpts(), { signal }));
+      return response.text();
     },
 
     firstTimestamp: (): Promise<RexFirstTimestampResponse> => {

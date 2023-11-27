@@ -8,7 +8,6 @@ import RModal from 'react-modal';
 import { startPollingServiceAlerts } from 'src/alerts/service-alerts-polling';
 import { initializeAuth } from 'src/auth/auth';
 import { initializeClientId } from 'src/auth/oidc-broker';
-import { initializeSystemProperties } from 'src/auth/system-loader';
 import { isAxeEnabled } from 'src/libs/config';
 import { initializeTCell } from 'src/libs/tcell';
 import Main from 'src/pages/Main';
@@ -27,7 +26,6 @@ initializeClientId().then(() => {
   // of the ReactNotifications component. Use setTimeout to allow that to happen before
   // doing anything that may show a notification.
   setTimeout(() => {
-    initializeSystemProperties();
     initializeAuth();
     initializeTCell();
     startPollingServiceAlerts();

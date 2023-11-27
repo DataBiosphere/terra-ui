@@ -23,7 +23,7 @@ jest.mock('react-notifications-component', () => {
 });
 
 const setupMockAjax = (termsOfService) => {
-  const getTermsOfServiceText = jest.fn().mockReturnValue(Promise.resolve('some text'));
+  const getTos = jest.fn().mockReturnValue(Promise.resolve('some text'));
   const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(Promise.resolve(termsOfService));
   const getStatus = jest.fn().mockReturnValue(Promise.resolve({}));
   Ajax.mockImplementation(() => ({
@@ -34,11 +34,9 @@ const setupMockAjax = (termsOfService) => {
       profile: {
         get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
       },
+      getTos,
       getTermsOfServiceComplianceStatus,
       getStatus,
-    },
-    TermsOfService: {
-      getTermsOfServiceText,
     },
     FirecloudBucket: {
       getTosGracePeriodText: jest.fn().mockReturnValue(Promise.resolve('{"text": "Some text"}')),
@@ -57,7 +55,7 @@ const renderAlerts = async (termsOfService) => {
   });
   setupMockAjax(termsOfService);
 
-  const signInStatus = 'authenticated';
+  const signInStatus = 'signedIn';
   await act(async () => {
     authStore.update((state) => ({ ...state, termsOfService, signInStatus }));
   });
@@ -69,7 +67,7 @@ describe('terms-of-service-alerts', () => {
     jest.spyOn(TosAlerts, 'useTermsOfServiceAlerts');
 
     const termsOfService = {
-      isCurrentVersion: false,
+      userHasAcceptedLatestTos: false,
       permitsSystemUsage: true,
     };
 
@@ -87,7 +85,7 @@ describe('terms-of-service-alerts', () => {
     jest.spyOn(TosAlerts, 'useTermsOfServiceAlerts');
 
     const termsOfService = {
-      isCurrentVersion: true,
+      userHasAcceptedLatestTos: true,
       permitsSystemUsage: true,
     };
 
