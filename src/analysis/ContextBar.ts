@@ -42,7 +42,7 @@ import hailLogo from 'src/images/hail-logo.svg';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png';
 import { Ajax } from 'src/libs/ajax';
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import colors from 'src/libs/colors';
@@ -80,7 +80,7 @@ const contextBarStyles: { [label: string]: CSSProperties } = {
 
 export interface ContextBarProps {
   runtimes: Runtime[];
-  apps: ListAppResponse[];
+  apps: ListAppItem[];
   appDataDisks: PersistentDisk[];
   refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
   storageDetails: StorageDetails;
