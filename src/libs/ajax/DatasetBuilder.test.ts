@@ -4,7 +4,7 @@ import {
   ProgramDataRangeOption,
   SnapshotBuilderConcept,
   SnapshotBuilderDomainOption,
-} from 'src/libs/ajax/DataRepo' assert { type: 'json' };
+} from 'src/libs/ajax/DataRepo';
 import {
   AnyCriteria,
   AnyCriteriaApi,
@@ -27,7 +27,7 @@ import {
   ProgramDataRangeCriteriaApi,
   ValueSet,
   ValueSetApi,
-} from 'src/libs/ajax/DatasetBuilder' assert { type: 'json' };
+} from 'src/libs/ajax/DatasetBuilder';
 
 const concept: SnapshotBuilderConcept = {
   id: 0,
@@ -158,19 +158,31 @@ const datasetAccessRequestApi: DatasetAccessRequestApi = {
 };
 
 describe('test conversion of criteria', () => {
-  expect(convertCriteria(domainCriteria)).toBe(domainCriteriaApi);
-  expect(convertCriteria(rangeCriteria)).toBe(rangeCriteriaApi);
-  expect(convertCriteria(listCriteria)).toBe(listCriteriaApi);
+  test('domainCriteria converted to domainCriteriaApi', () => {
+    expect(convertCriteria(domainCriteria)).toStrictEqual(domainCriteriaApi);
+  });
+  test('rangeCriteria converted to rangeCriteriaApi', () => {
+    expect(convertCriteria(rangeCriteria)).toStrictEqual(rangeCriteriaApi);
+  });
+  test('listCriteria converted to listCriteriaApi', () => {
+    expect(convertCriteria(listCriteria)).toStrictEqual(listCriteriaApi);
+  });
 });
 
 describe('test conversion of a cohort', () => {
-  expect(convertCohort(cohort)).toBe(cohortApi);
+  test('cohort converted to cohortApi', () => {
+    expect(convertCohort(cohort)).toStrictEqual(cohortApi);
+  });
 });
 
 describe('test conversion of valueSets', () => {
-  expect(convertValueSet(valueSet)).toBe(valueSetApi);
+  test('valueSet converted to valueSetApi', () => {
+    expect(convertValueSet(valueSet)).toStrictEqual(valueSetApi);
+  });
 });
 
 describe('test conversion of DatasetAccessRequest', () => {
-  expect(convertDatasetAccessRequest(datasetAccessRequest)).toBe(datasetAccessRequestApi);
+  test('datasetAccessRequest converted to datasetAccessRequestApi', () => {
+    expect(convertDatasetAccessRequest(datasetAccessRequest)).toStrictEqual(datasetAccessRequestApi);
+  });
 });
