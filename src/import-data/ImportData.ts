@@ -75,7 +75,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         Utils.append({
           targetWorkspace: { namespace, name, workspace: { cloudPlatform, workspaceId: workspace.workspaceId } },
           jobId,
-          proxyUrl: wdsUrl,
+          wdsProxyUrl: wdsUrl,
         })
       );
       notifyDataImportProgress(jobId);
