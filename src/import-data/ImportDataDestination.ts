@@ -84,6 +84,8 @@ const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
   );
 };
 
+export const selectExistingWorkspacePrompt = 'Start with an existing workspace';
+
 export interface ImportDataDestinationProps {
   importRequest: ImportRequest;
   initialSelectedWorkspaceId: string | undefined;
@@ -204,7 +206,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
 
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
-      h2({ style: styles.title }, ['Start with an existing workspace']),
+      h2({ style: styles.title }, [selectExistingWorkspacePrompt]),
       isProtectedData &&
         div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
           ' You may only import into workspaces that have additional security monitoring enabled.',
@@ -333,7 +335,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             h(ChoiceButton, {
               onClick: () => setMode('existing'),
               iconName: 'fileSearchSolid',
-              title: 'Start with an existing workspace',
+              title: selectExistingWorkspacePrompt,
               detail: 'Select one of your workspaces',
               disabled: !userHasBillingProjects || disableExportIntoExisting,
               tooltip:

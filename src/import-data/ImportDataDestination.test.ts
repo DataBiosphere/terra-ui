@@ -10,7 +10,11 @@ import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportRequest } from './import-types';
 import { canImportIntoWorkspace, ImportOptions } from './import-utils';
-import { ImportDataDestination, ImportDataDestinationProps } from './ImportDataDestination';
+import {
+  ImportDataDestination,
+  ImportDataDestinationProps,
+  selectExistingWorkspacePrompt,
+} from './ImportDataDestination';
 
 type ImportUtilsExports = typeof import('./import-utils');
 jest.mock('./import-utils', (): ImportUtilsExports => {
@@ -106,7 +110,7 @@ describe('ImportDataDestination', () => {
       });
 
       // Act
-      const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
+      const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
       await user.click(existingWorkspace); // select start with existing workspace
 
       // Assert
@@ -159,7 +163,7 @@ describe('ImportDataDestination', () => {
       ],
     });
     // Act
-    const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
+    const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
     await user.click(existingWorkspace); // select start with existing workspace
 
     // Assert
@@ -268,7 +272,7 @@ describe('ImportDataDestination', () => {
       });
 
       // Act
-      const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
+      const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
       await user.click(existingWorkspace); // select start with existing workspace
 
       const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
@@ -333,7 +337,7 @@ describe('ImportDataDestination', () => {
     });
 
     // Act
-    const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
+    const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
     await user.click(existingWorkspace); // select start with existing workspace
 
     // Assert
