@@ -130,10 +130,10 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 };
 
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
-  // Here, we update `isInitialSignIn` to true, so that we can do things when the user first signs in.
+  // Here, we update `userJustSignedIn` to true, so that we can do things when the user first signs in.
   // This is necessary to differentiate signing in vs reloading or opening a new tab.
-  // `isInitialSignIn` is set to false after `doSignInEvents` is called.
-  authStore.update((state) => ({ ...state, isInitialSignIn: true }));
+  // `userJustSignedIn` is set to false after `doSignInEvents` is called.
+  authStore.update((state) => ({ ...state, userJustSignedIn: true }));
   const authTokenState: AuthTokenState = await loadAuthToken({ includeBillingScope, popUp: true });
   if (authTokenState.status === 'success') {
     const sessionId = uuid();
@@ -590,10 +590,10 @@ authStore.subscribe(
   withErrorReporting('Error loading user', async (state: AuthState, oldState: AuthState) => {
     if (isNowSignedIn(oldState, state)) {
       await loadTerraUser();
-      if (state.isInitialSignIn) {
+      if (state.userJustSignedIn) {
         const loadedState = authStore.get();
         doSignInEvents(loadedState);
-        authStore.update((state: AuthState) => ({ ...state, isInitialSignIn: false }));
+        authStore.update((state: AuthState) => ({ ...state, userJustSignedIn: false }));
       }
     }
   })
