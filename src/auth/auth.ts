@@ -130,7 +130,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 };
 
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
-  // Here, we update `userJustSignedIn` to true, so that we can do things when the user first signs in.
+  // Here, we update `userJustSignedIn` to true, so that we that the user became authenticated via the "Sign In" button.
   // This is necessary to differentiate signing in vs reloading or opening a new tab.
   // `userJustSignedIn` is set to false after `doSignInEvents` is called.
   authStore.update((state) => ({ ...state, userJustSignedIn: true }));
