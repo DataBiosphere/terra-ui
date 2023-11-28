@@ -137,7 +137,7 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
 const deleteWorkspaceInUi = async ({ page, testUrl, token, workspaceName }) => {
   await gotoPage(page, testUrl);
   await findText(page, 'View Workspaces');
-  await viewWorkspaceDashboard(page, token, workspaceName, { isSignedIn: true });
+  await viewWorkspaceDashboard(page, token, workspaceName);
   await findText(page, clickable({ textContains: 'Delete' }));
   await noSpinnersAfter(page, {
     action: () => click(page, clickable({ textContains: 'Delete' })),
@@ -515,11 +515,9 @@ const clickNavChildAndLoad = async (page, tab) => {
   ]);
 };
 
-const viewWorkspaceDashboard = async (page, token, workspaceName, { isSignedIn = false } = {}) => {
-  if (!isSignedIn) {
-    // Sign in to handle unexpected NPS survey popup and "Loading Terra..." spinner
-    await signIntoTerra(page, { token });
-  }
+const viewWorkspaceDashboard = async (page, token, workspaceName) => {
+  // Sign in to handle unexpected NPS survey popup and "Loading Terra..." spinner
+  await signIntoTerra(page, { token });
   await click(page, clickable({ textContains: 'View Workspaces' }));
   await dismissNotifications(page);
   await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
@@ -531,7 +529,7 @@ const viewWorkspaceDashboard = async (page, token, workspaceName, { isSignedIn =
 const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
   await gotoPage(page, testUrl);
   await findText(page, 'View Workspaces');
-  await viewWorkspaceDashboard(page, token, workspaceName, { isSignedIn: true });
+  await viewWorkspaceDashboard(page, token, workspaceName);
 
   // TODO [https://broadinstitute.slack.com/archives/C03GMG4DUSE/p1699467686195939] resolve NIH link error issues.
   // For now, dismiss error popups in the workspaces context as irrelevant to Analyses tests.
