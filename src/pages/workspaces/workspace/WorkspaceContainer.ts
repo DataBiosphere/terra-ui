@@ -1,6 +1,6 @@
 import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { ComponentPropsWithRef, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
+import { PropsWithChildren, ReactNode, Ref, useEffect, useRef, useState } from 'react';
 import { br, div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
 import AnalysisNotificationManager from 'src/analysis/AnalysisNotificationManager';
 import { ContextBar } from 'src/analysis/ContextBar';
@@ -258,37 +258,39 @@ const WorkspaceAccessError = () => {
   ]);
 };
 
-interface WrapWorkspaceProps {
+export interface WrapWorkspaceOptions {
   breadcrumbs: (props: { name: string; namespace: string }) => ReactNode[];
   activeTab?: string;
   title: string;
 }
 
-interface WrappedComponentProps extends ComponentPropsWithRef<any> {
+export interface WrappedComponentProps {
+  ref: Ref<{ refresh: () => void }>;
+  namespace: string;
+  name: string;
   workspace: Workspace;
   refreshWorkspace: () => void;
   analysesData: AppDetails & CloudEnvironmentDetails;
   storageDetails: StorageDetails;
 }
 
-type WrappedWorkspaceComponent<T extends WrappedComponentProps> = (props: T) => ReactNode;
+export type WrappedWorkspaceComponent = (props: WrappedComponentProps) => ReactNode;
 
-type WorkspaceWrapperFunction<T extends WrappedComponentProps> = (
-  component: WrappedWorkspaceComponent<T>
-) => WrappedWorkspaceComponent<T>;
+export interface WorkspaceWrapperProps {
+  namespace: string;
+  name: string;
+}
 
 /**
  * wrapWorkspaces contains a component in the WorkspaceContainer
  * and provides the workspace analysesData and storageDetails
  * */
-export const wrapWorkspace = <T extends WrappedComponentProps>(
-  props: WrapWorkspaceProps
-): WorkspaceWrapperFunction<T> => {
-  const { breadcrumbs, activeTab, title } = props;
-  return (WrappedComponent: WrappedWorkspaceComponent<T>): WrappedWorkspaceComponent<T> => {
-    const Wrapper = (props) => {
+export const wrapWorkspace = (opts: WrapWorkspaceOptions) => {
+  const { breadcrumbs, activeTab, title } = opts;
+  return (WrappedComponent: WrappedWorkspaceComponent) => {
+    const Wrapper = (props: WorkspaceWrapperProps): ReactNode => {
       const { namespace, name } = props;
-      const child = useRef<unknown>();
+      const child = useRef<{ refresh: () => void } | null>(null);
 
       const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace } = useWorkspace(
         namespace,

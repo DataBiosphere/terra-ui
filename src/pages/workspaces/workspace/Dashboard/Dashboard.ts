@@ -4,6 +4,7 @@ import _ from 'lodash/fp';
 import {
   CSSProperties,
   ForwardedRef,
+  forwardRef,
   Fragment,
   ReactNode,
   useCallback,
@@ -26,7 +27,7 @@ import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
-import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import { append, formatBytes, newTabLinkProps, withBusyState } from 'src/libs/utils';
@@ -61,7 +62,12 @@ const styles: Record<string, CSSProperties> = {
   },
 };
 
-const DashboardAuthContainer = (props: WorkspaceDashboardProps): ReactNode => {
+interface DashboardAuthContainerProps {
+  namespace: string;
+  name: string;
+}
+
+const DashboardAuthContainer = (props: DashboardAuthContainerProps): ReactNode => {
   const { namespace, name } = props;
   const { signInStatus } = useStore(authStore);
   const [featuredWorkspaces, setFeaturedWorkspaces] = useState<{ name: string; namespace: string }[]>();
@@ -86,25 +92,19 @@ const DashboardAuthContainer = (props: WorkspaceDashboardProps): ReactNode => {
     ],
     [signInStatus === 'signedOut' && isFeaturedWorkspace(), () => h(DashboardPublic, props)],
     [signInStatus === 'signedOut', () => h(SignIn)],
-    () => h(WorkspaceDashboard, props)
+    () => h(WorkspaceDashboardPage, props)
   );
 };
 
 interface WorkspaceDashboardProps {
   namespace: string;
   name: string;
-}
-
-interface WorkspaceDashboardComponentProps extends WorkspaceDashboardProps {
   refreshWorkspace: () => void;
   storageDetails: StorageDetails;
   workspace: Workspace;
 }
 
-const WorkspaceDashboardForwardRefRenderFunction = (
-  props: WorkspaceDashboardComponentProps,
-  ref: ForwardedRef<unknown>
-): ReactNode => {
+const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: ForwardedRef<unknown>): ReactNode => {
   const {
     namespace,
     name,
@@ -490,16 +490,15 @@ const WorkspaceDashboardForwardRefRenderFunction = (
       ),
     ]),
   ]);
-};
+});
 
-const WorkspaceDashboard: (props: WorkspaceDashboardProps) => ReactNode = _.flow(
-  forwardRefWithName('WorkspaceDashboard'),
-  wrapWorkspace({
-    breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
-    activeTab: 'dashboard',
-    title: 'Dashboard',
-  })
-)(WorkspaceDashboardForwardRefRenderFunction);
+WorkspaceDashboard.displayName = 'WorkspaceDashboard';
+
+const WorkspaceDashboardPage = wrapWorkspace({
+  breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
+  activeTab: 'dashboard',
+  title: 'Dashboard',
+})(WorkspaceDashboard);
 
 export const navPaths = [
   {
