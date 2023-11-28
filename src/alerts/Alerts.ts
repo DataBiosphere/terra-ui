@@ -8,8 +8,8 @@ import PopupTrigger from 'src/components/PopupTrigger';
 import colors from 'src/libs/colors';
 import { useLinkExpirationAlerts } from 'src/libs/link-expiration-alerts';
 import { usePrevious } from 'src/libs/react-utils';
-import { useTermsOfServiceAlerts } from 'src/libs/terms-of-service-alerts';
 import * as Utils from 'src/libs/utils';
+import { useTermsOfServiceAlerts } from 'src/registration/terms-of-service/terms-of-service-alerts';
 
 import { Alert as AlertType } from './Alert';
 import { useServiceAlerts } from './service-alerts';
