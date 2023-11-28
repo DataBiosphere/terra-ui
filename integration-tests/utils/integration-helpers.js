@@ -17,6 +17,7 @@ const {
   navOptionNetworkIdle,
   noSpinnersAfter,
   signIntoTerra,
+  waitForFn,
   waitForNoSpinners,
 } = require('./integration-utils');
 const { fetchLyle } = require('./lyle-utils');
@@ -263,14 +264,14 @@ const getWorkspaceId = async ({ page, billingProject, workspaceName }) =>
 
 /** Deletes all v2 apps in a workspace. Returns true if all deletes succeed. */
 const deleteAppsV2 = async ({ page, billingProject, workspaceName }) => {
-  const workspaceId = getWorkspaceId({ page, billingProject, workspaceName });
+  const workspaceId = await getWorkspaceId({ page, billingProject, workspaceName });
   const deletableApps = await page.evaluate(async (workspaceId) => {
     const apps = await window.Ajax().Apps.listAppsV2(workspaceId);
     return apps;
   }, workspaceId);
   const deletedApps = await Promise.all(
     deletableApps.map(async (app) => {
-      const isAppDeleted = await fullyDeleteApp(page, app);
+      const isAppDeleted = await patientlyDeleteApp(page, app);
       return {
         name: app.appName,
         isDeleted: isAppDeleted,
@@ -308,13 +309,13 @@ const deleteRuntimes = async ({ page, billingProject, workspaceName }) => {
 
 /** Deletes all v2 runtimes in a workspace, and their disks. Returns true if all deletes succeed. */
 const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
-  const workspaceId = getWorkspaceId({ page, billingProject, workspaceName });
+  const workspaceId = await getWorkspaceId({ page, billingProject, workspaceName });
   const deletableRuntimes = await page.evaluate(async (workspaceId) => {
     return await window.Ajax().Runtimes.listV2WithWorkspace(workspaceId, { role: 'creator' });
   }, workspaceId);
   const deletedRuntimes = await Promise.all(
     deletableRuntimes.map(async (runtime) => {
-      const isRuntimeDeleted = await fullyDeleteRuntime(page, runtime);
+      const isRuntimeDeleted = await patientlyDeleteRuntime(page, runtime);
       return {
         name: runtime.runtimeName,
         isDeleted: isRuntimeDeleted,
@@ -330,8 +331,7 @@ const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
  * Delete a v2 app, returning `true` when deletion is complete.
  * Will return `false` if app is not deletable.
  */
-const fullyDeleteApp = async (page, app) => {
-  const { workspaceId, appName, status } = app;
+const patientlyDeleteApp = async (page, { workspaceId, appName, status }) => {
   const isDeletable = isResourceDeletable('app', status);
   if (!isDeletable) {
     console.error(`Cannot delete app ${appName} in workspace ${workspaceId} with status ${status}. Try deleting it manually.`);
@@ -346,27 +346,26 @@ const fullyDeleteApp = async (page, app) => {
     appName
   );
 
-  let newStatus = status;
-  let count = 0;
-  do {
-    count++;
-    await delay(Millis.ofSeconds(10));
-    newStatus = await page.evaluate(
-      async (workspaceId, appName) => {
-        try {
-          const appState = window.Ajax().Apps.getAppV2(appName, workspaceId);
-          return appState.status;
-        } catch (response) {
-          if (response.status === 404) {
-            return 'Deleted';
+  const newStatus = await waitForFn({
+    interval: Millis.ofSeconds(10),
+    timeout: Millis.ofMinutes(3),
+    fn: async () =>
+      await page.evaluate(
+        async (workspaceId, appName) => {
+          try {
+            const appState = window.Ajax().Apps.getAppV2(appName, workspaceId);
+            return appState.status !== 'Deleting' && status;
+          } catch (response) {
+            if (response.status === 404) {
+              return 'Deleted';
+            }
+            throw response;
           }
-          throw response;
-        }
-      },
-      workspaceId,
-      appName
-    );
-  } while (newStatus === 'Deleting' && count < 18);
+        },
+        workspaceId,
+        appName
+      ),
+  });
 
   if (newStatus === 'Deleted') {
     console.log(`deleted app: ${appName}`);
@@ -380,8 +379,7 @@ const fullyDeleteApp = async (page, app) => {
  * Delete a v2 runtime, returning `true` when deletion is complete. Deletes the associated disk.
  * Will return `false` if runtime or disk is not deletable.
  */
-const fullyDeleteRuntime = async (page, runtime) => {
-  const { workspaceId, runtimeName, status } = runtime;
+const patientlyDeleteRuntime = async (page, { workspaceId, runtimeName, status }) => {
   // TODO [IA-4337] fix disk delete as part of runtime delete
   const isDeletable = isResourceDeletable('runtime', status);
   if (!isDeletable) {
@@ -399,33 +397,33 @@ const fullyDeleteRuntime = async (page, runtime) => {
     runtimeName
   );
 
-  let newStatus = status;
-  let count = 0;
-  do {
-    count++;
-    await delay(Millis.ofSeconds(10));
-    newStatus = await page.evaluate(
-      async (workspaceId, runtimeName) => {
-        try {
-          const runtimeApi = window.Ajax().Runtimes.runtimeV2(workspaceId, runtimeName);
-          const runtimeState = await runtimeApi.details();
-          return runtimeState.status;
-        } catch (response) {
-          if (response.status === 404) {
-            return 'Deleted';
+  const newStatus = await waitForFn({
+    interval: Millis.ofSeconds(10),
+    timeout: Millis.ofMinutes(3),
+    fn: async () =>
+      await page.evaluate(
+        async (workspaceId, runtimeName) => {
+          try {
+            const runtimeApi = window.Ajax().Runtimes.runtimeV2(workspaceId, runtimeName);
+            const runtimeState = await runtimeApi.details();
+            return runtimeState.status !== 'Deleting' && status;
+          } catch (response) {
+            if (response.status === 404) {
+              return 'Deleted';
+            }
+            throw response;
           }
-          throw response;
-        }
-      },
-      workspaceId,
-      runtimeName
-    );
-  } while (newStatus === 'Deleting' && count < 18);
+        },
+        workspaceId,
+        runtimeName
+      ),
+  });
+
   if (newStatus === 'Deleted') {
     console.log(`deleted runtime: ${runtimeName}`);
     return true;
   }
-  console.log(`delete runtime ${runtimeName} failed: now in ${newStatus}`);
+  console.error(`delete runtime ${runtimeName} failed: now in ${newStatus}`);
   return false;
 };
 
