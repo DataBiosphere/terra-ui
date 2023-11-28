@@ -281,13 +281,21 @@ export interface WorkspaceWrapperProps {
   name: string;
 }
 
+export type WorkspaceWrapperComponent = (props: WorkspaceWrapperProps) => ReactNode;
+
+export type WrapWorkspaceFn = (WrappedComponent: WrappedWorkspaceComponent) => WorkspaceWrapperComponent;
+
 /**
- * wrapWorkspaces contains a component in the WorkspaceContainer
- * and provides the workspace analysesData and storageDetails
- * */
-export const wrapWorkspace = (opts: WrapWorkspaceOptions) => {
+ * Wrap a component in the workspace-specific page UI (the main layout and workspace tabs).
+ *
+ * @returns A {@link https://legacy.reactjs.org/docs/higher-order-components.html higher order component} that
+ * takes a component and wraps it with {@link WorkspaceContainer}. The returned wrapper component accepts a workspace
+ * namespace and name as props. It loads information about the workspace and passes that information, along with
+ * the namespace and name, to the wrapped component.
+ */
+export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
   const { breadcrumbs, activeTab, title } = opts;
-  return (WrappedComponent: WrappedWorkspaceComponent) => {
+  return (WrappedComponent: WrappedWorkspaceComponent): WorkspaceWrapperComponent => {
     const Wrapper = (props: WorkspaceWrapperProps): ReactNode => {
       const { namespace, name } = props;
       const child = useRef<{ refresh: () => void } | null>(null);
