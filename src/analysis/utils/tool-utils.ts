@@ -120,7 +120,8 @@ const JupyterLab: RuntimeTool = {
   defaultImageId: '',
 };
 
-const Galaxy = { label: 'GALAXY' } as const satisfies AppTool;
+// TODO: Reenable pause for Galaxy once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
+const Galaxy = { label: 'GALAXY', isPauseUnsupported: true } as const satisfies AppTool;
 
 const Cromwell = { label: 'CROMWELL', isPauseUnsupported: true } as const satisfies AppTool;
 
