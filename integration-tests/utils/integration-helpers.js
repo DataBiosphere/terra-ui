@@ -163,8 +163,16 @@ const deleteWorkspaceV2AsUser = async ({ page, billingProject, workspaceName }) 
       // Once that's done, should not need to wait
       await delay(Millis.ofMinutes(3));
       await page.evaluate(
-        async (name, billingProject) => {
-          await window.Ajax().Workspaces.workspaceV2(billingProject, name).delete();
+        async (workspaceName, billingProject) => {
+          try {
+            await window.Ajax().Workspaces.workspaceV2(billingProject, workspaceName).delete();
+          } catch (error) {
+            if (error.status === 404) {
+              console.info(`Not found: workspace ${workspaceName} with billing project ${billingProject}. Was it already deleted?`);
+            } else {
+              throw error;
+            }
+          }
         },
         workspaceName,
         billingProject
@@ -172,16 +180,12 @@ const deleteWorkspaceV2AsUser = async ({ page, billingProject, workspaceName }) 
     } else {
       throw new Error(`Cannot attempt to delete workspace ${workspaceName} with billing project: ${billingProject}: unable to delete child resource`);
     }
-    console.info(`Deleted workspace: ${workspaceName}`);
   } catch (e) {
-    if (e.statusCode === 404) {
-      console.info(`Not found: workspace ${workspaceName} with billing project ${billingProject}. Was it already deleted?`);
-    } else {
-      console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`);
-      console.error(e);
-      throw e;
-    }
+    console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`);
+    console.error(e);
+    throw e;
   }
+  console.info(`Deleted workspace: ${workspaceName}`);
 };
 
 const deleteWorkspaceV2 = withSignedInPage(deleteWorkspaceV2AsUser);
