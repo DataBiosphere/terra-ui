@@ -303,7 +303,7 @@ describe('BaseRunDetails - render smoke test', () => {
     screen.getByText('Each workflow has a single execution log', { exact: false });
     expect(screen.queryByText('Task logs are from user-defined commands', { exact: false })).toBeNull;
     expect(screen.queryByText('Backend logs are from the Azure Cloud compute job', { exact: false })).toBeNull;
-    
+
     const closeButton = screen.getByLabelText('Close modal');
     expect(captureEvent).not.toHaveBeenCalled();
     await user.click(closeButton);
