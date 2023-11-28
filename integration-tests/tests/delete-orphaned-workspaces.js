@@ -28,28 +28,40 @@ const runOrphanCleanser = withUserToken(async ({ page, testUrl, token }) => {
   // process was prematurely terminated, but a few also appear in alpha and staging indicating that
   // ci test runs also sometimes leak workspaces.
   const workspaces = await page.evaluate(async () => await window.Ajax().Workspaces.list());
-  const oldWorkspaces = _.filter(({ workspace: { name, createdDate } }) => {
+  const oldWorkspaces = _.filter(({ workspace: { /* namespace, */ name, createdDate } }) => {
     const age = getTimeDifference(new Date(createdDate), new Date());
-    // console.info(`${namespace} ${name}, age ${age} days`)
-    return _.startsWith(testWorkspaceNamePrefix, name) && age > olderThanCount;
+    // console.info(`${namespace} ${name}, age ${age} ${timeUnit}`);
+    return age > olderThanCount && _.startsWith(testWorkspaceNamePrefix, name);
   }, workspaces);
 
   console.log(
     `Attempting to delete ${oldWorkspaces.length} workspaces with prefix "${testWorkspaceNamePrefix}" created more than ${olderThanCount} ${timeUnit} ago.`
   );
   console.log(`${_.filter({ workspace: { cloudPlatform: 'Azure' } }, oldWorkspaces).length} of the old workspaces are Azure workspaces.`);
+
   return Promise.all(
-    _.map(async ({ workspace: { namespace, name, cloudPlatform } }) => {
+    _.map(async ({ workspace: { namespace, name, cloudPlatform, state } }) => {
       try {
+        if (state === 'DeleteFailed') {
+          // Warn before deleting a workspace in a bad state
+          console.warn(`Old workspace ${name} is in state 'DeleteFailed'; delete may not succeed.`);
+        }
         // Unlock the workspace in case it was left in a locked state during a test (locked workspaces can't be deleted).
         await page.evaluate(async (namespace, name) => await window.Ajax().Workspaces.workspace(namespace, name).unlock(), namespace, name);
         await deleteWorkspaceV2AsUser({ page, billingProject: namespace, workspaceName: name });
         console.info(`Triggered delete for old workspace: ${name}`);
+        return { deletedWorkspace: name };
       } catch (e) {
         console.error(`Failed to delete old ${cloudPlatform} workspace: ${name} with billing project ${namespace}`);
+        return { erroredWorkspace: name };
       }
     }, oldWorkspaces)
-  );
+  ).then((results) => {
+    const deletedNames = results.filter(({ deletedWorkspace }) => deletedWorkspace).map(({ deletedWorkspace }) => deletedWorkspace);
+    const failedNames = results.filter(({ erroredWorkspace }) => erroredWorkspace).map(({ erroredWorkspace }) => erroredWorkspace);
+    console.log(`Triggered delete on workspaces: ${deletedNames}`);
+    console.log(`Failed to delete workspaces: ${failedNames}`);
+  });
 });
 
 registerTest({

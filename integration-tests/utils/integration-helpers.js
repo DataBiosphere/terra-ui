@@ -174,9 +174,13 @@ const deleteWorkspaceV2AsUser = async ({ page, billingProject, workspaceName }) 
     }
     console.info(`Deleted workspace: ${workspaceName}`);
   } catch (e) {
-    console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`);
-    console.error(e);
-    throw e;
+    if (e.statusCode === 404) {
+      console.info(`Not found: workspace ${workspaceName} with billing project ${billingProject}. Was it already deleted?`);
+    } else {
+      console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`);
+      console.error(e);
+      throw e;
+    }
   }
 };
 
