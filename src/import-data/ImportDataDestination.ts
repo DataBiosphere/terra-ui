@@ -13,6 +13,7 @@ import {
 } from 'src/components/common';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { WorkspaceSelector } from 'src/components/workspace-utils';
+import { WorkspacePolicies } from 'src/components/WorkspacePolicies';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
@@ -223,6 +224,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
           ]),
       ]),
       importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
+      !!selectedWorkspace && h(WorkspacePolicies, { policies: selectedWorkspace.policies || [] }),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
         h(
