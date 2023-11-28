@@ -2,8 +2,8 @@ import _ from 'lodash/fp';
 import { authOpts, fetchSam } from 'src/libs/ajax/ajax-common';
 
 export interface SamUserTermsOfServiceDetails {
-  latestAcceptedVersion: string;
-  acceptedOn: Date;
+  latestAcceptedVersion?: string;
+  acceptedOn?: Date;
   permitsSystemUsage: boolean;
   isCurrentVersion: boolean;
 }
@@ -37,8 +37,20 @@ export const TermsOfService = (signal?: AbortSignal) => {
       );
     },
     getUserTermsOfServiceDetails: async (): Promise<SamUserTermsOfServiceDetails> => {
-      const res = await fetchSam('api/termsOfService/v1/user/self', _.merge(authOpts(), { signal }));
-      return res.json();
+      try {
+        const res = await fetchSam('api/termsOfService/v1/user/self', _.merge(authOpts(), { signal }));
+        return res.json();
+      } catch (error: unknown) {
+        if (error instanceof Response && error.status === 404) {
+          return {
+            latestAcceptedVersion: undefined,
+            acceptedOn: undefined,
+            permitsSystemUsage: false,
+            isCurrentVersion: false,
+          };
+        }
+        throw error;
+      }
     },
     getTermsOfServiceConfig: async (): Promise<SamTermsOfServiceConfig> => {
       const res = await fetchSam('termsOfService/v1', { signal });
