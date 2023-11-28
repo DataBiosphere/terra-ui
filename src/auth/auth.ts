@@ -130,6 +130,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 };
 
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
+  authStore.update((state) => ({ ...state, isInitialSignIn: true }));
   const authTokenState: AuthTokenState = await loadAuthToken({ includeBillingScope, popUp: true });
   if (authTokenState.status === 'success') {
     const sessionId = uuid();
@@ -540,28 +541,18 @@ export const refreshSamUserAttributes = async (): Promise<void> => {
   authStore.update((state: AuthState) => ({ ...state, terraUserAttributes }));
 };
 
-authStore.subscribe(
-  withErrorReporting('Error getting user Terms of Service status', async (state: AuthState, oldState: AuthState) => {
-    if (userCanNowUseTerra(oldState, state)) {
-      await loadUserTermsOfService();
-    }
-  })
-);
-
-export const loadUserTermsOfService = async (): Promise<void> => {
-  const termsOfService = await Ajax().TermsOfService.getUserTermsOfServiceDetails();
-  authStore.update((state: AuthState) => ({ ...state, termsOfService }));
-};
 export const loadTerraUser = async (): Promise<void> => {
   try {
     const signInStatus = 'userLoaded';
     const getProfile = Ajax().User.profile.get();
     const getAllowances = Ajax().User.getUserAllowances();
     const getAttributes = Ajax().User.getUserAttributes();
-    const [profile, terraUserAllowances, terraUserAttributes] = await Promise.all([
+    const getTermsOfService = Ajax().TermsOfService.getUserTermsOfServiceDetails();
+    const [profile, terraUserAllowances, terraUserAttributes, termsOfService] = await Promise.all([
       getProfile,
       getAllowances,
       getAttributes,
+      getTermsOfService,
     ]);
     clearNotification(sessionTimeoutProps.id);
     authStore.update((state: AuthState) => ({
@@ -570,6 +561,7 @@ export const loadTerraUser = async (): Promise<void> => {
       profile,
       terraUserAllowances,
       terraUserAttributes,
+      termsOfService,
     }));
   } catch (error: unknown) {
     if ((error as Response).status !== 403) {
@@ -582,18 +574,23 @@ export const loadTerraUser = async (): Promise<void> => {
   }
 };
 
+const doSignInEvents = (state: AuthState) => {
+  if (state.termsOfService.isCurrentVersion === false) {
+    // The user could theoretically navigate away from the Terms of Service page during the Rolling Acceptance Window.
+    // This is not a concern, since the user will be denied access to the system once the Rolling Acceptance Window ends.
+    // This is really just a convenience to make sure the user is not disrupted once the Rolling Acceptance Window ends.
+    Nav.goToPath('terms-of-service');
+  }
+};
+
 authStore.subscribe(
   withErrorReporting('Error loading user', async (state: AuthState, oldState: AuthState) => {
     if (isNowSignedIn(oldState, state)) {
       await loadTerraUser();
-      if (
-        state.system.termsOfServiceConfig.inRollingAcceptanceWindow &&
-        state.termsOfService.isCurrentVersion === false
-      ) {
-        // The user could theoretically navigate away from the Terms of Service page during the Rolling Acceptance Window.
-        // This is not a concern, since the user will be denied access to the system once the Rolling Acceptance Window ends.
-        // This is really just a convenience to make sure the user is not disrupted once the Rolling Acceptance Window ends.
-        Nav.goToPath('terms-of-service');
+      if (state.isInitialSignIn) {
+        const loadedState = authStore.get();
+        doSignInEvents(loadedState);
+        authStore.update((state: AuthState) => ({ ...state, isInitialSignIn: false }));
       }
     }
   })
@@ -643,7 +640,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe((state: AuthState, oldState: AuthState) => {
-  if (oldState.signInStatus === 'authenticated' && state.signInStatus !== 'authenticated') {
+  if (oldState.signInStatus === 'userLoaded' && state.signInStatus !== 'userLoaded') {
     workspaceStore.reset();
     workspacesStore.reset();
     asyncImportJobStore.reset();

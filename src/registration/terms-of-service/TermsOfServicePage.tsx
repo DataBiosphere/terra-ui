@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { loadTerraUser, signOut } from 'src/auth/auth';
-import { ButtonPrimary, ButtonSecondary } from 'src/components/common';
+import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common';
 import scienceBackground from 'src/images/science-background.jpg';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
@@ -16,6 +16,7 @@ export const TermsOfServicePage = () => {
   const acceptedLatestTos = termsOfService.isCurrentVersion === true;
   const usageAllowed = terraUserAllowances.details.termsOfService === true;
   const requiredToAcceptTermsOfService = signInStatus === 'userLoaded' && !(acceptedLatestTos && usageAllowed);
+  const showButtons = signInStatus === 'userLoaded' || signInStatus === 'signedOut';
 
   const accept = async () => {
     try {
@@ -42,6 +43,31 @@ export const TermsOfServicePage = () => {
     }
   };
 
+  const backToTerraButton = (
+    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
+      <ButtonPrimary onClick={() => Nav.goToPath('root')} disabled={busy}>
+        Back to Terra
+      </ButtonPrimary>
+    </div>
+  );
+
+  const acceptTosButtons = (
+    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
+      <ButtonSecondary style={{ marginRight: '1rem' }} onClick={reject} disabled={busy}>
+        Decline and Sign Out
+      </ButtonSecondary>
+      <ButtonPrimary onClick={accept} disabled={busy}>
+        Accept
+      </ButtonPrimary>
+    </div>
+  );
+
+  const buttons = showButtons
+    ? requiredToAcceptTermsOfService
+      ? acceptTosButtons
+      : backToTerraButton
+    : spinnerOverlay;
+
   return (
     <div role="main" style={mainStyles}>
       <img src={scienceBackground} alt="" style={{ position: 'fixed', top: 0, left: 0, zIndex: -1 }} />
@@ -55,22 +81,7 @@ export const TermsOfServicePage = () => {
           getRemoteText={() => Ajax().TermsOfService.getTermsOfServiceText()}
           failureMessage="Could not get Terms of Service"
         />
-        {requiredToAcceptTermsOfService ? (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
-            <ButtonSecondary style={{ marginRight: '1rem' }} onClick={reject} disabled={busy}>
-              Decline and Sign Out
-            </ButtonSecondary>
-            <ButtonPrimary onClick={accept} disabled={busy}>
-              Accept
-            </ButtonPrimary>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
-            <ButtonPrimary onClick={() => Nav.goToPath('root')} disabled={busy}>
-              Back to Terra
-            </ButtonPrimary>
-          </div>
-        )}
+        {buttons}
       </div>
     </div>
   );
