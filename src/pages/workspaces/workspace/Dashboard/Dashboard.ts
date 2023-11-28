@@ -114,12 +114,12 @@ const WorkspaceDashboardForwardRefRenderFunction = (
     workspace: {
       accessLevel,
       owners = [],
-      workspace: { authorizationDomain, attributes },
+      workspace: { authorizationDomain },
     },
   } = props;
-
+  const attributes = workspace.workspace.attributes ?? {};
   // attributes.description will be undefined for workspaces where it has never been set
-  const description = _.isString(attributes['description']) ? attributes['description'] : ''; // eslint-disable-line dot-notation
+  const description = _.isString(attributes.description) ? attributes.description : '';
 
   // State
   const [storageCost, setStorageCost] = useState<{ isSuccess: boolean; estimate: string; lastUpdated?: string }>();
