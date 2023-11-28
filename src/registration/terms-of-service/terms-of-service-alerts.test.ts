@@ -1,9 +1,8 @@
 import { act } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { AlertsIndicator } from 'src/alerts/Alerts';
-import { Ajax } from 'src/libs/ajax';
-import { authStore } from 'src/libs/state';
-import * as TosAlerts from 'src/libs/terms-of-service-alerts';
+import { authStore, TermsOfServiceStatus } from 'src/libs/state';
+import * as TosAlerts from 'src/registration/terms-of-service/terms-of-service-alerts';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
@@ -22,40 +21,15 @@ jest.mock('react-notifications-component', () => {
   };
 });
 
-const setupMockAjax = (termsOfService) => {
-  const getTermsOfServiceText = jest.fn().mockReturnValue(Promise.resolve('some text'));
-  const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(Promise.resolve(termsOfService));
-  const getStatus = jest.fn().mockReturnValue(Promise.resolve({}));
-  Ajax.mockImplementation(() => ({
-    Metrics: {
-      captureEvent: jest.fn(),
-    },
-    User: {
-      profile: {
-        get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
-      },
-      getTermsOfServiceComplianceStatus,
-      getStatus,
-    },
-    TermsOfService: {
-      getTermsOfServiceText,
-    },
-    FirecloudBucket: {
-      getTosGracePeriodText: jest.fn().mockReturnValue(Promise.resolve('{"text": "Some text"}')),
-    },
-  }));
-};
-
 afterEach(() => {
   jest.restoreAllMocks();
-  TosAlerts.tosGracePeriodAlertsStore.reset();
+  TosAlerts.tosAlertsStore.reset();
 });
 
-const renderAlerts = async (termsOfService) => {
+const renderAlerts = async (termsOfService: TermsOfServiceStatus) => {
   await act(async () => {
     render(h(AlertsIndicator));
   });
-  setupMockAjax(termsOfService);
 
   const signInStatus = 'authenticated';
   await act(async () => {
@@ -78,8 +52,8 @@ describe('terms-of-service-alerts', () => {
 
     // Assert
     expect(TosAlerts.useTermsOfServiceAlerts).toHaveBeenCalled();
-    expect(TosAlerts.tosGracePeriodAlertsStore.get().length).toEqual(1);
-    expect(TosAlerts.tosGracePeriodAlertsStore.get()[0].id).toEqual('terms-of-service-needs-accepting-grace-period');
+    expect(TosAlerts.tosAlertsStore.get().length).toEqual(1);
+    expect(TosAlerts.tosAlertsStore.get()[0].id).toEqual('new-terms-of-service-alert');
   });
 
   it('does not add a notification when the user does not have a new Terms of Service to accept', async () => {
@@ -96,6 +70,6 @@ describe('terms-of-service-alerts', () => {
 
     // Assert
     expect(TosAlerts.useTermsOfServiceAlerts).toHaveBeenCalled();
-    expect(TosAlerts.tosGracePeriodAlertsStore.get().length).toEqual(0);
+    expect(TosAlerts.tosAlertsStore.get().length).toEqual(0);
   });
 });
