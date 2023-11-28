@@ -147,6 +147,33 @@ describe('NewWorkspaceModal', () => {
     screen.getByText('You need a billing project to create a new workspace.');
   });
 
+  it('shows a message if there are no protected billing projects to use for creating a workspace with additional security monitoring ', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [azureBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          requireEnhancedBucketLogging: true,
+          onSuccess: () => {},
+          onDismiss: () => {},
+        })
+      );
+    });
+
+    // Assert
+    screen.getByText('You do not have access to a billing project that supports additional security monitoring.');
+  });
+
   it('shows a message if there are no billing projects to use for cloning', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(
@@ -239,11 +266,21 @@ describe('NewWorkspaceModal', () => {
   });
 
   it.each([
-    { cloudPlatform: 'AZURE', expectedBillingProjects: ['Azure Billing Project'] },
-    { cloudPlatform: 'GCP', expectedBillingProjects: ['Google Billing Project'] },
-  ] as { cloudPlatform: CloudPlatform; expectedBillingProjects: string[] }[])(
-    'can limit billing projects to one cloud platform',
-    async ({ cloudPlatform, expectedBillingProjects }) => {
+    {
+      cloudPlatform: 'AZURE',
+      expectedBillingProjects: ['Azure Billing Project', 'Protected Azure Billing Project'],
+      requireEnhancedBucketLogging: false,
+    },
+    {
+      cloudPlatform: 'AZURE',
+      expectedBillingProjects: ['Protected Azure Billing Project'],
+      requireEnhancedBucketLogging: true,
+    },
+    { cloudPlatform: 'GCP', expectedBillingProjects: ['Google Billing Project'], requireEnhancedBucketLogging: false },
+    { cloudPlatform: 'GCP', expectedBillingProjects: ['Google Billing Project'], requireEnhancedBucketLogging: true },
+  ] as { cloudPlatform: CloudPlatform; expectedBillingProjects: string[]; requireEnhancedBucketLogging: boolean }[])(
+    'can limit billing projects to $cloudPlatform with requireEnhancedBucketLogging=$requireEnhancedBucketLogging',
+    async ({ cloudPlatform, expectedBillingProjects, requireEnhancedBucketLogging }) => {
       // Arrange
       const user = userEvent.setup();
 
@@ -251,7 +288,7 @@ describe('NewWorkspaceModal', () => {
         () =>
           ({
             Billing: {
-              listProjects: async () => [gcpBillingProject, azureBillingProject],
+              listProjects: async () => [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject],
             },
             ...nonBillingAjax,
           } as AjaxContract)
@@ -262,6 +299,7 @@ describe('NewWorkspaceModal', () => {
         render(
           h(NewWorkspaceModal, {
             cloudPlatform,
+            requireEnhancedBucketLogging,
             onDismiss: () => {},
             onSuccess: () => {},
           })
