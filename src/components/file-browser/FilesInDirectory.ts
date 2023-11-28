@@ -16,7 +16,8 @@ import FileBrowserProvider, {
 } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
-import { useUploader } from 'src/libs/uploads';
+import { notify } from 'src/libs/notifications';
+import { useOnUploadFinished, useUploader } from 'src/libs/uploads';
 import * as Utils from 'src/libs/utils';
 import { dataTableVersionsPathRoot } from 'src/workspace-data/data-table/versioning/data-table-versioning-utils';
 
@@ -63,6 +64,15 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
 
   const { uploadState, uploadFiles, cancelUpload } = useUploader((file) => {
     return provider.uploadFileToDirectory(path, file);
+  });
+  useOnUploadFinished(uploadState, (finishedUploadState) => {
+    finishedUploadState.errors.forEach(({ file, error }) => {
+      notify('error', 'Error uploading file', {
+        id: 'file-browser-upload-error',
+        message: `Failed to upload ${file.name}`,
+        detail: error,
+      });
+    });
   });
 
   const { status, files } = state;
