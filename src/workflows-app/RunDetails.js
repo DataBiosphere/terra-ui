@@ -128,6 +128,28 @@ export const BaseRunDetails = (
     [signal, fetchMetadata, workspaceId]
   );
 
+  //  Below two methods are data fetchers used in the call cache wizard. Defined
+  // here so we can easily use the cloud context (we're in Azure, which proxy URL.)
+  const loadCallCacheDiff = useCallback(
+    async (thisWorkflow, thatWorkflow) => {
+      const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
+      if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
+        return Ajax(signal).CromwellApp.callCacheDiff(cromwellProxyUrlState.state, thisWorkflow, thatWorkflow);
+      }
+    },
+    [signal, workspaceId]
+  );
+
+  const loadCallCacheMetadata = useCallback(
+    async (wfId, includeKey, excludeKey) => {
+      const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
+      if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
+        return Ajax(signal).CromwellApp.workflows(wfId).metadata(cromwellProxyUrlState.state, includeKey, excludeKey);
+      }
+    },
+    [signal, workspaceId]
+  );
+
   // poll if we're missing CBAS proxy url and stop polling when we have it
   usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cromwellProxyUrlState') && loadWorkflow(workflowId), {
     ms: CromwellPollInterval,
@@ -230,6 +252,8 @@ export const BaseRunDetails = (
               h(CallTable, {
                 enableExplorer: workflow?.status.toLocaleLowerCase() === 'succeeded',
                 loadWorkflow,
+                loadCallCacheDiff,
+                loadCallCacheMetadata,
                 defaultFailedFilter: workflow?.status.toLocaleLowerCase().includes('failed'),
                 isRendered: !_.isEmpty(callObjects),
                 showLogModal,

@@ -1,9 +1,9 @@
 import { AppWithWorkspace } from 'src/analysis/Environments/Environments.models';
 import { Ajax } from 'src/libs/ajax';
 import { AbortOption } from 'src/libs/ajax/data-provider-common';
-import { GetAppResponse, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { GetAppItem, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 
-export type AppBasics = Pick<ListAppResponse, 'appName' | 'workspaceId'> & {
+export type AppBasics = Pick<ListAppItem, 'appName' | 'workspaceId'> & {
   cloudContext: Pick<AppWithWorkspace['cloudContext'], 'cloudProvider' | 'cloudResource'>;
 };
 
@@ -12,14 +12,14 @@ export type DeleteAppOptions = AbortOption & {
 };
 
 export interface LeoAppProvider {
-  listWithoutProject: (listArgs: Record<string, string>, options?: AbortOption) => Promise<ListAppResponse[]>;
+  listWithoutProject: (listArgs: Record<string, string>, options?: AbortOption) => Promise<ListAppItem[]>;
   delete: (app: AppBasics, options?: DeleteAppOptions) => Promise<void>;
   pause: (app: AppBasics, options?: AbortOption) => Promise<void>;
-  get: (app: AppBasics, options?: AbortOption) => Promise<GetAppResponse>;
+  get: (app: AppBasics, options?: AbortOption) => Promise<GetAppItem>;
 }
 
 export const leoAppProvider: LeoAppProvider = {
-  listWithoutProject: (listArgs: Record<string, string>, options: AbortOption = {}): Promise<ListAppResponse[]> => {
+  listWithoutProject: (listArgs: Record<string, string>, options: AbortOption = {}): Promise<ListAppItem[]> => {
     const { signal } = options;
 
     return Ajax(signal).Apps.listWithoutProject(listArgs);
@@ -49,7 +49,7 @@ export const leoAppProvider: LeoAppProvider = {
 
     return Ajax(signal).Apps.app(cloudResource, app.appName).pause();
   },
-  get: (app: AppBasics, options: AbortOption = {}): Promise<GetAppResponse> => {
+  get: (app: AppBasics, options: AbortOption = {}): Promise<GetAppItem> => {
     const { cloudResource, cloudProvider } = app.cloudContext;
     const { signal } = options;
     const { workspaceId } = app;

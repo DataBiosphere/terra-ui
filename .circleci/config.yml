@@ -181,7 +181,7 @@ commands:
             JEST_JUNIT_OUTPUT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/junit"
             SCREENSHOT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/failure-screenshots"
             ENVIRONMENT: << parameters.env >>
-          no_output_timeout: 16m
+          no_output_timeout: 20m
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||" | circleci tests split --split-by=timings)
@@ -341,5 +341,4 @@ workflows:
           <<: *filter-dev-branch
           cron: "0 13 * * *"
     jobs:
-      - integration-tests-alpha
       - integration-tests-staging

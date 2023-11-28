@@ -1,11 +1,10 @@
 import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
-import { refreshTerraProfile } from 'src/auth/auth';
+import { refreshSamUserAttributes, refreshTerraProfile } from 'src/auth/auth';
 import { Checkbox, spinnerOverlay } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -13,6 +12,7 @@ import { memoWithName } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 const NotificationCheckbox = ({ notificationKeys, label, setSaving, prefsData }) => {
   const notificationKeysWithValue = ({ notificationKeys, value }) => {
@@ -88,7 +88,7 @@ const UserAttributesCheckbox = ({ value, label, setSaving, notificationKeys, dis
       )(async (v) => {
         await Ajax().User.setUserAttributes({ marketingConsent: v });
         Ajax().Metrics.captureEvent(Events.notificationToggle, { notificationKeys, enabled: v });
-        await refreshTerraProfile();
+        await refreshSamUserAttributes();
       });
   return h(Checkbox, {
     'aria-label': label,

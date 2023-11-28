@@ -1,11 +1,11 @@
 import _ from 'lodash/fp';
 import { useEffect, useMemo, useState } from 'react';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceSubmissionStats, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 interface WorkspacesWithSubmissionStatsReturn {
   workspaces: Workspace[];
@@ -45,7 +45,7 @@ export const useWorkspacesWithSubmissionStats = (): WorkspacesWithSubmissionStat
   useEffect(() => {
     // After the inital load, workspaces are refreshed after deleting a workspace or locking a workspace.
     // We don't need to reload submission stats in those cases.
-    if (workspaces && !submissionStats) {
+    if (workspaces && workspaces.length > 0 && !submissionStats) {
       const loadSubmissionStats: () => Promise<void> = _.flow(
         withErrorReporting('Error loading submission stats'),
         Utils.withBusyState(setLoadingSubmissionStats)

@@ -14,9 +14,9 @@ import { elements as StyleElements } from 'src/libs/style';
 import { newTabLinkProps } from 'src/libs/utils';
 import { cloudProviderTypes, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { useDeletionPolling } from 'src/pages/workspaces/hooks/useDeletionPolling';
+import { useWorkspacesWithSubmissionStats } from 'src/pages/workspaces/hooks/useWorkspacesWithSubmissionStats';
 import { categorizeWorkspaces } from 'src/pages/workspaces/WorkspacesList/CategorizedWorkspaces';
 import { RecentlyViewedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RecentlyViewedWorkspaces';
-import { useWorkspacesWithSubmissionStats } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
 import {
   getWorkspaceFiltersFromQuery,
   WorkspaceFilters,

@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import Alerts from 'src/components/Alerts';
+import { AlertsIndicator } from 'src/alerts/Alerts';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
 import * as TosAlerts from 'src/libs/terms-of-service-alerts';
@@ -50,11 +50,15 @@ afterEach(() => {
 });
 
 const renderAlerts = async (termsOfService) => {
-  await act(async () => { render(h(Alerts)) }) //eslint-disable-line
+  await act(async () => {
+    render(h(AlertsIndicator));
+  });
   setupMockAjax(termsOfService);
 
   const signInStatus = 'signedIn';
-  await act(async () => { authStore.update(state => ({ ...state, termsOfService, signInStatus })) })  //eslint-disable-line
+  await act(async () => {
+    authStore.update((state) => ({ ...state, termsOfService, signInStatus }));
+  });
 };
 
 describe('terms-of-service-alerts', () => {

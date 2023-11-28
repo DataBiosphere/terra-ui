@@ -134,7 +134,7 @@ export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefi
   _.any((policy) => policy.namespace === 'terra' && policy.name === 'protected-data', policies);
 
 export const protectedDataMessage =
-  'Enhanced logging and monitoring are enabled to support the use of protected or sensitive data in this workspace.';
+  'Enhanced logging and monitoring are enabled to support the use of controlled-access data in this workspace.';
 
 export const hasRegionConstraint = (workspace: BaseWorkspace): boolean =>
   getRegionConstraintLabels(workspace.policies).length > 0;
@@ -162,6 +162,23 @@ export const regionConstraintMessage = (workspace: BaseWorkspace): string | unde
   return regions.length === 0
     ? undefined
     : `Workspace storage and compute resources must remain in the following region(s): ${regions.join(', ')}.`;
+};
+
+const isGroupConstraintPolicy = (policy: WorkspacePolicy): boolean => {
+  return policy.namespace === 'terra' && policy.name === 'group-constraint';
+};
+
+/**
+ * Returns true if the workspace has any data access controls (group constraint policies).
+ */
+export const hasDataAccessControls = (workspace: WorkspaceWrapper): boolean => {
+  return (workspace.policies || []).some(isGroupConstraintPolicy);
+};
+
+export const dataAccessControlsMessage = (workspace: WorkspaceWrapper): string | undefined => {
+  return hasDataAccessControls(workspace)
+    ? 'Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be current users on an approved Data Access Request (DAR).'
+    : undefined;
 };
 
 export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {
@@ -242,3 +259,7 @@ export const getWorkspaceAnalysisControlProps = (
   const { value, message } = canRunAnalysisInWorkspace(workspace);
   return value ? {} : { disabled: true, tooltip: message };
 };
+
+export const azureControlledAccessRequestMessage =
+  'We recommend asking the person who invited you to the workspace if it includes any controlled-access data. ' +
+  'If it does, they may be able to help you gain access by assisting with a valid Data Access Request (DAR), for example.';

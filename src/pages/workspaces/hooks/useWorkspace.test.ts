@@ -12,7 +12,7 @@ import {
   azureBucketRecheckRate,
   googlePermissionsRecheckRate,
   useWorkspace,
-} from 'src/pages/workspaces/workspace/useWorkspace';
+} from 'src/pages/workspaces/hooks/useWorkspace';
 import { renderHookInAct } from 'src/testing/test-utils';
 import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
 
@@ -29,6 +29,16 @@ jest.mock('src/libs/state', (): StateExports => {
   return {
     ...jest.requireActual('src/libs/state'),
     getTerraUser: jest.fn(() => ({ email: 'christina@foo.com' })),
+  };
+});
+
+type AuthExports = typeof import('src/auth/auth');
+jest.mock('src/auth/auth', (): AuthExports => {
+  return {
+    ...jest.requireActual('src/auth/auth'),
+    getAuthToken: jest.fn(() => 'testToken'),
+    getAuthTokenFromLocalStorage: jest.fn(() => Promise.resolve('localToken')),
+    sendAuthTokenDesyncMetric: jest.fn(),
   };
 });
 

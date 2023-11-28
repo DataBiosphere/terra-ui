@@ -6,6 +6,7 @@ import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import {
   B2cIdTokenClaims,
   getCurrentOidcUser,
+  initializeOidcUserManager,
   oidcSignIn,
   OidcSignInArgs,
   OidcUser,
@@ -42,6 +43,12 @@ import { v4 as uuid } from 'uuid';
 
 export const getAuthToken = (): string | undefined => {
   const oidcUser: OidcUser | undefined = oidcStore.get().user;
+
+  return oidcUser?.access_token;
+};
+
+export const getAuthTokenFromLocalStorage = async (): Promise<string | undefined> => {
+  const oidcUser: OidcUser | null = await getCurrentOidcUser();
 
   return oidcUser?.access_token;
 };
@@ -83,7 +90,11 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
 };
 
 export const sendRetryMetric = () => {
-  Ajax().Metrics.captureEvent(Events.user.authTokenLoad.retry, {});
+  Ajax().Metrics.captureEvent(Events.user.authToken.load.retry, {});
+};
+
+export const sendAuthTokenDesyncMetric = () => {
+  Ajax().Metrics.captureEvent(Events.user.authToken.desync, {});
 };
 
 export const signOut = (cause: SignOutCause = 'unspecified'): void => {
@@ -229,7 +240,7 @@ export const loadAuthToken = async (
           }
         : { ...authStore.get().refreshTokenMetadata },
     }));
-    Ajax().Metrics.captureEvent(Events.user.authTokenLoad.success, {
+    Ajax().Metrics.captureEvent(Events.user.authToken.load.success, {
       authProvider: oidcUser.profile.idp,
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
       authTokenCreatedAt: getTimestampMetricLabel(authTokenCreatedAt),
@@ -241,14 +252,14 @@ export const loadAuthToken = async (
       jwtExpiresAt: getTimestampMetricLabel(jwtExpiresAt),
     });
   } else if (loadedAuthTokenState.status === 'expired') {
-    Ajax().Metrics.captureEvent(Events.user.authTokenLoad.expired, {
+    Ajax().Metrics.captureEvent(Events.user.authToken.load.expired, {
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
       refreshTokenId: authStore.get().refreshTokenMetadata.id,
       refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
       refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
     });
   } else {
-    Ajax().Metrics.captureEvent(Events.user.authTokenLoad.error, {
+    Ajax().Metrics.captureEvent(Events.user.authToken.load.error, {
       // we could potentially log the reason, but I don't know if that data is safe to log
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
       refreshTokenId: authStore.get().refreshTokenMetadata.id,
@@ -346,6 +357,10 @@ export const isAuthSettled = (state: AuthState) => {
   );
 };
 
+export const hasAcceptedTermsOfService = (state: AuthState): boolean => {
+  return state.termsOfService.permitsSystemUsage ?? false;
+};
+
 export const ensureAuthSettled = () => {
   if (isAuthSettled(authStore.get())) {
     return;
@@ -401,6 +416,7 @@ export const loadOidcUser = (user: OidcUser): void => {
 
 // this function is only called when the browser refreshes
 export const initializeAuth = _.memoize(async (): Promise<void> => {
+  initializeOidcUserManager();
   const setSignedOut = () =>
     authStore.update((state) => ({
       ...state,
@@ -574,14 +590,27 @@ authStore.subscribe(
 
 export const refreshTerraProfile = async () => {
   const profile: TerraUserProfile = await Ajax().User.profile.get();
+  authStore.update((state: AuthState) => ({ ...state, profile }));
+};
+
+export const refreshSamUserAttributes = async (): Promise<void> => {
   const terraUserAttributes: SamUserAttributes = await Ajax().User.getUserAttributes();
-  authStore.update((state: AuthState) => ({ ...state, profile, terraUserAttributes }));
+
+  authStore.update((state: AuthState) => ({ ...state, terraUserAttributes }));
 };
 
 authStore.subscribe(
   withErrorReporting('Error loading user profile', async (state: AuthState, oldState: AuthState) => {
     if (isNowSignedIn(oldState, state)) {
       await refreshTerraProfile();
+    }
+  })
+);
+
+authStore.subscribe(
+  withErrorReporting('Error loading user attributes', async (state: AuthState, oldState: AuthState) => {
+    if (isNowSignedIn(oldState, state) && hasAcceptedTermsOfService(state)) {
+      await refreshSamUserAttributes();
     }
   })
 );

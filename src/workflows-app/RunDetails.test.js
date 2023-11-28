@@ -11,6 +11,8 @@ import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-
 import { appendSASTokenIfNecessary, getFilenameFromAzureBlobPath } from 'src/workflows-app/components/InputOutputModal';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
 import { failedTasks as failedTasksMetadata } from 'src/workflows-app/fixtures/failed-tasks';
+import { diff as callCacheDiff } from 'src/workflows-app/fixtures/test-callcache-diff';
+import { metadata as callCacheDiffMetadata } from 'src/workflows-app/fixtures/test-callcache-from-workflow';
 import { metadata as childMetadata } from 'src/workflows-app/fixtures/test-child-workflow';
 import { metadata as parentMetadata } from 'src/workflows-app/fixtures/test-parent-workflow';
 import { metadata as runDetailsMetadata } from 'src/workflows-app/fixtures/test-workflow';
@@ -58,6 +60,9 @@ const mockObj = {
         }),
       };
     },
+    callCacheDiff: jest.fn(() => {
+      return Promise.resolve(callCacheDiff);
+    }),
   },
   AzureStorage: {
     blobMetadata: jest.fn(() => ({
@@ -148,7 +153,7 @@ describe('BaseRunDetails - render smoke test', () => {
     screen.getByText('Troubleshooting?');
     screen.getByText(runDetailsProps.workflowId);
     screen.getByText(runDetailsProps.submissionId);
-    screen.getByText('Execution Log');
+    screen.getByText('Workflow Execution Log');
   });
 
   it('has copy buttons', async () => {
@@ -284,13 +289,21 @@ describe('BaseRunDetails - render smoke test', () => {
     screen.getByText('Messages');
   });
 
-  it('opens the log viewer modal when Execution Logs is clicked', async () => {
+  it('opens the log viewer modal when Workflow Execution Logs is clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const executionLogButton = screen.getByText('Execution Log');
+    const executionLogButton = screen.getByText('Workflow Execution Log');
     await user.click(executionLogButton);
     screen.getByText('workflow.log');
     screen.getByText('this is the text of a mock file');
+
+    // Make sure the info box only include execution log info
+    const logInfoBox = screen.getByLabelText('More info');
+    await user.click(logInfoBox);
+    screen.getByText('Each workflow has a single execution log', { exact: false });
+    expect(screen.queryByText('Task logs are from user-defined commands', { exact: false })).toBeNull;
+    expect(screen.queryByText('Backend logs are from the Azure Cloud compute job', { exact: false })).toBeNull;
+    
     const closeButton = screen.getByLabelText('Close modal');
     expect(captureEvent).not.toHaveBeenCalled();
     await user.click(closeButton);
@@ -304,6 +317,13 @@ describe('BaseRunDetails - render smoke test', () => {
     const logsLink = within(table).getAllByText('Logs');
     await user.click(logsLink[0]);
     screen.getByText('Task Standard Out');
+
+    // Make sure the info box only includes task and and backend log info
+    const logInfoBox = screen.getByLabelText('More info');
+    await user.click(logInfoBox);
+    expect(screen.queryByText('Each workflow has a single execution log', { exact: false })).toBeNull;
+    screen.getByText('Task logs are from user-defined commands', { exact: false });
+    screen.getByText('Backend logs are from the Azure Cloud compute job', { exact: false });
   });
 
   it('shows a static error message on LogViewer if log cannot be retrieved', async () => {
@@ -589,5 +609,51 @@ describe('BaseRunDetails - render smoke test', () => {
     const targetEndText = makeCompleteDate(end);
     expect(targetRow.textContent).toContain(targetStartText);
     expect(targetRow.textContent).toContain(targetEndText);
+  });
+
+  it('loads the call cache diff wizard', async () => {
+    const user = userEvent.setup();
+    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+    const showWizard = screen.getByLabelText('call cache debug wizard');
+    await user.click(showWizard); // Open the modal
+
+    const wizard = screen.getByRole('dialog');
+
+    // Adjust to load other workflow metadata
+    const modifiedMock = {
+      ..._.cloneDeep(mockObj),
+      CromwellApp: {
+        workflows: () => {
+          return {
+            metadata: () => {
+              return callCacheDiffMetadata;
+            },
+            failedTasks: () => {
+              return Promise.reject();
+            },
+          };
+        },
+      },
+    };
+
+    Ajax.mockImplementation(() => {
+      return modifiedMock;
+    });
+
+    // Enter the workflow id in the text box and submit
+    const wfIdTextBox = within(wizard).getByLabelText('Workflow ID:');
+    await user.type(wfIdTextBox, 'some-random-uuid');
+    const continueButton = within(wizard).getByText('Continue');
+    await user.click(continueButton);
+
+    // Select the call from the dropdown
+    const callDropdown = within(wizard).getByLabelText('Call name:');
+    const select = new SelectHelper(callDropdown, user);
+    await select.selectOption('fetch_sra_to_bam.Fetch_SRA_to_BAM');
+    const continueAgainButton = within(wizard).getByText('Continue');
+    await user.click(continueAgainButton);
+
+    // Ensure the diff is rendered
+    screen.getByText('Result: View cache diff');
   });
 });

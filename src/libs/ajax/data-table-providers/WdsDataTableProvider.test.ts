@@ -5,7 +5,7 @@ import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
-import { ListAppResponse } from '../leonardo/models/app-models';
+import { ListAppItem } from '../leonardo/models/app-models';
 import {
   EntityMetadata,
   EntityQueryOptions,
@@ -55,7 +55,7 @@ class TestableWdsProvider extends WdsDataTableProvider {
 const recordType = 'item';
 
 const testProxyUrl = 'https://lzsomeTestUrl.servicebus.windows.net/super-cool-proxy-url/wds';
-const testProxyUrlResponse: ListAppResponse[] = [
+const testProxyUrlResponse: ListAppItem[] = [
   {
     cloudContext: {
       cloudProvider: cloudProviderTypes.GCP,
@@ -171,7 +171,7 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve(new Response('', { status: 202 }));
   };
 
-  const listAppsV2MockImpl = (_workspaceId: string): Promise<ListAppResponse[]> => {
+  const listAppsV2MockImpl = (_workspaceId: string): Promise<ListAppItem[]> => {
     return Promise.resolve(testProxyUrlResponse);
   };
 

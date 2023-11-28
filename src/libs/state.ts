@@ -24,19 +24,21 @@ export type TerraUser = {
 };
 
 export type TerraUserProfile = {
+  // TODO: anonymousGroup is here from getProfile from orch
+  // TODO: for future ticket, separate items updated via register/profile (personal info)
+  //  from things that are updated via api/profile/preferences (starred workspaces, notification settings)
   firstName: string | undefined;
   lastName: string | undefined;
   institute: string | undefined;
-  email: string | undefined;
   contactEmail: string | undefined;
   title: string | undefined;
   department: string | undefined;
   interestInTerra: string | undefined;
-  programLocationCity: string | undefined;
-  programLocationState: string | undefined;
-  programLocationCountry: string | undefined;
-  researchArea: string | undefined;
-  starredWorkspaces: string | undefined;
+  programLocationCity?: string;
+  programLocationState?: string;
+  programLocationCountry?: string;
+  researchArea?: string;
+  starredWorkspaces?: string;
 };
 
 export type TerraUserRegistrationStatus =
@@ -117,7 +119,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   profile: {
     firstName: undefined,
     lastName: undefined,
-    email: undefined,
     contactEmail: undefined,
     title: undefined,
     institute: undefined,
@@ -125,7 +126,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     programLocationCity: undefined,
     programLocationState: undefined,
     programLocationCountry: undefined,
-    researchArea: undefined,
     interestInTerra: undefined,
     starredWorkspaces: undefined,
   },

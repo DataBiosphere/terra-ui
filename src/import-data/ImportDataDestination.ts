@@ -12,13 +12,14 @@ import {
   spinnerOverlay,
 } from 'src/components/common';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
-import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils';
+import { WorkspaceSelector } from 'src/components/workspace-utils';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
 import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
@@ -49,6 +50,7 @@ interface ChoiceButtonProps {
   style?: CSSProperties;
   title: string;
   onClick: () => void;
+  tooltip?: string;
 }
 
 const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
@@ -120,22 +122,38 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     workspaces,
     refresh: refreshWorkspaces,
     loading: loadingWorkspaces,
-  } = useWorkspaces([
-    'workspace.workspaceId',
-    'workspace.namespace',
-    'workspace.name',
-    // The decision on whether or data can be imported into a workspace is based on the user's level of access
-    // to the workspace and the workspace's authorization domain, protected status and cloud platform.
-    // That information needs to be fetched here.
-    'accessLevel',
-    'policies',
-    // When using a template workspace, the NewWorkspaceModal reads the description attribute
-    // from the template.
-    'workspace.attributes',
-    'workspace.authorizationDomain',
-    'workspace.bucketName',
-    'workspace.cloudPlatform',
-  ]);
+  } = useWorkspaces(
+    [
+      // The decision on whether or data can be imported into a workspace is based on the user's level of access
+      // to the workspace and the workspace's authorization domain, protected status and cloud platform.
+      // When using a template workspace, the NewWorkspaceModal reads the description attribute
+      // from the template.
+
+      // Load the same fields that are loaded by the workspaces list page so that a user can navigate to the
+      // workspaces list without a render error. See AJ-1470 for details.
+      'accessLevel',
+      'public',
+      'workspace.attributes.description',
+      'workspace.attributes.tag:tags',
+      'workspace.authorizationDomain',
+      'workspace.cloudPlatform',
+      'workspace.createdBy',
+      'workspace.lastModified',
+      'workspace.name',
+      'workspace.namespace',
+      'workspace.workspaceId',
+      'workspace.state',
+      'workspace.errorMessage',
+
+      // Add policies field because we need it to decide if a workspace is suitable for importing protected data.
+      'policies',
+      // Add bucket name so we can determine if GCP workspaces have secure monitoring enabled.
+      'workspace.bucketName',
+    ],
+    // Truncate description to save bytes.
+    // This matches the limit used by the workspaces list.
+    250
+  );
   const [mode, setMode] = useState<'existing' | 'template' | undefined>(
     initialSelectedWorkspaceId ? 'existing' : undefined
   );
@@ -170,13 +188,26 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     ]);
   };
 
+  const workspacesToImportTo = workspaces.filter((workspace) => {
+    return canImportIntoWorkspace(
+      {
+        cloudPlatform: requiredCloudPlatform,
+        isProtectedData,
+        requiredAuthorizationDomain,
+      },
+      workspace
+    );
+  });
+
+  // disable import into existing workspaces if data is marked as protected but no protected workspaces are available
+  const disableExportIntoExisting = isProtectedData && workspacesToImportTo.length === 0;
+
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, ['Start with an existing workspace']),
       isProtectedData &&
         div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
-          icon('info-circle', { size: 15, style: { marginRight: '0.25rem' }, color: colors.accent() }),
-          ' You may only import to workspaces with an Authorization Domain and/or protected data setting.',
+          ' You may only import into workspaces that have additional security monitoring enabled.',
         ]),
       h(IdContainer, [
         (id) =>
@@ -185,16 +216,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             // @ts-expect-error
             h(WorkspaceSelector, {
               id,
-              workspaces: workspaces.filter((workspace) => {
-                return canImportIntoWorkspace(
-                  {
-                    cloudPlatform: requiredCloudPlatform,
-                    isProtectedData,
-                    requiredAuthorizationDomain,
-                  },
-                  workspace
-                );
-              }),
+              workspaces: workspacesToImportTo,
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
             }),
@@ -300,8 +322,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         () => {
           return h(Fragment, [
             h2({ style: styles.title }, ['Destination of the prepared data']),
-            (canUseTemplateWorkspace || canUseNewWorkspace) &&
-              div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
             !userHasBillingProjects && h(linkAccountPrompt),
             canUseTemplateWorkspace &&
               h(ChoiceButton, {
@@ -315,7 +335,11 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               iconName: 'fileSearchSolid',
               title: 'Start with an existing workspace',
               detail: 'Select one of your workspaces',
-              disabled: !userHasBillingProjects,
+              disabled: !userHasBillingProjects || disableExportIntoExisting,
+              tooltip:
+                !userHasBillingProjects || disableExportIntoExisting
+                  ? 'No existing protected workspace is present.'
+                  : undefined,
             }),
             canUseNewWorkspace &&
               h(ChoiceButton, {
@@ -332,6 +356,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                 cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
                 customMessage: importMayTakeTime && importMayTakeTimeMessage,
                 requireEnhancedBucketLogging: isProtectedData,
+                waitForServices: {
+                  wds: true,
+                },
                 onDismiss: () => setIsCreateOpen(false),
                 onSuccess: (w) => {
                   setMode('existing');

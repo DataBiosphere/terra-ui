@@ -5,11 +5,10 @@ import { Ajax } from 'src/libs/ajax';
 import { goToPath } from 'src/libs/nav';
 import { workspacesStore, workspaceStore } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { InitializedWorkspaceWrapper } from 'src/pages/workspaces/hooks/useWorkspace';
 import { WorkspaceContainer } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
-
-import { InitializedWorkspaceWrapper } from './useWorkspace';
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock(
@@ -135,7 +134,6 @@ describe('WorkspaceContainer', () => {
       },
       refresh: () => Promise.resolve(),
       refreshWorkspace: () => {},
-      silentlyRefreshWorkspace: () => Promise.resolve(),
       breadcrumbs: [],
       title: '',
       analysesData: {

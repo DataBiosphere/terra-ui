@@ -3,7 +3,7 @@ import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { notify } from 'src/libs/notifications';
 
-export const reportError = async (title, obj) => {
+export const reportError = async (title, obj?: unknown) => {
   console.error(title, obj); // helpful when the notify component fails to render
   // Do not show an error notification when a session times out.
   // Notification for this case is handled elsewhere.
@@ -11,7 +11,7 @@ export const reportError = async (title, obj) => {
     return;
   }
 
-  notify('error', title, { detail: await (obj instanceof Response ? obj.text() : obj) });
+  notify('error', title, { detail: await (obj instanceof Response ? obj.text().catch(() => 'Unknown error') : obj) });
 };
 
 export type ErrorCallback = (error: unknown) => void | Promise<void>;
@@ -58,8 +58,8 @@ export const reportErrorAndRethrow = _.curry((title, fn) => {
  *  As such, we must ensure we call the dismiss function if an error occurs
  */
 export const withErrorReportingInModal = _.curry((title, onDismiss, fn) => {
-  return _.flip(withErrorHandling)(fn, (error) => {
-    reportError(title, error);
+  return _.flip(withErrorHandling)(fn, async (error) => {
+    await reportError(title, error);
     onDismiss();
     throw error;
   });

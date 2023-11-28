@@ -4,7 +4,7 @@ import { generateTestApp } from 'src/analysis/_testData/testData';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import { AzureWorkspaceInfo, BaseWorkspace, GoogleWorkspaceInfo } from 'src/libs/workspace-utils';
-import { useDeleteWorkspaceState } from 'src/pages/workspaces/workspace/useDeleteWorkspaceState';
+import { useDeleteWorkspaceState } from 'src/pages/workspaces/hooks/useDeleteWorkspaceState';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 
 type AjaxExports = typeof import('src/libs/ajax');

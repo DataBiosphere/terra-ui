@@ -1,13 +1,14 @@
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { Environments, EnvironmentsProps, UseWorkspacesState } from 'src/analysis/Environments/Environments';
-import { useWorkspaces } from 'src/components/workspace-utils';
+import { Environments, EnvironmentsProps } from 'src/analysis/Environments/Environments';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { MetricsProvider, useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import { terraNavKey, TerraNavLinkProvider } from 'src/libs/nav';
 import { asMockedFn } from 'src/testing/test-utils';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { UseWorkspaces } from 'src/workspaces/useWorkspaces.models';
 
 import { EnvironmentsPage, makeNavProvider, navProvider } from './EnvironmentsPage';
 
@@ -55,12 +56,11 @@ describe('Environments Page', () => {
 
     // Assert
     screen.getByText('Cloud Environments');
-    const watcher = Environments;
-    expect(watcher).toBeCalledTimes(1);
-    expect(watcher).toBeCalledWith(
+    expect(Environments).toBeCalledTimes(1);
+    expect(Environments).toBeCalledWith(
       expect.objectContaining({
         nav: navProvider,
-        useWorkspacesState: useWorkspaces as UseWorkspacesState,
+        useWorkspaces: useWorkspaces as UseWorkspaces,
         leoAppData: leoAppProvider,
         leoRuntimeData: leoRuntimeProvider,
         leoDiskData: leoDiskProvider,
@@ -84,9 +84,11 @@ describe('Environments Page navProvider', () => {
     pageNav.getUrl('workspace-view', { name: 'myName', namespace: 'myNamespace' });
 
     // Assert
-    const watcher = asMockedFn(mockNav.getLink);
-    expect(watcher).toBeCalledTimes(1);
-    expect(watcher).toBeCalledWith(terraNavKey('workspace-dashboard'), { name: 'myName', namespace: 'myNamespace' });
+    expect(mockNav.getLink).toBeCalledTimes(1);
+    expect(mockNav.getLink).toBeCalledWith(terraNavKey('workspace-dashboard'), {
+      name: 'myName',
+      namespace: 'myNamespace',
+    });
   });
 
   it('handles view-workspace navTo()', () => {
@@ -101,8 +103,10 @@ describe('Environments Page navProvider', () => {
     pageNav.navTo('workspace-view', { name: 'myName', namespace: 'myNamespace' });
 
     // Assert
-    const watcher = asMockedFn(mockNav.goToPath);
-    expect(watcher).toBeCalledTimes(1);
-    expect(watcher).toBeCalledWith(terraNavKey('workspace-dashboard'), { name: 'myName', namespace: 'myNamespace' });
+    expect(mockNav.goToPath).toBeCalledTimes(1);
+    expect(mockNav.goToPath).toBeCalledWith(terraNavKey('workspace-dashboard'), {
+      name: 'myName',
+      namespace: 'myNamespace',
+    });
   });
 });

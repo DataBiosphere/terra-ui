@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/workspace/useWorkspace';
+import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
 
 export interface AppDetails {
-  apps?: ListAppResponse[];
+  apps?: ListAppItem[];
   refreshApps: (maybeStale?: boolean) => Promise<void>;
 }
 
@@ -18,7 +18,7 @@ export const useAppPolling = (name: string, namespace: string, workspace?: Works
   };
   const signal = controller.signal;
   const timeout = useRef<NodeJS.Timeout>();
-  const [apps, setApps] = useState<ListAppResponse[]>();
+  const [apps, setApps] = useState<ListAppItem[]>();
 
   const reschedule = (ms) => {
     clearTimeout(timeout.current);

@@ -8,13 +8,11 @@ import { icon } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import { breadcrumbHistoryCaret } from 'src/components/job-common';
 import Modal from 'src/components/Modal';
-import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
-import { useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
-const CallCacheWizard = ({ onDismiss, workflowId, callFqn, index }) => {
+const CallCacheWizard = ({ onDismiss, workflowId, callFqn, index, loadCallCacheDiff, loadCallCacheMetadata }) => {
   /*
    * State setup
    */
@@ -29,8 +27,6 @@ const CallCacheWizard = ({ onDismiss, workflowId, callFqn, index }) => {
   const [metadataFetchError, setMetadataFetchError] = useState();
   const [diffError, setDiffError] = useState();
 
-  const signal = useCancellation();
-
   /*
    * Data Fetchers
    */
@@ -39,7 +35,7 @@ const CallCacheWizard = ({ onDismiss, workflowId, callFqn, index }) => {
     try {
       const includeKey = ['end', 'start', 'executionStatus'];
       const excludeKey = [];
-      const wf = await Ajax(signal).CromIAM.workflowMetadata(otherWf, includeKey, excludeKey);
+      const wf = await loadCallCacheMetadata(otherWf, includeKey, excludeKey);
       setOtherWorkflowMetadata(wf);
     } catch (error) {
       if (error instanceof Response) setMetadataFetchError(await error.text());
@@ -49,7 +45,7 @@ const CallCacheWizard = ({ onDismiss, workflowId, callFqn, index }) => {
 
   const fetchDiff = async (otherWf, otherCall, otherIx) => {
     try {
-      const diff = await Ajax(signal).CromIAM.callCacheDiff(
+      const diff = await loadCallCacheDiff(
         {
           workflowId,
           callFqn,

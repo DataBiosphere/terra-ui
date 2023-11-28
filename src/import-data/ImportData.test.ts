@@ -2,21 +2,23 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
 import { useRoute } from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportDataContainer } from './ImportData';
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
 
-type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
-jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
+type WorkspaceUtilsExports = typeof import('src/workspaces/useWorkspaces');
+jest.mock('src/workspaces/useWorkspaces', (): WorkspaceUtilsExports => {
   return {
-    ...jest.requireActual<WorkspaceUtilsExports>('src/components/workspace-utils'),
+    ...jest.requireActual<WorkspaceUtilsExports>('src/workspaces/useWorkspaces'),
     useWorkspaces: jest.fn(),
   };
 });
@@ -32,6 +34,15 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
     DataRepo: jest.fn(),
   };
 });
+
+type FeaturePreviewExports = typeof import('src/libs/feature-previews');
+jest.mock(
+  'src/libs/feature-previews',
+  (): FeaturePreviewExports => ({
+    ...jest.requireActual('src/libs/feature-previews'),
+    isFeaturePreviewEnabled: jest.fn().mockReturnValue(false),
+  })
+);
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock('src/libs/nav', (): NavExports => {
@@ -125,6 +136,7 @@ const setup = async (opts: SetupOptions) => {
   });
 
   const importTdr = jest.fn().mockResolvedValue(undefined);
+  const startImportJob = jest.fn().mockResolvedValue(undefined);
 
   const wdsProxyUrl = 'https://proxyurl';
   const mockAjax: DeepPartial<AjaxContract> = {
@@ -153,6 +165,7 @@ const setup = async (opts: SetupOptions) => {
       captureEvent: jest.fn(),
     },
     WorkspaceData: {
+      startImportJob,
       importTdr,
     },
     Workspaces: {
@@ -179,6 +192,7 @@ const setup = async (opts: SetupOptions) => {
     importJSON,
     importSnapshot,
     importTdr,
+    startImportJob,
     wdsProxyUrl,
   };
 };
@@ -188,7 +202,7 @@ const importIntoExistingWorkspace = async (user: UserEvent, workspaceName: strin
   await user.click(existingWorkspace);
 
   const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
-  await workspaceSelect.selectOption(workspaceName);
+  await workspaceSelect.selectOption(new RegExp(workspaceName));
 
   await user.click(screen.getByRole('button', { name: 'Import' }));
 };
@@ -204,28 +218,58 @@ describe('ImportData', () => {
   });
 
   describe('files', () => {
-    it('imports PFB files', async () => {
-      // Arrange
-      const user = userEvent.setup();
+    describe('PFB files', () => {
+      it('imports PFB files into GCP workspaces', async () => {
+        // Arrange
+        const user = userEvent.setup();
 
-      const importUrl = 'https://example.com/path/to/file.pfb';
-      const { getWorkspaceApi, importJob } = await setup({
-        queryParams: {
-          format: 'PFB',
-          url: importUrl,
-        },
+        const importUrl = 'https://example.com/path/to/file.pfb';
+        const { getWorkspaceApi, importJob, startImportJob } = await setup({
+          queryParams: {
+            format: 'PFB',
+            url: importUrl,
+          },
+        });
+
+        // Act
+        await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
+
+        // Assert
+        expect(getWorkspaceApi).toHaveBeenCalledWith(
+          defaultGoogleWorkspace.workspace.namespace,
+          defaultGoogleWorkspace.workspace.name
+        );
+
+        expect(importJob).toHaveBeenCalledWith(importUrl, 'pfb', null);
+        expect(startImportJob).not.toHaveBeenCalled();
       });
 
-      // Act
-      await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
+      it('imports PFB files into Azure workspaces', async () => {
+        // Arrange
+        const user = userEvent.setup();
 
-      // Assert
-      expect(getWorkspaceApi).toHaveBeenCalledWith(
-        defaultGoogleWorkspace.workspace.namespace,
-        defaultGoogleWorkspace.workspace.name
-      );
+        asMockedFn(isFeaturePreviewEnabled).mockImplementation(
+          (featurePreview) => featurePreview === ENABLE_AZURE_PFB_IMPORT
+        );
 
-      expect(importJob).toHaveBeenCalledWith(importUrl, 'pfb', null);
+        const importUrl = 'https://example.com/path/to/file.pfb';
+        const { importJob, startImportJob, wdsProxyUrl } = await setup({
+          queryParams: {
+            format: 'PFB',
+            url: importUrl,
+          },
+        });
+
+        // Act
+        await importIntoExistingWorkspace(user, defaultAzureWorkspace.workspace.name);
+
+        // Assert
+        expect(startImportJob).toHaveBeenCalledWith(wdsProxyUrl, defaultAzureWorkspace.workspace.workspaceId, {
+          url: importUrl,
+          type: 'PFB',
+        });
+        expect(importJob).not.toHaveBeenCalled();
+      });
     });
 
     it('imports BagIt files when format is unspecified', async () => {
@@ -293,7 +337,7 @@ describe('ImportData', () => {
           ...commonSnapshotExportQueryParams,
           snapshotId: googleSnapshotFixture.id,
         };
-        const { getWorkspaceApi, importJob } = await setup({ queryParams });
+        const { getWorkspaceApi, importJob, importTdr } = await setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
@@ -305,6 +349,7 @@ describe('ImportData', () => {
         );
 
         expect(importJob).toHaveBeenCalledWith(queryParams.tdrmanifest, 'tdrexport', { tdrSyncPermissions: true });
+        expect(importTdr).not.toHaveBeenCalled();
       });
 
       it('imports snapshots into Azure workspaces', async () => {
@@ -315,7 +360,7 @@ describe('ImportData', () => {
           ...commonSnapshotExportQueryParams,
           snapshotId: azureSnapshotFixture.id,
         };
-        const { importTdr, wdsProxyUrl } = await setup({ queryParams });
+        const { importJob, importTdr, wdsProxyUrl } = await setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultAzureWorkspace.workspace.name);
@@ -326,6 +371,7 @@ describe('ImportData', () => {
           defaultAzureWorkspace.workspace.workspaceId,
           queryParams.snapshotId
         );
+        expect(importJob).not.toHaveBeenCalled();
       });
     });
 

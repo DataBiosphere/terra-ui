@@ -1,3 +1,4 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, label, p, strong } from 'react-hyperscript-helpers';
@@ -17,11 +18,14 @@ import {
   isSupportedBucketLocation,
 } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
+import { isProtectedWorkspace } from 'src/import-data/protected-data-utils';
 import { Ajax } from 'src/libs/ajax';
+import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
+import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
-import { reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
+import { reportErrorAndRethrow, withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
@@ -35,7 +39,12 @@ import {
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/libs/workspace-utils';
-import { BillingProject, CloudPlatform } from 'src/pages/billing/models/BillingProject';
+import {
+  AzureBillingProject,
+  BillingProject,
+  CloudPlatform,
+  GCPBillingProject,
+} from 'src/pages/billing/models/BillingProject';
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
 import validate from 'validate.js';
 
@@ -80,6 +89,9 @@ export interface NewWorkspaceModalProps {
   requiredAuthDomain?: string;
   requireEnhancedBucketLogging?: boolean;
   title?: string;
+  waitForServices?: {
+    wds?: boolean;
+  };
   workflowImport?: boolean;
   onDismiss: () => void;
   onSuccess: (newWorkspace: WorkspaceInfo) => void;
@@ -97,6 +109,7 @@ const NewWorkspaceModal = withDisplayName(
     requireEnhancedBucketLogging,
     title,
     buttonText,
+    waitForServices,
     workflowImport,
   }: NewWorkspaceModalProps) => {
     // State
@@ -176,16 +189,81 @@ const NewWorkspaceModal = withDisplayName(
           }
         );
 
-        onSuccess(createdWorkspace);
+        // The create/clone workspace responses do not include the cloudPlatform field.
+        // Add it based on the billing project used to create the workspace.
+
+        // Translate between billing project cloud platform and workspace cloud platform constants.
+        const workspaceCloudPlatform: WorkspaceInfo['cloudPlatform'] | undefined = (() => {
+          const billingProjectCloudPlatform = getProjectCloudPlatform();
+          switch (billingProjectCloudPlatform) {
+            case 'AZURE':
+              return 'Azure';
+            case 'GCP':
+              return 'Gcp';
+            default:
+              return undefined;
+          }
+        })();
+
+        if (getProjectCloudPlatform() === 'AZURE' && waitForServices?.wds) {
+          // WDS takes some time to start up, so there's no need to immediately start checking if it's running.
+          await delay(30000);
+
+          // Wait for the WDS app to be running.
+          const wds = await Utils.poll(
+            async () => {
+              const workspaceApps: ListAppItem[] = await Ajax().Apps.listAppsV2(createdWorkspace.workspaceId);
+              const wdsApp = resolveWdsApp(workspaceApps);
+              if (wdsApp?.status === 'RUNNING') {
+                return { shouldContinue: false, result: wdsApp };
+              }
+              if (wdsApp?.status === 'ERROR') {
+                throw new Error('Failed to provision data services for new workspace.');
+              }
+              return { shouldContinue: true, result: null };
+            },
+            15000,
+            true
+          );
+
+          // Wait for the default WDS instance to exist.
+          const proxyUrl = wds!.proxyUrls.wds;
+          await Utils.poll(
+            async () => {
+              const instances: string[] = await Ajax().WorkspaceData.listInstances(proxyUrl);
+              if (instances.includes(createdWorkspace.workspaceId)) {
+                return { shouldContinue: false, result: true };
+              }
+              return { shouldContinue: true, result: false };
+            },
+            5000,
+            true
+          );
+        }
+
+        onSuccess({ ...createdWorkspace, cloudPlatform: workspaceCloudPlatform });
       } catch (error: unknown) {
-        const { message } = await (error as Response).json();
+        const errorMessage = await (async () => {
+          if (error instanceof Response) {
+            try {
+              const { message } = await error.json();
+              return message;
+            } catch (readResponseError) {
+              return 'Unknown error.';
+            }
+          }
+          if (error instanceof Error) {
+            return error.message;
+          }
+          return 'Unknown error.';
+        })();
         setCreating(false);
-        setCreateError(message);
+        setCreateError(errorMessage);
       }
     };
 
     const loadData = _.flow(
-      withErrorReporting('Error loading data'),
+      withErrorReportingInModal('Error loading data', onDismiss),
       Utils.withBusyState(setLoading)
     )(() =>
       Promise.all([
@@ -222,10 +300,11 @@ const NewWorkspaceModal = withDisplayName(
       return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation;
     };
 
-    const isAzureBillingProject = (project?: BillingProject): boolean =>
+    const isAzureBillingProject = (project?: BillingProject): project is AzureBillingProject =>
       isCloudProviderBillingProject(project, 'AZURE');
 
-    const isGoogleBillingProject = (project?: BillingProject): boolean => isCloudProviderBillingProject(project, 'GCP');
+    const isGoogleBillingProject = (project?: BillingProject): project is GCPBillingProject =>
+      isCloudProviderBillingProject(project, 'GCP');
 
     const isCloudProviderBillingProject = (
       project: BillingProject | undefined,
@@ -240,16 +319,31 @@ const NewWorkspaceModal = withDisplayName(
     };
 
     const isBillingProjectApplicable = (project: BillingProject): boolean => {
-      // Only support cloning a workspace to the same cloud environment. If this changes, also update
+      // This is used when importing data to enforce a specific cloud.
+      if (cloudPlatform && project.cloudPlatform !== cloudPlatform) {
+        return false;
+      }
+      if (workflowImport) {
+        return !isAzureBillingProject(project);
+      }
+      // If we aren't cloning a workspace and enhanced bucket logging is required, allow all GCP projects
+      // (user will be forced to select "Workspace will have protected data" for GCP projects)
+      // and Azure billing projects that support protected Data.
+      if (!cloneWorkspace && requireEnhancedBucketLogging && isAzureBillingProject(project)) {
+        return project.protectedData;
+      }
+      // Only support cloning a workspace to the same cloud platform. If this changes, also update
       // the Events.workspaceClone event data.
-      // As of AJ-1164, if requireEnhancedBucketLogging is true, then azure billing projects are ineligible.
-      // This coupling of enhanced bucket logging and billing project may change in the future.
-      return Utils.cond(
-        [!!workflowImport || !!requireEnhancedBucketLogging, () => !isAzureBillingProject(project)],
-        [!!cloneWorkspace && isAzureWorkspace(cloneWorkspace), () => isAzureBillingProject(project)],
-        [!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace), () => isGoogleBillingProject(project)],
-        [Utils.DEFAULT, () => true]
-      );
+      if (!!cloneWorkspace && isAzureWorkspace(cloneWorkspace)) {
+        if (isAzureBillingProject(project)) {
+          return isProtectedWorkspace(cloneWorkspace) ? project.protectedData : true;
+        }
+        return false;
+      }
+      if (!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace)) {
+        return isGoogleBillingProject(project);
+      }
+      return true;
     };
 
     // Lifecycle
@@ -276,8 +370,17 @@ const NewWorkspaceModal = withDisplayName(
       return !value ? '' : `Option ${value['aria-label']} selected.`;
     };
 
+    const getNoApplicableBillingProjectsMessage = () => {
+      if (cloneWorkspace) {
+        return 'You do not have a billing project that is able to clone this workspace.';
+      }
+      return requireEnhancedBucketLogging
+        ? 'You do not have access to a billing project that supports additional security monitoring.'
+        : 'You need a billing project to create a new workspace.';
+    };
+
     return Utils.cond(
-      [loading || billingProjects === undefined, () => spinnerOverlay],
+      [loading, () => spinnerOverlay],
       [
         hasBillingProjects,
         () =>
@@ -337,7 +440,7 @@ const NewWorkspaceModal = withDisplayName(
                       (id) =>
                         h(Fragment, [
                           h(FormLabel, { htmlFor: id, required: true }, ['Billing project']),
-                          h(Select<string>, {
+                          h(Select as typeof Select<string>, {
                             id,
                             isClearable: false,
                             placeholder: 'Select a billing project',
@@ -372,10 +475,7 @@ const NewWorkspaceModal = withDisplayName(
                                 value: projectName,
                                 isDisabled: invalidBillingAccount,
                               }),
-                              _.sortBy(
-                                'projectName',
-                                _.uniq(cloudPlatform ? _.filter({ cloudPlatform }, billingProjects) : billingProjects)
-                              )
+                              _.sortBy('projectName', billingProjects)
                             ),
                           }),
                         ]),
@@ -404,7 +504,7 @@ const NewWorkspaceModal = withDisplayName(
                                 ),
                               ]),
                             ]),
-                            h(Select<string>, {
+                            h(Select as typeof Select<string>, {
                               id,
                               value: bucketLocation,
                               onChange: (opt) => setBucketLocation(opt!.value),
@@ -532,7 +632,7 @@ const NewWorkspaceModal = withDisplayName(
                                 div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
                                 ...existingGroups.join(', '),
                               ]),
-                            h(Select<string, true>, {
+                            h(Select as typeof Select<string, true>, {
                               id,
                               isClearable: false,
                               isMulti: true,
@@ -600,9 +700,8 @@ const NewWorkspaceModal = withDisplayName(
         h(
           Modal,
           {
-            title: 'Set up Billing',
+            title: 'Set Up Billing',
             onDismiss,
-            showCancel: false,
             okButton: h(
               ButtonPrimary,
               {
@@ -614,9 +713,7 @@ const NewWorkspaceModal = withDisplayName(
           [
             div([
               icon('error-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
-              'You need a billing project to ',
-              cloneWorkspace ? 'clone a' : 'create a new',
-              ' workspace.',
+              getNoApplicableBillingProjectsMessage(),
             ]),
           ]
         )

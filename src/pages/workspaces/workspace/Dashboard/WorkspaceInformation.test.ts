@@ -3,11 +3,14 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { azureRegions } from 'src/libs/azure-regions';
+import { WorkspacePolicy } from 'src/libs/workspace-utils';
 import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
+  defaultAzureWorkspace,
   defaultGoogleWorkspace,
   protectedAzureWorkspace,
+  protectedGoogleWorkspace,
   regionRestrictedAzureWorkspace,
 } from 'src/testing/workspace-fixtures';
 
@@ -38,35 +41,38 @@ describe('WorkspaceInformation', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it('renders information for a protected workspace and does not fail accessibility tests', async () => {
-    const user = userEvent.setup();
+  it.each([{ protectedWorkspace: protectedAzureWorkspace }, { protectedWorkspace: protectedGoogleWorkspace }])(
+    'renders information for a protected workspace and does not fail accessibility tests',
+    async ({ protectedWorkspace }) => {
+      const user = userEvent.setup();
 
-    // Act
-    const { container } = render(
-      h(WorkspaceInformation, { workspace: { ...protectedAzureWorkspace, workspaceInitialized: true } })
-    );
+      // Act
+      const { container } = render(
+        h(WorkspaceInformation, { workspace: { ...protectedWorkspace, workspaceInitialized: true } })
+      );
 
-    // Assert
-    // Access Level
-    expect(screen.getAllByText('Owner')).not.toBeNull();
-    // Created date
-    expect(screen.getAllByText('2/15/2023')).not.toBeNull();
-    // Last updated date
-    expect(screen.getAllByText('3/15/2023')).not.toBeNull();
-    // Should show protected workspace information.
-    expect(screen.getAllByText('Workspace Protected')).not.toBeNull();
-    // Should not have region constraint
-    expect(screen.queryByText('Region Constraint')).toBeNull();
+      // Assert
+      // Access Level
+      expect(screen.getAllByText('Owner')).not.toBeNull();
+      // Created date
+      expect(screen.getAllByText('2/15/2023')).not.toBeNull();
+      // Last updated date
+      expect(screen.getAllByText('3/15/2023')).not.toBeNull();
+      // Should show protected workspace information.
+      expect(screen.getAllByText('Workspace Protected')).not.toBeNull();
+      // Should not have region constraint
+      expect(screen.queryByText('Region Constraint')).toBeNull();
 
-    // Act, click on the info button to get tooltip text to render.
-    await user.click(screen.getByLabelText('More info'));
+      // Act, click on the info button to get tooltip text to render.
+      await user.click(screen.getByLabelText('More info'));
 
-    // Assert
-    expect(screen.getAllByText(/protected or sensitive data/)).not.toBeNull();
+      // Assert
+      expect(screen.getAllByText(/controlled-access data/)).not.toBeNull();
 
-    // Accessibility
-    expect(await axe(container)).toHaveNoViolations();
-  });
+      // Accessibility
+      expect(await axe(container)).toHaveNoViolations();
+    }
+  );
 
   it('renders information for a workspace with region constraints and does not fail accessibility tests', async () => {
     const user = userEvent.setup();
@@ -99,4 +105,43 @@ describe('WorkspaceInformation', () => {
     // Accessibility
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it.each([
+    { policies: [] },
+    {
+      policies: [
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'foo' }],
+        },
+        {
+          namespace: 'terra',
+          name: 'group-constraint',
+          additionalData: [{ group: 'bar' }],
+        },
+      ],
+    },
+  ] as { policies: WorkspacePolicy[] }[])(
+    'shows data access controls item based on group constraint policies',
+    async ({ policies }) => {
+      // Arrange
+      const user = userEvent.setup();
+
+      // Act
+      render(
+        h(WorkspaceInformation, { workspace: { ...defaultAzureWorkspace, policies, workspaceInitialized: true } })
+      );
+
+      // Assert
+      if (policies.length === 0) {
+        expect(screen.queryByText('Data Access Controls')).toBeNull();
+      } else {
+        screen.getByText('Data Access Controls');
+
+        await user.click(screen.getByLabelText('More info'));
+        screen.getByText(/Data Access Controls add additional permission restrictions to a workspace/);
+      }
+    }
+  );
 });
