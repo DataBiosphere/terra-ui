@@ -9,6 +9,7 @@ import { useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import { RemoteMarkdown } from 'src/libs/util/RemoteMarkdown';
 import { docContainerStyles, headerStyles, mainStyles } from 'src/registration/legal-doc-styles';
+import { tosAlertsStore } from 'src/registration/terms-of-service/terms-of-service-alerts';
 
 export const TermsOfServicePage = () => {
   const [busy, setBusy] = useState<boolean>();
@@ -23,6 +24,8 @@ export const TermsOfServicePage = () => {
       setBusy(true);
       await Ajax().TermsOfService.acceptTermsOfService();
       await loadTerraUser();
+      // Clear out the alerts so that the user doesn't see the alert again after accepting the TOS.
+      tosAlertsStore.reset();
       Nav.goToPath('root');
     } catch (error) {
       reportError('Error accepting Terms of Service', error);
