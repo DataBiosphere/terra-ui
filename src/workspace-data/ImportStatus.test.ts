@@ -1,10 +1,11 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { act, render } from '@testing-library/react';
+import { act } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { notify } from 'src/libs/notifications';
 import { asyncImportJobStore } from 'src/libs/state';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import ImportStatus from './ImportStatus';
 
@@ -79,7 +80,7 @@ describe('ImportStatus', () => {
 
       // Assert
       expect(notify).toHaveBeenCalledWith('error', 'Error importing data.', {
-        notificationMessage: 'There has been an error.',
+        message: 'There has been an error.',
       });
     });
     it('notifies success when import completes', async () => {
@@ -109,10 +110,14 @@ describe('ImportStatus', () => {
         'success',
         'Data imported successfully.',
         expect.objectContaining({
-          //   message: expect.stringContaining('test-workspaces / google-workspace'),
           message: expect.anything(),
         })
       );
+
+      const message = (notify as jest.Mock).mock.calls[0][2].message;
+
+      const { container: messageContainer } = render(message);
+      expect(messageContainer).toHaveTextContent('test-workspaces / google-workspace');
     });
   });
 
@@ -178,7 +183,7 @@ describe('ImportStatus', () => {
       });
 
       expect(notify).toHaveBeenCalledWith('error', 'Error importing data.', {
-        notificationMessage: 'Import failed for some reason.',
+        message: 'Import failed for some reason.',
       });
     });
     it('notifies success when import completes', async () => {
@@ -212,6 +217,10 @@ describe('ImportStatus', () => {
           message: expect.anything(),
         })
       );
+      const message = (notify as jest.Mock).mock.calls[0][2].message;
+
+      const { container: messageContainer } = render(message);
+      expect(messageContainer).toHaveTextContent('test-workspaces / azure-workspace');
     });
   });
 });

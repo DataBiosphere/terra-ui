@@ -93,10 +93,10 @@ function ImportStatusItem(props: ImportStatusItemProps) {
         ]),
       });
 
-    const errorNotify = () => notify('error', 'Error importing data.', { notificationMessage });
+    const errorNotify = () => notify('error', 'Error importing data.', { message: notificationMessage });
 
-    // import service statuses: Pending, Translating, ReadyForUpsert, Upserting, Done, Error
-    // WDS import statuses: CREATED, QUEUED, RUNNING, SUCCEEDED, ERROR, CANCELLED, UNKNOWN
+    // GCP/import service statuses: Pending, Translating, ReadyForUpsert, Upserting, Done, Error
+    // Azure/WDS import statuses: CREATED, QUEUED, RUNNING, SUCCEEDED, ERROR, CANCELLED, UNKNOWN
 
     if (
       !_.includes(status, ['Pending', 'Translating', 'ReadyForUpsert', 'Upserting', 'RUNNING', 'CREATED', 'QUEUED'])
