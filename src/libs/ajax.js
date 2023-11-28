@@ -603,11 +603,6 @@ const FirecloudBucket = (signal) => ({
     const res = await fetchOk(`${getConfig().firecloudBucketRoot}/template-workspaces.json`, { signal });
     return res.json();
   },
-
-  getTosGracePeriodText: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/tos-grace-period.json`, { signal });
-    return res.json();
-  },
 });
 
 const Methods = (signal) => ({
