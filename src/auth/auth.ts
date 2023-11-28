@@ -130,6 +130,9 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 };
 
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
+  // Here, we update `isInitialSignIn` to true, so that we can do things when the user first signs in.
+  // This is necessary to differentiate signing in vs reloading or opening a new tab.
+  // `isInitialSignIn` is set to false after `doSignInEvents` is called.
   authStore.update((state) => ({ ...state, isInitialSignIn: true }));
   const authTokenState: AuthTokenState = await loadAuthToken({ includeBillingScope, popUp: true });
   if (authTokenState.status === 'success') {
