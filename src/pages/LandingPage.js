@@ -94,7 +94,7 @@ const LandingPage = () => {
       const projects = await Ajax(signal).Billing.listProjects();
       setBillingProjects(projects);
     });
-    if (signInStatus === 'authenticated') {
+    if (signInStatus === 'signedIn') {
       loadProjects();
     }
   }, [signInStatus, setBillingProjects, signal]);

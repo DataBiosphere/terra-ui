@@ -3,10 +3,14 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { Groups } from 'src/libs/ajax/Groups';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { SamUserTermsOfServiceDetails, TermsOfService } from 'src/libs/ajax/TermsOfService';
-import { SamUserAllowances, User } from 'src/libs/ajax/User';
+import {
+  SamUserRegistrationStatusResponse,
+  SamUserTosComplianceStatusResponse,
+  SamUserTosStatusResponse,
+  User,
+} from 'src/libs/ajax/User';
 import { AuthState, authStore } from 'src/libs/state';
-import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfServicePage';
+import TermsOfServicePage from 'src/pages/TermsOfService';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
@@ -27,7 +31,6 @@ jest.mock(
     goToPath: jest.fn(),
   })
 );
-
 type AuthExports = typeof import('src/auth/auth');
 jest.mock(
   'src/auth/auth',
@@ -39,27 +42,49 @@ jest.mock(
 
 interface TermsOfServiceSetupResult {
   getTosFn: jest.Mock;
+  getStatusFn: jest.Mock;
   getTermsOfServiceComplianceStatusFn: jest.Mock;
   acceptTosFn: jest.Mock;
   rejectTosFn: jest.Mock;
 }
 
 const setupMockAjax = async (
-  termsOfService: SamUserTermsOfServiceDetails,
-  signedIn = true
+  termsOfService: SamUserTosComplianceStatusResponse
 ): Promise<TermsOfServiceSetupResult> => {
-  const signInStatus = signedIn ? 'userLoaded' : 'signedOut';
-  const terraUserAllowances: SamUserAllowances = {
-    allowed: termsOfService.permitsSystemUsage,
-    details: { enabled: true, termsOfService: termsOfService.permitsSystemUsage },
-  };
+  const userSubjectId = 'testSubjectId';
+  const userEmail = 'test@email.com';
 
-  const getTermsOfServiceText = jest.fn().mockResolvedValue('some text');
-  const getUserTermsOfServiceDetails = jest
+  const getTos = jest.fn().mockResolvedValue('some text');
+  const getTermsOfServiceComplianceStatus = jest
     .fn()
-    .mockResolvedValue(termsOfService satisfies SamUserTermsOfServiceDetails);
-  const acceptTermsOfService = jest.fn().mockResolvedValue(undefined);
-  const rejectTermsOfService = jest.fn().mockResolvedValue(undefined);
+    .mockResolvedValue(termsOfService satisfies SamUserTosComplianceStatusResponse);
+  const getStatus = jest.fn().mockResolvedValue({
+    userSubjectId,
+    userEmail,
+    enabled: true,
+  } satisfies SamUserRegistrationStatusResponse);
+  const acceptTos = jest.fn().mockResolvedValue({
+    userInfo: {
+      userSubjectId,
+      userEmail,
+    },
+    enabled: {
+      ldap: true,
+      allUsersGroup: true,
+      google: true,
+    },
+  } satisfies SamUserTosStatusResponse);
+  const rejectTos = jest.fn().mockResolvedValue({
+    userInfo: {
+      userSubjectId,
+      userEmail,
+    },
+    enabled: {
+      ldap: true,
+      allUsersGroup: true,
+      google: true,
+    },
+  } satisfies SamUserTosStatusResponse);
   const getFenceStatus = jest.fn();
   const getNihStatus = jest.fn();
 
@@ -67,7 +92,6 @@ const setupMockAjax = async (
   type UserContract = ReturnType<typeof User>;
   type MetricsContract = ReturnType<typeof Metrics>;
   type GroupsContract = ReturnType<typeof Groups>;
-  type TermsOfServiceContract = ReturnType<typeof TermsOfService>;
 
   asMockedFn(Ajax).mockImplementation(
     () =>
@@ -77,37 +101,37 @@ const setupMockAjax = async (
         } as Partial<MetricsContract>,
         User: {
           getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
-          getUserAllowances: jest.fn().mockResolvedValue(terraUserAllowances),
           profile: {
             get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
+            create: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
             update: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
             setPreferences: jest.fn().mockResolvedValue({}),
             preferLegacyFirecloud: jest.fn().mockResolvedValue({}),
           },
+          getTos,
+          getTermsOfServiceComplianceStatus,
+          getStatus,
+          acceptTos,
+          rejectTos,
           getFenceStatus,
           getNihStatus,
         } as Partial<UserContract>,
-        TermsOfService: {
-          getUserTermsOfServiceDetails,
-          acceptTermsOfService,
-          rejectTermsOfService,
-          getTermsOfServiceText,
-        } as Partial<TermsOfServiceContract>,
         Groups: {
           list: jest.fn(),
         } as Partial<GroupsContract>,
       } as Partial<AjaxContract> as AjaxContract)
   );
 
+  const signInStatus = 'signedIn';
   await act(async () => {
-    authStore.update((state: AuthState) => ({ ...state, termsOfService, signInStatus, terraUserAllowances }));
+    authStore.update((state: AuthState) => ({ ...state, termsOfService, signInStatus }));
   });
-
   return Promise.resolve({
-    getTosFn: getTermsOfServiceText,
-    getTermsOfServiceComplianceStatusFn: getUserTermsOfServiceDetails,
-    acceptTosFn: acceptTermsOfService,
-    rejectTosFn: rejectTermsOfService,
+    getTosFn: getTos,
+    getStatusFn: getStatus,
+    getTermsOfServiceComplianceStatusFn: getTermsOfServiceComplianceStatus,
+    acceptTosFn: acceptTos,
+    rejectTosFn: rejectTos,
   });
 };
 
@@ -115,10 +139,9 @@ describe('TermsOfService', () => {
   it('fetches the Terms of Service text from Sam', async () => {
     // Arrange
     const termsOfService = {
-      latestAcceptedVersion: '0',
-      acceptedOn: new Date(),
+      userId: 'testUserId',
+      userHasAcceptedLatestTos: true,
       permitsSystemUsage: true,
-      isCurrentVersion: true,
     };
 
     const { getTosFn } = await setupMockAjax(termsOfService);
@@ -134,13 +157,12 @@ describe('TermsOfService', () => {
     screen.getByText('some text');
   });
 
-  it('shows only require terms of service buttons when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
+  it('shows "Continue under grace period" when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
     // Arrange
     const termsOfService = {
-      latestAcceptedVersion: '0',
-      acceptedOn: new Date(),
+      userId: 'testUserId',
+      userHasAcceptedLatestTos: false,
       permitsSystemUsage: true,
-      isCurrentVersion: false,
     };
 
     await setupMockAjax(termsOfService);
@@ -151,21 +173,16 @@ describe('TermsOfService', () => {
     });
 
     // Assert
-    const backToTerraButton = screen.queryByText('Back to Terra');
-    expect(backToTerraButton).toBeNull();
-    screen.getByText('Accept');
-    screen.getByText('Decline and Sign Out');
+    screen.getByText('Continue under grace period');
   });
 
-  it('show only require terms of service buttons when the user has not accepted the latest ToS and is not allowed to use Terra', async () => {
+  it('does not show "Continue under grace period" when the user has not accepted the latest ToS and is not allowed to use Terra', async () => {
     // Arrange
     const termsOfService = {
-      latestAcceptedVersion: '0',
-      acceptedOn: new Date(),
+      userId: 'testUserId',
+      userHasAcceptedLatestTos: false,
       permitsSystemUsage: false,
-      isCurrentVersion: false,
     };
-
     await setupMockAjax(termsOfService);
 
     // Act
@@ -174,19 +191,16 @@ describe('TermsOfService', () => {
     });
 
     // Assert
-    const backToTerraButton = screen.queryByText('Back to Terra');
-    expect(backToTerraButton).toBeNull();
-    screen.getByText('Accept');
-    screen.getByText('Decline and Sign Out');
+    const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');
+    expect(continueUnderGracePeriodButton).toBeNull();
   });
 
-  it('only shows the back button when the user has accepted the latest ToS and is allowed to use Terra', async () => {
+  it('does not show any buttons when the user has accepted the latest ToS and is allowed to use Terra', async () => {
     // Arrange
     const termsOfService = {
-      latestAcceptedVersion: '0',
-      acceptedOn: new Date(),
+      userId: 'testUserId',
+      userHasAcceptedLatestTos: true,
       permitsSystemUsage: true,
-      isCurrentVersion: true,
     };
 
     await setupMockAjax(termsOfService);
@@ -197,45 +211,21 @@ describe('TermsOfService', () => {
     });
 
     // Assert
-    screen.getByText('Back to Terra');
+    const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');
+    expect(continueUnderGracePeriodButton).not.toBeInTheDocument();
+
     const acceptButton = screen.queryByText('Accept');
     expect(acceptButton).toBeNull();
-    const declineButton = screen.queryByText('Decline and Sign Out');
-    expect(declineButton).toBeNull();
-  });
-
-  it('only shows the back button when the user has not signed in to Terra', async () => {
-    // Arrange
-    const termsOfService = {
-      latestAcceptedVersion: '0',
-      acceptedOn: new Date(),
-      permitsSystemUsage: false,
-      isCurrentVersion: false,
-    };
-
-    await setupMockAjax(termsOfService, false);
-
-    // Act
-    await act(async () => {
-      render(h(TermsOfServicePage));
-    });
-
-    // Assert
-    screen.getByText('Back to Terra');
-    const acceptButton = screen.queryByText('Accept');
-    expect(acceptButton).toBeNull();
-    const declineButton = screen.queryByText('Decline and Sign Out');
-    expect(declineButton).toBeNull();
   });
 
   it('calls the acceptTos endpoint when the accept tos button is clicked', async () => {
     // Arrange
     const termsOfService = {
-      latestAcceptedVersion: '0',
-      acceptedOn: new Date(),
-      permitsSystemUsage: false,
-      isCurrentVersion: false,
+      userId: 'testUserId',
+      userHasAcceptedLatestTos: false,
+      permitsSystemUsage: true,
     };
+
     const { acceptTosFn } = await setupMockAjax(termsOfService);
 
     // Act
@@ -252,10 +242,9 @@ describe('TermsOfService', () => {
   it('calls the rejectTos endpoint when the reject tos button is clicked', async () => {
     // Arrange
     const termsOfService = {
-      latestAcceptedVersion: '0',
-      acceptedOn: new Date(),
+      userId: 'testUserId',
+      userHasAcceptedLatestTos: false,
       permitsSystemUsage: false,
-      isCurrentVersion: false,
     };
 
     const { rejectTosFn } = await setupMockAjax(termsOfService);
