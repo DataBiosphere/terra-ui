@@ -319,18 +319,10 @@ const NewWorkspaceModal = withDisplayName(
     };
 
     const isBillingProjectApplicable = (project: BillingProject): boolean => {
-      // This is used when importing data to enforce a specific cloud.
-      if (cloudPlatform && project.cloudPlatform !== cloudPlatform) {
-        return false;
-      }
-      if (workflowImport) {
+      // As of AJ-1164, if requireEnhancedBucketLogging is true, then azure billing projects are ineligible.
+      // This coupling of enhanced bucket logging and billing project may change in the future.
+      if (!!workflowImport || !!requireEnhancedBucketLogging) {
         return !isAzureBillingProject(project);
-      }
-      // If we aren't cloning a workspace and enhanced bucket logging is required, allow all GCP projects
-      // (user will be forced to select "Workspace will have protected data" for GCP projects)
-      // and Azure billing projects that support protected Data.
-      if (!cloneWorkspace && requireEnhancedBucketLogging && isAzureBillingProject(project)) {
-        return project.protectedData;
       }
       // Only support cloning a workspace to the same cloud platform. If this changes, also update
       // the Events.workspaceClone event data.
@@ -370,17 +362,8 @@ const NewWorkspaceModal = withDisplayName(
       return !value ? '' : `Option ${value['aria-label']} selected.`;
     };
 
-    const getNoApplicableBillingProjectsMessage = () => {
-      if (cloneWorkspace) {
-        return 'You do not have a billing project that is able to clone this workspace.';
-      }
-      return requireEnhancedBucketLogging
-        ? 'You do not have access to a billing project that supports additional security monitoring.'
-        : 'You need a billing project to create a new workspace.';
-    };
-
     return Utils.cond(
-      [loading, () => spinnerOverlay],
+      [loading || billingProjects === undefined, () => spinnerOverlay],
       [
         hasBillingProjects,
         () =>
@@ -475,7 +458,10 @@ const NewWorkspaceModal = withDisplayName(
                                 value: projectName,
                                 isDisabled: invalidBillingAccount,
                               }),
-                              _.sortBy('projectName', billingProjects)
+                              _.sortBy(
+                                'projectName',
+                                _.uniq(cloudPlatform ? _.filter({ cloudPlatform }, billingProjects) : billingProjects)
+                              )
                             ),
                           }),
                         ]),
@@ -713,7 +699,9 @@ const NewWorkspaceModal = withDisplayName(
           [
             div([
               icon('error-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
-              getNoApplicableBillingProjectsMessage(),
+              cloneWorkspace
+                ? 'You do not have a billing project that is able to clone this workspace.'
+                : 'You need a billing project to create a new workspace.',
             ]),
           ]
         )

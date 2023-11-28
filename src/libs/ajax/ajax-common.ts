@@ -268,9 +268,10 @@ export const fetchDrsHub = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
-// Don't wrap Bard calls in withRetryAfterReloadingExpiredAuthToken, because
-// that wrapper itself generates metrics.
-export const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk);
+export const fetchBard = _.flow(
+  withUrlPrefix(`${getConfig().bardRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk);
 
 export const fetchEcm = _.flow(
   withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`),
