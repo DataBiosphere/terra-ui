@@ -6,21 +6,21 @@ const { signIntoTerra } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
 
+/**
+ * Function which returns difference between two times (from, to).
+ * Try `.differenceInHours`, `.differenceInDays`, or `.differenceInMinutes`.
+ */
+const getTimeDifference = dateFns.differenceInHours;
+/** How many [time unit]s must pass before a workspace should be deleted. */
 const olderThanCount = 6;
-const timeUnit =
-  // 'days';
-  'hours';
-// 'minutes';
-const getTimeDifference =
-  // .differenceInDays;
-  dateFns.differenceInHours;
-// .differenceInMinutes;
+/** Display name for the chosen time unit. */
+const timeUnit = 'hours';
 
 /**
  * Attempts to delete any workspaces which are named with the auto-generated test workspace name prefix,
- * and are more than a certain configured age.
+ * and are more than a certain configured age. Not a test, a cleanup utility.
  */
-const runOrphanCleanser = withUserToken(async ({ page, testUrl, token }) => {
+const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) => {
   // Sign into Terra so we have the correct credentials.
   await signIntoTerra(page, { token, testUrl });
 
@@ -28,9 +28,8 @@ const runOrphanCleanser = withUserToken(async ({ page, testUrl, token }) => {
   // process was prematurely terminated, but a few also appear in alpha and staging indicating that
   // ci test runs also sometimes leak workspaces.
   const workspaces = await page.evaluate(async () => await window.Ajax().Workspaces.list());
-  const oldWorkspaces = _.filter(({ workspace: { /* namespace, */ name, createdDate } }) => {
+  const oldWorkspaces = _.filter(({ workspace: { name, createdDate } }) => {
     const age = getTimeDifference(new Date(createdDate), new Date());
-    // console.info(`${namespace} ${name}, age ${age} ${timeUnit}`);
     return age > olderThanCount && _.startsWith(testWorkspaceNamePrefix, name);
   }, workspaces);
 
@@ -49,22 +48,28 @@ const runOrphanCleanser = withUserToken(async ({ page, testUrl, token }) => {
         // Unlock the workspace in case it was left in a locked state during a test (locked workspaces can't be deleted).
         await page.evaluate(async (namespace, name) => await window.Ajax().Workspaces.workspace(namespace, name).unlock(), namespace, name);
         await deleteWorkspaceV2AsUser({ page, billingProject: namespace, workspaceName: name });
-        console.info(`Triggered delete for old workspace: ${name}`);
-        return { deletedWorkspace: name };
+        return { name, cloudPlatform, isDeleted: true };
       } catch (e) {
-        console.error(`Failed to delete old ${cloudPlatform} workspace: ${name} with billing project ${namespace}`);
-        return { erroredWorkspace: name };
+        return { name, cloudPlatform, isDeleted: false };
       }
     }, oldWorkspaces)
   ).then((results) => {
-    const deletedNames = results.filter(({ deletedWorkspace }) => deletedWorkspace).map(({ deletedWorkspace }) => deletedWorkspace);
-    const failedNames = results.filter(({ erroredWorkspace }) => erroredWorkspace).map(({ erroredWorkspace }) => erroredWorkspace);
-    console.log(`Triggered delete on workspaces: ${deletedNames}`);
-    console.log(`Failed to delete workspaces: ${failedNames}`);
+    const deletedNames =
+      results
+        .filter(({ isDeleted }) => isDeleted)
+        .map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`)
+        .join(', ') || '(none)';
+    const failedNames =
+      results
+        .filter(({ isDeleted }) => !isDeleted)
+        .map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`)
+        .join(', ') || '(none)';
+    console.info(`Triggered delete on workspaces: ${deletedNames}`);
+    console.warn(`Failed to delete workspaces: ${failedNames}`);
   });
 });
 
 registerTest({
   name: 'delete-orphaned-workspaces',
-  fn: runOrphanCleanser,
+  fn: deleteOrphanedWorkspaces,
 });

@@ -160,8 +160,6 @@ const deleteWorkspaceV2AsUser = async ({ page, billingProject, workspaceName }) 
     const isRuntimesEmpty = await deleteRuntimesV2({ page, billingProject, workspaceName });
     if (isAppsEmpty && isRuntimesEmpty) {
       // TODO [IA-4337] fix disk delete as part of runtime delete
-      // Once that's done, should not need to wait
-      await delay(Millis.ofMinutes(3));
       await page.evaluate(
         async (workspaceName, billingProject) => {
           try {
@@ -251,9 +249,8 @@ const withUser = (test) => async (args) => {
   }
 };
 
-/** Deletes all v2 apps in a workspace. Returns true if all deletes succeed. */
-const deleteAppsV2 = async ({ page, billingProject, workspaceName }) => {
-  const workspaceId = await page.evaluate(
+const getWorkspaceId = async ({ page, billingProject, workspaceName }) =>
+  await page.evaluate(
     async (billingProject, workspaceName) => {
       const {
         workspace: { workspaceId },
@@ -263,6 +260,10 @@ const deleteAppsV2 = async ({ page, billingProject, workspaceName }) => {
     billingProject,
     workspaceName
   );
+
+/** Deletes all v2 apps in a workspace. Returns true if all deletes succeed. */
+const deleteAppsV2 = async ({ page, billingProject, workspaceName }) => {
+  const workspaceId = getWorkspaceId({ page, billingProject, workspaceName });
   const deletableApps = await page.evaluate(async (workspaceId) => {
     const apps = await window.Ajax().Apps.listAppsV2(workspaceId);
     return apps;
@@ -307,16 +308,7 @@ const deleteRuntimes = async ({ page, billingProject, workspaceName }) => {
 
 /** Deletes all v2 runtimes in a workspace, and their disks. Returns true if all deletes succeed. */
 const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
-  const workspaceId = await page.evaluate(
-    async (billingProject, workspaceName) => {
-      const {
-        workspace: { workspaceId },
-      } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace.workspaceId']);
-      return workspaceId;
-    },
-    billingProject,
-    workspaceName
-  );
+  const workspaceId = getWorkspaceId({ page, billingProject, workspaceName });
   const deletableRuntimes = await page.evaluate(async (workspaceId) => {
     return await window.Ajax().Runtimes.listV2WithWorkspace(workspaceId, { role: 'creator' });
   }, workspaceId);
@@ -381,57 +373,6 @@ const fullyDeleteApp = async (page, app) => {
     return true;
   }
   console.error(`delete app ${appName} failed: now in ${newStatus}`);
-  return false;
-};
-
-/**
- * Delete a v2 disk, returning `true` when deletion is complete.
- * Will return `false` if disk is not deletable.
- */
-const fullyDeleteDisk = async (page, disk) => {
-  if (!disk) {
-    console.log('Disk does not exist');
-    return true;
-  }
-  const { id, cloudContext, name, status } = disk;
-  const isDeletable = isResourceDeletable('disk', status);
-  if (!isDeletable) {
-    console.error(`Cannot delete disk ${name} in workspace ${cloudContext} with status ${status}. Try deleting it manually.`);
-    return false;
-  }
-
-  await page.evaluate(async (diskId) => {
-    const disksV2Api = window.Ajax().Disks.disksV2();
-    await disksV2Api.delete(diskId);
-  }, id);
-
-  let newStatus = status;
-  let count = 0;
-  do {
-    count++;
-    await delay(Millis.ofSeconds(10));
-    newStatus = await page.evaluate(
-      async (cloudContext, diskName) => {
-        try {
-          const diskV1Api = window.Ajax().Disks.disksV1().disk(cloudContext, diskName);
-          const diskState = await diskV1Api.details();
-          return diskState.status;
-        } catch (response) {
-          if (response.status === 404) {
-            return 'Deleted';
-          }
-          throw response;
-        }
-      },
-      cloudContext,
-      name
-    );
-  } while (newStatus === 'Deleting' && count < 18);
-  if (newStatus === 'Deleted') {
-    console.log(`deleted disk: ${name}`);
-    return true;
-  }
-  console.error(`delete disk ${name} failed: now in ${newStatus}`);
   return false;
 };
 
@@ -564,7 +505,6 @@ module.exports = {
   createEntityInWorkspace,
   defaultTimeout,
   deleteAppsV2,
-  fullyDeleteDisk,
   deleteRuntimes,
   deleteRuntimesV2,
   deleteWorkspaceV2,
