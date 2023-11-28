@@ -1,7 +1,7 @@
 // This test is owned by the Workspaces Team.
 const dateFns = require('date-fns/fp');
 const _ = require('lodash/fp');
-const { deleteWorkspaceV2AsUser, testWorkspaceNamePrefix } = require('../utils/integration-helpers');
+const { deleteWorkspaceV2, testWorkspaceNamePrefix } = require('../utils/integration-helpers');
 const { signIntoTerra } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
@@ -47,7 +47,7 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
         }
         // Unlock the workspace in case it was left in a locked state during a test (locked workspaces can't be deleted).
         await page.evaluate(async (namespace, name) => await window.Ajax().Workspaces.workspace(namespace, name).unlock(), namespace, name);
-        await deleteWorkspaceV2AsUser({ page, billingProject: namespace, workspaceName: name });
+        await deleteWorkspaceV2({ page, billingProject: namespace, workspaceName: name });
         return { name, cloudPlatform, isDeleted: true };
       } catch (e) {
         return { name, cloudPlatform, isDeleted: false };

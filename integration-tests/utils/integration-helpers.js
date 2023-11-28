@@ -155,7 +155,7 @@ const deleteWorkspaceInUi = async ({ page, testUrl, token, workspaceName }) => {
 };
 */
 
-const deleteWorkspaceV2AsUser = async ({ page, billingProject, workspaceName }) => {
+const deleteWorkspaceV2 = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
     const isAppsEmpty = await deleteAppsV2({ page, billingProject, workspaceName });
     const isRuntimesEmpty = await deleteRuntimesV2({ page, billingProject, workspaceName });
@@ -185,9 +185,7 @@ const deleteWorkspaceV2AsUser = async ({ page, billingProject, workspaceName }) 
     throw e;
   }
   console.info(`Deleted workspace: ${workspaceName}`);
-};
-
-const deleteWorkspaceV2 = withSignedInPage(deleteWorkspaceV2AsUser);
+});
 
 /** Create a GCP workspace, run the given test, then delete the workspace. */
 const withWorkspace = (test) => async (options) => {
@@ -502,11 +500,8 @@ module.exports = {
   clickNavChildAndLoad,
   createEntityInWorkspace,
   defaultTimeout,
-  deleteAppsV2,
   deleteRuntimes,
-  deleteRuntimesV2,
   deleteWorkspaceV2,
-  deleteWorkspaceV2AsUser,
   enableDataCatalog,
   gotoAnalysisTab,
   navigateToDataCatalog,
