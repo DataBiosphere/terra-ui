@@ -12,6 +12,9 @@ const {
   assertLabelledTextInputValue,
   delay,
   waitForNoSpinners,
+  waitForNoModal,
+  checkbox,
+  waitForModal,
 } = require('../utils/integration-utils');
 const { fillInReplace, gotoPage } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -23,7 +26,15 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   // We wait here for the cookie message to disappear, it has a fixed duration fading animation of 300ms
   await delay(350);
   await verifyAccessibility(page);
-  await click(page, clickable({ textContains: 'View Workspaces' }));
+
+  // This is the hamburger menu
+  await click(page, clickable({ textContains: 'Toggle main menu' }));
+  // Wait for sidebar to transition in.
+  // Matches transition durations in ModalDrawer.
+  await delay(200);
+
+  await click(page, clickable({ textContains: 'Sign In' }));
+
   await signIntoTerra(page, { token });
   await fillInReplace(page, input({ labelContains: 'First Name' }), 'Integration');
   await fillIn(page, input({ labelContains: 'Last Name' }), 'Test');
@@ -31,13 +42,20 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await fillIn(page, input({ labelContains: 'Department' }), 'Test Department');
   await fillIn(page, input({ labelContains: 'Title' }), 'Test Title');
   await fillInReplace(page, input({ labelContains: 'Contact Email for Notifications' }), 'ltcommanderdata@neighborhood.horse');
+
+  // Accept the Terms of Service
+  await click(page, clickable({ textContains: 'Read Terra Platform Terms of Service here' }));
+  await waitForModal(page);
+  await waitForNoSpinners(page);
+  await click(page, clickable({ text: 'OK' }));
+  await waitForNoModal(page);
+  await click(page, checkbox({ textContains: 'By checking this box, you are agreeing to the Terra Terms of Service' }));
+
   await verifyAccessibility(page);
   await click(page, clickable({ textContains: 'Register' }));
-  await click(page, clickable({ textContains: 'Accept' }), { timeout: 90000 });
-  await findText(page, 'Welcome to Terra Community Workbench');
+  await findText(page, 'Welcome to Terra Community Workbench', { timeout: 90000 });
 
-  // This is the hamburger menu
-  await click(page, '/html/body/div[1]/div[2]/div/div[1]/div[1]/div[1]/div/div[1]');
+  await click(page, clickable({ textContains: 'Toggle main menu' }));
   // Wait for sidebar to transition in.
   // Matches transition durations in ModalDrawer.
   await delay(200);
