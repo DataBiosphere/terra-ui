@@ -104,7 +104,7 @@ export type AuthState = {
   fenceStatus: FenceStatus;
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   signInStatus: SignInStatus;
-  isInitialSignIn: boolean;
+  userJustSignedIn: boolean;
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: NihStatus;
   nihStatusLoaded: boolean;
@@ -137,7 +137,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
-  isInitialSignIn: false,
+  userJustSignedIn: false,
   nihStatusLoaded: false,
   profile: {
     firstName: undefined,
