@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment } from 'react';
+import { Fragment, ReactNode } from 'react';
 import { h, p } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
@@ -19,7 +19,7 @@ const ImportStatus = () => {
           key: job.jobId,
           job,
           onDone: () => {
-            asyncImportJobStore.update(_.reject({ jobId: job.jobId, targetWorkspace: job.targetWorkspace }));
+            asyncImportJobStore.update(_.reject(job));
           },
         }),
       _.uniq(jobs)
@@ -36,7 +36,7 @@ interface ImportStatusItemProps {
   onDone: () => void;
 }
 
-function ImportStatusItem(props: ImportStatusItemProps) {
+const ImportStatusItem = (props: ImportStatusItemProps): ReactNode => {
   const signal = useCancellation();
   const {
     job: { targetWorkspace, jobId, wdsProxyUrl },
@@ -57,9 +57,9 @@ function ImportStatusItem(props: ImportStatusItemProps) {
           return await Ajax(signal).WorkspaceData.getJobStatus(wdsProxyUrl, jobId);
         }
         return await Ajax(signal).Workspaces.workspace(namespace, name).getImportJobStatus(jobId);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Ignore 404; We're probably asking for status before the status endpoint knows about the job
-        if (error.status === 404) {
+        if (error instanceof Response && error.status === 404) {
           return { status: 'PENDING' };
         }
         onDone();
@@ -115,6 +115,6 @@ function ImportStatusItem(props: ImportStatusItemProps) {
   };
 
   return null;
-}
+};
 
 export default ImportStatus;

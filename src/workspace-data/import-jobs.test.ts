@@ -96,10 +96,10 @@ describe('useImportJobs', () => {
       canCompute: true,
     };
 
-    it('returns list of jobs', () => {
+    it('returns list of jobs in workspace', () => {
       // Arrange
       asyncImportJobStore.set([
-        { targetWorkspace: { namespace: 'test-workspaces', name: 'azure-workspace' }, jobId: 'workspace-job' },
+        { targetWorkspace: { namespace: 'test-workspaces', name: 'azure-workspace2' }, jobId: 'workspace-job' },
         { targetWorkspace: { namespace: 'test-workspaces', name: 'azure-workspace' }, jobId: 'workspace-job-2' },
       ]);
 
@@ -107,7 +107,7 @@ describe('useImportJobs', () => {
       const { result: hookReturnRef } = renderHook(() => useImportJobs(workspace));
 
       // Assert
-      expect(hookReturnRef.current.runningJobs).toEqual(['workspace-job', 'workspace-job-2']);
+      expect(hookReturnRef.current.runningJobs).toEqual(['workspace-job-2']);
     });
 
     it('returns a no-op for refreshing jobs', async () => {

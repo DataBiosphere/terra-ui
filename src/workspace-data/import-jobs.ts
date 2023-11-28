@@ -27,7 +27,7 @@ export const useImportJobs = (workspace: WorkspaceWrapper): UseImportJobsResult 
       workspace: { namespace, name },
     } = workspace;
     try {
-      // Imports into Azure workspaces do not show up in this call to orch since there is no centralized knowledge of azure import jobs
+      // Imports into Azure workspaces do not show up in this call to orch
       // Azure workspaces must rely solely on the asyncImportJobStore to know what imports are currently running,
       // Therefore they do not need a callback function here
       if (!isAzureWorkspace(workspace)) {
