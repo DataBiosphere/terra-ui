@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { code } from 'react-hyperscript-helpers';
 import { FileExtension, getExtension } from 'src/analysis/utils/file-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { isRuntime, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Utils from 'src/libs/utils';
@@ -215,7 +215,13 @@ export const getToolLabelForImage = (imageId: string): ToolLabel | undefined => 
 export const getToolLabelFromFileExtension = (fileName: FileExtension): ToolLabel =>
   extensionToToolMap[getExtension(fileName)];
 
-export const getToolLabelFromCloudEnv = (cloudEnv: Runtime | App): ToolLabel => cloudEnv?.labels?.tool as ToolLabel;
+export const getToolLabelFromRuntime = (cloudEnv: Runtime): ToolLabel => cloudEnv?.labels?.tool as ToolLabel;
+export const getToolLabelFromApp = (cloudEnv: App): ToolLabel => cloudEnv?.appType as ToolLabel;
+
+export const getToolLabelFromCloudEnv = (cloudEnv: Runtime | App): ToolLabel => {
+  if (isRuntime(cloudEnv)) return getToolLabelFromRuntime(cloudEnv);
+  return getToolLabelFromApp(cloudEnv);
+};
 
 // Returns registered appTypes.
 export const allAppTypes: AppToolLabel[] = _.flow(_.map('label'), _.compact)(appTools);
