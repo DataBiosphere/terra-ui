@@ -19,6 +19,7 @@ import { SamUserAttributes } from 'src/libs/ajax/User';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications';
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs';
 import allProviders from 'src/libs/providers';
@@ -33,7 +34,6 @@ import {
   oidcStore,
   requesterPaysProjectStore,
   TerraUserProfile,
-  TerraUserRegistrationStatus,
   TokenMetadata,
   workspacesStore,
   workspaceStore,
@@ -110,8 +110,8 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 
   revokeTokens();
 
-  const cookiesAccepted: boolean | undefined = authStore.get().cookiesAccepted;
-  const anonymousId: string | undefined = authStore.get().anonymousId;
+  const { anonymousId, cookiesAccepted, system } = authStore.get();
+
   authStore.reset();
   authStore.update((state) => ({
     ...state,
@@ -121,6 +121,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
     // Load whether a user has input a cookie acceptance in a previous session on this system,
     // or whether they input cookie acceptance previously in this session
     cookiesAccepted,
+    system,
   }));
   oidcStore.update((state) => ({
     ...state,
@@ -129,6 +130,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 };
 
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
+  authStore.update((state) => ({ ...state, isInitialSignIn: true }));
   const authTokenState: AuthTokenState = await loadAuthToken({ includeBillingScope, popUp: true });
   if (authTokenState.status === 'success') {
     const sessionId = uuid();
@@ -342,19 +344,26 @@ export const ensureBillingScope = async () => {
   }
 };
 
-const becameRegistered = (oldState: AuthState, state: AuthState) => {
-  return oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered';
+const userCanNowUseTerra = (oldState: AuthState, state: AuthState) => {
+  return (
+    // The user was not loaded, and became loaded and is allowed to use the system.
+    (oldState.signInStatus !== 'userLoaded' &&
+      state.signInStatus === 'userLoaded' &&
+      state.terraUserAllowances.allowed) ||
+    // The user was loaded and not allowed, but became allowed to use the system
+    (oldState.signInStatus === 'userLoaded' &&
+      !oldState.terraUserAllowances.allowed &&
+      state.signInStatus === 'userLoaded' &&
+      state.terraUserAllowances.allowed)
+  );
 };
 
 const isNowSignedIn = (oldState: AuthState, state: AuthState) => {
-  return oldState.signInStatus !== 'signedIn' && state.signInStatus === 'signedIn';
+  return oldState.signInStatus !== 'authenticated' && state.signInStatus === 'authenticated';
 };
 
-export const isAuthSettled = (state: AuthState) => {
-  return (
-    state.signInStatus !== 'uninitialized' &&
-    (state.signInStatus !== 'signedIn' || state.registrationStatus !== 'uninitialized')
-  );
+export const isUserLoaded = (state: AuthState) => {
+  return state.signInStatus === 'userLoaded';
 };
 
 export const hasAcceptedTermsOfService = (state: AuthState): boolean => {
@@ -362,12 +371,12 @@ export const hasAcceptedTermsOfService = (state: AuthState): boolean => {
 };
 
 export const ensureAuthSettled = () => {
-  if (isAuthSettled(authStore.get())) {
+  if (isUserLoaded(authStore.get())) {
     return;
   }
   return new Promise((resolve) => {
     const subscription = authStore.subscribe((state) => {
-      if (isAuthSettled(state)) {
+      if (isUserLoaded(state)) {
         resolve(undefined);
         subscription.unsubscribe();
       }
@@ -395,7 +404,7 @@ export const loadOidcUser = (user: OidcUser): void => {
     const userId: string = tokenClaims.sub;
     return {
       ...state,
-      signInStatus: 'signedIn',
+      signInStatus: 'authenticated',
       // Load whether a user has input a cookie acceptance in a previous session on this system,
       // or whether they input cookie acceptance previously in this session
       cookiesAccepted: state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey),
@@ -465,8 +474,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
   authStore.update((state) => {
     return {
       ...state,
-      signInStatus: 'signedIn',
-      registrationStatus: 'uninitialized',
+      signInStatus: 'authenticated',
       isTimeoutEnabled: undefined,
       cookiesAccepted: true,
       terraUser: {
@@ -481,58 +489,6 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
     };
   });
 });
-
-authStore.subscribe(
-  withErrorReporting('Error checking registration', async (state: AuthState, oldState: AuthState) => {
-    const getRegistrationStatus = async (): Promise<TerraUserRegistrationStatus> => {
-      try {
-        const { enabled } = await Ajax().User.getStatus();
-        if (enabled) {
-          // When Terra is first loaded, termsOfService.permitsSystemUsage will be undefined while the user's ToS status is fetched from Sam
-          return state.termsOfService.permitsSystemUsage ? 'registered' : 'registeredWithoutTos';
-        }
-        return 'disabled';
-      } catch (error) {
-        if ((error as Response).status === 404) {
-          return 'unregistered';
-        }
-        throw error;
-      }
-    };
-    const canNowUseSystem =
-      !oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage === true;
-    if (isNowSignedIn(oldState, state) || canNowUseSystem) {
-      clearNotification(sessionTimeoutProps.id);
-      const registrationStatus: TerraUserRegistrationStatus = await getRegistrationStatus();
-      authStore.update((state) => ({ ...state, registrationStatus }));
-    }
-  })
-);
-
-authStore.subscribe(
-  withErrorReporting('Error checking TOS', async (state: AuthState, oldState: AuthState): Promise<void> => {
-    if (!isNowSignedIn(oldState, state)) {
-      return;
-    }
-    try {
-      const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus();
-      authStore.update((state: AuthState) => ({ ...state, termsOfService }));
-    } catch (error) {
-      // If the resp is 404 it means the user has not accepted ANY tos yet, we want to handle this gracefully.
-      if (error instanceof Response && error.status === 404) {
-        // If the user is now logged in, but there's no ToS status from Sam,
-        // then they haven't accepted it yet and Sam hasn't caught up.
-        const termsOfService = {
-          userHasAcceptedLatestTos: false,
-          permitsSystemUsage: false,
-        };
-        authStore.update((state: AuthState) => ({ ...state, termsOfService }));
-      } else {
-        throw error;
-      }
-    }
-  })
-);
 
 // extending Window interface to access Appcues
 declare global {
@@ -560,14 +516,14 @@ authStore.subscribe((state: AuthState) => {
   // so we should not persist cookie acceptance across sessions for people signed out
   // Per compliance recommendation, we could probably persist through a session, but
   // that would require a second store in session storage instead of local storage
-  if (state.signInStatus === 'signedIn' && state.cookiesAccepted !== getLocalPref(cookiesAcceptedKey)) {
+  if (state.signInStatus === 'authenticated' && state.cookiesAccepted !== getLocalPref(cookiesAcceptedKey)) {
     setLocalPref(cookiesAcceptedKey, state.cookiesAccepted);
   }
 });
 
 authStore.subscribe(
   withErrorReporting('Error checking groups for timeout status', async (state: AuthState, oldState: AuthState) => {
-    if (becameRegistered(oldState, state)) {
+    if (userCanNowUseTerra(oldState, state)) {
       const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list());
       authStore.update((state) => ({ ...state, isTimeoutEnabled }));
     }
@@ -585,25 +541,64 @@ export const refreshSamUserAttributes = async (): Promise<void> => {
   authStore.update((state: AuthState) => ({ ...state, terraUserAttributes }));
 };
 
-authStore.subscribe(
-  withErrorReporting('Error loading user profile', async (state: AuthState, oldState: AuthState) => {
-    if (isNowSignedIn(oldState, state)) {
-      await refreshTerraProfile();
+export const loadTerraUser = async (): Promise<void> => {
+  try {
+    const signInStatus = 'userLoaded';
+    const getProfile = Ajax().User.profile.get();
+    const getAllowances = Ajax().User.getUserAllowances();
+    const getAttributes = Ajax().User.getUserAttributes();
+    const getTermsOfService = Ajax().TermsOfService.getUserTermsOfServiceDetails();
+    const [profile, terraUserAllowances, terraUserAttributes, termsOfService] = await Promise.all([
+      getProfile,
+      getAllowances,
+      getAttributes,
+      getTermsOfService,
+    ]);
+    clearNotification(sessionTimeoutProps.id);
+    authStore.update((state: AuthState) => ({
+      ...state,
+      signInStatus,
+      profile,
+      terraUserAllowances,
+      terraUserAttributes,
+      termsOfService,
+    }));
+  } catch (error: unknown) {
+    if ((error as Response).status !== 403) {
+      throw error;
     }
-  })
-);
+    // If the call to User endpoints fail with a 403, it means the user is not registered.
+    // Update the AuthStore state to forward them to the registration page.
+    const signInStatus = 'unregistered';
+    authStore.update((state: AuthState) => ({ ...state, signInStatus }));
+  }
+};
+
+const doSignInEvents = (state: AuthState) => {
+  if (state.termsOfService.isCurrentVersion === false) {
+    // The user could theoretically navigate away from the Terms of Service page during the Rolling Acceptance Window.
+    // This is not a concern, since the user will be denied access to the system once the Rolling Acceptance Window ends.
+    // This is really just a convenience to make sure the user is not disrupted once the Rolling Acceptance Window ends.
+    Nav.goToPath('terms-of-service');
+  }
+};
 
 authStore.subscribe(
-  withErrorReporting('Error loading user attributes', async (state: AuthState, oldState: AuthState) => {
-    if (isNowSignedIn(oldState, state) && hasAcceptedTermsOfService(state)) {
-      await refreshSamUserAttributes();
+  withErrorReporting('Error loading user', async (state: AuthState, oldState: AuthState) => {
+    if (isNowSignedIn(oldState, state)) {
+      await loadTerraUser();
+      if (state.isInitialSignIn) {
+        const loadedState = authStore.get();
+        doSignInEvents(loadedState);
+        authStore.update((state: AuthState) => ({ ...state, isInitialSignIn: false }));
+      }
     }
   })
 );
 
 authStore.subscribe(
   withErrorReporting('Error loading NIH account link status', async (state: AuthState, oldState: AuthState) => {
-    if (becameRegistered(oldState, state)) {
+    if (userCanNowUseTerra(oldState, state)) {
       const nihStatus = await Ajax().User.getNihStatus();
       authStore.update((state: AuthState) => ({ ...state, nihStatus, nihStatusLoaded: true }));
     }
@@ -612,7 +607,7 @@ authStore.subscribe(
 
 authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
-    if (becameRegistered(oldState, state)) {
+    if (userCanNowUseTerra(oldState, state)) {
       await Ajax().Metrics.syncProfile();
     }
   })
@@ -620,7 +615,7 @@ authStore.subscribe(
 
 authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
-    if (becameRegistered(oldState, state)) {
+    if (userCanNowUseTerra(oldState, state)) {
       if (state.anonymousId) {
         return await Ajax().Metrics.identify(state.anonymousId);
       }
@@ -632,7 +627,7 @@ authStore.subscribe(
   withErrorReporting(
     'Error loading Framework Services account status',
     async (state: AuthState, oldState: AuthState) => {
-      if (becameRegistered(oldState, state)) {
+      if (userCanNowUseTerra(oldState, state)) {
         await Promise.all(
           _.map(async ({ key }) => {
             const status = await Ajax().User.getFenceStatus(key);
@@ -645,7 +640,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe((state: AuthState, oldState: AuthState) => {
-  if (oldState.signInStatus === 'signedIn' && state.signInStatus !== 'signedIn') {
+  if (oldState.signInStatus === 'userLoaded' && state.signInStatus !== 'userLoaded') {
     workspaceStore.reset();
     workspacesStore.reset();
     asyncImportJobStore.reset();

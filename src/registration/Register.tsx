@@ -1,5 +1,6 @@
+import { Modal } from '@terra-ui-packages/components';
 import React, { ReactNode, useState } from 'react';
-import { refreshSamUserAttributes, refreshTerraProfile, signOut } from 'src/auth/auth';
+import { loadTerraUser, signOut } from 'src/auth/auth';
 import { ButtonPrimary, ButtonSecondary, LabeledCheckbox } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import planet from 'src/images/register-planet.svg';
@@ -9,10 +10,11 @@ import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { RegistrationLogo } from 'src/libs/logos';
-import { authStore, getTerraUser, TerraUser } from 'src/libs/state';
-import { CommunicationPreferencesCheckbox } from 'src/registration/CommunicationPreferencesCheckbox';
+import { getTerraUser, TerraUser } from 'src/libs/state';
+import { RemoteMarkdown } from 'src/libs/util/RemoteMarkdown';
 import { InterestInTerraCheckbox } from 'src/registration/InterestInTerraCheckbox';
 import { LabelledTextInput } from 'src/registration/LabelledTextInput';
+import { RegistrationPageCheckbox } from 'src/registration/RegistrationPageCheckbox';
 import validate from 'validate.js';
 
 const constraints = ({ partOfOrganization }: { partOfOrganization: boolean }) => {
@@ -23,6 +25,15 @@ const constraints = ({ partOfOrganization }: { partOfOrganization: boolean }) =>
     institute: { presence: { allowEmpty: !partOfOrganization } },
     department: { presence: { allowEmpty: !partOfOrganization } },
     title: { presence: { allowEmpty: !partOfOrganization } },
+    termsOfServiceAccepted: {
+      presence: {
+        message: '^You must accept the Terms of Service',
+      },
+      inclusion: {
+        within: [true],
+        message: '^You must accept the Terms of Service',
+      },
+    },
   };
 };
 
@@ -39,6 +50,13 @@ export const Register = (): ReactNode => {
   const [interestInTerra, setInterestInTerra] = useState('');
   const [marketingConsent, setMarketingConsent] = useState(true);
 
+  const [showTermsOfService, setShowTermsOfService] = useState(false);
+  const [termsOfServiceSeen, setTermsOfServiceSeen] = useState(false);
+  const [termsOfServiceAccepted, setTermsOfServiceAccepted] = useState(false);
+  const termsOfServiceViewed = () => {
+    setTermsOfServiceSeen(true);
+    setShowTermsOfService(false);
+  };
   const register = async () => {
     try {
       setBusy(true);
@@ -49,7 +67,7 @@ export const Register = (): ReactNode => {
             title,
           }
         : {};
-      await Ajax().User.profile.create({
+      await Ajax().User.registerWithProfile(termsOfServiceAccepted, {
         firstName: givenName,
         lastName: familyName,
         contactEmail: email,
@@ -57,9 +75,11 @@ export const Register = (): ReactNode => {
         ...orgFields,
       });
       await Ajax().User.setUserAttributes({ marketingConsent });
-      authStore.update((state) => ({ ...state, registrationStatus: 'registeredWithoutTos' }));
-      await refreshTerraProfile();
-      await refreshSamUserAttributes();
+      await loadTerraUser();
+      const rootElement = document.getElementById('root');
+      if (rootElement) {
+        rootElement!.scrollTop = 0;
+      }
       Ajax().Metrics.captureEvent(Events.user.register);
     } catch (error) {
       reportError('Error registering', error);
@@ -67,7 +87,7 @@ export const Register = (): ReactNode => {
     }
   };
   const errors = validate(
-    { givenName, familyName, email, institute, title, department },
+    { givenName, familyName, email, institute, title, department, termsOfServiceAccepted },
     constraints({ partOfOrganization })
   );
 
@@ -80,19 +100,19 @@ export const Register = (): ReactNode => {
     backgroundPosition: 'right 0px bottom -600px',
   };
 
+  const headerStyle = (marginTop: string) => {
+    return {
+      marginTop,
+      color: colors.dark(0.6),
+      fontSize: '1.5rem',
+      fontWeight: 500,
+    };
+  };
+
   return (
     <div role="main" style={mainStyle}>
       <RegistrationLogo />
-      <h1
-        style={{
-          marginTop: '4rem',
-          color: colors.dark(0.6),
-          fontSize: '1.5rem',
-          fontWeight: 500,
-        }}
-      >
-        New User Registration
-      </h1>
+      <h1 style={headerStyle('4rem')}>New User Registration</h1>
       <div style={{ marginTop: '1rem', display: 'flex', lineHeight: '170%' }}>
         <LabelledTextInput
           required
@@ -177,14 +197,50 @@ export const Register = (): ReactNode => {
         })}
       </div>
       <FormLabel style={{ marginTop: '2rem' }}>Communication Preferences</FormLabel>
-      <CommunicationPreferencesCheckbox title="Necessary communications related to platform operations" checked />
-      <CommunicationPreferencesCheckbox
+      <RegistrationPageCheckbox title="Necessary communications related to platform operations" checked />
+      <RegistrationPageCheckbox
         title="Marketing communications including notifications for upcoming workshops and new flagship dataset additions"
         checked={marketingConsent}
         onChange={setMarketingConsent}
       />
+      <hr style={{ marginTop: '2rem', marginBottom: '2rem', color: colors.dark(0.2) }} />
+      <h1 style={headerStyle('1rem')}>Terra Terms of Service</h1>
+      <h2 style={{ fontSize: '14px' }}>Please accept the Terms of Service to Continue</h2>
+      <ButtonSecondary
+        style={{ textDecoration: 'underline', textTransform: 'none' }}
+        onClick={() => setShowTermsOfService(true)}
+      >
+        Read Terra Platform Terms of Service here
+      </ButtonSecondary>
+      {showTermsOfService && (
+        <Modal width="80%" title="Terra Terms of Service" showCancel={false} onDismiss={termsOfServiceViewed}>
+          <RemoteMarkdown
+            style={{ height: '75vh', overflowY: 'auto' }}
+            getRemoteText={() => Ajax().TermsOfService.getTermsOfServiceText()}
+            failureMessage="Could not get Terms of Service"
+          />
+        </Modal>
+      )}
+      <RegistrationPageCheckbox
+        title="By checking this box, you are agreeing to the Terra Terms of Service"
+        checked={termsOfServiceAccepted}
+        onChange={setTermsOfServiceAccepted}
+        disabled={!termsOfServiceSeen}
+        tooltip={!termsOfServiceSeen ? 'You must read the Terms of Service before continuing' : undefined}
+        tooltipSide="right"
+      />
+
       <div style={{ marginTop: '3rem' }}>
-        <ButtonPrimary disabled={errors || busy} onClick={register}>
+        <ButtonPrimary
+          disabled={errors || busy}
+          onClick={register}
+          tooltip={
+            errors
+              ? 'You must fill out all required fields and accept the Terms of Service before continuing'
+              : undefined
+          }
+          tooltipSide="right"
+        >
           Register
         </ButtonPrimary>
         <ButtonSecondary style={{ marginLeft: '1rem' }} onClick={() => signOut('requested')}>

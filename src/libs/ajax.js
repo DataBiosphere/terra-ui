@@ -26,6 +26,7 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import { OAuth2 } from 'src/libs/ajax/OAuth2';
 import { SamResources } from 'src/libs/ajax/SamResources';
 import { Support } from 'src/libs/ajax/Support';
+import { TermsOfService } from 'src/libs/ajax/TermsOfService';
 import { User } from 'src/libs/ajax/User';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import { CromwellApp } from 'src/libs/ajax/workflows-app/CromwellApp';
@@ -602,11 +603,6 @@ const FirecloudBucket = (signal) => ({
     const res = await fetchOk(`${getConfig().firecloudBucketRoot}/template-workspaces.json`, { signal });
     return res.json();
   },
-
-  getTosGracePeriodText: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/tos-grace-period.json`, { signal });
-    return res.json();
-  },
 });
 
 const Methods = (signal) => ({
@@ -759,6 +755,7 @@ export const Ajax = (signal) => {
     Submissions: Submissions(signal),
     Support: Support(signal),
     Surveys: Surveys(signal),
+    TermsOfService: TermsOfService(signal),
     User: User(signal),
     WorkflowScript: WorkflowScript(signal),
     WorkspaceData: WorkspaceData(signal),

@@ -13,74 +13,25 @@ import {
 
 /** A specific criteria based on a type. */
 export interface Criteria {
-  count?: number;
-}
-
-/** API types represent the data of UI types in the format expected by the backend.
- * They are generally subsets or mappings of the UI types. */
-
-export interface CriteriaApi {
   kind: 'domain' | 'range' | 'list';
   name: string;
   id: number;
-}
-export interface DomainCriteriaApi extends CriteriaApi {
-  kind: 'domain';
+  count?: number;
 }
 
-export interface ProgramDataRangeCriteriaApi extends CriteriaApi {
+export interface DomainCriteria extends Criteria {
+  kind: 'domain';
+  domainOption: DomainOption;
+}
+
+export interface ProgramDataRangeCriteria extends Criteria {
   kind: 'range';
+  rangeOption: ProgramDataRangeOption;
   low: number;
   high: number;
 }
 
-export interface ProgramDataListCriteriaApi extends CriteriaApi {
-  kind: 'list';
-  values: number[];
-}
-
-export type AnyCriteriaApi = DomainCriteriaApi | ProgramDataRangeCriteriaApi | ProgramDataListCriteriaApi;
-
-export interface CriteriaGroupApi {
-  name: string;
-  criteria: AnyCriteriaApi[];
-  mustMeet: boolean;
-  meetAll: boolean;
-  count: number;
-}
-
-export interface CohortApi extends DatasetBuilderType {
-  criteriaGroups: CriteriaGroupApi[];
-}
-
-export type ValueSetApi = {
-  name: string;
-  values: string[];
-};
-
-export type DatasetRequestApi = {
-  cohorts: CohortApi[];
-  conceptSets: ConceptSet[];
-  valueSets: ValueSetApi[];
-};
-
-export type DatasetAccessRequestApi = {
-  name: string;
-  researchPurposeStatement: string;
-  datasetRequest: DatasetRequestApi;
-};
-
-/** Below are the UI types */
-
-export interface DomainCriteria extends DomainCriteriaApi, Criteria {
-  domainOption: DomainOption;
-}
-
-export interface ProgramDataRangeCriteria extends ProgramDataRangeCriteriaApi, Criteria {
-  rangeOption: ProgramDataRangeOption;
-}
-
-export interface ProgramDataListCriteria extends Criteria, CriteriaApi {
+export interface ProgramDataListCriteria extends Criteria {
   kind: 'list';
   listOption: ProgramDataListOption;
   values: ProgramDataListValue[];
@@ -111,76 +62,20 @@ export interface DatasetBuilderType {
 
 export type DatasetBuilderValue = DatasetBuilderType;
 
-export type ValueSet = {
-  domain: string;
-  values: DatasetBuilderValue[];
-};
-
 export interface GetConceptsResponse {
   result: Concept[];
 }
 
-export type DatasetRequest = {
+type DatasetRequest = {
   cohorts: Cohort[];
   conceptSets: ConceptSet[];
-  valueSets: ValueSet[];
+  valuesSets: { domain: string; values: DatasetBuilderValue[] }[];
 };
 
-export type DatasetAccessRequest = {
+type DatasetAccessRequest = {
   name: string;
   researchPurposeStatement: string;
   datasetRequest: DatasetRequest;
-};
-
-export const convertValueSet = (valueSet: ValueSet): ValueSetApi => {
-  return {
-    name: valueSet.domain,
-    values: _.map('name', valueSet.values),
-  };
-};
-
-export const convertCohort = (cohort: Cohort): CohortApi => {
-  return {
-    name: cohort.name,
-    criteriaGroups: _.map(
-      (criteriaGroup) => ({
-        name: criteriaGroup.name,
-        mustMeet: criteriaGroup.mustMeet,
-        meetAll: criteriaGroup.meetAll,
-        count: criteriaGroup.count,
-        criteria: _.map((criteria) => convertCriteria(criteria), criteriaGroup.criteria),
-      }),
-      cohort.criteriaGroups
-    ),
-  };
-};
-
-export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
-  const mergeObject = { kind: criteria.kind, name: criteria.name, id: criteria.id };
-  switch (criteria.kind) {
-    case 'range':
-      return _.merge(mergeObject, { low: criteria.low, high: criteria.high }) as ProgramDataRangeCriteriaApi;
-    case 'list':
-      return _.merge(mergeObject, {
-        values: _.map((value) => value.id, criteria.values),
-      }) as ProgramDataListCriteriaApi;
-    case 'domain':
-      return mergeObject as DomainCriteriaApi;
-    default:
-      throw new Error('Criteria not of type range, list, or domain.');
-  }
-};
-
-export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessRequest) => {
-  return {
-    name: datasetAccessRequest.name,
-    researchPurposeStatement: datasetAccessRequest.researchPurposeStatement,
-    datasetRequest: {
-      cohorts: _.map(convertCohort, datasetAccessRequest.datasetRequest.cohorts),
-      conceptSets: datasetAccessRequest.datasetRequest.conceptSets,
-      valueSets: _.map(convertValueSet, datasetAccessRequest.datasetRequest.valueSets),
-    },
-  };
 };
 
 type DatasetParticipantCountRequest = {
@@ -190,7 +85,7 @@ type DatasetParticipantCountRequest = {
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetModel>;
   getConcepts: (parent: Concept) => Promise<GetConceptsResponse>;
-  requestAccess: (datasetId: string, request: DatasetAccessRequest) => Promise<DatasetAccessRequestApi>;
+  requestAccess: (request: DatasetAccessRequest) => Promise<void>;
   getParticipantCount: (request: DatasetParticipantCountRequest) => Promise<number>;
 }
 
@@ -260,8 +155,6 @@ export const DatasetBuilder = (): DatasetBuilderContract => ({
       .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
   },
   getConcepts: (parent: Concept) => Promise.resolve(getDummyConcepts(parent)),
-  requestAccess: async (datasetId, request) => {
-    return await Ajax().DataRepo.dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(request));
-  },
+  requestAccess: (_request) => Promise.resolve(),
   getParticipantCount: (_request) => Promise.resolve(100),
 });

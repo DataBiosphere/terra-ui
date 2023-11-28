@@ -13,7 +13,7 @@ export const Metrics = (signal?: AbortSignal) => {
   const captureEventFn = async (event: MetricsEventName, details: Record<string, any> = {}): Promise<void> => {
     await ensureAuthSettled();
     const state: AuthState = authStore.get();
-    const isRegistered = state.registrationStatus === 'registered';
+    const isRegistered = state.signInStatus === 'userLoaded';
     // If a user has not logged in, or has logged in but has not registered, ensure an anonymous ID has been generated.
     // The anonymous ID is used to associate events triggered by the anonymous user.
     // If the anonymous user registers during this session, the anonymous ID will be linked to their actual user ID.
@@ -25,7 +25,7 @@ export const Metrics = (signal?: AbortSignal) => {
     }
     const { buildTimestamp, gitRevision, terraDeploymentEnv } = getConfig();
     const signedInProps =
-      state.signInStatus === 'signedIn'
+      state.signInStatus === 'authenticated'
         ? {
             authProvider: getTerraUser().idp,
           }
