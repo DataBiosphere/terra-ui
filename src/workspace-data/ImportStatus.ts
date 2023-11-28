@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import { clearNotification, notify } from 'src/libs/notifications';
 import { useCancellation, usePollingEffect, useStore } from 'src/libs/react-utils';
-import { asyncImportJobStore } from 'src/libs/state';
+import { AsyncImportJob, asyncImportJobStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 const ImportStatus = () => {
@@ -28,20 +28,22 @@ const ImportStatus = () => {
 };
 
 interface ImportStatusItemProps {
-  job: {
-    targetWorkspace: { namespace: string; name: string };
-    jobId: string;
-    wdsProxyUrl?: string;
-  };
+  job: AsyncImportJob;
   onDone: () => void;
 }
 
 const ImportStatusItem = (props: ImportStatusItemProps): ReactNode => {
   const signal = useCancellation();
   const {
-    job: { targetWorkspace, jobId, wdsProxyUrl },
+    job: { targetWorkspace, jobId },
     onDone,
   } = props;
+  let wdsProxyUrl: string | undefined;
+
+  // Only have wdsProxyUrl if job is an instance of AzureAsyncImportJob
+  if ('wdsProxyUrl' in props.job) {
+    wdsProxyUrl = props.job.wdsProxyUrl;
+  }
 
   usePollingEffect(
     withErrorReporting('Problem checking status of data import', async () => {
