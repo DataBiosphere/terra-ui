@@ -719,13 +719,6 @@ const DrsUriResolver = (signal) => ({
   },
 });
 
-const Duos = (signal) => ({
-  getConsent: async (orspId) => {
-    const res = await fetchOrchestration(`/api/duos/consent/orsp/${orspId}`, _.merge(authOpts(), { signal }));
-    return res.json();
-  },
-});
-
 const Surveys = (signal) => ({
   submitForm: (formId, data) => fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal }),
 });
@@ -744,7 +737,6 @@ export const Ajax = (signal) => {
     Disks: Disks(signal),
     Dockstore: Dockstore(signal),
     DrsUriResolver: DrsUriResolver(signal),
-    Duos: Duos(signal),
     FirecloudBucket: FirecloudBucket(signal),
     Groups: Groups(signal),
     Methods: Methods(signal),
