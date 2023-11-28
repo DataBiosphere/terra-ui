@@ -138,7 +138,7 @@ describe('ImportDataDestination', () => {
   ] as {
     importRequest: ImportRequest;
     shouldSelectExisting: boolean;
-  }[])('should disable start with an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
+  }[])('should disable select an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
     // Arrange
     const user = userEvent.setup();
     asMockedFn(canImportIntoWorkspace).mockImplementation((_importOptions: ImportOptions): boolean => {
@@ -443,7 +443,7 @@ describe('ImportDataDestination', () => {
       setup({ props });
 
       // Act
-      const newWorkspaceButton = screen.getByText('Start with a new workspace');
+      const newWorkspaceButton = screen.getByText('Create a new workspace');
       await user.click(newWorkspaceButton);
 
       // Assert
@@ -481,6 +481,6 @@ describe('ImportDataDestination', () => {
     });
 
     // Assert
-    expect(screen.queryByText('Start with a new workspace')).toBeNull();
+    expect(screen.queryByText('Create a new workspace')).toBeNull();
   });
 });

@@ -15,7 +15,6 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { WorkspaceSelector } from 'src/components/workspace-utils';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import colors from 'src/libs/colors';
-import { FormLabel } from 'src/libs/forms';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
@@ -84,7 +83,7 @@ const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
   );
 };
 
-export const selectExistingWorkspacePrompt = 'Start with an existing workspace';
+export const selectExistingWorkspacePrompt = 'Select an existing workspace';
 
 export interface ImportDataDestinationProps {
   importRequest: ImportRequest;
@@ -208,13 +207,12 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     h(Fragment, [
       h2({ style: styles.title }, [selectExistingWorkspacePrompt]),
       isProtectedData &&
-        div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
+        div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem', lineHeight: '1.5' } }, [
           ' You may only import into workspaces that have additional security monitoring enabled.',
         ]),
       h(IdContainer, [
         (id) =>
           h(Fragment, [
-            h(FormLabel, { htmlFor: id, style: { marginBottom: '0.25rem' } }, ['Select one of your workspaces']),
             // @ts-expect-error
             h(WorkspaceSelector, {
               id,
@@ -243,7 +241,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
 
   const renderSelectTemplateWorkspace = () =>
     h(Fragment, [
-      h2({ style: styles.title }, ['Start with a template']),
+      h2({ style: styles.title }, ['Select a template']),
       importMayTakeTime && div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
       div(
         {
@@ -329,7 +327,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               h(ChoiceButton, {
                 onClick: () => setMode('template'),
                 iconName: 'copySolid',
-                title: 'Start with a template',
+                title: 'Select a template',
                 detail: 'Clone from one of our template workspaces that has analyses ready for use',
               }),
             h(ChoiceButton, {
@@ -347,7 +345,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               h(ChoiceButton, {
                 onClick: () => setIsCreateOpen(true),
                 iconName: 'plus-circle',
-                title: 'Start with a new workspace',
+                title: 'Create a new workspace',
                 detail: 'Set up an empty workspace that you will configure for analysis',
                 'aria-haspopup': 'dialog',
                 disabled: !userHasBillingProjects,
