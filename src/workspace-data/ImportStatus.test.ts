@@ -105,13 +105,113 @@ describe('ImportStatus', () => {
       });
 
       // Assert
-      expect(notify).toHaveBeenCalledWith('success', 'Data imported successfully.');
+      expect(notify).toHaveBeenCalledWith(
+        'success',
+        'Data imported successfully.',
+        expect.objectContaining({
+          //   message: expect.stringContaining('test-workspaces / google-workspace'),
+          message: expect.anything(),
+        })
+      );
     });
   });
 
   describe('for Azure workspaces', () => {
-    it('polls if import job is still pending', async () => {});
-    it('notifies error if import failed', async () => {});
-    it('notifies success when import completes', async () => {});
+    it('polls if import job is still pending', async () => {
+      // Arrange
+      asyncImportJobStore.set([
+        {
+          targetWorkspace: { namespace: 'test-workspaces', name: 'azure-workspace' },
+          jobId: 'workspace-job-1',
+          wdsProxyUrl: 'http://proxy.url',
+        },
+      ]);
+
+      const getJobStatus = jest.fn().mockResolvedValue({ status: 'QUEUED' });
+      const mockAjax: DeepPartial<AjaxContract> = {
+        WorkspaceData: {
+          getJobStatus,
+        },
+      };
+      asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+      // Act
+      render(h(ImportStatus, {}));
+      await act(async () => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      expect(notify).not.toHaveBeenCalled();
+
+      // Should poll again by calling getImportJobStatus again
+      await act(async () => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      expect(getJobStatus).toHaveBeenCalledWith('http://proxy.url', 'workspace-job-1');
+      expect(notify).not.toHaveBeenCalled();
+    });
+    it('notifies error if import failed', async () => {
+      // Arrange
+      asyncImportJobStore.set([
+        {
+          targetWorkspace: { namespace: 'test-workspaces', name: 'azure-workspace' },
+          jobId: 'workspace-job-1',
+          wdsProxyUrl: 'http://proxy.url',
+        },
+      ]);
+
+      const getJobStatus = jest
+        .fn()
+        .mockResolvedValue({ status: 'ERROR', errorMessage: 'Import failed for some reason.' });
+      const mockAjax: DeepPartial<AjaxContract> = {
+        WorkspaceData: {
+          getJobStatus,
+        },
+      };
+      asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+      // Act
+      render(h(ImportStatus, {}));
+      await act(async () => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      expect(notify).toHaveBeenCalledWith('error', 'Error importing data.', {
+        notificationMessage: 'Import failed for some reason.',
+      });
+    });
+    it('notifies success when import completes', async () => {
+      // Arrange
+      asyncImportJobStore.set([
+        {
+          targetWorkspace: { namespace: 'test-workspaces', name: 'azure-workspace' },
+          jobId: 'workspace-job-1',
+          wdsProxyUrl: 'http://proxy.url',
+        },
+      ]);
+
+      const getJobStatus = jest.fn().mockResolvedValue({ status: 'SUCCEEDED' });
+      const mockAjax: DeepPartial<AjaxContract> = {
+        WorkspaceData: {
+          getJobStatus,
+        },
+      };
+      asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+      // Act
+      render(h(ImportStatus, {}));
+      await act(async () => {
+        jest.advanceTimersByTime(60000);
+      });
+
+      expect(notify).toHaveBeenCalledWith(
+        'success',
+        'Data imported successfully.',
+        expect.objectContaining({
+          message: expect.anything(),
+        })
+      );
+    });
   });
 });
