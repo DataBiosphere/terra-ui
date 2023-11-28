@@ -171,7 +171,7 @@ describe('NewWorkspaceModal', () => {
     });
 
     // Assert
-    screen.getByText('You do not have access to a billing project with additional security monitoring.');
+    screen.getByText('You do not have access to a billing project that supports additional security monitoring.');
   });
 
   it('shows a message if there are no billing projects to use for cloning', async () => {

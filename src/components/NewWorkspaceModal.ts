@@ -326,7 +326,7 @@ const NewWorkspaceModal = withDisplayName(
       if (workflowImport) {
         return !isAzureBillingProject(project);
       }
-      // If creating a new workspace and enhanced bucket logging is required, allow all GCP projects
+      // If we aren't cloning a workspace and enhanced bucket logging is required, allow all GCP projects
       // (user will be forced to select "Workspace will have protected data" for GCP projects)
       // and Azure billing projects that support protected Data.
       if (!cloneWorkspace && requireEnhancedBucketLogging && isAzureBillingProject(project)) {
@@ -375,7 +375,7 @@ const NewWorkspaceModal = withDisplayName(
         return 'You do not have a billing project that is able to clone this workspace.';
       }
       return requireEnhancedBucketLogging
-        ? 'You do not have access to a billing project with additional security monitoring.'
+        ? 'You do not have access to a billing project that supports additional security monitoring.'
         : 'You need a billing project to create a new workspace.';
     };
 
