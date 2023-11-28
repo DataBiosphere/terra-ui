@@ -126,7 +126,6 @@ const WorkspaceDashboardForwardRefRenderFunction = (
   const [editDescription, setEditDescription] = useState<string>();
   const [saving, setSaving] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
-  const [consentStatus, setConsentStatus] = useState<string>();
   const [tagsList, setTagsList] = useState<string[]>();
   const [acl, setAcl] = useState<WorkspaceAcl>();
 
@@ -135,7 +134,6 @@ const WorkspaceDashboardForwardRefRenderFunction = (
   const signal = useCancellation();
 
   const refresh = () => {
-    loadConsent();
     loadWsTags();
 
     // If the current user is the only owner of the workspace, load the ACL to check if the workspace is shared.
@@ -231,32 +229,6 @@ const WorkspaceDashboardForwardRefRenderFunction = (
     notificationsPanelOpen,
   ]);
 
-  // Helpers
-  const loadConsent = withErrorReporting('Error loading data', async () => {
-    const orspId = attributes['library:orsp'];
-    if (orspId) {
-      try {
-        const { translatedUseRestriction } = await Ajax(signal).Duos.getConsent(orspId);
-        setConsentStatus(translatedUseRestriction);
-      } catch (error) {
-        if (error instanceof Response) {
-          switch (error.status) {
-            case 400:
-              setConsentStatus(`Structured Data Use Limitations are not approved for ${orspId}`);
-              break;
-            case 404:
-              setConsentStatus(`Structured Data Use Limitations are not available for ${orspId}`);
-              break;
-            default:
-              throw error;
-          }
-        } else {
-          throw error;
-        }
-      }
-    }
-  });
-
   const loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
     setTagsList(await Ajax(signal).Workspaces.workspace(namespace, name).getTags());
   });
@@ -349,7 +321,7 @@ const WorkspaceDashboardForwardRefRenderFunction = (
               _.map(({ key, title }) => ({ name: title, value: displayAttributeValue(attributes[key]) })),
               append({
                 name: 'Structured Data Use Limitations',
-                value: attributes['library:orsp'] ? consentStatus : h(DataUseLimitations, { attributes }),
+                value: attributes['library:orsp'] ? null : h(DataUseLimitations, { attributes }),
               }),
               _.filter('value')
             )(displayLibraryAttributes),
