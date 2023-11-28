@@ -3,7 +3,6 @@ export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
 export const ENABLE_AZURE_COLLABORATIVE_WORKFLOW_READERS = 'enableCollborativeWorkflowReaders';
 export const ENABLE_WORKFLOW_RESOURCE_MONITORING = 'enableWorkflowResourceMonitoring';
-export const APPCUES_OPT_IN = 'appcuesOptIn';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -98,12 +97,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     feedbackUrl: `mailto:dsp-workflow-execution@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on workflow resource monitoring'
     )}`,
-  },
-  {
-    id: APPCUES_OPT_IN,
-    title: 'AppCues opt in',
-    description: 'Enabling this feature flag will allow your activity in Terra to be tracked by Appcues.',
-    groups: ['appcues-opt-in'],
   },
 ];
 
