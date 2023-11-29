@@ -9,13 +9,18 @@ import * as Utils from 'src/libs/utils';
 import AzurePreview from 'src/pages/AzurePreview';
 import { Disabled } from 'src/pages/Disabled';
 import SignIn from 'src/pages/SignIn';
-import TermsOfService from 'src/pages/TermsOfService';
 import { Register } from 'src/registration/Register';
+import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfServicePage';
 
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute();
-  const { signInStatus, registrationStatus, termsOfService } = useStore(authStore);
-  const displayTosPage = signInStatus === 'signedIn' && termsOfService.permitsSystemUsage === false;
+  const { signInStatus, terraUserAllowances } = useStore(authStore);
+  const userIsDisabled = signInStatus === 'userLoaded' && terraUserAllowances.details.enabled === false;
+  const userMustRegister = signInStatus === 'unregistered';
+  const displayTosPage =
+    signInStatus === 'userLoaded' &&
+    terraUserAllowances.details.enabled === true &&
+    terraUserAllowances.details.termsOfService === false;
   const seenAzurePreview = useStore(azurePreviewStore) || false;
   const authspinner = () => fixedSpinnerOverlay;
 
@@ -23,10 +28,9 @@ const AuthContainer = ({ children }) => {
     [signInStatus === 'uninitialized' && !isPublic, authspinner],
     [signInStatus === 'signedOut' && !isPublic, () => h(SignIn)],
     [seenAzurePreview === false && isAzureUser(), () => h(AzurePreview)],
-    [registrationStatus === 'uninitialized' && !isPublic, authspinner],
-    [registrationStatus === 'unregistered', () => h(Register)],
-    [displayTosPage && name !== 'privacy', () => h(TermsOfService)],
-    [registrationStatus === 'disabled', () => h(Disabled)],
+    [userMustRegister, () => h(Register)],
+    [displayTosPage && name !== 'privacy', () => h(TermsOfServicePage)],
+    [userIsDisabled, () => h(Disabled)],
     () => children
   );
 };

@@ -5,7 +5,13 @@ import { AuthTokenState } from 'src/auth/auth';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { Dataset } from 'src/libs/ajax/Catalog';
 import { OidcConfig } from 'src/libs/ajax/OAuth2';
-import { BondFenceStatusResponse, NihDatasetPermission, SamUserAttributes } from 'src/libs/ajax/User';
+import { SamTermsOfServiceConfig } from 'src/libs/ajax/TermsOfService';
+import {
+  BondFenceStatusResponse,
+  NihDatasetPermission,
+  SamUserAllowances,
+  SamUserAttributes,
+} from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
@@ -25,7 +31,7 @@ export type TerraUserRegistrationStatus =
 
 export interface TermsOfServiceStatus {
   permitsSystemUsage: boolean | undefined;
-  userHasAcceptedLatestTos: boolean | undefined;
+  isCurrentVersion: boolean | undefined;
 }
 
 export interface NihStatus {
@@ -36,7 +42,21 @@ export interface NihStatus {
 
 export type Initializable<T> = T | 'uninitialized';
 
-export type SignInStatus = Initializable<'signedIn' | 'signedOut'>;
+export type SignInStatusState =
+  // The user has signed in via B2C, but information has not yet been loaded from Sam.
+  | 'authenticated'
+  // The user has signed in via B2C, but does not exist in Sam.
+  | 'unregistered'
+  // The user has signed in via B2C and their information has been loaded from Sam.
+  | 'userLoaded'
+  // The user is not signed in via B2C.
+  | 'signedOut';
+
+export type SignInStatus = Initializable<SignInStatusState>;
+
+export type SystemProperties = {
+  termsOfServiceConfig: SamTermsOfServiceConfig;
+};
 
 export interface FenceStatus {
   [key: string]: BondFenceStatusResponse;
@@ -47,11 +67,13 @@ export interface AuthState {
   fenceStatus: FenceStatus;
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   signInStatus: SignInStatus;
+  userJustSignedIn: boolean;
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: NihStatus;
   nihStatusLoaded: boolean;
-  registrationStatus: TerraUserRegistrationStatus;
+  system: SystemProperties;
   termsOfService: TermsOfServiceStatus;
+  terraUserAllowances: SamUserAllowances;
 }
 
 export const authStore: Atom<AuthState> = atom<AuthState>({
@@ -59,11 +81,25 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
+  userJustSignedIn: false,
   nihStatusLoaded: false,
-  registrationStatus: 'uninitialized',
+  system: {
+    termsOfServiceConfig: {
+      enforced: false,
+      currentVersion: '',
+      inRollingAcceptanceWindow: false,
+    },
+  },
   termsOfService: {
     permitsSystemUsage: undefined,
-    userHasAcceptedLatestTos: undefined,
+    isCurrentVersion: undefined,
+  },
+  terraUserAllowances: {
+    allowed: false,
+    details: {
+      enabled: false,
+      termsOfService: false,
+    },
   },
 });
 
@@ -236,13 +272,24 @@ export const workflowSelectionStore = atom({
   entities: undefined,
 });
 
-export type AsyncImportJob = {
+export type GCPAsyncImportJob = {
   jobId: string;
   targetWorkspace: {
     namespace: string;
     name: string;
   };
 };
+
+export type AzureAsyncImportJob = {
+  jobId: string;
+  targetWorkspace: {
+    namespace: string;
+    name: string;
+  };
+  wdsProxyUrl: string;
+};
+
+export type AsyncImportJob = AzureAsyncImportJob | GCPAsyncImportJob;
 
 export const asyncImportJobStore = atom<AsyncImportJob[]>([]);
 

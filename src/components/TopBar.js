@@ -224,7 +224,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                 style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 },
               },
               [
-                signInStatus === 'signedIn'
+                signInStatus === 'userLoaded' || signInStatus === 'authenticated'
                   ? h(
                       DropDownSection,
                       {
@@ -479,8 +479,8 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                   h(
                     NavSection,
                     {
-                      disabled: signInStatus !== 'signedIn',
-                      tooltip: signInStatus === 'signedIn' ? undefined : 'Please sign in',
+                      disabled: signInStatus !== 'userLoaded',
+                      tooltip: signInStatus === 'userLoaded' ? undefined : 'Please sign in',
                       onClick: () => {
                         hideNav();
                         setOpenFirecloudModal(true);
@@ -586,11 +586,11 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                       style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
                       onClick: navShown ? hideNav : showNav,
                       'aria-expanded': navShown,
+                      'aria-label': 'Toggle main menu',
                     },
                     [
                       icon('bars', {
-                        'aria-label': 'Toggle main menu',
-                        'aria-hidden': false,
+                        'aria-hidden': true,
                         size: 36,
                         style: {
                           color: isTerra() ? 'white' : colors.accent(),
