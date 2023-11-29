@@ -969,7 +969,7 @@ export const WorkspaceData = _.flow(
                       workspaceId,
                       mrgId: workspace.azureContext.managedResourceGroupId,
                     }),
-                  isAzureWorkspace && uploadingWDSFile && h(DataImportPlaceholder),
+                  isAzureWorkspace && (uploadingWDSFile || runningImportJobs.length > 0) && h(DataImportPlaceholder),
                   isAzureWorkspace &&
                     h(
                       DataTypeSection,

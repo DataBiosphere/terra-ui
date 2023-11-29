@@ -224,13 +224,24 @@ export const workflowSelectionStore = atom({
   entities: undefined,
 });
 
-export type AsyncImportJob = {
+export type GCPAsyncImportJob = {
   jobId: string;
   targetWorkspace: {
     namespace: string;
     name: string;
   };
 };
+
+export type AzureAsyncImportJob = {
+  jobId: string;
+  targetWorkspace: {
+    namespace: string;
+    name: string;
+  };
+  wdsProxyUrl: string;
+};
+
+export type AsyncImportJob = AzureAsyncImportJob | GCPAsyncImportJob;
 
 export const asyncImportJobStore = atom<AsyncImportJob[]>([]);
 
