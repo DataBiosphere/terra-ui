@@ -5,7 +5,13 @@ import { AuthTokenState } from 'src/auth/auth';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { Dataset } from 'src/libs/ajax/Catalog';
 import { OidcConfig } from 'src/libs/ajax/OAuth2';
-import { BondFenceStatusResponse, NihDatasetPermission, SamUserAttributes } from 'src/libs/ajax/User';
+import { SamTermsOfServiceConfig } from 'src/libs/ajax/TermsOfService';
+import {
+  BondFenceStatusResponse,
+  NihDatasetPermission,
+  SamUserAllowances,
+  SamUserAttributes,
+} from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
@@ -55,7 +61,7 @@ export type TerraUserRegistrationStatus =
 
 export type TermsOfServiceStatus = {
   permitsSystemUsage: boolean | undefined;
-  userHasAcceptedLatestTos: boolean | undefined;
+  isCurrentVersion: boolean | undefined;
 };
 
 export type TokenMetadata = {
@@ -75,7 +81,21 @@ export type NihStatus = {
 
 export type Initializable<T> = T | 'uninitialized';
 
-export type SignInStatus = Initializable<'signedIn' | 'signedOut'>;
+export type SignInStatusState =
+  // The user has signed in via B2C, but information has not yet been loaded from Sam.
+  | 'authenticated'
+  // The user has signed in via B2C, but does not exist in Sam.
+  | 'unregistered'
+  // The user has signed in via B2C and their information has been loaded from Sam.
+  | 'userLoaded'
+  // The user is not signed in via B2C.
+  | 'signedOut';
+
+export type SignInStatus = Initializable<SignInStatusState>;
+
+export type SystemProperties = {
+  termsOfServiceConfig: SamTermsOfServiceConfig;
+};
 
 export type AuthState = {
   anonymousId: string | undefined;
@@ -84,16 +104,18 @@ export type AuthState = {
   fenceStatus: FenceStatus;
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   signInStatus: SignInStatus;
+  userJustSignedIn: boolean;
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: NihStatus;
   nihStatusLoaded: boolean;
   profile: TerraUserProfile;
   refreshTokenMetadata: TokenMetadata;
-  registrationStatus: TerraUserRegistrationStatus;
   sessionId?: string | undefined;
   sessionStartTime: number;
+  system: SystemProperties;
   termsOfService: TermsOfServiceStatus;
   terraUser: TerraUser;
+  terraUserAllowances: SamUserAllowances;
   terraUserAttributes: SamUserAttributes;
 };
 
@@ -115,6 +137,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
+  userJustSignedIn: false,
   nihStatusLoaded: false,
   profile: {
     firstName: undefined,
@@ -137,12 +160,18 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     totalTokenLoadAttemptsThisSession: 0,
     totalTokensUsedThisSession: 0,
   },
-  registrationStatus: 'uninitialized',
   sessionId: undefined,
   sessionStartTime: -1,
+  system: {
+    termsOfServiceConfig: {
+      enforced: false,
+      currentVersion: '',
+      inRollingAcceptanceWindow: false,
+    },
+  },
   termsOfService: {
     permitsSystemUsage: undefined,
-    userHasAcceptedLatestTos: undefined,
+    isCurrentVersion: undefined,
   },
   terraUser: {
     token: undefined,
@@ -154,6 +183,13 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     familyName: undefined,
     imageUrl: undefined,
     idp: undefined,
+  },
+  terraUserAllowances: {
+    allowed: false,
+    details: {
+      enabled: false,
+      termsOfService: false,
+    },
   },
   terraUserAttributes: {
     marketingConsent: true,
@@ -224,13 +260,24 @@ export const workflowSelectionStore = atom({
   entities: undefined,
 });
 
-export type AsyncImportJob = {
+export type GCPAsyncImportJob = {
   jobId: string;
   targetWorkspace: {
     namespace: string;
     name: string;
   };
 };
+
+export type AzureAsyncImportJob = {
+  jobId: string;
+  targetWorkspace: {
+    namespace: string;
+    name: string;
+  };
+  wdsProxyUrl: string;
+};
+
+export type AsyncImportJob = AzureAsyncImportJob | GCPAsyncImportJob;
 
 export const asyncImportJobStore = atom<AsyncImportJob[]>([]);
 

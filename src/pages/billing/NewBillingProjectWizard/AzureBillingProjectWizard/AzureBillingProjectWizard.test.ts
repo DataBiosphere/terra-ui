@@ -68,6 +68,10 @@ describe('AzureBillingProjectWizard', () => {
   const onSuccess = jest.fn();
   const captureEvent = jest.fn();
 
+  const getProtectedDataRadio = () =>
+    screen.getByLabelText('Yes, set up my environment with additional security monitoring');
+  const getNoProtectedDataRadio = () => screen.getByLabelText('No');
+
   beforeEach(() => {
     jest.resetAllMocks();
     asMockedFn(Ajax).mockImplementation(
@@ -88,7 +92,7 @@ describe('AzureBillingProjectWizard', () => {
     expect(await axe(renderResult.container)).toHaveNoViolations();
   });
 
-  it('should support happy path of submitting with no users/owners', async () => {
+  it('should support happy path of submitting with no users/owners and without protected data', async () => {
     // Integration test of steps (act/arrange/assert not really possible)
     const createAzureProject = jest.fn().mockResolvedValue({});
     const billingProjectName = 'LotsOfCash';
@@ -97,9 +101,12 @@ describe('AzureBillingProjectWizard', () => {
     const managedApp = await selectManagedApp(captureEvent, createAzureProject);
 
     testStepActive(2);
-    fireEvent.click(getNoUsersRadio());
+    fireEvent.click(getNoProtectedDataRadio());
 
     testStepActive(3);
+    fireEvent.click(getNoUsersRadio());
+
+    testStepActive(4);
     verifyCreateBillingProjectDisabled();
     await nameBillingProject(billingProjectName);
     expect(await axe(renderResult.container)).toHaveNoViolations();
@@ -110,18 +117,20 @@ describe('AzureBillingProjectWizard', () => {
       managedApp.tenantId,
       managedApp.subscriptionId,
       managedApp.managedResourceGroupId,
-      []
+      [],
+      false
     );
 
     expect(captureEvent).toHaveBeenNthCalledWith(1, Events.billingAzureCreationSubscriptionStep);
     expect(captureEvent).toHaveBeenNthCalledWith(2, Events.billingAzureCreationMRGSelected);
-    expect(captureEvent).toHaveBeenNthCalledWith(3, Events.billingAzureCreationNoUsersToAdd);
-    expect(captureEvent).toHaveBeenNthCalledWith(4, Events.billingAzureCreationProjectNameStep);
-    expect(captureEvent).toHaveBeenCalledTimes(4);
-    expect(onSuccess).toBeCalledWith(billingProjectName);
+    expect(captureEvent).toHaveBeenNthCalledWith(3, Events.billingAzureCreationProtectedDataNotSelected);
+    expect(captureEvent).toHaveBeenNthCalledWith(4, Events.billingAzureCreationNoUsersToAdd);
+    expect(captureEvent).toHaveBeenNthCalledWith(5, Events.billingAzureCreationProjectNameStep);
+    expect(captureEvent).toHaveBeenCalledTimes(5);
+    expect(onSuccess).toBeCalledWith(billingProjectName, false);
   });
 
-  it('should support happy path of submitting with owners and users', async () => {
+  it('should support happy path of submitting with owners and users and protected data', async () => {
     // Integration test of steps (act/arrange/assert not really possible)
     const createAzureProject = jest.fn().mockResolvedValue({ ok: true });
     const billingProjectName = 'LotsOfCashForAll';
@@ -130,13 +139,16 @@ describe('AzureBillingProjectWizard', () => {
     const managedApp = await selectManagedApp(captureEvent, createAzureProject);
 
     testStepActive(2);
+    fireEvent.click(getProtectedDataRadio());
+
+    testStepActive(3);
     fireEvent.click(getAddUsersRadio());
     addUserAndOwner('onlyuser@example.com', 'owner@example.com');
-    testStepActive(2); // Have to click in billing project input to become the active step
+    testStepActive(3); // Have to click in billing project input to become the active step
 
     verifyCreateBillingProjectDisabled();
     await nameBillingProject(billingProjectName);
-    testStepActive(3);
+    testStepActive(4);
 
     expect(await axe(renderResult.container)).toHaveNoViolations();
     await clickCreateBillingProject();
@@ -148,15 +160,17 @@ describe('AzureBillingProjectWizard', () => {
       [
         { email: 'onlyuser@example.com', role: 'User' },
         { email: 'owner@example.com', role: 'Owner' },
-      ]
+      ],
+      true
     );
 
     expect(captureEvent).toHaveBeenNthCalledWith(1, Events.billingAzureCreationSubscriptionStep);
     expect(captureEvent).toHaveBeenNthCalledWith(2, Events.billingAzureCreationMRGSelected);
-    expect(captureEvent).toHaveBeenNthCalledWith(3, Events.billingAzureCreationWillAddUsers);
-    expect(captureEvent).toHaveBeenNthCalledWith(4, Events.billingAzureCreationProjectNameStep);
-    expect(captureEvent).toHaveBeenCalledTimes(4);
-    expect(onSuccess).toBeCalledWith(billingProjectName);
+    expect(captureEvent).toHaveBeenNthCalledWith(3, Events.billingAzureCreationProtectedDataSelected);
+    expect(captureEvent).toHaveBeenNthCalledWith(4, Events.billingAzureCreationWillAddUsers);
+    expect(captureEvent).toHaveBeenNthCalledWith(5, Events.billingAzureCreationProjectNameStep);
+    expect(captureEvent).toHaveBeenCalledTimes(5);
+    expect(onSuccess).toBeCalledWith(billingProjectName, true);
   });
 
   it('shows error if billing project already exists with the name', async () => {
@@ -165,6 +179,7 @@ describe('AzureBillingProjectWizard', () => {
     const billingProjectName = 'ProjectNameInUse';
 
     const managedApp = await selectManagedApp(captureEvent, createAzureProject);
+    fireEvent.click(getNoProtectedDataRadio());
     fireEvent.click(getNoUsersRadio());
     verifyCreateBillingProjectDisabled();
     await nameBillingProject(billingProjectName);
@@ -175,7 +190,8 @@ describe('AzureBillingProjectWizard', () => {
       managedApp.tenantId,
       managedApp.subscriptionId,
       managedApp.managedResourceGroupId,
-      []
+      [],
+      false
     );
     verifyCreateBillingProjectDisabled();
     expect(onSuccess).not.toBeCalled();

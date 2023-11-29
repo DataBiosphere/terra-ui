@@ -56,7 +56,7 @@ export const CreateNamedProjectStep = ({ isActive, ...props }: CreateProjectStep
   const nameInputId = useUniqueId();
 
   return h(Step, { isActive }, [
-    h(StepHeader, { title: 'STEP 3' }),
+    h(StepHeader, { title: 'STEP 4' }),
     h(StepFields, { style: { flexDirection: 'column' } }, [
       h(StepFieldLegend, { style: { width: '90%' } }, ['Name your Terra Billing Project']),
       div({ style: rowStyle }, [

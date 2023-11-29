@@ -12,6 +12,7 @@ import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/works
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportDataContainer } from './ImportData';
+import { selectExistingWorkspacePrompt } from './ImportDataDestination';
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
 
@@ -136,7 +137,7 @@ const setup = async (opts: SetupOptions) => {
   });
 
   const importTdr = jest.fn().mockResolvedValue(undefined);
-  const startImportJob = jest.fn().mockResolvedValue(undefined);
+  const startImportJob = jest.fn().mockResolvedValue({ jobId: 'new-job' });
 
   const wdsProxyUrl = 'https://proxyurl';
   const mockAjax: DeepPartial<AjaxContract> = {
@@ -198,7 +199,7 @@ const setup = async (opts: SetupOptions) => {
 };
 
 const importIntoExistingWorkspace = async (user: UserEvent, workspaceName: string): Promise<void> => {
-  const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
+  const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
   await user.click(existingWorkspace);
 
   const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);

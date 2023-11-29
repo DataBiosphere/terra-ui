@@ -1,16 +1,20 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { CloudProvider, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportRequest } from './import-types';
 import { canImportIntoWorkspace, ImportOptions } from './import-utils';
-import { ImportDataDestination, ImportDataDestinationProps } from './ImportDataDestination';
+import {
+  ImportDataDestination,
+  ImportDataDestinationProps,
+  selectExistingWorkspacePrompt,
+} from './ImportDataDestination';
 
 type ImportUtilsExports = typeof import('./import-utils');
 jest.mock('./import-utils', (): ImportUtilsExports => {
@@ -20,10 +24,12 @@ jest.mock('./import-utils', (): ImportUtilsExports => {
   };
 });
 
-type NewWorkspaceModalExports = typeof import('src/components/NewWorkspaceModal') & { __esModule: true };
-jest.mock('src/components/NewWorkspaceModal', (): NewWorkspaceModalExports => {
+type NewWorkspaceModalExports = typeof import('src/workspaces/NewWorkspaceModal/NewWorkspaceModal') & {
+  __esModule: true;
+};
+jest.mock('src/workspaces/NewWorkspaceModal/NewWorkspaceModal', (): NewWorkspaceModalExports => {
   return {
-    ...jest.requireActual<NewWorkspaceModalExports>('src/components/NewWorkspaceModal'),
+    ...jest.requireActual<NewWorkspaceModalExports>('src/workspaces/NewWorkspaceModal/NewWorkspaceModal'),
     default: jest.fn().mockReturnValue(null),
     __esModule: true,
   };
@@ -106,7 +112,7 @@ describe('ImportDataDestination', () => {
       });
 
       // Act
-      const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
+      const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
       await user.click(existingWorkspace); // select start with existing workspace
 
       // Assert
@@ -134,7 +140,7 @@ describe('ImportDataDestination', () => {
   ] as {
     importRequest: ImportRequest;
     shouldSelectExisting: boolean;
-  }[])('should disable start with an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
+  }[])('should disable select an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
     // Arrange
     const user = userEvent.setup();
     asMockedFn(canImportIntoWorkspace).mockImplementation((_importOptions: ImportOptions): boolean => {
@@ -159,7 +165,7 @@ describe('ImportDataDestination', () => {
       ],
     });
     // Act
-    const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
+    const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
     await user.click(existingWorkspace); // select start with existing workspace
 
     // Assert
@@ -268,7 +274,7 @@ describe('ImportDataDestination', () => {
       });
 
       // Act
-      const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
+      const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
       await user.click(existingWorkspace); // select start with existing workspace
 
       const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
@@ -333,7 +339,7 @@ describe('ImportDataDestination', () => {
     });
 
     // Act
-    const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
+    const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
     await user.click(existingWorkspace); // select start with existing workspace
 
     // Assert
@@ -439,7 +445,7 @@ describe('ImportDataDestination', () => {
       setup({ props });
 
       // Act
-      const newWorkspaceButton = screen.getByText('Start with a new workspace');
+      const newWorkspaceButton = screen.getByText('Create a new workspace');
       await user.click(newWorkspaceButton);
 
       // Assert
@@ -477,6 +483,6 @@ describe('ImportDataDestination', () => {
     });
 
     // Assert
-    expect(screen.queryByText('Start with a new workspace')).toBeNull();
+    expect(screen.queryByText('Create a new workspace')).toBeNull();
   });
 });

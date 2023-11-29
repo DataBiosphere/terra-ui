@@ -10,7 +10,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useOnMount } from 'src/libs/react-utils';
-import { asyncImportJobStore } from 'src/libs/state';
+import { asyncImportJobStore, AzureAsyncImportJob, GCPAsyncImportJob } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
@@ -65,16 +65,28 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   const importPFB = async (importRequest: PFBImportRequest, workspace: WorkspaceInfo) => {
     if (workspace.cloudPlatform === 'Azure') {
       const wdsUrl = await Ajax().Apps.listAppsV2(workspace.workspaceId).then(resolveWdsUrl);
-      await Ajax().WorkspaceData.startImportJob(wdsUrl, workspace.workspaceId, {
+      const { namespace, name } = workspace;
+      const { jobId } = await Ajax().WorkspaceData.startImportJob(wdsUrl, workspace.workspaceId, {
         url: importRequest.url.toString(),
         type: 'PFB',
       });
+      const newJob: AzureAsyncImportJob = {
+        targetWorkspace: { namespace, name },
+        jobId,
+        wdsProxyUrl: wdsUrl,
+      };
+      asyncImportJobStore.update((previousJobs) => [...previousJobs, newJob]);
+      notifyDataImportProgress(jobId);
     } else {
       const { namespace, name } = workspace;
       const { jobId } = await Ajax()
         .Workspaces.workspace(namespace, name)
         .importJob(importRequest.url.toString(), 'pfb', null);
-      asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
+      const newJob: GCPAsyncImportJob = {
+        targetWorkspace: { namespace, name },
+        jobId,
+      };
+      asyncImportJobStore.update((previousJobs) => [...previousJobs, newJob]);
       notifyDataImportProgress(jobId);
     }
   };

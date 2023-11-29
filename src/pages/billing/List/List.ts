@@ -259,10 +259,11 @@ export const List = (props: ListProps) => {
               azureUserWithNoBillingProjects || creatingAzureBillingProject,
               () =>
                 h(AzureBillingProjectWizard, {
-                  onSuccess: (billingProjectName) => {
+                  onSuccess: (billingProjectName, protectedData) => {
                     Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
                       billingProjectName,
                       cloudPlatform: cloudProviderTypes.AZURE,
+                      protectedData,
                     });
                     setCreatingBillingProjectType(null);
                     loadProjects();
