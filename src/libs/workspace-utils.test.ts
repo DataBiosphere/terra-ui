@@ -10,17 +10,32 @@ import {
   canEditWorkspace,
   canRunAnalysisInWorkspace,
   dataAccessControlsMessage,
+  getPolicyLongDescription,
+  getPolicyShortDescription,
   getRegionConstraintLabels,
   getWorkspaceAnalysisControlProps,
   getWorkspaceEditControlProps,
+  groupConstraintMessage,
   hasDataAccessControls,
   hasProtectedData,
   hasRegionConstraint,
   isValidWsExportTarget,
+  protectedDataMessage,
   WorkspaceAccessLevel,
   WorkspacePolicy,
   WorkspaceWrapper,
 } from './workspace-utils';
+
+const protectedDataPolicy: WorkspacePolicy = {
+  namespace: 'terra',
+  name: 'protected-data',
+};
+
+const groupConstraintPolicy: WorkspacePolicy = {
+  namespace: 'terra',
+  name: 'group-constraint',
+  additionalData: [{ group: 'test-group' }],
+};
 
 describe('isValidWsExportTarget', () => {
   it('Returns true because source and dest workspaces are the same', () => {
@@ -132,6 +147,34 @@ describe('isValidWsExportTarget', () => {
   });
 });
 
+describe('getPolicyShortDescription', () => {
+  it('Returns description for a protected data policy', () => {
+    expect(getPolicyShortDescription(protectedDataPolicy)).toBe('Additional security monitoring');
+  });
+
+  it('Returns description for a group contraint policy', () => {
+    expect(getPolicyShortDescription(groupConstraintPolicy)).toBe('Data access controls');
+  });
+
+  it('Returns the policy name for other policies', () => {
+    expect(getPolicyShortDescription({ name: 'any-other-policy' })).toBe('any-other-policy');
+  });
+});
+
+describe('getPolicyLongDescription', () => {
+  it('Returns lengthy description for a protected data policy', () => {
+    expect(getPolicyLongDescription(protectedDataPolicy)).toBe(protectedDataMessage);
+  });
+
+  it('Returns lengthy description for a group contraint policy', () => {
+    expect(getPolicyLongDescription(groupConstraintPolicy)).toBe(groupConstraintMessage);
+  });
+
+  it('Returns undefined other policies', () => {
+    expect(getPolicyLongDescription({ name: 'any-other-policy' })).toBeUndefined();
+  });
+});
+
 describe('hasProtectedData', () => {
   it('Returns true if protected-data policy exists', () => {
     expect(hasProtectedData(protectedAzureWorkspace)).toBe(true);
@@ -165,22 +208,11 @@ describe('hasDataAccessControls', () => {
   it.each([
     { policies: [], expectedResult: false },
     {
-      polices: [
-        {
-          namespace: 'terra',
-          name: 'protected-data',
-        },
-      ],
+      polices: [protectedDataPolicy],
       expectedResult: false,
     },
     {
-      policies: [
-        {
-          namespace: 'terra',
-          name: 'group-constraint',
-          additionalData: [{ group: 'foo' }],
-        },
-      ],
+      policies: [groupConstraintPolicy],
       expectedResult: true,
     },
   ] as { policies: WorkspacePolicy[]; expectedResult: boolean }[])(
@@ -214,13 +246,7 @@ describe('dataAccessControlsMessage', () => {
     // Arrange
     const workspace: WorkspaceWrapper = {
       ...defaultAzureWorkspace,
-      policies: [
-        {
-          namespace: 'terra',
-          name: 'group-constraint',
-          additionalData: [{ group: 'test-group' }],
-        },
-      ],
+      policies: [groupConstraintPolicy],
     };
 
     // Act
