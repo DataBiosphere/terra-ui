@@ -2,11 +2,11 @@ import _ from 'lodash/fp';
 import { Fragment, ReactElement, ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link } from 'src/components/common';
-import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils';
 import { withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { canWrite, WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 
 type WorkspaceImporterProps = {
   additionalErrors: any;

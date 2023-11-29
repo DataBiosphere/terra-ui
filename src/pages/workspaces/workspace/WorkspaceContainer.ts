@@ -8,7 +8,6 @@ import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
-import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import TitleBar from 'src/components/TitleBar';
 import TopBar from 'src/components/TopBar';
 import { isTerra } from 'src/libs/brand-utils';
@@ -30,11 +29,12 @@ import {
   StorageDetails,
   useWorkspace,
 } from 'src/pages/workspaces/hooks/useWorkspace';
-import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
-import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
-import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import { WorkspaceDeletingBanner } from 'src/pages/workspaces/workspace/WorkspaceDeletingBanner';
 import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
+import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
+import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
+import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
+import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
 
 const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {

@@ -11,7 +11,6 @@ import {
   RadioButton,
   spinnerOverlay,
 } from 'src/components/common';
-import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { WorkspaceSelector } from 'src/components/workspace-utils';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import colors from 'src/libs/colors';
@@ -19,6 +18,7 @@ import { FormLabel } from 'src/libs/forms';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
+import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
