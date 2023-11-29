@@ -2,20 +2,9 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
-import { WorkspacePolicy } from 'src/libs/workspace-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { groupConstraintPolicy, protectedDataPolicy, regionConstraintPolicy } from 'src/testing/workspace-fixtures';
 import { WorkspacePolicies } from 'src/workspaces/Policies/WorkspacePolicies';
-
-const protectedDataPolicy: WorkspacePolicy = {
-  namespace: 'terra',
-  name: 'protected-data',
-};
-
-const groupConstraintPolicy: WorkspacePolicy = {
-  namespace: 'terra',
-  name: 'group-constraint',
-  additionalData: [{ group: 'test-group' }],
-};
 
 describe('WorkspacePolicies', () => {
   it('renders nothing if the policy array is empty', () => {
@@ -63,17 +52,17 @@ describe('WorkspacePolicies', () => {
     expect(screen.getAllByText(/controlled-access data/)).not.toBeNull();
   });
 
-  it('renders an unknown policy without a tooltip', async () => {
+  it('renders other policies without a tooltip', async () => {
     // Act
     render(
       h(WorkspacePolicies, {
-        policies: [{ name: 'unknown-policy' }],
+        policies: [regionConstraintPolicy],
       })
     );
 
     // Assert
     screen.getByText('Policies');
-    screen.getByText('unknown-policy');
+    screen.getByText(regionConstraintPolicy.name);
     expect(screen.queryByText('More info')).toBeNull();
   });
 });

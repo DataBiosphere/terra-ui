@@ -2,7 +2,10 @@ import { azureRegions } from 'src/libs/azure-regions';
 import {
   defaultAzureWorkspace,
   defaultGoogleWorkspace,
+  groupConstraintPolicy,
   protectedAzureWorkspace,
+  protectedDataPolicy,
+  regionConstraintPolicy,
   regionRestrictedAzureWorkspace,
 } from 'src/testing/workspace-fixtures';
 
@@ -25,17 +28,6 @@ import {
   WorkspacePolicy,
   WorkspaceWrapper,
 } from './workspace-utils';
-
-const protectedDataPolicy: WorkspacePolicy = {
-  namespace: 'terra',
-  name: 'protected-data',
-};
-
-const groupConstraintPolicy: WorkspacePolicy = {
-  namespace: 'terra',
-  name: 'group-constraint',
-  additionalData: [{ group: 'test-group' }],
-};
 
 describe('isValidWsExportTarget', () => {
   it('Returns true because source and dest workspaces are the same', () => {
@@ -157,7 +149,7 @@ describe('getPolicyShortDescription', () => {
   });
 
   it('Returns the policy name for other policies', () => {
-    expect(getPolicyShortDescription({ name: 'any-other-policy' })).toBe('any-other-policy');
+    expect(getPolicyShortDescription(regionConstraintPolicy)).toBe(regionConstraintPolicy.name);
   });
 });
 
@@ -170,8 +162,8 @@ describe('getPolicyLongDescription', () => {
     expect(getPolicyLongDescription(groupConstraintPolicy)).toBe(groupConstraintMessage);
   });
 
-  it('Returns undefined other policies', () => {
-    expect(getPolicyLongDescription({ name: 'any-other-policy' })).toBeUndefined();
+  it('Returns undefined for other policies', () => {
+    expect(getPolicyLongDescription(regionConstraintPolicy)).toBeUndefined();
   });
 });
 
