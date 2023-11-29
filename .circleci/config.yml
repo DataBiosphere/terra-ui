@@ -184,11 +184,11 @@ commands:
           no_output_timeout: 20m
           command: |
             mkdir -p ${SCREENSHOT_DIR}
-            TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||" | circleci tests split --split-by=timings)
+            TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||")
             <<# parameters.local >>
             export TEST_URL=http://localhost:3000
             <</ parameters.local >>
-            yarn test $TESTS_TO_RUN --maxWorkers=2
+            echo "$TESTS_TO_RUN" | circleci tests run --command="xargs yarn test --maxWorkers=2" --verbose --split-by=timings
       - store_test_results:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results/junit
       - store_artifacts:
