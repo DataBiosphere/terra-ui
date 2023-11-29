@@ -265,6 +265,37 @@ describe('NewWorkspaceModal', () => {
     expect(screen.queryByText('Importing directly into new Azure workspaces is not currently supported.')).toBeNull();
   });
 
+  it('hides unprotected Azure billing projects when additional security monitoring is required', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          onSuccess: () => {},
+          onDismiss: () => {},
+          requireEnhancedBucketLogging: true,
+        })
+      );
+    });
+
+    // Assert
+    expect(await getAvailableBillingProjects(user)).toEqual([
+      'Google Billing Project',
+      'Protected Azure Billing Project',
+    ]);
+  });
+
   it.each([
     {
       cloudPlatform: 'AZURE',
@@ -632,38 +663,6 @@ describe('NewWorkspaceModal', () => {
     expect(checkbox).toHaveAccessibleName('Workspace will have protected data');
     expect(checkbox).toHaveAttribute('disabled');
     expect(checkbox).toBeChecked();
-  });
-
-  it('Hides azure billing projects for enhanced bucket logging', async () => {
-    // Arrange
-    const user = userEvent.setup();
-
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [gcpBillingProject, azureBillingProject],
-          },
-          ...nonBillingAjax,
-        } as AjaxContract)
-    );
-
-    await act(async () => {
-      render(
-        h(NewWorkspaceModal, {
-          onSuccess: () => {},
-          onDismiss: () => {},
-          requireEnhancedBucketLogging: true,
-        })
-      );
-    });
-
-    const projectSelector = screen.getByText('Select a billing project');
-    await user.click(projectSelector);
-
-    // Assert
-    screen.getByText('Google Billing Project');
-    expect(screen.queryByText('Azure Billing Project')).toBeNull();
   });
 
   describe('while creating a workspace', () => {
