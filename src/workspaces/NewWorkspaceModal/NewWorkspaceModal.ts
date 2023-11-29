@@ -654,7 +654,7 @@ const NewWorkspaceModal = withDisplayName(
                       p([
                         'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
                       ]),
-                    customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
+                    customMessage,
                     workflowImport &&
                       azureBillingProjectsExist &&
                       div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [

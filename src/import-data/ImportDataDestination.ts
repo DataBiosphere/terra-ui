@@ -177,8 +177,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     : [];
   const canUseTemplateWorkspace = filteredTemplates.length > 0;
 
-  const importMayTakeTimeMessage =
-    'Note that the import process may take some time after you are redirected into your destination workspace.';
+  const importMayTakeTimeMessage = p([
+    'Note that the import process may take some time after you are redirected into your destination workspace.',
+  ]);
 
   const linkAccountPrompt = () => {
     return div({}, [
