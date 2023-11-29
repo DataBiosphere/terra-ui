@@ -1,11 +1,11 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { CloudProvider, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportRequest } from './import-types';
@@ -24,10 +24,12 @@ jest.mock('./import-utils', (): ImportUtilsExports => {
   };
 });
 
-type NewWorkspaceModalExports = typeof import('src/components/NewWorkspaceModal') & { __esModule: true };
-jest.mock('src/components/NewWorkspaceModal', (): NewWorkspaceModalExports => {
+type NewWorkspaceModalExports = typeof import('src/workspaces/NewWorkspaceModal/NewWorkspaceModal') & {
+  __esModule: true;
+};
+jest.mock('src/workspaces/NewWorkspaceModal/NewWorkspaceModal', (): NewWorkspaceModalExports => {
   return {
-    ...jest.requireActual<NewWorkspaceModalExports>('src/components/NewWorkspaceModal'),
+    ...jest.requireActual<NewWorkspaceModalExports>('src/workspaces/NewWorkspaceModal/NewWorkspaceModal'),
     default: jest.fn().mockReturnValue(null),
     __esModule: true,
   };

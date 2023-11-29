@@ -10,7 +10,6 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import { DelayedSearchInput } from 'src/components/input';
 import { NameModal } from 'src/components/NameModal';
-import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import TopBar from 'src/components/TopBar';
 import { NoWorkspacesMessage, WorkspaceTagSelect } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
@@ -22,6 +21,7 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import UploadPreviewTable from './UploadPreviewTable';

@@ -3,9 +3,9 @@ import { Dispatch, SetStateAction } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { getTerraUser } from 'src/libs/state';
 import { BaseWorkspace } from 'src/libs/workspace-utils';
-import { Collaborator } from 'src/pages/workspaces/workspace/ShareWorkspaceModal/Collaborator';
 import { AccessEntry, WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
