@@ -36,14 +36,13 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
   console.log(
     `Attempting to delete ${oldWorkspaces.length} workspaces with prefix "${testWorkspaceNamePrefix}" created more than ${olderThanCount} ${timeUnit} ago.`
   );
-  console.log(`${_.filter({ workspace: { cloudPlatform: 'Azure' } }, oldWorkspaces).length} of the old workspaces are Azure workspaces.`);
 
   return Promise.all(
     _.map(async ({ workspace: { namespace, name, cloudPlatform, state } }) => {
       try {
         if (state === 'DeleteFailed') {
           // Warn before deleting a workspace in a bad state
-          console.warn(`Old workspace ${name} is in state 'DeleteFailed'; delete may not succeed.`);
+          console.log(`Old workspace ${name} is in state 'DeleteFailed'; delete may not succeed.`);
         }
         // Unlock the workspace in case it was left in a locked state during a test (locked workspaces can't be deleted).
         await page.evaluate(async (namespace, name) => await window.Ajax().Workspaces.workspace(namespace, name).unlock(), namespace, name);
@@ -59,13 +58,14 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
         .filter(({ isDeleted }) => isDeleted)
         .map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`)
         .join(', ') || '(none)';
-    const failedNames =
-      results
-        .filter(({ isDeleted }) => !isDeleted)
-        .map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`)
-        .join(', ') || '(none)';
+    const failedNames = results
+      .filter(({ isDeleted }) => !isDeleted)
+      .map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`)
+      .join(', ');
     console.info(`Triggered delete on workspaces: ${deletedNames}`);
-    console.warn(`Failed to delete workspaces: ${failedNames}`);
+    if (failedNames) {
+      console.warn(`Failed to delete workspaces: ${failedNames}`);
+    }
   });
 });
 

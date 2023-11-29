@@ -1,7 +1,7 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
 const uuid = require('uuid');
-const { gotoAnalysisTab, withAzureWorkspace } = require('../utils/integration-helpers');
+const { deleteRuntimesV2, gotoAnalysisTab, withAzureWorkspace } = require('../utils/integration-helpers');
 const {
   Millis,
   click,
@@ -28,7 +28,7 @@ const notebookName = `test-notebook-${uuid.v4()}`;
 const testRunAnalysisAzure = _.flowRight(
   withUserToken,
   withAzureWorkspace
-)(async ({ workspaceName, page, testUrl, token }) => {
+)(async ({ page, billingProject, testUrl, token, workspaceName }) => {
   await gotoAnalysisTab(page, token, testUrl, workspaceName);
 
   // Create analysis file
@@ -97,6 +97,9 @@ const testRunAnalysisAzure = _.flowRight(
 
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, '//button[starts-with(@title, "Save and create checkpoint")]');
+
+  // Cleanup
+  await deleteRuntimesV2({ page, billingProject, workspaceName });
 });
 
 registerTest({

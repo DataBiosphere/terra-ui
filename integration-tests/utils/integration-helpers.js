@@ -155,7 +155,7 @@ const deleteWorkspaceInUi = async ({ page, testUrl, token, workspaceName }) => {
 };
 */
 
-const deleteWorkspaceV2 = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
+const deleteWorkspaceV2 = async ({ page, billingProject, workspaceName }) => {
   try {
     const isAppsEmpty = await deleteAppsV2({ page, billingProject, workspaceName });
     const isRuntimesEmpty = await deleteRuntimesV2({ page, billingProject, workspaceName });
@@ -177,7 +177,8 @@ const deleteWorkspaceV2 = withSignedInPage(async ({ page, billingProject, worksp
         billingProject
       );
     } else {
-      throw new Error(`Cannot attempt to delete workspace ${workspaceName} with billing project: ${billingProject}: unable to delete child resource`);
+      console.warn(`Workspace not deletable: ${workspaceName} with billing project: ${billingProject} has undeletable child resources`);
+      return false;
     }
   } catch (e) {
     console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`);
@@ -185,7 +186,8 @@ const deleteWorkspaceV2 = withSignedInPage(async ({ page, billingProject, worksp
     throw e;
   }
   console.info(`Deleted workspace: ${workspaceName}`);
-});
+  return true;
+};
 
 /** Create a GCP workspace, run the given test, then delete the workspace. */
 const withWorkspace = (test) => async (options) => {
@@ -214,7 +216,7 @@ const withAzureWorkspace = (test) => async (options) => {
     await test({ ...options, workspaceName });
   } finally {
     console.log('withAzureWorkspace cleanup ...');
-    await deleteWorkspaceV2({ ...options, workspaceName });
+    await withSignedInPage(() => deleteWorkspaceV2({ ...options, workspaceName }));
   }
 };
 
@@ -321,7 +323,7 @@ const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
     })
   );
   const deletedRuntimesLog = deletedRuntimes.map(async ({ name, isDeleted }) => (isDeleted ? name : `FAILED:${name}`));
-  console.info(`deleted v2 runtimes (and disks): ${deletedRuntimesLog}`);
+  console.info(`deleted v2 runtimes: ${deletedRuntimesLog}`);
   return deletedRuntimes.every((runtime) => runtime.isDeleted);
 };
 
@@ -338,7 +340,7 @@ const patientlyDeleteApp = async (page, { workspaceId, appName, status }) => {
 
   await page.evaluate(
     async (workspaceId, appName) => {
-      await window.Ajax().Apps.deleteAppV2(appName, workspaceId);
+      await window.Ajax().Apps.deleteAppV2(appName, workspaceId, { deleteDisk: true });
     },
     workspaceId,
     appName
@@ -501,6 +503,7 @@ module.exports = {
   createEntityInWorkspace,
   defaultTimeout,
   deleteRuntimes,
+  deleteRuntimesV2,
   deleteWorkspaceV2,
   enableDataCatalog,
   gotoAnalysisTab,

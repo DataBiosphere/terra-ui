@@ -74,6 +74,7 @@ const testRunAnalysisFn = _.flowRight(
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }));
 
+  // Cleanup
   await deleteRuntimes({ page, billingProject, workspaceName });
 });
 
