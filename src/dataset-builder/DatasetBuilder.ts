@@ -445,10 +445,11 @@ interface RequestAccessModalProps {
   conceptSets: ConceptSet[];
   valuesSets: HeaderAndValues<DatasetBuilderValue>[];
   onDismiss: () => void;
+  datasetId: string;
 }
 
 const RequestAccessModal = (props: RequestAccessModalProps) => {
-  const { onDismiss, cohorts, conceptSets, valuesSets } = props;
+  const { onDismiss, cohorts, conceptSets, valuesSets, datasetId } = props;
   const [name, setName] = useState('');
   const [researchPurposeStatement, setResearchPurposeStatement] = useState('');
 
@@ -470,13 +471,13 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
           disabled: errors,
           tooltip: errors && Utils.summarizeErrors(errors),
           onClick: async () => {
-            await DatasetBuilder().requestAccess({
+            await DatasetBuilder().requestAccess(datasetId, {
               name,
               researchPurposeStatement,
               datasetRequest: {
                 cohorts,
                 conceptSets,
-                valuesSets: _.map((valuesSet) => ({ domain: valuesSet.header, values: valuesSet.values }), valuesSets),
+                valueSets: _.map((valuesSet) => ({ domain: valuesSet.header, values: valuesSet.values }), valuesSets),
               },
             });
             onDismiss();
@@ -582,7 +583,7 @@ export const DatasetBuilderContents = ({
         header: featureValueGroup.name,
         values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
-    )(dataset?.snapshotBuilderSettings?.featureValueGroups);
+    )(dataset.snapshotBuilderSettings?.featureValueGroups);
 
   const createHeaderAndValuesFromFeatureValueGroups = (
     featureValueGroups: string[]
@@ -593,7 +594,7 @@ export const DatasetBuilderContents = ({
         header: featureValueGroup.name,
         values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
-    )(dataset?.snapshotBuilderSettings?.featureValueGroups);
+    )(dataset.snapshotBuilderSettings?.featureValueGroups);
 
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
@@ -612,7 +613,7 @@ export const DatasetBuilderContents = ({
           }),
           h(ConceptSetSelector, {
             conceptSets,
-            prepackagedConceptSets: dataset?.snapshotBuilderSettings?.datasetConceptSets,
+            prepackagedConceptSets: dataset.snapshotBuilderSettings?.datasetConceptSets,
             selectedConceptSets,
             updateConceptSets,
             onChange: async (conceptSets) => {
@@ -653,6 +654,7 @@ export const DatasetBuilderContents = ({
         conceptSets: allConceptSets,
         valuesSets: selectedValues,
         onDismiss: () => setRequestingAccess(false),
+        datasetId: dataset.id,
       }),
   ]);
 };

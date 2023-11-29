@@ -23,6 +23,7 @@ export const WorkflowInfoBox = ({ workflow }) => {
         display: 'flex',
         justifyContent: 'space-between',
         width: '60%',
+        margin: '0 10px',
       },
     },
     [

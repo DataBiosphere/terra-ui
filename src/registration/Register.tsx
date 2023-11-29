@@ -49,7 +49,7 @@ export const Register = (): ReactNode => {
             title,
           }
         : {};
-      await Ajax().User.profile.set({
+      await Ajax().User.profile.create({
         firstName: givenName,
         lastName: familyName,
         contactEmail: email,

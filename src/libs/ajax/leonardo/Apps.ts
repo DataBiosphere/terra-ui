@@ -3,18 +3,18 @@ import * as qs from 'qs';
 import { AppToolLabel } from 'src/analysis/utils/tool-utils';
 import { AppAccessScope } from 'src/analysis/utils/tool-utils';
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
-import { CreateAppV1Request, GetAppResponse, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { CreateAppV1Request, GetAppItem, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 
 export const Apps = (signal: AbortSignal) => ({
-  list: async (project: string, labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {
+  list: async (project: string, labels: LeoResourceLabels = {}): Promise<ListAppItem[]> => {
     const res = await fetchLeo(
       `api/google/v1/apps/${project}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }])
     );
     return res.json();
   },
-  listWithoutProject: async (labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {
+  listWithoutProject: async (labels: LeoResourceLabels = {}): Promise<ListAppItem[]> => {
     const res = await fetchLeo(
       `api/google/v1/apps?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }])
@@ -73,13 +73,13 @@ export const Apps = (signal: AbortSignal) => ({
       resume: (): Promise<void> => {
         return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]));
       },
-      details: async (): Promise<GetAppResponse> => {
+      details: async (): Promise<GetAppItem> => {
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]));
         return res.json();
       },
     };
   },
-  listAppsV2: async (workspaceId: string, labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {
+  listAppsV2: async (workspaceId: string, labels: LeoResourceLabels = {}): Promise<ListAppItem[]> => {
     const res = await fetchLeo(
       `api/apps/v2/${workspaceId}?${qs.stringify(labels)}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }])
@@ -111,7 +111,7 @@ export const Apps = (signal: AbortSignal) => ({
       _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }])
     );
   },
-  getAppV2: async (appName: string, workspaceId: string): Promise<GetAppResponse> => {
+  getAppV2: async (appName: string, workspaceId: string): Promise<GetAppItem> => {
     const res = await fetchLeo(
       `api/apps/v2/${workspaceId}/${appName}`,
       _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }])

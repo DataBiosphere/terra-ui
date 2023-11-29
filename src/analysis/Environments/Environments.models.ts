@@ -1,4 +1,4 @@
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
@@ -10,7 +10,7 @@ export interface DecoratedResourceAttributes {
 
 export type RuntimeWithWorkspace = DecoratedResourceAttributes & ListRuntimeItem;
 export type DiskWithWorkspace = DecoratedResourceAttributes & PersistentDisk;
-export type AppWithWorkspace = DecoratedResourceAttributes & ListAppResponse;
+export type AppWithWorkspace = DecoratedResourceAttributes & ListAppItem;
 
 export type DecoratedComputeResource = RuntimeWithWorkspace | AppWithWorkspace;
 export type DecoratedResource = DecoratedComputeResource | DiskWithWorkspace;

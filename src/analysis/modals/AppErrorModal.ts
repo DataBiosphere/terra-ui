@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import Modal from 'src/components/Modal';
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -11,7 +11,7 @@ import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
 export interface AppErrorModalProps {
-  app: ListAppResponse;
+  app: ListAppItem;
   onDismiss: () => void;
   appProvider: Pick<LeoAppProvider, 'get'>;
 }
