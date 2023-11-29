@@ -1,5 +1,5 @@
-import { Reducer, useCallback, useReducer } from 'react';
-import { useCancelable } from 'src/libs/react-utils';
+import { Reducer, useCallback, useEffect, useReducer } from 'react';
+import { useCancelable, usePrevious } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
 export type UploadState = {
@@ -11,7 +11,7 @@ export type UploadState = {
   currentFile: File | null;
   files: File[];
   completedFiles: File[];
-  errors: unknown[];
+  errors: { file: File; error: unknown }[];
   aborted: boolean;
   done: boolean;
 };
@@ -50,6 +50,7 @@ type UploadUpdateFinishFile = {
 
 type UploadUpdateError = {
   action: 'error';
+  file: File;
   error: unknown;
 };
 
@@ -108,7 +109,7 @@ export const useUploader = (
         case 'error':
           return {
             ...state,
-            errors: [...state.errors, update.error],
+            errors: [...state.errors, { file: update.file, error: update.error }],
           };
 
         case 'abort':
@@ -158,7 +159,11 @@ export const useUploader = (
             dispatch({ action: 'abort' });
             break;
           } else {
-            dispatch({ action: 'error', error });
+            dispatch({
+              action: 'error',
+              error: error instanceof Response ? new Error(error.statusText) : error,
+              file,
+            });
           }
         }
       }
@@ -184,4 +189,16 @@ export const useUploader = (
       : uploadFiles,
     cancelUpload: abort,
   };
+};
+
+/**
+ * Call a function when an upload is finished.
+ */
+export const useOnUploadFinished = (uploadState: UploadState, onFinished: (uploadState: UploadState) => void) => {
+  const lastUploadState = usePrevious(uploadState);
+  useEffect(() => {
+    if (uploadState.done && !lastUploadState?.done) {
+      onFinished(uploadState);
+    }
+  }, [uploadState, lastUploadState, onFinished]);
 };

@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { controlledPromise } from 'src/testing/test-utils';
 
-import { useUploader } from './uploads';
+import { UploadState, useOnUploadFinished, useUploader } from './uploads';
 
 describe('useUploader', () => {
   const file1 = new File(['example'], 'file1.txt', { type: 'text/text' });
@@ -126,7 +126,12 @@ describe('useUploader', () => {
       currentFile: file1,
       files: [file1],
       completedFiles: [],
-      errors: [new Error('Upload error')],
+      errors: [
+        {
+          file: file1,
+          error: new Error('Upload error'),
+        },
+      ],
       aborted: false,
       done: true,
     });
@@ -159,5 +164,72 @@ describe('useUploader', () => {
       aborted: true,
       done: false,
     });
+  });
+});
+
+describe('useOnUploadFinished', () => {
+  it('calls callback when upload state transitions to finished', () => {
+    // Arrange
+    const file1 = new File(['example'], 'file1.txt', { type: 'text/text' });
+    const file2 = new File(['some_content'], 'file2.txt', { type: 'text/text' });
+
+    const initialState: UploadState = {
+      active: false,
+      totalFiles: 0,
+      totalBytes: 0,
+      uploadedBytes: 0,
+      currentFileNum: 0,
+      currentFile: null,
+      files: [],
+      completedFiles: [],
+      errors: [],
+      aborted: false,
+      done: false,
+    };
+
+    const inProgressState: UploadState = {
+      active: true,
+      totalFiles: 2,
+      totalBytes: 19,
+      uploadedBytes: 7,
+      currentFileNum: 1,
+      currentFile: file2,
+      files: [file1, file2],
+      completedFiles: [file1],
+      errors: [],
+      aborted: false,
+      done: false,
+    };
+
+    const finishedState: UploadState = {
+      active: false,
+      totalFiles: 2,
+      totalBytes: 19,
+      uploadedBytes: 19,
+      currentFileNum: 1,
+      currentFile: file2,
+      files: [file1, file2],
+      completedFiles: [file1, file2],
+      errors: [],
+      aborted: false,
+      done: true,
+    };
+
+    const onFinished = jest.fn();
+
+    // Act
+    const { rerender } = renderHook((state) => useOnUploadFinished(state, onFinished), { initialProps: initialState });
+    const onFinishedCalledAfterInitialRender = onFinished.mock.calls.length > 0;
+
+    rerender(inProgressState);
+    const onFinishedCalledAfterSecondRender = onFinished.mock.calls.length > 0;
+
+    rerender(finishedState);
+    const onFinishedCalledAfterFinalRender = onFinished.mock.calls.length > 0;
+
+    // Assert
+    expect(onFinishedCalledAfterInitialRender).toBe(false);
+    expect(onFinishedCalledAfterSecondRender).toBe(false);
+    expect(onFinishedCalledAfterFinalRender).toBe(true);
   });
 });
