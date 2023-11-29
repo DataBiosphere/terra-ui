@@ -602,6 +602,8 @@ describe('Initial state', () => {
 
     const table = screen.getByRole('table');
 
+    screen.logTestingPlaygroundURL(table);
+
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(5);
 
