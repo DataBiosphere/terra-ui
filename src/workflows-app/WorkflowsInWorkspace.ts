@@ -112,9 +112,7 @@ export const WorkflowsInWorkspace = ({
                 width: '75%',
               },
             },
-            [
-              'Get started: add a workflow to this workspace by using the "Featured workflows" or "Import a workflow" links to the left.',
-            ]
+            ['Get started: add a workflow to this workspace by using the "Find & add workflows" dropdown to the left.']
           )
         : h(Fragment, [
             div([
