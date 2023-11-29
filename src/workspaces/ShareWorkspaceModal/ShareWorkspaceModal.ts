@@ -23,6 +23,7 @@ import {
   transformAcl,
   WorkspaceAcl,
 } from 'src/pages/workspaces/workspace/WorkspaceAcl';
+import { WorkspacePolicies } from 'src/workspaces/Policies/WorkspacePolicies';
 import { CurrentCollaborators } from 'src/workspaces/ShareWorkspaceModal/CurrentCollaborators';
 import validate from 'validate.js';
 
@@ -188,6 +189,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       ]),
       searchValueValid && !searchHasFocus && p([addUserReminder]),
       h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
+      h(WorkspacePolicies, { policies: workspace.policies, style: { marginBottom: '1.5rem' } }),
       !loaded && centeredSpinner(),
       updateError && div({ style: { marginTop: '1rem' } }, [div(['An error occurred:']), updateError]),
       div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [

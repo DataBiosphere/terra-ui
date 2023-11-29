@@ -1,6 +1,7 @@
 import { cond, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { azureRegions } from 'src/libs/azure-regions';
+import * as Utils from 'src/libs/utils';
 
 export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
@@ -107,6 +108,22 @@ export interface WorkspacePolicy {
   additionalData: { [key: string]: string }[];
 }
 
+export const getPolicyShortDescription: string = (policy: WorkspacePolicy) => {
+  return Utils.cond(
+    [isProtectedDataPolicy(policy), () => 'Additional security monitoring'],
+    [isGroupConstraintPolicy(policy), () => 'Data access controls'],
+    [Utils.DEFAULT, () => policy.name]
+  );
+};
+
+export const getPolicyLongDescription: string = (policy: WorkspacePolicy) => {
+  return Utils.cond(
+    [isProtectedDataPolicy(policy), () => protectedDataMessage],
+    [isGroupConstraintPolicy(policy), () => accessControlsMessage],
+    [Utils.DEFAULT, () => undefined]
+  );
+};
+
 export interface AzureWorkspace extends BaseWorkspace {
   azureContext: AzureContext;
 }
@@ -130,11 +147,18 @@ export const getCloudProviderFromWorkspace = (workspace: BaseWorkspace): CloudPr
 
 export const hasProtectedData = (workspace: BaseWorkspace): boolean => containsProtectedDataPolicy(workspace.policies);
 
+const isProtectedDataPolicy = (policy: WorkspacePolicy): boolean => {
+  return policy.namespace === 'terra' && policy.name === 'protected-data';
+};
+
 export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefined): boolean =>
-  _.any((policy) => policy.namespace === 'terra' && policy.name === 'protected-data', policies);
+  _.any((policy) => isProtectedDataPolicy(policy), policies);
 
 export const protectedDataMessage =
   'Enhanced logging and monitoring are enabled to support the use of controlled-access data in this workspace.';
+
+const accessControlsMessage =
+  'Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be current users on an approved Data Access Request (DAR).';
 
 export const hasRegionConstraint = (workspace: BaseWorkspace): boolean =>
   getRegionConstraintLabels(workspace.policies).length > 0;
@@ -176,9 +200,7 @@ export const hasDataAccessControls = (workspace: WorkspaceWrapper): boolean => {
 };
 
 export const dataAccessControlsMessage = (workspace: WorkspaceWrapper): string | undefined => {
-  return hasDataAccessControls(workspace)
-    ? 'Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be current users on an approved Data Access Request (DAR).'
-    : undefined;
+  return hasDataAccessControls(workspace) ? accessControlsMessage : undefined;
 };
 
 export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {
