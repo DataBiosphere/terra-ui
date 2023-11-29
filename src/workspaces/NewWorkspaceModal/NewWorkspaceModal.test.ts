@@ -665,6 +665,62 @@ describe('NewWorkspaceModal', () => {
     expect(checkbox).toBeChecked();
   });
 
+  it.each([
+    {
+      showControlledAccessImportNotice: true,
+      selectedBillingProject: 'Google Billing Project',
+      isNoticeExpected: false,
+    },
+    {
+      showControlledAccessImportNotice: true,
+      selectedBillingProject: 'Protected Azure Billing Project',
+      isNoticeExpected: true,
+    },
+    {
+      showControlledAccessImportNotice: false,
+      selectedBillingProject: 'Protected Azure Billing Project',
+      isNoticeExpected: false,
+    },
+  ] as { showControlledAccessImportNotice: boolean; selectedBillingProject: string; isNoticeExpected: boolean }[])(
+    'can show a notice about policies applied by importing controlled access data',
+    async ({ showControlledAccessImportNotice, selectedBillingProject, isNoticeExpected }) => {
+      // Arrange
+      const user = userEvent.setup();
+
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject],
+            },
+            ...hasGroupsAjax,
+          } as AjaxContract)
+      );
+
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            onSuccess: () => {},
+            onDismiss: () => {},
+            showControlledAccessImportNotice,
+          })
+        );
+      });
+
+      // Act
+      const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+      await projectSelect.selectOption(new RegExp(selectedBillingProject));
+
+      // Assert
+      const isNoticePresent =
+        screen.queryByText(
+          'Importing controlled access data will apply any additional access controls associated with the data to this workspace.'
+        ) !== null;
+
+      expect(isNoticePresent).toBe(isNoticeExpected);
+    }
+  );
+
   describe('while creating a workspace', () => {
     beforeEach(async () => {
       // Arrange

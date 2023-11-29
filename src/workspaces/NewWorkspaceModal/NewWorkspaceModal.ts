@@ -88,6 +88,7 @@ export interface NewWorkspaceModalProps {
   customMessage?: ReactNode;
   requiredAuthDomain?: string;
   requireEnhancedBucketLogging?: boolean;
+  showControlledAccessImportNotice?: boolean;
   title?: string;
   waitForServices?: {
     wds?: boolean;
@@ -107,6 +108,7 @@ const NewWorkspaceModal = withDisplayName(
     customMessage,
     requiredAuthDomain,
     requireEnhancedBucketLogging,
+    showControlledAccessImportNotice = false,
     title,
     buttonText,
     waitForServices,
@@ -646,6 +648,11 @@ const NewWorkspaceModal = withDisplayName(
                               options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort(),
                             }),
                           ]),
+                      ]),
+                    showControlledAccessImportNotice &&
+                      isAzureBillingProject() &&
+                      p([
+                        'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
                       ]),
                     customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
                     workflowImport &&

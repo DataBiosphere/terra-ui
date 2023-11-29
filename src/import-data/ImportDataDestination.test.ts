@@ -362,6 +362,7 @@ describe('ImportDataDestination', () => {
         cloudPlatform: 'GCP',
         requiredAuthDomain: undefined,
         requireEnhancedBucketLogging: false,
+        showControlledAccessImportNotice: false,
       },
     },
     // Protected data, required auth domain
@@ -374,6 +375,7 @@ describe('ImportDataDestination', () => {
         cloudPlatform: 'GCP',
         requiredAuthDomain: 'test-auth-domain',
         requireEnhancedBucketLogging: true,
+        showControlledAccessImportNotice: true,
       },
     },
     // Snapshot requiring an Azure workspace
@@ -404,6 +406,7 @@ describe('ImportDataDestination', () => {
         cloudPlatform: 'AZURE',
         requiredAuthDomain: undefined,
         requireEnhancedBucketLogging: false,
+        showControlledAccessImportNotice: false,
       },
     },
     // Snapshot requiring a GCP workspace
@@ -434,6 +437,7 @@ describe('ImportDataDestination', () => {
         cloudPlatform: 'GCP',
         requiredAuthDomain: undefined,
         requireEnhancedBucketLogging: false,
+        showControlledAccessImportNotice: false,
       },
     },
   ] as { props: Partial<ImportDataDestinationProps>; expectedNewWorkspaceModalProps: Record<string, any> }[])(
