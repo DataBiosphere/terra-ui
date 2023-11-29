@@ -15,10 +15,9 @@ import {
 } from 'react';
 import { div, h, i, span } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
-import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common';
+import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
-import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown';
 import { SimpleTable } from 'src/components/table';
 import { WorkspaceTagSelect } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
@@ -38,6 +37,7 @@ import { CloudInformation } from 'src/pages/workspaces/workspace/Dashboard/Cloud
 import { DataUseLimitations, displayAttributeValue } from 'src/pages/workspaces/workspace/Dashboard/DataUseLimitations';
 import { OwnerNotice } from 'src/pages/workspaces/workspace/Dashboard/OwnerNotice';
 import { RightBoxSection } from 'src/pages/workspaces/workspace/Dashboard/RightBoxSection';
+import { WorkspaceDescription } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceDescription';
 import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
 import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceNotifications';
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
@@ -118,12 +118,10 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
     },
   } = props;
 
-  const description = attributes.description;
-
   // State
   const [storageCost, setStorageCost] = useState<{ isSuccess: boolean; estimate: string; lastUpdated?: string }>();
   const [bucketSize, setBucketSize] = useState<{ isSuccess: boolean; usage: string; lastUpdated?: string }>();
-  const [editDescription, setEditDescription] = useState<string>();
+  // const [editDescription, setEditDescription] = useState<string>();
   const [saving, setSaving] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
   const [tagsList, setTagsList] = useState<string[]>();
@@ -252,16 +250,14 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
     setAcl(acl);
   });
 
-  const save = withBusyState(setSaving, async () => {
+  const saveDescription = withBusyState(setSaving, async (desc?: string): Promise<void> => {
     try {
-      await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description: editDescription });
-      await refreshWorkspace();
+      await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description: desc });
+      refreshWorkspace();
     } catch (error) {
       reportError('Error saving workspace', error);
-    } finally {
-      setEditDescription(undefined);
     }
-  });
+  }) as (description?: string) => Promise<void>;
 
   // Lifecycle
   useOnMount(() => {
@@ -269,48 +265,17 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
   });
 
   // Render
-  const isEditing = _.isString(editDescription);
   const brand = getEnabledBrand();
   // @ts-expect-error
-  const { value: canEdit, message: editErrorMessage } = canEditWorkspace(workspace);
+  const { value: canEdit } = canEditWorkspace(workspace);
 
   return div({ style: { flex: 1, display: 'flex' } }, [
     div({ style: Style.dashboard.leftBox }, [
-      div({ style: Style.dashboard.header }, [
-        'About the workspace',
-        !isEditing &&
-          h(
-            Link,
-            {
-              style: { marginLeft: '0.5rem' },
-              disabled: !canEdit,
-              tooltip: canEdit ? 'Edit description' : editErrorMessage,
-              onClick: () => setEditDescription(description?.toString()),
-            },
-            [icon('edit')]
-          ),
-      ]),
-      cond(
-        [
-          isEditing,
-          () =>
-            h(Fragment, [
-              // @ts-expect-error
-              h(MarkdownEditor, {
-                placeholder: 'Enter a description',
-                value: editDescription,
-                onChange: setEditDescription,
-              }),
-              div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
-                h(ButtonSecondary, { onClick: () => setEditDescription(undefined) }, ['Cancel']),
-                h(ButtonPrimary, { style: { marginLeft: '1rem' }, onClick: save }, ['Save']),
-              ]),
-              saving && spinnerOverlay,
-            ]),
-        ],
-        [!!description, () => h(MarkdownViewer, [description?.toString()])],
-        () => div({ style: { fontStyle: 'italic' } }, ['No description added'])
-      ),
+      h(WorkspaceDescription, {
+        workspace,
+        save: saveDescription,
+        saving,
+      }),
       _.some(_.startsWith('library:'), _.keys(attributes)) &&
         h(Fragment, [
           div({ style: Style.dashboard.header }, ['Dataset Attributes']),
