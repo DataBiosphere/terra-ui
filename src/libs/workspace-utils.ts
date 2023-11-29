@@ -108,7 +108,7 @@ export interface WorkspacePolicy {
   additionalData: { [key: string]: string }[];
 }
 
-export const getPolicyShortDescription: string = (policy: WorkspacePolicy) => {
+export const getPolicyShortDescription = (policy: WorkspacePolicy): string => {
   return Utils.cond(
     [isProtectedDataPolicy(policy), () => 'Additional security monitoring'],
     [isGroupConstraintPolicy(policy), () => 'Data access controls'],
@@ -116,7 +116,7 @@ export const getPolicyShortDescription: string = (policy: WorkspacePolicy) => {
   );
 };
 
-export const getPolicyLongDescription: string = (policy: WorkspacePolicy) => {
+export const getPolicyLongDescription = (policy: WorkspacePolicy): string | undefined => {
   return Utils.cond(
     [isProtectedDataPolicy(policy), () => protectedDataMessage],
     [isGroupConstraintPolicy(policy), () => accessControlsMessage],
