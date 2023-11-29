@@ -40,7 +40,8 @@ export const Billing = (signal?: AbortSignal) => ({
     tenantId: string,
     subscriptionId: string,
     managedResourceGroupId: string,
-    members: BillingProjectMember[]
+    members: BillingProjectMember[],
+    protectedData: boolean
   ): Promise<void> => {
     // members: an array of {email: string, role: string}
     return await fetchRawls(
@@ -52,6 +53,7 @@ export const Billing = (signal?: AbortSignal) => ({
           members,
           managedAppCoordinates: { tenantId, subscriptionId, managedResourceGroupId },
           inviteUsersNotFound: true,
+          protectedData,
         }),
         { signal, method: 'POST' },
       ])
