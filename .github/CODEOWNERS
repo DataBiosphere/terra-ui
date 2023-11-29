@@ -26,6 +26,7 @@
 /src/components/workspace-utils* @DataBiosphere/broadworkspaces-terra-ui
 /src/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
 /src/workspace-data/ @DataBiosphere/analysisjourneys
+/src/workspaces @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/billing-projects.js @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/janitor.js @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/workspace-dashboard.js @DataBiosphere/broadworkspaces-terra-ui
