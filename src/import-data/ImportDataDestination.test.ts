@@ -23,9 +23,9 @@ jest.mock('./import-utils', (): ImportUtilsExports => {
 type NewWorkspaceModalExports = typeof import('src/workspaces/NewWorkspaceModal/NewWorkspaceModal') & {
   __esModule: true;
 };
-jest.mock('src/components/NewWorkspaceModal', (): NewWorkspaceModalExports => {
+jest.mock('src/workspaces/NewWorkspaceModal/NewWorkspaceModal', (): NewWorkspaceModalExports => {
   return {
-    ...jest.requireActual<NewWorkspaceModalExports>('src/components/NewWorkspaceModal'),
+    ...jest.requireActual<NewWorkspaceModalExports>('src/workspaces/NewWorkspaceModal/NewWorkspaceModal'),
     default: jest.fn().mockReturnValue(null),
     __esModule: true,
   };
