@@ -631,6 +631,50 @@ describe('NewWorkspaceModal', () => {
     expect(checkbox).toBeChecked();
   });
 
+  it('allows showing a notice based on the selected billing project', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject, azureBillingProject],
+          },
+          ...hasGroupsAjax,
+        } as AjaxContract)
+    );
+
+    const renderNotice = jest.fn().mockImplementation(({ selectedBillingProject }) => {
+      return selectedBillingProject
+        ? `Selected billing project: ${selectedBillingProject.projectName}`
+        : 'No selected billing project';
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          renderNotice,
+          onSuccess: () => {},
+          onDismiss: () => {},
+        })
+      );
+    });
+
+    // Assert
+    expect(renderNotice).toHaveBeenCalledWith({ selectedBillingProject: undefined });
+    screen.getByText('No selected billing project');
+
+    // Act
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    await projectSelect.selectOption(/Google Billing Project/);
+
+    // Assert
+    expect(renderNotice).toHaveBeenCalledWith({ selectedBillingProject: gcpBillingProject });
+    screen.getByText('Selected billing project: Google Billing Project');
+  });
+
   describe('while creating a workspace', () => {
     beforeEach(async () => {
       // Arrange
