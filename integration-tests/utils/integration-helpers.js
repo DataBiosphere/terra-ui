@@ -135,7 +135,7 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
   }
 });
 
-const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceName, retries = 5 }) => {
+const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceName }) => {
   gotoPage(page, `${testUrl}#workspaces/${billingProject}/${workspaceName}`);
   await retryUntil({
     getResult: async () => {
@@ -148,14 +148,13 @@ const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceNam
         await findText(page, "Please type 'Delete Workspace' to continue:");
         return true;
       } catch (e) {
-        console.log(`Workspace ${workspaceName} not ready for deletion. Will retry ${retries} more times...`);
         await click(page, clickable({ textContains: 'Cancel' }));
-        await delay(Millis.ofSeconds(30));
         return false;
       }
     },
-    interval: Millis.none,
-    retries,
+    interval: Millis.ofSeconds(30),
+    leading: true,
+    retries: 5,
   });
   await fillIn(page, input({ placeholder: 'Delete Workspace' }), 'Delete Workspace');
   await noSpinnersAfter(page, {
@@ -436,7 +435,7 @@ const patientlyDeleteRuntime = async (page, { workspaceId, runtimeName, status }
         workspaceId,
         runtimeName
       ),
-    interval: Millis.ofSeconds(10),
+    interval: Millis.ofSeconds(20),
     retries: 10,
   });
 

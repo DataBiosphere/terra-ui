@@ -7,14 +7,22 @@ const { screenshotDirPath } = require('./integration-config');
 
 const defaultToVisibleTrue = _.defaults({ visible: true });
 
-/** Repeat a given function until it evaluates to truthy, returning the final result. Iterates synchronously. */
-const retryUntil = async ({ getResult, interval = Millis.ofSecond, retries = 5 }) => {
+/**
+ * Repeat a given function until it evaluates to truthy, returning the final result. Iterates synchronously.
+ * @param getResult the function to repeat, returning a truthy or falsy value
+ * @param interval the number of milliseconds to wait between attempts
+ * @leading whether to check getResult before the initial interval wait
+ * @retries how many times to retry before aborting
+ */
+const retryUntil = async ({ getResult, interval = Millis.ofSecond, leading = false, retries = 5 }) => {
   let result = false;
+  let willLead = leading;
   do {
-    if (interval) {
-      await delay(Millis.ofSeconds(10));
+    if (!willLead) {
+      await delay(interval);
     }
     result = await getResult();
+    willLead = false;
   } while (!result && retries--);
   return result;
 };
