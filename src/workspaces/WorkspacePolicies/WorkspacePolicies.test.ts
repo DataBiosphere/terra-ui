@@ -23,7 +23,7 @@ describe('WorkspacePolicies', () => {
     );
 
     // Assert
-    expect(screen.queryByText('Policies')).toBeNull();
+    expect(screen.queryByText(/This workspace has the following/)).toBeNull();
   });
 
   it('renders nothing if the policy array does not contain known policies', () => {
@@ -47,7 +47,7 @@ describe('WorkspacePolicies', () => {
     );
 
     // Assert
-    expect(screen.queryByText('Policies')).toBeNull();
+    expect(screen.queryByText(/This workspace has the following/)).toBeNull();
   });
 
   it('renders policies with no accessibility errors', async () => {
@@ -66,7 +66,7 @@ describe('WorkspacePolicies', () => {
 
     // Assert
     expect(await axe(container)).toHaveNoViolations();
-    screen.getByText('Policies');
+    expect(screen.getByText(/This workspace has the following/i)).toBeInTheDocument();
     screen.getByText('Additional security monitoring');
     screen.getByText('Data access controls');
     screen.getByText('Region constraint');
