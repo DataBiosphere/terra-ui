@@ -671,7 +671,7 @@ const NewWorkspaceModal = withDisplayName(
                           style: { marginRight: '0.5rem', color: colors.warning() },
                         }),
                         div([
-                          'Creating a workspace currently costs about $5 per day. ',
+                          'Creating a workspace may increase your infrastructure costs. ',
                           h(
                             Link,
                             {

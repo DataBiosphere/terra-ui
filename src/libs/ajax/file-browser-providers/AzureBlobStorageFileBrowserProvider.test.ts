@@ -253,6 +253,25 @@ describe('AzureBlobStorageFileBrowserProvider', () => {
     );
   });
 
+  it('throws an error when attempting to upload a too large file', async () => {
+    // Arrange
+    const testFile = new File(['somecontent'], 'example.txt', { type: 'text/text' });
+    // Fake a 6,000 MiB file.
+    jest.spyOn(testFile, 'size', 'get').mockReturnValue(6000 * 2 ** 20);
+
+    const provider = AzureBlobStorageFileBrowserProvider({ workspaceId: 'test-workspace' });
+
+    // Act
+    const result = provider.uploadFileToDirectory('path/to/directory/', testFile);
+
+    // Assert
+    await expect(result).rejects.toEqual(
+      new Error(
+        'The Terra file browser supports uploading files up to 5,000 MiB. For larger files, use azcopy or the Azure Storage Explorer.'
+      )
+    );
+  });
+
   it('deletes files', async () => {
     // Arrange
     asMockedFn(fetchOk).mockResolvedValue(new Response());
