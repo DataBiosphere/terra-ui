@@ -12,13 +12,13 @@ import {
   AzureWorkspace,
   canEditWorkspace,
   canRunAnalysisInWorkspace,
-  containsGroupConstraintPolicy,
   getPolicyDescriptions,
   getRegionConstraintLabels,
   getWorkspaceAnalysisControlProps,
   getWorkspaceEditControlProps,
   groupConstraintMessage,
-  hasRegionConstraint,
+  hasGroupConstraintPolicy,
+  hasRegionConstraintPolicy,
   isProtectedWorkspace,
   isValidWsExportTarget,
   protectedDataMessage,
@@ -210,7 +210,7 @@ describe('isProtectedWorkspace', () => {
 
 describe('hasRegionConstraint', () => {
   it('Returns true if region-constraint policy exists, and the regions can be obtained', () => {
-    expect(hasRegionConstraint(regionRestrictedAzureWorkspace)).toBe(true);
+    expect(hasRegionConstraintPolicy(regionRestrictedAzureWorkspace)).toBe(true);
     expect(getRegionConstraintLabels(regionRestrictedAzureWorkspace.policies).length).toBe(3);
     expect(getRegionConstraintLabels(regionRestrictedAzureWorkspace.policies)).toContain(azureRegions.eastus.label);
     expect(getRegionConstraintLabels(regionRestrictedAzureWorkspace.policies)).toContain(azureRegions.westus2.label);
@@ -218,10 +218,10 @@ describe('hasRegionConstraint', () => {
   });
 
   it('Returns false if region-constraint policy does not exist', () => {
-    expect(hasRegionConstraint(defaultAzureWorkspace)).toBe(false);
+    expect(hasRegionConstraintPolicy(defaultAzureWorkspace)).toBe(false);
     expect(getRegionConstraintLabels(defaultAzureWorkspace.policies).length).toBe(0);
 
-    expect(hasRegionConstraint(protectedAzureWorkspace)).toBe(false);
+    expect(hasRegionConstraintPolicy(protectedAzureWorkspace)).toBe(false);
     expect(getRegionConstraintLabels(protectedAzureWorkspace.policies).length).toBe(0);
   });
 });
@@ -244,7 +244,7 @@ describe('hasDataAccessControls', () => {
       const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies };
 
       // Act
-      const result = containsGroupConstraintPolicy(workspace);
+      const result = hasGroupConstraintPolicy(workspace);
 
       // Assert
       expect(result).toBe(expectedResult);

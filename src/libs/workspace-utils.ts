@@ -122,10 +122,10 @@ export const getPolicyDescriptions = (workspace: WorkspaceWrapper): PolicyDescri
       longDescription: protectedDataMessage,
     });
   }
-  if (containsGroupConstraintPolicy(workspace)) {
+  if (hasGroupConstraintPolicy(workspace)) {
     policyDescriptions.push({ shortDescription: 'Data access controls', longDescription: groupConstraintMessage });
   }
-  if (hasRegionConstraint(workspace)) {
+  if (hasRegionConstraintPolicy(workspace)) {
     policyDescriptions.push({
       shortDescription: 'Region constraint',
       longDescription: regionConstraintMessage(workspace)!,
@@ -185,7 +185,7 @@ export const protectedDataMessage =
 export const groupConstraintMessage =
   'Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be current users on an approved Data Access Request (DAR).';
 
-export const hasRegionConstraint = (workspace: BaseWorkspace): boolean =>
+export const hasRegionConstraintPolicy = (workspace: BaseWorkspace): boolean =>
   getRegionConstraintLabels(workspace.policies).length > 0;
 
 export const getRegionConstraintLabels = (policies: WorkspacePolicy[] | undefined): string[] => {
@@ -223,7 +223,7 @@ const isGroupConstraintPolicy = (policy: WorkspacePolicy): boolean => {
 /**
  * Returns true if the workspace has any group constraint policies (data access controls).
  */
-export const containsGroupConstraintPolicy = (workspace: WorkspaceWrapper): boolean => {
+export const hasGroupConstraintPolicy = (workspace: WorkspaceWrapper): boolean => {
   return (workspace.policies || []).some(isGroupConstraintPolicy);
 };
 
