@@ -101,6 +101,7 @@ export const RecordLookupSelect = (props) => {
     // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
     styles: { container: (old) => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) },
     menuPortalTarget: document.body,
+    menuPosition: 'fixed',
     menuPlacement: 'top',
   });
 };
@@ -221,6 +222,7 @@ export const InputSourceSelect = (props) => {
     // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
     styles: { container: (old) => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) },
     menuPortalTarget: document.body,
+    menuPosition: 'fixed',
     menuPlacement: 'top',
   });
 };
