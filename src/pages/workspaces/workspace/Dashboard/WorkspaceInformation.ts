@@ -25,10 +25,11 @@ export const WorkspaceInformation = (props: WorkspaceInformationProps): ReactNod
     h(InfoRow, { title: 'Creation Date' }, [new Date(workspace.workspace.createdDate).toLocaleDateString()]),
     h(InfoRow, { title: 'Access Level' }, [roleString[workspace.accessLevel]]),
     _.map((policyDescription) => {
-      return h(InfoRow, { title: policyDescription.shortDescription }, [
-        'Yes',
-        h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [policyDescription.longDescription]),
-      ]);
+      return h(
+        InfoRow,
+        { key: policyDescription.shortDescription, title: _.startCase(policyDescription.shortDescription) },
+        ['Yes', h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [policyDescription.longDescription])]
+      );
     }, policyDescriptions),
   ]);
 };
