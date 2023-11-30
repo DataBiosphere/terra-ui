@@ -7,6 +7,19 @@ const { screenshotDirPath } = require('./integration-config');
 
 const defaultToVisibleTrue = _.defaults({ visible: true });
 
+/** Repeat a given function until it evaluates to truthy, returning the final result. Iterates synchronously. */
+const retryUntil = async ({ getResult, interval = Millis.ofSecond, retries = 5 }) => {
+  let result = false;
+  do {
+    if (interval) {
+      await delay(Millis.ofSeconds(10));
+    }
+    result = await getResult();
+  } while (!result && retries--);
+  return result;
+};
+
+/** Repeat a given function until it evaluates to truthy, returning the final result. Iterates asynchronously. */
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   const readyState = new Promise((resolve) => {
     const start = Date.now();
@@ -35,8 +48,11 @@ const findInGrid = (page, textContains, options) => {
   return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options));
 };
 
-const getClickablePath = (path, text, textContains, isDescendant = false) => {
+const getClickablePath = (path, labelContains, text, textContains, isDescendant = false) => {
   const base = `${path}${isDescendant ? '//*' : ''}`;
+  if (labelContains) {
+    return `${base}[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for or @aria-labelledby=//*[contains(normalize-space(.),"${labelContains}")]/@id]`;
+  }
   if (text) {
     return `${base}[normalize-space(.)="${text}" or @title="${text}" or @alt="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`;
   }
@@ -50,10 +66,10 @@ const getAnimatedDrawer = (textContains) => {
 };
 
 // Note: isEnabled is not fully supported for native anchor and button elements (only aria-disabled is examined).
-const clickable = ({ text, textContains, isDescendant = false, isEnabled = true }) => {
+const clickable = ({ labelContains, text, textContains, isDescendant = false, isEnabled = true }) => {
   const checkEnabled = isEnabled === false ? '[@aria-disabled="true"]' : '[not(@aria-disabled="true")]';
   const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"] | //*[@role="switch"] | //*[@role="tab"])${checkEnabled}`;
-  return getClickablePath(base, text, textContains, isDescendant);
+  return getClickablePath(base, labelContains, text, textContains, isDescendant);
 };
 
 const image = ({ text, textContains, isDescendant = false }) => {
@@ -607,6 +623,7 @@ module.exports = {
   navOptionNetworkIdle,
   noSpinnersAfter,
   openError,
+  retryUntil,
   savePageContent,
   select,
   signIntoTerra,

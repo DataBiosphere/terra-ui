@@ -9,6 +9,7 @@ const {
   dismissNotifications,
   enablePageLogging,
   fillIn,
+  findElement,
   findText,
   gotoPage,
   input,
@@ -16,8 +17,8 @@ const {
   navChild,
   navOptionNetworkIdle,
   noSpinnersAfter,
+  retryUntil,
   signIntoTerra,
-  waitForFn,
   waitForNoSpinners,
 } = require('./integration-utils');
 const { fetchLyle } = require('./lyle-utils');
@@ -134,26 +135,34 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
   }
 });
 
-/* TODO
-const deleteWorkspaceInUi = async ({ page, testUrl, token, workspaceName }) => {
-  await gotoPage(page, testUrl);
-  await findText(page, 'View Workspaces');
-  await viewWorkspaceDashboard(page, token, workspaceName);
-  await findText(page, clickable({ textContains: 'Delete' }));
-  await noSpinnersAfter(page, {
-    action: () => click(page, clickable({ textContains: 'Delete' })),
-    timeout: Millis.ofMinute,
-    debugMessage: 'deleteWorkspaceInUi - opened delete',
+const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceName, retries = 5 }) => {
+  gotoPage(page, `${testUrl}#workspaces/${billingProject}/${workspaceName}`);
+  await retryUntil({
+    getResult: async () => {
+      await findElement(page, clickable({ labelContains: 'Action Menu' }, { timeout: Millis.ofMinutes(2) }));
+      await click(page, clickable({ labelContains: 'Action Menu' }));
+      await noSpinnersAfter(page, {
+        action: () => click(page, clickable({ textContains: 'Delete' })),
+      });
+      try {
+        await findText(page, "Please type 'Delete Workspace' to continue:");
+        return true;
+      } catch (e) {
+        console.log(`Workspace ${workspaceName} not ready for deletion. Will retry ${retries} more times...`);
+        await click(page, clickable({ textContains: 'Cancel' }));
+        await delay(Millis.ofSeconds(30));
+        return false;
+      }
+    },
+    interval: Millis.none,
+    retries,
   });
-  await findText(page, "Please type 'Delete Workspace' to continue:");
   await fillIn(page, input({ placeholder: 'Delete Workspace' }), 'Delete Workspace');
   await noSpinnersAfter(page, {
-    action: () => click(page, clickable({ textContains: 'Delete Workspace' })),
+    action: () => click(page, clickable({ textContains: 'Delete workspace' })),
     timeout: Millis.ofMinutes(2),
-    debugMessage: 'deleteWorkspaceInUi - submitted delete',
   });
 };
-*/
 
 const deleteWorkspaceV2 = async ({ page, billingProject, workspaceName }) => {
   try {
@@ -183,7 +192,7 @@ const deleteWorkspaceV2 = async ({ page, billingProject, workspaceName }) => {
   } catch (e) {
     console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`);
     console.error(e);
-    throw e;
+    return false;
   }
   console.info(`Deleted workspace: ${workspaceName}`);
   return true;
@@ -216,7 +225,7 @@ const withAzureWorkspace = (test) => async (options) => {
     await test({ ...options, workspaceName });
   } finally {
     console.log('withAzureWorkspace cleanup ...');
-    await withSignedInPage(() => deleteWorkspaceV2({ ...options, workspaceName }));
+    await deleteWorkspaceInUi({ ...options, workspaceName });
   }
 };
 
@@ -278,11 +287,15 @@ const deleteAppsV2 = async ({ page, billingProject, workspaceName }) => {
       };
     })
   );
-  const deletedAppsLog = deletedApps.map(({ name, isDeleted }) => {
-    const appLog = isDeleted ? name : `FAILED:${name}`;
-    return appLog;
-  });
-  console.info(`deleted v2 apps: ${deletedAppsLog}`);
+  const deletedAppsLog = deletedApps
+    .map(({ name, isDeleted }) => {
+      const appLog = isDeleted ? name : `FAILED:${name}`;
+      return appLog;
+    })
+    .join(', ');
+  if (deletedAppsLog) {
+    console.info(`Delete v2 apps in ${billingProject}/${workspaceName} complete: ${deletedAppsLog}`);
+  }
   return deletedApps.every((app) => app.isDeleted);
 };
 
@@ -322,8 +335,10 @@ const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
       };
     })
   );
-  const deletedRuntimesLog = deletedRuntimes.map(async ({ name, isDeleted }) => (isDeleted ? name : `FAILED:${name}`));
-  console.info(`deleted v2 runtimes: ${deletedRuntimesLog}`);
+  const deletedRuntimesLog = deletedRuntimes.map(({ name, isDeleted }) => (isDeleted ? name : `FAILED:${name}`)).join(', ');
+  if (deletedRuntimesLog) {
+    console.info(`Delete v2 runtimes in ${billingProject}/${workspaceName} complete: ${deletedRuntimesLog}`);
+  }
   return deletedRuntimes.every((runtime) => runtime.isDeleted);
 };
 
@@ -346,18 +361,17 @@ const patientlyDeleteApp = async (page, { workspaceId, appName, status }) => {
     appName
   );
 
-  const newStatus = await waitForFn({
-    interval: Millis.ofSeconds(10),
-    timeout: Millis.ofMinutes(3),
-    fn: async () =>
+  const newStatus = await retryUntil({
+    getResult: async () =>
       await page.evaluate(
         async (workspaceId, appName) => {
           try {
-            const appState = window.Ajax().Apps.getAppV2(appName, workspaceId);
-            return appState.status !== 'Deleting' && status;
+            const appState = await window.Ajax().Apps.getAppV2(appName, workspaceId);
+            const lowStatus = appState.status?.toLowerCase();
+            return lowStatus !== 'deleting' && lowStatus;
           } catch (response) {
             if (response.status === 404) {
-              return 'Deleted';
+              return 'deleted';
             }
             throw response;
           }
@@ -365,13 +379,19 @@ const patientlyDeleteApp = async (page, { workspaceId, appName, status }) => {
         workspaceId,
         appName
       ),
+    interval: Millis.ofSeconds(10),
+    retries: 10,
   });
 
-  if (newStatus === 'Deleted') {
+  if (newStatus === 'deleted') {
     console.log(`deleted app: ${appName}`);
     return true;
   }
-  console.error(`delete app ${appName} failed: now in ${newStatus}`);
+  if (newStatus) {
+    console.error(`delete app ${appName} failed: was in ${status.toLowerCase()}, now in ${newStatus}`);
+  } else {
+    console.error(`delete app ${appName} failed: timed out`);
+  }
   return false;
 };
 
@@ -397,19 +417,18 @@ const patientlyDeleteRuntime = async (page, { workspaceId, runtimeName, status }
     runtimeName
   );
 
-  const newStatus = await waitForFn({
-    interval: Millis.ofSeconds(10),
-    timeout: Millis.ofMinutes(3),
-    fn: async () =>
+  const newStatus = await retryUntil({
+    getResult: async () =>
       await page.evaluate(
         async (workspaceId, runtimeName) => {
           try {
             const runtimeApi = window.Ajax().Runtimes.runtimeV2(workspaceId, runtimeName);
             const runtimeState = await runtimeApi.details();
-            return runtimeState.status !== 'Deleting' && status;
+            const lowStatus = runtimeState.status?.toLowerCase();
+            return lowStatus !== 'deleting' && lowStatus;
           } catch (response) {
             if (response.status === 404) {
-              return 'Deleted';
+              return 'deleted';
             }
             throw response;
           }
@@ -417,13 +436,19 @@ const patientlyDeleteRuntime = async (page, { workspaceId, runtimeName, status }
         workspaceId,
         runtimeName
       ),
+    interval: Millis.ofSeconds(10),
+    retries: 10,
   });
 
-  if (newStatus === 'Deleted') {
+  if (newStatus === 'deleted') {
     console.log(`deleted runtime: ${runtimeName}`);
     return true;
   }
-  console.error(`delete runtime ${runtimeName} failed: now in ${newStatus}`);
+  if (newStatus) {
+    console.error(`delete runtime ${runtimeName} failed: was in ${status.toLowerCase()}, now in ${newStatus}`);
+  } else {
+    console.error(`delete runtime ${runtimeName} failed: timed out`);
+  }
   return false;
 };
 
@@ -474,8 +499,6 @@ const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
   // For now, dismiss error popups in the workspaces context as irrelevant to Analyses tests.
   await dismissErrorNotifications(page);
 
-  // TODO [IA-4682, WM-2367] fix race condition that causes infinite spinner on Analyses page without this delay
-  await delay(Millis.ofSeconds(20));
   await clickNavChildAndLoad(page, 'analyses');
 
   await findText(page, 'Your Analyses');

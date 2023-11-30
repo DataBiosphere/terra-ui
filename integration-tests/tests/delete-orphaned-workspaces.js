@@ -7,14 +7,18 @@ const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
 
 /**
- * Function which returns difference between two times (from, to).
- * Try `.differenceInHours`, `.differenceInDays`, or `.differenceInMinutes`.
+ * Function which returns difference between two times (from, to), by the name of its unit.
  */
-const getTimeDifference = dateFns.differenceInHours;
-/** How many [time unit]s must pass before a workspace should be deleted. */
-const olderThanCount = 6;
-/** Display name for the chosen time unit. */
+const differenceFnByUnit = {
+  days: dateFns.differenceInDays,
+  hours: dateFns.differenceInHours,
+  minutes: dateFns.differenceInMinutes,
+};
+
+/** The chosen unit of time. */
 const timeUnit = 'hours';
+/** How many [time unit]s must pass before a workspace should be deleted. */
+const olderThanCount = 12;
 
 /**
  * Attempts to delete any workspaces which are named with the auto-generated test workspace name prefix,
@@ -28,7 +32,11 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
   // process was prematurely terminated, but a few also appear in alpha and staging indicating that
   // ci test runs also sometimes leak workspaces.
   const workspaces = await page.evaluate(async () => await window.Ajax().Workspaces.list());
-  const oldWorkspaces = _.filter(({ workspace: { name, createdDate } }) => {
+  const oldWorkspaces = _.filter((workspaceResponse) => {
+    const {
+      workspace: { name, createdDate },
+    } = workspaceResponse;
+    const getTimeDifference = differenceFnByUnit[timeUnit];
     const age = getTimeDifference(new Date(createdDate), new Date());
     return age > olderThanCount && _.startsWith(testWorkspaceNamePrefix, name);
   }, workspaces);
@@ -46,8 +54,8 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
         }
         // Unlock the workspace in case it was left in a locked state during a test (locked workspaces can't be deleted).
         await page.evaluate(async (namespace, name) => await window.Ajax().Workspaces.workspace(namespace, name).unlock(), namespace, name);
-        await deleteWorkspaceV2({ page, billingProject: namespace, workspaceName: name });
-        return { name, cloudPlatform, isDeleted: true };
+        const isDeleted = await deleteWorkspaceV2({ page, billingProject: namespace, workspaceName: name });
+        return { name, cloudPlatform, isDeleted };
       } catch (e) {
         return { name, cloudPlatform, isDeleted: false };
       }
