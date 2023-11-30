@@ -7,7 +7,12 @@ import { Ajax } from 'src/libs/ajax';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { goToPath } from 'src/libs/nav';
 import { AzureWorkspace, AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
-import { AzureBillingProject, CloudPlatform, GCPBillingProject } from 'src/pages/billing/models/BillingProject';
+import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
+import {
+  azureBillingProject,
+  azureProtectedDataBillingProject,
+  gcpBillingProject,
+} from 'src/testing/billing-project-fixtures';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -24,45 +29,6 @@ jest.mock(
     goToPath: jest.fn(),
   })
 );
-
-const gcpBillingProject: GCPBillingProject = {
-  billingAccount: 'billingAccounts/FOO-BAR-BAZ',
-  cloudPlatform: 'GCP',
-  invalidBillingAccount: false,
-  projectName: 'Google Billing Project',
-  roles: ['Owner'],
-  status: 'Ready',
-};
-
-const azureBillingProject: AzureBillingProject = {
-  cloudPlatform: 'AZURE',
-  landingZoneId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-  managedAppCoordinates: {
-    tenantId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-    subscriptionId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-    managedResourceGroupId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-  },
-  invalidBillingAccount: false,
-  projectName: 'Azure Billing Project',
-  roles: ['Owner'],
-  status: 'Ready',
-  protectedData: false,
-};
-
-const azureProtectedDataBillingProject: AzureBillingProject = {
-  cloudPlatform: 'AZURE',
-  landingZoneId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-  managedAppCoordinates: {
-    tenantId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-    subscriptionId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-    managedResourceGroupId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-  },
-  invalidBillingAccount: false,
-  projectName: 'Protected Azure Billing Project',
-  roles: ['Owner'],
-  status: 'Ready',
-  protectedData: true,
-};
 
 type AjaxContract = ReturnType<typeof Ajax>;
 
