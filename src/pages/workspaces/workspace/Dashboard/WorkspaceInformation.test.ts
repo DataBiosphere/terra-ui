@@ -33,7 +33,7 @@ describe('WorkspaceInformation', () => {
     // Last updated date
     expect(screen.getAllByText('3/15/2023')).not.toBeNull();
     // Should not have workspace protected entry
-    expect(screen.queryByText('Workspace Protected')).toBeNull();
+    expect(screen.queryByText('Additional Security Monitoring')).toBeNull();
     // Should not have region constraint
     expect(screen.queryByText('Region Constraint')).toBeNull();
 
@@ -59,7 +59,7 @@ describe('WorkspaceInformation', () => {
       // Last updated date
       expect(screen.getAllByText('3/15/2023')).not.toBeNull();
       // Should show protected workspace information.
-      expect(screen.getAllByText('Workspace Protected')).not.toBeNull();
+      expect(screen.getAllByText('Additional Security Monitoring')).not.toBeNull();
       // Should not have region constraint
       expect(screen.queryByText('Region Constraint')).toBeNull();
 
@@ -90,7 +90,7 @@ describe('WorkspaceInformation', () => {
     // Last updated date
     expect(screen.getAllByText('3/15/2023')).not.toBeNull();
     // Should not have workspace protected entry
-    expect(screen.queryByText('Workspace Protected')).toBeNull();
+    expect(screen.queryByText('Additional Security Monitoring')).toBeNull();
     // Should show region constraint information.
     expect(screen.getAllByText('Region Constraint')).not.toBeNull();
 
