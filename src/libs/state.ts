@@ -17,17 +17,17 @@ import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 
-export type TerraUserRegistrationStatus =
-  // User is logged in through B2C but has not registered in Terra.
-  | 'unregistered'
-  // User has registered in Terra but has not accepted the terms of service.
-  | 'registeredWithoutTos'
-  // User has registered in Terra and accepted the terms of service.
-  | 'registered'
-  // User's account has been disabled.
-  | 'disabled'
-  // Registration status has not yet been determined.
-  | 'uninitialized';
+export interface SystemState {
+  termsOfServiceConfig: SamTermsOfServiceConfig;
+}
+
+export const systemStore: Atom<SystemState> = atom<SystemState>({
+  termsOfServiceConfig: {
+    enforced: false,
+    currentVersion: '',
+    inRollingAcceptanceWindow: false,
+  },
+});
 
 export interface TermsOfServiceStatus {
   permitsSystemUsage: boolean | undefined;
@@ -54,10 +54,6 @@ export type SignInStatusState =
 
 export type SignInStatus = Initializable<SignInStatusState>;
 
-export type SystemProperties = {
-  termsOfServiceConfig: SamTermsOfServiceConfig;
-};
-
 export interface FenceStatus {
   [key: string]: BondFenceStatusResponse;
 }
@@ -71,7 +67,6 @@ export interface AuthState {
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: NihStatus;
   nihStatusLoaded: boolean;
-  system: SystemProperties;
   termsOfService: TermsOfServiceStatus;
   terraUserAllowances: SamUserAllowances;
 }
@@ -83,13 +78,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   signInStatus: 'uninitialized',
   userJustSignedIn: false,
   nihStatusLoaded: false,
-  system: {
-    termsOfServiceConfig: {
-      enforced: false,
-      currentVersion: '',
-      inRollingAcceptanceWindow: false,
-    },
-  },
   termsOfService: {
     permitsSystemUsage: undefined,
     isCurrentVersion: undefined,

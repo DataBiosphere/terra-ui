@@ -114,7 +114,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 
   revokeTokens();
 
-  const { cookiesAccepted, system } = authStore.get();
+  const { cookiesAccepted } = authStore.get();
 
   authStore.reset();
   authStore.update((state) => ({
@@ -124,7 +124,6 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
     // Load whether a user has input a cookie acceptance in a previous session on this system,
     // or whether they input cookie acceptance previously in this session
     cookiesAccepted,
-    system,
   }));
   oidcStore.update((state) => ({
     ...state,
