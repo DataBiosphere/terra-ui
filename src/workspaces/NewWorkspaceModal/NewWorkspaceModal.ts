@@ -18,7 +18,6 @@ import {
   isSupportedBucketLocation,
 } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
-import { isProtectedWorkspace } from 'src/import-data/protected-data-utils';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
@@ -36,6 +35,7 @@ import {
   cloudProviderLabels,
   isAzureWorkspace,
   isGoogleWorkspace,
+  isProtectedWorkspace,
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/libs/workspace-utils';
@@ -85,7 +85,7 @@ export interface NewWorkspaceModalProps {
   buttonText?: string;
   cloneWorkspace?: WorkspaceWrapper;
   cloudPlatform?: CloudPlatform;
-  customMessage?: ReactNode;
+  renderNotice?: (args: { selectedBillingProject?: BillingProject }) => ReactNode;
   requiredAuthDomain?: string;
   requireEnhancedBucketLogging?: boolean;
   title?: string;
@@ -104,7 +104,7 @@ const NewWorkspaceModal = withDisplayName(
     cloudPlatform,
     onSuccess,
     onDismiss,
-    customMessage,
+    renderNotice = () => null,
     requiredAuthDomain,
     requireEnhancedBucketLogging,
     title,
@@ -647,7 +647,11 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
-                    customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
+                    renderNotice({
+                      selectedBillingProject: namespace
+                        ? billingProjects?.find(({ projectName }) => projectName === namespace)
+                        : undefined,
+                    }),
                     workflowImport &&
                       azureBillingProjectsExist &&
                       div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
@@ -671,7 +675,7 @@ const NewWorkspaceModal = withDisplayName(
                           style: { marginRight: '0.5rem', color: colors.warning() },
                         }),
                         div([
-                          'Creating a workspace currently costs about $5 per day. ',
+                          'Creating a workspace may increase your infrastructure costs. ',
                           h(
                             Link,
                             {

@@ -177,8 +177,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     : [];
   const canUseTemplateWorkspace = filteredTemplates.length > 0;
 
-  const importMayTakeTimeMessage =
-    'Note that the import process may take some time after you are redirected into your destination workspace.';
+  const importMayTakeTimeMessage = p([
+    'Note that the import process may take some time after you are redirected into your destination workspace.',
+  ]);
 
   const linkAccountPrompt = () => {
     return div({}, [
@@ -354,7 +355,15 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
                 cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
-                customMessage: importMayTakeTime && importMayTakeTimeMessage,
+                renderNotice: ({ selectedBillingProject }) =>
+                  h(Fragment, [
+                    isProtectedData &&
+                      selectedBillingProject?.cloudPlatform === 'AZURE' &&
+                      p([
+                        'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
+                      ]),
+                    importMayTakeTime && importMayTakeTimeMessage,
+                  ]),
                 requireEnhancedBucketLogging: isProtectedData,
                 waitForServices: {
                   wds: true,
@@ -378,7 +387,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         // This modal can only be opened if selectedTemplateWorkspaceKey is set.
         title: `Clone ${selectedTemplateWorkspaceKey!.name} and Import Data`,
         buttonText: 'Clone and Import',
-        customMessage: importMayTakeTime && importMayTakeTimeMessage,
+        renderNotice: () => importMayTakeTime && importMayTakeTimeMessage,
         onDismiss: () => setIsCloneOpen(false),
         onSuccess: (w) => {
           setMode('existing');

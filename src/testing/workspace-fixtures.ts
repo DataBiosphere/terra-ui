@@ -29,7 +29,7 @@ export const makeAzureWorkspace = (workspace?: DeepPartial<AzureWorkspace>): Azu
   return _.merge(_.cloneDeep(defaultAzureWorkspace), workspace);
 };
 
-const protectedDataPolicy: WorkspacePolicy = {
+export const protectedDataPolicy: WorkspacePolicy = {
   additionalData: [],
   name: 'protected-data',
   namespace: 'terra',
@@ -39,7 +39,13 @@ export const protectedAzureWorkspace: AzureWorkspace = _.merge(defaultAzureWorks
   policies: [protectedDataPolicy],
 });
 
-const regionConstraintPolicy: WorkspacePolicy = {
+export const groupConstraintPolicy: WorkspacePolicy = {
+  namespace: 'terra',
+  name: 'group-constraint',
+  additionalData: [{ group: 'test-group' }],
+};
+
+export const regionConstraintPolicy: WorkspacePolicy = {
   additionalData: [
     {
       'region-name': 'azure.eastus',
