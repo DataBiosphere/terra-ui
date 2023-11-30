@@ -1,8 +1,10 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { CloudProvider, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { BillingProject } from 'src/pages/billing/models/BillingProject';
+import { azureProtectedDataBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
@@ -453,6 +455,48 @@ describe('ImportDataDestination', () => {
         expect.objectContaining(expectedNewWorkspaceModalProps),
         expect.anything()
       );
+    }
+  );
+
+  it.each([
+    // Unprotected data, no auth domain
+    {
+      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      noticeExpected: false,
+    },
+    // Protected data, required auth domain
+    {
+      importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+      noticeExpected: true,
+    },
+  ] as { importRequest: ImportRequest; noticeExpected: boolean }[])(
+    'shows a notice when importing protected data into a new Azure workspace',
+    async ({ importRequest, noticeExpected }) => {
+      // Arrange
+      const user = userEvent.setup();
+
+      setup({ props: { importRequest } });
+
+      // Act
+      const newWorkspaceButton = screen.getByText('Create a new workspace');
+      await user.click(newWorkspaceButton);
+
+      const { renderNotice } = asMockedFn(NewWorkspaceModal).mock.lastCall[0];
+
+      const isNoticeShownForBillingProject = (billingProject: BillingProject | undefined): boolean => {
+        const { container: noticeContainer } = render(
+          renderNotice?.({ selectedBillingProject: billingProject }) as JSX.Element
+        );
+        const isNoticeShown = !!within(noticeContainer).queryByText(
+          'Importing controlled access data will apply any additional access controls associated with the data to this workspace.'
+        );
+        return isNoticeShown;
+      };
+
+      // Assert
+      expect(isNoticeShownForBillingProject(undefined)).toBe(false);
+      expect(isNoticeShownForBillingProject(gcpBillingProject)).toBe(false);
+      expect(isNoticeShownForBillingProject(azureProtectedDataBillingProject)).toBe(noticeExpected);
     }
   );
 
