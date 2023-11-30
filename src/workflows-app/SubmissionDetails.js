@@ -326,13 +326,11 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                     runsFullyUpdated,
                     () => div([icon('check', { size: 15, style: { color: colors.success() } }), ' Workflow statuses are all up to date.']),
                   ],
-                  [
-                    () =>
-                      div([
-                        icon('warning-standard', { size: 15, style: { color: colors.warning() } }),
-                        ' Some workflow statuses are not up to date. Refreshing the page may update more statuses.',
-                      ]),
-                  ]
+                  () =>
+                    div([
+                      icon('warning-standard', { size: 15, style: { color: colors.warning() } }),
+                      ' Some workflow statuses are not up to date. Refreshing the page may update more statuses.',
+                    ])
                 ),
                 div([h3(['Filter by: '])]),
                 h(Select, {
