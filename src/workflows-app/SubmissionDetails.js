@@ -1,4 +1,3 @@
-import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, h2, h3, span } from 'react-hyperscript-helpers';
@@ -247,7 +246,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
 
   const rowWidth = 100;
   const rowHeight = 50;
-  return loading && !runSetData
+  return loading
     ? centeredSpinner()
     : div({ id: 'submission-details-page' }, [
         div(
@@ -320,18 +319,12 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
               },
               [
                 div([h2(['Workflows'])]),
-                Utils.cond(
-                  [loading, () => div([h(Spinner, { size: 15, style: { verticalAlign: '-0.125rem' } }), ' Workflow statuses are updating...'])],
-                  [
-                    runsFullyUpdated,
-                    () => div([icon('check', { size: 15, style: { color: colors.success() } }), ' Workflow statuses are all up to date.']),
-                  ],
-                  () =>
-                    div([
+                runsFullyUpdated
+                  ? div([icon('check', { size: 15, style: { color: colors.success() } }), ' Workflow statuses are all up to date.'])
+                  : div([
                       icon('warning-standard', { size: 15, style: { color: colors.warning() } }),
                       ' Some workflow statuses are not up to date. Refreshing the page may update more statuses.',
-                    ])
-                ),
+                    ]),
                 div([h3(['Filter by: '])]),
                 h(Select, {
                   isDisabled: false,
