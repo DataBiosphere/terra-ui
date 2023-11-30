@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DataRepo, Snapshot } from 'src/libs/ajax/DataRepo';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_TDR_IMPORT } from 'src/libs/feature-previews-config';
 import { useRoute } from 'src/libs/nav';
 
 import {
@@ -77,6 +79,10 @@ const getTDRSnapshotExportImportRequest = async (queryParams: QueryParams): Prom
     snapshot = await DataRepo().snapshot(snapshotId).details();
   } catch (err: unknown) {
     throw new Error('Unable to load snapshot.');
+  }
+
+  if (snapshot.cloudPlatform === 'azure' && !isFeaturePreviewEnabled(ENABLE_AZURE_TDR_IMPORT)) {
+    throw new Error('Importing Azure snapshots is not supported.');
   }
 
   return {

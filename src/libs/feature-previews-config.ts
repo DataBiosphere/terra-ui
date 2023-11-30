@@ -3,6 +3,7 @@ export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
 export const ENABLE_WORKFLOW_RESOURCE_MONITORING = 'enableWorkflowResourceMonitoring';
 export const ENABLE_AZURE_PFB_IMPORT = 'enableAzurePfbImport';
+export const ENABLE_AZURE_TDR_IMPORT = 'enableAzureTdrImport';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -97,6 +98,15 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     groups: ['preview-azure-pfb-import'],
     feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Azure PFB Import'
+    )}`,
+  },
+  {
+    id: ENABLE_AZURE_TDR_IMPORT,
+    title: 'Azure TDR Import',
+    description: 'Enabling this feature will allow importing TDR snapshots into Azure workspaces.',
+    groups: ['dsp-analysis-journeys'],
+    feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent(
+      'Feedback on Azure TDR snapshot Import'
     )}`,
   },
 ];
