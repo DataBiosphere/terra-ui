@@ -6,6 +6,7 @@ import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvide
 import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { MetricsProvider, useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import { terraNavKey, TerraNavLinkProvider } from 'src/libs/nav';
+import { environmentsPermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 import { asMockedFn } from 'src/testing/test-utils';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 import { UseWorkspaces } from 'src/workspaces/useWorkspaces.models';
@@ -64,6 +65,7 @@ describe('Environments Page', () => {
         leoAppData: leoAppProvider,
         leoRuntimeData: leoRuntimeProvider,
         leoDiskData: leoDiskProvider,
+        permissions: environmentsPermissions,
         metrics: mockMetricsProvider,
       } satisfies EnvironmentsProps),
       expect.anything()

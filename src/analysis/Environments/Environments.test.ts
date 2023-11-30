@@ -14,23 +14,23 @@ import {
   generateTestDiskWithGoogleWorkspace,
   generateTestListGoogleRuntime,
 } from 'src/analysis/_testData/testData';
-import { EnvironmentNavActions, Environments, EnvironmentsProps } from 'src/analysis/Environments/Environments';
+import {
+  EnvironmentNavActions,
+  EnvironmentPermissionsProvider,
+  Environments,
+  EnvironmentsProps,
+  PauseButton,
+} from 'src/analysis/Environments/Environments';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { AzureConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
-import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
-
-jest.mock('src/libs/state', () => ({
-  ...jest.requireActual('src/libs/state'),
-  getTerraUser: jest.fn(),
-}));
 
 jest.mock('src/libs/notifications', () => ({
   notify: jest.fn(),
@@ -39,6 +39,10 @@ jest.mock('src/libs/notifications', () => ({
 const mockNav: NavLinkProvider<EnvironmentNavActions> = {
   getUrl: jest.fn().mockReturnValue('/'),
   navTo: jest.fn(),
+};
+const mockPermissions: EnvironmentPermissionsProvider = {
+  canDeleteDisk: jest.fn(),
+  canPauseResource: jest.fn(),
 };
 
 const defaultUseWorkspacesProps = {
@@ -81,12 +85,16 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
 };
 
 const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
+  asMockedFn(mockPermissions.canDeleteDisk).mockReturnValue(true);
+  asMockedFn(mockPermissions.canPauseResource).mockReturnValue(true);
+
   const defaultProps: EnvironmentsProps = {
     nav: mockNav,
     useWorkspaces: jest.fn(),
     leoAppData: getMockLeoAppProvider(),
     leoRuntimeData: getMockLeoRuntimeProvider(),
     leoDiskData: getMockLeoDiskProvider(),
+    permissions: mockPermissions,
     metrics: {
       captureEvent: jest.fn(),
     },
@@ -99,12 +107,6 @@ const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): Envi
 };
 
 describe('Environments', () => {
-  beforeEach(() => {
-    asMockedFn(getTerraUser).mockReturnValue({
-      email: 'testuser123@broad.com',
-    });
-  });
-
   describe('Runtimes - ', () => {
     it('Renders page correctly with runtimes and no found workspaces', async () => {
       // Arrange
@@ -303,9 +305,7 @@ describe('Environments', () => {
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
 
-      asMockedFn(getTerraUser).mockReturnValue({
-        email: 'different@broad.com',
-      });
+      asMockedFn(props.permissions.canPauseResource).mockReturnValue(false);
 
       // Act
       await act(async () => {
@@ -585,10 +585,6 @@ describe('Environments', () => {
         workspaces: [workspace],
       });
 
-      asMockedFn(getTerraUser).mockReturnValue({
-        email: app.auditInfo.creator,
-      });
-
       await act(async () => {
         render(h(Environments, props));
       });
@@ -779,27 +775,35 @@ describe('Environments', () => {
   //         // Arrange
   //         const pauseComputeAndRefresh = jest.fn();
 
-  //         await act(async () => {
-  //           render(
-  //             h(PauseButton, {
-  //               cloudEnvironment: app,
-  //               currentUser: app.auditInfo.creator,
-  //               pauseComputeAndRefresh,
-  //             })
-  //           );
-  //         });
-  //         // Act
-  //         const pauseButton = screen.getByText('Pause');
-  //         // Assert
-  //         expect(pauseButton).toBeEnabled();
-  //         // Act
-  //         await userEvent.click(pauseButton);
-  //         // Assert
-  //         expect(pauseComputeAndRefresh).toHaveBeenCalled();
-  //       }
-  //     );
-  //   });
+  // describe('PauseButton', () => {
+  //   it.each([{ app: generateTestAppWithGoogleWorkspace() }, { app: generateTestAppWithAzureWorkspace() }])(
+  //     'should enable pause for azure and google',
+  //     async ({ app }) => {
+  //       // Arrange
+  //       const pauseComputeAndRefresh = jest.fn();
+  //
+  //       await act(async () => {
+  //         render(
+  //           h(PauseButton, {
+  //             cloudEnvironment: app,
+  //             permissions: {
+  //               canPauseResource: () => true,
+  //             },
+  //             pauseComputeAndRefresh,
+  //           })
+  //         );
+  //       });
+  //       // Act
+  //       const pauseButton = screen.getByText('Pause');
+  //       // Assert
+  //       expect(pauseButton).toBeEnabled();
+  //       // Act
+  //       await userEvent.click(pauseButton);
+  //       // Assert
+  //       expect(pauseComputeAndRefresh).toHaveBeenCalled();
+  //     }
+  //   );
   // });
-
-  const getTextContentForColumn = (row, column) => getAllByRole(row, 'cell')[column].textContent;
 });
+
+const getTextContentForColumn = (row, column) => getAllByRole(row, 'cell')[column].textContent;
