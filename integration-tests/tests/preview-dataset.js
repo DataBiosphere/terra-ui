@@ -1,4 +1,4 @@
-const { checkbox, click, clickable, findText, waitForNoSpinners, assertRowHas } = require('../utils/integration-utils');
+const { checkbox, click, clickable, findElement, findText, waitForNoSpinners, assertRowHas } = require('../utils/integration-utils');
 const { navigateToDataCatalog } = require('../utils/integration-helpers');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
@@ -7,6 +7,7 @@ const datasetName = 'Readable Catalog Snapshot 1';
 
 const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await navigateToDataCatalog(page, testUrl, token);
+  await findElement(page, checkbox({ text: 'Granted', isDescendant: true }));
   await click(page, checkbox({ text: 'Granted', isDescendant: true }));
   await click(page, clickable({ textContains: `${datasetName}` }));
   await waitForNoSpinners(page);

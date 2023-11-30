@@ -1,5 +1,15 @@
 const { navigateToDataCatalog } = require('./integration-helpers');
-const { click, clickable, checkbox, clickTableCell, noSpinnersAfter, waitForNoSpinners, select, findText } = require('./integration-utils');
+const {
+  click,
+  clickable,
+  checkbox,
+  clickTableCell,
+  findElement,
+  noSpinnersAfter,
+  waitForNoSpinners,
+  select,
+  findText,
+} = require('./integration-utils');
 
 const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
   if (testFailure) {
@@ -12,6 +22,7 @@ const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
 
 const linkDataToWorkspace = async (page, testUrl, token, datasetName) => {
   await navigateToDataCatalog(page, testUrl, token);
+  await findElement(page, checkbox({ text: 'Granted', isDescendant: true }));
   await click(page, checkbox({ text: 'Granted', isDescendant: true }));
   // TODO: add test data with granted access DC-321
   await clickTableCell(page, { tableName: 'dataset list', columnHeader: 'Dataset Name', text: datasetName, isDescendant: true });

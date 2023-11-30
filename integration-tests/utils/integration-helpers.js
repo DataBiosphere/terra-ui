@@ -5,8 +5,8 @@ const {
   click,
   clickable,
   delay,
-  dismissErrorNotifications,
-  dismissNotifications,
+  dismissAllNotifications,
+  dismissInfoNotifications,
   enablePageLogging,
   fillIn,
   findElement,
@@ -122,8 +122,9 @@ const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceNam
   gotoPage(page, `${testUrl}#workspaces/${billingProject}/${workspaceName}`);
   const isDeleted = await retryUntil({
     getResult: async () => {
-      await findElement(page, clickable({ labelContains: 'Action Menu' }, { timeout: Millis.ofMinutes(2) }));
-      await click(page, clickable({ labelContains: 'Action Menu' }));
+      await findElement(page, clickable({ textContains: 'Action Menu' }, { timeout: Millis.ofMinutes(2) }));
+      await click(page, clickable({ textContains: 'Action Menu' }));
+      await findElement(page, clickable({ textContains: 'Delete' }));
       await noSpinnersAfter(page, {
         action: () => click(page, clickable({ textContains: 'Delete' })),
       });
@@ -150,6 +151,7 @@ const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceNam
   return true;
 };
 
+/** Deletes a workspace using the v2 delete endpoint. Individually deletes child resources if possible. Returns true if workspace deleted. */
 const deleteWorkspaceV2 = async ({ page, billingProject, workspaceName }) => {
   try {
     const isAppsEmpty = await deleteAppsV2({ page, billingProject, workspaceName });
@@ -193,10 +195,28 @@ const withWorkspace = (test) => async (options) => {
     await test({ ...options, workspaceName });
   } finally {
     console.log('withWorkspace cleanup ...');
+    dismissAllNotifications(page);
     const didDelete = await deleteWorkspaceInUi({ ...options, workspaceName });
     if (!didDelete) {
       // Pass test on a failed cleanup - expect leaked resources to be cleaned up by the test `delete-orphaned-workspaces`
       console.error(`Unable to delete workspace ${workspaceName} via the UI. The resource will be leaked!`);
+    }
+  }
+};
+
+/** Create a GCP workspace, run the given test, then delete the workspace. */
+const withWorkspaceStrictCleanup = (test) => async (options) => {
+  console.log('withWorkspaceStrictCleanup ...');
+  const { workspaceName } = await makeGcpWorkspace(options);
+
+  try {
+    await test({ ...options, workspaceName });
+  } finally {
+    console.log('withWorkspaceStrictCleanup cleanup ...');
+    const didDelete = await deleteWorkspaceV2({ ...options, workspaceName });
+    if (!didDelete) {
+      // Pass test on a failed cleanup - expect leaked resources to be cleaned up by the test `delete-orphaned-workspaces`
+      console.error(`Unable to delete workspace ${workspaceName}. The resource will be leaked!`);
     }
   }
 };
@@ -215,6 +235,7 @@ const withAzureWorkspace = (test) => async (options) => {
     await test({ ...options, workspaceName });
   } finally {
     console.log('withAzureWorkspace cleanup ...');
+    dismissAllNotifications(page);
     // Retry for a long time (20 retries * 30 second intervals ~= 8 minutes);
     // leaked resources can impact all other integration tests which share a user,
     // and Azure VMs spend a long time in CREATING (an undeletable state)
@@ -460,8 +481,9 @@ const navigateToDataCatalog = async (page, testUrl, token) => {
 
 const enableDataCatalog = async (page) => {
   await click(page, clickable({ textContains: 'datasets' }));
+  await findElement(page, label({ labelContains: 'New Catalog OFF' }));
   await click(page, label({ labelContains: 'New Catalog OFF' }));
-  await waitForNoSpinners(page);
+  await waitForNoSpinners(page, { timeout: Millis.ofMinutes(3) });
 };
 
 const clickNavChildAndLoad = async (page, tab) => {
@@ -480,7 +502,7 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   // Sign in to handle unexpected NPS survey popup and "Loading Terra..." spinner
   await signIntoTerra(page, { token });
   await click(page, clickable({ textContains: 'View Workspaces' }));
-  await dismissNotifications(page);
+  await dismissInfoNotifications(page);
   await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
   // Wait for workspace table to rerender filtered items
   await delay(Millis.of(300));
@@ -494,12 +516,12 @@ const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
 
   // TODO [https://broadinstitute.slack.com/archives/C03GMG4DUSE/p1699467686195939] resolve NIH link error issues.
   // For now, dismiss error popups in the workspaces context as irrelevant to Analyses tests.
-  await dismissErrorNotifications(page);
+  await dismissAllNotifications(page);
 
   await clickNavChildAndLoad(page, 'analyses');
 
   await findText(page, 'Your Analyses');
-  await dismissNotifications(page);
+  await dismissInfoNotifications(page);
 };
 
 // See src/analysis/utils/resource-utils.ts
@@ -534,4 +556,5 @@ module.exports = {
   withAzureWorkspace,
   withUser,
   withWorkspace,
+  withWorkspaceStrictCleanup,
 };

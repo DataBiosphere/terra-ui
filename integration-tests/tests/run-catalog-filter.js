@@ -6,6 +6,7 @@ const {
   clickable,
   input,
   fillIn,
+  findElement,
   heading,
   findHeading,
   findText,
@@ -51,6 +52,7 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   }
 
   // Testing filter by facet
+  await findElement(page, checkbox({ text: filterItem, isDescendant: true }));
   await click(page, checkbox({ text: filterItem, isDescendant: true }));
   const datasetSizeAfterFilter = await getDatasetCount(page);
 

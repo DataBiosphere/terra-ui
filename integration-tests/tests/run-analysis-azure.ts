@@ -7,7 +7,7 @@ const {
   click,
   clickable,
   delay,
-  dismissNotifications,
+  dismissInfoNotifications,
   fillIn,
   findElement,
   findErrorPopup,
@@ -50,7 +50,7 @@ const testRunAnalysisAzure = _.flowRight(
 
   // Navigate to analysis launcher
   await click(page, `//*[@title="${notebookName}.ipynb"]`);
-  await dismissNotifications(page);
+  await dismissInfoNotifications(page);
   await findText(page, 'PREVIEW (READ-ONLY)');
 
   // Attempt to open analysis; create a cloud env

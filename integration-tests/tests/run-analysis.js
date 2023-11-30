@@ -5,7 +5,7 @@ const {
   Millis,
   click,
   clickable,
-  dismissNotifications,
+  dismissInfoNotifications,
   fillIn,
   findElement,
   findIframe,
@@ -42,7 +42,7 @@ const testRunAnalysisFn = _.flowRight(
 
   // Navigate to analysis launcher
   await click(page, `//*[@title="${notebookName}.ipynb"]`);
-  await dismissNotifications(page);
+  await dismissInfoNotifications(page);
   await findText(page, 'PREVIEW (READ-ONLY)');
 
   // Attempt to open analysis; create a cloud env

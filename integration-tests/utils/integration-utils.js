@@ -56,11 +56,8 @@ const findInGrid = (page, textContains, options) => {
   return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options));
 };
 
-const getClickablePath = (path, labelContains, text, textContains, isDescendant = false) => {
+const getClickablePath = (path, text, textContains, isDescendant = false) => {
   const base = `${path}${isDescendant ? '//*' : ''}`;
-  if (labelContains) {
-    return `${base}[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for or @aria-labelledby=//*[contains(normalize-space(.),"${labelContains}")]/@id]`;
-  }
   if (text) {
     return `${base}[normalize-space(.)="${text}" or @title="${text}" or @alt="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`;
   }
@@ -74,10 +71,10 @@ const getAnimatedDrawer = (textContains) => {
 };
 
 // Note: isEnabled is not fully supported for native anchor and button elements (only aria-disabled is examined).
-const clickable = ({ labelContains, text, textContains, isDescendant = false, isEnabled = true }) => {
+const clickable = ({ text, textContains, isDescendant = false, isEnabled = true }) => {
   const checkEnabled = isEnabled === false ? '[@aria-disabled="true"]' : '[not(@aria-disabled="true")]';
-  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"] | //*[@role="switch"] | //*[@role="tab"])${checkEnabled}`;
-  return getClickablePath(base, labelContains, text, textContains, isDescendant);
+  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"] | //*[@role="switch"] | //*[@role="tab"] | //*[@role="checkbox"])${checkEnabled}`;
+  return getClickablePath(base, text, textContains, isDescendant);
 };
 
 const image = ({ text, textContains, isDescendant = false }) => {
@@ -257,7 +254,7 @@ const delay = (ms) => {
 };
 
 /** Dismiss all popup notifications, including errors. */
-const dismissErrorNotifications = async (page) => {
+const dismissAllNotifications = async (page) => {
   await delay(3000); // delayed for any alerts to show
   const notificationCloseButtons = await page.$x('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss")]');
 
@@ -266,7 +263,8 @@ const dismissErrorNotifications = async (page) => {
   return !!notificationCloseButtons.length && delay(1000); // delayed for alerts to animate off
 };
 
-const dismissNotifications = async (page) => {
+/** Dismiss popup notifications, except for errors. */
+const dismissInfoNotifications = async (page) => {
   await delay(3000); // delayed for any alerts to show
   const notificationCloseButtons = await page.$x(
     '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]'
@@ -311,7 +309,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   await page.waitForFunction('!!window["forceSignIn"]');
   await page.evaluate((token) => window.forceSignIn(token), token);
 
-  await dismissNotifications(page);
+  await dismissInfoNotifications(page);
   await dismissNPSSurvey(page);
   await waitForNoSpinners(page);
 };
@@ -378,7 +376,7 @@ const findButtonInDialogByAriaLabel = (page, ariaLabelText) => {
 
 const openError = async (page) => {
   // close out any non-error notifications first
-  await dismissNotifications(page);
+  await dismissInfoNotifications(page);
 
   const errorDetails = await page.$x('(//a | //*[@role="button"] | //button)[contains(normalize-space(.),"Details")]');
 
@@ -602,8 +600,8 @@ module.exports = {
   clickTableCell,
   clickable,
   delay,
-  dismissErrorNotifications,
-  dismissNotifications,
+  dismissAllNotifications,
+  dismissInfoNotifications,
   elementInDataTableRow,
   enablePageLogging,
   fillIn,

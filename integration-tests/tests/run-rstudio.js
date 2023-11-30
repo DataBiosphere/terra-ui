@@ -6,13 +6,12 @@ const {
   click,
   clickable,
   delay,
-  dismissNotifications,
+  dismissInfoNotifications,
   fillIn,
   findElement,
   findIframe,
   findText,
   getAnimatedDrawer,
-  image,
   input,
   noSpinnersAfter,
 } = require('../utils/integration-utils');
@@ -30,7 +29,7 @@ const testRunRStudioFn = _.flowRight(
   // Create analysis file
   await click(page, clickable({ textContains: 'Start' }));
   await findElement(page, getAnimatedDrawer('Select an application'));
-  await click(page, image({ text: 'Create new R file' }));
+  await click(page, clickable({ text: 'Create new R file', isDescendant: true }));
   await fillIn(page, input({ placeholder: 'Enter a name' }), rFileName);
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' })) });
 
@@ -46,7 +45,7 @@ const testRunRStudioFn = _.flowRight(
 
   // Navigate to analysis launcher
   await click(page, `//*[@title="${rFileName}.Rmd"]`, { timeout: Millis.ofSeconds(30) });
-  await dismissNotifications(page);
+  await dismissInfoNotifications(page);
 
   await noSpinnersAfter(page, {
     action: () => click(page, clickable({ textContains: 'Open' })),
@@ -63,7 +62,7 @@ const testRunRStudioFn = _.flowRight(
 
   // Wait for the environment to be running
   await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(10) });
-  await dismissNotifications(page);
+  await dismissInfoNotifications(page);
   await click(page, clickable({ textContains: 'Open' }));
 
   // Find the iframe, wait until the RStudio iframe is loaded, and execute some code
@@ -74,7 +73,7 @@ const testRunRStudioFn = _.flowRight(
   await page.keyboard.press('Enter');
   await findText(frame, '[1] 1');
 
-  await dismissNotifications(page);
+  await dismissInfoNotifications(page);
 
   await deleteRuntimes({ page, billingProject, workspaceName });
 });
