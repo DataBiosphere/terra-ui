@@ -14,11 +14,12 @@ import { BillingRole } from 'src/pages/billing/models/BillingProject';
 import { AddUsersStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AddUsersStep';
 import { AzureSubscriptionStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionStep';
 import { CreateNamedProjectStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep';
+import { ProtectedDataStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/ProtectedDataStep';
 import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard';
 import { validate } from 'validate.js';
 
 interface AzureBillingProjectWizardProps {
-  onSuccess: (string) => void;
+  onSuccess: (string, boolean) => void;
 }
 
 export const userInfoListToProjectAccessObjects = (
@@ -41,6 +42,7 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
   // undefined used to indicate that the user has not yet made a selection
   const [addUsersOrOwners, setAddUsersOrOwners] = useState<boolean | undefined>(undefined);
   const [managedApp, setManagedApp] = useState<AzureManagedAppCoordinates>();
+  const [protectedData, setProtectedData] = useState<boolean | undefined>(undefined);
 
   const [existingProjectNames, setExistingProjectNames] = useState<string[]>([]);
   const [projectNameErrors, setProjectNameErrors] = useState<ReactNode>();
@@ -62,9 +64,10 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
         managedApp!.tenantId,
         subscriptionId!,
         managedApp!.managedResourceGroupId,
-        members
+        members,
+        !!protectedData
       );
-      onSuccess(billingProjectName);
+      onSuccess(billingProjectName, protectedData);
       // No need to event success, as that is done in the onSuccess callback
     } catch (error: any) {
       if (error?.status === 409) {
@@ -124,7 +127,8 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
   };
 
   const step1HasNoErrors = !!subscriptionId && !!managedApp;
-  const step2HasNoErrors =
+  const step2HasNoErrors = protectedData !== undefined;
+  const step3HasNoErrors =
     addUsersOrOwners === false ||
     (addUsersOrOwners === true &&
       !ownerEmails.hasError &&
@@ -151,29 +155,42 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
           managedApp,
           onManagedAppSelected,
         }),
+        h(ProtectedDataStep, {
+          isActive: activeStep === 2,
+          protectedData,
+          onSetProtectedData: (protectedData) => {
+            stepFinished(2, true);
+            setProtectedData(protectedData);
+            Ajax().Metrics.captureEvent(
+              protectedData
+                ? Events.billingAzureCreationProtectedDataSelected
+                : Events.billingAzureCreationProtectedDataNotSelected
+            );
+          },
+        }),
         h(AddUsersStep, {
           userEmails: userEmails.emails,
           ownerEmails: ownerEmails.emails,
           addUsersOrOwners,
           onAddUsersOrOwners: (addUsersOrOwners) => {
-            stepFinished(2, !addUsersOrOwners);
+            stepFinished(3, !addUsersOrOwners);
             setAddUsersOrOwners(addUsersOrOwners);
             Ajax().Metrics.captureEvent(
               addUsersOrOwners ? Events.billingAzureCreationWillAddUsers : Events.billingAzureCreationNoUsersToAdd
             );
           },
           onSetUserEmails: (emails, hasError) => {
-            stepFinished(2, false);
+            stepFinished(3, false);
             setUserEmails({ emails, hasError });
           },
           onSetOwnerEmails: (emails, hasError) => {
-            stepFinished(2, false);
+            stepFinished(3, false);
             setOwnerEmails({ emails, hasError });
           },
           onOwnersOrUsersInputFocused: () => {
-            stepFinished(2, false);
+            stepFinished(3, false);
           },
-          isActive: activeStep === 2,
+          isActive: activeStep === 3,
         }),
         h(CreateNamedProjectStep, {
           billingProjectName: billingProjectName ?? '',
@@ -181,15 +198,21 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
             setBillingProjectName(billingProjectName);
           },
           onBillingProjectInputFocused: () => {
-            if (step1HasNoErrors && step2HasNoErrors) {
-              stepFinished(2, true);
+            if (step1HasNoErrors && step2HasNoErrors && step3HasNoErrors) {
+              stepFinished(3, true);
               Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectNameStep);
             }
           },
           createBillingProject,
           projectNameErrors,
-          isActive: activeStep === 3,
-          createReady: step1HasNoErrors && step2HasNoErrors && !!billingProjectName && !projectNameErrors && !isBusy,
+          isActive: activeStep === 4,
+          createReady:
+            step1HasNoErrors &&
+            step2HasNoErrors &&
+            step3HasNoErrors &&
+            !!billingProjectName &&
+            !projectNameErrors &&
+            !isBusy,
         }),
       ]
     ),

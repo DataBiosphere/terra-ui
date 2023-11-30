@@ -33,12 +33,12 @@ const styles = {
 const getTitleForImportRequest = (importRequest: ImportRequest): string => {
   switch (importRequest.type) {
     case 'tdr-snapshot-export':
-      return `Importing snapshot ${importRequest.snapshot.name}`;
+      return `Import snapshot ${importRequest.snapshot.name}`;
     case 'tdr-snapshot-reference':
     case 'catalog-dataset':
-      return 'Linking data to a workspace';
+      return 'Link data to a workspace';
     default:
-      return 'Importing data to a workspace';
+      return 'Import data to a workspace';
   }
 };
 
