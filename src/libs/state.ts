@@ -21,6 +21,10 @@ export interface SystemState {
   termsOfServiceConfig: SamTermsOfServiceConfig;
 }
 
+/**
+This store is for keeping track of static system properties
+which are not expected to change during the apps lifecycle
+ */
 export const systemStore: Atom<SystemState> = atom<SystemState>({
   termsOfServiceConfig: {
     enforced: false,
@@ -71,6 +75,9 @@ export interface AuthState {
   terraUserAllowances: SamUserAllowances;
 }
 
+/**
+ * The authStore is for keeping track of properties which allow the user to access different part of the app.
+ */
 export const authStore: Atom<AuthState> = atom<AuthState>({
   cookiesAccepted: undefined,
   fenceStatus: {},
@@ -127,6 +134,9 @@ export interface TerraUserState {
   terraUserAttributes: SamUserAttributes;
 }
 
+/**
+ * The userStore is for keeping track of user data which may be updated by the user.
+ */
 export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
   profile: {
     firstName: undefined,
@@ -176,6 +186,10 @@ export interface MetricState {
   sessionStartTime: number;
 }
 
+/**
+ * The metricStore is for keeping track of data that is purely inteded on being collected for metrics
+ * and does not control any logic of the app except for logic which strictly pertains to metric collection.
+ */
 export const metricStore: Atom<MetricState> = atom<MetricState>({
   anonymousId: undefined,
   authTokenMetadata: {
@@ -208,6 +222,10 @@ export interface OidcState {
   config: OidcConfig;
 }
 
+/**
+ * The oidcStore is for keeping track of data which is obtained from our OAuth2 provider and
+ * any data we keep track of as part of the oidc-client library we use.
+ */
 export const oidcStore: Atom<OidcState> = atom<OidcState>({
   authContext: undefined,
   authTokenState: undefined,

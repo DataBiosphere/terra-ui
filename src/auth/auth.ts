@@ -558,7 +558,6 @@ export const refreshTerraProfile = async () => {
 
 export const refreshSamUserAttributes = async (): Promise<void> => {
   const terraUserAttributes: SamUserAttributes = await Ajax().User.getUserAttributes();
-
   userStore.update((state: TerraUserState) => ({ ...state, terraUserAttributes }));
 };
 
@@ -579,10 +578,13 @@ export const loadTerraUser = async (): Promise<void> => {
     authStore.update((state: AuthState) => ({
       ...state,
       signInStatus,
-      profile,
       terraUserAllowances,
-      terraUserAttributes,
       termsOfService,
+    }));
+    userStore.update((state: TerraUserState) => ({
+      ...state,
+      profile,
+      terraUserAttributes,
     }));
   } catch (error: unknown) {
     if ((error as Response).status !== 403) {
