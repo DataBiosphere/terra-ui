@@ -603,33 +603,11 @@ describe('Environments', () => {
       expect(buttons1.length).toBe(1);
       expect(buttons1[0].textContent).toBe('Delete');
 
-      // Pause button
-      await user.click(buttons1[0]);
-      expect(props.leoAppData.pause).toBeCalledTimes(0);
+      // Delete button
       expect(buttons1[0].textContent).toBe('Delete');
       await user.click(buttons1[0]);
       screen.getByText('Delete cloud environment?');
     });
-    // TODO: Reenable once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
-    // const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    // if (!isAzure) {
-    //   expect(props.leoAppData.pause).toBeCalledTimes(1);
-    //   expect(props.leoAppData.pause).toBeCalledWith(
-    //     expect.objectContaining({
-    //       appName: app.appName,
-    //       cloudContext: app.cloudContext,
-    //       workspaceId: app.workspaceId,
-    //     } satisfies AppBasics)
-    //   );
-    // } else {
-    //   expect(consoleSpy).toHaveBeenCalledWith('Pause is not currently implemented for azure apps');
-    // }
-
-    // Delete Button
-    //   expect(buttons1[1].textContent).toBe('Delete');
-    //   await user.click(buttons1[1]);
-    //   screen.getByText('Delete cloud environment?');
-    // });
   });
 
   describe('Disks - ', () => {
