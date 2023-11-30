@@ -140,11 +140,11 @@ describe('isValidWsExportTarget', () => {
 
 describe('getPolicyDescriptions', () => {
   it('Returns policy information for a protected and group-constrained workspace', () => {
-    const testWorkspace: WorkspaceWrapper = {
+    const workspace: WorkspaceWrapper = {
       ...defaultAzureWorkspace,
       policies: [protectedDataPolicy, groupConstraintPolicy],
     };
-    expect(getPolicyDescriptions(testWorkspace)).toEqual([
+    expect(getPolicyDescriptions(workspace)).toEqual([
       { shortDescription: 'Additional security monitoring', longDescription: protectedDataMessage },
       { shortDescription: 'Data access controls', longDescription: groupConstraintMessage },
     ]);
@@ -159,7 +159,7 @@ describe('getPolicyDescriptions', () => {
     ]);
   });
 
-  it('ignore other policies', () => {
+  it('ignores other policies', () => {
     const workspaceWithOtherPolicy: AzureWorkspace = {
       ...defaultAzureWorkspace,
       policies: [
