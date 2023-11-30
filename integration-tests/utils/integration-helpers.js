@@ -376,7 +376,7 @@ const patientlyDeleteApp = async (page, { workspaceId, appName, status }) => {
         workspaceId,
         appName
       ),
-    interval: Millis.ofSeconds(10),
+    interval: Millis.ofSeconds(20),
     retries: 10,
   });
 
