@@ -85,7 +85,7 @@ export interface NewWorkspaceModalProps {
   buttonText?: string;
   cloneWorkspace?: WorkspaceWrapper;
   cloudPlatform?: CloudPlatform;
-  customMessage?: ReactNode;
+  renderNotice?: (args: { selectedBillingProject?: BillingProject }) => ReactNode;
   requiredAuthDomain?: string;
   requireEnhancedBucketLogging?: boolean;
   title?: string;
@@ -104,7 +104,7 @@ const NewWorkspaceModal = withDisplayName(
     cloudPlatform,
     onSuccess,
     onDismiss,
-    customMessage,
+    renderNotice = () => null,
     requiredAuthDomain,
     requireEnhancedBucketLogging,
     title,
@@ -647,7 +647,11 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
-                    customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
+                    renderNotice({
+                      selectedBillingProject: namespace
+                        ? billingProjects?.find(({ projectName }) => projectName === namespace)
+                        : undefined,
+                    }),
                     workflowImport &&
                       azureBillingProjectsExist &&
                       div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
