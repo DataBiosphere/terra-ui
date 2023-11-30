@@ -1,5 +1,4 @@
 import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { hasProtectedData, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 import { ImportRequest } from './import-types';
 
@@ -83,25 +82,4 @@ export const getImportSource = (url: URL): ImportSource => {
     return 'anvil';
   }
   return '';
-};
-
-/**
- * Determine whether a workspace is considred protected.
- *
- * For Azure workspaces, this checks for the "protected-data" policy.
- * For Google workspaces, this checks for has enhanced logging - either directly or from an auth domain.
- *
- * @param workspace - The workspace.
- */
-export const isProtectedWorkspace = (workspace: WorkspaceWrapper): boolean => {
-  switch (workspace.workspace.cloudPlatform) {
-    case 'Azure':
-      return hasProtectedData(workspace);
-    case 'Gcp':
-      return workspace.workspace.bucketName.startsWith('fc-secure');
-    default:
-      // Check that all possible cases are handled.
-      const exhaustiveGuard: never = workspace.workspace;
-      return exhaustiveGuard;
-  }
 };

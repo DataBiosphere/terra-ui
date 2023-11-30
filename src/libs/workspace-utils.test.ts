@@ -5,25 +5,24 @@ import {
   groupConstraintPolicy,
   protectedAzureWorkspace,
   protectedDataPolicy,
-  regionConstraintPolicy,
   regionRestrictedAzureWorkspace,
 } from 'src/testing/workspace-fixtures';
 
 import {
+  AzureWorkspace,
   canEditWorkspace,
   canRunAnalysisInWorkspace,
-  dataAccessControlsMessage,
-  getPolicyLongDescription,
-  getPolicyShortDescription,
+  containsGroupConstraintPolicy,
+  getPolicyDescriptions,
   getRegionConstraintLabels,
   getWorkspaceAnalysisControlProps,
   getWorkspaceEditControlProps,
   groupConstraintMessage,
-  hasDataAccessControls,
-  hasProtectedData,
   hasRegionConstraint,
+  isProtectedWorkspace,
   isValidWsExportTarget,
   protectedDataMessage,
+  regionConstraintMessage,
   WorkspaceAccessLevel,
   WorkspacePolicy,
   WorkspaceWrapper,
@@ -139,42 +138,73 @@ describe('isValidWsExportTarget', () => {
   });
 });
 
-describe('getPolicyShortDescription', () => {
-  it('Returns description for a protected data policy', () => {
-    expect(getPolicyShortDescription(protectedDataPolicy)).toBe('Additional security monitoring');
+describe('getPolicyDescriptions', () => {
+  it('Returns policy information for a protected and group-constrained workspace', () => {
+    const testWorkspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      policies: [protectedDataPolicy, groupConstraintPolicy],
+    };
+    expect(getPolicyDescriptions(testWorkspace)).toEqual([
+      { shortDescription: 'Additional security monitoring', longDescription: protectedDataMessage },
+      { shortDescription: 'Data access controls', longDescription: groupConstraintMessage },
+    ]);
   });
 
-  it('Returns description for a group contraint policy', () => {
-    expect(getPolicyShortDescription(groupConstraintPolicy)).toBe('Data access controls');
+  it('Returns policy information for a region-constrained workspace', () => {
+    expect(getPolicyDescriptions(regionRestrictedAzureWorkspace)).toEqual([
+      {
+        shortDescription: 'Region constraint',
+        longDescription: regionConstraintMessage(regionRestrictedAzureWorkspace),
+      },
+    ]);
   });
 
-  it('Returns the policy name for other policies', () => {
-    expect(getPolicyShortDescription(regionConstraintPolicy)).toBe(regionConstraintPolicy.name);
+  it('ignore other policies', () => {
+    const workspaceWithOtherPolicy: AzureWorkspace = {
+      ...defaultAzureWorkspace,
+      policies: [
+        {
+          additionalData: [],
+          namespace: 'terra',
+          name: 'some-other-policy',
+        },
+      ],
+    };
+    expect(getPolicyDescriptions(workspaceWithOtherPolicy)).toEqual([]);
   });
 });
 
-describe('getPolicyLongDescription', () => {
-  it('Returns lengthy description for a protected data policy', () => {
-    expect(getPolicyLongDescription(protectedDataPolicy)).toBe(protectedDataMessage);
+describe('isProtectedWorkspace', () => {
+  const unprotectedWorkspaces = [defaultAzureWorkspace, defaultGoogleWorkspace];
+
+  it.each(unprotectedWorkspaces)('%o should not be protected', (workspace) => {
+    expect(isProtectedWorkspace(workspace)).toBe(false);
   });
 
-  it('Returns lengthy description for a group contraint policy', () => {
-    expect(getPolicyLongDescription(groupConstraintPolicy)).toBe(groupConstraintMessage);
+  it('should recognize a protected Azure workspace', () => {
+    expect(isProtectedWorkspace(protectedAzureWorkspace)).toBe(true);
   });
 
-  it('Returns undefined for other policies', () => {
-    expect(getPolicyLongDescription(regionConstraintPolicy)).toBeUndefined();
-  });
-});
+  it('should require a "protected-data" policy for Azure workspaces', () => {
+    const nonProtectedAzureWorkspace: AzureWorkspace = {
+      ...defaultAzureWorkspace,
+      policies: [
+        {
+          additionalData: [],
+          namespace: 'terra',
+          name: 'some-other-policy',
+        },
+      ],
+    };
 
-describe('hasProtectedData', () => {
-  it('Returns true if protected-data policy exists', () => {
-    expect(hasProtectedData(protectedAzureWorkspace)).toBe(true);
+    expect(isProtectedWorkspace(nonProtectedAzureWorkspace)).toBe(false);
   });
 
-  it('Returns false if protected-data policy does not exist', () => {
-    expect(hasProtectedData(defaultAzureWorkspace)).toBe(false);
-    expect(hasProtectedData(defaultGoogleWorkspace)).toBe(false);
+  it('should recognize a protected Google workspace', () => {
+    const protectedWorkspace = { ...defaultGoogleWorkspace };
+    protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
+
+    expect(isProtectedWorkspace(protectedWorkspace)).toBe(true);
   });
 });
 
@@ -214,39 +244,12 @@ describe('hasDataAccessControls', () => {
       const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies };
 
       // Act
-      const result = hasDataAccessControls(workspace);
+      const result = containsGroupConstraintPolicy(workspace);
 
       // Assert
       expect(result).toBe(expectedResult);
     }
   );
-});
-
-describe('dataAccessControlsMessage', () => {
-  it('returns undefined if workspace has no data access controls', () => {
-    // Arrange
-    const workspace: WorkspaceWrapper = { ...defaultAzureWorkspace, policies: [] };
-
-    // Act
-    const message = dataAccessControlsMessage(workspace);
-
-    // Assert
-    expect(message).toBeUndefined();
-  });
-
-  it('returns a message if workspace does have access controls', () => {
-    // Arrange
-    const workspace: WorkspaceWrapper = {
-      ...defaultAzureWorkspace,
-      policies: [groupConstraintPolicy],
-    };
-
-    // Act
-    const message = dataAccessControlsMessage(workspace);
-
-    // Assert
-    expect(typeof message).toBe('string');
-  });
 });
 
 describe('canEditWorkspace', () => {

@@ -14,8 +14,9 @@ import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
 import { append, cond, withBusyState } from 'src/libs/utils';
-import { hasProtectedData, isAzureWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { isAzureWorkspace, isProtectedWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import {
   aclEntryIsTerraSupport,
   terraSupportAccessLevel,
@@ -23,8 +24,8 @@ import {
   transformAcl,
   WorkspaceAcl,
 } from 'src/pages/workspaces/workspace/WorkspaceAcl';
-import { WorkspacePolicies } from 'src/workspaces/Policies/WorkspacePolicies';
 import { CurrentCollaborators } from 'src/workspaces/ShareWorkspaceModal/CurrentCollaborators';
+import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 
 interface ShareWorkspaceModalProps {
@@ -144,7 +145,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       onDismiss,
     },
     [
-      isAzureWorkspace(workspace) && hasProtectedData(workspace) ? h(ProtectedDataWarning) : h(Fragment),
+      isAzureWorkspace(workspace) && isProtectedWorkspace(workspace) ? h(ProtectedDataWarning) : h(Fragment),
       div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
         h(IdContainer, [
           (id) =>
@@ -189,7 +190,9 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       ]),
       searchValueValid && !searchHasFocus && p([addUserReminder]),
       h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
-      !!workspace.policies && h(WorkspacePolicies, { policies: workspace.policies, style: { marginBottom: '1.5rem' } }),
+      !!workspace.policies &&
+        div({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Policies']),
+      !!workspace.policies && h(WorkspacePolicies, { workspace, style: { marginBottom: '1.5rem' } }),
       !loaded && centeredSpinner(),
       updateError && div({ style: { marginTop: '1rem' } }, [div(['An error occurred:']), updateError]),
       div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [

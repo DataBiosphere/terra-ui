@@ -1,7 +1,7 @@
 import { cond, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
+import pluralize from 'pluralize';
 import { azureRegions } from 'src/libs/azure-regions';
-import * as Utils from 'src/libs/utils';
 
 export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
@@ -108,20 +108,30 @@ export interface WorkspacePolicy {
   additionalData: { [key: string]: string }[];
 }
 
-export const getPolicyShortDescription = (policy: WorkspacePolicy): string => {
-  return Utils.cond(
-    [isProtectedDataPolicy(policy), () => 'Additional security monitoring'],
-    [isGroupConstraintPolicy(policy), () => 'Data access controls'],
-    [Utils.DEFAULT, () => policy.name]
-  );
-};
+export interface PolicyDescription {
+  shortDescription: string;
+  longDescription: string;
+}
 
-export const getPolicyLongDescription = (policy: WorkspacePolicy): string | undefined => {
-  return Utils.cond(
-    [isProtectedDataPolicy(policy), () => protectedDataMessage],
-    [isGroupConstraintPolicy(policy), () => groupConstraintMessage],
-    [Utils.DEFAULT, () => undefined]
-  );
+// Returns descriptions of known policies only (protected data, group constraint, region constraint).
+export const getPolicyDescriptions = (workspace: WorkspaceWrapper): PolicyDescription[] => {
+  const policyDescriptions: PolicyDescription[] = [];
+  if (isProtectedWorkspace(workspace)) {
+    policyDescriptions.push({
+      shortDescription: 'Additional security monitoring',
+      longDescription: protectedDataMessage,
+    });
+  }
+  if (containsGroupConstraintPolicy(workspace)) {
+    policyDescriptions.push({ shortDescription: 'Data access controls', longDescription: groupConstraintMessage });
+  }
+  if (hasRegionConstraint(workspace)) {
+    policyDescriptions.push({
+      shortDescription: 'Region constraint',
+      longDescription: regionConstraintMessage(workspace)!,
+    });
+  }
+  return policyDescriptions;
 };
 
 export interface AzureWorkspace extends BaseWorkspace {
@@ -145,14 +155,29 @@ export const isGoogleWorkspace = (workspace: BaseWorkspace): workspace is Google
 export const getCloudProviderFromWorkspace = (workspace: BaseWorkspace): CloudProvider =>
   isAzureWorkspace(workspace) ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP;
 
-export const hasProtectedData = (workspace: BaseWorkspace): boolean => containsProtectedDataPolicy(workspace.policies);
-
-const isProtectedDataPolicy = (policy: WorkspacePolicy): boolean => {
-  return policy.namespace === 'terra' && policy.name === 'protected-data';
+/**
+ * Determine whether a workspace is considered protected.
+ *
+ * For Azure workspaces, this checks for the "protected-data" policy.
+ * For Google workspaces, this checks for has enhanced logging - either directly or from an auth domain.
+ *
+ * @param workspace - The workspace.
+ */
+export const isProtectedWorkspace = (workspace: WorkspaceWrapper): boolean => {
+  switch (workspace.workspace.cloudPlatform) {
+    case 'Azure':
+      return containsProtectedDataPolicy(workspace.policies);
+    case 'Gcp':
+      return workspace.workspace.bucketName.startsWith('fc-secure');
+    default:
+      // Check that all possible cases are handled.
+      const exhaustiveGuard: never = workspace.workspace;
+      return exhaustiveGuard;
+  }
 };
 
 export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefined): boolean =>
-  _.any((policy) => isProtectedDataPolicy(policy), policies);
+  _.any((policy: WorkspacePolicy) => policy.namespace === 'terra' && policy.name === 'protected-data', policies);
 
 export const protectedDataMessage =
   'Enhanced logging and monitoring are enabled to support the use of controlled-access data in this workspace.';
@@ -185,7 +210,10 @@ export const regionConstraintMessage = (workspace: BaseWorkspace): string | unde
   const regions = getRegionConstraintLabels(workspace.policies);
   return regions.length === 0
     ? undefined
-    : `Workspace storage and compute resources must remain in the following region(s): ${regions.join(', ')}.`;
+    : `Workspace storage and compute resources must remain in the following ${pluralize(
+        'region',
+        regions.length
+      )}: ${regions.join(', ')}.`;
 };
 
 const isGroupConstraintPolicy = (policy: WorkspacePolicy): boolean => {
@@ -193,14 +221,10 @@ const isGroupConstraintPolicy = (policy: WorkspacePolicy): boolean => {
 };
 
 /**
- * Returns true if the workspace has any data access controls (group constraint policies).
+ * Returns true if the workspace has any group constraint policies (data access controls).
  */
-export const hasDataAccessControls = (workspace: WorkspaceWrapper): boolean => {
+export const containsGroupConstraintPolicy = (workspace: WorkspaceWrapper): boolean => {
   return (workspace.policies || []).some(isGroupConstraintPolicy);
-};
-
-export const dataAccessControlsMessage = (workspace: WorkspaceWrapper): string | undefined => {
-  return hasDataAccessControls(workspace) ? groupConstraintMessage : undefined;
 };
 
 export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {
