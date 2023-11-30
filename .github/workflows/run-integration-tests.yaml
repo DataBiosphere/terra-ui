@@ -62,9 +62,9 @@ on:
     # technically, the emails are not secret, but they're stored w/ the private key so
     # we'll just pull them to avoid potential sync/typo/refresh issues.
     secrets:
-      LYLE_CLIENT_EMAIL: 
+      LYLE_CLIENT_EMAIL:
         required: true
-      LYLE_PRIVATE_KEY: 
+      LYLE_PRIVATE_KEY:
         required: true
       FIRECLOUD_ACCOUNT_CLIENT_EMAIL:
         required: true
@@ -80,6 +80,7 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: 'read'
+    resource_class: medium+
     steps:
 
       ##
@@ -108,7 +109,7 @@ jobs:
           --arg client_email "${{ secrets.LYLE_CLIENT_EMAIL }}" \
           --arg key"${{ secrets.LYLE_PRIVATE_KEY }}" \
           '{"client_email": $client_email, "key": $key}') >> $GITHUB_ENV
-          
+
           echo \
           TERRA_SA_KEY=$(jq --null-input \
           --arg client_email "${{ secrets.FIRECLOUD_ACCOUNT_CLIENT_EMAIL }}" \
