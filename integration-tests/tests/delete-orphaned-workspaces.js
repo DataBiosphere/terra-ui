@@ -2,7 +2,7 @@
 const dateFns = require('date-fns/fp');
 const _ = require('lodash/fp');
 const { deleteWorkspaceV2, testWorkspaceNamePrefix } = require('../utils/integration-helpers');
-const { signIntoTerra } = require('../utils/integration-utils');
+const { Millis, signIntoTerra } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
 
@@ -32,18 +32,16 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
   // process was prematurely terminated, but a few also appear in alpha and staging indicating that
   // ci test runs also sometimes leak workspaces.
   const workspaces = await page.evaluate(async () => await window.Ajax().Workspaces.list());
-  const oldWorkspaces = _.filter((workspaceResponse) => {
-    const {
-      workspace: { name, createdDate },
-    } = workspaceResponse;
+  const testWorkspaces = workspaces.filter(({ workspace: { name } }) => _.startsWith(testWorkspaceNamePrefix, name));
+  const testWorkspaceNames = testWorkspaces.map(({ workspace: { name } }) => name).join(', ');
+  console.log(`${testWorkspaces.length} test workspaces (with prefix "${testWorkspaceNamePrefix}") found: ${testWorkspaceNames}`);
+
+  const oldWorkspaces = testWorkspaces.filter(({ workspace: { createdDate } }) => {
     const getTimeDifference = differenceFnByUnit[timeUnit];
     const age = getTimeDifference(new Date(createdDate), new Date());
-    return age > olderThanCount && _.startsWith(testWorkspaceNamePrefix, name);
-  }, workspaces);
-
-  console.log(
-    `Attempting to delete ${oldWorkspaces.length} workspaces with prefix "${testWorkspaceNamePrefix}" created more than ${olderThanCount} ${timeUnit} ago.`
-  );
+    return age > olderThanCount;
+  });
+  console.log(`Attempting to delete ${oldWorkspaces.length} test workspaces created more than ${olderThanCount} ${timeUnit} ago.`);
 
   return Promise.all(
     _.map(async ({ workspace: { namespace, name, cloudPlatform, state } }) => {
@@ -80,4 +78,5 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
 registerTest({
   name: 'delete-orphaned-workspaces',
   fn: deleteOrphanedWorkspaces,
+  timeout: Millis.ofMinutes(10),
 });

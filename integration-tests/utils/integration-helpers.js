@@ -118,26 +118,9 @@ const makeGcpWorkspace = async (options) => {
   return await makeWorkspace({ ...options, hasBucket: true });
 };
 
-const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
-  try {
-    await page.evaluate(
-      async (name, billingProject) => {
-        await window.Ajax().Workspaces.workspace(billingProject, name).delete();
-      },
-      workspaceName,
-      billingProject
-    );
-    console.info(`Deleted workspace: ${workspaceName}`);
-  } catch (e) {
-    console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`);
-    console.error(e);
-    throw e;
-  }
-});
-
-const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceName }) => {
+const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceName, retries = 5 }) => {
   gotoPage(page, `${testUrl}#workspaces/${billingProject}/${workspaceName}`);
-  await retryUntil({
+  const isDeleted = await retryUntil({
     getResult: async () => {
       await findElement(page, clickable({ labelContains: 'Action Menu' }, { timeout: Millis.ofMinutes(2) }));
       await click(page, clickable({ labelContains: 'Action Menu' }));
@@ -154,13 +137,17 @@ const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceNam
     },
     interval: Millis.ofSeconds(30),
     leading: true,
-    retries: 5,
+    retries,
   });
+  if (!isDeleted) {
+    return isDeleted;
+  }
   await fillIn(page, input({ placeholder: 'Delete Workspace' }), 'Delete Workspace');
   await noSpinnersAfter(page, {
     action: () => click(page, clickable({ textContains: 'Delete workspace' })),
     timeout: Millis.ofMinutes(2),
   });
+  return true;
 };
 
 const deleteWorkspaceV2 = async ({ page, billingProject, workspaceName }) => {
@@ -206,7 +193,11 @@ const withWorkspace = (test) => async (options) => {
     await test({ ...options, workspaceName });
   } finally {
     console.log('withWorkspace cleanup ...');
-    await deleteWorkspace({ ...options, workspaceName });
+    const didDelete = await deleteWorkspaceInUi({ ...options, workspaceName });
+    if (!didDelete) {
+      // Pass test on a failed cleanup - expect leaked resources to be cleaned up by the test `delete-orphaned-workspaces`
+      console.error(`Unable to delete workspace ${workspaceName} via the UI. The resource will be leaked!`);
+    }
   }
 };
 
@@ -224,7 +215,14 @@ const withAzureWorkspace = (test) => async (options) => {
     await test({ ...options, workspaceName });
   } finally {
     console.log('withAzureWorkspace cleanup ...');
-    await deleteWorkspaceInUi({ ...options, workspaceName });
+    // Retry for a long time (20 retries * 30 second intervals ~= 8 minutes);
+    // leaked resources can impact all other integration tests which share a user,
+    // and Azure VMs spend a long time in CREATING (an undeletable state)
+    const didDelete = await deleteWorkspaceInUi({ ...options, workspaceName, retries: 20 });
+    if (!didDelete) {
+      // Pass test on a failed cleanup - expect leaked resources to be cleaned up by the test `delete-orphaned-workspaces`
+      console.error(`Unable to delete workspace ${workspaceName} via the UI. The resource will be leaked!`);
+    }
   }
 };
 

@@ -11,7 +11,6 @@ const {
   findIframe,
   findText,
   getAnimatedDrawer,
-  image,
   input,
   noSpinnersAfter,
   waitForNoModal,
@@ -30,7 +29,7 @@ const testRunAnalysisFn = _.flowRight(
   // Create analysis file
   await click(page, clickable({ textContains: 'Start' }));
   await findElement(page, getAnimatedDrawer('Select an application'));
-  await click(page, image({ text: 'Create new notebook' }));
+  await click(page, clickable({ text: 'Create new notebook', isDescendant: true }));
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName);
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' })) });
 
