@@ -5,6 +5,7 @@ import { useFilesInDirectory } from 'src/components/file-browser/file-browser-ho
 import FilesInDirectory from 'src/components/file-browser/FilesInDirectory';
 import FilesTable from 'src/components/file-browser/FilesTable';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import { notify } from 'src/libs/notifications';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/components/file-browser/file-browser-hooks', () => ({
@@ -26,6 +27,14 @@ jest.mock('src/components/file-browser/FilesTable', (): FilesTableExports => {
     ...actual,
     __esModule: true,
     default: jest.fn(actual.default),
+  };
+});
+
+type NotificationsExports = typeof import('src/libs/notifications');
+jest.mock('src/libs/notifications', (): NotificationsExports => {
+  return {
+    ...jest.requireActual<NotificationsExports>('src/libs/notifications'),
+    notify: jest.fn(),
   };
 });
 
@@ -304,6 +313,57 @@ describe('FilesInDirectory', () => {
 
     // Assert
     expect(uploadFileToDirectory).toHaveBeenCalledWith('path/to/directory/', file);
+  });
+
+  it('notifies of any errors uploading files', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const uploadFileToDirectory = jest.fn().mockRejectedValue(new Error('Something went wrong'));
+    const mockProvider = { uploadFileToDirectory } as Partial<FileBrowserProvider> as FileBrowserProvider;
+
+    const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
+      state: { status: 'Ready', files: [] },
+      hasNextPage: false,
+      loadNextPage: () => Promise.resolve(),
+      loadAllRemainingItems: () => Promise.resolve(),
+      reload: () => Promise.resolve(),
+    };
+
+    asMockedFn(useFilesInDirectory).mockReturnValue(useFilesInDirectoryResult);
+
+    render(
+      h(FilesInDirectory, {
+        provider: mockProvider,
+        path: 'path/to/directory/',
+        selectedFiles: {},
+        setSelectedFiles: () => {},
+        onClickFile: jest.fn(),
+        onCreateDirectory: () => {},
+        onDeleteDirectory: () => {},
+        onError: () => {},
+      })
+    );
+
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+
+    const file1 = new File(['somecontent'], 'file1.txt');
+    const file2 = new File(['somecontent'], 'file2.txt');
+
+    // Act
+    await user.upload(fileInput, [file1, file2]);
+
+    // Assert
+    expect(notify).toHaveBeenCalledWith('error', 'Error uploading file', {
+      id: 'file-browser-upload-error',
+      message: 'Failed to upload file1.txt',
+      detail: new Error('Something went wrong'),
+    });
+    expect(notify).toHaveBeenCalledWith('error', 'Error uploading file', {
+      id: 'file-browser-upload-error',
+      message: 'Failed to upload file2.txt',
+      detail: new Error('Something went wrong'),
+    });
   });
 
   it('allows deleting empty folders', async () => {

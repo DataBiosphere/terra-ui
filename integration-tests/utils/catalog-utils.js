@@ -21,7 +21,7 @@ const linkDataToWorkspace = async (page, testUrl, token, datasetName) => {
 const testExportToWorkspace = async (billingProject, page, testUrl, token, datasetName, workspaceName) => {
   await linkDataToWorkspace(page, testUrl, token, datasetName);
   await waitForNoSpinners(page);
-  await click(page, clickable({ textContains: 'Start with an existing workspace' }));
+  await click(page, clickable({ textContains: 'Select an existing workspace' }));
   await select(page, 'Select a workspace', `${workspaceName}`);
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Import' })) });
   await findText(page, `${billingProject}/${workspaceName}`);

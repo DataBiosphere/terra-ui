@@ -27,28 +27,25 @@ export const useImportJobs = (workspace: WorkspaceWrapper): UseImportJobsResult 
       workspace: { namespace, name },
     } = workspace;
     try {
-      const runningJobsInWorkspace: { jobId: string }[] = await Ajax(signal)
-        .Workspaces.workspace(namespace, name)
-        .listImportJobs(true);
+      // Imports into Azure workspaces do not show up in this call to orch
+      // Azure workspaces must rely solely on the asyncImportJobStore to know what imports are currently running,
+      // Therefore they do not need a callback function here
+      if (!isAzureWorkspace(workspace)) {
+        const runningJobsInWorkspace: { jobId: string }[] = await Ajax(signal)
+          .Workspaces.workspace(namespace, name)
+          .listImportJobs(true);
 
-      asyncImportJobStore.update((previousState) => {
-        return [
-          ...previousState.filter((job) => !isJobInWorkspace(job, workspace)),
-          ...runningJobsInWorkspace.map(({ jobId }) => ({ jobId, targetWorkspace: { namespace, name } })),
-        ];
-      });
+        asyncImportJobStore.update((previousState) => {
+          return [
+            ...previousState.filter((job) => !isJobInWorkspace(job, workspace)),
+            ...runningJobsInWorkspace.map(({ jobId }) => ({ jobId, targetWorkspace: { namespace, name } })),
+          ];
+        });
+      }
     } catch (error) {
       reportError('Error loading running import jobs in this workspace', error);
     }
   }, [workspace, signal]);
-
-  // Azure workspaces don't import data using async import jobs.
-  if (isAzureWorkspace(workspace)) {
-    return {
-      runningJobs: [],
-      refresh: () => Promise.resolve(),
-    };
-  }
 
   const runningJobsInWorkspace = allRunningJobs.filter((job) => isJobInWorkspace(job, workspace));
   return {

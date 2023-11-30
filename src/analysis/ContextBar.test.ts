@@ -15,7 +15,7 @@ import {
 import { appToolLabels, isToolHidden, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
-import { App, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { App, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { NormalizedComputeRegion } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
@@ -201,7 +201,7 @@ const cromwellDisk: PersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const cromwellOnAzureRunning: ListAppResponse = {
+const cromwellOnAzureRunning: ListAppItem = {
   workspaceId: null,
   accessScope: null,
   appName: 'test-cromwell-app',
@@ -260,7 +260,7 @@ const rstudioRuntime: ListRuntimeItem = {
     cloudService: 'GCE',
     bootDiskSize: 120,
     zone: 'us-central1-a',
-    gpuConfig: undefined,
+    gpuConfig: null,
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   },
   proxyUrl:
@@ -304,7 +304,7 @@ const jupyter: Runtime = {
     cloudService: 'GCE',
     bootDiskSize: 120,
     zone: 'us-central1-a',
-    gpuConfig: undefined,
+    gpuConfig: null,
     normalizedRegion: 'us-central1' as NormalizedComputeRegion,
   },
   proxyUrl:
@@ -426,7 +426,7 @@ const contextBarPropsForAzure: ContextBarProps = {
   workspace: defaultAzureWorkspace,
 };
 
-const hailBatchAppRunning: ListAppResponse = {
+const hailBatchAppRunning: ListAppItem = {
   workspaceId: null,
   accessScope: null,
   appName: 'test-hail-batch-app',

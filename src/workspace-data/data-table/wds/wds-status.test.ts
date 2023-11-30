@@ -1,6 +1,6 @@
 import { abandonedPromise, DeepPartial } from '@terra-ui-packages/core-utils';
 import { Ajax } from 'src/libs/ajax';
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { WDSCloneStatusResponse } from 'src/libs/ajax/WorkspaceDataService';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 
@@ -106,7 +106,7 @@ describe('useWdsStatus', () => {
   });
 
   describe('if WDS app is present', () => {
-    const wdsApp: ListAppResponse = {
+    const wdsApp: ListAppItem = {
       workspaceId: '6601fdbb-4b53-41da-87b2-81385f4a760e',
       cloudContext: {
         cloudProvider: 'AZURE',

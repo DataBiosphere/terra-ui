@@ -16,7 +16,6 @@ import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { append, cond, withBusyState } from 'src/libs/utils';
 import { hasProtectedData, isAzureWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { CurrentCollaborators } from 'src/pages/workspaces/workspace/ShareWorkspaceModal/CurrentCollaborators';
 import {
   aclEntryIsTerraSupport,
   terraSupportAccessLevel,
@@ -24,6 +23,7 @@ import {
   transformAcl,
   WorkspaceAcl,
 } from 'src/pages/workspaces/workspace/WorkspaceAcl';
+import { CurrentCollaborators } from 'src/workspaces/ShareWorkspaceModal/CurrentCollaborators';
 import validate from 'validate.js';
 
 interface ShareWorkspaceModalProps {

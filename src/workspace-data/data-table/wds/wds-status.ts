@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { useCallback } from 'use-memo-one';
 
 type UseWdsStatusArgs = {
@@ -67,7 +67,7 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
 
     setStatus(() => ({ ...initialStatus }));
 
-    let listAppsResponse: ListAppResponse[];
+    let listAppsResponse: ListAppItem[];
     try {
       listAppsResponse = await Ajax(signal).Apps.listAppsV2(workspaceId);
     } catch (err) {
