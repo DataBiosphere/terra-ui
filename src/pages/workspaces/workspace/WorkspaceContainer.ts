@@ -17,7 +17,7 @@ import { withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { azureControlledAccessRequestMessage, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import { azureControlledAccessRequestMessage, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { AppDetails, useAppPolling } from 'src/pages/workspaces/hooks/useAppPolling';
 import {
   CloudEnvironmentDetails,
@@ -35,24 +35,6 @@ import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWork
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
-
-const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
-  return h(TitleBar, {
-    title: div(
-      {
-        role: 'alert',
-        style: { display: 'flex', alignItems: 'center', margin: '1rem' },
-      },
-      [
-        icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
-        span({ style: { color: colors.dark(), fontSize: 14 } }, [props.children]),
-      ]
-    ),
-    style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
-    onDismiss: () => {},
-    hideCloseButton: true,
-  });
-};
 
 const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {
@@ -73,13 +55,6 @@ const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
     style: { backgroundColor: colors.warning(0.1), borderBottom: `1px solid ${colors.warning()}` },
     onDismiss: () => {},
   });
-};
-
-const AzureWarning = (): ReactNode => {
-  const warningMessage = [
-    'Do not store Unclassified Confidential Information in this platform, as it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.',
-  ];
-  return h(TitleBarWarning, warningMessage);
 };
 
 const GooglePermissionsSpinner = (): ReactNode => {
@@ -175,7 +150,6 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
       setShowLockWorkspaceModal,
     }),
     h(WorkspaceDeletingBanner, { workspace }),
-    workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
     isGoogleWorkspaceSyncing && h(GooglePermissionsSpinner),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [
       div({ style: { flex: 1, display: 'flex' } }, [
