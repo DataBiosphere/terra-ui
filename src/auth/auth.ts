@@ -193,15 +193,14 @@ export type AuthTokenState = AuthTokenSuccessState | AuthTokenExpiredState | Aut
 export const loadAuthToken = async (
   args: OidcSignInArgs = { includeBillingScope: false, popUp: false }
 ): Promise<AuthTokenState> => {
-  const oldAuthTokenMetadata: TokenMetadata = metricStore.get().authTokenMetadata;
-  const oldRefreshTokenMetadata: TokenMetadata = metricStore.get().refreshTokenMetadata;
+  const { authTokenMetadata: oldAuthTokenMetadata, refreshTokenMetadata: oldRefreshTokenMetadata } = metricStore.get();
 
   // for metrics, updates number of authToken load attempts for this session
   metricStore.update((state) => ({
     ...state,
     authTokenMetadata: {
       ...oldAuthTokenMetadata,
-      totalTokenLoadAttemptsThisSession: metricStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
+      totalTokenLoadAttemptsThisSession: oldAuthTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
     },
   }));
 
@@ -227,59 +226,59 @@ export const loadAuthToken = async (
     const isNewRefreshToken = !!refreshToken && refreshToken !== oldRefreshTokenMetadata.token;
 
     // for metrics, updates authToken metadata and refresh token metadata
-    metricStore.update((state) => ({
-      ...state,
+    metricStore.update((oldState) => ({
+      ...oldState,
       authTokenMetadata: {
-        ...metricStore.get().authTokenMetadata,
+        ...oldState.authTokenMetadata,
         token: oidcUser.access_token,
         createdAt: authTokenCreatedAt,
         expiresAt: authTokenExpiresAt,
         id: authTokenId,
         totalTokensUsedThisSession:
-          oldAuthTokenMetadata.token !== undefined &&
-          oldAuthTokenMetadata.token === metricStore.get().authTokenMetadata.token
+          oldAuthTokenMetadata.token !== undefined && oldAuthTokenMetadata.token === oldState.authTokenMetadata.token
             ? oldAuthTokenMetadata.totalTokensUsedThisSession
             : oldAuthTokenMetadata.totalTokensUsedThisSession + 1,
       },
       refreshTokenMetadata: isNewRefreshToken
         ? {
-            ...metricStore.get().refreshTokenMetadata,
+            ...oldState.refreshTokenMetadata,
             id: uuid(),
             token: refreshToken,
             createdAt: authTokenCreatedAt,
             // Auth token expiration is set to 24 hours in B2C configuration.
             expiresAt: authTokenCreatedAt + 86400, // 24 hours in seconds
-            totalTokensUsedThisSession: metricStore.get().authTokenMetadata.totalTokensUsedThisSession + 1,
-            totalTokenLoadAttemptsThisSession:
-              metricStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
+            totalTokensUsedThisSession: oldState.authTokenMetadata.totalTokensUsedThisSession + 1,
+            totalTokenLoadAttemptsThisSession: oldState.authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
           }
-        : { ...metricStore.get().refreshTokenMetadata },
+        : { ...oldState.refreshTokenMetadata },
     }));
+    const { refreshTokenMetadata: currentRefreshTokenMetadata } = metricStore.get();
+
     Ajax().Metrics.captureEvent(Events.user.authToken.load.success, {
       authProvider: oidcUser.profile.idp,
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
       authTokenCreatedAt: getTimestampMetricLabel(authTokenCreatedAt),
       authTokenExpiresAt: getTimestampMetricLabel(authTokenExpiresAt),
       authTokenId,
-      refreshTokenId: metricStore.get().refreshTokenMetadata.id,
-      refreshTokenCreatedAt: getTimestampMetricLabel(metricStore.get().refreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: getTimestampMetricLabel(metricStore.get().refreshTokenMetadata.expiresAt),
+      refreshTokenId: currentRefreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(currentRefreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(currentRefreshTokenMetadata.expiresAt),
       jwtExpiresAt: getTimestampMetricLabel(jwtExpiresAt),
     });
   } else if (loadedAuthTokenState.status === 'expired') {
     Ajax().Metrics.captureEvent(Events.user.authToken.load.expired, {
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
-      refreshTokenId: metricStore.get().refreshTokenMetadata.id,
-      refreshTokenCreatedAt: getTimestampMetricLabel(metricStore.get().refreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: getTimestampMetricLabel(metricStore.get().refreshTokenMetadata.expiresAt),
+      refreshTokenId: oldRefreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(oldRefreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(oldRefreshTokenMetadata.expiresAt),
     });
   } else {
     Ajax().Metrics.captureEvent(Events.user.authToken.load.error, {
       // we could potentially log the reason, but I don't know if that data is safe to log
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
-      refreshTokenId: metricStore.get().refreshTokenMetadata.id,
-      refreshTokenCreatedAt: getTimestampMetricLabel(metricStore.get().refreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: getTimestampMetricLabel(metricStore.get().refreshTokenMetadata.expiresAt),
+      refreshTokenId: oldRefreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(oldRefreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(oldRefreshTokenMetadata.expiresAt),
     });
   }
   return loadedAuthTokenState;
@@ -414,19 +413,6 @@ export const loadOidcUser = (user: OidcUser): void => {
   // according to IdTokenClaims, this is a mandatory claim and should always exist
   // should be googleSubjectId or b2cId depending on how they authenticated
   const userId: string = tokenClaims.sub;
-  authStore.update((state: AuthState) => {
-    const tokenClaims: B2cIdTokenClaims = user.profile;
-    // according to IdTokenClaims, this is a mandatory claim and should always exist
-    // should be googleSubjectId or b2cId depending on how they authenticated
-    const userId: string = tokenClaims.sub;
-    return {
-      ...state,
-      signInStatus: 'authenticated',
-      // Load whether a user has input a cookie acceptance in a previous session on this system,
-      // or whether they input cookie acceptance previously in this session
-      cookiesAccepted: state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey),
-    };
-  });
   userStore.update((state) => ({
     ...state,
     terraUser: {
@@ -440,6 +426,13 @@ export const loadOidcUser = (user: OidcUser): void => {
       imageUrl: tokenClaims.picture,
       idp: tokenClaims.idp,
     },
+  }));
+  authStore.update((state: AuthState) => ({
+    ...state,
+    signInStatus: 'authenticated',
+    // Load whether a user has input a cookie acceptance in a previous session on this system,
+    // or whether they input cookie acceptance previously in this session
+    cookiesAccepted: state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey),
   }));
 };
 
@@ -575,16 +568,16 @@ export const loadTerraUser = async (): Promise<void> => {
       getTermsOfService,
     ]);
     clearNotification(sessionTimeoutProps.id);
+    userStore.update((state: TerraUserState) => ({
+      ...state,
+      profile,
+      terraUserAttributes,
+    }));
     authStore.update((state: AuthState) => ({
       ...state,
       signInStatus,
       terraUserAllowances,
       termsOfService,
-    }));
-    userStore.update((state: TerraUserState) => ({
-      ...state,
-      profile,
-      terraUserAttributes,
     }));
   } catch (error: unknown) {
     if ((error as Response).status !== 403) {
