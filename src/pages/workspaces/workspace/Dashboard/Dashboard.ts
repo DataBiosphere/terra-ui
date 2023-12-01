@@ -121,7 +121,6 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
   // State
   const [storageCost, setStorageCost] = useState<{ isSuccess: boolean; estimate: string; lastUpdated?: string }>();
   const [bucketSize, setBucketSize] = useState<{ isSuccess: boolean; usage: string; lastUpdated?: string }>();
-  // const [editDescription, setEditDescription] = useState<string>();
   const [saving, setSaving] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
   const [tagsList, setTagsList] = useState<string[]>();
