@@ -53,6 +53,7 @@ export type RecordUpdateOutputDestination = {
 };
 
 export type ObjectBuilderField = {
+  name: string;
   source: InputSource;
 };
 

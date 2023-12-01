@@ -166,6 +166,7 @@ describe('Configuration tests', () => {
           type: 'object_builder',
           fields: [
             {
+              name: structType.fields[0].field_name,
               source: {
                 parameter_value: '',
                 type: 'literal',
@@ -241,16 +242,19 @@ describe('Configuration tests', () => {
     type: 'object_builder',
     fields: [
       {
+        name: 'pet_description',
         source: {
           type: 'object_builder',
           fields: [
             {
+              name: 'pet_num_legs',
               source: {
                 type: 'literal',
                 parameter_value: 'foo',
               },
             },
             {
+              name: 'pet_has_tail',
               source: {
                 type: 'none',
               },
@@ -259,6 +263,7 @@ describe('Configuration tests', () => {
         },
       },
       {
+        name: 'pet_age',
         source: {
           type: 'none',
         },
