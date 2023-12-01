@@ -4,12 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { buildStructBreadcrumbs, StructBuilder, StructBuilderModal } from 'src/workflows-app/components/StructBuilder';
+import { ObjectBuilderInputSource, StructInputType } from 'src/workflows-app/models/submission-models';
 
 describe('unit tests', () => {
   it('should build breadcrumbs given a struct path', () => {
-    const inputType = {
+    const inputType: StructInputType = {
       type: 'struct',
-      name: 'Pet',
       fields: [
         {
           field_name: 'name',
@@ -22,7 +22,6 @@ describe('unit tests', () => {
           field_name: 'species',
           field_type: {
             type: 'struct',
-            name: 'PetSpecies',
             fields: [
               {
                 field_name: 'species_name',
@@ -42,7 +41,6 @@ describe('unit tests', () => {
                 field_name: 'breed_characteristics',
                 field_type: {
                   type: 'struct',
-                  name: 'Characteristics',
                   fields: [
                     {
                       field_name: 'temperament',
@@ -84,9 +82,8 @@ describe('unit tests', () => {
 });
 
 describe('Configuration tests', () => {
-  const structType = {
+  const structType: StructInputType = {
     type: 'struct',
-    name: 'Pet',
     fields: [
       {
         field_name: 'pet_age',
@@ -209,14 +206,12 @@ describe('Configuration tests', () => {
     expect(setStructIndexPath).not.toHaveBeenCalled();
   });
 
-  const complexStructType = {
+  const complexStructType: StructInputType = {
     type: 'struct',
-    name: 'Pet',
     fields: [
       {
         field_name: 'pet_description',
         field_type: {
-          name: 'pet_description',
           type: 'struct',
           fields: [
             {
@@ -242,7 +237,7 @@ describe('Configuration tests', () => {
       },
     ],
   };
-  const complexStructSource = {
+  const complexStructSource: ObjectBuilderInputSource = {
     type: 'object_builder',
     fields: [
       {
@@ -250,11 +245,15 @@ describe('Configuration tests', () => {
           type: 'object_builder',
           fields: [
             {
-              type: 'literal',
-              parameter_value: 'foo',
+              source: {
+                type: 'literal',
+                parameter_value: 'foo',
+              },
             },
             {
-              type: 'none',
+              source: {
+                type: 'none',
+              },
             },
           ],
         },

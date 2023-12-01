@@ -13,6 +13,7 @@ import {
   OutputDefinition,
   PrimitiveInputType,
   StructInputDefinition,
+  StructInputType,
   WorkflowInputDefinition,
 } from 'src/workflows-app/models/submission-models';
 
@@ -102,9 +103,11 @@ export const inputSourceLabels = {
 export const inputSourceTypes = _.invert(inputSourceLabels);
 
 export const inputTypeParamDefaults = {
-  literal: { parameter_value: '' },
-  record_lookup: { record_attribute: '' },
-  object_builder: { fields: [] },
+  literal: () => ({ parameter_value: '' }),
+  record_lookup: () => ({ record_attribute: '' }),
+  object_builder: (inputType: StructInputType) => ({
+    fields: inputType.fields.map((field) => ({ name: field.field_name, source: { type: 'none' } })),
+  }),
 };
 
 export const isInputOptional = (ioType: InputType): ioType is OptionalInputType => ioType.type === 'optional';
