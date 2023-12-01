@@ -5,7 +5,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
+import { ENABLE_AZURE_PFB_IMPORT, ENABLE_AZURE_TDR_IMPORT } from 'src/libs/feature-previews-config';
 import { useRoute } from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -356,6 +356,10 @@ describe('ImportData', () => {
       it('imports snapshots into Azure workspaces', async () => {
         // Arrange
         const user = userEvent.setup();
+
+        asMockedFn(isFeaturePreviewEnabled).mockImplementation(
+          (featurePreview) => featurePreview === ENABLE_AZURE_TDR_IMPORT
+        );
 
         const queryParams = {
           ...commonSnapshotExportQueryParams,
