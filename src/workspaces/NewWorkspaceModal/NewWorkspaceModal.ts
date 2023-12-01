@@ -46,6 +46,7 @@ import {
   GCPBillingProject,
 } from 'src/pages/billing/models/BillingProject';
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
+import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 
 const warningStyle: CSSProperties = {
@@ -647,11 +648,19 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
+                    !!cloneWorkspace &&
+                      h(WorkspacePolicies, {
+                        workspace: cloneWorkspace,
+                        title: 'Policies',
+                        policiesLabel: 'The cloned workspace will inherit:',
+                        // style: { lineHeight: '1.0'},
+                      }),
                     renderNotice({
                       selectedBillingProject: namespace
                         ? billingProjects?.find(({ projectName }) => projectName === namespace)
                         : undefined,
                     }),
+                    // workflowImport is never true if we are cloning a workspace.
                     workflowImport &&
                       azureBillingProjectsExist &&
                       div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
