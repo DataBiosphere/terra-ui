@@ -6,8 +6,7 @@ import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/compon
 import { icon } from 'src/components/icons';
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown';
 import * as Style from 'src/libs/style';
-import { canEditWorkspace } from 'src/libs/workspace-utils';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
+import { canEditWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
 interface WorkspaceDescriptionProps {
   workspace: Workspace;
@@ -18,7 +17,7 @@ interface WorkspaceDescriptionProps {
 export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNode => {
   const { workspace, save, saving } = props;
 
-  const description = workspace.workspace?.attributes?.description ?? '';
+  const description = workspace.workspace?.attributes?.description?.toString() ?? '';
 
   const [editDescription, setEditDescription] = useState<string>();
   const isEditing = _.isString(editDescription);
@@ -44,7 +43,7 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
             style: { marginLeft: '0.5rem' },
             disabled: !canEdit,
             tooltip: canEdit ? 'Edit description' : editErrorMessage,
-            onClick: () => setEditDescription(description?.toString()),
+            onClick: () => setEditDescription(description),
           },
           [icon('edit')]
         ),
@@ -67,7 +66,8 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
             saving && spinnerOverlay,
           ]),
       ],
-      [!!description, () => h(MarkdownViewer, [description?.toString()])],
+
+      [!!description, () => h(MarkdownViewer, [description])],
       () => div({ style: { fontStyle: 'italic' } }, ['No description added'])
     ),
   ]);
