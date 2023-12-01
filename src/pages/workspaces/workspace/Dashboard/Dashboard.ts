@@ -5,7 +5,6 @@ import {
   CSSProperties,
   ForwardedRef,
   forwardRef,
-  Fragment,
   ReactNode,
   useCallback,
   useEffect,
@@ -18,7 +17,6 @@ import * as breadcrumbs from 'src/components/breadcrumbs';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
-import { SimpleTable } from 'src/components/table';
 import { WorkspaceTagSelect } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { getEnabledBrand } from 'src/libs/brand-utils';
@@ -29,19 +27,18 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
-import { append, formatBytes, newTabLinkProps, withBusyState } from 'src/libs/utils';
+import { formatBytes, newTabLinkProps, withBusyState } from 'src/libs/utils';
 import { canEditWorkspace, canWrite, isGoogleWorkspace, isOwner } from 'src/libs/workspace-utils';
 import SignIn from 'src/pages/SignIn';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
 import { CloudInformation } from 'src/pages/workspaces/workspace/Dashboard/CloudInformation';
-import { DataUseLimitations, displayAttributeValue } from 'src/pages/workspaces/workspace/Dashboard/DataUseLimitations';
+import { DatasetAttributes } from 'src/pages/workspaces/workspace/Dashboard/DatasetAttributes';
 import { OwnerNotice } from 'src/pages/workspaces/workspace/Dashboard/OwnerNotice';
 import { RightBoxSection } from 'src/pages/workspaces/workspace/Dashboard/RightBoxSection';
 import { WorkspaceDescription } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceDescription';
 import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
 import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceNotifications';
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
-import { displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
 import { WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
@@ -275,26 +272,7 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
         save: saveDescription,
         saving,
       }),
-      _.some(_.startsWith('library:'), _.keys(attributes)) &&
-        h(Fragment, [
-          div({ style: Style.dashboard.header }, ['Dataset Attributes']),
-          // @ts-expect-error
-          h(SimpleTable, {
-            'aria-label': 'dataset attributes table',
-            rows: _.flow(
-              _.map(({ key, title }) => ({ name: title, value: displayAttributeValue(attributes[key]) })),
-              append({
-                name: 'Structured Data Use Limitations',
-                value: attributes['library:orsp'] ? null : h(DataUseLimitations, { attributes }),
-              }),
-              _.filter('value')
-            )(displayLibraryAttributes),
-            columns: [
-              { key: 'name', size: { grow: 1 } },
-              { key: 'value', size: { grow: 2 } },
-            ],
-          }),
-        ]),
+      h(DatasetAttributes, { attributes }),
     ]),
     div({ style: Style.dashboard.rightBox }, [
       h(
