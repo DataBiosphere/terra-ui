@@ -122,8 +122,10 @@ const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceNam
   gotoPage(page, `${testUrl}#workspaces/${billingProject}/${workspaceName}`);
   const isDeleted = await retryUntil({
     getResult: async () => {
-      await findElement(page, clickable({ textContains: 'Action Menu' }, { timeout: Millis.ofMinutes(2) }));
+      await findElement(page, clickable({ textContains: 'Action Menu' }, { timeout: Millis.ofMinute }));
       await click(page, clickable({ textContains: 'Action Menu' }));
+      // Wait for popup to appear
+      await delay(Millis.of(300));
       await findElement(page, clickable({ textContains: 'Delete' }));
       await noSpinnersAfter(page, {
         action: () => click(page, clickable({ textContains: 'Delete' })),
