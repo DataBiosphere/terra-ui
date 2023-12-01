@@ -653,14 +653,12 @@ const NewWorkspaceModal = withDisplayName(
                         workspace: cloneWorkspace,
                         title: 'Policies',
                         policiesLabel: 'The cloned workspace will inherit:',
-                        // style: { lineHeight: '1.0'},
                       }),
                     renderNotice({
                       selectedBillingProject: namespace
                         ? billingProjects?.find(({ projectName }) => projectName === namespace)
                         : undefined,
                     }),
-                    // workflowImport is never true if we are cloning a workspace.
                     workflowImport &&
                       azureBillingProjectsExist &&
                       div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
