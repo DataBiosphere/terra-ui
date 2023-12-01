@@ -277,7 +277,6 @@ jobs:
   integration-tests-pr-staging:
     executor: puppeteer
     parallelism: 1
-    resource_class: small
     steps:
       - integration-tests:
           local: true
