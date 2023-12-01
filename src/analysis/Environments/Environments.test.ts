@@ -16,9 +16,9 @@ import {
 } from 'src/analysis/_testData/testData';
 import {
   EnvironmentNavActions,
-  EnvironmentPermissionsProvider,
   Environments,
   EnvironmentsProps,
+  LeoResourcePermissionsProvider,
   PauseButton,
 } from 'src/analysis/Environments/Environments';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
@@ -40,7 +40,7 @@ const mockNav: NavLinkProvider<EnvironmentNavActions> = {
   getUrl: jest.fn().mockReturnValue('/'),
   navTo: jest.fn(),
 };
-const mockPermissions: EnvironmentPermissionsProvider = {
+const mockPermissions: LeoResourcePermissionsProvider = {
   canDeleteDisk: jest.fn(),
   canPauseResource: jest.fn(),
 };
