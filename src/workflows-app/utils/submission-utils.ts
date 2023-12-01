@@ -294,11 +294,11 @@ export const isPrimitiveTypeInputValid = (primitiveType: PrimitiveInputType['pri
   );
 };
 
-export const convertArrayType = ({
+export const convertInputTypes = ({
   input_type: inputType,
   source: inputSource,
   ...input
-}: Omit<InputDefinition, 'input_name'>) => {
+}: Omit<InputDefinition, 'input_name'>): Omit<InputDefinition, 'input_name'> => {
   const unwrappedInput = unwrapOptional(inputType);
   if (unwrappedInput.type === 'array' && inputSource.type === 'literal') {
     const innerType = unwrapOptional(unwrappedInput.array_type);
@@ -323,8 +323,18 @@ export const convertArrayType = ({
         ...inputSource,
         fields: _.map((field: StructInputDefinition) => ({
           name: field.name,
-          source: convertArrayType({ input_type: field.field_type, source: field.source }).source,
+          source: convertInputTypes({ input_type: field.field_type, source: field.source }).source,
         }))(_.merge(inputSource.fields, unwrappedInput.fields)),
+      },
+    };
+  }
+  if (inputSource.type === 'literal' && unwrappedInput.type === 'primitive') {
+    return {
+      ...input,
+      input_type: inputType,
+      source: {
+        type: inputSource.type,
+        parameter_value: convertToPrimitiveType(unwrappedInput.primitive_type, inputSource.parameter_value),
       },
     };
   }

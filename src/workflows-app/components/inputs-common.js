@@ -7,14 +7,7 @@ import { DelayedSearchInput, TextInput } from 'src/components/input';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
-import {
-  convertToPrimitiveType,
-  inputSourceLabels,
-  inputSourceTypes,
-  inputTypeParamDefaults,
-  isPrimitiveTypeInputValid,
-  unwrapOptional,
-} from 'src/workflows-app/utils/submission-utils';
+import { inputSourceLabels, inputSourceTypes, inputTypeParamDefaults, unwrapOptional } from 'src/workflows-app/utils/submission-utils';
 
 const inputButtonRowStyle = {
   height: '2.5rem',
@@ -131,20 +124,6 @@ export const WithWarnings = (props) => {
 export const ParameterValueTextInput = (props) => {
   const { id, inputType, source, setSource } = props;
 
-  const updateSourceValueToExpectedType = (value) => {
-    const unwrappedType = unwrapOptional(inputType);
-    if (unwrappedType.type === 'primitive' && isPrimitiveTypeInputValid(unwrappedType.primitive_type, value)) {
-      const updatedValue = convertToPrimitiveType(unwrappedType.primitive_type, value);
-
-      const newSource = {
-        type: source.type,
-        parameter_value: updatedValue,
-      };
-      setSource(newSource);
-      return true;
-    }
-  };
-
   const placeholder = Utils.cond(
     [unwrapOptional(inputType).type === 'primitive' && unwrapOptional(inputType).primitive_type === 'String', () => '(Empty string)'],
     [
@@ -167,15 +146,7 @@ export const ParameterValueTextInput = (props) => {
     'aria-label': 'Enter a value',
     style: { display: 'block', width: '100%' },
     value: Array.isArray(source.parameter_value) ? JSON.stringify(source.parameter_value) : source.parameter_value,
-    onChange: (value) => {
-      if (!updateSourceValueToExpectedType(value)) {
-        const newSource = {
-          type: source.type,
-          parameter_value: value,
-        };
-        setSource(newSource);
-      }
-    },
+    onChange: (value) => setSource({ type: source.type, parameter_value: value }),
     placeholder,
   });
 };
