@@ -198,27 +198,10 @@ const withWorkspace = (test) => async (options) => {
   } finally {
     console.log('withWorkspace cleanup ...');
     dismissAllNotifications(page);
-    const didDelete = await deleteWorkspaceInUi({ ...options, workspaceName });
+    const didDelete = await withSignedInPage(deleteWorkspaceInUi)({ ...options, workspaceName });
     if (!didDelete) {
       // Pass test on a failed cleanup - expect leaked resources to be cleaned up by the test `delete-orphaned-workspaces`
       console.error(`Unable to delete workspace ${workspaceName} via the UI. The resource will be leaked!`);
-    }
-  }
-};
-
-/** Create a GCP workspace, run the given test, then delete the workspace. */
-const withWorkspaceStrictCleanup = (test) => async (options) => {
-  console.log('withWorkspaceStrictCleanup ...');
-  const { workspaceName } = await makeGcpWorkspace(options);
-
-  try {
-    await test({ ...options, workspaceName });
-  } finally {
-    console.log('withWorkspaceStrictCleanup cleanup ...');
-    const didDelete = await deleteWorkspaceV2({ ...options, workspaceName });
-    if (!didDelete) {
-      // Pass test on a failed cleanup - expect leaked resources to be cleaned up by the test `delete-orphaned-workspaces`
-      console.error(`Unable to delete workspace ${workspaceName}. The resource will be leaked!`);
     }
   }
 };
@@ -241,7 +224,7 @@ const withAzureWorkspace = (test) => async (options) => {
     // Retry for a long time (20 retries * 30 second intervals ~= 8 minutes);
     // leaked resources can impact all other integration tests which share a user,
     // and Azure VMs spend a long time in CREATING (an undeletable state)
-    const didDelete = await deleteWorkspaceInUi({ ...options, workspaceName, retries: 20 });
+    const didDelete = await withSignedInPage(deleteWorkspaceInUi)({ ...options, workspaceName, retries: 20 });
     if (!didDelete) {
       // Pass test on a failed cleanup - expect leaked resources to be cleaned up by the test `delete-orphaned-workspaces`
       console.error(`Unable to delete workspace ${workspaceName} via the UI. The resource will be leaked!`);
@@ -517,7 +500,8 @@ const gotoAnalysisTab = async (page, token, testUrl, workspaceName) => {
   await viewWorkspaceDashboard(page, token, workspaceName);
 
   // TODO [https://broadinstitute.slack.com/archives/C03GMG4DUSE/p1699467686195939] resolve NIH link error issues.
-  // For now, dismiss error popups in the workspaces context as irrelevant to Analyses tests.
+  // For now, wait 6 seconds (for the NIH call to time out) then dismiss error popups in the workspace context as irrelevant to Analyses tests.
+  await delay(Millis.ofSeconds(6));
   await dismissAllNotifications(page);
 
   await clickNavChildAndLoad(page, 'analyses');
@@ -558,5 +542,4 @@ module.exports = {
   withAzureWorkspace,
   withUser,
   withWorkspace,
-  withWorkspaceStrictCleanup,
 };
