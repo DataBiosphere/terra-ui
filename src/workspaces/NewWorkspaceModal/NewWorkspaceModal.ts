@@ -18,7 +18,6 @@ import {
   isSupportedBucketLocation,
 } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
-import { isProtectedWorkspace } from 'src/import-data/protected-data-utils';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
@@ -36,6 +35,7 @@ import {
   cloudProviderLabels,
   isAzureWorkspace,
   isGoogleWorkspace,
+  isProtectedWorkspace,
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/libs/workspace-utils';

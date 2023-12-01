@@ -3,12 +3,12 @@ import { Dispatch, ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { analysisTabName } from 'src/analysis/runtime-common-components';
 import { TabBar } from 'src/components/tabBars';
-import { isProtectedWorkspace } from 'src/import-data/protected-data-utils';
 import * as Nav from 'src/libs/nav';
 import {
   isAzureWorkspace,
   isGoogleWorkspace,
   isOwner,
+  isProtectedWorkspace,
   protectedDataMessage,
   regionConstraintMessage,
   WorkspaceWrapper as Workspace,

@@ -1,9 +1,7 @@
 import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { AzureWorkspace } from 'src/libs/workspace-utils';
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { ImportRequest, PFBImportRequest } from './import-types';
-import { getImportSource, isProtectedSource, isProtectedWorkspace } from './protected-data-utils';
+import { getImportSource, isProtectedSource } from './protected-data-utils';
 
 const getSnapshot = (secureMonitoringEnabled: boolean): Snapshot => {
   return {
@@ -85,57 +83,12 @@ describe('isProtectedSource', () => {
   });
 });
 
-describe('isProtectedWorkspace', () => {
-  const unprotectedWorkspaces = [defaultAzureWorkspace, defaultGoogleWorkspace];
-
-  it.each(unprotectedWorkspaces)('%o should not be protected', (workspace) => {
-    expect(isProtectedWorkspace(workspace)).toBe(false);
+describe('getImportSource', () => {
+  it.each(protectedAnvilImports)('$url source should be categorized as anvil', (importRequest) => {
+    expect(getImportSource(importRequest.url)).toBe('anvil');
   });
 
-  it('should recognize a protected Azure workspace', () => {
-    const protectedAzureWorkspace: AzureWorkspace = {
-      ...defaultAzureWorkspace,
-      policies: [
-        {
-          additionalData: [],
-          namespace: 'terra',
-          name: 'protected-data',
-        },
-      ],
-    };
-
-    expect(isProtectedWorkspace(protectedAzureWorkspace)).toBe(true);
-  });
-
-  it('should require a "protected-data" policy for Azure workspaces', () => {
-    const protectedAzureWorkspace: AzureWorkspace = {
-      ...defaultAzureWorkspace,
-      policies: [
-        {
-          additionalData: [],
-          namespace: 'terra',
-          name: 'some-other-policy',
-        },
-      ],
-    };
-
-    expect(isProtectedWorkspace(protectedAzureWorkspace)).toBe(false);
-  });
-
-  it('should recognize a protected Google workspace', () => {
-    const protectedWorkspace = { ...defaultGoogleWorkspace };
-    protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
-
-    expect(isProtectedWorkspace(protectedWorkspace)).toBe(true);
-  });
-
-  describe('getImportSource', () => {
-    it.each(protectedAnvilImports)('$url source should be categorized as anvil', (importRequest) => {
-      expect(getImportSource(importRequest.url)).toBe('anvil');
-    });
-
-    it.each(nonAnvilExplorerUrls)('$url source should be empty', (importRequest) => {
-      expect(getImportSource(importRequest.url)).toBe('');
-    });
+  it.each(nonAnvilExplorerUrls)('$url source should be empty', (importRequest) => {
+    expect(getImportSource(importRequest.url)).toBe('');
   });
 });

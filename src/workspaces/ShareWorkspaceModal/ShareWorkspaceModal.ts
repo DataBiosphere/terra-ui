@@ -15,7 +15,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { append, cond, withBusyState } from 'src/libs/utils';
-import { hasProtectedData, isAzureWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { isAzureWorkspace, isProtectedWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import {
   aclEntryIsTerraSupport,
   terraSupportAccessLevel,
@@ -24,6 +24,7 @@ import {
   WorkspaceAcl,
 } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import { CurrentCollaborators } from 'src/workspaces/ShareWorkspaceModal/CurrentCollaborators';
+import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 
 interface ShareWorkspaceModalProps {
@@ -143,7 +144,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       onDismiss,
     },
     [
-      isAzureWorkspace(workspace) && hasProtectedData(workspace) ? h(ProtectedDataWarning) : h(Fragment),
+      isAzureWorkspace(workspace) && isProtectedWorkspace(workspace) ? h(ProtectedDataWarning) : h(Fragment),
       div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
         h(IdContainer, [
           (id) =>
@@ -188,6 +189,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       ]),
       searchValueValid && !searchHasFocus && p([addUserReminder]),
       h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
+      h(WorkspacePolicies, { workspace, title: 'Policies', style: { marginBottom: '1.5rem' } }),
       !loaded && centeredSpinner(),
       updateError && div({ style: { marginTop: '1rem' } }, [div(['An error occurred:']), updateError]),
       div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [
