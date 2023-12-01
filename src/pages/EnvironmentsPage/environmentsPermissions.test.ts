@@ -4,7 +4,7 @@ import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getTerraUser, TerraUser } from 'src/libs/state';
 
-import { environmentsPermissions } from './environmentsPermissions';
+import { leoResourcePermissions } from './environmentsPermissions';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
@@ -22,7 +22,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<PersistentDisk> as PersistentDisk;
 
     // Act
-    const canIDeleteDisk = environmentsPermissions.canDeleteDisk(myDisk);
+    const canIDeleteDisk = leoResourcePermissions.canDeleteDisk(myDisk);
 
     // Assert
     expect(canIDeleteDisk).toBe(true);
@@ -38,7 +38,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<PersistentDisk> as PersistentDisk;
 
     // Act
-    const canIDeleteDisk = environmentsPermissions.canDeleteDisk(otherDisk);
+    const canIDeleteDisk = leoResourcePermissions.canDeleteDisk(otherDisk);
 
     // Assert
     expect(canIDeleteDisk).toBe(false);
@@ -54,7 +54,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<Runtime> as Runtime;
 
     // Act
-    const canIDeleteDisk = environmentsPermissions.canPauseResource(myRuntime);
+    const canIDeleteDisk = leoResourcePermissions.canPauseResource(myRuntime);
 
     // Assert
     expect(canIDeleteDisk).toBe(true);
@@ -70,7 +70,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<Runtime> as Runtime;
 
     // Act
-    const canIDeleteDisk = environmentsPermissions.canPauseResource(otherRuntime);
+    const canIDeleteDisk = leoResourcePermissions.canPauseResource(otherRuntime);
 
     // Assert
     expect(canIDeleteDisk).toBe(false);

@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { getAppStatusForDisplay } from 'src/analysis/utils/app-utils';
 import { getDisplayRuntimeStatus } from 'src/analysis/utils/runtime-utils';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
+import { IHaveCreator } from 'src/libs/ajax/leonardo/models/core-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { isRuntime, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
@@ -53,7 +54,7 @@ export const isComputePausable = (compute: App | Runtime): boolean =>
     ]
   );
 
-export const getCreatorForCompute = (compute: Runtime | App): string => compute?.auditInfo?.creator;
+export const getCreatorForCompute = (compute: IHaveCreator): string => compute?.auditInfo?.creator;
 
 export const getDisplayStatus = (compute: Runtime | App): string => {
   if (isApp(compute)) {

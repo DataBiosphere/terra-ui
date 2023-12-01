@@ -25,6 +25,7 @@ import { SimpleFlexTable, Sortable } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { useModalHandler } from 'src/components/useModalHandler';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
+import { IHaveCreator } from 'src/libs/ajax/leonardo/models/core-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   AzureConfig,
@@ -33,7 +34,7 @@ import {
   isAzureConfig,
   isGceWithPdConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
-import { isRuntime, ListRuntimeItem, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { isRuntime, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
@@ -178,7 +179,7 @@ const UnsupportedWorkspaceCell = ({ status, message }) =>
     ]
   );
 
-type PausePermissionsProvider = Pick<EnvironmentPermissionsProvider, 'canPauseResource'>;
+type PausePermissionsProvider = Pick<LeoResourcePermissionsProvider, 'canPauseResource'>;
 
 interface PauseButtonProps {
   cloudEnvironment: App | ListRuntimeItem;
@@ -210,9 +211,9 @@ export function PauseButton(props: PauseButtonProps): ReactNode {
 type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | 'pause' | 'delete'>;
 type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
-export interface EnvironmentPermissionsProvider {
-  canDeleteDisk: (disk: PersistentDisk) => boolean;
-  canPauseResource: (resource: Runtime | App) => boolean;
+export interface LeoResourcePermissionsProvider {
+  canDeleteDisk: (disk: IHaveCreator) => boolean;
+  canPauseResource: (resource: IHaveCreator) => boolean;
 }
 
 export interface EnvironmentsProps {
@@ -222,7 +223,7 @@ export interface EnvironmentsProps {
   leoRuntimeData: LeoRuntimeProviderNeeds;
   leoDiskData: LeoDiskProviderNeeds;
   metrics: MetricsProvider;
-  permissions: EnvironmentPermissionsProvider;
+  permissions: LeoResourcePermissionsProvider;
 }
 
 export const Environments = (props: EnvironmentsProps): ReactNode => {
@@ -343,9 +344,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         return leoRuntimeData.stop(compute);
       }
       if (isApp(compute)) {
-        const computeWorkspace = compute.workspace;
+        const computeWorkspace = (compute as AppWithWorkspace).workspace;
         if (isGoogleWorkspaceInfo(computeWorkspace)) {
-          return leoAppData.pause(compute);
+          return leoAppData.pause(compute as AppWithWorkspace);
         }
       }
       // default:
@@ -390,7 +391,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     // @ts-expect-error
     [sort.direction],
     runtimes
-  );
+  ) as unknown as typeof runtimes;
 
   const filteredDisks = _.orderBy(
     [
@@ -423,10 +424,12 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     // @ts-expect-error
     [sort.direction],
     apps
-  );
+  ) as unknown as typeof apps;
 
-  // @ts-expect-error
-  const filteredCloudEnvironments: DecoratedComputeResource[] = _.concat(filteredRuntimes, filteredApps);
+  const filteredCloudEnvironments: DecoratedComputeResource[] = _.concat(
+    filteredRuntimes as DecoratedComputeResource[],
+    filteredApps || []
+  );
 
   const totalRuntimeCost = _.sum(_.map(getRuntimeCost, runtimes));
   const totalAppCost = _.sum(_.map(getGalaxyComputeCost, apps));
