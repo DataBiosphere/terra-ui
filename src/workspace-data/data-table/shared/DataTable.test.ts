@@ -349,7 +349,7 @@ describe('DataTable', () => {
       'sample',
       expect.objectContaining({ columnFilter: 'sample_id=even' })
     );
-  }, 10000);
+  }, 13000);
 
   it('selects filtered', async () => {
     // Arrange

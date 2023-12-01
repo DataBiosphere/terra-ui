@@ -23,6 +23,7 @@ export const defaultAzureWorkspace: AzureWorkspace = {
   accessLevel: 'OWNER',
   canShare: true,
   canCompute: true,
+  policies: [],
 };
 
 export const makeAzureWorkspace = (workspace?: DeepPartial<AzureWorkspace>): AzureWorkspace => {
@@ -91,6 +92,7 @@ export const defaultGoogleWorkspace: GoogleWorkspace = {
   accessLevel: 'OWNER',
   canShare: true,
   canCompute: true,
+  policies: [],
 };
 
 export const makeGoogleWorkspace = (workspace?: DeepPartial<GoogleWorkspace>): GoogleWorkspace => {
