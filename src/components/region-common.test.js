@@ -7,12 +7,6 @@ import {
   locationTypes,
 } from 'src/components/region-common';
 
-const us = {
-  label: 'US multi-regional',
-  locationType: 'multi-region',
-  value: 'US',
-};
-
 const usCentral = {
   label: 'us-central1 (Iowa) (default)',
   locationType: 'region',
@@ -25,13 +19,13 @@ const montreal = {
   value: 'NORTHAMERICA-NORTHEAST1',
 };
 
-const mockAvailableBucketRegions = [usCentral, us, montreal];
+const mockAvailableBucketRegions = [usCentral, montreal];
 
 describe('getRegionInfo', () => {
   it('gets a { flag: ..., countryName: ... } object representing a google locationType/location input.', () => {
-    expect(getRegionInfo('US', locationTypes.multiRegion)).toStrictEqual({
+    expect(getRegionInfo('US-CENTRAL1', locationTypes.region)).toStrictEqual({
       flag: '🇺🇸',
-      regionDescription: 'US (multi-region)',
+      regionDescription: 'us-central1 (Iowa)',
       computeZone: 'US-CENTRAL1-A',
       computeRegion: 'US-CENTRAL1',
     });
@@ -55,7 +49,7 @@ describe('getRegionInfo', () => {
 });
 
 describe('availableBucketRegions', () => {
-  it('For current phased release of regionality only supporting US, US-CENTRAL1, NORTHAMERICA-NORTHEAST1 buckets.', () => {
+  it('For current phased release of regionality only supporting US-CENTRAL1 and NORTHAMERICA-NORTHEAST1 buckets.', () => {
     expect(availableBucketRegions).toStrictEqual(mockAvailableBucketRegions);
   });
 });
@@ -70,9 +64,6 @@ describe('isSupportedBucketLocation', () => {
 });
 
 describe('isLocationMultiRegion', () => {
-  it('return true for a multiregion location', () => {
-    expect(isLocationMultiRegion('US')).toBeTruthy();
-  });
   it('return false for a single region location', () => {
     expect(isLocationMultiRegion('US-CENTRAL1')).toBeFalsy();
   });
@@ -80,6 +71,6 @@ describe('isLocationMultiRegion', () => {
 
 describe('getLocationType', () => {
   it('return location information', () => {
-    expect(getLocationType('US')).toStrictEqual(locationTypes.multiRegion);
+    expect(getLocationType('US-CENTRAL1')).toStrictEqual(locationTypes.region);
   });
 });
