@@ -246,7 +246,7 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
           initialOpenState: cloudInfoPanelOpen,
           onClick: () => setCloudInfoPanelOpen(!cloudInfoPanelOpen),
         },
-        [h(CloudInformation, { workspace, storageDetails, bucketSize, storageCost })]
+        [h(CloudInformation, { workspace, persistenceId, storageDetails, bucketSize, storageCost })]
       ),
       h(
         RightBoxSection,
