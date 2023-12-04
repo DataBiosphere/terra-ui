@@ -1,5 +1,7 @@
 import { fetchDataCatalog } from 'src/data-catalog/data-browser-utils';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_TDR_IMPORT } from 'src/libs/feature-previews-config';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import {
@@ -29,6 +31,14 @@ jest.mock('src/data-catalog/data-browser-utils', (): DataBrowserUtilsExports => 
   return {
     ...jest.requireActual<DataBrowserUtilsExports>('src/data-catalog/data-browser-utils'),
     fetchDataCatalog: jest.fn(),
+  };
+});
+
+type FeaturePreviewsExports = typeof import('src/libs/feature-previews');
+jest.mock('src/libs/feature-previews', (): FeaturePreviewsExports => {
+  return {
+    ...jest.requireActual<FeaturePreviewsExports>('src/libs/feature-previews'),
+    isFeaturePreviewEnabled: jest.fn(),
   };
 });
 
@@ -250,6 +260,30 @@ describe('getImportRequest', () => {
         expect(importRequestPromise).rejects.toEqual(new Error('Unable to load snapshot.'));
       }
     );
+
+    it('rejects snapshot imports for Azure snapshots unless feature preview is enabled', async () => {
+      // Arrange
+      const queryParams = {
+        format: 'tdrexport',
+        snapshotId: azureSnapshotFixture.id,
+        tdrmanifest: 'https://example.com/path/to/manifest.json',
+        tdrSyncPermissions: 'true',
+        url: 'https://data.terra.bio',
+      };
+
+      asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
+
+      // Act/Assert
+      await expect(getImportRequest(queryParams)).rejects.toEqual(
+        new Error('Importing Azure snapshots is not supported.')
+      );
+
+      // Arrange
+      asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_TDR_IMPORT);
+
+      // Act/Assert
+      await expect(getImportRequest(queryParams)).resolves.toEqual(expect.anything());
+    });
 
     it('rejects snapshot by reference imports for Azure snapshots', async () => {
       // Act

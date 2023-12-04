@@ -26,6 +26,11 @@ interface BlobListRequestOptions {
   marker?: string;
 }
 
+// This provider uses Azure Blob Storage's PUT blob API to upload files.
+// This API supports blobs up to 5,000 MiB.
+// https://learn.microsoft.com/en-us/rest/api/storageservices/put-blob#remarks
+const uploadFileSizeLimit = 5000 * 2 ** 20;
+
 const AzureBlobStorageFileBrowserProvider = ({
   workspaceId,
   pageSize = 1000,
@@ -185,6 +190,16 @@ const AzureBlobStorageFileBrowserProvider = ({
       return `azcopy copy '${blobUrl.href}' .`;
     },
     uploadFileToDirectory: async (directoryPath, file) => {
+      // This provider uses Azure Blob Storage's PUT blob API to upload files.
+      // If the user attempts to upload a larger file than that API supports, we can fail fast with
+      // a more useful error message instead of waiting for the file to upload and the inevitable
+      // "Request body too large" error from Azure.
+      if (file.size > uploadFileSizeLimit) {
+        throw new Error(
+          'The Terra file browser supports uploading files up to 5,000 MiB. For larger files, use azcopy or the Azure Storage Explorer.'
+        );
+      }
+
       const {
         sas: { url: originalSasUrl },
       } = await storageDetailsPromise;

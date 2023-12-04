@@ -109,11 +109,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
   const isProtectedData = isProtectedSource(importRequest);
   const requiredCloudPlatform = getCloudPlatformRequiredForImport(importRequest);
 
-  // There is not yet a way to create a protected Azure via Terra UI.
-  // Thus, there is no way to create a new workspace that satisfies the requirements
-  // for a protected Azure snapshot.
-  const canUseNewWorkspace = !(isProtectedData && requiredCloudPlatform === 'AZURE');
-
   // Some import types are finished in a single request.
   // For most though, the import request starts a background task that takes time to complete.
   const immediateImportTypes: ImportRequest['type'][] = ['tdr-snapshot-reference'];
@@ -177,8 +172,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     : [];
   const canUseTemplateWorkspace = filteredTemplates.length > 0;
 
-  const importMayTakeTimeMessage =
-    'Note that the import process may take some time after you are redirected into your destination workspace.';
+  const importMayTakeTimeMessage = p([
+    'Note that the import process may take some time after you are redirected into your destination workspace.',
+  ]);
 
   const linkAccountPrompt = () => {
     return div({}, [
@@ -341,20 +337,27 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                   ? 'No existing protected workspace is present.'
                   : undefined,
             }),
-            canUseNewWorkspace &&
-              h(ChoiceButton, {
-                onClick: () => setIsCreateOpen(true),
-                iconName: 'plus-circle',
-                title: 'Create a new workspace',
-                detail: 'Set up an empty workspace that you will configure for analysis',
-                'aria-haspopup': 'dialog',
-                disabled: !userHasBillingProjects,
-              }),
+            h(ChoiceButton, {
+              onClick: () => setIsCreateOpen(true),
+              iconName: 'plus-circle',
+              title: 'Create a new workspace',
+              detail: 'Set up an empty workspace that you will configure for analysis',
+              'aria-haspopup': 'dialog',
+              disabled: !userHasBillingProjects,
+            }),
             isCreateOpen &&
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
                 cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
-                customMessage: importMayTakeTime && importMayTakeTimeMessage,
+                renderNotice: ({ selectedBillingProject }) =>
+                  h(Fragment, [
+                    isProtectedData &&
+                      selectedBillingProject?.cloudPlatform === 'AZURE' &&
+                      p([
+                        'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
+                      ]),
+                    importMayTakeTime && importMayTakeTimeMessage,
+                  ]),
                 requireEnhancedBucketLogging: isProtectedData,
                 waitForServices: {
                   wds: true,
@@ -378,7 +381,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         // This modal can only be opened if selectedTemplateWorkspaceKey is set.
         title: `Clone ${selectedTemplateWorkspaceKey!.name} and Import Data`,
         buttonText: 'Clone and Import',
-        customMessage: importMayTakeTime && importMayTakeTimeMessage,
+        renderNotice: () => importMayTakeTime && importMayTakeTimeMessage,
         onDismiss: () => setIsCloneOpen(false),
         onSuccess: (w) => {
           setMode('existing');
