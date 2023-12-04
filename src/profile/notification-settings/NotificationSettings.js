@@ -9,7 +9,7 @@ import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { memoWithName } from 'src/libs/react-utils';
-import { authStore } from 'src/libs/state';
+import { userStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
@@ -100,10 +100,10 @@ const UserAttributesCheckbox = ({ value, label, setSaving, notificationKeys, dis
 
 export const NotificationSettings = () => {
   const { workspaces } = useWorkspaces();
-  const [prefsData] = _.over(_.pickBy)((_v, k) => _.startsWith('notifications/', k), authStore.get().profile);
+  const [prefsData] = _.over(_.pickBy)((_v, k) => _.startsWith('notifications/', k), userStore.get().profile);
   const [saving, setSaving] = useState(false);
 
-  const userAttributes = authStore.get().terraUserAttributes;
+  const userAttributes = userStore.get().terraUserAttributes;
   const [marketingConsent, setMarketingConsent] = useState(userAttributes.marketingConsent);
 
   useEffect(() => {

@@ -40,7 +40,7 @@ import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
-import { authStore, cookieReadyStore } from 'src/libs/state';
+import { cookieReadyStore, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { canWrite, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
@@ -356,7 +356,7 @@ const PreviewHeader = ({
   const signal = useCancellation();
   const {
     terraUser: { email },
-  } = useStore(authStore);
+  } = useStore(userStore);
   const [fileInUseOpen, setFileInUseOpen] = useState(false);
   const [editModeDisabledOpen, setEditModeDisabledOpen] = useState(false);
   const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false);
