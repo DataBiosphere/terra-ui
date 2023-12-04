@@ -38,6 +38,7 @@ describe('extractWorkspaceDetails', () => {
       workspaceNamespace: defaultGoogleWorkspace.workspace.namespace,
       cloudPlatform: 'GCP',
       hasProtectedData: false,
+      workspaceAccessLevel: 'OWNER',
     });
   });
 
