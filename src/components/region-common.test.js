@@ -21,9 +21,9 @@ const montreal = {
 
 describe('getRegionInfo', () => {
   it('gets a { flag: ..., countryName: ... } object representing a google locationType/location input.', () => {
-    expect(getRegionInfo('US-CENTRAL1', locationTypes.region)).toStrictEqual({
+    expect(getRegionInfo('US', locationTypes.multiRegion)).toStrictEqual({
       flag: '🇺🇸',
-      regionDescription: 'us-central1 (Iowa)',
+      regionDescription: 'US (multi-region)',
       computeZone: 'US-CENTRAL1-A',
       computeRegion: 'US-CENTRAL1',
     });
