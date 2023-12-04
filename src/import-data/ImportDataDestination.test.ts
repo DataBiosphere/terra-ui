@@ -114,8 +114,8 @@ describe('ImportDataDestination', () => {
       });
 
       // Act
-      const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
-      await user.click(existingWorkspace); // select start with existing workspace
+      const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+      await user.click(existingWorkspaceButton);
 
       // Assert
       const protectedDataWarning = screen.queryByText(
@@ -167,8 +167,8 @@ describe('ImportDataDestination', () => {
       ],
     });
     // Act
-    const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
-    await user.click(existingWorkspace); // select start with existing workspace
+    const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+    await user.click(existingWorkspaceButton);
 
     // Assert
     const selectWorkspace = screen.queryByText('Select a workspace', {
@@ -276,8 +276,8 @@ describe('ImportDataDestination', () => {
       });
 
       // Act
-      const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
-      await user.click(existingWorkspace); // select start with existing workspace
+      const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+      await user.click(existingWorkspaceButton);
 
       const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
       const workspaces = await workspaceSelect.getOptions();
@@ -341,8 +341,8 @@ describe('ImportDataDestination', () => {
     });
 
     // Act
-    const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
-    await user.click(existingWorkspace); // select start with existing workspace
+    const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+    await user.click(existingWorkspaceButton);
 
     // Assert
     const notice = screen.queryByText(
