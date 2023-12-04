@@ -10,10 +10,6 @@ export interface AuditInfo {
   dateAccessed: string;
 }
 
-export interface IHaveCreator {
-  auditInfo: Pick<AuditInfo, 'creator'>;
-}
-
 export interface LeoError {
   errorMessage: string;
   timestamp: string;

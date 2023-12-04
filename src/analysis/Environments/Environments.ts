@@ -25,7 +25,6 @@ import { SimpleFlexTable, Sortable } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { useModalHandler } from 'src/components/useModalHandler';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
-import { IHaveCreator } from 'src/libs/ajax/leonardo/models/core-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   AzureConfig,
@@ -212,8 +211,8 @@ type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | '
 type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
 export interface LeoResourcePermissionsProvider {
-  canDeleteDisk: (disk: IHaveCreator) => boolean;
-  canPauseResource: (resource: IHaveCreator) => boolean;
+  canDeleteDisk: (disk: PersistentDisk) => boolean;
+  canPauseResource: (resource: App | ListRuntimeItem) => boolean;
 }
 
 export interface EnvironmentsProps {

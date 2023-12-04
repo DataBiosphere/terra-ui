@@ -1,7 +1,7 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getTerraUser, TerraUser } from 'src/libs/state';
 
 import { leoResourcePermissions } from './environmentsPermissions';
@@ -49,9 +49,9 @@ describe('environmentsPermissions', () => {
       email: 'me@here.org',
     } as Partial<TerraUser> as TerraUser);
 
-    const myRuntime: Runtime = {
+    const myRuntime: ListRuntimeItem = {
       auditInfo: { creator: 'me@here.org' },
-    } as DeepPartial<Runtime> as Runtime;
+    } as DeepPartial<ListRuntimeItem> as ListRuntimeItem;
 
     // Act
     const canIDeleteDisk = leoResourcePermissions.canPauseResource(myRuntime);
@@ -65,9 +65,9 @@ describe('environmentsPermissions', () => {
       email: 'me@here.org',
     } as Partial<TerraUser> as TerraUser);
 
-    const otherRuntime: Runtime = {
+    const otherRuntime: ListRuntimeItem = {
       auditInfo: { creator: 'you@there.org' },
-    } as DeepPartial<Runtime> as Runtime;
+    } as DeepPartial<ListRuntimeItem> as ListRuntimeItem;
 
     // Act
     const canIDeleteDisk = leoResourcePermissions.canPauseResource(otherRuntime);
