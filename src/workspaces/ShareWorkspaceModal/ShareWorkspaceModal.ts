@@ -13,7 +13,6 @@ import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import * as Style from 'src/libs/style';
 import { append, cond, withBusyState } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import {
@@ -188,9 +187,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       ]),
       searchValueValid && !searchHasFocus && p([addUserReminder]),
       h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
-      !!workspace.policies &&
-        div({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Policies']),
-      !!workspace.policies && h(WorkspacePolicies, { workspace, style: { marginBottom: '1.5rem' } }),
+      h(WorkspacePolicies, { workspace, title: 'Policies', style: { marginBottom: '1.5rem' } }),
       !loaded && centeredSpinner(),
       updateError && div({ style: { marginTop: '1rem' } }, [div(['An error occurred:']), updateError]),
       div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [

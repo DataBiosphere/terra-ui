@@ -109,11 +109,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
   const isProtectedData = isProtectedSource(importRequest);
   const requiredCloudPlatform = getCloudPlatformRequiredForImport(importRequest);
 
-  // There is not yet a way to create a protected Azure via Terra UI.
-  // Thus, there is no way to create a new workspace that satisfies the requirements
-  // for a protected Azure snapshot.
-  const canUseNewWorkspace = !(isProtectedData && requiredCloudPlatform === 'AZURE');
-
   // Some import types are finished in a single request.
   // For most though, the import request starts a background task that takes time to complete.
   const immediateImportTypes: ImportRequest['type'][] = ['tdr-snapshot-reference'];
@@ -342,15 +337,14 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                   ? 'No existing protected workspace is present.'
                   : undefined,
             }),
-            canUseNewWorkspace &&
-              h(ChoiceButton, {
-                onClick: () => setIsCreateOpen(true),
-                iconName: 'plus-circle',
-                title: 'Create a new workspace',
-                detail: 'Set up an empty workspace that you will configure for analysis',
-                'aria-haspopup': 'dialog',
-                disabled: !userHasBillingProjects,
-              }),
+            h(ChoiceButton, {
+              onClick: () => setIsCreateOpen(true),
+              iconName: 'plus-circle',
+              title: 'Create a new workspace',
+              detail: 'Set up an empty workspace that you will configure for analysis',
+              'aria-haspopup': 'dialog',
+              disabled: !userHasBillingProjects,
+            }),
             isCreateOpen &&
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,

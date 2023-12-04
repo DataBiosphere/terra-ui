@@ -228,6 +228,7 @@ describe('the share workspace modal', () => {
           })
         );
       });
+      expect(defaultAzureWorkspace.policies).toEqual([]);
       expect(screen.queryByText('Policies')).toBeNull();
     });
   });

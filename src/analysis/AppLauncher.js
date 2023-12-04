@@ -29,7 +29,7 @@ import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
-import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
+import { azureCookieReadyStore, cookieReadyStore, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
@@ -69,7 +69,7 @@ const ApplicationLauncher = _.flow(
     const interval = useRef();
     const {
       terraUser: { email },
-    } = useStore(authStore);
+    } = useStore(userStore);
 
     // We've already init Welder if app is Jupyter in google
     // This sets up welder for RStudio and Jupyter Lab Apps
