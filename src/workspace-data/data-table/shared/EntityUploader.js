@@ -8,6 +8,7 @@ import Dropzone from 'src/components/Dropzone';
 import { icon } from 'src/components/icons';
 import { PasteOnlyInput, ValidatedInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
+import { getRegionInfo, locationTypes } from 'src/components/region-common';
 import { SimpleTabBar } from 'src/components/tabBars';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
@@ -49,8 +50,9 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [recordTypeInputTouched, setRecordTypeInputTouched] = useState(false);
 
   // Google workspace regions are hardcoded for now, as GCP uploads to the Rawls service which is only on uscentral-1
-  const regionLabelToDisplay = isGoogleWorkspace ? 'US' : getRegionLabel(region);
-  const regionFlagToDisplay = isGoogleWorkspace ? '🇺🇸' : getRegionFlag(region);
+  const rawlsRegion = getRegionInfo('US-CENTRAL1', locationTypes.region);
+  const regionLabelToDisplay = isGoogleWorkspace ? rawlsRegion.regionDescription : getRegionLabel(region);
+  const regionFlagToDisplay = isGoogleWorkspace ? rawlsRegion.flag : getRegionFlag(region);
 
   const doUpload = async () => {
     setUploading(true);
