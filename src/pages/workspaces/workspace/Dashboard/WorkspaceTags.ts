@@ -10,9 +10,9 @@ import { Ajax } from 'src/libs/ajax';
 import { getEnabledBrand } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
-import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
+import { useLocalPref } from 'src/libs/useLocalPref';
 import { withBusyState } from 'src/libs/utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
 import { RightBoxSection } from 'src/pages/workspaces/workspace/Dashboard/RightBoxSection';
@@ -50,15 +50,11 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
   const [busy, setBusy] = useState<boolean>(false);
   const [tagsList, setTagsList] = useState<string[]>();
 
-  const persistenceId = `workspaces/${namespace}/${name}/dashboard`;
-
-  const [tagsPanelOpen, setTagsPanelOpen] = useState(() => getLocalPref(persistenceId)?.tagsPanelOpen || false);
-
-  useEffect(() => {
-    setLocalPref(persistenceId, {
-      tagsPanelOpen,
-    });
-  }, [persistenceId, tagsPanelOpen]);
+  const persistenceId = `workspaces/${namespace}/${name}/dashboard/tagsPanelOpen`;
+  const [tagsPanelOpen, setTagsPanelOpen]: [boolean, Dispatch<SetStateAction<boolean>>] = useLocalPref<boolean>(
+    persistenceId,
+    false
+  );
 
   const addTag = _.flow(
     withErrorReporting('Error adding tag'),
