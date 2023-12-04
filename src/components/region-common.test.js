@@ -19,8 +19,6 @@ const montreal = {
   value: 'NORTHAMERICA-NORTHEAST1',
 };
 
-const mockAvailableBucketRegions = [usCentral, montreal];
-
 describe('getRegionInfo', () => {
   it('gets a { flag: ..., countryName: ... } object representing a google locationType/location input.', () => {
     expect(getRegionInfo('US-CENTRAL1', locationTypes.region)).toStrictEqual({
@@ -50,7 +48,7 @@ describe('getRegionInfo', () => {
 
 describe('availableBucketRegions', () => {
   it('For current phased release of regionality only supporting US-CENTRAL1 and NORTHAMERICA-NORTHEAST1 buckets.', () => {
-    expect(availableBucketRegions).toStrictEqual(mockAvailableBucketRegions);
+    expect(availableBucketRegions).toStrictEqual([usCentral, montreal]);
   });
 });
 
@@ -64,6 +62,9 @@ describe('isSupportedBucketLocation', () => {
 });
 
 describe('isLocationMultiRegion', () => {
+  it('return true for a multiregion location', () => {
+    expect(isLocationMultiRegion('US')).toBeTruthy();
+  });
   it('return false for a single region location', () => {
     expect(isLocationMultiRegion('US-CENTRAL1')).toBeFalsy();
   });
@@ -71,6 +72,7 @@ describe('isLocationMultiRegion', () => {
 
 describe('getLocationType', () => {
   it('return location information', () => {
+    expect(getLocationType('US')).toStrictEqual(locationTypes.multiRegion);
     expect(getLocationType('US-CENTRAL1')).toStrictEqual(locationTypes.region);
   });
 });
