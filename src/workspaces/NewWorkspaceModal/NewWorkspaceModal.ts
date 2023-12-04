@@ -46,6 +46,7 @@ import {
   GCPBillingProject,
 } from 'src/pages/billing/models/BillingProject';
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
+import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 
 const warningStyle: CSSProperties = {
@@ -647,6 +648,12 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
+                    !!cloneWorkspace &&
+                      h(WorkspacePolicies, {
+                        workspace: cloneWorkspace,
+                        title: 'Policies',
+                        policiesLabel: 'The cloned workspace will inherit:',
+                      }),
                     renderNotice({
                       selectedBillingProject: namespace
                         ? billingProjects?.find(({ projectName }) => projectName === namespace)

@@ -9,7 +9,7 @@ import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useStore } from 'src/libs/react-utils';
-import { AuthState, authStore } from 'src/libs/state';
+import { TerraUserState, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
@@ -23,7 +23,7 @@ export const WorkspaceStarControl = (props: WorkspaceStarControlProps): ReactNod
   } = props.workspace;
   const {
     profile: { starredWorkspaces },
-  } = useStore<AuthState>(authStore);
+  } = useStore<TerraUserState>(userStore);
   const stars = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces);
 
   const [updatingStars, setUpdatingStars] = useState(false);
@@ -55,7 +55,7 @@ export const WorkspaceStarControl = (props: WorkspaceStarControlProps): ReactNod
       starred: star,
       ...extractWorkspaceDetails(props.workspace.workspace),
     });
-    authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds.join(',')));
+    userStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds.join(',')));
   });
 
   return h(
