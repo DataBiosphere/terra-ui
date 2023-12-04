@@ -17,7 +17,6 @@ import { centeredSpinner } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
@@ -164,37 +163,6 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
 
   useImperativeHandle(ref, () => ({ refresh }));
 
-  const [workspaceInfoPanelOpen, setWorkspaceInfoPanelOpen] = useState(
-    () => getLocalPref(persistenceId)?.workspaceInfoPanelOpen
-  );
-  const [cloudInfoPanelOpen, setCloudInfoPanelOpen] = useState(
-    () => getLocalPref(persistenceId)?.cloudInfoPanelOpen || false
-  );
-  const [ownersPanelOpen, setOwnersPanelOpen] = useState(() => getLocalPref(persistenceId)?.ownersPanelOpen || false);
-  const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(
-    () => getLocalPref(persistenceId)?.authDomainPanelOpen || false
-  );
-  const [notificationsPanelOpen, setNotificationsPanelOpen] = useState(
-    () => getLocalPref(persistenceId)?.notificationsPanelOpen || false
-  );
-
-  useEffect(() => {
-    setLocalPref(persistenceId, {
-      workspaceInfoPanelOpen,
-      cloudInfoPanelOpen,
-      ownersPanelOpen,
-      authDomainPanelOpen,
-      notificationsPanelOpen,
-    });
-  }, [
-    persistenceId,
-    workspaceInfoPanelOpen,
-    cloudInfoPanelOpen,
-    ownersPanelOpen,
-    authDomainPanelOpen,
-    notificationsPanelOpen,
-  ]);
-
   const loadAcl = withErrorReporting('Error loading ACL', async () => {
     const { acl } = await Ajax(signal).Workspaces.workspace(namespace, name).getAcl();
     setAcl(acl);
@@ -229,32 +197,18 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
       h(DatasetAttributes, { attributes }),
     ]),
     div({ style: Style.dashboard.rightBox }, [
-      h(
-        RightBoxSection,
-        {
-          title: 'Workspace information',
-          initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
-          onClick: () =>
-            setWorkspaceInfoPanelOpen(workspaceInfoPanelOpen === undefined ? false : !workspaceInfoPanelOpen),
-        },
-        [h(WorkspaceInformation, { workspace })]
-      ),
-      h(
-        RightBoxSection,
-        {
-          title: 'Cloud information',
-          initialOpenState: cloudInfoPanelOpen,
-          onClick: () => setCloudInfoPanelOpen(!cloudInfoPanelOpen),
-        },
-        [h(CloudInformation, { workspace, persistenceId, storageDetails, bucketSize, storageCost })]
-      ),
+      h(RightBoxSection, { title: 'Workspace information', persistenceId: `${persistenceId}/workspaceInfoPanelOpen` }, [
+        h(WorkspaceInformation, { workspace }),
+      ]),
+      h(RightBoxSection, { title: 'Cloud information', persistenceId: `${persistenceId}/cloudInfoPanelOpen` }, [
+        h(CloudInformation, { workspace, storageDetails, bucketSize, storageCost }),
+      ]),
       h(
         RightBoxSection,
         {
           title: 'Owners',
-          initialOpenState: ownersPanelOpen,
+          persistenceId: `${persistenceId}/ownersPanelOpen`,
           afterTitle: OwnerNotice({ acl, accessLevel, owners }),
-          onClick: () => setOwnersPanelOpen(!ownersPanelOpen),
         },
         [
           div(
@@ -274,8 +228,7 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
           RightBoxSection,
           {
             title: 'Authorization domain',
-            initialOpenState: authDomainPanelOpen,
-            onClick: () => setAuthDomainPanelOpen(!authDomainPanelOpen),
+            persistenceId: `${persistenceId}/authDomainPanelOpen`,
           },
           [
             div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
@@ -301,8 +254,7 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
         RightBoxSection,
         {
           title: 'Notifications',
-          initialOpenState: notificationsPanelOpen,
-          onClick: () => setNotificationsPanelOpen(!notificationsPanelOpen),
+          persistenceId: `${persistenceId}/notificationsPanelOpen`,
         },
         [h(WorkspaceNotifications, { workspace })]
       ),

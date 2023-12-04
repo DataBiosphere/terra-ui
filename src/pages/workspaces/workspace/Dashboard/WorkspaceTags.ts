@@ -12,7 +12,6 @@ import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
-import { useLocalPref } from 'src/libs/useLocalPref';
 import { withBusyState } from 'src/libs/utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
 import { RightBoxSection } from 'src/pages/workspaces/workspace/Dashboard/RightBoxSection';
@@ -51,10 +50,6 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
   const [tagsList, setTagsList] = useState<string[]>();
 
   const persistenceId = `workspaces/${namespace}/${name}/dashboard/tagsPanelOpen`;
-  const [tagsPanelOpen, setTagsPanelOpen]: [boolean, Dispatch<SetStateAction<boolean>>] = useLocalPref<boolean>(
-    persistenceId,
-    false
-  );
 
   const addTag = _.flow(
     withErrorReporting('Error adding tag'),
@@ -92,11 +87,8 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
     RightBoxSection,
     {
       title: 'Tags',
-      info: span({}, [
-        (busy || !tagsList) && tagsPanelOpen && h(Spinner, { size: 1, style: { marginLeft: '0.5rem' } }),
-      ]),
-      initialOpenState: tagsPanelOpen,
-      onClick: () => setTagsPanelOpen(!tagsPanelOpen),
+      info: span({}, [(busy || !tagsList) && h(Spinner, { size: 1, style: { marginLeft: '0.5rem' } })]),
+      persistenceId,
     },
     [
       div({ style: { margin: '0.5rem' } }, [
