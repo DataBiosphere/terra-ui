@@ -1,8 +1,6 @@
-import { Spinner } from '@terra-ui-packages/components';
 import { cond } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import {
-  CSSProperties,
   ForwardedRef,
   forwardRef,
   ReactNode,
@@ -12,15 +10,11 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { div, h, i, span } from 'react-hyperscript-helpers';
+import { div, h } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { Link } from 'src/components/common';
-import { centeredSpinner, icon } from 'src/components/icons';
-import { InfoBox } from 'src/components/InfoBox';
-import { WorkspaceTagSelect } from 'src/components/workspace-utils';
+import { centeredSpinner } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
-import { getEnabledBrand } from 'src/libs/brand-utils';
-import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
@@ -38,26 +32,10 @@ import { RightBoxSection } from 'src/pages/workspaces/workspace/Dashboard/RightB
 import { WorkspaceDescription } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceDescription';
 import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
 import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceNotifications';
+import { WorkspaceTags } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceTags';
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
 import { WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
-
-const styles: Record<string, CSSProperties> = {
-  authDomain: {
-    padding: '0.5rem 0.25rem',
-    marginBottom: '0.25rem',
-    backgroundColor: colors.dark(0.15),
-    ...Style.noWrapEllipsis,
-  },
-  tag: {
-    padding: '0.25rem',
-    margin: '0.15rem',
-    backgroundColor: colors.dark(0.15),
-    borderRadius: 10,
-    overflow: 'hidden',
-    wordWrap: 'break-word',
-  },
-};
 
 interface DashboardAuthContainerProps {
   namespace: string;
@@ -120,7 +98,6 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
   const [bucketSize, setBucketSize] = useState<{ isSuccess: boolean; usage: string; lastUpdated?: string }>();
   const [saving, setSaving] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
-  const [tagsList, setTagsList] = useState<string[]>();
   const [acl, setAcl] = useState<WorkspaceAcl>();
 
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`;
@@ -128,8 +105,6 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
   const signal = useCancellation();
 
   const refresh = () => {
-    loadWsTags();
-
     // If the current user is the only owner of the workspace, load the ACL to check if the workspace is shared.
     if (isOwner(accessLevel) && _.size(owners) === 1) {
       loadAcl();
@@ -199,7 +174,6 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
   const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(
     () => getLocalPref(persistenceId)?.authDomainPanelOpen || false
   );
-  const [tagsPanelOpen, setTagsPanelOpen] = useState(() => getLocalPref(persistenceId)?.tagsPanelOpen || false);
   const [notificationsPanelOpen, setNotificationsPanelOpen] = useState(
     () => getLocalPref(persistenceId)?.notificationsPanelOpen || false
   );
@@ -210,7 +184,6 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
       cloudInfoPanelOpen,
       ownersPanelOpen,
       authDomainPanelOpen,
-      tagsPanelOpen,
       notificationsPanelOpen,
     });
   }, [
@@ -219,27 +192,8 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
     cloudInfoPanelOpen,
     ownersPanelOpen,
     authDomainPanelOpen,
-    tagsPanelOpen,
     notificationsPanelOpen,
   ]);
-
-  const loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
-    setTagsList(await Ajax(signal).Workspaces.workspace(namespace, name).getTags());
-  });
-
-  const addTag = _.flow(
-    withErrorReporting('Error adding tag'),
-    withBusyState(setBusy)
-  )(async (tag) => {
-    setTagsList(await Ajax().Workspaces.workspace(namespace, name).addTag(tag));
-  });
-
-  const deleteTag = _.flow(
-    withErrorReporting('Error removing tag'),
-    withBusyState(setBusy)
-  )(async (tag) => {
-    setTagsList(await Ajax().Workspaces.workspace(namespace, name).deleteTag(tag));
-  });
 
   const loadAcl = withErrorReporting('Error loading ACL', async () => {
     const { acl } = await Ajax(signal).Workspaces.workspace(namespace, name).getAcl();
@@ -261,7 +215,7 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
   });
 
   // Render
-  const brand = getEnabledBrand();
+
   // @ts-expect-error
   const { value: canEdit } = canEditWorkspace(workspace);
 
@@ -342,57 +296,7 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
             ),
           ]
         ),
-      h(
-        RightBoxSection,
-        {
-          title: 'Tags',
-          info: span({}, [
-            (busy || !tagsList) && tagsPanelOpen && h(Spinner, { size: 1, style: { marginLeft: '0.5rem' } }),
-          ]),
-          initialOpenState: tagsPanelOpen,
-          onClick: () => setTagsPanelOpen(!tagsPanelOpen),
-        },
-        [
-          div({ style: { margin: '0.5rem' } }, [
-            div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
-              `${brand.name} is not intended to host personally identifiable information.`,
-              h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-                `${brand.name} is not intended to host personally identifiable information. Do not use any patient identifier including name,
-              social security number, or medical record number.`,
-              ]),
-            ]),
-            canEdit &&
-              div({ style: { marginBottom: '0.5rem' } }, [
-                h(WorkspaceTagSelect, {
-                  menuShouldScrollIntoView: false,
-                  value: null,
-                  placeholder: 'Add a tag',
-                  'aria-label': 'Add a tag',
-                  onChange: ({ value }) => addTag(value),
-                }),
-              ]),
-            div({ style: { display: 'flex', flexWrap: 'wrap', minHeight: '1.5rem' } }, [
-              _.map((tag) => {
-                return span({ key: tag, style: styles.tag }, [
-                  tag,
-                  canEdit &&
-                    h(
-                      Link,
-                      {
-                        tooltip: 'Remove tag',
-                        disabled: busy,
-                        onClick: () => deleteTag(tag),
-                        style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' },
-                      },
-                      [icon('times', { size: 14 })]
-                    ),
-                ]);
-              }, tagsList),
-              !!tagsList && _.isEmpty(tagsList) && i(['No tags yet']),
-            ]),
-          ]),
-        ]
-      ),
+      h(WorkspaceTags, { name, namespace, workspace, canEdit, busy, setBusy }),
       h(
         RightBoxSection,
         {
