@@ -8,7 +8,7 @@ import { InfoBox } from 'src/components/InfoBox';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
-import { authStore } from 'src/libs/state';
+import { userStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
@@ -23,9 +23,9 @@ export const WorkspaceNotifications = (props: WorkspaceNotificationsProps): Reac
 
   const [saving, setSaving] = useState(false);
 
-  const notificationsPreferences = _.pickBy((_v, k) => _.startsWith('notifications/', k), authStore.get().profile);
+  const notificationsPreferences = _.pickBy((_v, k) => _.startsWith('notifications/', k), userStore.get().profile);
 
-  // TODO: These keys are not included in the type of the auth store profile object
+  // TODO: These keys are not included in the type of the user store profile object
   const submissionNotificationKeys = [
     `notifications/SuccessfulSubmissionNotification/${namespace}/${name}`,
     `notifications/FailedSubmissionNotification/${namespace}/${name}`,
