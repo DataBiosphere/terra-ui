@@ -100,9 +100,13 @@ export const WorkflowsAppNavPanel = ({
     }
   }, [workspace, selectedSubHeader, setSelectedSubHeader]);
 
-  const isSubHeaderActive = (subHeader: string) => pageReady && selectedSubHeader === subHeader;
+  useEffect(() => {
+    captureEvent(Events.workflowsTabView, { ...extractWorkspaceDetails({ namespace, name }), tab: selectedSubHeader });
+    // Don't re-fire if captureEvent changes:
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, namespace, selectedSubHeader]);
 
-  captureEvent(Events.workflowsTabView, { ...extractWorkspaceDetails({ namespace, name }), tab: selectedSubHeader });
+  const isSubHeaderActive = (subHeader: string) => pageReady && selectedSubHeader === subHeader;
 
   return div({ style: { display: 'flex', flex: 1, height: 'calc(100% - 66px)', position: 'relative' } }, [
     div(
