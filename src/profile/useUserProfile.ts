@@ -3,7 +3,7 @@ import { refreshTerraProfile } from 'src/auth/auth';
 import { UpdateTerraUserProfileRequest, User } from 'src/libs/ajax/User';
 import { reportError } from 'src/libs/error';
 import { useStore } from 'src/libs/react-utils';
-import { authStore, TerraUserProfile } from 'src/libs/state';
+import { TerraUserProfile, userStore } from 'src/libs/state';
 
 /**
  * Custom LoadedState because we always have a value for the profile from the global state.
@@ -28,7 +28,7 @@ export interface UseUserProfileResult {
 }
 
 export const useUserProfile = (): UseUserProfileResult => {
-  const { profile } = useStore(authStore);
+  const { profile } = useStore(userStore);
 
   const [status, setStatus] = useState<'Loading' | 'Ready' | 'Error'>('Loading');
 

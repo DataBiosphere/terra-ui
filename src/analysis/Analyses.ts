@@ -65,7 +65,7 @@ import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { forwardRefWithName, useCancellation, useStore } from 'src/libs/react-utils';
-import { authStore } from 'src/libs/state';
+import { userStore } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -461,7 +461,9 @@ export const BaseAnalyses = (
     () => getLocalPref(enableJupyterLabPersistenceId) || false
   );
 
-  const authState = useStore(authStore);
+  const {
+    terraUser: { email },
+  } = useStore(userStore);
   const signal = useCancellation();
   const analysisFileStore = useAnalysisFiles();
   const { loadedState, refreshFileStore, createAnalysis, deleteAnalysis } = analysisFileStore;
@@ -502,7 +504,7 @@ export const BaseAnalyses = (
       const [currentUserHash, potentialLockers]: [string | undefined, any] = isGoogleWorkspace(workspace)
         ? await Promise.all([
             // non-null assertion since a user must be logged in to see this page
-            notebookLockHash(workspace.workspace.bucketName, authState.terraUser.email!),
+            notebookLockHash(workspace.workspace.bucketName, email!),
             findPotentialNotebookLockers(workspace),
           ])
         : await Promise.all([Promise.resolve(undefined), Promise.resolve([])]);

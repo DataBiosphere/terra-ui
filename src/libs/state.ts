@@ -17,67 +17,32 @@ import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 
-export type TerraUser = {
-  token?: string | undefined;
-  scope?: string | undefined;
-  id?: string | undefined;
-  email?: string | undefined;
-  name?: string | undefined;
-  givenName?: string | undefined;
-  familyName?: string | undefined;
-  imageUrl?: string | undefined;
-  idp?: string | undefined;
-};
+export interface SystemState {
+  termsOfServiceConfig: SamTermsOfServiceConfig;
+}
 
-export type TerraUserProfile = {
-  // TODO: anonymousGroup is here from getProfile from orch
-  // TODO: for future ticket, separate items updated via register/profile (personal info)
-  //  from things that are updated via api/profile/preferences (starred workspaces, notification settings)
-  firstName: string | undefined;
-  lastName: string | undefined;
-  institute: string | undefined;
-  contactEmail: string | undefined;
-  title: string | undefined;
-  department: string | undefined;
-  interestInTerra: string | undefined;
-  programLocationCity?: string;
-  programLocationState?: string;
-  programLocationCountry?: string;
-  researchArea?: string;
-  starredWorkspaces?: string;
-};
+/**
+This store is for keeping track of static system properties
+which are not expected to change during the apps lifecycle
+ */
+export const systemStore: Atom<SystemState> = atom<SystemState>({
+  termsOfServiceConfig: {
+    enforced: false,
+    currentVersion: '',
+    inRollingAcceptanceWindow: false,
+  },
+});
 
-export type TerraUserRegistrationStatus =
-  // User is logged in through B2C but has not registered in Terra.
-  | 'unregistered'
-  // User has registered in Terra but has not accepted the terms of service.
-  | 'registeredWithoutTos'
-  // User has registered in Terra and accepted the terms of service.
-  | 'registered'
-  // User's account has been disabled.
-  | 'disabled'
-  // Registration status has not yet been determined.
-  | 'uninitialized';
-
-export type TermsOfServiceStatus = {
+export interface TermsOfServiceStatus {
   permitsSystemUsage: boolean | undefined;
   isCurrentVersion: boolean | undefined;
-};
+}
 
-export type TokenMetadata = {
-  token: string | undefined; // do not log or send this to mixpanel
-  id: string | undefined;
-  createdAt: number;
-  expiresAt: number;
-  totalTokensUsedThisSession: number;
-  totalTokenLoadAttemptsThisSession: number;
-};
-
-export type NihStatus = {
+export interface NihStatus {
   linkedNihUsername: string;
   linkExpireTime: number;
   datasetPermissions: NihDatasetPermission[];
-};
+}
 
 export type Initializable<T> = T | 'uninitialized';
 
@@ -93,13 +58,11 @@ export type SignInStatusState =
 
 export type SignInStatus = Initializable<SignInStatusState>;
 
-export type SystemProperties = {
-  termsOfServiceConfig: SamTermsOfServiceConfig;
-};
+export interface FenceStatus {
+  [key: string]: BondFenceStatusResponse;
+}
 
-export type AuthState = {
-  anonymousId: string | undefined;
-  authTokenMetadata: TokenMetadata;
+export interface AuthState {
   cookiesAccepted: boolean | undefined;
   fenceStatus: FenceStatus;
   hasGcpBillingScopeThroughB2C: boolean | undefined;
@@ -108,37 +71,73 @@ export type AuthState = {
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: NihStatus;
   nihStatusLoaded: boolean;
-  profile: TerraUserProfile;
-  refreshTokenMetadata: TokenMetadata;
-  sessionId?: string | undefined;
-  sessionStartTime: number;
-  system: SystemProperties;
   termsOfService: TermsOfServiceStatus;
-  terraUser: TerraUser;
   terraUserAllowances: SamUserAllowances;
-  terraUserAttributes: SamUserAttributes;
-};
+}
 
-export type FenceStatus = {
-  [key: string]: BondFenceStatusResponse;
-};
-
+/**
+ * The authStore is for keeping track of properties which allow the user to access different part of the app.
+ */
 export const authStore: Atom<AuthState> = atom<AuthState>({
-  anonymousId: undefined,
-  authTokenMetadata: {
-    token: undefined,
-    id: undefined,
-    createdAt: -1,
-    expiresAt: -1,
-    totalTokenLoadAttemptsThisSession: 0,
-    totalTokensUsedThisSession: 0,
-  },
   cookiesAccepted: undefined,
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
   userJustSignedIn: false,
   nihStatusLoaded: false,
+  termsOfService: {
+    permitsSystemUsage: undefined,
+    isCurrentVersion: undefined,
+  },
+  terraUserAllowances: {
+    allowed: false,
+    details: {
+      enabled: false,
+      termsOfService: false,
+    },
+  },
+});
+
+export interface TerraUser {
+  token?: string | undefined;
+  scope?: string | undefined;
+  id?: string | undefined;
+  email?: string | undefined;
+  name?: string | undefined;
+  givenName?: string | undefined;
+  familyName?: string | undefined;
+  imageUrl?: string | undefined;
+  idp?: string | undefined;
+}
+
+export interface TerraUserProfile {
+  // TODO: anonymousGroup is here from getProfile from orch
+  // TODO: for future ticket, separate items updated via register/profile (personal info)
+  //  from things that are updated via api/profile/preferences (starred workspaces, notification settings)
+  firstName: string | undefined;
+  lastName: string | undefined;
+  institute: string | undefined;
+  contactEmail: string | undefined;
+  title: string | undefined;
+  department: string | undefined;
+  interestInTerra: string | undefined;
+  programLocationCity?: string;
+  programLocationState?: string;
+  programLocationCountry?: string;
+  researchArea?: string;
+  starredWorkspaces?: string;
+}
+
+export interface TerraUserState {
+  profile: TerraUserProfile;
+  terraUser: TerraUser;
+  terraUserAttributes: SamUserAttributes;
+}
+
+/**
+ * The userStore is for keeping track of user data which may be updated by the user.
+ */
+export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
   profile: {
     firstName: undefined,
     lastName: undefined,
@@ -152,27 +151,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     interestInTerra: undefined,
     starredWorkspaces: undefined,
   },
-  refreshTokenMetadata: {
-    token: undefined,
-    id: undefined,
-    createdAt: -1,
-    expiresAt: -1,
-    totalTokenLoadAttemptsThisSession: 0,
-    totalTokensUsedThisSession: 0,
-  },
-  sessionId: undefined,
-  sessionStartTime: -1,
-  system: {
-    termsOfServiceConfig: {
-      enforced: false,
-      currentVersion: '',
-      inRollingAcceptanceWindow: false,
-    },
-  },
-  termsOfService: {
-    permitsSystemUsage: undefined,
-    isCurrentVersion: undefined,
-  },
   terraUser: {
     token: undefined,
     scope: undefined,
@@ -184,30 +162,70 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     imageUrl: undefined,
     idp: undefined,
   },
-  terraUserAllowances: {
-    allowed: false,
-    details: {
-      enabled: false,
-      termsOfService: false,
-    },
-  },
   terraUserAttributes: {
     marketingConsent: true,
   },
 });
 
-export const getTerraUser = (): TerraUser => authStore.get().terraUser;
+export const getTerraUser = (): TerraUser => userStore.get().terraUser;
 
-export const getSessionId = () => authStore.get().sessionId;
+export interface TokenMetadata {
+  token: string | undefined; // do not log or send this to mixpanel
+  id: string | undefined;
+  createdAt: number;
+  expiresAt: number;
+  totalTokensUsedThisSession: number;
+  totalTokenLoadAttemptsThisSession: number;
+}
 
-export type OidcState = {
+export interface MetricState {
+  anonymousId: string | undefined;
+  authTokenMetadata: TokenMetadata;
+  refreshTokenMetadata: TokenMetadata;
+  sessionId?: string | undefined;
+  sessionStartTime: number;
+}
+
+/**
+ * The metricStore is for keeping track of data that is purely inteded on being collected for metrics
+ * and does not control any logic of the app except for logic which strictly pertains to metric collection.
+ */
+export const metricStore: Atom<MetricState> = atom<MetricState>({
+  anonymousId: undefined,
+  authTokenMetadata: {
+    token: undefined,
+    id: undefined,
+    createdAt: -1,
+    expiresAt: -1,
+    totalTokenLoadAttemptsThisSession: 0,
+    totalTokensUsedThisSession: 0,
+  },
+  refreshTokenMetadata: {
+    token: undefined,
+    id: undefined,
+    createdAt: -1,
+    expiresAt: -1,
+    totalTokenLoadAttemptsThisSession: 0,
+    totalTokensUsedThisSession: 0,
+  },
+  sessionId: undefined,
+  sessionStartTime: -1,
+});
+
+export const getSessionId = () => metricStore.get().sessionId;
+
+export interface OidcState {
   authContext: AuthContextProps | undefined;
   authTokenState: AuthTokenState | undefined;
   user: OidcUser | undefined;
   userManager: UserManager | undefined;
   config: OidcConfig;
-};
+}
 
+/**
+ * The oidcStore is for keeping track of data which is obtained from our OAuth2 provider and
+ * any data we keep track of as part of the oidc-client library we use.
+ */
 export const oidcStore: Atom<OidcState> = atom<OidcState>({
   authContext: undefined,
   authTokenState: undefined,

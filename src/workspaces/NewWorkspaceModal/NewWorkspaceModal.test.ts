@@ -6,7 +6,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { goToPath } from 'src/libs/nav';
-import { AzureWorkspace, AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
+import { AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
 import {
   azureBillingProject,
@@ -14,7 +14,7 @@ import {
   gcpBillingProject,
 } from 'src/testing/billing-project-fixtures';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { defaultAzureWorkspace, defaultGoogleWorkspace, protectedAzureWorkspace } from 'src/testing/workspace-fixtures';
 
 import NewWorkspaceModal from './NewWorkspaceModal';
 
@@ -384,16 +384,6 @@ describe('NewWorkspaceModal', () => {
           ...nonBillingAjax,
         } as AjaxContract)
     );
-    const protectedAzureWorkspace: AzureWorkspace = {
-      ...defaultAzureWorkspace,
-      policies: [
-        {
-          additionalData: [],
-          namespace: 'terra',
-          name: 'protected-data',
-        },
-      ],
-    };
 
     // Act
     await act(async () => {
@@ -408,6 +398,58 @@ describe('NewWorkspaceModal', () => {
 
     // Assert
     expect(await getAvailableBillingProjects(user)).toEqual(['Protected Azure Billing Project']);
+  });
+
+  it('Shows a policy section when cloning a workspace with polices', async () => {
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [azureProtectedDataBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: protectedAzureWorkspace,
+          onDismiss: () => {},
+          onSuccess: () => {},
+        })
+      );
+    });
+
+    // Assert
+    screen.getByText('Policies');
+  });
+
+  it('Does not show a policy section when cloning a workspace without polices', async () => {
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [azureBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: defaultAzureWorkspace,
+          onDismiss: () => {},
+          onSuccess: () => {},
+        })
+      );
+    });
+
+    // Assert
+    expect(screen.queryByText('Policies')).toBeNull();
   });
 
   it('Hides azure billing projects if part of workflow import', async () => {

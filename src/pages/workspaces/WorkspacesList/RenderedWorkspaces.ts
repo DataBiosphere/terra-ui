@@ -16,7 +16,7 @@ import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { getLink } from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
-import { AuthState, authStore } from 'src/libs/state';
+import { TerraUserState, userStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import {
@@ -61,7 +61,7 @@ export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode =>
   const { workspaces, loadingSubmissionStats } = props;
   const {
     profile: { starredWorkspaces },
-  } = useStore<AuthState>(authStore);
+  } = useStore<TerraUserState>(userStore);
   const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces);
 
   const [sort, setSort] = useState<WorkspaceSort>({ field: 'lastModified', direction: 'desc' });

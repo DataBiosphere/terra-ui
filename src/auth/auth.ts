@@ -31,10 +31,14 @@ import {
   azurePreviewStore,
   cookieReadyStore,
   getTerraUser,
+  MetricState,
+  metricStore,
   oidcStore,
   requesterPaysProjectStore,
   TerraUserProfile,
+  TerraUserState,
   TokenMetadata,
+  userStore,
   workspacesStore,
   workspaceStore,
 } from 'src/libs/state';
@@ -75,17 +79,17 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
     [DEFAULT, () => Events.user.signOut.unspecified]
   );
   const sessionEndTime: number = Date.now();
-  const authStoreState: AuthState = authStore.get();
-  const tokenMetadata: TokenMetadata = authStoreState.authTokenMetadata;
+  const metricStoreState: MetricState = metricStore.get();
+  const tokenMetadata: TokenMetadata = metricStoreState.authTokenMetadata;
 
   await Ajax().Metrics.captureEvent(eventToFire, {
     sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
     sessionDurationInSeconds:
-      authStoreState.sessionStartTime < 0 ? undefined : (sessionEndTime - authStoreState.sessionStartTime) / 1000.0,
+      metricStoreState.sessionStartTime < 0 ? undefined : (sessionEndTime - metricStoreState.sessionStartTime) / 1000.0,
     authTokenCreatedAt: getTimestampMetricLabel(tokenMetadata.createdAt),
     authTokenExpiresAt: getTimestampMetricLabel(tokenMetadata.expiresAt),
-    totalAuthTokensUsedThisSession: authStoreState.authTokenMetadata.totalTokensUsedThisSession,
-    totalAuthTokenLoadAttemptsThisSession: authStoreState.authTokenMetadata.totalTokenLoadAttemptsThisSession,
+    totalAuthTokensUsedThisSession: metricStoreState.authTokenMetadata.totalTokensUsedThisSession,
+    totalAuthTokenLoadAttemptsThisSession: metricStoreState.authTokenMetadata.totalTokenLoadAttemptsThisSession,
   });
 };
 
@@ -110,23 +114,28 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 
   revokeTokens();
 
-  const { anonymousId, cookiesAccepted, system } = authStore.get();
+  const { cookiesAccepted } = authStore.get();
 
   authStore.reset();
   authStore.update((state) => ({
     ...state,
-    anonymousId,
     signInStatus: 'signedOut',
     // TODO: If allowed, this should be moved to the cookie store
     // Load whether a user has input a cookie acceptance in a previous session on this system,
     // or whether they input cookie acceptance previously in this session
     cookiesAccepted,
-    system,
   }));
   oidcStore.update((state) => ({
     ...state,
     user: undefined,
   }));
+  const anonymousId: string | undefined = metricStore.get().anonymousId;
+  metricStore.reset();
+  metricStore.update((state) => ({
+    ...state,
+    anonymousId,
+  }));
+  userStore.reset();
 };
 
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
@@ -184,15 +193,14 @@ export type AuthTokenState = AuthTokenSuccessState | AuthTokenExpiredState | Aut
 export const loadAuthToken = async (
   args: OidcSignInArgs = { includeBillingScope: false, popUp: false }
 ): Promise<AuthTokenState> => {
-  const oldAuthTokenMetadata: TokenMetadata = authStore.get().authTokenMetadata;
-  const oldRefreshTokenMetadata: TokenMetadata = authStore.get().refreshTokenMetadata;
+  const { authTokenMetadata: oldAuthTokenMetadata, refreshTokenMetadata: oldRefreshTokenMetadata } = metricStore.get();
 
   // for metrics, updates number of authToken load attempts for this session
-  authStore.update((state) => ({
+  metricStore.update((state) => ({
     ...state,
     authTokenMetadata: {
       ...oldAuthTokenMetadata,
-      totalTokenLoadAttemptsThisSession: authStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
+      totalTokenLoadAttemptsThisSession: oldAuthTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
     },
   }));
 
@@ -218,58 +226,59 @@ export const loadAuthToken = async (
     const isNewRefreshToken = !!refreshToken && refreshToken !== oldRefreshTokenMetadata.token;
 
     // for metrics, updates authToken metadata and refresh token metadata
-    authStore.update((state) => ({
-      ...state,
+    metricStore.update((oldState) => ({
+      ...oldState,
       authTokenMetadata: {
-        ...authStore.get().authTokenMetadata,
+        ...oldState.authTokenMetadata,
         token: oidcUser.access_token,
         createdAt: authTokenCreatedAt,
         expiresAt: authTokenExpiresAt,
         id: authTokenId,
         totalTokensUsedThisSession:
-          oldAuthTokenMetadata.token !== undefined &&
-          oldAuthTokenMetadata.token === authStore.get().authTokenMetadata.token
+          oldAuthTokenMetadata.token !== undefined && oldAuthTokenMetadata.token === oldState.authTokenMetadata.token
             ? oldAuthTokenMetadata.totalTokensUsedThisSession
             : oldAuthTokenMetadata.totalTokensUsedThisSession + 1,
       },
       refreshTokenMetadata: isNewRefreshToken
         ? {
-            ...authStore.get().refreshTokenMetadata,
+            ...oldState.refreshTokenMetadata,
             id: uuid(),
             token: refreshToken,
             createdAt: authTokenCreatedAt,
             // Auth token expiration is set to 24 hours in B2C configuration.
             expiresAt: authTokenCreatedAt + 86400, // 24 hours in seconds
-            totalTokensUsedThisSession: authStore.get().authTokenMetadata.totalTokensUsedThisSession + 1,
-            totalTokenLoadAttemptsThisSession: authStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
+            totalTokensUsedThisSession: oldState.authTokenMetadata.totalTokensUsedThisSession + 1,
+            totalTokenLoadAttemptsThisSession: oldState.authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
           }
-        : { ...authStore.get().refreshTokenMetadata },
+        : { ...oldState.refreshTokenMetadata },
     }));
+    const { refreshTokenMetadata: currentRefreshTokenMetadata } = metricStore.get();
+
     Ajax().Metrics.captureEvent(Events.user.authToken.load.success, {
       authProvider: oidcUser.profile.idp,
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
       authTokenCreatedAt: getTimestampMetricLabel(authTokenCreatedAt),
       authTokenExpiresAt: getTimestampMetricLabel(authTokenExpiresAt),
       authTokenId,
-      refreshTokenId: authStore.get().refreshTokenMetadata.id,
-      refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
+      refreshTokenId: currentRefreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(currentRefreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(currentRefreshTokenMetadata.expiresAt),
       jwtExpiresAt: getTimestampMetricLabel(jwtExpiresAt),
     });
   } else if (loadedAuthTokenState.status === 'expired') {
     Ajax().Metrics.captureEvent(Events.user.authToken.load.expired, {
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
-      refreshTokenId: authStore.get().refreshTokenMetadata.id,
-      refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
+      refreshTokenId: oldRefreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(oldRefreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(oldRefreshTokenMetadata.expiresAt),
     });
   } else {
     Ajax().Metrics.captureEvent(Events.user.authToken.load.error, {
       // we could potentially log the reason, but I don't know if that data is safe to log
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
-      refreshTokenId: authStore.get().refreshTokenMetadata.id,
-      refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
+      refreshTokenId: oldRefreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(oldRefreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(oldRefreshTokenMetadata.expiresAt),
     });
   }
   return loadedAuthTokenState;
@@ -400,30 +409,31 @@ export const isAzureUser = (): boolean => {
 
 export const loadOidcUser = (user: OidcUser): void => {
   oidcStore.update((state) => ({ ...state, user }));
-  authStore.update((state) => {
-    const tokenClaims: B2cIdTokenClaims = user.profile;
-    // according to IdTokenClaims, this is a mandatory claim and should always exist
-    // should be googleSubjectId or b2cId depending on how they authenticated
-    const userId: string = tokenClaims.sub;
-    return {
-      ...state,
-      signInStatus: 'authenticated',
-      // Load whether a user has input a cookie acceptance in a previous session on this system,
-      // or whether they input cookie acceptance previously in this session
-      cookiesAccepted: state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey),
-      terraUser: {
-        token: user.access_token,
-        scope: user.scope,
-        id: userId,
-        email: tokenClaims.email,
-        name: tokenClaims.name,
-        givenName: tokenClaims.given_name,
-        familyName: tokenClaims.family_name,
-        imageUrl: tokenClaims.picture,
-        idp: tokenClaims.idp,
-      },
-    };
-  });
+  const tokenClaims: B2cIdTokenClaims = user.profile;
+  // according to IdTokenClaims, this is a mandatory claim and should always exist
+  // should be googleSubjectId or b2cId depending on how they authenticated
+  const userId: string = tokenClaims.sub;
+  userStore.update((state) => ({
+    ...state,
+    terraUser: {
+      token: user.access_token,
+      scope: user.scope,
+      id: userId,
+      email: tokenClaims.email,
+      name: tokenClaims.name,
+      givenName: tokenClaims.given_name,
+      familyName: tokenClaims.family_name,
+      imageUrl: tokenClaims.picture,
+      idp: tokenClaims.idp,
+    },
+  }));
+  authStore.update((state: AuthState) => ({
+    ...state,
+    signInStatus: 'authenticated',
+    // Load whether a user has input a cookie acceptance in a previous session on this system,
+    // or whether they input cookie acceptance previously in this session
+    cookiesAccepted: state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey),
+  }));
 };
 
 // this function is only called when the browser refreshes
@@ -474,23 +484,24 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
       access_token: token,
     } as unknown as OidcUser,
   }));
-  authStore.update((state) => {
-    return {
-      ...state,
-      signInStatus: 'authenticated',
-      isTimeoutEnabled: undefined,
-      cookiesAccepted: true,
-      terraUser: {
-        token,
-        id: data.sub,
-        email: data.email,
-        name: data.name,
-        givenName: data.given_name,
-        familyName: data.family_name,
-        imageUrl: data.picture,
-      },
-    };
-  });
+  authStore.update((state) => ({
+    ...state,
+    signInStatus: 'authenticated',
+    isTimeoutEnabled: undefined,
+    cookiesAccepted: true,
+  }));
+  userStore.update((state) => ({
+    ...state,
+    terraUser: {
+      token,
+      id: data.sub,
+      email: data.email,
+      name: data.name,
+      givenName: data.given_name,
+      familyName: data.family_name,
+      imageUrl: data.picture,
+    },
+  }));
 });
 
 // extending Window interface to access Appcues
@@ -505,7 +516,7 @@ authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
-        window.Appcues.identify(state.terraUser.id, {
+        window.Appcues.identify(userStore.get().terraUser.id, {
           dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime(),
         });
         window.Appcues.on('all', captureAppcuesEvent);
@@ -519,7 +530,7 @@ authStore.subscribe((state: AuthState) => {
   // so we should not persist cookie acceptance across sessions for people signed out
   // Per compliance recommendation, we could probably persist through a session, but
   // that would require a second store in session storage instead of local storage
-  if (state.signInStatus === 'authenticated' && state.cookiesAccepted !== getLocalPref(cookiesAcceptedKey)) {
+  if (state.signInStatus === 'userLoaded' && state.cookiesAccepted !== getLocalPref(cookiesAcceptedKey)) {
     setLocalPref(cookiesAcceptedKey, state.cookiesAccepted);
   }
 });
@@ -535,13 +546,12 @@ authStore.subscribe(
 
 export const refreshTerraProfile = async () => {
   const profile: TerraUserProfile = await Ajax().User.profile.get();
-  authStore.update((state: AuthState) => ({ ...state, profile }));
+  userStore.update((state: TerraUserState) => ({ ...state, profile }));
 };
 
 export const refreshSamUserAttributes = async (): Promise<void> => {
   const terraUserAttributes: SamUserAttributes = await Ajax().User.getUserAttributes();
-
-  authStore.update((state: AuthState) => ({ ...state, terraUserAttributes }));
+  userStore.update((state: TerraUserState) => ({ ...state, terraUserAttributes }));
 };
 
 export const loadTerraUser = async (): Promise<void> => {
@@ -558,12 +568,15 @@ export const loadTerraUser = async (): Promise<void> => {
       getTermsOfService,
     ]);
     clearNotification(sessionTimeoutProps.id);
+    userStore.update((state: TerraUserState) => ({
+      ...state,
+      profile,
+      terraUserAttributes,
+    }));
     authStore.update((state: AuthState) => ({
       ...state,
       signInStatus,
-      profile,
       terraUserAllowances,
-      terraUserAttributes,
       termsOfService,
     }));
   } catch (error: unknown) {
@@ -619,8 +632,9 @@ authStore.subscribe(
 authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
-      if (state.anonymousId) {
-        return await Ajax().Metrics.identify(state.anonymousId);
+      const { anonymousId } = metricStore.get();
+      if (anonymousId) {
+        return await Ajax().Metrics.identify(anonymousId);
       }
     }
   })

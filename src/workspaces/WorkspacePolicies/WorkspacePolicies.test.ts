@@ -89,4 +89,19 @@ describe('WorkspacePolicies', () => {
     // Assert
     expect(screen.getAllByText(/controlled-access data/)).not.toBeNull();
   });
+
+  it('allows passing a title and label about the list', async () => {
+    // Act
+    render(
+      h(WorkspacePolicies, {
+        title: 'Test title',
+        policiesLabel: 'About this list:',
+        workspace: protectedAzureWorkspace,
+      })
+    );
+
+    // Assert
+    expect(screen.getAllByText('Test title')).not.toBeNull();
+    expect(screen.getAllByText('About this list:')).not.toBeNull();
+  });
 });
