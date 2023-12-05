@@ -371,11 +371,7 @@ describe('ImportDataDestination', () => {
       // Arrange
       const user = userEvent.setup();
 
-      asMockedFn(canImportIntoWorkspace).mockImplementation(
-        (_importOptions: ImportOptions, _workspace: WorkspaceWrapper): boolean => {
-          return true;
-        }
-      );
+      asMockedFn(canImportIntoWorkspace).mockReturnValue(true);
 
       setup({
         props: {
