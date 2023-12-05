@@ -144,10 +144,9 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
                       ['Click here for more info on the table.']
                     ),
                   p([
-                    'Data will be saved in location:  ',
+                    'Data will be saved in Terra-managed location:  ',
                     regionFlagToDisplay,
-                    span({ style: { fontWeight: 'bold' } }, regionLabelToDisplay),
-                    ' (Terra-managed).',
+                    span({ style: { marginLeft: '0.25rem', fontWeight: 'bold' } }, regionLabelToDisplay),
                   ]),
                 ]),
                 dataProvider.tsvFeatures.needsTypeInput &&
