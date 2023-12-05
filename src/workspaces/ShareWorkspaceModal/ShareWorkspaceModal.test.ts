@@ -45,7 +45,8 @@ describe('the share workspace modal', () => {
     },
   };
 
-  const policyLabel = 'This workspace has the following:';
+  const defaultPolicyLabel = 'This workspace has the following policy:';
+  const gcpPolicyLabel = 'This workspace has the following:';
 
   const mockAjax = (
     acl: RawWorkspaceAcl,
@@ -218,7 +219,7 @@ describe('the share workspace modal', () => {
         );
       });
       screen.getByText('Policies');
-      screen.getByText(policyLabel);
+      screen.getByText(defaultPolicyLabel);
     });
 
     it('shows a policy section without the Policies title for GCP workspaces that have them', async () => {
@@ -227,16 +228,15 @@ describe('the share workspace modal', () => {
       protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
       await act(async () => {
         render(
-            h(ShareWorkspaceModal, {
-              onDismiss: jest.fn(),
-              workspace: protectedWorkspace,
-            })
+          h(ShareWorkspaceModal, {
+            onDismiss: jest.fn(),
+            workspace: protectedWorkspace,
+          })
         );
       });
       expect(screen.queryByText('Policies')).toBeNull();
-      screen.getByText(policyLabel);
+      screen.getByText(gcpPolicyLabel);
     });
-
 
     it('does not show a policy section for Azure workspaces without them', async () => {
       mockAjax({}, [], [], jest.fn());
@@ -250,7 +250,7 @@ describe('the share workspace modal', () => {
       });
       expect(defaultAzureWorkspace.policies).toEqual([]);
       expect(screen.queryByText('Policies')).toBeNull();
-      expect(screen.queryByText(policyLabel)).toBeNull();
+      expect(screen.queryByText(defaultPolicyLabel)).toBeNull();
     });
   });
 });
