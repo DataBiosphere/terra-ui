@@ -2,7 +2,8 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { Ajax } from 'src/libs/ajax';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
@@ -22,7 +23,23 @@ jest.mock('src/libs/nav', () => ({
   useQueryParameter: jest.requireActual('react').useState,
 }));
 
+const watchCaptureEvent = jest.fn();
+type AjaxContract = ReturnType<typeof Ajax>;
+type AjaxMetricsContract = AjaxContract['Metrics'];
+const mockMetrics: Partial<AjaxMetricsContract> = {
+  captureEvent: (event, details) => watchCaptureEvent(event, details),
+};
+
+const defaultAjaxImpl: Partial<AjaxContract> = {
+  Metrics: mockMetrics as AjaxMetricsContract,
+};
+
 describe('Workflows App Navigation Panel', () => {
+  beforeEach(() => {
+    // Arrange
+    asMockedFn(Ajax).mockReturnValue(defaultAjaxImpl as AjaxContract);
+  });
+
   it('renders headers', async () => {
     const user = userEvent.setup();
 
