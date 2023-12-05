@@ -1,6 +1,6 @@
 import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { CSSProperties, Dispatch, ReactNode, SetStateAction, useEffect, useState } from 'react';
+import { CSSProperties, ReactNode, useEffect, useState } from 'react';
 import { div, h, i, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -34,23 +34,35 @@ const styles: Record<string, CSSProperties> = {
 };
 
 interface WorkspaceTagsProps {
-  namespace: string;
-  name: string;
   workspace: Workspace;
   canEdit: boolean;
-  busy: boolean;
-  setBusy: Dispatch<SetStateAction<boolean>>;
 }
 
 export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
-  const { namespace, name, workspace, canEdit } = props;
+  const { workspace, canEdit } = props;
+  const { namespace, name } = workspace.workspace;
 
-  // State
   const [busy, setBusy] = useState<boolean>(false);
-  const [tagsList, setTagsList] = useState<string[]>();
+  const [tagsList, setTagsList] = useState<string[]>([]);
 
   const persistenceId = `workspaces/${namespace}/${name}/dashboard/tagsPanelOpen`;
 
+  const signal = useCancellation();
+
+  // If the workspace is refreshed via wrapWorkspace, the workspace object will change, triggering this effect
+  // This makes it safe to pull out of the Dashboard 'refresh',
+  // since it is only called via the ref, after refreshWorkspace in wrapWorkspace
+  useEffect(() => {
+    const loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
+      setTagsList(await Ajax(signal).Workspaces.workspace(namespace, name).getTags());
+    });
+    if (workspace.workspaceInitialized) {
+      loadWsTags();
+    }
+  }, [workspace, namespace, name, signal]);
+
+  // it doesn't make sense for us to trigger a workspace refresh when modifying tags,
+  // because they are retrieved separately from the workspace in the first place
   const addTag = _.flow(
     withErrorReporting('Error adding tag'),
     withBusyState(setBusy)
@@ -65,22 +77,6 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
     setTagsList(await Ajax().Workspaces.workspace(namespace, name).deleteTag(tag));
   });
 
-  const signal = useCancellation();
-
-  // If the workspace is refreshed via wrapWorkspace, the workspace object will change, triggering this effect
-  // This makes it safe to pull out of the Dashboard 'refresh',
-  // since it is only called via the ref, after refreshWorkspace in wrapWorkspace
-  useEffect(() => {
-    const loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
-      setTagsList(await Ajax(signal).Workspaces.workspace(namespace, name).getTags());
-    });
-
-    if (name === workspace.workspace.name && namespace === workspace.workspace.namespace) {
-      loadWsTags();
-    }
-  }, [workspace, namespace, name, signal]);
-
-  // Render
   const brand = getEnabledBrand();
 
   return h(
