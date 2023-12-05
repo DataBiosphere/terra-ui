@@ -26,6 +26,7 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import { OAuth2 } from 'src/libs/ajax/OAuth2';
 import { SamResources } from 'src/libs/ajax/SamResources';
 import { Support } from 'src/libs/ajax/Support';
+import { TermsOfService } from 'src/libs/ajax/TermsOfService';
 import { User } from 'src/libs/ajax/User';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import { CromwellApp } from 'src/libs/ajax/workflows-app/CromwellApp';
@@ -602,11 +603,6 @@ const FirecloudBucket = (signal) => ({
     const res = await fetchOk(`${getConfig().firecloudBucketRoot}/template-workspaces.json`, { signal });
     return res.json();
   },
-
-  getTosGracePeriodText: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/tos-grace-period.json`, { signal });
-    return res.json();
-  },
 });
 
 const Methods = (signal) => ({
@@ -723,13 +719,6 @@ const DrsUriResolver = (signal) => ({
   },
 });
 
-const Duos = (signal) => ({
-  getConsent: async (orspId) => {
-    const res = await fetchOrchestration(`/api/duos/consent/orsp/${orspId}`, _.merge(authOpts(), { signal }));
-    return res.json();
-  },
-});
-
 const Surveys = (signal) => ({
   submitForm: (formId, data) => fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal }),
 });
@@ -748,7 +737,6 @@ export const Ajax = (signal) => {
     Disks: Disks(signal),
     Dockstore: Dockstore(signal),
     DrsUriResolver: DrsUriResolver(signal),
-    Duos: Duos(signal),
     FirecloudBucket: FirecloudBucket(signal),
     Groups: Groups(signal),
     Methods: Methods(signal),
@@ -759,6 +747,7 @@ export const Ajax = (signal) => {
     Submissions: Submissions(signal),
     Support: Support(signal),
     Surveys: Surveys(signal),
+    TermsOfService: TermsOfService(signal),
     User: User(signal),
     WorkflowScript: WorkflowScript(signal),
     WorkspaceData: WorkspaceData(signal),

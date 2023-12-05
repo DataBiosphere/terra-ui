@@ -1,17 +1,15 @@
 import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { ComponentPropsWithRef, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
-import { br, div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
+import { PropsWithChildren, ReactNode, Ref, useEffect, useRef, useState } from 'react';
+import { div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
 import AnalysisNotificationManager from 'src/analysis/AnalysisNotificationManager';
 import { ContextBar } from 'src/analysis/ContextBar';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
-import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import TitleBar from 'src/components/TitleBar';
 import TopBar from 'src/components/TopBar';
-import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { withDisplayName } from 'src/libs/react-utils';
@@ -30,11 +28,12 @@ import {
   StorageDetails,
   useWorkspace,
 } from 'src/pages/workspaces/hooks/useWorkspace';
-import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
-import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
-import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import { WorkspaceDeletingBanner } from 'src/pages/workspaces/workspace/WorkspaceDeletingBanner';
 import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
+import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
+import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
+import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
+import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
 
 const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {
@@ -139,27 +138,6 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
         h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [title || `${namespace}/${name}`]),
       ]),
       div({ style: { flexGrow: 1 } }),
-      isTerra() &&
-        h(
-          Link,
-          {
-            href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
-            style: {
-              backgroundColor: colors.light(),
-              borderRadius: 4,
-              margin: '0 0.5rem',
-              padding: '0.4rem 0.8rem',
-              display: 'flex',
-              alignItems: 'center',
-              flexShrink: 0,
-            },
-            ...Utils.newTabLinkProps,
-          },
-          [
-            icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
-            div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools']),
-          ]
-        ),
       h(AnalysisNotificationManager, { namespace, name, runtimes, apps }),
     ]),
     h(WorkspaceTabs, {
@@ -258,37 +236,47 @@ const WorkspaceAccessError = () => {
   ]);
 };
 
-interface WrapWorkspaceProps {
+export interface WrapWorkspaceOptions {
   breadcrumbs: (props: { name: string; namespace: string }) => ReactNode[];
   activeTab?: string;
   title: string;
 }
 
-interface WrappedComponentProps extends ComponentPropsWithRef<any> {
+export interface WrappedComponentProps {
+  ref: Ref<{ refresh: () => void }>;
+  namespace: string;
+  name: string;
   workspace: Workspace;
   refreshWorkspace: () => void;
   analysesData: AppDetails & CloudEnvironmentDetails;
   storageDetails: StorageDetails;
 }
 
-type WrappedWorkspaceComponent<T extends WrappedComponentProps> = (props: T) => ReactNode;
+export type WrappedWorkspaceComponent = (props: WrappedComponentProps) => ReactNode;
 
-type WorkspaceWrapperFunction<T extends WrappedComponentProps> = (
-  component: WrappedWorkspaceComponent<T>
-) => WrappedWorkspaceComponent<T>;
+export interface WorkspaceWrapperProps {
+  namespace: string;
+  name: string;
+}
+
+export type WorkspaceWrapperComponent = (props: WorkspaceWrapperProps) => ReactNode;
+
+export type WrapWorkspaceFn = (WrappedComponent: WrappedWorkspaceComponent) => WorkspaceWrapperComponent;
 
 /**
- * wrapWorkspaces contains a component in the WorkspaceContainer
- * and provides the workspace analysesData and storageDetails
- * */
-export const wrapWorkspace = <T extends WrappedComponentProps>(
-  props: WrapWorkspaceProps
-): WorkspaceWrapperFunction<T> => {
-  const { breadcrumbs, activeTab, title } = props;
-  return (WrappedComponent: WrappedWorkspaceComponent<T>): WrappedWorkspaceComponent<T> => {
-    const Wrapper = (props) => {
+ * Wrap a component in the workspace-specific page UI (the main layout and workspace tabs).
+ *
+ * @returns A {@link https://legacy.reactjs.org/docs/higher-order-components.html higher order component} that
+ * takes a component and wraps it with {@link WorkspaceContainer}. The returned wrapper component accepts a workspace
+ * namespace and name as props. It loads information about the workspace and passes that information, along with
+ * the namespace and name, to the wrapped component.
+ */
+export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
+  const { breadcrumbs, activeTab, title } = opts;
+  return (WrappedComponent: WrappedWorkspaceComponent): WorkspaceWrapperComponent => {
+    const Wrapper = (props: WorkspaceWrapperProps): ReactNode => {
       const { namespace, name } = props;
-      const child = useRef<unknown>();
+      const child = useRef<{ refresh: () => void } | null>(null);
 
       const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace } = useWorkspace(
         namespace,

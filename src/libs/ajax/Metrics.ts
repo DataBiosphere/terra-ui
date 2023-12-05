@@ -6,19 +6,20 @@ import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring } from 'src/libs/error';
 import { MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { AuthState, authStore, getSessionId, getTerraUser } from 'src/libs/state';
+import { authStore, getSessionId, getTerraUser, MetricState, metricStore } from 'src/libs/state';
 import { v4 as uuid } from 'uuid';
 
 export const Metrics = (signal?: AbortSignal) => {
   const captureEventFn = async (event: MetricsEventName, details: Record<string, any> = {}): Promise<void> => {
     await ensureAuthSettled();
-    const state: AuthState = authStore.get();
-    const isRegistered = state.registrationStatus === 'registered';
+    const metricState: MetricState = metricStore.get();
+    const { signInStatus } = authStore.get();
+    const isRegistered = signInStatus === 'userLoaded';
     // If a user has not logged in, or has logged in but has not registered, ensure an anonymous ID has been generated.
     // The anonymous ID is used to associate events triggered by the anonymous user.
     // If the anonymous user registers during this session, the anonymous ID will be linked to their actual user ID.
-    if (!isRegistered && state.anonymousId === undefined) {
-      authStore.update((oldState: AuthState) => ({
+    if (!isRegistered && metricState.anonymousId === undefined) {
+      metricStore.update((oldState: MetricState) => ({
         ...oldState,
         anonymousId: uuid(),
       }));
@@ -30,7 +31,7 @@ export const Metrics = (signal?: AbortSignal) => {
 
     const { buildTimestamp, gitRevision, terraDeploymentEnv } = getConfig();
     const signedInProps =
-      state.signInStatus === 'signedIn'
+      isRegistered || signInStatus === 'authenticated'
         ? {
             authProvider: getTerraUser().idp,
           }
@@ -45,7 +46,7 @@ export const Metrics = (signal?: AbortSignal) => {
         appVersion: gitRevision,
         appVersionBuildTime: new Date(buildTimestamp).toISOString(),
         // Users who have not registered are considered anonymous users. Send an anonymized distinct_id in that case; otherwise the user identity is captured via the auth token.
-        distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
+        distinct_id: isRegistered ? undefined : metricStore.get().anonymousId,
         env: terraDeploymentEnv,
         hostname: window.location.hostname,
         sessionId: getSessionId(),

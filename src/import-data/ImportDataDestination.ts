@@ -11,14 +11,13 @@ import {
   RadioButton,
   spinnerOverlay,
 } from 'src/components/common';
-import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { WorkspaceSelector } from 'src/components/workspace-utils';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import colors from 'src/libs/colors';
-import { FormLabel } from 'src/libs/forms';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
+import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
@@ -84,6 +83,8 @@ const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
   );
 };
 
+export const selectExistingWorkspacePrompt = 'Select an existing workspace';
+
 export interface ImportDataDestinationProps {
   importRequest: ImportRequest;
   initialSelectedWorkspaceId: string | undefined;
@@ -107,11 +108,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
 
   const isProtectedData = isProtectedSource(importRequest);
   const requiredCloudPlatform = getCloudPlatformRequiredForImport(importRequest);
-
-  // There is not yet a way to create a protected Azure via Terra UI.
-  // Thus, there is no way to create a new workspace that satisfies the requirements
-  // for a protected Azure snapshot.
-  const canUseNewWorkspace = !(isProtectedData && requiredCloudPlatform === 'AZURE');
 
   // Some import types are finished in a single request.
   // For most though, the import request starts a background task that takes time to complete.
@@ -176,8 +172,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     : [];
   const canUseTemplateWorkspace = filteredTemplates.length > 0;
 
-  const importMayTakeTimeMessage =
-    'Note that the import process may take some time after you are redirected into your destination workspace.';
+  const importMayTakeTimeMessage = p([
+    'Note that the import process may take some time after you are redirected into your destination workspace.',
+  ]);
 
   const linkAccountPrompt = () => {
     return div({}, [
@@ -204,15 +201,14 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
 
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
-      h2({ style: styles.title }, ['Start with an existing workspace']),
+      h2({ style: styles.title }, [selectExistingWorkspacePrompt]),
       isProtectedData &&
-        div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
+        div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem', lineHeight: '1.5' } }, [
           ' You may only import into workspaces that have additional security monitoring enabled.',
         ]),
       h(IdContainer, [
         (id) =>
           h(Fragment, [
-            h(FormLabel, { htmlFor: id, style: { marginBottom: '0.25rem' } }, ['Select one of your workspaces']),
             // @ts-expect-error
             h(WorkspaceSelector, {
               id,
@@ -241,7 +237,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
 
   const renderSelectTemplateWorkspace = () =>
     h(Fragment, [
-      h2({ style: styles.title }, ['Start with a template']),
+      h2({ style: styles.title }, ['Select a template']),
       importMayTakeTime && div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
       div(
         {
@@ -327,13 +323,13 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               h(ChoiceButton, {
                 onClick: () => setMode('template'),
                 iconName: 'copySolid',
-                title: 'Start with a template',
+                title: 'Select a template',
                 detail: 'Clone from one of our template workspaces that has analyses ready for use',
               }),
             h(ChoiceButton, {
               onClick: () => setMode('existing'),
               iconName: 'fileSearchSolid',
-              title: 'Start with an existing workspace',
+              title: selectExistingWorkspacePrompt,
               detail: 'Select one of your workspaces',
               disabled: !userHasBillingProjects || disableExportIntoExisting,
               tooltip:
@@ -341,20 +337,27 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                   ? 'No existing protected workspace is present.'
                   : undefined,
             }),
-            canUseNewWorkspace &&
-              h(ChoiceButton, {
-                onClick: () => setIsCreateOpen(true),
-                iconName: 'plus-circle',
-                title: 'Start with a new workspace',
-                detail: 'Set up an empty workspace that you will configure for analysis',
-                'aria-haspopup': 'dialog',
-                disabled: !userHasBillingProjects,
-              }),
+            h(ChoiceButton, {
+              onClick: () => setIsCreateOpen(true),
+              iconName: 'plus-circle',
+              title: 'Create a new workspace',
+              detail: 'Set up an empty workspace that you will configure for analysis',
+              'aria-haspopup': 'dialog',
+              disabled: !userHasBillingProjects,
+            }),
             isCreateOpen &&
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
                 cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
-                customMessage: importMayTakeTime && importMayTakeTimeMessage,
+                renderNotice: ({ selectedBillingProject }) =>
+                  h(Fragment, [
+                    isProtectedData &&
+                      selectedBillingProject?.cloudPlatform === 'AZURE' &&
+                      p([
+                        'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
+                      ]),
+                    importMayTakeTime && importMayTakeTimeMessage,
+                  ]),
                 requireEnhancedBucketLogging: isProtectedData,
                 waitForServices: {
                   wds: true,
@@ -378,7 +381,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         // This modal can only be opened if selectedTemplateWorkspaceKey is set.
         title: `Clone ${selectedTemplateWorkspaceKey!.name} and Import Data`,
         buttonText: 'Clone and Import',
-        customMessage: importMayTakeTime && importMayTakeTimeMessage,
+        renderNotice: () => importMayTakeTime && importMayTakeTimeMessage,
         onDismiss: () => setIsCloneOpen(false),
         onSuccess: (w) => {
           setMode('existing');

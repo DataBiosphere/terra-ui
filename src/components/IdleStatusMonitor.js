@@ -8,7 +8,7 @@ import Modal from 'src/components/Modal';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useCurrentTime, useOnMount, useStore } from 'src/libs/react-utils';
-import { authStore, getTerraUser, lastActiveTimeStore } from 'src/libs/state';
+import { authStore, getTerraUser, lastActiveTimeStore, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 const displayRemainingTime = (remainingSeconds) => {
@@ -39,11 +39,10 @@ const IdleStatusMonitor = ({ timeout = Utils.durationToMillis({ minutes: 15 }), 
   // State
   const [signOutRequired, setSignOutRequired] = useState(false);
 
+  const { signInStatus, isTimeoutEnabled } = useStore(authStore);
   const {
-    signInStatus,
-    isTimeoutEnabled,
     terraUser: { id },
-  } = useStore(authStore);
+  } = useStore(userStore);
   const { query } = Nav.useRoute();
 
   // Helpers
@@ -61,10 +60,10 @@ const IdleStatusMonitor = ({ timeout = Utils.durationToMillis({ minutes: 15 }), 
 
   // Render
   return Utils.cond(
-    [signInStatus === 'signedIn' && isTimeoutEnabled, () => h(InactivityTimer, { id, timeout, countdownStart, doSignOut })],
+    [signInStatus === 'authenticated' && isTimeoutEnabled, () => h(InactivityTimer, { id, timeout, countdownStart, doSignOut })],
     [signOutRequired, () => iframe({ onLoad: reloadSoon, style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })],
     [
-      query?.sessionExpired && signInStatus !== 'signedIn',
+      query?.sessionExpired && signInStatus !== 'authenticated',
       () =>
         h(
           Modal,

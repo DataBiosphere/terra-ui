@@ -1,9 +1,10 @@
 import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { authStore } from 'src/libs/state';
+import { userStore } from 'src/libs/state';
 import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceNotifications';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -24,8 +25,19 @@ describe('WorkspaceNotifications', () => {
     },
   };
 
+  beforeEach(() => {
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          TermsOfService: {
+            getUserTermsOfServiceDetails: jest.fn().mockResolvedValue({}),
+          } as Partial<AjaxContract['TermsOfService']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+  });
+
   afterEach(() => {
-    authStore.reset();
+    userStore.reset();
     jest.resetAllMocks();
   });
 
@@ -52,7 +64,7 @@ describe('WorkspaceNotifications', () => {
     },
   ])('renders checkbox with submission notifications status', ({ profile, expectedState }) => {
     // @ts-expect-error
-    authStore.update((state) => ({ ...state, profile }));
+    act(() => userStore.update((state) => ({ ...state, profile })));
 
     const { getByLabelText } = render(h(WorkspaceNotifications, { workspace: testWorkspace }));
     const submissionNotificationsCheckbox = getByLabelText('Receive submission notifications');
@@ -71,15 +83,22 @@ describe('WorkspaceNotifications', () => {
           } as Partial<AjaxContract['Metrics']>,
           User: {
             getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
+            getUserAllowances: jest.fn().mockResolvedValue({
+              allowed: true,
+              details: { enabled: true, termsOfService: true },
+            }),
             profile: {
               get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
               setPreferences,
             } as Partial<AjaxContract['User']['profile']>,
           } as Partial<AjaxContract['User']>,
+          TermsOfService: {
+            getUserTermsOfServiceDetails: jest.fn().mockResolvedValue({}),
+          } as Partial<AjaxContract['TermsOfService']>,
         } as Partial<AjaxContract> as AjaxContract)
     );
 
-    authStore.update((state) => ({
+    userStore.update((state) => ({
       ...state,
       profile: {
         // @ts-expect-error
@@ -102,7 +121,7 @@ describe('WorkspaceNotifications', () => {
 
   it('has no accessibility errors', async () => {
     // Arrange
-    authStore.update((state) => ({
+    userStore.update((state) => ({
       ...state,
       profile: {
         // @ts-expect-error

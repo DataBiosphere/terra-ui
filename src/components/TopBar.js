@@ -24,7 +24,7 @@ import { FormLabel } from 'src/libs/forms';
 import { topBarLogo } from 'src/libs/logos';
 import * as Nav from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
-import { authStore, contactUsActive } from 'src/libs/state';
+import { authStore, contactUsActive, userStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
@@ -178,6 +178,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
   const [openFirecloudModal, setOpenFirecloudModal] = useState(false);
 
   const authState = useStore(authStore);
+  const userState = useStore(userStore);
 
   const showNav = () => {
     setNavShown(true);
@@ -196,10 +197,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
   };
 
   const buildNav = (transitionState) => {
+    const { signInStatus } = authState;
     const {
-      signInStatus,
       profile: { firstName = 'Loading...', lastName = '' },
-    } = authState;
+    } = userState;
 
     return h(
       FocusTrap,
@@ -223,7 +224,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                 style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 },
               },
               [
-                signInStatus === 'signedIn'
+                signInStatus === 'userLoaded' || signInStatus === 'authenticated'
                   ? h(
                       DropDownSection,
                       {
@@ -464,22 +465,12 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                     ),
                   ]
                 ),
-                isTerra() &&
-                  h(
-                    NavSection,
-                    {
-                      href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
-                      onClick: hideNav,
-                      ...Utils.newTabLinkProps,
-                    },
-                    [icon('virus', { size: 24, style: styles.nav.icon }), 'COVID-19 Data & Tools']
-                  ),
                 isFirecloud() &&
                   h(
                     NavSection,
                     {
-                      disabled: signInStatus !== 'signedIn',
-                      tooltip: signInStatus === 'signedIn' ? undefined : 'Please sign in',
+                      disabled: signInStatus !== 'userLoaded',
+                      tooltip: signInStatus === 'userLoaded' ? undefined : 'Please sign in',
                       onClick: () => {
                         hideNav();
                         setOpenFirecloudModal(true);
@@ -585,11 +576,11 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                       style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
                       onClick: navShown ? hideNav : showNav,
                       'aria-expanded': navShown,
+                      'aria-label': 'Toggle main menu',
                     },
                     [
                       icon('bars', {
-                        'aria-label': 'Toggle main menu',
-                        'aria-hidden': false,
+                        'aria-hidden': true,
                         size: 36,
                         style: {
                           color: isTerra() ? 'white' : colors.accent(),
@@ -629,7 +620,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               openFirecloudModal &&
                 h(PreferFirecloudModal, {
                   onDismiss: () => setOpenFirecloudModal(false),
-                  authState,
                 }),
             ]
           ),
@@ -647,7 +637,7 @@ const PreferFirecloudModal = ({ onDismiss }) => {
 
   const {
     profile: { email, firstName, lastName },
-  } = useStore(authStore);
+  } = useStore(userStore);
   const currUrl = window.location.href;
 
   const returnToLegacyFC = _.flow(

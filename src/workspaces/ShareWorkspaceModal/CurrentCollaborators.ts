@@ -1,10 +1,10 @@
 import _ from 'lodash/fp';
 import React, { CSSProperties, Dispatch, Fragment, SetStateAction, useLayoutEffect, useRef } from 'react';
-import { div, h, h2 } from 'react-hyperscript-helpers';
+import { div, h } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
 import { BaseWorkspace } from 'src/libs/workspace-utils';
-import { Collaborator } from 'src/pages/workspaces/workspace/ShareWorkspaceModal/Collaborator';
 import { aclEntryIsTerraSupport, WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
+import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
 
 /**
  * Render a list of Collaborators of a workspace, and allow them to be modified or removed.
@@ -31,7 +31,7 @@ export const CurrentCollaborators: React.FC<CurrentCollaboratorsProps> = (props:
   }, [props.lastAddedEmail]);
 
   return h(Fragment, [
-    h2({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Current Collaborators']),
+    div({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Current Collaborators']),
 
     div({ ref: list, role: 'list', style: styles }, [
       h(

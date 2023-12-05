@@ -5,13 +5,14 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
+import { ENABLE_AZURE_PFB_IMPORT, ENABLE_AZURE_TDR_IMPORT } from 'src/libs/feature-previews-config';
 import { useRoute } from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportDataContainer } from './ImportData';
+import { selectExistingWorkspacePrompt } from './ImportDataDestination';
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
 
@@ -136,7 +137,7 @@ const setup = async (opts: SetupOptions) => {
   });
 
   const importTdr = jest.fn().mockResolvedValue(undefined);
-  const startImportJob = jest.fn().mockResolvedValue(undefined);
+  const startImportJob = jest.fn().mockResolvedValue({ jobId: 'new-job' });
 
   const wdsProxyUrl = 'https://proxyurl';
   const mockAjax: DeepPartial<AjaxContract> = {
@@ -198,7 +199,7 @@ const setup = async (opts: SetupOptions) => {
 };
 
 const importIntoExistingWorkspace = async (user: UserEvent, workspaceName: string): Promise<void> => {
-  const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
+  const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
   await user.click(existingWorkspace);
 
   const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
@@ -355,6 +356,10 @@ describe('ImportData', () => {
       it('imports snapshots into Azure workspaces', async () => {
         // Arrange
         const user = userEvent.setup();
+
+        asMockedFn(isFeaturePreviewEnabled).mockImplementation(
+          (featurePreview) => featurePreview === ENABLE_AZURE_TDR_IMPORT
+        );
 
         const queryParams = {
           ...commonSnapshotExportQueryParams,
