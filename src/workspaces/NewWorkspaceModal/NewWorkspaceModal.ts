@@ -560,7 +560,7 @@ const NewWorkspaceModal = withDisplayName(
                               h(
                                 LabeledCheckbox,
                                 {
-                                  style: { margin: '0rem 0.25rem 0.25rem 0' },
+                                  style: { marginRight: '0.25rem' },
                                   checked: enhancedBucketLogging,
                                   disabled: !!requireEnhancedBucketLogging || groups.length > 0,
                                   onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
