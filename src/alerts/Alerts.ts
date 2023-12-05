@@ -13,6 +13,7 @@ import { useTermsOfServiceAlerts } from 'src/registration/terms-of-service/terms
 
 import { Alert as AlertType } from './Alert';
 import { useServiceAlerts } from './service-alerts';
+import { useVersionAlerts } from './version-alerts';
 
 interface AlertProps {
   alert: AlertType;
@@ -113,7 +114,12 @@ export const AlertsIndicator = (props: AlertsIndicatorProps): ReactNode => {
   const [open, setOpen] = useState(false);
   const [animating, setAnimating] = useState(false);
 
-  const alerts: AlertType[] = [...useServiceAlerts(), ...useLinkExpirationAlerts(), ...useTermsOfServiceAlerts()];
+  const alerts: AlertType[] = [
+    ...useVersionAlerts(),
+    ...useServiceAlerts(),
+    ...useLinkExpirationAlerts(),
+    ...useTermsOfServiceAlerts(),
+  ];
 
   const previousAlertIds = usePrevious(_.map('id', alerts)) || [];
   const hasNewAlerts = _.size(_.difference(_.map('id', alerts), previousAlertIds)) > 0;
