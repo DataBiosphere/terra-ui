@@ -5,33 +5,41 @@ import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown';
+import { Ajax } from 'src/libs/ajax';
+import { reportError } from 'src/libs/error';
 import * as Style from 'src/libs/style';
+import { withBusyState } from 'src/libs/utils';
 import { canEditWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
 interface WorkspaceDescriptionProps {
   workspace: Workspace;
-  save: (description?: string) => Promise<void>;
-  saving: boolean;
+  refreshWorkspace: () => void;
 }
 
 export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNode => {
-  const { workspace, save, saving } = props;
+  const { workspace, refreshWorkspace } = props;
 
   const description = workspace.workspace?.attributes?.description?.toString() ?? '';
 
   const [editDescription, setEditDescription] = useState<string>();
+  const [saving, setSaving] = useState<boolean>(false);
+
   const isEditing = _.isString(editDescription);
 
   // @ts-expect-error
   const { value: canEdit, message: editErrorMessage } = canEditWorkspace(workspace);
 
-  const onSave = async () => {
+  const save = withBusyState(setSaving, async (): Promise<void> => {
     try {
-      await save(editDescription);
+      const { namespace, name } = workspace.workspace;
+      await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description: editDescription });
+      refreshWorkspace();
+    } catch (error) {
+      reportError('Error saving workspace', error);
     } finally {
       setEditDescription(undefined);
     }
-  };
+  }) as (description?: string) => Promise<void>;
 
   return h(Fragment, [
     div({ style: Style.dashboard.header }, [
@@ -61,7 +69,7 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
             }),
             div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
               h(ButtonSecondary, { onClick: () => setEditDescription(undefined) }, ['Cancel']),
-              h(ButtonPrimary, { style: { marginLeft: '1rem' }, onClick: onSave }, ['Save']),
+              h(ButtonPrimary, { style: { marginLeft: '1rem' }, onClick: () => save }, ['Save']),
             ]),
             saving && spinnerOverlay,
           ]),

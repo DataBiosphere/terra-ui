@@ -41,8 +41,7 @@ describe('WorkspaceDescription', () => {
     const description = 'this is a very descriptive decription';
     const props = {
       workspace: _.merge(defaultGoogleWorkspace, { workspace: { attributes: { description } } }),
-      save: jest.fn(),
-      saving: false,
+      refreshWorkspace: jest.fn(),
     };
 
     // Act
@@ -58,8 +57,7 @@ describe('WorkspaceDescription', () => {
     asMockedFn(canEditWorkspace).mockReturnValue({ value: true });
     const props = {
       workspace: _.merge(defaultGoogleWorkspace, { workspace: { attributes: { description: undefined } } }),
-      save: jest.fn(),
-      saving: false,
+      refreshWorkspace: jest.fn(),
     };
 
     // Act
@@ -74,8 +72,7 @@ describe('WorkspaceDescription', () => {
     asMockedFn(canEditWorkspace).mockReturnValue({ value: true });
     const props = {
       workspace: _.merge(defaultGoogleWorkspace, { workspace: { attributes: { description: undefined } } }),
-      save: jest.fn(),
-      saving: false,
+      refreshWorkspace: jest.fn(),
     };
 
     // Act
@@ -100,8 +97,7 @@ describe('WorkspaceDescription', () => {
     const description = 'this is a very descriptive decription';
     const props = {
       workspace: _.merge(defaultGoogleWorkspace, { workspace: { attributes: { description } } }),
-      save: jest.fn(),
-      saving: false,
+      refreshWorkspace: jest.fn(),
     };
 
     // Act

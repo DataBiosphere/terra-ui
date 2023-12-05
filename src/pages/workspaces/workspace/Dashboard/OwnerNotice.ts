@@ -1,22 +1,43 @@
 import { cond, DEFAULT } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
-import { isOwner, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
+import { withErrorReporting } from 'src/libs/error';
+import { useCancellation } from 'src/libs/react-utils';
+import { isOwner } from 'src/libs/workspace-utils';
+import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
 
 import { WorkspaceAcl } from '../WorkspaceAcl';
 
 interface OwnerNoticeProps {
-  owners: string[];
-  accessLevel: WorkspaceAccessLevel;
-  acl?: WorkspaceAcl;
+  workspace: Workspace;
 }
 
 export const OwnerNotice = (props: OwnerNoticeProps): ReactNode => {
-  const { owners, accessLevel, acl } = props;
+  const { workspace } = props;
+  const { owners = [], accessLevel } = workspace;
+
+  const [acl, setAcl] = useState<WorkspaceAcl>();
+
+  const signal = useCancellation();
+
+  useEffect(() => {
+    const { namespace, name } = workspace.workspace;
+    const loadAcl = withErrorReporting('Error loading ACL', async () => {
+      const { acl } = await Ajax(signal).Workspaces.workspace(namespace, name).getAcl();
+      setAcl(acl);
+    });
+
+    // If the current user is the only owner of the workspace, load the ACL to check if the workspace is shared.
+    if (workspace.workspaceInitialized && isOwner(accessLevel) && _.size(owners) === 1) {
+      loadAcl();
+    }
+  }, [workspace, owners, accessLevel, signal]);
+
   return cond(
     // No warning if there are multiple owners.
     [_.size(owners) !== 1, () => null],
