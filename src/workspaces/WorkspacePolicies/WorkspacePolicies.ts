@@ -1,6 +1,5 @@
 import { InfoBox } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import pluralize from 'pluralize';
 import { CSSProperties, ReactNode } from 'react';
 import { div, h, li, ul } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
@@ -15,9 +14,7 @@ type WorkspacePoliciesProps = {
 
 export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
   const policyDescriptions = getPolicyDescriptions(props.workspace);
-  const description = props.policiesLabel
-    ? props.policiesLabel
-    : `This workspace has the following ${pluralize('policy', policyDescriptions.length)}:`;
+  const description = props.policiesLabel ? props.policiesLabel : 'This workspace has the following:';
 
   if (policyDescriptions.length > 0) {
     return div({ style: props.style }, [

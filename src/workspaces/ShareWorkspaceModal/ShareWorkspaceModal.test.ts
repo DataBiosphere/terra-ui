@@ -7,7 +7,7 @@ import { getTerraUser } from 'src/libs/state';
 import { GoogleWorkspace } from 'src/libs/workspace-utils';
 import { AccessEntry, RawWorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
-import { defaultAzureWorkspace, protectedAzureWorkspace } from 'src/testing/workspace-fixtures';
+import { defaultAzureWorkspace, defaultGoogleWorkspace, protectedAzureWorkspace } from 'src/testing/workspace-fixtures';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
 
 jest.mock('src/libs/state', () => ({
@@ -44,6 +44,8 @@ describe('the share workspace modal', () => {
       lastModified: '',
     },
   };
+
+  const policyLabel = 'This workspace has the following:';
 
   const mockAjax = (
     acl: RawWorkspaceAcl,
@@ -204,8 +206,8 @@ describe('the share workspace modal', () => {
     expect(errorMessage).not.toBeNull();
   });
 
-  describe('the policy section for sharing protected azure data', () => {
-    it('shows a policy section for workspaces that have them', async () => {
+  describe('the policy section for sharing workspaces', () => {
+    it('shows a policy section for Azure workspaces that have them', async () => {
       mockAjax({}, [], [], jest.fn());
       await act(async () => {
         render(
@@ -216,9 +218,27 @@ describe('the share workspace modal', () => {
         );
       });
       screen.getByText('Policies');
+      screen.getByText(policyLabel);
     });
 
-    it('does not show a policy section for workspaces without them', async () => {
+    it('shows a policy section without the Policies title for GCP workspaces that have them', async () => {
+      mockAjax({}, [], [], jest.fn());
+      const protectedWorkspace = { ...defaultGoogleWorkspace };
+      protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
+      await act(async () => {
+        render(
+            h(ShareWorkspaceModal, {
+              onDismiss: jest.fn(),
+              workspace: protectedWorkspace,
+            })
+        );
+      });
+      expect(screen.queryByText('Policies')).toBeNull();
+      screen.getByText(policyLabel);
+    });
+
+
+    it('does not show a policy section for Azure workspaces without them', async () => {
       mockAjax({}, [], [], jest.fn());
       await act(async () => {
         render(
@@ -230,6 +250,7 @@ describe('the share workspace modal', () => {
       });
       expect(defaultAzureWorkspace.policies).toEqual([]);
       expect(screen.queryByText('Policies')).toBeNull();
+      expect(screen.queryByText(policyLabel)).toBeNull();
     });
   });
 });

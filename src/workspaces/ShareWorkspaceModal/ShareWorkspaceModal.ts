@@ -187,7 +187,11 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       ]),
       searchValueValid && !searchHasFocus && p([addUserReminder]),
       h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
-      h(WorkspacePolicies, { workspace, title: 'Policies', style: { marginBottom: '1.5rem' } }),
+      h(WorkspacePolicies, {
+        workspace,
+        title: isAzureWorkspace(workspace) ? 'Policies' : undefined,
+        style: { marginTop: '1.0rem', marginBottom: '1.5rem' },
+      }),
       !loaded && centeredSpinner(),
       updateError && div({ style: { marginTop: '1rem' } }, [div(['An error occurred:']), updateError]),
       div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [

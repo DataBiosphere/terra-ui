@@ -87,6 +87,9 @@ describe('NewWorkspaceModal', () => {
     return availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
   };
 
+  const additionalSecurityMonitoring = 'Enable additional security monitoring';
+  const clonePolicyLabel = 'The cloned workspace will inherit:';
+
   it('shows a message if there are no billing projects to use for creation', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(
@@ -400,7 +403,7 @@ describe('NewWorkspaceModal', () => {
     expect(await getAvailableBillingProjects(user)).toEqual(['Protected Azure Billing Project']);
   });
 
-  it('Shows a policy section when cloning a workspace with polices', async () => {
+  it('Shows a policy section when cloning an Azure workspace with polices', async () => {
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -424,9 +427,10 @@ describe('NewWorkspaceModal', () => {
 
     // Assert
     screen.getByText('Policies');
+    screen.getByText(clonePolicyLabel);
   });
 
-  it('Does not show a policy section when cloning a workspace without polices', async () => {
+  it('Does not show a policy section when cloning an Azure workspace without polices', async () => {
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -450,6 +454,45 @@ describe('NewWorkspaceModal', () => {
 
     // Assert
     expect(screen.queryByText('Policies')).toBeNull();
+    expect(screen.queryByText(clonePolicyLabel)).toBeNull();
+  });
+
+  it('Does not show a policy section when cloning a protected GCP workspace', async () => {
+    // Arrange
+    const protectedWorkspace = { ...defaultGoogleWorkspace };
+    protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Workspaces: {
+            workspace: () => ({
+              checkBucketLocation: jest.fn().mockResolvedValue({
+                location: 'US-CENTRAL1',
+                locationType: 'location-type',
+              }),
+            }),
+          },
+          Billing: {
+            listProjects: async () => [gcpBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: protectedWorkspace,
+          onDismiss: () => {},
+          onSuccess: () => {},
+        })
+      );
+    });
+
+    // Assert
+    expect(screen.queryByText('Policies')).toBeNull();
+    expect(screen.queryByText(clonePolicyLabel)).toBeNull();
   });
 
   it('Hides azure billing projects if part of workflow import', async () => {
@@ -526,7 +569,7 @@ describe('NewWorkspaceModal', () => {
     ).toBeNull();
   });
 
-  it('shows an option for "Workspace will have protected data" (enhanced bucket logging) if a Google billing project is selected', async () => {
+  it('shows an option for "Additional security monitoring" if a Google billing project is selected', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -558,11 +601,11 @@ describe('NewWorkspaceModal', () => {
     // Assert
     // getByText throws an error if the element is not found:
     const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toHaveAccessibleName('Workspace will have protected data');
+    expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
     expect(checkbox).not.toHaveAttribute('disabled');
   });
 
-  it('does not show an option for "Workspace will have protected data" (enhanced bucket logging) if an Azure billing project is selected', async () => {
+  it('does not show an option for "Additional security monitoring" if an Azure billing project is selected', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -592,10 +635,10 @@ describe('NewWorkspaceModal', () => {
     await user.click(azureBillingProject1);
 
     // Assert
-    expect(screen.queryByText('Workspace will have protected data')).toBeNull();
+    expect(screen.queryByText(additionalSecurityMonitoring)).toBeNull();
   });
 
-  it('does not let the user uncheck "Workspace will have protected data" (enhanced bucket logging) if its required', async () => {
+  it('does not let the user uncheck "Additional security monitoring" if its required', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -627,11 +670,11 @@ describe('NewWorkspaceModal', () => {
 
     // Assert
     const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toHaveAccessibleName('Workspace will have protected data');
+    expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
     expect(checkbox).toHaveAttribute('disabled');
   });
 
-  it('checks and disables "Workspace will have protected data" (enhanced bucket logging) if an auth domain is chosen', async () => {
+  it('checks and disables "Additional security monitoring" if an auth domain is chosen', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -668,7 +711,7 @@ describe('NewWorkspaceModal', () => {
 
     // Assert
     const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toHaveAccessibleName('Workspace will have protected data');
+    expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
     expect(checkbox).toHaveAttribute('disabled');
     expect(checkbox).toBeChecked();
   });
