@@ -5,8 +5,10 @@ import { AnalysesData } from 'src/analysis/Analyses';
 import Collapse from 'src/components/Collapse';
 import { Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
+import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useQueryParameter } from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -88,6 +90,8 @@ export const WorkflowsAppNavPanel = ({
 }: WorkflowsAppNavPanelProps) => {
   const [selectedSubHeader, setSelectedSubHeader] = useQueryParameter('tab');
 
+  const { captureEvent } = useMetricsEvent();
+
   useEffect(() => {
     if (
       !(selectedSubHeader in subHeadersMap || (workspace.canCompute && selectedSubHeader in findAndAddSubheadersMap))
@@ -97,6 +101,8 @@ export const WorkflowsAppNavPanel = ({
   }, [workspace, selectedSubHeader, setSelectedSubHeader]);
 
   const isSubHeaderActive = (subHeader: string) => pageReady && selectedSubHeader === subHeader;
+
+  captureEvent(Events.workflowsTabView, { ...extractWorkspaceDetails({ namespace, name }), tab: selectedSubHeader });
 
   return div({ style: { display: 'flex', flex: 1, height: 'calc(100% - 66px)', position: 'relative' } }, [
     div(
