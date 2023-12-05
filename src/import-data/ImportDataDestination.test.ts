@@ -2,11 +2,11 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { CloudProvider, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { CloudProvider, WorkspacePolicy, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { BillingProject } from 'src/pages/billing/models/BillingProject';
 import { azureProtectedDataBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
-import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { makeAzureWorkspace, makeGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
@@ -352,6 +352,120 @@ describe('ImportDataDestination', () => {
     const isNoticeShown = !!notice;
     expect(isNoticeShown).toBe(shouldShowNotice);
   });
+
+  it.each([
+    {
+      importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+      shouldShowAdditionalAccessControlNotice: true,
+    },
+    {
+      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      shouldShowAdditionalAccessControlNotice: false,
+    },
+  ] as {
+    importRequest: ImportRequest;
+    shouldShowAdditionalAccessControlNotice: boolean;
+  }[])(
+    'displays additional access controls message when importing protected data',
+    async ({ importRequest, shouldShowAdditionalAccessControlNotice }) => {
+      // Arrange
+      const user = userEvent.setup();
+
+      asMockedFn(canImportIntoWorkspace).mockImplementation(
+        (_importOptions: ImportOptions, _workspace: WorkspaceWrapper): boolean => {
+          return true;
+        }
+      );
+
+      setup({
+        props: {
+          importRequest,
+        },
+        workspaces: [
+          makeAzureWorkspace({
+            workspace: {
+              name: 'workspace-name',
+            },
+          }),
+        ],
+      });
+
+      // Act
+      const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+      await user.click(existingWorkspaceButton);
+
+      const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
+      screen.debug();
+
+      await workspaceSelect.selectOption(new RegExp('workspace-name'));
+
+      // Assert
+      const importNoticeHeader = screen.queryByText('Importing this data may add:', {
+        exact: false,
+      });
+
+      const accessControlNotice = screen.queryByText('Additional access controls', { exact: false });
+
+      expect(!!importNoticeHeader).toEqual(shouldShowAdditionalAccessControlNotice);
+      expect(!!accessControlNotice).toEqual(shouldShowAdditionalAccessControlNotice);
+    }
+  );
+
+  it.each([
+    {
+      policies: [],
+      shouldDisplayPolicies: false,
+    },
+    {
+      policies: [protectedDataPolicy],
+      shouldDisplayPolicies: true,
+    },
+  ] as {
+    policies: WorkspacePolicy[];
+    shouldDisplayPolicies: boolean;
+  }[])(
+    'displays workspace policies on import if present on target workspace',
+    async ({ policies, shouldDisplayPolicies }) => {
+      // Arrange
+      const user = userEvent.setup();
+
+      asMockedFn(canImportIntoWorkspace).mockImplementation(
+        (_importOptions: ImportOptions, _workspace: WorkspaceWrapper): boolean => {
+          return true;
+        }
+      );
+
+      setup({
+        props: {
+          importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+        },
+        workspaces: [
+          makeAzureWorkspace({
+            workspace: {
+              name: 'workspace-name',
+            },
+            policies,
+          }),
+        ],
+      });
+
+      // Act
+      const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+      await user.click(existingWorkspaceButton);
+
+      const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
+
+      screen.debug();
+      await workspaceSelect.selectOption(new RegExp('workspace-name'));
+
+      // Assert
+      const policyHeader = screen.queryByText('This workspace has the following', { exact: false });
+      const policyDetail = screen.queryByText('Additional security monitoring', { exact: false });
+
+      expect(!!policyHeader).toEqual(shouldDisplayPolicies);
+      expect(!!policyDetail).toEqual(shouldDisplayPolicies);
+    }
+  );
 
   it.each([
     // Unprotected data, no auth domain

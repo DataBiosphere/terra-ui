@@ -1,7 +1,7 @@
 import { icon, IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { AriaAttributes, CSSProperties, Fragment, ReactNode, useState } from 'react';
-import { div, h, h2, img, p, span } from 'react-hyperscript-helpers';
+import { div, h, h2, img, li, p, span, ul } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import {
   ButtonPrimary,
@@ -19,6 +19,7 @@ import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
 import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
@@ -219,6 +220,12 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
           ]),
       ]),
       importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
+      !!selectedWorkspace &&
+        h(Fragment, [
+          h(WorkspacePolicies, { workspace: selectedWorkspace }),
+          !!isProtectedData &&
+            div({}, [p({}, ['Importing this data may add:']), ul({}, [li({}, ['Additional access controls'])])]),
+        ]),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
         h(
