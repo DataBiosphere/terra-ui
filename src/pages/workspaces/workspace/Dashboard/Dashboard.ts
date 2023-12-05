@@ -1,6 +1,6 @@
 import { cond } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { ForwardedRef, forwardRef, ReactNode, useEffect, useImperativeHandle, useState } from 'react';
+import { forwardRef, ReactNode, useEffect, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { Link } from 'src/components/common';
@@ -66,7 +66,7 @@ interface WorkspaceDashboardProps {
   workspace: Workspace;
 }
 
-const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: ForwardedRef<unknown>): ReactNode => {
+const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps): ReactNode => {
   const {
     namespace,
     name,
@@ -80,8 +80,6 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps, ref: Forw
   } = props;
 
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`;
-
-  useImperativeHandle(ref, () => ({ refresh: () => {} }));
 
   // @ts-expect-error
   const { value: canEdit } = canEditWorkspace(workspace);
