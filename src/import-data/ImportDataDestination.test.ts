@@ -145,9 +145,7 @@ describe('ImportDataDestination', () => {
   }[])('should disable select an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
     // Arrange
     const user = userEvent.setup();
-    asMockedFn(canImportIntoWorkspace).mockImplementation((_importOptions: ImportOptions): boolean => {
-      return false;
-    });
+    asMockedFn(canImportIntoWorkspace).mockReturnValue(false);
 
     setup({
       props: {
@@ -424,11 +422,7 @@ describe('ImportDataDestination', () => {
       // Arrange
       const user = userEvent.setup();
 
-      asMockedFn(canImportIntoWorkspace).mockImplementation(
-        (_importOptions: ImportOptions, _workspace: WorkspaceWrapper): boolean => {
-          return true;
-        }
-      );
+      asMockedFn(canImportIntoWorkspace).mockReturnValue(true);
 
       setup({
         props: {
