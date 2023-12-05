@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { CloudProvider, WorkspacePolicy, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { CloudProvider, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { BillingProject } from 'src/pages/billing/models/BillingProject';
 import { azureProtectedDataBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -353,21 +353,34 @@ describe('ImportDataDestination', () => {
 
   it.each([
     {
-      importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
-      shouldShowAdditionalAccessControlNotice: true,
+      url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb'),
+      workspace: makeAzureWorkspace(),
+      displayExtraAccessControlNotice: true,
     },
     {
-      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
-      shouldShowAdditionalAccessControlNotice: false,
+      url: new URL('https://example.com/path/to/file.pfb'),
+      workspace: makeAzureWorkspace(),
+      displayExtraAccessControlNotice: false, // don't display if the data isn't protected
+    },
+    {
+      url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb'),
+      workspace: makeGoogleWorkspace(),
+      displayExtraAccessControlNotice: false, // don't display it for GCP workspace
     },
   ] as {
-    importRequest: ImportRequest;
-    shouldShowAdditionalAccessControlNotice: boolean;
+    url: URL;
+    workspace: WorkspaceWrapper;
+    displayExtraAccessControlNotice: boolean;
   }[])(
-    'displays additional access controls message when importing protected data',
-    async ({ importRequest, shouldShowAdditionalAccessControlNotice }) => {
+    'displays additional access controls message when importing protected data into an Azure workspace',
+    async ({ url, workspace, displayExtraAccessControlNotice }) => {
       // Arrange
       const user = userEvent.setup();
+      const workspaceName = workspace.workspace.name;
+      const importRequest: ImportRequest = {
+        type: 'pfb',
+        url,
+      };
 
       asMockedFn(canImportIntoWorkspace).mockReturnValue(true);
 
@@ -375,13 +388,7 @@ describe('ImportDataDestination', () => {
         props: {
           importRequest,
         },
-        workspaces: [
-          makeAzureWorkspace({
-            workspace: {
-              name: 'workspace-name',
-            },
-          }),
-        ],
+        workspaces: [workspace],
       });
 
       // Act
@@ -390,7 +397,7 @@ describe('ImportDataDestination', () => {
 
       const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
 
-      await workspaceSelect.selectOption(new RegExp('workspace-name'));
+      await workspaceSelect.selectOption(new RegExp(workspaceName));
 
       // Assert
       const importNoticeHeader = screen.queryByText('Importing this data may add:', {
@@ -399,43 +406,36 @@ describe('ImportDataDestination', () => {
 
       const accessControlNotice = screen.queryByText('Additional access controls', { exact: false });
 
-      expect(!!importNoticeHeader).toEqual(shouldShowAdditionalAccessControlNotice);
-      expect(!!accessControlNotice).toEqual(shouldShowAdditionalAccessControlNotice);
+      expect(!!importNoticeHeader).toEqual(displayExtraAccessControlNotice);
+      expect(!!accessControlNotice).toEqual(displayExtraAccessControlNotice);
     }
   );
 
   it.each([
     {
-      policies: [],
+      workspace: makeAzureWorkspace({ policies: [] }),
       shouldDisplayPolicies: false,
     },
     {
-      policies: [protectedDataPolicy],
+      workspace: makeAzureWorkspace({ policies: [protectedDataPolicy] }),
       shouldDisplayPolicies: true,
     },
   ] as {
-    policies: WorkspacePolicy[];
+    workspace: WorkspaceWrapper;
     shouldDisplayPolicies: boolean;
   }[])(
     'displays workspace policies on import if present on target workspace',
-    async ({ policies, shouldDisplayPolicies }) => {
+    async ({ workspace, shouldDisplayPolicies }) => {
       // Arrange
       const user = userEvent.setup();
-
+      const workspaceName = workspace.workspace.name;
       asMockedFn(canImportIntoWorkspace).mockReturnValue(true);
 
       setup({
         props: {
           importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
         },
-        workspaces: [
-          makeAzureWorkspace({
-            workspace: {
-              name: 'workspace-name',
-            },
-            policies,
-          }),
-        ],
+        workspaces: [workspace],
       });
 
       // Act
@@ -444,7 +444,7 @@ describe('ImportDataDestination', () => {
 
       const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
 
-      await workspaceSelect.selectOption(new RegExp('workspace-name'));
+      await workspaceSelect.selectOption(new RegExp(workspaceName));
 
       // Assert
       const policyHeader = screen.queryByText('This workspace has the following', { exact: false });

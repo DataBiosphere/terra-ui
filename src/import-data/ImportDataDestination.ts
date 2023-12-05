@@ -16,7 +16,7 @@ import jupyterLogo from 'src/images/jupyter-logo.svg';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceInfo } from 'src/libs/workspace-utils';
+import { isAzureWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
@@ -223,7 +223,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       !!selectedWorkspace &&
         h(Fragment, [
           h(WorkspacePolicies, { workspace: selectedWorkspace }),
-          !!isProtectedData && div([p(['Importing this data may add:']), ul([li(['Additional access controls'])])]),
+          !!isProtectedData &&
+            isAzureWorkspace(selectedWorkspace) &&
+            div([p(['Importing this data may add:']), ul([li(['Additional access controls'])])]),
         ]),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
