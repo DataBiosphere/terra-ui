@@ -450,7 +450,6 @@ describe('ImportDataDestination', () => {
 
       const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
 
-      screen.debug();
       await workspaceSelect.selectOption(new RegExp('workspace-name'));
 
       // Assert
