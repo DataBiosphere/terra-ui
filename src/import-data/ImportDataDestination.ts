@@ -223,8 +223,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       !!selectedWorkspace &&
         h(Fragment, [
           h(WorkspacePolicies, { workspace: selectedWorkspace }),
-          !!isProtectedData &&
-            div([p(['Importing this data may add:']), ul([li(['Additional access controls'])])]),
+          !!isProtectedData && div([p(['Importing this data may add:']), ul([li(['Additional access controls'])])]),
         ]),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
