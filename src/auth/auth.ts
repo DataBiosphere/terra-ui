@@ -657,7 +657,9 @@ authStore.subscribe(
 );
 
 authStore.subscribe((state: AuthState, oldState: AuthState) => {
-  if (oldState.signInStatus === 'userLoaded' && state.signInStatus !== 'userLoaded') {
+  const isSignedOut = state.signInStatus === 'signedOut';
+  const wasSignedIn = oldState.signInStatus !== 'signedOut';
+  if (wasSignedIn && isSignedOut) {
     workspaceStore.reset();
     workspacesStore.reset();
     asyncImportJobStore.reset();
