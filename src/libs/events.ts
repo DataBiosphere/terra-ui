@@ -294,6 +294,9 @@ export const captureAppcuesEvent = (eventName: string, event: any) => {
       'appcues.interaction.fields': JSON.stringify(event.interaction?.fields),
       'appcues.interaction.formId': event.interaction?.formId,
       'appcues.interaction.text': event.interaction?.text, // not documented by Appcues, but observed and useful
+      'appcues.interaction.label': event.interaction?.label,
+      'appcues.interaction.response': event.interaction?.response,
+      'appcues.interaction.value': event.interaction?.value,
       'appcues.interactionType': event.interactionType,
       'appcues.localeId': event.localeId,
       'appcues.localeName': event.localeName,
