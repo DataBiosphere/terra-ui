@@ -1,7 +1,7 @@
 import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { PropsWithChildren, ReactNode, Ref, useEffect, useRef, useState } from 'react';
-import { br, div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
 import AnalysisNotificationManager from 'src/analysis/AnalysisNotificationManager';
 import { ContextBar } from 'src/analysis/ContextBar';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
@@ -10,7 +10,6 @@ import { icon } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import TitleBar from 'src/components/TitleBar';
 import TopBar from 'src/components/TopBar';
-import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { withDisplayName } from 'src/libs/react-utils';
@@ -139,27 +138,6 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
         h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [title || `${namespace}/${name}`]),
       ]),
       div({ style: { flexGrow: 1 } }),
-      isTerra() &&
-        h(
-          Link,
-          {
-            href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
-            style: {
-              backgroundColor: colors.light(),
-              borderRadius: 4,
-              margin: '0 0.5rem',
-              padding: '0.4rem 0.8rem',
-              display: 'flex',
-              alignItems: 'center',
-              flexShrink: 0,
-            },
-            ...Utils.newTabLinkProps,
-          },
-          [
-            icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
-            div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools']),
-          ]
-        ),
       h(AnalysisNotificationManager, { namespace, name, runtimes, apps }),
     ]),
     h(WorkspaceTabs, {

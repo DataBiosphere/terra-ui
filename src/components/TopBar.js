@@ -465,16 +465,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                     ),
                   ]
                 ),
-                isTerra() &&
-                  h(
-                    NavSection,
-                    {
-                      href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
-                      onClick: hideNav,
-                      ...Utils.newTabLinkProps,
-                    },
-                    [icon('virus', { size: 24, style: styles.nav.icon }), 'COVID-19 Data & Tools']
-                  ),
                 isFirecloud() &&
                   h(
                     NavSection,
