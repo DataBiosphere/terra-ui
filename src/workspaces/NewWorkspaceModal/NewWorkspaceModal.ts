@@ -14,7 +14,6 @@ import {
   availableBucketRegions,
   getLocationType,
   getRegionInfo,
-  isLocationMultiRegion,
   isSupportedBucketLocation,
 } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
@@ -512,33 +511,6 @@ const NewWorkspaceModal = withDisplayName(
                               options: isAlphaRegionalityUser ? allRegions : availableBucketRegions,
                             }),
                           ]),
-                      ]),
-                    isLocationMultiRegion(bucketLocation) &&
-                      div({ style: { ...warningStyle } }, [
-                        icon('warning-standard', {
-                          size: 24,
-                          style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
-                        }),
-                        div({ style: { flex: 1 } }, [
-                          'Effective October 1, 2022, Google Cloud will charge egress fees on data stored in multi-region storage buckets.',
-                          p([
-                            'Choosing a multi-region bucket location may result in additional storage costs for your workspace.',
-                          ]),
-                          p([
-                            'Unless you require geo-redundancy for maximum availabity for your data, you should choose a single region bucket location.',
-                            h(
-                              Link,
-                              {
-                                href: 'https://terra.bio/moving-away-from-multi-regional-storage-buckets',
-                                ...Utils.newTabLinkProps,
-                              },
-                              [
-                                ' For more information see this blog post.',
-                                icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
-                              ]
-                            ),
-                          ]),
-                        ]),
                       ]),
                     shouldShowDifferentRegionWarning() &&
                       div({ style: { ...warningStyle } }, [

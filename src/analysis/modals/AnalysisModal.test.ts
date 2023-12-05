@@ -21,7 +21,7 @@ const createFunc = jest.fn();
 const defaultGcpModalProps: AnalysisModalProps = {
   isOpen: true,
   workspace: defaultGoogleWorkspace,
-  location: 'US',
+  location: 'US-CENTRAL1',
   runtimes: [],
   apps: [] as App[],
   appDataDisks: [],
