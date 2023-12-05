@@ -24,6 +24,11 @@ export const Metrics = (signal?: AbortSignal) => {
         anonymousId: uuid(),
       }));
     }
+
+    // Send event to Appcues and refresh Appcues state
+    window.Appcues?.track(event);
+    window.Appcues?.page();
+
     const { buildTimestamp, gitRevision, terraDeploymentEnv } = getConfig();
     const signedInProps =
       isRegistered || signInStatus === 'authenticated'
