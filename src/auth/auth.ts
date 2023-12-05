@@ -530,7 +530,7 @@ authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
-        window.Appcues.identify(userStore.get().terraUser.id, {
+        window.Appcues.identify(userStore.get().terraUser.id!, {
           dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime(),
         });
         window.Appcues.on('all', captureAppcuesEvent);
