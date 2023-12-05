@@ -187,13 +187,12 @@ export function PauseButton(props: PauseButtonProps): ReactNode {
   const shouldShowPauseButton =
     isPauseSupported(getToolLabelFromCloudEnv(cloudEnvironment)) &&
     currentUser === getCreatorForCompute(cloudEnvironment);
-
   return shouldShowPauseButton
     ? h(
         Link,
         {
           style: { marginRight: '1rem' },
-          disabled: !isComputePausable(cloudEnvironment),
+          disabled: !shouldShowPauseButton,
           tooltip: isComputePausable(cloudEnvironment)
             ? 'Pause cloud environment'
             : `Cannot pause a cloud environment while in status ${getDisplayStatus(cloudEnvironment)}.`,
