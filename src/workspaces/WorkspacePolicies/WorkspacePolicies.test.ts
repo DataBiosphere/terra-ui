@@ -18,7 +18,7 @@ describe('WorkspacePolicies', () => {
     // Act
     render(
       h(WorkspacePolicies, {
-        workspace: defaultAzureWorkspace,
+        workspaceOrBillingProject: defaultAzureWorkspace,
       })
     );
 
@@ -42,7 +42,7 @@ describe('WorkspacePolicies', () => {
     // Act
     render(
       h(WorkspacePolicies, {
-        workspace: nonProtectedAzureWorkspace,
+        workspaceOrBillingProject: nonProtectedAzureWorkspace,
       })
     );
 
@@ -60,7 +60,7 @@ describe('WorkspacePolicies', () => {
     // Act
     const { container } = render(
       h(WorkspacePolicies, {
-        workspace: workspaceWithAllPolicies,
+        workspaceOrBillingProject: workspaceWithAllPolicies,
       })
     );
 
@@ -79,7 +79,7 @@ describe('WorkspacePolicies', () => {
     // Act
     render(
       h(WorkspacePolicies, {
-        workspace: protectedAzureWorkspace,
+        workspaceOrBillingProject: protectedAzureWorkspace,
       })
     );
 
@@ -96,7 +96,7 @@ describe('WorkspacePolicies', () => {
       h(WorkspacePolicies, {
         title: 'Test title',
         policiesLabel: 'About this list:',
-        workspace: protectedAzureWorkspace,
+        workspaceOrBillingProject: protectedAzureWorkspace,
       })
     );
 

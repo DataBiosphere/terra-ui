@@ -188,7 +188,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       searchValueValid && !searchHasFocus && p([addUserReminder]),
       h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
       h(WorkspacePolicies, {
-        workspace,
+        workspaceOrBillingProject: workspace,
         title: isAzureWorkspace(workspace) ? 'Policies' : undefined,
         policiesLabel: isGoogleWorkspace(workspace) ? 'This workspace has the following:' : undefined,
         style: { marginTop: '1.0rem', marginBottom: '1.5rem' },

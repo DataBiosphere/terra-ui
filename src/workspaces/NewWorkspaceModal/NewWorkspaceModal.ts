@@ -35,6 +35,8 @@ import {
   isAzureWorkspace,
   isGoogleWorkspace,
   isProtectedWorkspace,
+  protectedDataIcon,
+  protectedDataLabel,
   protectedDataMessage,
   WorkspaceInfo,
   WorkspaceWrapper,
@@ -312,9 +314,13 @@ const NewWorkspaceModal = withDisplayName(
       cloudProvider: CloudPlatform
     ): boolean => getProjectCloudPlatform(project) === cloudProvider;
 
+    const selectedBillingProject: BillingProject = namespace
+      ? billingProjects?.find(({ projectName }) => projectName === namespace)
+      : undefined;
+
     const getProjectCloudPlatform = (project?: BillingProject): CloudPlatform | undefined => {
       if (project === undefined) {
-        project = _.find({ projectName: namespace }, billingProjects);
+        project = selectedBillingProject;
       }
       return project?.cloudPlatform;
     };
@@ -451,7 +457,12 @@ const NewWorkspaceModal = withDisplayName(
                             styles: { option: (provided) => ({ ...provided, padding: 10 }) },
                             // @ts-expect-error
                             options: _.map(
-                              ({ projectName, invalidBillingAccount, cloudPlatform }: BillingProject) => ({
+                              ({
+                                projectName,
+                                invalidBillingAccount,
+                                cloudPlatform,
+                                protectedData,
+                              }: BillingProject) => ({
                                 'aria-label': `${
                                   cloudProviderLabels[cloudPlatform]
                                 } ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
@@ -470,6 +481,12 @@ const NewWorkspaceModal = withDisplayName(
                                           style: { marginRight: '0.5rem' },
                                         }),
                                       projectName,
+                                      !!protectedData &&
+                                        icon(protectedDataIcon, {
+                                          size: 18,
+                                          'aria-label': protectedDataLabel,
+                                          style: { marginLeft: '0.5rem' },
+                                        }),
                                     ]),
                                   ]
                                 ),
@@ -568,7 +585,7 @@ const NewWorkspaceModal = withDisplayName(
                                 },
                                 [
                                   label({ style: { ...Style.elements.sectionHeader } }, [
-                                    'Enable additional security monitoring',
+                                    `Enable ${_.toLower(protectedDataLabel)}`,
                                   ]),
                                 ]
                               ),
@@ -619,18 +636,23 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
+                    // If cloning an Azure workspace, show the source workspace policies.
                     !!cloneWorkspace &&
                       isAzureWorkspace(cloneWorkspace) &&
                       h(WorkspacePolicies, {
-                        workspace: cloneWorkspace,
+                        workspaceOrBillingProject: cloneWorkspace,
                         title: 'Policies',
-                        policiesLabel: 'The cloned workspace will inherit:',
+                        policiesLabel: 'The workspace will inherit:',
                       }),
-                    renderNotice({
-                      selectedBillingProject: namespace
-                        ? billingProjects?.find(({ projectName }) => projectName === namespace)
-                        : undefined,
-                    }),
+                    // If creating a new workspace using a protected data Azure billing project,
+                    // show the policies that will be inherited from the billing project.
+                    !cloneWorkspace &&
+                      h(WorkspacePolicies, {
+                        workspaceOrBillingProject: selectedBillingProject,
+                        title: 'Policies',
+                        policiesLabel: 'The workspace will inherit:',
+                      }),
+                    renderNotice({ selectedBillingProject }),
                     workflowImport &&
                       azureBillingProjectsExist &&
                       div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
