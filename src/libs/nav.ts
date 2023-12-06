@@ -136,7 +136,7 @@ export const useRoute = () => {
 export const Router = () => {
   const { component, params, query } = useRoute();
   useEffect(() => {
-    (window as any).Appcues && (window as any).Appcues.page();
+    window.Appcues?.page();
   }, [component]);
   return div({ style: { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' } }, [
     h(component, { key: history.location.pathname, ...params, queryParams: query }),

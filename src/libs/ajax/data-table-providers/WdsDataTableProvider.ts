@@ -42,7 +42,7 @@ export interface SearchRequest {
 
 export type RecordAttributes = Record<string, unknown>; // truly "unknown" here; the backend Java representation is Map<String, Object>
 
-interface RecordResponse {
+export interface RecordResponse {
   id: string;
   type: string;
   attributes: RecordAttributes;

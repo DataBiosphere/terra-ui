@@ -14,11 +14,9 @@ import {
   availableBucketRegions,
   getLocationType,
   getRegionInfo,
-  isLocationMultiRegion,
   isSupportedBucketLocation,
 } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
-import { isProtectedWorkspace } from 'src/import-data/protected-data-utils';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
@@ -36,6 +34,7 @@ import {
   cloudProviderLabels,
   isAzureWorkspace,
   isGoogleWorkspace,
+  isProtectedWorkspace,
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/libs/workspace-utils';
@@ -46,6 +45,7 @@ import {
   GCPBillingProject,
 } from 'src/pages/billing/models/BillingProject';
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
+import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 
 const warningStyle: CSSProperties = {
@@ -85,7 +85,7 @@ export interface NewWorkspaceModalProps {
   buttonText?: string;
   cloneWorkspace?: WorkspaceWrapper;
   cloudPlatform?: CloudPlatform;
-  customMessage?: ReactNode;
+  renderNotice?: (args: { selectedBillingProject?: BillingProject }) => ReactNode;
   requiredAuthDomain?: string;
   requireEnhancedBucketLogging?: boolean;
   title?: string;
@@ -104,7 +104,7 @@ const NewWorkspaceModal = withDisplayName(
     cloudPlatform,
     onSuccess,
     onDismiss,
-    customMessage,
+    renderNotice = () => null,
     requiredAuthDomain,
     requireEnhancedBucketLogging,
     title,
@@ -512,33 +512,6 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
-                    isLocationMultiRegion(bucketLocation) &&
-                      div({ style: { ...warningStyle } }, [
-                        icon('warning-standard', {
-                          size: 24,
-                          style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
-                        }),
-                        div({ style: { flex: 1 } }, [
-                          'Effective October 1, 2022, Google Cloud will charge egress fees on data stored in multi-region storage buckets.',
-                          p([
-                            'Choosing a multi-region bucket location may result in additional storage costs for your workspace.',
-                          ]),
-                          p([
-                            'Unless you require geo-redundancy for maximum availabity for your data, you should choose a single region bucket location.',
-                            h(
-                              Link,
-                              {
-                                href: 'https://terra.bio/moving-away-from-multi-regional-storage-buckets',
-                                ...Utils.newTabLinkProps,
-                              },
-                              [
-                                ' For more information see this blog post.',
-                                icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
-                              ]
-                            ),
-                          ]),
-                        ]),
-                      ]),
                     shouldShowDifferentRegionWarning() &&
                       div({ style: { ...warningStyle } }, [
                         icon('warning-standard', {
@@ -647,7 +620,17 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
-                    customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
+                    !!cloneWorkspace &&
+                      h(WorkspacePolicies, {
+                        workspace: cloneWorkspace,
+                        title: 'Policies',
+                        policiesLabel: 'The cloned workspace will inherit:',
+                      }),
+                    renderNotice({
+                      selectedBillingProject: namespace
+                        ? billingProjects?.find(({ projectName }) => projectName === namespace)
+                        : undefined,
+                    }),
                     workflowImport &&
                       azureBillingProjectsExist &&
                       div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [

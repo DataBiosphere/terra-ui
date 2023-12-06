@@ -6,10 +6,15 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { goToPath } from 'src/libs/nav';
-import { AzureWorkspace, AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
-import { AzureBillingProject, CloudPlatform, GCPBillingProject } from 'src/pages/billing/models/BillingProject';
+import { AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
+import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
+import {
+  azureBillingProject,
+  azureProtectedDataBillingProject,
+  gcpBillingProject,
+} from 'src/testing/billing-project-fixtures';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { defaultAzureWorkspace, defaultGoogleWorkspace, protectedAzureWorkspace } from 'src/testing/workspace-fixtures';
 
 import NewWorkspaceModal from './NewWorkspaceModal';
 
@@ -24,45 +29,6 @@ jest.mock(
     goToPath: jest.fn(),
   })
 );
-
-const gcpBillingProject: GCPBillingProject = {
-  billingAccount: 'billingAccounts/FOO-BAR-BAZ',
-  cloudPlatform: 'GCP',
-  invalidBillingAccount: false,
-  projectName: 'Google Billing Project',
-  roles: ['Owner'],
-  status: 'Ready',
-};
-
-const azureBillingProject: AzureBillingProject = {
-  cloudPlatform: 'AZURE',
-  landingZoneId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-  managedAppCoordinates: {
-    tenantId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-    subscriptionId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-    managedResourceGroupId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-  },
-  invalidBillingAccount: false,
-  projectName: 'Azure Billing Project',
-  roles: ['Owner'],
-  status: 'Ready',
-  protectedData: false,
-};
-
-const azureProtectedDataBillingProject: AzureBillingProject = {
-  cloudPlatform: 'AZURE',
-  landingZoneId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-  managedAppCoordinates: {
-    tenantId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-    subscriptionId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-    managedResourceGroupId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-  },
-  invalidBillingAccount: false,
-  projectName: 'Protected Azure Billing Project',
-  roles: ['Owner'],
-  status: 'Ready',
-  protectedData: true,
-};
 
 type AjaxContract = ReturnType<typeof Ajax>;
 
@@ -265,6 +231,37 @@ describe('NewWorkspaceModal', () => {
     expect(screen.queryByText('Importing directly into new Azure workspaces is not currently supported.')).toBeNull();
   });
 
+  it('hides unprotected Azure billing projects when additional security monitoring is required', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          onSuccess: () => {},
+          onDismiss: () => {},
+          requireEnhancedBucketLogging: true,
+        })
+      );
+    });
+
+    // Assert
+    expect(await getAvailableBillingProjects(user)).toEqual([
+      'Google Billing Project',
+      'Protected Azure Billing Project',
+    ]);
+  });
+
   it.each([
     {
       cloudPlatform: 'AZURE',
@@ -387,16 +384,6 @@ describe('NewWorkspaceModal', () => {
           ...nonBillingAjax,
         } as AjaxContract)
     );
-    const protectedAzureWorkspace: AzureWorkspace = {
-      ...defaultAzureWorkspace,
-      policies: [
-        {
-          additionalData: [],
-          namespace: 'terra',
-          name: 'protected-data',
-        },
-      ],
-    };
 
     // Act
     await act(async () => {
@@ -411,6 +398,58 @@ describe('NewWorkspaceModal', () => {
 
     // Assert
     expect(await getAvailableBillingProjects(user)).toEqual(['Protected Azure Billing Project']);
+  });
+
+  it('Shows a policy section when cloning a workspace with polices', async () => {
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [azureProtectedDataBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: protectedAzureWorkspace,
+          onDismiss: () => {},
+          onSuccess: () => {},
+        })
+      );
+    });
+
+    // Assert
+    screen.getByText('Policies');
+  });
+
+  it('Does not show a policy section when cloning a workspace without polices', async () => {
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [azureBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: defaultAzureWorkspace,
+          onDismiss: () => {},
+          onSuccess: () => {},
+        })
+      );
+    });
+
+    // Assert
+    expect(screen.queryByText('Policies')).toBeNull();
   });
 
   it('Hides azure billing projects if part of workflow import', async () => {
@@ -634,7 +673,7 @@ describe('NewWorkspaceModal', () => {
     expect(checkbox).toBeChecked();
   });
 
-  it('Hides azure billing projects for enhanced bucket logging', async () => {
+  it('allows showing a notice based on the selected billing project', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -644,26 +683,38 @@ describe('NewWorkspaceModal', () => {
           Billing: {
             listProjects: async () => [gcpBillingProject, azureBillingProject],
           },
-          ...nonBillingAjax,
+          ...hasGroupsAjax,
         } as AjaxContract)
     );
 
+    const renderNotice = jest.fn().mockImplementation(({ selectedBillingProject }) => {
+      return selectedBillingProject
+        ? `Selected billing project: ${selectedBillingProject.projectName}`
+        : 'No selected billing project';
+    });
+
+    // Act
     await act(async () => {
       render(
         h(NewWorkspaceModal, {
+          renderNotice,
           onSuccess: () => {},
           onDismiss: () => {},
-          requireEnhancedBucketLogging: true,
         })
       );
     });
 
-    const projectSelector = screen.getByText('Select a billing project');
-    await user.click(projectSelector);
+    // Assert
+    expect(renderNotice).toHaveBeenCalledWith({ selectedBillingProject: undefined });
+    screen.getByText('No selected billing project');
+
+    // Act
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    await projectSelect.selectOption(/Google Billing Project/);
 
     // Assert
-    screen.getByText('Google Billing Project');
-    expect(screen.queryByText('Azure Billing Project')).toBeNull();
+    expect(renderNotice).toHaveBeenCalledWith({ selectedBillingProject: gcpBillingProject });
+    screen.getByText('Selected billing project: Google Billing Project');
   });
 
   describe('while creating a workspace', () => {

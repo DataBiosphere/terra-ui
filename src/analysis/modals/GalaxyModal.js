@@ -113,7 +113,8 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       const deleteButton = h(ButtonOutline, { disabled: false, style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, [
         'Delete Environment',
       ]);
-      const pauseButton = h(ButtonSecondary, { disabled: false, style: { marginRight: '1rem' }, onClick: pauseGalaxy }, ['Pause']);
+      // TODO: Reenable pause button once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
+      const pauseButton = h(ButtonSecondary, { disabled: true, style: { marginRight: '1rem' }, onClick: pauseGalaxy }, ['Pause']);
       const resumeButton = h(ButtonSecondary, { disabled: false, style: { marginRight: '1rem' }, onClick: resumeGalaxy }, ['Resume']);
 
       return Utils.switchCase(

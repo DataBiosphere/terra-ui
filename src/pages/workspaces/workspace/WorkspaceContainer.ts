@@ -1,23 +1,21 @@
 import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { PropsWithChildren, ReactNode, Ref, useEffect, useRef, useState } from 'react';
-import { br, div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
 import AnalysisNotificationManager from 'src/analysis/AnalysisNotificationManager';
 import { ContextBar } from 'src/analysis/ContextBar';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import TitleBar from 'src/components/TitleBar';
 import TopBar from 'src/components/TopBar';
-import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { azureControlledAccessRequestMessage, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import { azureControlledAccessRequestMessage, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { AppDetails, useAppPolling } from 'src/pages/workspaces/hooks/useAppPolling';
 import {
   CloudEnvironmentDetails,
@@ -35,24 +33,6 @@ import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWork
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
-
-const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
-  return h(TitleBar, {
-    title: div(
-      {
-        role: 'alert',
-        style: { display: 'flex', alignItems: 'center', margin: '1rem' },
-      },
-      [
-        icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
-        span({ style: { color: colors.dark(), fontSize: 14 } }, [props.children]),
-      ]
-    ),
-    style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
-    onDismiss: () => {},
-    hideCloseButton: true,
-  });
-};
 
 const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {
@@ -73,13 +53,6 @@ const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
     style: { backgroundColor: colors.warning(0.1), borderBottom: `1px solid ${colors.warning()}` },
     onDismiss: () => {},
   });
-};
-
-const AzureWarning = (): ReactNode => {
-  const warningMessage = [
-    'Do not store Unclassified Confidential Information in this platform, as it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.',
-  ];
-  return h(TitleBarWarning, warningMessage);
 };
 
 const GooglePermissionsSpinner = (): ReactNode => {
@@ -139,27 +112,6 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
         h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [title || `${namespace}/${name}`]),
       ]),
       div({ style: { flexGrow: 1 } }),
-      isTerra() &&
-        h(
-          Link,
-          {
-            href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
-            style: {
-              backgroundColor: colors.light(),
-              borderRadius: 4,
-              margin: '0 0.5rem',
-              padding: '0.4rem 0.8rem',
-              display: 'flex',
-              alignItems: 'center',
-              flexShrink: 0,
-            },
-            ...Utils.newTabLinkProps,
-          },
-          [
-            icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
-            div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools']),
-          ]
-        ),
       h(AnalysisNotificationManager, { namespace, name, runtimes, apps }),
     ]),
     h(WorkspaceTabs, {
@@ -175,7 +127,6 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
       setShowLockWorkspaceModal,
     }),
     h(WorkspaceDeletingBanner, { workspace }),
-    workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
     isGoogleWorkspaceSyncing && h(GooglePermissionsSpinner),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [
       div({ style: { flex: 1, display: 'flex' } }, [

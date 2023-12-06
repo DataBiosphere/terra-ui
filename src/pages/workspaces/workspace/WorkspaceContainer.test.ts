@@ -65,35 +65,6 @@ describe('WorkspaceContainer', () => {
     jest.resetAllMocks();
   });
 
-  it('shows a warning for Azure workspaces', async () => {
-    // Arrange
-    const props = {
-      namespace: 'mock-namespace',
-      name: 'mock-name',
-      workspace: { ...defaultAzureWorkspace, workspaceInitialized: true },
-      storageDetails: {
-        googleBucketLocation: '',
-        googleBucketType: '',
-        fetchedGoogleBucketLocation: undefined,
-      },
-      refresh: () => Promise.resolve(),
-      refreshWorkspace: () => {},
-      breadcrumbs: [],
-      title: '',
-      analysesData: {
-        refreshApps: () => Promise.resolve(),
-        refreshRuntimes: () => Promise.resolve(),
-      },
-    };
-    // Act
-    render(h(WorkspaceContainer, props));
-    // Assert
-    const alert = screen.getByRole('alert');
-    expect(
-      within(alert).getByText(/Do not store Unclassified Confidential Information in this platform/)
-    ).not.toBeNull();
-  });
-
   it('shows a permissions loading spinner Gcp workspaces that have IAM propagation delays', async () => {
     // Arrange
     const props = {

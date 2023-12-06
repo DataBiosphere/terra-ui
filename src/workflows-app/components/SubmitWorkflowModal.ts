@@ -11,6 +11,7 @@ import { TextArea, TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
 import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
+import { RecordResponse } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -27,7 +28,7 @@ type SubmitWorkflowModalProps = {
   method: WorkflowMethod;
   methodVersion: MethodVersion;
   recordType: string;
-  selectedRecords: object;
+  selectedRecords: Record<string, RecordResponse>;
   inputDefinition: InputDefinition[];
   outputDefinition: OutputDefinition[];
   callCachingEnabled: boolean;

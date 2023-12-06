@@ -1,10 +1,12 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { CloudProvider, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { BillingProject } from 'src/pages/billing/models/BillingProject';
+import { azureProtectedDataBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
-import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { makeAzureWorkspace, makeGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
@@ -112,8 +114,8 @@ describe('ImportDataDestination', () => {
       });
 
       // Act
-      const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
-      await user.click(existingWorkspace); // select start with existing workspace
+      const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+      await user.click(existingWorkspaceButton);
 
       // Assert
       const protectedDataWarning = screen.queryByText(
@@ -143,9 +145,7 @@ describe('ImportDataDestination', () => {
   }[])('should disable select an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
     // Arrange
     const user = userEvent.setup();
-    asMockedFn(canImportIntoWorkspace).mockImplementation((_importOptions: ImportOptions): boolean => {
-      return false;
-    });
+    asMockedFn(canImportIntoWorkspace).mockReturnValue(false);
 
     setup({
       props: {
@@ -165,8 +165,8 @@ describe('ImportDataDestination', () => {
       ],
     });
     // Act
-    const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
-    await user.click(existingWorkspace); // select start with existing workspace
+    const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+    await user.click(existingWorkspaceButton);
 
     // Assert
     const selectWorkspace = screen.queryByText('Select a workspace', {
@@ -274,8 +274,8 @@ describe('ImportDataDestination', () => {
       });
 
       // Act
-      const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
-      await user.click(existingWorkspace); // select start with existing workspace
+      const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+      await user.click(existingWorkspaceButton);
 
       const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
       const workspaces = await workspaceSelect.getOptions();
@@ -339,8 +339,8 @@ describe('ImportDataDestination', () => {
     });
 
     // Act
-    const existingWorkspace = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
-    await user.click(existingWorkspace); // select start with existing workspace
+    const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+    await user.click(existingWorkspaceButton);
 
     // Assert
     const notice = screen.queryByText(
@@ -350,6 +350,110 @@ describe('ImportDataDestination', () => {
     const isNoticeShown = !!notice;
     expect(isNoticeShown).toBe(shouldShowNotice);
   });
+
+  it.each([
+    {
+      url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb'),
+      workspace: makeAzureWorkspace(),
+      displayExtraAccessControlNotice: true,
+    },
+    {
+      url: new URL('https://example.com/path/to/file.pfb'),
+      workspace: makeAzureWorkspace(),
+      displayExtraAccessControlNotice: false, // don't display if the data isn't protected
+    },
+    {
+      url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb'),
+      workspace: makeGoogleWorkspace(),
+      displayExtraAccessControlNotice: false, // don't display it for GCP workspace
+    },
+  ] as {
+    url: URL;
+    workspace: WorkspaceWrapper;
+    displayExtraAccessControlNotice: boolean;
+  }[])(
+    'displays additional access controls message when importing protected data into an Azure workspace',
+    async ({ url, workspace, displayExtraAccessControlNotice }) => {
+      // Arrange
+      const user = userEvent.setup();
+      const workspaceName = workspace.workspace.name;
+      const importRequest: ImportRequest = {
+        type: 'pfb',
+        url,
+      };
+
+      asMockedFn(canImportIntoWorkspace).mockReturnValue(true);
+
+      setup({
+        props: {
+          importRequest,
+        },
+        workspaces: [workspace],
+      });
+
+      // Act
+      const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+      await user.click(existingWorkspaceButton);
+
+      const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
+
+      await workspaceSelect.selectOption(new RegExp(workspaceName));
+
+      // Assert
+      const importNoticeHeader = screen.queryByText('Importing this data may add:', {
+        exact: false,
+      });
+
+      const accessControlNotice = screen.queryByText('Additional access controls', { exact: false });
+
+      expect(!!importNoticeHeader).toEqual(displayExtraAccessControlNotice);
+      expect(!!accessControlNotice).toEqual(displayExtraAccessControlNotice);
+    }
+  );
+
+  it.each([
+    {
+      workspace: makeAzureWorkspace({ policies: [] }),
+      shouldDisplayPolicies: false,
+    },
+    {
+      workspace: makeAzureWorkspace({ policies: [protectedDataPolicy] }),
+      shouldDisplayPolicies: true,
+    },
+  ] as {
+    workspace: WorkspaceWrapper;
+    shouldDisplayPolicies: boolean;
+  }[])(
+    'displays workspace policies on import if present on target workspace',
+    async ({ workspace, shouldDisplayPolicies }) => {
+      // Arrange
+      const user = userEvent.setup();
+      const workspaceName = workspace.workspace.name;
+      asMockedFn(canImportIntoWorkspace).mockReturnValue(true);
+
+      setup({
+        props: {
+          importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+        },
+        workspaces: [workspace],
+      });
+
+      // Act
+      const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+      await user.click(existingWorkspaceButton);
+
+      const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
+
+      await workspaceSelect.selectOption(new RegExp(workspaceName));
+
+      // Assert
+      const policyHeader = screen.queryByText('This workspace has the following', { exact: false });
+      const policyDetail = screen.queryByText('Additional security monitoring', { exact: false });
+
+      expect(!!policyHeader).toEqual(shouldDisplayPolicies);
+      expect(!!policyDetail).toEqual(shouldDisplayPolicies);
+    }
+  );
 
   it.each([
     // Unprotected data, no auth domain
@@ -456,33 +560,45 @@ describe('ImportDataDestination', () => {
     }
   );
 
-  it('hides new workspace option for imports of protected Azure snapshots', async () => {
-    // Arrange
-    setup({
-      props: {
-        importRequest: {
-          type: 'tdr-snapshot-export',
-          manifestUrl: new URL('https://example.com/path/to/manifest.json'),
-          snapshot: {
-            id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-            name: 'test-snapshot',
-            source: [
-              {
-                dataset: {
-                  id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-                  name: 'test-dataset',
-                  secureMonitoringEnabled: true,
-                },
-              },
-            ],
-            cloudPlatform: 'azure',
-          },
-          syncPermissions: false,
-        },
-      },
-    });
+  it.each([
+    // Unprotected data, no auth domain
+    {
+      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      noticeExpected: false,
+    },
+    // Protected data, required auth domain
+    {
+      importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+      noticeExpected: true,
+    },
+  ] as { importRequest: ImportRequest; noticeExpected: boolean }[])(
+    'shows a notice when importing protected data into a new Azure workspace',
+    async ({ importRequest, noticeExpected }) => {
+      // Arrange
+      const user = userEvent.setup();
 
-    // Assert
-    expect(screen.queryByText('Create a new workspace')).toBeNull();
-  });
+      setup({ props: { importRequest } });
+
+      // Act
+      const newWorkspaceButton = screen.getByText('Create a new workspace');
+      await user.click(newWorkspaceButton);
+
+      const { renderNotice } = asMockedFn(NewWorkspaceModal).mock.lastCall[0];
+
+      const isNoticeShownForBillingProject = (billingProject: BillingProject | undefined): boolean => {
+        const { container: noticeContainer } = render(
+          renderNotice?.({ selectedBillingProject: billingProject }) as JSX.Element
+        );
+        const isNoticeShown = !!within(noticeContainer).queryByText(
+          'Importing controlled access data will apply any additional access controls associated with the data to this workspace.'
+        );
+        return isNoticeShown;
+      };
+
+      // Assert
+      expect(isNoticeShownForBillingProject(undefined)).toBe(false);
+      expect(isNoticeShownForBillingProject(gcpBillingProject)).toBe(false);
+      expect(isNoticeShownForBillingProject(azureProtectedDataBillingProject)).toBe(noticeExpected);
+    }
+  );
 });

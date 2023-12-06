@@ -1,10 +1,15 @@
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
-import { canWrite, CloudProvider, getCloudProviderFromWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import {
+  canWrite,
+  CloudProvider,
+  getCloudProviderFromWorkspace,
+  isProtectedWorkspace,
+  WorkspaceWrapper,
+} from 'src/libs/workspace-utils';
 
 import { ImportRequest } from './import-types';
-import { isProtectedWorkspace } from './protected-data-utils';
 
 export const getCloudPlatformRequiredForImport = (importRequest: ImportRequest): CloudProvider | undefined => {
   switch (importRequest.type) {
