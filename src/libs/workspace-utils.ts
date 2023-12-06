@@ -2,6 +2,7 @@ import { cond, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import { azureRegions } from 'src/libs/azure-regions';
+import { AzureBillingProject, BillingProject } from 'src/pages/billing/models/BillingProject';
 
 export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
@@ -114,20 +115,28 @@ export interface PolicyDescription {
 }
 
 // Returns descriptions of known policies only (protected data, group constraint, region constraint).
-export const getPolicyDescriptions = (workspace: WorkspaceWrapper): PolicyDescription[] => {
+export const getPolicyDescriptions = (
+  workspace?: WorkspaceWrapper,
+  billingProject?: BillingProject
+): PolicyDescription[] => {
   const policyDescriptions: PolicyDescription[] = [];
-  if (isProtectedWorkspace(workspace)) {
+  const isProtectedAzureBillingProject = (project: BillingProject | undefined) => {
+    const isAzureBillingProject = (project: BillingProject | undefined): project is AzureBillingProject =>
+      !!project && project.cloudPlatform === 'AZURE';
+    return isAzureBillingProject(project) && project.protectedData;
+  };
+  if ((!!workspace && isProtectedWorkspace(workspace)) || isProtectedAzureBillingProject(billingProject)) {
     policyDescriptions.push({
-      shortDescription: 'Additional security monitoring',
+      shortDescription: protectedDataLabel,
       longDescription: protectedDataMessage,
     });
   }
-  if (hasGroupConstraintPolicy(workspace)) {
+  if (!!workspace && hasGroupConstraintPolicy(workspace)) {
     policyDescriptions.push({ shortDescription: 'Data access controls', longDescription: groupConstraintMessage });
   }
-  if (hasRegionConstraintPolicy(workspace)) {
+  if (!!workspace && hasRegionConstraintPolicy(workspace)) {
     policyDescriptions.push({
-      shortDescription: 'Region constraint',
+      shortDescription: regionConstraintLabel,
       longDescription: regionConstraintMessage(workspace)!,
     });
   }
@@ -179,8 +188,10 @@ export const isProtectedWorkspace = (workspace: WorkspaceWrapper): boolean => {
 export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefined): boolean =>
   _.any((policy: WorkspacePolicy) => policy.namespace === 'terra' && policy.name === 'protected-data', policies);
 
+export const protectedDataLabel = 'Additional security monitoring';
 export const protectedDataMessage =
   'Enhanced logging and monitoring are enabled to support the use of controlled-access data in this workspace.';
+export const protectedDataIcon = 'shield';
 
 export const groupConstraintMessage =
   'Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be current users on an approved Data Access Request (DAR).';
@@ -205,6 +216,8 @@ export const getRegionConstraintLabels = (policies: WorkspacePolicy[] | undefine
   }, regionPolicies);
   return regionLabels;
 };
+
+export const regionConstraintLabel = 'Region constraint';
 
 export const regionConstraintMessage = (workspace: BaseWorkspace): string | undefined => {
   const regions = getRegionConstraintLabels(workspace.policies);

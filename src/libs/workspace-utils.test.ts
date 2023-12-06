@@ -1,4 +1,5 @@
 import { azureRegions } from 'src/libs/azure-regions';
+import { azureProtectedDataBillingProject } from 'src/testing/billing-project-fixtures';
 import {
   defaultAzureWorkspace,
   defaultGoogleWorkspace,
@@ -21,7 +22,9 @@ import {
   hasRegionConstraintPolicy,
   isProtectedWorkspace,
   isValidWsExportTarget,
+  protectedDataLabel,
   protectedDataMessage,
+  regionConstraintLabel,
   regionConstraintMessage,
   WorkspaceAccessLevel,
   WorkspacePolicy,
@@ -145,7 +148,7 @@ describe('getPolicyDescriptions', () => {
       policies: [protectedDataPolicy, groupConstraintPolicy],
     };
     expect(getPolicyDescriptions(workspace)).toEqual([
-      { shortDescription: 'Additional security monitoring', longDescription: protectedDataMessage },
+      { shortDescription: protectedDataLabel, longDescription: protectedDataMessage },
       { shortDescription: 'Data access controls', longDescription: groupConstraintMessage },
     ]);
   });
@@ -153,7 +156,7 @@ describe('getPolicyDescriptions', () => {
   it('Returns policy information for a region-constrained workspace', () => {
     expect(getPolicyDescriptions(regionRestrictedAzureWorkspace)).toEqual([
       {
-        shortDescription: 'Region constraint',
+        shortDescription: regionConstraintLabel,
         longDescription: regionConstraintMessage(regionRestrictedAzureWorkspace),
       },
     ]);
@@ -171,6 +174,27 @@ describe('getPolicyDescriptions', () => {
       ],
     };
     expect(getPolicyDescriptions(workspaceWithOtherPolicy)).toEqual([]);
+  });
+
+  it('Returns policy information from a protected billing project', () => {
+    expect(getPolicyDescriptions(undefined, azureProtectedDataBillingProject)).toEqual([
+      { shortDescription: protectedDataLabel, longDescription: protectedDataMessage },
+    ]);
+  });
+
+  it('Returns an empty array for undefined inputs', () => {
+    expect(getPolicyDescriptions(undefined, undefined)).toEqual([]);
+  });
+
+  it('Combines policy information from a billing project and a workspace', () => {
+    const workspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      policies: [protectedDataPolicy, groupConstraintPolicy],
+    };
+    expect(getPolicyDescriptions(workspace, azureProtectedDataBillingProject)).toEqual([
+      { shortDescription: protectedDataLabel, longDescription: protectedDataMessage },
+      { shortDescription: 'Data access controls', longDescription: groupConstraintMessage },
+    ]);
   });
 });
 
