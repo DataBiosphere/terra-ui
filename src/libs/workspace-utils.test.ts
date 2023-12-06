@@ -22,6 +22,7 @@ import {
   hasRegionConstraintPolicy,
   isProtectedWorkspace,
   isValidWsExportTarget,
+  protectedDataLabel,
   protectedDataMessage,
   regionConstraintMessage,
   WorkspaceAccessLevel,
@@ -176,7 +177,7 @@ describe('getPolicyDescriptions', () => {
 
   it('Returns policy information from a protected billing project', () => {
     expect(getPolicyDescriptions(undefined, azureProtectedDataBillingProject)).toEqual([
-      { shortDescription: 'Additional security monitoring', longDescription: protectedDataMessage },
+      { shortDescription: protectedDataLabel, longDescription: protectedDataMessage },
     ]);
   });
 
@@ -190,7 +191,7 @@ describe('getPolicyDescriptions', () => {
       policies: [protectedDataPolicy, groupConstraintPolicy],
     };
     expect(getPolicyDescriptions(workspace, azureProtectedDataBillingProject)).toEqual([
-      { shortDescription: 'Additional security monitoring', longDescription: protectedDataMessage },
+      { shortDescription: protectedDataLabel, longDescription: protectedDataMessage },
       { shortDescription: 'Data access controls', longDescription: groupConstraintMessage },
     ]);
   });
