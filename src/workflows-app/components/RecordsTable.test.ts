@@ -76,9 +76,6 @@ describe('RecordsTable', () => {
   });
 
   it('Render data as expected', async () => {
-    const dataTableColumnWidths = {};
-    const setDataTableColumnWidths = jest.fn();
-    const dataTableRef = { current: {} };
     const records = mockRecordsData;
     const selectedRecords = {};
     const setSelectedRecords = jest.fn();
@@ -86,9 +83,6 @@ describe('RecordsTable', () => {
 
     render(
       h(RecordsTable, {
-        dataTableColumnWidths,
-        setDataTableColumnWidths,
-        dataTableRef,
         records,
         selectedRecords,
         setSelectedRecords,
@@ -112,13 +106,12 @@ describe('RecordsTable', () => {
     within(dataRow[9]).getByText(
       '["https://datasettoaexample.blob.core.windows.net/dataset/abc.fastq.gz","https://datasettoaexample.blob.core.windows.net/dataset/xyz.fastq.gz"]'
     );
-    within(dataRow[10]).getByText('{"foo_tries":3,"agg_foo_tries":3,"nested_foo_struct":{"foo_rating":4.5,"bar_rating":2.4}}');
+    within(dataRow[10]).getByText(
+      '{"foo_tries":3,"agg_foo_tries":3,"nested_foo_struct":{"foo_rating":4.5,"bar_rating":2.4}}'
+    );
   });
 
   it('should change record table sort order when column headers are clicked', async () => {
-    const dataTableColumnWidths = {};
-    const setDataTableColumnWidths = jest.fn();
-    const dataTableRef = { current: {} };
     const selectedRecords = {};
     const setSelectedRecords = jest.fn();
     const user = userEvent.setup();
@@ -168,9 +161,6 @@ describe('RecordsTable', () => {
 
     render(
       h(RecordsTable, {
-        dataTableColumnWidths,
-        setDataTableColumnWidths,
-        dataTableRef,
         records,
         selectedRecords,
         setSelectedRecords,

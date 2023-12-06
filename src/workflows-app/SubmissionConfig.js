@@ -1,6 +1,6 @@
 import { Switch, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { a, div, h, h2, label, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
@@ -43,7 +43,6 @@ export const BaseSubmissionConfig = (
   const [availableMethodVersions, setAvailableMethodVersions] = useState();
   const [selectedMethodVersion, setSelectedMethodVersion] = useState();
   const [records, setRecords] = useState([]);
-  const [dataTableColumnWidths, setDataTableColumnWidths] = useState({});
   const [loading, setLoading] = useState(false);
   const [workflowScript, setWorkflowScript] = useState();
 
@@ -59,7 +58,6 @@ export const BaseSubmissionConfig = (
   const [displayLaunchModal, setDisplayLaunchModal] = useState(false);
   const [noRecordTypeData, setNoRecordTypeData] = useState(null);
 
-  const dataTableRef = useRef();
   const signal = useCancellation();
   const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
 
@@ -239,10 +237,6 @@ export const BaseSubmissionConfig = (
       setInputValidations(newInputValidations);
     }
   }, [records, recordTypes, configuredInputDefinition]);
-
-  useEffect(() => {
-    dataTableRef.current?.recomputeColumnSizes();
-  }, [dataTableColumnWidths, records, recordTypes]);
 
   useEffect(() => {
     if (method && availableMethodVersions) {
@@ -469,9 +463,6 @@ export const BaseSubmissionConfig = (
   const renderRecordSelector = () => {
     return recordTypes && records.length
       ? h(RecordsTable, {
-          dataTableColumnWidths,
-          setDataTableColumnWidths,
-          dataTableRef,
           records,
           selectedRecords,
           setSelectedRecords,
