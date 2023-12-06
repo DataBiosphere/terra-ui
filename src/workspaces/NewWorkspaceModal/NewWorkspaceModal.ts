@@ -347,8 +347,15 @@ const NewWorkspaceModal = withDisplayName(
       return true;
     };
 
+    const cloningGcpProtectedWorkspace =
+      !!cloneWorkspace && isGoogleWorkspace(cloneWorkspace) && isProtectedWorkspace(cloneWorkspace);
+
     // Lifecycle
     useOnMount(() => {
+      // If cloning a GCP protected workspace, override whatever may have been passed via `requireEnhancedBucketLogging`
+      if (cloningGcpProtectedWorkspace) {
+        setEnhancedBucketLogging(true);
+      }
       loadData();
       loadAlphaRegionalityUser();
     });
@@ -560,9 +567,10 @@ const NewWorkspaceModal = withDisplayName(
                               h(
                                 LabeledCheckbox,
                                 {
-                                  style: { marginRight: '0.25rem' },
+                                  style: { margin: '0rem 0.25rem 0.25rem 0rem' },
                                   checked: enhancedBucketLogging,
-                                  disabled: !!requireEnhancedBucketLogging || groups.length > 0,
+                                  disabled:
+                                    !!requireEnhancedBucketLogging || groups.length > 0 || cloningGcpProtectedWorkspace,
                                   onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
                                   'aria-describedby': id,
                                 },

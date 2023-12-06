@@ -569,151 +569,233 @@ describe('NewWorkspaceModal', () => {
     ).toBeNull();
   });
 
-  it('shows an option for "Additional security monitoring" if a Google billing project is selected', async () => {
-    // Arrange
-    const user = userEvent.setup();
+  describe('handles Additional Security Monitoring for GCP billing projects/workspaces ', () => {
+    it.each([{ selectCheckbox: true }, { selectCheckbox: false }] as { selectCheckbox: boolean }[])(
+      'shows the checkbox if a Google billing project is selected, and correctly passes the value $selectCheckbox on create',
+      async ({ selectCheckbox }) => {
+        // Arrange
+        const user = userEvent.setup();
+        const createWorkspace = jest.fn();
+        asMockedFn(Ajax).mockImplementation(
+          () =>
+            ({
+              Billing: {
+                listProjects: async () => [gcpBillingProject, azureBillingProject],
+              },
+              Workspaces: {
+                create: createWorkspace,
+              },
+              ...nonBillingAjax,
+            } as AjaxContract)
+        );
 
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [gcpBillingProject, azureBillingProject],
-          },
-          ...nonBillingAjax,
-        } as AjaxContract)
+        await act(async () => {
+          render(
+            h(NewWorkspaceModal, {
+              onSuccess: () => {},
+              onDismiss: () => {},
+            })
+          );
+        });
+
+        const workspaceNameInput = screen.getByLabelText('Workspace name *');
+        act(() => {
+          fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+        });
+
+        const projectSelector = screen.getByText('Select a billing project');
+        await user.click(projectSelector);
+
+        const googleBillingProject = screen.getByText('Google Billing Project');
+        await user.click(googleBillingProject);
+
+        const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+
+        // Assert
+        // getByText throws an error if the element is not found:
+        const checkbox = screen.getByRole('checkbox');
+        expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
+        expect(checkbox).not.toHaveAttribute('disabled');
+        expect(checkbox).not.toBeChecked();
+
+        // Act
+        if (selectCheckbox) {
+          await user.click(checkbox);
+          expect(checkbox).toBeChecked();
+        }
+        expect(createWorkspaceButton).not.toHaveAttribute('disabled');
+        await user.click(createWorkspaceButton);
+
+        expect(createWorkspace).toBeCalledWith({
+          attributes: { description: '' },
+          authorizationDomain: [],
+          bucketLocation: 'US-CENTRAL1',
+          copyFilesWithPrefix: 'notebooks/',
+          enhancedBucketLogging: selectCheckbox,
+          name: 'Test workspace',
+          namespace: 'Google Billing Project',
+        });
+      }
     );
 
-    await act(async () => {
-      render(
-        h(NewWorkspaceModal, {
-          onSuccess: () => {},
-          onDismiss: () => {},
-        })
+    it('does not show the checkbox if an Azure billing project is selected', async () => {
+      // Arrange
+      const user = userEvent.setup();
+
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [gcpBillingProject, azureBillingProject],
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
       );
+
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            onSuccess: () => {},
+            onDismiss: () => {},
+          })
+        );
+      });
+
+      const projectSelector = screen.getByText('Select a billing project');
+      await user.click(projectSelector);
+
+      const azureBillingProject1 = screen.getByText('Azure Billing Project');
+      await user.click(azureBillingProject1);
+
+      // Assert
+      expect(screen.queryByText(additionalSecurityMonitoring)).toBeNull();
     });
 
-    const projectSelector = screen.getByText('Select a billing project');
-    await user.click(projectSelector);
+    it('does not let the user uncheck the option if it is passed in as required', async () => {
+      // Arrange
+      const user = userEvent.setup();
 
-    const googleBillingProject = screen.getByText('Google Billing Project');
-    await user.click(googleBillingProject);
-
-    // Assert
-    // getByText throws an error if the element is not found:
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
-    expect(checkbox).not.toHaveAttribute('disabled');
-  });
-
-  it('does not show an option for "Additional security monitoring" if an Azure billing project is selected', async () => {
-    // Arrange
-    const user = userEvent.setup();
-
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [gcpBillingProject, azureBillingProject],
-          },
-          ...nonBillingAjax,
-        } as AjaxContract)
-    );
-
-    await act(async () => {
-      render(
-        h(NewWorkspaceModal, {
-          onSuccess: () => {},
-          onDismiss: () => {},
-        })
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [gcpBillingProject, azureBillingProject],
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
       );
+
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            onSuccess: () => {},
+            onDismiss: () => {},
+            requireEnhancedBucketLogging: true,
+          })
+        );
+      });
+
+      const projectSelector = screen.getByText('Select a billing project');
+      await user.click(projectSelector);
+
+      const googleBillingProject = screen.getByText('Google Billing Project');
+      await user.click(googleBillingProject);
+
+      // Assert
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
+      expect(checkbox).toHaveAttribute('disabled');
+      expect(checkbox).toBeChecked();
     });
 
-    const projectSelector = screen.getByText('Select a billing project');
-    await user.click(projectSelector);
-
-    const azureBillingProject1 = screen.getByText('Azure Billing Project');
-    await user.click(azureBillingProject1);
-
-    // Assert
-    expect(screen.queryByText(additionalSecurityMonitoring)).toBeNull();
-  });
-
-  it('does not let the user uncheck "Additional security monitoring" if its required', async () => {
-    // Arrange
-    const user = userEvent.setup();
-
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [gcpBillingProject, azureBillingProject],
-          },
-          ...nonBillingAjax,
-        } as AjaxContract)
-    );
-
-    await act(async () => {
-      render(
-        h(NewWorkspaceModal, {
-          onSuccess: () => {},
-          onDismiss: () => {},
-          requireEnhancedBucketLogging: true,
-        })
+    it('does not let the user uncheck the option if cloning a GCP protected data workspace', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const protectedWorkspace = { ...defaultGoogleWorkspace };
+      protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Workspaces: {
+              workspace: () => ({
+                checkBucketLocation: jest.fn().mockResolvedValue({
+                  location: 'US-CENTRAL1',
+                  locationType: 'location-type',
+                }),
+              }),
+            },
+            Billing: {
+              listProjects: async () => [gcpBillingProject],
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
       );
+
+      // Act
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            cloneWorkspace: protectedWorkspace,
+            onDismiss: () => {},
+            onSuccess: () => {},
+          })
+        );
+      });
+
+      const projectSelector = screen.getByText('Select a billing project');
+      await user.click(projectSelector);
+
+      const googleBillingProject = screen.getByText('Google Billing Project');
+      await user.click(googleBillingProject);
+
+      // Assert
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
+      expect(checkbox).toHaveAttribute('disabled');
+      expect(checkbox).toBeChecked();
     });
 
-    const projectSelector = screen.getByText('Select a billing project');
-    await user.click(projectSelector);
+    it('checks and disables the option if an auth domain is chosen', async () => {
+      // Arrange
+      const user = userEvent.setup();
 
-    const googleBillingProject = screen.getByText('Google Billing Project');
-    await user.click(googleBillingProject);
-
-    // Assert
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
-    expect(checkbox).toHaveAttribute('disabled');
-  });
-
-  it('checks and disables "Additional security monitoring" if an auth domain is chosen', async () => {
-    // Arrange
-    const user = userEvent.setup();
-
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [gcpBillingProject, azureBillingProject],
-          },
-          ...hasGroupsAjax,
-        } as AjaxContract)
-    );
-
-    await act(async () => {
-      render(
-        h(NewWorkspaceModal, {
-          onSuccess: () => {},
-          onDismiss: () => {},
-        })
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [gcpBillingProject, azureBillingProject],
+            },
+            ...hasGroupsAjax,
+          } as AjaxContract)
       );
+
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            onSuccess: () => {},
+            onDismiss: () => {},
+          })
+        );
+      });
+
+      const projectSelector = screen.getByText('Select a billing project');
+      await user.click(projectSelector);
+
+      const googleBillingProject = screen.getByText('Google Billing Project');
+      await user.click(googleBillingProject);
+
+      const groupsSelector = screen.getByText('Select groups');
+      await user.click(groupsSelector);
+
+      const authDomain = screen.getByText('AuthDomain');
+      await user.click(authDomain);
+
+      // Assert
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
+      expect(checkbox).toHaveAttribute('disabled');
+      expect(checkbox).toBeChecked();
     });
-
-    const projectSelector = screen.getByText('Select a billing project');
-    await user.click(projectSelector);
-
-    const googleBillingProject = screen.getByText('Google Billing Project');
-    await user.click(googleBillingProject);
-
-    const groupsSelector = screen.getByText('Select groups');
-    await user.click(groupsSelector);
-
-    const authDomain = screen.getByText('AuthDomain');
-    await user.click(authDomain);
-
-    // Assert
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
-    expect(checkbox).toHaveAttribute('disabled');
-    expect(checkbox).toBeChecked();
   });
 
   it('allows showing a notice based on the selected billing project', async () => {
