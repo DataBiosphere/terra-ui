@@ -24,6 +24,7 @@ import {
   isValidWsExportTarget,
   protectedDataLabel,
   protectedDataMessage,
+  regionConstraintLabel,
   regionConstraintMessage,
   WorkspaceAccessLevel,
   WorkspacePolicy,
@@ -147,7 +148,7 @@ describe('getPolicyDescriptions', () => {
       policies: [protectedDataPolicy, groupConstraintPolicy],
     };
     expect(getPolicyDescriptions(workspace)).toEqual([
-      { shortDescription: 'Additional security monitoring', longDescription: protectedDataMessage },
+      { shortDescription: protectedDataLabel, longDescription: protectedDataMessage },
       { shortDescription: 'Data access controls', longDescription: groupConstraintMessage },
     ]);
   });
@@ -155,7 +156,7 @@ describe('getPolicyDescriptions', () => {
   it('Returns policy information for a region-constrained workspace', () => {
     expect(getPolicyDescriptions(regionRestrictedAzureWorkspace)).toEqual([
       {
-        shortDescription: 'Region constraint',
+        shortDescription: regionConstraintLabel,
         longDescription: regionConstraintMessage(regionRestrictedAzureWorkspace),
       },
     ]);
