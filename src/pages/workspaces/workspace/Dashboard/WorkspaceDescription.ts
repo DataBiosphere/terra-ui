@@ -1,8 +1,9 @@
+import { ButtonPrimary, ButtonSecondary, Link } from '@terra-ui-packages/components';
 import { cond } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common';
+import { spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown';
 import { Ajax } from 'src/libs/ajax';

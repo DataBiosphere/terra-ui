@@ -1,9 +1,9 @@
+import { Link } from '@terra-ui-packages/components';
 import { cond } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { forwardRef, ReactNode, useEffect, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
-import { Link } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import { useStore } from 'src/libs/react-utils';
@@ -125,7 +125,7 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps): ReactNod
           },
           [h(AuthDomainPanel, { workspace })]
         ),
-      h(WorkspaceTags, { name, namespace, workspace, canEdit }),
+      h(WorkspaceTags, { refreshWorkspace, workspace, canEdit }),
       h(
         RightBoxSection,
         {
