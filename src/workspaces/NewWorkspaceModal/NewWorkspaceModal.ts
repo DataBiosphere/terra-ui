@@ -462,7 +462,6 @@ const NewWorkspaceModal = withDisplayName(
                             ariaLiveMessages: { onFocus: onFocusAria, onChange: onChangeAria },
                             onChange: (opt) => setNamespace(opt!.value),
                             styles: { option: (provided) => ({ ...provided, padding: 10 }) },
-                            // @ts-expect-error
                             options: _.map((project: BillingProject) => {
                               const { projectName, invalidBillingAccount, cloudPlatform } = project;
                               return {
