@@ -411,7 +411,6 @@ describe('NewWorkspaceModal', () => {
 
   describe('decides when to show a policy section ', () => {
     const clonePolicyLabel = 'The cloned workspace will inherit:';
-
     it('Shows a policy section when cloning an Azure workspace with polices', async () => {
       asMockedFn(Ajax).mockImplementation(
         () =>
@@ -583,7 +582,6 @@ describe('NewWorkspaceModal', () => {
 
   describe('handles Additional Security Monitoring for GCP billing projects/workspaces ', () => {
     const additionalSecurityMonitoring = 'Enable additional security monitoring';
-
     it.each([{ selectCheckbox: true }, { selectCheckbox: false }] as { selectCheckbox: boolean }[])(
       'shows the checkbox if a Google billing project is selected, and correctly passes the value $selectCheckbox on create',
       async ({ selectCheckbox }) => {
@@ -640,6 +638,7 @@ describe('NewWorkspaceModal', () => {
         expect(createWorkspaceButton).not.toHaveAttribute('disabled');
         await user.click(createWorkspaceButton);
 
+        // Assert arguments sent to Ajax method for creating a workspace.
         expect(createWorkspace).toBeCalledWith({
           attributes: { description: '' },
           authorizationDomain: [],

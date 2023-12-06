@@ -45,9 +45,6 @@ describe('the share workspace modal', () => {
     },
   };
 
-  const defaultPolicyLabel = 'This workspace has the following policy:';
-  const gcpPolicyLabel = 'This workspace has the following:';
-
   const mockAjax = (
     acl: RawWorkspaceAcl,
     shareLog: string[],
@@ -208,6 +205,8 @@ describe('the share workspace modal', () => {
   });
 
   describe('the policy section for sharing workspaces', () => {
+    const defaultPolicyLabel = 'This workspace has the following policy:';
+    const gcpPolicyLabel = 'This workspace has the following:';
     it('shows a policy section for Azure workspaces that have them', async () => {
       mockAjax({}, [], [], jest.fn());
       await act(async () => {
