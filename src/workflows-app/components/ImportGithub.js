@@ -4,7 +4,9 @@ import { ButtonPrimary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { ValidatedInput } from 'src/components/input';
 import { TooltipCell } from 'src/components/table';
+import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
 import { withBusyState } from 'src/libs/utils';
@@ -53,6 +55,7 @@ const ImportGithub = ({ setLoading, signal, workspace, name, namespace, setSelec
     setSuccessfulImport(false);
     setErrorMessage(JSON.stringify(error instanceof Response ? await error.text() : error, null, 2));
   };
+  const { captureEvent } = useMetricsEvent();
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
     h2({ style: { marginTop: 0 } }, ['Import a workflow']),
     'Options to add workflows via a link or adding a script.',
@@ -109,6 +112,13 @@ const ImportGithub = ({ setLoading, signal, workspace, name, namespace, setSelec
                 method_url: methodUrl,
                 method_source: 'GitHub',
               };
+              captureEvent(Events.workflowsAppImport, {
+                ...extractWorkspaceDetails(workspace),
+                workflowSource: 'GitHub',
+                workflowName: methodName,
+                workflowUrl: methodUrl,
+                importPage: 'ImportGithub',
+              });
               withBusyState(setLoading, submitMethod(signal, method, workspace, onSuccess, onError));
             },
           },

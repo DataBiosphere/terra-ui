@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { h } from 'react-hyperscript-helpers';
 import RModal from 'react-modal';
 import { startPollingServiceAlerts } from 'src/alerts/service-alerts-polling';
+import { startPollingVersion } from 'src/alerts/version-polling';
 import { initializeAuth } from 'src/auth/auth';
 import { initializeClientId } from 'src/auth/oidc-broker';
 import { initializeSystemProperties } from 'src/auth/system-loader';
@@ -31,6 +32,7 @@ initializeClientId().then(() => {
     initializeAuth();
     initializeTCell();
     startPollingServiceAlerts();
+    startPollingVersion();
   }, 0);
 
   if (isAxeEnabled()) {

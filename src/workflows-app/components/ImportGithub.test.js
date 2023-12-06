@@ -21,6 +21,10 @@ jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
   getTerraUser: jest.fn(),
 }));
+jest.mock('src/libs/ajax/metrics/useMetrics', () => ({
+  ...jest.requireActual('src/libs/ajax/metrics/useMetrics'),
+  useMetricsEvent: jest.fn(() => ({ captureEvent: jest.fn() })),
+}));
 
 describe('Add a Workflow Link', () => {
   const workspace = {

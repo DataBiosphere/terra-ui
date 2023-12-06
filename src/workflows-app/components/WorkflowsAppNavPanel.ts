@@ -5,8 +5,10 @@ import { AnalysesData } from 'src/analysis/Analyses';
 import Collapse from 'src/components/Collapse';
 import { Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
+import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useQueryParameter } from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -88,6 +90,8 @@ export const WorkflowsAppNavPanel = ({
 }: WorkflowsAppNavPanelProps) => {
   const [selectedSubHeader, setSelectedSubHeader] = useQueryParameter('tab');
 
+  const { captureEvent } = useMetricsEvent();
+
   useEffect(() => {
     if (
       !(selectedSubHeader in subHeadersMap || (workspace.canCompute && selectedSubHeader in findAndAddSubheadersMap))
@@ -95,6 +99,12 @@ export const WorkflowsAppNavPanel = ({
       setSelectedSubHeader('workspace-workflows');
     }
   }, [workspace, selectedSubHeader, setSelectedSubHeader]);
+
+  useEffect(() => {
+    captureEvent(Events.workflowsTabView, { ...extractWorkspaceDetails({ namespace, name }), tab: selectedSubHeader });
+    // Don't re-fire if captureEvent changes:
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, namespace, selectedSubHeader]);
 
   const isSubHeaderActive = (subHeader: string) => pageReady && selectedSubHeader === subHeader;
 
