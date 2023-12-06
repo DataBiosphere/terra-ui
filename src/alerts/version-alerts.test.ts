@@ -1,8 +1,15 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { renderHook } from '@testing-library/react';
+import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 
-import { getLatestVersion, latestVersionStore, useVersionAlerts } from './version-alerts';
+import { getBadVersions, getLatestVersion, latestVersionStore, useVersionAlerts } from './version-alerts';
+
+type AjaxExports = typeof import('src/libs/ajax');
+jest.mock('src/libs/ajax');
+
+type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
 type ConfigExports = typeof import('src/libs/config');
 jest.mock('src/libs/config', (): ConfigExports => {
@@ -54,5 +61,36 @@ describe('useVersionAlerts', () => {
         title: 'Update available',
       })
     );
+  });
+});
+
+describe('getBadVersions', () => {
+  it('parses list of bad versions from firecloud-alerts bucket', async () => {
+    // Arrange
+    const ajaxGetBadVersions = jest.fn().mockResolvedValue('# broken\nabcd123 \neeee456\n\n');
+    asMockedFn(Ajax).mockReturnValue({
+      FirecloudBucket: { getBadVersions: ajaxGetBadVersions },
+    } as DeepPartial<AjaxContract> as AjaxContract);
+
+    // Act
+    const badVersions = await getBadVersions();
+
+    // Assert
+    expect(ajaxGetBadVersions).toHaveBeenCalled();
+    expect(badVersions).toEqual(['abcd123', 'eeee456']);
+  });
+
+  it('returns empty list if bad versions file does not exist', async () => {
+    // Arrange
+    const ajaxGetBadVersions = jest.fn().mockRejectedValue(new Response('Not found', { status: 404 }));
+    asMockedFn(Ajax).mockReturnValue({
+      FirecloudBucket: { getBadVersions: ajaxGetBadVersions },
+    } as DeepPartial<AjaxContract> as AjaxContract);
+
+    // Act
+    const badVersions = await getBadVersions();
+
+    // Assert
+    expect(badVersions).toEqual([]);
   });
 });

@@ -1,4 +1,5 @@
 import { atom } from '@terra-ui-packages/core-utils';
+import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 import { useStore } from 'src/libs/react-utils';
 
@@ -29,4 +30,20 @@ export const useVersionAlerts = (): Alert[] => {
       severity: 'info',
     },
   ];
+};
+
+export const getBadVersions = async (): Promise<string[]> => {
+  try {
+    const versionsText = await Ajax().FirecloudBucket.getBadVersions();
+    return versionsText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => !!line)
+      .filter((line) => !line.startsWith('#'));
+  } catch (error: unknown) {
+    if (error instanceof Response && error.status === 404) {
+      return [];
+    }
+    throw error;
+  }
 };
