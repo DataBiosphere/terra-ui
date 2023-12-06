@@ -306,6 +306,9 @@ export const convertInputTypes = ({
     if (!Array.isArray(value)) {
       try {
         value = JSON.parse(inputSource.parameter_value);
+        if (!Array.isArray(value)) {
+          value = [value];
+        }
       } catch (e) {
         value = [value];
       }
