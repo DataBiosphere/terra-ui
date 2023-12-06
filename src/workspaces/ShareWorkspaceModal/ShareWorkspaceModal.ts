@@ -1,22 +1,20 @@
 import { Switch } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { Fragment, useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay } from 'src/components/common';
-import { centeredSpinner, icon } from 'src/components/icons';
+import { centeredSpinner } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
 import Modal, { modalStyles } from 'src/components/Modal';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
-import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import * as Style from 'src/libs/style';
 import { append, cond, withBusyState } from 'src/libs/utils';
-import { isAzureWorkspace, isProtectedWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import {
   aclEntryIsTerraSupport,
   terraSupportAccessLevel,
@@ -145,7 +143,6 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       onDismiss,
     },
     [
-      isAzureWorkspace(workspace) && isProtectedWorkspace(workspace) ? h(ProtectedDataWarning) : h(Fragment),
       div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
         h(IdContainer, [
           (id) =>
@@ -190,9 +187,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       ]),
       searchValueValid && !searchHasFocus && p([addUserReminder]),
       h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
-      !!workspace.policies &&
-        div({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Policies']),
-      !!workspace.policies && h(WorkspacePolicies, { workspace, style: { marginBottom: '1.5rem' } }),
+      h(WorkspacePolicies, { workspace, title: 'Policies', style: { marginBottom: '1.5rem' } }),
       !loaded && centeredSpinner(),
       updateError && div({ style: { marginTop: '1rem' } }, [div(['An error occurred:']), updateError]),
       div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [
@@ -272,33 +267,6 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         ]),
       ]),
       working && spinnerOverlay,
-    ]
-  );
-};
-
-const ProtectedDataWarning: React.FC = () => {
-  const msg =
-    'Do not share Unclassified Confidential Information with anyone unauthorized to access such information, ' +
-    'as it violates US Federal Policy (ie FISMA, FIPS-199, etc) ' +
-    'unless explicitly authorized by the dataset manager or governed by your own agreements';
-
-  return div(
-    {
-      role: 'textbox',
-      style: {
-        display: 'flex',
-        flexDirection: 'row',
-        padding: '0.5rem',
-        fontWeight: 'bold',
-        backgroundColor: colors.dark(0.25),
-      },
-    },
-    [
-      icon('warning-standard', {
-        size: 26,
-        style: { color: colors.danger(1), flexShrink: 0, margin: '0.5rem' },
-      }),
-      msg,
     ]
   );
 };

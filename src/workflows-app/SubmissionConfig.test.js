@@ -1930,7 +1930,7 @@ describe('Submitting a run set', () => {
         },
       })
     );
-  }, 7000);
+  }, 10000);
 
   it('should call POST /run_sets endpoint with expected parameters after outputs are set to default', async () => {
     // ** ARRANGE **

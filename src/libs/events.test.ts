@@ -1,4 +1,4 @@
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { defaultAzureWorkspace, defaultGoogleWorkspace, protectedAzureWorkspace } from 'src/testing/workspace-fixtures';
 
 import { extractBillingDetails, extractCrossWorkspaceDetails, extractWorkspaceDetails } from './events';
 
@@ -37,7 +37,22 @@ describe('extractWorkspaceDetails', () => {
       workspaceName: defaultGoogleWorkspace.workspace.name,
       workspaceNamespace: defaultGoogleWorkspace.workspace.namespace,
       cloudPlatform: 'GCP',
-      hasProtectedData: undefined,
+      hasProtectedData: false,
+      workspaceAccessLevel: 'OWNER',
+    });
+  });
+
+  it('Determine hasProtectedData based on workspace.policies', () => {
+    // Act
+    const workspaceDetails = extractWorkspaceDetails(protectedAzureWorkspace);
+
+    // Assert
+    expect(workspaceDetails).toEqual({
+      workspaceName: protectedAzureWorkspace.workspace.name,
+      workspaceNamespace: protectedAzureWorkspace.workspace.namespace,
+      cloudPlatform: 'AZURE',
+      hasProtectedData: true,
+      workspaceAccessLevel: 'OWNER',
     });
   });
 });

@@ -7,12 +7,6 @@ import {
   locationTypes,
 } from 'src/components/region-common';
 
-const us = {
-  label: 'US multi-regional',
-  locationType: 'multi-region',
-  value: 'US',
-};
-
 const usCentral = {
   label: 'us-central1 (Iowa) (default)',
   locationType: 'region',
@@ -24,8 +18,6 @@ const montreal = {
   locationType: 'region',
   value: 'NORTHAMERICA-NORTHEAST1',
 };
-
-const mockAvailableBucketRegions = [usCentral, us, montreal];
 
 describe('getRegionInfo', () => {
   it('gets a { flag: ..., countryName: ... } object representing a google locationType/location input.', () => {
@@ -55,8 +47,8 @@ describe('getRegionInfo', () => {
 });
 
 describe('availableBucketRegions', () => {
-  it('For current phased release of regionality only supporting US, US-CENTRAL1, NORTHAMERICA-NORTHEAST1 buckets.', () => {
-    expect(availableBucketRegions).toStrictEqual(mockAvailableBucketRegions);
+  it('For current phased release of regionality only supporting US-CENTRAL1 and NORTHAMERICA-NORTHEAST1 buckets.', () => {
+    expect(availableBucketRegions).toStrictEqual([usCentral, montreal]);
   });
 });
 
@@ -81,5 +73,6 @@ describe('isLocationMultiRegion', () => {
 describe('getLocationType', () => {
   it('return location information', () => {
     expect(getLocationType('US')).toStrictEqual(locationTypes.multiRegion);
+    expect(getLocationType('US-CENTRAL1')).toStrictEqual(locationTypes.region);
   });
 });

@@ -4,7 +4,7 @@ import _ from 'lodash/fp';
 import { refreshTerraProfile } from 'src/auth/auth';
 import { User } from 'src/libs/ajax/User';
 import { reportError } from 'src/libs/error';
-import { authStore, TerraUserProfile } from 'src/libs/state';
+import { TerraUserProfile, userStore } from 'src/libs/state';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 
 import { useUserProfile } from './useUserProfile';
@@ -53,7 +53,7 @@ const mockProfile: TerraUserProfile = {
 
 describe('useUserProfile', () => {
   beforeEach(() => {
-    authStore.update((state) => {
+    userStore.update((state) => {
       return {
         ...state,
         profile: mockProfile,
@@ -69,7 +69,7 @@ describe('useUserProfile', () => {
     // Any change to the auth store should cause the hook to rerender.
     const updatedProfile = { ...mockProfile, firstName: 'Test' };
     act(() =>
-      authStore.update((state) => {
+      userStore.update((state) => {
         return {
           ...state,
           profile: updatedProfile,
