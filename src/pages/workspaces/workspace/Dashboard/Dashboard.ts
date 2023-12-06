@@ -125,7 +125,7 @@ const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps): ReactNod
           },
           [h(AuthDomainPanel, { workspace })]
         ),
-      h(WorkspaceTags, { refreshWorkspace, workspace, canEdit }),
+      h(WorkspaceTags, { workspace, canEdit }),
       h(
         RightBoxSection,
         {
