@@ -1,9 +1,9 @@
+import { Link } from '@terra-ui-packages/components';
 import { cond } from '@terra-ui-packages/core-utils';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, dl, h } from 'react-hyperscript-helpers';
 import { bucketBrowserUrl } from 'src/auth/auth';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TooltipCell } from 'src/components/table';
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg';
