@@ -115,6 +115,7 @@ const eventsList = {
   workflowUseDefaultOutputs: 'workflow:useDefaultOutputs',
   workflowsAppLaunchWorkflow: 'workflowsApp:launchWorkflow',
   workflowsAppCloseLogViewer: 'workflowsApp:closeLogViewer',
+  workflowsTabView: 'workflowsApp:tab:view',
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
   workspaceOpenedBucketInBrowser: 'workspace:openedBucketInBrowser',
