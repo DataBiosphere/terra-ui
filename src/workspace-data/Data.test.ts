@@ -66,6 +66,8 @@ describe('WorkspaceData', () => {
     listAppResponse: DeepPartial<ListAppItem>;
     mockGetSchema: jest.Mock;
     mockListAppsV2: jest.Mock;
+    mockEntityMetadata: jest.Mock;
+    mockListSnapshots: jest.Mock;
   };
 
   // Used for parameterized tests that check the waiting message for a given app status
@@ -100,12 +102,14 @@ describe('WorkspaceData', () => {
 
     const mockGetSchema = jest.fn().mockResolvedValue([]);
     const mockListAppsV2 = jest.fn().mockResolvedValue([listAppResponse]);
+    const mockEntityMetadata = jest.fn().mockRejectedValue([]);
+    const mockListSnapshots = jest.fn().mockRejectedValue({});
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: (_namespace, _name) => ({
           details: jest.fn().mockResolvedValue(workspace),
-          listSnapshots: jest.fn().mockResolvedValue([]),
-          entityMetadata: jest.fn().mockResolvedValue({}),
+          listSnapshots: mockListSnapshots,
+          entityMetadata: mockEntityMetadata,
         }),
       },
       WorkspaceData: {
@@ -126,7 +130,14 @@ describe('WorkspaceData', () => {
       storageDetails,
     };
 
-    return { workspaceDataProps, listAppResponse, mockGetSchema, mockListAppsV2 };
+    return {
+      workspaceDataProps,
+      listAppResponse,
+      mockGetSchema,
+      mockListAppsV2,
+      mockEntityMetadata,
+      mockListSnapshots,
+    };
   }
 
   it('displays a waiting message for an azure workspace that is still provisioning in WDS', async () => {
@@ -378,4 +389,38 @@ describe('WorkspaceData', () => {
     expect(screen.queryByText(expectedMessage)).toBeNull(); // no waiting message
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
   });
+
+  it('does not call Rawls for metadata on loading an azure workspace', async () => {
+    // Arrange
+    const { workspaceDataProps, mockEntityMetadata } = setup({
+      workspace: defaultAzureWorkspace,
+      status: 'RUNNING',
+    });
+
+    // Act
+    await act(async () => {
+      render(h(WorkspaceData, workspaceDataProps));
+    });
+
+    // Assert
+    expect(mockEntityMetadata).not.toHaveBeenCalled();
+  });
+
+  it('does not call Rawls for snapshot metadata on loading an azure workspace', async () => {
+    // Arrange
+    const { workspaceDataProps, mockListSnapshots } = setup({
+      workspace: defaultAzureWorkspace,
+      status: 'RUNNING',
+    });
+
+    // Act
+    await act(async () => {
+      render(h(WorkspaceData, workspaceDataProps));
+    });
+
+    // Assert
+    expect(mockListSnapshots).not.toHaveBeenCalled();
+  });
+
+  // TODO should I also simulate refreshing the page or some action that calls loadMetadata, or is this sufficient?
 });

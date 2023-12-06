@@ -593,37 +593,43 @@ export const WorkspaceData = _.flow(
     }, [workspaceId, wdsApp]);
 
     const loadEntityMetadata = async () => {
-      try {
-        setEntityMetadata(undefined);
-        setEntityMetadataError(false);
-        const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata();
+      if (isGoogleWorkspace) {
+        try {
+          setEntityMetadata(undefined);
+          setEntityMetadataError(false);
+          const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata();
 
-        if (selectedData?.type === workspaceDataTypes.entities && !entityMetadata[selectedData.entityType]) {
+          if (selectedData?.type === workspaceDataTypes.entities && !entityMetadata[selectedData.entityType]) {
+            setSelectedData(undefined);
+          }
+          setEntityMetadata(entityMetadata);
+        } catch (error) {
+          reportError('Error loading workspace entity data', error);
+          setEntityMetadataError(true);
           setSelectedData(undefined);
+          setEntityMetadata({});
         }
-        setEntityMetadata(entityMetadata);
-      } catch (error) {
-        reportError('Error loading workspace entity data', error);
-        setEntityMetadataError(true);
-        setSelectedData(undefined);
-        setEntityMetadata({});
+      } else {
+        setEntityMetadata({}); // This is not used for AzureWorkspaces
       }
     };
 
     const loadSnapshotMetadata = async () => {
       try {
         setSnapshotMetadataError(false);
-        const { gcpDataRepoSnapshots: snapshotBody } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshots(1000, 0);
+        if (isGoogleWorkspace) {
+          const { gcpDataRepoSnapshots: snapshotBody } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshots(1000, 0);
 
-        const snapshots = _.reduce(
-          (acc, { metadata: { name, ...metadata }, attributes }) => {
-            return _.set([name, 'resource'], _.merge(metadata, attributes), acc);
-          },
-          _.pick(_.map('name', _.map('metadata', snapshotBody)), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist
-          snapshotBody
-        );
+          const snapshots = _.reduce(
+            (acc, { metadata: { name, ...metadata }, attributes }) => {
+              return _.set([name, 'resource'], _.merge(metadata, attributes), acc);
+            },
+            _.pick(_.map('name', _.map('metadata', snapshotBody)), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist
+            snapshotBody
+          );
 
-        setSnapshotDetails(snapshots);
+          setSnapshotDetails(snapshots);
+        }
       } catch (error) {
         reportError('Error loading workspace snapshot data', error);
         setSnapshotMetadataError(true);
