@@ -38,6 +38,7 @@ describe('extractWorkspaceDetails', () => {
       workspaceNamespace: defaultGoogleWorkspace.workspace.namespace,
       cloudPlatform: 'GCP',
       hasProtectedData: false,
+      workspaceAccessLevel: 'OWNER',
     });
   });
 
@@ -51,6 +52,7 @@ describe('extractWorkspaceDetails', () => {
       workspaceNamespace: protectedAzureWorkspace.workspace.namespace,
       cloudPlatform: 'AZURE',
       hasProtectedData: true,
+      workspaceAccessLevel: 'OWNER',
     });
   });
 });
