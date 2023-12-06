@@ -1,7 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { ConceptSetCreator, toConceptSet } from './ConceptSetCreator';
@@ -17,10 +16,9 @@ describe('ConceptSetCreator', () => {
     const onStateChange = jest.fn();
     render(
       h(ConceptSetCreator, {
-        snapshotBuilderSettings: datasetDetails.snapshotBuilderSettings as SnapshotBuilderSettings,
+        dataset: datasetDetails,
         onStateChange,
         conceptSetUpdater,
-        datasetId,
       })
     );
     return { conceptSetUpdater, onStateChange };

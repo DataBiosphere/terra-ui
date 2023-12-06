@@ -1,7 +1,8 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { DatasetBuilder, DatasetBuilderContract, getConceptForId } from 'src/libs/ajax/DatasetBuilder';
+import { getMockConceptForId } from 'src/dataset-builder/TestConstants';
+import { DatasetBuilder, DatasetBuilderContract } from 'src/libs/ajax/DatasetBuilder';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { ConceptSelector } from './ConceptSelector';
@@ -21,7 +22,7 @@ describe('ConceptSelector', () => {
   const actionText = 'action text';
   const datasetId = '0';
   // Using 101 so the ID doesn't match the count.
-  const initialRows = [getConceptForId(101)];
+  const initialRows = [getMockConceptForId(101)];
   const renderSelector = () => {
     render(h(ConceptSelector, { actionText, initialRows, onCancel, onCommit, title, datasetId }));
   };
@@ -95,7 +96,7 @@ describe('ConceptSelector', () => {
     const user = userEvent.setup();
     await user.click(screen.getByLabelText('expand'));
     // Assert
-    expect(getConceptsMock).toHaveBeenCalledWith(initialRows[0]);
+    expect(getConceptsMock).toHaveBeenCalledWith(datasetId, initialRows[0]);
   });
 
   it('supports multiple add to cart', async () => {
@@ -105,7 +106,7 @@ describe('ConceptSelector', () => {
       getConcepts: jest.fn(),
     };
     const getConceptsMock = (mockDatasetResponse as DatasetBuilderContract).getConcepts;
-    asMockedFn(getConceptsMock).mockResolvedValue({ result: [getConceptForId(102)] });
+    asMockedFn(getConceptsMock).mockResolvedValue({ result: [getMockConceptForId(102)] });
     asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetResponse as DatasetBuilderContract);
     // Act
     const user = userEvent.setup();

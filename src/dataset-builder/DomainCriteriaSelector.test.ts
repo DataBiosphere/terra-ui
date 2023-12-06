@@ -2,12 +2,12 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { DatasetBuilder, DatasetBuilderContract, getConceptForId } from 'src/libs/ajax/DatasetBuilder';
+import { DatasetBuilder, DatasetBuilderContract } from 'src/libs/ajax/DatasetBuilder';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { cohortEditorState, domainCriteriaSelectorState, newCohort, newCriteriaGroup } from './dataset-builder-types';
 import { DomainCriteriaSelector, toCriteria } from './DomainCriteriaSelector';
-import { dummyDatasetDetails } from './TestConstants';
+import { dummyDatasetDetails, getMockConceptForId } from './TestConstants';
 
 type DatasetBuilderExports = typeof import('src/libs/ajax/DatasetBuilder');
 jest.mock('src/libs/ajax/DatasetBuilder', (): DatasetBuilderExports => {
@@ -23,7 +23,7 @@ describe('DomainCriteriaSelector', () => {
   };
   const datasetId = '';
   const getConceptsMock = (mockDatasetResponse as DatasetBuilderContract).getConcepts;
-  const concept = getConceptForId(101);
+  const concept = getMockConceptForId(101);
   const domainOption = dummyDatasetDetails(datasetId)!.snapshotBuilderSettings!.domainOptions[0];
   const cohort = newCohort('cohort');
   cohort.criteriaGroups.push(newCriteriaGroup());

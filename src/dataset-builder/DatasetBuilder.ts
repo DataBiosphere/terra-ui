@@ -714,9 +714,8 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                 return datasetDetails.state.snapshotBuilderSettings
                   ? h(ConceptSetCreator, {
                       onStateChange,
-                      snapshotBuilderSettings: datasetDetails.state.snapshotBuilderSettings,
+                      dataset: datasetDetails.state,
                       conceptSetUpdater: setConceptSets,
-                      datasetId,
                     })
                   : div(['No Dataset Builder Settings Found']);
               default:

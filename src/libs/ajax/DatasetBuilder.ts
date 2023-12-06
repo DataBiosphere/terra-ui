@@ -193,37 +193,6 @@ export interface DatasetBuilderContract {
   requestAccess: (datasetId: string, request: DatasetAccessRequest) => Promise<DatasetAccessRequestApi>;
   getParticipantCount: (request: DatasetParticipantCountRequest) => Promise<number>;
 }
-
-// TODO: remove or move to testing constants
-const dummyConcepts = [
-  // IDs must be unique.
-  { id: 100, name: 'Condition', count: 100, hasChildren: true },
-  { id: 101, name: 'Clinical Finding', count: 100, hasChildren: true },
-  { id: 102, name: 'Disease', count: 100, hasChildren: true },
-  { id: 103, name: 'Disorder by body site', count: 100, hasChildren: false },
-  { id: 104, name: 'Inflammatory disorder', count: 100, hasChildren: false },
-  { id: 105, name: 'Degenerative disorder', count: 100, hasChildren: false },
-  { id: 106, name: 'Metabolic disease', count: 100, hasChildren: false },
-  { id: 107, name: 'Finding by site', count: 100, hasChildren: false },
-  { id: 108, name: 'Neurological finding', count: 100, hasChildren: false },
-
-  { id: 200, name: 'Procedure', count: 100, hasChildren: true },
-  { id: 201, name: 'Procedure', count: 100, hasChildren: true },
-  { id: 202, name: 'Surgery', count: 100, hasChildren: false },
-  { id: 203, name: 'Heart Surgery', count: 100, hasChildren: false },
-  { id: 204, name: 'Cancer Surgery', count: 100, hasChildren: false },
-
-  { id: 300, name: 'Observation', count: 100, hasChildren: true },
-  { id: 301, name: 'Blood Pressure', count: 100, hasChildren: false },
-  { id: 302, name: 'Weight', count: 100, hasChildren: false },
-  { id: 303, name: 'Height', count: 100, hasChildren: false },
-];
-
-// TODO: remove usages in tests to test for real concept responses
-export const getConceptForId = (id: number): Concept => {
-  return _.find({ id }, dummyConcepts)!;
-};
-
 export const DatasetBuilder = (): DatasetBuilderContract => ({
   retrieveDataset: async (datasetId) => {
     return await Ajax()
