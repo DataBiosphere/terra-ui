@@ -13,24 +13,29 @@ import {
 import { AzureBillingProject, BillingProject } from 'src/pages/billing/models/BillingProject';
 
 type WorkspacePoliciesProps = {
-  workspaceOrBillingProject: WorkspaceWrapper | BillingProject;
+  policySource: WorkspaceWrapper | BillingProject;
   title?: string;
   policiesLabel?: string;
   style?: CSSProperties;
 };
 
 export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
-  const isWorkspaceWrapper = (workspace?: WorkspaceWrapper): workspace is WorkspaceWrapper =>
+  const isWorkspaceWrapper = (workspace: WorkspaceWrapper | BillingProject): workspace is WorkspaceWrapper =>
     _.has('workspace', workspace);
-  const isAzureBillingProject = (project?: BillingProject): project is AzureBillingProject =>
-    _.has('projectName', project) && project?.cloudPlatform === 'AZURE';
+  const isProtectedAzureBillingProject = (project: WorkspaceWrapper | BillingProject) => {
+    const isBillingProject = (project?: WorkspaceWrapper | BillingProject): project is BillingProject =>
+      _.has('projectName', project);
+    const isAzureBillingProject = (project: BillingProject): project is AzureBillingProject =>
+      project.cloudPlatform === 'AZURE';
+    return isBillingProject(project) && isAzureBillingProject(project) && project.protectedData;
+  };
+  const policySource = props.policySource;
 
-  const billingProjectPolicyDescriptions =
-    isAzureBillingProject(props.workspaceOrBillingProject) && props.workspaceOrBillingProject.protectedData
-      ? [{ shortDescription: protectedDataLabel, longDescription: protectedDataMessage }]
-      : [];
-  const policyDescriptions = isWorkspaceWrapper(props.workspaceOrBillingProject)
-    ? getPolicyDescriptions(props.workspaceOrBillingProject)
+  const billingProjectPolicyDescriptions = isProtectedAzureBillingProject(policySource)
+    ? [{ shortDescription: protectedDataLabel, longDescription: protectedDataMessage }]
+    : [];
+  const policyDescriptions = isWorkspaceWrapper(policySource)
+    ? getPolicyDescriptions(policySource)
     : billingProjectPolicyDescriptions;
   const description = props.policiesLabel
     ? props.policiesLabel

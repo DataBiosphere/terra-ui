@@ -314,7 +314,7 @@ const NewWorkspaceModal = withDisplayName(
       cloudProvider: CloudPlatform
     ): boolean => getProjectCloudPlatform(project) === cloudProvider;
 
-    const selectedBillingProject: BillingProject = namespace
+    const selectedBillingProject: BillingProject | undefined = namespace
       ? billingProjects?.find(({ projectName }) => projectName === namespace)
       : undefined;
 
@@ -463,13 +463,9 @@ const NewWorkspaceModal = withDisplayName(
                             onChange: (opt) => setNamespace(opt!.value),
                             styles: { option: (provided) => ({ ...provided, padding: 10 }) },
                             // @ts-expect-error
-                            options: _.map(
-                              ({
-                                projectName,
-                                invalidBillingAccount,
-                                cloudPlatform,
-                                protectedData,
-                              }: BillingProject) => ({
+                            options: _.map((project: BillingProject) => {
+                              const { projectName, invalidBillingAccount, cloudPlatform } = project;
+                              return {
                                 'aria-label': `${
                                   cloudProviderLabels[cloudPlatform]
                                 } ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
@@ -488,8 +484,10 @@ const NewWorkspaceModal = withDisplayName(
                                           style: { marginRight: '0.5rem' },
                                         }),
                                       projectName,
-                                      !!protectedData &&
+                                      isAzureBillingProject(project) &&
+                                        project.protectedData &&
                                         icon(protectedDataIcon, {
+                                          key: `protected-${projectName}`,
                                           size: 18,
                                           'aria-label': protectedDataLabel,
                                           style: { marginLeft: '0.5rem' },
@@ -499,9 +497,8 @@ const NewWorkspaceModal = withDisplayName(
                                 ),
                                 value: projectName,
                                 isDisabled: invalidBillingAccount,
-                              }),
-                              _.sortBy('projectName', billingProjects)
-                            ),
+                              };
+                            }, _.sortBy('projectName', billingProjects)),
                           }),
                         ]),
                     ]),
@@ -648,15 +645,16 @@ const NewWorkspaceModal = withDisplayName(
                     !!cloneWorkspace &&
                       isAzureWorkspace(cloneWorkspace) &&
                       h(WorkspacePolicies, {
-                        workspaceOrBillingProject: cloneWorkspace,
+                        policySource: cloneWorkspace,
                         title: 'Policies',
                         policiesLabel: 'The workspace will inherit:',
                       }),
-                    // If creating a new workspace using a protected data Azure billing project,
-                    // show the policies that will be inherited from the billing project.
+                    // If creating a new workspace, show any policies that will be inherited
+                    // from the parent billing project.
                     !cloneWorkspace &&
+                      !!selectedBillingProject &&
                       h(WorkspacePolicies, {
-                        workspaceOrBillingProject: selectedBillingProject,
+                        policySource: selectedBillingProject,
                         title: 'Policies',
                         policiesLabel: 'The workspace will inherit:',
                       }),

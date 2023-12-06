@@ -410,7 +410,7 @@ describe('NewWorkspaceModal', () => {
   });
 
   describe('decides when to show a policy section ', () => {
-    const clonePolicyLabel = 'The cloned workspace will inherit:';
+    const clonePolicyLabel = 'The workspace will inherit:';
     it('Shows a policy section when cloning an Azure workspace with polices', async () => {
       asMockedFn(Ajax).mockImplementation(
         () =>

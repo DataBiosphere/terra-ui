@@ -222,8 +222,8 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
       !!selectedWorkspace &&
         h(Fragment, [
-          h(WorkspacePolicies, { workspaceOrBillingProject: selectedWorkspace }),
-          !!isProtectedData &&
+          h(WorkspacePolicies, { policySource: selectedWorkspace }),
+          isProtectedData &&
             isAzureWorkspace(selectedWorkspace) &&
             div([p(['Importing this data may add:']), ul([li(['Additional access controls'])])]),
         ]),
