@@ -204,60 +204,7 @@ describe('the share workspace modal', () => {
     expect(errorMessage).not.toBeNull();
   });
 
-  describe('the warning and policy section for sharing protected azure data', () => {
-    it('shows a warning when sharing a workspace with protected data', async () => {
-      mockAjax({}, [], [], jest.fn());
-      await act(async () => {
-        render(
-          h(ShareWorkspaceModal, {
-            onDismiss: jest.fn(),
-            workspace: protectedAzureWorkspace,
-          })
-        );
-      });
-      expect(screen.queryByText(/Do not share Unclassified Confidential Information/i)).toBeInTheDocument();
-    });
-
-    it('does not show a warning for azure workspaces without a protected data policy', async () => {
-      mockAjax({}, [], [], jest.fn());
-      await act(async () => {
-        render(
-          h(ShareWorkspaceModal, {
-            onDismiss: jest.fn(),
-            workspace: {
-              ...defaultAzureWorkspace,
-              policies: [
-                {
-                  additionalData: [],
-                  name: 'not-protected-data',
-                  namespace: 'terra',
-                },
-                {
-                  additionalData: [],
-                  name: 'protected-data',
-                  namespace: 'something-besides-terra',
-                },
-              ],
-            },
-          })
-        );
-      });
-      expect(screen.queryByText(/Do not share Unclassified Confidential Information/i)).not.toBeInTheDocument();
-    });
-
-    it('does not get workspace detail or display a warning for a gcp workspace', async () => {
-      mockAjax({}, [], [], jest.fn());
-      await act(async () => {
-        render(
-          h(ShareWorkspaceModal, {
-            onDismiss: jest.fn(),
-            workspace,
-          })
-        );
-      });
-      expect(screen.queryByText(/Do not share Unclassified Confidential Information/i)).not.toBeInTheDocument();
-    });
-
+  describe('the policy section for sharing protected azure data', () => {
     it('shows a policy section for workspaces that have them', async () => {
       mockAjax({}, [], [], jest.fn());
       await act(async () => {

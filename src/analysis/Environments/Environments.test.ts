@@ -14,16 +14,11 @@ import {
   generateTestDiskWithGoogleWorkspace,
   generateTestListGoogleRuntime,
 } from 'src/analysis/_testData/testData';
-import {
-  EnvironmentNavActions,
-  Environments,
-  EnvironmentsProps,
-  PauseButton,
-} from 'src/analysis/Environments/Environments';
+import { EnvironmentNavActions, Environments, EnvironmentsProps } from 'src/analysis/Environments/Environments';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { AzureConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { AppBasics, LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
+import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { getTerraUser } from 'src/libs/state';
@@ -271,7 +266,8 @@ describe('Environments', () => {
       const buttons2 = getAllByRole(runtime2ButtonsCell, 'button');
       expect(buttons2.length).toBe(2);
       expect(buttons2[0].textContent).toBe('Pause');
-      expect(buttons2[0].getAttribute('aria-disabled')).toBe('true');
+      // TODO: Back to true once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
+      expect(buttons2[0].getAttribute('aria-disabled')).toBe('false');
       expect(buttons2[1].textContent).toBe('Delete');
       expect(buttons2[1].getAttribute('aria-disabled')).toBe('false');
 
@@ -291,7 +287,8 @@ describe('Environments', () => {
       const buttons4 = getAllByRole(runtime4ButtonsCell, 'button');
       expect(buttons4.length).toBe(2);
       expect(buttons4[0].textContent).toBe('Pause');
-      expect(buttons4[0].getAttribute('aria-disabled')).toBe('true');
+      // TODO: Back to true once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
+      expect(buttons4[0].getAttribute('aria-disabled')).toBe('false');
       expect(buttons4[1].textContent).toBe('Delete');
       expect(buttons4[1].getAttribute('aria-disabled')).toBe('true');
     });
@@ -578,7 +575,7 @@ describe('Environments', () => {
         workspace: defaultAzureWorkspace,
         isAzure: true,
       },
-    ])('Behaves properly when we click pause/delete for azure/gce app', async ({ app, workspace, isAzure }) => {
+    ])('Behaves properly when we click pause/delete for azure/gce app', async ({ app, workspace }) => {
       // Arrange
       const user = userEvent.setup();
       const props = getEnvironmentsProps();
@@ -602,28 +599,13 @@ describe('Environments', () => {
       const buttons1 = getAllByRole(app1ButtonsCell, 'button');
 
       // Assert
-      expect(buttons1.length).toBe(2);
-      expect(buttons1[0].textContent).toBe('Pause');
+      // TODO: Back to 2 / Pause once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
+      expect(buttons1.length).toBe(1);
+      expect(buttons1[0].textContent).toBe('Delete');
 
-      // Pause button
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      // Delete button
+      expect(buttons1[0].textContent).toBe('Delete');
       await user.click(buttons1[0]);
-      if (!isAzure) {
-        expect(props.leoAppData.pause).toBeCalledTimes(1);
-        expect(props.leoAppData.pause).toBeCalledWith(
-          expect.objectContaining({
-            appName: app.appName,
-            cloudContext: app.cloudContext,
-            workspaceId: app.workspaceId,
-          } satisfies AppBasics)
-        );
-      } else {
-        expect(consoleSpy).toHaveBeenCalledWith('Pause is not currently implemented for azure apps');
-      }
-
-      // Delete Button
-      expect(buttons1[1].textContent).toBe('Delete');
-      await user.click(buttons1[1]);
       screen.getByText('Delete cloud environment?');
     });
   });
@@ -789,34 +771,35 @@ describe('Environments', () => {
       screen.getByText('Delete persistent disk?');
     });
   });
+  // TODO: Reenable once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
+  //   describe('PauseButton', () => {
+  //     it.each([{ app: generateTestAppWithGoogleWorkspace() }, { app: generateTestAppWithAzureWorkspace() }])(
+  //       'should enable pause for azure and google',
+  //       async ({ app }) => {
+  //         // Arrange
+  //         const pauseComputeAndRefresh = jest.fn();
 
-  describe('PauseButton', () => {
-    it.each([{ app: generateTestAppWithGoogleWorkspace() }, { app: generateTestAppWithAzureWorkspace() }])(
-      'should enable pause for azure and google',
-      async ({ app }) => {
-        // Arrange
-        const pauseComputeAndRefresh = jest.fn();
+  //         await act(async () => {
+  //           render(
+  //             h(PauseButton, {
+  //               cloudEnvironment: app,
+  //               currentUser: app.auditInfo.creator,
+  //               pauseComputeAndRefresh,
+  //             })
+  //           );
+  //         });
+  //         // Act
+  //         const pauseButton = screen.getByText('Pause');
+  //         // Assert
+  //         expect(pauseButton).toBeEnabled();
+  //         // Act
+  //         await userEvent.click(pauseButton);
+  //         // Assert
+  //         expect(pauseComputeAndRefresh).toHaveBeenCalled();
+  //       }
+  //     );
+  //   });
+  // });
 
-        await act(async () => {
-          render(
-            h(PauseButton, {
-              cloudEnvironment: app,
-              currentUser: app.auditInfo.creator,
-              pauseComputeAndRefresh,
-            })
-          );
-        });
-        // Act
-        const pauseButton = screen.getByText('Pause');
-        // Assert
-        expect(pauseButton).toBeEnabled();
-        // Act
-        await userEvent.click(pauseButton);
-        // Assert
-        expect(pauseComputeAndRefresh).toHaveBeenCalled();
-      }
-    );
-  });
+  const getTextContentForColumn = (row, column) => getAllByRole(row, 'cell')[column].textContent;
 });
-
-const getTextContentForColumn = (row, column) => getAllByRole(row, 'cell')[column].textContent;

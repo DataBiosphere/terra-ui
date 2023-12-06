@@ -15,6 +15,7 @@ import {
   mockWorkflowsApp,
   runSetInputDef,
   runSetOutputDefFilled,
+  searchResponseFOO,
 } from 'src/workflows-app/utils/mock-responses';
 
 jest.mock('src/libs/ajax');
@@ -60,7 +61,7 @@ const baseSubmitModalProps = {
   method: methodDataWithVersions.methods[0],
   methodVersion: methodDataWithVersions.methods[0].method_versions[0],
   recordType: 'FOO',
-  selectedRecords: { FOO1: 'bar' },
+  selectedRecords: { FOO1: searchResponseFOO.records[0] },
   inputDefinition: runSetInputDef,
   outputDefinition: runSetOutputDefFilled,
   callCachingEnabled: true,
