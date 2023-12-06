@@ -33,7 +33,6 @@ const styles: Record<string, CSSProperties> = {
 interface WorkspaceTagsProps {
   workspace: Workspace;
   canEdit: boolean;
-  refreshWorkspace: () => void;
 }
 
 export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
