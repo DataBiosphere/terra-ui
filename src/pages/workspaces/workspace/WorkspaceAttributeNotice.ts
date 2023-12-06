@@ -3,7 +3,13 @@ import { div, h, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
-import { canWrite, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
+import {
+  canWrite,
+  protectedDataIcon,
+  protectedDataLabel,
+  regionConstraintLabel,
+  WorkspaceAccessLevel,
+} from 'src/libs/workspace-utils';
 
 interface WorkspaceAttributeNoticeProperties {
   accessLevel: WorkspaceAccessLevel;
@@ -19,9 +25,9 @@ export const WorkspaceAttributeNotice = (props: WorkspaceAttributeNoticeProperti
     props.isLocked && h(Notice, { label: 'Locked', tooltip: 'Workspace is locked', iconName: 'lock' }),
     isReadOnly && h(Notice, { label: 'Read-only', tooltip: 'Workspace is read-only', iconName: 'eye' }),
     !!props.workspaceProtectedMessage &&
-      h(Notice, { label: 'Protected', tooltip: props.workspaceProtectedMessage, iconName: 'shield' }),
+      h(Notice, { label: protectedDataLabel, tooltip: props.workspaceProtectedMessage, iconName: protectedDataIcon }),
     !!props.workspaceRegionConstraintMessage &&
-      h(Notice, { label: 'Region-restricted', tooltip: props.workspaceRegionConstraintMessage, iconName: 'globe' }),
+      h(Notice, { label: regionConstraintLabel, tooltip: props.workspaceRegionConstraintMessage, iconName: 'globe' }),
   ]);
 };
 
