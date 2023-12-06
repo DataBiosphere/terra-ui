@@ -9,7 +9,8 @@ import { homepageState } from './dataset-builder-types';
 import { dummyDatasetDetails } from './TestConstants';
 
 describe('ConceptSetCreator', () => {
-  const datasetDetails = dummyDatasetDetails('0');
+  const datasetId = '0';
+  const datasetDetails = dummyDatasetDetails(datasetId);
 
   const renderConceptSetCreator = () => {
     const conceptSetUpdater = jest.fn();
@@ -19,6 +20,7 @@ describe('ConceptSetCreator', () => {
         snapshotBuilderSettings: datasetDetails.snapshotBuilderSettings as SnapshotBuilderSettings,
         onStateChange,
         conceptSetUpdater,
+        datasetId,
       })
     );
     return { conceptSetUpdater, onStateChange };

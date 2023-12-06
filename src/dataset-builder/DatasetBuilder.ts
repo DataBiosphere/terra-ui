@@ -709,13 +709,14 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                     })
                   : div(['No Dataset Builder Settings Found']);
               case 'domain-criteria-selector':
-                return h(DomainCriteriaSelector, { state: datasetBuilderState, onStateChange });
+                return h(DomainCriteriaSelector, { state: datasetBuilderState, onStateChange, datasetId });
               case 'concept-set-creator':
                 return datasetDetails.state.snapshotBuilderSettings
                   ? h(ConceptSetCreator, {
                       onStateChange,
                       snapshotBuilderSettings: datasetDetails.state.snapshotBuilderSettings,
                       conceptSetUpdater: setConceptSets,
+                      datasetId,
                     })
                   : div(['No Dataset Builder Settings Found']);
               default:

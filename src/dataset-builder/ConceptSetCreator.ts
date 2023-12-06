@@ -11,6 +11,7 @@ export type ConceptSetCreatorProps = {
   readonly onStateChange: OnStateChangeHandler;
   readonly snapshotBuilderSettings: SnapshotBuilderSettings;
   readonly conceptSetUpdater: Updater<ConceptSet[]>;
+  readonly datasetId: string;
 };
 
 export const toConceptSet = (concept: Concept): ConceptSet => {
@@ -21,7 +22,7 @@ export const toConceptSet = (concept: Concept): ConceptSet => {
 };
 
 export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
-  const { onStateChange, snapshotBuilderSettings, conceptSetUpdater } = props;
+  const { onStateChange, snapshotBuilderSettings, conceptSetUpdater, datasetId } = props;
   return h(ConceptSelector, {
     initialRows: _.map(_.get('root'), snapshotBuilderSettings?.domainOptions),
     title: 'Add concept',
@@ -31,5 +32,6 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
       onStateChange(homepageState.new());
     },
     actionText: 'Add to concept sets',
+    datasetId,
   });
 };

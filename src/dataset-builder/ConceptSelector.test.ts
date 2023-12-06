@@ -19,10 +19,11 @@ describe('ConceptSelector', () => {
   const onCommit = jest.fn();
   const title = 'title';
   const actionText = 'action text';
+  const datasetId = '0';
   // Using 101 so the ID doesn't match the count.
   const initialRows = [getConceptForId(101)];
   const renderSelector = () => {
-    render(h(ConceptSelector, { actionText, initialRows, onCancel, onCommit, title }));
+    render(h(ConceptSelector, { actionText, initialRows, onCancel, onCommit, title, datasetId }));
   };
 
   it('renders the concept selector', () => {
