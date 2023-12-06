@@ -4,17 +4,34 @@ import pluralize from 'pluralize';
 import { CSSProperties, ReactNode } from 'react';
 import { div, h, li, ul } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
-import { getPolicyDescriptions, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import {
+  getPolicyDescriptions,
+  protectedDataLabel,
+  protectedDataMessage,
+  WorkspaceWrapper,
+} from 'src/libs/workspace-utils';
+import { AzureBillingProject, BillingProject } from 'src/pages/billing/models/BillingProject';
 
 type WorkspacePoliciesProps = {
-  workspace: WorkspaceWrapper;
+  workspaceOrBillingProject: WorkspaceWrapper | BillingProject;
   title?: string;
   policiesLabel?: string;
   style?: CSSProperties;
 };
 
 export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
-  const policyDescriptions = getPolicyDescriptions(props.workspace);
+  const isWorkspaceWrapper = (workspace?: WorkspaceWrapper): workspace is WorkspaceWrapper =>
+    _.has('workspace', workspace);
+  const isAzureBillingProject = (project?: BillingProject): project is AzureBillingProject =>
+    _.has('projectName', project) && project?.cloudPlatform === 'AZURE';
+
+  const billingProjectPolicyDescriptions =
+    isAzureBillingProject(props.workspaceOrBillingProject) && props.workspaceOrBillingProject.protectedData
+      ? [{ shortDescription: protectedDataLabel, longDescription: protectedDataMessage }]
+      : [];
+  const policyDescriptions = isWorkspaceWrapper(props.workspaceOrBillingProject)
+    ? getPolicyDescriptions(props.workspaceOrBillingProject)
+    : billingProjectPolicyDescriptions;
   const description = props.policiesLabel
     ? props.policiesLabel
     : `This workspace has the following ${pluralize('policy', policyDescriptions.length)}:`;
