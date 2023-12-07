@@ -593,43 +593,42 @@ export const WorkspaceData = _.flow(
     }, [workspaceId, wdsApp]);
 
     const loadEntityMetadata = async () => {
-      if (isGoogleWorkspace) {
-        try {
-          setEntityMetadata(undefined);
-          setEntityMetadataError(false);
-          const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata();
+      try {
+        setEntityMetadata(undefined);
+        setEntityMetadataError(false);
+        const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata();
 
-          if (selectedData?.type === workspaceDataTypes.entities && !entityMetadata[selectedData.entityType]) {
-            setSelectedData(undefined);
-          }
-          setEntityMetadata(entityMetadata);
-        } catch (error) {
-          reportError('Error loading workspace entity data', error);
-          setEntityMetadataError(true);
+        if (selectedData?.type === workspaceDataTypes.entities && !entityMetadata[selectedData.entityType]) {
           setSelectedData(undefined);
-          setEntityMetadata({});
         }
-      } else {
-        setEntityMetadata({}); // This is not used for AzureWorkspaces
+        setEntityMetadata(entityMetadata);
+      } catch (error) {
+        reportError('Error loading workspace entity data', error);
+        setEntityMetadataError(true);
+        setSelectedData(undefined);
+        setEntityMetadata({});
       }
+    };
+
+    const azureLoadEntityMetadata = async () => {
+      // This is not used for Azure Workspaces, but if left undefined the page will spin forever
+      setEntityMetadata({});
     };
 
     const loadSnapshotMetadata = async () => {
       try {
         setSnapshotMetadataError(false);
-        if (isGoogleWorkspace) {
-          const { gcpDataRepoSnapshots: snapshotBody } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshots(1000, 0);
+        const { gcpDataRepoSnapshots: snapshotBody } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshots(1000, 0);
 
-          const snapshots = _.reduce(
-            (acc, { metadata: { name, ...metadata }, attributes }) => {
-              return _.set([name, 'resource'], _.merge(metadata, attributes), acc);
-            },
-            _.pick(_.map('name', _.map('metadata', snapshotBody)), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist
-            snapshotBody
-          );
+        const snapshots = _.reduce(
+          (acc, { metadata: { name, ...metadata }, attributes }) => {
+            return _.set([name, 'resource'], _.merge(metadata, attributes), acc);
+          },
+          _.pick(_.map('name', _.map('metadata', snapshotBody)), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist
+          snapshotBody
+        );
 
-          setSnapshotDetails(snapshots);
-        }
+        setSnapshotDetails(snapshots);
       } catch (error) {
         reportError('Error loading workspace snapshot data', error);
         setSnapshotMetadataError(true);
@@ -638,7 +637,14 @@ export const WorkspaceData = _.flow(
       }
     };
 
-    const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), refreshRunningImportJobs(), loadWdsSchema()]);
+    const loadAzureSnapshotMetadata = async () => {
+      setSnapshotMetadataError(false);
+    };
+
+    const loadMetadata = () =>
+      isAzureWorkspace
+        ? Promise.all([azureLoadEntityMetadata(), loadAzureSnapshotMetadata(), refreshRunningImportJobs(), loadWdsSchema()])
+        : Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), refreshRunningImportJobs()]);
 
     const loadSnapshotEntities = async (snapshotName) => {
       try {
