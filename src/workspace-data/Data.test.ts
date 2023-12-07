@@ -421,6 +421,4 @@ describe('WorkspaceData', () => {
     // Assert
     expect(mockListSnapshots).not.toHaveBeenCalled();
   });
-
-  // TODO should I also simulate refreshing the page or some action that calls loadMetadata, or is this sufficient?
 });

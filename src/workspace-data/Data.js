@@ -637,13 +637,13 @@ export const WorkspaceData = _.flow(
       }
     };
 
-    const loadAzureSnapshotMetadata = async () => {
+    const azureLoadSnapshotMetadata = async () => {
       setSnapshotMetadataError(false);
     };
 
     const loadMetadata = () =>
       isAzureWorkspace
-        ? Promise.all([azureLoadEntityMetadata(), loadAzureSnapshotMetadata(), refreshRunningImportJobs(), loadWdsSchema()])
+        ? Promise.all([azureLoadEntityMetadata(), azureLoadSnapshotMetadata(), refreshRunningImportJobs(), loadWdsSchema()])
         : Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), refreshRunningImportJobs()]);
 
     const loadSnapshotEntities = async (snapshotName) => {
