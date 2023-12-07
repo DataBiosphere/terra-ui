@@ -1,6 +1,6 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
@@ -102,8 +102,10 @@ describe('CloudInformation', () => {
     } as DeepPartial<AjaxContract> as AjaxContract);
 
     // Act
-    render(
-      h(CloudInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true }, storageDetails })
+    await act(() =>
+      render(
+        h(CloudInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true }, storageDetails })
+      )
     );
 
     // Assert

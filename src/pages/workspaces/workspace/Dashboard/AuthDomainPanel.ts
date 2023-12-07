@@ -1,13 +1,13 @@
+import { Link } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { Link } from 'src/components/common';
 import * as Nav from 'src/libs/nav';
 import { newTabLinkProps } from 'src/libs/utils';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
+import { GoogleWorkspace } from 'src/libs/workspace-utils';
 
 interface AuthDomainPanelProps {
-  workspace: Workspace;
+  workspace: GoogleWorkspace;
 }
 
 export const AuthDomainPanel = (props: AuthDomainPanelProps): ReactNode => {
