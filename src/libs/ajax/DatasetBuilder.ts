@@ -187,9 +187,16 @@ export type DatasetParticipantCountRequest = {
   cohorts: Cohort[];
 };
 
+export type DatasetParticipantCountRequestApi = {
+  cohorts: CohortApi[];
+};
 export type DatasetParticipantCountResponse = {
   total: number;
   sql: string;
+};
+
+const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
+  return { cohorts: _.map(convertCohort, request.cohorts) };
 };
 
 export interface DatasetBuilderContract {
@@ -205,8 +212,8 @@ export interface DatasetBuilderContract {
 const dummyConcepts = [
   // IDs must be unique.
   { id: 100, name: 'Condition', count: 100, hasChildren: true },
-  { id: 101, name: 'Clinical Finding', count: 100, hasChildren: true },
-  { id: 102, name: 'Disease', count: 100, hasChildren: true },
+  { id: 101, name: 'Clinical Finding', count: 10, hasChildren: true },
+  { id: 102, name: 'Disease', count: 10, hasChildren: true },
   { id: 103, name: 'Disorder by body site', count: 100, hasChildren: false },
   { id: 104, name: 'Inflammatory disorder', count: 100, hasChildren: false },
   { id: 105, name: 'Degenerative disorder', count: 100, hasChildren: false },
@@ -260,7 +267,6 @@ const getDummyConcepts = async (parent: Concept): Promise<GetConceptsResponse> =
     )(dummyConceptToParent),
   };
 };
-
 export const DatasetBuilder = (): DatasetBuilderContract => ({
   retrieveDataset: async (datasetId) => {
     return await Ajax()
@@ -272,6 +278,6 @@ export const DatasetBuilder = (): DatasetBuilderContract => ({
     return await Ajax().DataRepo.dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(request));
   },
   getParticipantCount: async (datasetId, request) => {
-    return await Ajax().DataRepo.dataset(datasetId).getCounts(request);
+    return await Ajax().DataRepo.dataset(datasetId).getCounts(convertDatasetParticipantCountRequest(request));
   },
 });

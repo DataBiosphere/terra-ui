@@ -2,7 +2,7 @@ import * as _ from 'lodash/fp';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 import {
   DatasetAccessRequestApi,
-  DatasetParticipantCountRequest,
+  DatasetParticipantCountRequestApi,
   DatasetParticipantCountResponse,
 } from 'src/libs/ajax/DatasetBuilder';
 
@@ -109,7 +109,7 @@ export interface DataRepoContract {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
     createSnapshotRequest(request: DatasetAccessRequestApi): Promise<DatasetAccessRequestApi>;
-    getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
+    getCounts(request: DatasetParticipantCountRequestApi): Promise<DatasetParticipantCountResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
