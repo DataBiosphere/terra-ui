@@ -17,6 +17,7 @@ import {
   getRegionConstraintLabels,
   getWorkspaceAnalysisControlProps,
   getWorkspaceEditControlProps,
+  groupConstraintLabel,
   groupConstraintMessage,
   hasGroupConstraintPolicy,
   hasRegionConstraintPolicy,
@@ -149,7 +150,7 @@ describe('getPolicyDescriptions', () => {
     };
     expect(getPolicyDescriptions(workspace)).toEqual([
       { shortDescription: protectedDataLabel, longDescription: protectedDataMessage },
-      { shortDescription: 'Data access controls', longDescription: groupConstraintMessage },
+      { shortDescription: groupConstraintLabel, longDescription: groupConstraintMessage },
     ]);
   });
 
@@ -193,7 +194,7 @@ describe('getPolicyDescriptions', () => {
     };
     expect(getPolicyDescriptions(workspace, azureProtectedDataBillingProject)).toEqual([
       { shortDescription: protectedDataLabel, longDescription: protectedDataMessage },
-      { shortDescription: 'Data access controls', longDescription: groupConstraintMessage },
+      { shortDescription: groupConstraintLabel, longDescription: groupConstraintMessage },
     ]);
   });
 });

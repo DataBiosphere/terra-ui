@@ -132,7 +132,7 @@ export const getPolicyDescriptions = (
     });
   }
   if (!!workspace && hasGroupConstraintPolicy(workspace)) {
-    policyDescriptions.push({ shortDescription: 'Data access controls', longDescription: groupConstraintMessage });
+    policyDescriptions.push({ shortDescription: groupConstraintLabel, longDescription: groupConstraintMessage });
   }
   if (!!workspace && hasRegionConstraintPolicy(workspace)) {
     policyDescriptions.push({
@@ -193,6 +193,7 @@ export const protectedDataMessage =
   'Enhanced logging and monitoring are enabled to support the use of controlled-access data in this workspace.';
 export const protectedDataIcon = 'shield';
 
+export const groupConstraintLabel = 'Data access controls';
 export const groupConstraintMessage =
   'Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be current users on an approved Data Access Request (DAR).';
 

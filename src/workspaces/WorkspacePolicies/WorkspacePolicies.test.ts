@@ -2,7 +2,13 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
-import { AzureWorkspace } from 'src/libs/workspace-utils';
+import {
+  AzureWorkspace,
+  groupConstraintLabel,
+  protectedDataLabel,
+  protectedDataMessage,
+  regionConstraintLabel,
+} from 'src/libs/workspace-utils';
 import {
   azureBillingProject,
   azureProtectedDataBillingProject,
@@ -75,9 +81,9 @@ describe('WorkspacePolicies', () => {
       // Assert
       expect(await axe(container)).toHaveNoViolations();
       screen.getByText('This workspace has the following policies:');
-      screen.getByText('Additional security monitoring');
-      screen.getByText('Data access controls');
-      screen.getByText('Region constraint');
+      screen.getByText(protectedDataLabel);
+      screen.getByText(groupConstraintLabel);
+      screen.getByText(regionConstraintLabel);
     });
 
     it('renders a tooltip', async () => {
@@ -95,7 +101,7 @@ describe('WorkspacePolicies', () => {
       await user.click(screen.getByLabelText('More info'));
 
       // Assert
-      expect(screen.getAllByText(policyLabel)).not.toBeNull();
+      expect(screen.getAllByText(protectedDataMessage)).not.toBeNull();
     });
   });
 
@@ -134,7 +140,7 @@ describe('WorkspacePolicies', () => {
 
       // Assert
       screen.getByText(policyLabel);
-      screen.getByText('Additional security monitoring');
+      screen.getByText(protectedDataLabel);
     });
   });
 
@@ -154,8 +160,8 @@ describe('WorkspacePolicies', () => {
 
       // Assert
       screen.getByText(policyLabel);
-      expect(screen.getAllByText('Additional security monitoring')).toHaveLength(1);
-      screen.getByText('Region constraint');
+      expect(screen.getAllByText(protectedDataLabel)).toHaveLength(1);
+      screen.getByText(regionConstraintLabel);
     });
 
     it('removes duplicate policy information', async () => {
@@ -173,8 +179,8 @@ describe('WorkspacePolicies', () => {
 
       // Assert
       screen.getByText(policyLabel);
-      expect(screen.getAllByText('Additional security monitoring')).toHaveLength(1);
-      screen.getByText('Region constraint');
+      expect(screen.getAllByText(protectedDataLabel)).toHaveLength(1);
+      screen.getByText(regionConstraintLabel);
     });
 
     it('renders nothing if workspace and billing project are undefined', () => {
