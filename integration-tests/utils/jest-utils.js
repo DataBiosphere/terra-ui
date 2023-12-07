@@ -1,10 +1,11 @@
 const _ = require('lodash/fp');
-const { Cluster } = require('puppeteer-cluster');
 const rawConsole = require('console');
+const uuid = require('uuid');
+const { Cluster } = require('puppeteer-cluster');
 const { mkdirSync, existsSync, createWriteStream } = require('fs');
 const { defaultTimeout } = require('./integration-helpers');
-const { withScreenshot, withPageLogging } = require('./integration-utils');
 const envs = require('./terra-envs');
+const { withScreenshot, withPageLogging } = require('./integration-utils');
 
 const {
   BILLING_PROJECT: billingProject,
@@ -40,22 +41,22 @@ const logTestState = (consoleOutputStream, logOutputStream, total) => {
   const errorMap = {};
 
   return {
-    addError: (e) => {
+    addError: (e, index) => {
       errored++;
       if (_.has(e.stack, errorMap)) {
-        errorMap[e.stack]++;
+        errorMap[e.stack].push(index);
+        logOutputStream.write(`\n\n${index} (${errorMap[e.stack][0]}):\n${e.stack.substr(0, 120)}`);
       } else {
-        errorMap[e.stack] = 1;
-        logOutputStream.write(e.stack);
+        errorMap[e.stack] = [index];
+        logOutputStream.write(`\n\n${index}:\n${e.stack}`);
       }
     },
     getNumErrors: () => errored,
-    logUniqueErrors: () => {
-      _.forEach((key) => {
-        consoleOutputStream.write(`\n\t\x1b[31m\x1b[1mError encountered ${errorMap[key]} times`);
-        consoleOutputStream.write(`\n\t\x1b[0m${key.split('\n').join('\n\t')}\n\n`);
-      }, _.keys(errorMap));
-    },
+    logUniqueErrors: () =>
+      Object.entries(errorMap).forEach(([stack, indices]) => {
+        consoleOutputStream.write(`\n\t\x1b[31m\x1b[1mError ${stack?.substr(0, 12)} encountered ${indices?.length} times at ${indices}: `);
+        consoleOutputStream.write(`\n\t\x1b[0m${stack?.split('\n')?.join('\n\t')}\n\n`);
+      }),
     log: () => {
       completed++;
       if (completed > 1) {
@@ -63,19 +64,21 @@ const logTestState = (consoleOutputStream, logOutputStream, total) => {
         consoleOutputStream.clearLine(1);
       }
 
-      consoleOutputStream.write(`Running tests: ${Math.floor((completed * 100.0) / total)}% \n`);
+      consoleOutputStream.write(`Running ${total} tests: ${Math.floor((completed * 100.0) / total)}% \n`);
 
       if (errored) {
-        consoleOutputStream.write(`\t\x1b[31m\x1b[1m${errored} errors encountered (${_.size(errorMap)} unique errors)\n`);
+        consoleOutputStream.write(
+          `\n\t\x1b[31m\x1b[1m${errored} errors encountered (${errored}/${completed} runs failed). ${_.size(errorMap)} unique errors.\n\n`
+        );
       } else {
-        consoleOutputStream.write('No errors encountered.\n');
+        consoleOutputStream.write(`No errors encountered (${completed}/${total} runs passed).\n\n`);
       }
     },
   };
 };
 
-const flakeShaker = ({ fn, name }) => {
-  const resultsDir = 'results';
+const flakeShaker = ({ fn, name, targetEnvironments = _.keys(envs) }) => {
+  const resultsDir = `results/${name}-${uuid.v4()}`;
   const screenshotDir = `${resultsDir}/screenshots`;
   const logsDir = `${resultsDir}/logs`;
   const timeoutMillis = clusterTimeout * 60 * 1000;
@@ -131,17 +134,21 @@ const flakeShaker = ({ fn, name }) => {
       const { taskFn, taskParams, runId } = data;
       try {
         const result = await taskFn({ context, page, ...taskParams });
+        logTestStatus.log;
         return result;
       } catch (e) {
         await page.screenshot({ path: `${screenshotDir}/${runId}.jpg`, fullPage: true });
-        logTestStatus.addError(e);
+        logTestStatus.addError(e, runId);
         return e;
       } finally {
         logTestStatus.log();
       }
     });
 
-    const runs = _.times((runId) => cluster.execute({ taskParams: targetEnvParams, taskFn: fn, runId }), testRuns);
+    const runs = _.includes(environment, targetEnvironments)
+      ? _.times((runId) => cluster.execute({ taskParams: targetEnvParams, taskFn: fn, runId }), testRuns)
+      : [() => process.stdout.write(`Skipping ${name} as it is not configured to run on the ${environment} environment`)];
+
     await Promise.all(runs);
     process.stdout.write = consoleOutputStream.write;
 

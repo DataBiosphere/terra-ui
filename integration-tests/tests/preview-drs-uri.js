@@ -3,10 +3,10 @@ const { withWorkspace, createEntityInWorkspace } = require('../utils/integration
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
 const {
+  Millis,
   findText,
   navChild,
   fillIn,
-  findElement,
   click,
   clickable,
   elementInDataTableRow,
@@ -34,8 +34,7 @@ const testPreviewDrsUriFn = _.flow(
   await click(page, clickable({ textContains: 'View Workspaces' }));
   await waitForNoSpinners(page);
   await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
-  await findElement(page, clickable({ textContains: workspaceName }));
-  await click(page, clickable({ textContains: workspaceName }));
+  await click(page, clickable({ textContains: workspaceName }), { timeout: Millis.ofMinute });
 
   await click(page, navChild('data'));
 

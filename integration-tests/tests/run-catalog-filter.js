@@ -1,12 +1,12 @@
 const _ = require('lodash/fp');
 const qs = require('qs');
 const {
+  Millis,
   checkbox,
   click,
   clickable,
   input,
   fillIn,
-  findElement,
   heading,
   findHeading,
   findText,
@@ -52,8 +52,7 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   }
 
   // Testing filter by facet
-  await findElement(page, checkbox({ text: filterItem, isDescendant: true }));
-  await click(page, checkbox({ text: filterItem, isDescendant: true }));
+  await click(page, checkbox({ text: filterItem, isDescendant: true }), { timeout: Millis.ofMinute });
   const datasetSizeAfterFilter = await getDatasetCount(page);
 
   if (datasetSizeAfterFilter >= datasetSizeAfterSearch) {

@@ -19,6 +19,7 @@ const {
   noSpinnersAfter,
   retryUntil,
   signIntoTerra,
+  waitForMenu,
   waitForNoSpinners,
 } = require('./integration-utils');
 const { fetchLyle } = require('./lyle-utils');
@@ -122,13 +123,12 @@ const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceNam
   gotoPage(page, `${testUrl}#workspaces/${billingProject}/${workspaceName}`);
   const isDeleted = await retryUntil({
     getResult: async () => {
-      await findElement(page, clickable({ textContains: 'Action Menu' }, { timeout: Millis.ofMinute }));
-      await click(page, clickable({ textContains: 'Action Menu' }));
-      // Wait for popup to appear
-      await delay(Millis.of(300));
-      await findElement(page, clickable({ textContains: 'Delete' }));
+      await dismissAllNotifications(page);
+      await click(page, clickable({ textContains: 'Action Menu' }), { timeout: Millis.ofMinute });
+      await waitForMenu(page, { labelContains: 'Action Menu', timeout: Millis.ofMinute });
       await noSpinnersAfter(page, {
-        action: () => click(page, clickable({ textContains: 'Delete' })),
+        action: () => click(page, clickable({ textContains: 'Delete' }), { timeout: Millis.ofMinute }),
+        timeout: Millis.ofMinute,
       });
       try {
         await findText(page, "Please type 'Delete Workspace' to continue:");
@@ -197,7 +197,6 @@ const withWorkspace = (test) => async (options) => {
     await test({ ...options, workspaceName });
   } finally {
     console.log('withWorkspace cleanup ...');
-    dismissAllNotifications(page);
     const didDelete = await withSignedInPage(deleteWorkspaceInUi)({ ...options, workspaceName });
     if (!didDelete) {
       // Pass test on a failed cleanup - expect leaked resources to be cleaned up by the test `delete-orphaned-workspaces`
@@ -220,7 +219,6 @@ const withAzureWorkspace = (test) => async (options) => {
     await test({ ...options, workspaceName });
   } finally {
     console.log('withAzureWorkspace cleanup ...');
-    dismissAllNotifications(page);
     // Retry for a long time (20 retries * 30 second intervals ~= 8 minutes);
     // leaked resources can impact all other integration tests which share a user,
     // and Azure VMs spend a long time in CREATING (an undeletable state)
@@ -490,7 +488,7 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   await dismissInfoNotifications(page);
   await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
   // Wait for workspace table to rerender filtered items
-  await delay(Millis.of(300));
+  await delay(Millis.ofSecond);
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) });
 };
 

@@ -17,39 +17,31 @@ const differenceFnByUnit = {
 
 /** The chosen unit of time. */
 const timeUnit = 'hours';
-/** How many [time unit]s must pass before a workspace should be deleted. */
-const olderThanCount = 12;
+/** How many [time unit]s must pass before an orphaned workspace should be deleted. */
+const olderThanCount = 18;
 
 /**
  * Attempts to delete any workspaces which are named with the auto-generated test workspace name prefix,
- * and are more than a certain configured age. Not a test, a cleanup utility.
+ * and are more than a certain configured age. These can result from local integration test runs where the
+ * process was prematurely terminated, but a few also appear in alpha and staging indicating that
+ * ci test runs also sometimes leak workspaces.
+ *
+ * Not a test: a cleanup utility.
  */
 const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) => {
   // Sign into Terra so we have the correct credentials.
   await signIntoTerra(page, { token, testUrl });
 
-  // Delete old orphaned workspaces. These can result from local integration test runs where the
-  // process was prematurely terminated, but a few also appear in alpha and staging indicating that
-  // ci test runs also sometimes leak workspaces.
-  const workspaces = await page.evaluate(async () => await window.Ajax().Workspaces.list());
-  const testWorkspaces = workspaces.filter(({ workspace: { name } }) => _.startsWith(testWorkspaceNamePrefix, name));
-  const testWorkspaceNames = testWorkspaces.map(({ workspace: { name } }) => name).join(', ');
-  console.log(`${testWorkspaces.length} test workspaces (with prefix "${testWorkspaceNamePrefix}") found: ${testWorkspaceNames}`);
+  // List orphaned workspaces
+  const oldWorkspaces = await listOrphanWorkspaces(page);
+  // List orphans which are already in state DeleteFailed (resistant to automated delete, don't fail on these)
+  const oldWorkspaceNamesInDeleteFailed = getDeleteFailedWorkspaceNames(oldWorkspaces);
 
-  const oldWorkspaces = testWorkspaces.filter(({ workspace: { createdDate } }) => {
-    const getTimeDifference = differenceFnByUnit[timeUnit];
-    const age = getTimeDifference(new Date(createdDate), new Date());
-    return age > olderThanCount;
-  });
+  // Delete orphans and report results
   console.log(`Attempting to delete ${oldWorkspaces.length} test workspaces created more than ${olderThanCount} ${timeUnit} ago.`);
-
   return Promise.all(
-    _.map(async ({ workspace: { namespace, name, cloudPlatform, state } }) => {
+    _.map(async ({ workspace: { namespace, name, cloudPlatform } }) => {
       try {
-        if (state === 'DeleteFailed') {
-          // Warn before deleting a workspace in a bad state
-          console.log(`Old workspace ${name} is in state 'DeleteFailed'; delete may not succeed.`);
-        }
         // Unlock the workspace in case it was left in a locked state during a test (locked workspaces can't be deleted).
         await page.evaluate(async (namespace, name) => await window.Ajax().Workspaces.workspace(namespace, name).unlock(), namespace, name);
         const isDeleted = await deleteWorkspaceV2({ page, billingProject: namespace, workspaceName: name });
@@ -64,16 +56,41 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
         .filter(({ isDeleted }) => isDeleted)
         .map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`)
         .join(', ') || '(none)';
-    const failedNames = results
-      .filter(({ isDeleted }) => !isDeleted)
-      .map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`)
-      .join(', ');
+    const failedDeletes = results.filter(({ isDeleted }) => !isDeleted);
+    const failedNames = failedDeletes.map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`).join(', ');
     console.info(`Triggered delete on workspaces: ${deletedNames}`);
     if (failedNames) {
       console.warn(`Failed to delete workspaces: ${failedNames}`);
     }
+
+    const newlyFailedDeletes = failedDeletes.filter(({ name }) => !oldWorkspaceNamesInDeleteFailed.includes(name));
+    if (newlyFailedDeletes.length) {
+      const newlyFailedNames = newlyFailedDeletes.map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`).join(', ');
+      throw new Error(
+        `${newlyFailedDeletes.length} workspaces entered state DeleteFailed after orphan cleanup. These should be manually deleted: ${newlyFailedNames}`
+      );
+    }
   });
 });
+
+const listOrphanWorkspaces = async (page) => {
+  const workspaces = await page.evaluate(async () => await window.Ajax().Workspaces.list());
+  const testWorkspaces = workspaces.filter(({ workspace: { name } }) => _.startsWith(testWorkspaceNamePrefix, name));
+  const testWorkspaceNames = testWorkspaces.map(({ workspace: { name } }) => name).join(', ');
+  console.log(`${testWorkspaces.length} test workspaces (with prefix "${testWorkspaceNamePrefix}") found: ${testWorkspaceNames}`);
+
+  const oldWorkspaces = testWorkspaces.filter(({ workspace: { createdDate } }) => {
+    const getTimeDifference = differenceFnByUnit[timeUnit];
+    const age = getTimeDifference(new Date(createdDate), new Date());
+    return age > olderThanCount;
+  });
+
+  return oldWorkspaces;
+};
+
+const getDeleteFailedWorkspaceNames = (workspaces) => {
+  return workspaces.filter(({ workspace: { state } }) => state === 'DeleteFailed').map(({ workspace: { name } }) => name);
+};
 
 registerTest({
   name: 'delete-orphaned-workspaces',

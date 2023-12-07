@@ -32,20 +32,20 @@ const testRunAnalysisAzure = _.flowRight(
 
   // Create analysis file
   await click(page, clickable({ textContains: 'Start' }));
-  await findElement(page, getAnimatedDrawer('Select an application'));
+  await findElement(page, getAnimatedDrawer('Select an application'), { timeout: Millis.ofMinute });
   await click(page, clickable({ text: 'Create new notebook', isDescendant: true }));
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName);
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' })) });
+  await noSpinnersAfter(page, {
+    action: () => click(page, clickable({ text: 'Create Analysis' })),
+    timeout: Millis.ofMinute,
+  });
 
   // Dismiss the create env modal for now
   await noSpinnersAfter(page, {
-    action: () =>
-      findText(
-        page,
-        'A cloud environment consists of application configuration, cloud compute and persistent disk(s).'
-      ),
+    action: () => findText(page, 'Azure Cloud Environment'),
+    timeout: Millis.ofMinute,
   });
-  await click(page, clickable({ textContains: 'Close' }));
+  await click(page, clickable({ textContains: 'Close', isEnabled: true }), { timeout: Millis.ofMinute });
   await waitForNoModal(page);
 
   // Navigate to analysis launcher
@@ -65,8 +65,8 @@ const testRunAnalysisAzure = _.flowRight(
 
   // Wait for env to finish creating, or break early on error
   await Promise.race([
-    findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(15) }),
-    findErrorPopup(page, { timeout: Millis.ofMinutes(15) }),
+    findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(18) }),
+    findErrorPopup(page, { timeout: Millis.ofMinutes(18) }),
   ]);
   const hasError = await openError(page);
   if (hasError) {
@@ -79,17 +79,16 @@ const testRunAnalysisAzure = _.flowRight(
   const frame = await findIframe(page, '//iframe[@title="Interactive JupyterLab iframe"]', {
     timeout: Millis.ofMinutes(2),
   });
+
   await findText(frame, 'Kernel status: Idle', { timeout: Millis.ofMinutes(4) });
 
-  // Test runs occasionally swallow the entered text; will a timeout stabilize this?
+  // Wait for stable UI (sometimes kernel status flickers and fillIn won't work)
   await delay(Millis.ofSeconds(10));
-
   // Run a command
   await fillIn(
     frame,
     '//*[contains(@class,"jp-Notebook-cell")][last()]//textArea',
-    'print(123456789099876543210990+9876543219)',
-    { initialDelay: Millis.ofSecond }
+    'print(123456789099876543210990+9876543219)'
   );
   await click(frame, '//button[starts-with(@title, "Run the selected cells and advance")]');
   await findText(frame, '123456789099886419754209');
@@ -101,9 +100,11 @@ const testRunAnalysisAzure = _.flowRight(
   await deleteRuntimesV2({ page, billingProject, workspaceName });
 });
 
+// Run this test manually against staging when needed. Note the very long timeout; Azure VMs can take 20 minutes to create
 registerTest({
   name: 'run-analysis-azure',
   fn: testRunAnalysisAzure,
-  targetEnvironments: ['dev'],
-  timeout: Millis.ofMinutes(20),
+  // targetEnvironments: ['dev'],
+  targetEnvironments: ['dev', 'staging'], // uncomment for manually triggered runs against staging - DO NOT COMMIT
+  timeout: Millis.ofMinutes(25), // exceeds circleCI max timeout; needs to be this high to pass reliably
 });

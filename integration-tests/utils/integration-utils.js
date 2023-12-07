@@ -184,13 +184,9 @@ const label = ({ labelContains }) => {
   return `(//label[contains(normalize-space(.),"${labelContains}")])`;
 };
 
-const fillIn = async (page, xpath, text, { initialDelay = Millis.none } = {}) => {
-  const input = await page.waitForXPath(xpath, defaultToVisibleTrue());
-
-  // Sometimes the first few characters of the typed text are dropped.
-  // Click the input, then wait, if so configured, to avoid this
+const fillIn = async (page, xpath, text, options) => {
+  const input = await page.waitForXPath(xpath, defaultToVisibleTrue(options));
   await input.click();
-  await delay(initialDelay);
 
   // Actually type the text
   await input.type(text, { delay: Millis.of(20) });
@@ -372,6 +368,14 @@ const findButtonInDialogByAriaLabel = (page, ariaLabelText) => {
   return page.waitForXPath(`//*[@role="dialog" and @aria-hidden="false"]//*[@role="button" and contains(@aria-label,"${ariaLabelText}")]`, {
     visible: true,
   });
+};
+
+/** Waits for a menu element to expand (or collapse if isExpanded=false) */
+const waitForMenu = (page, { labelContains, isExpanded = true, ...options }) => {
+  return page.waitForXPath(
+    `//*[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for or @aria-labelledby=//*[contains(normalize-space(.),"${labelContains}")]/@id][@aria-expanded="${isExpanded}"]`,
+    defaultToVisibleTrue(options)
+  );
 };
 
 const openError = async (page) => {
@@ -637,6 +641,7 @@ module.exports = {
   verifyAccessibility,
   waitForFn,
   waitForNoModal,
+  waitForMenu,
   waitForModal,
   waitForNoSpinners,
   withPageLogging,
