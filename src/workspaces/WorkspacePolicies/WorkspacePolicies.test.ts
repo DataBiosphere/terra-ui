@@ -160,7 +160,7 @@ describe('WorkspacePolicies', () => {
 
       // Assert
       screen.getByText(policyLabel);
-      expect(screen.getAllByText(protectedDataLabel)).toHaveLength(1);
+      screen.getByText(protectedDataLabel);
       screen.getByText(regionConstraintLabel);
     });
 

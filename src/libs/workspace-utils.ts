@@ -219,7 +219,6 @@ export const getRegionConstraintLabels = (policies: WorkspacePolicy[] | undefine
 };
 
 export const regionConstraintLabel = 'Region constraint';
-
 export const regionConstraintMessage = (workspace: BaseWorkspace): string | undefined => {
   const regions = getRegionConstraintLabels(workspace.policies);
   return regions.length === 0
