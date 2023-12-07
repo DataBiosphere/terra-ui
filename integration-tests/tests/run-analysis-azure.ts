@@ -104,7 +104,7 @@ const testRunAnalysisAzure = _.flowRight(
 registerTest({
   name: 'run-analysis-azure',
   fn: testRunAnalysisAzure,
-  // targetEnvironments: ['dev'],
-  targetEnvironments: ['dev', 'staging'], // uncomment for manually triggered runs against staging - DO NOT COMMIT
+  targetEnvironments: ['dev'],
+  // targetEnvironments: ['dev', 'staging'], // uncomment for manually triggered runs against staging - DO NOT COMMIT
   timeout: Millis.ofMinutes(25), // exceeds circleCI max timeout; needs to be this high to pass reliably
 });
