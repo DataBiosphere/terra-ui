@@ -1,9 +1,9 @@
+import { InfoBox } from '@terra-ui-packages/components';
 import { cond, DEFAULT } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { ReactNode, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
-import { InfoBox } from 'src/components/InfoBox';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';

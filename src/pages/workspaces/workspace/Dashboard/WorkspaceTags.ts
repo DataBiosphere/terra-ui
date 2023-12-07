@@ -114,6 +114,6 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
 
 const getWorkspaceTags = (workspace: Workspace): string[] => {
   const attributes = workspace.workspace.attributes ?? {};
-  const tagsObj = attributes['tag:tags'] ?? {};
-  return tagsObj.items ?? [];
+  const tagsObj = attributes['tag:tags'];
+  return _.get('items', tagsObj);
 };
