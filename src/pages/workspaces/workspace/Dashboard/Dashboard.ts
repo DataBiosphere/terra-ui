@@ -29,7 +29,7 @@ interface DashboardAuthContainerProps {
   name: string;
 }
 
-const DashboardAuthContainer = (props: DashboardAuthContainerProps): ReactNode => {
+export const DashboardAuthContainer = (props: DashboardAuthContainerProps): ReactNode => {
   const { namespace, name } = props;
   const { signInStatus } = useStore(authStore);
   const [featuredWorkspaces, setFeaturedWorkspaces] = useState<{ name: string; namespace: string }[]>();
@@ -66,7 +66,7 @@ interface WorkspaceDashboardProps {
   workspace: Workspace;
 }
 
-const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps): ReactNode => {
+export const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps): ReactNode => {
   const {
     namespace,
     name,

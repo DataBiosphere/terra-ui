@@ -58,7 +58,6 @@ describe('WorkspaceTags', () => {
             workspaceInitialized: true,
           },
           canEdit: true,
-          refreshWorkspace: jest.fn(),
         })
       )
     );
