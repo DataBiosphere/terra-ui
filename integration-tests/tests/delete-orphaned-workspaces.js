@@ -75,11 +75,17 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
 
 const listOrphanWorkspaces = async (page) => {
   const workspaces = await page.evaluate(async () => await window.Ajax().Workspaces.list());
+
+  // filter to workspaces created by integration tests only
   const testWorkspaces = workspaces.filter(({ workspace: { name } }) => _.startsWith(testWorkspaceNamePrefix, name));
   const testWorkspaceNames = testWorkspaces.map(({ workspace: { name } }) => name).join(', ');
   console.log(`${testWorkspaces.length} test workspaces (with prefix "${testWorkspaceNamePrefix}") found: ${testWorkspaceNames}`);
 
-  const oldWorkspaces = testWorkspaces.filter(({ workspace: { createdDate } }) => {
+  // filter to workspaces not already deleting
+  const deletableWorkspaces = testWorkspaces.filter(({ workspace: { state } }) => state !== 'Deleting');
+
+  // filter to workspaces older than the freshness window
+  const oldWorkspaces = deletableWorkspaces.filter(({ workspace: { createdDate } }) => {
     const getTimeDifference = differenceFnByUnit[timeUnit];
     const age = getTimeDifference(new Date(createdDate), new Date());
     return age > olderThanCount;
