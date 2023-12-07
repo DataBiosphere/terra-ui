@@ -156,36 +156,48 @@ const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceNam
 /** Deletes a workspace using the v2 delete endpoint. Individually deletes child resources if possible. Returns true if workspace deleted. */
 const deleteWorkspaceV2 = async ({ page, billingProject, workspaceName }) => {
   try {
-    const isAppsEmpty = await deleteAppsV2({ page, billingProject, workspaceName });
-    const isRuntimesEmpty = await deleteRuntimesV2({ page, billingProject, workspaceName });
+    const workspaceId = await getWorkspaceId({ page, billingProject, workspaceName });
+    const isAppsEmpty = await deleteAppsV2({ page, billingProject, workspaceId });
+    const isRuntimesEmpty = await deleteRuntimesV2({ page, billingProject, workspaceId });
     if (isAppsEmpty && isRuntimesEmpty) {
       // TODO [IA-4337] fix disk delete as part of runtime delete
-      await page.evaluate(
-        async (workspaceName, billingProject) => {
+      const didDelete = await page.evaluate(
+        async (workspaceId, workspaceName, billingProject) => {
           try {
-            await window.Ajax().Workspaces.workspaceV2(billingProject, workspaceName).delete();
+            const {
+              workspace: { state },
+            } = await window.Ajax().Workspaces.getById(workspaceId, ['workspace.state']);
+            if (state !== 'Deleting') {
+              await window.Ajax().Workspaces.workspaceV2(billingProject, workspaceName).delete();
+              return true;
+            }
+            console.log(`Workspace ${workspaceName} is already deleting; will not resend request`);
+            return false;
           } catch (error) {
             if (error.status === 404) {
               console.info(`Not found: workspace ${workspaceName} with billing project ${billingProject}. Was it already deleted?`);
-            } else {
-              throw error;
+              return false;
             }
+            throw error;
           }
         },
+        workspaceId,
         workspaceName,
         billingProject
       );
-    } else {
-      console.warn(`Workspace not deletable: ${workspaceName} with billing project: ${billingProject} has undeletable child resources`);
+      if (didDelete) {
+        console.info(`Deleted workspace: ${workspaceName}`);
+        return true;
+      }
       return false;
     }
+    console.warn(`Workspace not deletable: ${workspaceName} with billing project: ${billingProject} has undeletable child resources`);
+    return false;
   } catch (e) {
     console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`);
     console.error(e);
     return false;
   }
-  console.info(`Deleted workspace: ${workspaceName}`);
-  return true;
 };
 
 /** Create a GCP workspace, run the given test, then delete the workspace. */
@@ -273,8 +285,7 @@ const getWorkspaceId = async ({ page, billingProject, workspaceName }) =>
   );
 
 /** Deletes all v2 apps in a workspace. Returns true if all deletes succeed. */
-const deleteAppsV2 = async ({ page, billingProject, workspaceName }) => {
-  const workspaceId = await getWorkspaceId({ page, billingProject, workspaceName });
+const deleteAppsV2 = async ({ page, billingProject, workspaceId }) => {
   const deletableApps = await page.evaluate(async (workspaceId) => {
     const apps = await window.Ajax().Apps.listAppsV2(workspaceId);
     return apps;
@@ -295,7 +306,7 @@ const deleteAppsV2 = async ({ page, billingProject, workspaceName }) => {
     })
     .join(', ');
   if (deletedAppsLog) {
-    console.info(`Delete v2 apps in ${billingProject}/${workspaceName} complete: ${deletedAppsLog}`);
+    console.info(`Delete v2 apps in ${billingProject}/${workspaceId} complete: ${deletedAppsLog}`);
   }
   return deletedApps.every((app) => app.isDeleted);
 };
@@ -322,8 +333,7 @@ const deleteRuntimes = async ({ page, billingProject, workspaceName }) => {
 };
 
 /** Deletes all v2 runtimes in a workspace, and their disks. Returns true if all deletes succeed. */
-const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
-  const workspaceId = await getWorkspaceId({ page, billingProject, workspaceName });
+const deleteRuntimesV2 = async ({ page, billingProject, workspaceId }) => {
   const deletableRuntimes = await page.evaluate(async (workspaceId) => {
     return await window.Ajax().Runtimes.listV2WithWorkspace(workspaceId, { role: 'creator' });
   }, workspaceId);
@@ -338,7 +348,7 @@ const deleteRuntimesV2 = async ({ page, billingProject, workspaceName }) => {
   );
   const deletedRuntimesLog = deletedRuntimes.map(({ name, isDeleted }) => (isDeleted ? name : `FAILED:${name}`)).join(', ');
   if (deletedRuntimesLog) {
-    console.info(`Delete v2 runtimes in ${billingProject}/${workspaceName} complete: ${deletedRuntimesLog}`);
+    console.info(`Delete v2 runtimes in ${billingProject}/${workspaceId} complete: ${deletedRuntimesLog}`);
   }
   return deletedRuntimes.every((runtime) => runtime.isDeleted);
 };

@@ -37,7 +37,7 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
   // List orphans which are already in state DeleteFailed (resistant to automated delete, don't fail on these)
   const oldWorkspaceNamesInDeleteFailed = getDeleteFailedWorkspaceNames(oldWorkspaces);
 
-  // Delete orphans and report results
+  // Delete orphans
   console.log(`Attempting to delete ${oldWorkspaces.length} test workspaces created more than ${olderThanCount} ${timeUnit} ago.`);
   return Promise.all(
     _.map(async ({ workspace: { namespace, name, cloudPlatform } }) => {
@@ -50,7 +50,8 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
         return { name, cloudPlatform, isDeleted: false };
       }
     }, oldWorkspaces)
-  ).then((results) => {
+  ).then(async (results) => {
+    // Report results
     const deletedNames =
       results
         .filter(({ isDeleted }) => isDeleted)
@@ -63,7 +64,13 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
       console.warn(`Failed to delete workspaces: ${failedNames}`);
     }
 
-    const newlyFailedDeletes = failedDeletes.filter(({ name }) => !oldWorkspaceNamesInDeleteFailed.includes(name));
+    const currentOrphans = await listOrphanWorkspaces(page, { isVerbose: false });
+    const persistentOrphans = currentOrphans.filter(({ workspace: { name } }) =>
+      oldWorkspaces.some(({ workspace: { name: oldName } }) => oldName === name)
+    );
+    const deleteFailedOrphans = getDeleteFailedWorkspaceNames(persistentOrphans);
+    const newlyFailedDeletes = deleteFailedOrphans.filter((newName) => !oldWorkspaceNamesInDeleteFailed.includes(newName));
+
     if (newlyFailedDeletes.length) {
       const newlyFailedNames = newlyFailedDeletes.map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`).join(', ');
       throw new Error(
@@ -73,13 +80,15 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
   });
 });
 
-const listOrphanWorkspaces = async (page) => {
+const listOrphanWorkspaces = async (page, { isVerbose = true } = {}) => {
   const workspaces = await page.evaluate(async () => await window.Ajax().Workspaces.list());
 
   // filter to workspaces created by integration tests only
   const testWorkspaces = workspaces.filter(({ workspace: { name } }) => _.startsWith(testWorkspaceNamePrefix, name));
   const testWorkspaceNames = testWorkspaces.map(({ workspace: { name } }) => name).join(', ');
-  console.log(`${testWorkspaces.length} test workspaces (with prefix "${testWorkspaceNamePrefix}") found: ${testWorkspaceNames}`);
+  if (isVerbose) {
+    console.log(`${testWorkspaces.length} test workspaces (with prefix "${testWorkspaceNamePrefix}") found: ${testWorkspaceNames}`);
+  }
 
   // filter to workspaces not already deleting
   const deletableWorkspaces = testWorkspaces.filter(({ workspace: { state } }) => state !== 'Deleting');
