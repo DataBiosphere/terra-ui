@@ -66,77 +66,82 @@ interface WorkspaceDashboardProps {
   workspace: Workspace;
 }
 
-export const WorkspaceDashboard = forwardRef((props: WorkspaceDashboardProps): ReactNode => {
-  const {
-    namespace,
-    name,
-    refreshWorkspace,
-    storageDetails,
-    workspace,
-    workspace: {
-      owners = [],
-      workspace: { authorizationDomain, attributes = { description: '' } },
-    },
-  } = props;
+export const WorkspaceDashboard = forwardRef(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  (props: WorkspaceDashboardProps, ref: React.ForwardedRef<unknown>): ReactNode => {
+    const {
+      namespace,
+      name,
+      refreshWorkspace,
+      storageDetails,
+      workspace,
+      workspace: {
+        owners = [],
+        workspace: { authorizationDomain, attributes = { description: '' } },
+      },
+    } = props;
 
-  const persistenceId = `workspaces/${namespace}/${name}/dashboard`;
+    const persistenceId = `workspaces/${namespace}/${name}/dashboard`;
 
-  // @ts-expect-error
-  const { value: canEdit } = canEditWorkspace(workspace);
+    // @ts-expect-error
+    const { value: canEdit } = canEditWorkspace(workspace);
 
-  return div({ style: { flex: 1, display: 'flex' } }, [
-    div({ style: Style.dashboard.leftBox }, [
-      h(WorkspaceDescription, { workspace, refreshWorkspace }),
-      h(DatasetAttributes, { attributes }),
-    ]),
-    div({ style: Style.dashboard.rightBox }, [
-      h(RightBoxSection, { title: 'Workspace information', persistenceId: `${persistenceId}/workspaceInfoPanelOpen` }, [
-        h(WorkspaceInformation, { workspace }),
+    return div({ style: { flex: 1, display: 'flex' } }, [
+      div({ style: Style.dashboard.leftBox }, [
+        h(WorkspaceDescription, { workspace, refreshWorkspace }),
+        h(DatasetAttributes, { attributes }),
       ]),
-      h(RightBoxSection, { title: 'Cloud information', persistenceId: `${persistenceId}/cloudInfoPanelOpen` }, [
-        h(CloudInformation, { workspace, storageDetails }),
-      ]),
-      h(
-        RightBoxSection,
-        {
-          title: 'Owners',
-          persistenceId: `${persistenceId}/ownersPanelOpen`,
-          afterTitle: OwnerNotice({ workspace }),
-        },
-        [
-          div(
-            { style: { margin: '0.5rem' } },
-            _.map((email) => {
-              return div(
-                { key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '0.5rem' } },
-                [h(Link, { href: `mailto:${email}` }, [email])]
-              );
-            }, owners)
-          ),
-        ]
-      ),
-      isGoogleWorkspace(workspace) &&
-        !_.isEmpty(authorizationDomain) &&
+      div({ style: Style.dashboard.rightBox }, [
+        h(
+          RightBoxSection,
+          { title: 'Workspace information', persistenceId: `${persistenceId}/workspaceInfoPanelOpen` },
+          [h(WorkspaceInformation, { workspace })]
+        ),
+        h(RightBoxSection, { title: 'Cloud information', persistenceId: `${persistenceId}/cloudInfoPanelOpen` }, [
+          h(CloudInformation, { workspace, storageDetails }),
+        ]),
         h(
           RightBoxSection,
           {
-            title: 'Authorization domain',
-            persistenceId: `${persistenceId}/authDomainPanelOpen`,
+            title: 'Owners',
+            persistenceId: `${persistenceId}/ownersPanelOpen`,
+            afterTitle: OwnerNotice({ workspace }),
           },
-          [h(AuthDomainPanel, { workspace })]
+          [
+            div(
+              { style: { margin: '0.5rem' } },
+              _.map((email) => {
+                return div(
+                  { key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '0.5rem' } },
+                  [h(Link, { href: `mailto:${email}` }, [email])]
+                );
+              }, owners)
+            ),
+          ]
         ),
-      h(WorkspaceTags, { workspace, canEdit }),
-      h(
-        RightBoxSection,
-        {
-          title: 'Notifications',
-          persistenceId: `${persistenceId}/notificationsPanelOpen`,
-        },
-        [h(WorkspaceNotifications, { workspace })]
-      ),
-    ]),
-  ]);
-});
+        isGoogleWorkspace(workspace) &&
+          !_.isEmpty(authorizationDomain) &&
+          h(
+            RightBoxSection,
+            {
+              title: 'Authorization domain',
+              persistenceId: `${persistenceId}/authDomainPanelOpen`,
+            },
+            [h(AuthDomainPanel, { workspace })]
+          ),
+        h(WorkspaceTags, { workspace, canEdit }),
+        h(
+          RightBoxSection,
+          {
+            title: 'Notifications',
+            persistenceId: `${persistenceId}/notificationsPanelOpen`,
+          },
+          [h(WorkspaceNotifications, { workspace })]
+        ),
+      ]),
+    ]);
+  }
+);
 
 WorkspaceDashboard.displayName = 'WorkspaceDashboard';
 
