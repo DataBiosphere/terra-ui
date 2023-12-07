@@ -35,6 +35,9 @@ import {
   isAzureWorkspace,
   isGoogleWorkspace,
   isProtectedWorkspace,
+  protectedDataIcon,
+  protectedDataLabel,
+  protectedDataMessage,
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/libs/workspace-utils';
@@ -311,9 +314,13 @@ const NewWorkspaceModal = withDisplayName(
       cloudProvider: CloudPlatform
     ): boolean => getProjectCloudPlatform(project) === cloudProvider;
 
+    const selectedBillingProject: BillingProject | undefined = namespace
+      ? billingProjects?.find(({ projectName }) => projectName === namespace)
+      : undefined;
+
     const getProjectCloudPlatform = (project?: BillingProject): CloudPlatform | undefined => {
       if (project === undefined) {
-        project = _.find({ projectName: namespace }, billingProjects);
+        project = selectedBillingProject;
       }
       return project?.cloudPlatform;
     };
@@ -346,8 +353,15 @@ const NewWorkspaceModal = withDisplayName(
       return true;
     };
 
+    const cloningGcpProtectedWorkspace =
+      !!cloneWorkspace && isGoogleWorkspace(cloneWorkspace) && isProtectedWorkspace(cloneWorkspace);
+
     // Lifecycle
     useOnMount(() => {
+      // If cloning a GCP protected workspace, override whatever may have been passed via `requireEnhancedBucketLogging`
+      if (cloningGcpProtectedWorkspace) {
+        setEnhancedBucketLogging(true);
+      }
       loadData();
       loadAlphaRegionalityUser();
     });
@@ -449,8 +463,9 @@ const NewWorkspaceModal = withDisplayName(
                             onChange: (opt) => setNamespace(opt!.value),
                             styles: { option: (provided) => ({ ...provided, padding: 10 }) },
                             // @ts-expect-error
-                            options: _.map(
-                              ({ projectName, invalidBillingAccount, cloudPlatform }: BillingProject) => ({
+                            options: _.map((project: BillingProject) => {
+                              const { projectName, invalidBillingAccount, cloudPlatform } = project;
+                              return {
                                 'aria-label': `${
                                   cloudProviderLabels[cloudPlatform]
                                 } ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
@@ -469,14 +484,21 @@ const NewWorkspaceModal = withDisplayName(
                                           style: { marginRight: '0.5rem' },
                                         }),
                                       projectName,
+                                      isAzureBillingProject(project) &&
+                                        project.protectedData &&
+                                        icon(protectedDataIcon, {
+                                          key: `protected-${projectName}`,
+                                          size: 18,
+                                          'aria-label': protectedDataLabel,
+                                          style: { marginLeft: '0.5rem' },
+                                        }),
                                     ]),
                                   ]
                                 ),
                                 value: projectName,
                                 isDisabled: invalidBillingAccount,
-                              }),
-                              _.sortBy('projectName', billingProjects)
-                            ),
+                              };
+                            }, _.sortBy('projectName', billingProjects)),
                           }),
                         ]),
                     ]),
@@ -559,23 +581,22 @@ const NewWorkspaceModal = withDisplayName(
                               h(
                                 LabeledCheckbox,
                                 {
-                                  style: { margin: '0rem 0.25rem 0.25rem 0' },
+                                  style: { margin: '0rem 0.25rem 0.25rem 0rem' },
                                   checked: enhancedBucketLogging,
-                                  disabled: !!requireEnhancedBucketLogging || groups.length > 0,
+                                  disabled:
+                                    !!requireEnhancedBucketLogging || groups.length > 0 || cloningGcpProtectedWorkspace,
                                   onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
                                   'aria-describedby': id,
                                 },
                                 [
                                   label({ style: { ...Style.elements.sectionHeader } }, [
-                                    'Workspace will have protected data',
+                                    `Enable ${_.toLower(protectedDataLabel)}`,
                                   ]),
                                 ]
                               ),
                               h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
-                                'If checked, Terra will log all data access requests to the workspace bucket. ' +
-                                  'This feature is automatically enabled when a workspace is created with Authorization Domains.',
+                                protectedDataMessage,
                               ]),
-                              p({ id, style: { marginTop: '.25rem' } }, ['Access to data will be logged by Terra']),
                             ]),
                         ]),
                       ]),
@@ -620,17 +641,15 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
-                    !!cloneWorkspace &&
+                    ((!!cloneWorkspace && isAzureWorkspace(cloneWorkspace)) ||
+                      isAzureBillingProject(selectedBillingProject)) &&
                       h(WorkspacePolicies, {
                         workspace: cloneWorkspace,
+                        billingProject: selectedBillingProject,
                         title: 'Policies',
-                        policiesLabel: 'The cloned workspace will inherit:',
+                        policiesLabel: 'The workspace will inherit:',
                       }),
-                    renderNotice({
-                      selectedBillingProject: namespace
-                        ? billingProjects?.find(({ projectName }) => projectName === namespace)
-                        : undefined,
-                    }),
+                    renderNotice({ selectedBillingProject }),
                     workflowImport &&
                       azureBillingProjectsExist &&
                       div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [

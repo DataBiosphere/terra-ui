@@ -2,7 +2,18 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
-import { AzureWorkspace } from 'src/libs/workspace-utils';
+import {
+  AzureWorkspace,
+  groupConstraintLabel,
+  protectedDataLabel,
+  protectedDataMessage,
+  regionConstraintLabel,
+} from 'src/libs/workspace-utils';
+import {
+  azureBillingProject,
+  azureProtectedDataBillingProject,
+  gcpBillingProject,
+} from 'src/testing/billing-project-fixtures';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
   defaultAzureWorkspace,
@@ -14,80 +25,171 @@ import {
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
 describe('WorkspacePolicies', () => {
-  it('renders nothing if the policy array is empty', () => {
-    // Act
-    render(
-      h(WorkspacePolicies, {
-        workspace: defaultAzureWorkspace,
-      })
-    );
+  const policyLabel = /This workspace has the following/;
 
-    // Assert
-    expect(screen.queryByText(/This workspace has the following/)).toBeNull();
+  describe('handles a workspace as the source of the policies', () => {
+    it('renders nothing if the policy array is empty', () => {
+      // Act
+      render(
+        h(WorkspacePolicies, {
+          workspace: defaultAzureWorkspace,
+        })
+      );
+
+      // Assert
+      expect(screen.queryByText(policyLabel)).toBeNull();
+    });
+
+    it('renders nothing if the workspace does not have known policies', () => {
+      // Arrange
+      const nonProtectedAzureWorkspace: AzureWorkspace = {
+        ...defaultAzureWorkspace,
+        policies: [
+          {
+            additionalData: [],
+            namespace: 'terra',
+            name: 'some-other-policy',
+          },
+        ],
+      };
+
+      // Act
+      render(
+        h(WorkspacePolicies, {
+          workspace: nonProtectedAzureWorkspace,
+        })
+      );
+
+      // Assert
+      expect(screen.queryByText(policyLabel)).toBeNull();
+    });
+
+    it('renders policies with no accessibility errors', async () => {
+      // Arrange
+      const workspaceWithAllPolicies: AzureWorkspace = {
+        ...defaultAzureWorkspace,
+        policies: [protectedDataPolicy, groupConstraintPolicy, regionConstraintPolicy],
+      };
+
+      // Act
+      const { container } = render(
+        h(WorkspacePolicies, {
+          workspace: workspaceWithAllPolicies,
+        })
+      );
+
+      // Assert
+      expect(await axe(container)).toHaveNoViolations();
+      screen.getByText('This workspace has the following policies:');
+      screen.getByText(protectedDataLabel);
+      screen.getByText(groupConstraintLabel);
+      screen.getByText(regionConstraintLabel);
+    });
+
+    it('renders a tooltip', async () => {
+      // Arrange
+      const user = userEvent.setup();
+
+      // Act
+      render(
+        h(WorkspacePolicies, {
+          workspace: protectedAzureWorkspace,
+        })
+      );
+
+      // Act, click on the info button to get tooltip text to render.
+      await user.click(screen.getByLabelText('More info'));
+
+      // Assert
+      expect(screen.getAllByText(protectedDataMessage)).not.toBeNull();
+    });
   });
 
-  it('renders nothing if the policy array does not contain known policies', () => {
-    // Arrange
-    const nonProtectedAzureWorkspace: AzureWorkspace = {
-      ...defaultAzureWorkspace,
-      policies: [
-        {
-          additionalData: [],
-          namespace: 'terra',
-          name: 'some-other-policy',
-        },
-      ],
-    };
+  describe('handles a billing project as the source of the policies', () => {
+    it('renders nothing for a GCP billing project', () => {
+      // Act
+      render(
+        h(WorkspacePolicies, {
+          billingProject: gcpBillingProject,
+        })
+      );
 
-    // Act
-    render(
-      h(WorkspacePolicies, {
-        workspace: nonProtectedAzureWorkspace,
-      })
-    );
+      // Assert
+      expect(screen.queryByText(policyLabel)).toBeNull();
+    });
 
-    // Assert
-    expect(screen.queryByText(/This workspace has the following/)).toBeNull();
+    it('renders nothing for an Azure unprotected billing project', () => {
+      // Act
+      render(
+        h(WorkspacePolicies, {
+          billingProject: azureBillingProject,
+        })
+      );
+
+      // Assert
+      expect(screen.queryByText(policyLabel)).toBeNull();
+    });
+
+    it('renders policies for an Azure protected data billing project', async () => {
+      // Act
+      render(
+        h(WorkspacePolicies, {
+          billingProject: azureProtectedDataBillingProject,
+        })
+      );
+
+      // Assert
+      screen.getByText(policyLabel);
+      screen.getByText(protectedDataLabel);
+    });
   });
 
-  it('renders policies with no accessibility errors', async () => {
-    // Arrange
-    const workspaceWithAllPolicies: AzureWorkspace = {
-      ...defaultAzureWorkspace,
-      policies: [protectedDataPolicy, groupConstraintPolicy, regionConstraintPolicy],
-    };
+  describe('handles both a workspace and a billing project ', () => {
+    it('combines together policy information from workspace and billingProject', async () => {
+      // Act
+      const workspaceWithPolicies: AzureWorkspace = {
+        ...defaultAzureWorkspace,
+        policies: [regionConstraintPolicy],
+      };
+      render(
+        h(WorkspacePolicies, {
+          billingProject: azureProtectedDataBillingProject,
+          workspace: workspaceWithPolicies,
+        })
+      );
 
-    // Act
-    const { container } = render(
-      h(WorkspacePolicies, {
-        workspace: workspaceWithAllPolicies,
-      })
-    );
+      // Assert
+      screen.getByText(policyLabel);
+      screen.getByText(protectedDataLabel);
+      screen.getByText(regionConstraintLabel);
+    });
 
-    // Assert
-    expect(await axe(container)).toHaveNoViolations();
-    expect(screen.getByText(/This workspace has the following/i)).toBeInTheDocument();
-    screen.getByText('Additional security monitoring');
-    screen.getByText('Data access controls');
-    screen.getByText('Region constraint');
-  });
+    it('removes duplicate policy information', async () => {
+      // Act
+      const workspaceWithPolicies: AzureWorkspace = {
+        ...defaultAzureWorkspace,
+        policies: [protectedDataPolicy, regionConstraintPolicy],
+      };
+      render(
+        h(WorkspacePolicies, {
+          billingProject: azureProtectedDataBillingProject,
+          workspace: workspaceWithPolicies,
+        })
+      );
 
-  it('renders a tooltip', async () => {
-    // Arrange
-    const user = userEvent.setup();
+      // Assert
+      screen.getByText(policyLabel);
+      expect(screen.getAllByText(protectedDataLabel)).toHaveLength(1);
+      screen.getByText(regionConstraintLabel);
+    });
 
-    // Act
-    render(
-      h(WorkspacePolicies, {
-        workspace: protectedAzureWorkspace,
-      })
-    );
+    it('renders nothing if workspace and billing project are undefined', () => {
+      // Act
+      render(h(WorkspacePolicies, {}));
 
-    // Act, click on the info button to get tooltip text to render.
-    await user.click(screen.getByLabelText('More info'));
-
-    // Assert
-    expect(screen.getAllByText(/controlled-access data/)).not.toBeNull();
+      // Assert
+      expect(screen.queryByText(policyLabel)).toBeNull();
+    });
   });
 
   it('allows passing a title and label about the list', async () => {
