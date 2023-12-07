@@ -410,7 +410,7 @@ describe('NewWorkspaceModal', () => {
   });
 
   describe('decides when to show a policy section ', () => {
-    const clonePolicyLabel = 'The cloned workspace will inherit:';
+    const policyLabel = 'The workspace will inherit:';
     it('Shows a policy section when cloning an Azure workspace with polices', async () => {
       asMockedFn(Ajax).mockImplementation(
         () =>
@@ -435,7 +435,7 @@ describe('NewWorkspaceModal', () => {
 
       // Assert
       screen.getByText('Policies');
-      screen.getByText(clonePolicyLabel);
+      screen.getByText(policyLabel);
     });
 
     it('Does not show a policy section when cloning an Azure workspace without polices', async () => {
@@ -462,7 +462,7 @@ describe('NewWorkspaceModal', () => {
 
       // Assert
       expect(screen.queryByText('Policies')).toBeNull();
-      expect(screen.queryByText(clonePolicyLabel)).toBeNull();
+      expect(screen.queryByText(policyLabel)).toBeNull();
     });
 
     it('Does not show a policy section when cloning a protected GCP workspace', async () => {
@@ -500,7 +500,72 @@ describe('NewWorkspaceModal', () => {
 
       // Assert
       expect(screen.queryByText('Policies')).toBeNull();
-      expect(screen.queryByText(clonePolicyLabel)).toBeNull();
+      expect(screen.queryByText(policyLabel)).toBeNull();
+    });
+
+    it('Shows a policy section when creating a new workspace from a protected data billing project', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [azureProtectedDataBillingProject],
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
+      );
+
+      // Act
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            onDismiss: () => {},
+            onSuccess: () => {},
+          })
+        );
+      });
+
+      // No policy section until billing project is selected.
+      expect(screen.queryByText('Policies')).toBeNull();
+
+      await user.click(screen.getByText('Select a billing project'));
+      await user.click(screen.getByText('Protected Azure Billing Project'));
+
+      // Assert
+      screen.getByText('Policies');
+      screen.getByText(policyLabel);
+    });
+
+    it('Does not shows a policy section when creating a new workspace from an unprotected data billing project', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Billing: {
+              listProjects: async () => [azureBillingProject],
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
+      );
+
+      // Act
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            onDismiss: () => {},
+            onSuccess: () => {},
+          })
+        );
+      });
+
+      await user.click(screen.getByText('Select a billing project'));
+      await user.click(screen.getByText('Azure Billing Project'));
+
+      // Assert
+      expect(screen.queryByText('Policies')).toBeNull();
+      expect(screen.queryByText(policyLabel)).toBeNull();
     });
   });
 
