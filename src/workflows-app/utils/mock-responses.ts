@@ -845,9 +845,5 @@ export const mockAzureWorkspace: AzureWorkspace = {
   accessLevel: 'OWNER',
   canShare: true,
   canCompute: true,
-};
-
-export const azureStorageDetails = {
-  location: 'container-location',
-  sas: { url: 'container-url?sas-token' },
+  policies: [],
 };

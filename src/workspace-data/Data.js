@@ -610,6 +610,11 @@ export const WorkspaceData = _.flow(
       }
     };
 
+    const azureLoadEntityMetadata = async () => {
+      // This is not used for Azure Workspaces, but if left undefined the page will spin forever
+      setEntityMetadata({});
+    };
+
     const loadSnapshotMetadata = async () => {
       try {
         setSnapshotMetadataError(false);
@@ -632,7 +637,14 @@ export const WorkspaceData = _.flow(
       }
     };
 
-    const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), refreshRunningImportJobs(), loadWdsSchema()]);
+    const azureLoadSnapshotMetadata = async () => {
+      setSnapshotMetadataError(false);
+    };
+
+    const loadMetadata = () =>
+      isAzureWorkspace
+        ? Promise.all([azureLoadEntityMetadata(), azureLoadSnapshotMetadata(), refreshRunningImportJobs(), loadWdsSchema()])
+        : Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), refreshRunningImportJobs()]);
 
     const loadSnapshotEntities = async (snapshotName) => {
       try {
