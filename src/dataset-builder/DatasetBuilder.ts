@@ -554,11 +554,15 @@ export const DatasetBuilderContents = ({
   useEffect(() => {
     requestValid &&
       setDatasetRequestParticipantCount(async () =>
-        DatasetBuilder().getParticipantCount({
-          cohorts: allCohorts,
-        })
+        DatasetBuilder()
+          .getParticipantCount(dataset.id, {
+            cohorts: allCohorts,
+          })
+          .then((value) => {
+            return value.total;
+          })
       );
-  }, [selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
+  }, [dataset, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
   const getNewFeatureValueGroups = (includedFeatureValueGroups: string[]): string[] =>
     _.without(
