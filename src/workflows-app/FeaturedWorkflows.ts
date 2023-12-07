@@ -7,8 +7,10 @@ import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import TooltipTrigger from 'src/components/TooltipTrigger';
+import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import colors from 'src/libs/colors';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
@@ -75,7 +77,7 @@ export const FeaturedWorkflows = ({
     },
     [signal, workspaceId]
   );
-
+  const { captureEvent } = useMetricsEvent();
   const getMethodsInWorkspace = useCallback(
     (method) => {
       const methods = 'methods' in method ? method.methods : [method];
@@ -129,21 +131,30 @@ export const FeaturedWorkflows = ({
             const {
               cbasProxyUrlState: { state },
             } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
+            const importMethod = (state, method) => {
+              captureEvent(Events.workflowsAppImport, {
+                ...extractWorkspaceDetails(workspace),
+                workflowSource: method.source,
+                workflowName: method.name,
+                workflowUrl: method.method_versions[0].url,
+                importPage: 'FeaturedWorkflows',
+              });
+
+              return Cbas().methods.post(state, {
+                method_name: method.name,
+                method_description: method.description,
+                method_source: method.source,
+                method_version: method.method_versions[0].name,
+                method_url: method.method_versions[0].url,
+                method_input_mappings: method.template?.method_input_mappings,
+                method_output_mappings: method.template?.method_output_mappings,
+              });
+            };
             setImportWorkflowModal(true);
             setImportLoading(true);
             setMethodName(method.name);
             const imports = methodsInWorkspace.map(([inWorkspace, m]) =>
-              inWorkspace
-                ? Promise.resolve()
-                : Cbas().methods.post(state, {
-                    method_name: m.name,
-                    method_description: m.description,
-                    method_source: m.source,
-                    method_version: m.method_versions[0].name,
-                    method_url: m.method_versions[0].url,
-                    method_input_mappings: m.template?.method_input_mappings,
-                    method_output_mappings: m.template?.method_output_mappings,
-                  })
+              inWorkspace ? Promise.resolve() : importMethod(state, m)
             );
             await Promise.all(imports)
               .then((resolvedImports) => {
@@ -160,7 +171,7 @@ export const FeaturedWorkflows = ({
         },
         ['Add to workspace']
       ),
-    [loadRunsData, workspaceId]
+    [loadRunsData, workspaceId, captureEvent, workspace]
   );
 
   // poll if we're missing CBAS proxy url and stop polling when we have it
