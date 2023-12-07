@@ -6,7 +6,7 @@ import { Clickable } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { useWorkspaceDetails } from 'src/components/workspace-utils';
-import { isOwner, WorkspacePolicy, WorkspaceState, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { isOwner, WorkspaceState, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
 const isNameType = (o: WorkspaceInfo): o is DynamicWorkspaceInfo =>
   'name' in o && typeof o.name === 'string' && 'namespace' in o && typeof o.namespace === 'string';
@@ -23,7 +23,7 @@ type WorkspaceInfo = DynamicWorkspaceInfo | LoadedWorkspaceInfo;
 
 interface WorkspaceMenuCallbacks {
   onClone: () => void;
-  onShare: (policies?: WorkspacePolicy[]) => void;
+  onShare: () => void;
   onLock: () => void;
   onDelete: () => void;
   onLeave: () => void;
@@ -88,7 +88,6 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
   } = props;
   const { workspace } = useWorkspaceDetails({ namespace, name }, [
     'accessLevel',
-    'policies',
     'canShare',
     'workspace.isLocked',
     'workspace.state',
@@ -102,9 +101,7 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
       isOwner: !!workspace && isOwner(workspace.accessLevel),
       workspaceLoaded: !!workspace,
     },
-    // the list component doesn't have workspace details, so we need to pass policies so it can add it for the ShareWorkspaceModal modal
-    // the dashboard component already has the field, so it will ignore the parameter of onShare
-    callbacks: { ...callbacks, onShare: () => callbacks.onShare(workspace?.policies) },
+    callbacks,
   });
 };
 
