@@ -61,6 +61,7 @@ const googleWorkspace: GoogleWorkspace = {
     bucketName: 'test-bucket',
     lastModified: '',
   },
+  policies: [],
 };
 
 describe('RequestAccessModal', () => {

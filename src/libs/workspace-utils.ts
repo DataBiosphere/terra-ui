@@ -90,9 +90,7 @@ export interface BaseWorkspace {
   canShare: boolean;
   canCompute: boolean;
   workspace: WorkspaceInfo;
-  // Currently will always be empty for GCP workspaces, but this will change in the future.
-  // For the purposes of test data, not requiring the specification of the field.
-  policies?: WorkspacePolicy[];
+  policies: WorkspacePolicy[];
   public?: boolean;
   workspaceSubmissionStats?: WorkspaceSubmissionStats;
 }

@@ -27,23 +27,7 @@ describe('the share workspace modal', () => {
     });
   });
 
-  const workspace: GoogleWorkspace = {
-    accessLevel: 'PROJECT_OWNER',
-    canShare: true,
-    canCompute: true,
-    workspace: {
-      namespace: 'namespace',
-      name: 'name',
-      workspaceId: 'test-ws-id',
-      cloudPlatform: 'Gcp',
-      authorizationDomain: [],
-      createdDate: '',
-      createdBy: '',
-      googleProject: 'test-project',
-      bucketName: 'test-bucket',
-      lastModified: '',
-    },
-  };
+  const workspace: GoogleWorkspace = defaultGoogleWorkspace;
 
   const mockAjax = (
     acl: RawWorkspaceAcl,
