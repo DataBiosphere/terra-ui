@@ -35,6 +35,7 @@ import {
   isAzureWorkspace,
   isGoogleWorkspace,
   isProtectedWorkspace,
+  protectedDataMessage,
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/libs/workspace-utils';
@@ -346,8 +347,15 @@ const NewWorkspaceModal = withDisplayName(
       return true;
     };
 
+    const cloningGcpProtectedWorkspace =
+      !!cloneWorkspace && isGoogleWorkspace(cloneWorkspace) && isProtectedWorkspace(cloneWorkspace);
+
     // Lifecycle
     useOnMount(() => {
+      // If cloning a GCP protected workspace, override whatever may have been passed via `requireEnhancedBucketLogging`
+      if (cloningGcpProtectedWorkspace) {
+        setEnhancedBucketLogging(true);
+      }
       loadData();
       loadAlphaRegionalityUser();
     });
@@ -559,23 +567,22 @@ const NewWorkspaceModal = withDisplayName(
                               h(
                                 LabeledCheckbox,
                                 {
-                                  style: { margin: '0rem 0.25rem 0.25rem 0' },
+                                  style: { margin: '0rem 0.25rem 0.25rem 0rem' },
                                   checked: enhancedBucketLogging,
-                                  disabled: !!requireEnhancedBucketLogging || groups.length > 0,
+                                  disabled:
+                                    !!requireEnhancedBucketLogging || groups.length > 0 || cloningGcpProtectedWorkspace,
                                   onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
                                   'aria-describedby': id,
                                 },
                                 [
                                   label({ style: { ...Style.elements.sectionHeader } }, [
-                                    'Workspace will have protected data',
+                                    'Enable additional security monitoring',
                                   ]),
                                 ]
                               ),
                               h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
-                                'If checked, Terra will log all data access requests to the workspace bucket. ' +
-                                  'This feature is automatically enabled when a workspace is created with Authorization Domains.',
+                                protectedDataMessage,
                               ]),
-                              p({ id, style: { marginTop: '.25rem' } }, ['Access to data will be logged by Terra']),
                             ]),
                         ]),
                       ]),
@@ -621,6 +628,7 @@ const NewWorkspaceModal = withDisplayName(
                           ]),
                       ]),
                     !!cloneWorkspace &&
+                      isAzureWorkspace(cloneWorkspace) &&
                       h(WorkspacePolicies, {
                         workspace: cloneWorkspace,
                         title: 'Policies',
