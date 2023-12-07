@@ -32,6 +32,15 @@ jest.mock(
   })
 );
 
+jest.mock('react-notifications-component', () => {
+  return {
+    Store: {
+      addNotification: jest.fn(),
+      removeNotification: jest.fn(),
+    },
+  };
+});
+
 describe('WorkspaceTags', () => {
   afterEach(() => {
     jest.clearAllMocks();
