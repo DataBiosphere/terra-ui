@@ -83,6 +83,8 @@ describe('WorkspaceTags', () => {
     const mockTagsFn = jest.fn().mockResolvedValue([...initialTags, addedTag]);
     asMockedFn(Ajax).mockReturnValue({
       Workspaces: {
+        // the tags select component still calls this
+        getTags: jest.fn().mockResolvedValue([initialTags]),
         workspace: jest.fn().mockReturnValue({
           addTag: mockTagsFn,
         }),
@@ -136,7 +138,7 @@ describe('WorkspaceTags', () => {
     const mockTagsFn = jest.fn().mockResolvedValue([remainingTag]);
     asMockedFn(Ajax).mockReturnValue({
       Workspaces: {
-        // the tags select component calls this when ???
+        // the tags select component still calls this
         getTags: jest.fn().mockResolvedValue([initialTags]),
         workspace: jest.fn().mockReturnValue({
           deleteTag: mockTagsFn,
