@@ -1,18 +1,20 @@
 const _ = require('lodash/fp');
 const { withWorkspace } = require('../utils/integration-helpers');
 const {
-  findInGrid,
+  Millis,
   click,
   clickable,
+  delay,
   fillIn,
+  findElement,
   findIframe,
+  findInGrid,
   input,
-  signIntoTerra,
+  navOptionNetworkIdle,
   select,
+  signIntoTerra,
   svgText,
   waitForNoSpinners,
-  findElement,
-  navOptionNetworkIdle,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
@@ -31,7 +33,11 @@ const testImportCohortDataFn = _.flow(
 
   const frame = await findIframe(page);
   await click(frame, svgText({ textContains: 'Has WGS Low' }));
+  // Wait for UI to rerender after filtering - TODO replace delay with a specific trigger to await
+  await delay(Millis.ofSeconds(10));
+
   await click(frame, clickable({ textContains: 'Save cohort' }));
+
   await fillIn(frame, input({ placeholder: 'cohort name' }), cohortName);
   await click(frame, clickable({ text: 'Save' }));
 
