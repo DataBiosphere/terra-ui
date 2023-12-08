@@ -30,6 +30,7 @@ describe('useImportJobs', () => {
       accessLevel: 'OWNER',
       canShare: true,
       canCompute: true,
+      policies: [],
     };
 
     it('returns list of running jobs in workspace', () => {
@@ -94,6 +95,7 @@ describe('useImportJobs', () => {
       accessLevel: 'OWNER',
       canShare: true,
       canCompute: true,
+      policies: [],
     };
 
     it('returns list of jobs in workspace', () => {

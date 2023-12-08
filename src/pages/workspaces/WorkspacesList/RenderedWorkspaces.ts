@@ -384,7 +384,7 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
   const onClone = () => setUserActions({ cloningWorkspaceId: workspaceId });
   const onDelete = () => setUserActions({ deletingWorkspaceId: workspaceId });
   const onLock = () => setUserActions({ lockingWorkspaceId: workspaceId });
-  const onShare = (policies) => setUserActions({ sharingWorkspace: { ...getWorkspace(workspaceId), policies } });
+  const onShare = () => setUserActions({ sharingWorkspace: getWorkspace(workspaceId) });
   const onLeave = () => setUserActions({ leavingWorkspaceId: workspaceId });
 
   return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [

@@ -22,10 +22,12 @@ export const useWorkspacesWithSubmissionStats = (): WorkspacesWithSubmissionStat
   } = useWorkspaces(
     [
       'accessLevel',
+      'policies', // Needed for ShareWorkspace modal on list view
       'public',
       'workspace.attributes.description',
       'workspace.attributes.tag:tags',
       'workspace.authorizationDomain',
+      'workspace.bucketName', // Needed for ShareWorkspace modal on list view
       'workspace.cloudPlatform',
       'workspace.createdBy',
       'workspace.lastModified',
