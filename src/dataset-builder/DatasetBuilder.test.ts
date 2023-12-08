@@ -254,10 +254,18 @@ describe('DatasetBuilder', () => {
   });
 
   it('shows the participant count and request access buttons when request is valid', async () => {
+    asMockedFn(DataRepo).mockImplementation(
+      () =>
+        ({
+          dataset: (_datasetId) =>
+            ({
+              getCounts: jest.fn().mockResolvedValue({ result: { total: 100 } }),
+            } as Partial<DataRepoContract['dataset']>),
+        } as Partial<DataRepoContract> as DataRepoContract)
+    );
     // Arrange
     const user = userEvent.setup();
     await initializeValidDatasetRequest(user);
-
     // Assert
     expect(await screen.findByText('100 Participants in this dataset')).toBeTruthy();
     expect(await screen.findByText('Request access to this dataset')).toBeTruthy();

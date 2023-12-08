@@ -1,6 +1,6 @@
 // Types that can be used to create a criteria.
 import _ from 'lodash/fp';
-import { Ajax } from 'src/libs/ajax';
+import { DataRepo } from 'src/libs/ajax/DataRepo';
 import {
   datasetIncludeTypes,
   DatasetModel,
@@ -272,15 +272,15 @@ const getDummyConcepts = async (parent: Concept): Promise<GetConceptsResponse> =
 
 export const DatasetBuilder = (): DatasetBuilderContract => ({
   retrieveDataset: async (datasetId) => {
-    return await Ajax()
-      .DataRepo.dataset(datasetId)
+    return await DataRepo()
+      .dataset(datasetId)
       .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
   },
   getConcepts: (parent: Concept) => Promise.resolve(getDummyConcepts(parent)),
   requestAccess: async (datasetId, request) => {
-    return await Ajax().DataRepo.dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(request));
+    return await DataRepo().dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(request));
   },
   getParticipantCount: async (datasetId, request) => {
-    return await Ajax().DataRepo.dataset(datasetId).getCounts(convertDatasetParticipantCountRequest(request));
+    return await DataRepo().dataset(datasetId).getCounts(convertDatasetParticipantCountRequest(request));
   },
 });
