@@ -1,7 +1,6 @@
 import _ from 'lodash/fp';
 import { CSSProperties, useEffect } from 'react';
-import { div, h, span } from 'react-hyperscript-helpers';
-import { AnalysesData } from 'src/analysis/Analyses';
+import { div, h, h2, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
@@ -13,11 +12,14 @@ import { useQueryParameter } from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { AppDetails } from 'src/pages/workspaces/hooks/useAppPolling';
+import { CloudEnvironmentDetails } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
 import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
+import { analysesDataInitialized, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
 
 const subHeadersMap = {
@@ -63,10 +65,11 @@ const ListItem = ({ title, pageReady, ...props }: ListItemProps) =>
 
 type WorkflowsAppNavPanelProps = {
   loading: boolean;
+  appFetchComplete: boolean;
   name: string;
   namespace: string;
   workspace: WorkspaceWrapper;
-  analysesData: AnalysesData;
+  analysesData: AppDetails & CloudEnvironmentDetails;
   launcherDisabled: boolean;
   launching: boolean;
   createWorkflowsApp: Function;
@@ -89,7 +92,6 @@ export const WorkflowsAppNavPanel = ({
   signal,
 }: WorkflowsAppNavPanelProps) => {
   const [selectedSubHeader, setSelectedSubHeader] = useQueryParameter('tab');
-
   const { captureEvent } = useMetricsEvent();
 
   useEffect(() => {
@@ -253,6 +255,14 @@ export const WorkflowsAppNavPanel = ({
     ),
     Utils.cond(
       [
+        !analysesDataInitialized(analysesData),
+        () =>
+          div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
+            h2({ style: { marginTop: 0 } }, ['Loading Workflows App']),
+            loadingYourWorkflowsApp(),
+          ]),
+      ],
+      [
         pageReady,
         Utils.switchCase(
           selectedSubHeader,
@@ -284,7 +294,13 @@ export const WorkflowsAppNavPanel = ({
       [
         !pageReady,
         () =>
-          div([h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, launching, disabled: launcherDisabled })]),
+          div([
+            h(WorkflowsAppLauncherCard, {
+              onClick: createWorkflowsApp,
+              launching,
+              disabled: launcherDisabled,
+            }),
+          ]),
       ]
     ),
   ]);

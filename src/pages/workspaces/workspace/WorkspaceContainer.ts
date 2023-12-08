@@ -260,7 +260,7 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
         namespace,
         workspace
       );
-      const { apps, refreshApps } = useAppPolling(name, namespace, workspace);
+      const { apps, refreshApps, lastRefresh } = useAppPolling(name, namespace, workspace);
 
       if (accessError) {
         return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)]);
@@ -276,7 +276,7 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
           refreshWorkspace,
           title: _.isFunction(title) ? title(props) : title,
           breadcrumbs: breadcrumbs(props),
-          analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+          analysesData: { apps, refreshApps, lastRefresh, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
           storageDetails,
           refresh: async () => {
             await refreshWorkspace();
@@ -291,7 +291,15 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
               ref: child,
               workspace,
               refreshWorkspace,
-              analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+              analysesData: {
+                apps,
+                refreshApps,
+                lastRefresh,
+                runtimes,
+                refreshRuntimes,
+                appDataDisks,
+                persistentDisks,
+              },
               storageDetails,
               ...props,
             }),
