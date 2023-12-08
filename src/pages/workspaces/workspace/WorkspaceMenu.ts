@@ -6,7 +6,13 @@ import { Clickable } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { useWorkspaceDetails } from 'src/components/workspace-utils';
-import { isOwner, WorkspaceState, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import {
+  isGoogleWorkspace,
+  isOwner,
+  WorkspacePolicy,
+  WorkspaceState,
+  WorkspaceWrapper as Workspace,
+} from 'src/libs/workspace-utils';
 
 const isNameType = (o: WorkspaceInfo): o is DynamicWorkspaceInfo =>
   'name' in o && typeof o.name === 'string' && 'namespace' in o && typeof o.namespace === 'string';
@@ -22,8 +28,8 @@ type DynamicWorkspaceInfo = { name: string; namespace: string };
 type WorkspaceInfo = DynamicWorkspaceInfo | LoadedWorkspaceInfo;
 
 interface WorkspaceMenuCallbacks {
-  onClone: () => void;
-  onShare: () => void;
+  onClone: (policies?: WorkspacePolicy[], bucketName?: string) => void;
+  onShare: (policies?: WorkspacePolicy[], bucketName?: string) => void;
   onLock: () => void;
   onDelete: () => void;
   onLeave: () => void;
@@ -89,9 +95,12 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
   const { workspace } = useWorkspaceDetails({ namespace, name }, [
     'accessLevel',
     'canShare',
+    'policies',
+    'workspace.bucketName',
     'workspace.isLocked',
     'workspace.state',
   ]) as { workspace?: Workspace };
+  const bucketName = !!workspace && isGoogleWorkspace(workspace) ? workspace.workspace.bucketName : undefined;
 
   return h(LoadedWorkspaceMenuContent, {
     workspaceInfo: {
@@ -101,7 +110,14 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
       isOwner: !!workspace && isOwner(workspace.accessLevel),
       workspaceLoaded: !!workspace,
     },
-    callbacks,
+    // The list component doesn't fetch all the workspace details in order to keep the size of returned payload
+    // as small as possible, so we need to pass policies and bucketName for use by the ShareWorkspaceModal
+    // and NewWorkspaceModal (cloning). The dashboard component already has the fields, so it will ignore them.
+    callbacks: {
+      ...callbacks,
+      onShare: () => callbacks.onShare(workspace?.policies, bucketName),
+      onClone: () => callbacks.onClone(workspace?.policies, bucketName),
+    },
   });
 };
 
