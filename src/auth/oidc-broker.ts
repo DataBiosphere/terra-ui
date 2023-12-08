@@ -108,17 +108,6 @@ export const oidcSignIn = async (args: OidcSignInArgs): Promise<OidcUser | null>
 export const revokeTokens = async (): Promise<void> => {
   // send back auth instance, so we can use it for remove and clear stale state
   const auth: AuthContextProps = getAuthInstance();
-  if (auth.settings.metadata?.revocation_endpoint) {
-    // revokeTokens can fail if the token has already been revoked.
-    // Recover from invalid_token errors to make sure signOut completes successfully.
-    try {
-      await auth.revokeTokens();
-    } catch (e: unknown) {
-      if ((e as any).error !== 'invalid_token') {
-        throw e;
-      }
-    }
-  }
   auth.removeUser();
   auth.clearStaleState();
 };
