@@ -83,9 +83,9 @@ interface DynamicWorkspaceMenuContentProps {
 }
 
 /**
- * DynamicWorkspaceInfo is invoked when the name/namespace is passed instead of the dirived states.
- * This happens from the list component, which also needs the workspace policies for sharing the workspace.
- * So the onShare callback is wrapped here, and passed to LoadedWorkspaceMenuContent.
+ * DynamicWorkspaceInfo is invoked when the name/namespace is passed instead of the derived states.
+ * This happens from the list component, which also needs the workspace policies and bucketName for
+ * sharing and cloning the workspace.
  */
 const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) => {
   const {
