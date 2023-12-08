@@ -81,7 +81,10 @@ const testRunRStudioFn = _.flowRight(
   await click(page, clickable({ textContains: 'Open' }));
 
   // Find the iframe, wait until the RStudio iframe is loaded, and execute some code
-  const frame = await findIframe(page, '//iframe[@title="Interactive RStudio iframe"]', { timeout: Millis.ofMinute });
+  const frame = await findIframe(page, '//iframe[@title="Interactive RStudio iframe"]', { timeout: Millis.ofMinutes(2) });
+  if (!frame) {
+    throw new Error('iframe not found');
+  }
 
   await findElement(frame, '//*[@id="rstudio_container"]', { timeout: Millis.ofMinutes(2) });
 

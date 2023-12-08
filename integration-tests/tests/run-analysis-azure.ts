@@ -79,6 +79,9 @@ const testRunAnalysisAzure = _.flowRight(
   const frame = await findIframe(page, '//iframe[@title="Interactive JupyterLab iframe"]', {
     timeout: Millis.ofMinutes(2),
   });
+  if (!frame) {
+    throw new Error('iframe not found');
+  }
 
   await findText(frame, 'Kernel status: Idle', { timeout: Millis.ofMinutes(4) });
 

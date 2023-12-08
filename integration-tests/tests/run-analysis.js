@@ -79,7 +79,10 @@ const testRunAnalysisFn = _.flowRight(
   await click(page, clickable({ textContains: 'Open' }));
 
   // Find the iframe, wait until the Jupyter kernel is ready, and execute some code
-  const frame = await findIframe(page, '//iframe[@id="analysis-iframe"]', { timeout: Millis.ofMinute });
+  const frame = await findIframe(page, '//iframe[@id="analysis-iframe"]', { timeout: Millis.ofMinutes(2) });
+  if (!frame) {
+    throw new Error('iframe not found');
+  }
 
   await findElement(frame, '//*[@title="Kernel Idle"]', { timeout: Millis.ofMinute });
 
