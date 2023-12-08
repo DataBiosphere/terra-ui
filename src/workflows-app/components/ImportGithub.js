@@ -112,13 +112,17 @@ const ImportGithub = ({ setLoading, signal, workspace, name, namespace, setSelec
                 method_url: methodUrl,
                 method_source: 'GitHub',
               };
-              captureEvent(Events.workflowsAppImport, {
-                ...extractWorkspaceDetails(workspace),
-                workflowSource: 'GitHub',
-                workflowName: methodName,
-                workflowUrl: methodUrl,
-                importPage: 'ImportGithub',
-              });
+              captureEvent(
+                Events.workflowsAppImport,
+                {
+                  ...extractWorkspaceDetails(workspace),
+                  workflowSource: 'GitHub',
+                  workflowName: methodName,
+                  workflowUrl: methodUrl,
+                  importPage: 'ImportGithub',
+                },
+                false
+              );
               withBusyState(setLoading, submitMethod(signal, method, workspace, onSuccess, onError));
             },
           },
@@ -130,7 +134,10 @@ const ImportGithub = ({ setLoading, signal, workspace, name, namespace, setSelec
       h(ImportWorkflowModal, {
         importLoading,
         methodName,
-        onDismiss: () => setImportWorkflowModal(false),
+        onDismiss: () => {
+          setImportWorkflowModal(false);
+          window.Appcues?.page();
+        },
         workspace,
         namespace,
         name,
