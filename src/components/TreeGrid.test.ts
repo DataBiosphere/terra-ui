@@ -36,8 +36,6 @@ const columns = [
   { name: 'col3', width: 100, render: col3 },
 ];
 
-const datasetId = '';
-
 describe('TreeGrid', () => {
   let getChildrenCount;
   const renderTree = () => {
@@ -45,12 +43,11 @@ describe('TreeGrid', () => {
     render(
       TreeGrid({
         initialRows: [tree],
-        getChildren: async (_datasetId, node) => {
+        getChildren: async (node) => {
           getChildrenCount++;
           return node.children!;
         },
         columns,
-        datasetId,
       })
     );
   };

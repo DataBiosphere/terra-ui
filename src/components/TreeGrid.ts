@@ -52,9 +52,7 @@ type TreeGridProps<T extends RowContents> = {
   /** the initial rows to display */
   readonly initialRows: T[];
   /** Given a row, return its children. This is only called if row.hasChildren is true. */
-  readonly getChildren: (datasetId: string, row: T) => Promise<T[]>;
-  /** DatasetId for which to get concepts and children */
-  readonly datasetId: string;
+  readonly getChildren: (row: T) => Promise<T[]>;
 };
 
 type TreeGridPropsInner<T extends RowContents> = TreeGridProps<T> & {
@@ -89,7 +87,7 @@ const getRowIndex = <T extends RowContents>(row: Row<T>, rows: Row<T>[]) =>
   _.findIndex((r) => r.contents.id === row.contents.id, rows);
 
 const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
-  const { columns, initialRows, getChildren, gridWidth, datasetId } = props;
+  const { columns, initialRows, getChildren, gridWidth } = props;
   const [data, setData] = useState(_.map(wrapContent(0), initialRows));
   const rowHeight = 40;
   const expand = async (row: Row<T>) => {
@@ -103,7 +101,7 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
     setData(_.set(`[${index}].state`, 'opening', data));
 
     // Fetch children.
-    const children = await getChildren(datasetId, row.contents);
+    const children = await getChildren(row.contents);
 
     // Mark as fetched and insert children.
     setData((currentData) => {

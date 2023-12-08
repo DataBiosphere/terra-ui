@@ -12,11 +12,6 @@ import { DatasetBuilder } from 'src/libs/ajax/DatasetBuilder';
 
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
 
-const getChildren = async (datasetId: string, concept: Concept): Promise<Concept[]> => {
-  const result = await DatasetBuilder().getConcepts(datasetId, concept);
-  return result.result;
-};
-
 type ConceptSelectorProps = {
   readonly initialRows: Concept[];
   readonly title: string;
@@ -29,6 +24,10 @@ type ConceptSelectorProps = {
 export const ConceptSelector = (props: ConceptSelectorProps) => {
   const { initialRows, title, onCancel, onCommit, actionText, datasetId } = props;
   const [cart, setCart] = useState<number[]>([]);
+  const getChildren = async (concept: Concept): Promise<Concept[]> => {
+    const result = await DatasetBuilder().getConcepts(datasetId, concept);
+    return result.result;
+  };
   return h(Fragment, [
     div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -67,7 +66,6 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
         ],
         initialRows,
         getChildren,
-        datasetId,
       }),
     ]),
     cart.length !== 0 &&
