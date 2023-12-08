@@ -5,7 +5,7 @@ export type PrimitiveInputType = {
 
 export type ArrayInputType = {
   type: 'array';
-  non_empty: boolean;
+  non_empty?: boolean;
   array_type: InputType;
 };
 

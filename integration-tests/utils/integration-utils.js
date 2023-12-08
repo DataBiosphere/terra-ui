@@ -7,6 +7,27 @@ const { screenshotDirPath } = require('./integration-config');
 
 const defaultToVisibleTrue = _.defaults({ visible: true });
 
+/**
+ * Repeat a given function until it evaluates to truthy, returning the final result. Iterates synchronously.
+ * @param getResult the function to repeat, returning a truthy or falsy value
+ * @param interval the number of milliseconds to wait between attempts
+ * @leading whether to check getResult before the initial interval wait
+ * @retries how many times to retry before aborting
+ */
+const retryUntil = async ({ getResult, interval = Millis.ofSecond, leading = false, retries = 5 }) => {
+  let result = false;
+  let willLead = leading;
+  do {
+    if (!willLead) {
+      await delay(interval);
+    }
+    result = await getResult();
+    willLead = false;
+  } while (!result && retries--);
+  return result;
+};
+
+/** Repeat a given function until it evaluates to truthy, returning the final result. Iterates asynchronously. */
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   const readyState = new Promise((resolve) => {
     const start = Date.now();
@@ -52,7 +73,7 @@ const getAnimatedDrawer = (textContains) => {
 // Note: isEnabled is not fully supported for native anchor and button elements (only aria-disabled is examined).
 const clickable = ({ text, textContains, isDescendant = false, isEnabled = true }) => {
   const checkEnabled = isEnabled === false ? '[@aria-disabled="true"]' : '[not(@aria-disabled="true")]';
-  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"] | //*[@role="switch"] | //*[@role="tab"])${checkEnabled}`;
+  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"] | //*[@role="switch"] | //*[@role="tab"] | //*[@role="checkbox"])${checkEnabled}`;
   return getClickablePath(base, text, textContains, isDescendant);
 };
 
@@ -163,13 +184,9 @@ const label = ({ labelContains }) => {
   return `(//label[contains(normalize-space(.),"${labelContains}")])`;
 };
 
-const fillIn = async (page, xpath, text, { initialDelay = Millis.none } = {}) => {
-  const input = await page.waitForXPath(xpath, defaultToVisibleTrue());
-
-  // Sometimes the first few characters of the typed text are dropped.
-  // Click the input, then wait, if so configured, to avoid this
+const fillIn = async (page, xpath, text, options) => {
+  const input = await page.waitForXPath(xpath, defaultToVisibleTrue(options));
   await input.click();
-  await delay(initialDelay);
 
   // Actually type the text
   await input.type(text, { delay: Millis.of(20) });
@@ -233,7 +250,7 @@ const delay = (ms) => {
 };
 
 /** Dismiss all popup notifications, including errors. */
-const dismissErrorNotifications = async (page) => {
+const dismissAllNotifications = async (page) => {
   await delay(3000); // delayed for any alerts to show
   const notificationCloseButtons = await page.$x('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss")]');
 
@@ -242,7 +259,8 @@ const dismissErrorNotifications = async (page) => {
   return !!notificationCloseButtons.length && delay(1000); // delayed for alerts to animate off
 };
 
-const dismissNotifications = async (page) => {
+/** Dismiss popup notifications, except for errors. */
+const dismissInfoNotifications = async (page) => {
   await delay(3000); // delayed for any alerts to show
   const notificationCloseButtons = await page.$x(
     '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]'
@@ -287,7 +305,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   await page.waitForFunction('!!window["forceSignIn"]');
   await page.evaluate((token) => window.forceSignIn(token), token);
 
-  await dismissNotifications(page);
+  await dismissInfoNotifications(page);
   await dismissNPSSurvey(page);
   await waitForNoSpinners(page);
 };
@@ -352,9 +370,17 @@ const findButtonInDialogByAriaLabel = (page, ariaLabelText) => {
   });
 };
 
+/** Waits for a menu element to expand (or collapse if isExpanded=false) */
+const waitForMenu = (page, { labelContains, isExpanded = true, ...options }) => {
+  return page.waitForXPath(
+    `//*[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for or @aria-labelledby=//*[contains(normalize-space(.),"${labelContains}")]/@id][@aria-expanded="${isExpanded}"]`,
+    defaultToVisibleTrue(options)
+  );
+};
+
 const openError = async (page) => {
   // close out any non-error notifications first
-  await dismissNotifications(page);
+  await dismissInfoNotifications(page);
 
   const errorDetails = await page.$x('(//a | //*[@role="button"] | //button)[contains(normalize-space(.),"Details")]');
 
@@ -568,53 +594,56 @@ const Millis = (() => {
 })();
 
 module.exports = {
+  Millis,
+  assertLabelledTextInputValue,
   assertNavChildNotFound,
-  assertTextNotFound,
   assertRowHas,
+  assertTextNotFound,
   checkbox,
   click,
-  clickable,
   clickTableCell,
-  dismissErrorNotifications,
-  dismissNotifications,
-  findIframe,
-  findInGrid,
-  findElement,
-  findHeading,
-  findText,
+  clickable,
+  delay,
+  dismissAllNotifications,
+  dismissInfoNotifications,
+  elementInDataTableRow,
+  enablePageLogging,
   fillIn,
   fillInReplace,
+  findButtonInDialogByAriaLabel,
+  findElement,
   findErrorPopup,
+  findHeading,
+  findIframe,
+  findInDataTableRow,
+  findInGrid,
+  findText,
   getAnimatedDrawer,
+  getLabelledTextInputValue,
   getTableCellPath,
   getTableColIndex,
+  gotoPage,
   heading,
   image,
   input,
   label,
-  select,
-  svgText,
-  delay,
-  signIntoTerra,
-  navChild,
-  elementInDataTableRow,
-  findInDataTableRow,
-  withScreenshot,
   logPageConsoleMessages,
+  maybeSaveScreenshot,
+  navChild,
+  navOptionNetworkIdle,
   noSpinnersAfter,
-  waitForModal,
+  openError,
+  retryUntil,
+  savePageContent,
+  select,
+  signIntoTerra,
+  svgText,
+  verifyAccessibility,
+  waitForFn,
   waitForNoModal,
+  waitForMenu,
+  waitForModal,
   waitForNoSpinners,
   withPageLogging,
-  enablePageLogging,
-  openError,
-  navOptionNetworkIdle,
-  maybeSaveScreenshot,
-  gotoPage,
-  savePageContent,
-  findButtonInDialogByAriaLabel,
-  verifyAccessibility,
-  assertLabelledTextInputValue,
-  getLabelledTextInputValue,
-  Millis,
+  withScreenshot,
 };

@@ -60,7 +60,7 @@ export const getDuration = (state, submissionDate, lastModifiedTimestamp, stateC
     : differenceFromNowInSeconds(submissionDate);
 };
 
-export const parseMethodString = (methodString) => {
+export const parseMethodString = (methodString: string) => {
   const methodNameParts = methodString.split('.');
   return {
     workflow: methodNameParts[0],
@@ -153,6 +153,10 @@ type IsInputValid =
       type: 'error' | 'info' | 'success';
       message: string;
     };
+
+export type InputValidationWithName = InputValidation & {
+  name: string;
+};
 
 const validateRequiredHasSource = (inputSource: InputSource, inputType: InputType): IsInputValid => {
   if (inputType.type === 'optional') {
@@ -462,7 +466,10 @@ const validateInput = (input: WorkflowInputDefinition, dataTableAttributes): Inp
   return { type: 'none' };
 };
 
-export const validateInputs = (inputDefinition: WorkflowInputDefinition[], dataTableAttributes) =>
+export const validateInputs = (
+  inputDefinition: WorkflowInputDefinition[],
+  dataTableAttributes
+): InputValidationWithName[] =>
   inputDefinition.map((input) => {
     const inputMessage = validateInput(input, dataTableAttributes);
     return { name: 'input_name' in input ? input.input_name : input.field_name, ...inputMessage };
