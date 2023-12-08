@@ -134,7 +134,6 @@ const flakeShaker = ({ fn, name, targetEnvironments = _.keys(envs) }) => {
       const { taskFn, taskParams, runId } = data;
       try {
         const result = await taskFn({ context, page, ...taskParams });
-        logTestStatus.log;
         return result;
       } catch (e) {
         await page.screenshot({ path: `${screenshotDir}/${runId}.jpg`, fullPage: true });
