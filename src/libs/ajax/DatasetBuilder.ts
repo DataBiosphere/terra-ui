@@ -269,6 +269,7 @@ const getDummyConcepts = async (parent: Concept): Promise<GetConceptsResponse> =
     )(dummyConceptToParent),
   };
 };
+
 export const DatasetBuilder = (): DatasetBuilderContract => ({
   retrieveDataset: async (datasetId) => {
     return await Ajax()
