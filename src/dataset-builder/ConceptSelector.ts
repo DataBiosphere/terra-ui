@@ -6,7 +6,7 @@ import { ActionBar } from 'src/components/ActionBar';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TreeGrid } from 'src/components/TreeGrid';
-import { getMockConceptForId } from 'src/dataset-builder/TestConstants';
+import { mockGetConceptForId } from 'src/dataset-builder/TestConstants';
 import { SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import { DatasetBuilder } from 'src/libs/ajax/DatasetBuilder';
 
@@ -72,7 +72,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
       h(ActionBar, {
         prompt: cart.length === 1 ? '1 concept selected' : `${cart.length} concepts selected`,
         actionText,
-        onClick: () => _.flow(_.map(getMockConceptForId), onCommit)(cart),
+        onClick: () => _.flow(_.map(mockGetConceptForId), onCommit)(cart),
       }),
   ]);
 };

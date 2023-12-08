@@ -50,21 +50,21 @@ export const dummyDatasetDetails = (datasetId: string): DatasetModel => ({
         category: 'Condition',
         conceptCount: 18000,
         participantCount: 12500,
-        root: getMockConceptForId(100),
+        root: mockGetConceptForId(100),
       },
       {
         id: 11,
         category: 'Procedure',
         conceptCount: 22500,
         participantCount: 11328,
-        root: getMockConceptForId(200),
+        root: mockGetConceptForId(200),
       },
       {
         id: 12,
         category: 'Observation',
         conceptCount: 12300,
         participantCount: 23223,
-        root: getMockConceptForId(300),
+        root: mockGetConceptForId(300),
       },
     ],
     featureValueGroups: [
@@ -125,6 +125,6 @@ const dummyConcepts = [
   { id: 303, name: 'Height', count: 100, hasChildren: false },
 ];
 
-export const getMockConceptForId = (id: number): Concept => {
+export const mockGetConceptForId = (id: number): Concept => {
   return _.find({ id }, dummyConcepts)!;
 };

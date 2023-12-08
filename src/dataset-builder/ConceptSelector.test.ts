@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { getMockConceptForId } from 'src/dataset-builder/TestConstants';
+import { mockGetConceptForId } from 'src/dataset-builder/TestConstants';
 import { DatasetBuilder, DatasetBuilderContract } from 'src/libs/ajax/DatasetBuilder';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -22,7 +22,7 @@ describe('ConceptSelector', () => {
   const actionText = 'action text';
   const datasetId = '0';
   // Using 101 so the ID doesn't match the count.
-  const initialRows = [getMockConceptForId(101)];
+  const initialRows = [mockGetConceptForId(101)];
   const renderSelector = () => {
     render(h(ConceptSelector, { actionText, initialRows, onCancel, onCommit, title, datasetId }));
   };
@@ -106,7 +106,7 @@ describe('ConceptSelector', () => {
       getConcepts: jest.fn(),
     };
     const getConceptsMock = (mockDatasetResponse as DatasetBuilderContract).getConcepts;
-    asMockedFn(getConceptsMock).mockResolvedValue({ result: [getMockConceptForId(102)] });
+    asMockedFn(getConceptsMock).mockResolvedValue({ result: [mockGetConceptForId(102)] });
     asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetResponse as DatasetBuilderContract);
     // Act
     const user = userEvent.setup();
