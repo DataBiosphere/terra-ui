@@ -386,7 +386,7 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
     // The workspaces from the list API have fewer properties to keep the payload as small as possible.
     const listWorkspace = getWorkspace(workspaceId);
     const extendedWorkspace = policies === undefined ? listWorkspace : { ...listWorkspace, policies };
-    if (!!bucketName && isGoogleWorkspace(extendedWorkspace)) {
+    if (bucketName !== undefined && isGoogleWorkspace(extendedWorkspace)) {
       extendedWorkspace.workspace.bucketName = bucketName;
     }
     return extendedWorkspace;

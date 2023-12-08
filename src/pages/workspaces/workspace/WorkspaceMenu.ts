@@ -97,6 +97,7 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
     'canShare',
     'policies',
     'workspace.bucketName',
+    'workspace.cloudPlatform',
     'workspace.isLocked',
     'workspace.state',
   ]) as { workspace?: Workspace };
