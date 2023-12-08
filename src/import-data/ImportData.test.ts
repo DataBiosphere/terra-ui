@@ -6,6 +6,7 @@ import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
 import { useRoute } from 'src/libs/nav';
+import { AsyncImportJob, asyncImportJobStore } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -206,6 +207,13 @@ describe('ImportData', () => {
   describe('files', () => {
     it('imports PFB files', async () => {
       // Arrange
+      asyncImportJobStore.reset();
+      const initialAsyncImportJob: AsyncImportJob = {
+        jobId: 'sampleJobId',
+        targetWorkspace: { namespace: 'sampleNamespace', name: 'sampleName' },
+      };
+      asyncImportJobStore.set([initialAsyncImportJob]);
+      jest.spyOn(asyncImportJobStore, 'update');
       const user = userEvent.setup();
 
       const importUrl = 'https://example.com/path/to/file.pfb';
@@ -226,6 +234,12 @@ describe('ImportData', () => {
       );
 
       expect(importJob).toHaveBeenCalledWith(importUrl, 'pfb', null);
+
+      expect(asyncImportJobStore.update).toHaveBeenCalledTimes(1);
+      expect(asyncImportJobStore.get()).toEqual([
+        initialAsyncImportJob,
+        { jobId: 'new-job', targetWorkspace: { namespace: 'test-gcp-ws-namespace', name: 'test-gcp-ws-name' } },
+      ]);
     });
 
     it('imports BagIt files when format is unspecified', async () => {
@@ -287,6 +301,13 @@ describe('ImportData', () => {
 
       it('imports snapshot exports into Google workspaces', async () => {
         // Arrange
+        asyncImportJobStore.reset();
+        const initialAsyncImportJob: AsyncImportJob = {
+          jobId: 'sampleJobId',
+          targetWorkspace: { namespace: 'sampleNamespace', name: 'sampleName' },
+        };
+        asyncImportJobStore.set([initialAsyncImportJob]);
+        jest.spyOn(asyncImportJobStore, 'update');
         const user = userEvent.setup();
 
         const queryParams = {
@@ -305,6 +326,12 @@ describe('ImportData', () => {
         );
 
         expect(importJob).toHaveBeenCalledWith(queryParams.tdrmanifest, 'tdrexport', { tdrSyncPermissions: true });
+
+        expect(asyncImportJobStore.update).toHaveBeenCalledTimes(1);
+        expect(asyncImportJobStore.get()).toEqual([
+          initialAsyncImportJob,
+          { jobId: 'new-job', targetWorkspace: { namespace: 'test-gcp-ws-namespace', name: 'test-gcp-ws-name' } },
+        ]);
       });
 
       it('imports snapshots into Azure workspaces', async () => {
