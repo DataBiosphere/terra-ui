@@ -127,10 +127,11 @@ const callDataRepo = async (url: string, signal?: AbortSignal) => {
 };
 
 const callDataRepoPost = async (url: string, signal: AbortSignal | undefined, jsonBodyArg?: object): Promise<any> => {
-  return await fetchDataRepo(
+  const res = await fetchDataRepo(
     url,
     _.mergeAll([authOpts(), jsonBodyArg && jsonBody(jsonBodyArg), { signal, method: 'POST' }])
   );
+  return await res.json();
 };
 
 export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({

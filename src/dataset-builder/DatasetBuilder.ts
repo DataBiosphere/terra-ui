@@ -25,6 +25,7 @@ import {
   DatasetBuilder,
   DatasetBuilderType,
   DatasetBuilderValue,
+  DatasetParticipantCountResponse,
 } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
@@ -543,7 +544,8 @@ export const DatasetBuilderContents = ({
   const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [values, setValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [requestingAccess, setRequestingAccess] = useState(false);
-  const [datasetRequestParticipantCount, setDatasetRequestParticipantCount] = useLoadedData<number>();
+  const [datasetRequestParticipantCount, setDatasetRequestParticipantCount] =
+    useLoadedData<DatasetParticipantCountResponse>();
 
   const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
   const allConceptSets: ConceptSet[] = useMemo(() => _.flatMap('values', selectedConceptSets), [selectedConceptSets]);
@@ -554,13 +556,9 @@ export const DatasetBuilderContents = ({
   useEffect(() => {
     requestValid &&
       setDatasetRequestParticipantCount(async () =>
-        DatasetBuilder()
-          .getParticipantCount(dataset.id, {
-            cohorts: allCohorts,
-          })
-          .then((value) => {
-            return value.total;
-          })
+        DatasetBuilder().getParticipantCount(dataset.id, {
+          cohorts: allCohorts,
+        })
       );
   }, [dataset, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
@@ -645,7 +643,9 @@ export const DatasetBuilderContents = ({
       requestValid &&
         h(ActionBar, {
           prompt: h(Fragment, [
-            datasetRequestParticipantCount.status === 'Ready' ? datasetRequestParticipantCount.state : h(Spinner),
+            datasetRequestParticipantCount.status === 'Ready'
+              ? datasetRequestParticipantCount.state.result.total
+              : h(Spinner),
             ' Participants in this dataset',
           ]),
           actionText: 'Request access to this dataset',

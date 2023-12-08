@@ -191,7 +191,9 @@ export type DatasetParticipantCountRequestApi = {
   cohorts: CohortApi[];
 };
 export type DatasetParticipantCountResponse = {
-  total: number;
+  result: {
+    total: number;
+  };
   sql: string;
 };
 
