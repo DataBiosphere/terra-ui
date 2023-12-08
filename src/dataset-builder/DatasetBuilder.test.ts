@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -258,7 +258,11 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     await initializeValidDatasetRequest(user);
     // Assert
-    expect(await screen.findByText('100 Participants in this dataset')).toBeTruthy();
+    let participantText;
+    await waitFor(() => {
+      participantText = screen.findByText('100 Participants in this dataset');
+    });
+    expect(participantText).toBeTruthy();
     expect(await screen.findByText('Request access to this dataset')).toBeTruthy();
   });
 
