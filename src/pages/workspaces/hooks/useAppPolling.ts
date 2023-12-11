@@ -20,7 +20,7 @@ export const useAppPolling = (name: string, namespace: string, workspace?: Works
   const signal = controller.signal;
   const timeout = useRef<NodeJS.Timeout>();
   const [apps, setApps] = useState<ListAppItem[]>();
-  const [lastRefresh, setLastRefresh] = useState<Date>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const reschedule = (ms) => {
     clearTimeout(timeout.current);

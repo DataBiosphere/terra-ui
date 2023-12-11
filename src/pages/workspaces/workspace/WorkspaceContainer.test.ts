@@ -82,6 +82,7 @@ describe('WorkspaceContainer', () => {
       title: '',
       analysesData: {
         refreshApps: () => Promise.resolve(),
+        lastRefresh: null,
         refreshRuntimes: () => Promise.resolve(),
       },
     };
