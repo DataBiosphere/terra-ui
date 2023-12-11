@@ -11,7 +11,7 @@ import { methodDataWithVersions } from 'src/workflows-app/utils/mock-data';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
 
-const defaultAnalysesData: AppDetails | CloudEnvironmentDetails = {
+const defaultAnalysesData: AppDetails & CloudEnvironmentDetails = {
   apps: [],
   refreshApps: jest.fn().mockReturnValue(Promise.resolve()),
   lastRefresh: null,
