@@ -1,7 +1,6 @@
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
-import { AnalysesData } from 'src/analysis/Analyses';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Clickable } from 'src/components/common';
@@ -13,6 +12,8 @@ import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-ut
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { AppDetails } from 'src/pages/workspaces/hooks/useAppPolling';
+import { CloudEnvironmentDetails } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { doesAppProxyUrlExist, loadAppUrls, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
@@ -21,7 +22,7 @@ type WorkflowsInWorkspaceProps = {
   name: string;
   namespace: string;
   workspace: WorkspaceWrapper;
-  analysesData: AnalysesData;
+  analysesData: AppDetails & CloudEnvironmentDetails;
 };
 
 export const WorkflowsInWorkspace = ({
