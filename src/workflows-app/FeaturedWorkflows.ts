@@ -1,7 +1,6 @@
 import _ from 'lodash/fp';
 import { Dispatch, Fragment, SetStateAction, useCallback, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
-import { AnalysesData } from 'src/analysis/Analyses';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Clickable } from 'src/components/common';
@@ -16,6 +15,8 @@ import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-ut
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { AppDetails } from 'src/pages/workspaces/hooks/useAppPolling';
+import { CloudEnvironmentDetails } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
 import { ImportWorkflowModal } from 'src/workflows-app/components/ImportWorkflowModal';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { FeaturedWorkflow, featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
@@ -26,7 +27,7 @@ type FeaturedWorkflowsProps = {
   name: string;
   namespace: string;
   workspace: WorkspaceWrapper;
-  analysesData: AnalysesData;
+  analysesData: AppDetails & CloudEnvironmentDetails;
   setSelectedSubHeader: Dispatch<SetStateAction<string>>;
 };
 

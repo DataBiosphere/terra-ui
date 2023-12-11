@@ -8,7 +8,7 @@ import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/h
 export interface AppDetails {
   apps?: ListAppItem[];
   refreshApps: (maybeStale?: boolean) => Promise<void>;
-  lastRefresh: Date;
+  lastRefresh: Date | null;
 }
 
 export const useAppPolling = (name: string, namespace: string, workspace?: Workspace): AppDetails => {
