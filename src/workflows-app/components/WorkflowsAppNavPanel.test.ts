@@ -18,9 +18,8 @@ const defaultAnalysesData: AppDetails & CloudEnvironmentDetails = {
   persistentDisks: [],
 };
 
-const defaultAnalysesDataWithApps = {
+const defaultAnalysesDataWithAppsRefreshed: AppDetails & CloudEnvironmentDetails = {
   ...defaultAnalysesData,
-  apps: [{ name: 'test-app', status: 'RUNNING', appType: 'CROMWELL' }],
   lastRefresh: new Date(),
 };
 
@@ -185,7 +184,7 @@ describe('Workflows App Navigation Panel', () => {
         name: 'test-azure-ws-name',
         namespace: 'test-azure-ws-namespace',
         workspace: mockAzureWorkspace,
-        analysesData: defaultAnalysesDataWithApps,
+        analysesData: defaultAnalysesDataWithAppsRefreshed,
         setLoading: jest.fn(),
         signal: jest.fn(),
       })
@@ -205,7 +204,7 @@ describe('Workflows App Navigation Panel', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: defaultAnalysesDataWithApps,
+          analysesData: defaultAnalysesDataWithAppsRefreshed,
           setLoading: jest.fn(),
           signal: jest.fn(),
         })
