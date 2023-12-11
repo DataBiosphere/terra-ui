@@ -65,7 +65,6 @@ const ListItem = ({ title, pageReady, ...props }: ListItemProps) =>
 
 type WorkflowsAppNavPanelProps = {
   loading: boolean;
-  appFetchComplete: boolean;
   name: string;
   namespace: string;
   workspace: WorkspaceWrapper;
