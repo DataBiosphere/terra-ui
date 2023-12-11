@@ -10,7 +10,7 @@ import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
 import { featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
-const defaultAnalysesData: AppDetails | CloudEnvironmentDetails = {
+const defaultAnalysesData: AppDetails & CloudEnvironmentDetails = {
   apps: [],
   lastRefresh: null,
   refreshApps: jest.fn().mockReturnValue(Promise.resolve()),
