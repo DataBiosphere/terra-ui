@@ -111,6 +111,7 @@ describe('WorkspaceContainer', () => {
       analysesData: {
         refreshApps: () => Promise.resolve(),
         refreshRuntimes: () => Promise.resolve(),
+        lastRefresh: null,
       },
     };
     // Act
@@ -154,6 +155,7 @@ describe('WorkspaceContainer', () => {
       analysesData: {
         refreshApps: () => Promise.resolve(),
         refreshRuntimes: () => Promise.resolve(),
+        lastRefresh: null,
       },
     };
 
@@ -206,6 +208,7 @@ describe('WorkspaceContainer', () => {
       analysesData: {
         refreshApps: () => Promise.resolve(),
         refreshRuntimes: () => Promise.resolve(),
+        lastRefresh: null,
       },
     };
 
@@ -278,6 +281,7 @@ describe('WorkspaceContainer', () => {
       analysesData: {
         refreshApps: () => Promise.resolve(),
         refreshRuntimes: () => Promise.resolve(),
+        lastRefresh: null,
       },
     };
 
@@ -349,6 +353,7 @@ describe('WorkspaceContainer', () => {
       analysesData: {
         refreshApps: () => Promise.resolve(),
         refreshRuntimes: () => Promise.resolve(),
+        lastRefresh: null,
       },
     };
 
@@ -393,6 +398,7 @@ describe('WorkspaceContainer', () => {
       analysesData: {
         refreshApps: () => Promise.resolve(),
         refreshRuntimes: () => Promise.resolve(),
+        lastRefresh: null,
       },
     };
 
