@@ -18,6 +18,12 @@ const defaultAnalysesData: AppDetails & CloudEnvironmentDetails = {
   persistentDisks: [],
 };
 
+const defaultAnalysesDataWithApps = {
+  ...defaultAnalysesData,
+  apps: [{ name: 'test-app', status: 'RUNNING', appType: 'CROMWELL' }],
+  lastRefresh: new Date(),
+};
+
 jest.mock('src/libs/ajax');
 
 jest.mock('src/libs/nav', () => ({
@@ -148,6 +154,26 @@ describe('Workflows App Navigation Panel', () => {
     expect(findAndAddWorkflowsCollapse).toHaveAttribute('aria-disabled', 'true');
   });
 
+  it('renders loading placeholder when apps are unloaded', async () => {
+    render(
+      h(WorkflowsAppNavPanel, {
+        loading: false,
+        launcherDisabled: true,
+        launching: false,
+        createWorkflowsApp: jest.fn(),
+        pageReady: false,
+        name: 'test-azure-ws-name',
+        namespace: 'test-azure-ws-namespace',
+        workspace: mockAzureWorkspace,
+        analysesData: defaultAnalysesData,
+        setLoading: jest.fn(),
+        signal: jest.fn(),
+      })
+    );
+
+    expect(screen.getByText('Loading Workflows App')).toBeInTheDocument();
+  });
+
   it('renders workflow launch card when page is not ready', async () => {
     const { rerender } = render(
       h(WorkflowsAppNavPanel, {
@@ -159,7 +185,7 @@ describe('Workflows App Navigation Panel', () => {
         name: 'test-azure-ws-name',
         namespace: 'test-azure-ws-namespace',
         workspace: mockAzureWorkspace,
-        analysesData: defaultAnalysesData,
+        analysesData: defaultAnalysesDataWithApps,
         setLoading: jest.fn(),
         signal: jest.fn(),
       })
@@ -179,7 +205,7 @@ describe('Workflows App Navigation Panel', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: defaultAnalysesData,
+          analysesData: defaultAnalysesDataWithApps,
           setLoading: jest.fn(),
           signal: jest.fn(),
         })
