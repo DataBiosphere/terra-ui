@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { CSSProperties, useEffect } from 'react';
 import { div, h, h2, span } from 'react-hyperscript-helpers';
+import { AnalysesData } from 'src/analysis/Analyses';
 import Collapse from 'src/components/Collapse';
 import { Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
@@ -12,8 +13,6 @@ import { useQueryParameter } from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { AppDetails } from 'src/pages/workspaces/hooks/useAppPolling';
-import { CloudEnvironmentDetails } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
@@ -68,7 +67,7 @@ type WorkflowsAppNavPanelProps = {
   name: string;
   namespace: string;
   workspace: WorkspaceWrapper;
-  analysesData: AppDetails & CloudEnvironmentDetails;
+  analysesData: AnalysesData;
   launcherDisabled: boolean;
   launching: boolean;
   createWorkflowsApp: Function;

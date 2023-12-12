@@ -53,8 +53,6 @@ import jupyterLogo from 'src/images/jupyter-logo.svg';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png';
 import { Ajax } from 'src/libs/ajax';
-import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
@@ -70,6 +68,8 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { canWrite, isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo } from 'src/libs/workspace-utils';
+import { AppDetails } from 'src/pages/workspaces/hooks/useAppPolling';
+import { CloudEnvironmentDetails } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
 import { InitializedWorkspaceWrapper, StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
@@ -411,14 +411,7 @@ export const getUniqueFileName = (originalName: string, existingFileNames: FileN
   return resolvedName;
 };
 
-export interface AnalysesData {
-  apps: App[];
-  refreshApps: () => Promise<void>;
-  runtimes: Runtime[];
-  refreshRuntimes: () => Promise<void>;
-  appDataDisks: PersistentDisk[];
-  persistentDisks: PersistentDisk[];
-}
+export type AnalysesData = AppDetails & CloudEnvironmentDetails;
 
 export interface AnalysesProps {
   workspace: InitializedWorkspaceWrapper;

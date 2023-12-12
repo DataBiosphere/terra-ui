@@ -1,14 +1,13 @@
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { AnalysesData } from 'src/analysis/Analyses';
 import { Ajax } from 'src/libs/ajax';
-import { AppDetails } from 'src/pages/workspaces/hooks/useAppPolling';
-import { CloudEnvironmentDetails } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
-const defaultAnalysesData: AppDetails & CloudEnvironmentDetails = {
+const defaultAnalysesData: AnalysesData = {
   apps: [],
   lastRefresh: null,
   refreshApps: jest.fn().mockReturnValue(Promise.resolve()),
@@ -18,7 +17,7 @@ const defaultAnalysesData: AppDetails & CloudEnvironmentDetails = {
   persistentDisks: [],
 };
 
-const defaultAnalysesDataWithAppsRefreshed: AppDetails & CloudEnvironmentDetails = {
+const defaultAnalysesDataWithAppsRefreshed: AnalysesData = {
   ...defaultAnalysesData,
   lastRefresh: new Date(),
 };

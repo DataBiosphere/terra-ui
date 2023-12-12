@@ -2,15 +2,14 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { AnalysesData } from 'src/analysis/Analyses';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
-import { AppDetails } from 'src/pages/workspaces/hooks/useAppPolling';
-import { CloudEnvironmentDetails } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
 import { featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
-const defaultAnalysesData: AppDetails & CloudEnvironmentDetails = {
+const defaultAnalysesData: AnalysesData = {
   apps: [],
   lastRefresh: null,
   refreshApps: jest.fn().mockReturnValue(Promise.resolve()),
