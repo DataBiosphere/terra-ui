@@ -40,10 +40,13 @@ jest.mock('src/components/input', () => ({
 // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
 // values and render the component properly. Without this the tests will be break.
 // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
+const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')!;
+const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')!;
 
-const setupInputTableTest = ({ selectedDataTable = typesResponse[0], configuredInputDefinition = runSetInputDef } = {}) => {
+const setupInputTableTest = ({
+  selectedDataTable = typesResponse[0],
+  configuredInputDefinition = runSetInputDef,
+} = {}) => {
   const setConfiguredInputDefinition = jest.fn();
   const inputValidations = validateInputs(configuredInputDefinition, _.keyBy('name', selectedDataTable.attributes));
 
@@ -419,7 +422,10 @@ describe('Input table rendering', () => {
   });
 
   it('should display warning icon for required inputs with missing attributes', async () => {
-    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithStruct, selectedDataTable: typesResponseWithoutFooRating[0] });
+    setupInputTableTest({
+      configuredInputDefinition: runSetInputDefWithStruct,
+      selectedDataTable: typesResponseWithoutFooRating[0],
+    });
 
     // ** ASSERT **
     const table = screen.getByRole('table');
@@ -483,12 +489,17 @@ describe('Input table rendering', () => {
     const innerStructRow2 = within(innerStructRows[2]).getAllByRole('cell');
     within(innerStructRow2[1]).getByText('myInnermostRecordLookup');
     within(innerStructRow2[4]).getByText('foo_rating');
-    const innerLookupWarningMessageActive = within(innerStructRow2[4]).queryByText("This attribute doesn't exist in the data table");
+    const innerLookupWarningMessageActive = within(innerStructRow2[4]).queryByText(
+      "This attribute doesn't exist in the data table"
+    );
     expect(innerLookupWarningMessageActive).toBeNull();
   });
 
   it('should display warning icon/message at each level of the struct builder when a field has a missing attribute', async () => {
-    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithStruct, selectedDataTable: typesResponseWithoutFooRating[0] });
+    setupInputTableTest({
+      configuredInputDefinition: runSetInputDefWithStruct,
+      selectedDataTable: typesResponseWithoutFooRating[0],
+    });
     const user = userEvent.setup();
 
     // ** ASSERT **
@@ -591,7 +602,9 @@ describe('Input table rendering', () => {
 
     // check that the warning message for correct value is not displayed
     within(thirdInputRowCells[1]).getByText('bar_rating_workflow_var');
-    expect(within(thirdInputRowCells[4]).queryByText(/Value is empty|Value doesn't match expected input type/)).toBeNull();
+    expect(
+      within(thirdInputRowCells[4]).queryByText(/Value is empty|Value doesn't match expected input type/)
+    ).toBeNull();
   });
 
   it('should display tooltips for array literals', async () => {
@@ -606,7 +619,9 @@ describe('Input table rendering', () => {
 
     const invalidIntRowCells = within(rows[2]).getAllByRole('cell');
     within(invalidIntRowCells[1]).getByText('invalid_int_array');
-    within(invalidIntRowCells[4]).getByText('Array inputs should follow JSON array literal syntax. This input cannot be parsed');
+    within(invalidIntRowCells[4]).getByText(
+      'Array inputs should follow JSON array literal syntax. This input cannot be parsed'
+    );
 
     const validIntRowCells = within(rows[3]).getAllByRole('cell');
     within(validIntRowCells[1]).getByText('valid_int_array');
@@ -642,7 +657,9 @@ describe('Input table definition updates', () => {
   });
 
   it('should populate fields from data table on click', async () => {
-    const { setConfiguredInputDefinition } = setupInputTableTest({ configuredInputDefinition: runSetInputDefSameInputNames });
+    const { setConfiguredInputDefinition } = setupInputTableTest({
+      configuredInputDefinition: runSetInputDefSameInputNames,
+    });
     const user = userEvent.setup();
 
     const table = screen.getByRole('table');
@@ -679,7 +696,10 @@ describe('Input table definition updates', () => {
           input_name: 'target_workflow_1.foo.foo_rating',
           source: { type: 'record_lookup', record_attribute: 'foo_rating' },
         }),
-        expect.objectContaining({ input_name: 'target_workflow_1.bar_string', source: { type: 'record_lookup', record_attribute: 'bar_string' } }),
+        expect.objectContaining({
+          input_name: 'target_workflow_1.bar_string',
+          source: { type: 'record_lookup', record_attribute: 'bar_string' },
+        }),
       ])
     );
   });
@@ -756,12 +776,18 @@ describe('Input table definition updates', () => {
 
     // ** ASSERT **
     expect(setConfiguredInputDefinition).toBeCalledWith(
-      _.set('[3].source.fields[4].source.fields[1].source', { type: 'record_lookup', record_attribute: 'rating_for_foo' }, configuredInputDefinition)
+      _.set(
+        '[3].source.fields[4].source.fields[1].source',
+        { type: 'record_lookup', record_attribute: 'rating_for_foo' },
+        configuredInputDefinition
+      )
     );
   });
 
   it('should alter definition on literal input', async () => {
-    const { configuredInputDefinition, setConfiguredInputDefinition } = setupInputTableTest({ configuredInputDefinition: runSetInputDef });
+    const { configuredInputDefinition, setConfiguredInputDefinition } = setupInputTableTest({
+      configuredInputDefinition: runSetInputDef,
+    });
     const user = userEvent.setup();
 
     // ** ASSERT **
@@ -783,7 +809,9 @@ describe('Input table definition updates', () => {
   });
 
   it('should alter definition on source to none', async () => {
-    const { configuredInputDefinition, setConfiguredInputDefinition } = setupInputTableTest({ configuredInputDefinition: runSetInputDef });
+    const { configuredInputDefinition, setConfiguredInputDefinition } = setupInputTableTest({
+      configuredInputDefinition: runSetInputDef,
+    });
     const user = userEvent.setup();
 
     // ** ASSERT **
@@ -801,6 +829,8 @@ describe('Input table definition updates', () => {
     const selectOption = screen.getByText('None');
     await user.click(selectOption);
 
-    expect(setConfiguredInputDefinition).toBeCalledWith(_.set('[2].source', { type: 'none' }, configuredInputDefinition));
+    expect(setConfiguredInputDefinition).toBeCalledWith(
+      _.set('[2].source', { type: 'none' }, configuredInputDefinition)
+    );
   });
 });
