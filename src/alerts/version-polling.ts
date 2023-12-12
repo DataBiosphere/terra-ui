@@ -1,20 +1,19 @@
-import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring } from 'src/libs/error';
 
-import { getBadVersions, getLatestVersion, latestVersionStore } from './version-alerts';
+import { getBadVersions, getLatestVersion, versionStore } from './version-alerts';
 
 export const VERSION_POLLING_INTERVAL = 15 * 60 * 1000; // 15 minutes
 
 export const checkVersion = withErrorIgnoring(async (): Promise<void> => {
-  const currentVersion = getConfig().gitRevision;
+  const { currentVersion } = versionStore.get();
 
   const latestVersion = await getLatestVersion();
-  latestVersionStore.set(latestVersion);
+  versionStore.update((value) => ({ ...value, latestVersion }));
 
   if (latestVersion !== currentVersion) {
     const badVersions = await getBadVersions();
     if (badVersions.includes(currentVersion)) {
-      window.location.reload();
+      versionStore.update((value) => ({ ...value, isUpdateRequired: true }));
     }
   }
 });

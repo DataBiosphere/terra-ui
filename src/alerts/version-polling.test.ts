@@ -1,15 +1,7 @@
 import { asMockedFn, withFakeTimers } from '@terra-ui-packages/test-utils';
 
-import { getBadVersions, getLatestVersion, latestVersionStore } from './version-alerts';
+import { getBadVersions, getLatestVersion, versionStore } from './version-alerts';
 import { checkVersion, startPollingVersion, VERSION_POLLING_INTERVAL } from './version-polling';
-
-type ConfigExports = typeof import('src/libs/config');
-jest.mock('src/libs/config', (): ConfigExports => {
-  return {
-    ...jest.requireActual<ConfigExports>('src/libs/config'),
-    getConfig: jest.fn().mockReturnValue({ gitRevision: 'abcd123' }),
-  };
-});
 
 type VersionAlertsExports = typeof import('./version-alerts');
 jest.mock(
@@ -22,21 +14,9 @@ jest.mock(
 );
 
 describe('checkVersion', () => {
-  const originalLocation = window.location;
-
-  beforeAll(() => {
-    Object.defineProperty(window, 'location', {
-      writable: true,
-      value: { reload: jest.fn() },
-    });
-  });
-
-  afterAll(() => {
-    window.location = originalLocation;
-  });
-
   it('fetches latest version and updates store', async () => {
     // Arrange
+    versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', isUpdateRequired: false });
     asMockedFn(getLatestVersion).mockResolvedValue('abcd123');
 
     // Act
@@ -44,11 +24,12 @@ describe('checkVersion', () => {
 
     // Assert
     expect(getLatestVersion).toHaveBeenCalled();
-    expect(latestVersionStore.get()).toBe('abcd123');
+    expect(versionStore.get()).toMatchObject({ latestVersion: 'abcd123' });
   });
 
   describe('if a new version is available', () => {
     beforeEach(() => {
+      versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', isUpdateRequired: false });
       asMockedFn(getLatestVersion).mockResolvedValue('1234567');
     });
 
@@ -63,7 +44,7 @@ describe('checkVersion', () => {
       expect(getBadVersions).toHaveBeenCalled();
     });
 
-    it('reloads the page if current version is bad', async () => {
+    it('sets updated required flag if current version is bad', async () => {
       // Arrange
       asMockedFn(getBadVersions).mockResolvedValue(['abcd123']);
 
@@ -71,31 +52,8 @@ describe('checkVersion', () => {
       await checkVersion();
 
       // Assert
-      expect(window.location.reload).toHaveBeenCalled();
+      expect(versionStore.get()).toMatchObject({ isUpdateRequired: true });
     });
-
-    it('does not reload the page if current version is good', async () => {
-      // Arrange
-      asMockedFn(getBadVersions).mockResolvedValue([]);
-
-      // Act
-      await checkVersion();
-
-      // Assert
-      expect(window.location.reload).not.toHaveBeenCalled();
-    });
-  });
-
-  it('does not reload if the current version is bad but there is no new version available', async () => {
-    // Arrange
-    asMockedFn(getLatestVersion).mockResolvedValue('abcd123');
-    asMockedFn(getBadVersions).mockResolvedValue(['abcd123']);
-
-    // Act
-    await checkVersion();
-
-    // Assert
-    expect(window.location.reload).not.toHaveBeenCalled();
   });
 });
 
@@ -106,7 +64,8 @@ describe('startPollingVersion', () => {
     'periodically fetches latest version and updates store',
     withFakeTimers(async () => {
       // Arrange
-      asMockedFn(getLatestVersion).mockResolvedValue('abcd123');
+      versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', isUpdateRequired: false });
+      asMockedFn(getLatestVersion).mockResolvedValue('1234567');
 
       // Act
       const stopPolling = startPollingVersion();
@@ -115,7 +74,7 @@ describe('startPollingVersion', () => {
 
       // Assert
       expect(asMockedFn(getLatestVersion).mock.calls.length).toBe(1);
-      expect(latestVersionStore.get()).toBe('abcd123');
+      expect(versionStore.get()).toMatchObject({ latestVersion: '1234567' });
 
       // Act
       jest.advanceTimersByTime(VERSION_POLLING_INTERVAL);

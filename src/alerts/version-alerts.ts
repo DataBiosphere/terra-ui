@@ -10,13 +10,20 @@ export const getLatestVersion = async (): Promise<string> => {
   return buildInfo.gitRevision;
 };
 
-export const latestVersionStore = atom<string>(getConfig().gitRevision);
+export interface VersionState {
+  currentVersion: string;
+  latestVersion: string;
+  isUpdateRequired: boolean;
+}
 
-export const useLatestVersion = (): string => useStore(latestVersionStore);
+export const versionStore = atom<VersionState>({
+  currentVersion: getConfig().gitRevision,
+  latestVersion: getConfig().gitRevision,
+  isUpdateRequired: false,
+});
 
 export const useVersionAlerts = (): Alert[] => {
-  const latestVersion = useLatestVersion();
-  const currentVersion = getConfig().gitRevision;
+  const { currentVersion, latestVersion } = useStore(versionStore);
 
   if (currentVersion === latestVersion) {
     return [];
