@@ -49,6 +49,7 @@ describe('DashboardAuthContainer', () => {
   });
 
   it('renders spinner when auth is uninitialized', async () => {
+    // Arrange
     authStore.update((state: AuthState) => ({ ...state, signInStatus: 'uninitialized' }));
 
     asMockedFn(Ajax).mockReturnValue({
@@ -56,12 +57,16 @@ describe('DashboardAuthContainer', () => {
         getFeaturedWorkspaces: jest.fn().mockResolvedValue([{ name: 'test-name', namespace: 'test-namespace' }]),
       },
     } as DeepPartial<AjaxContract> as AjaxContract);
+
+    // Act
     render(<DashboardAuthContainer namespace="test-namespace" name="test-name" />);
 
+    // Assert
     expect(document.getElementById('loading-spinner')).not.toBeNull();
   });
 
   it('renders DashboardPublic when signed out and is a featured workspace', async () => {
+    // Arrange
     authStore.update((state: AuthState) => ({ ...state, signInStatus: 'signedOut' }));
     const description = 'test workspace description';
     asMockedFn(Ajax).mockReturnValue({
@@ -73,14 +78,17 @@ describe('DashboardAuthContainer', () => {
       },
     } as DeepPartial<AjaxContract> as AjaxContract);
 
+    // Act
     await act(async () => {
       render(<DashboardAuthContainer namespace="test-namespace" name="test-name" />);
     });
 
+    // Assert
     expect(screen.getByText(description)).toBeInTheDocument();
   });
 
   it('renders SignIn when signed out and is not a featured workspace', async () => {
+    // Arrange
     authStore.update((state: AuthState) => ({ ...state, signInStatus: 'signedOut' }));
     asMockedFn(Ajax).mockReturnValue({
       FirecloudBucket: {
@@ -88,14 +96,17 @@ describe('DashboardAuthContainer', () => {
       },
     } as DeepPartial<AjaxContract> as AjaxContract);
 
+    // Act
     await act(async () => {
       render(<DashboardAuthContainer namespace="test-namespace" name="test-name" />);
     });
 
+    // Assert
     expect(screen.getByText('If you are a new user or returning user, click sign in to continue.')).toBeInTheDocument();
   });
 
   it('renders WorkspaceDashboardPage when signed in', async () => {
+    // Arrange
     authStore.update((state: AuthState) => ({ ...state, signInStatus: 'userLoaded' }));
 
     const mockDashboard = asMockedFn(WorkspaceDashboardPage);
@@ -110,9 +121,12 @@ describe('DashboardAuthContainer', () => {
         getShowcaseWorkspaces: jest.fn().mockResolvedValue([]),
       },
     } as DeepPartial<AjaxContract> as AjaxContract);
+    // Act
     await act(async () => {
       render(<DashboardAuthContainer namespace="test-namespace" name="test-name" />);
     });
+
+    // Assert
     expect(mockDashboard).toHaveBeenCalled();
     expect(screen.getByText('test-namespace test-name')).toBeInTheDocument();
   });

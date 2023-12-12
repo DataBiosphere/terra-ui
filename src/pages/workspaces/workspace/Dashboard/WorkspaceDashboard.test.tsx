@@ -26,9 +26,12 @@ describe('WorkspaceDashboard', () => {
   };
 
   it('displays the basic panels', () => {
+    // Arrange
+    // Act
     render(<WorkspaceDashboard {...{ name, namespace, refreshWorkspace, workspace, storageDetails }} />);
-    expect(screen.getByText('About the workspace')).toBeInTheDocument();
 
+    // Assert
+    expect(screen.getByText('About the workspace')).toBeInTheDocument();
     expect(screen.getByText('Workspace information')).toBeInTheDocument();
     expect(screen.getByText('Cloud information')).toBeInTheDocument();
     expect(screen.getByText('Owners')).toBeInTheDocument();
@@ -37,11 +40,16 @@ describe('WorkspaceDashboard', () => {
   });
 
   it('does not display the authorizationDomain when absent', () => {
+    // Arrange
+    // Act
     render(<WorkspaceDashboard {...{ name, namespace, refreshWorkspace, workspace, storageDetails }} />);
+    // Assert
     expect(screen.queryByText('Authorization domain')).toBeNull();
   });
 
   it('displays the authorizationDomain when present', () => {
+    // Arrange
+    // Act
     render(
       <WorkspaceDashboard
         {...{ name, namespace, refreshWorkspace, storageDetails }}
@@ -54,13 +62,15 @@ describe('WorkspaceDashboard', () => {
         }}
       />
     );
-
+    // Assert
     expect(screen.queryByText('Authorization domain')).toBeInTheDocument();
   });
 
   it('displays the workspace description', () => {
+    // Arrange
+    // Act
     render(<WorkspaceDashboard {...{ name, namespace, refreshWorkspace, workspace, storageDetails }} />);
-
+    // Assert
     expect(screen.getByText('test-description')).toBeInTheDocument();
   });
 });
