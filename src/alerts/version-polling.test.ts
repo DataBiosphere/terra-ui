@@ -16,7 +16,7 @@ jest.mock(
 describe('checkVersion', () => {
   it('fetches latest version and updates store', async () => {
     // Arrange
-    versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', isUpdateRequired: false });
+    versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', updateRequiredBy: undefined });
     asMockedFn(getLatestVersion).mockResolvedValue('abcd123');
 
     // Act
@@ -29,7 +29,7 @@ describe('checkVersion', () => {
 
   describe('if a new version is available', () => {
     beforeEach(() => {
-      versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', isUpdateRequired: false });
+      versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', updateRequiredBy: undefined });
       asMockedFn(getLatestVersion).mockResolvedValue('1234567');
     });
 
@@ -44,16 +44,21 @@ describe('checkVersion', () => {
       expect(getBadVersions).toHaveBeenCalled();
     });
 
-    it('sets updated required flag if current version is bad', async () => {
-      // Arrange
-      asMockedFn(getBadVersions).mockResolvedValue(['abcd123']);
+    it(
+      'sets update required time if current version is bad',
+      withFakeTimers(async () => {
+        // Arrange
+        jest.setSystemTime(1702396702141);
+        asMockedFn(getBadVersions).mockResolvedValue(['abcd123']);
 
-      // Act
-      await checkVersion();
+        // Act
+        await checkVersion();
 
-      // Assert
-      expect(versionStore.get()).toMatchObject({ isUpdateRequired: true });
-    });
+        // Assert
+        const { updateRequiredBy } = versionStore.get();
+        expect(updateRequiredBy).toBe(1702396822141);
+      })
+    );
   });
 });
 
@@ -64,7 +69,7 @@ describe('startPollingVersion', () => {
     'periodically fetches latest version and updates store',
     withFakeTimers(async () => {
       // Arrange
-      versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', isUpdateRequired: false });
+      versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', updateRequiredBy: undefined });
       asMockedFn(getLatestVersion).mockResolvedValue('1234567');
 
       // Act

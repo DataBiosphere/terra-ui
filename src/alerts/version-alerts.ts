@@ -1,4 +1,5 @@
 import { atom } from '@terra-ui-packages/core-utils';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 import { useStore } from 'src/libs/react-utils';
@@ -13,13 +14,13 @@ export const getLatestVersion = async (): Promise<string> => {
 export interface VersionState {
   currentVersion: string;
   latestVersion: string;
-  isUpdateRequired: boolean;
+  updateRequiredBy?: number;
 }
 
 export const versionStore = atom<VersionState>({
   currentVersion: getConfig().gitRevision,
   latestVersion: getConfig().gitRevision,
-  isUpdateRequired: false,
+  updateRequiredBy: undefined,
 });
 
 export const useVersionAlerts = (): Alert[] => {
@@ -53,4 +54,35 @@ export const getBadVersions = async (): Promise<string[]> => {
     }
     throw error;
   }
+};
+
+export const useTimeUntilRequiredUpdate = (): number | undefined => {
+  const { updateRequiredBy } = useStore(versionStore);
+
+  const [timeRemaining, setTimeRemaining] = useState(
+    updateRequiredBy ? Math.floor((updateRequiredBy - Date.now()) / 1000) : undefined
+  );
+  const updateTimeRemaining = useCallback(() => {
+    if (updateRequiredBy) {
+      const timeRemaining = Math.floor((updateRequiredBy - Date.now()) / 1000);
+      if (timeRemaining <= 0) {
+        window.location.reload();
+      }
+
+      setTimeRemaining(timeRemaining);
+    } else {
+      setTimeRemaining(undefined);
+    }
+  }, [updateRequiredBy]);
+
+  const countdownInterval = useRef<number>();
+  useEffect(() => {
+    if (updateRequiredBy && !countdownInterval.current) {
+      countdownInterval.current = window.setInterval(updateTimeRemaining, 1000);
+    } else if (!updateRequiredBy && countdownInterval.current) {
+      clearInterval(countdownInterval.current);
+    }
+  }, [updateRequiredBy, updateTimeRemaining]);
+
+  return timeRemaining;
 };
