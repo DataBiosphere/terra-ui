@@ -124,8 +124,8 @@ export const getCurrentAppDataDisk = (
 // TODO: can this just take current runtime>runtimes?
 // what is the significance of of the filter on ` !_.includes(id, attachedIds)`?
 export const getCurrentPersistentDisk = (
-  runtimes: Runtime[],
-  persistentDisks: PersistentDisk[]
+  runtimes: Runtime[] | undefined,
+  persistentDisks: PersistentDisk[] | undefined
 ): PersistentDisk | undefined => {
   const currentRuntime = getCurrentRuntime(runtimes);
   const id: number | undefined = _.get('persistentDiskId', currentRuntime?.runtimeConfig);

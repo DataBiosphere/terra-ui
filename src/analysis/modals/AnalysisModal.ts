@@ -77,7 +77,7 @@ export interface AnalysisModalProps {
   location: any;
   runtimes: Runtime[] | undefined;
   apps: App[] | undefined;
-  appDataDisks: AppDataDisk[];
+  appDataDisks: AppDataDisk[] | undefined;
   persistentDisks: PersistentDisk[] | undefined;
   onDismiss: () => void;
   onError: () => void;
