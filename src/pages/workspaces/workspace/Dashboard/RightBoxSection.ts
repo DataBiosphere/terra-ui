@@ -7,9 +7,10 @@ import { useLocalPref } from 'src/libs/useLocalPref';
 
 interface RightBoxSectionProps {
   title: string;
-  persistenceId: string; // persists whether or not the panel is open in local storage
   info?: ReactNode;
   afterTitle?: ReactNode;
+  persistenceId: string; // persists whether or not the panel is open in local storage
+  defaultPanelOpen?: boolean; // optional default for the panel state - false if not specifified
   children?: ReactNode;
 }
 
