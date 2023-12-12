@@ -15,7 +15,7 @@ import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/W
 import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceNotifications';
 import { WorkspaceTags } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceTags';
 
-interface WorkspaceDashboardProps {
+export interface WorkspaceDashboardProps {
   namespace: string;
   name: string;
   refreshWorkspace: () => void;

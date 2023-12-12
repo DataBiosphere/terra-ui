@@ -17,15 +17,15 @@ jest.mock('src/libs/ajax', () => ({
   Ajax: jest.fn(),
 }));
 
-type NotificationExports = typeof import('src/libs/notifications');
-jest.mock('src/libs/notifications', (): NotificationExports => {
+jest.mock('src/libs/notifications', (): typeof import('src/libs/notifications') => {
   return {
     ...jest.requireActual('src/libs/notifications'),
     notify: jest.fn(),
   };
 });
 
-jest.mock('src/libs/nav', () => ({
+jest.mock('src/libs/nav', (): typeof import('src/libs/nav') => ({
+  ...jest.requireActual('src/libs/nav'),
   getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
   goToPath: jest.fn(),
   getLink: jest.fn(),
@@ -46,7 +46,6 @@ describe('DashboardAuthContainer', () => {
   });
   afterEach(() => {
     jest.clearAllMocks();
-    // authStore.reset();
   });
 
   it('renders spinner when auth is uninitialized', async () => {
