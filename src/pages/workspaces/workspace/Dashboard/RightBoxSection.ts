@@ -15,8 +15,8 @@ interface RightBoxSectionProps {
 }
 
 export const RightBoxSection = (props: RightBoxSectionProps): ReactNode => {
-  const { title, info, persistenceId, afterTitle, children } = props;
-  const [panelOpen, setPanelOpen] = useLocalPref<boolean>(persistenceId, false);
+  const { title, info, persistenceId, afterTitle, defaultPanelOpen = false, children } = props;
+  const [panelOpen, setPanelOpen] = useLocalPref<boolean>(persistenceId, defaultPanelOpen);
   return div({ style: { paddingTop: '1rem' } }, [
     div({ style: Style.dashboard.rightBoxContainer }, [
       h(
