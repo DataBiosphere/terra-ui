@@ -128,12 +128,23 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
         signal,
       });
     };
+
     return Utils.cond(
       [loading, () => centeredSpinner()],
       [pageReady, () => renderSubmitWorkflow()],
       [
         doesWorkspaceSupportCromwellAppForUser(workspace.workspace, getCloudProviderFromWorkspace(workspace), appToolLabels.WORKFLOWS_APP),
-        () => h(WorkflowsAppNavPanel, { pageReady, launching, launcherDisabled: !canLaunch, loading, createWorkflowsApp, workspace }),
+        () => {
+          return h(WorkflowsAppNavPanel, {
+            pageReady,
+            launching,
+            launcherDisabled: !canLaunch,
+            loading,
+            createWorkflowsApp,
+            workspace,
+            analysesData,
+          });
+        },
       ],
       [Utils.DEFAULT, () => div({ style: { ...styles.card, width: '50rem', margin: '2rem 4rem' } }, [getCromwellUnsupportedMessage()])]
     );

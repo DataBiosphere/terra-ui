@@ -9,11 +9,17 @@ import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
 const defaultAnalysesData: AnalysesData = {
   apps: [],
+  lastRefresh: null,
   refreshApps: jest.fn().mockReturnValue(Promise.resolve()),
   runtimes: [],
   refreshRuntimes: () => Promise.resolve(),
   appDataDisks: [],
   persistentDisks: [],
+};
+
+const defaultAnalysesDataWithAppsRefreshed: AnalysesData = {
+  ...defaultAnalysesData,
+  lastRefresh: new Date(),
 };
 
 jest.mock('src/libs/ajax');
@@ -146,6 +152,26 @@ describe('Workflows App Navigation Panel', () => {
     expect(findAndAddWorkflowsCollapse).toHaveAttribute('aria-disabled', 'true');
   });
 
+  it('renders loading placeholder when apps are unloaded', async () => {
+    render(
+      h(WorkflowsAppNavPanel, {
+        loading: false,
+        launcherDisabled: true,
+        launching: false,
+        createWorkflowsApp: jest.fn(),
+        pageReady: false,
+        name: 'test-azure-ws-name',
+        namespace: 'test-azure-ws-namespace',
+        workspace: mockAzureWorkspace,
+        analysesData: defaultAnalysesData,
+        setLoading: jest.fn(),
+        signal: jest.fn(),
+      })
+    );
+
+    expect(screen.getByText('Loading Workflows App')).toBeInTheDocument();
+  });
+
   it('renders workflow launch card when page is not ready', async () => {
     const { rerender } = render(
       h(WorkflowsAppNavPanel, {
@@ -157,7 +183,7 @@ describe('Workflows App Navigation Panel', () => {
         name: 'test-azure-ws-name',
         namespace: 'test-azure-ws-namespace',
         workspace: mockAzureWorkspace,
-        analysesData: defaultAnalysesData,
+        analysesData: defaultAnalysesDataWithAppsRefreshed,
         setLoading: jest.fn(),
         signal: jest.fn(),
       })
@@ -177,7 +203,7 @@ describe('Workflows App Navigation Panel', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: defaultAnalysesData,
+          analysesData: defaultAnalysesDataWithAppsRefreshed,
           setLoading: jest.fn(),
           signal: jest.fn(),
         })
