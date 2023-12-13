@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import React from 'react';
-import { StorageDetails, InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
+import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
 import { WorkspaceDashboard } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceDashboard';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleBucketOptions, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -78,7 +78,7 @@ describe('WorkspaceDashboard', () => {
     // Arrange
     // Act
     render(<WorkspaceDashboard {...{ name, namespace, refreshWorkspace, workspace, storageDetails }} />);
-    
+
     // Assert
     expect(screen.getByText('Last Updated')).toBeInTheDocument(); //
     expect(screen.getByText('Creation Date')).toBeInTheDocument();
