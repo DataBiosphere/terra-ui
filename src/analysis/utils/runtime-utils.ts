@@ -109,7 +109,7 @@ export const getImageUrlFromRuntime = (
 };
 
 // Status note: undefined means still loading and no runtime
-export const getCurrentRuntime = (runtimes: Runtime[]): Runtime | undefined =>
+export const getCurrentRuntime = (runtimes: Runtime[] | undefined): Runtime | undefined =>
   !runtimes ? undefined : _.flow(trimRuntimesOldestFirst, _.last)(runtimes) || undefined;
 
 // TODO: This function needs to be removed once we have testing in place in all places its used

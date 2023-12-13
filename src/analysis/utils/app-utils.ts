@@ -10,7 +10,7 @@ import { v4 as uuid } from 'uuid';
 const getCurrentAppExcludingStatuses = (
   appType: AppToolLabel,
   statuses: LeoAppStatus[],
-  apps: App[]
+  apps: App[] | undefined
 ): App | undefined =>
   _.flow(
     _.filter({ appType }),
@@ -34,7 +34,7 @@ export const doesWorkspaceSupportCromwellAppForUser = (
   );
 };
 
-export const getCurrentApp = (appType: ToolLabel, apps: App[]): App | undefined =>
+export const getCurrentApp = (appType: ToolLabel, apps: App[] | undefined): App | undefined =>
   isAppToolLabel(appType) ? getCurrentAppExcludingStatuses(appType, ['DELETING'], apps) : undefined;
 
 export const getCurrentAppIncludingDeleting = (appType: AppToolLabel, apps: App[]): App | undefined =>
