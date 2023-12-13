@@ -11,6 +11,7 @@ import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
 const defaultAnalysesData: AnalysesData = {
   apps: [],
+  lastRefresh: null,
   refreshApps: jest.fn().mockReturnValue(Promise.resolve()),
   runtimes: [],
   refreshRuntimes: () => Promise.resolve(),
