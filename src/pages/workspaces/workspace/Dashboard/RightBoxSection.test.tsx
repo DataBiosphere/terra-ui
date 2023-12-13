@@ -5,11 +5,6 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { RightBoxSection } from './RightBoxSection';
 
 describe('RightBoxSection', () => {
-  it('renders without crashing', () => {
-    const { container } = render(<RightBoxSection title="Test Title" info="Test Info" persistenceId="testId" />);
-    expect(container).toBeInTheDocument();
-  });
-
   it('displays the title', async () => {
     // Arrange
     // Act

@@ -23,24 +23,6 @@ jest.mock('src/libs/prefs', (): typeof import('src/libs/prefs') => ({
   getLocalPref: jest.fn().mockReturnValue(true),
 }));
 
-type ErrorExports = typeof import('src/libs/error');
-jest.mock(
-  'src/libs/error',
-  (): ErrorExports => ({
-    ...jest.requireActual('src/libs/error'),
-    reportError: jest.fn(),
-  })
-);
-
-jest.mock('react-notifications-component', () => {
-  return {
-    Store: {
-      addNotification: jest.fn(),
-      removeNotification: jest.fn(),
-    },
-  };
-});
-
 describe('WorkspaceTags', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -80,13 +62,13 @@ describe('WorkspaceTags', () => {
     // Arrange
     const initialTags = ['tag a', 'tag b'];
     const addedTag = 'new tag';
-    const mockTagsFn = jest.fn().mockResolvedValue([...initialTags, addedTag]);
+    const mockAddTagsFn = jest.fn().mockResolvedValue([...initialTags, addedTag]);
     asMockedFn(Ajax).mockReturnValue({
       Workspaces: {
         // the tags select component still calls this
         getTags: jest.fn().mockResolvedValue([initialTags]),
         workspace: jest.fn().mockReturnValue({
-          addTag: mockTagsFn,
+          addTag: mockAddTagsFn,
         }),
       },
     } as DeepPartial<AjaxContract> as AjaxContract);
@@ -126,7 +108,7 @@ describe('WorkspaceTags', () => {
     await waitFor(() => expect(screen.queryByText(addedTag)).not.toBeNull());
     expect(screen.queryByText('tag a')).not.toBeNull();
     expect(screen.queryByText('tag b')).not.toBeNull();
-    expect(mockTagsFn).toBeCalled();
+    expect(mockAddTagsFn).toBeCalled();
   });
 
   it('updates the list of tags when deleting a tag', async () => {
@@ -135,13 +117,13 @@ describe('WorkspaceTags', () => {
     const deletingTag = 'tag b';
 
     const initialTags = [remainingTag, deletingTag];
-    const mockTagsFn = jest.fn().mockResolvedValue([remainingTag]);
+    const mockDeleteTagsFn = jest.fn().mockResolvedValue([remainingTag]);
     asMockedFn(Ajax).mockReturnValue({
       Workspaces: {
         // the tags select component still calls this
         getTags: jest.fn().mockResolvedValue([initialTags]),
         workspace: jest.fn().mockReturnValue({
-          deleteTag: mockTagsFn,
+          deleteTag: mockDeleteTagsFn,
         }),
       },
     } as DeepPartial<AjaxContract> as AjaxContract);
@@ -178,6 +160,6 @@ describe('WorkspaceTags', () => {
     // Assert
     await waitFor(() => expect(screen.queryByText(deletingTag)).toBeNull());
     expect(screen.queryByText(remainingTag)).not.toBeNull();
-    expect(mockTagsFn).toBeCalled();
+    expect(mockDeleteTagsFn).toBeCalled();
   });
 });

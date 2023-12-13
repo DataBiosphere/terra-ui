@@ -22,10 +22,10 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
 
   const description = workspace.workspace?.attributes?.description?.toString() ?? '';
 
-  const [editDescription, setEditDescription] = useState<string>();
+  const [editedDescription, setEditedDescription] = useState<string>();
   const [saving, setSaving] = useState<boolean>(false);
 
-  const isEditing = _.isString(editDescription);
+  const isEditing = _.isString(editedDescription);
 
   // @ts-expect-error
   const { value: canEdit, message: editErrorMessage } = canEditWorkspace(workspace);
@@ -33,12 +33,12 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
   const save = withBusyState(setSaving, async (): Promise<void> => {
     try {
       const { namespace, name } = workspace.workspace;
-      await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description: editDescription });
+      await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description: editedDescription });
       refreshWorkspace();
     } catch (error) {
       reportError('Error saving workspace', error);
     } finally {
-      setEditDescription(undefined);
+      setEditedDescription(undefined);
     }
   }) as (description?: string) => Promise<void>;
 
@@ -52,7 +52,7 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
             style: { marginLeft: '0.5rem' },
             disabled: !canEdit,
             tooltip: canEdit ? 'Edit description' : editErrorMessage,
-            onClick: () => setEditDescription(description),
+            onClick: () => setEditedDescription(description),
           },
           [icon('edit')]
         ),
@@ -65,11 +65,11 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
             // @ts-expect-error
             h(MarkdownEditor, {
               placeholder: 'Enter a description',
-              value: editDescription,
-              onChange: setEditDescription,
+              value: editedDescription,
+              onChange: setEditedDescription,
             }),
             div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
-              h(ButtonSecondary, { onClick: () => setEditDescription(undefined) }, ['Cancel']),
+              h(ButtonSecondary, { onClick: () => setEditedDescription(undefined) }, ['Cancel']),
               h(ButtonPrimary, { style: { marginLeft: '1rem' }, onClick: () => save }, ['Save']),
             ]),
             saving && spinnerOverlay,

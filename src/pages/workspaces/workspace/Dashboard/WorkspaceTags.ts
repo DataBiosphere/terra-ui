@@ -39,7 +39,7 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
   const { workspace, canEdit } = props;
   const { namespace, name } = workspace.workspace;
 
-  const initialTags: string[] = getWorkspaceTags(workspace);
+  const initialTags: string[] = getWorkspaceTags(workspace) ?? [];
 
   const [busy, setBusy] = useState<boolean>(false);
   const [tagsList, setTagsList] = useState<string[]>(initialTags);
@@ -66,7 +66,7 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
     RightBoxSection,
     {
       title: 'Tags',
-      info: span({}, [(busy || !tagsList) && h(Spinner, { size: 1, style: { marginLeft: '0.5rem' } })]),
+      info: span({}, [busy && h(Spinner, { size: 1, style: { marginLeft: '0.5rem' } })]),
       persistenceId,
     },
     [
@@ -112,7 +112,7 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
   );
 };
 
-const getWorkspaceTags = (workspace: Workspace): string[] => {
+const getWorkspaceTags = (workspace: Workspace): string[] | undefined => {
   const attributes = workspace.workspace.attributes ?? {};
   const tagsObj = attributes['tag:tags'];
   return _.get('items', tagsObj);

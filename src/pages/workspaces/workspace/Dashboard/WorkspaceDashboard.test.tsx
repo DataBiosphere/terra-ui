@@ -74,13 +74,13 @@ describe('WorkspaceDashboard', () => {
     expect(screen.getByText('test-description')).toBeInTheDocument();
   });
 
-  it('sets the the workspace description to open by default', () => {
+  it('sets the the workspace information to open by default', () => {
     // Arrange
     // Act
     render(<WorkspaceDashboard {...{ name, namespace, refreshWorkspace, workspace, storageDetails }} />);
 
     // Assert
-    expect(screen.getByText('Last Updated')).toBeInTheDocument(); //
+    expect(screen.getByText('Last Updated')).toBeInTheDocument();
     expect(screen.getByText('Creation Date')).toBeInTheDocument();
   });
 });
