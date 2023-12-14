@@ -53,7 +53,10 @@ export const isComputePausable = (compute: App | Runtime): boolean =>
     ]
   );
 
-export const getCreatorForCompute = (compute: Runtime | App): string => compute?.auditInfo?.creator;
+export interface ComputeWithCreator {
+  auditInfo: { creator: string };
+}
+export const getCreatorForCompute = (compute: ComputeWithCreator): string => compute?.auditInfo?.creator;
 
 export const getDisplayStatus = (compute: Runtime | App): string => {
   if (isApp(compute)) {

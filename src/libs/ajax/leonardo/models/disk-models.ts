@@ -1,3 +1,4 @@
+import { Mutate } from '@terra-ui-packages/core-utils';
 import { AuditInfo, CloudContext, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 
 export type AzureDiskType = 'Standard_LRS'; // TODO: Uncomment when enabling SSDs | 'StandardSSD_LRS';
@@ -31,36 +32,24 @@ export const diskStatuses: { [label: string]: DiskStatus } = {
   error: { leoLabel: 'Error' },
 };
 
-export interface GetDiskItem {
+export interface RawListDiskItem {
   id: number;
   cloudContext: CloudContext;
   zone: string;
   name: string;
+  status: LeoDiskStatus;
+  auditInfo: AuditInfo;
+  size: number; // In GB
+  diskType: GoogleDiskType;
+  blockSize: number;
+  labels: LeoResourceLabels;
+}
+
+export interface RawGetDiskItem extends RawListDiskItem {
   serviceAccount: string;
   samResource: number;
-  status: LeoDiskStatus;
-  auditInfo: AuditInfo;
-  size: number; // In GB
-  diskType: GoogleDiskType;
-  blockSize: number;
-  labels: LeoResourceLabels;
   formattedBy: string | null;
 }
-
-export interface ListDiskItem {
-  id: number;
-  cloudContext: CloudContext;
-  zone: string;
-  name: string;
-  status: LeoDiskStatus;
-  auditInfo: AuditInfo;
-  size: number; // In GB
-  diskType: GoogleDiskType;
-  blockSize: number;
-  labels: LeoResourceLabels;
-}
-
-export type RawPersistentDisk = ListDiskItem | GetDiskItem;
 
 export interface GooglePdType {
   value: GoogleDiskType;
@@ -107,10 +96,10 @@ export const googlePdTypes: Record<PDLabels, GooglePdType> = {
     regionToPricesName: 'monthlySSDDiskPrice',
   },
 };
-export type PersistentDisk = {
-  diskType: GooglePdType;
-} & Omit<RawPersistentDisk, 'diskType'>;
+export type PersistentDisk = Mutate<RawListDiskItem, 'diskType', GooglePdType>;
 export type AppDataDisk = PersistentDisk;
+
+export type PersistentDiskDetail = Mutate<RawGetDiskItem, 'diskType', GooglePdType>;
 
 export const GcpPersistentDiskOptions = [googlePdTypes.standard, googlePdTypes.balanced, googlePdTypes.ssd];
 
