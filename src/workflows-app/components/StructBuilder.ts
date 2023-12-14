@@ -5,7 +5,7 @@ import { AutoSizer } from 'react-virtualized';
 import { ButtonPrimary, Link } from 'src/components/common';
 import Modal from 'src/components/Modal';
 import { HeaderCell, SimpleFlexTable, TextCell } from 'src/components/table';
-import { RecordAttributes } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { AttributeSchema } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import * as Utils from 'src/libs/utils';
 import {
   InputsButtonRow,
@@ -55,7 +55,7 @@ type StructBuilderProps = {
   structType: StructInputType;
   structSource: ObjectBuilderInputSource;
   setStructSource: Dispatch<SetStateAction<ObjectBuilderInputSource>>;
-  dataTableAttributes: Record<string, RecordAttributes>;
+  dataTableAttributes: Record<string, AttributeSchema>;
   structIndexPath: number[];
   setStructIndexPath: Dispatch<SetStateAction<number[]>>;
 };
