@@ -152,7 +152,7 @@ describe('WorkspaceDescription', () => {
     const editButton = screen.getByLabelText('Edit description');
     await user.click(editButton);
 
-    act(() => {
+    await act(() => {
       onChange(newDescription);
     });
     const saveButton = screen.getByText('Save');
