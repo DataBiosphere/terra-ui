@@ -70,7 +70,7 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
             }),
             div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
               h(ButtonSecondary, { onClick: () => setEditedDescription(undefined) }, ['Cancel']),
-              h(ButtonPrimary, { style: { marginLeft: '1rem' }, onClick: () => save }, ['Save']),
+              h(ButtonPrimary, { style: { marginLeft: '1rem' }, onClick: () => save() }, ['Save']),
             ]),
             saving && spinnerOverlay,
           ]),
