@@ -13,6 +13,7 @@ import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
 const defaultAnalysesData: AnalysesData = {
   apps: [],
   refreshApps: jest.fn().mockReturnValue(Promise.resolve()),
+  lastRefresh: null,
   runtimes: [],
   refreshRuntimes: () => Promise.resolve(),
   appDataDisks: [],

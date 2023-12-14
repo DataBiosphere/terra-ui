@@ -61,7 +61,7 @@ export const getDuration = (state, submissionDate, lastModifiedTimestamp, stateC
     : differenceFromNowInSeconds(submissionDate);
 };
 
-export const parseMethodString = (methodString) => {
+export const parseMethodString = (methodString: string) => {
   const methodNameParts = methodString.split('.');
   return {
     workflow: methodNameParts[0],
@@ -156,6 +156,10 @@ type IsInputValid =
       type: 'error' | 'info' | 'success';
       message: string;
     };
+
+export type InputValidationWithName = InputValidation & {
+  name: string;
+};
 
 const validateRequiredHasSource = (inputSource: InputSource, inputType: InputType): IsInputValid => {
   if (inputType.type === 'optional') {
@@ -297,11 +301,11 @@ export const isPrimitiveTypeInputValid = (primitiveType: PrimitiveInputType['pri
   );
 };
 
-export const convertArrayType = ({
+export const convertInputTypes = ({
   input_type: inputType,
   source: inputSource,
   ...input
-}: Omit<InputDefinition, 'input_name'>) => {
+}: Omit<InputDefinition, 'input_name'>): Omit<InputDefinition, 'input_name'> => {
   const unwrappedInput = unwrapOptional(inputType);
   if (unwrappedInput.type === 'array' && inputSource.type === 'literal') {
     const innerType = unwrapOptional(unwrappedInput.array_type);
@@ -309,6 +313,9 @@ export const convertArrayType = ({
     if (!Array.isArray(value)) {
       try {
         value = JSON.parse(inputSource.parameter_value);
+        if (!Array.isArray(value)) {
+          value = [value];
+        }
       } catch (e) {
         value = [value];
       }
@@ -326,8 +333,18 @@ export const convertArrayType = ({
         ...inputSource,
         fields: _.map((field: StructInputDefinition) => ({
           name: field.name,
-          source: convertArrayType({ input_type: field.field_type, source: field.source }).source,
+          source: convertInputTypes({ input_type: field.field_type, source: field.source }).source,
         }))(_.merge(inputSource.fields, unwrappedInput.fields)),
+      },
+    };
+  }
+  if (inputSource.type === 'literal' && unwrappedInput.type === 'primitive') {
+    return {
+      ...input,
+      input_type: inputType,
+      source: {
+        type: inputSource.type,
+        parameter_value: convertToPrimitiveType(unwrappedInput.primitive_type, inputSource.parameter_value),
       },
     };
   }
@@ -452,7 +469,10 @@ const validateInput = (input: WorkflowInputDefinition, dataTableAttributes): Inp
   return { type: 'none' };
 };
 
-export const validateInputs = (inputDefinition: WorkflowInputDefinition[], dataTableAttributes) =>
+export const validateInputs = (
+  inputDefinition: WorkflowInputDefinition[],
+  dataTableAttributes
+): InputValidationWithName[] =>
   inputDefinition.map((input) => {
     const inputMessage = validateInput(input, dataTableAttributes);
     return { name: 'input_name' in input ? input.input_name : input.field_name, ...inputMessage };

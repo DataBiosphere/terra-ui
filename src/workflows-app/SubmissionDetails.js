@@ -140,8 +140,11 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
       if (workflowsAppStore.get().cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
         updatedRunSets = await loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState);
       }
-      // only refresh if there are run sets in non-terminal state
-      if (!updatedRunSets || _.some(({ state }) => !isRunSetInTerminalState(state), updatedRunSets)) {
+      // only refresh if _this_ run set is in non-terminal state
+      if (
+        !updatedRunSets ||
+        _.some(({ run_set_id: runSetId, state }) => runSetId === submissionId && !isRunSetInTerminalState(state), updatedRunSets)
+      ) {
         scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval);
       }
     } catch (error) {
@@ -201,11 +204,10 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
       const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
       if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-        await loadAllRunSets(cbasProxyUrlState);
+        await refresh();
       }
     };
     loadWorkflowsApp();
-    refresh();
 
     return () => {
       if (scheduledRefresh.current) {

@@ -1,8 +1,9 @@
 import _ from 'lodash/fp';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/components/table';
+import { RecordTypeSchema } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import * as Utils from 'src/libs/utils';
 import {
   InputsButtonRow,
@@ -13,80 +14,114 @@ import {
   WithWarnings,
 } from 'src/workflows-app/components/inputs-common';
 import { StructBuilderModal } from 'src/workflows-app/components/StructBuilder';
-import { inputTypeStyle, isInputOptional, parseMethodString, renderTypeText, typeMatch } from 'src/workflows-app/utils/submission-utils';
+import { InputDefinition } from 'src/workflows-app/models/submission-models';
+import {
+  inputTypeStyle,
+  InputValidationWithName,
+  isInputOptional,
+  parseMethodString,
+  renderTypeText,
+  typeMatch,
+} from 'src/workflows-app/utils/submission-utils';
 
-const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfiguredInputDefinition, inputValidations }) => {
-  const [inputTableSort, setInputTableSort] = useState({ field: 'taskName', direction: 'asc' });
+type InputsTableProps = {
+  selectedDataTable: RecordTypeSchema;
+  configuredInputDefinition: InputDefinition[];
+  setConfiguredInputDefinition: Dispatch<SetStateAction<InputDefinition[]>>;
+  inputValidations: InputValidationWithName[];
+};
+
+const InputsTable = ({
+  selectedDataTable,
+  configuredInputDefinition,
+  setConfiguredInputDefinition,
+  inputValidations,
+}: InputsTableProps) => {
+  const [inputTableSort, setInputTableSort] = useState<{
+    field: 'taskName' | 'variable';
+    direction: 'asc' | 'desc';
+  }>({
+    field: 'taskName',
+    direction: 'asc',
+  });
   const [structBuilderVisible, setStructBuilderVisible] = useState(false);
-  const [structBuilderRow, setStructBuilderRow] = useState(null);
+  const [structBuilderRow, setStructBuilderRow] = useState<number>();
   const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true);
   const [searchFilter, setSearchFilter] = useState('');
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes);
 
   const inputTableData = _.flow(
-    _.entries,
-    _.map(([index, row]) => {
-      const { workflow, call, variable } = parseMethodString(row.input_name);
-      return _.flow([
-        _.set('taskName', call || workflow || ''),
-        _.set('variable', variable || ''),
-        _.set('inputTypeStr', renderTypeText(row.input_type)),
-        _.set('configurationIndex', parseInt(index)),
-        _.set('optional', isInputOptional(row.input_type)),
-      ])(row);
-    }),
-    _.orderBy(
-      [
-        _.get('optional'),
-        ({ [inputTableSort.field]: field }) => _.lowerCase(field),
-        ({ taskName }) => _.lowerCase(taskName),
-        ({ variable }) => _.lowerCase(variable),
-      ],
-      ['asc', inputTableSort.direction, 'asc', 'asc']
-    ),
+    (rows: InputDefinition[]) =>
+      rows.map((row, index) => {
+        const { workflow, call, variable } = parseMethodString(row.input_name);
+        return {
+          taskName: call || workflow || '',
+          variable: variable || '',
+          inputTypeStr: renderTypeText(row.input_type),
+          configurationIndex: index,
+          optional: isInputOptional(row.input_type),
+          ...row,
+        };
+      }),
+    (rows) =>
+      _.orderBy<(typeof rows)[number]>(
+        [
+          _.get('optional'),
+          ({ [inputTableSort.field]: field }) => _.lowerCase(field),
+          ({ taskName }) => _.lowerCase(taskName),
+          ({ variable }) => _.lowerCase(variable),
+        ],
+        ['asc', inputTableSort.direction, 'asc', 'asc'],
+        rows
+      ),
     _.filter(
       _.overEvery([
         ({ optional }) => includeOptionalInputs || !optional,
         ({ taskName, variable }) =>
-          _.lowerCase(taskName).includes(_.lowerCase(searchFilter)) || _.lowerCase(variable).includes(_.lowerCase(searchFilter)),
+          _.lowerCase(taskName).includes(_.lowerCase(searchFilter)) ||
+          _.lowerCase(variable).includes(_.lowerCase(searchFilter)),
       ])
     )
   )(configuredInputDefinition);
 
-  const inputRowsInDataTable = _.filter(
+  const inputRowsInDataTable = inputTableData.filter(
     (row) =>
       _.has(row.variable, dataTableAttributes) &&
       row.source.type === 'none' &&
       typeMatch(row.input_type, _.get(`${row.variable}.datatype`, dataTableAttributes))
-  )(inputTableData);
+  );
 
-  const recordLookup = (rowIndex) => {
+  const recordLookup = (rowIndex: number) => {
     const type = _.get(`${inputTableData[rowIndex].configurationIndex}.input_type`, configuredInputDefinition);
     const source = _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition);
     const setSource = (source) => {
-      setConfiguredInputDefinition(_.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition));
+      setConfiguredInputDefinition(
+        _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition)
+      );
     };
 
     return h(RecordLookupSelect, {
       source,
       setSource,
-      dataTableAttributes: _.pickBy((wdsType) => typeMatch(type, wdsType.datatype))(dataTableAttributes),
+      dataTableAttributes: _.pickBy((wdsType) => typeMatch(type, wdsType.datatype), dataTableAttributes),
     });
   };
 
-  const parameterValueSelect = (rowIndex) => {
+  const parameterValueSelect = (rowIndex: number) => {
     return h(ParameterValueTextInput, {
       id: `input-table-value-select-${rowIndex}`,
       inputType: _.get('input_type', inputTableData[rowIndex]),
       source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
       setSource: (source) => {
-        setConfiguredInputDefinition(_.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition));
+        setConfiguredInputDefinition(
+          _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition)
+        );
       },
     });
   };
 
-  const structBuilderLink = (rowIndex) => {
+  const structBuilderLink = (rowIndex: number) => {
     return h(StructBuilderLink, {
       structBuilderVisible,
       onClick: () => {
@@ -96,13 +131,13 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
     });
   };
 
-  const sourceNone = (rowIndex) => {
+  const sourceNone = (rowIndex: number) => {
     return h(
       TextCell,
       { style: inputTypeStyle(inputTableData[rowIndex].input_type) },
       Utils.cond(
         [
-          _.some((input) => input.variable === inputTableData[rowIndex].variable)(inputRowsInDataTable),
+          inputRowsInDataTable.some((input) => input.variable === inputTableData[rowIndex].variable),
           () => [
             'Autofill ',
             h(
@@ -131,7 +166,7 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
     );
   };
 
-  return h(div, { style: { flex: '1 0 auto' } }, [
+  return div({ style: { flex: '1 0 auto' } }, [
     h(InputsButtonRow, {
       optionalButtonProps: {
         includeOptionalInputs,
@@ -147,12 +182,15 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
       },
     }),
     structBuilderVisible &&
+      structBuilderRow !== undefined &&
       h(StructBuilderModal, {
         structName: _.get('variable', inputTableData[structBuilderRow]),
         structType: _.get('input_type', inputTableData[structBuilderRow]),
         structSource: _.get('source', inputTableData[structBuilderRow]),
         setStructSource: (source) =>
-          setConfiguredInputDefinition(_.set(`${inputTableData[structBuilderRow].configurationIndex}.source`, source, configuredInputDefinition)),
+          setConfiguredInputDefinition(
+            _.set(`${inputTableData[structBuilderRow].configurationIndex}.source`, source, configuredInputDefinition)
+          ),
         dataTableAttributes,
         onDismiss: () => {
           setStructBuilderVisible(false);
@@ -161,13 +199,17 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
     h(SimpleFlexTable, {
       'aria-label': 'input-table',
       rowCount: inputTableData.length,
+      // @ts-ignore
       sort: inputTableSort,
       readOnly: false,
       columns: [
         {
           size: { basis: 250, grow: 0 },
           field: 'taskName',
-          headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'taskName', onSort: setInputTableSort }, [h(HeaderCell, ['Task name'])]),
+          headerRenderer: () =>
+            h(Sortable, { sort: inputTableSort, field: 'taskName', onSort: setInputTableSort }, [
+              h(HeaderCell, ['Task name']),
+            ]),
           cellRenderer: ({ rowIndex }) => {
             return h(TextCell, { style: { fontWeight: 500 } }, [inputTableData[rowIndex].taskName]);
           },
@@ -175,9 +217,14 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
         {
           size: { basis: 360, grow: 0 },
           field: 'variable',
-          headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'variable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
+          headerRenderer: () =>
+            h(Sortable, { sort: inputTableSort, field: 'variable', onSort: setInputTableSort }, [
+              h(HeaderCell, ['Variable']),
+            ]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].variable]);
+            return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].input_type) }, [
+              inputTableData[rowIndex].variable,
+            ]);
           },
         },
         {
@@ -185,7 +232,9 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
           field: 'inputTypeStr',
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr]);
+            return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].input_type) }, [
+              inputTableData[rowIndex].inputTypeStr,
+            ]);
           },
         },
         {
@@ -196,11 +245,14 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
               source: _.get('source', inputTableData[rowIndex]),
               inputType: _.get('input_type', inputTableData[rowIndex]),
               setSource: (source) =>
-                setConfiguredInputDefinition(_.set(`[${inputTableData[rowIndex].configurationIndex}].source`, source, configuredInputDefinition)),
+                setConfiguredInputDefinition(
+                  _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, source, configuredInputDefinition)
+                ),
             });
           },
         },
         {
+          size: { basis: 300, grow: 1 },
           headerRenderer: () => h(HeaderCell, ['Attribute']),
           cellRenderer: ({ rowIndex }) => {
             const source = _.get(`${rowIndex}.source`, inputTableData);
@@ -213,7 +265,7 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
                 ['object_builder', () => structBuilderLink(rowIndex)],
                 ['none', () => sourceNone(rowIndex)]
               ),
-              message: _.find((message) => message.name === inputName)(inputValidations),
+              message: inputValidations.find((message) => message.name === inputName),
             });
           },
         },

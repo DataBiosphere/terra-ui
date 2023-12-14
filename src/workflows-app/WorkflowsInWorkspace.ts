@@ -5,7 +5,6 @@ import { AnalysesData } from 'src/analysis/Analyses';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Clickable } from 'src/components/common';
-import { icon } from 'src/components/icons';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
@@ -15,7 +14,7 @@ import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
-import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
+import { doesAppProxyUrlExist, loadAppUrls, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
 
 type WorkflowsInWorkspaceProps = {
@@ -166,11 +165,6 @@ export const WorkflowsInWorkspace = ({
 
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
     h2({ style: { marginTop: 0 } }, ['Workflows in this workspace']),
-    !cbasReady || loading
-      ? div({ style: { marginTop: '2rem' } }, [
-          icon('loadingSpinner'),
-          ' Loading your Workflows app, this may take a few minutes.',
-        ])
-      : renderMethods(),
+    !cbasReady || loading ? loadingYourWorkflowsApp() : renderMethods(),
   ]);
 };

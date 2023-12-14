@@ -343,7 +343,7 @@ export const BaseSubmissionConfig = (
           div({ style: { display: 'inline-block', marginRight: '1rem' } }, [
             h(InfoBox, [
               "Call caching detects when a job has been run in the past so that it doesn't have to re-compute results. ",
-              h(Link, { href: getSupportLink('360047664872'), ...Utils.newTabLinkProps }, ['Click here to learn more.']),
+              h(Link, { href: getSupportLink('19619225467163'), ...Utils.newTabLinkProps }, ['Click here to learn more.']),
             ]),
           ]),
           div({ style: { display: 'inline-block' } }, [

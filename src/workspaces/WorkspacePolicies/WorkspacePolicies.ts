@@ -5,16 +5,19 @@ import { CSSProperties, ReactNode } from 'react';
 import { div, h, li, ul } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
 import { getPolicyDescriptions, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { BillingProject } from 'src/pages/billing/models/BillingProject';
 
 type WorkspacePoliciesProps = {
-  workspace: WorkspaceWrapper;
+  workspace?: WorkspaceWrapper;
+  billingProject?: BillingProject;
   title?: string;
   policiesLabel?: string;
   style?: CSSProperties;
 };
 
 export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
-  const policyDescriptions = getPolicyDescriptions(props.workspace);
+  const policyDescriptions = getPolicyDescriptions(props.workspace, props.billingProject);
+
   const description = props.policiesLabel
     ? props.policiesLabel
     : `This workspace has the following ${pluralize('policy', policyDescriptions.length)}:`;

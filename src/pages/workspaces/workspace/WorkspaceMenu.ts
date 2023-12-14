@@ -6,7 +6,13 @@ import { Clickable } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { useWorkspaceDetails } from 'src/components/workspace-utils';
-import { isOwner, WorkspacePolicy, WorkspaceState, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import {
+  isGoogleWorkspace,
+  isOwner,
+  WorkspacePolicy,
+  WorkspaceState,
+  WorkspaceWrapper as Workspace,
+} from 'src/libs/workspace-utils';
 
 const isNameType = (o: WorkspaceInfo): o is DynamicWorkspaceInfo =>
   'name' in o && typeof o.name === 'string' && 'namespace' in o && typeof o.namespace === 'string';
@@ -22,8 +28,8 @@ type DynamicWorkspaceInfo = { name: string; namespace: string };
 type WorkspaceInfo = DynamicWorkspaceInfo | LoadedWorkspaceInfo;
 
 interface WorkspaceMenuCallbacks {
-  onClone: () => void;
-  onShare: (policies?: WorkspacePolicy[]) => void;
+  onClone: (policies?: WorkspacePolicy[], bucketName?: string) => void;
+  onShare: (policies?: WorkspacePolicy[], bucketName?: string) => void;
   onLock: () => void;
   onDelete: () => void;
   onLeave: () => void;
@@ -77,9 +83,9 @@ interface DynamicWorkspaceMenuContentProps {
 }
 
 /**
- * DynamicWorkspaceInfo is invoked when the name/namespace is passed instead of the dirived states.
- * This happens from the list component, which also needs the workspace policies for sharing the workspace.
- * So the onShare callback is wrapped here, and passed to LoadedWorkspaceMenuContent.
+ * DynamicWorkspaceInfo is invoked when the name/namespace is passed instead of the derived states.
+ * This happens from the list component, which also needs the workspace policies and bucketName for
+ * sharing and cloning the workspace.
  */
 const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) => {
   const {
@@ -88,11 +94,14 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
   } = props;
   const { workspace } = useWorkspaceDetails({ namespace, name }, [
     'accessLevel',
-    'policies',
     'canShare',
+    'policies',
+    'workspace.bucketName',
+    'workspace.cloudPlatform',
     'workspace.isLocked',
     'workspace.state',
   ]) as { workspace?: Workspace };
+  const bucketName = !!workspace && isGoogleWorkspace(workspace) ? workspace.workspace.bucketName : undefined;
 
   return h(LoadedWorkspaceMenuContent, {
     workspaceInfo: {
@@ -102,9 +111,14 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
       isOwner: !!workspace && isOwner(workspace.accessLevel),
       workspaceLoaded: !!workspace,
     },
-    // the list component doesn't have workspace details, so we need to pass policies so it can add it for the ShareWorkspaceModal modal
-    // the dashboard component already has the field, so it will ignore the parameter of onShare
-    callbacks: { ...callbacks, onShare: () => callbacks.onShare(workspace?.policies) },
+    // The list component doesn't fetch all the workspace details in order to keep the size of returned payload
+    // as small as possible, so we need to pass policies and bucketName for use by the ShareWorkspaceModal
+    // and NewWorkspaceModal (cloning). The dashboard component already has the fields, so it will ignore them.
+    callbacks: {
+      ...callbacks,
+      onShare: () => callbacks.onShare(workspace?.policies, bucketName),
+      onClone: () => callbacks.onClone(workspace?.policies, bucketName),
+    },
   });
 };
 
