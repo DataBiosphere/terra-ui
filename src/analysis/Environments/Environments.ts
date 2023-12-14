@@ -191,7 +191,7 @@ export function PauseButton(props: PauseButtonProps): ReactNode {
   const shouldShowPauseButton =
     isPauseSupported(getToolLabelFromCloudEnv(cloudEnvironment)) && permissions.canPauseResource(cloudEnvironment);
 
-    return shouldShowPauseButton
+  return shouldShowPauseButton
     ? h(
         Link,
         {

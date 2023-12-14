@@ -19,7 +19,6 @@ import {
   Environments,
   EnvironmentsProps,
   LeoResourcePermissionsProvider,
-  PauseButton,
 } from 'src/analysis/Environments/Environments';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { AzureConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
