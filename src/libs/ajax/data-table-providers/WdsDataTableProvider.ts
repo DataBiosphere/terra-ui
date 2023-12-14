@@ -20,7 +20,7 @@ import * as Utils from 'src/libs/utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
 
 // interface definitions for WDS payload responses
-interface AttributeSchema {
+export interface AttributeSchema {
   name: string;
   datatype: string;
   relatesTo?: string;
