@@ -2,7 +2,12 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { mapToPdTypes, updatePdType } from 'src/analysis/utils/disk-utils';
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
-import { GetDiskItem, ListDiskItem, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import {
+  PersistentDisk,
+  PersistentDiskDetail,
+  RawGetDiskItem,
+  RawListDiskItem,
+} from 'src/libs/ajax/leonardo/models/disk-models';
 
 export const Disks = (signal: AbortSignal) => {
   const diskV2Root = 'api/v2/disks';
@@ -18,7 +23,7 @@ export const Disks = (signal: AbortSignal) => {
         `api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])
       );
-      const disks: ListDiskItem[] = await res.json();
+      const disks: RawListDiskItem[] = await res.json();
       return mapToPdTypes(disks);
     },
     disk: (project: string, name: string) => ({
@@ -39,12 +44,12 @@ export const Disks = (signal: AbortSignal) => {
           _.mergeAll([authOpts(), jsonBody({ size }), appIdentifier, { signal, method: 'PATCH' }])
         );
       },
-      details: async (): Promise<PersistentDisk> => {
+      details: async (): Promise<PersistentDiskDetail> => {
         const res = await fetchLeo(
           `api/google/v1/disks/${project}/${name}`,
           _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }])
         );
-        const disk: GetDiskItem = await res.json();
+        const disk: RawGetDiskItem = await res.json();
         return updatePdType(disk);
       },
     }),
