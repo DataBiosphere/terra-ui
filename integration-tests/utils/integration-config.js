@@ -21,10 +21,20 @@ const {
 } = process.env;
 
 const project = process.env.GCP_PROJECT || 'terra-bueller';
+
 const getSecrets = _.once(async () => {
+  const lyleToken = process.env.LYLE_ID_TOKEN;
+  const userAccessToken = process.env.USER_ACCESS_TOKEN;
+
+  // If the corresponding token already exists, ignore the sa key and leave it null.
+  const lyleKey = lyleToken == null ? process.env.LYLE_SA_KEY || (await getSecret({ project, secretName: 'lyle-sa-key' })) : null;
+  const terraSaKeyJson = userAccessToken == null ? process.env.TERRA_SA_KEY || (await getSecret({ project, secretName: 'terra-sa-key' })) : null;
+
   return {
-    lyleKey: process.env.LYLE_SA_KEY || (await getSecret({ project, secretName: 'lyle-sa-key' })),
-    terraSaKeyJson: process.env.TERRA_SA_KEY || (await getSecret({ project, secretName: 'terra-sa-key' })),
+    lyleToken,
+    userAccessToken,
+    lyleKey,
+    terraSaKeyJson,
   };
 });
 
