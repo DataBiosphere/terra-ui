@@ -1,5 +1,5 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
@@ -152,11 +152,13 @@ describe('WorkspaceDescription', () => {
     const editButton = screen.getByLabelText('Edit description');
     await user.click(editButton);
 
-    onChange(newDescription);
-
+    act(() => {
+      onChange(newDescription);
+    });
     const saveButton = screen.getByText('Save');
-    await user.click(saveButton);
-
+    await act(async () => {
+      await user.click(saveButton);
+    });
     // Assert
     expect(mockShallowMergeNewAttributes).toHaveBeenCalledWith({ description: newDescription });
   });
