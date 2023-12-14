@@ -2,17 +2,24 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { Ajax } from 'src/libs/ajax';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
 const defaultAnalysesData: AnalysesData = {
   apps: [],
+  lastRefresh: null,
   refreshApps: jest.fn().mockReturnValue(Promise.resolve()),
   runtimes: [],
   refreshRuntimes: () => Promise.resolve(),
   appDataDisks: [],
   persistentDisks: [],
+};
+
+const defaultAnalysesDataWithAppsRefreshed: AnalysesData = {
+  ...defaultAnalysesData,
+  lastRefresh: new Date(),
 };
 
 jest.mock('src/libs/ajax');
@@ -22,7 +29,23 @@ jest.mock('src/libs/nav', () => ({
   useQueryParameter: jest.requireActual('react').useState,
 }));
 
+const watchCaptureEvent = jest.fn();
+type AjaxContract = ReturnType<typeof Ajax>;
+type AjaxMetricsContract = AjaxContract['Metrics'];
+const mockMetrics: Partial<AjaxMetricsContract> = {
+  captureEvent: (event, details) => watchCaptureEvent(event, details),
+};
+
+const defaultAjaxImpl: Partial<AjaxContract> = {
+  Metrics: mockMetrics as AjaxMetricsContract,
+};
+
 describe('Workflows App Navigation Panel', () => {
+  beforeEach(() => {
+    // Arrange
+    asMockedFn(Ajax).mockReturnValue(defaultAjaxImpl as AjaxContract);
+  });
+
   it('renders headers', async () => {
     const user = userEvent.setup();
 
@@ -129,6 +152,26 @@ describe('Workflows App Navigation Panel', () => {
     expect(findAndAddWorkflowsCollapse).toHaveAttribute('aria-disabled', 'true');
   });
 
+  it('renders loading placeholder when apps are unloaded', async () => {
+    render(
+      h(WorkflowsAppNavPanel, {
+        loading: false,
+        launcherDisabled: true,
+        launching: false,
+        createWorkflowsApp: jest.fn(),
+        pageReady: false,
+        name: 'test-azure-ws-name',
+        namespace: 'test-azure-ws-namespace',
+        workspace: mockAzureWorkspace,
+        analysesData: defaultAnalysesData,
+        setLoading: jest.fn(),
+        signal: jest.fn(),
+      })
+    );
+
+    expect(screen.getByText('Loading Workflows App')).toBeInTheDocument();
+  });
+
   it('renders workflow launch card when page is not ready', async () => {
     const { rerender } = render(
       h(WorkflowsAppNavPanel, {
@@ -140,7 +183,7 @@ describe('Workflows App Navigation Panel', () => {
         name: 'test-azure-ws-name',
         namespace: 'test-azure-ws-namespace',
         workspace: mockAzureWorkspace,
-        analysesData: defaultAnalysesData,
+        analysesData: defaultAnalysesDataWithAppsRefreshed,
         setLoading: jest.fn(),
         signal: jest.fn(),
       })
@@ -160,7 +203,7 @@ describe('Workflows App Navigation Panel', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-          analysesData: defaultAnalysesData,
+          analysesData: defaultAnalysesDataWithAppsRefreshed,
           setLoading: jest.fn(),
           signal: jest.fn(),
         })

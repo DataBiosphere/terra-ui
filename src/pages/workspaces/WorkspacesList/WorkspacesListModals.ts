@@ -25,10 +25,10 @@ export const WorkspacesListModals = (props: WorkspacesListModalsProps): ReactNod
         onDismiss: () => setUserActions({ creatingNewWorkspace: false }),
         onSuccess: ({ namespace, name }) => goToPath('workspace-dashboard', { namespace, name }),
       }),
-    !!userActions.cloningWorkspaceId &&
+    !!userActions.cloningWorkspace &&
       h(NewWorkspaceModal, {
-        cloneWorkspace: getWorkspace(userActions.cloningWorkspaceId),
-        onDismiss: () => setUserActions({ cloningWorkspaceId: undefined }),
+        cloneWorkspace: userActions.cloningWorkspace,
+        onDismiss: () => setUserActions({ cloningWorkspace: undefined }),
         onSuccess: ({ namespace, name }) => goToPath('workspace-dashboard', { namespace, name }),
       }),
     !!userActions.deletingWorkspaceId &&

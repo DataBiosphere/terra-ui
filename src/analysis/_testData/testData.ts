@@ -143,6 +143,7 @@ export const generateGoogleWorkspace = (prefix: string = uuid().substring(0, 8))
   accessLevel: 'OWNER',
   canShare: true,
   canCompute: true,
+  policies: [],
 });
 
 export const generateAzureWorkspace = (prefix: string = uuid().substring(0, 8)): AzureWorkspace => ({
@@ -164,6 +165,7 @@ export const generateAzureWorkspace = (prefix: string = uuid().substring(0, 8)):
   accessLevel: 'OWNER',
   canShare: true,
   canCompute: true,
+  policies: [],
 });
 
 export const defaultTestDisk = {

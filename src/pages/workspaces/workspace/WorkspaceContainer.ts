@@ -2,6 +2,7 @@ import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { PropsWithChildren, ReactNode, Ref, useEffect, useRef, useState } from 'react';
 import { div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
+import { AnalysesData } from 'src/analysis/Analyses';
 import AnalysisNotificationManager from 'src/analysis/AnalysisNotificationManager';
 import { ContextBar } from 'src/analysis/ContextBar';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
@@ -16,11 +17,8 @@ import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { azureControlledAccessRequestMessage, isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { AppDetails, useAppPolling } from 'src/pages/workspaces/hooks/useAppPolling';
-import {
-  CloudEnvironmentDetails,
-  useCloudEnvironmentPolling,
-} from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
+import { useAppPolling } from 'src/pages/workspaces/hooks/useAppPolling';
+import { useCloudEnvironmentPolling } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
 import { useSingleWorkspaceDeletionPolling } from 'src/pages/workspaces/hooks/useDeletionPolling';
 import {
   InitializedWorkspaceWrapper as Workspace,
@@ -67,7 +65,7 @@ interface WorkspaceContainerProps extends PropsWithChildren {
   breadcrumbs: ReactNode[];
   title: string;
   activeTab?: string;
-  analysesData: AppDetails & CloudEnvironmentDetails;
+  analysesData: AnalysesData;
   storageDetails: StorageDetails;
   refresh: () => Promise<void>;
   workspace: Workspace;
@@ -221,7 +219,7 @@ export interface WrappedComponentProps {
   name: string;
   workspace: Workspace;
   refreshWorkspace: () => void;
-  analysesData: AppDetails & CloudEnvironmentDetails;
+  analysesData: AnalysesData;
   storageDetails: StorageDetails;
 }
 
@@ -260,7 +258,7 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
         namespace,
         workspace
       );
-      const { apps, refreshApps } = useAppPolling(name, namespace, workspace);
+      const { apps, refreshApps, lastRefresh } = useAppPolling(name, namespace, workspace);
 
       if (accessError) {
         return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)]);
@@ -276,7 +274,7 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
           refreshWorkspace,
           title: _.isFunction(title) ? title(props) : title,
           breadcrumbs: breadcrumbs(props),
-          analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+          analysesData: { apps, refreshApps, lastRefresh, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
           storageDetails,
           refresh: async () => {
             await refreshWorkspace();
@@ -291,7 +289,15 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
               ref: child,
               workspace,
               refreshWorkspace,
-              analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+              analysesData: {
+                apps,
+                refreshApps,
+                lastRefresh,
+                runtimes,
+                refreshRuntimes,
+                appDataDisks,
+                persistentDisks,
+              },
               storageDetails,
               ...props,
             }),

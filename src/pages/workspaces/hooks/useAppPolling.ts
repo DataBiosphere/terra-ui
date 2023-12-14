@@ -8,6 +8,7 @@ import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/h
 export interface AppDetails {
   apps?: ListAppItem[];
   refreshApps: (maybeStale?: boolean) => Promise<void>;
+  lastRefresh: Date | null;
 }
 
 export const useAppPolling = (name: string, namespace: string, workspace?: Workspace): AppDetails => {
@@ -19,6 +20,7 @@ export const useAppPolling = (name: string, namespace: string, workspace?: Works
   const signal = controller.signal;
   const timeout = useRef<NodeJS.Timeout>();
   const [apps, setApps] = useState<ListAppItem[]>();
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const reschedule = (ms) => {
     clearTimeout(timeout.current);
@@ -43,6 +45,7 @@ export const useAppPolling = (name: string, namespace: string, workspace?: Works
       Object.values(combinedNewApps).forEach((app) => {
         reschedule(maybeStale || (app && ['PROVISIONING', 'PREDELETING'].includes(app.status)) ? 10000 : 120000);
       });
+      setLastRefresh(new Date());
     } catch (error) {
       reschedule(30000);
       throw error;
@@ -64,5 +67,5 @@ export const useAppPolling = (name: string, namespace: string, workspace?: Works
     };
     //  eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspace]);
-  return { apps, refreshApps };
+  return { apps, refreshApps, lastRefresh };
 };

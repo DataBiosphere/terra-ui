@@ -122,6 +122,7 @@ export const Register = (): ReactNode => {
           label="First Name"
         />
         <LabelledTextInput
+          required
           value={familyName}
           onChange={setFamilyName}
           inputStyle={{ display: 'block' }}

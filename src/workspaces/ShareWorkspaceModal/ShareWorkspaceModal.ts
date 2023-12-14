@@ -14,7 +14,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { append, cond, withBusyState } from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import {
   aclEntryIsTerraSupport,
   terraSupportAccessLevel,
@@ -187,7 +187,12 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       ]),
       searchValueValid && !searchHasFocus && p([addUserReminder]),
       h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
-      h(WorkspacePolicies, { workspace, title: 'Policies', style: { marginBottom: '1.5rem' } }),
+      h(WorkspacePolicies, {
+        workspace,
+        title: isAzureWorkspace(workspace) ? 'Policies' : undefined,
+        policiesLabel: isGoogleWorkspace(workspace) ? 'This workspace has the following:' : undefined,
+        style: { marginTop: '1.0rem', marginBottom: '1.5rem' },
+      }),
       !loaded && centeredSpinner(),
       updateError && div({ style: { marginTop: '1rem' } }, [div(['An error occurred:']), updateError]),
       div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [
