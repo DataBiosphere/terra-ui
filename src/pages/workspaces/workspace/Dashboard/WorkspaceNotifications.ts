@@ -1,10 +1,9 @@
-import { Spinner } from '@terra-ui-packages/components';
+import { InfoBox, Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { refreshTerraProfile } from 'src/auth/auth';
 import { LabeledCheckbox } from 'src/components/common';
-import { InfoBox } from 'src/components/InfoBox';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';

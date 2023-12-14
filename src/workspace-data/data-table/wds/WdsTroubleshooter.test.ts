@@ -221,6 +221,7 @@ describe('WdsTroubleshooter', () => {
       accessLevel: 'OWNER',
       canShare: true,
       canCompute: true,
+      policies: [],
     };
 
     asMockedFn(useWorkspaceById).mockReturnValue({
@@ -314,6 +315,7 @@ describe('WdsTroubleshooter', () => {
       accessLevel: 'OWNER',
       canShare: true,
       canCompute: true,
+      policies: [],
     };
 
     asMockedFn(useWorkspaceById).mockReturnValue({

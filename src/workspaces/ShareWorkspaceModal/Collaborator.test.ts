@@ -5,6 +5,7 @@ import { getTerraUser } from 'src/libs/state';
 import { BaseWorkspace } from 'src/libs/workspace-utils';
 import { AccessEntry, WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
 
 jest.mock('src/libs/state', () => ({
@@ -34,23 +35,7 @@ describe('a Collaborator component', () => {
     });
   });
 
-  const workspace: BaseWorkspace = {
-    accessLevel: 'OWNER',
-    canShare: true,
-    canCompute: true,
-    workspace: {
-      namespace: 'namespace',
-      name: 'name',
-      workspaceId: 'test-ws-id',
-      cloudPlatform: 'Gcp',
-      authorizationDomain: [],
-      createdDate: '',
-      createdBy: '',
-      googleProject: 'test-project',
-      bucketName: 'test-bucket',
-      lastModified: '',
-    },
-  };
+  const workspace: BaseWorkspace = defaultGoogleWorkspace;
 
   it('displays the email of the access item', () => {
     const item: AccessEntry = {

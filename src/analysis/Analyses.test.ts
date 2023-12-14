@@ -77,6 +77,7 @@ jest.mock(
 const defaultAnalysesData: AnalysesData = {
   apps: [],
   refreshApps: () => Promise.resolve(),
+  lastRefresh: null,
   runtimes: [],
   refreshRuntimes: () => Promise.resolve(),
   appDataDisks: [],

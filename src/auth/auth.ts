@@ -145,11 +145,14 @@ export const signIn = async (includeBillingScope = false): Promise<OidcUser> => 
   authStore.update((state) => ({ ...state, userJustSignedIn: true }));
   const authTokenState: AuthTokenState = await loadAuthToken({ includeBillingScope, popUp: true });
   if (authTokenState.status === 'success') {
-    const sessionId = uuid();
-    const sessionStartTime: number = Date.now();
     authStore.update((state) => ({
       ...state,
       hasGcpBillingScopeThroughB2C: includeBillingScope,
+    }));
+    const sessionId = uuid();
+    const sessionStartTime: number = Date.now();
+    metricStore.update((state) => ({
+      ...state,
       sessionId,
       sessionStartTime,
     }));

@@ -69,6 +69,7 @@ describe('WorkspaceLinkById', () => {
     accessLevel: 'OWNER',
     canShare: true,
     canCompute: true,
+    policies: [],
   };
 
   it('fetches workspace by ID', async () => {
