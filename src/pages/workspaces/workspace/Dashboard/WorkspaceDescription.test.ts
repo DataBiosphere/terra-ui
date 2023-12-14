@@ -130,7 +130,7 @@ describe('WorkspaceDescription', () => {
       workspace: _.merge(defaultGoogleWorkspace, { workspace: { attributes: { description: undefined } } }),
       refreshWorkspace: jest.fn(),
     };
-    const mockShallowMergeNewAttributes = jest.fn();
+    const mockShallowMergeNewAttributes = jest.fn().mockResolvedValue({});
     asMockedFn(Ajax).mockReturnValue({
       Workspaces: {
         workspace: jest.fn().mockReturnValue({
