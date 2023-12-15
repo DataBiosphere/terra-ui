@@ -37,7 +37,7 @@ export const WorkspacesListTabs = (props: WorkspacesListTabsProps): ReactNode =>
   const tabs: WorkspaceTab[] = _.map(
     (key: keyof CategorizedWorkspaces) => ({
       key,
-      title: span([_.upperCase(key), ` (${loadingWorkspaces ? '...' : workspaces[key].length})`]),
+      title: span([_.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`]),
       tableName: _.lowerCase(key),
     }),
     ['myWorkspaces', 'newAndInteresting', 'featured', 'public']
