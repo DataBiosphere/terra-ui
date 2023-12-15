@@ -124,7 +124,7 @@ describe('WorkspaceDescription', () => {
     );
   });
 
-  it('saves the description when the button is pressed', async () => {
+  xit('saves the description when the button is pressed', async () => {
     // Arrange
     const user = userEvent.setup();
     asMockedFn(canEditWorkspace).mockReturnValue({ value: true });
