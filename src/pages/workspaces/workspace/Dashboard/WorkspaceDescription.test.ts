@@ -124,7 +124,7 @@ describe('WorkspaceDescription', () => {
     );
   });
 
-  xit('saves the description when the button is pressed', async () => {
+  it('saves the description when the button is pressed', async () => {
     // Arrange
     const user = userEvent.setup();
     asMockedFn(canEditWorkspace).mockReturnValue({ value: true });
@@ -154,13 +154,12 @@ describe('WorkspaceDescription', () => {
     const editButton = screen.getByLabelText('Edit description');
     await user.click(editButton);
 
-    await act(() => {
+    act(() => {
       onChange(newDescription);
     });
     const saveButton = screen.getByText('Save');
-    await act(async () => {
-      await user.click(saveButton);
-    });
+    await user.click(saveButton);
+
     // Assert
     expect(mockShallowMergeNewAttributes).toHaveBeenCalledWith({ description: newDescription });
   });
