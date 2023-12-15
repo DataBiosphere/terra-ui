@@ -1,13 +1,23 @@
-import { screen } from '@testing-library/react';
+import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
-import { h } from 'react-hyperscript-helpers';
+import { div, h } from 'react-hyperscript-helpers';
 import { MarkdownEditor } from 'src/components/markdown';
+import { Ajax } from 'src/libs/ajax';
 import { canEditWorkspace } from 'src/libs/workspace-utils';
 import { WorkspaceDescription } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceDescription';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils'; // renderWithAppContexts as render
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+
+jest.mock('src/libs/error');
+
+type AjaxContract = ReturnType<typeof Ajax>;
+
+jest.mock('src/libs/ajax', () => ({
+  Ajax: jest.fn(),
+}));
 
 jest.mock('src/libs/notifications');
 
@@ -112,5 +122,46 @@ describe('WorkspaceDescription', () => {
       }),
       expect.any(Object)
     );
+  });
+
+  xit('saves the description when the button is pressed', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    asMockedFn(canEditWorkspace).mockReturnValue({ value: true });
+    const props = {
+      workspace: _.merge(defaultGoogleWorkspace, { workspace: { attributes: { description: undefined } } }),
+      refreshWorkspace: jest.fn(),
+    };
+    const mockShallowMergeNewAttributes = jest.fn().mockResolvedValue({});
+    asMockedFn(Ajax).mockReturnValue({
+      Workspaces: {
+        workspace: jest.fn().mockReturnValue({
+          shallowMergeNewAttributes: mockShallowMergeNewAttributes,
+        }),
+      },
+    } as DeepPartial<AjaxContract> as AjaxContract);
+    const newDescription = 'the description the user edited';
+
+    let onChange;
+    asMockedFn(MarkdownEditor).mockImplementation((props) => {
+      onChange = props.onChange;
+      return div();
+    });
+
+    // Act
+    render(h(WorkspaceDescription, props));
+
+    const editButton = screen.getByLabelText('Edit description');
+    await user.click(editButton);
+
+    await act(() => {
+      onChange(newDescription);
+    });
+    const saveButton = screen.getByText('Save');
+    await act(async () => {
+      await user.click(saveButton);
+    });
+    // Assert
+    expect(mockShallowMergeNewAttributes).toHaveBeenCalledWith({ description: newDescription });
   });
 });
