@@ -11,6 +11,8 @@ import { WorkspaceDescription } from 'src/pages/workspaces/workspace/Dashboard/W
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
+jest.mock('src/libs/error');
+
 type AjaxContract = ReturnType<typeof Ajax>;
 
 jest.mock('src/libs/ajax', () => ({
