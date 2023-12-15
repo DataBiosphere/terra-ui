@@ -40,7 +40,7 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
     } finally {
       setEditedDescription(undefined);
     }
-  }) as (description?: string) => Promise<void>;
+  });
 
   return h(Fragment, [
     div({ style: Style.dashboard.header }, [
