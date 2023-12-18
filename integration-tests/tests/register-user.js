@@ -1,20 +1,21 @@
 const { withUser } = require('../utils/integration-helpers');
 const {
-  fillIn,
-  findText,
+  Millis,
+  assertLabelledTextInputValue,
+  checkbox,
   click,
   clickable,
+  delay,
+  fillIn,
+  findText,
+  getLabelledTextInputValue,
   input,
+  label,
   signIntoTerra,
   verifyAccessibility,
-  label,
-  getLabelledTextInputValue,
-  assertLabelledTextInputValue,
-  delay,
-  waitForNoSpinners,
-  waitForNoModal,
-  checkbox,
   waitForModal,
+  waitForNoModal,
+  waitForNoSpinners,
 } = require('../utils/integration-utils');
 const { fillInReplace, gotoPage } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -60,7 +61,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   // Matches transition durations in ModalDrawer.
   await delay(200);
 
-  await findText(page, 'Integration Test');
+  await findText(page, 'Integration Test', { timeout: Millis.ofMinute });
   await click(page, clickable({ textContains: 'Integration Test' }));
   // Wait for user menu to open.
   // Matches transition duration on .ReactCollapse--collapse in style.css.

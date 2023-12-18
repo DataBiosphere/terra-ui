@@ -10,7 +10,7 @@ import {
   GooglePdType,
   googlePdTypes,
   PersistentDisk,
-  RawPersistentDisk,
+  RawListDiskItem,
 } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
@@ -38,11 +38,12 @@ export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType =>
      */
   ) as GooglePdType; // TODO: Remove cast
 
-export const updatePdType = (disk: RawPersistentDisk): PersistentDisk => ({
+export const updatePdType = <T extends RawListDiskItem>(disk: T): T & { diskType: GooglePdType } => ({
   ...disk,
   diskType: pdTypeFromDiskType(disk.diskType),
 });
-export const mapToPdTypes = (disks: RawPersistentDisk[]): PersistentDisk[] => _.map(updatePdType, disks);
+export const mapToPdTypes = <T extends RawListDiskItem>(disks: T[]): (T & { diskType: GooglePdType })[] =>
+  _.map(updatePdType, disks);
 
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 150;
@@ -124,8 +125,8 @@ export const getCurrentAppDataDisk = (
 // TODO: can this just take current runtime>runtimes?
 // what is the significance of of the filter on ` !_.includes(id, attachedIds)`?
 export const getCurrentPersistentDisk = (
-  runtimes: Runtime[],
-  persistentDisks: PersistentDisk[]
+  runtimes: Runtime[] | undefined,
+  persistentDisks: PersistentDisk[] | undefined
 ): PersistentDisk | undefined => {
   const currentRuntime = getCurrentRuntime(runtimes);
   const id: number | undefined = _.get('persistentDiskId', currentRuntime?.runtimeConfig);

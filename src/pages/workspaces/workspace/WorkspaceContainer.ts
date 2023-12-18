@@ -1,28 +1,24 @@
 import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { PropsWithChildren, ReactNode, Ref, useEffect, useRef, useState } from 'react';
-import { br, div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
+import { AnalysesData } from 'src/analysis/Analyses';
 import AnalysisNotificationManager from 'src/analysis/AnalysisNotificationManager';
 import { ContextBar } from 'src/analysis/ContextBar';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import TitleBar from 'src/components/TitleBar';
 import TopBar from 'src/components/TopBar';
-import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { azureControlledAccessRequestMessage, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { AppDetails, useAppPolling } from 'src/pages/workspaces/hooks/useAppPolling';
-import {
-  CloudEnvironmentDetails,
-  useCloudEnvironmentPolling,
-} from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
+import { azureControlledAccessRequestMessage, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import { useAppPolling } from 'src/pages/workspaces/hooks/useAppPolling';
+import { useCloudEnvironmentPolling } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
 import { useSingleWorkspaceDeletionPolling } from 'src/pages/workspaces/hooks/useDeletionPolling';
 import {
   InitializedWorkspaceWrapper as Workspace,
@@ -35,24 +31,6 @@ import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWork
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
-
-const TitleBarWarning = (props: PropsWithChildren): ReactNode => {
-  return h(TitleBar, {
-    title: div(
-      {
-        role: 'alert',
-        style: { display: 'flex', alignItems: 'center', margin: '1rem' },
-      },
-      [
-        icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
-        span({ style: { color: colors.dark(), fontSize: 14 } }, [props.children]),
-      ]
-    ),
-    style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
-    onDismiss: () => {},
-    hideCloseButton: true,
-  });
-};
 
 const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {
@@ -75,13 +53,6 @@ const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
   });
 };
 
-const AzureWarning = (): ReactNode => {
-  const warningMessage = [
-    'Do not store Unclassified Confidential Information in this platform, as it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.',
-  ];
-  return h(TitleBarWarning, warningMessage);
-};
-
 const GooglePermissionsSpinner = (): ReactNode => {
   const warningMessage = ['Terra synchronizing permissions with Google. This may take a couple moments.'];
 
@@ -94,7 +65,7 @@ interface WorkspaceContainerProps extends PropsWithChildren {
   breadcrumbs: ReactNode[];
   title: string;
   activeTab?: string;
-  analysesData: AppDetails & CloudEnvironmentDetails;
+  analysesData: AnalysesData;
   storageDetails: StorageDetails;
   refresh: () => Promise<void>;
   workspace: Workspace;
@@ -139,27 +110,6 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
         h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [title || `${namespace}/${name}`]),
       ]),
       div({ style: { flexGrow: 1 } }),
-      isTerra() &&
-        h(
-          Link,
-          {
-            href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
-            style: {
-              backgroundColor: colors.light(),
-              borderRadius: 4,
-              margin: '0 0.5rem',
-              padding: '0.4rem 0.8rem',
-              display: 'flex',
-              alignItems: 'center',
-              flexShrink: 0,
-            },
-            ...Utils.newTabLinkProps,
-          },
-          [
-            icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
-            div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools']),
-          ]
-        ),
       h(AnalysisNotificationManager, { namespace, name, runtimes, apps }),
     ]),
     h(WorkspaceTabs, {
@@ -175,7 +125,6 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
       setShowLockWorkspaceModal,
     }),
     h(WorkspaceDeletingBanner, { workspace }),
-    workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
     isGoogleWorkspaceSyncing && h(GooglePermissionsSpinner),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [
       div({ style: { flex: 1, display: 'flex' } }, [
@@ -270,7 +219,7 @@ export interface WrappedComponentProps {
   name: string;
   workspace: Workspace;
   refreshWorkspace: () => void;
-  analysesData: AppDetails & CloudEnvironmentDetails;
+  analysesData: AnalysesData;
   storageDetails: StorageDetails;
 }
 
@@ -309,7 +258,7 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
         namespace,
         workspace
       );
-      const { apps, refreshApps } = useAppPolling(name, namespace, workspace);
+      const { apps, refreshApps, lastRefresh } = useAppPolling(name, namespace, workspace);
 
       if (accessError) {
         return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)]);
@@ -325,7 +274,7 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
           refreshWorkspace,
           title: _.isFunction(title) ? title(props) : title,
           breadcrumbs: breadcrumbs(props),
-          analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+          analysesData: { apps, refreshApps, lastRefresh, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
           storageDetails,
           refresh: async () => {
             await refreshWorkspace();
@@ -340,7 +289,15 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
               ref: child,
               workspace,
               refreshWorkspace,
-              analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+              analysesData: {
+                apps,
+                refreshApps,
+                lastRefresh,
+                runtimes,
+                refreshRuntimes,
+                appDataDisks,
+                persistentDisks,
+              },
               storageDetails,
               ...props,
             }),

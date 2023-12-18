@@ -10,7 +10,11 @@ import { authStore, getSessionId, getTerraUser, MetricState, metricStore } from 
 import { v4 as uuid } from 'uuid';
 
 export const Metrics = (signal?: AbortSignal) => {
-  const captureEventFn = async (event: MetricsEventName, details: Record<string, any> = {}): Promise<void> => {
+  const captureEventFn = async (
+    event: MetricsEventName,
+    details: Record<string, any> = {},
+    refreshAppcues = true
+  ): Promise<void> => {
     await ensureAuthSettled();
     const metricState: MetricState = metricStore.get();
     const { signInStatus } = authStore.get();
@@ -24,6 +28,13 @@ export const Metrics = (signal?: AbortSignal) => {
         anonymousId: uuid(),
       }));
     }
+
+    // Send event to Appcues and refresh Appcues state
+    window.Appcues?.track(event);
+    if (refreshAppcues) {
+      window.Appcues?.page();
+    }
+
     const { buildTimestamp, gitRevision, terraDeploymentEnv } = getConfig();
     const signedInProps =
       isRegistered || signInStatus === 'authenticated'

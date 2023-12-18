@@ -3,6 +3,7 @@ const { JWT } = require('google-auth-library');
 const fetch = require('node-fetch');
 const { getSecrets, lyleUrl } = require('./integration-config');
 
+// Generates a JWT using a lyle SA Key
 const makeAuthClient = _.once(async () => {
   const { lyleKey } = await getSecrets();
   const { client_email: email, private_key: key } = JSON.parse(lyleKey);
@@ -14,16 +15,24 @@ const makeAuthClient = _.once(async () => {
   });
 });
 
+// HTTP client for the lyle service; manages lyle url and header boilerplate
 const fetchLyle = async (path, email) => {
   const url = `${lyleUrl}/api/${path}`;
-  const authClient = await makeAuthClient();
+  const { lyleToken } = await getSecrets();
+  // only try to get the JWT if no token exists
+  const authClient = lyleToken == null ? await makeAuthClient() : null;
+
+  // there's some formatting differences between the getRequestHeaders and the token as provided by GHA auth.
+  // getRequestHeaders uses the lyle JWT to grab an id token
+  const bearerToken = lyleToken == null ? await authClient.getRequestHeaders(url) : { Authorization: `Bearer ${lyleToken}` };
 
   try {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(await authClient.getRequestHeaders(url)) },
+      headers: { 'Content-Type': 'application/json', ...bearerToken },
       body: JSON.stringify({ email }),
     });
+
     console.log(`fetchLyle: POST ${res.status} ${url}`);
     if (res.ok) {
       return res.json();

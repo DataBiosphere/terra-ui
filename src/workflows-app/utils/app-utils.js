@@ -1,3 +1,5 @@
+import { icon } from '@terra-ui-packages/components';
+import { div } from 'react-hyperscript-helpers';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -139,3 +141,10 @@ export const cromwellLinkProps = ({ cloudProvider, namespace, name, app }) => {
     ),
   };
 };
+
+export const analysesDataInitialized = (analysesData) => {
+  return analysesData?.lastRefresh !== undefined && analysesData?.lastRefresh !== null && analysesData?.lastRefresh !== 0;
+};
+
+export const loadingYourWorkflowsApp = () =>
+  div({ style: { marginTop: '2rem' } }, [icon('loadingSpinner'), ' Loading your Workflows app, this may take a few minutes.']);

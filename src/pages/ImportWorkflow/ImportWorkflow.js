@@ -10,6 +10,7 @@ import WDLViewer from 'src/components/WDLViewer';
 import importBackground from 'src/images/hex-import-background.svg';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
+import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -68,7 +69,10 @@ export const ImportWorkflow = ({ path, version, source }) => {
   const signal = useCancellation();
   const { wdl, status: wdlStatus } = useDockstoreWdl({ path, version, isTool: source === 'dockstoretools' });
 
-  const importToAzureCromwellApp = async (workspaceId, namespace, name) => {
+  const { captureEvent } = useMetricsEvent();
+
+  const importToAzureCromwellApp = async (workspace) => {
+    const { name, namespace, workspaceId } = workspace;
     const appUrls = await Apps(signal)
       .listAppsV2(workspaceId)
       .then((apps) => resolveRunningCromwellAppUrl(apps, getTerraUser()?.email));
@@ -83,6 +87,15 @@ export const ImportWorkflow = ({ path, version, source }) => {
         method_input_mappings: [],
         method_output_mappings: [],
       };
+
+      captureEvent(Events.workflowsAppImport, {
+        ...extractWorkspaceDetails(workspace),
+        workflowSource: MethodSource.Dockstore,
+        workflowName,
+        workflowUrl: path,
+        importPage: 'ImportWorkflow',
+      });
+
       const res = await Ajax(signal).Cbas.methods.post(appUrls.cbasUrl, postRequestBody);
       const methodId = res.method_id;
 
@@ -98,7 +111,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
     Utils.withBusyState(setIsBusy),
     withErrorReporting('Error importing workflow')
   )(async (workspace, options = {}) => {
-    const { name, namespace, workspaceId } = workspace;
+    const { name, namespace } = workspace;
     const eventData = { source, ...extractWorkspaceDetails(workspace) };
 
     setConfirmOverwriteInWorkspace(undefined);
@@ -119,7 +132,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
           throw new Error('Currently only a workspace creator can import workflow to their Azure workspace.');
         }
 
-        await importToAzureCromwellApp(workspaceId, namespace, name);
+        await importToAzureCromwellApp(workspace);
       }
     } catch (error) {
       if (error.status === 409) {

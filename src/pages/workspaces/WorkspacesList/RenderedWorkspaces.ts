@@ -22,8 +22,10 @@ import * as Utils from 'src/libs/utils';
 import {
   canRead,
   getCloudProviderFromWorkspace,
+  isGoogleWorkspace,
   workspaceAccessLevels,
   WorkspaceInfo,
+  WorkspacePolicy,
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
 import { WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceMenu';
@@ -380,11 +382,22 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
     return null;
   }
   const getWorkspace = (id: string): Workspace => _.find({ workspace: { workspaceId: id } }, props.workspaces)!;
+  const extendWorkspace = (workspaceId: string, policies?: WorkspacePolicy[], bucketName?: string): Workspace => {
+    // The workspaces from the list API have fewer properties to keep the payload as small as possible.
+    const listWorkspace = getWorkspace(workspaceId);
+    const extendedWorkspace = policies === undefined ? listWorkspace : { ...listWorkspace, policies };
+    if (bucketName !== undefined && isGoogleWorkspace(extendedWorkspace)) {
+      extendedWorkspace.workspace.bucketName = bucketName;
+    }
+    return extendedWorkspace;
+  };
 
-  const onClone = () => setUserActions({ cloningWorkspaceId: workspaceId });
+  const onClone = (policies, bucketName) =>
+    setUserActions({ cloningWorkspace: extendWorkspace(workspaceId, policies, bucketName) });
   const onDelete = () => setUserActions({ deletingWorkspaceId: workspaceId });
   const onLock = () => setUserActions({ lockingWorkspaceId: workspaceId });
-  const onShare = (policies) => setUserActions({ sharingWorkspace: { ...getWorkspace(workspaceId), policies } });
+  const onShare = (policies, bucketName) =>
+    setUserActions({ sharingWorkspace: extendWorkspace(workspaceId, policies, bucketName) });
   const onLeave = () => setUserActions({ leavingWorkspaceId: workspaceId });
 
   return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [

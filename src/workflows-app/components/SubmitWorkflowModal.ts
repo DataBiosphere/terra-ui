@@ -22,7 +22,7 @@ import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { MethodVersion, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { InputDefinition, OutputDefinition } from 'src/workflows-app/models/submission-models';
 import { loadAppUrls } from 'src/workflows-app/utils/app-utils';
-import { convertArrayType } from 'src/workflows-app/utils/submission-utils';
+import { convertInputTypes } from 'src/workflows-app/utils/submission-utils';
 
 type SubmitWorkflowModalProps = {
   method: WorkflowMethod;
@@ -71,7 +71,7 @@ export const SubmitWorkflowModal = ({
       run_set_name: runSetName,
       run_set_description: runSetDescription,
       method_version_id: methodVersion.method_version_id,
-      workflow_input_definitions: _.map(convertArrayType, inputDefinition),
+      workflow_input_definitions: _.map(convertInputTypes, inputDefinition),
       workflow_output_definitions: outputDefinition,
       wds_records: {
         record_type: recordType,

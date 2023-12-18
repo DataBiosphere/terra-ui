@@ -4,6 +4,7 @@ import { getConfig } from 'src/libs/config';
 import { runSetOutputDef, runSetOutputDefEmpty, runSetOutputDefFilled, runSetOutputDefWithDefaults } from 'src/workflows-app/utils/mock-responses';
 import {
   autofillOutputDef,
+  convertInputTypes,
   convertToPrimitiveType,
   getDuration,
   inputTypeStyle,
@@ -571,6 +572,91 @@ describe('typeMatch', () => {
     expect(typeMatch(primitive(cbas), arrayWDS(wds))).toBe(cbas === 'String');
     // Otherwise arrays should typematch the same as if comparing their children
     expect(typeMatch(array(primitive(cbas)), arrayWDS(wds))).toBe(shouldMatch);
+  });
+});
+
+describe('convertInputTypes', () => {
+  const testCases = [
+    [{ type: 'primitive', primitive_type: 'Int' }, '1', 1],
+    [{ type: 'primitive', primitive_type: 'Float' }, '1.1', 1.1],
+    [{ type: 'primitive', primitive_type: 'Boolean' }, 'true', true],
+    [{ type: 'primitive', primitive_type: 'String' }, 'foo', 'foo'],
+    [{ type: 'primitive', primitive_type: 'File' }, 'foo', 'foo'],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } }, '[]', []],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } }, '1', [1]],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } }, '[1]', [1]],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } }, '["1"]', [1]],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } }, '[1, 2]', [1, 2]],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'Float' } }, '1.1', [1.1]],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'Float' } }, '[1.1]', [1.1]],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'Float' } }, '[1.1, 2.2]', [1.1, 2.2]],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'Boolean' } }, 'true', [true]],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'Boolean' } }, '[true]', [true]],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'Boolean' } }, '[true, false]', [true, false]],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } }, 'foo', ['foo']],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } }, '["foo", "bar"]', ['foo', 'bar']],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } }, '[foo, bar]', ['[foo, bar]']],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'File' } }, 'foo', ['foo']],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'File' } }, '["foo", "bar"]', ['foo', 'bar']],
+    [{ type: 'array', array_type: { type: 'primitive', primitive_type: 'File' } }, '[foo, bar]', ['[foo, bar]']],
+  ];
+
+  test.each(testCases)('Input type %o converts value %o to %o', (inputType, inputValue, outputValue) => {
+    const expectedOutput = {
+      input_type: inputType,
+      source: {
+        type: 'literal',
+        parameter_value: outputValue,
+      },
+    };
+    expect(convertInputTypes({ input_type: inputType, source: { type: 'literal', parameter_value: inputValue } })).toStrictEqual(expectedOutput);
+    expect(convertInputTypes({ input_type: optional(inputType), source: { type: 'literal', parameter_value: inputValue } })).toStrictEqual({
+      ...expectedOutput,
+      input_type: optional(inputType),
+    });
+  });
+
+  test('should convert fields inside structs', () => {
+    const fields = [
+      { input: '1', output: 1 },
+      { input: '1.1', output: 1.1 },
+      { input: 'true', output: true },
+      { input: 'foo', output: 'foo' },
+      { input: 'foo', output: 'foo' },
+      { input: '["foo", "bar"]', output: ['foo', 'bar'] },
+    ];
+    const inputFieldTypes = [
+      { field_name: 'int', field_type: { type: 'primitive', primitive_type: 'Int' } },
+      { field_name: 'float', field_type: { type: 'primitive', primitive_type: 'Float' } },
+      { field_name: 'bool', field_type: { type: 'primitive', primitive_type: 'Boolean' } },
+      { field_name: 'str', field_type: { type: 'primitive', primitive_type: 'String' } },
+      { field_name: 'file', field_type: { type: 'primitive', primitive_type: 'File' } },
+      { field_name: 'arr[str]', field_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } } },
+    ];
+    const input = {
+      input_type: {
+        type: 'struct',
+        fields: inputFieldTypes,
+      },
+      source: {
+        type: 'object_builder',
+        fields: fields.map((field, idx) => ({ name: inputFieldTypes[idx], source: { type: 'literal', parameter_value: field.input } })),
+      },
+    };
+    const expectedOutput = {
+      ...input,
+      source: {
+        type: 'object_builder',
+        fields: fields.map((field, idx) => ({ name: inputFieldTypes[idx], source: { type: 'literal', parameter_value: field.output } })),
+      },
+    };
+    expect(convertInputTypes(input)).toStrictEqual(expectedOutput);
+  });
+
+  test('should not convert record lookup inputs', () => {
+    expect(
+      convertInputTypes({ input_type: { type: 'primitive', primitive_type: 'Int' }, source: { type: 'record_lookup', record_attribute: 'foo' } })
+    ).toStrictEqual({ input_type: { type: 'primitive', primitive_type: 'Int' }, source: { type: 'record_lookup', record_attribute: 'foo' } });
   });
 });
 

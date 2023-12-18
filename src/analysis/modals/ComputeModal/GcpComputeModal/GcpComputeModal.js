@@ -719,7 +719,7 @@ export const GcpComputeModalBase = ({
   const isDifferentLocation = () => {
     if (isLocationMultiRegion(location)) {
       // For a US multi-regional bucket, the computeRegion needs to be US-CENTRAL1 in order to be considered "in the same location".
-      // Currently, US is the only multi-region supported in Terra
+      // Currently, multi-regions can only be selected via the API (not presented as an option in Terra).
       return computeConfig.computeRegion !== defaultComputeRegion;
     }
     // If the bucket is regional, we can easily compare the bucketLocation with the compute region.

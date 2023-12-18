@@ -145,11 +145,14 @@ export const signIn = async (includeBillingScope = false): Promise<OidcUser> => 
   authStore.update((state) => ({ ...state, userJustSignedIn: true }));
   const authTokenState: AuthTokenState = await loadAuthToken({ includeBillingScope, popUp: true });
   if (authTokenState.status === 'success') {
-    const sessionId = uuid();
-    const sessionStartTime: number = Date.now();
     authStore.update((state) => ({
       ...state,
       hasGcpBillingScopeThroughB2C: includeBillingScope,
+    }));
+    const sessionId = uuid();
+    const sessionStartTime: number = Date.now();
+    metricStore.update((state) => ({
+      ...state,
       sessionId,
       sessionStartTime,
     }));
@@ -507,7 +510,21 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
 // extending Window interface to access Appcues
 declare global {
   interface Window {
-    Appcues: any;
+    Appcues?: {
+      /** Identifies the current user with an ID and an optional set of properties. */
+      identify: (userId: string, properties?: any) => void;
+      /** Notifies the SDK that the state of the application has changed. */
+      page: () => void;
+      /** Forces specific Appcues content to appear for the current user by passing in the ID. */
+      show: (contentId: string) => void;
+      /** Fire the callback function when the given event is triggered by the SDK */
+      on: ((eventName: Exclude<string, 'all'>, callbackFn: (event: any) => void | Promise<void>) => void) &
+        ((eventName: 'all', callbackFn: (eventName: string, event: any) => void | Promise<void>) => void);
+      /** Clears all known information about the current user in this session */
+      reset: () => void;
+      /** Tracks a custom event (by name) taken by the current user. */
+      track: (eventName: MetricsEventName) => void;
+    };
     forceSignIn: any;
   }
 }
@@ -516,7 +533,7 @@ authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
-        window.Appcues.identify(userStore.get().terraUser.id, {
+        window.Appcues.identify(userStore.get().terraUser.id!, {
           dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime(),
         });
         window.Appcues.on('all', captureAppcuesEvent);
@@ -657,7 +674,9 @@ authStore.subscribe(
 );
 
 authStore.subscribe((state: AuthState, oldState: AuthState) => {
-  if (oldState.signInStatus === 'userLoaded' && state.signInStatus !== 'userLoaded') {
+  const isSignedOut = state.signInStatus === 'signedOut';
+  const wasSignedIn = oldState.signInStatus !== 'signedOut';
+  if (wasSignedIn && isSignedOut) {
     workspaceStore.reset();
     workspacesStore.reset();
     asyncImportJobStore.reset();
