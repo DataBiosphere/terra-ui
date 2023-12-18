@@ -450,7 +450,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     // Assert
     const menuItem = screen.getByText('Clone');
     await user.click(menuItem);
-    expect(onClone).toBeCalledWith([], 'fc-bucketname');
+    expect(onClone).toBeCalledWith([], 'fc-bucketname', descriptionText);
   });
 
   it('passes onClone the policies for an Azure workspace', async () => {
@@ -469,7 +469,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     // Assert
     const menuItem = screen.getByText('Clone');
     await user.click(menuItem);
-    expect(onClone).toBeCalledWith([protectedDataPolicy], undefined);
+    expect(onClone).toBeCalledWith([protectedDataPolicy], undefined, descriptionText);
   });
 
   it('passes onShare the bucketName for a Google workspace', async () => {
@@ -508,24 +508,5 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     const menuItem = screen.getByText('Share');
     await user.click(menuItem);
     expect(onShare).toBeCalledWith([protectedDataPolicy], undefined);
-  });
-
-  it('passes onShare the workspace description for a Google workspace', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    asMockedFn(useWorkspaceDetails).mockReturnValue({
-      // @ts-expect-error - the type checker thinks workspace is only of type undefined
-      workspace: googleWorkspace,
-      refresh: jest.fn(),
-      loading: false,
-    });
-
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps));
-
-    // Assert
-    const menuItem = screen.getByText('Share');
-    await user.click(menuItem);
-    expect(onShare).toBeCalledWith([], 'fc-bucketname', descriptionText);
   });
 });
