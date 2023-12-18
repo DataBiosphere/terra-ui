@@ -54,6 +54,59 @@ describe('The WorkspacesListTabs component', () => {
     expect(renderedAzureWS).toHaveLength(0);
   });
 
+  it('should show the count of workspaces', () => {
+    // Arrange
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultAzureWorkspace, defaultGoogleWorkspace],
+      public: [defaultGoogleWorkspace],
+      newAndInteresting: [],
+      featured: [],
+    };
+    asMockedFn(useRoute).mockImplementation(() => ({ params: {}, query: { tab: 'public' } }));
+
+    // Act
+    render(
+      h(WorkspacesListTabs, {
+        workspaces,
+        refreshWorkspaces: jest.fn(),
+        loadingWorkspaces: false,
+        loadingSubmissionStats: false,
+      })
+    );
+
+    // Assert
+    screen.getByText('MY WORKSPACES (2)');
+    screen.getByText('PUBLIC (1)');
+  });
+
+  it('should update the count of workspaces after filtering', () => {
+    // Arrange
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultAzureWorkspace, defaultGoogleWorkspace],
+      public: [defaultGoogleWorkspace],
+      newAndInteresting: [],
+      featured: [],
+    };
+    asMockedFn(useRoute).mockImplementation(() => ({
+      params: {},
+      query: { tab: 'public', filter: defaultAzureWorkspace.workspace.name },
+    }));
+
+    // Act
+    render(
+      h(WorkspacesListTabs, {
+        workspaces,
+        refreshWorkspaces: jest.fn(),
+        loadingWorkspaces: false,
+        loadingSubmissionStats: false,
+      })
+    );
+
+    // Assert
+    screen.getByText('MY WORKSPACES (1)');
+    screen.getByText('PUBLIC (0)');
+  });
+
   it('should default to the myWorkspaces tab', () => {
     // Arrange
     const workspaces: CategorizedWorkspaces = {
@@ -109,7 +162,7 @@ describe('The WorkspacesListTabs component', () => {
     expect(refreshWorkspaces).toHaveBeenCalled();
   });
 
-  it('switches to an intactive tab when clicked', () => {
+  it('switches to an inactive tab when clicked', () => {
     // Arrange
     const workspaces: CategorizedWorkspaces = {
       myWorkspaces: [defaultAzureWorkspace],
