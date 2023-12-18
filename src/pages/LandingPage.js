@@ -81,7 +81,7 @@ const makeDocLinks = _.map(({ link, text }) =>
   ])
 );
 
-const LandingPage = () => {
+export const LandingPage = () => {
   const { signInStatus } = useStore(authStore);
   const [billingProjects, setBillingProjects] = useState();
   const signal = useCancellation();

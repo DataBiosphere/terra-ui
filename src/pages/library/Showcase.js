@@ -147,7 +147,7 @@ const WorkspaceCard = ({ workspace }) => {
   );
 };
 
-const Showcase = () => {
+export const Showcase = () => {
   const stateHistory = StateHistory.get();
   const [fullList, setFullList] = useState(stateHistory.featuredWorkspaces);
 

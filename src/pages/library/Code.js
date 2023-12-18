@@ -133,7 +133,7 @@ const getFeaturedMethods = async (signal) => {
   )(featuredMethods);
 };
 
-const Code = () => {
+export const Code = () => {
   const signal = useCancellation();
   const [featuredMethods, setFeaturedMethods] = useState([]);
   const [loading, setLoading] = useState(false);
