@@ -361,6 +361,8 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 });
 
 describe('DynamicWorkspaceMenuContent fetches specific workspace details', () => {
+  const descriptionText =
+    'This description is longer then two hundred and fifty five characters, to ensure we can test that all two hundred and fifty five characters actually get copied over during a cloning event. If they are not copied over then it is indeed a bug that needs to fail the test. (280chars)';
   const googleWorkspace: GoogleWorkspace = {
     // @ts-expect-error - Limit return values based on what is requested
     workspace: {
@@ -368,6 +370,9 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       bucketName: 'fc-bucketname',
       isLocked: false,
       state: 'Ready',
+      attributes: {
+        description: descriptionText,
+      },
     },
     accessLevel: 'OWNER',
     canShare: true,
@@ -380,13 +385,16 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       cloudPlatform: 'Azure',
       isLocked: false,
       state: 'Ready',
+      attributes: {
+        description: descriptionText,
+      },
     },
     accessLevel: 'OWNER',
     canShare: true,
     policies: [protectedDataPolicy],
   };
 
-  const onClone = jest.fn((_policies, _bucketName) => {});
+  const onClone = jest.fn((_policies, _bucketName, _description) => {});
   const onShare = jest.fn((_policies, _bucketName) => {});
   const namespace = 'test-namespace';
   const name = 'test-name';
@@ -413,6 +421,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       'canShare',
       'policies',
       'workspace.bucketName',
+      'workspace.attributes.description',
       'workspace.cloudPlatform',
       'workspace.isLocked',
       'workspace.state',
@@ -499,5 +508,24 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     const menuItem = screen.getByText('Share');
     await user.click(menuItem);
     expect(onShare).toBeCalledWith([protectedDataPolicy], undefined);
+  });
+
+  it('passes onShare the workspace description for a Google workspace', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: googleWorkspace,
+      refresh: jest.fn(),
+      loading: false,
+    });
+
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps));
+
+    // Assert
+    const menuItem = screen.getByText('Share');
+    await user.click(menuItem);
+    expect(onShare).toBeCalledWith([], 'fc-bucketname', descriptionText);
   });
 });

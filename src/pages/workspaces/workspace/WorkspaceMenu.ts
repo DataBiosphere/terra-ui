@@ -28,7 +28,7 @@ type DynamicWorkspaceInfo = { name: string; namespace: string };
 type WorkspaceInfo = DynamicWorkspaceInfo | LoadedWorkspaceInfo;
 
 interface WorkspaceMenuCallbacks {
-  onClone: (policies?: WorkspacePolicy[], bucketName?: string) => void;
+  onClone: (policies?: WorkspacePolicy[], bucketName?: string, description?: string) => void;
   onShare: (policies?: WorkspacePolicy[], bucketName?: string) => void;
   onLock: () => void;
   onDelete: () => void;
@@ -85,7 +85,7 @@ interface DynamicWorkspaceMenuContentProps {
 /**
  * DynamicWorkspaceInfo is invoked when the name/namespace is passed instead of the derived states.
  * This happens from the list component, which also needs the workspace policies and bucketName for
- * sharing and cloning the workspace.
+ * sharing and cloning the workspace. This is also leveraged to pass the full decription during cloning as well.
  */
 const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) => {
   const {
@@ -97,6 +97,7 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
     'canShare',
     'policies',
     'workspace.bucketName',
+    'workspace.attributes.description',
     'workspace.cloudPlatform',
     'workspace.isLocked',
     'workspace.state',
@@ -113,11 +114,11 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
     },
     // The list component doesn't fetch all the workspace details in order to keep the size of returned payload
     // as small as possible, so we need to pass policies and bucketName for use by the ShareWorkspaceModal
-    // and NewWorkspaceModal (cloning). The dashboard component already has the fields, so it will ignore them.
+    // and NewWorkspaceModal (cloning, this will include the full description). The dashboard component already has the fields, so it will ignore them.
     callbacks: {
       ...callbacks,
       onShare: () => callbacks.onShare(workspace?.policies, bucketName),
-      onClone: () => callbacks.onClone(workspace?.policies, bucketName),
+      onClone: () => callbacks.onClone(workspace?.policies, bucketName, workspace?.workspace?.attributes?.description),
     },
   });
 };
