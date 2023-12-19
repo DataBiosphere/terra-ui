@@ -13,6 +13,7 @@ import {
   OutputDefinition,
   PrimitiveInputType,
   StructInputDefinition,
+  StructInputType,
   WorkflowInputDefinition,
 } from 'src/workflows-app/models/submission-models';
 
@@ -60,7 +61,7 @@ export const getDuration = (state, submissionDate, lastModifiedTimestamp, stateC
     : differenceFromNowInSeconds(submissionDate);
 };
 
-export const parseMethodString = (methodString) => {
+export const parseMethodString = (methodString: string) => {
   const methodNameParts = methodString.split('.');
   return {
     workflow: methodNameParts[0],
@@ -102,9 +103,11 @@ export const inputSourceLabels = {
 export const inputSourceTypes = _.invert(inputSourceLabels);
 
 export const inputTypeParamDefaults = {
-  literal: { parameter_value: '' },
-  record_lookup: { record_attribute: '' },
-  object_builder: { fields: [] },
+  literal: () => ({ parameter_value: '' }),
+  record_lookup: () => ({ record_attribute: '' }),
+  object_builder: (inputType: StructInputType) => ({
+    fields: inputType.fields.map((field) => ({ name: field.field_name, source: { type: 'none' } })),
+  }),
 };
 
 export const isInputOptional = (ioType: InputType): ioType is OptionalInputType => ioType.type === 'optional';
@@ -153,6 +156,10 @@ type IsInputValid =
       type: 'error' | 'info' | 'success';
       message: string;
     };
+
+export type InputValidationWithName = InputValidation & {
+  name: string;
+};
 
 const validateRequiredHasSource = (inputSource: InputSource, inputType: InputType): IsInputValid => {
   if (inputType.type === 'optional') {
@@ -462,7 +469,10 @@ const validateInput = (input: WorkflowInputDefinition, dataTableAttributes): Inp
   return { type: 'none' };
 };
 
-export const validateInputs = (inputDefinition: WorkflowInputDefinition[], dataTableAttributes) =>
+export const validateInputs = (
+  inputDefinition: WorkflowInputDefinition[],
+  dataTableAttributes
+): InputValidationWithName[] =>
   inputDefinition.map((input) => {
     const inputMessage = validateInput(input, dataTableAttributes);
     return { name: 'input_name' in input ? input.input_name : input.field_name, ...inputMessage };

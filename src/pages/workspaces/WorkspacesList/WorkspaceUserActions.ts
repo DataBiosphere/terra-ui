@@ -16,10 +16,10 @@ export interface WorkspaceUserActionsState {
 // TODO: these should be removed in favor of the modal manager once available
 export interface WorkspaceUserActions {
   creatingNewWorkspace: boolean;
-  cloningWorkspaceId?: string;
   deletingWorkspaceId?: string;
   lockingWorkspaceId?: string;
   leavingWorkspaceId?: string;
   requestingAccessWorkspaceId?: string;
   sharingWorkspace?: WorkspaceWrapper;
+  cloningWorkspace?: WorkspaceWrapper;
 }

@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { CSSProperties, useEffect } from 'react';
-import { div, h, span } from 'react-hyperscript-helpers';
+import { div, h, h2, span } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
 import Collapse from 'src/components/Collapse';
 import { Clickable } from 'src/components/common';
@@ -18,6 +18,7 @@ import ImportGithub from 'src/workflows-app/components/ImportGithub';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
 import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
+import { analysesDataInitialized, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
 
 const subHeadersMap = {
@@ -89,7 +90,6 @@ export const WorkflowsAppNavPanel = ({
   signal,
 }: WorkflowsAppNavPanelProps) => {
   const [selectedSubHeader, setSelectedSubHeader] = useQueryParameter('tab');
-
   const { captureEvent } = useMetricsEvent();
 
   useEffect(() => {
@@ -253,6 +253,14 @@ export const WorkflowsAppNavPanel = ({
     ),
     Utils.cond(
       [
+        !analysesDataInitialized(analysesData),
+        () =>
+          div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
+            h2({ style: { marginTop: 0 } }, ['Loading Workflows App']),
+            loadingYourWorkflowsApp(),
+          ]),
+      ],
+      [
         pageReady,
         Utils.switchCase(
           selectedSubHeader,
@@ -284,7 +292,13 @@ export const WorkflowsAppNavPanel = ({
       [
         !pageReady,
         () =>
-          div([h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, launching, disabled: launcherDisabled })]),
+          div([
+            h(WorkflowsAppLauncherCard, {
+              onClick: createWorkflowsApp,
+              launching,
+              disabled: launcherDisabled,
+            }),
+          ]),
       ]
     ),
   ]);

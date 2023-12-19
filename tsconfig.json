@@ -5,6 +5,7 @@
     "allowJs": true,
     "noEmit": true,
     "noImplicitAny": false,
+    "jsx": "react",
     "paths": {
       "react-hyperscript-helpers": ["./types/react-hyperscript-helpers"],
       "src/*": ["./src/*"]

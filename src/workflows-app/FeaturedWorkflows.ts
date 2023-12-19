@@ -19,7 +19,7 @@ import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { ImportWorkflowModal } from 'src/workflows-app/components/ImportWorkflowModal';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { FeaturedWorkflow, featuredWorkflowsData } from 'src/workflows-app/fixtures/featured-workflows';
-import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
+import { doesAppProxyUrlExist, loadAppUrls, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
 
 type FeaturedWorkflowsProps = {
@@ -254,12 +254,7 @@ export const FeaturedWorkflows = ({
 
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
     h2({ style: { marginTop: 0 } }, ['Featured workflows']),
-    !cbasReady || loading
-      ? div({ style: { marginTop: '2rem' } }, [
-          icon('loadingSpinner'),
-          ' Loading your Workflows app, this may take a few minutes.',
-        ])
-      : renderFeaturedWorkflows(),
+    !cbasReady || loading ? loadingYourWorkflowsApp() : renderFeaturedWorkflows(),
     importWorkflowModal &&
       h(ImportWorkflowModal, {
         importLoading,

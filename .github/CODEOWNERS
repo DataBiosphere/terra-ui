@@ -19,18 +19,21 @@
 /src/pages/LandingPage* @DataBiosphere/terra-cobranding
 /src/pages/billing/ @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/workspaces/* @DataBiosphere/broadworkspaces-terra-ui
+/src/pages/workspaces/hooks/* @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/workspaces/migration/* @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/workspaces/workspace/*Dashboard* @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/workspaces/workspace/*Workspace* @DataBiosphere/broadworkspaces-terra-ui
+/src/pages/workspaces/WorkspacesList/* @DataBiosphere/broadworkspaces-terra-ui
 /src/components/*Workspace* @DataBiosphere/broadworkspaces-terra-ui
 /src/components/workspace-utils* @DataBiosphere/broadworkspaces-terra-ui
 /src/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
 /src/workspace-data/ @DataBiosphere/analysisjourneys
 /src/workspaces/ @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/billing-projects.js @DataBiosphere/broadworkspaces-terra-ui
-/integration-tests/tests/janitor.js @DataBiosphere/broadworkspaces-terra-ui
+/integration-tests/tests/delete-orphaned-workspaces.js @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/workspace-dashboard.js @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/run-analysis.js @DataBiosphere/broad-interactive-analysis
+/integration-tests/tests/run-analysis-azure.js @DataBiosphere/broad-interactive-analysis
 /integration-tests/tests/run-rstudio.js @DataBiosphere/broad-interactive-analysis
 /integration-tests/tests/analysis-context-bar.js @DataBiosphere/broad-interactive-analysis
 /integration-tests/tests/export-*-dataset-to-workspace.js @DataBiosphere/data-explorer-eng
