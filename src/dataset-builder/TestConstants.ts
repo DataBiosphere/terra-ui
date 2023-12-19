@@ -1,9 +1,9 @@
 import _ from 'lodash/fp';
 import { DatasetModel, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 
-export const dummyDatasetDetails = (datasetId: string): DatasetModel => ({
+export const dummyDatasetModel = (): DatasetModel => ({
   name: 'AnalytiXIN',
-  id: datasetId,
+  id: '0',
   description:
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br><br>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
   createdDate: new Date().toDateString(),
@@ -50,21 +50,21 @@ export const dummyDatasetDetails = (datasetId: string): DatasetModel => ({
         category: 'Condition',
         conceptCount: 18000,
         participantCount: 12500,
-        root: mockGetConceptForId(100),
+        root: dummyGetConceptForId(100),
       },
       {
         id: 11,
         category: 'Procedure',
         conceptCount: 22500,
         participantCount: 11328,
-        root: mockGetConceptForId(200),
+        root: dummyGetConceptForId(200),
       },
       {
         id: 12,
         category: 'Observation',
         conceptCount: 12300,
         participantCount: 23223,
-        root: mockGetConceptForId(300),
+        root: dummyGetConceptForId(300),
       },
     ],
     featureValueGroups: [
@@ -125,6 +125,6 @@ const dummyConcepts = [
   { id: 303, name: 'Height', count: 100, hasChildren: false },
 ];
 
-export const mockGetConceptForId = (id: number): Concept => {
+export const dummyGetConceptForId = (id: number): Concept => {
   return _.find({ id }, dummyConcepts)!;
 };

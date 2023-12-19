@@ -6,7 +6,6 @@ import { ActionBar } from 'src/components/ActionBar';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TreeGrid } from 'src/components/TreeGrid';
-import { mockGetConceptForId } from 'src/dataset-builder/TestConstants';
 import { SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import { DatasetBuilder } from 'src/libs/ajax/DatasetBuilder';
 
@@ -23,7 +22,7 @@ type ConceptSelectorProps = {
 
 export const ConceptSelector = (props: ConceptSelectorProps) => {
   const { initialRows, title, onCancel, onCommit, actionText, datasetId } = props;
-  const [cart, setCart] = useState<number[]>([]);
+  const [cart, setCart] = useState<Concept[]>([]);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
     const result = await DatasetBuilder().getConcepts(datasetId, concept);
     return result.result;
@@ -48,13 +47,13 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
             width: 710,
             render: (concept) => {
               const [label, iconName]: [string, IconId] = (() => {
-                if (_.contains(concept.id, cart)) {
+                if (_.contains(concept, cart)) {
                   return ['remove', 'minus-circle-red'];
                 }
                 return ['add', 'plus-circle-filled'];
               })();
               return h(Fragment, [
-                h(Link, { 'aria-label': label, onClick: () => setCart(_.xor(cart, [concept.id])) }, [
+                h(Link, { 'aria-label': label, onClick: () => setCart(_.xor(cart, [concept])) }, [
                   icon(iconName, { size: 16 }),
                 ]),
                 div({ style: { marginLeft: 5 } }, [concept.name]),
@@ -72,7 +71,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
       h(ActionBar, {
         prompt: cart.length === 1 ? '1 concept selected' : `${cart.length} concepts selected`,
         actionText,
-        onClick: () => _.flow(_.map(mockGetConceptForId), onCommit)(cart),
+        onClick: () => _.flow(onCommit)(cart),
       }),
   ]);
 };

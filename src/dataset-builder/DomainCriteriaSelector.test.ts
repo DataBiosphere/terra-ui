@@ -7,7 +7,7 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 
 import { cohortEditorState, domainCriteriaSelectorState, newCohort, newCriteriaGroup } from './dataset-builder-types';
 import { DomainCriteriaSelector, toCriteria } from './DomainCriteriaSelector';
-import { dummyDatasetDetails, mockGetConceptForId } from './TestConstants';
+import { dummyDatasetModel, dummyGetConceptForId } from './TestConstants';
 
 type DatasetBuilderExports = typeof import('src/libs/ajax/DatasetBuilder');
 jest.mock('src/libs/ajax/DatasetBuilder', (): DatasetBuilderExports => {
@@ -23,8 +23,8 @@ describe('DomainCriteriaSelector', () => {
   };
   const datasetId = '';
   const getConceptsMock = (mockDatasetResponse as DatasetBuilderContract).getConcepts;
-  const concept = mockGetConceptForId(101);
-  const domainOption = dummyDatasetDetails(datasetId)!.snapshotBuilderSettings!.domainOptions[0];
+  const concept = dummyGetConceptForId(101);
+  const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
   const cohort = newCohort('cohort');
   cohort.criteriaGroups.push(newCriteriaGroup());
   asMockedFn(getConceptsMock).mockResolvedValue({ result: [concept] });

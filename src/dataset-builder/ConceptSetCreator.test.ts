@@ -5,18 +5,17 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { ConceptSetCreator, toConceptSet } from './ConceptSetCreator';
 import { homepageState } from './dataset-builder-types';
-import { dummyDatasetDetails } from './TestConstants';
+import { dummyDatasetModel } from './TestConstants';
 
 describe('ConceptSetCreator', () => {
-  const datasetId = '0';
-  const datasetDetails = dummyDatasetDetails(datasetId);
+  const dataset = dummyDatasetModel();
 
   const renderConceptSetCreator = () => {
     const conceptSetUpdater = jest.fn();
     const onStateChange = jest.fn();
     render(
       h(ConceptSetCreator, {
-        dataset: datasetDetails,
+        dataset,
         onStateChange,
         conceptSetUpdater,
       })
@@ -28,7 +27,7 @@ describe('ConceptSetCreator', () => {
     // Arrange
     renderConceptSetCreator();
     // Assert
-    expect(await screen.findByText(datasetDetails!.snapshotBuilderSettings!.domainOptions[0].root.name)).toBeTruthy();
+    expect(await screen.findByText(dataset!.snapshotBuilderSettings!.domainOptions[0].root.name)).toBeTruthy();
   });
 
   it('updates the builder concept sets on save', async () => {
@@ -42,7 +41,7 @@ describe('ConceptSetCreator', () => {
     // Assert
     expect(onStateChange).toHaveBeenCalledWith(homepageState.new());
     expect(conceptSetUpdater.mock.calls[0][0]([])).toEqual([
-      toConceptSet(datasetDetails!.snapshotBuilderSettings!.domainOptions[0].root),
+      toConceptSet(dataset!.snapshotBuilderSettings!.domainOptions[0].root),
     ]);
   });
 
