@@ -382,18 +382,27 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
     return null;
   }
   const getWorkspace = (id: string): Workspace => _.find({ workspace: { workspaceId: id } }, props.workspaces)!;
-  const extendWorkspace = (workspaceId: string, policies?: WorkspacePolicy[], bucketName?: string): Workspace => {
+  const extendWorkspace = (
+    workspaceId: string,
+    policies?: WorkspacePolicy[],
+    bucketName?: string,
+    description?: string
+  ): Workspace => {
     // The workspaces from the list API have fewer properties to keep the payload as small as possible.
     const listWorkspace = getWorkspace(workspaceId);
     const extendedWorkspace = policies === undefined ? listWorkspace : { ...listWorkspace, policies };
     if (bucketName !== undefined && isGoogleWorkspace(extendedWorkspace)) {
       extendedWorkspace.workspace.bucketName = bucketName;
     }
+
+    if (description !== undefined && extendedWorkspace.workspace.attributes !== undefined) {
+      extendedWorkspace.workspace.attributes.description = description;
+    }
     return extendedWorkspace;
   };
 
-  const onClone = (policies, bucketName) =>
-    setUserActions({ cloningWorkspace: extendWorkspace(workspaceId, policies, bucketName) });
+  const onClone = (policies, bucketName, description) =>
+    setUserActions({ cloningWorkspace: extendWorkspace(workspaceId, policies, bucketName, description) });
   const onDelete = () => setUserActions({ deletingWorkspaceId: workspaceId });
   const onLock = () => setUserActions({ lockingWorkspaceId: workspaceId });
   const onShare = (policies, bucketName) =>
