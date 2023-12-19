@@ -389,8 +389,7 @@ describe('CohortEditor', () => {
     expect(updatedCohort.criteriaGroups[0].criteria).toMatchObject([]);
   });
 
-  function showCohortEditor() {
-    const originalCohort = newCohort('my cohort name');
+  function showCohortEditor(originalCohort = newCohort('my cohort name')) {
     const onStateChange = jest.fn();
     const updateCohorts = jest.fn();
 
@@ -421,6 +420,17 @@ describe('CohortEditor', () => {
     // Assert
     expect(onStateChange).toBeCalledWith(homepageState.new());
     expect(updateCohorts.mock.calls[0][0]([])).toStrictEqual([originalCohort]);
+  });
+
+  it('disables save while a criteria is loading', async () => {
+    // Arrange
+    const criteriaGroup = newCriteriaGroup();
+    criteriaGroup.criteria.push({ loading: true, index: 0 });
+    const cohort = newCohort('test');
+    cohort.criteriaGroups.push(criteriaGroup);
+    showCohortEditor(cohort);
+    // Assert
+    expect(screen.getByText('Save cohort')).toHaveAttribute('disabled');
   });
 
   it('cancels editing a cohort', async () => {
