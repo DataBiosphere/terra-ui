@@ -104,6 +104,11 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
   ]) as { workspace?: Workspace };
   const bucketName = !!workspace && isGoogleWorkspace(workspace) ? workspace.workspace.bucketName : undefined;
 
+  const descriptionText =
+    !!workspace && workspace.workspace.attributes !== undefined
+      ? (workspace.workspace.attributes.description as string)
+      : undefined;
+
   return h(LoadedWorkspaceMenuContent, {
     workspaceInfo: {
       state: workspace?.workspace?.state,
@@ -118,7 +123,7 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
     callbacks: {
       ...callbacks,
       onShare: () => callbacks.onShare(workspace?.policies, bucketName),
-      onClone: () => callbacks.onClone(workspace?.policies, bucketName, workspace?.workspace?.attributes?.description),
+      onClone: () => callbacks.onClone(workspace?.policies, bucketName, descriptionText),
     },
   });
 };

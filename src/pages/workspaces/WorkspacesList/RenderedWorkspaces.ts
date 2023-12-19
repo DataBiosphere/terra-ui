@@ -395,7 +395,7 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
       extendedWorkspace.workspace.bucketName = bucketName;
     }
 
-    if (description !== undefined) {
+    if (description !== undefined && extendedWorkspace.workspace.attributes !== undefined) {
       extendedWorkspace.workspace.attributes.description = description;
     }
     return extendedWorkspace;
