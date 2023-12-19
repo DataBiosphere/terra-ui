@@ -47,10 +47,11 @@ describe('DomainCriteriaSelector', () => {
     await user.click(screen.getByLabelText('add'));
     await user.click(screen.getByText('Add to group'));
     // Assert
+    const expectedCriteria = toCriteria(domainOption)(concept);
+    // Update expected index; need to subtract one so indexes match.
+    expectedCriteria.index -= 1;
     expect(onStateChange).toHaveBeenCalledWith(
-      cohortEditorState.new(
-        _.update('criteriaGroups[0].criteria', () => [toCriteria(domainOption)(concept)], state.cohort)
-      )
+      cohortEditorState.new(_.update('criteriaGroups[0].criteria', () => [expectedCriteria], state.cohort))
     );
   });
 
