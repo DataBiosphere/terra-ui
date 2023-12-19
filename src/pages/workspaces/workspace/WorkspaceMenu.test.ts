@@ -361,6 +361,8 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 });
 
 describe('DynamicWorkspaceMenuContent fetches specific workspace details', () => {
+  const descriptionText =
+    'This description is longer then two hundred and fifty five characters, to ensure we can test that all two hundred and fifty five characters actually get copied over during a cloning event. If they are not copied over then it is indeed a bug that needs to fail the test. (280chars)';
   const googleWorkspace: GoogleWorkspace = {
     // @ts-expect-error - Limit return values based on what is requested
     workspace: {
@@ -368,6 +370,9 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       bucketName: 'fc-bucketname',
       isLocked: false,
       state: 'Ready',
+      attributes: {
+        description: descriptionText,
+      },
     },
     accessLevel: 'OWNER',
     canShare: true,
@@ -380,13 +385,16 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       cloudPlatform: 'Azure',
       isLocked: false,
       state: 'Ready',
+      attributes: {
+        description: descriptionText,
+      },
     },
     accessLevel: 'OWNER',
     canShare: true,
     policies: [protectedDataPolicy],
   };
 
-  const onClone = jest.fn((_policies, _bucketName) => {});
+  const onClone = jest.fn((_policies, _bucketName, _description) => {});
   const onShare = jest.fn((_policies, _bucketName) => {});
   const namespace = 'test-namespace';
   const name = 'test-name';
@@ -413,6 +421,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       'canShare',
       'policies',
       'workspace.bucketName',
+      'workspace.attributes.description',
       'workspace.cloudPlatform',
       'workspace.isLocked',
       'workspace.state',
@@ -425,7 +434,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     expect(workspaceDetails).toHaveBeenCalledWith({ namespace, name }, expectedRequestedFields);
   });
 
-  it('passes onClone the bucketName for a Google workspace', async () => {
+  it('passes onClone the bucketName and description for a Google workspace', async () => {
     // Arrange
     const user = userEvent.setup();
     asMockedFn(useWorkspaceDetails).mockReturnValue({
@@ -441,10 +450,10 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     // Assert
     const menuItem = screen.getByText('Clone');
     await user.click(menuItem);
-    expect(onClone).toBeCalledWith([], 'fc-bucketname');
+    expect(onClone).toBeCalledWith([], 'fc-bucketname', descriptionText);
   });
 
-  it('passes onClone the policies for an Azure workspace', async () => {
+  it('passes onClone the policies and description for an Azure workspace', async () => {
     // Arrange
     const user = userEvent.setup();
     asMockedFn(useWorkspaceDetails).mockReturnValue({
@@ -460,7 +469,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     // Assert
     const menuItem = screen.getByText('Clone');
     await user.click(menuItem);
-    expect(onClone).toBeCalledWith([protectedDataPolicy], undefined);
+    expect(onClone).toBeCalledWith([protectedDataPolicy], undefined, descriptionText);
   });
 
   it('passes onShare the bucketName for a Google workspace', async () => {
