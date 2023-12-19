@@ -434,7 +434,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     expect(workspaceDetails).toHaveBeenCalledWith({ namespace, name }, expectedRequestedFields);
   });
 
-  it('passes onClone the bucketName and decription for a Google workspace', async () => {
+  it('passes onClone the bucketName and description for a Google workspace', async () => {
     // Arrange
     const user = userEvent.setup();
     asMockedFn(useWorkspaceDetails).mockReturnValue({
