@@ -24,6 +24,7 @@ export interface CriteriaApi {
   count?: number;
   loading?: boolean;
 }
+
 export interface DomainCriteriaApi extends CriteriaApi {
   kind: 'domain';
   domainOption: DomainOption;
@@ -59,7 +60,6 @@ export interface CriteriaGroupApi {
   criteria: AnyCriteriaApi[];
   mustMeet: boolean;
   meetAll: boolean;
-  count: number;
 }
 
 export interface CohortApi extends DatasetBuilderType {
@@ -112,10 +112,12 @@ export interface ProgramDataListCriteria extends Criteria, CriteriaApi {
 
 export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
+export type LoadingAnyCriteria = AnyCriteria | { loading: true; index: number };
+
 /** A group of criteria. */
 export interface CriteriaGroup {
   name: string;
-  criteria: (AnyCriteria | { loading: true; index: number })[];
+  criteria: LoadingAnyCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
   count: number;
@@ -171,8 +173,10 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
         name: criteriaGroup.name,
         mustMeet: criteriaGroup.mustMeet,
         meetAll: criteriaGroup.meetAll,
-        count: criteriaGroup.count,
-        criteria: _.map((criteria) => convertCriteria(criteria), criteriaGroup.criteria),
+        criteria: _.flow(
+          _.filter((criteria: AnyCriteria) => !criteria.loading),
+          _.map((criteria) => convertCriteria(criteria))
+        )(criteriaGroup.criteria),
       }),
       cohort.criteriaGroups
     ),
@@ -180,7 +184,7 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
 };
 
 export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
-  const mergeObject = { kind: criteria.kind, name: criteria.name, id: criteria.id };
+  const mergeObject = { kind: criteria.kind, name: criteria.name };
   switch (criteria.kind) {
     case 'range':
       return _.merge(mergeObject, { low: criteria.low, high: criteria.high }) as ProgramDataRangeCriteriaApi;
@@ -323,11 +327,12 @@ export const DatasetBuilder = (): DatasetBuilderContract => {
       switch (programDataOption.kind) {
         case 'list':
           return convertProgramDataOptionToListOption(programDataOption);
-        case 'range':
+        case 'range': {
           const statistics = await Ajax()
             .DataRepo.dataset(datasetId)
             .lookupDatasetColumnStatisticsById(programDataOption.tableName, programDataOption.columnName);
           return convertProgramDataOptionToRangeOption(programDataOption, statistics);
+        }
         default:
           throw new Error('Unexpected option');
       }

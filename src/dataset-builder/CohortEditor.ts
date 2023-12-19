@@ -16,11 +16,10 @@ import {
   Cohort,
   CriteriaGroup,
   DatasetBuilder,
+  LoadingAnyCriteria,
   ProgramDataListCriteria,
-  ProgramDataListOption,
   ProgramDataListValue,
   ProgramDataRangeCriteria,
-  ProgramDataRangeOption,
 } from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
@@ -166,8 +165,8 @@ const createDefaultProgramDataCriteria = async (
 ): Promise<ProgramDataRangeCriteria | ProgramDataListCriteria> => {
   const generatedOptions = await DatasetBuilder().getProgramDataStatistics(datasetId, option);
   switch (generatedOptions.kind) {
-    case 'range':
-      const rangeOption = generatedOptions as ProgramDataRangeOption;
+    case 'range': {
+      const rangeOption = generatedOptions;
       return {
         kind: 'range',
         rangeOption,
@@ -176,8 +175,9 @@ const createDefaultProgramDataCriteria = async (
         low: rangeOption.min,
         high: rangeOption.max,
       };
+    }
     case 'list': {
-      const listOption = generatedOptions as ProgramDataListOption;
+      const listOption = generatedOptions;
       return {
         kind: 'list',
         listOption,
@@ -567,6 +567,12 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
               });
               onStateChange(homepageState.new());
             },
+            // Disable Save if any criteria are still loading.
+            disabled:
+              _.filter(
+                (criteria: LoadingAnyCriteria) => criteria.loading !== undefined && criteria.loading,
+                _.flatMap((group) => group.criteria, cohort.criteriaGroups)
+              ).length !== 0,
           },
           ['Save cohort']
         ),
