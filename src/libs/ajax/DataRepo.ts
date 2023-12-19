@@ -19,7 +19,6 @@ export type SnapshotBuilderDomainOption = {
 
 export interface SnapshotBuilderProgramDataOption {
   kind: 'range' | 'list';
-  id: number;
   name: string;
   tableName: string;
   columnName: string;

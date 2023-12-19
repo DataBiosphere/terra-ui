@@ -11,7 +11,9 @@ import {
 
 /** A specific criteria based on a type. */
 export interface Criteria {
+  index: number;
   count?: number;
+  loading?: boolean;
 }
 
 /** API types represent the data of UI types in the format expected by the backend.
@@ -20,14 +22,11 @@ export interface Criteria {
 export interface CriteriaApi {
   kind: 'domain' | 'range' | 'list';
   name: string;
-  index: number;
   count?: number;
-  loading?: boolean;
 }
 
 export interface DomainCriteriaApi extends CriteriaApi {
   kind: 'domain';
-  domainOption: DomainOption;
   id: number;
 }
 
@@ -174,8 +173,8 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
         mustMeet: criteriaGroup.mustMeet,
         meetAll: criteriaGroup.meetAll,
         criteria: _.flow(
-          _.filter((criteria: AnyCriteria) => !criteria.loading),
-          _.map((criteria) => convertCriteria(criteria))
+          _.filter((criteria: LoadingAnyCriteria) => !criteria.loading),
+          _.map((criteria: AnyCriteria) => convertCriteria(criteria))
         )(criteriaGroup.criteria),
       }),
       cohort.criteriaGroups
@@ -193,7 +192,7 @@ export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
         values: _.map((value) => value.id, criteria.values),
       }) as ProgramDataListCriteriaApi;
     case 'domain':
-      return mergeObject as DomainCriteriaApi;
+      return _.merge(mergeObject, { id: criteria.id }) as DomainCriteriaApi;
     default:
       throw new Error('Criteria not of type range, list, or domain.');
   }
