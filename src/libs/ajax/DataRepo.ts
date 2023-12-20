@@ -173,7 +173,7 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
     getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
       callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
     lookupDatasetColumnStatisticsById: async (tableName, columnName) =>
-      callDataRepo(`repository/v1/datasets/${datasetId}/data/${tableName}/statistics/${columnName}`, signal),
+      callDataRepoPost(`repository/v1/datasets/${datasetId}/data/${tableName}/statistics/${columnName}`, signal, {}),
   }),
   snapshot: (snapshotId) => {
     return {

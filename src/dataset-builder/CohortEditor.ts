@@ -158,11 +158,29 @@ export const getNextCriteriaIndex = () => {
   criteriaCount.set(localCriteriaCount);
   return localCriteriaCount;
 };
-const createDefaultProgramDataCriteria = async (
+
+const addKindToDomainOption = (domainOption: DomainOption): DomainOptionWithKind => ({
+  ...domainOption,
+  kind: 'domain',
+});
+
+interface DomainOptionWithKind extends DomainOption {
+  kind: 'domain';
+}
+
+type CriteriaOption = DomainOptionWithKind | SnapshotBuilderProgramDataOption;
+
+export function criteriaFromOption(
   datasetId: string,
   index: number,
   option: SnapshotBuilderProgramDataOption
-): Promise<ProgramDataRangeCriteria | ProgramDataListCriteria> => {
+): Promise<ProgramDataListCriteria | ProgramDataRangeCriteria>;
+
+export async function criteriaFromOption(
+  datasetId: string,
+  index: number,
+  option: SnapshotBuilderProgramDataOption
+): Promise<ProgramDataRangeCriteria | ProgramDataListCriteria> {
   const generatedOptions = await DatasetBuilder().getProgramDataStatistics(datasetId, option);
   switch (generatedOptions.kind) {
     case 'range': {
@@ -188,40 +206,6 @@ const createDefaultProgramDataCriteria = async (
     }
     default:
       throw new Error('Unknown option');
-  }
-};
-
-const addKindToDomainOption = (domainOption: DomainOption): DomainOptionWithKind => ({
-  ...domainOption,
-  kind: 'domain',
-});
-
-interface DomainOptionWithKind extends DomainOption {
-  kind: 'domain';
-}
-
-type CriteriaOption = DomainOptionWithKind | SnapshotBuilderProgramDataOption;
-
-export function criteriaFromOption(datasetId: string, index: number, option: DomainOptionWithKind): Promise<undefined>;
-export function criteriaFromOption(
-  datasetId: string,
-  index: number,
-  option: SnapshotBuilderProgramDataOption
-): Promise<ProgramDataListCriteria | ProgramDataRangeCriteria>;
-export function criteriaFromOption(datasetId: string, index: number, option: CriteriaOption): Promise<AnyCriteria>;
-
-export async function criteriaFromOption(
-  datasetId: string,
-  index: number,
-  option: CriteriaOption
-): Promise<AnyCriteria | undefined> {
-  switch (option.kind) {
-    case 'list':
-    case 'range':
-      return createDefaultProgramDataCriteria(datasetId, index, option);
-    case 'domain':
-    default:
-      return undefined;
   }
 }
 
@@ -273,10 +257,10 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
       'aria-label': addCriteriaText,
       placeholder: addCriteriaText,
       value: null,
-      onChange: async (x) => {
-        if (x !== null) {
-          if (x.value.kind === 'domain') {
-            onStateChange(domainCriteriaSelectorState.new(cohort, criteriaGroup, x.value));
+      onChange: async (criteriaOption) => {
+        if (criteriaOption !== null) {
+          if (criteriaOption.value.kind === 'domain') {
+            onStateChange(domainCriteriaSelectorState.new(cohort, criteriaGroup, criteriaOption.value));
           } else {
             const criteriaIndex = getNextCriteriaIndex();
             updateCohort(
@@ -285,7 +269,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
                 index: criteriaIndex,
               })
             );
-            const loadedCriteria = await criteriaFromOption(datasetId, criteriaIndex, x.value);
+            const loadedCriteria = await criteriaFromOption(datasetId, criteriaIndex, criteriaOption.value);
 
             if (loadedCriteria !== undefined) {
               updateCohort((cohort) => {
