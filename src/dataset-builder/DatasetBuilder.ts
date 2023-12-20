@@ -672,7 +672,7 @@ const editorBackgroundColor = colors.light(0.7);
 
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const { datasetId, initialState } = props;
-  const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetModel>();
+  const [datasetModel, loadDatasetModel] = useLoadedData<DatasetModel>();
   const [datasetBuilderState, setDatasetBuilderState] = useState<AnyDatasetBuilderState>(
     initialState || homepageState.new()
   );
@@ -681,16 +681,16 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const onStateChange = setDatasetBuilderState;
 
   useOnMount(() => {
-    void loadDatasetDetails(() =>
+    void loadDatasetModel(() =>
       DataRepo()
         .dataset(datasetId)
         .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
     );
   });
-  return datasetDetails.status === 'Ready'
+  return datasetModel.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
-        h(DatasetBuilderHeader, { datasetDetails: datasetDetails.state }),
+        h(DatasetBuilderHeader, { datasetDetails: datasetModel.state }),
         div({ style: { backgroundColor: editorBackgroundColor } }, [
           (() => {
             switch (datasetBuilderState.mode) {
@@ -699,26 +699,26 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   onStateChange,
                   updateCohorts: setCohorts,
                   updateConceptSets: setConceptSets,
-                  dataset: datasetDetails.state,
+                  dataset: datasetModel.state,
                   cohorts,
                   conceptSets,
                 });
               case 'cohort-editor':
-                return datasetDetails.state.snapshotBuilderSettings
+                return datasetModel.state.snapshotBuilderSettings
                   ? h(CohortEditor, {
                       onStateChange,
                       originalCohort: datasetBuilderState.cohort,
-                      snapshotBuilderSettings: datasetDetails.state.snapshotBuilderSettings,
+                      snapshotBuilderSettings: datasetModel.state.snapshotBuilderSettings,
                       updateCohorts: setCohorts,
                     })
                   : div(['No Dataset Builder Settings Found']);
               case 'domain-criteria-selector':
-                return h(DomainCriteriaSelector, { state: datasetBuilderState, onStateChange });
+                return h(DomainCriteriaSelector, { state: datasetBuilderState, onStateChange, datasetId });
               case 'concept-set-creator':
-                return datasetDetails.state.snapshotBuilderSettings
+                return datasetModel.state.snapshotBuilderSettings
                   ? h(ConceptSetCreator, {
                       onStateChange,
-                      snapshotBuilderSettings: datasetDetails.state.snapshotBuilderSettings,
+                      dataset: datasetModel.state,
                       conceptSetUpdater: setConceptSets,
                     })
                   : div(['No Dataset Builder Settings Found']);

@@ -13,6 +13,7 @@ import { OnStateChangeHandler } from './DatasetBuilder';
 interface DomainCriteriaSelectorProps {
   readonly state: DomainCriteriaSelectorState;
   readonly onStateChange: OnStateChangeHandler;
+  readonly datasetId: string;
 }
 
 export const toCriteria =
@@ -29,9 +30,9 @@ export const toCriteria =
 
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
-  const { state, onStateChange } = props;
+  const { state, onStateChange, datasetId } = props;
   useOnMount(() => {
-    void loadRootConcepts(() => DatasetBuilder().getConcepts(state.domainOption.root));
+    void loadRootConcepts(() => DatasetBuilder().getConcepts(datasetId, state.domainOption.root));
   });
   return rootConcepts.status === 'Ready'
     ? h(ConceptSelector, {
@@ -49,6 +50,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
           )(state.cohort);
         },
         actionText: 'Add to group',
+        datasetId,
       })
     : spinnerOverlay;
 };
