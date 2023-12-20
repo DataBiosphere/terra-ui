@@ -4,7 +4,7 @@ import {
   DatasetAccessRequestApi,
   DatasetParticipantCountRequestApi,
   DatasetParticipantCountResponse,
-  GetConceptsResponse
+  GetConceptsResponse,
 } from 'src/libs/ajax/DatasetBuilder';
 
 export type SnapshotBuilderConcept = {
@@ -147,7 +147,6 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotBuilder/count`, signal, request),
     getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
       callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-
   }),
   snapshot: (snapshotId) => {
     return {
