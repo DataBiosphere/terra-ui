@@ -1,6 +1,6 @@
 import * as _ from 'lodash/fp';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
-import { DatasetAccessRequestApi } from 'src/libs/ajax/DatasetBuilder';
+import { DatasetAccessRequestApi, GetConceptsResponse } from 'src/libs/ajax/DatasetBuilder';
 
 export type SnapshotBuilderConcept = {
   id: number;
@@ -105,6 +105,7 @@ export interface DataRepoContract {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
     createSnapshotRequest(request: DatasetAccessRequestApi): Promise<DatasetAccessRequestApi>;
+    getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
@@ -135,6 +136,8 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
     roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
     createSnapshotRequest: async (request): Promise<DatasetAccessRequestApi> =>
       callDataRepoPost(`repository/v1/datasets/${datasetId}/createSnapshotRequest`, signal, request),
+    getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
+      callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
   }),
   snapshot: (snapshotId) => {
     return {

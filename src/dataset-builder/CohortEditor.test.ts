@@ -9,7 +9,7 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';
 import { domainCriteriaSelectorState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
-import { dummyDatasetDetails } from './TestConstants';
+import { dummyDatasetModel } from './TestConstants';
 
 describe('CohortEditor', () => {
   type CriteriaViewPropsOverrides = {
@@ -18,7 +18,7 @@ describe('CohortEditor', () => {
     updateCriteria?: (criteria: AnyCriteria) => void;
   };
 
-  const datasetDetails = dummyDatasetDetails('unused');
+  const datasetDetails = dummyDatasetModel();
   const renderCriteriaView = (propsOverrides: CriteriaViewPropsOverrides) =>
     render(
       h(CriteriaView, {

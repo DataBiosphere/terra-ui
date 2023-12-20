@@ -4,7 +4,7 @@ import { DataRepo, DataRepoContract, DatasetModel } from 'src/libs/ajax/DataRepo
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { DatasetBuilderDetails } from './DatasetBuilderDetails';
-import { dummyDatasetDetails } from './TestConstants';
+import { dummyDatasetModel } from './TestConstants';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -39,7 +39,7 @@ describe('DatasetBuilderDetails', () => {
 
   it('renders', async () => {
     // Arrange
-    mockWithValues(dummyDatasetDetails('id'), ['admin']);
+    mockWithValues(dummyDatasetModel(), ['admin']);
     render(h(DatasetBuilderDetails, { datasetId: 'id' }));
     // Assert
     expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
@@ -48,7 +48,7 @@ describe('DatasetBuilderDetails', () => {
 
   it("renders the 'how to get access' button if discoverer", async () => {
     // Arrange
-    mockWithValues(dummyDatasetDetails('id'), ['snapshot_creator']);
+    mockWithValues(dummyDatasetModel(), ['snapshot_creator']);
     render(h(DatasetBuilderDetails, { datasetId: 'id' }));
     // Assert
     expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
