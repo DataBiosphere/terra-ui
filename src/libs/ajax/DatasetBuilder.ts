@@ -183,15 +183,32 @@ export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessR
   };
 };
 
-type DatasetParticipantCountRequest = {
+export type DatasetParticipantCountRequest = {
   cohorts: Cohort[];
+};
+
+export type DatasetParticipantCountRequestApi = {
+  cohorts: CohortApi[];
+};
+export type DatasetParticipantCountResponse = {
+  result: {
+    total: number;
+  };
+  sql: string;
+};
+
+const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
+  return { cohorts: _.map(convertCohort, request.cohorts) };
 };
 
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetModel>;
   getConcepts: (datasetId: string, parent: Concept) => Promise<GetConceptsResponse>;
   requestAccess: (datasetId: string, request: DatasetAccessRequest) => Promise<DatasetAccessRequestApi>;
-  getParticipantCount: (request: DatasetParticipantCountRequest) => Promise<number>;
+  getParticipantCount: (
+    datasetId: string,
+    request: DatasetParticipantCountRequest
+  ) => Promise<DatasetParticipantCountResponse>;
 }
 export const DatasetBuilder = (): DatasetBuilderContract => ({
   retrieveDataset: async (datasetId) => {
@@ -205,5 +222,7 @@ export const DatasetBuilder = (): DatasetBuilderContract => ({
   requestAccess: async (datasetId, request) => {
     return await Ajax().DataRepo.dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(request));
   },
-  getParticipantCount: (_request) => Promise.resolve(100),
+  getParticipantCount: async (datasetId, request) => {
+    return await Ajax().DataRepo.dataset(datasetId).getCounts(convertDatasetParticipantCountRequest(request));
+  },
 });
