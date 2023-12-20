@@ -18,7 +18,7 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';
 import { domainCriteriaSelectorState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
-import { dummyDatasetDetails } from './TestConstants';
+import { dummyDatasetModel } from './TestConstants';
 
 type DatasetBuilderExports = typeof import('src/libs/ajax/DatasetBuilder');
 jest.mock('src/libs/ajax/DatasetBuilder', (): DatasetBuilderExports => {
@@ -86,7 +86,7 @@ describe('CohortEditor', () => {
     }
   };
 
-  const datasetDetails = dummyDatasetDetails('unused');
+  const datasetDetails = dummyDatasetModel();
   const renderCriteriaView = (propsOverrides: CriteriaViewPropsOverrides) =>
     render(
       h(CriteriaView, {

@@ -1,9 +1,9 @@
-import { DatasetModel } from 'src/libs/ajax/DataRepo';
-import { getConceptForId } from 'src/libs/ajax/DatasetBuilder';
+import _ from 'lodash/fp';
+import { DatasetModel, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 
-export const dummyDatasetDetails = (datasetId: string): DatasetModel => ({
+export const dummyDatasetModel = (): DatasetModel => ({
   name: 'AnalytiXIN',
-  id: datasetId,
+  id: '0',
   description:
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br><br>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
   createdDate: new Date().toDateString(),
@@ -36,21 +36,21 @@ export const dummyDatasetDetails = (datasetId: string): DatasetModel => ({
         category: 'Condition',
         conceptCount: 18000,
         participantCount: 12500,
-        root: getConceptForId(100),
+        root: dummyGetConceptForId(100),
       },
       {
         id: 11,
         category: 'Procedure',
         conceptCount: 22500,
         participantCount: 11328,
-        root: getConceptForId(200),
+        root: dummyGetConceptForId(200),
       },
       {
         id: 12,
         category: 'Observation',
         conceptCount: 12300,
         participantCount: 23223,
-        root: getConceptForId(300),
+        root: dummyGetConceptForId(300),
       },
     ],
     featureValueGroups: [
@@ -86,3 +86,31 @@ export const dummyDatasetDetails = (datasetId: string): DatasetModel => ({
     ],
   },
 });
+
+const dummyConcepts = [
+  // IDs must be unique.
+  { id: 100, name: 'Condition', count: 100, hasChildren: true },
+  { id: 101, name: 'Clinical Finding', count: 100, hasChildren: true },
+  { id: 102, name: 'Disease', count: 100, hasChildren: true },
+  { id: 103, name: 'Disorder by body site', count: 100, hasChildren: false },
+  { id: 104, name: 'Inflammatory disorder', count: 100, hasChildren: false },
+  { id: 105, name: 'Degenerative disorder', count: 100, hasChildren: false },
+  { id: 106, name: 'Metabolic disease', count: 100, hasChildren: false },
+  { id: 107, name: 'Finding by site', count: 100, hasChildren: false },
+  { id: 108, name: 'Neurological finding', count: 100, hasChildren: false },
+
+  { id: 200, name: 'Procedure', count: 100, hasChildren: true },
+  { id: 201, name: 'Procedure', count: 100, hasChildren: true },
+  { id: 202, name: 'Surgery', count: 100, hasChildren: false },
+  { id: 203, name: 'Heart Surgery', count: 100, hasChildren: false },
+  { id: 204, name: 'Cancer Surgery', count: 100, hasChildren: false },
+
+  { id: 300, name: 'Observation', count: 100, hasChildren: true },
+  { id: 301, name: 'Blood Pressure', count: 100, hasChildren: false },
+  { id: 302, name: 'Weight', count: 100, hasChildren: false },
+  { id: 303, name: 'Height', count: 100, hasChildren: false },
+];
+
+export const dummyGetConceptForId = (id: number): Concept => {
+  return _.find({ id }, dummyConcepts)!;
+};

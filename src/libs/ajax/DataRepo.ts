@@ -1,6 +1,11 @@
 import * as _ from 'lodash/fp';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
-import { DatasetAccessRequestApi } from 'src/libs/ajax/DatasetBuilder';
+import {
+  DatasetAccessRequestApi,
+  DatasetParticipantCountRequestApi,
+  DatasetParticipantCountResponse,
+  GetConceptsResponse,
+} from 'src/libs/ajax/DatasetBuilder';
 
 export type SnapshotBuilderConcept = {
   id: number;
@@ -130,6 +135,8 @@ export interface DataRepoContract {
       columnName: string
     ) => Promise<ColumnStatisticsIntOrDoubleModel | ColumnStatisticsTextModel>;
     createSnapshotRequest(request: DatasetAccessRequestApi): Promise<DatasetAccessRequestApi>;
+    getCounts(request: DatasetParticipantCountRequestApi): Promise<DatasetParticipantCountResponse>;
+    getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
@@ -147,10 +154,11 @@ const callDataRepo = async (url: string, signal?: AbortSignal) => {
 };
 
 const callDataRepoPost = async (url: string, signal: AbortSignal | undefined, jsonBodyArg?: object): Promise<any> => {
-  return await fetchDataRepo(
+  const res = await fetchDataRepo(
     url,
     _.mergeAll([authOpts(), jsonBodyArg && jsonBody(jsonBodyArg), { signal, method: 'POST' }])
   );
+  return await res.json();
 };
 
 export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
@@ -160,6 +168,10 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
     roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
     createSnapshotRequest: async (request): Promise<DatasetAccessRequestApi> =>
       callDataRepoPost(`repository/v1/datasets/${datasetId}/createSnapshotRequest`, signal, request),
+    getCounts: async (request): Promise<DatasetParticipantCountResponse> =>
+      callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotBuilder/count`, signal, request),
+    getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
+      callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
     lookupDatasetColumnStatisticsById: async (tableName, columnName) =>
       callDataRepo(`repository/v1/datasets/${datasetId}/data/${tableName}/statistics/${columnName}`, signal),
   }),
