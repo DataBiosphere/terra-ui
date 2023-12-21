@@ -2,9 +2,11 @@ import * as _ from 'lodash/fp';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 import {
   convertDatasetAccessRequest,
+  convertDatasetParticipantCountRequest,
   DatasetAccessRequest,
   DatasetAccessRequestApi,
-  DatasetParticipantCountRequest,
+  DatasetParticipantCountRequestApi,
+  DatasetParticipantCountResponse,
   GetConceptsResponse,
 } from 'src/libs/ajax/DatasetBuilder';
 
@@ -111,8 +113,8 @@ export interface DataRepoContract {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
     createSnapshotRequest(request: DatasetAccessRequest): Promise<DatasetAccessRequestApi>;
+    getCounts(request: DatasetParticipantCountRequestApi): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
-    getParticipantCount: (request: DatasetParticipantCountRequest) => Promise<number>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
@@ -130,10 +132,11 @@ const callDataRepo = async (url: string, signal?: AbortSignal) => {
 };
 
 const callDataRepoPost = async (url: string, signal: AbortSignal | undefined, jsonBodyArg?: object): Promise<any> => {
-  return await fetchDataRepo(
+  const res = await fetchDataRepo(
     url,
     _.mergeAll([authOpts(), jsonBodyArg && jsonBody(jsonBodyArg), { signal, method: 'POST' }])
   );
+  return await res.json();
 };
 
 export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
@@ -147,9 +150,14 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
         signal,
         convertDatasetAccessRequest(request)
       ),
+    getCounts: async (request): Promise<DatasetParticipantCountResponse> =>
+      callDataRepoPost(
+        `repository/v1/datasets/${datasetId}/snapshotBuilder/count`,
+        signal,
+        convertDatasetParticipantCountRequest(request)
+      ),
     getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
       callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-    getParticipantCount: (_request) => Promise.resolve(100),
   }),
   snapshot: (snapshotId) => {
     return {

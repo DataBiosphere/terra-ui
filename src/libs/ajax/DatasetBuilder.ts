@@ -183,3 +183,17 @@ export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessR
 export type DatasetParticipantCountRequest = {
   cohorts: Cohort[];
 };
+
+export type DatasetParticipantCountRequestApi = {
+  cohorts: CohortApi[];
+};
+export type DatasetParticipantCountResponse = {
+  result: {
+    total: number;
+  };
+  sql: string;
+};
+
+export const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
+  return { cohorts: _.map(convertCohort, request.cohorts) };
+};

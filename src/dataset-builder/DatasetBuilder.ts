@@ -19,7 +19,13 @@ import {
   SnapshotBuilderDatasetConceptSets as DatasetConceptSets,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
 } from 'src/libs/ajax/DataRepo';
-import { Cohort, ConceptSet, DatasetBuilderType, DatasetBuilderValue } from 'src/libs/ajax/DatasetBuilder';
+import {
+  Cohort,
+  ConceptSet,
+  DatasetBuilderType,
+  DatasetBuilderValue,
+  DatasetParticipantCountResponse,
+} from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
@@ -539,7 +545,8 @@ export const DatasetBuilderContents = ({
   const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [values, setValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [requestingAccess, setRequestingAccess] = useState(false);
-  const [datasetRequestParticipantCount, setDatasetRequestParticipantCount] = useLoadedData<number>();
+  const [datasetRequestParticipantCount, setDatasetRequestParticipantCount] =
+    useLoadedData<DatasetParticipantCountResponse>();
 
   const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
   const allConceptSets: ConceptSet[] = useMemo(() => _.flatMap('values', selectedConceptSets), [selectedConceptSets]);
@@ -550,11 +557,11 @@ export const DatasetBuilderContents = ({
   useEffect(() => {
     requestValid &&
       setDatasetRequestParticipantCount(async () =>
-        DataRepo().dataset(dataset.id).getParticipantCount({
+        DataRepo().dataset(dataset.id).getCounts({
           cohorts: allCohorts,
         })
       );
-  }, [selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid, dataset]);
+  }, [dataset, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
   const getNewFeatureValueGroups = (includedFeatureValueGroups: string[]): string[] =>
     _.without(
@@ -637,7 +644,9 @@ export const DatasetBuilderContents = ({
       requestValid &&
         h(ActionBar, {
           prompt: h(Fragment, [
-            datasetRequestParticipantCount.status === 'Ready' ? datasetRequestParticipantCount.state : h(Spinner),
+            datasetRequestParticipantCount.status === 'Ready'
+              ? datasetRequestParticipantCount.state.result.total
+              : h(Spinner),
             ' Participants in this dataset',
           ]),
           actionText: 'Request access to this dataset',
