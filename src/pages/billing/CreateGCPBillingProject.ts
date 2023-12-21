@@ -11,8 +11,6 @@ import { billingProjectNameValidator } from 'src/pages/billing/billing-utils';
 import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount';
 import validate from 'validate.js';
 
-const BillingAccountSelect = VirtualizedSelect as typeof VirtualizedSelect<GoogleBillingAccount>;
-
 interface CreateGCPBillingProjectProps {
   billingAccounts: Record<string, GoogleBillingAccount>;
   chosenBillingAccount?: GoogleBillingAccount;
@@ -66,7 +64,7 @@ const CreateGCPBillingProject = ({
         h(Fragment, [
           h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
           div({ style: { fontSize: 14 } }, [
-            h(BillingAccountSelect, {
+            h(VirtualizedSelect, {
               id,
               isMulti: false,
               placeholder: 'Select a billing account',
