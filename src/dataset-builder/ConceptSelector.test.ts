@@ -8,15 +8,13 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 import { ConceptSelector } from './ConceptSelector';
 
 jest.mock('src/libs/ajax/GoogleStorage');
-// type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
-jest.mock('src/libs/ajax/DataRepo');
-// , (): DataRepoExports => {
-//   return {
-//     // ...jest.requireActual('src/libs/ajax/DataRepo'),
-//     DataRepo: jest.fn(),
-//     datasetIncludeTypes: jest.fn(),
-//   };
-// });
+type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
+jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
+  return {
+    ...jest.requireActual('src/libs/ajax/DataRepo'),
+    DataRepo: jest.fn(),
+  };
+});
 
 describe('ConceptSelector', () => {
   const onCancel = jest.fn();
@@ -112,10 +110,6 @@ describe('ConceptSelector', () => {
           getConcepts: () => Promise.resolve({ result: [dummyGetConceptForId(102)] }),
         } as Partial<DataRepoContract['dataset']>),
     } as Partial<DataRepoContract> as DataRepoContract;
-    // const getConceptsMock = mockDataRepoContract.dataset('').getConcepts;
-    // asMockedFn(getConceptsMock).mockResolvedValue({ result: [dummyGetConceptForId(102)] });
-    // console.log(dummyGetConceptForId(102));
-    // console.log(mockDataRepoContract.dataset('').getConcepts(dummyGetConceptForId(102)));
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Act
     const user = userEvent.setup();
