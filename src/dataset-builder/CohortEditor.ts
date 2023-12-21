@@ -1,4 +1,3 @@
-import { atom } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import React, { Fragment, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
@@ -152,13 +151,6 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
     ]
   );
 
-const criteriaCount = atom(1);
-export const getNextCriteriaIndex = () => {
-  const localCriteriaCount = criteriaCount.get() + 1;
-  criteriaCount.set(localCriteriaCount);
-  return localCriteriaCount;
-};
-
 const addKindToDomainOption = (domainOption: DomainOption): DomainOptionWithKind => ({
   ...domainOption,
   kind: 'domain',
@@ -215,6 +207,7 @@ type AddCriteriaSelectorProps = {
   updateCohort: Updater<Cohort>;
   dataset: DatasetModel;
   onStateChange: OnStateChangeHandler;
+  getNextCriteriaIndex: () => number;
   cohort: Cohort;
 };
 
@@ -225,6 +218,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
     updateCohort,
     dataset: { id: datasetId, snapshotBuilderSettings },
     onStateChange,
+    getNextCriteriaIndex,
     cohort,
   } = props;
   return (
@@ -297,10 +291,11 @@ type CriteriaGroupViewProps = {
   cohort: Cohort;
   dataset: DatasetModel;
   onStateChange: OnStateChangeHandler;
+  getNextCriteriaIndex: () => number;
 };
 
 export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
-  const { index, criteriaGroup, updateCohort, cohort, dataset, onStateChange } = props;
+  const { index, criteriaGroup, updateCohort, cohort, dataset, onStateChange, getNextCriteriaIndex } = props;
 
   const deleteCriteria = (criteria: AnyCriteria) =>
     updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)));
@@ -390,7 +385,15 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
                 ]),
               ]),
         ]),
-        h(AddCriteriaSelector, { index, criteriaGroup, updateCohort, dataset, onStateChange, cohort }),
+        h(AddCriteriaSelector, {
+          index,
+          criteriaGroup,
+          updateCohort,
+          dataset,
+          onStateChange,
+          getNextCriteriaIndex,
+          cohort,
+        }),
       ]),
       div(
         {
@@ -415,9 +418,10 @@ type CohortGroupsProps = {
   dataset: DatasetModel;
   updateCohort: Updater<Cohort>;
   onStateChange: OnStateChangeHandler;
+  getNextCriteriaIndex: () => number;
 };
 const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
-  const { dataset, cohort, updateCohort, onStateChange } = props;
+  const { dataset, cohort, updateCohort, onStateChange, getNextCriteriaIndex } = props;
   return div({ style: { width: '47rem' } }, [
     cohort == null
       ? 'No cohort found'
@@ -432,6 +436,7 @@ const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
                   cohort,
                   dataset,
                   onStateChange,
+                  getNextCriteriaIndex,
                 }),
                 div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'center' } }, [
                   div(
@@ -468,9 +473,10 @@ type CohortEditorContentsProps = {
   cohort: Cohort;
   dataset: DatasetModel;
   onStateChange: OnStateChangeHandler;
+  getNextCriteriaIndex: () => number;
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
-  const { updateCohort, cohort, dataset, onStateChange } = props;
+  const { updateCohort, cohort, dataset, onStateChange, getNextCriteriaIndex } = props;
   return div(
     {
       style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` },
@@ -497,6 +503,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
           cohort,
           updateCohort,
           onStateChange,
+          getNextCriteriaIndex,
         }),
         h(
           ButtonOutline,
@@ -520,15 +527,16 @@ interface CohortEditorProps {
   readonly dataset: DatasetModel;
   readonly originalCohort: Cohort;
   readonly updateCohorts: Updater<Cohort[]>;
+  readonly getNextCriteriaIndex: () => number;
 }
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
-  const { onStateChange, dataset, originalCohort, updateCohorts } = props;
+  const { onStateChange, dataset, originalCohort, updateCohorts, getNextCriteriaIndex } = props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
   const updateCohort = (updateCohort: (Cohort) => Cohort) => setCohort(updateCohort);
 
   return h(Fragment, [
-    h(CohortEditorContents, { updateCohort, cohort, dataset, onStateChange }),
+    h(CohortEditorContents, { updateCohort, cohort, dataset, onStateChange, getNextCriteriaIndex }),
     // add div to cover page to footer
     div(
       {

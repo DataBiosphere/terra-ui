@@ -1,7 +1,6 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import { getNextCriteriaIndex } from 'src/dataset-builder/CohortEditor';
 import { SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption as DomainOption } from 'src/libs/ajax/DataRepo';
 import { DatasetBuilder, DomainCriteria, GetConceptsResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
@@ -15,10 +14,11 @@ interface DomainCriteriaSelectorProps {
   readonly state: DomainCriteriaSelectorState;
   readonly onStateChange: OnStateChangeHandler;
   readonly datasetId: string;
+  readonly getNextCriteriaIndex: () => number;
 }
 
 export const toCriteria =
-  (domainOption: DomainOption) =>
+  (domainOption: DomainOption, getNextCriteriaIndex: () => number) =>
   (concept: Concept): DomainCriteria => {
     return {
       kind: 'domain',
@@ -32,7 +32,7 @@ export const toCriteria =
 
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
-  const { state, onStateChange, datasetId } = props;
+  const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
   useOnMount(() => {
     void loadRootConcepts(() => DatasetBuilder().getConcepts(datasetId, state.domainOption.root));
   });
@@ -42,7 +42,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
         title: state.domainOption.category,
         onCancel: () => onStateChange(cohortEditorState.new(state.cohort)),
         onCommit: (selected: Concept[]) => {
-          const cartCriteria = _.map(toCriteria(state.domainOption), selected);
+          const cartCriteria = _.map(toCriteria(state.domainOption, getNextCriteriaIndex), selected);
           const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
           // add/remove all cart elements to the domain group's criteria list in the cohort
           _.flow(

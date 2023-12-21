@@ -30,10 +30,12 @@ describe('DomainCriteriaSelector', () => {
   asMockedFn(getConceptsMock).mockResolvedValue({ result: [concept] });
   asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetResponse as DatasetBuilderContract);
   const state = domainCriteriaSelectorState.new(cohort, cohort.criteriaGroups[0], domainOption);
+  const criteriaIndex = 1234;
+  const getNextCriteriaIndex = () => criteriaIndex;
 
   it('renders the domain criteria selector', async () => {
     // Arrange
-    render(h(DomainCriteriaSelector, { state, onStateChange: jest.fn(), datasetId }));
+    render(h(DomainCriteriaSelector, { state, onStateChange: jest.fn(), datasetId, getNextCriteriaIndex }));
     // Assert
     expect(await screen.findByText(state.domainOption.category)).toBeTruthy();
   });
@@ -41,16 +43,14 @@ describe('DomainCriteriaSelector', () => {
   it('updates the domain group on save', async () => {
     const onStateChange = jest.fn();
     // Arrange
-    render(h(DomainCriteriaSelector, { state, onStateChange, datasetId }));
+    render(h(DomainCriteriaSelector, { state, onStateChange, datasetId, getNextCriteriaIndex }));
     // Act
     await screen.findByText(state.domainOption.category);
     const user = userEvent.setup();
     await user.click(screen.getByLabelText('add'));
     await user.click(screen.getByText('Add to group'));
     // Assert
-    const expectedCriteria = toCriteria(domainOption)(concept);
-    // Update expected index; need to subtract one so indexes match.
-    expectedCriteria.index -= 1;
+    const expectedCriteria = toCriteria(domainOption, getNextCriteriaIndex)(concept);
     expect(onStateChange).toHaveBeenCalledWith(
       cohortEditorState.new(_.update('criteriaGroups[0].criteria', () => [expectedCriteria], state.cohort))
     );
@@ -59,7 +59,7 @@ describe('DomainCriteriaSelector', () => {
   it('returns to the cohort editor on cancel', async () => {
     const onStateChange = jest.fn();
     // Arrange
-    render(h(DomainCriteriaSelector, { state, onStateChange, datasetId }));
+    render(h(DomainCriteriaSelector, { state, onStateChange, datasetId, getNextCriteriaIndex }));
     // Act
     await screen.findByText(state.domainOption.category);
     const user = userEvent.setup();

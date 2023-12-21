@@ -680,6 +680,12 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const [conceptSets, setConceptSets] = useState<DatasetConceptSets[]>([]);
   const onStateChange = setDatasetBuilderState;
 
+  let criteriaCount = 1;
+  const getNextCriteriaIndex = () => {
+    criteriaCount++;
+    return criteriaCount;
+  };
+
   useOnMount(() => {
     void loadDatasetModel(() =>
       DataRepo()
@@ -710,10 +716,16 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                       originalCohort: datasetBuilderState.cohort,
                       dataset: datasetModel.state,
                       updateCohorts: setCohorts,
+                      getNextCriteriaIndex,
                     })
                   : div(['No Dataset Builder Settings Found']);
               case 'domain-criteria-selector':
-                return h(DomainCriteriaSelector, { state: datasetBuilderState, onStateChange, datasetId });
+                return h(DomainCriteriaSelector, {
+                  state: datasetBuilderState,
+                  onStateChange,
+                  datasetId,
+                  getNextCriteriaIndex,
+                });
               case 'concept-set-creator':
                 return datasetModel.state.snapshotBuilderSettings
                   ? h(ConceptSetCreator, {

@@ -86,6 +86,8 @@ describe('CohortEditor', () => {
     }
   };
 
+  const getNextCriteriaIndex = () => 1234;
+
   const datasetDetails = dummyDatasetModel();
   const renderCriteriaView = (propsOverrides: CriteriaViewPropsOverrides) =>
     render(
@@ -289,6 +291,7 @@ describe('CohortEditor', () => {
         cohort,
         dataset: datasetDetails,
         onStateChange: _.noop,
+        getNextCriteriaIndex,
       })
     );
     return { cohort, updateCohort };
@@ -360,7 +363,9 @@ describe('CohortEditor', () => {
     expect(updateCohort).toHaveBeenCalledTimes(2);
 
     const updatedCohortWithLoading: Cohort = updateCohort.mock.calls[0][0](cohort);
-    expect(updatedCohortWithLoading.criteriaGroups[0].criteria).toMatchObject([{ loading: true, index: 2 }]);
+    expect(updatedCohortWithLoading.criteriaGroups[0].criteria).toMatchObject([
+      { loading: true, index: getNextCriteriaIndex() },
+    ]);
 
     const updatedCohort: Cohort = updateCohort.mock.calls[1][0](updatedCohortWithLoading);
     // Remove ID since it won't match up.
@@ -393,6 +398,7 @@ describe('CohortEditor', () => {
         dataset: datasetDetails,
         originalCohort,
         updateCohorts,
+        getNextCriteriaIndex,
       })
     );
     return { originalCohort, onStateChange, updateCohorts };
