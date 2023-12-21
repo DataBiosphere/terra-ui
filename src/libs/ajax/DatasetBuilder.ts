@@ -287,7 +287,7 @@ export const DatasetBuilder = (): DatasetBuilderContract => ({
       case 'range': {
         const statistics = await Ajax()
           .DataRepo.dataset(datasetId)
-          .lookupDatasetColumnStatisticsById(programDataOption.tableName, programDataOption.columnName);
+          .queryDatasetColumnStatisticsById(programDataOption.tableName, programDataOption.columnName);
         return convertProgramDataOptionToRangeOption(programDataOption, statistics);
       }
       default:

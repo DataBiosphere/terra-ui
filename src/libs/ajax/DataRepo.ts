@@ -130,7 +130,7 @@ export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
-    lookupDatasetColumnStatisticsById: (
+    queryDatasetColumnStatisticsById: (
       tableName: string,
       columnName: string
     ) => Promise<ColumnStatisticsIntOrDoubleModel | ColumnStatisticsTextModel>;
@@ -172,7 +172,7 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotBuilder/count`, signal, request),
     getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
       callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-    lookupDatasetColumnStatisticsById: async (tableName, columnName) =>
+    queryDatasetColumnStatisticsById: async (tableName, columnName) =>
       callDataRepoPost(`repository/v1/datasets/${datasetId}/data/${tableName}/statistics/${columnName}`, signal, {}),
   }),
   snapshot: (snapshotId) => {
