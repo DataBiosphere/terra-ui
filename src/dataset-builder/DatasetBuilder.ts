@@ -19,13 +19,7 @@ import {
   SnapshotBuilderDatasetConceptSets as DatasetConceptSets,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
 } from 'src/libs/ajax/DataRepo';
-import {
-  Cohort,
-  ConceptSet,
-  DatasetBuilder,
-  DatasetBuilderType,
-  DatasetBuilderValue,
-} from 'src/libs/ajax/DatasetBuilder';
+import { Cohort, ConceptSet, DatasetBuilderType, DatasetBuilderValue } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
@@ -471,15 +465,17 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
           disabled: errors,
           tooltip: errors && Utils.summarizeErrors(errors),
           onClick: async () => {
-            await DatasetBuilder().requestAccess(datasetId, {
-              name,
-              researchPurposeStatement,
-              datasetRequest: {
-                cohorts,
-                conceptSets,
-                valueSets: _.map((valuesSet) => ({ domain: valuesSet.header, values: valuesSet.values }), valuesSets),
-              },
-            });
+            await DataRepo()
+              .dataset(datasetId)
+              .createSnapshotRequest({
+                name,
+                researchPurposeStatement,
+                datasetRequest: {
+                  cohorts,
+                  conceptSets,
+                  valueSets: _.map((valuesSet) => ({ domain: valuesSet.header, values: valuesSet.values }), valuesSets),
+                },
+              });
             onDismiss();
           },
         },
@@ -554,11 +550,11 @@ export const DatasetBuilderContents = ({
   useEffect(() => {
     requestValid &&
       setDatasetRequestParticipantCount(async () =>
-        DatasetBuilder().getParticipantCount({
+        DataRepo().dataset(dataset.id).getParticipantCount({
           cohorts: allCohorts,
         })
       );
-  }, [selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
+  }, [selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid, dataset]);
 
   const getNewFeatureValueGroups = (includedFeatureValueGroups: string[]): string[] =>
     _.without(

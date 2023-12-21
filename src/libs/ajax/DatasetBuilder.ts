@@ -1,9 +1,6 @@
 // Types that can be used to create a criteria.
 import _ from 'lodash/fp';
-import { Ajax } from 'src/libs/ajax';
 import {
-  datasetIncludeTypes,
-  DatasetModel,
   ProgramDataListOption,
   ProgramDataListValue,
   ProgramDataRangeOption,
@@ -183,27 +180,6 @@ export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessR
   };
 };
 
-type DatasetParticipantCountRequest = {
+export type DatasetParticipantCountRequest = {
   cohorts: Cohort[];
 };
-
-export interface DatasetBuilderContract {
-  retrieveDataset: (datasetId: string) => Promise<DatasetModel>;
-  getConcepts: (datasetId: string, parent: Concept) => Promise<GetConceptsResponse>;
-  requestAccess: (datasetId: string, request: DatasetAccessRequest) => Promise<DatasetAccessRequestApi>;
-  getParticipantCount: (request: DatasetParticipantCountRequest) => Promise<number>;
-}
-export const DatasetBuilder = (): DatasetBuilderContract => ({
-  retrieveDataset: async (datasetId) => {
-    return await Ajax()
-      .DataRepo.dataset(datasetId)
-      .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
-  },
-  getConcepts: async (datasetId: string, parent: Concept) => {
-    return await Ajax().DataRepo.dataset(datasetId).getConcepts(parent);
-  },
-  requestAccess: async (datasetId, request) => {
-    return await Ajax().DataRepo.dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(request));
-  },
-  getParticipantCount: (_request) => Promise.resolve(100),
-});
