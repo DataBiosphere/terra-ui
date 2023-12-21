@@ -670,6 +670,8 @@ interface DatasetBuilderProps {
 
 const editorBackgroundColor = colors.light(0.7);
 
+let criteriaCount = 1;
+
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const { datasetId, initialState } = props;
   const [datasetModel, loadDatasetModel] = useLoadedData<DatasetModel>();
@@ -680,7 +682,6 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const [conceptSets, setConceptSets] = useState<DatasetConceptSets[]>([]);
   const onStateChange = setDatasetBuilderState;
 
-  let criteriaCount = 1;
   const getNextCriteriaIndex = () => {
     criteriaCount++;
     return criteriaCount;
