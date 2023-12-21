@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { IdContainer, Select } from 'src/components/common';
+import { IdContainer, VirtualizedSelect } from 'src/components/common';
 import { ValidatedInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
 import Events from 'src/libs/events';
@@ -11,7 +11,7 @@ import { billingProjectNameValidator } from 'src/pages/billing/billing-utils';
 import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount';
 import validate from 'validate.js';
 
-const BillingAccountSelect = Select as typeof Select<GoogleBillingAccount>;
+const BillingAccountSelect = VirtualizedSelect as typeof VirtualizedSelect<GoogleBillingAccount>;
 
 interface CreateGCPBillingProjectProps {
   billingAccounts: Record<string, GoogleBillingAccount>;
