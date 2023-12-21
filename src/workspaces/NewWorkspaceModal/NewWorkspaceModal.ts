@@ -4,7 +4,15 @@ import { CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, label, p, strong } from 'react-hyperscript-helpers';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
-import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common';
+import {
+  ButtonPrimary,
+  IdContainer,
+  LabeledCheckbox,
+  Link,
+  Select,
+  spinnerOverlay,
+  VirtualizedSelect,
+} from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { TextArea, ValidatedInput } from 'src/components/input';
@@ -454,7 +462,7 @@ const NewWorkspaceModal = withDisplayName(
                       (id) =>
                         h(Fragment, [
                           h(FormLabel, { htmlFor: id, required: true }, ['Billing project']),
-                          h(Select as typeof Select<string>, {
+                          h(VirtualizedSelect, {
                             id,
                             isClearable: false,
                             placeholder: 'Select a billing project',
@@ -462,7 +470,6 @@ const NewWorkspaceModal = withDisplayName(
                             ariaLiveMessages: { onFocus: onFocusAria, onChange: onChangeAria },
                             onChange: (opt) => setNamespace(opt!.value),
                             styles: { option: (provided) => ({ ...provided, padding: 10 }) },
-                            // @ts-expect-error
                             options: _.map((project: BillingProject) => {
                               const { projectName, invalidBillingAccount, cloudPlatform } = project;
                               return {
