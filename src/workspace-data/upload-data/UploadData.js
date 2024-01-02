@@ -2,7 +2,7 @@ import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { code, div, h, h2, h3, li, p, span, strong, ul } from 'react-hyperscript-helpers';
-import { ButtonPrimary, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, Link, topSpinnerOverlay, transparentSpinnerOverlay, VirtualizedSelect } from 'src/components/common';
 import FileBrowser from 'src/components/data/FileBrowser';
 import Dropzone from 'src/components/Dropzone';
 import FloatingActionButton from 'src/components/FloatingActionButton';
@@ -262,7 +262,7 @@ const WorkspaceSelectorPanel = ({ workspaces, selectedWorkspaceId, setWorkspaceI
         }),
       ]),
       div({ style: styles.filter }, [
-        h(Select, {
+        h(VirtualizedSelect, {
           isClearable: true,
           isMulti: false,
           placeholder: 'Billing project',

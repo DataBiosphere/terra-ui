@@ -4,7 +4,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
 import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import * as Auth from 'src/auth/auth';
-import { ButtonPrimary, customSpinnerOverlay, IdContainer, Link, Select } from 'src/components/common';
+import { ButtonPrimary, customSpinnerOverlay, IdContainer, Link, VirtualizedSelect } from 'src/components/common';
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common';
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
@@ -362,7 +362,7 @@ const GcpBillingAccountControls = ({
                 (id) =>
                   h(Fragment, [
                     h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
-                    h(Select, {
+                    h(VirtualizedSelect, {
                       id,
                       value: selectedBilling || billingProject.billingAccount,
                       isClearable: false,

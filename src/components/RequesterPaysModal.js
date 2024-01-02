@@ -1,7 +1,7 @@
 import * as _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, IdContainer, Link, spinnerOverlay, VirtualizedSelect } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import { FormLabel } from 'src/libs/forms';
@@ -72,7 +72,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
               (id) =>
                 h(Fragment, [
                   h(FormLabel, { htmlFor: id, required: true }, ['Workspace']),
-                  h(Select, {
+                  h(VirtualizedSelect, {
                     id,
                     isClearable: false,
                     value: selectedGoogleProject,
