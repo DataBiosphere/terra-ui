@@ -670,6 +670,8 @@ interface DatasetBuilderProps {
 
 const editorBackgroundColor = colors.light(0.7);
 
+let criteriaCount = 1;
+
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const { datasetId, initialState } = props;
   const [datasetModel, loadDatasetModel] = useLoadedData<DatasetModel>();
@@ -679,6 +681,11 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [conceptSets, setConceptSets] = useState<DatasetConceptSets[]>([]);
   const onStateChange = setDatasetBuilderState;
+
+  const getNextCriteriaIndex = () => {
+    criteriaCount++;
+    return criteriaCount;
+  };
 
   useOnMount(() => {
     void loadDatasetModel(() =>
@@ -708,12 +715,18 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   ? h(CohortEditor, {
                       onStateChange,
                       originalCohort: datasetBuilderState.cohort,
-                      snapshotBuilderSettings: datasetModel.state.snapshotBuilderSettings,
+                      dataset: datasetModel.state,
                       updateCohorts: setCohorts,
+                      getNextCriteriaIndex,
                     })
                   : div(['No Dataset Builder Settings Found']);
               case 'domain-criteria-selector':
-                return h(DomainCriteriaSelector, { state: datasetBuilderState, onStateChange, datasetId });
+                return h(DomainCriteriaSelector, {
+                  state: datasetBuilderState,
+                  onStateChange,
+                  datasetId,
+                  getNextCriteriaIndex,
+                });
               case 'concept-set-creator':
                 return datasetModel.state.snapshotBuilderSettings
                   ? h(ConceptSetCreator, {

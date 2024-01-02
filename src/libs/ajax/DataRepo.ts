@@ -22,26 +22,11 @@ export type SnapshotBuilderDomainOption = {
   root: SnapshotBuilderConcept;
 };
 
-export interface ProgramDataOption {
+export interface SnapshotBuilderProgramDataOption {
   kind: 'range' | 'list';
-  id: number;
   name: string;
-}
-
-export interface ProgramDataRangeOption extends ProgramDataOption {
-  kind: 'range';
-  min: number;
-  max: number;
-}
-
-export interface ProgramDataListValue {
-  id: number;
-  name: string;
-}
-
-export interface ProgramDataListOption extends ProgramDataOption {
-  kind: 'list';
-  values: ProgramDataListValue[];
+  tableName: string;
+  columnName: string;
 }
 
 export type SnapshotBuilderFeatureValueGroup = {
@@ -57,7 +42,7 @@ export type SnapshotBuilderDatasetConceptSets = {
 
 export type SnapshotBuilderSettings = {
   domainOptions: SnapshotBuilderDomainOption[];
-  programDataOptions: (ProgramDataListOption | ProgramDataRangeOption)[];
+  programDataOptions: SnapshotBuilderProgramDataOption[];
   featureValueGroups: SnapshotBuilderFeatureValueGroup[];
   datasetConceptSets?: SnapshotBuilderDatasetConceptSets[];
 };
@@ -105,10 +90,50 @@ export interface Snapshot {
   cloudPlatform: 'azure' | 'gcp';
 }
 
+export interface ColumnStatisticsModel {
+  dataType:
+    | 'string'
+    | 'boolean'
+    | 'bytes'
+    | 'date'
+    | 'datetime'
+    | 'dirref'
+    | 'fileref'
+    | 'float'
+    | 'float64'
+    | 'integer'
+    | 'int64'
+    | 'numeric'
+    | 'record'
+    | 'text'
+    | 'time'
+    | 'timestamp';
+}
+
+export interface ColumnStatisticsIntOrDoubleModel extends ColumnStatisticsModel {
+  dataType: 'float' | 'float64' | 'integer' | 'int64' | 'numeric';
+  minValue: number;
+  maxValue: number;
+}
+
+export interface ColumnStatisticsTextModel extends ColumnStatisticsModel {
+  dataType: 'string' | 'text';
+  values: ColumnStatisticsTextValue[];
+}
+
+interface ColumnStatisticsTextValue {
+  value: string;
+  count: number;
+}
+
 export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
+    queryDatasetColumnStatisticsById: (
+      tableName: string,
+      columnName: string
+    ) => Promise<ColumnStatisticsIntOrDoubleModel | ColumnStatisticsTextModel>;
     createSnapshotRequest(request: DatasetAccessRequestApi): Promise<DatasetAccessRequestApi>;
     getCounts(request: DatasetParticipantCountRequestApi): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
@@ -147,6 +172,8 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotBuilder/count`, signal, request),
     getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
       callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
+    queryDatasetColumnStatisticsById: async (tableName, columnName) =>
+      callDataRepoPost(`repository/v1/datasets/${datasetId}/data/${tableName}/statistics/${columnName}`, signal, {}),
   }),
   snapshot: (snapshotId) => {
     return {

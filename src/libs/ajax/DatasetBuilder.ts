@@ -2,18 +2,20 @@
 import _ from 'lodash/fp';
 import { Ajax } from 'src/libs/ajax';
 import {
+  ColumnStatisticsIntOrDoubleModel,
+  ColumnStatisticsTextModel,
   datasetIncludeTypes,
   DatasetModel,
-  ProgramDataListOption,
-  ProgramDataListValue,
-  ProgramDataRangeOption,
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderDomainOption as DomainOption,
+  SnapshotBuilderProgramDataOption,
 } from 'src/libs/ajax/DataRepo';
 
 /** A specific criteria based on a type. */
 export interface Criteria {
+  index: number;
   count?: number;
+  loading?: boolean;
 }
 
 /** API types represent the data of UI types in the format expected by the backend.
@@ -22,10 +24,23 @@ export interface Criteria {
 export interface CriteriaApi {
   kind: 'domain' | 'range' | 'list';
   name: string;
-  id: number;
+  count?: number;
 }
+
 export interface DomainCriteriaApi extends CriteriaApi {
   kind: 'domain';
+  id: number;
+}
+
+export interface ProgramDataOption {
+  kind: 'range' | 'list';
+}
+
+export interface ProgramDataRangeOption extends ProgramDataOption {
+  kind: 'range';
+  name: string;
+  min: number;
+  max: number;
 }
 
 export interface ProgramDataRangeCriteriaApi extends CriteriaApi {
@@ -46,7 +61,6 @@ export interface CriteriaGroupApi {
   criteria: AnyCriteriaApi[];
   mustMeet: boolean;
   meetAll: boolean;
-  count: number;
 }
 
 export interface CohortApi extends DatasetBuilderType {
@@ -80,6 +94,17 @@ export interface ProgramDataRangeCriteria extends ProgramDataRangeCriteriaApi, C
   rangeOption: ProgramDataRangeOption;
 }
 
+export interface ProgramDataListValue {
+  id: number;
+  name: string;
+}
+
+export interface ProgramDataListOption extends ProgramDataOption {
+  kind: 'list';
+  name: string;
+  values: ProgramDataListValue[];
+}
+
 export interface ProgramDataListCriteria extends Criteria, CriteriaApi {
   kind: 'list';
   listOption: ProgramDataListOption;
@@ -88,10 +113,12 @@ export interface ProgramDataListCriteria extends Criteria, CriteriaApi {
 
 export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
+export type LoadingAnyCriteria = AnyCriteria | { loading: true; index: number };
+
 /** A group of criteria. */
 export interface CriteriaGroup {
   name: string;
-  criteria: AnyCriteria[];
+  criteria: LoadingAnyCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
   count: number;
@@ -147,8 +174,10 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
         name: criteriaGroup.name,
         mustMeet: criteriaGroup.mustMeet,
         meetAll: criteriaGroup.meetAll,
-        count: criteriaGroup.count,
-        criteria: _.map((criteria) => convertCriteria(criteria), criteriaGroup.criteria),
+        criteria: _.flow(
+          _.filter((criteria: LoadingAnyCriteria) => !criteria.loading),
+          _.map((criteria: AnyCriteria) => convertCriteria(criteria))
+        )(criteriaGroup.criteria),
       }),
       cohort.criteriaGroups
     ),
@@ -156,7 +185,7 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
 };
 
 export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
-  const mergeObject = { kind: criteria.kind, name: criteria.name, id: criteria.id };
+  const mergeObject = { kind: criteria.kind, name: criteria.name };
   switch (criteria.kind) {
     case 'range':
       return _.merge(mergeObject, { low: criteria.low, high: criteria.high }) as ProgramDataRangeCriteriaApi;
@@ -165,7 +194,7 @@ export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
         values: _.map((value) => value.id, criteria.values),
       }) as ProgramDataListCriteriaApi;
     case 'domain':
-      return mergeObject as DomainCriteriaApi;
+      return _.merge(mergeObject, { id: criteria.id }) as DomainCriteriaApi;
     default:
       throw new Error('Criteria not of type range, list, or domain.');
   }
@@ -200,8 +229,48 @@ export type DatasetParticipantCountResponse = {
 const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
   return { cohorts: _.map(convertCohort, request.cohorts) };
 };
+const convertProgramDataOptionToListOption = (
+  programDataOption: SnapshotBuilderProgramDataOption
+): ProgramDataListOption => ({
+  name: programDataOption.name,
+  kind: 'list',
+  values: _.map(
+    (num) => ({
+      id: num,
+      name: `${programDataOption.name} ${num}`,
+    }),
+    [0, 1, 2, 3, 4]
+  ),
+});
+
+const convertProgramDataOptionToRangeOption = (
+  programDataOption: SnapshotBuilderProgramDataOption,
+  statistics: ColumnStatisticsIntOrDoubleModel | ColumnStatisticsTextModel
+): ProgramDataRangeOption => {
+  switch (statistics.dataType) {
+    case 'float':
+    case 'float64':
+    case 'integer':
+    case 'int64':
+    case 'numeric':
+      return {
+        name: programDataOption.name,
+        kind: 'range',
+        min: statistics.minValue,
+        max: statistics.maxValue,
+      };
+    default:
+      throw new Error(
+        `Datatype ${statistics.dataType} for ${programDataOption.tableName}/${programDataOption.columnName} is not numeric`
+      );
+  }
+};
 
 export interface DatasetBuilderContract {
+  getProgramDataStatistics: (
+    datasetId,
+    programDataOption: SnapshotBuilderProgramDataOption
+  ) => Promise<ProgramDataRangeOption | ProgramDataListOption>;
   retrieveDataset: (datasetId: string) => Promise<DatasetModel>;
   getConcepts: (datasetId: string, parent: Concept) => Promise<GetConceptsResponse>;
   requestAccess: (datasetId: string, request: DatasetAccessRequest) => Promise<DatasetAccessRequestApi>;
@@ -211,6 +280,20 @@ export interface DatasetBuilderContract {
   ) => Promise<DatasetParticipantCountResponse>;
 }
 export const DatasetBuilder = (): DatasetBuilderContract => ({
+  getProgramDataStatistics: async (datasetId, programDataOption) => {
+    switch (programDataOption.kind) {
+      case 'list':
+        return convertProgramDataOptionToListOption(programDataOption);
+      case 'range': {
+        const statistics = await Ajax()
+          .DataRepo.dataset(datasetId)
+          .queryDatasetColumnStatisticsById(programDataOption.tableName, programDataOption.columnName);
+        return convertProgramDataOptionToRangeOption(programDataOption, statistics);
+      }
+      default:
+        throw new Error('Unexpected option');
+    }
+  },
   retrieveDataset: async (datasetId) => {
     return await Ajax()
       .DataRepo.dataset(datasetId)
