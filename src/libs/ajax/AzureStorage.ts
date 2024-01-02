@@ -116,8 +116,8 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     );
   },
 
-  blobMetadata: (azureStorageUrl: string) => {
-    const getObjectMetadata = async () => {
+  blobByUri: (azureStorageUrl: string) => {
+    const getBlobByUri = async (method) => {
       const fileName = _.last(azureStorageUrl.split('/'))?.split('.').join('.');
 
       try {
@@ -131,10 +131,15 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         const urlwithFolder = new URL(azureStorageUrl);
         const azureSasStorageUrl = `https://${urlwithFolder.hostname}${urlwithFolder.pathname}?${token}`;
 
-        const res = await fetchOk(azureSasStorageUrl, { method: 'GET' });
+        const res = await fetchOk(azureSasStorageUrl, { method });
         const headerDict = Object.fromEntries(res.headers);
 
-        const textContent = await res.text().catch((_err) => undefined);
+        let textContent;
+        if (method === 'GET') {
+          textContent = await res.text().catch((_err) => undefined);
+        } else {
+          textContent = null;
+        }
 
         return {
           uri: azureStorageUrl,
@@ -165,7 +170,8 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     };
 
     return {
-      getData: getObjectMetadata,
+      getMetadata: () => getBlobByUri('HEAD'),
+      getData: () => getBlobByUri('GET'),
     };
   },
 
