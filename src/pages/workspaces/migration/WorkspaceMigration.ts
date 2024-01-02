@@ -34,7 +34,7 @@ const MigrationInformation = () => {
         [
           div({ style: { margin: '10px 20px' } }, [
             p([
-              'While we have done our best to protect bucket migrations from egress charges through December 15, 2023, ' +
+              'While we have done our best to protect bucket migrations from egress charges through March 15, 2024, ' +
                 'we cannot guarantee that there will be no egress or other operational charges when migrating buckets. ' +
                 'Large buckets with hundreds of thousands of files or more may see a one-time Storage Log operational charge equaling about $2.50 for every 1 million files in the bucket. ' +
                 'If you have any concerns, you should contact your Google Billing Representative prior to migrating your buckets.',
