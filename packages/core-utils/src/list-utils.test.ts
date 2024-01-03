@@ -16,4 +16,14 @@ describe('append', () => {
     // Assert
     expect(result).toEqual(['a']);
   });
+
+  it('respects immutability', () => {
+    // Arrange
+    const originalArray = ['a', 'b'];
+    // Act
+    append('c')(originalArray);
+
+    // Assert
+    expect(originalArray).toEqual(['a', 'b']);
+  });
 });
