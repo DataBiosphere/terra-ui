@@ -4,7 +4,8 @@
  * @param {Type} value - The item being appended to an array
  * @returns { (list:Type[]) => Type[]} - Returns a function that accepts an
  * array of items with the same type as value. The function then adds the
- * value to the end of a copy  of the array provided (honors immutability)
+ * value to the end of a copy  of the array provided without modifying the
+ * array passed as a parameter(honors immutability)
  * @example
  * // returns ['a', 'b', 'c']
  * append('c')(['a','b'])
