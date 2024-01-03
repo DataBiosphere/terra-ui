@@ -178,7 +178,7 @@ export const Runtimes = (signal: AbortSignal) => {
     },
 
     invalidateCookie: () => {
-      return fetchLeo('proxy/invalidateToken', _.merge(authOpts(), { signal }));
+      return fetchLeo('proxy/invalidateToken', _.merge(authOpts(), { signal, credentials: 'include' }));
     },
 
     setCookie: () => {

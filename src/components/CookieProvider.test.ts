@@ -1,16 +1,10 @@
-import {Ajax} from "src/libs/ajax";
-import {AppAjaxContract, AppsAjaxContract} from "src/libs/ajax/leonardo/Apps";
+import { cookieProvider } from 'src/components/CookieProvider';
+import { Ajax } from 'src/libs/ajax';
+import { RuntimesAjaxContract } from 'src/libs/ajax/leonardo/Runtimes';
 import { asMockedFn } from 'src/testing/test-utils';
-import {RuntimesAjaxContract} from "src/libs/ajax/leonardo/Runtimes";
 
 jest.mock('src/libs/ajax');
 
-type AjaxContract = ReturnType<typeof Ajax>;
-type RuntimeNeeds = Pick<RuntimesAjaxContract, 'invalidateCookie'>;
-
-interface AjaxMockNeeds {
-  Runtimes: RuntimeNeeds;
-}
 /**
  * local test utility - mocks the Ajax super-object and the subset of needed multi-contracts it
  * returns with as much type-safety as possible.
@@ -18,18 +12,32 @@ interface AjaxMockNeeds {
  * @return collection of key contract sub-objects for easy
  * mock overrides and/or method spying/assertions
  */
+type RuntimesNeeds = Pick<RuntimesAjaxContract, 'invalidateCookie'>;
+interface AjaxMockNeeds {
+  Runtimes: RuntimesNeeds;
+}
+
 const mockAjaxNeeds = (): AjaxMockNeeds => {
   const partialRuntimes: RuntimeNeeds = {
-    invalidateCookie: jest.fn();
+    invalidateCookie: jest.fn(),
   };
   const mockRuntimes = partialRuntimes as RuntimesAjaxContract;
 
-  asMockedFn(Ajax).m({ Runtimes: mockRuntimes } as AjaxContract);
+  asMockedFn(Ajax).mockReturnValue({ Runtimes: mockRuntimes } as AjaxContract);
 
   return {
-    Runtimes: partialRuntimes
+    Runtimes: partialRuntimes,
   };
 };
-describe('leoAppProvider', () => {
+describe('CookieProvider', () => {
+  it('calls the leo endpoint on invalidateCookie', async () => {
+    const ajaxMock = mockAjaxNeeds();
 
-})
+    // Act
+    await cookieProvider.invalidateCookies();
+
+    // Assert
+    expect(Ajax).toBeCalledTimes(1);
+    expect(ajaxMock.Runtimes.invalidateCookie).toBeCalledTimes(1);
+  });
+});
