@@ -23,6 +23,7 @@ type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
 jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   return {
     ...jest.requireActual('src/libs/ajax/DataRepo'),
+    DataRepo: jest.fn(),
   };
 });
 
@@ -37,26 +38,23 @@ describe('CohortEditor', () => {
     const mockDataRepoContract: Partial<DataRepoContract> = {
       dataset: (_datasetId) =>
         ({
-          queryDatasetColumnStatisticsById: jest.fn(),
+          queryDatasetColumnStatisticsById: () =>
+            Promise.resolve({
+              kind: 'list',
+              name: 'list',
+              values: [
+                {
+                  id: 0,
+                  name: 'value 0',
+                },
+                {
+                  id: 1,
+                  name: 'value 1',
+                },
+              ],
+            }),
         } as Partial<DataRepoContract['dataset']>),
     } as Partial<DataRepoContract> as DataRepoContract;
-    const getProgramDataStatisticsMock = (mockDataRepoContract as DataRepoContract).dataset(
-      ''
-    ).queryDatasetColumnStatisticsById;
-    asMockedFn(getProgramDataStatisticsMock).mockResolvedValue({
-      kind: 'list',
-      name: 'list',
-      values: [
-        {
-          id: 0,
-          name: 'value 0',
-        },
-        {
-          id: 1,
-          name: 'value 1',
-        },
-      ],
-    });
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   };
 
@@ -64,18 +62,15 @@ describe('CohortEditor', () => {
     const mockDataRepoContract: Partial<DataRepoContract> = {
       dataset: (_datasetId) =>
         ({
-          queryDatasetColumnStatisticsById: jest.fn(),
+          queryDatasetColumnStatisticsById: () =>
+            Promise.resolve({
+              kind: 'range',
+              name: 'range',
+              min,
+              max,
+            }),
         } as Partial<DataRepoContract['dataset']>),
     } as Partial<DataRepoContract> as DataRepoContract;
-    const getProgramDataStatisticsMock = (mockDataRepoContract as DataRepoContract).dataset(
-      ''
-    ).queryDatasetColumnStatisticsById;
-    asMockedFn(getProgramDataStatisticsMock).mockResolvedValue({
-      kind: 'range',
-      name: 'range',
-      min,
-      max,
-    });
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   };
 
