@@ -1,10 +1,4 @@
-import {
-  ProgramDataListOption,
-  ProgramDataListValue,
-  ProgramDataRangeOption,
-  SnapshotBuilderConcept,
-  SnapshotBuilderDomainOption,
-} from 'src/libs/ajax/DataRepo';
+import { SnapshotBuilderConcept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import {
   AnyCriteria,
   AnyCriteriaApi,
@@ -23,8 +17,11 @@ import {
   DomainCriteriaApi,
   ProgramDataListCriteria,
   ProgramDataListCriteriaApi,
+  ProgramDataListOption,
+  ProgramDataListValue,
   ProgramDataRangeCriteria,
   ProgramDataRangeCriteriaApi,
+  ProgramDataRangeOption,
   ValueSet,
   ValueSetApi,
 } from 'src/libs/ajax/DatasetBuilder';
@@ -49,6 +46,7 @@ const domainCriteria: DomainCriteria = {
   name: 'domainCriteria',
   domainOption,
   id: 2,
+  index: 0,
   count: 100,
 };
 
@@ -62,7 +60,6 @@ const rangeOption: ProgramDataRangeOption = {
   kind: 'range',
   min: 0,
   max: 101,
-  id: 3,
   name: 'rangeOption',
 };
 
@@ -70,7 +67,7 @@ const rangeCriteria: ProgramDataRangeCriteria = {
   kind: 'range',
   name: 'rangeCriteria',
   rangeOption,
-  id: 4,
+  index: 4,
   count: 100,
   low: 1,
   high: 99,
@@ -79,7 +76,6 @@ const rangeCriteria: ProgramDataRangeCriteria = {
 const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
   kind: 'range',
   name: 'rangeCriteria',
-  id: 4,
   low: 1,
   high: 99,
 };
@@ -88,7 +84,6 @@ const optionValues: ProgramDataListValue[] = [{ id: 5, name: 'listOptionListValu
 
 const listOption: ProgramDataListOption = {
   kind: 'list',
-  id: 6,
   name: 'listOption',
   values: optionValues,
 };
@@ -103,7 +98,7 @@ const criteriaListValuesApi: number[] = [7, 8];
 const listCriteria: ProgramDataListCriteria = {
   kind: 'list',
   name: 'listCriteria',
-  id: 9,
+  index: 9,
   listOption,
   values: criteriaListValues,
 };
@@ -111,7 +106,6 @@ const listCriteria: ProgramDataListCriteria = {
 const listCriteriaApi: ProgramDataListCriteriaApi = {
   kind: 'list',
   name: 'listCriteria',
-  id: 9,
   values: criteriaListValuesApi,
 };
 
@@ -132,7 +126,6 @@ const criteriaGroupApi: CriteriaGroupApi = {
   criteria: anyCriteriaArrayApi,
   mustMeet: true,
   meetAll: false,
-  count: 50,
 };
 
 const cohort: Cohort = { name: 'cohort', criteriaGroups: [criteriaGroup] };

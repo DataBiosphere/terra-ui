@@ -10,38 +10,24 @@ export const dummyDatasetModel = (): DatasetModel => ({
   properties: {},
   snapshotBuilderSettings: {
     programDataOptions: [
-      { id: 1, name: 'Year of birth', kind: 'range', min: 1900, max: 2023 },
+      { name: 'Year of birth', kind: 'range', tableName: 'person', columnName: 'year_of_birth' },
       {
-        id: 2,
         name: 'Ethnicity',
         kind: 'list',
-        values: [
-          { name: 'Hispanic or Latino', id: 20 },
-          { name: 'Not Hispanic or Latino', id: 21 },
-          { name: 'No Matching Concept', id: 0 },
-        ],
+        tableName: 'person',
+        columnName: 'ethnicity',
       },
       {
-        id: 3,
         name: 'Gender identity',
         kind: 'list',
-        values: [
-          { name: 'FEMALE', id: 22 },
-          { name: 'MALE', id: 23 },
-          { name: 'No Matching Concept', id: 0 },
-        ],
+        tableName: 'person',
+        columnName: 'gender_identity',
       },
       {
-        id: 4,
         name: 'Race',
         kind: 'list',
-        values: [
-          { name: 'American Indian or Alaska Native', id: 24 },
-          { name: 'Asian', id: 25 },
-          { name: 'Black', id: 26 },
-          { name: 'White', id: 27 },
-          { name: 'No Matching Concept', id: 0 },
-        ],
+        tableName: 'person',
+        columnName: 'race',
       },
     ],
     domainOptions: [
