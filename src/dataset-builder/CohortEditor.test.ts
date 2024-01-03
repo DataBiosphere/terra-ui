@@ -3,13 +3,11 @@ import userEvent from '@testing-library/user-event';
 import { KEY_LEFT, KEY_RIGHT } from 'keycode-js';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { SnapshotBuilderProgramDataOption } from 'src/libs/ajax/DataRepo';
+import { DataRepo, DataRepoContract, SnapshotBuilderProgramDataOption } from 'src/libs/ajax/DataRepo';
 import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
-  DatasetBuilder,
-  DatasetBuilderContract,
   DomainCriteria,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
@@ -20,11 +18,11 @@ import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } fro
 import { domainCriteriaSelectorState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
 import { dummyDatasetModel } from './TestConstants';
 
-type DatasetBuilderExports = typeof import('src/libs/ajax/DatasetBuilder');
-jest.mock('src/libs/ajax/DatasetBuilder', (): DatasetBuilderExports => {
+jest.mock('src/libs/ajax/GoogleStorage');
+type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
+jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   return {
-    ...jest.requireActual('src/libs/ajax/DatasetBuilder'),
-    DatasetBuilder: jest.fn(),
+    ...jest.requireActual('src/libs/ajax/DataRepo'),
   };
 });
 
@@ -36,11 +34,15 @@ describe('CohortEditor', () => {
   };
 
   const mockListStatistics = () => {
-    const mockDatasetBuilderContract: Partial<DatasetBuilderContract> = {
-      getProgramDataStatistics: jest.fn(),
-    };
-    const getProgramDataStatisticsMock = (mockDatasetBuilderContract as DatasetBuilderContract)
-      .getProgramDataStatistics;
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      dataset: (_datasetId) =>
+        ({
+          queryDatasetColumnStatisticsById: jest.fn(),
+        } as Partial<DataRepoContract['dataset']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+    const getProgramDataStatisticsMock = (mockDataRepoContract as DataRepoContract).dataset(
+      ''
+    ).queryDatasetColumnStatisticsById;
     asMockedFn(getProgramDataStatisticsMock).mockResolvedValue({
       kind: 'list',
       name: 'list',
@@ -55,22 +57,26 @@ describe('CohortEditor', () => {
         },
       ],
     });
-    asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetBuilderContract as DatasetBuilderContract);
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   };
 
   const mockRangeStatistics = (min = 55, max = 99) => {
-    const mockDatasetBuilderContract: Partial<DatasetBuilderContract> = {
-      getProgramDataStatistics: jest.fn(),
-    };
-    const getProgramDataStatisticsMock = (mockDatasetBuilderContract as DatasetBuilderContract)
-      .getProgramDataStatistics;
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      dataset: (_datasetId) =>
+        ({
+          queryDatasetColumnStatisticsById: jest.fn(),
+        } as Partial<DataRepoContract['dataset']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+    const getProgramDataStatisticsMock = (mockDataRepoContract as DataRepoContract).dataset(
+      ''
+    ).queryDatasetColumnStatisticsById;
     asMockedFn(getProgramDataStatisticsMock).mockResolvedValue({
       kind: 'range',
       name: 'range',
       min,
       max,
     });
-    asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetBuilderContract as DatasetBuilderContract);
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   };
 
   const mockOption = (option: SnapshotBuilderProgramDataOption) => {
