@@ -11,9 +11,9 @@ describe('append', () => {
 
   it('adds item to an empty list', () => {
     // Act
-    const result = append(1)([]);
+    const result = append('a')([]);
 
     // Assert
-    expect(result).toEqual([1]);
+    expect(result).toEqual(['a']);
   });
 });
