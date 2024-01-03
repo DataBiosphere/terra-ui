@@ -98,6 +98,7 @@ describe('ConceptSelector', () => {
     const user = userEvent.setup();
     await user.click(screen.getByLabelText('expand'));
     // Assert
+    // Concept with ID 102 corresponds to Disease
     expect(screen.getByText('Disease')).toBeTruthy();
   });
 
