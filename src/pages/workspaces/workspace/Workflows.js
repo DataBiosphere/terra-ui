@@ -191,7 +191,7 @@ const WorkflowCard = memoWithName('WorkflowCard', ({ listView, name, namespace, 
       ]);
 });
 
-const FindWorkflowModal = ({ namespace, name, ws, onDismiss }) => {
+export const FindWorkflowModal = ({ namespace, name, ws, onDismiss }) => {
   // State
   const [selectedWorkflow, setSelectedWorkflow] = useState(undefined);
   const [featuredList, setFeaturedList] = useState(undefined);
