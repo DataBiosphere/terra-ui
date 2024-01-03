@@ -12,13 +12,14 @@ jest.mock('src/libs/ajax');
  * @return collection of key contract sub-objects for easy
  * mock overrides and/or method spying/assertions
  */
+type AjaxContract = ReturnType<typeof Ajax>;
 type RuntimesNeeds = Pick<RuntimesAjaxContract, 'invalidateCookie'>;
 interface AjaxMockNeeds {
   Runtimes: RuntimesNeeds;
 }
 
 const mockAjaxNeeds = (): AjaxMockNeeds => {
-  const partialRuntimes: RuntimeNeeds = {
+  const partialRuntimes: RuntimesNeeds = {
     invalidateCookie: jest.fn(),
   };
   const mockRuntimes = partialRuntimes as RuntimesAjaxContract;
