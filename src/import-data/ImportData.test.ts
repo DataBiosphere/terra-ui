@@ -361,9 +361,10 @@ describe('ImportData', () => {
           (featurePreview) => featurePreview === ENABLE_AZURE_TDR_IMPORT
         );
 
+        // Azure tdr import expects the tdrmanifest to be a URL object, not a string
         const queryParams = {
           ...commonSnapshotExportQueryParams,
-          snapshotId: azureSnapshotFixture.id,
+          tdrmanifest: new URL(commonSnapshotExportQueryParams.tdrmanifest),
         };
         const { importJob, importTdr, wdsProxyUrl } = await setup({ queryParams });
 
