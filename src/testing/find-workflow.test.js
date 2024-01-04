@@ -37,10 +37,19 @@ describe('Find a Workflow', () => {
   });
 
   it('loads the showcase page', async () => {
+    Ajax.mockImplementation(() => {
+      return {
+        FirecloudBucket: {
+          getShowcaseWorkspaces: jest.fn(),
+        },
+      };
+    });
+
     // Act
     await act(async () => {
       render(h(Showcase, {}));
     });
+
     const codeAndWorkflows = await screen.getByRole('link', { name: 'code & workflows' });
     expect(codeAndWorkflows).toHaveAttribute('href', 'library-code');
   });
