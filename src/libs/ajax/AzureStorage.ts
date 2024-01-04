@@ -134,12 +134,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         const res = await fetchOk(azureSasStorageUrl, { method });
         const headerDict = Object.fromEntries(res.headers);
 
-        let textContent;
-        if (method === 'GET') {
-          textContent = await res.text().catch((_err) => undefined);
-        } else {
-          textContent = null;
-        }
+        const textContent = method === 'GET' ? await res.text().catch((_err) => undefined) : null;
 
         return {
           uri: azureStorageUrl,
@@ -170,8 +165,8 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     };
 
     return {
-      getMetadata: () => getBlobByUri('HEAD'),
-      getData: () => getBlobByUri('GET'),
+      getMetadata: async () => getBlobByUri('HEAD'),
+      getData: async () => getBlobByUri('GET'),
     };
   },
 
