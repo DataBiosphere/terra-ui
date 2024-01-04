@@ -305,7 +305,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     );
   };
 
-  importTdr = withErrorReporting('Error importing')(async (workspaceId: string, snapshotId: string): Promise<any> => {
+  importTdr = withErrorReporting('Error importing')(async (workspaceId: string, snapshotUrl: string): Promise<any> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
     setTimeout(() => {
       if (
@@ -315,7 +315,7 @@ export class WdsDataTableProvider implements DataTableProvider {
         notifyDataImportProgress('tdr-import', 'Your data will show up under Tables once import is complete.');
       }
     }, 1000);
-    await Ajax().WorkspaceData.importTdr(this.proxyUrl, workspaceId, snapshotId);
+    await Ajax().WorkspaceData.importTdr(this.proxyUrl, workspaceId, snapshotUrl);
     notify('success', 'Snapshot successfully imported', {
       message: 'Successfully imported snapshot.  Please refresh the page to see your changes.',
       timeout: 3000,

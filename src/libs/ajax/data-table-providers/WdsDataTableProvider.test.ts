@@ -672,7 +672,7 @@ describe('WdsDataTableProvider', () => {
       // ====== Arrange
       const provider = new TestableWdsProvider(uuid, testProxyUrl);
       // ====== Act
-      return provider.importTdr(uuid, uuid).then(() => {
+      return provider.importTdr(uuid, 'manifest.url&snapshotId=anyUuid&other=parameters').then(() => {
         // ====== Assert
         expect(importTdr.mock.calls.length).toBe(1);
         // expect(actual.status).toBe(202);

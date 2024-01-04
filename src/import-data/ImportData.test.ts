@@ -374,7 +374,7 @@ describe('ImportData', () => {
         expect(importTdr).toHaveBeenCalledWith(
           wdsProxyUrl,
           defaultAzureWorkspace.workspace.workspaceId,
-          queryParams.snapshotId
+          queryParams.tdrmanifest
         );
         expect(importJob).not.toHaveBeenCalled();
       });
