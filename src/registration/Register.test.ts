@@ -1,3 +1,4 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
@@ -24,11 +25,8 @@ jest.mock('react-notifications-component', () => {
   };
 });
 
-type AjaxContract = ReturnType<typeof Ajax>;
-type MetricsPartial = Partial<AjaxContract['Metrics']>;
-type UserPartial = Partial<AjaxContract['User']>;
-type ProfilePartial = Partial<UserPartial['profile']>;
-type TermsOfServicePartial = Partial<AjaxContract['TermsOfService']>;
+type AjaxExports = typeof import('src/libs/ajax');
+type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
 const fillInPersonalInfo = (): void => {
   fireEvent.change(screen.getByLabelText(/First Name/), { target: { value: 'Test Name' } });
@@ -48,8 +46,8 @@ const acceptTermsOfService = (): void => {
       ({
         TermsOfService: {
           getTermsOfServiceText: jest.fn().mockResolvedValue('Terra Terms of Service'),
-        } as TermsOfServicePartial,
-      } as AjaxContract)
+        },
+      } as DeepPartial<AjaxContract> as AjaxContract)
   );
 
   fireEvent.click(screen.getByText('Read Terra Platform Terms of Service here'));
@@ -141,8 +139,8 @@ describe('Register', () => {
           ({
             TermsOfService: {
               getTermsOfServiceText: tosTextFn,
-            } as TermsOfServicePartial,
-          } as AjaxContract)
+            },
+          } as DeepPartial<AjaxContract> as AjaxContract)
       );
 
       fireEvent.click(screen.getByText('Read Terra Platform Terms of Service here'));
@@ -169,8 +167,8 @@ describe('Register', () => {
           ({
             TermsOfService: {
               getTermsOfServiceText: jest.fn().mockResolvedValue('Terra Terms of Service'),
-            } as TermsOfServicePartial,
-          } as AjaxContract)
+            },
+          } as DeepPartial<AjaxContract> as AjaxContract)
       );
 
       fireEvent.click(screen.getByText('Read Terra Platform Terms of Service here'));
@@ -206,16 +204,16 @@ describe('Register', () => {
       asMockedFn(Ajax).mockImplementation(
         () =>
           ({
-            Metrics: { captureEvent: jest.fn() } as MetricsPartial,
+            Metrics: { captureEvent: jest.fn() },
             User: {
               setUserAttributes: setUserAttributesFunction,
               getUserAttributes: getUserAttributesFunction,
               registerWithProfile: registerUserFunction,
               profile: {
                 get: jest.fn().mockReturnValue({}),
-              } as ProfilePartial,
-            } as UserPartial,
-          } as AjaxContract)
+              },
+            },
+          } as DeepPartial<AjaxContract> as AjaxContract)
       );
 
       const loadTerraUserFn = jest.fn().mockResolvedValue(undefined);
