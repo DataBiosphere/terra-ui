@@ -675,6 +675,7 @@ describe('WdsDataTableProvider', () => {
       return provider.importTdr(uuid, 'manifest.url&snapshotId=anyUuid&other=parameters').then(() => {
         // ====== Assert
         expect(importTdr.mock.calls.length).toBe(1);
+        expect(importTdr).toHaveBeenCalledWith(testProxyUrl, uuid, 'manifest.url&snapshotId=anyUuid&other=parameters');
         // expect(actual.status).toBe(202);
       });
     });

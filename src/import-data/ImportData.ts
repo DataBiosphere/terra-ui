@@ -110,7 +110,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
       const wdsDataTableProvider = new WdsDataTableProvider(workspace.workspaceId, wdsUrl);
 
       // call import snapshot
-      await wdsDataTableProvider.importTdr(workspace.workspaceId, importRequest.manifestUrl.toString());
+      await wdsDataTableProvider.importTdr(workspace.workspaceId, importRequest.manifestUrl);
     } else {
       const { namespace, name } = workspace;
       const { jobId } = await Ajax()

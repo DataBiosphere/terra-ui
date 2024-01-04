@@ -118,10 +118,10 @@ export const WorkspaceData = (signal) => ({
     );
     return await res.json();
   },
-  importTdr: async (root: string, instanceId: string, snapshotUrl: string): Promise<Response> => {
+  importTdr: async (root: string, instanceId: string, manifestURL: URL): Promise<Response> => {
     const res = await fetchWDS(root)(
       `${instanceId}/import/v1`,
-      _.mergeAll([authOpts(), { method: 'POST' }, jsonBody({ type: 'TDRMANIFEST', url: snapshotUrl })])
+      _.mergeAll([authOpts(), { method: 'POST' }, jsonBody({ type: 'TDRMANIFEST', url: manifestURL })])
     );
     return res;
   },
