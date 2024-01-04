@@ -166,7 +166,7 @@ describe('WdsDataTableProvider', () => {
   const importTdrMockImpl: WorkspaceDataContract['importTdr'] = (
     _root: string,
     _workspaceId: string,
-    _snapshotId: string
+    _manifestUrl: URL
   ) => {
     return Promise.resolve(new Response('', { status: 202 }));
   };
