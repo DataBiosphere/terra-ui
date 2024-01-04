@@ -364,7 +364,7 @@ describe('ImportData', () => {
         // Azure tdr import expects the tdrmanifest to be a URL object, not a string
         const queryParams = {
           ...commonSnapshotExportQueryParams,
-          tdrmanifest: new URL(commonSnapshotExportQueryParams.tdrmanifest),
+          snapshotId: azureSnapshotFixture.id,
         };
         const { importJob, importTdr, wdsProxyUrl } = await setup({ queryParams });
 
@@ -375,7 +375,7 @@ describe('ImportData', () => {
         expect(importTdr).toHaveBeenCalledWith(
           wdsProxyUrl,
           defaultAzureWorkspace.workspace.workspaceId,
-          queryParams.tdrmanifest
+          new URL(queryParams.tdrmanifest)
         );
         expect(importJob).not.toHaveBeenCalled();
       });
