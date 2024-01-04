@@ -75,10 +75,10 @@ export interface AnalysisModalProps {
   isOpen: boolean;
   workspace: BaseWorkspace;
   location: any;
-  runtimes: Runtime[];
-  apps: App[];
-  appDataDisks: AppDataDisk[];
-  persistentDisks: PersistentDisk[];
+  runtimes: Runtime[] | undefined;
+  apps: App[] | undefined;
+  appDataDisks: AppDataDisk[] | undefined;
+  persistentDisks: PersistentDisk[] | undefined;
   onDismiss: () => void;
   onError: () => void;
   onSuccess: () => void;

@@ -5,6 +5,7 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import * as configStore from 'src/libs/config';
+import Events from 'src/libs/events';
 import { makeCompleteDate } from 'src/libs/utils';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { appendSASTokenIfNecessary, getFilenameFromAzureBlobPath } from 'src/workflows-app/components/InputOutputModal';
@@ -45,6 +46,8 @@ const runDetailsProps = {
   uri: 'https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
 };
 
+const captureEvent = jest.fn();
+
 const mockObj = {
   CromwellApp: {
     workflows: () => {
@@ -79,6 +82,9 @@ const mockObj = {
     details: jest.fn(() => {
       return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
     }),
+  },
+  Metrics: {
+    captureEvent,
   },
 };
 
@@ -297,6 +303,11 @@ describe('BaseRunDetails - render smoke test', () => {
     screen.getByText('Each workflow has a single execution log', { exact: false });
     expect(screen.queryByText('Task logs are from user-defined commands', { exact: false })).toBeNull;
     expect(screen.queryByText('Backend logs are from the Azure Cloud compute job', { exact: false })).toBeNull;
+
+    const closeButton = screen.getByLabelText('Close modal');
+    expect(captureEvent).not.toHaveBeenCalled();
+    await user.click(closeButton);
+    expect(captureEvent).toHaveBeenCalledWith(Events.workflowsAppCloseLogViewer, undefined, undefined);
   });
 
   it('opens the log viewer modal when Logs is clicked', async () => {

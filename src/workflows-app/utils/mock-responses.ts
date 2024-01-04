@@ -40,7 +40,7 @@ export const runSetInputDef: InputDefinition[] = [
 ];
 
 // example input configuration for a newly imported method
-export const runSetInputDefWithSourceNone = [
+export const runSetInputDefWithSourceNone: InputDefinition[] = [
   {
     input_name: 'target_workflow_1.foo.foo_rating_workflow_var',
     input_type: { type: 'primitive', primitive_type: 'Int' },
@@ -65,7 +65,6 @@ export const runSetInputDefWithSourceNone = [
     input_name: 'target_workflow_1.foo.myStruct',
     input_type: {
       type: 'struct',
-      name: 'myStruct',
       fields: [
         {
           field_name: 'myPrimitive',
@@ -97,7 +96,7 @@ export const runSetInputDefWithEmptySources = _.flow(
   _.set('[2].source', { type: 'object_builder', fields: [] })
 )(runSetInputDefWithSourceNone);
 
-export const runSetInputDefWithWrongTypes = [
+export const runSetInputDefWithWrongTypes: InputDefinition[] = [
   {
     input_name: 'target_workflow_1.a.empty_rating_workflow_var',
     input_type: { type: 'primitive', primitive_type: 'Int' },
@@ -125,7 +124,7 @@ export const runSetInputDefWithWrongTypes = [
 ];
 
 // example input configuration for a newly imported method with some of the same variable names as the table
-export const runSetInputDefSameInputNames = [
+export const runSetInputDefSameInputNames: InputDefinition[] = [
   {
     input_name: 'target_workflow_1.foo.foo_rating',
     input_type: { type: 'optional', optional_type: { type: 'primitive', primitive_type: 'Int' } },
@@ -158,11 +157,10 @@ export const runSetInputDefSameInputNames = [
   },
 ];
 
-export const myStructInput = {
+export const myStructInput: InputDefinition = {
   input_name: 'target_workflow_1.foo.myStruct',
   input_type: {
     type: 'struct',
-    name: 'myStruct',
     fields: [
       {
         field_name: 'myPrimitive',
@@ -206,7 +204,6 @@ export const myStructInput = {
         field_name: 'myInnerStruct',
         field_type: {
           type: 'struct',
-          name: 'myInnerStruct',
           fields: [
             {
               field_name: 'myInnermostPrimitive',
@@ -289,7 +286,7 @@ export const myStructInputCompleteAttribute = _.set(
   myStructInput
 );
 
-export const runSetInputDefWithStruct = [...runSetInputDef, myStructInput];
+export const runSetInputDefWithStruct: InputDefinition[] = [...runSetInputDef, myStructInput];
 
 export const runSetInputDefWithCompleteStruct = [...runSetInputDef, myStructInputCompleteAttribute];
 
@@ -314,7 +311,7 @@ export const runSetInputDefWithArrays = [
   },
 ];
 
-export const runSetInputDefWithArrayMessages = [
+export const runSetInputDefWithArrayMessages: InputDefinition[] = [
   {
     input_name: 'target_workflow_1.a.empty_int_array',
     input_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } },
@@ -845,9 +842,5 @@ export const mockAzureWorkspace: AzureWorkspace = {
   accessLevel: 'OWNER',
   canShare: true,
   canCompute: true,
-};
-
-export const azureStorageDetails = {
-  location: 'container-location',
-  sas: { url: 'container-url?sas-token' },
+  policies: [],
 };

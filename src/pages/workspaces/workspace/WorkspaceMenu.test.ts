@@ -1,14 +1,15 @@
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { fireEvent, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { useWorkspaceDetails } from 'src/components/workspace-utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
-import { WorkspaceAccessLevel } from 'src/libs/workspace-utils';
+import { AzureWorkspace, GoogleWorkspace, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
 import { tooltipText, WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceMenu';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
-import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { defaultGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
 
 jest.mock('src/components/workspace-utils', () => {
   const originalModule = jest.requireActual('src/components/workspace-utils');
@@ -356,5 +357,147 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     } else {
       expect(screen.queryByRole('tooltip', { name: tooltipText.deleteNoPermission })).not.toBeNull();
     }
+  });
+});
+
+describe('DynamicWorkspaceMenuContent fetches specific workspace details', () => {
+  const googleWorkspace: GoogleWorkspace = {
+    // @ts-expect-error - Limit return values based on what is requested
+    workspace: {
+      cloudPlatform: 'Gcp',
+      bucketName: 'fc-bucketname',
+      isLocked: false,
+      state: 'Ready',
+    },
+    accessLevel: 'OWNER',
+    canShare: true,
+    policies: [],
+  };
+
+  const azureWorkspace: AzureWorkspace = {
+    // @ts-expect-error - Limit return values based on what is requested
+    workspace: {
+      cloudPlatform: 'Azure',
+      isLocked: false,
+      state: 'Ready',
+    },
+    accessLevel: 'OWNER',
+    canShare: true,
+    policies: [protectedDataPolicy],
+  };
+
+  const onClone = jest.fn((_policies, _bucketName) => {});
+  const onShare = jest.fn((_policies, _bucketName) => {});
+  const namespace = 'test-namespace';
+  const name = 'test-name';
+
+  const workspaceMenuProps = {
+    iconSize: 20,
+    popupLocation: 'left',
+    callbacks: { onClone, onShare, onLock: jest.fn(), onDelete: jest.fn(), onLeave: jest.fn() },
+    workspaceInfo: { namespace, name },
+  };
+
+  it('requests expected fields', async () => {
+    // Arrange
+    const workspaceDetails = asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: googleWorkspace,
+      refresh: jest.fn(),
+      loading: false,
+    });
+
+    // cloudPlatform is necessary to determine if a workspace is a Google Workspace.
+    const expectedRequestedFields = [
+      'accessLevel',
+      'canShare',
+      'policies',
+      'workspace.bucketName',
+      'workspace.cloudPlatform',
+      'workspace.isLocked',
+      'workspace.state',
+    ];
+
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps));
+
+    // Assert
+    expect(workspaceDetails).toHaveBeenCalledWith({ namespace, name }, expectedRequestedFields);
+  });
+
+  it('passes onClone the bucketName for a Google workspace', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: googleWorkspace,
+      refresh: jest.fn(),
+      loading: false,
+    });
+
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps));
+
+    // Assert
+    const menuItem = screen.getByText('Clone');
+    await user.click(menuItem);
+    expect(onClone).toBeCalledWith([], 'fc-bucketname');
+  });
+
+  it('passes onClone the policies for an Azure workspace', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: azureWorkspace,
+      refresh: jest.fn(),
+      loading: false,
+    });
+
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps));
+
+    // Assert
+    const menuItem = screen.getByText('Clone');
+    await user.click(menuItem);
+    expect(onClone).toBeCalledWith([protectedDataPolicy], undefined);
+  });
+
+  it('passes onShare the bucketName for a Google workspace', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: googleWorkspace,
+      refresh: jest.fn(),
+      loading: false,
+    });
+
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps));
+
+    // Assert
+    const menuItem = screen.getByText('Share');
+    await user.click(menuItem);
+    expect(onShare).toBeCalledWith([], 'fc-bucketname');
+  });
+
+  it('passes onShare the policies for an Azure workspace', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      // @ts-expect-error - the type checker thinks workspace is only of type undefined
+      workspace: azureWorkspace,
+      refresh: jest.fn(),
+      loading: false,
+    });
+
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps));
+
+    // Assert
+    const menuItem = screen.getByText('Share');
+    await user.click(menuItem);
+    expect(onShare).toBeCalledWith([protectedDataPolicy], undefined);
   });
 });

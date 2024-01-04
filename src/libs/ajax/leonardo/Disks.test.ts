@@ -1,7 +1,7 @@
 import { azureDisk, galaxyDisk } from 'src/analysis/_testData/testData';
 import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
 import { Disks } from 'src/libs/ajax/leonardo/Disks';
-import { PersistentDisk, RawPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk, RawListDiskItem } from 'src/libs/ajax/leonardo/models/disk-models';
 import { asMockedFn } from 'src/testing/test-utils';
 
 type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
@@ -14,7 +14,7 @@ jest.mock(
   })
 );
 
-export const undecoratePd = (disk: PersistentDisk): RawPersistentDisk => ({
+const undecoratePd = (disk: PersistentDisk): RawListDiskItem => ({
   ...disk,
   diskType: disk.diskType.value,
 });
