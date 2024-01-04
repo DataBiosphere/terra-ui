@@ -23,6 +23,7 @@ jest.mock('src/libs/state', () => ({
   getTerraUser: jest.fn(() => ({ email: 'christina@foo.com' })),
 }));
 
+// replaces the find-workflow integration test
 describe('Find a Workflow', () => {
   it('loads the landing page', async () => {
     // Act
