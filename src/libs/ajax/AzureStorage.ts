@@ -166,7 +166,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
 
     return {
       getMetadata: async () => getBlobByUri('HEAD'),
-      getData: async () => getBlobByUri('GET'),
+      getMetadataAndTextContent: async () => getBlobByUri('GET'),
     };
   },
 
