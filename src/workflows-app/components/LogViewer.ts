@@ -105,7 +105,7 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
         return null;
       }
       try {
-        const response = await Ajax(signal).AzureStorage.blobMetadata(azureBlobUri).getData();
+        const response = await Ajax(signal).AzureStorage.blobByUri(azureBlobUri).getMetadataAndTextContent();
         const uri = _.isEmpty(response.azureSasStorageUrl) ? response.azureStorageUrl : response.azureSasStorageUrl;
         return { textContent: response.textContent, downloadUri: uri };
       } catch (e) {

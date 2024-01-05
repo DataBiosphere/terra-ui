@@ -44,7 +44,7 @@ export const UriViewer = _.flow(
         const metadata = await loadObject(googleProject, bucket, name);
         setMetadata(metadata);
       } else if (isAzureUri(uri)) {
-        const azureMetadata = await Ajax(signal).AzureStorage.blobMetadata(uri).getData();
+        const azureMetadata = await Ajax(signal).AzureStorage.blobByUri(uri).getMetadata();
         setMetadata(azureMetadata);
         setLoadingError(false);
       } else {
