@@ -3,13 +3,13 @@ import { useEffect, useRef, useState } from 'react';
 import { aside, div, h } from 'react-hyperscript-helpers';
 import { Transition } from 'react-transition-group';
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common';
-import { cookieProvider } from 'src/components/CookieProvider';
+import { Ajax } from 'src/libs/ajax';
 import { getEnabledBrand } from 'src/libs/brand-utils';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useStore } from 'src/libs/react-utils';
-import { authStore } from 'src/libs/state';
+import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 
 export const cookiesAcceptedKey = 'cookiesAccepted';
 
@@ -22,10 +22,10 @@ const transitionStyle = {
 
 const CookieWarning = () => {
   const animTime = 0.3;
+  const signal = useCancellation();
   const [showWarning, setShowWarning] = useState(false);
   const { cookiesAccepted } = useStore(authStore);
   const timeout = useRef();
-  const signal = useCancellation();
   const brand = getEnabledBrand();
 
   const acceptCookies = (acceptedCookies) => {
@@ -45,9 +45,23 @@ const CookieWarning = () => {
   }, [cookiesAccepted]);
 
   const rejectCookies = async () => {
-    await cookieProvider.invalidateCookies({ signal });
-    getSessionStorage().clear();
+    const cookies = document.cookie.split(';');
     acceptCookies(false);
+    // TODO: call azure invalidate cookie once endpoint exists, https://broadworkbench.atlassian.net/browse/IA-3498
+    await Ajax(signal)
+      .Runtimes.invalidateCookie()
+      .catch(() => {});
+    // Expire all cookies
+    _.forEach((cookie) => {
+      // Find an equals sign and uses it to grab the substring of the cookie that is its name
+      const eqPos = cookie.indexOf('=');
+      const cookieName = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+    }, cookies);
+
+    cookieReadyStore.reset();
+    azureCookieReadyStore.reset();
+    getSessionStorage().clear();
   };
 
   return h(
