@@ -13,6 +13,13 @@ import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
+  Cohort,
+  ConceptSet,
+  DatasetBuilderType,
+  DatasetBuilderValue,
+  DatasetParticipantCountResponse,
+} from 'src/dataset-builder/DatasetBuilderUtils';
+import {
   DataRepo,
   datasetIncludeTypes,
   DatasetModel,
@@ -23,13 +30,6 @@ import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import { useOnMount } from 'src/libs/react-utils';
-import {
-  Cohort,
-  ConceptSet,
-  DatasetBuilderType,
-  DatasetBuilderValue,
-  DatasetParticipantCountResponse,
-} from 'src/libs/util/DatasetBuilder';
 import * as Utils from 'src/libs/utils';
 import { validate } from 'validate.js';
 

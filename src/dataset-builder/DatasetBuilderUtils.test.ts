@@ -1,4 +1,3 @@
-import { SnapshotBuilderConcept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import {
   AnyCriteria,
   AnyCriteriaApi,
@@ -24,7 +23,8 @@ import {
   ProgramDataRangeOption,
   ValueSet,
   ValueSetApi,
-} from 'src/libs/util/DatasetBuilder';
+} from 'src/dataset-builder/DatasetBuilderUtils';
+import { SnapshotBuilderConcept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 
 const concept: SnapshotBuilderConcept = {
   id: 0,

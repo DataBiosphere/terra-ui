@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
+import { ConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DatasetModel, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
-import { ConceptSet } from 'src/libs/util/DatasetBuilder';
 
 import { ConceptSelector } from './ConceptSelector';
 import { homepageState, Updater } from './dataset-builder-types';

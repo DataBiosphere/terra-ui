@@ -1,5 +1,4 @@
 import * as _ from 'lodash/fp';
-import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 import {
   convertDatasetAccessRequest,
   convertDatasetParticipantCountRequest,
@@ -12,7 +11,8 @@ import {
   GetConceptsResponse,
   ProgramDataListOption,
   ProgramDataRangeOption,
-} from 'src/libs/util/DatasetBuilder';
+} from 'src/dataset-builder/DatasetBuilderUtils';
+import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
 export type SnapshotBuilderConcept = {
   id: number;

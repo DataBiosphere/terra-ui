@@ -2,9 +2,9 @@ import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
+import { Cohort, ConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, DataRepoContract, DatasetModel } from 'src/libs/ajax/DataRepo';
 import * as Nav from 'src/libs/nav';
-import { Cohort, ConceptSet } from 'src/libs/util/DatasetBuilder';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { cohortEditorState, newCohort, Updater } from './dataset-builder-types';

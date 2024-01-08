@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { KEY_LEFT, KEY_RIGHT } from 'keycode-js';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { DataRepo, DataRepoContract, SnapshotBuilderProgramDataOption } from 'src/libs/ajax/DataRepo';
 import {
   AnyCriteria,
   Cohort,
@@ -11,7 +10,8 @@ import {
   DomainCriteria,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
-} from 'src/libs/util/DatasetBuilder';
+} from 'src/dataset-builder/DatasetBuilderUtils';
+import { DataRepo, DataRepoContract, SnapshotBuilderProgramDataOption } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';

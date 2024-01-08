@@ -6,13 +6,6 @@ import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
 import {
-  DataRepo,
-  DatasetModel,
-  SnapshotBuilderDomainOption as DomainOption,
-  SnapshotBuilderProgramDataOption,
-} from 'src/libs/ajax/DataRepo';
-import colors from 'src/libs/colors';
-import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
@@ -20,7 +13,14 @@ import {
   ProgramDataListCriteria,
   ProgramDataListValue,
   ProgramDataRangeCriteria,
-} from 'src/libs/util/DatasetBuilder';
+} from 'src/dataset-builder/DatasetBuilderUtils';
+import {
+  DataRepo,
+  DatasetModel,
+  SnapshotBuilderDomainOption as DomainOption,
+  SnapshotBuilderProgramDataOption,
+} from 'src/libs/ajax/DataRepo';
+import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
