@@ -6,9 +6,9 @@ import {
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderDomainOption as DomainOption,
 } from 'src/libs/ajax/DataRepo';
-import { DomainCriteria, GetConceptsResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useOnMount } from 'src/libs/react-utils';
+import { DomainCriteria, GetConceptsResponse } from 'src/libs/util/DatasetBuilder';
 
 import { ConceptSelector } from './ConceptSelector';
 import { cohortEditorState, DomainCriteriaSelectorState } from './dataset-builder-types';

@@ -11,7 +11,7 @@ import {
   DomainCriteria,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
-} from 'src/libs/ajax/DatasetBuilder';
+} from 'src/libs/util/DatasetBuilder';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';

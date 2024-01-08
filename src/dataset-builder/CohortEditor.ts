@@ -11,6 +11,7 @@ import {
   SnapshotBuilderDomainOption as DomainOption,
   SnapshotBuilderProgramDataOption,
 } from 'src/libs/ajax/DataRepo';
+import colors from 'src/libs/colors';
 import {
   AnyCriteria,
   Cohort,
@@ -19,8 +20,7 @@ import {
   ProgramDataListCriteria,
   ProgramDataListValue,
   ProgramDataRangeCriteria,
-} from 'src/libs/ajax/DatasetBuilder';
-import colors from 'src/libs/colors';
+} from 'src/libs/util/DatasetBuilder';
 import * as Utils from 'src/libs/utils';
 
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';

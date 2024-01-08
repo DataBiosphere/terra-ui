@@ -12,7 +12,7 @@ import {
   GetConceptsResponse,
   ProgramDataListOption,
   ProgramDataRangeOption,
-} from 'src/libs/ajax/DatasetBuilder';
+} from 'src/libs/util/DatasetBuilder';
 
 export type SnapshotBuilderConcept = {
   id: number;

@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { DataRepo, DataRepoContract, DatasetModel } from 'src/libs/ajax/DataRepo';
-import { Cohort, ConceptSet } from 'src/libs/ajax/DatasetBuilder';
 import * as Nav from 'src/libs/nav';
+import { Cohort, ConceptSet } from 'src/libs/util/DatasetBuilder';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { cohortEditorState, newCohort, Updater } from './dataset-builder-types';

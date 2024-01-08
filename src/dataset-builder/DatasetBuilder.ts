@@ -19,17 +19,17 @@ import {
   SnapshotBuilderDatasetConceptSets as DatasetConceptSets,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
 } from 'src/libs/ajax/DataRepo';
+import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
+import colors from 'src/libs/colors';
+import { FormLabel } from 'src/libs/forms';
+import { useOnMount } from 'src/libs/react-utils';
 import {
   Cohort,
   ConceptSet,
   DatasetBuilderType,
   DatasetBuilderValue,
   DatasetParticipantCountResponse,
-} from 'src/libs/ajax/DatasetBuilder';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
-import colors from 'src/libs/colors';
-import { FormLabel } from 'src/libs/forms';
-import { useOnMount } from 'src/libs/react-utils';
+} from 'src/libs/util/DatasetBuilder';
 import * as Utils from 'src/libs/utils';
 import { validate } from 'validate.js';
 

@@ -24,7 +24,7 @@ import {
   ProgramDataRangeOption,
   ValueSet,
   ValueSetApi,
-} from 'src/libs/ajax/DatasetBuilder';
+} from 'src/libs/util/DatasetBuilder';
 
 const concept: SnapshotBuilderConcept = {
   id: 0,
