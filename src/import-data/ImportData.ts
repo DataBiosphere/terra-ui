@@ -75,7 +75,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         jobId,
         wdsProxyUrl: wdsUrl,
       };
-      asyncImportJobStore.update((previousJobs) => [...previousJobs, newJob]);
+      asyncImportJobStore.update(Utils.append(newJob));
       notifyDataImportProgress(jobId);
     } else {
       const { namespace, name } = workspace;
@@ -86,7 +86,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         targetWorkspace: { namespace, name },
         jobId,
       };
-      asyncImportJobStore.update((previousJobs) => [...previousJobs, newJob]);
+      asyncImportJobStore.update(Utils.append(newJob));
       notifyDataImportProgress(jobId);
     }
   };
@@ -109,7 +109,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
       const wdsUrl = await Ajax().Apps.listAppsV2(workspace.workspaceId).then(resolveWdsUrl);
       const { namespace, name } = workspace;
 
-      // call import snapshot
+      // call import API
       const { jobId } = await Ajax().WorkspaceData.startImportJob(wdsUrl, workspace.workspaceId, {
         url: importRequest.manifestUrl.toString(),
         type: 'TDRMANIFEST',
@@ -119,7 +119,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         jobId,
         wdsProxyUrl: wdsUrl,
       };
-      asyncImportJobStore.update((previousJobs) => [...previousJobs, newJob]);
+      asyncImportJobStore.update(Utils.append(newJob));
       notifyDataImportProgress(jobId);
     } else {
       const { namespace, name } = workspace;
