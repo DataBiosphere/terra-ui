@@ -1,11 +1,8 @@
 // Types that can be used to create a criteria.
 import _ from 'lodash/fp';
-import { Ajax } from 'src/libs/ajax';
 import {
   ColumnStatisticsIntOrDoubleModel,
   ColumnStatisticsTextModel,
-  datasetIncludeTypes,
-  DatasetModel,
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderDomainOption as DomainOption,
   SnapshotBuilderProgramDataOption,
@@ -226,10 +223,10 @@ export type DatasetParticipantCountResponse = {
   sql: string;
 };
 
-const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
+export const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
   return { cohorts: _.map(convertCohort, request.cohorts) };
 };
-const convertProgramDataOptionToListOption = (
+export const convertProgramDataOptionToListOption = (
   programDataOption: SnapshotBuilderProgramDataOption
 ): ProgramDataListOption => ({
   name: programDataOption.name,
@@ -243,7 +240,7 @@ const convertProgramDataOptionToListOption = (
   ),
 });
 
-const convertProgramDataOptionToRangeOption = (
+export const convertProgramDataOptionToRangeOption = (
   programDataOption: SnapshotBuilderProgramDataOption,
   statistics: ColumnStatisticsIntOrDoubleModel | ColumnStatisticsTextModel
 ): ProgramDataRangeOption => {
@@ -265,47 +262,3 @@ const convertProgramDataOptionToRangeOption = (
       );
   }
 };
-
-export interface DatasetBuilderContract {
-  getProgramDataStatistics: (
-    datasetId,
-    programDataOption: SnapshotBuilderProgramDataOption
-  ) => Promise<ProgramDataRangeOption | ProgramDataListOption>;
-  retrieveDataset: (datasetId: string) => Promise<DatasetModel>;
-  getConcepts: (datasetId: string, parent: Concept) => Promise<GetConceptsResponse>;
-  requestAccess: (datasetId: string, request: DatasetAccessRequest) => Promise<DatasetAccessRequestApi>;
-  getParticipantCount: (
-    datasetId: string,
-    request: DatasetParticipantCountRequest
-  ) => Promise<DatasetParticipantCountResponse>;
-}
-export const DatasetBuilder = (): DatasetBuilderContract => ({
-  getProgramDataStatistics: async (datasetId, programDataOption) => {
-    switch (programDataOption.kind) {
-      case 'list':
-        return convertProgramDataOptionToListOption(programDataOption);
-      case 'range': {
-        const statistics = await Ajax()
-          .DataRepo.dataset(datasetId)
-          .queryDatasetColumnStatisticsById(programDataOption.tableName, programDataOption.columnName);
-        return convertProgramDataOptionToRangeOption(programDataOption, statistics);
-      }
-      default:
-        throw new Error('Unexpected option');
-    }
-  },
-  retrieveDataset: async (datasetId) => {
-    return await Ajax()
-      .DataRepo.dataset(datasetId)
-      .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
-  },
-  getConcepts: async (datasetId: string, parent: Concept) => {
-    return await Ajax().DataRepo.dataset(datasetId).getConcepts(parent);
-  },
-  requestAccess: async (datasetId, request) => {
-    return await Ajax().DataRepo.dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(request));
-  },
-  getParticipantCount: async (datasetId, request) => {
-    return await Ajax().DataRepo.dataset(datasetId).getCounts(convertDatasetParticipantCountRequest(request));
-  },
-});

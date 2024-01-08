@@ -2,33 +2,35 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { DatasetBuilder, DatasetBuilderContract } from 'src/libs/ajax/DatasetBuilder';
+import { DataRepo, DataRepoContract } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { cohortEditorState, domainCriteriaSelectorState, newCohort, newCriteriaGroup } from './dataset-builder-types';
 import { DomainCriteriaSelector, toCriteria } from './DomainCriteriaSelector';
 import { dummyDatasetModel, dummyGetConceptForId } from './TestConstants';
 
-type DatasetBuilderExports = typeof import('src/libs/ajax/DatasetBuilder');
-jest.mock('src/libs/ajax/DatasetBuilder', (): DatasetBuilderExports => {
+jest.mock('src/libs/ajax/GoogleStorage');
+type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
+jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   return {
-    ...jest.requireActual('src/libs/ajax/DatasetBuilder'),
-    DatasetBuilder: jest.fn(),
+    ...jest.requireActual('src/libs/ajax/DataRepo'),
+    DataRepo: jest.fn(),
   };
 });
 
 describe('DomainCriteriaSelector', () => {
-  const mockDatasetResponse: Partial<DatasetBuilderContract> = {
-    getConcepts: jest.fn(),
-  };
+  const mockDatasetResponse: Partial<DataRepoContract> = {
+    dataset: (_datasetId) =>
+      ({
+        getConcepts: () => Promise.resolve({ result: [concept] }),
+      } as Partial<DataRepoContract['dataset']>),
+  } as Partial<DataRepoContract> as DataRepoContract;
   const datasetId = '';
-  const getConceptsMock = (mockDatasetResponse as DatasetBuilderContract).getConcepts;
   const concept = dummyGetConceptForId(101);
   const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
   const cohort = newCohort('cohort');
   cohort.criteriaGroups.push(newCriteriaGroup());
-  asMockedFn(getConceptsMock).mockResolvedValue({ result: [concept] });
-  asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetResponse as DatasetBuilderContract);
+  asMockedFn(DataRepo).mockImplementation(() => mockDatasetResponse as DataRepoContract);
   const state = domainCriteriaSelectorState.new(cohort, cohort.criteriaGroups[0], domainOption);
   const criteriaIndex = 1234;
   const getNextCriteriaIndex = () => criteriaIndex;

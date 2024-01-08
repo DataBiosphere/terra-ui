@@ -2,16 +2,17 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
-import { DatasetBuilder, DatasetBuilderContract } from 'src/libs/ajax/DatasetBuilder';
+import { DataRepo, DataRepoContract } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { ConceptSelector } from './ConceptSelector';
 
-type DatasetBuilderExports = typeof import('src/libs/ajax/DatasetBuilder');
-jest.mock('src/libs/ajax/DatasetBuilder', (): DatasetBuilderExports => {
+jest.mock('src/libs/ajax/GoogleStorage');
+type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
+jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   return {
-    ...jest.requireActual('src/libs/ajax/DatasetBuilder'),
-    DatasetBuilder: jest.fn(),
+    ...jest.requireActual('src/libs/ajax/DataRepo'),
+    DataRepo: jest.fn(),
   };
 });
 
@@ -86,28 +87,31 @@ describe('ConceptSelector', () => {
   it('calls ajax API to expand a row', async () => {
     // Arrange
     renderSelector();
-    const mockDatasetBuilderContract: Partial<DatasetBuilderContract> = {
-      getConcepts: jest.fn(),
-    };
-    const getConceptsMock = (mockDatasetBuilderContract as DatasetBuilderContract).getConcepts;
-    asMockedFn(getConceptsMock).mockResolvedValue({ result: [] });
-    asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetBuilderContract as DatasetBuilderContract);
+    const mockDataRepoContract: DataRepoContract = {
+      dataset: (_datasetId) =>
+        ({
+          getConcepts: () => Promise.resolve({ result: [dummyGetConceptForId(102)] }),
+        } as Partial<DataRepoContract['dataset']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Act
     const user = userEvent.setup();
     await user.click(screen.getByLabelText('expand'));
     // Assert
-    expect(getConceptsMock).toHaveBeenCalledWith(datasetId, initialRows[0]);
+    // Concept with ID 102 corresponds to Disease
+    expect(screen.getByText('Disease')).toBeTruthy();
   });
 
   it('supports multiple add to cart', async () => {
     // Arrange
     renderSelector();
-    const mockDatasetResponse: Partial<DatasetBuilderContract> = {
-      getConcepts: jest.fn(),
-    };
-    const getConceptsMock = (mockDatasetResponse as DatasetBuilderContract).getConcepts;
-    asMockedFn(getConceptsMock).mockResolvedValue({ result: [dummyGetConceptForId(102)] });
-    asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetResponse as DatasetBuilderContract);
+    const mockDataRepoContract: DataRepoContract = {
+      dataset: (_datasetId) =>
+        ({
+          getConcepts: () => Promise.resolve({ result: [dummyGetConceptForId(102)] }),
+        } as Partial<DataRepoContract['dataset']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Act
     const user = userEvent.setup();
     await user.click(screen.getByLabelText('expand'));
