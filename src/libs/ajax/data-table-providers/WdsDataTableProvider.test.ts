@@ -163,14 +163,6 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve({ message: 'Upload Succeeded', recordsModified: 1 });
   };
 
-  const importTdrMockImpl: WorkspaceDataContract['importTdr'] = (
-    _root: string,
-    _workspaceId: string,
-    _manifestUrl: URL
-  ) => {
-    return Promise.resolve(new Response('', { status: 202 }));
-  };
-
   const listAppsV2MockImpl = (_workspaceId: string): Promise<ListAppItem[]> => {
     return Promise.resolve(testProxyUrlResponse);
   };
@@ -179,7 +171,6 @@ describe('WdsDataTableProvider', () => {
   let deleteTable: jest.MockedFunction<WorkspaceDataContract['deleteTable']>;
   let downloadTsv: jest.MockedFunction<WorkspaceDataContract['downloadTsv']>;
   let uploadTsv: jest.MockedFunction<WorkspaceDataContract['uploadTsv']>;
-  let importTdr: jest.MockedFunction<WorkspaceDataContract['importTdr']>;
   let listAppsV2: jest.MockedFunction<AppsContract['listAppsV2']>;
 
   beforeEach(() => {
@@ -187,7 +178,6 @@ describe('WdsDataTableProvider', () => {
     deleteTable = jest.fn().mockImplementation(deleteTableMockImpl);
     downloadTsv = jest.fn().mockImplementation(downloadTsvMockImpl);
     uploadTsv = jest.fn().mockImplementation(uploadTsvMockImpl);
-    importTdr = jest.fn().mockImplementation(importTdrMockImpl);
     listAppsV2 = jest.fn().mockImplementation(listAppsV2MockImpl);
 
     asMockedFn(Ajax).mockImplementation(
@@ -198,7 +188,6 @@ describe('WdsDataTableProvider', () => {
             deleteTable,
             downloadTsv,
             uploadTsv,
-            importTdr,
           } as Partial<WorkspaceDataContract>,
           Apps: { listAppsV2 } as Partial<AppsContract>,
         } as Partial<AjaxContract> as AjaxContract)
@@ -664,20 +653,6 @@ describe('WdsDataTableProvider', () => {
           expect(uploadTsv.mock.calls.length).toBe(1);
           expect(actual.recordsModified).toBe(1);
         });
-    });
-  });
-
-  describe('importTdr', () => {
-    it('imports a snapshot from tdr', () => {
-      // ====== Arrange
-      const provider = new TestableWdsProvider(uuid, testProxyUrl);
-      // ====== Act
-      return provider.importTdr(uuid, 'manifest.url&snapshotId=anyUuid&other=parameters').then(() => {
-        // ====== Assert
-        expect(importTdr.mock.calls.length).toBe(1);
-        expect(importTdr).toHaveBeenCalledWith(testProxyUrl, uuid, 'manifest.url&snapshotId=anyUuid&other=parameters');
-        // expect(actual.status).toBe(202);
-      });
     });
   });
 });
