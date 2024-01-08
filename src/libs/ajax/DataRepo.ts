@@ -195,7 +195,7 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
       createSnapshotRequest: async (request): Promise<DatasetAccessRequestApi> =>
         callDataRepoPost(
-          `repository/v1/datasets/${datasetId}/createSnapshotRequest`,
+          `repository/v1/datasets/${datasetId}/snapshotRequests`,
           signal,
           convertDatasetAccessRequest(request)
         ),

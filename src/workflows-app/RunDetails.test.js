@@ -65,8 +65,8 @@ const mockObj = {
     }),
   },
   AzureStorage: {
-    blobMetadata: jest.fn(() => ({
-      getData: () =>
+    blobByUri: jest.fn(() => ({
+      getMetadataAndTextContent: () =>
         Promise.resolve({
           uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
           sasToken: '1234-this-is-a-mock-sas-token-5678',
@@ -328,7 +328,7 @@ describe('BaseRunDetails - render smoke test', () => {
 
   it('shows a static error message on LogViewer if log cannot be retrieved', async () => {
     const altMockObj = _.cloneDeep(mockObj);
-    altMockObj.AzureStorage.blobMetadata = jest.fn(() => ({ getData: () => Promise.reject('Mock error') }));
+    altMockObj.AzureStorage.blobByUri = jest.fn(() => ({ getMetadataAndTextContent: () => Promise.reject('Mock error') }));
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
@@ -344,7 +344,7 @@ describe('BaseRunDetails - render smoke test', () => {
 
   it('opens a log modal with functional tabs', async () => {
     const altMockObj = _.cloneDeep(mockObj);
-    altMockObj.AzureStorage.blobMetadata = jest.fn(() => ({ getData: () => Promise.reject('Mock error') }));
+    altMockObj.AzureStorage.blobByUri = jest.fn(() => ({ getMetadataAndTextContent: () => Promise.reject('Mock error') }));
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
@@ -398,8 +398,8 @@ describe('BaseRunDetails - render smoke test', () => {
 
   it('shows download button AND error when URI is valid but text could not be parsed', async () => {
     const altMockObj = _.cloneDeep(mockObj);
-    altMockObj.AzureStorage.blobMetadata = jest.fn(() => ({
-      getData: () =>
+    altMockObj.AzureStorage.blobByUri = jest.fn(() => ({
+      getMetadataAndTextContent: () =>
         Promise.resolve({
           textContent: undefined,
           azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',

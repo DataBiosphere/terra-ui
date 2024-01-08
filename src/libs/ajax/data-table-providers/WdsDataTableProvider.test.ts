@@ -166,7 +166,7 @@ describe('WdsDataTableProvider', () => {
   const importTdrMockImpl: WorkspaceDataContract['importTdr'] = (
     _root: string,
     _workspaceId: string,
-    _snapshotId: string
+    _manifestUrl: URL
   ) => {
     return Promise.resolve(new Response('', { status: 202 }));
   };
@@ -672,9 +672,10 @@ describe('WdsDataTableProvider', () => {
       // ====== Arrange
       const provider = new TestableWdsProvider(uuid, testProxyUrl);
       // ====== Act
-      return provider.importTdr(uuid, uuid).then(() => {
+      return provider.importTdr(uuid, 'manifest.url&snapshotId=anyUuid&other=parameters').then(() => {
         // ====== Assert
         expect(importTdr.mock.calls.length).toBe(1);
+        expect(importTdr).toHaveBeenCalledWith(testProxyUrl, uuid, 'manifest.url&snapshotId=anyUuid&other=parameters');
         // expect(actual.status).toBe(202);
       });
     });
