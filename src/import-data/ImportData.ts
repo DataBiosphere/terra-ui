@@ -3,7 +3,7 @@ import { Fragment, ReactNode, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
-import { resolveWdsUrl, WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -107,10 +107,20 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     if (workspace.cloudPlatform === 'Azure') {
       // find wds for this workspace
       const wdsUrl = await Ajax().Apps.listAppsV2(workspace.workspaceId).then(resolveWdsUrl);
-      const wdsDataTableProvider = new WdsDataTableProvider(workspace.workspaceId, wdsUrl);
+      const { namespace, name } = workspace;
 
       // call import snapshot
-      await wdsDataTableProvider.importTdr(workspace.workspaceId, importRequest.manifestUrl);
+      const { jobId } = await Ajax().WorkspaceData.startImportJob(wdsUrl, workspace.workspaceId, {
+        url: importRequest.manifestUrl.toString(),
+        type: 'TDRMANIFEST',
+      });
+      const newJob: AzureAsyncImportJob = {
+        targetWorkspace: { namespace, name },
+        jobId,
+        wdsProxyUrl: wdsUrl,
+      };
+      asyncImportJobStore.update((previousJobs) => [...previousJobs, newJob]);
+      notifyDataImportProgress(jobId);
     } else {
       const { namespace, name } = workspace;
       const { jobId } = await Ajax()
