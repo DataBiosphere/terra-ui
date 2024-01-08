@@ -2,8 +2,8 @@ import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
+import { Cohort, ConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, DataRepoContract, DatasetModel } from 'src/libs/ajax/DataRepo';
-import { Cohort, ConceptSet, DatasetBuilder, DatasetBuilderContract } from 'src/libs/ajax/DatasetBuilder';
 import * as Nav from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -31,14 +31,6 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   return {
     ...jest.requireActual('src/libs/ajax/DataRepo'),
     DataRepo: jest.fn(),
-  };
-});
-
-type DatasetBuilderExports = typeof import('src/libs/ajax/DatasetBuilder');
-jest.mock('src/libs/ajax/DatasetBuilder', (): DatasetBuilderExports => {
-  return {
-    ...jest.requireActual('src/libs/ajax/DatasetBuilder'),
-    DatasetBuilder: jest.fn(),
   };
 });
 
@@ -262,12 +254,13 @@ describe('DatasetBuilder', () => {
   });
 
   it('shows the participant count and request access buttons when request is valid', async () => {
-    const mockDatasetBuilderContract: Partial<DatasetBuilderContract> = {
-      getParticipantCount: jest.fn(),
-    };
-    const getParticipantCount = (mockDatasetBuilderContract as DatasetBuilderContract).getParticipantCount;
-    asMockedFn(getParticipantCount).mockResolvedValue({ result: { total: 100 }, sql: '' });
-    asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetBuilderContract as DatasetBuilderContract);
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      dataset: (_datasetId) =>
+        ({
+          getCounts: () => Promise.resolve({ result: { total: 100 }, sql: '' }),
+        } as Partial<DataRepoContract['dataset']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Arrange
     const user = userEvent.setup();
     await initializeValidDatasetRequest(user);

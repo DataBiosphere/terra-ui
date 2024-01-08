@@ -7,6 +7,8 @@ import { ConceptSetCreator, toConceptSet } from './ConceptSetCreator';
 import { homepageState } from './dataset-builder-types';
 import { dummyDatasetModel } from './TestConstants';
 
+jest.mock('src/libs/ajax/GoogleStorage');
+
 describe('ConceptSetCreator', () => {
   const dataset = dummyDatasetModel();
 

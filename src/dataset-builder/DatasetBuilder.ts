@@ -13,20 +13,19 @@ import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
+  Cohort,
+  ConceptSet,
+  DatasetBuilderType,
+  DatasetBuilderValue,
+  DatasetParticipantCountResponse,
+} from 'src/dataset-builder/DatasetBuilderUtils';
+import {
   DataRepo,
   datasetIncludeTypes,
   DatasetModel,
   SnapshotBuilderDatasetConceptSets as DatasetConceptSets,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
 } from 'src/libs/ajax/DataRepo';
-import {
-  Cohort,
-  ConceptSet,
-  DatasetBuilder,
-  DatasetBuilderType,
-  DatasetBuilderValue,
-  DatasetParticipantCountResponse,
-} from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
@@ -472,15 +471,17 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
           disabled: errors,
           tooltip: errors && Utils.summarizeErrors(errors),
           onClick: async () => {
-            await DatasetBuilder().requestAccess(datasetId, {
-              name,
-              researchPurposeStatement,
-              datasetRequest: {
-                cohorts,
-                conceptSets,
-                valueSets: _.map((valuesSet) => ({ domain: valuesSet.header, values: valuesSet.values }), valuesSets),
-              },
-            });
+            await DataRepo()
+              .dataset(datasetId)
+              .createSnapshotRequest({
+                name,
+                researchPurposeStatement,
+                datasetRequest: {
+                  cohorts,
+                  conceptSets,
+                  valueSets: _.map((valuesSet) => ({ domain: valuesSet.header, values: valuesSet.values }), valuesSets),
+                },
+              });
             onDismiss();
           },
         },
@@ -556,7 +557,7 @@ export const DatasetBuilderContents = ({
   useEffect(() => {
     requestValid &&
       setDatasetRequestParticipantCount(async () =>
-        DatasetBuilder().getParticipantCount(dataset.id, {
+        DataRepo().dataset(dataset.id).getCounts({
           cohorts: allCohorts,
         })
       );

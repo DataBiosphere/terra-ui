@@ -6,20 +6,20 @@ import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
 import {
-  DatasetModel,
-  SnapshotBuilderDomainOption as DomainOption,
-  SnapshotBuilderProgramDataOption,
-} from 'src/libs/ajax/DataRepo';
-import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
-  DatasetBuilder,
   LoadingAnyCriteria,
   ProgramDataListCriteria,
   ProgramDataListValue,
   ProgramDataRangeCriteria,
-} from 'src/libs/ajax/DatasetBuilder';
+} from 'src/dataset-builder/DatasetBuilderUtils';
+import {
+  DataRepo,
+  DatasetModel,
+  SnapshotBuilderDomainOption as DomainOption,
+  SnapshotBuilderProgramDataOption,
+} from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 
@@ -173,7 +173,7 @@ export async function criteriaFromOption(
   index: number,
   option: SnapshotBuilderProgramDataOption
 ): Promise<ProgramDataRangeCriteria | ProgramDataListCriteria> {
-  const generatedOptions = await DatasetBuilder().getProgramDataStatistics(datasetId, option);
+  const generatedOptions = await DataRepo().dataset(datasetId).queryDatasetColumnStatisticsById(option);
   switch (generatedOptions.kind) {
     case 'range': {
       const rangeOption = generatedOptions;
