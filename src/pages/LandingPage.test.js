@@ -13,7 +13,7 @@ describe('Landing Page (GCP)', () => {
   it('loads the landing page', async () => {
     // Act
     await act(async () => {
-      render(h(LandingPage, {}));
+      render(h(LandingPage));
     });
 
     // Assert    
