@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ButtonOutline } from '@terra-ui-packages/components';
 import { ThemeProvider } from '@terra-ui-packages/components';
+
+import React from 'react';
+
 import { defaultBrand } from 'src/libs/brands';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
@@ -55,6 +58,7 @@ export const Primary: Story = {
   render: function Render(args) {
     return (
       <ThemeProvider theme={defaultBrand.theme}>
+        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <ButtonOutline {...args} />
       </ThemeProvider>
     );
