@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ['airbnb-typescript-prettier'],
+  extends: ['airbnb-typescript-prettier', 'plugin:storybook/recommended'],
   settings: {
     'import/resolver': {
       typescript: {
