@@ -11,7 +11,7 @@ jest.mock('src/libs/nav', () => ({
 }));
 
 describe('Workflow View', () => {
-  it('imports successfully', async () => {
+  it('view workflow in workspace from mock import', async () => {
     const selectionKey = 'foobar';
 
     const mockAgoraResponse = [

@@ -83,6 +83,8 @@ describe('Code page', () => {
     await act(async () => {
       render(h(Code, {}));
     });
+
+    // Assert
     const codeAndWorkflows = await screen.getByRole('link', { name: 'code & workflows' });
     expect(codeAndWorkflows).toHaveAttribute('href', 'library-code');
 
