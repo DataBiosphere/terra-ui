@@ -15,6 +15,8 @@ describe('Landing Page (GCP)', () => {
     await act(async () => {
       render(h(LandingPage, {}));
     });
+
+    // Assert    
     const viewExamplesButton = screen.getByRole('link', {
       name: 'View Examples Browse our gallery of showcase Workspaces to see how science gets done.',
     });
