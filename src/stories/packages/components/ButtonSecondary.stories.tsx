@@ -1,9 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ButtonSecondary } from '@terra-ui-packages/components';
 import { ThemeProvider } from '@terra-ui-packages/components';
-
 import React from 'react';
-
 import { defaultBrand } from 'src/libs/brands';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
