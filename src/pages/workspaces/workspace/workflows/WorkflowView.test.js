@@ -1,138 +1,16 @@
 import { act, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { LandingPage } from 'src/pages/LandingPage';
-import { Code } from 'src/pages/library/Code';
-import { Showcase } from 'src/pages/library/Showcase';
 import { WorkflowView } from 'src/pages/workspaces/workspace/workflows/WorkflowView';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
-  getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
   getLink: jest.fn().mockImplementation((_) => _),
-  goToPath: jest.fn(),
-  useRoute: jest.fn().mockImplementation(() => ({ query: {} })),
-}));
-jest.mock('src/libs/notifications', () => ({
-  notify: jest.fn(),
-}));
-jest.mock('src/libs/state', () => ({
-  ...jest.requireActual('src/libs/state'),
-  getTerraUser: jest.fn(() => ({ email: 'christina@foo.com' })),
 }));
 
-// replaces the find-workflow integration test
-describe('Find a Workflow', () => {
-  it('loads the landing page', async () => {
-    // Act
-    await act(async () => {
-      render(h(LandingPage, {}));
-    });
-    const viewExamplesButton = screen.getByRole('link', {
-      name: 'View Examples Browse our gallery of showcase Workspaces to see how science gets done.',
-    });
-    expect(viewExamplesButton).toHaveAttribute('href', 'library-showcase');
-  });
-
-  it('loads the showcase page', async () => {
-    Ajax.mockImplementation(() => {
-      return {
-        FirecloudBucket: {
-          getShowcaseWorkspaces: jest.fn(),
-        },
-      };
-    });
-
-    // Act
-    await act(async () => {
-      render(h(Showcase, {}));
-    });
-
-    const codeAndWorkflows = await screen.getByRole('link', { name: 'code & workflows' });
-    expect(codeAndWorkflows).toHaveAttribute('href', 'library-code');
-  });
-
-  it('loads the code page', async () => {
-    const token = 'testtoken';
-    const newToken = 'newtesttoken';
-
-    const methodsList = [
-      {
-        name: 'joint-discovery-gatk4',
-        createDate: '2018-11-30T22:19:35Z',
-        url: 'http://agora.dsde-dev.broadinstitute.org/api/v1/methods/gatk/joint-discovery-gatk4/1',
-        synopsis: 'Implements the joint discovery and VQSR filtering',
-        entityType: 'Workflow',
-        snapshotComment: '',
-        snapshotId: 1,
-        namespace: 'gatk',
-      },
-    ];
-
-    const featuredMethodsList = [
-      {
-        namespace: 'gatk',
-        name: 'joint-discovery-gatk4',
-      },
-    ];
-
-    const mockOidcUser = {
-      id_token: undefined,
-      session_state: null,
-      access_token: token,
-      refresh_token: '',
-      token_type: '',
-      scope: undefined,
-      profile: {
-        sub: '',
-        iss: '',
-        aud: '',
-        exp: 0,
-        iat: 0,
-      },
-      expires_at: undefined,
-      state: undefined,
-      expires_in: 0,
-      expired: undefined,
-      scopes: [],
-      toStorageString: '',
-    };
-
-    Ajax.mockImplementation(() => {
-      mockOidcUser.access_token = newToken;
-      return Promise.resolve({
-        status: 'success',
-        oidcUser: mockOidcUser,
-      });
-    });
-
-    Ajax.mockImplementation(() => {
-      return {
-        FirecloudBucket: {
-          getFeaturedMethods: jest.fn(() => Promise.resolve(featuredMethodsList)),
-        },
-        Methods: {
-          list: jest.fn(() => Promise.resolve(methodsList)),
-        },
-        Dockstore: {
-          listTools: jest.fn(),
-        },
-      };
-    });
-
-    // Act
-    await act(async () => {
-      render(h(Code, {}));
-    });
-    const codeAndWorkflows = await screen.getByRole('link', { name: 'code & workflows' });
-    expect(codeAndWorkflows).toHaveAttribute('href', 'library-code');
-
-    const workflowName = await screen.getByRole('link', { name: 'joint-discovery-gatk4 Implements the joint discovery and VQSR filtering' });
-    expect(workflowName.getAttribute('href')).toContain('?return=terra#methods/gatk/joint-discovery-gatk4/');
-  });
-
+describe('Workflow View', () => {
   it('imports successfully', async () => {
     const selectionKey = 'foobar';
 
