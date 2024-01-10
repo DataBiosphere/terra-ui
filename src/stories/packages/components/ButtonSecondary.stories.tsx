@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ButtonSecondary } from '@terra-ui-packages/components';
-import React from 'react';
 
 const meta: Meta<typeof ButtonSecondary> = {
   title: 'Packages/Components/ButtonSecondary',

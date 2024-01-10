@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ButtonOutline } from '@terra-ui-packages/components';
-import React from 'react';
 
 const meta: Meta<typeof ButtonOutline> = {
   title: 'Packages/Components/ButtonOutline',
@@ -41,7 +40,7 @@ const meta: Meta<typeof ButtonOutline> = {
         defaultValue: { summary: 'bottom' },
       },
     },
-  }
+  },
 };
 
 export default meta;
