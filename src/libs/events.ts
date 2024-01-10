@@ -125,6 +125,8 @@ const eventsList = {
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
   workspaceDashboardSectionToggle: 'workspace:dashboard:toggleSection',
+  workspaceDashboardAddTag: 'workspace:dashboard:addTag',
+  workspaceDashboardDeleteTag: 'workspace:dashboard:deleteTag',
   workspaceOpenedBucketInBrowser: 'workspace:openedBucketInBrowser',
   workspaceOpenedProjectInConsole: 'workspace:openedProjectInCloudConsole',
   workspaceDataAddColumn: 'workspace:data:addColumn',
