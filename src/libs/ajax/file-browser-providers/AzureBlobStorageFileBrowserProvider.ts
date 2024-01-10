@@ -1,3 +1,4 @@
+import { getAuthToken } from 'src/auth/auth';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
@@ -75,7 +76,7 @@ const AzureBlobStorageFileBrowserProvider = ({
           sasUrl
         );
 
-        const response = await fetchOk(url, { signal });
+        const response = await fetchOk(url, { signal, headers: { Authorization: `Bearer ${getAuthToken()}` } });
         const responseText = await response.text();
         const responseXML = new window.DOMParser().parseFromString(responseText, 'text/xml');
 
@@ -213,6 +214,7 @@ const AzureBlobStorageFileBrowserProvider = ({
           'Content-Length': file.size,
           'Content-Type': file.type,
           'x-ms-blob-type': 'BlockBlob',
+          Authorization: `Bearer ${getAuthToken()}`,
         },
         method: 'PUT',
       });
@@ -227,6 +229,9 @@ const AzureBlobStorageFileBrowserProvider = ({
 
       await fetchOk(blobUrl.href, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
       });
     },
     moveFile: async (sourcePath: string, destinationPath: string): Promise<void> => {
@@ -244,6 +249,7 @@ const AzureBlobStorageFileBrowserProvider = ({
         method: 'PUT',
         headers: {
           'x-ms-copy-source': sourceBlobUrl.href,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -258,6 +264,9 @@ const AzureBlobStorageFileBrowserProvider = ({
 
       await fetchOk(sourceBlobUrl.href, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
       });
     },
     createEmptyDirectory: async (directoryPath: string) => {
@@ -279,6 +288,7 @@ const AzureBlobStorageFileBrowserProvider = ({
           'Content-Length': placeholderObject.size,
           'Content-Type': placeholderObject.type,
           'x-ms-blob-type': 'BlockBlob',
+          Authorization: `Bearer ${getAuthToken()}`,
         },
         method: 'PUT',
       });
@@ -298,6 +308,9 @@ const AzureBlobStorageFileBrowserProvider = ({
       try {
         await fetchOk(blobUrl.href, {
           method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
         });
       } catch (error) {
         if (!(error instanceof Response && error.status === 404)) {

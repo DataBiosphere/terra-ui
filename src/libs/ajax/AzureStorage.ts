@@ -31,7 +31,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
   sasToken: async (workspaceId: string, containerId: string): Promise<SasInfo> => {
     // sas token expires after 8 hours
     const tokenResponse = await fetchWorkspaceManager(
-      `workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken?sasExpirationDuration=28800`,
+      `workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken?sasExpirationDuration=28800&sasEnableProxy=true`,
       _.merge(authOpts(), { signal, method: 'POST' })
     );
 
@@ -85,7 +85,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       _.join('')
     )(url);
 
-    const res = await fetchOk(azureContainerUrl);
+    const res = await fetchOk(azureContainerUrl, _.mergeAll([authOpts()]));
     const text = await res.text();
     const xml = new window.DOMParser().parseFromString(text, 'text/xml');
     const blobs = _.map(
