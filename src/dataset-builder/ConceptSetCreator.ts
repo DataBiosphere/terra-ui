@@ -25,6 +25,7 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
   const { snapshotBuilderSettings, id } = dataset;
   return h(ConceptSelector, {
     initialRows: _.map(_.get('root'), snapshotBuilderSettings?.domainOptions),
+    initialCart: [],
     title: 'Add concept',
     onCancel: () => onStateChange(homepageState.new()),
     onCommit: (selected: Concept[]) => {

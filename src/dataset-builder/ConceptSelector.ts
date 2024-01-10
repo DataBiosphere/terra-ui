@@ -18,11 +18,12 @@ type ConceptSelectorProps = {
   readonly onCommit: (selected: Concept[]) => void;
   readonly actionText: string;
   readonly datasetId: string;
+  readonly initialCart: Concept[];
 };
 
 export const ConceptSelector = (props: ConceptSelectorProps) => {
-  const { initialRows, title, onCancel, onCommit, actionText, datasetId } = props;
-  const [cart, setCart] = useState<Concept[]>([]);
+  const { initialRows, title, onCancel, onCommit, actionText, datasetId, initialCart } = props;
+  const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
     const result = await DatasetBuilder().getConcepts(datasetId, concept);
     return result.result;

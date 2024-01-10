@@ -40,7 +40,8 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
     ? h(ConceptSelector, {
         initialRows: rootConcepts.state.result,
         title: state.domainOption.category,
-        onCancel: () => onStateChange(cohortEditorState.new(state.cohort)),
+        initialCart: state.cart,
+        onCancel: () => onStateChange(state.cancelState),
         onCommit: (selected: Concept[]) => {
           const cartCriteria = _.map(toCriteria(state.domainOption, getNextCriteriaIndex), selected);
           const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);

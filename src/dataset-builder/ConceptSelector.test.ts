@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
+import { SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { DatasetBuilder, DatasetBuilderContract } from 'src/libs/ajax/DatasetBuilder';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -23,8 +24,9 @@ describe('ConceptSelector', () => {
   const datasetId = '0';
   // Using 101 so the ID doesn't match the count.
   const initialRows = [dummyGetConceptForId(101)];
+  const initialCart: SnapshotBuilderConcept[] = [];
   const renderSelector = () => {
-    render(h(ConceptSelector, { actionText, initialRows, onCancel, onCommit, title, datasetId }));
+    render(h(ConceptSelector, { actionText, initialRows, initialCart, onCancel, onCommit, title, datasetId }));
   };
 
   it('renders the concept selector', () => {

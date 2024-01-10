@@ -12,6 +12,7 @@ import Modal from 'src/components/Modal';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
+import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
   DataRepo,
   datasetIncludeTypes,
@@ -722,6 +723,13 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   : div(['No Dataset Builder Settings Found']);
               case 'domain-criteria-selector':
                 return h(DomainCriteriaSelector, {
+                  state: datasetBuilderState,
+                  onStateChange,
+                  datasetId,
+                  getNextCriteriaIndex,
+                });
+              case 'domain-criteria-search':
+                return h(DomainCriteriaSearch, {
                   state: datasetBuilderState,
                   onStateChange,
                   datasetId,

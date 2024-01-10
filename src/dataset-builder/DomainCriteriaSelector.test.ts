@@ -5,7 +5,13 @@ import { h } from 'react-hyperscript-helpers';
 import { DatasetBuilder, DatasetBuilderContract } from 'src/libs/ajax/DatasetBuilder';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { cohortEditorState, domainCriteriaSelectorState, newCohort, newCriteriaGroup } from './dataset-builder-types';
+import {
+  cohortEditorState,
+  domainCriteriaSelectorState,
+  homepageState,
+  newCohort,
+  newCriteriaGroup,
+} from './dataset-builder-types';
 import { DomainCriteriaSelector, toCriteria } from './DomainCriteriaSelector';
 import { dummyDatasetModel, dummyGetConceptForId } from './TestConstants';
 
@@ -29,7 +35,13 @@ describe('DomainCriteriaSelector', () => {
   cohort.criteriaGroups.push(newCriteriaGroup());
   asMockedFn(getConceptsMock).mockResolvedValue({ result: [concept] });
   asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetResponse as DatasetBuilderContract);
-  const state = domainCriteriaSelectorState.new(cohort, cohort.criteriaGroups[0], domainOption);
+  const state = domainCriteriaSelectorState.new(
+    cohort,
+    cohort.criteriaGroups[0],
+    domainOption,
+    [],
+    homepageState.new()
+  );
   const criteriaIndex = 1234;
   const getNextCriteriaIndex = () => criteriaIndex;
 
@@ -56,7 +68,7 @@ describe('DomainCriteriaSelector', () => {
     );
   });
 
-  it('returns to the cohort editor on cancel', async () => {
+  it('returns to the cancel state on cancel', async () => {
     const onStateChange = jest.fn();
     // Arrange
     render(h(DomainCriteriaSelector, { state, onStateChange, datasetId, getNextCriteriaIndex }));
@@ -65,6 +77,6 @@ describe('DomainCriteriaSelector', () => {
     const user = userEvent.setup();
     await user.click(screen.getByLabelText('cancel'));
     // Assert
-    expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(cohort));
+    expect(onStateChange).toHaveBeenCalledWith(state.cancelState);
   });
 });

@@ -1,5 +1,6 @@
 // Types that can be used to create a criteria.
 import _ from 'lodash/fp';
+import { dummyConcepts } from 'src/dataset-builder/TestConstants';
 import { Ajax } from 'src/libs/ajax';
 import {
   ColumnStatisticsIntOrDoubleModel,
@@ -147,6 +148,10 @@ export interface GetConceptsResponse {
   result: Concept[];
 }
 
+export interface SearchConceptsResponse {
+  result: Concept[];
+}
+
 export type DatasetRequest = {
   cohorts: Cohort[];
   conceptSets: ConceptSet[];
@@ -273,6 +278,8 @@ export interface DatasetBuilderContract {
   ) => Promise<ProgramDataRangeOption | ProgramDataListOption>;
   retrieveDataset: (datasetId: string) => Promise<DatasetModel>;
   getConcepts: (datasetId: string, parent: Concept) => Promise<GetConceptsResponse>;
+  // Search returns a list of matching concepts sorted by participant count. The result is truncated to the first 100 matches.
+  searchConcepts: (datasetId: string, root: Concept, text: string) => Promise<SearchConceptsResponse>;
   requestAccess: (datasetId: string, request: DatasetAccessRequest) => Promise<DatasetAccessRequestApi>;
   getParticipantCount: (
     datasetId: string,
@@ -304,6 +311,12 @@ export const DatasetBuilder = (): DatasetBuilderContract => ({
   },
   requestAccess: async (datasetId, request) => {
     return await Ajax().DataRepo.dataset(datasetId).createSnapshotRequest(convertDatasetAccessRequest(request));
+  },
+  searchConcepts: async (_datasetId: string, _root: Concept, text: string) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    return Promise.resolve({
+      result: _.filter((concept) => concept.name.toLowerCase().includes(text.toLowerCase()), dummyConcepts),
+    });
   },
   getParticipantCount: async (datasetId, request) => {
     return await Ajax().DataRepo.dataset(datasetId).getCounts(convertDatasetParticipantCountRequest(request));

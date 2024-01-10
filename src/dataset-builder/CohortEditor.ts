@@ -24,7 +24,7 @@ import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
-import { domainCriteriaSelectorState, homepageState, newCriteriaGroup, Updater } from './dataset-builder-types';
+import { domainCriteriaSearchState, homepageState, newCriteriaGroup, Updater } from './dataset-builder-types';
 import { OnStateChangeHandler } from './DatasetBuilder';
 
 const flexWithBaseline = {
@@ -254,7 +254,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
       onChange: async (criteriaOption) => {
         if (criteriaOption !== null) {
           if (criteriaOption.value.kind === 'domain') {
-            onStateChange(domainCriteriaSelectorState.new(cohort, criteriaGroup, criteriaOption.value));
+            onStateChange(domainCriteriaSearchState.new(cohort, criteriaGroup, criteriaOption.value, [], ''));
           } else {
             const criteriaIndex = getNextCriteriaIndex();
             updateCohort(
