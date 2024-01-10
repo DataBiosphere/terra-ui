@@ -2,8 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { ButtonSecondary } from '@terra-ui-packages/components';
 import React from 'react';
 
-import StoryThemeProvider from './StoryThemeProvider';
-
 const meta: Meta<typeof ButtonSecondary> = {
   title: 'Packages/Components/ButtonSecondary',
   component: ButtonSecondary,
@@ -44,13 +42,6 @@ const meta: Meta<typeof ButtonSecondary> = {
       },
     },
   },
-  decorators: [
-    (Story) => (
-      <StoryThemeProvider>
-        <Story />
-      </StoryThemeProvider>
-    ),
-  ],
 };
 
 export default meta;

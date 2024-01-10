@@ -2,8 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { ButtonOutline } from '@terra-ui-packages/components';
 import React from 'react';
 
-import StoryThemeProvider from './StoryThemeProvider';
-
 const meta: Meta<typeof ButtonOutline> = {
   title: 'Packages/Components/ButtonOutline',
   component: ButtonOutline,
@@ -43,14 +41,7 @@ const meta: Meta<typeof ButtonOutline> = {
         defaultValue: { summary: 'bottom' },
       },
     },
-  },
-  decorators: [
-    (Story) => (
-      <StoryThemeProvider>
-        <Story />
-      </StoryThemeProvider>
-    ),
-  ],
+  }
 };
 
 export default meta;
