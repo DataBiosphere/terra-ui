@@ -79,7 +79,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               { header: 'Concept ID', width: 195, key: 'id' },
               { header: 'Code', width: 195, key: 'code' },
               { header: 'Roll-up count', width: 205, key: 'count' },
-              { header: ' ', width: 100, key: 'hierarchy' },
+              { width: 100, key: 'hierarchy' },
             ],
             rows: _.map((concept) => {
               const [label, iconName]: [string, IconId] = (() => {
