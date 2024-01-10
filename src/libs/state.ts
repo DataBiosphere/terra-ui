@@ -249,9 +249,6 @@ lastActiveTimeStore.update((v) => v || {});
 export const toggleStateAtom = staticStorageSlot(getSessionStorage(), 'toggleState');
 toggleStateAtom.update((v) => v || { notebooksTab: true });
 
-export const azurePreviewStore: Atom<boolean> = staticStorageSlot(getLocalStorage(), 'azurePreview');
-azurePreviewStore.update((v) => v || false);
-
 export const notificationStore = atom<any[]>([]);
 
 export const contactUsActive = atom(false);
