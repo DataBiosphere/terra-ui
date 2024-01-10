@@ -3,6 +3,7 @@ import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { WorkspaceTags } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceTags';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -63,7 +64,9 @@ describe('WorkspaceTags', () => {
     const initialTags = ['tag a', 'tag b'];
     const addedTag = 'new tag';
     const mockAddTagsFn = jest.fn().mockResolvedValue([...initialTags, addedTag]);
+    const mockCaptureEvent = jest.fn();
     asMockedFn(Ajax).mockReturnValue({
+      Metrics: { captureEvent: mockCaptureEvent } as Partial<AjaxContract['Metrics']>,
       Workspaces: {
         // the tags select component still calls this
         getTags: jest.fn().mockResolvedValue([initialTags]),
@@ -109,6 +112,10 @@ describe('WorkspaceTags', () => {
     expect(screen.queryByText('tag a')).not.toBeNull();
     expect(screen.queryByText('tag b')).not.toBeNull();
     expect(mockAddTagsFn).toBeCalled();
+    expect(mockCaptureEvent).toBeCalledWith(Events.workspaceDashboardAddTag, {
+      tag: addedTag,
+      ...extractWorkspaceDetails(defaultGoogleWorkspace),
+    });
   });
 
   it('updates the list of tags when deleting a tag', async () => {
@@ -118,7 +125,9 @@ describe('WorkspaceTags', () => {
 
     const initialTags = [remainingTag, deletingTag];
     const mockDeleteTagsFn = jest.fn().mockResolvedValue([remainingTag]);
+    const mockCaptureEvent = jest.fn();
     asMockedFn(Ajax).mockReturnValue({
+      Metrics: { captureEvent: mockCaptureEvent } as Partial<AjaxContract['Metrics']>,
       Workspaces: {
         // the tags select component still calls this
         getTags: jest.fn().mockResolvedValue([initialTags]),
@@ -161,5 +170,9 @@ describe('WorkspaceTags', () => {
     await waitFor(() => expect(screen.queryByText(deletingTag)).toBeNull());
     expect(screen.queryByText(remainingTag)).not.toBeNull();
     expect(mockDeleteTagsFn).toBeCalled();
+    expect(mockCaptureEvent).toBeCalledWith(Events.workspaceDashboardDeleteTag, {
+      tag: deletingTag,
+      ...extractWorkspaceDetails(defaultGoogleWorkspace),
+    });
   });
 });

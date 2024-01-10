@@ -8,6 +8,7 @@ import { Ajax } from 'src/libs/ajax';
 import { getEnabledBrand } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
@@ -51,6 +52,10 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
     withBusyState(setBusy)
   )(async (tag) => {
     setTagsList(await Ajax().Workspaces.workspace(namespace, name).addTag(tag));
+    Ajax().Metrics.captureEvent(Events.workspaceDashboardAddTag, {
+      tag,
+      ...extractWorkspaceDetails(workspace),
+    });
   });
 
   const deleteTag = _.flow(
@@ -58,6 +63,10 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
     withBusyState(setBusy)
   )(async (tag) => {
     setTagsList(await Ajax().Workspaces.workspace(namespace, name).deleteTag(tag));
+    Ajax().Metrics.captureEvent(Events.workspaceDashboardDeleteTag, {
+      tag,
+      ...extractWorkspaceDetails(workspace),
+    });
   });
 
   const brand = getEnabledBrand();
