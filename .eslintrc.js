@@ -94,13 +94,13 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['**/*.test.ts', '**/*.test.js', 'src/setupTests.ts'],
+      files: ['**/*.test.ts', '**/*.test.tsx', '**/*.test.js', 'src/setupTests.ts'],
       env: {
         jest: true,
       },
     },
     {
-      files: 'src/**/*.{js,ts}',
+      files: 'src/**/*.{js,ts,tsx}',
       rules: {
         // 'no-console': ['warn', { allow: ['assert', 'error'] }],//TODO: should be enabled
       },
@@ -118,4 +118,5 @@ module.exports = {
     },
   ],
   plugins: ['lodash-fp', 'simple-import-sort'],
+  'ignorePatterns': ['!.storybook'],
 };

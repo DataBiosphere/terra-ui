@@ -15,4 +15,3 @@ coverage
 lint-staged.config.mjs
 vite.config.js
 packages/*/lib
-.storybook
