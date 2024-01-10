@@ -20,6 +20,7 @@ export const DatasetAttributes = (props: DatasetAttributesProps): ReactNode => {
     _.some(_.startsWith('library:'), _.keys(attributes)) &&
     h(Fragment, [
       div({ style: Style.dashboard.header }, ['Dataset Attributes']),
+      // @ts-expect-error
       h(SimpleTable, {
         'aria-label': 'dataset attributes table',
         rows: _.flow(
