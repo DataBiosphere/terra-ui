@@ -124,6 +124,7 @@ const eventsList = {
   workflowsTabView: 'workflowsApp:tab:view',
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
+  workspaceDashboardSectionToggle: 'workspace:dashboard:toggleSection',
   workspaceOpenedBucketInBrowser: 'workspace:openedBucketInBrowser',
   workspaceOpenedProjectInConsole: 'workspace:openedProjectInCloudConsole',
   workspaceDataAddColumn: 'workspace:data:addColumn',
