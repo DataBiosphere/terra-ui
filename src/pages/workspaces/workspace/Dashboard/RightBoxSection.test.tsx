@@ -66,12 +66,12 @@ describe('RightBoxSection', () => {
     expect(captureEvent).toHaveBeenNthCalledWith(1, Events.workspaceDashboardSectionToggle, {
       opened: true,
       title: 'Test Title',
-      ...extractWorkspaceDetails(defaultAzureWorkspace),
+      ...extractWorkspaceDetails(workspace),
     });
     expect(captureEvent).toHaveBeenNthCalledWith(2, Events.workspaceDashboardSectionToggle, {
       opened: false,
       title: 'Test Title',
-      ...extractWorkspaceDetails(defaultAzureWorkspace),
+      ...extractWorkspaceDetails(workspace),
     });
   });
 });
