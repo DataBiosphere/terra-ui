@@ -6,11 +6,11 @@ import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Style from 'src/libs/style';
 import { useLocalPref } from 'src/libs/useLocalPref';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
+import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 interface RightBoxSectionProps {
   title: string;
-  workspace: Workspace; // used for metrics eventing
+  workspace: WorkspaceWrapper; // used for metrics eventing
   info?: ReactNode;
   afterTitle?: ReactNode;
   persistenceId: string; // persists whether or not the panel is open in local storage

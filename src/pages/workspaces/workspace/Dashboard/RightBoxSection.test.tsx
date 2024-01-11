@@ -11,7 +11,7 @@ type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');
 
 describe('RightBoxSection', () => {
-  const workspace = { ...defaultAzureWorkspace, workspaceInitialized: true };
+  const workspace = defaultAzureWorkspace;
   const captureEvent = jest.fn();
 
   beforeEach(() => {
