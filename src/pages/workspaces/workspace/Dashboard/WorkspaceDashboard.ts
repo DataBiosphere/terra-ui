@@ -55,18 +55,22 @@ export const WorkspaceDashboard = forwardRef(
             title: 'Workspace information',
             persistenceId: `${persistenceId}/workspaceInfoPanelOpen`,
             defaultPanelOpen: true,
+            workspace,
           },
           [h(WorkspaceInformation, { workspace })]
         ),
-        h(RightBoxSection, { title: 'Cloud information', persistenceId: `${persistenceId}/cloudInfoPanelOpen` }, [
-          h(CloudInformation, { workspace, storageDetails }),
-        ]),
+        h(
+          RightBoxSection,
+          { title: 'Cloud information', persistenceId: `${persistenceId}/cloudInfoPanelOpen`, workspace },
+          [h(CloudInformation, { workspace, storageDetails })]
+        ),
         h(
           RightBoxSection,
           {
             title: 'Owners',
             persistenceId: `${persistenceId}/ownersPanelOpen`,
             afterTitle: OwnerNotice({ workspace }),
+            workspace,
           },
           [
             div(
@@ -87,6 +91,7 @@ export const WorkspaceDashboard = forwardRef(
             {
               title: 'Authorization domain',
               persistenceId: `${persistenceId}/authDomainPanelOpen`,
+              workspace,
             },
             [h(AuthDomainPanel, { workspace })]
           ),
@@ -96,6 +101,7 @@ export const WorkspaceDashboard = forwardRef(
           {
             title: 'Notifications',
             persistenceId: `${persistenceId}/notificationsPanelOpen`,
+            workspace,
           },
           [h(WorkspaceNotifications, { workspace })]
         ),
