@@ -21,6 +21,17 @@ jest.mock('src/libs/ajax');
 
 jest.mock('src/libs/notifications');
 
+// Needed for bringing up the RequestPays modal
+type WorkspaceProviderExports = typeof import('src/libs/ajax/workspaces/providers/WorkspaceProvider');
+jest.mock(
+  'src/libs/ajax/workspaces/providers/WorkspaceProvider',
+  (): WorkspaceProviderExports => ({
+    workspaceProvider: {
+      list: jest.fn(),
+    },
+  })
+);
+
 describe('BucketLocation', () => {
   const workspace: GoogleWorkspace & { workspaceInitialized: boolean } = {
     ...defaultGoogleWorkspace,
@@ -160,5 +171,7 @@ describe('BucketLocation', () => {
       Events.workspaceDashboardBucketRequesterPays,
       extractWorkspaceDetails(workspace)
     );
+    // In the RequestPays Modal (because the list method returns no workspaces).
+    expect(screen.getAllByText('Go to Workspaces')).not.toBeNull();
   });
 });
