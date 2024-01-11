@@ -7,8 +7,9 @@ import { Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { SimpleTable } from 'src/components/table';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
+import { GetConceptsResponse } from 'src/dataset-builder/DatasetBuilderUtils';
 import { SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
-import { DatasetBuilder, GetConceptsResponse } from 'src/libs/ajax/DatasetBuilder';
+import { DataRepo } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 
@@ -37,7 +38,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
   const [concepts, searchConcepts] = useLoadedData<GetConceptsResponse>();
   useEffect(() => {
     void searchConcepts(() => {
-      return DatasetBuilder().searchConcepts(datasetId, domainOption.root, search);
+      return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, search);
     });
   }, [search, datasetId, domainOption.root, searchConcepts]);
   return h(Fragment, [

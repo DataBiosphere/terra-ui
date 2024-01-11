@@ -1,6 +1,5 @@
 import { act, getByTestId, screen } from '@testing-library/react';
 import React from 'react';
-import { isAzureUser } from 'src/auth/auth';
 import AuthContainer from 'src/auth/AuthContainer';
 import { Ajax } from 'src/libs/ajax';
 import { Groups } from 'src/libs/ajax/Groups';
@@ -9,7 +8,6 @@ import { TermsOfService } from 'src/libs/ajax/TermsOfService';
 import { User } from 'src/libs/ajax/User';
 import { useRoute } from 'src/libs/nav';
 import { AuthState, authStore } from 'src/libs/state';
-import AzurePreview from 'src/pages/AzurePreview';
 import { Disabled } from 'src/pages/Disabled';
 import SignIn from 'src/pages/SignIn';
 import { Register } from 'src/registration/Register';
@@ -35,7 +33,6 @@ jest.mock(
     isAzureUser: jest.fn(),
   })
 );
-jest.mock('src/pages/AzurePreview');
 jest.mock('src/pages/Disabled');
 jest.mock('src/pages/SignIn');
 jest.mock('src/registration/Register');
@@ -225,26 +222,6 @@ describe('AuthContainer', () => {
       render(<AuthContainer>Child Page Content</AuthContainer>);
 
       screen.getByText('Child Page Content');
-    });
-  });
-  describe('when the user is an Azure User and has not seen the Azure Preview', () => {
-    it('shows the AzurePreview page', async () => {
-      // Arrange
-      await act(async () => {
-        authStore.update((state: AuthState) => ({ ...state, signInStatus: 'userLoaded' }));
-      });
-      asMockedFn(AzurePreview).mockImplementation(renderedPageFn);
-      asMockedFn(isAzureUser).mockImplementation(() => true);
-
-      // Act
-      render(
-        <AuthContainer>
-          <div />
-        </AuthContainer>
-      );
-
-      // Assert
-      expect(renderedPageFn).toHaveBeenCalled();
     });
   });
 });

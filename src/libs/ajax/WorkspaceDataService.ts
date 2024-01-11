@@ -118,13 +118,6 @@ export const WorkspaceData = (signal) => ({
     );
     return await res.json();
   },
-  importTdr: async (root: string, instanceId: string, snapshotId: string): Promise<Response> => {
-    const res = await fetchWDS(root)(
-      `${instanceId}/snapshots/v0.2/${snapshotId}`,
-      _.mergeAll([authOpts(), { method: 'POST' }])
-    );
-    return res;
-  },
   queryRecords: async (root: string, instanceId: string, wdsType: string): Promise<any> => {
     const searchPayload = { limit: 100 };
     const res = await fetchWDS(root)(

@@ -167,7 +167,6 @@ const setup = async (opts: SetupOptions) => {
     },
     WorkspaceData: {
       startImportJob,
-      importTdr,
     },
     Workspaces: {
       workspace: getWorkspaceApi,
@@ -361,21 +360,20 @@ describe('ImportData', () => {
           (featurePreview) => featurePreview === ENABLE_AZURE_TDR_IMPORT
         );
 
+        // Azure tdr import expects the tdrmanifest to be a URL object, not a string
         const queryParams = {
           ...commonSnapshotExportQueryParams,
           snapshotId: azureSnapshotFixture.id,
         };
-        const { importJob, importTdr, wdsProxyUrl } = await setup({ queryParams });
+        const { importJob, startImportJob, wdsProxyUrl } = await setup({ queryParams });
 
         // Act
         await importIntoExistingWorkspace(user, defaultAzureWorkspace.workspace.name);
 
-        // Assert
-        expect(importTdr).toHaveBeenCalledWith(
-          wdsProxyUrl,
-          defaultAzureWorkspace.workspace.workspaceId,
-          queryParams.snapshotId
-        );
+        expect(startImportJob).toHaveBeenCalledWith(wdsProxyUrl, defaultAzureWorkspace.workspace.workspaceId, {
+          url: queryParams.tdrmanifest,
+          type: 'TDRMANIFEST',
+        });
         expect(importJob).not.toHaveBeenCalled();
       });
     });

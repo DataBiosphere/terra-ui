@@ -3,28 +3,27 @@ import userEvent from '@testing-library/user-event';
 import { KEY_LEFT, KEY_RIGHT } from 'keycode-js';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { SnapshotBuilderProgramDataOption } from 'src/libs/ajax/DataRepo';
 import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
-  DatasetBuilder,
-  DatasetBuilderContract,
   DomainCriteria,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
-} from 'src/libs/ajax/DatasetBuilder';
+} from 'src/dataset-builder/DatasetBuilderUtils';
+import { DataRepo, DataRepoContract, SnapshotBuilderProgramDataOption } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';
 import { domainCriteriaSearchState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
 import { dummyDatasetModel } from './TestConstants';
 
-type DatasetBuilderExports = typeof import('src/libs/ajax/DatasetBuilder');
-jest.mock('src/libs/ajax/DatasetBuilder', (): DatasetBuilderExports => {
+jest.mock('src/libs/ajax/GoogleStorage');
+type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
+jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   return {
-    ...jest.requireActual('src/libs/ajax/DatasetBuilder'),
-    DatasetBuilder: jest.fn(),
+    ...jest.requireActual('src/libs/ajax/DataRepo'),
+    DataRepo: jest.fn(),
   };
 });
 
@@ -36,41 +35,43 @@ describe('CohortEditor', () => {
   };
 
   const mockListStatistics = () => {
-    const mockDatasetBuilderContract: Partial<DatasetBuilderContract> = {
-      getProgramDataStatistics: jest.fn(),
-    };
-    const getProgramDataStatisticsMock = (mockDatasetBuilderContract as DatasetBuilderContract)
-      .getProgramDataStatistics;
-    asMockedFn(getProgramDataStatisticsMock).mockResolvedValue({
-      kind: 'list',
-      name: 'list',
-      values: [
-        {
-          id: 0,
-          name: 'value 0',
-        },
-        {
-          id: 1,
-          name: 'value 1',
-        },
-      ],
-    });
-    asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetBuilderContract as DatasetBuilderContract);
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      dataset: (_datasetId) =>
+        ({
+          queryDatasetColumnStatisticsById: () =>
+            Promise.resolve({
+              kind: 'list',
+              name: 'list',
+              values: [
+                {
+                  id: 0,
+                  name: 'value 0',
+                },
+                {
+                  id: 1,
+                  name: 'value 1',
+                },
+              ],
+            }),
+        } as Partial<DataRepoContract['dataset']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   };
 
   const mockRangeStatistics = (min = 55, max = 99) => {
-    const mockDatasetBuilderContract: Partial<DatasetBuilderContract> = {
-      getProgramDataStatistics: jest.fn(),
-    };
-    const getProgramDataStatisticsMock = (mockDatasetBuilderContract as DatasetBuilderContract)
-      .getProgramDataStatistics;
-    asMockedFn(getProgramDataStatisticsMock).mockResolvedValue({
-      kind: 'range',
-      name: 'range',
-      min,
-      max,
-    });
-    asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetBuilderContract as DatasetBuilderContract);
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      dataset: (_datasetId) =>
+        ({
+          queryDatasetColumnStatisticsById: () =>
+            Promise.resolve({
+              kind: 'range',
+              name: 'range',
+              min,
+              max,
+            }),
+        } as Partial<DataRepoContract['dataset']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   };
 
   const mockOption = (option: SnapshotBuilderProgramDataOption) => {

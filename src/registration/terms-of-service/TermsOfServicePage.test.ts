@@ -1,10 +1,9 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { Groups } from 'src/libs/ajax/Groups';
-import { Metrics } from 'src/libs/ajax/Metrics';
-import { SamUserTermsOfServiceDetails, TermsOfService } from 'src/libs/ajax/TermsOfService';
-import { SamUserAllowances, User } from 'src/libs/ajax/User';
+import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
+import { SamUserAllowances } from 'src/libs/ajax/User';
 import { AuthState, authStore } from 'src/libs/state';
 import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfServicePage';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -63,18 +62,15 @@ const setupMockAjax = async (
   const getFenceStatus = jest.fn();
   const getNihStatus = jest.fn();
 
-  type AjaxContract = ReturnType<typeof Ajax>;
-  type UserContract = ReturnType<typeof User>;
-  type MetricsContract = ReturnType<typeof Metrics>;
-  type GroupsContract = ReturnType<typeof Groups>;
-  type TermsOfServiceContract = ReturnType<typeof TermsOfService>;
+  type AjaxExports = typeof import('src/libs/ajax');
+  type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
   asMockedFn(Ajax).mockImplementation(
     () =>
       ({
         Metrics: {
           captureEvent: jest.fn(),
-        } as Partial<MetricsContract>,
+        },
         User: {
           getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
           getUserAllowances: jest.fn().mockResolvedValue(terraUserAllowances),
@@ -86,17 +82,17 @@ const setupMockAjax = async (
           },
           getFenceStatus,
           getNihStatus,
-        } as Partial<UserContract>,
+        },
         TermsOfService: {
           getUserTermsOfServiceDetails,
           acceptTermsOfService,
           rejectTermsOfService,
           getTermsOfServiceText,
-        } as Partial<TermsOfServiceContract>,
+        },
         Groups: {
           list: jest.fn(),
-        } as Partial<GroupsContract>,
-      } as Partial<AjaxContract> as AjaxContract)
+        },
+      } as DeepPartial<AjaxContract> as AjaxContract)
   );
 
   await act(async () => {

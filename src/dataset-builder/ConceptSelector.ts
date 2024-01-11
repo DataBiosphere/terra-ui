@@ -6,8 +6,7 @@ import { ActionBar } from 'src/components/ActionBar';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TreeGrid } from 'src/components/TreeGrid';
-import { SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
-import { DatasetBuilder } from 'src/libs/ajax/DatasetBuilder';
+import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
 
@@ -25,7 +24,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
   const { initialRows, title, onCancel, onCommit, actionText, datasetId, initialCart } = props;
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
-    const result = await DatasetBuilder().getConcepts(datasetId, concept);
+    const result = await DataRepo().dataset(datasetId).getConcepts(concept);
     return result.result;
   };
   return h(Fragment, [

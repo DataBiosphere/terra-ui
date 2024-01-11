@@ -346,7 +346,7 @@ const findPossibleSets = (listOfExistingEntities) => {
   );
 };
 
-const WorkflowView = _.flow(
+export const WorkflowView = _.flow(
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceTab(props, 'workflows'),
     title: _.get('workflowName'),

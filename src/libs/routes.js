@@ -7,7 +7,6 @@ import * as DataBrowserDetails from 'src/data-catalog/DataBrowserDetails';
 import * as DataBrowserPreview from 'src/data-catalog/DataBrowserPreview';
 import * as ImportDataPage from 'src/import-data/ImportDataPage';
 import { routeHandlersStore } from 'src/libs/state';
-import * as AzurePreview from 'src/pages/AzurePreview';
 import * as Projects from 'src/pages/billing/List/List';
 import * as Environments from 'src/pages/EnvironmentsPage';
 import * as FeaturePreviews from 'src/pages/FeaturePreviews';
@@ -84,7 +83,6 @@ const routes = _.flatten([
   UploadData.navPaths,
   FeaturePreviews.navPaths,
   WorkspaceFiles.navPaths,
-  AzurePreview.navPaths,
   WorkflowsApp.navPaths,
   WorkspaceMigration.navPaths,
   NotFound.navPaths, // must be last

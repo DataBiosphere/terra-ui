@@ -28,7 +28,6 @@ import {
   AuthState,
   authStore,
   azureCookieReadyStore,
-  azurePreviewStore,
   cookieReadyStore,
   getTerraUser,
   MetricState,
@@ -110,7 +109,6 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
-  azurePreviewStore.set(false);
 
   revokeTokens();
 

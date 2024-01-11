@@ -1,11 +1,19 @@
 import * as _ from 'lodash/fp';
-import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 import {
+  convertDatasetAccessRequest,
+  convertDatasetParticipantCountRequest,
+  convertProgramDataOptionToListOption,
+  convertProgramDataOptionToRangeOption,
+  DatasetAccessRequest,
   DatasetAccessRequestApi,
-  DatasetParticipantCountRequestApi,
+  DatasetParticipantCountRequest,
   DatasetParticipantCountResponse,
   GetConceptsResponse,
-} from 'src/libs/ajax/DatasetBuilder';
+  ProgramDataListOption,
+  ProgramDataRangeOption,
+} from 'src/dataset-builder/DatasetBuilderUtils';
+import { dummyConcepts } from 'src/dataset-builder/TestConstants';
+import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
 export type SnapshotBuilderConcept = {
   id: number;
@@ -131,12 +139,13 @@ export interface DataRepoContract {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
     queryDatasetColumnStatisticsById: (
-      tableName: string,
-      columnName: string
-    ) => Promise<ColumnStatisticsIntOrDoubleModel | ColumnStatisticsTextModel>;
-    createSnapshotRequest(request: DatasetAccessRequestApi): Promise<DatasetAccessRequestApi>;
-    getCounts(request: DatasetParticipantCountRequestApi): Promise<DatasetParticipantCountResponse>;
+      dataOption: SnapshotBuilderProgramDataOption
+    ) => Promise<ProgramDataRangeOption | ProgramDataListOption>;
+    createSnapshotRequest(request: DatasetAccessRequest): Promise<DatasetAccessRequestApi>;
+    getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
+    // Search returns a list of matching concepts with a domain sorted by participant count. The result is truncated to N concepts.
+    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<GetConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
@@ -161,20 +170,56 @@ const callDataRepoPost = async (url: string, signal: AbortSignal | undefined, js
   return await res.json();
 };
 
+const handleProgramDataOptions = async (
+  datasetId: string,
+  programDataOption: SnapshotBuilderProgramDataOption,
+  signal: AbortSignal | undefined
+): Promise<ProgramDataRangeOption | ProgramDataListOption> => {
+  switch (programDataOption.kind) {
+    case 'list':
+      return convertProgramDataOptionToListOption(programDataOption);
+    case 'range': {
+      const statistics: ColumnStatisticsTextModel | ColumnStatisticsIntOrDoubleModel = await callDataRepoPost(
+        `repository/v1/datasets/${datasetId}/data/${programDataOption.tableName}/statistics/${programDataOption.columnName}`,
+        signal,
+        {}
+      );
+      return convertProgramDataOptionToRangeOption(programDataOption, statistics);
+    }
+    default:
+      throw new Error('Unexpected option');
+  }
+};
 export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
-  dataset: (datasetId) => ({
-    details: async (include): Promise<DatasetModel> =>
-      callDataRepo(`repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`, signal),
-    roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
-    createSnapshotRequest: async (request): Promise<DatasetAccessRequestApi> =>
-      callDataRepoPost(`repository/v1/datasets/${datasetId}/createSnapshotRequest`, signal, request),
-    getCounts: async (request): Promise<DatasetParticipantCountResponse> =>
-      callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotBuilder/count`, signal, request),
-    getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
-      callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-    queryDatasetColumnStatisticsById: async (tableName, columnName) =>
-      callDataRepoPost(`repository/v1/datasets/${datasetId}/data/${tableName}/statistics/${columnName}`, signal, {}),
-  }),
+  dataset: (datasetId) => {
+    return {
+      details: async (include): Promise<DatasetModel> =>
+        callDataRepo(`repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`, signal),
+      roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
+      createSnapshotRequest: async (request): Promise<DatasetAccessRequestApi> =>
+        callDataRepoPost(
+          `repository/v1/datasets/${datasetId}/snapshotRequests`,
+          signal,
+          convertDatasetAccessRequest(request)
+        ),
+      getCounts: async (request): Promise<DatasetParticipantCountResponse> =>
+        callDataRepoPost(
+          `repository/v1/datasets/${datasetId}/snapshotBuilder/count`,
+          signal,
+          convertDatasetParticipantCountRequest(request)
+        ),
+      getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
+        callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
+      searchConcepts: async (_domain: SnapshotBuilderConcept, text: string) => {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return Promise.resolve({
+          result: _.filter((concept) => concept.name.toLowerCase().includes(text.toLowerCase()), dummyConcepts),
+        });
+      },
+      queryDatasetColumnStatisticsById: (programDataOption) =>
+        handleProgramDataOptions(datasetId, programDataOption, signal),
+    };
+  },
   snapshot: (snapshotId) => {
     return {
       details: async () => callDataRepo(`repository/v1/snapshots/${snapshotId}`, signal),
