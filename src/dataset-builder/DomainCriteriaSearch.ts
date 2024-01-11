@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
+import { DomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
 import { SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption as DomainOption } from 'src/libs/ajax/DataRepo';
-import { DomainCriteria } from 'src/libs/ajax/DatasetBuilder';
 
 import { ConceptSearch } from './ConceptSearch';
 import {
