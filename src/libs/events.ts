@@ -124,7 +124,7 @@ const eventsList = {
   workflowsTabView: 'workflowsApp:tab:view',
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
-  workspaceDashboardSectionToggle: 'workspace:dashboard:toggleSection',
+  workspaceDashboardToggleSection: 'workspace:dashboard:toggleSection',
   workspaceDashboardAddTag: 'workspace:dashboard:addTag',
   workspaceDashboardDeleteTag: 'workspace:dashboard:deleteTag',
   workspaceDashboardEditDescription: 'workspace:dashboard:editDescription',

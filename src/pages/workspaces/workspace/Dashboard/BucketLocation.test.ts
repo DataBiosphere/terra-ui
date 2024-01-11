@@ -171,7 +171,7 @@ describe('BucketLocation', () => {
       Events.workspaceDashboardBucketRequesterPays,
       extractWorkspaceDetails(workspace)
     );
-    // In the RequestPays Modal (because the list method returns no workspaces).
+    // In the RequesterPays modal (because the list method returns no workspaces).
     expect(screen.getAllByText('Go to Workspaces')).not.toBeNull();
   });
 });

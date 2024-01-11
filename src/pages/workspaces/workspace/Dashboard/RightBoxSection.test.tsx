@@ -63,12 +63,12 @@ describe('RightBoxSection', () => {
     fireEvent.click(titleElement);
 
     // Assert
-    expect(captureEvent).toHaveBeenNthCalledWith(1, Events.workspaceDashboardSectionToggle, {
+    expect(captureEvent).toHaveBeenNthCalledWith(1, Events.workspaceDashboardToggleSection, {
       opened: true,
       title: 'Test Title',
       ...extractWorkspaceDetails(workspace),
     });
-    expect(captureEvent).toHaveBeenNthCalledWith(2, Events.workspaceDashboardSectionToggle, {
+    expect(captureEvent).toHaveBeenNthCalledWith(2, Events.workspaceDashboardToggleSection, {
       opened: false,
       title: 'Test Title',
       ...extractWorkspaceDetails(workspace),

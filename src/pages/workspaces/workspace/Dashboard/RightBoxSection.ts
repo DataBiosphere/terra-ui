@@ -33,7 +33,7 @@ export const RightBoxSection = (props: RightBoxSectionProps): ReactNode => {
           afterTitle,
           onOpenChanged: (panelOpen) => {
             setPanelOpen(panelOpen);
-            Ajax().Metrics.captureEvent(Events.workspaceDashboardSectionToggle, {
+            Ajax().Metrics.captureEvent(Events.workspaceDashboardToggleSection, {
               title,
               opened: panelOpen,
               ...extractWorkspaceDetails(workspace),
