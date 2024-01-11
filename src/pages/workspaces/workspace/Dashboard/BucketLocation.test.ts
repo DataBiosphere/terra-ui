@@ -1,9 +1,11 @@
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { GoogleWorkspace } from 'src/libs/workspace-utils';
 import { BucketLocation } from 'src/pages/workspaces/workspace/Dashboard/BucketLocation';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -119,6 +121,7 @@ describe('BucketLocation', () => {
 
   it('handles requester pays error', async () => {
     // Arrange
+    const user = userEvent.setup();
     const props = {
       workspace,
       storageDetails: _.mergeAll([
@@ -128,9 +131,11 @@ describe('BucketLocation', () => {
       ]),
     };
     const requesterPaysError = { message: 'Requester pays bucket', requesterPaysError: true };
+    const captureEvent = jest.fn();
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
+          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
           Workspaces: {
             workspace: () =>
               ({
@@ -145,5 +150,15 @@ describe('BucketLocation', () => {
     // Assert
     expect(screen.queryByText('Loading')).toBeNull();
     expect(screen.getAllByText(/bucket is requester pays/)).not.toBeNull();
+
+    // Act
+    const loadBucketLocation = screen.getByLabelText('Load bucket location');
+    await user.click(loadBucketLocation);
+
+    // Assert
+    expect(captureEvent).toHaveBeenCalledWith(
+      Events.workspaceDashboardBucketRequesterPays,
+      extractWorkspaceDetails(workspace)
+    );
   });
 });

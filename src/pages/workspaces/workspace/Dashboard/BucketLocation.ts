@@ -9,6 +9,7 @@ import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import { TooltipCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import { GoogleWorkspace } from 'src/libs/workspace-utils';
@@ -91,7 +92,13 @@ export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })((props
             tooltip:
               "This workspace's bucket is requester pays. Click to choose a workspace to bill requests to and get the bucket's location.",
             style: { height: '1rem', marginLeft: '1ch' },
-            onClick: () => setShowRequesterPaysModal(true),
+            onClick: () => {
+              setShowRequesterPaysModal(true);
+              Ajax().Metrics.captureEvent(
+                Events.workspaceDashboardBucketRequesterPays,
+                extractWorkspaceDetails(workspace)
+              );
+            },
           },
           [icon('sync')]
         ),

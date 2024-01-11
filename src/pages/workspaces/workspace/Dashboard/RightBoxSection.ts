@@ -31,11 +31,11 @@ export const RightBoxSection = (props: RightBoxSectionProps): ReactNode => {
           initialOpenState: panelOpen,
           titleFirst: true,
           afterTitle,
-          onClick: () => {
-            setPanelOpen(!panelOpen);
+          onOpenChanged: (panelOpen) => {
+            setPanelOpen(panelOpen);
             Ajax().Metrics.captureEvent(Events.workspaceDashboardSectionToggle, {
               title,
-              opened: !panelOpen,
+              opened: panelOpen,
               ...extractWorkspaceDetails(workspace),
             });
           },

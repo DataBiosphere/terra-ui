@@ -8,6 +8,7 @@ import { icon } from 'src/components/icons';
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
 import { canEditWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
@@ -35,6 +36,7 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
       const { namespace, name } = workspace.workspace;
       await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description: editedDescription });
       refreshWorkspace();
+      Ajax().Metrics.captureEvent(Events.workspaceDashboardSaveDescription, extractWorkspaceDetails(workspace));
     } catch (error) {
       reportError('Error saving workspace', error);
     } finally {
@@ -52,7 +54,10 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
             style: { marginLeft: '0.5rem' },
             disabled: !canEdit,
             tooltip: canEdit ? 'Edit description' : editErrorMessage,
-            onClick: () => setEditedDescription(description),
+            onClick: () => {
+              setEditedDescription(description);
+              Ajax().Metrics.captureEvent(Events.workspaceDashboardEditDescription, extractWorkspaceDetails(workspace));
+            },
           },
           [icon('edit')]
         ),
