@@ -1,83 +1,4 @@
 import { act, screen } from '@testing-library/react';
-import { h } from 'react-hyperscript-helpers';
-import { Ajax } from 'src/libs/ajax';
-import { WorkflowView } from 'src/pages/workspaces/workspace/workflows/WorkflowView';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
-
-jest.mock('src/libs/ajax');
-jest.mock('src/libs/nav', () => ({
-  getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
-  getLink: jest.fn(),
-  goToPath: jest.fn(),
-}));
-
-jest.mock('src/libs/notifications', () => ({
-  notify: jest.fn(),
-}));
-
-describe('Workflow View (GCP)', () => {
-  it('view workflow in workspace from mock import', async () => {
-    const selectionKey = 'foobar';
-
-    const mockAgoraResponse = [
-      {
-        name: 'joint-discovery-gatk4',
-        createDate: '2018-11-30T22:19:35Z',
-        url: 'http://agora.dsde-dev.broadinstitute.org/api/v1/methods/gatk/joint-discovery-gatk4/1',
-        synopsis: 'Implements the joint discovery and VQSR filtering',
-        entityType: 'Workflow',
-        snapshotComment: '',
-        snapshotId: 1,
-        namespace: 'gatk',
-      },
-    ];
-
-    const initializedGoogleWorkspace = {
-      accessLevel: 'OWNER',
-      owners: ['bar@foo.com'],
-      workspace: {
-        attributes: {
-          description: '',
-        },
-        authorizationDomain: [],
-        billingAccount: 'billingAccounts/google-billing-account',
-        bucketName: 'bucket-name',
-        cloudPlatform: 'Gcp',
-        completedCloneWorkspaceFileTransfer: '2023-02-03T22:29:04.319Z',
-        createdBy: 'bar@foo.com',
-        createdDate: '2023-02-03T22:26:06.124Z',
-        googleProject: 'google-project-id',
-        isLocked: false,
-        lastModified: '2023-02-03T22:26:06.202Z',
-        name: 'testName',
-        namespace: 'gatk',
-        workspaceId: 'google-workspace-id',
-        workspaceType: 'rawls',
-        workspaceVersion: 'v2',
-      },
-      canShare: true,
-      canCompute: true,
-      workspaceInitialized: true,
-    };
-
-    const mockStorageDetails = {
-      fetchedLocation: 'SUCCESS',
-    };
-
-    const methodList = [
-      {
-        name: 'joint-discovery-gatk4',
-        createDate: '2018-11-30T22:19:35Z',
-        url: 'http://agora.dsde-dev.broadinstitute.org/api/v1/methods/gatk/joint-discovery-gatk4/1',
-        synopsis: 'Implements the joint discovery and VQSR filtering',
-        entityType: 'Workflow',
-        snapshotComment: '',
-        snapshotId: 1,
-        namespace: 'gatk',
-      },
-    ];
-import { act } from '@testing-library/react';
-import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
@@ -85,7 +6,6 @@ import { WorkflowView } from 'src/pages/workspaces/workspace/workflows/WorkflowV
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
-
 jest.mock('src/libs/nav', () => ({
   getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
   getLink: jest.fn(),
@@ -97,14 +17,6 @@ jest.mock('src/libs/notifications', () => ({
 }));
 
 describe('Workflow View (GCP)', () => {
-  const namespace = 'testNamespace';
-  const name = 'testName';
-  const ws = {
-    name,
-    namespace,
-    cloudPlatform: 'Gcp',
-  };
-  const onDismiss = jest.fn();
   const initializedGoogleWorkspace = {
     accessLevel: 'OWNER',
     owners: ['bar@foo.com'],
@@ -132,10 +44,11 @@ describe('Workflow View (GCP)', () => {
     canCompute: true,
     workspaceInitialized: true,
   };
+
+  const selectionKey = 'foobar';
   const mockStorageDetails = {
     fetchedLocation: 'SUCCESS',
   };
-
   const methodList = [
     {
       name: 'echo_to_file',
@@ -148,84 +61,178 @@ describe('Workflow View (GCP)', () => {
       namespace: 'gatk',
     },
   ];
+  const mockAgoraResponse = [
+    {
+      name: 'echo_to_file',
+      createDate: '2019-11-21T19:10:23Z',
+      url: 'http://agora.dsde-dev.broadinstitute.org/api/v1/methods/gatk/echo_to_file/12',
+      synopsis: '',
+      entityType: 'Workflow',
+      snapshotComment: '',
+      snapshotId: 12,
+      namespace: 'gatk',
+    },
+  ];
+  const mockEntityMetadata = {
+    sra: {
+      attributeNames: ['biosample_accession', 'output'],
+      count: 6,
+      idName: 'sra_id',
+    },
+    sra_set: {
+      attributeNames: ['sras'],
+      count: 1,
+      idName: 'sra_set_id',
+    },
+  };
 
-  it('renders Workflow View page', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const props = { namespace, name, ws, onDismiss };
-    const selectionKey = 'foobar';
-    const mockAgoraResponse = [
+  const mockValidate = {
+    extraInputs: [],
+    invalidInputs: {},
+    invalidOutputs: {},
+    methodConfiguration: {
+      deleted: false,
+      inputs: {
+        'echo_strings.echo_to_file.input1': 'this.input',
+      },
+      methodConfigVersion: 1,
+      methodRepoMethod: {
+        methodName: 'echo_to_file',
+        methodVersion: 12,
+        methodNamespace: 'gatk',
+        methodUri: 'agora://gatk/echo_to_file/12',
+        sourceRepo: 'agora',
+      },
+      name: 'echo_to_file-configured',
+      namespace: 'gatk',
+      outputs: {
+        'echo_strings.echo_to_file.out': 'this.output',
+      },
+      prerequisites: {},
+      rootEntityType: 'test_entity',
+    },
+    missingInputs: [],
+    validInputs: ['echo_strings.echo_to_file.input1'],
+    validOutputs: ['echo_strings.echo_to_file.out'],
+  };
+  const mockConfigInputOutputs = {
+    inputs: [
       {
-        name: 'echo_to_file',
-        createDate: '2019-11-21T19:10:23Z',
-        url: 'http://agora.dsde-dev.broadinstitute.org/api/v1/methods/gatk/echo_to_file/12',
-        synopsis: '',
-        entityType: 'Workflow',
-        snapshotComment: '',
-        snapshotId: 12,
-        namespace: 'gatk',
+        inputType: 'String?',
+        name: 'echo_strings.echo_to_file.input1',
+        optional: true,
       },
-    ];
-    const mockEntityMetadata = {
-      sra: {
-        attributeNames: ['biosample_accession', 'output'],
-        count: 6,
-        idName: 'sra_id',
+    ],
+    outputs: [
+      {
+        name: 'echo_strings.echo_to_file.out',
+        outputType: 'String',
       },
-      sra_set: {
-        attributeNames: ['sras'],
-        count: 1,
-        idName: 'sra_set_id',
+    ],
+  };
+  const paginatedEntitiesOfType = jest.fn().mockImplementation(() =>
+    Promise.resolve({
+      resultMetadata: {
+        filteredCount: 3,
+        filteredPageCount: 1,
+        unfilteredCount: 3,
       },
-    };
-    // const payload = {
-    //   name: 'sra',
-    //   entityType: 'Workflow',
-    //   attributes: {
-    //     [`${selectedEntityType}s`]: {
-    //       itemsType: 'EntityReference',
-    //       items: _.map((entityName) => ({ entityName, entityType: selectedEntityType }), selectedEntityNames),
-    //     },
-    //   },
-    // };
-
-    Ajax.mockImplementation(() => {
-      return {
-        Methods: {
-          list: jest.fn(() => Promise.resolve(methodList)),
-          method: {
-            get: jest.fn(() => Promise.resolve(mockAgoraResponse)),
+      results: [
+        {
+          attributes: {
+            string: 'abc',
+            num: 1,
           },
+          entityType: 'participant',
+          name: 'your-sample-1-id',
         },
-        Workspaces: {
-          workspace: () => ({
-            details: jest.fn().mockResolvedValue(initializedGoogleWorkspace),
-            checkBucketReadAccess: jest.fn(),
-            storageCostEstimate: jest.fn(),
-            bucketUsage: jest.fn(),
-            checkBucketLocation: jest.fn().mockResolvedValue(mockStorageDetails),
-            entityMetadata: jest.fn().mockReturnValue(mockEntityMetadata),
-            listSnapshots: jest.fn().mockResolvedValue({
-              gcpDataRepoSnapshots: [],
-            }),
-            methodConfig: () => ({
-              validate: jest.fn(),
-              get: jest.fn().mockResolvedValue({
-                methodRepoMethod: {
-                  methodNamespace: 'gatk',
-                  methodName: 'echo_to_file',
-                  sourceRepo: 'agora',
-                  methodPath: 'agora://gatk/echo_to_file/12',
-                  methodVersion: 12,
-                },
-                rootEntityType: 'sra',
-                name: 'echo_to_file-configured',
-              }),
+        {
+          attributes: {
+            string: 'foo',
+            num: 2,
+          },
+          entityType: 'participant',
+          name: 'your-sample-2-id',
+        },
+        {
+          attributes: {
+            string: 'bar',
+            num: 3,
+          },
+          entityType: 'participant',
+          name: 'your-sample-3-id',
+        },
+      ],
+    })
+  );
+  Ajax.mockImplementation(() => {
+    return {
+      Methods: {
+        list: jest.fn(() => Promise.resolve(methodList)),
+        method: {
+          get: jest.fn(() => Promise.resolve(mockAgoraResponse)),
+        },
+        configInputsOutputs: jest.fn(() => Promise.resolve(mockConfigInputOutputs)),
+      },
+      Workspaces: {
+        workspace: () => ({
+          details: jest.fn().mockResolvedValue(initializedGoogleWorkspace),
+          checkBucketReadAccess: jest.fn(),
+          storageCostEstimate: jest.fn(),
+          bucketUsage: jest.fn(),
+          checkBucketLocation: jest.fn().mockResolvedValue(mockStorageDetails),
+          entityMetadata: jest.fn().mockReturnValue(mockEntityMetadata),
+          listSnapshots: jest.fn().mockResolvedValue({
+            gcpDataRepoSnapshots: [],
+          }),
+          methodConfig: () => ({
+            validate: jest.fn().mockReturnValue(mockValidate),
+            get: jest.fn().mockResolvedValue({
+              methodRepoMethod: {
+                methodNamespace: 'gatk',
+                methodName: 'echo_to_file',
+                sourceRepo: 'agora',
+                methodUri: 'agora://gatk/echo_to_file/12',
+                methodVersion: 12,
+              },
+              rootEntityType: 'sra',
+              name: 'echo_to_file-configured',
             }),
           }),
-        },
-      };
+          paginatedEntitiesOfType,
+        }),
+      },
+    };
+  });
+
+  it('view workflow in workspace from mock import', async () => {
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { queryParams: { selectionKey } }));
     });
+
+    expect(
+      screen.getByRole('button', {
+        name: /inputs/i,
+      })
+    );
+
+    expect(screen.getByText('echo_to_file-configured'));
+  });
+
+  it('can run a workflow given an entity', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const namespace = 'testNamespace';
+    const name = 'testName';
+    const ws = {
+      name,
+      namespace,
+      cloudPlatform: 'Gcp',
+    };
+    const onDismiss = jest.fn();
+
+    const props = { namespace, name, ws, onDismiss };
 
     // Act
     await act(async () => {
@@ -233,16 +240,26 @@ describe('Workflow View (GCP)', () => {
     });
 
     const selectDataButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Select Data'))[0];
+    // screen.logTestingPlaygroundURL();
     expect(selectDataButton).toHaveTextContent('Select Data');
     expect(screen.getByText('sra')).toBeInTheDocument();
     // screen.debug(undefined, 300000);
+    // screen.logTestingPlaygroundURL();
     const dropdown = screen.getByLabelText('Entity type selector');
     const dropdownHelper = new SelectHelper(dropdown, user);
     // console.log(dropdownHelper.getSelectedOptions());
     await dropdownHelper.selectOption('sra');
+    await user.click(selectDataButton);
+
+    const allSelectRadioButton = screen.getAllByRole('checkbox')[0];
+    await user.click(allSelectRadioButton);
+
+    const okButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('OK'))[0];
     screen.debug(undefined, 300000);
+    await user.click(okButton);
+    screen.logTestingPlaygroundURL();
+    // screen.debug(undefined, 300000);
 
     // console.log(selectDataButton);
-    screen.logTestingPlaygroundURL();
   });
 });
