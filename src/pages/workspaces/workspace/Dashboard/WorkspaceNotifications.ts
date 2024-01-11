@@ -6,7 +6,7 @@ import { refreshTerraProfile } from 'src/auth/auth';
 import { LabeledCheckbox } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
-import Events from 'src/libs/events';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { userStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
@@ -54,6 +54,7 @@ export const WorkspaceNotifications = (props: WorkspaceNotificationsProps): Reac
             Ajax().Metrics.captureEvent(Events.notificationToggle, {
               notificationKeys: submissionNotificationKeys,
               enabled: value,
+              ...extractWorkspaceDetails(props.workspace),
             });
           }),
         },

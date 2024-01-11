@@ -20,6 +20,7 @@ interface CollapseProps extends Omit<DivProps, 'title'> {
   titleFirst?: boolean;
   afterTitle?: ReactNode;
   onFirstOpen?: () => void;
+  onOpenChanged?: (isOpened: boolean) => void;
   noTitleWrap?: boolean;
   disabled?: boolean;
 }
@@ -37,6 +38,7 @@ const Collapse = (props: CollapseProps): ReactNode => {
     titleFirst,
     afterTitle,
     onFirstOpen = () => {},
+    onOpenChanged = () => {},
     noTitleWrap,
     disabled = false,
     ...rest
@@ -81,7 +83,10 @@ const Collapse = (props: CollapseProps): ReactNode => {
               color: colors.dark(),
               ...(noTitleWrap ? Style.noWrapEllipsis : {}),
             },
-            onClick: () => setIsOpened(!isOpened),
+            onClick: () => {
+              setIsOpened(!isOpened);
+              onOpenChanged(!isOpened);
+            },
             hover,
             tooltip,
             tooltipDelay,
