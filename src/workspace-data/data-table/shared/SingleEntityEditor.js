@@ -30,14 +30,13 @@ export const SingleEntityEditor = ({
 
   const doEdit = async () => {
     try {
+      setIsBusy(true);
       if (dataProvider.providerName === wdsProviderName) {
         const record = {};
         record[attributeName] = newValue;
         const listOfRecords = { attributes: record };
-        await dataProvider.updateRecord(id, entityType, entityName, listOfRecords);
+        await dataProvider.updateRecord({ instance: id, recordName: entityType, recordId: entityName, record: listOfRecords });
       } else {
-        setIsBusy(true);
-
         await Ajax()
           .Workspaces.workspace(namespace, name)
           .upsertEntities([
@@ -65,7 +64,12 @@ export const SingleEntityEditor = ({
   const doDelete = async () => {
     try {
       setIsBusy(true);
-      await Ajax().Workspaces.workspace(namespace, name).deleteEntityAttribute(entityType, entityName, attributeName);
+      if (dataProvider.providerName === wdsProviderName) {
+        // need to add behavior for delete or a message that is not yet supported but coming soon
+      } else {
+        await Ajax().Workspaces.workspace(namespace, name).deleteEntityAttribute(entityType, entityName, attributeName);
+      }
+
       onSuccess();
     } catch (e) {
       onDismiss();

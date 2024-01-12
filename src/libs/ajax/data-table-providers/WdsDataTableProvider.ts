@@ -309,14 +309,15 @@ export class WdsDataTableProvider implements DataTableProvider {
     );
   };
 
-  updateRecord = (
-    instance: string,
-    tableName: string,
-    recordId: string,
-    record: object
-  ): Promise<RecordResponseBody> => {
+  updateRecord = (recordEditParams: RecordEditParameters): Promise<RecordResponseBody> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
 
-    return Ajax().WorkspaceData.updateRecord(this.proxyUrl, instance, tableName, recordId, record);
+    return Ajax().WorkspaceData.updateRecord(
+      this.proxyUrl,
+      recordEditParams.instance,
+      recordEditParams.recordName,
+      recordEditParams.recordId,
+      recordEditParams.record
+    );
   };
 }

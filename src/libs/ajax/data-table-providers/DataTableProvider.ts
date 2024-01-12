@@ -61,6 +61,13 @@ export type UploadParameters = {
   recordType: string;
 };
 
+export type RecordEditParameters = {
+  instance: string;
+  recordName: string;
+  recordId: string;
+  record: object;
+};
+
 export type InvalidTsvOptions = {
   fileImportModeMatches: boolean;
   filePresent: boolean;
