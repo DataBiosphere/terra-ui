@@ -61,28 +61,22 @@ describe('Workflow View (GCP)', () => {
       namespace: 'gatk',
     },
   ];
-  const mockAgoraResponse = [
-    {
-      name: 'echo_to_file',
-      createDate: '2019-11-21T19:10:23Z',
-      url: 'http://agora.dsde-dev.broadinstitute.org/api/v1/methods/gatk/echo_to_file/12',
-      synopsis: '',
-      entityType: 'Workflow',
-      snapshotComment: '',
-      snapshotId: 12,
-      namespace: 'gatk',
-    },
-  ];
+  const mockAgoraResponse = {
+    managers: ['public', 'zarsky@test.firecloud.org'],
+    name: 'echo_to_file',
+    createDate: '2019-11-21T19:10:23Z',
+    public: true,
+    entityType: 'Workflow',
+    snapshotId: 12,
+    namespace: 'gatk',
+    payload: '',
+    url: 'http://agora.dsde-dev.broadinstitute.org/api/v1/methods/gatk/echo_to_file/12',
+  };
   const mockEntityMetadata = {
     sra: {
-      attributeNames: ['biosample_accession', 'output'],
-      count: 6,
-      idName: 'sra_id',
-    },
-    sra_set: {
-      attributeNames: ['sras'],
-      count: 1,
-      idName: 'sra_set_id',
+      attributeNames: ['your-sample-1-id', 'your-sample-2-id'],
+      count: 2,
+      idName: 'sra',
     },
   };
 
@@ -132,6 +126,14 @@ describe('Workflow View (GCP)', () => {
   };
   const paginatedEntitiesOfType = jest.fn().mockImplementation(() =>
     Promise.resolve({
+      parameters: {
+        fields: {},
+        filterOperator: 'and',
+        page: 1,
+        pageSize: 100,
+        sortDirection: 'asc',
+        sortField: 'name',
+      },
       resultMetadata: {
         filteredCount: 3,
         filteredPageCount: 1,
@@ -143,7 +145,7 @@ describe('Workflow View (GCP)', () => {
             string: 'abc',
             num: 1,
           },
-          entityType: 'participant',
+          entityType: 'sra',
           name: 'your-sample-1-id',
         },
         {
@@ -151,16 +153,8 @@ describe('Workflow View (GCP)', () => {
             string: 'foo',
             num: 2,
           },
-          entityType: 'participant',
+          entityType: 'sra',
           name: 'your-sample-2-id',
-        },
-        {
-          attributes: {
-            string: 'bar',
-            num: 3,
-          },
-          entityType: 'participant',
-          name: 'your-sample-3-id',
         },
       ],
     })
@@ -169,9 +163,9 @@ describe('Workflow View (GCP)', () => {
     return {
       Methods: {
         list: jest.fn(() => Promise.resolve(methodList)),
-        method: {
+        method: () => ({
           get: jest.fn(() => Promise.resolve(mockAgoraResponse)),
-        },
+        }),
         configInputsOutputs: jest.fn(() => Promise.resolve(mockConfigInputOutputs)),
       },
       Workspaces: {
@@ -255,7 +249,6 @@ describe('Workflow View (GCP)', () => {
     await user.click(allSelectRadioButton);
 
     const okButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('OK'))[0];
-    screen.debug(undefined, 300000);
     await user.click(okButton);
     screen.logTestingPlaygroundURL();
     // screen.debug(undefined, 300000);
