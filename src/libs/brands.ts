@@ -15,6 +15,9 @@ import fcLogo from 'src/images/brands/firecloud/FireCloud-Logo.svg';
 import fcLogoWhite from 'src/images/brands/firecloud/FireCloud-Logo-White.svg';
 import projectSingularLogo from 'src/images/brands/projectSingular/project-singular-logo-black.svg';
 import projectSingularLogoWhite from 'src/images/brands/projectSingular/project-singular-logo-white.svg';
+import publicHealthBackground from 'src/images/brands/publicHealth/Terra-PHG-background.png';
+import publicHealthLogo from 'src/images/brands/publicHealth/Terra-PHG-Color.svg';
+import publicHealthLogoWhite from 'src/images/brands/publicHealth/Terra-PHG-White.svg';
 import rareXLogo from 'src/images/brands/rareX/rarex-logo-color.svg';
 import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg';
 import terraLogo from 'src/images/brands/terra/logo.svg';
@@ -316,9 +319,10 @@ export const brands: Record<string, BrandConfiguration> = {
       },
     ],
     logos: {
-      color: anvilLogo,
-      white: anvilLogoWhite,
+      color: publicHealthLogo,
+      white: publicHealthLogoWhite,
     },
+    landingPageBackground: publicHealthBackground,
     theme: {
       colorPalette: {
         ...baseColors,
