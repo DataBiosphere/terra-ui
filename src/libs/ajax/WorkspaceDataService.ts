@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { authOpts, fetchWDS, jsonBody } from 'src/libs/ajax/ajax-common';
 import {
   RecordQueryResponse,
+  RecordResponseBody,
   RecordTypeSchema,
   SearchRequest,
   TsvUploadResponse,

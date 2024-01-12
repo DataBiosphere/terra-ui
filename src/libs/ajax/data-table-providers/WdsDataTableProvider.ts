@@ -7,6 +7,7 @@ import {
   EntityMetadata,
   EntityQueryOptions,
   EntityQueryResponse,
+  RecordEditParameters,
   TSVFeatures,
   TsvUploadButtonDisabledOptions,
   TsvUploadButtonTooltipOptions,

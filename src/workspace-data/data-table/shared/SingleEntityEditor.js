@@ -113,7 +113,7 @@ export const SingleEntityEditor = ({
               showJsonTypeOption: originalValueType === 'json',
             }),
             div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
-              h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),
+              dataProvider.providerName !== wdsProviderName && h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),
               div({ style: { flexGrow: 1 } }),
               h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: onDismiss }, ['Cancel']),
               h(
