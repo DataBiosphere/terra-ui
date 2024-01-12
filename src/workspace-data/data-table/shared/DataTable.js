@@ -20,6 +20,7 @@ import Modal from 'src/components/Modal';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
+import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -522,6 +523,7 @@ const DataTable = (props) => {
                         text: entityName,
                       }),
                       editable &&
+                        dataProvider.providerName !== wdsProviderName &&
                         h(EditDataLink, {
                           'aria-label': `Rename ${entityType} ${entityName}`,
                           onClick: () => setRenamingEntity(entityName),
@@ -552,7 +554,7 @@ const DataTable = (props) => {
                               renderSearch: !!googleProject,
                               searchByColumn: (v) => searchByColumn(attributeName, v),
                               extraActions: _.concat(
-                                editable
+                                editable && dataProvider.providerName !== wdsProviderName
                                   ? [
                                       // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
                                       // Without this, autofocus doesn't work in the modals.
