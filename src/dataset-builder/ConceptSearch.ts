@@ -8,8 +8,7 @@ import { icon } from 'src/components/icons';
 import { SimpleTable } from 'src/components/table';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import { GetConceptsResponse } from 'src/dataset-builder/DatasetBuilderUtils';
-import { SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
-import { DataRepo } from 'src/libs/ajax/DataRepo';
+import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 
