@@ -4,10 +4,11 @@ import { div, h, span } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common';
 import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
+import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { reportError } from 'src/libs/error';
 
-import { getAttributeType, prepareAttributeForUpload } from './attribute-utils';
-import AttributeInput from './AttributeInput';
+import { getAttributeType, prepareAttributeForUpload } from '../entity-service/attribute-utils';
+import AttributeInput from '../entity-service/AttributeInput';
 
 export const SingleEntityEditor = ({
   entityType,
@@ -15,9 +16,10 @@ export const SingleEntityEditor = ({
   attributeName,
   attributeValue,
   entityTypes,
-  workspaceId: { namespace, name },
+  workspaceId: { namespace, name, id },
   onDismiss,
   onSuccess,
+  dataProvider,
 }) => {
   const { type: originalValueType } = getAttributeType(attributeValue);
   const [newValue, setNewValue] = useState(attributeValue);
@@ -28,23 +30,31 @@ export const SingleEntityEditor = ({
 
   const doEdit = async () => {
     try {
-      setIsBusy(true);
+      if (dataProvider.providerName === wdsProviderName) {
+        const record = {};
+        record[attributeName] = newValue;
+        const listOfRecords = { attributes: record };
+        await dataProvider.updateRecord(id, entityType, entityName, listOfRecords);
+      } else {
+        setIsBusy(true);
 
-      await Ajax()
-        .Workspaces.workspace(namespace, name)
-        .upsertEntities([
-          {
-            entityType,
-            name: entityName,
-            operations: [
-              {
-                op: 'AddUpdateAttribute',
-                attributeName,
-                addUpdateAttribute: prepareAttributeForUpload(newValue),
-              },
-            ],
-          },
-        ]);
+        await Ajax()
+          .Workspaces.workspace(namespace, name)
+          .upsertEntities([
+            {
+              entityType,
+              name: entityName,
+              operations: [
+                {
+                  op: 'AddUpdateAttribute',
+                  attributeName,
+                  addUpdateAttribute: prepareAttributeForUpload(newValue),
+                },
+              ],
+            },
+          ]);
+      }
+
       onSuccess();
     } catch (e) {
       onDismiss();

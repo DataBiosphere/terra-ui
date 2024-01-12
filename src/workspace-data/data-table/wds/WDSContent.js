@@ -20,17 +20,19 @@ const WDSContent = ({
   // Render
   const [entityMetadata, setEntityMetadata] = useState(() => wdsToEntityServiceMetadata(wdsSchema));
 
+  const id = workspace.workspace.workspaceId;
+  // dataProvider contains the proxyUrl for an instance of WDS
   return h(Fragment, [
     h(DataTable, {
       dataProvider,
       persist: true,
       refreshKey,
-      editable: false,
+      editable: true,
       entityType: recordType,
       activeCrossTableTextFilter: false,
       entityMetadata,
       googleProject,
-      workspaceId: { namespace, name },
+      workspaceId: { namespace, name, id },
       workspace,
       snapshotName: undefined,
       selectionModel: {

@@ -91,6 +91,19 @@ export const WorkspaceData = (signal) => ({
     );
     return res.json();
   },
+  updateRecord: async (
+    root: string,
+    instanceId: string,
+    recordType: string,
+    recordId: string,
+    attributes: string
+  ): Promise<RecordResponseBody> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/records/v0.2/${recordType}/${recordId}`,
+      _.mergeAll([authOpts(), jsonBody(attributes), { signal, method: 'PATCH' }])
+    );
+    return res.json();
+  },
   getVersion: async (root: string): Promise<WDSVersionResponse> => {
     const res = await fetchWDS(root)('version', _.merge(authOpts(), { signal }));
     return res.json();

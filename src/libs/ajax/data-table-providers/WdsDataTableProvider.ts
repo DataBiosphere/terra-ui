@@ -57,6 +57,12 @@ export interface TsvUploadResponse {
   recordsModified: number;
 }
 
+export interface RecordResponseBody {
+  id: string;
+  type: string;
+  attributes: object;
+}
+
 export const wdsToEntityServiceMetadata = (wdsSchema: RecordTypeSchema[]): EntityMetadata => {
   const keyedSchema: Record<string, RecordTypeSchema> = _.keyBy((x) => x.name, wdsSchema);
   return _.mapValues((typeDef) => {
@@ -301,5 +307,16 @@ export class WdsDataTableProvider implements DataTableProvider {
       uploadParams.recordType,
       uploadParams.file
     );
+  };
+
+  updateRecord = (
+    instance: string,
+    tableName: string,
+    recordId: string,
+    record: object
+  ): Promise<RecordResponseBody> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
+
+    return Ajax().WorkspaceData.updateRecord(this.proxyUrl, instance, tableName, recordId, record);
   };
 }

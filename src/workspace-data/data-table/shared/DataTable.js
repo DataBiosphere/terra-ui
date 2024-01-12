@@ -42,9 +42,9 @@ import {
   ColumnSettingsWithSavedColumnSettings,
   decodeColumnSettings,
 } from '../entity-service/SavedColumnSettings';
-import { SingleEntityEditor } from '../entity-service/SingleEntityEditor';
 import { EditDataLink } from './EditDataLink';
 import { HeaderOptions } from './HeaderOptions';
+import { SingleEntityEditor } from './SingleEntityEditor';
 
 const entityMap = (entities) => {
   return _.fromPairs(_.map((e) => [e.name, e], entities));
@@ -725,6 +725,7 @@ const DataTable = (props) => {
         ...updatingEntity,
         entityTypes: _.keys(entityMetadata),
         workspaceId,
+        dataProvider,
         onSuccess: () => {
           setUpdatingEntity(undefined);
           Ajax().Metrics.captureEvent(Events.workspaceDataEditOne, extractWorkspaceDetails(workspace.workspace));
