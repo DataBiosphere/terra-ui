@@ -1,5 +1,9 @@
 // Types that can be used to create a criteria.
+// @ts-ignore
+
 import _ from 'lodash/fp';
+import { ReactElement } from 'react';
+import { span, strong } from 'react-hyperscript-helpers';
 import {
   ColumnStatisticsIntOrDoubleModel,
   ColumnStatisticsTextModel,
@@ -265,4 +269,17 @@ export const convertProgramDataOptionToRangeOption = (
         `Datatype ${statistics.dataType} for ${programDataOption.tableName}/${programDataOption.columnName} is not numeric`
       );
   }
+};
+
+export const boldSubsetWord = (conceptName: string, searchedWord: string): ReactElement => {
+  const startIndex = conceptName.toLowerCase().indexOf(searchedWord.toLowerCase());
+  if (startIndex === -1) {
+    return span([conceptName]); // searchedWord is not found in conceptName
+  }
+  const endIndex = startIndex + searchedWord.length;
+  return span([
+    conceptName.substring(0, startIndex),
+    strong([conceptName.substring(startIndex, endIndex)]),
+    conceptName.substring(endIndex),
+  ]);
 };
