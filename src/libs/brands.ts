@@ -320,7 +320,14 @@ export const brands: Record<string, BrandConfiguration> = {
       white: anvilLogoWhite,
     },
     theme: {
-      colorPalette: { ...baseColors, primary: '#e0dd10', accent: '#035c94', light: '#f6f7f4', dark: '#012840' },
+      colorPalette: {
+        ...baseColors,
+        primary: '#006DB6',
+        secondary: '#004D81',
+        accent: '#4D72AA',
+        light: '#E6F1F8',
+        dark: '#333F52',
+      },
     },
   },
   rareX: {
