@@ -290,6 +290,39 @@ export const brands: Record<string, BrandConfiguration> = {
       colorPalette: { ...baseColors, primary: '#521b93', secondary: '#011c48', accent: '#521b93' },
     },
   },
+  publicHealth: {
+    name: 'Terra for Public Health Genomics',
+    queryName: 'publicHealth',
+    welcomeHeader: 'Terra for Public Health Genomics',
+    description:
+      'Terra is a secure cloud-based data platform enabling pathogen genomic data analysis in public health, clinical, and academic settings.',
+    hostName: 'publichealth.terra.bio',
+    docLinks: [
+      {
+        link: 'https://support.terra.bio/hc/en-us',
+        text: 'Theiagen Workflow Repository',
+      },
+      {
+        link: 'https://support.terra.bio/hc/en-us',
+        text: 'Terra Cloud Costs FAQs',
+      },
+      {
+        link: 'https://support.terra.bio/hc/en-us',
+        text: 'Contact us',
+      },
+      {
+        link: 'https://support.terra.bio/hc/en-us',
+        text: 'Terra Support',
+      },
+    ],
+    logos: {
+      color: anvilLogo,
+      white: anvilLogoWhite,
+    },
+    theme: {
+      colorPalette: { ...baseColors, primary: '#e0dd10', accent: '#035c94', light: '#f6f7f4', dark: '#012840' },
+    },
+  },
   rareX: {
     name: `The RARE${nonBreakingHyphen}X Data Analysis Platform`,
     queryName: `the rare${nonBreakingHyphen}x data analysis platform`,

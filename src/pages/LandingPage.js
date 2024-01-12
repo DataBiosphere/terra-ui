@@ -7,7 +7,7 @@ import { icon } from 'src/components/icons';
 import hexButton from 'src/images/hex-button.svg';
 import terraHero from 'src/images/terra-hero.png';
 import { Ajax } from 'src/libs/ajax';
-import { getEnabledBrand, isFirecloud, isTerra } from 'src/libs/brand-utils';
+import { getEnabledBrand, isFirecloud, isPublicHealth, isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { withErrorHandling } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -132,15 +132,29 @@ export const LandingPage = () => {
         ]
       ),
     // width is set to prevent text from overlapping the background image and decreasing legibility
-    div({ style: { maxWidth: 'calc(100% - 460px)' } }, makeDocLinks(getEnabledBrand().docLinks)),
-    div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, [
-      makeCard('workspaces', 'View Workspaces', [
-        'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
+    isPublicHealth() && [
+      div({ style: { maxWidth: 'calc(100% - 460px)' } }, [
+        h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '28px', margin: 0 } }, ['Pathogen genomics resources:']),
+        makeDocLinks([getEnabledBrand().docLinks[0], getEnabledBrand().docLinks[1]]),
+        h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '28px', margin: 0 } }, ['Need help or have questions?']),
+        makeDocLinks([getEnabledBrand().docLinks[2], getEnabledBrand().docLinks[3]]),
       ]),
-      makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done.'),
-      makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of data portals.'),
-    ]),
-    isTerra() &&
+      div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, [
+        makeCard('workspaces', 'My Workspaces', [
+          'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
+        ]),
+        makeCard('library-showcase', 'Featured Workspaces', 'Browse example pathogen genomic data and analysis tools together.'),
+      ]),
+    ],
+    isTerra() && [
+      div({ style: { maxWidth: 'calc(100% - 460px)' } }, makeDocLinks(getEnabledBrand().docLinks)),
+      div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, [
+        makeCard('workspaces', 'View Workspaces', [
+          'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
+        ]),
+        makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done.'),
+        makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of data portals.'),
+      ]),
       div(
         {
           style: {
@@ -174,6 +188,7 @@ export const LandingPage = () => {
           ),
         ]
       ),
+    ],
     (isTerra() || isFirecloud()) &&
       div({ style: { width: 700, marginTop: '4rem' } }, [
         'This project has been funded in whole or in part with Federal funds from the National Cancer Institute, National Institutes of Health, ',
