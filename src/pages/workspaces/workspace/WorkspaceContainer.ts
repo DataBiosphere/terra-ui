@@ -79,7 +79,15 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
     breadcrumbs,
     title,
     activeTab,
-    analysesData: { apps = [], refreshApps, runtimes = [], refreshRuntimes, appDataDisks = [], persistentDisks = [] },
+    analysesData: {
+      apps = [],
+      refreshApps,
+      runtimes = [],
+      refreshRuntimes,
+      appDataDisks = [],
+      persistentDisks = [],
+      isLoadingCloudEnvironments,
+    },
     storageDetails,
     refresh,
     workspace,
@@ -140,6 +148,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
             runtimes,
             persistentDisks,
             refreshRuntimes,
+            isLoadingCloudEnvironments,
             storageDetails,
           }),
       ]),
@@ -253,11 +262,8 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
         namespace,
         name
       );
-      const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(
-        name,
-        namespace,
-        workspace
-      );
+      const { runtimes, refreshRuntimes, persistentDisks, appDataDisks, isLoadingCloudEnvironments } =
+        useCloudEnvironmentPolling(name, namespace, workspace);
       const { apps, refreshApps, lastRefresh } = useAppPolling(name, namespace, workspace);
 
       if (accessError) {
@@ -274,7 +280,16 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
           refreshWorkspace,
           title: _.isFunction(title) ? title(props) : title,
           breadcrumbs: breadcrumbs(props),
-          analysesData: { apps, refreshApps, lastRefresh, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+          analysesData: {
+            apps,
+            refreshApps,
+            lastRefresh,
+            runtimes,
+            refreshRuntimes,
+            appDataDisks,
+            persistentDisks,
+            isLoadingCloudEnvironments,
+          },
           storageDetails,
           refresh: async () => {
             await refreshWorkspace();
@@ -297,6 +312,7 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
                 refreshRuntimes,
                 appDataDisks,
                 persistentDisks,
+                isLoadingCloudEnvironments,
               },
               storageDetails,
               ...props,

@@ -215,6 +215,7 @@ export const GcpComputeModalBase = ({
   onSuccess,
   currentRuntime,
   currentDisk,
+  isLoadingCloudEnvironments,
   tool,
   workspace,
   location,
@@ -1736,7 +1737,7 @@ export const GcpComputeModalBase = ({
       ],
       [Utils.DEFAULT, renderMainForm]
     ),
-    loading && spinnerOverlay,
+    (loading || isLoadingCloudEnvironments) && spinnerOverlay,
     showDebugPanel && renderDebugger(),
   ]);
 };

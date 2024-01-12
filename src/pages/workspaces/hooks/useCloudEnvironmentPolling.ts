@@ -11,6 +11,7 @@ import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/h
 export interface CloudEnvironmentDetails {
   runtimes?: ListRuntimeItem[];
   refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
+  isLoadingCloudEnvironments: boolean;
   persistentDisks?: PersistentDisk[];
   appDataDisks?: PersistentDisk[];
 }
@@ -29,6 +30,7 @@ export const useCloudEnvironmentPolling = (
 
   const timeout = useRef<NodeJS.Timeout>();
   const [runtimes, setRuntimes] = useState<ListRuntimeItem[]>();
+  const [isLoadingCloudEnvironments, setIsLoadingCloudEnvironments] = useState<boolean>(true);
   const [persistentDisks, setPersistentDisks] = useState<PersistentDisk[]>();
   const [appDataDisks, setAppDataDisks] = useState<PersistentDisk[]>();
 
@@ -41,6 +43,7 @@ export const useCloudEnvironmentPolling = (
   };
   const load = async (maybeStale?: boolean): Promise<void> => {
     try {
+      setIsLoadingCloudEnvironments(true);
       const cloudEnvFilters = _.pickBy((l) => !_.isUndefined(l), {
         role: 'creator',
         saturnWorkspaceName,
@@ -63,6 +66,7 @@ export const useCloudEnvironmentPolling = (
       setAppDataDisks(_.remove((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
       setPersistentDisks(_.filter((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
       const runtime = getCurrentRuntime(newRuntimes);
+      setIsLoadingCloudEnvironments(false);
       reschedule(
         maybeStale ||
           ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring'].includes(
@@ -94,5 +98,5 @@ export const useCloudEnvironmentPolling = (
     };
     //  eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, namespace, workspace]);
-  return { runtimes, refreshRuntimes, persistentDisks, appDataDisks };
+  return { runtimes, refreshRuntimes, persistentDisks, appDataDisks, isLoadingCloudEnvironments };
 };

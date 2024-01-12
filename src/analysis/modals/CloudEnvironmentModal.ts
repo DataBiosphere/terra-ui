@@ -77,6 +77,7 @@ export const CloudEnvironmentModal = ({
   appDataDisks,
   refreshRuntimes,
   refreshApps,
+  isLoadingCloudEnvironments,
   workspace,
   persistentDisks,
   // Note: for Azure environments `location` and `computeRegion` are identical
@@ -120,6 +121,7 @@ export const CloudEnvironmentModal = ({
       tool,
       currentRuntime,
       currentDisk,
+      isLoadingCloudEnvironments,
       location,
       onDismiss,
       onSuccess,
@@ -133,6 +135,7 @@ export const CloudEnvironmentModal = ({
       workspace,
       currentRuntime,
       currentDisk: getReadyPersistentDisk(persistentDisks),
+      isLoadingCloudEnvironments,
       location,
       tool,
       onDismiss,

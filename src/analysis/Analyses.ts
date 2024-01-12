@@ -428,7 +428,15 @@ export interface SortOrderInfo {
 export const BaseAnalyses = (
   {
     workspace,
-    analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+    analysesData: {
+      apps,
+      refreshApps,
+      runtimes,
+      refreshRuntimes,
+      appDataDisks,
+      persistentDisks,
+      isLoadingCloudEnvironments,
+    },
     storageDetails: { googleBucketLocation, azureContainerRegion },
     onRequesterPaysError,
   }: AnalysesProps,
@@ -752,6 +760,7 @@ export const BaseAnalyses = (
                   runtimes,
                   persistentDisks,
                   refreshRuntimes,
+                  isLoadingCloudEnvironments,
                   appDataDisks,
                   refreshAnalyses,
                   analyses,

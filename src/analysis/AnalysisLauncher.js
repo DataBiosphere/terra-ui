@@ -71,7 +71,7 @@ const AnalysisLauncher = _.flow(
       analysisName,
       workspace,
       workspace: { accessLevel, canCompute },
-      analysesData: { runtimes, refreshRuntimes, persistentDisks },
+      analysesData: { runtimes, refreshRuntimes, persistentDisks, isLoadingCloudEnvironments },
       storageDetails: { googleBucketLocation, azureContainerRegion },
     },
     _ref
@@ -117,6 +117,7 @@ const AnalysisLauncher = _.flow(
                   workspace,
                   setCreateOpen,
                   refreshRuntimes,
+                  isLoadingCloudEnvironments,
                   readOnlyAccess: !(canWrite(accessLevel) && canCompute),
                 }),
                 h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel: currentFileToolLabel, workspace }),
@@ -166,7 +167,7 @@ const AnalysisLauncher = _.flow(
             setCreateOpen(false);
           },
         }),
-        busy && spinnerOverlay,
+        (busy || isLoadingCloudEnvironments) && spinnerOverlay,
       ]),
     ]);
   }

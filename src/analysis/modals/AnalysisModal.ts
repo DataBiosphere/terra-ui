@@ -79,6 +79,7 @@ export interface AnalysisModalProps {
   apps: App[] | undefined;
   appDataDisks: AppDataDisk[] | undefined;
   persistentDisks: PersistentDisk[] | undefined;
+  isLoadingCloudEnvironments: boolean;
   onDismiss: () => void;
   onError: () => void;
   onSuccess: () => void;
@@ -94,6 +95,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     onError,
     onSuccess,
     runtimes,
+    isLoadingCloudEnvironments,
     apps,
     appDataDisks,
     persistentDisks,
@@ -220,6 +222,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         tool: currentTool,
         currentRuntime,
         currentDisk,
+        isLoadingCloudEnvironments,
         onDismiss,
         onError,
         onSuccess,
@@ -232,6 +235,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         tool: currentTool,
         currentRuntime,
         currentDisk: persistentDisks ? persistentDisks[0] : undefined,
+        isLoadingCloudEnvironments,
         onDismiss,
         onSuccess,
       });
@@ -297,6 +301,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             Clickable,
             {
               style: styles.toolCard,
+              disabled: isLoadingCloudEnvironments,
               onClick: () => {
                 setCurrentToolObj(runtimeTool);
                 setFileExt(runtimeTool.defaultExt);
@@ -325,7 +330,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                 enterNextViewMode(appTool.label);
               },
               hover: !currentApp ? styles.hover : undefined,
-              disabled: !!currentApp,
+              disabled: !!currentApp || isLoadingCloudEnvironments,
               tooltip: currentApp ? appDisabledMessages[appTool.label] : '',
               key: appTool.label,
             },
@@ -355,6 +360,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
               accept: `.${runtimeTools.Jupyter.ext.join(', .')}, .${runtimeTools.RStudio.ext.join(', .')}`,
               style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
               activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
+              disabled: isLoadingCloudEnvironments,
               onDropRejected: () =>
                 reportError(
                   'Not a valid analysis file',
@@ -510,7 +516,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             ButtonPrimary,
             {
               // TODO: See spinner overlay comment. Change to pendingCreate.status === 'Loading' || errors.
-              disabled: status === 'Loading' || pendingCreate.status === 'Loading' || errors,
+              disabled:
+                isLoadingCloudEnvironments || status === 'Loading' || pendingCreate.status === 'Loading' || errors,
               tooltip: Utils.summarizeErrors(errors),
               onClick: async () => {
                 try {

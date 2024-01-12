@@ -96,6 +96,7 @@ export const ContextBar = ({
   refreshRuntimes,
   storageDetails,
   refreshApps,
+  isLoadingCloudEnvironments,
   workspace,
   persistentDisks,
 }: ContextBarProps) => {
@@ -248,6 +249,7 @@ export const ContextBar = ({
       appDataDisks,
       refreshRuntimes,
       refreshApps,
+      isLoadingCloudEnvironments,
       workspace,
       canCompute,
       persistentDisks,

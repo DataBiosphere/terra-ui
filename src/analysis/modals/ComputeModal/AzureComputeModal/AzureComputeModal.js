@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
 import { AzurePersistentDiskSection } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSection';
@@ -48,6 +48,7 @@ export const AzureComputeModalBase = ({
   workspace,
   currentRuntime,
   currentDisk,
+  isLoadingCloudEnvironments,
   location,
   tool,
   hideCloseButton = false,
@@ -64,15 +65,21 @@ export const AzureComputeModalBase = ({
   const hasGpu = () => !!azureMachineTypes[computeConfig.machineType]?.hasGpu;
   // Lifecycle
   useOnMount(() => {
-    const loadCloudEnvironment = _.flow(
-      withErrorReportingInModal('Error loading cloud environment', onError),
-      Utils.withBusyState(setLoading)
-    )(async () => {
-      const runtimeDetails = currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null;
+    const announceModalOpen = async () => {
       Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
         existingConfig: !!currentRuntime,
         ...extractWorkspaceDetails(workspace.workspace),
       });
+    };
+    announceModalOpen();
+  });
+
+  useEffect(() => {
+    const refreshRuntime = _.flow(
+      withErrorReportingInModal('Error loading cloud environment', onError),
+      Utils.withBusyState(setLoading)
+    )(async () => {
+      const runtimeDetails = currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null;
       setCurrentRuntimeDetails(runtimeDetails);
       setComputeConfig({
         machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
@@ -83,8 +90,8 @@ export const AzureComputeModalBase = ({
         autopauseThreshold: runtimeDetails ? runtimeDetails.autopauseThreshold || autopauseDisabledValue : defaultAutopauseThreshold,
       });
     });
-    loadCloudEnvironment();
-  });
+    refreshRuntime();
+  }, [currentRuntime, location, onError, workspaceId, setCurrentRuntimeDetails, setComputeConfig]);
 
   const renderTitleAndTagline = () => {
     return h(Fragment, [
@@ -450,7 +457,7 @@ export const AzureComputeModalBase = ({
       ],
       [Utils.DEFAULT, renderMainForm]
     ),
-    loading && spinnerOverlay,
+    (loading || isLoadingCloudEnvironments) && spinnerOverlay,
   ]);
 };
 
