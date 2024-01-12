@@ -14,6 +14,7 @@ export interface CloudEnvironmentDetails {
   isLoadingCloudEnvironments: boolean;
   persistentDisks?: PersistentDisk[];
   appDataDisks?: PersistentDisk[];
+  isLoadingCloudEnvironments: boolean;
 }
 
 export const useCloudEnvironmentPolling = (

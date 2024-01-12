@@ -85,6 +85,7 @@ export interface ContextBarProps {
   refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
   storageDetails: StorageDetails;
   refreshApps: (maybeStale?: boolean) => Promise<void>;
+  isLoadingCloudEnvironments: boolean;
   workspace: BaseWorkspace;
   persistentDisks: PersistentDisk[];
 }

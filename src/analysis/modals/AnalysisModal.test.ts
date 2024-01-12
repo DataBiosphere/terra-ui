@@ -26,6 +26,7 @@ const defaultGcpModalProps: AnalysisModalProps = {
   apps: [] as App[],
   appDataDisks: [],
   persistentDisks: [],
+  isLoadingCloudEnvironments: false,
   onDismiss: () => {},
   onError: () => {},
   onSuccess: () => {},
