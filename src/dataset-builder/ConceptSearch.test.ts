@@ -1,10 +1,20 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { SearchInput } from 'src/components/input';
 import { ConceptSearch } from 'src/dataset-builder/ConceptSearch';
 import { dummyDatasetModel, dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
 import { DataRepo, DataRepoContract, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+
+// This is necessary to avoid waiting for the delayed (debounced) input change event.
+const TestSearchInput = (props) => h(SearchInput, props);
+jest.mock('src/components/input', () => {
+  return {
+    ...jest.requireActual('src/components/input'),
+    DelayedSearchInput: TestSearchInput,
+  };
+});
 
 jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
@@ -22,11 +32,11 @@ describe('ConceptSearch', () => {
   const datasetId = '0';
   const initialCart: SnapshotBuilderConcept[] = [];
   const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
-  const renderSearch = () => {
+  const renderSearch = (initialSearch = '') => {
     render(
       h(ConceptSearch, {
         actionText,
-        initialSearch: '',
+        initialSearch,
         initialCart,
         onCancel,
         onCommit,
@@ -63,19 +73,25 @@ describe('ConceptSearch', () => {
     expect(screen.queryByText(actionText)).toBeFalsy();
   });
 
-  it('filters the view based on user input', async () => {
+  it('searches based on user input', async () => {
     // Arrange
     renderSearch();
-    const searchText = displayedConcepts[0].name;
+    const searchText = 'search text';
     // Act
     const user = userEvent.setup();
     await user.type(screen.getByPlaceholderText('Search'), searchText);
-    // Assert - the search is called with the search text, after debounce.
-    await new Promise((r) => setTimeout(r, 1000));
+    // Assert - the search is called with the search text.
     expect(mockSearch).toHaveBeenCalledWith(domainOption.root, searchText);
+  });
+
+  it('filters based on search text', async () => {
+    // Arrange
+    renderSearch(displayedConcepts[0].name);
+    // Act
+    // Assert
     expect(screen.findByText(displayedConcepts[0].name)).toBeTruthy();
-    // FIXME: not sure why this fails
-    // expect(screen.findByText(displayedConcepts[1].name)).toBeFalsy();
+    // The second concept should not be displayed.
+    expect(() => screen.getByText(displayedConcepts[1].name)).toThrow();
   });
 
   it('calls open hierarchy on click', async () => {
