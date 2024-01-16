@@ -16,6 +16,26 @@ jest.mock('src/libs/notifications', () => ({
   notify: jest.fn(),
 }));
 
+// Space for tables is rendered based on the available space. In unit tests, there is no available space, and so we must mock out the space needed to get the data table to render.
+jest.mock('react-virtualized', () => {
+  const actual = jest.requireActual('react-virtualized');
+
+  const { AutoSizer } = actual;
+  class MockAutoSizer extends AutoSizer {
+    state = {
+      height: 1000,
+      width: 1000,
+    };
+
+    setState = () => {};
+  }
+
+  return {
+    ...actual,
+    AutoSizer: MockAutoSizer,
+  };
+});
+
 describe('Workflow View (GCP)', () => {
   const initializedGoogleWorkspace = {
     accessLevel: 'OWNER',
@@ -74,7 +94,7 @@ describe('Workflow View (GCP)', () => {
   };
   const mockEntityMetadata = {
     sra: {
-      attributeNames: ['your-sample-1-id', 'your-sample-2-id'],
+      attributeNames: ['string', 'num'],
       count: 2,
       idName: 'sra',
     },
@@ -159,6 +179,36 @@ describe('Workflow View (GCP)', () => {
       ],
     })
   );
+  const mockSave = {
+    extraInputs: [],
+    invalidInputs: {},
+    invalidOutputs: {},
+    methodConfiguration: {
+      deleted: false,
+      inputs: {
+        'echo_strings.echo_to_file.input1': 'this.num',
+      },
+      methodConfigVersion: 2,
+      methodRepoMethod: {
+        methodName: 'echo_to_file',
+        methodVersion: 12,
+        methodNamespace: 'gatk',
+        methodUri: 'agora://gatk/echo_to_file/12',
+        sourceRepo: 'agora',
+      },
+      name: 'echo_to_file-configured',
+      namespace: 'gatk',
+      outputs: {
+        'echo_strings.echo_to_file.out': 'this.output',
+      },
+      prerequisites: {},
+      rootEntityType: 'participant',
+    },
+    missingInputs: [],
+    validInputs: ['echo_strings.echo_to_file.input1'],
+    validOutputs: ['echo_strings.echo_to_file.out'],
+  };
+
   Ajax.mockImplementation(() => {
     return {
       Methods: {
@@ -192,6 +242,7 @@ describe('Workflow View (GCP)', () => {
               rootEntityType: 'sra',
               name: 'echo_to_file-configured',
             }),
+            save: jest.fn().mockReturnValue(mockSave),
           }),
           paginatedEntitiesOfType,
         }),
@@ -245,11 +296,14 @@ describe('Workflow View (GCP)', () => {
     await dropdownHelper.selectOption('sra');
     await user.click(selectDataButton);
 
-    const allSelectRadioButton = screen.getAllByRole('checkbox')[0];
+    const allSelectRadioButton = screen.getByLabelText('Select all');
     await user.click(allSelectRadioButton);
 
     const okButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('OK'))[0];
     await user.click(okButton);
+
+    const saveButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Save'))[0];
+    await user.click(saveButton);
     screen.logTestingPlaygroundURL();
     // screen.debug(undefined, 300000);
 
