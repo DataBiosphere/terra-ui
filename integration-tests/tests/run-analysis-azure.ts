@@ -1,5 +1,3 @@
-import { dismissAllNotifications } from '../utils/integration-utils';
-
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
 const uuid = require('uuid');
@@ -9,6 +7,7 @@ const {
   click,
   clickable,
   delay,
+  dismissAllNotifications,
   dismissInfoNotifications,
   fillIn,
   findElement,
