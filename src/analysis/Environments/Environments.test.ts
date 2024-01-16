@@ -508,25 +508,26 @@ describe('Environments', () => {
       expect(getTextContentForColumn(secondAppRow, 7)).toBe(Utils.makeCompleteDate(googleApp2.auditInfo.createdDate));
       expect(getTextContentForColumn(secondAppRow, 8)).toBe(Utils.makeCompleteDate(googleApp1.auditInfo.dateAccessed));
 
-      const thirdAppRow: HTMLElement = tableRows[2];
-      expect(getTextContentForColumn(thirdAppRow, 0)).toBe(azureApp1.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(thirdAppRow, 1)).toBe(azureApp1.labels.saturnWorkspaceName);
-      expect(getTextContentForColumn(thirdAppRow, 2)).toBe('Kubernetes');
-      expect(getTextContentForColumn(thirdAppRow, 3)).toBe(_.capitalize(azureApp1.appType));
-      expect(getTextContentForColumn(thirdAppRow, 5)).toBe(_.capitalize(azureApp1.status));
-      expect(getTextContentForColumn(thirdAppRow, 6)).toBe(azureApp1.region);
-      expect(getTextContentForColumn(thirdAppRow, 7)).toBe(Utils.makeCompleteDate(azureApp1.auditInfo.createdDate));
-      expect(getTextContentForColumn(thirdAppRow, 8)).toBe(Utils.makeCompleteDate(azureApp1.auditInfo.dateAccessed));
+      // Verify that Cromwell apps do not appear on the page
+      expect(screen.queryByText(azureApp1.labels.saturnWorkspaceNamespace)).not.toBeInTheDocument();
+      expect(screen.queryByText(azureApp2.labels.saturnWorkspaceNamespace)).not.toBeInTheDocument();
+      // expect(getTextContentForColumn(thirdAppRow, 1)).toBe(azureApp1.labels.saturnWorkspaceName);
+      // expect(getTextContentForColumn(thirdAppRow, 2)).toBe('Kubernetes');
+      // expect(getTextContentForColumn(thirdAppRow, 3)).toBe(_.capitalize(azureApp1.appType));
+      // expect(getTextContentForColumn(thirdAppRow, 5)).toBe(_.capitalize(azureApp1.status));
+      // expect(getTextContentForColumn(thirdAppRow, 6)).toBe(azureApp1.region);
+      // expect(getTextContentForColumn(thirdAppRow, 7)).toBe(Utils.makeCompleteDate(azureApp1.auditInfo.createdDate));
+      // expect(getTextContentForColumn(thirdAppRow, 8)).toBe(Utils.makeCompleteDate(azureApp1.auditInfo.dateAccessed));
 
-      const fourthAppRow: HTMLElement = tableRows[3];
-      expect(getTextContentForColumn(fourthAppRow, 0)).toBe(azureApp2.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(fourthAppRow, 1)).toBe(azureApp2.labels.saturnWorkspaceName);
-      expect(getTextContentForColumn(fourthAppRow, 2)).toBe('Kubernetes');
-      expect(getTextContentForColumn(fourthAppRow, 3)).toBe(_.capitalize(azureApp2.appType));
-      expect(getTextContentForColumn(fourthAppRow, 5)).toBe(_.capitalize(azureApp2.status));
-      expect(getTextContentForColumn(fourthAppRow, 6)).toBe(azureApp2.region);
-      expect(getTextContentForColumn(fourthAppRow, 7)).toBe(Utils.makeCompleteDate(azureApp2.auditInfo.createdDate));
-      expect(getTextContentForColumn(fourthAppRow, 8)).toBe(Utils.makeCompleteDate(azureApp2.auditInfo.dateAccessed));
+      // const fourthAppRow: HTMLElement = tableRows[2];
+      // expect(getTextContentForColumn(fourthAppRow, 0)).toBe(azureApp2.labels.saturnWorkspaceNamespace);
+      // expect(getTextContentForColumn(fourthAppRow, 1)).toBe(azureApp2.labels.saturnWorkspaceName);
+      // expect(getTextContentForColumn(fourthAppRow, 2)).toBe('Kubernetes');
+      // expect(getTextContentForColumn(fourthAppRow, 3)).toBe(_.capitalize(azureApp2.appType));
+      // expect(getTextContentForColumn(fourthAppRow, 5)).toBe(_.capitalize(azureApp2.status));
+      // expect(getTextContentForColumn(fourthAppRow, 6)).toBe(azureApp2.region);
+      // expect(getTextContentForColumn(fourthAppRow, 7)).toBe(Utils.makeCompleteDate(azureApp2.auditInfo.createdDate));
+      // expect(getTextContentForColumn(fourthAppRow, 8)).toBe(Utils.makeCompleteDate(azureApp2.auditInfo.dateAccessed));
     });
 
     it.each([
