@@ -8,19 +8,9 @@ import { icon } from 'src/components/icons';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
-import { customFormatDuration } from 'src/libs/utils';
+import { customFormatDuration, differenceFromNowInSeconds } from 'src/libs/utils';
 import { statusType } from 'src/workflows-app/components/job-common';
 import { makeStatusLine } from 'src/workflows-app/utils/submission-utils';
-
-// interface PaginatorProps {
-//   filteredDataLength: number;
-//   unfilteredDataLength: number;
-//   pageNumber: number;
-//   setPageNumber: function(number);
-//   setItemsPerPage: (num: number) => void;
-//   itemsPerPage: number;
-//   itemsPerPageOptions: number[];
-// };
 
 type Run = {
   duration: number;
@@ -59,6 +49,8 @@ const FilterableWorkflowTable = ({
   const [sort, setSort] = useState({ field: 'duration', direction: 'desc' });
   const [viewErrorsId, setViewErrorsId] = useState<number>();
 
+  const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR'];
+
   const getFilteredRuns = (filterOption: string, runsData: Run[]): Run[] => {
     const filteredRuns: Run[] = [];
 
@@ -96,20 +88,6 @@ const FilterableWorkflowTable = ({
   const paginatedPreviousRuns: Run[] = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex);
   const rowWidth = 100;
   const rowHeight = 50;
-  const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR'];
-
-  // const paginatorProps: PaginatorProps = {
-  //   filteredDataLength: sortedPreviousRuns.length,
-  //   unfilteredDataLength: sortedPreviousRuns.length,
-  //   pageNumber,
-  //   setPageNumber,
-  //   itemsPerPage,
-  //   setItemsPerPage: (v) => {
-  //     setPageNumber(1);
-  //     setItemsPerPage(v);
-  //   },
-  //   itemsPerPageOptions: [10, 25, 50, 100],
-  // };
 
   const state = (
     state: string,
