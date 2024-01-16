@@ -515,7 +515,7 @@ describe('Environments', () => {
 
     it.each([
       { app: generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace), workspace: defaultGoogleWorkspace },
-      { app: generateTestAppWithAzureWorkspace({}, defaultAzureWorkspace), workspace: defaultAzureWorkspace },
+      // Reimplement when Azure apps can be deleted safely { app: generateTestAppWithAzureWorkspace({}, defaultAzureWorkspace), workspace: defaultAzureWorkspace },
     ])('Renders app details view correctly', async ({ app, workspace }) => {
       // Arrange
       const props = getEnvironmentsProps();
@@ -553,11 +553,11 @@ describe('Environments', () => {
         workspace: defaultGoogleWorkspace,
         isAzure: false,
       },
-      {
-        app: generateTestAppWithAzureWorkspace({}, defaultAzureWorkspace),
-        workspace: defaultAzureWorkspace,
-        isAzure: true,
-      },
+      // Reimplement when Azure apps can be deleted safely {
+      //   app: generateTestAppWithAzureWorkspace({}, defaultAzureWorkspace),
+      //   workspace: defaultAzureWorkspace,
+      //   isAzure: true,
+      // },
     ])('Behaves properly when we click pause/delete for azure/gce app', async ({ app, workspace }) => {
       // Arrange
       const user = userEvent.setup();
