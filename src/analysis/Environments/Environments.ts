@@ -280,13 +280,14 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName',
     };
 
+    const noCromwellAppTypes = ['GALAXY', 'HAIL_BATCH', 'WDS'];
     const [newRuntimes, newDisks, newApps] = await Promise.all([
       leoRuntimeData.list(listArgs, { signal }),
       leoDiskData.list(diskArgs, { signal }),
       // Excluding cromwell/workflows app types for now, as trying to delete these app types puts associated workspace in an error state
       (
         await leoAppData.listWithoutProject(listArgs, { signal })
-      ).filter((app) => app.appType.includes('GALAXY' || 'HAIL_BATCH' || 'WDS')),
+      ).filter((app) => _.includes(app.appType, noCromwellAppTypes)),
     ]);
     const endTimeForLeoCallsEpochMs = Date.now();
 
