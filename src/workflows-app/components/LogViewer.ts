@@ -99,6 +99,32 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
   });
   const [activeDownloadUri, setActiveDownloadUri] = useState<string | undefined>(undefined);
   const signal = useCancellation();
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [discoveredLogs, setDiscoveredLogs] = useState<string[]>([]);
+  const discoverLogs = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async (workspaceId: string): Promise<string[]> => {
+      try {
+        const response = await Ajax(signal).AzureStorage.listFiles('969dda4e-dfb5-41ee-8159-7bf6fe9f72cb');
+        return response.map((file) => file.name);
+      } catch (e) {
+        return ['errorlol'];
+      }
+    },
+    [signal]
+  );
+
+  useEffect(() => {
+    const discover = async () => {
+      const discovered = await discoverLogs('workspaceId');
+      // eslint-disable-next-line no-console
+      console.log(discovered);
+      setDiscoveredLogs(discovered);
+    };
+    discover();
+  }, [discoverLogs]);
+
   const fetchLogContent = useCallback(
     async (azureBlobUri: string): Promise<FetchedLogData | null> => {
       if (!isAzureUri(azureBlobUri)) {
