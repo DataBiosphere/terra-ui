@@ -271,15 +271,19 @@ export const convertProgramDataOptionToRangeOption = (
   }
 };
 
-export const boldSubsetWord = (conceptName: string, searchedWord: string): ReactElement => {
-  const startIndex = conceptName.toLowerCase().indexOf(searchedWord.toLowerCase());
-  if (startIndex === -1) {
-    return span([conceptName]); // searchedWord is not found in conceptName
+export const HighlightConceptName = (conceptName: string, searchFilter: string): ReactElement => {
+  const startIndex = conceptName.toLowerCase().indexOf(searchFilter.toLowerCase());
+
+  // searchFilter is empty or does not exist in conceptName
+  if (startIndex < 0 || searchFilter.trim() === '') {
+    return span([conceptName]);
   }
-  const endIndex = startIndex + searchedWord.length;
+
+  const endIndex = startIndex + searchFilter.length;
+
   return span([
-    conceptName.substring(0, startIndex),
+    span([conceptName.substring(0, startIndex)]),
     strong([conceptName.substring(startIndex, endIndex)]),
-    conceptName.substring(endIndex),
+    span([conceptName.substring(endIndex)]),
   ]);
 };
