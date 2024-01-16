@@ -1,6 +1,3 @@
-// Types that can be used to create a criteria.
-// @ts-ignore
-
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { span, strong } from 'react-hyperscript-helpers';
