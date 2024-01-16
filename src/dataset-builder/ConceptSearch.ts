@@ -1,12 +1,12 @@
 import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useEffect, useState } from 'react';
+import { CSSProperties, Fragment, useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
+import { DelayedSearchInput } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
-import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import { GetConceptsResponse } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
@@ -53,12 +53,13 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         ),
         div({ style: { marginLeft: 15 } }, [domainOption.category]),
       ]),
-      h(StringInput, {
+      h(DelayedSearchInput, {
         onChange: (value: string) => {
           setSearch(value);
         },
         value: search,
         placeholder: 'Search',
+        style: { borderRadius: 25, flex: '1 1 0' } as CSSProperties,
       }),
       concepts.status === 'Ready'
         ? h(SimpleTable, {
@@ -90,7 +91,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               })();
               return {
                 name: div({ style: { display: 'flex' } }, [
-                  h(Link, { 'aria-label': label, onClick: () => setCart(_.xor(cart, [concept])) }, [
+                  h(Link, { 'aria-label': `${label}-${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
                     icon(iconName, { size: 16 }),
                   ]),
                   div({ style: { marginLeft: 5 } }, [concept.name]),
@@ -101,7 +102,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   h(
                     Link,
                     {
-                      'aria-label': label,
+                      'aria-label': `open hierarchy-${concept.id}`,
                       onClick: () =>
                         onOpenHierarchy(
                           { id: concept.id, category: domainOption.category, root: concept },
@@ -109,8 +110,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                           search
                         ),
                     },
-                    // FIXME: use font awsome list-tree
-                    [icon('listAlt')]
+                    [icon('view-list')]
                   ),
                   div({ style: { marginLeft: 5 } }, ['Hierarchy']),
                 ]),
