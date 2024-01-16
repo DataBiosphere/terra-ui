@@ -1,3 +1,4 @@
+import { span, strong } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
   AnyCriteriaApi,
@@ -14,6 +15,7 @@ import {
   DatasetAccessRequestApi,
   DomainCriteria,
   DomainCriteriaApi,
+  HighlightConceptName,
   ProgramDataListCriteria,
   ProgramDataListCriteriaApi,
   ProgramDataListOption,
@@ -177,5 +179,104 @@ describe('test conversion of valueSets', () => {
 describe('test conversion of DatasetAccessRequest', () => {
   test('datasetAccessRequest converted to datasetAccessRequestApi', () => {
     expect(convertDatasetAccessRequest(datasetAccessRequest)).toStrictEqual(datasetAccessRequestApi);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  test('searching beginning of conceptName', () => {
+    const searchedWord = 'Clinic';
+    const conceptName = 'Clinical Finding';
+
+    const result = span([span(['']), strong(['Clinic']), span(['al Finding'])]);
+
+    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  test('Testing to make sure Clin is capitalized', () => {
+    const searchedWord = 'clin';
+    const conceptName = 'Clinical Finding';
+
+    const result = span([span(['']), strong(['Clin']), span(['ical Finding'])]);
+
+    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  test('searchedWord in the middle of conceptName', () => {
+    const searchedWord = 'cal';
+    const conceptName = 'Clinical Finding';
+
+    const result = span([span(['Clini']), strong(['cal']), span([' Finding'])]);
+
+    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  test('searchedWord in the end of conceptName', () => {
+    const searchedWord = 'Finding';
+    const conceptName = 'Clinical Finding';
+
+    const result = span([span(['Clinical ']), strong(['Finding']), span([''])]);
+
+    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  test('searchedWord in the not in conceptName: "XXX" in "Clinical Finding"', () => {
+    const searchedWord = 'XXX';
+    const conceptName = 'Clinical Finding';
+
+    const result = span(['Clinical Finding']);
+
+    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  test('searchedWord in the not in conceptName: "Clinical" in "Clin"', () => {
+    const searchedWord = 'Clinical';
+    const conceptName = 'Clin';
+
+    const result = span(['Clin']);
+
+    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  test('searchedWord is empty: "" ', () => {
+    const searchedWord = '';
+    const conceptName = 'Condition';
+
+    const result = span(['Condition']);
+
+    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  test('searchedWord is empty has one spaces', () => {
+    const searchedWord = ' ';
+    const conceptName = 'Clinical Finding';
+
+    const result = span(['Clinical Finding']);
+
+    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  test('searchedWord is empty has three spaces', () => {
+    const searchedWord = '   ';
+    const conceptName = 'Clinical Finding';
+
+    const result = span(['Clinical Finding']);
+
+    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
   });
 });
