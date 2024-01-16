@@ -14,6 +14,7 @@ const {
   findIframe,
   findText,
   getAnimatedDrawer,
+  getWorkspaceId,
   input,
   noSpinnersAfter,
   waitForNoModal,
@@ -96,14 +97,13 @@ const testRunAnalysisAzure = _.flowRight(
   await click(frame, '//button[starts-with(@title, "Save and create checkpoint")]');
 
   // Cleanup
-  await deleteRuntimesV2({ page, billingProject, workspaceName });
+  const workspaceId = getWorkspaceId({ page, billingProject, workspaceName });
+  await deleteRuntimesV2({ page, billingProject, workspaceId });
 });
 
-// Run this test manually against staging when needed. Note the very long timeout; Azure VMs can take 20 minutes to create
 registerTest({
   name: 'run-analysis-azure',
   fn: testRunAnalysisAzure,
-  targetEnvironments: ['dev'],
-  // targetEnvironments: ['dev', 'staging'], // uncomment for manually triggered runs against staging - DO NOT COMMIT
-  timeout: Millis.ofMinutes(25), // exceeds circleCI max timeout; needs to be this high to pass reliably
+  targetEnvironments: ['dev', 'staging'],
+  timeout: Millis.ofMinutes(20),
 });

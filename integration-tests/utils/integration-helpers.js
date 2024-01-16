@@ -542,6 +542,7 @@ module.exports = {
   deleteRuntimesV2,
   deleteWorkspaceV2,
   enableDataCatalog,
+  getWorkspaceId,
   gotoAnalysisTab,
   navigateToDataCatalog,
   testWorkspaceName: getTestWorkspaceName,
