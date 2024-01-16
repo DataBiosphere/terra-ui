@@ -7,7 +7,7 @@ import { Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { SimpleTable } from 'src/components/table';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
-import { boldSubsetWord, GetConceptsResponse } from 'src/dataset-builder/DatasetBuilderUtils';
+import { GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
@@ -94,7 +94,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   h(Link, { 'aria-label': label, onClick: () => setCart(_.xor(cart, [concept])) }, [
                     icon(iconName, { size: 16 }),
                   ]),
-                  div({ style: { marginLeft: 5 } }, [boldSubsetWord(concept.name, search)]),
+                  div({ style: { marginLeft: 5 } }, [HighlightConceptName(concept.name, search)]),
                 ]),
                 id: concept.id,
                 count: concept.count,
