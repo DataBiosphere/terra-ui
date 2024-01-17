@@ -5,6 +5,7 @@ import { AutoSizer } from 'react-virtualized';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
+import Modal from 'src/components/Modal';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
@@ -44,7 +45,7 @@ const FilterableWorkflowTable = ({
   workspaceName,
 }: FilterableWorkflowTableProps) => {
   const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [filterOption, setFilterOption] = useState<string>(null);
+  const [filterOption, setFilterOption] = useState<string>();
   const [pageNumber, setPageNumber] = useState(1);
   const [sort, setSort] = useState({ field: 'duration', direction: 'desc' });
   const [viewErrorsId, setViewErrorsId] = useState<number>();
@@ -74,6 +75,38 @@ const FilterableWorkflowTable = ({
     return filteredRuns;
   };
 
+  const sortRuns = (field: string, direction: string, runs: Run[]): Run[] => {
+    const runsSorted: Run[] = [];
+
+    if (runs !== undefined) {
+      for (const run of runs) {
+        runsSorted.push(run);
+      }
+    }
+
+    runsSorted.sort((run1, run2) => {
+      if (direction === 'asc') {
+        if (run1[field] > run2[field]) {
+          return 1;
+        }
+        if (run2[field] > run1[field]) {
+          return -1;
+        }
+      } else {
+        if (run1[field] < run2[field]) {
+          return 1;
+        }
+        if (run2[field] < run1[field]) {
+          return -1;
+        }
+      }
+
+      return 0;
+    });
+
+    return runsSorted;
+  };
+
   enum FilterOptions {
     Error = 'Error',
     NoFilter = 'No filter',
@@ -84,7 +117,7 @@ const FilterableWorkflowTable = ({
   const filterOptions: FilterOptions[] = [FilterOptions.Error, FilterOptions.NoFilter, FilterOptions.Succeeded];
   const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
   const lastPageIndex: number = firstPageIndex + itemsPerPage;
-  const sortedPreviousRuns: Run[] = _.orderBy(sort.field, sort.direction, filteredPreviousRuns);
+  const sortedPreviousRuns: Run[] = sortRuns(sort.field, sort.direction, filteredPreviousRuns);
   const paginatedPreviousRuns: Run[] = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex);
   const rowWidth = 100;
   const rowHeight = 50;
@@ -160,6 +193,7 @@ const FilterableWorkflowTable = ({
             isClearable: false,
             value: filterOption,
             placeholder: 'None selected',
+            // @ts-expect-error
             onChange: ({ value }) => {
               setFilterOption(value);
             },
@@ -172,6 +206,7 @@ const FilterableWorkflowTable = ({
                 'aria-label': 'previous runs',
                 width,
                 height,
+                // @ts-expect-error
                 sort,
                 rowCount: paginatedPreviousRuns.length,
                 noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
@@ -276,6 +311,7 @@ const FilterableWorkflowTable = ({
       ),
       !_.isEmpty(sortedPreviousRuns) &&
         div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
+          // @ts-expect-error
           paginator({
             filteredDataLength: sortedPreviousRuns.length,
             unfilteredDataLength: sortedPreviousRuns.length,
