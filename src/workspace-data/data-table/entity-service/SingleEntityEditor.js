@@ -4,11 +4,10 @@ import { div, h, span } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common';
 import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
-import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { reportError } from 'src/libs/error';
 
-import { getAttributeType, prepareAttributeForUpload } from '../entity-service/attribute-utils';
-import AttributeInput from '../entity-service/AttributeInput';
+import { getAttributeType, prepareAttributeForUpload } from './attribute-utils';
+import AttributeInput from './AttributeInput';
 
 export const SingleEntityEditor = ({
   entityType,
@@ -16,10 +15,9 @@ export const SingleEntityEditor = ({
   attributeName,
   attributeValue,
   entityTypes,
-  workspaceId: { namespace, name, id },
+  workspaceId: { namespace, name },
   onDismiss,
   onSuccess,
-  dataProvider,
 }) => {
   const { type: originalValueType } = getAttributeType(attributeValue);
   const [newValue, setNewValue] = useState(attributeValue);
@@ -31,29 +29,22 @@ export const SingleEntityEditor = ({
   const doEdit = async () => {
     try {
       setIsBusy(true);
-      if (dataProvider.providerName === wdsProviderName) {
-        const record = {};
-        record[attributeName] = newValue;
-        const listOfRecords = { attributes: record };
-        await dataProvider.updateRecord({ instance: id, recordName: entityType, recordId: entityName, record: listOfRecords });
-      } else {
-        await Ajax()
-          .Workspaces.workspace(namespace, name)
-          .upsertEntities([
-            {
-              entityType,
-              name: entityName,
-              operations: [
-                {
-                  op: 'AddUpdateAttribute',
-                  attributeName,
-                  addUpdateAttribute: prepareAttributeForUpload(newValue),
-                },
-              ],
-            },
-          ]);
-      }
 
+      await Ajax()
+        .Workspaces.workspace(namespace, name)
+        .upsertEntities([
+          {
+            entityType,
+            name: entityName,
+            operations: [
+              {
+                op: 'AddUpdateAttribute',
+                attributeName,
+                addUpdateAttribute: prepareAttributeForUpload(newValue),
+              },
+            ],
+          },
+        ]);
       onSuccess();
     } catch (e) {
       onDismiss();
@@ -64,12 +55,7 @@ export const SingleEntityEditor = ({
   const doDelete = async () => {
     try {
       setIsBusy(true);
-      if (dataProvider.providerName === wdsProviderName) {
-        // need to add behavior for delete or a message that is not yet supported but coming soon
-      } else {
-        await Ajax().Workspaces.workspace(namespace, name).deleteEntityAttribute(entityType, entityName, attributeName);
-      }
-
+      await Ajax().Workspaces.workspace(namespace, name).deleteEntityAttribute(entityType, entityName, attributeName);
       onSuccess();
     } catch (e) {
       onDismiss();
@@ -113,7 +99,7 @@ export const SingleEntityEditor = ({
               showJsonTypeOption: originalValueType === 'json',
             }),
             div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
-              dataProvider.providerName !== wdsProviderName && h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),
+              h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),
               div({ style: { flexGrow: 1 } }),
               h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: onDismiss }, ['Cancel']),
               h(

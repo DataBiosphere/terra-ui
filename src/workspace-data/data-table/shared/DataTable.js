@@ -43,9 +43,10 @@ import {
   ColumnSettingsWithSavedColumnSettings,
   decodeColumnSettings,
 } from '../entity-service/SavedColumnSettings';
+import { SingleEntityEditor } from '../entity-service/SingleEntityEditor';
+import { SingleEntityEditorWds } from '../wds/SingleEntityEditorWds';
 import { EditDataLink } from './EditDataLink';
 import { HeaderOptions } from './HeaderOptions';
-import { SingleEntityEditor } from './SingleEntityEditor';
 
 const entityMap = (entities) => {
   return _.fromPairs(_.map((e) => [e.name, e], entities));
@@ -722,11 +723,25 @@ const DataTable = (props) => {
         onDismiss: () => setRenamingEntity(undefined),
       }),
     !!updatingEntity &&
+      dataProvider.providerName !== wdsProviderName &&
       h(SingleEntityEditor, {
         entityType: _.find((entity) => entity.name === updatingEntity.entityName, entities).entityType,
         ...updatingEntity,
         entityTypes: _.keys(entityMetadata),
         workspaceId,
+        onSuccess: () => {
+          setUpdatingEntity(undefined);
+          Ajax().Metrics.captureEvent(Events.workspaceDataEditOne, extractWorkspaceDetails(workspace.workspace));
+          loadData();
+        },
+        onDismiss: () => setUpdatingEntity(undefined),
+      }),
+    !!updatingEntity &&
+      dataProvider.providerName === wdsProviderName &&
+      h(SingleEntityEditorWds, {
+        entityType: _.find((entity) => entity.name === updatingEntity.entityName, entities).entityType,
+        ...updatingEntity,
+        workspaceId: workspaceId.id,
         dataProvider,
         onSuccess: () => {
           setUpdatingEntity(undefined);
