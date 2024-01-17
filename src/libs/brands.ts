@@ -303,7 +303,7 @@ export const brands: Record<string, BrandConfiguration> = {
     docLinks: [
       {
         link: 'https://dockstore.org/organizations/Theiagen',
-        text: 'Theiagen Workflow Repository',
+        text: 'Pathogen genomics resources',
       },
       {
         link: 'https://docs.google.com/document/d/e/2PACX-1vTPQC-bYMRxXQ4Gz9ESH_Eo-E6UXD2qOL7_3iMxJaQF3pOyW3tUyu7G9Nvk-JTf8xDkOyhftvd9L-sa/pub',

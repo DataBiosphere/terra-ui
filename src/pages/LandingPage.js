@@ -132,13 +132,8 @@ export const LandingPage = () => {
         ]
       ),
     // width is set to prevent text from overlapping the background image and decreasing legibility
+    div({ style: { maxWidth: 'calc(100% - 460px)' } }, makeDocLinks(getEnabledBrand().docLinks)),
     isPublicHealth() && [
-      div({ style: { maxWidth: 'calc(100% - 460px)' } }, [
-        h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '28px', margin: 0 } }, ['Pathogen genomics resources:']),
-        makeDocLinks([getEnabledBrand().docLinks[0], getEnabledBrand().docLinks[1]]),
-        h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '28px', margin: 0 } }, ['Need help or have questions?']),
-        makeDocLinks([getEnabledBrand().docLinks[2], getEnabledBrand().docLinks[3]]),
-      ]),
       div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, [
         makeCard('workspaces', 'My Workspaces', [
           'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
@@ -147,7 +142,6 @@ export const LandingPage = () => {
       ]),
     ],
     !isPublicHealth() && [
-      div({ style: { maxWidth: 'calc(100% - 460px)' } }, makeDocLinks(getEnabledBrand().docLinks)),
       div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, [
         makeCard('workspaces', 'View Workspaces', [
           'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
