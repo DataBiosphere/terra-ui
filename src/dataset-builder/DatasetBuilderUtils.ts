@@ -268,7 +268,7 @@ export const convertProgramDataOptionToRangeOption = (
   }
 };
 
-export const HighlightConceptName = (conceptName: string, searchFilter: string): ReactElement => {
+export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElement => {
   const startIndex = conceptName.toLowerCase().indexOf(searchFilter.toLowerCase());
 
   // searchFilter is empty or does not exist in conceptName
