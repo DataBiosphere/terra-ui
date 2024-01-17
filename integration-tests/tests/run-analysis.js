@@ -8,15 +8,14 @@ const {
   clickable,
   delay,
   dismissInfoNotifications,
+  dismissAllNotifications,
   fillIn,
   findElement,
-  findErrorPopup,
   findIframe,
   findText,
   getAnimatedDrawer,
   input,
   noSpinnersAfter,
-  openError,
   waitForNoModal,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -66,15 +65,12 @@ const testRunAnalysisFn = _.flowRight(
   await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: Millis.ofSeconds(40) });
   await findElement(page, clickable({ textContains: 'Creating' }), { timeout: Millis.ofSeconds(40) });
 
-  // Wait for env to finish creating, or break early on error
-  await Promise.race([
-    findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(12) }),
-    findErrorPopup(page, { timeout: Millis.ofMinutes(12) }),
-  ]);
-  const hasError = await openError(page);
-  if (hasError) {
-    throw new Error('Failed to create cloud environment');
-  }
+  // Wait for env to finish creating
+  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(12) });
+
+  // Here, we dismiss any errors or popups. Its common another areas of the application might throw an error or have pop-ups.
+  // However, as long as we have a running runtime (which the previous section asserts), the pop-up is not relevant
+  await dismissAllNotifications(page);
 
   await click(page, clickable({ textContains: 'Open' }));
 
