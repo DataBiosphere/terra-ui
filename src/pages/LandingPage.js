@@ -71,6 +71,8 @@ const makeDocLinks = _.map(
   ])
 )
 
+const makeCards = _.map(({ link, title, body }) => makeCard(link, title, body))
+
 const LandingPage = () => {
   const { isSignedIn } = useStore(authStore)
   const [billingProjects, setBillingProjects] = useState()
@@ -111,11 +113,7 @@ const LandingPage = () => {
     // width is set to prevent text from overlapping the background image and decreasing legibility
     div({ style: { maxWidth: 'calc(100% - 460px)' } }, makeDocLinks(getEnabledBrand().docLinks)),
     div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, [
-      makeCard('workspaces', 'View Workspaces', [
-        'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.'
-      ]),
-      makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done.'),
-      makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of data portals.')
+      makeCards(getEnabledBrand().landingPageCards  ),
     ]),
     isTerra() && div({
       style: {
