@@ -11,6 +11,7 @@ import {
   GetConceptsResponse,
   ProgramDataListOption,
   ProgramDataRangeOption,
+  SearchConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { dummyConcepts } from 'src/dataset-builder/TestConstants';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
@@ -145,7 +146,7 @@ export interface DataRepoContract {
     getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
     // Search returns a list of matching concepts with a domain sorted by participant count. The result is truncated to N concepts.
-    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<GetConceptsResponse>;
+    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SearchConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
