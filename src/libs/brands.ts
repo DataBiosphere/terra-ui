@@ -62,13 +62,50 @@ export interface BrandConfiguration {
 
   /** Optionally filter which datasets show up in the Data Catalog */
   catalogDataCollectionsToInclude?: string[]
+
+  /** Cards to be associated with landing page */
+  landingPageCards?: {
+    /** Card title */
+    title: string
+
+    /** Card description */
+    body: string
+
+    /** Card image */
+    image?: string
+
+    /** Card link */
+    link: string
+  }[]
 }
+
+
+export const  defaultLandingPageCards= [
+      {
+        "title": "View Workspaces",
+        "body": "Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.",
+        "link": "workspaces"
+      },
+      {
+        "title": "View Examples",
+        "body": "Browse our gallery of showcase Workspaces to see how science gets done.",
+        "link": "library-showcase"
+      },
+      {
+        "title": "Browse Data",
+        "body": "Access data from a rich ecosystem of data portals.",
+        "link": "library-datasets"
+      }
+    ]
+
+
 
 /**
  * Configuration for Terra co-brands (a.k.a. white label sites)
  * https://broadworkbench.atlassian.net/wiki/spaces/WOR/pages/2369388553/Cobranding+and+White+Label+Sites
  */
 export const brands: Record<string, BrandConfiguration> = {
+
   anvil: {
     name: 'AnVIL',
     queryName: 'anvil',
@@ -84,7 +121,9 @@ export const brands: Record<string, BrandConfiguration> = {
     logos: {
       color: anvilLogo,
       white: anvilLogoWhite
-    }
+    },
+    landingPageCards: defaultLandingPageCards
+
   },
   baseline: {
     name: 'Project Baseline',
@@ -101,7 +140,8 @@ export const brands: Record<string, BrandConfiguration> = {
     logos: {
       color: baselineLogo,
       white: baselineLogoWhite
-    }
+    },
+    landingPageCards: defaultLandingPageCards
   },
   bioDataCatalyst: {
     name: 'NHLBI BioData Catalyst',
@@ -118,7 +158,9 @@ export const brands: Record<string, BrandConfiguration> = {
     logos: {
       color: bioDataCatalystLogo,
       white: bioDataCatalystLogoWhite
-    }
+    },
+    landingPageCards: defaultLandingPageCards
+
   },
   datastage: {
     name: 'DataStage',
