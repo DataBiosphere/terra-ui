@@ -261,7 +261,7 @@ export const rerunFailuresStatus = atom<unknown>(undefined);
 
 export const errorNotifiedRuntimes = atom<number[]>([]);
 
-export const errorNotifiedApps = atom<unknown[]>([]);
+export const errorNotifiedApps = atom<string[]>([]);
 
 export const knownBucketRequesterPaysStatuses = atom({});
 
