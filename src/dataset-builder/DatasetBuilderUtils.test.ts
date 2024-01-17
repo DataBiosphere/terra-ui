@@ -190,9 +190,7 @@ describe('test HighlightConceptName', () => {
     const result = span([span(['']), strong(['Clinic']), span(['al Finding'])]);
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
-});
 
-describe('test HighlightConceptName', () => {
   test("Testing to make sure capitalization doesn't change", () => {
     const searchFilter = 'clin';
     const conceptName = 'Clinical Finding';
@@ -201,9 +199,7 @@ describe('test HighlightConceptName', () => {
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
-});
 
-describe('test HighlightConceptName', () => {
   test('searchedWord in the middle of conceptName', () => {
     const searchFilter = 'cal';
     const conceptName = 'Clinical Finding';
@@ -212,9 +208,7 @@ describe('test HighlightConceptName', () => {
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
-});
 
-describe('test HighlightConceptName', () => {
   test('searchedWord in the end of conceptName', () => {
     const searchFilter = 'Finding';
     const conceptName = 'Clinical Finding';
@@ -223,9 +217,7 @@ describe('test HighlightConceptName', () => {
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
-});
 
-describe('test HighlightConceptName', () => {
   test('searchedWord in the not in conceptName: "XXX" in "Clinical Finding"', () => {
     const searchFilter = 'XXX';
     const conceptName = 'Clinical Finding';
@@ -234,9 +226,7 @@ describe('test HighlightConceptName', () => {
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
-});
 
-describe('test HighlightConceptName', () => {
   test('searchedWord in the not in conceptName: "Clinical" in "Clin"', () => {
     const searchFilter = 'Clinical';
     const conceptName = 'Clin';
@@ -245,9 +235,7 @@ describe('test HighlightConceptName', () => {
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
-});
 
-describe('test HighlightConceptName', () => {
   test('searchedWord is empty: "" ', () => {
     const searchFilter = '';
     const conceptName = 'Condition';
@@ -256,9 +244,7 @@ describe('test HighlightConceptName', () => {
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
-});
 
-describe('test HighlightConceptName', () => {
   test("doesn't bold whitespace", () => {
     let searchFilter = ' ';
     let conceptName = 'Clinical Finding';
