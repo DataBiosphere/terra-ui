@@ -1,3 +1,4 @@
+import { append } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -27,7 +28,7 @@ export const notify = (type, title, props) => {
   const notification = makeNotification({ type, title, ...props });
   if (!isNotificationMuted(notification.id)) {
     const visibleNotificationIds = _.map('id', notificationStore.get());
-    notificationStore.update(Utils.append(notification));
+    notificationStore.update(append(notification));
     if (!_.includes(notification.id, visibleNotificationIds)) {
       showNotification(notification);
     }
