@@ -101,7 +101,7 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                       )(criteria),
                   }),
                 ]);
-              case 'range':
+              case 'range': {
                 const numberInputStyles = {
                   width: '4rem',
                   padding: 0,
@@ -141,6 +141,7 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                     }),
                   ]),
                 ]);
+              }
               default:
                 return div(['Unknown criteria']);
             }
@@ -254,7 +255,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
       onChange: async (criteriaOption) => {
         if (criteriaOption !== null) {
           if (criteriaOption.value.kind === 'domain') {
-            onStateChange(domainCriteriaSearchState.new(cohort, criteriaGroup, criteriaOption.value, [], ''));
+            onStateChange(domainCriteriaSearchState.new(cohort, criteriaGroup, criteriaOption.value));
           } else {
             const criteriaIndex = getNextCriteriaIndex();
             updateCohort(

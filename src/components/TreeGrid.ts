@@ -155,9 +155,15 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
             ? div({ style: { paddingLeft: `${1 + row.depth}rem`, display: 'flex' } }, [
                 row.contents.hasChildren &&
                   (handler
-                    ? h(Link, { onClick: () => handler(row), 'aria-label': label, style: { paddingLeft: 5 } }, [
-                        icon(iconName, { size: 16 }),
-                      ])
+                    ? h(
+                        Link,
+                        {
+                          onClick: () => handler(row),
+                          'aria-label': `${label} ${row.contents.id}`,
+                          style: { paddingLeft: 5 },
+                        },
+                        [icon(iconName, { size: 16 })]
+                      )
                     : icon(iconName, { size: 16, style: { marginLeft: 5 } })),
                 div({ style: { display: 'flex', marginLeft: row.contents.hasChildren ? 10 : 5 + 16 + 10 } }, [
                   columns[columnIndex].render(row.contents),

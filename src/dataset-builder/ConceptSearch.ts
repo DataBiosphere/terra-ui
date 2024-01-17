@@ -91,7 +91,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               })();
               return {
                 name: div({ style: { display: 'flex' } }, [
-                  h(Link, { 'aria-label': `${label}-${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
+                  h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
                     icon(iconName, { size: 16 }),
                   ]),
                   div({ style: { marginLeft: 5 } }, [concept.name]),
@@ -102,7 +102,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   h(
                     Link,
                     {
-                      'aria-label': `open hierarchy-${concept.id}`,
+                      'aria-label': `open hierarchy ${concept.id}`,
                       onClick: () =>
                         onOpenHierarchy(
                           { id: concept.id, category: domainOption.category, root: concept },

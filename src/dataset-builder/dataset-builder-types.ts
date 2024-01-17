@@ -90,8 +90,8 @@ export const domainCriteriaSearchState = {
     cohort: Cohort,
     criteriaGroup: CriteriaGroup,
     domainOption: DomainOption,
-    cart: Concept[],
-    searchText: string
+    cart: Concept[] = [],
+    searchText = ''
   ): DomainCriteriaSearchState => ({
     mode: 'domain-criteria-search',
     cohort,

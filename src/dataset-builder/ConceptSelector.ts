@@ -53,7 +53,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
                 return ['add', 'plus-circle-filled'];
               })();
               return h(Fragment, [
-                h(Link, { 'aria-label': label, onClick: () => setCart(_.xor(cart, [concept])) }, [
+                h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
                   icon(iconName, { size: 16 }),
                 ]),
                 div({ style: { marginLeft: 5 } }, [concept.name]),
