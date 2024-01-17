@@ -2,6 +2,7 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import * as Nav from 'src/libs/nav';
 import { WorkflowView } from 'src/pages/workspaces/workspace/workflows/WorkflowView';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 
@@ -186,7 +187,7 @@ describe('Workflow View (GCP)', () => {
     methodConfiguration: {
       deleted: false,
       inputs: {
-        'echo_strings.echo_to_file.input1': 'this.num',
+        'echo_strings.echo_to_file.input1': 'this.string',
       },
       methodConfigVersion: 2,
       methodRepoMethod: {
@@ -202,15 +203,38 @@ describe('Workflow View (GCP)', () => {
         'echo_strings.echo_to_file.out': 'this.output',
       },
       prerequisites: {},
-      rootEntityType: 'participant',
+      rootEntityType: 'sra',
     },
     missingInputs: [],
     validInputs: ['echo_strings.echo_to_file.input1'],
     validOutputs: ['echo_strings.echo_to_file.out'],
   };
+  const mockCreateEntity = {
+    attributes: {
+      participants: {
+        itemsType: 'EntityReference',
+        items: [
+          {
+            entityType: 'sra',
+            entityName: 'your-sample-1-id',
+          },
+          {
+            entityType: 'sra',
+            entityName: 'your-sample-2-id',
+          },
+        ],
+      },
+    },
+    entityType: 'sra_set',
+    name: 'echo_to_file-configured_2024-01-17T18-55-52',
+  };
+  const launchPayload = {};
 
   Ajax.mockImplementation(() => {
     return {
+      Metrics: {
+        captureEvent: jest.fn(),
+      },
       Methods: {
         list: jest.fn(() => Promise.resolve(methodList)),
         method: () => ({
@@ -229,6 +253,8 @@ describe('Workflow View (GCP)', () => {
           listSnapshots: jest.fn().mockResolvedValue({
             gcpDataRepoSnapshots: [],
           }),
+          checkBucketAccess: jest.fn().mockResolvedValue({}),
+          createEntity: jest.fn().mockResolvedValue(mockCreateEntity),
           methodConfig: () => ({
             validate: jest.fn().mockReturnValue(mockValidate),
             get: jest.fn().mockResolvedValue({
@@ -243,6 +269,7 @@ describe('Workflow View (GCP)', () => {
               name: 'echo_to_file-configured',
             }),
             save: jest.fn().mockReturnValue(mockSave),
+            launch: jest.fn().mockReturnValue(launchPayload),
           }),
           paginatedEntitiesOfType,
         }),
@@ -285,14 +312,12 @@ describe('Workflow View (GCP)', () => {
     });
 
     const selectDataButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Select Data'))[0];
-    // screen.logTestingPlaygroundURL();
     expect(selectDataButton).toHaveTextContent('Select Data');
+
     expect(screen.getByText('sra')).toBeInTheDocument();
-    // screen.debug(undefined, 300000);
-    // screen.logTestingPlaygroundURL();
+
     const dropdown = screen.getByLabelText('Entity type selector');
     const dropdownHelper = new SelectHelper(dropdown, user);
-    // console.log(dropdownHelper.getSelectedOptions());
     await dropdownHelper.selectOption('sra');
     await user.click(selectDataButton);
 
@@ -302,11 +327,24 @@ describe('Workflow View (GCP)', () => {
     const okButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('OK'))[0];
     await user.click(okButton);
 
+    const attributeTextbox = screen.getByRole('textbox', { name: /echo_to_file input1 attribute/i });
+    await user.type(attributeTextbox, 'this.string');
+
     const saveButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Save'))[0];
     await user.click(saveButton);
-    screen.logTestingPlaygroundURL();
-    // screen.debug(undefined, 300000);
 
-    // console.log(selectDataButton);
+    const runButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Run analysis'))[0];
+    await user.click(runButton);
+
+    const launchButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Launch'))[0];
+    await user.click(launchButton);
+
+    expect(Nav.goToPath).toHaveBeenCalledWith('workspace-submission-details', {
+      name: undefined,
+      namespace: undefined,
+      submissionId: undefined,
+    });
+    expect(Nav.goToPath).toHaveBeenCalledTimes(1);
+    screen.logTestingPlaygroundURL();
   });
 });
