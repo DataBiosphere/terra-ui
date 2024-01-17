@@ -133,8 +133,13 @@ const FilterableWorkflowTable = ({
         {
           style: {
             marginTop: '1em',
-            height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5, heightPerRow: 250 }),
+            height: tableHeight({
+              actualRows: paginatedPreviousRuns.length,
+              maxRows: paginatedPreviousRuns.length / 5.2,
+              heightPerRow: 250,
+            }),
             minHeight: '10em',
+            marginBottom: '16.5em',
           },
         },
         [
