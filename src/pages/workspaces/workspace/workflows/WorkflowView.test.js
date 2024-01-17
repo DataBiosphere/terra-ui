@@ -284,7 +284,7 @@ describe('Workflow View (GCP)', () => {
     });
 
     expect(
-      screen.getByRole('button', {
+      screen.getAllByRole('button', {
         name: /inputs/i,
       })
     );
