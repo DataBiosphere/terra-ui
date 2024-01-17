@@ -82,6 +82,24 @@ export interface BrandConfiguration {
   theme: Theme;
 }
 
+export const landingPageCardsDefault = [
+  {
+    link: 'workspaces',
+    title: 'View Workspaces',
+    body: 'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
+  },
+  {
+    link: 'library-showcase',
+    title: 'View Examples',
+    body: 'Browse our gallery of showcase Workspaces to see how science gets done.',
+  },
+  {
+    link: 'library-datasets',
+    title: 'Browse Data',
+    body: 'Access data from a rich ecosystem of data portals.',
+  },
+];
+
 const baseColors: Theme['colorPalette'] = {
   primary: '#74ae43',
   secondary: '#6d6e70',
@@ -334,6 +352,18 @@ export const brands: Record<string, BrandConfiguration> = {
       white: publicHealthLogoWhite,
     },
     landingPageBackground: publicHealthBackground,
+    landingPageCards: [
+      {
+        link: 'workspaces',
+        title: 'My Workspaces',
+        body: 'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
+      },
+      {
+        link: 'library-showcase',
+        title: 'Featured Workspaces',
+        body: 'Browse example pathogen genomic data and analysis tools together.',
+      },
+    ],
     theme: {
       colorPalette: {
         ...baseColors,

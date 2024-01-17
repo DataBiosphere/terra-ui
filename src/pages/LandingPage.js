@@ -7,7 +7,8 @@ import { icon } from 'src/components/icons';
 import hexButton from 'src/images/hex-button.svg';
 import terraHero from 'src/images/terra-hero.png';
 import { Ajax } from 'src/libs/ajax';
-import { getEnabledBrand, isFirecloud, isPublicHealth, isTerra } from 'src/libs/brand-utils';
+import { getEnabledBrand, isFirecloud, isTerra } from 'src/libs/brand-utils';
+import { landingPageCardsDefault } from 'src/libs/brands';
 import colors from 'src/libs/colors';
 import { withErrorHandling } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -51,7 +52,7 @@ const makeRightArrowWithBackgroundIcon = () =>
     [icon('arrowRight', { color: 'white' })]
   );
 
-const makeCard = (link, title, body) =>
+const makeCard = _.map(({ link, title, body }) =>
   h(
     Clickable,
     {
@@ -65,7 +66,8 @@ const makeCard = (link, title, body) =>
       div({ style: { flexGrow: 1 } }),
       makeRightArrowWithBackgroundIcon(),
     ]
-  );
+  )
+);
 
 const makeDocLinks = _.map(({ link, text }) =>
   div({ style: { marginBottom: '1rem', fontSize: 18 } }, [
@@ -133,23 +135,7 @@ export const LandingPage = () => {
       ),
     // width is set to prevent text from overlapping the background image and decreasing legibility
     div({ style: { maxWidth: 'calc(100% - 460px)' } }, makeDocLinks(getEnabledBrand().docLinks)),
-    isPublicHealth() && [
-      div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, [
-        makeCard('workspaces', 'My Workspaces', [
-          'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
-        ]),
-        makeCard('library-showcase', 'Featured Workspaces', 'Browse example pathogen genomic data and analysis tools together.'),
-      ]),
-    ],
-    !isPublicHealth() && [
-      div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, [
-        makeCard('workspaces', 'View Workspaces', [
-          'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
-        ]),
-        makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done.'),
-        makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of data portals.'),
-      ]),
-    ],
+    div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, makeCard(getEnabledBrand().landingPageCards || landingPageCardsDefault)),
     isTerra() &&
       div(
         {
