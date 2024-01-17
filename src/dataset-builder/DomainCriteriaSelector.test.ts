@@ -61,7 +61,7 @@ describe('DomainCriteriaSelector', () => {
     // Act
     await screen.findByText(state.domainOption.category);
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText('add'));
+    await user.click(screen.getByLabelText(`add ${concept.id}`));
     await user.click(screen.getByText('Add to group'));
     // Assert
     const expectedCriteria = toCriteria(domainOption, getNextCriteriaIndex)(concept);
