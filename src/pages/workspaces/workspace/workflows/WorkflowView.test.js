@@ -345,6 +345,5 @@ describe('Workflow View (GCP)', () => {
       submissionId: undefined,
     });
     expect(Nav.goToPath).toHaveBeenCalledTimes(1);
-    screen.logTestingPlaygroundURL();
   });
 });
