@@ -94,7 +94,9 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   h(Link, { 'aria-label': label, onClick: () => setCart(_.xor(cart, [concept])) }, [
                     icon(iconName, { size: 16 }),
                   ]),
-                  div({ style: { marginLeft: 5 } }, [HighlightConceptName(concept.name, search)]),
+                  div({ style: { marginLeft: 5 } }, [
+                    h(HighlightConceptName, { conceptName: concept.name, searchFilter: search }),
+                  ]),
                 ]),
                 id: concept.id,
                 count: concept.count,
