@@ -184,99 +184,94 @@ describe('test conversion of DatasetAccessRequest', () => {
 
 describe('test HighlightConceptName', () => {
   test('searching beginning of conceptName', () => {
-    const searchedWord = 'Clinic';
+    const searchFilter = 'Clinic';
     const conceptName = 'Clinical Finding';
 
     const result = span([span(['']), strong(['Clinic']), span(['al Finding'])]);
-
-    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 });
 
 describe('test HighlightConceptName', () => {
-  test('Testing to make sure Clin is capitalized', () => {
-    const searchedWord = 'clin';
+  test("Testing to make sure capitalization doesn't change", () => {
+    const searchFilter = 'clin';
     const conceptName = 'Clinical Finding';
 
     const result = span([span(['']), strong(['Clin']), span(['ical Finding'])]);
 
-    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 });
 
 describe('test HighlightConceptName', () => {
   test('searchedWord in the middle of conceptName', () => {
-    const searchedWord = 'cal';
+    const searchFilter = 'cal';
     const conceptName = 'Clinical Finding';
 
     const result = span([span(['Clini']), strong(['cal']), span([' Finding'])]);
 
-    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 });
 
 describe('test HighlightConceptName', () => {
   test('searchedWord in the end of conceptName', () => {
-    const searchedWord = 'Finding';
+    const searchFilter = 'Finding';
     const conceptName = 'Clinical Finding';
 
     const result = span([span(['Clinical ']), strong(['Finding']), span([''])]);
 
-    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 });
 
 describe('test HighlightConceptName', () => {
   test('searchedWord in the not in conceptName: "XXX" in "Clinical Finding"', () => {
-    const searchedWord = 'XXX';
+    const searchFilter = 'XXX';
     const conceptName = 'Clinical Finding';
 
     const result = span(['Clinical Finding']);
 
-    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 });
 
 describe('test HighlightConceptName', () => {
   test('searchedWord in the not in conceptName: "Clinical" in "Clin"', () => {
-    const searchedWord = 'Clinical';
+    const searchFilter = 'Clinical';
     const conceptName = 'Clin';
 
     const result = span(['Clin']);
 
-    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 });
 
 describe('test HighlightConceptName', () => {
   test('searchedWord is empty: "" ', () => {
-    const searchedWord = '';
+    const searchFilter = '';
     const conceptName = 'Condition';
 
     const result = span(['Condition']);
 
-    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 });
 
 describe('test HighlightConceptName', () => {
-  test('searchedWord is empty has one spaces', () => {
-    const searchedWord = ' ';
-    const conceptName = 'Clinical Finding';
+  test("doesn't bold whitespace", () => {
+    let searchFilter = ' ';
+    let conceptName = 'Clinical Finding';
 
-    const result = span(['Clinical Finding']);
+    let result = span(['Clinical Finding']);
 
-    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
-  });
-});
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
 
-describe('test HighlightConceptName', () => {
-  test('searchedWord is empty has three spaces', () => {
-    const searchedWord = '   ';
-    const conceptName = 'Clinical Finding';
+    searchFilter = '   ';
+    conceptName = 'Clinical Finding';
 
-    const result = span(['Clinical Finding']);
+    result = span(['Clinical Finding']);
 
-    expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 });
