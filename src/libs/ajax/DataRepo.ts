@@ -210,6 +210,13 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
         ),
       getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
+
+      // getConceptHierarchy: async (_concept: SnapshotBuilderConcept) => {
+      //   await new Promise((resolve) => setTimeout(resolve, 1000));
+      //   return Promise.resolve({
+      //     result: _.filter((concept) => concept.id, dummyConcepts),
+      //   });
+      // },
       searchConcepts: async (_domain: SnapshotBuilderConcept, text: string) => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         return Promise.resolve({
