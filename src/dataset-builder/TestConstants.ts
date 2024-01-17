@@ -122,43 +122,43 @@ export const dummyGetConceptForId = (id: number): Concept => {
   return _.find({ id }, dummyConcepts)!;
 };
 
-export const dummyHierarchy = [
-  {
-    id: 405,
-    concept: dummyGetConceptForId(405),
-    children: [],
-    parent: 404,
-  },
-  {
-    id: 404,
-    concept: dummyGetConceptForId(404),
-    children: [405],
-    parent: 401,
-  },
-  {
-    id: 403,
-    concept: dummyGetConceptForId(403),
-    children: [],
-    parent: 401,
-  },
-  {
-    id: 402,
-    concept: dummyGetConceptForId(402),
-    children: [],
-    parent: 401,
-  },
-  {
-    id: 401,
-    concept: dummyGetConceptForId(401),
-    children: [402, 403, 404],
-    parent: 400,
-  },
-  {
-    id: 400,
-    concept: dummyGetConceptForId(400),
-    children: [401],
-  },
-];
+// export const dummyHierarchy = [
+//   {
+//     id: 405,
+//     concept: dummyGetConceptForId(405),
+//     children: [],
+//     parent: 404,
+//   },
+//   {
+//     id: 404,
+//     concept: dummyGetConceptForId(404),
+//     children: [405],
+//     parent: 401,
+//   },
+//   {
+//     id: 403,
+//     concept: dummyGetConceptForId(403),
+//     children: [],
+//     parent: 401,
+//   },
+//   {
+//     id: 402,
+//     concept: dummyGetConceptForId(402),
+//     children: [],
+//     parent: 401,
+//   },
+//   {
+//     id: 401,
+//     concept: dummyGetConceptForId(401),
+//     children: [402, 403, 404],
+//     parent: 400,
+//   },
+//   {
+//     id: 400,
+//     concept: dummyGetConceptForId(400),
+//     children: [401],
+//   },
+// ];
 
 // export const dummyGetNodeFromHierarchy = (id: number) => {
 //   return _.find({ id }, dummyHierarchy)!;

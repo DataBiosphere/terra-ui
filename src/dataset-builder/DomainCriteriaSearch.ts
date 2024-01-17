@@ -50,6 +50,18 @@ export const DomainCriteriaSearch = (props: DomainCriteriaSearchProps) => {
       )(state.cohort);
     },
     onOpenHierarchy: (domainOption: DomainOption, cart: Concept[], searchText: string) => {
+      // console.log('onOpenHierarchy');
+      // console.log(
+      //   domainCriteriaSelectorState.new(
+      //     state.cohort,
+      //     state.criteriaGroup,
+      //     domainOption,
+      //     cart,
+      //     domainCriteriaSearchState.new(state.cohort, state.criteriaGroup, state.domainOption, cart, searchText)
+      //   )
+      // );
+      // console.log();
+
       onStateChange(
         domainCriteriaSelectorState.new(
           state.cohort,

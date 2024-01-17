@@ -34,15 +34,25 @@ export const toCriteria =
     };
   };
 
+// 1. add this piece of state for selectedConcept
+// 2. Handling the state.selectedConcept
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
   useOnMount(() => {
-    void loadRootConcepts(() => DataRepo().dataset(datasetId).getConcepts(state.domainOption.root));
+    if (state.selectedConcept) {
+      // load hierarchy
+      // console.log("load hierarchy")
+    } else {
+      // we can make this cleaner by possibly passing in state and checking props.state.selectedConcept?
+
+      // get me the children of this concept id
+      void loadRootConcepts(() => DataRepo().dataset(datasetId).getConcepts(state.domainOption.root));
+    }
   });
   return rootConcepts.status === 'Ready'
     ? h(ConceptSelector, {
-        initialRows: rootConcepts.state.result,
+        initialRows: rootConcepts.state.result, // call an API instead that will get
         title: state.domainOption.category,
         initialCart: state.cart,
         onCancel: () => onStateChange(state.cancelState),
