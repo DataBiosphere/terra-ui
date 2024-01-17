@@ -10,7 +10,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useOnMount } from 'src/libs/react-utils';
-import { asyncImportJobStore, AzureAsyncImportJob, GCPAsyncImportJob } from 'src/libs/state';
+import { AsyncImportJob, asyncImportJobStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
@@ -70,7 +70,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         url: importRequest.url.toString(),
         type: 'PFB',
       });
-      const newJob: AzureAsyncImportJob = {
+      const newJob: AsyncImportJob = {
         targetWorkspace: { namespace, name },
         jobId,
         wdsProxyUrl: wdsUrl,
@@ -82,7 +82,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
       const { jobId } = await Ajax()
         .Workspaces.workspace(namespace, name)
         .importJob(importRequest.url.toString(), 'pfb', null);
-      const newJob: GCPAsyncImportJob = {
+      const newJob: AsyncImportJob = {
         targetWorkspace: { namespace, name },
         jobId,
       };
@@ -114,7 +114,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         url: importRequest.manifestUrl.toString(),
         type: 'TDRMANIFEST',
       });
-      const newJob: AzureAsyncImportJob = {
+      const newJob: AsyncImportJob = {
         targetWorkspace: { namespace, name },
         jobId,
         wdsProxyUrl: wdsUrl,
