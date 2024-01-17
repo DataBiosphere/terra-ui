@@ -1,5 +1,6 @@
 export * from './format/number-format';
 export * from './io-utils';
+export * from './list-utils';
 export * from './logic-utils';
 export * from './nav/nav-utils';
 export * from './promise-utils';
