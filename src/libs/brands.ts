@@ -64,6 +64,17 @@ export interface BrandConfiguration {
   /** Optional URL for landing page background image */
   landingPageBackground?: string;
 
+  landingPageCards?: {
+    /** Card link */
+    link: string;
+
+    /** Card title */
+    text: string;
+
+    /** Card body */
+    body: string;
+  }[];
+
   /** Optionally filter which datasets show up in the Data Catalog */
   catalogDataCollectionsToInclude?: string[];
 
