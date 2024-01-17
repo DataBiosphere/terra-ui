@@ -16,6 +16,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { append, cond, withBusyState } from 'src/libs/utils';
 import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import {
+  AccessEntry,
   aclEntryIsTerraSupport,
   terraSupportAccessLevel,
   terraSupportEmail,
@@ -97,7 +98,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   const addCollaborator = (collaboratorEmail) => {
     if (!validate.single(collaboratorEmail, { email: true, exclusion: aclEmails })) {
       setSearchValue('');
-      setAcl(append({ email: collaboratorEmail, accessLevel: 'READER' }));
+      setAcl(append({ email: collaboratorEmail, accessLevel: 'READER' } as AccessEntry));
       setLastAddedEmail(collaboratorEmail);
     }
   };
