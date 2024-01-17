@@ -56,6 +56,7 @@ export interface DomainCriteriaSelectorState extends DatasetBuilderState {
   readonly domainOption: DomainOption;
   readonly cart: Concept[];
   readonly cancelState: AnyDatasetBuilderState;
+  readonly selectedConcept?: Concept;
 }
 
 export const domainCriteriaSelectorState = {
