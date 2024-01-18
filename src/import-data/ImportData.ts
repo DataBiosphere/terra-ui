@@ -10,7 +10,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useOnMount } from 'src/libs/react-utils';
-import { asyncImportJobStore, AzureAsyncImportJob, GCPAsyncImportJob } from 'src/libs/state';
+import { AsyncImportJob, asyncImportJobStore, AzureAsyncImportJob, GCPAsyncImportJob } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
@@ -75,7 +75,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         jobId,
         wdsProxyUrl: wdsUrl,
       };
-      asyncImportJobStore.update(Utils.append(newJob));
+      asyncImportJobStore.update(Utils.append<AsyncImportJob>(newJob));
       notifyDataImportProgress(jobId);
     } else {
       const { namespace, name } = workspace;
@@ -86,7 +86,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         targetWorkspace: { namespace, name },
         jobId,
       };
-      asyncImportJobStore.update(Utils.append(newJob));
+      asyncImportJobStore.update(Utils.append<AsyncImportJob>(newJob));
       notifyDataImportProgress(jobId);
     }
   };
@@ -119,7 +119,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         jobId,
         wdsProxyUrl: wdsUrl,
       };
-      asyncImportJobStore.update(Utils.append(newJob));
+      asyncImportJobStore.update(Utils.append<AsyncImportJob>(newJob));
       notifyDataImportProgress(jobId);
     } else {
       const { namespace, name } = workspace;
@@ -128,7 +128,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         .importJob(importRequest.manifestUrl.toString(), 'tdrexport', {
           tdrSyncPermissions: importRequest.syncPermissions,
         });
-      asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
+      asyncImportJobStore.update(Utils.append<AsyncImportJob>({ targetWorkspace: { namespace, name }, jobId }));
       notifyDataImportProgress(jobId);
     }
   };
