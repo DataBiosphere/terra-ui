@@ -28,7 +28,6 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
   const [runsData, setRunsData] = useState();
   const [runsFullyUpdated, setRunsFullyUpdated] = useState();
   const [loading, setLoading] = useState(false);
-
   const [runSetData, setRunSetData] = useState();
   const [methodsData, setMethodsData] = useState();
 
