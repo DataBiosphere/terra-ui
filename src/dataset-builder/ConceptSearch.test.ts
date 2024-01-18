@@ -30,9 +30,8 @@ describe('ConceptSearch', () => {
   const onOpenHierarchy = jest.fn();
   const actionText = 'action text';
   const datasetId = '0';
-  const initialCart: SnapshotBuilderConcept[] = [];
   const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
-  const renderSearch = (initialSearch = '') => {
+  const renderSearch = (initialSearch = '', initialCart: SnapshotBuilderConcept[] = []) => {
     render(
       h(ConceptSearch, {
         actionText,
@@ -101,11 +100,12 @@ describe('ConceptSearch', () => {
     await screen.findByText(concept.name);
     // Act
     const user = userEvent.setup();
+    await user.click(screen.getByLabelText(`add ${concept.id}`));
     await user.click(screen.getByLabelText(`open hierarchy ${concept.id}`));
     // Assert
     expect(onOpenHierarchy).toHaveBeenCalledWith(
       { id: concept.id, category: domainOption.category, root: concept },
-      [],
+      [concept],
       ''
     );
   });
@@ -148,5 +148,12 @@ describe('ConceptSearch', () => {
     await user.click(screen.getByText(actionText));
     // Assert
     expect(onCommit).toHaveBeenCalledWith([concept]);
+  });
+
+  it('loads the page with the initial cart', async () => {
+    // Arrange
+    renderSearch('', [displayedConcepts[0]]);
+    // Assert
+    expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
   });
 });
