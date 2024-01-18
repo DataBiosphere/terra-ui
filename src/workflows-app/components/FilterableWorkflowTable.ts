@@ -319,7 +319,7 @@ const FilterableWorkflowTable = ({
         ]
       ),
       !_.isEmpty(sortedPreviousRuns) &&
-        div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
+        div({ style: { marginBottom: '1.5rem', right: '4rem' } }, [
           // @ts-expect-error
           paginator({
             filteredDataLength: sortedPreviousRuns.length,
