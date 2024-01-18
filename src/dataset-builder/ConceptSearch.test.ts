@@ -37,6 +37,21 @@ describe('ConceptSearch', () => {
     );
   };
 
+  // const renderHighlightConceptSearch = () => {
+  //   render(
+  //     h(ConceptSearch, {
+  //       actionText,
+  //       initialSearch: 'Con',
+  //       initialCart,
+  //       onCancel,
+  //       onCommit,
+  //       onOpenHierarchy,
+  //       datasetId,
+  //       domainOption,
+  //     })
+  //   );
+  // };
+
   const displayedConcepts = [dummyGetConceptForId(102), dummyGetConceptForId(103)];
   const mockSearch = jest.fn();
 
@@ -133,4 +148,18 @@ describe('ConceptSearch', () => {
     // Assert
     expect(onCommit).toHaveBeenCalledWith([concept]);
   });
+
+  // it('testing HighlightConceptNAme', async () => {
+  //   // Arrange
+  //   renderHighlightConceptSearch();
+  //   // Assert
+  //   expect(await screen.findByText(displayedConcepts[0].name)).toBeTruthy();
+  //   console.log(displayedConcepts[0].name);
+  //   expect(await screen.findByText(displayedConcepts[0].id)).toBeTruthy();
+  //   console.log(displayedConcepts[0].id);
+  //   // Search Filter is found
+  //   expect(await screen.getByLabelText('Con')).toBeTruthy();
+  //   expect(await screen.findByText('Condition')).toBeTruthy();
+  //   console.log(screen.findByText('Condition'));
+  // });
 });
