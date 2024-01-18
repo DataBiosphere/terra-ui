@@ -1,7 +1,12 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
 const uuid = require('uuid');
-const { deleteRuntimesV2, gotoAnalysisTab, withAzureWorkspace } = require('../utils/integration-helpers');
+const {
+  deleteRuntimesV2,
+  getWorkspaceId,
+  gotoAnalysisTab,
+  withAzureWorkspace,
+} = require('../utils/integration-helpers');
 const {
   Millis,
   click,
@@ -14,7 +19,6 @@ const {
   findIframe,
   findText,
   getAnimatedDrawer,
-  getWorkspaceId,
   input,
   noSpinnersAfter,
   waitForNoModal,
