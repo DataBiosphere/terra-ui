@@ -166,13 +166,8 @@ const FilterableWorkflowTable = ({
         {
           style: {
             marginTop: '1em',
-            height: tableHeight({
-              actualRows: paginatedPreviousRuns.length,
-              maxRows: paginatedPreviousRuns.length / 5.2,
-              heightPerRow: 250,
-            }),
             minHeight: '10em',
-            marginBottom: '16.5em',
+            marginBottom: '5em',
           },
         },
         [
@@ -200,113 +195,127 @@ const FilterableWorkflowTable = ({
             styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
             options: filterOptions,
           }),
-          h(AutoSizer, [
-            ({ width, height }) =>
-              h(FlexTable, {
-                'aria-label': 'previous runs',
-                width,
-                height,
-                // @ts-expect-error
-                sort,
-                rowCount: paginatedPreviousRuns.length,
-                noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
-                hoverHighlight: true,
-                rowHeight,
-                rowWidth,
-                columns: [
-                  {
-                    size: { basis: 350 },
-                    field: 'record_id',
-                    headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['Sample ID']),
-                    cellRenderer: ({ rowIndex }) => {
-                      const engineId = paginatedPreviousRuns[rowIndex].engine_id;
+          div(
+            {
+              style: {
+                height: tableHeight({
+                  actualRows: paginatedPreviousRuns.length,
+                  maxRows: 12.5,
+                  heightPerRow: 50,
+                }),
+              },
+            },
+            [
+              h(AutoSizer, [
+                ({ width, height }) =>
+                  h(FlexTable, {
+                    'aria-label': 'previous runs',
+                    width,
+                    height,
+                    // @ts-expect-error
+                    sort,
+                    rowCount: paginatedPreviousRuns.length,
+                    noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
+                    hoverHighlight: true,
+                    rowHeight,
+                    rowWidth,
+                    columns: [
+                      {
+                        size: { basis: 350 },
+                        field: 'record_id',
+                        headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['Sample ID']),
+                        cellRenderer: ({ rowIndex }) => {
+                          const engineId = paginatedPreviousRuns[rowIndex].engine_id;
 
-                      // Engine id may be undefined if CBAS failed to submit to Cromwell
-                      if (engineId === undefined) return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id]);
+                          // Engine id may be undefined if CBAS failed to submit to Cromwell
+                          if (engineId === undefined) return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id]);
 
-                      return div({ style: { width: '100%', textAlign: 'left' } }, [
-                        h(
-                          Link,
-                          {
-                            href: Nav.getLink('workspace-workflows-app-run-details', {
-                              namespace,
-                              name: workspaceName,
-                              submissionId,
-                              workflowId: engineId,
-                            }),
-                            style: { fontWeight: 'bold' },
-                          },
-                          [paginatedPreviousRuns[rowIndex].record_id]
-                        ),
-                      ]);
-                    },
-                  },
-                  {
-                    size: { basis: 600, grow: 0 },
-                    field: 'state',
-                    headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
-                    cellRenderer: ({ rowIndex }) => {
-                      const status = state(
-                        paginatedPreviousRuns[rowIndex].state,
-                        paginatedPreviousRuns[rowIndex].submission_date
-                      );
-                      if (errorStates.includes(paginatedPreviousRuns[rowIndex].state)) {
-                        return div({ style: { width: '100%', textAlign: 'center' } }, [
-                          h(
-                            Link,
-                            {
-                              key: 'error link',
-                              style: { fontWeight: 'bold' },
-                              onClick: () => setViewErrorsId(rowIndex),
-                            },
-                            [
-                              makeStatusLine(
-                                (style) => status.icon(style),
-                                status.label(paginatedPreviousRuns[rowIndex].state),
+                          return div({ style: { width: '100%', textAlign: 'left' } }, [
+                            h(
+                              Link,
+                              {
+                                href: Nav.getLink('workspace-workflows-app-run-details', {
+                                  namespace,
+                                  name: workspaceName,
+                                  submissionId,
+                                  workflowId: engineId,
+                                }),
+                                style: { fontWeight: 'bold' },
+                              },
+                              [paginatedPreviousRuns[rowIndex].record_id]
+                            ),
+                          ]);
+                        },
+                      },
+                      {
+                        size: { basis: 600, grow: 0 },
+                        field: 'state',
+                        headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
+                        cellRenderer: ({ rowIndex }) => {
+                          const status = state(
+                            paginatedPreviousRuns[rowIndex].state,
+                            paginatedPreviousRuns[rowIndex].submission_date
+                          );
+                          if (errorStates.includes(paginatedPreviousRuns[rowIndex].state)) {
+                            return div({ style: { width: '100%', textAlign: 'center' } }, [
+                              h(
+                                Link,
                                 {
-                                  textAlign: 'center',
-                                }
+                                  key: 'error link',
+                                  style: { fontWeight: 'bold' },
+                                  onClick: () => setViewErrorsId(rowIndex),
+                                },
+                                [
+                                  makeStatusLine(
+                                    (style) => status.icon(style),
+                                    status.label(paginatedPreviousRuns[rowIndex].state),
+                                    {
+                                      textAlign: 'center',
+                                    }
+                                  ),
+                                ]
                               ),
-                            ]
-                          ),
-                        ]);
-                      }
-                      return h(TextCell, { style: { fontWeight: 'bold' } }, [
-                        makeStatusLine(
-                          (style) => status.icon(style),
-                          status.label(paginatedPreviousRuns[rowIndex].state),
-                          {
-                            textAlign: 'center',
+                            ]);
                           }
-                        ),
-                      ]);
-                    },
-                  },
-                  {
-                    size: { basis: 500, grow: 0 },
-                    field: 'duration',
-                    headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
-                    cellRenderer: ({ rowIndex }) => {
-                      return h(TextCell, [customFormatDuration(paginatedPreviousRuns[rowIndex].duration)]);
-                    },
-                  },
-                  {
-                    size: { basis: 400, grow: 0 },
-                    field: 'workflowId',
-                    headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
-                    cellRenderer: ({ rowIndex }) => {
-                      const engineId = paginatedPreviousRuns[rowIndex].engine_id;
-                      if (engineId !== undefined) {
-                        return h(TextCell, [
-                          span({ style: { marginRight: '0.5rem' } }, [engineId]),
-                          span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
-                        ]);
-                      }
-                    },
-                  },
-                ],
-              }),
-          ]),
+                          return h(TextCell, { style: { fontWeight: 'bold' } }, [
+                            makeStatusLine(
+                              (style) => status.icon(style),
+                              status.label(paginatedPreviousRuns[rowIndex].state),
+                              {
+                                textAlign: 'center',
+                              }
+                            ),
+                          ]);
+                        },
+                      },
+                      {
+                        size: { basis: 500, grow: 0 },
+                        field: 'duration',
+                        headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
+                        cellRenderer: ({ rowIndex }) => {
+                          return h(TextCell, [customFormatDuration(paginatedPreviousRuns[rowIndex].duration)]);
+                        },
+                      },
+                      {
+                        size: { basis: 400, grow: 0 },
+                        field: 'workflowId',
+                        headerRenderer: () =>
+                          h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
+                        cellRenderer: ({ rowIndex }) => {
+                          const engineId = paginatedPreviousRuns[rowIndex].engine_id;
+                          if (engineId !== undefined) {
+                            return h(TextCell, [
+                              span({ style: { marginRight: '0.5rem' } }, [engineId]),
+                              span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
+                            ]);
+                          }
+                        },
+                      },
+                    ],
+                  }),
+              ]),
+            ]
+          ),
         ]
       ),
       !_.isEmpty(sortedPreviousRuns) &&
