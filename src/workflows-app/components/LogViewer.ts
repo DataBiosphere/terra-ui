@@ -106,7 +106,12 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async (workspaceId: string): Promise<string[]> => {
       try {
-        const response = await Ajax(signal).AzureStorage.listFiles('969dda4e-dfb5-41ee-8159-7bf6fe9f72cb');
+        const prefixFilter =
+          'workspace-services/cbas/terra-app-97586e6e-f88d-4e45-abf9-bf6c0dd1a06a/CalculateStudentGPA/992705fe-efed-43e2-a064-1cdf1963b8bd/call-CalculateAverage/';
+        const response = await Ajax(signal).AzureStorage.listFiles(
+          '969dda4e-dfb5-41ee-8159-7bf6fe9f72cb',
+          prefixFilter
+        );
         return response.map((file) => file.name);
       } catch (e) {
         return ['errorlol'];
