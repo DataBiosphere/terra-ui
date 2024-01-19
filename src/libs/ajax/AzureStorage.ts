@@ -103,6 +103,27 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     return filteredBlobs;
   },
 
+  listFilesInDirectory: async (workspaceId: string, blobPath: string): Promise<AzureFileRaw[]> => {
+    if (!blobPath) {
+      return [];
+    }
+    const {
+      sas: { token },
+    } = await AzureStorage(signal).details(workspaceId);
+    const fullUri = `${blobPath}?restype=container&comp=list&${token}`;
+    const res = await fetchOk(fullUri);
+    const text = await res.text();
+    const xml = new window.DOMParser().parseFromString(text, 'text/xml');
+    const blobs = _.map(
+      (blob) => ({
+        name: _.head(blob.getElementsByTagName('Name'))?.textContent,
+        lastModified: _.head(blob.getElementsByTagName('Last-Modified'))?.textContent,
+      }),
+      xml.getElementsByTagName('Blob')
+    ) as AzureFileRaw[];
+    return blobs;
+  },
+
   listNotebooks: async (workspaceId: string): Promise<AnalysisFile[]> => {
     const notebooks = await AzureStorage(signal).listFiles(workspaceId, '.ipynb');
     return _.map(

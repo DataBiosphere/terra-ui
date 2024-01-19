@@ -99,10 +99,11 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
   });
   const [activeDownloadUri, setActiveDownloadUri] = useState<string | undefined>(undefined);
   const signal = useCancellation();
-
+  const templateLog: LogInfo | undefined = logs.findLast((log) => log.logKey === 'tes_stdout');
+  const logDirectory: string | undefined = templateLog?.logUri.split('/').slice(0, -1).join('/');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [discoveredLogs, setDiscoveredLogs] = useState<string[]>([]);
-  const discoverLogs = useCallback(
+  const discoverAdditionalLogs = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async (workspaceId: string): Promise<string[]> => {
       try {
@@ -117,18 +118,19 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
         return ['errorlol'];
       }
     },
-    [signal]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [signal, logDirectory]
   );
 
   useEffect(() => {
     const discover = async () => {
-      const discovered = await discoverLogs('workspaceId');
+      const discovered = await discoverAdditionalLogs('workspaceId');
       // eslint-disable-next-line no-console
       console.log(discovered);
       setDiscoveredLogs(discovered);
     };
     discover();
-  }, [discoverLogs]);
+  }, [discoverAdditionalLogs]);
 
   const fetchLogContent = useCallback(
     async (azureBlobUri: string): Promise<FetchedLogData | null> => {
