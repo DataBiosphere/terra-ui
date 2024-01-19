@@ -27,7 +27,6 @@ const { boolean } = MatchersV3;
 const termsOfServicePact = new PactV3({
   consumer: 'terra-ui',
   provider: 'sam',
-  log: path.resolve(process.cwd(), 'logs', 'pact.log'),
   logLevel: 'error',
   dir: path.resolve(process.cwd(), 'pacts'),
   spec: SpecificationVersion.SPECIFICATION_VERSION_V3,
