@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
-import { span, strong } from 'react-hyperscript-helpers';
+import { div } from 'react-hyperscript-helpers';
 import {
   ColumnStatisticsIntOrDoubleModel,
   ColumnStatisticsTextModel,
@@ -273,14 +273,14 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
 
   // searchFilter is empty or does not exist in conceptName
   if (startIndex < 0 || searchFilter.trim() === '') {
-    return span([conceptName]);
+    return div([conceptName]);
   }
 
   const endIndex = startIndex + searchFilter.length;
 
-  return span([
-    span([conceptName.substring(0, startIndex)]),
-    strong([conceptName.substring(startIndex, endIndex)]),
-    span([conceptName.substring(endIndex)]),
+  return div({ style: { display: 'flex' } }, [
+    div([conceptName.substring(0, startIndex)]),
+    div({ style: { fontWeight: 600 } }, [conceptName.substring(startIndex, endIndex)]),
+    div([conceptName.substring(endIndex)]),
   ]);
 };
