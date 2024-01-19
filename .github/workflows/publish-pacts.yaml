@@ -22,7 +22,7 @@ jobs:
           yarn install
 
       - name: Run tests
-        run: yarn test CbasPact.test.js TermsOfServicePact.test.ts
+        run: yarn test "\b\w*Pact\w*\.test\.(js|ts)\b" # This matches any test file that contains the word "Pact" at the end of its name, either js or ts.
 
       - name: Encode the pact as non-breaking base 64 string
         id: encode
