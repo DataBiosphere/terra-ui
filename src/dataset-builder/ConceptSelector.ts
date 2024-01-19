@@ -1,12 +1,13 @@
 import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { CSSProperties, Fragment, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TreeGrid } from 'src/components/TreeGrid';
 import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
+import colors from 'src/libs/colors';
 
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
 
@@ -18,6 +19,16 @@ type ConceptSelectorProps = {
   readonly actionText: string;
   readonly datasetId: string;
   readonly initialCart: Concept[];
+};
+
+export const tableHeaderStyle: CSSProperties = {
+  height: '100%',
+  display: 'flex',
+  paddingTop: 15,
+  paddingBottom: 15,
+  backgroundColor: colors.light(0.4),
+  borderRadius: '8px 8px 0px 0px',
+  border: `.5px solid ${colors.dark(0.2)}`,
 };
 
 export const ConceptSelector = (props: ConceptSelectorProps) => {
@@ -65,6 +76,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
         ],
         initialRows,
         getChildren,
+        headerStyle: tableHeaderStyle,
       }),
     ]),
     cart.length !== 0 &&
