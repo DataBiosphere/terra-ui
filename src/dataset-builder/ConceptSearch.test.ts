@@ -1,18 +1,16 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { SearchInput } from 'src/components/input';
 import { ConceptSearch } from 'src/dataset-builder/ConceptSearch';
 import { dummyDatasetModel, dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
 import { DataRepo, DataRepoContract, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 // This is necessary to avoid waiting for the delayed (debounced) input change event.
-const TestSearchInput = (props) => h(SearchInput, props);
 jest.mock('src/components/input', () => {
   return {
     ...jest.requireActual('src/components/input'),
-    DelayedSearchInput: TestSearchInput,
+    withDebouncedChange: (component) => component,
   };
 });
 
