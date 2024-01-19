@@ -1,5 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { ConceptSearch } from 'src/dataset-builder/ConceptSearch';
 import { dummyDatasetModel, dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
@@ -22,11 +23,11 @@ describe('ConceptSearch', () => {
   const datasetId = '0';
   const initialCart: SnapshotBuilderConcept[] = [];
   const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
-  const renderSearch = () => {
+  const renderSearch = (initialSearch = '') => {
     render(
       h(ConceptSearch, {
         actionText,
-        initialSearch: '',
+        initialSearch,
         initialCart,
         onCancel,
         onCommit,
@@ -36,21 +37,6 @@ describe('ConceptSearch', () => {
       })
     );
   };
-
-  // const renderHighlightConceptSearch = () => {
-  //   render(
-  //     h(ConceptSearch, {
-  //       actionText,
-  //       initialSearch: 'Con',
-  //       initialCart,
-  //       onCancel,
-  //       onCommit,
-  //       onOpenHierarchy,
-  //       datasetId,
-  //       domainOption,
-  //     })
-  //   );
-  // };
 
   const displayedConcepts = [dummyGetConceptForId(102), dummyGetConceptForId(103)];
   const mockSearch = jest.fn();
@@ -149,17 +135,27 @@ describe('ConceptSearch', () => {
     expect(onCommit).toHaveBeenCalledWith([concept]);
   });
 
-  // it('testing HighlightConceptNAme', async () => {
-  //   // Arrange
-  //   renderHighlightConceptSearch();
-  //   // Assert
-  //   expect(await screen.findByText(displayedConcepts[0].name)).toBeTruthy();
-  //   console.log(displayedConcepts[0].name);
-  //   expect(await screen.findByText(displayedConcepts[0].id)).toBeTruthy();
-  //   console.log(displayedConcepts[0].id);
-  //   // Search Filter is found
-  //   expect(await screen.getByLabelText('Con')).toBeTruthy();
-  //   expect(await screen.findByText('Condition')).toBeTruthy();
-  //   console.log(screen.findByText('Condition'));
-  // });
+  it('testing HighlightConceptName, "Dis"', async () => {
+    renderSearch('Dis');
+
+    const disText = await screen.findAllByText('Dis');
+
+    const filterDisText = _.filter(
+      (element) => element.tagName === 'DIV' && element.style.fontWeight === '600',
+      disText
+    ).length;
+    expect(filterDisText).toBeGreaterThan(0);
+    expect(await screen.findByText('ease')).toBeTruthy();
+  });
+
+  it('testing HighlightConceptName, "ease"', async () => {
+    renderSearch('ease');
+    const easeText = await screen.findAllByText('ease');
+    const filterEaseText = _.filter(
+      (element) => element.tagName === 'DIV' && element.style.fontWeight === '600',
+      easeText
+    ).length;
+    expect(filterEaseText).toBe(1);
+    expect(await screen.findByText('Dis')).toBeTruthy();
+  });
 });
