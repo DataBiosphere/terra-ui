@@ -101,7 +101,7 @@ const testRunAnalysisAzure = _.flowRight(
   await click(frame, '//button[starts-with(@title, "Save and create checkpoint")]');
 
   // Cleanup
-  const workspaceId = getWorkspaceId({ page, billingProject, workspaceName });
+  const workspaceId = await getWorkspaceId({ page, billingProject, workspaceName });
   await deleteRuntimesV2({ page, billingProject, workspaceId });
 });
 
