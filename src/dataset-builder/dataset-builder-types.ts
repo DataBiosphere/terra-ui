@@ -65,7 +65,8 @@ export const domainCriteriaSelectorState = {
     criteriaGroup: CriteriaGroup,
     domainOption: DomainOption,
     cart: Concept[],
-    cancelState: AnyDatasetBuilderState
+    cancelState: AnyDatasetBuilderState,
+    selectedConcept?: Concept
   ): DomainCriteriaSelectorState => ({
     mode: 'domain-criteria-selector',
     cohort,
@@ -73,6 +74,7 @@ export const domainCriteriaSelectorState = {
     domainOption,
     cart,
     cancelState,
+    selectedConcept,
   }),
 };
 
