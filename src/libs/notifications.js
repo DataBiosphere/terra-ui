@@ -27,7 +27,7 @@ export const notify = (type, title, props) => {
   const notification = makeNotification({ type, title, ...props });
   if (!isNotificationMuted(notification.id)) {
     const visibleNotificationIds = _.map('id', notificationStore.get());
-    notificationStore.update((currentNotificationStore) => append(notification, currentNotificationStore));
+    notificationStore.update((previousNotifications) => append(notification, previousNotifications));
     if (!_.includes(notification.id, visibleNotificationIds)) {
       showNotification(notification);
     }
