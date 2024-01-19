@@ -1,4 +1,4 @@
-import { span, strong } from 'react-hyperscript-helpers';
+import { div } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
   AnyCriteriaApi,
@@ -187,7 +187,11 @@ describe('test HighlightConceptName', () => {
     const searchFilter = 'Clinic';
     const conceptName = 'Clinical Finding';
 
-    const result = span([span(['']), strong(['Clinic']), span(['al Finding'])]);
+    const result = div({ style: { display: 'flex' } }, [
+      div(['']),
+      div({ style: { fontWeight: 600 } }, ['Clinic']),
+      div(['al Finding']),
+    ]);
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 
@@ -195,8 +199,11 @@ describe('test HighlightConceptName', () => {
     const searchFilter = 'clin';
     const conceptName = 'Clinical Finding';
 
-    const result = span([span(['']), strong(['Clin']), span(['ical Finding'])]);
-
+    const result = div({ style: { display: 'flex' } }, [
+      div(['']),
+      div({ style: { fontWeight: 600 } }, ['Clin']),
+      div(['ical Finding']),
+    ]);
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 
@@ -204,8 +211,11 @@ describe('test HighlightConceptName', () => {
     const searchFilter = 'cal';
     const conceptName = 'Clinical Finding';
 
-    const result = span([span(['Clini']), strong(['cal']), span([' Finding'])]);
-
+    const result = div({ style: { display: 'flex' } }, [
+      div(['Clini']),
+      div({ style: { fontWeight: 600 } }, ['cal']),
+      div([' Finding']),
+    ]);
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 
@@ -213,7 +223,11 @@ describe('test HighlightConceptName', () => {
     const searchFilter = 'Finding';
     const conceptName = 'Clinical Finding';
 
-    const result = span([span(['Clinical ']), strong(['Finding']), span([''])]);
+    const result = div({ style: { display: 'flex' } }, [
+      div(['Clinical ']),
+      div({ style: { fontWeight: 600 } }, ['Finding']),
+      div(['']),
+    ]);
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
@@ -222,7 +236,7 @@ describe('test HighlightConceptName', () => {
     const searchFilter = 'XXX';
     const conceptName = 'Clinical Finding';
 
-    const result = span(['Clinical Finding']);
+    const result = div(['Clinical Finding']);
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
@@ -231,7 +245,7 @@ describe('test HighlightConceptName', () => {
     const searchFilter = 'Clinical';
     const conceptName = 'Clin';
 
-    const result = span(['Clin']);
+    const result = div(['Clin']);
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
@@ -240,7 +254,7 @@ describe('test HighlightConceptName', () => {
     const searchFilter = '';
     const conceptName = 'Condition';
 
-    const result = span(['Condition']);
+    const result = div(['Condition']);
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
@@ -249,14 +263,14 @@ describe('test HighlightConceptName', () => {
     let searchFilter = ' ';
     let conceptName = 'Clinical Finding';
 
-    let result = span(['Clinical Finding']);
+    let result = div(['Clinical Finding']);
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
 
     searchFilter = '   ';
     conceptName = 'Clinical Finding';
 
-    result = span(['Clinical Finding']);
+    result = div(['Clinical Finding']);
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
