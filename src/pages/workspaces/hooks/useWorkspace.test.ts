@@ -561,10 +561,9 @@ describe('useWorkspace', () => {
     });
 
     // Assert
-    const initializedUndefinedAzureWorkspace = _.clone(initializedAzureWorkspace);
-    initializedUndefinedAzureWorkspace.workspaceInitialized = undefined;
     assertResult(result.current, initializedAzureWorkspace, expectedSecondStorageDetails, false);
-    expect(workspaceStore.set).toHaveBeenNthCalledWith(1, initializedUndefinedAzureWorkspace);
+    // First value set will have initialized as undefined.
+    expect(workspaceStore.set).toHaveBeenNthCalledWith(1, serverWorkspaceResponse);
     expect(workspaceStore.set).toHaveBeenNthCalledWith(2, uninitializedAzureWorkspace);
     expect(workspaceStore.set).toHaveBeenNthCalledWith(3, initializedAzureWorkspace);
   });
