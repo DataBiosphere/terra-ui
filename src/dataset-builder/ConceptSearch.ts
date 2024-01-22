@@ -1,12 +1,13 @@
 import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { CSSProperties, Fragment, useEffect, useState } from 'react';
-import { div, h, h2 } from 'react-hyperscript-helpers';
+import { Fragment, useEffect, useState } from 'react';
+import { div, h, h2, strong } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { DelayedSearchInput } from 'src/components/input';
+import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
+import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
@@ -41,6 +42,8 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
       return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, search);
     });
   }, [search, datasetId, domainOption.root, searchConcepts]);
+  const tableLeftPadding = { paddingLeft: '2rem' };
+
   return h(Fragment, [
     div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -54,33 +57,44 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         ),
         div({ style: { marginLeft: 15 } }, [domainOption.category]),
       ]),
-      h(DelayedSearchInput, {
+      h(withDebouncedChange(TextInput), {
         onChange: (value: string) => {
           setSearch(value);
         },
         value: search,
         placeholder: 'Search',
-        style: { borderRadius: 25, flex: '1 1 0' } as CSSProperties,
+        inputIcon: 'search',
+        style: {
+          borderRadius: 25,
+          borderColor: colors.dark(0.2),
+          width: '100%',
+          maxWidth: 575,
+          height: '3rem',
+          marginRight: 20,
+        },
       }),
       concepts.status === 'Ready'
         ? h(SimpleTable, {
             'aria-label': 'concept search results',
             underRowKey: 'underRow',
-            rowStyle: { marginTop: 5, marginBottom: 5 },
+            rowStyle: {
+              backgroundColor: 'white',
+              ...tableLeftPadding,
+            },
             headerRowStyle: {
-              height: '100%',
-              display: 'flex',
-              paddingTop: 15,
-              paddingBottom: 15,
-              backgroundColor: colors.light(0.4),
-              borderRadius: '8px 8px 0px 0px',
-              border: `.5px solid ${colors.dark(0.2)}`,
+              ...tableHeaderStyle,
+              ...tableLeftPadding,
+              marginTop: '1rem',
+            },
+            cellStyle: {
+              paddingTop: 10,
+              paddingBottom: 10,
             },
             columns: [
-              { header: 'Concept Name', width: 710, key: 'name' },
-              { header: 'Concept ID', width: 195, key: 'id' },
-              { header: 'Code', width: 195, key: 'code' },
-              { header: 'Roll-up count', width: 205, key: 'count' },
+              { header: strong(['Concept name']), width: 710, key: 'name' },
+              { header: strong(['Concept ID']), width: 195, key: 'id' },
+              { header: strong(['Code']), width: 195, key: 'code' },
+              { header: strong(['Roll-up count']), width: 205, key: 'count' },
               { width: 100, key: 'hierarchy' },
             ],
             rows: _.map((concept) => {
@@ -92,7 +106,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               })();
               return {
                 name: div({ style: { display: 'flex' } }, [
-                  h(Link, { 'aria-label': `${label}-${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
+                  h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
                     icon(iconName, { size: 16 }),
                   ]),
                   div({ style: { marginLeft: 5 } }, [
@@ -105,7 +119,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   h(
                     Link,
                     {
-                      'aria-label': `open hierarchy-${concept.id}`,
+                      'aria-label': `open hierarchy ${concept.id}`,
                       onClick: () =>
                         onOpenHierarchy(
                           { id: concept.id, category: domainOption.category, root: concept },

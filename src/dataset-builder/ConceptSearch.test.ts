@@ -7,6 +7,14 @@ import { dummyDatasetModel, dummyGetConceptForId } from 'src/dataset-builder/Tes
 import { DataRepo, DataRepoContract, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
+// This is necessary to avoid waiting for the delayed (debounced) input change event.
+jest.mock('src/components/input', () => {
+  return {
+    ...jest.requireActual('src/components/input'),
+    withDebouncedChange: (component) => component,
+  };
+});
+
 jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
 jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
@@ -21,9 +29,9 @@ describe('ConceptSearch', () => {
   const onOpenHierarchy = jest.fn();
   const actionText = 'action text';
   const datasetId = '0';
-  const initialCart: SnapshotBuilderConcept[] = [];
   const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
-  const renderSearch = (initialSearch = '') => {
+
+  const renderSearch = (initialSearch = '', initialCart: SnapshotBuilderConcept[] = []) => {
     render(
       h(ConceptSearch, {
         actionText,
@@ -64,19 +72,25 @@ describe('ConceptSearch', () => {
     expect(screen.queryByText(actionText)).toBeFalsy();
   });
 
-  it('filters the view based on user input', async () => {
+  it('searches based on user input', async () => {
     // Arrange
     renderSearch();
-    const searchText = displayedConcepts[0].name;
+    const searchText = 'search text';
     // Act
     const user = userEvent.setup();
     await user.type(screen.getByPlaceholderText('Search'), searchText);
-    // Assert - the search is called with the search text, after debounce.
-    await new Promise((r) => setTimeout(r, 1000));
+    // Assert - the search is called with the search text.
     expect(mockSearch).toHaveBeenCalledWith(domainOption.root, searchText);
+  });
+
+  it('filters based on search text', async () => {
+    // Arrange
+    renderSearch(displayedConcepts[0].name);
+    // Act
+    // Assert
     expect(screen.findByText(displayedConcepts[0].name)).toBeTruthy();
-    // FIXME: not sure why this fails
-    // expect(screen.findByText(displayedConcepts[1].name)).toBeFalsy();
+    // The second concept should not be displayed.
+    expect(() => screen.getByText(displayedConcepts[1].name)).toThrow();
   });
 
   it('calls open hierarchy on click', async () => {
@@ -86,11 +100,12 @@ describe('ConceptSearch', () => {
     await screen.findByText(concept.name);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`open hierarchy-${concept.id}`));
+    await user.click(screen.getByLabelText(`add ${concept.id}`));
+    await user.click(screen.getByLabelText(`open hierarchy ${concept.id}`));
     // Assert
     expect(onOpenHierarchy).toHaveBeenCalledWith(
       { id: concept.id, category: domainOption.category, root: concept },
-      [],
+      [concept],
       ''
     );
   });
@@ -102,7 +117,7 @@ describe('ConceptSearch', () => {
     await screen.findByText(concept.name);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add-${concept.id}`));
+    await user.click(screen.getByLabelText(`add ${concept.id}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeTruthy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
@@ -115,8 +130,8 @@ describe('ConceptSearch', () => {
     await screen.findByText(concept.name);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add-${concept.id}`));
-    await user.click(screen.getByLabelText(`remove-${concept.id}`));
+    await user.click(screen.getByLabelText(`add ${concept.id}`));
+    await user.click(screen.getByLabelText(`remove ${concept.id}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeFalsy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeFalsy();
@@ -129,7 +144,7 @@ describe('ConceptSearch', () => {
     await screen.findByText(concept.name);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add-${concept.id}`));
+    await user.click(screen.getByLabelText(`add ${concept.id}`));
     await user.click(screen.getByText(actionText));
     // Assert
     expect(onCommit).toHaveBeenCalledWith([concept]);
@@ -157,5 +172,11 @@ describe('ConceptSearch', () => {
     ).length;
     expect(filterEaseText).toBe(1);
     expect(await screen.findByText('Dis')).toBeTruthy();
+
+  it('loads the page with the initial cart', async () => {
+    // Arrange
+    renderSearch('', [displayedConcepts[0]]);
+    // Assert
+    expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
   });
 });
