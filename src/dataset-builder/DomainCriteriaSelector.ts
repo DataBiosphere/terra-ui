@@ -1,7 +1,11 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import { DomainCriteria, GetConceptsResponse } from 'src/dataset-builder/DatasetBuilderUtils';
+import {
+  DomainCriteria,
+  GetConceptsHierarchyMapResponse,
+  GetConceptsResponse,
+} from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
@@ -38,21 +42,40 @@ export const toCriteria =
 // 2. Handling the state.selectedConcept
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
+  const [hierarchyConcepts, loadHierarchyConcepts] = useLoadedData<GetConceptsHierarchyMapResponse>();
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
   useOnMount(() => {
-    if (state.selectedConcept) {
-      // load hierarchy
-      // console.log("load hierarchy")
+    const selectedConcept = state.selectedConcept;
+    if (selectedConcept) {
+      void loadHierarchyConcepts(() => DataRepo().dataset(datasetId).getConceptsHierarchy(selectedConcept));
     } else {
-      // we can make this cleaner by possibly passing in state and checking props.state.selectedConcept?
-
       // get me the children of this concept id
       void loadRootConcepts(() => DataRepo().dataset(datasetId).getConcepts(state.domainOption.root));
     }
   });
+
   return rootConcepts.status === 'Ready'
     ? h(ConceptSelector, {
         initialRows: rootConcepts.state.result, // call an API instead that will get
+        title: state.domainOption.category,
+        initialCart: state.cart,
+        onCancel: () => onStateChange(state.cancelState),
+        onCommit: (selected: Concept[]) => {
+          const cartCriteria = _.map(toCriteria(state.domainOption, getNextCriteriaIndex), selected);
+          const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
+          // add/remove all cart elements to the domain group's criteria list in the cohort
+          _.flow(
+            _.update(`criteriaGroups.${groupIndex}.criteria`, _.xor(cartCriteria)),
+            cohortEditorState.new,
+            onStateChange
+          )(state.cohort);
+        },
+        actionText: 'Add to group',
+        datasetId,
+      })
+    : hierarchyConcepts.status === 'Ready'
+    ? h(ConceptSelector, {
+        initialRows: [], // call an API instead that will get
         title: state.domainOption.category,
         initialCart: state.cart,
         onCancel: () => onStateChange(state.cancelState),
