@@ -1,10 +1,9 @@
 import { Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
-import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers';
+import { div, h, h2, strong } from 'react-hyperscript-helpers';
 import { RuntimeErrorModal } from 'src/analysis/AnalysisNotificationManager';
 import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
-import { SaveFilesHelp, SaveFilesHelpAzure } from 'src/analysis/runtime-common-components';
 import { getAppStatusForDisplay, getDiskAppType } from 'src/analysis/utils/app-utils';
 import {
   getAppCost,
@@ -13,12 +12,11 @@ import {
   getRuntimeCost,
 } from 'src/analysis/utils/cost-utils';
 import { workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
-import { getCreatorForCompute, getDisplayStatus, isComputePausable } from 'src/analysis/utils/resource-utils';
+import { getCreatorForCompute } from 'src/analysis/utils/resource-utils';
 import { getDisplayRuntimeStatus, isGcpContext } from 'src/analysis/utils/runtime-utils';
-import { AppToolLabel, appTools, getToolLabelFromCloudEnv, isPauseSupported } from 'src/analysis/utils/tool-utils';
-import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
+import { AppToolLabel } from 'src/analysis/utils/tool-utils';
+import { Clickable, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger';
 import SupportRequestWrapper from 'src/components/SupportRequest';
 import { SimpleFlexTable, Sortable } from 'src/components/table';
@@ -26,13 +24,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger';
 import { useModalHandler } from 'src/components/useModalHandler';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import {
-  AzureConfig,
-  GceWithPdConfig,
-  getRegionFromZone,
-  isAzureConfig,
-  isGceWithPdConfig,
-} from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { AzureConfig, GceWithPdConfig, getRegionFromZone } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { isRuntime, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
@@ -43,177 +35,37 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
 import { contactUsActive } from 'src/libs/state';
-import * as Style from 'src/libs/style';
-import * as Utils from 'src/libs/utils';
+import { elements as styleElements } from 'src/libs/style';
+import { cond, DEFAULT as COND_DEFAULT, formatUSD, makeCompleteDate, withBusyState } from 'src/libs/utils';
 import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { UseWorkspaces, UseWorkspacesResult } from 'src/workspaces/useWorkspaces.models';
 
 import { DeleteAppModal } from './DeleteAppModal';
 import { DeleteButton } from './DeleteButton';
+import { DeleteDiskModal } from './DeleteDiskModal';
+import { DeleteRuntimeModal } from './DeleteRuntimeModal';
 import {
   AppWithWorkspace,
   DecoratedComputeResource,
   DecoratedResourceAttributes,
   DiskWithWorkspace,
+  LeoResourcePermissionsProvider,
   RuntimeWithWorkspace,
 } from './Environments.models';
+import { PauseButton } from './PauseButton';
+import {
+  unsupportedCloudEnvironmentMessage,
+  unsupportedDiskMessage,
+  UnsupportedWorkspaceCell,
+} from './UnsupportedWorkspaceCell';
 
 export type EnvironmentNavActions = {
   'workspace-view': { namespace: string; name: string };
 };
 
-interface DeleteRuntimeModalProps {
-  runtime: ListRuntimeItem;
-  onDismiss: () => void;
-  onSuccess: () => void;
-  deleteProvider: Pick<LeoRuntimeProvider, 'delete'>;
-}
-
-const DeleteRuntimeModal = (props: DeleteRuntimeModalProps): ReactNode => {
-  const { runtime, deleteProvider, onDismiss, onSuccess } = props;
-  const { cloudContext, runtimeConfig } = runtime;
-  const [deleteDisk, setDeleteDisk] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const deleteRuntime = _.flow(
-    Utils.withBusyState(setDeleting),
-    withErrorReporting('Error deleting cloud environment')
-  )(async () => {
-    await deleteProvider.delete(runtime, { deleteDisk });
-    onSuccess();
-  });
-
-  return h(
-    Modal,
-    {
-      title: 'Delete cloud environment?',
-      onDismiss,
-      okButton: deleteRuntime,
-    },
-    [
-      div({ style: { lineHeight: 1.5 } }, [
-        // show checkbox if config has disk
-        isAzureConfig(runtimeConfig) || isGceWithPdConfig(runtimeConfig)
-          ? h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
-              span({ style: { fontWeight: 600 } }, [' Also delete the persistent disk and all files on it']),
-            ])
-          : p([
-              'Deleting this cloud environment will also ',
-              span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.']),
-            ]),
-        p([
-          'Deleting your cloud environment will stop all running notebooks and associated costs. You can recreate your cloud environment later, ',
-          'which will take several minutes.',
-        ]),
-        !isGcpContext(cloudContext) ? h(SaveFilesHelpAzure) : h(SaveFilesHelp),
-      ]),
-      deleting && spinnerOverlay,
-    ]
-  );
-};
-
-interface DeleteDiskModalProps {
-  disk: DiskWithWorkspace;
-  onDismiss: () => void;
-  onSuccess: () => void;
-  deleteProvider: Pick<LeoDiskProvider, 'delete'>;
-}
-
-const DeleteDiskModal = (props: DeleteDiskModalProps): ReactNode => {
-  const { disk, deleteProvider, onDismiss, onSuccess } = props;
-  const [busy, setBusy] = useState(false);
-
-  const deleteDisk = _.flow(
-    Utils.withBusyState(setBusy),
-    withErrorReporting('Error deleting persistent disk')
-  )(async () => {
-    await deleteProvider.delete(disk);
-    onSuccess();
-  });
-  const isGalaxyDisk = getDiskAppType(disk) === appTools.GALAXY.label;
-
-  return h(
-    Modal,
-    {
-      title: 'Delete persistent disk?',
-      onDismiss,
-      okButton: deleteDisk,
-    },
-    [
-      p(['Deleting the persistent disk will ', span({ style: { fontWeight: 600 } }, ['delete all files on it.'])]),
-      isGalaxyDisk && h(SaveFilesHelp),
-      busy && spinnerOverlay,
-    ]
-  );
-};
-
-// These are for calling attention to resources that are most likely linked to GCP v1 workspaces.
-// Rawls will no longer return v1 workspaces, but Leo does not have a way to filter out disks/cloud environments related to them.
-const unsupportedDiskMessage =
-  'This disk is not associated with a supported workspace. It is recommended that you delete it to avoid additional cloud costs.';
-const unsupportedCloudEnvironmentMessage =
-  'This cloud environment is not associated with a supported workspace. It is recommended that you delete it to avoid additional cloud costs.';
-const UnsupportedWorkspaceCell = ({ status, message }) =>
-  div(
-    {
-      style: {
-        display: 'flex',
-        flex: 1,
-        flexDirection: 'column',
-        // margin/padding set to force the background color to fill the entire cell. SimpleFlexTable does
-        // not provide a way to override the styling at the cell level.
-        height: '100%',
-        margin: '-1rem',
-        paddingLeft: '1rem',
-        backgroundColor: colors.danger(0.15),
-        justifyContent: 'center',
-      },
-    },
-    [
-      h(TooltipTrigger, { content: message }, [
-        div({ 'aria-label': message }, [
-          `${status}`,
-          icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } }),
-        ]),
-      ]),
-    ]
-  );
-
-type PausePermissionsProvider = Pick<LeoResourcePermissionsProvider, 'canPauseResource'>;
-
-interface PauseButtonProps {
-  cloudEnvironment: App | ListRuntimeItem;
-  permissions: PausePermissionsProvider;
-  pauseComputeAndRefresh: (cloudEnvironment: App | ListRuntimeItem) => void;
-}
-
-export function PauseButton(props: PauseButtonProps): ReactNode {
-  const { cloudEnvironment, permissions, pauseComputeAndRefresh } = props;
-  const shouldShowPauseButton =
-    isPauseSupported(getToolLabelFromCloudEnv(cloudEnvironment)) && permissions.canPauseResource(cloudEnvironment);
-
-  return shouldShowPauseButton
-    ? h(
-        Link,
-        {
-          style: { marginRight: '1rem' },
-          disabled: !shouldShowPauseButton,
-          tooltip: isComputePausable(cloudEnvironment)
-            ? 'Pause cloud environment'
-            : `Cannot pause a cloud environment while in status ${getDisplayStatus(cloudEnvironment)}.`,
-          onClick: () => pauseComputeAndRefresh(cloudEnvironment),
-        },
-        [makeMenuIcon('pause'), 'Pause']
-      )
-    : null;
-}
-
 type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | 'pause' | 'delete'>;
 type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
-export interface LeoResourcePermissionsProvider {
-  canDeleteDisk: (disk: PersistentDisk) => boolean;
-  canPauseResource: (resource: App | ListRuntimeItem) => boolean;
-}
 
 export interface EnvironmentsProps {
   nav: NavLinkProvider<EnvironmentNavActions>;
@@ -265,7 +117,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   // const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
   const shouldFilterByCreator = true;
 
-  const refreshData = Utils.withBusyState(setLoading, async () => {
+  const refreshData = withBusyState(setLoading, async () => {
     await refreshWorkspaces();
 
     const workspaces = getWorkspaces();
@@ -341,7 +193,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   });
   const loadData = withErrorIgnoring(refreshData);
 
-  const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (compute: DecoratedComputeResource) => {
+  const pauseComputeAndRefresh = withBusyState(setLoading, async (compute: DecoratedComputeResource) => {
     const wrappedPauseCompute = withErrorReporting('Error pausing compute', async () => {
       if (isRuntime(compute)) {
         return leoRuntimeData.stop(compute);
@@ -368,11 +220,11 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   }, [shouldFilterByCreator]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getCloudProvider = (cloudEnvironment) =>
-    Utils.cond<string | undefined>(
+    cond<string | undefined>(
       // TODO: AKS vs GKE apps
       [isApp(cloudEnvironment), () => 'Kubernetes'],
       [cloudEnvironment?.runtimeConfig?.cloudService === 'DATAPROC', () => 'Dataproc'],
-      [Utils.DEFAULT, () => cloudEnvironment?.runtimeConfig?.cloudService]
+      [COND_DEFAULT, () => cloudEnvironment?.runtimeConfig?.cloudService]
     );
 
   const getCloudEnvTool = (cloudEnvironment) =>
@@ -628,7 +480,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
   return h(Fragment, [
     div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
-      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, [
+      h2({ style: { ...styleElements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, [
         'Your cloud environments',
       ]),
       // TODO [IA-4432] reenable this checkbox when query performance is fixed
@@ -720,7 +572,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 field: 'created',
                 headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
                 cellRenderer: ({ rowIndex }) => {
-                  return Utils.makeCompleteDate(filteredCloudEnvironments[rowIndex].auditInfo.createdDate);
+                  return makeCompleteDate(filteredCloudEnvironments[rowIndex].auditInfo.createdDate);
                 },
               },
               {
@@ -728,21 +580,19 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 field: 'accessed',
                 headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
                 cellRenderer: ({ rowIndex }) => {
-                  return Utils.makeCompleteDate(filteredCloudEnvironments[rowIndex].auditInfo.dateAccessed);
+                  return makeCompleteDate(filteredCloudEnvironments[rowIndex].auditInfo.dateAccessed);
                 },
               },
               {
                 size: { min: '14em', grow: 0 },
                 field: 'cost',
                 headerRenderer: () =>
-                  h(Sortable, { sort, field: 'cost', onSort: setSort }, [
-                    `Cost / hr (${Utils.formatUSD(totalCost)} total)`,
-                  ]),
+                  h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${formatUSD(totalCost)} total)`]),
                 cellRenderer: ({ rowIndex }) => {
                   const cloudEnvironment = filteredCloudEnvironments[rowIndex];
                   return isApp(cloudEnvironment)
-                    ? Utils.formatUSD(getGalaxyComputeCost(cloudEnvironment))
-                    : Utils.formatUSD(getRuntimeCost(cloudEnvironment));
+                    ? formatUSD(getGalaxyComputeCost(cloudEnvironment))
+                    : formatUSD(getRuntimeCost(cloudEnvironment));
                 },
               },
               {
@@ -764,7 +614,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
             ],
           }),
         ]),
-      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0', padding: 0 } }, [
+      h2({ style: { ...styleElements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0', padding: 0 } }, [
         'Your persistent disks',
       ]),
       disks &&
@@ -891,7 +741,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 headerRenderer: () =>
                   h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
                 cellRenderer: ({ rowIndex }) => {
-                  return Utils.makeCompleteDate(filteredDisks[rowIndex].auditInfo.createdDate);
+                  return makeCompleteDate(filteredDisks[rowIndex].auditInfo.createdDate);
                 },
               },
               {
@@ -900,7 +750,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 headerRenderer: () =>
                   h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
                 cellRenderer: ({ rowIndex }) => {
-                  return Utils.makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed);
+                  return makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed);
                 },
               },
               {
@@ -908,13 +758,13 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 field: 'cost',
                 headerRenderer: () => {
                   return h(Sortable, { sort: diskSort, field: 'cost', onSort: setDiskSort }, [
-                    `Cost / month (${Utils.formatUSD(totalDiskCost)} total)`,
+                    `Cost / month (${formatUSD(totalDiskCost)} total)`,
                   ]);
                 },
                 cellRenderer: ({ rowIndex }) => {
                   const disk = filteredDisks[rowIndex];
                   const diskRegion = getRegionFromZone(disk.zone);
-                  return Utils.formatUSD(getPersistentDiskCostMonthly(disk, diskRegion));
+                  return formatUSD(getPersistentDiskCostMonthly(disk, diskRegion));
                 },
               },
               {
@@ -922,7 +772,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 headerRenderer: () => 'Action',
                 cellRenderer: ({ rowIndex }) => {
                   const { id, status, name } = filteredDisks[rowIndex];
-                  const error = Utils.cond(
+                  const error = cond(
                     [status === 'Creating', () => 'Cannot delete this disk because it is still being created.'],
                     [status === 'Deleting', () => 'The disk is being deleted.'],
                     [

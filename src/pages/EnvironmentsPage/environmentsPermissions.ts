@@ -1,4 +1,4 @@
-import { LeoResourcePermissionsProvider } from 'src/analysis/Environments/Environments';
+import { LeoResourcePermissionsProvider } from 'src/analysis/Environments/Environments.models';
 import { getCreatorForCompute } from 'src/analysis/utils/resource-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
