@@ -108,9 +108,17 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       return [];
     }
     const {
+      storageContainerName,
       sas: { token },
     } = await AzureStorage(signal).details(workspaceId);
-    const fullUri = `${blobPath}?restype=container&comp=list&${token}`;
+    const splitIndex = blobPath.indexOf(storageContainerName);
+    let root = '';
+    let path = '';
+    if (splitIndex !== -1) {
+      root = blobPath.slice(0, splitIndex + storageContainerName.length);
+      path = blobPath.slice(splitIndex + storageContainerName.length + 1);
+    }
+    const fullUri = `${root}?restype=container&comp=list&prefix=${path}&${token}`;
     const res = await fetchOk(fullUri);
     const text = await res.text();
     const xml = new window.DOMParser().parseFromString(text, 'text/xml');

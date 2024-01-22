@@ -42,6 +42,12 @@ const generateCallTableData = (calls) => {
   })(taskNames);
 };
 
+// Helper method to convert a filepath sent from the backend to the blob directory that contains the log files.
+const getBlobDirectoryForLogs = (logUri) => {
+  const logUriParts = logUri.split('/');
+  return logUriParts.slice(0, logUriParts.length - 1).join('/');
+};
+
 // helper method to combine metadata tasks and failed tasks into a single array
 // if the failed task data is not empty, combine only successful tasks from the metadata with the failed tasks data
 // otherwise just return the metadata
@@ -408,14 +414,18 @@ const CallTable = ({
                                 Link,
                                 {
                                   onClick: () =>
-                                    showLogModal('Task Logs', [
-                                      { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout', logFilename: 'stdout.txt' },
-                                      { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr', logFilename: 'stderr.txt' },
-                                      // eslint-disable-next-line camelcase
-                                      { logUri: tes_stdout, logTitle: 'Backend Standard Out', logKey: 'tes_stdout', logFilename: 'stdout.txt' },
-                                      // eslint-disable-next-line camelcase
-                                      { logUri: tes_stderr, logTitle: 'Backend Standard Err', logKey: 'tes_stderr', logFilename: 'stderr.txt' },
-                                    ]),
+                                    showLogModal(
+                                      'Task Logs',
+                                      [
+                                        { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout', logFilename: 'stdout.txt' },
+                                        { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr', logFilename: 'stderr.txt' },
+                                        // eslint-disable-next-line camelcase
+                                        { logUri: tes_stdout, logTitle: 'Backend Standard Out', logKey: 'tes_stdout', logFilename: 'stdout.txt' },
+                                        // eslint-disable-next-line camelcase
+                                        { logUri: tes_stderr, logTitle: 'Backend Standard Err', logKey: 'tes_stderr', logFilename: 'stderr.txt' },
+                                      ],
+                                      getBlobDirectoryForLogs(tes_stdout)
+                                    ),
                                 },
                                 ['Logs']
                               ),

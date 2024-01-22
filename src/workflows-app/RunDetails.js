@@ -43,7 +43,8 @@ export const BaseRunDetails = (
   const [failedTasks, setFailedTasks] = useState({});
   const [showLog, setShowLog] = useState(false);
   const [logsModalTitle, setLogsModalTitle] = useState('');
-  const [logsArray, setLogsArray] = useState([]);
+  const [cromwellLogs, setCromwellLogs] = useState([]);
+  const [tesLogsDirectory, setTesLogsDirectory] = useState(undefined);
 
   const [taskDataTitle, setTaskDataTitle] = useState('');
   const [taskDataJson, setTaskDataJson] = useState({});
@@ -56,10 +57,11 @@ export const BaseRunDetails = (
   const { captureEvent } = useMetricsEvent();
 
   const [sasToken, setSasToken] = useState('');
-  const showLogModal = useCallback((modalTitle, logsArray) => {
+  const showLogModal = useCallback((modalTitle, cromwellLogs, tesLogsDirectory) => {
     setShowLog(true);
     setLogsModalTitle(modalTitle);
-    setLogsArray(logsArray);
+    setCromwellLogs(cromwellLogs);
+    setTesLogsDirectory(tesLogsDirectory);
   }, []);
 
   const showTaskDataModal = useCallback((taskDataTitle, taskJson) => {
@@ -272,7 +274,9 @@ export const BaseRunDetails = (
           showLog &&
             h(LogViewer, {
               modalTitle: logsModalTitle,
-              logs: logsArray,
+              cromwellLogs,
+              tesLogsBlobDirectory: tesLogsDirectory,
+              workspaceId,
               onDismiss: () => {
                 setShowLog(false);
                 captureEvent(Events.workflowsAppCloseLogViewer);
