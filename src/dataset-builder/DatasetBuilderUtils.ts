@@ -145,6 +145,10 @@ export interface GetConceptsResponse {
   result: Concept[];
 }
 
+export interface GetConceptsHierarchyMapResponse {
+  result: Map<Concept, Concept[]>;
+}
+
 export interface SearchConceptsResponse {
   result: Concept[];
 }
