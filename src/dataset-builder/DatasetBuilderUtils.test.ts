@@ -26,7 +26,17 @@ import {
   ValueSet,
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { SnapshotBuilderConcept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
+import {
+  dummyGetConceptForId,
+  dummyGetNodeFromHierarchy,
+  dummyGetParentInHierarchy,
+  getHierarchyMap,
+} from 'src/dataset-builder/TestConstants';
+import {
+  SnapshotBuilderConcept as Concept,
+  SnapshotBuilderConcept,
+  SnapshotBuilderDomainOption,
+} from 'src/libs/ajax/DataRepo';
 
 const concept: SnapshotBuilderConcept = {
   id: 0,
@@ -278,5 +288,66 @@ describe('test HighlightConceptName', () => {
     const result = span(['Clinical Finding']);
 
     expect(HighlightConceptName(conceptName, searchedWord)).toStrictEqual(result);
+  });
+});
+
+describe('test dummyGetNodeFromHierarchy', () => {
+  test('fetching id 400', () => {
+    const dummyData = { id: 400, concept: dummyGetConceptForId(400), children: [401] };
+    expect(dummyGetNodeFromHierarchy(400)).toStrictEqual(dummyData);
+  });
+});
+
+describe('test dummyGetParentInHierarchy', () => {
+  const dummyData = { id: 400, concept: dummyGetConceptForId(400), children: [401] };
+
+  test('testing on id 400', () => {
+    expect(dummyGetParentInHierarchy(400)).toStrictEqual(dummyData);
+  });
+
+  test('fetching id 401', () => {
+    expect(dummyGetParentInHierarchy(401)).toStrictEqual(dummyData);
+  });
+
+  test('fetching id 402', () => {
+    expect(dummyGetParentInHierarchy(402)).toStrictEqual(dummyData);
+  });
+
+  test('fetching id 403', () => {
+    expect(dummyGetParentInHierarchy(403)).toStrictEqual(dummyData);
+  });
+
+  test('fetching id 404', () => {
+    expect(dummyGetParentInHierarchy(404)).toStrictEqual(dummyData);
+  });
+
+  test('fetching id 405', () => {
+    expect(dummyGetParentInHierarchy(405)).toStrictEqual(dummyData);
+  });
+});
+
+describe('test gettingHierarchyMap', () => {
+  const hierarchyMap = new Map<Concept, Concept[]>();
+  hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
+  hierarchyMap.set(dummyGetConceptForId(401), [
+    dummyGetConceptForId(402),
+    dummyGetConceptForId(403),
+    dummyGetConceptForId(404),
+  ]);
+  hierarchyMap.set(dummyGetConceptForId(404), [dummyGetConceptForId(405)]);
+  test('fetching hierarchy map of id 400', () => {
+    expect(getHierarchyMap(400)).toStrictEqual(hierarchyMap);
+  });
+
+  test('fetching hierarchy map of id 401', () => {
+    expect(getHierarchyMap(401)).toStrictEqual(hierarchyMap);
+  });
+
+  test('fetching hierarchy map of id 402', () => {
+    expect(getHierarchyMap(402)).toStrictEqual(hierarchyMap);
+  });
+
+  test('fetching hierarchy map of id 403', () => {
+    expect(getHierarchyMap(403)).toStrictEqual(hierarchyMap);
   });
 });
