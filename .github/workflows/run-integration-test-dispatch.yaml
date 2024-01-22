@@ -1,0 +1,87 @@
+# Workflow Dispatch to run terra-ui integration tests
+# If trying to run terra-ui tests as part of CI from other GHA, use the run-integration-tests workflow_call instead.
+name: External terraui Test
+on:
+  workflow_dispatch:
+    inputs:
+
+      ##
+      ## Configurations:
+      ##
+
+      test_url:
+        required: false
+        type: string
+        description: "URL of terraui instance to test against, required"
+      environment:
+        required: false
+        type: string
+        default: dev
+        description: "environment config to use, default: dev"
+      tests_to_run:
+        required: false
+        type: string
+        default: '[\"\"]'
+        description: "json array of tests to run, i.e. '[\"tests/find-workflow.js\",\"'tests/request-access.js'\"]' default: run all"
+      target_branch:
+        required: false
+        type: string
+        description: "The branch of terra-ui to run integration tests against"
+      notify-slack-channels-upon-workflow-success:
+        description: 'optional: comma seperated slack channel(s) to notify on success'
+        required: false
+        type: string
+      notify-slack-channels-upon-workflow-failure:
+        description: 'optional: comma seperated slack channel(s) to notify on failure'
+        required: false
+        type: string
+      notify-slack-channels-upon-workflow-completion:
+        description: 'optional: comma seperated slack channel(s) to notify on completion'
+        required: false
+        type: string
+      relates-to-chart-releases:
+        description: 'optional: Chart releases (chart instances) related to or affected by the calling workflow. i.e. sam-dev'
+        required: false
+        type: string
+
+jobs:
+  # A dance we must do to make the text string parsable
+  # https://stackoverflow.com/questions/70990637/how-to-convert-a-string-to-an-array-for-github-actions-matrix
+  setup-inputs:
+    runs-on: ubuntu-latest
+    outputs:
+      tests: ${{ steps.setVariables.outputs.tests }}
+    steps:
+      - id: setVariables
+        run: |
+          echo "tests=$input" >> $GITHUB_OUTPUT
+        env:
+          input: ${{ inputs.tests_to_run }}
+
+  # run terra-ui e2e tests, short name for better GHA readability
+  terraui-e2e:
+    needs: setup-inputs
+    strategy:
+      fail-fast: false 
+      matrix:
+        tests_to_run: ${{fromJson(needs.setup-inputs.outputs.tests)}}
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    uses: databiosphere/terra-ui/.github/workflows/run-integration-tests.yaml@dev
+    with:
+      test_url: ${{ inputs.test_url }}
+      environment: ${{ inputs.environment }}
+      tests_to_run: ${{ matrix.tests_to_run }}
+      target_branch: ${{ inputs.target_branch }}
+
+  report-workflow:
+    uses: broadinstitute/sherlock/.github/workflows/client-report-workflow.yaml@main
+    with:
+      notify-slack-channels-upon-workflow-success: ${{ inputs.notify-slack-channels-upon-workflow-success }}
+      notify-slack-channels-upon-workflow-failure: ${{ inputs.notify-slack-channels-upon-workflow-failure }}
+      notify-slack-channels-upon-workflow-completion: ${{ inputs.notify-slack-channels-upon-workflow-completion }}
+      relates-to-chart-releases: ${{ inputs.relates-to-chart-releases }}
+
+    permissions:
+      id-token: write
