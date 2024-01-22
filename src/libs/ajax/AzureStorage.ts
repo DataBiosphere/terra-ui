@@ -70,7 +70,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     };
   },
 
-  // A prefix filter is used to only include files from a parent directory and below. It is the path starting *after* the the container name (which generally looks like sc-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+  // A prefix filter is used to only include files from a parent directory and below. It is the path starting *after* the the container name (which generally looks like sc-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx, the x's being the workspace ID)
   // So, in order to include only the files in the workspace-services/cbas directory you would include 'workspace-services/cbas' as the prefix filter.
   // Importantly, the prefix filter is handled by the Azure Backend, which makes it more efficient than the suffix filter, which is handled on the client frontend.
   // The suffix filter is used to filter the files returned by the Azure Backend. It can be used to filter the files by file extension or file name, for example. If the returned number of files is very large, this may be a slow operation.
@@ -101,35 +101,6 @@ export const AzureStorage = (signal?: AbortSignal) => ({
 
     const filteredBlobs = _.filter((blob) => _.endsWith(suffixFilter, blob.name), blobs);
     return filteredBlobs;
-  },
-
-  listFilesInDirectory: async (workspaceId: string, blobPath: string): Promise<AzureFileRaw[]> => {
-    if (!blobPath) {
-      return [];
-    }
-    const {
-      storageContainerName,
-      sas: { token },
-    } = await AzureStorage(signal).details(workspaceId);
-    const splitIndex = blobPath.indexOf(storageContainerName);
-    let root = '';
-    let path = '';
-    if (splitIndex !== -1) {
-      root = blobPath.slice(0, splitIndex + storageContainerName.length);
-      path = blobPath.slice(splitIndex + storageContainerName.length + 1);
-    }
-    const fullUri = `${root}?restype=container&comp=list&prefix=${path}&${token}`;
-    const res = await fetchOk(fullUri);
-    const text = await res.text();
-    const xml = new window.DOMParser().parseFromString(text, 'text/xml');
-    const blobs = _.map(
-      (blob) => ({
-        name: _.head(blob.getElementsByTagName('Name'))?.textContent,
-        lastModified: _.head(blob.getElementsByTagName('Last-Modified'))?.textContent,
-      }),
-      xml.getElementsByTagName('Blob')
-    ) as AzureFileRaw[];
-    return blobs;
   },
 
   listNotebooks: async (workspaceId: string): Promise<AnalysisFile[]> => {

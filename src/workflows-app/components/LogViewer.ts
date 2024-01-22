@@ -32,8 +32,7 @@ export type LogInfo = {
  */
 export type LogViewerProps = {
   modalTitle: string;
-  cromwellLogs: LogInfo[]; // Cromwell logs are at known blob paths, sent from backend.
-  tesLogsBlobDirectory: string; // Tes logs are in a known folder, but we need to discover them due to the different ways they can be named.
+  logs: LogInfo[]; // Cromwell logs are at known blob paths, sent from backend.
   workspaceId: string;
   onDismiss: () => void;
 };
@@ -90,15 +89,9 @@ const infoBoxItemPerLogType: InfoBoxItemProps[] = [
   },
 ];
 
-export const LogViewer = ({
-  modalTitle,
-  cromwellLogs,
-  tesLogsBlobDirectory,
-  workspaceId,
-  onDismiss,
-}: LogViewerProps) => {
+export const LogViewer = ({ modalTitle, logs, workspaceId, onDismiss }: LogViewerProps) => {
   const [currentlyActiveLog, setCurrentlyActiveLog] = useState<LogInfo | undefined>(
-    _.isEmpty(cromwellLogs) ? undefined : cromwellLogs[0]
+    _.isEmpty(logs) ? undefined : logs[0]
   );
 
   const [activeTextContent, setActiveTextContent] = useState<LoadedState<string>>({
@@ -111,10 +104,12 @@ export const LogViewer = ({
   const [discoveredLogs, setDiscoveredLogs] = useState<string[]>([]);
   const discoverAdditionalLogs = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async (workspaceId: string, blobDirectory: string): Promise<string[]> => {
+    async (workspaceId: string, templateTesLog: string): Promise<string[]> => {
       try {
+        // TODO: Prefix should be everything after the container name (and its trailing /) and before the filename.
+        const prefix = '';
         // const response = await Ajax(signal).AzureStorage.listFilesInDirectory(workspaceId, blobDirectory);
-        const response = await Ajax(signal).AzureStorage.listFilesInDirectory(workspaceId, blobDirectory);
+        const response = await Ajax(signal).AzureStorage.listFilesInDirectory(workspaceId, prefix);
         return response.map((file) => file.name);
       } catch (e) {
         return ['errorlol'];
@@ -126,13 +121,17 @@ export const LogViewer = ({
 
   useEffect(() => {
     const discover = async () => {
-      const discovered = await discoverAdditionalLogs(workspaceId, tesLogsBlobDirectory);
+      const templateTesLog = logs.find((log) => log.logKey === 'tes_stdout')?.logUri;
+      if (_.isEmpty(templateTesLog)) {
+        return;
+      }
+      const discovered = await discoverAdditionalLogs(workspaceId, templateTesLog);
       // eslint-disable-next-line no-console
       console.log(discovered);
       setDiscoveredLogs(discovered);
     };
     discover();
-  }, [discoverAdditionalLogs, tesLogsBlobDirectory, workspaceId]);
+  }, [discoverAdditionalLogs, workspaceId, logs]);
 
   const fetchLogContent = useCallback(
     async (azureBlobUri: string): Promise<FetchedLogData | null> => {
@@ -215,7 +214,7 @@ export const LogViewer = ({
     }
   };
 
-  const tabsArray: SimpleTabProps[] = cromwellLogs.map((log) => {
+  const tabsArray: SimpleTabProps[] = logs.map((log) => {
     return { key: log.logKey, title: log.logTitle, width: tabMaxWidth };
   });
 
@@ -232,7 +231,7 @@ export const LogViewer = ({
           size: undefined,
           side: undefined,
         },
-        [infoBoxContents(cromwellLogs)]
+        [infoBoxContents(logs)]
       ),
       showCancel: false,
       showX: true,
@@ -246,7 +245,7 @@ export const LogViewer = ({
           value: currentlyActiveLog?.logKey,
           'aria-label': 'Log file tabs',
           onChange: (key: string) => {
-            const newLog = cromwellLogs.find((log) => log.logKey === key);
+            const newLog = logs.find((log) => log.logKey === key);
             setCurrentlyActiveLog(newLog);
           },
           tabs: tabsArray,
