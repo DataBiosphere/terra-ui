@@ -113,6 +113,7 @@ export const AzureComputeModalBase = ({
           ButtonOutline,
           {
             onClick: () => setViewMode('deleteEnvironment'),
+            disabled: isLoadingCloudEnvironments,
           },
           [
             Utils.cond(
@@ -287,8 +288,13 @@ export const AzureComputeModalBase = ({
   const renderActionButton = () => {
     const commonButtonProps = {
       tooltipSide: 'left',
-      disabled: Utils.cond([viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)], () => doesRuntimeExist()),
+      disabled: Utils.cond(
+        [isLoadingCloudEnvironments, true],
+        [viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)],
+        () => doesRuntimeExist()
+      ),
       tooltip: Utils.cond(
+        [isLoadingCloudEnvironments, 'Loading cloud environments'],
         [viewMode === 'deleteEnvironment', () => (getIsRuntimeBusy(currentRuntimeDetails) ? 'Cannot delete a runtime while it is busy' : undefined)],
         [doesRuntimeExist(), () => 'Update not supported for azure runtimes'],
         () => undefined

@@ -841,6 +841,7 @@ export const GcpComputeModalBase = ({
     const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig();
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig();
     const commonButtonProps = Utils.cond(
+      [isLoadingCloudEnvironments, () => ({ disabled: true, tooltip: 'Loading cloud environments' })],
       [
         hasGpu && viewMode !== 'deleteEnvironment',
         () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' }),
@@ -1591,6 +1592,7 @@ export const GcpComputeModalBase = ({
             ButtonOutline,
             {
               onClick: () => setViewMode('deleteEnvironment'),
+              disabled: isLoadingCloudEnvironments,
             },
             [
               Utils.cond(
