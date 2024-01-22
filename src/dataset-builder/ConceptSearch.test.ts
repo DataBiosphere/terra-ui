@@ -172,12 +172,12 @@ describe('ConceptSearch', () => {
     ).length;
     expect(filterEaseText).toBe(1);
     expect(await screen.findByText('Dis')).toBeTruthy();
+  });
 
-    it('loads the page with the initial cart', async () => {
-      // Arrange
-      renderSearch('', [displayedConcepts[0]]);
-      // Assert
-      expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
-    });
+  it('loads the page with the initial cart', async () => {
+    // Arrange
+    renderSearch('', [displayedConcepts[0]]);
+    // Assert
+    expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
   });
 });
