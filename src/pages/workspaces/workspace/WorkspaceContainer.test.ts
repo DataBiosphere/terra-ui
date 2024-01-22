@@ -84,6 +84,7 @@ describe('WorkspaceContainer', () => {
         refreshApps: () => Promise.resolve(),
         lastRefresh: null,
         refreshRuntimes: () => Promise.resolve(),
+        isLoadingCloudEnvironments: false,
       },
     };
     // Act
@@ -112,6 +113,7 @@ describe('WorkspaceContainer', () => {
         refreshApps: () => Promise.resolve(),
         refreshRuntimes: () => Promise.resolve(),
         lastRefresh: null,
+        isLoadingCloudEnvironments: false,
       },
     };
     // Act
@@ -156,6 +158,7 @@ describe('WorkspaceContainer', () => {
         refreshApps: () => Promise.resolve(),
         refreshRuntimes: () => Promise.resolve(),
         lastRefresh: null,
+        isLoadingCloudEnvironments: false,
       },
     };
 
@@ -209,6 +212,7 @@ describe('WorkspaceContainer', () => {
         refreshApps: () => Promise.resolve(),
         refreshRuntimes: () => Promise.resolve(),
         lastRefresh: null,
+        isLoadingCloudEnvironments: false,
       },
     };
 
@@ -282,6 +286,7 @@ describe('WorkspaceContainer', () => {
         refreshApps: () => Promise.resolve(),
         refreshRuntimes: () => Promise.resolve(),
         lastRefresh: null,
+        isLoadingCloudEnvironments: false,
       },
     };
 
@@ -354,6 +359,7 @@ describe('WorkspaceContainer', () => {
         refreshApps: () => Promise.resolve(),
         refreshRuntimes: () => Promise.resolve(),
         lastRefresh: null,
+        isLoadingCloudEnvironments: false,
       },
     };
 
@@ -399,6 +405,7 @@ describe('WorkspaceContainer', () => {
         refreshApps: () => Promise.resolve(),
         refreshRuntimes: () => Promise.resolve(),
         lastRefresh: null,
+        isLoadingCloudEnvironments: false,
       },
     };
 

@@ -11,7 +11,6 @@ import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/h
 export interface CloudEnvironmentDetails {
   runtimes?: ListRuntimeItem[];
   refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
-  isLoadingCloudEnvironments: boolean;
   persistentDisks?: PersistentDisk[];
   appDataDisks?: PersistentDisk[];
   isLoadingCloudEnvironments: boolean;
