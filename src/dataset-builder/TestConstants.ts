@@ -1,5 +1,9 @@
 import _ from 'lodash/fp';
-import { DatasetModel, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
+import {
+  DatasetModel,
+  SnapshotBuilderConcept as Concept,
+  SnapshotBuilderConceptNode as ConceptNode,
+} from 'src/libs/ajax/DataRepo';
 
 export const dummyDatasetModel = (): DatasetModel => ({
   name: 'AnalytiXIN',
@@ -112,7 +116,7 @@ export const dummyConcepts = [
   //
   { id: 400, name: 'Carcinoma of lung parenchyma', count: 100, hasChildren: true },
   { id: 401, name: 'Squamous cell carcinoma of lung', count: 100, hasChildren: true },
-  { id: 402, name: 'Non-small cell lung cancer', count: 100, hasChildren: true },
+  { id: 402, name: 'Non-small cell lung cancer', count: 100, hasChildren: false },
   { id: 403, name: 'Epidermal growth factor receptor negative ...', count: 100, hasChildren: false },
   { id: 404, name: 'Non-small cell lung cancer with mutation in epidermal..', count: 100, hasChildren: true },
   { id: 405, name: 'Non-small cell cancer of lung biopsy..', count: 100, hasChildren: false },
@@ -122,44 +126,71 @@ export const dummyGetConceptForId = (id: number): Concept => {
   return _.find({ id }, dummyConcepts)!;
 };
 
-// export const dummyHierarchy = [
-//   {
-//     id: 405,
-//     concept: dummyGetConceptForId(405),
-//     children: [],
-//     parent: 404,
-//   },
-//   {
-//     id: 404,
-//     concept: dummyGetConceptForId(404),
-//     children: [405],
-//     parent: 401,
-//   },
-//   {
-//     id: 403,
-//     concept: dummyGetConceptForId(403),
-//     children: [],
-//     parent: 401,
-//   },
-//   {
-//     id: 402,
-//     concept: dummyGetConceptForId(402),
-//     children: [],
-//     parent: 401,
-//   },
-//   {
-//     id: 401,
-//     concept: dummyGetConceptForId(401),
-//     children: [402, 403, 404],
-//     parent: 400,
-//   },
-//   {
-//     id: 400,
-//     concept: dummyGetConceptForId(400),
-//     children: [401],
-//   },
-// ];
+export const dummyHierarchy = [
+  {
+    id: 405,
+    concept: dummyGetConceptForId(405),
+    children: [],
+    parent: 404,
+  },
+  {
+    id: 404,
+    concept: dummyGetConceptForId(404),
+    children: [405],
+    parent: 401,
+  },
+  {
+    id: 403,
+    concept: dummyGetConceptForId(403),
+    children: [],
+    parent: 401,
+  },
+  {
+    id: 402,
+    concept: dummyGetConceptForId(402),
+    children: [],
+    parent: 401,
+  },
+  {
+    id: 401,
+    concept: dummyGetConceptForId(401),
+    children: [402, 403, 404],
+    parent: 400,
+  },
+  {
+    id: 400,
+    concept: dummyGetConceptForId(400),
+    children: [401],
+  },
+];
 
-// export const dummyGetNodeFromHierarchy = (id: number) => {
-//   return _.find({ id }, dummyHierarchy)!;
-// };
+export const dummyGetNodeFromHierarchy = (id: number): ConceptNode => {
+  return _.find({ id }, dummyHierarchy)!;
+};
+
+export const dummyGetParentInHierarchy = (id: number): ConceptNode => {
+  const node = dummyGetNodeFromHierarchy(id);
+  if (node.parent) {
+    return dummyGetParentInHierarchy(node.parent);
+  }
+  return node;
+};
+
+export const getHierarchyMap = (id: number): Map<Concept, Concept[]> => {
+  const parentNode = dummyGetParentInHierarchy(id);
+  const hierarchyMap = new Map<Concept, Concept[]>();
+
+  const populateHierarchyMap = (node: ConceptNode) => {
+    if (node.concept.hasChildren) {
+      const children = node.children;
+      const childrenObjects = _.map((childID) => dummyGetConceptForId(childID), children);
+      hierarchyMap.set(node.concept, childrenObjects);
+      children.forEach((childID) => {
+        const childNode = dummyGetNodeFromHierarchy(childID);
+        populateHierarchyMap(childNode);
+      });
+    }
+  };
+  populateHierarchyMap(parentNode);
+  return hierarchyMap;
+};
