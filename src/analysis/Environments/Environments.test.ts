@@ -546,21 +546,16 @@ describe('Environments', () => {
       // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstAppRow: HTMLElement = tableRows[0];
-      const actionColumnButton1 = within(firstAppRow)
-        .getAllByRole('button')
-        .filter((button) => button.textContent.includes('Delete'))[0];
+      const actionColumnButton1 = within(firstAppRow).getByRole('button', { name: 'Delete' });
+      // .filter((button) => button.textContent.includes('Delete'))[0];
       expect(actionColumnButton1).not.toHaveAttribute('disabled');
 
       const secondAppRow: HTMLElement = tableRows[1];
-      const actionColumnButton2 = within(secondAppRow)
-        .getAllByRole('button')
-        .filter((button) => button.textContent.includes('Delete'))[0];
+      const actionColumnButton2 = within(secondAppRow).getByRole('button', { name: 'Delete' });
       expect(actionColumnButton2).toHaveAttribute('disabled');
 
       const thirdAppRow: HTMLElement = tableRows[2];
-      const actionColumnButton3 = within(thirdAppRow)
-        .getAllByRole('button')
-        .filter((button) => button.textContent.includes('Delete'))[0];
+      const actionColumnButton3 = within(thirdAppRow).getByRole('button', { name: 'Delete' });
       expect(actionColumnButton3).toHaveAttribute('disabled');
 
       // Check for tooltip, and that it's only present for azure apps
