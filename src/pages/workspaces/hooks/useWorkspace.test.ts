@@ -47,7 +47,7 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({}),
 }));
 
-describe('useActiveWorkspace', () => {
+describe('useWorkspace', () => {
   const initializedGoogleWorkspace = {
     accessLevel: 'PROJECT_OWNER',
     owners: ['christina@foo.com'],
@@ -562,7 +562,93 @@ describe('useActiveWorkspace', () => {
 
     // Assert
     assertResult(result.current, initializedAzureWorkspace, expectedSecondStorageDetails, false);
-    expect(workspaceStore.set).toHaveBeenCalledWith(initializedAzureWorkspace);
+    // First value set will have initialized as undefined.
+    expect(workspaceStore.set).toHaveBeenNthCalledWith(1, serverWorkspaceResponse);
+    expect(workspaceStore.set).toHaveBeenNthCalledWith(2, uninitializedAzureWorkspace);
+    expect(workspaceStore.set).toHaveBeenNthCalledWith(3, initializedAzureWorkspace);
+  });
+
+  it('can handle changing namespace and name, including Azure storage detail transient errors', async () => {
+    // Arrange
+    const uninitializedAzureWorkspace = _.cloneDeep(initializedAzureWorkspace);
+    uninitializedAzureWorkspace.workspaceInitialized = false;
+    uninitializedAzureWorkspace.workspace.namespace = 'uninitializedNamespace';
+    uninitializedAzureWorkspace.workspace.name = 'uninitializedName';
+
+    // remove workspaceInitialized because the server response does not include this information
+    const { workspaceInitialized, ...serverWorkspaceResponse } = uninitializedAzureWorkspace;
+
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () => ({
+          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+        }),
+      },
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    // Because we are mocking the "clone" workflow for an Azure workspace, we expect the first
+    // call for Azure storage details after changing namespace/name to fail.
+    const errorAzureStorageMock: Partial<AzureStorageContract> = {
+      details: () => Promise.reject(new Response('Mock container error', { status: 500 })),
+    };
+    asMockedFn(AzureStorage).mockImplementation(() => errorAzureStorageMock as AzureStorageContract);
+
+    // Expected response from first call.
+    const expectedFirstStorageDetails = _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions);
+    // Second response will actually contain all the storage details.
+    const expectedSecondStorageDetails = _.merge(
+      {
+        azureContainerRegion: azureStorageDetails.location,
+        azureContainerUrl: 'container-url',
+        azureContainerSasUrl: azureStorageDetails.sas.url,
+      },
+      defaultGoogleBucketOptions
+    );
+
+    // Set the stored workspace to the initialized Azure workspace (simulates the source workspace during a clone).
+    workspaceStore.set(initializedAzureWorkspace);
+
+    // Act
+    // Since the namespace/name do not match the stored workspace, new details will be fetched.
+    // The first call to get Azure storage details will fail.
+    const { result } = await renderHookInAct(() =>
+      useWorkspace(uninitializedAzureWorkspace.workspace.namespace, uninitializedAzureWorkspace.workspace.name)
+    );
+
+    // Assert
+    assertResult(result.current, uninitializedAzureWorkspace, expectedFirstStorageDetails, false);
+    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
+      uninitializedAzureWorkspace.workspace.workspaceId
+    );
+
+    // Arrange
+    // Now return success for the next call to AzureStorage.details
+    const successAzureStorageMock: Partial<AzureStorageContract> = {
+      details: jest.fn().mockResolvedValue(azureStorageDetails),
+    };
+    asMockedFn(AzureStorage).mockImplementation(() => successAzureStorageMock as AzureStorageContract);
+
+    const nowInitializedAzureWorkspace = _.cloneDeep(uninitializedAzureWorkspace);
+    nowInitializedAzureWorkspace.workspaceInitialized = true;
+
+    // Act
+    // next call to AzureStorage.details is on a timer
+    await act(async () => {
+      jest.advanceTimersByTime(azureBucketRecheckRate);
+    });
+
+    // Assert
+    assertResult(result.current, nowInitializedAzureWorkspace, expectedSecondStorageDetails, false);
+
+    // The set call in the test to simulate source workspace
+    expect(workspaceStore.set).toHaveBeenNthCalledWith(1, initializedAzureWorkspace);
+    // Initial render with new namespace/name
+    expect(workspaceStore.set).toHaveBeenNthCalledWith(2, uninitializedAzureWorkspace);
+    // Workspace details fetched, but storage details errored.
+    expect(workspaceStore.set).toHaveBeenNthCalledWith(3, uninitializedAzureWorkspace);
+    // Storage details return properly.
+    expect(workspaceStore.set).toHaveBeenNthCalledWith(4, nowInitializedAzureWorkspace);
   });
 
   it('returns an access error if workspace details throws a 404', async () => {
