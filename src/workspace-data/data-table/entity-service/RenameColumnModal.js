@@ -6,12 +6,33 @@ import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
+import * as Utils from 'src/libs/utils';
 import { isGoogleWorkspace } from 'src/libs/workspace-utils';
+import validate from 'validate.js';
 
 export const RenameColumnModal = ({ onDismiss, onSuccess, workspace, entityType, oldAttributeName, dataProvider }) => {
   // State
   const [newAttributeName, setNewAttributeName] = useState('');
   const [isBusy, setIsBusy] = useState(false);
+
+  // TODO match the actual naming convention:
+  //  Composed of only letters, numbers, underscores, or dashes; regex match "[A-z0-9_-]+"
+  // Not one of these reserved words:
+  // “name”
+  // “entityType”
+  // “${entityType}_id”, where ${entityType} is the name of the data table
+  // As an example of restriction 2.3, if your table is named "sample", then "sample_id" is a reserved word. If your table is named "aliquot", then "aliquot_id" is a reserved word.
+  const columnNameErrors = validate.single(newAttributeName, {
+    presence: {
+      allowEmpty: false,
+      message: 'Column name is required',
+    },
+    format: {
+      pattern: `^(?:name|entityType|${entityType}_id|[A-z0-9_-]+)`,
+      flags: 'i',
+      message: 'Column name may only contain alphanumeric characters, underscores, dashes, and periods.',
+    },
+  });
 
   const renameColumn = async () => {
     try {
@@ -41,7 +62,7 @@ export const RenameColumnModal = ({ onDismiss, onSuccess, workspace, entityType,
       okButton: h(
         ButtonPrimary,
         {
-          disabled: isBusy,
+          disabled: isBusy || columnNameErrors,
           onClick: renameColumn,
         },
         ['Rename']
@@ -63,6 +84,7 @@ export const RenameColumnModal = ({ onDismiss, onSuccess, workspace, entityType,
                   setNewAttributeName(v);
                 },
               },
+              error: Utils.summarizeErrors(columnNameErrors),
             }),
             isBusy && spinnerOverlay,
           ]),
