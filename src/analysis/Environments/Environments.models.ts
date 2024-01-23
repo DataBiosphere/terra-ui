@@ -22,5 +22,9 @@ export interface LeoResourcePermissionsProvider {
   canPauseResource: (resource: App | ListRuntimeItem) => boolean;
 }
 
+export interface CanDeleteProvider {
+  canBeDeleted: (resource: App | ListRuntimeItem) => boolean;
+}
+
 export type DeleteRuntimeProvider = Pick<LeoRuntimeProvider, 'delete'>;
 export type DeleteDiskProvider = Pick<LeoDiskProvider, 'delete'>;
