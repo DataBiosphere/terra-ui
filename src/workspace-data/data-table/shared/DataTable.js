@@ -742,10 +742,10 @@ const DataTable = (props) => {
       }),
     !!renamingColumn &&
       h(RenameColumnModal, {
-        namespace,
-        name,
+        workspace,
         entityType,
         oldAttributeName: renamingColumn,
+        dataProvider,
         onSuccess: () => {
           setRenamingColumn(undefined);
           Ajax().Metrics.captureEvent(Events.workspaceDataRenameColumn, extractWorkspaceDetails(workspace.workspace));

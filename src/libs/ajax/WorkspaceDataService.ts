@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { authOpts, fetchWDS, jsonBody } from 'src/libs/ajax/ajax-common';
 import {
+  AttributeSchema,
   RecordQueryResponse,
   RecordTypeSchema,
   SearchRequest,
@@ -161,6 +162,19 @@ export const WorkspaceData = (signal) => ({
   },
   getJobStatus: async (root: string, jobId: string): Promise<WDSJob> => {
     const res = await fetchWDS(root)(`job/v1/${jobId}`, _.merge(authOpts(), { signal }));
+    return res.json();
+  },
+  updateAttribute: async (
+    root: string,
+    instanceId: string,
+    recordType: string,
+    oldAttribute: string,
+    newAttribute: AttributeSchema
+  ): Promise<any> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/types/v0.2/${recordType}/${oldAttribute}`,
+      _.mergeAll([authOpts(), jsonBody(newAttribute), { signal, method: 'PATCH' }])
+    );
     return res.json();
   },
 });

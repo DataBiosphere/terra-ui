@@ -13,6 +13,7 @@ const WDSContent = ({
   recordType,
   wdsSchema,
   dataProvider,
+  loadMetadata,
 }) => {
   // State
   const [refreshKey] = useState(0);
@@ -25,7 +26,7 @@ const WDSContent = ({
       dataProvider,
       persist: true,
       refreshKey,
-      editable: false,
+      editable: true,
       entityType: recordType,
       activeCrossTableTextFilter: false,
       entityMetadata,
@@ -45,6 +46,7 @@ const WDSContent = ({
         borderBottom: `1px solid ${colors.grey(0.4)}`,
       },
       border: false,
+      loadMetadata,
     }),
   ]);
 };

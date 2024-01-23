@@ -1498,6 +1498,7 @@ export const WorkspaceData = _.flow(
                       dataProvider: wdsDataTableProvider,
                       recordType: selectedData.entityType,
                       wdsSchema: wdsTypes.state,
+                      loadMetadata,
                     }),
                 ]
               ),

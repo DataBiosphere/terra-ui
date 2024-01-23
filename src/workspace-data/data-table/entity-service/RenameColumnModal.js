@@ -6,8 +6,9 @@ import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
+import { isGoogleWorkspace } from 'src/libs/workspace-utils';
 
-export const RenameColumnModal = ({ onDismiss, onSuccess, namespace, name, entityType, oldAttributeName }) => {
+export const RenameColumnModal = ({ onDismiss, onSuccess, workspace, entityType, oldAttributeName, dataProvider }) => {
   // State
   const [newAttributeName, setNewAttributeName] = useState('');
   const [isBusy, setIsBusy] = useState(false);
@@ -15,7 +16,16 @@ export const RenameColumnModal = ({ onDismiss, onSuccess, namespace, name, entit
   const renameColumn = async () => {
     try {
       setIsBusy(true);
-      await Ajax().Workspaces.workspace(namespace, name).renameEntityColumn(entityType, oldAttributeName, newAttributeName);
+      if (isGoogleWorkspace(workspace)) {
+        await Ajax()
+          .Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
+          .renameEntityColumn(entityType, oldAttributeName, newAttributeName);
+      } else {
+        // Azure
+        await dataProvider.updateAttribute(entityType, oldAttributeName, {
+          name: newAttributeName,
+        });
+      }
       onSuccess();
     } catch (e) {
       onDismiss();

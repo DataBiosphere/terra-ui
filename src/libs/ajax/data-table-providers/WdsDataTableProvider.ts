@@ -157,8 +157,8 @@ export class WdsDataTableProvider implements DataTableProvider {
       supportsTypeRenaming: false,
       supportsEntityRenaming: false,
       supportsEntityUpdating: false, // TODO: enable as part of AJ-594
-      supportsAttributeRenaming: false, // TODO: enable as part of AJ-1278, requires `edit.renameAttribute` capability
-      supportsAttributeDeleting: false, // TODO: enable as part of AJ-1275, requires `edit.deleteAttribute` capability
+      supportsAttributeRenaming: this.isCapabilityEnabled('edit.renameAttribute'),
+      supportsAttributeDeleting: this.isCapabilityEnabled('edit.deleteAttribute'),
       supportsAttributeClearing: false,
       supportsExport: false,
       supportsPointCorrection: false,
@@ -316,6 +316,17 @@ export class WdsDataTableProvider implements DataTableProvider {
       uploadParams.workspaceId,
       uploadParams.recordType,
       uploadParams.file
+    );
+  };
+
+  updateAttribute = (entityType: string, oldAttribute: string, newAttribute: AttributeSchema): Promise<Blob> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
+    return Ajax().WorkspaceData.updateAttribute(
+      this.proxyUrl,
+      this.workspaceId,
+      entityType,
+      oldAttribute,
+      newAttribute
     );
   };
 }
