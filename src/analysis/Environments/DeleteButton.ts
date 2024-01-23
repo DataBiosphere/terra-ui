@@ -6,7 +6,7 @@ import { getDisplayRuntimeStatus } from 'src/analysis/utils/runtime-utils';
 import { cromwellAppToolLabels } from 'src/analysis/utils/tool-utils';
 import { Link } from 'src/components/common';
 import { makeMenuIcon } from 'src/components/PopupTrigger';
-import { isApp } from 'src/libs/ajax/leonardo/models/app-models';
+import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoRuntimeStatus } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
 import { makeCromwellAppsNotDeletable } from 'src/pages/EnvironmentsPage/environmentsPermissions';
@@ -21,8 +21,10 @@ export interface DeleteButtonProps {
 export const DeleteButton = (props: DeleteButtonProps): ReactNode => {
   const { resource, onClick } = props;
   const resourceType = isApp(resource) ? 'app' : 'runtime';
+  // Casting resource to type App to access the appType property
+  const castToApp = resource as App;
   const appsToDelete = makeCromwellAppsNotDeletable();
-  const isDeletable = appsToDelete.canBeDeleted(resource) && isResourceDeletable(resourceType, resource);
+  const isDeletable = appsToDelete.canBeDeleted(castToApp) && isResourceDeletable(resourceType, resource);
 
   return h(
     Link,
@@ -30,7 +32,7 @@ export const DeleteButton = (props: DeleteButtonProps): ReactNode => {
       disabled: !isDeletable,
       tooltip: Utils.cond(
         [isDeletable, () => 'Delete cloud environment'],
-        [Object.keys(cromwellAppToolLabels).includes(resource.appType), () => 'Deleting not yet supported'],
+        [Object.keys(cromwellAppToolLabels).includes(castToApp.appType), () => 'Deleting not yet supported'],
         [
           Utils.DEFAULT,
           () =>
