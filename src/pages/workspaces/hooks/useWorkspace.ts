@@ -61,7 +61,11 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     storageContainerUrl: string | undefined;
     sasUrl: string;
   }>();
-  const workspaceInitialized = workspace?.workspaceInitialized; // will be stored in cached workspace
+
+  // If the namespace/name have changed (for example, during a clone), make
+  // sure not to use the stored value of workspaceInitialized.
+  const workspaceInitialized =
+    workspace?.workspaceInitialized && workspace.workspace.namespace === namespace && workspace.workspace.name === name;
 
   const [controller, setController] = useState(new window.AbortController());
   const abort = () => {
