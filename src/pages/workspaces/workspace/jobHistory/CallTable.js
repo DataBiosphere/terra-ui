@@ -11,6 +11,7 @@ import * as Utils from 'src/libs/utils';
 import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard';
 import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
+import { discoverTesLogs } from 'src/workflows-app/utils/task-log-utils';
 
 /* FILTER UTILITY FUNCTIONS */
 export const taskNameFilter = (searchText) => {
@@ -128,6 +129,7 @@ const CallTable = ({
   workflowId,
   failedTasks,
   isAzure,
+  workspaceId,
 }) => {
   const [failuresModalParams, setFailuresModalParams] = useState();
   const [wizardSelection, setWizardSelection] = useState();
@@ -357,7 +359,7 @@ const CallTable = ({
                         outputs,
                         subWorkflowId,
                         // disable linting to match the backend keys
-                        // eslint-disable-next-line camelcase
+                        // eslint-disable-next-line camelcase, @typescript-eslint/no-unused-vars
                         tes_stderr,
                         // eslint-disable-next-line camelcase
                         tes_stdout,
@@ -408,14 +410,16 @@ const CallTable = ({
                                 Link,
                                 {
                                   onClick: () =>
-                                    showLogModal('Task Logs', [
-                                      { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout', logFilename: 'stdout.txt' },
-                                      { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr', logFilename: 'stderr.txt' },
-                                      // eslint-disable-next-line camelcase
-                                      { logUri: tes_stdout, logTitle: 'Backend Standard Out', logKey: 'tes_stdout', logFilename: 'stdout.txt' },
-                                      // eslint-disable-next-line camelcase
-                                      { logUri: tes_stderr, logTitle: 'Backend Standard Err', logKey: 'tes_stderr', logFilename: 'stderr.txt' },
-                                    ]),
+                                    showLogModal(
+                                      'Task Logs',
+                                      [
+                                        { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout', logFilename: 'stdout.txt' },
+                                        { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr', logFilename: 'stderr.txt' },
+                                      ],
+                                      (signal) => {
+                                        discoverTesLogs(signal, workspaceId, tes_stdout);
+                                      }
+                                    ),
                                 },
                                 ['Logs']
                               ),

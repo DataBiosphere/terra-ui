@@ -32,8 +32,9 @@ export type LogInfo = {
  */
 export type LogViewerProps = {
   modalTitle: string;
-  logs: LogInfo[]; // Cromwell logs are at known blob paths, sent from backend.
+  logs: LogInfo[]; // Known logs to show in this component
   workspaceId: string;
+  logFetchFn?: (signal: AbortSignal) => Promise<LogInfo[]>; // function to fetch additional logs
   onDismiss: () => void;
 };
 
