@@ -1,5 +1,5 @@
 import { NavLinkProvider } from '@terra-ui-packages/core-utils';
-import { act, fireEvent, getAllByRole, screen } from '@testing-library/react';
+import { act, fireEvent, getAllByRole, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -503,14 +503,75 @@ describe('Environments', () => {
       expect(getTextContentForColumn(secondAppRow, 7)).toBe(makeCompleteDate(googleApp2.auditInfo.createdDate));
       expect(getTextContentForColumn(secondAppRow, 8)).toBe(makeCompleteDate(googleApp1.auditInfo.dateAccessed));
 
-      // Verify that Cromwell apps do not appear on the page
-      expect(screen.queryByText(azureApp1.labels.saturnWorkspaceNamespace)).not.toBeInTheDocument();
-      expect(screen.queryByText(azureApp2.labels.saturnWorkspaceNamespace)).not.toBeInTheDocument();
+      const thirdAppRow: HTMLElement = tableRows[2];
+      expect(getTextContentForColumn(thirdAppRow, 0)).toBe(azureApp1.labels.saturnWorkspaceNamespace);
+      expect(getTextContentForColumn(thirdAppRow, 1)).toBe(azureApp1.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(thirdAppRow, 2)).toBe('Kubernetes');
+      expect(getTextContentForColumn(thirdAppRow, 3)).toBe(_.capitalize(azureApp1.appType));
+      expect(getTextContentForColumn(thirdAppRow, 5)).toBe(_.capitalize(azureApp1.status));
+      expect(getTextContentForColumn(thirdAppRow, 6)).toBe(azureApp1.region);
+      expect(getTextContentForColumn(thirdAppRow, 7)).toBe(makeCompleteDate(azureApp1.auditInfo.createdDate));
+      expect(getTextContentForColumn(thirdAppRow, 8)).toBe(makeCompleteDate(azureApp1.auditInfo.dateAccessed));
+
+      const fourthAppRow: HTMLElement = tableRows[3];
+      expect(getTextContentForColumn(fourthAppRow, 0)).toBe(azureApp2.labels.saturnWorkspaceNamespace);
+      expect(getTextContentForColumn(fourthAppRow, 1)).toBe(azureApp2.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(fourthAppRow, 2)).toBe('Kubernetes');
+      expect(getTextContentForColumn(fourthAppRow, 3)).toBe(_.capitalize(azureApp2.appType));
+      expect(getTextContentForColumn(fourthAppRow, 5)).toBe(_.capitalize(azureApp2.status));
+      expect(getTextContentForColumn(fourthAppRow, 6)).toBe(azureApp2.region);
+      expect(getTextContentForColumn(fourthAppRow, 7)).toBe(makeCompleteDate(azureApp2.auditInfo.createdDate));
+      expect(getTextContentForColumn(fourthAppRow, 8)).toBe(makeCompleteDate(azureApp2.auditInfo.dateAccessed));
+    });
+
+    it('Renders Cromwell apps with disabled delete', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
+
+      const googleApp1 = generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace);
+      const azureApp1 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.CROMWELL }, defaultAzureWorkspace);
+      const azureWorkspace2 = generateAzureWorkspace();
+      const azureApp2 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.WORKFLOWS_APP }, azureWorkspace2);
+      asMockedFn(props.leoAppData.listWithoutProject).mockResolvedValue([googleApp1, azureApp1, azureApp2]);
+      asMockedFn(props.useWorkspaces).mockReturnValue({
+        ...defaultUseWorkspacesProps,
+        workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace, azureWorkspace2],
+      });
+
+      // Act
+      await act(async () => {
+        render(h(Environments, props));
+      });
+
+      // Assert
+      const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
+      const firstAppRow: HTMLElement = tableRows[0];
+      const actionColumnButton1 = within(firstAppRow)
+        .getAllByRole('button')
+        .filter((button) => button.textContent.includes('Delete'))[0];
+      expect(actionColumnButton1).not.toHaveAttribute('disabled');
+
+      const secondAppRow: HTMLElement = tableRows[1];
+      const actionColumnButton2 = within(secondAppRow)
+        .getAllByRole('button')
+        .filter((button) => button.textContent.includes('Delete'))[0];
+      expect(actionColumnButton2).toHaveAttribute('disabled');
+
+      const thirdAppRow: HTMLElement = tableRows[2];
+      const actionColumnButton3 = within(thirdAppRow)
+        .getAllByRole('button')
+        .filter((button) => button.textContent.includes('Delete'))[0];
+      expect(actionColumnButton3).toHaveAttribute('disabled');
+
+      // Check for tooltip, and that it's only present for azure apps
+      const notSupportedTooltip = screen.getAllByText('Deleting not yet supported');
+      expect(notSupportedTooltip).toBeInTheDocument;
+      expect(notSupportedTooltip.length).toBe(2);
     });
 
     it.each([
       { app: generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace), workspace: defaultGoogleWorkspace },
-      // Reimplement when Azure apps can be deleted safely { app: generateTestAppWithAzureWorkspace({}, defaultAzureWorkspace), workspace: defaultAzureWorkspace },
+      { app: generateTestAppWithAzureWorkspace({}, defaultAzureWorkspace), workspace: defaultAzureWorkspace },
     ])('Renders app details view correctly', async ({ app, workspace }) => {
       // Arrange
       const props = getEnvironmentsProps();
@@ -548,11 +609,11 @@ describe('Environments', () => {
         workspace: defaultGoogleWorkspace,
         isAzure: false,
       },
-      // Reimplement when Azure apps can be deleted safely {
-      //   app: generateTestAppWithAzureWorkspace({}, defaultAzureWorkspace),
-      //   workspace: defaultAzureWorkspace,
-      //   isAzure: true,
-      // },
+      {
+        app: generateTestAppWithAzureWorkspace({}, defaultAzureWorkspace),
+        workspace: defaultAzureWorkspace,
+        isAzure: true,
+      },
     ])('Behaves properly when we click pause/delete for azure/gce app', async ({ app, workspace }) => {
       // Arrange
       const user = userEvent.setup();

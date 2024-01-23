@@ -135,7 +135,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     const [newRuntimes, newDisks, newApps] = await Promise.all([
       leoRuntimeData.list(listArgs, { signal }),
       leoDiskData.list(diskArgs, { signal }),
-      await leoAppData.listWithoutProject(listArgs, { signal }),
+      leoAppData.listWithoutProject(listArgs, { signal }),
     ]);
     const endTimeForLeoCallsEpochMs = Date.now();
 
