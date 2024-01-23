@@ -24,7 +24,7 @@ const makePermissionsProvider = (userEmailGetter: () => string): LeoResourcePerm
 
 export const makeCromwellAppsNotDeletable = (): CanDeleteProvider => {
   return {
-    canBeDeleted: (resource: App | ListRuntimeItem) => {
+    canBeDeleted: (resource: App) => {
       return !Object.keys(cromwellAppToolLabels).includes(resource.appType);
     },
   };
