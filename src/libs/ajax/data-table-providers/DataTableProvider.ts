@@ -108,6 +108,7 @@ export type TsvUploadButtonTooltipFn = (options: TsvUploadButtonTooltipOptions) 
 export type UploadTsvFn = (uploadParams: UploadParameters) => Promise<any>;
 
 export interface DataTableFeatures {
+  supportsCapabilities: boolean;
   supportsTsvDownload: boolean;
   supportsTsvAjaxDownload: boolean;
   supportsTypeDeletion: boolean;

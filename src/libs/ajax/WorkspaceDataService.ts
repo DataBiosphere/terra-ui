@@ -53,6 +53,21 @@ export interface WDSJob {
   updated: string;
 }
 
+// The source of truth of valid capabilities can be found in: https://github.com/DataBiosphere/terra-workspace-data-service/blob/main/service/src/main/resources/capabilities.json
+export type KnownCapability =
+  | 'capabilities'
+  | 'dataimport.pfb'
+  | 'dataimport.tdrmanifest'
+  | 'edit.deleteAttribute'
+  | 'edit.renameAttribute';
+export type UnknownCapability = string;
+export type Capability = KnownCapability | UnknownCapability;
+
+// Capabilities is just a kvp map of capability name to boolean. The value is true if the capability is enabled, false otherwise.
+export type Capabilities = {
+  [key in Capability]: boolean;
+};
+
 export const WorkspaceData = (signal) => ({
   getSchema: async (root: string, instanceId: string): Promise<RecordTypeSchema[]> => {
     const res = await fetchWDS(root)(`${instanceId}/types/v0.2`, _.merge(authOpts(), { signal }));
@@ -68,6 +83,10 @@ export const WorkspaceData = (signal) => ({
       `${instanceId}/search/v0.2/${recordType}`,
       _.mergeAll([authOpts(), jsonBody(parameters), { signal, method: 'POST' }])
     );
+    return res.json();
+  },
+  getCapabilities: async (root: string): Promise<Capabilities> => {
+    const res = await fetchWDS(root)('capabilities/v1', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
     return res.json();
   },
   deleteTable: async (root: string, instanceId: string, recordType: string): Promise<Response> => {
