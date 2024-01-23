@@ -107,9 +107,13 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, onDismiss }: LogViewe
     async (workspaceId: string, templateTesLog: string): Promise<string[]> => {
       try {
         // TODO: Prefix should be everything after the container name (and its trailing /) and before the filename.
-        const prefix = '';
-        // const response = await Ajax(signal).AzureStorage.listFilesInDirectory(workspaceId, blobDirectory);
-        const response = await Ajax(signal).AzureStorage.listFilesInDirectory(workspaceId, prefix);
+        const index = templateTesLog.indexOf(workspaceId);
+        if (index === -1) {
+          console.error(`Could not find workspaceId ${workspaceId} in log path of ${templateTesLog}`);
+        }
+        const blobFilepath = templateTesLog.substring(index + workspaceId.length + 1);
+        const blobDirectory = blobFilepath.substring(0, blobFilepath.lastIndexOf('/'));
+        const response = await Ajax(signal).AzureStorage.listFiles(workspaceId, blobDirectory);
         return response.map((file) => file.name);
       } catch (e) {
         return ['errorlol'];

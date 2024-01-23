@@ -273,6 +273,7 @@ export const BaseRunDetails = (
             h(LogViewer, {
               modalTitle: logsModalTitle,
               logs: logsArray,
+              workspaceId,
               onDismiss: () => {
                 setShowLog(false);
                 captureEvent(Events.workflowsAppCloseLogViewer);
