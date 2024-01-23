@@ -1396,4 +1396,104 @@ describe('NewWorkspaceModal', () => {
       })
     );
   });
+
+  describe('shows egress warnings for cloning GCP workspaces', () => {
+    it('shows a message if the destination bucket location is in a different region', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Workspaces: {
+              workspace: () => ({
+                checkBucketLocation: jest.fn().mockResolvedValue({
+                  location: 'US-CENTRAL1',
+                  locationType: 'location-type',
+                }),
+              }),
+            },
+            Billing: {
+              listProjects: async () => [gcpBillingProject],
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
+      );
+
+      // Act
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            cloneWorkspace: defaultGoogleWorkspace,
+            onDismiss: () => {},
+            onSuccess: () => {},
+          })
+        );
+      });
+
+      const projectSelector = screen.getByText('Select a billing project');
+      await user.click(projectSelector);
+
+      const googleBillingProject = screen.getByText('Google Billing Project');
+      await user.click(googleBillingProject);
+
+      const bucketLocationSelector = screen.getByLabelText('Bucket location');
+      await user.click(bucketLocationSelector);
+
+      // Verify warning doesn't show initially
+      expect(screen.queryByText(/may incur network egress charges./)).toBeNull();
+      // Select a different bucket location from the source workspace one.
+      const montrealLocation = screen.getByText('northamerica-northeast1 (Montreal)');
+      await user.click(montrealLocation);
+
+      // Assert
+      // Have to use textContent to work around bolded sections of text.
+      const warning = screen.getByText('Copying data from', { exact: false });
+      expect(warning.textContent).toEqual(
+        'Copying data from us-central1 (Iowa) to northamerica-northeast1 (Montreal) may incur network egress charges. '
+      );
+    });
+
+    it('shows a generic message if the source workspace is requester pays', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const requesterPaysError = { message: 'Requester pays bucket', requesterPaysError: true };
+      asMockedFn(Ajax).mockImplementation(
+        () =>
+          ({
+            Workspaces: {
+              workspace: () => ({
+                checkBucketLocation: () => Promise.reject(requesterPaysError),
+              }),
+            },
+            Billing: {
+              listProjects: async () => [gcpBillingProject],
+            },
+            ...nonBillingAjax,
+          } as AjaxContract)
+      );
+
+      // Act
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            cloneWorkspace: defaultGoogleWorkspace,
+            onDismiss: () => {},
+            onSuccess: () => {},
+          })
+        );
+      });
+
+      // Verify warning doesn't show up until a destination billing project is selected.
+      expect(screen.queryByText(/Copying data may incur network egress charges/)).toBeNull();
+
+      const projectSelector = screen.getByText('Select a billing project');
+      await user.click(projectSelector);
+
+      const googleBillingProject = screen.getByText('Google Billing Project');
+      await user.click(googleBillingProject);
+
+      // Assert
+      screen.getByText(/Copying data may incur network egress charges/);
+    });
+  });
 });
