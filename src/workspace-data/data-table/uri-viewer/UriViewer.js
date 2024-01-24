@@ -196,6 +196,7 @@ export const UriViewer = _.flow(
                 els.cell([els.label('File size'), els.data(filesize(size))]),
                 renderTerminalCommand(metadata),
                 renderMoreInfo(metadata),
+                !isAzureUri(uri) && div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.']),
               ]),
           ],
           () => renderLoadingSymbol(uri)
