@@ -332,14 +332,14 @@ export const brands: Record<string, BrandConfiguration> = {
     docLinks: [
       {
         link: 'https://dockstore.org/organizations/Theiagen',
-        text: 'Pathogen genomics resources',
+        text: 'Theiagen Workflow Repository',
       },
       {
         link: 'https://docs.google.com/document/d/e/2PACX-1vTPQC-bYMRxXQ4Gz9ESH_Eo-E6UXD2qOL7_3iMxJaQF3pOyW3tUyu7G9Nvk-JTf8xDkOyhftvd9L-sa/pub',
         text: 'Terra Cloud Costs FAQs',
       },
       {
-        link: 'mailto:publichealthgenomics@terra.bio',
+        link: 'mailto:publichealthgenomics@broadinstitute.org',
         text: 'Contact us',
       },
       {
@@ -359,8 +359,8 @@ export const brands: Record<string, BrandConfiguration> = {
         body: 'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
       },
       {
-        link: 'library-showcase',
-        title: 'Featured Workspaces',
+        link: 'workspaces?tab=public&tagsFilter%5B%5D=pathogen%20genomics',
+        title: 'Examples',
         body: 'Browse example pathogen genomic data and analysis tools together.',
       },
     ],

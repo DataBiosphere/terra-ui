@@ -56,7 +56,7 @@ const makeCard = _.map(({ link, title, body }) =>
   h(
     Clickable,
     {
-      href: Nav.getLink(link),
+      href: `#${link}`,
       style: { ...Style.elements.card.container, ...styles.card },
       hover: { boxShadow: '0 3px 7px 0 rgba(0,0,0,0.5), 0 5px 3px 0 rgba(0,0,0,0.2)' },
     },
