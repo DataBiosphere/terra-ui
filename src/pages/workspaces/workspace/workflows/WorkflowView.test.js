@@ -55,7 +55,7 @@ describe('Workflow View (GCP)', () => {
       googleProject: 'google-project-id',
       isLocked: false,
       lastModified: '2023-02-03T22:26:06.202Z',
-      name: 'testName',
+      name: 'echo_to_file-configured',
       namespace: 'gatk',
       workspaceId: 'google-workspace-id',
       workspaceType: 'rawls',
@@ -228,7 +228,7 @@ describe('Workflow View (GCP)', () => {
     entityType: 'sra_set',
     name: 'echo_to_file-configured_2024-01-17T18-55-52',
   };
-  const launchPayload = {};
+  const mockLaunchResponse = jest.fn(() => Promise.resolve({ submissionId: 'abc123', ...initializedGoogleWorkspace.workspaceId }));
 
   Ajax.mockImplementation(() => {
     return {
@@ -269,10 +269,21 @@ describe('Workflow View (GCP)', () => {
               name: 'echo_to_file-configured',
             }),
             save: jest.fn().mockReturnValue(mockSave),
-            launch: jest.fn().mockReturnValue(launchPayload),
+            launch: jest.fn(mockLaunchResponse),
           }),
           paginatedEntitiesOfType,
         }),
+      },
+      Disks: {
+        disksV1: () => ({
+          list: jest.fn(),
+        }),
+      },
+      Runtimes: {
+        listV2: jest.fn(),
+      },
+      Apps: {
+        list: jest.fn().mockReturnValue([]),
       },
     };
   });
@@ -295,20 +306,12 @@ describe('Workflow View (GCP)', () => {
   it('can run a workflow given an entity', async () => {
     // Arrange
     const user = userEvent.setup();
-    const namespace = 'testNamespace';
-    const name = 'testName';
-    const ws = {
-      name,
-      namespace,
-      cloudPlatform: 'Gcp',
-    };
-    const onDismiss = jest.fn();
-
-    const props = { namespace, name, ws, onDismiss };
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
 
     // Act
     await act(async () => {
-      render(h(WorkflowView, { props, queryParams: { selectionKey } }));
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
     });
 
     const selectDataButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Select Data'))[0];
@@ -339,11 +342,13 @@ describe('Workflow View (GCP)', () => {
     const launchButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Launch'))[0];
     await user.click(launchButton);
 
-    expect(Nav.goToPath).toHaveBeenCalledWith('workspace-submission-details', {
-      name: undefined,
-      namespace: undefined,
-      submissionId: undefined,
-    });
+    expect(mockLaunchResponse).toHaveBeenCalledTimes(1);
+
     expect(Nav.goToPath).toHaveBeenCalledTimes(1);
+    expect(Nav.goToPath).toHaveBeenCalledWith('workspace-submission-details', {
+      submissionId: 'abc123',
+      name: 'echo_to_file-configured',
+      namespace: 'gatk',
+    });
   });
 });
