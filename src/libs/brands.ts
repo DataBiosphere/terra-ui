@@ -89,12 +89,12 @@ export const landingPageCardsDefault = [
     body: 'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
   },
   {
-    link: 'library-showcase',
+    link: 'library/showcase',
     title: 'View Examples',
     body: 'Browse our gallery of showcase Workspaces to see how science gets done.',
   },
   {
-    link: 'library-datasets',
+    link: 'library/datasets',
     title: 'Browse Data',
     body: 'Access data from a rich ecosystem of data portals.',
   },
