@@ -1,4 +1,4 @@
-import { Spinner } from '@terra-ui-packages/components';
+import { Spinner, useThemeFromContext } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -13,7 +13,6 @@ import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import { RecordResponse } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
-import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
@@ -65,6 +64,8 @@ export const SubmitWorkflowModal = ({
 
   const { captureEvent } = useMetricsEvent();
   const canSubmit = canCompute;
+
+  const { colors } = useThemeFromContext();
 
   const submitRun = async () => {
     const runSetsPayload = {
@@ -197,7 +198,12 @@ export const SubmitWorkflowModal = ({
             ]),
             div(
               {
-                style: { ...(errorStyles.jsonFrame as CSSProperties), overflowY: 'scroll', maxHeight: 160 },
+                style: {
+                  ...(errorStyles.jsonFrame as CSSProperties),
+                  backgroundColor: colors.light(),
+                  overflowY: 'scroll',
+                  maxHeight: 160,
+                },
                 'aria-label': 'Modal submission error',
               },
               [workflowSubmissionError]
