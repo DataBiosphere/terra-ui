@@ -90,9 +90,9 @@ export const UriViewer = _.flow(
   const renderTerminalCommand = (metadata) => {
     const { bucket, name } = metadata;
     const gsUri = `gs://${bucket}/${name}`;
-    const azUri = `${uri}?${metadata.sasToken}`;
+    // for public azure storage links, the sas token will be undefined
     const downloadCommand = isAzureUri(uri)
-      ? getDownloadCommand(metadata.name, azUri, metadata.accessUrl)
+      ? getDownloadCommand(metadata.name, metadata.sasToken ? `${uri}?${metadata.sasToken}` : uri, metadata.accessUrl)
       : getDownloadCommand(metadata.name, gsUri, metadata.accessUrl);
 
     return h(Fragment, [
@@ -169,7 +169,8 @@ export const UriViewer = _.flow(
 
   if (isAzureUri(uri)) {
     const { azureSasStorageUrl, fileName, size } = metadata || {};
-    uri = azureSasStorageUrl || uri;
+    // link needs to have the sas token in the url, expect for files that live in public storage
+    const azureUri = azureSasStorageUrl || uri;
     return h(
       Modal,
       {
@@ -191,11 +192,10 @@ export const UriViewer = _.flow(
                   els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')), // allow line break on periods
                 ]),
                 h(UriPreview, { metadata, googleProject }),
-                div({ style: { display: 'flex', justifyContent: 'space-around' } }, [h(UriDownloadButton, { uri, metadata })]),
+                div({ style: { display: 'flex', justifyContent: 'space-around' } }, [h(UriDownloadButton, { uri: azureUri, metadata })]),
                 els.cell([els.label('File size'), els.data(filesize(size))]),
                 renderTerminalCommand(metadata),
                 renderMoreInfo(metadata),
-                !isAzureUri(uri) && div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.']),
               ]),
           ],
           () => renderLoadingSymbol(uri)
