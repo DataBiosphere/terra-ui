@@ -146,7 +146,7 @@ export const isRequesterPaysErrorInfo = (error: any): error is RequesterPaysErro
   return error != null && typeof error === 'object' && 'requesterPaysError' in error;
 };
 
-export const checkRequesterPaysError = async (response): RequesterPaysErrorInfo => {
+export const checkRequesterPaysError = async (response): Promise<RequesterPaysErrorInfo> => {
   if (response.status === 400) {
     const data = await response.text();
     const requesterPaysErrorInfo: RequesterPaysErrorInfo = {

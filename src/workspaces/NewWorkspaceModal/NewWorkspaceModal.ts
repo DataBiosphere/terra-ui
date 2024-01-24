@@ -559,7 +559,7 @@ const NewWorkspaceModal = withDisplayName(
                         }),
                         div({ style: { flex: 1 } }, [
                           cloningRequesterPaysWorkspace
-                            ? span('Copying data may incur network egress charges. ')
+                            ? span(['Copying data may incur network egress charges. '])
                             : span([
                                 'Copying data from ',
                                 strong([getRegionInfo(sourceWorkspaceLocation, sourceLocationType).regionDescription]),
