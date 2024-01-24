@@ -69,7 +69,7 @@ export interface BrandConfiguration {
     link: string;
 
     /** Card title */
-    text: string;
+    title: string;
 
     /** Card body */
     body: string;
