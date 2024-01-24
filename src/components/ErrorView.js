@@ -1,9 +1,8 @@
+import { cond, maybeParseJSON, useThemeFromContext } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { div, h, iframe } from 'react-hyperscript-helpers';
-import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
-import * as Utils from 'src/libs/utils';
 
 export const styles = {
   htmlFrame: {
@@ -15,7 +14,6 @@ export const styles = {
   },
   jsonFrame: {
     padding: '0.5rem',
-    backgroundColor: colors.light(),
     whiteSpace: 'pre-wrap',
     overflow: 'auto',
     overflowWrap: 'break-word',
@@ -25,14 +23,16 @@ export const styles = {
 };
 
 const ErrorView = ({ error }) => {
+  const { colors } = useThemeFromContext();
+
   return div({ style: { marginTop: '1rem' } }, [
-    Utils.cond(
+    cond(
       [_.isError(error), () => error.message],
       [
         _.isString(error),
         () => {
-          const json = Utils.maybeParseJSON(error);
-          return Utils.cond(
+          const json = maybeParseJSON(error);
+          return cond(
             [
               error[0] === '<',
               () => {
@@ -45,7 +45,7 @@ const ErrorView = ({ error }) => {
                 return h(Fragment, [
                   json.message && div({ style: { marginBottom: '1rem' } }, [json.message]),
                   div({ style: { fontWeight: 600, marginBottom: '0.5rem' } }, ['Full error:']),
-                  div({ style: styles.jsonFrame }, [JSON.stringify(json, null, 2)]),
+                  div({ style: { ...styles.jsonFrame, backgroundColor: colors.light() } }, [JSON.stringify(json, null, 2)]),
                 ]);
               },
             ],
