@@ -62,7 +62,6 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         },
         value: search,
         placeholder: 'Search',
-        inputIcon: 'search',
         style: {
           borderRadius: 25,
           borderColor: colors.dark(0.2),
