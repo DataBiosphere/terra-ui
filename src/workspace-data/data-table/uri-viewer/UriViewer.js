@@ -87,12 +87,16 @@ export const UriViewer = _.flow(
     loadMetadata();
   });
 
+  const getAzureStorageUrl = (metadata) => {
+    // for public accessible azure storage links the sas token will be undefined
+    return metadata.sasToken ? `${uri}?${metadata.sasToken}` : uri;
+  };
+
   const renderTerminalCommand = (metadata) => {
     const { bucket, name } = metadata;
     const gsUri = `gs://${bucket}/${name}`;
-    // for public azure storage links, the sas token will be undefined
     const downloadCommand = isAzureUri(uri)
-      ? getDownloadCommand(metadata.name, metadata.sasToken ? `${uri}?${metadata.sasToken}` : uri, metadata.accessUrl)
+      ? getDownloadCommand(metadata.name, getAzureStorageUrl(metadata), metadata.accessUrl)
       : getDownloadCommand(metadata.name, gsUri, metadata.accessUrl);
 
     return h(Fragment, [
@@ -168,9 +172,7 @@ export const UriViewer = _.flow(
     h(Fragment, [isGsUri(uri) || isAzureUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...', h(Spinner, { style: { marginLeft: 4 } })]);
 
   if (isAzureUri(uri)) {
-    const { azureSasStorageUrl, fileName, size } = metadata || {};
-    // link needs to have the sas token in the url, expect for files that live in public storage
-    const azureUri = azureSasStorageUrl || uri;
+    const { fileName, size } = metadata || {};
     return h(
       Modal,
       {
@@ -192,7 +194,9 @@ export const UriViewer = _.flow(
                   els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')), // allow line break on periods
                 ]),
                 h(UriPreview, { metadata, googleProject }),
-                div({ style: { display: 'flex', justifyContent: 'space-around' } }, [h(UriDownloadButton, { uri: azureUri, metadata })]),
+                div({ style: { display: 'flex', justifyContent: 'space-around' } }, [
+                  h(UriDownloadButton, { uri: getAzureStorageUrl(metadata), metadata }),
+                ]),
                 els.cell([els.label('File size'), els.data(filesize(size))]),
                 renderTerminalCommand(metadata),
                 renderMoreInfo(metadata),
