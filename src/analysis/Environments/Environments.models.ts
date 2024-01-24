@@ -20,10 +20,7 @@ export type DecoratedResource = DecoratedComputeResource | DiskWithWorkspace;
 export interface LeoResourcePermissionsProvider {
   canDeleteDisk: (disk: PersistentDisk) => boolean;
   canPauseResource: (resource: App | ListRuntimeItem) => boolean;
-}
-
-export interface CanDeleteProvider {
-  canBeDeleted: (resource: App) => boolean;
+  canDeleteApp: (resource: DecoratedComputeResource) => boolean;
 }
 
 export type DeleteRuntimeProvider = Pick<LeoRuntimeProvider, 'delete'>;

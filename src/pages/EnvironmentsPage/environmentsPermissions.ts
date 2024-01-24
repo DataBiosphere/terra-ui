@@ -1,7 +1,10 @@
-import { CanDeleteProvider, LeoResourcePermissionsProvider } from 'src/analysis/Environments/Environments.models';
+import {
+  DecoratedComputeResource,
+  LeoResourcePermissionsProvider,
+} from 'src/analysis/Environments/Environments.models';
 import { getCreatorForCompute } from 'src/analysis/utils/resource-utils';
 import { cromwellAppToolLabels } from 'src/analysis/utils/tool-utils';
-import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getTerraUser } from 'src/libs/state';
@@ -18,16 +21,13 @@ const makePermissionsProvider = (userEmailGetter: () => string): LeoResourcePerm
       const creator = getCreatorForCompute(resource);
       return currentUserEmail === creator;
     },
-  };
-  return permissionsProvider;
-};
-
-export const makeCromwellAppsNotDeletable = (): CanDeleteProvider => {
-  return {
-    canBeDeleted: (resource: App) => {
-      return !Object.keys(cromwellAppToolLabels).includes(resource.appType);
+    canDeleteApp: (resource: DecoratedComputeResource) => {
+      if (isApp(resource)) {
+        return !Object.keys(cromwellAppToolLabels).includes(resource.appType);
+      }
     },
   };
+  return permissionsProvider;
 };
 
 const currentUserEmailGetter = (): string => {

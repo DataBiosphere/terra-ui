@@ -600,6 +600,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                     h(PauseButton, { cloudEnvironment, permissions, pauseComputeAndRefresh }),
                     h(DeleteButton, {
                       resource: cloudEnvironment,
+                      permissions,
                       onClick: (resource) => {
                         isApp(resource) ? deleteAppModal.open(resource) : setDeleteRuntimeId(resource.id);
                       },

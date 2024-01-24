@@ -9,22 +9,23 @@ import { makeMenuIcon } from 'src/components/PopupTrigger';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoRuntimeStatus } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
-import { makeCromwellAppsNotDeletable } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 
-import { DecoratedComputeResource } from './Environments.models';
+import { DecoratedComputeResource, LeoResourcePermissionsProvider } from './Environments.models';
+
+type DeletePermissionsProvider = Pick<LeoResourcePermissionsProvider, 'canDeleteApp'>;
 
 export interface DeleteButtonProps {
   resource: DecoratedComputeResource;
+  permissions: DeletePermissionsProvider;
   onClick: (resource: DecoratedComputeResource) => void;
 }
 
 export const DeleteButton = (props: DeleteButtonProps): ReactNode => {
-  const { resource, onClick } = props;
+  const { resource, permissions, onClick } = props;
   const resourceType = isApp(resource) ? 'app' : 'runtime';
   // Casting resource to type App to access the appType property
   const castToApp = resource as App;
-  const appsToDelete = makeCromwellAppsNotDeletable();
-  const isDeletable = appsToDelete.canBeDeleted(castToApp) && isResourceDeletable(resourceType, resource);
+  const isDeletable = isResourceDeletable(resourceType, resource) && permissions.canDeleteApp(resource);
 
   return h(
     Link,

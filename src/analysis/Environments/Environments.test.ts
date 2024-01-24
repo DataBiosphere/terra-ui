@@ -39,6 +39,7 @@ const mockNav: NavLinkProvider<EnvironmentNavActions> = {
 const mockPermissions: LeoResourcePermissionsProvider = {
   canDeleteDisk: jest.fn(),
   canPauseResource: jest.fn(),
+  canDeleteApp: jest.fn(),
 };
 
 const defaultUseWorkspacesProps = {
@@ -83,6 +84,7 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
 const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
   asMockedFn(mockPermissions.canDeleteDisk).mockReturnValue(true);
   asMockedFn(mockPermissions.canPauseResource).mockReturnValue(true);
+  asMockedFn(mockPermissions.canDeleteApp).mockReturnValue(true);
 
   const defaultProps: EnvironmentsProps = {
     nav: mockNav,
@@ -547,11 +549,11 @@ describe('Environments', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstAppRow: HTMLElement = tableRows[0];
       const actionColumnButton1 = within(firstAppRow).getByRole('button', { name: 'Delete' });
-      // .filter((button) => button.textContent.includes('Delete'))[0];
       expect(actionColumnButton1).not.toHaveAttribute('disabled');
 
       const secondAppRow: HTMLElement = tableRows[1];
       const actionColumnButton2 = within(secondAppRow).getByRole('button', { name: 'Delete' });
+      screen.debug(undefined, 300000);
       expect(actionColumnButton2).toHaveAttribute('disabled');
 
       const thirdAppRow: HTMLElement = tableRows[2];
