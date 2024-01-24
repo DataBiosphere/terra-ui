@@ -14,7 +14,12 @@ import {
   gcpBillingProject,
 } from 'src/testing/billing-project-fixtures';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
-import { defaultAzureWorkspace, defaultGoogleWorkspace, protectedAzureWorkspace } from 'src/testing/workspace-fixtures';
+import {
+  defaultAzureWorkspace,
+  defaultGoogleWorkspace,
+  mockBucketRequesterPaysError,
+  protectedAzureWorkspace,
+} from 'src/testing/workspace-fixtures';
 
 import NewWorkspaceModal from './NewWorkspaceModal';
 
@@ -1456,13 +1461,12 @@ describe('NewWorkspaceModal', () => {
     it('shows a generic message if the source workspace is requester pays', async () => {
       // Arrange
       const user = userEvent.setup();
-      const requesterPaysError = { message: 'Requester pays bucket', requesterPaysError: true };
       asMockedFn(Ajax).mockImplementation(
         () =>
           ({
             Workspaces: {
               workspace: () => ({
-                checkBucketLocation: () => Promise.reject(requesterPaysError),
+                checkBucketLocation: () => Promise.reject(mockBucketRequesterPaysError),
               }),
             },
             Billing: {

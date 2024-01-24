@@ -3,6 +3,7 @@ import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, label, p, span, strong } from 'react-hyperscript-helpers';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
+import { isBucketErrorRequesterPays } from 'src/components/bucket-utils';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import {
   ButtonPrimary,
@@ -306,7 +307,7 @@ const NewWorkspaceModal = withDisplayName(
               setSourceWorkspaceLocation(location);
             })
             .catch((error) => {
-              if (error != null && typeof error === 'object' && 'requesterPaysError' in error) {
+              if (isBucketErrorRequesterPays(error)) {
                 setRequesterPaysError(true);
               } else {
                 throw error;
