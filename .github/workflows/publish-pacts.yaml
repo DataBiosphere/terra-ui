@@ -22,9 +22,7 @@ jobs:
           yarn install
 
       - name: Run tests
-        run: yarn test Cbas.test.js # As of now, this is the only contract test file in terra-ui.
-                                    # When another test file is added, a naming convention for contract tests should be established,
-                                    # so that contract tests can be run in isolation.
+        run: yarn test "\b\w*Pact\w*\.test\.(js|ts)\b" # This matches any test file that contains the word "Pact" at the end of its name, either js or ts.
 
       - name: Encode the pact as non-breaking base 64 string
         id: encode
