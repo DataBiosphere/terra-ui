@@ -1,4 +1,4 @@
-import { useThemeFromContext } from '@terra-ui-packages/core-utils';
+import { useThemeFromContext } from '@terra-ui-packages/components';
 import { CSSProperties } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common';

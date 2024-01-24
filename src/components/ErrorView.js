@@ -1,4 +1,5 @@
-import { cond, maybeParseJSON, useThemeFromContext } from '@terra-ui-packages/core-utils';
+import { useThemeFromContext } from '@terra-ui-packages/components';
+import { cond, maybeParseJSON } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { div, h, iframe } from 'react-hyperscript-helpers';
