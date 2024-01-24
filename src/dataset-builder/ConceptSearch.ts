@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons';
 import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
-import { GetConceptsResponse } from 'src/dataset-builder/DatasetBuilderUtils';
+import { GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
@@ -36,6 +36,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
   const [search, setSearch] = useState<string>(initialSearch);
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const [concepts, searchConcepts] = useLoadedData<GetConceptsResponse>();
+
   useEffect(() => {
     void searchConcepts(() => {
       return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, search);
@@ -107,7 +108,9 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
                     icon(iconName, { size: 16 }),
                   ]),
-                  div({ style: { marginLeft: 5 } }, [concept.name]),
+                  div({ style: { marginLeft: 5 } }, [
+                    h(HighlightConceptName, { conceptName: concept.name, searchFilter: search }),
+                  ]),
                 ]),
                 id: concept.id,
                 count: concept.count,

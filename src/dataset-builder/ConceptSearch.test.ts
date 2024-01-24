@@ -1,5 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { ConceptSearch } from 'src/dataset-builder/ConceptSearch';
 import { dummyDatasetModel, dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
@@ -29,6 +30,7 @@ describe('ConceptSearch', () => {
   const actionText = 'action text';
   const datasetId = '0';
   const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
+
   const renderSearch = (initialSearch = '', initialCart: SnapshotBuilderConcept[] = []) => {
     render(
       h(ConceptSearch, {
@@ -146,6 +148,30 @@ describe('ConceptSearch', () => {
     await user.click(screen.getByText(actionText));
     // Assert
     expect(onCommit).toHaveBeenCalledWith([concept]);
+  });
+
+  it('testing HighlightConceptName, "Dis"', async () => {
+    renderSearch('Dis');
+
+    const disText = await screen.findAllByText('Dis');
+
+    const filterDisText = _.filter(
+      (element) => element.tagName === 'DIV' && element.style.fontWeight === '600',
+      disText
+    ).length;
+    expect(filterDisText).toBeGreaterThan(0);
+    expect(await screen.findByText('ease')).toBeTruthy();
+  });
+
+  it('testing HighlightConceptName, "ease"', async () => {
+    renderSearch('ease');
+    const easeText = await screen.findAllByText('ease');
+    const filterEaseText = _.filter(
+      (element) => element.tagName === 'DIV' && element.style.fontWeight === '600',
+      easeText
+    ).length;
+    expect(filterEaseText).toBe(1);
+    expect(await screen.findByText('Dis')).toBeTruthy();
   });
 
   it('loads the page with the initial cart', async () => {
