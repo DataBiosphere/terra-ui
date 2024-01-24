@@ -1,9 +1,9 @@
+import { cond, maybeParseJSON } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { div, h, iframe } from 'react-hyperscript-helpers';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
-import * as Utils from 'src/libs/utils';
 
 export const styles = {
   htmlFrame: {
@@ -26,13 +26,13 @@ export const styles = {
 
 const ErrorView = ({ error }) => {
   return div({ style: { marginTop: '1rem' } }, [
-    Utils.cond(
+    cond(
       [_.isError(error), () => error.message],
       [
         _.isString(error),
         () => {
-          const json = Utils.maybeParseJSON(error);
-          return Utils.cond(
+          const json = maybeParseJSON(error);
+          return cond(
             [
               error[0] === '<',
               () => {
