@@ -87,12 +87,16 @@ export const UriViewer = _.flow(
     loadMetadata();
   });
 
+  const getAzureStorageUrl = (metadata) => {
+    // for public accessible azure storage links the sas token will be undefined
+    return metadata.sasToken ? `${uri}?${metadata.sasToken}` : uri;
+  };
+
   const renderTerminalCommand = (metadata) => {
     const { bucket, name } = metadata;
     const gsUri = `gs://${bucket}/${name}`;
-    const azUri = `${uri}?${metadata.sasToken}`;
     const downloadCommand = isAzureUri(uri)
-      ? getDownloadCommand(metadata.name, azUri, metadata.accessUrl)
+      ? getDownloadCommand(metadata.name, getAzureStorageUrl(metadata), metadata.accessUrl)
       : getDownloadCommand(metadata.name, gsUri, metadata.accessUrl);
 
     return h(Fragment, [
@@ -168,8 +172,7 @@ export const UriViewer = _.flow(
     h(Fragment, [isGsUri(uri) || isAzureUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...', h(Spinner, { style: { marginLeft: 4 } })]);
 
   if (isAzureUri(uri)) {
-    const { azureSasStorageUrl, fileName, size } = metadata || {};
-    uri = azureSasStorageUrl || uri;
+    const { fileName, size } = metadata || {};
     return h(
       Modal,
       {
@@ -191,7 +194,9 @@ export const UriViewer = _.flow(
                   els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')), // allow line break on periods
                 ]),
                 h(UriPreview, { metadata, googleProject }),
-                div({ style: { display: 'flex', justifyContent: 'space-around' } }, [h(UriDownloadButton, { uri, metadata })]),
+                div({ style: { display: 'flex', justifyContent: 'space-around' } }, [
+                  h(UriDownloadButton, { uri: getAzureStorageUrl(metadata), metadata }),
+                ]),
                 els.cell([els.label('File size'), els.data(filesize(size))]),
                 renderTerminalCommand(metadata),
                 renderMoreInfo(metadata),
