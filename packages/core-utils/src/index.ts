@@ -1,3 +1,4 @@
+export * from './browser-storage';
 export * from './format/number-format';
 export * from './io-utils';
 export * from './logic-utils';
