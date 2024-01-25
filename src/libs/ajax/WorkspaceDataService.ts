@@ -54,13 +54,13 @@ export interface WDSJob {
 }
 
 // The source of truth of valid capabilities can be found in: https://github.com/DataBiosphere/terra-workspace-data-service/blob/main/service/src/main/resources/capabilities.json
-export type KnownCapability =
+type KnownCapability =
   | 'capabilities'
   | 'dataimport.pfb'
   | 'dataimport.tdrmanifest'
   | 'edit.deleteAttribute'
   | 'edit.renameAttribute';
-export type UnknownCapability = string;
+type UnknownCapability = string;
 export type Capability = KnownCapability | UnknownCapability;
 
 // Capabilities is just a kvp map of capability name to boolean. The value is true if the capability is enabled, false otherwise.

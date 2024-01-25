@@ -13,7 +13,7 @@ import {
   UploadParameters,
 } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import { LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
-import { Capabilities, KnownCapability } from 'src/libs/ajax/WorkspaceDataService';
+import { Capabilities, Capability } from 'src/libs/ajax/WorkspaceDataService';
 import { notificationStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
@@ -144,7 +144,7 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   capabilities: Capabilities;
 
-  private isCapabilityEnabled = (capability: KnownCapability): boolean => {
+  private isCapabilityEnabled = (capability: Capability): boolean => {
     return !!(this.capabilities && this.capabilities[capability] === true);
   };
 
