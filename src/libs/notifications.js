@@ -1,13 +1,11 @@
+import { ButtonPrimary, Clickable, icon, Link, Modal, useThemeFromContext } from '@terra-ui-packages/components';
 import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { Store } from 'react-notifications-component';
-import { ButtonPrimary, Clickable, IdContainer, Link } from 'src/components/common';
+import { IdContainer } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
-import { icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
-import colors from 'src/libs/colors';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { useStore } from 'src/libs/react-utils';
 import { notificationStore } from 'src/libs/state';
@@ -56,6 +54,7 @@ export const muteNotification = (id, until = -1) => {
 };
 
 const NotificationDisplay = ({ id }) => {
+  const { colors } = useThemeFromContext();
   const notificationState = useStore(notificationStore);
   const [modal, setModal] = useState(false);
   const [notificationNumber, setNotificationNumber] = useState(0);
