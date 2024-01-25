@@ -97,7 +97,7 @@ export const WorkspaceData = (signal) => ({
           console.log("WDS doesn't support capabilities endpoint"); // eslint-disable-line no-console
           return { capabilities: false } as Capabilities;
         }
-        return Promise.reject(error);
+        throw error;
       });
   },
   deleteTable: async (root: string, instanceId: string, recordType: string): Promise<Response> => {
