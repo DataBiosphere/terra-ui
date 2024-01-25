@@ -319,7 +319,7 @@ const NewWorkspaceModal = withDisplayName(
     const shouldShowDifferentRegionWarning =
       !!cloneWorkspace && !requesterPaysError && bucketLocation !== sourceWorkspaceLocation;
 
-    const cloningRequesterPaysWorkspace = !!cloneWorkspace && requesterPaysError && !!namespace;
+    const cloningRequesterPaysWorkspace = !!cloneWorkspace && requesterPaysError;
 
     const isAzureBillingProject = (project?: BillingProject): project is AzureBillingProject =>
       isCloudProviderBillingProject(project, 'AZURE');
@@ -551,7 +551,8 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
-                    (shouldShowDifferentRegionWarning || cloningRequesterPaysWorkspace) &&
+                    !!namespace &&
+                      (shouldShowDifferentRegionWarning || cloningRequesterPaysWorkspace) &&
                       div({ style: { ...warningStyle } }, [
                         icon('warning-standard', {
                           size: 24,
