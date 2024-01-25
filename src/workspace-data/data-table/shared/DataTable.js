@@ -745,6 +745,7 @@ const DataTable = (props) => {
         workspace,
         entityType,
         oldAttributeName: renamingColumn,
+        attributeNames: entityMetadata[entityType].attributeNames,
         dataProvider,
         onSuccess: () => {
           setRenamingColumn(undefined);
