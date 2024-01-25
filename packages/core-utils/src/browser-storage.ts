@@ -53,16 +53,13 @@ export const getSessionStorage = _.once(() => {
   }
 });
 
-const forceSetItem = (storage: any, key: any, value: any) => {
+const forceSetItem = (storage: Storage, key: any, value: any) => {
   while (true) {
     try {
       storage.setItem(key, value);
       return;
     } catch (error) {
-      const candidates: [string, unknown][] = _.filter(
-        ([k]: [any]) => _.startsWith('dynamic-storage/', k),
-        _.toPairs(storage)
-      );
+      const candidates = _.filter(([k]: [string]) => _.startsWith('dynamic-storage/', k), _.toPairs(storage));
       if (!candidates.length) {
         console.error('Could not write to storage, and no entries to delete');
         return;
