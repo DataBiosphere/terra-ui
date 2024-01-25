@@ -59,7 +59,7 @@ export interface WDSJob {
 // If a capability is no longer necessary (because all live WDS instances now support it),
 // care should be taken to prune the conditional logic that relies on the capability, and
 // then the capability should be removed.
-type SupportedCapability = 'capabilities';
+type SupportedCapability = 'capabilities' | 'edit.deleteAttribute';
 type UnusedCapability = string;
 export type Capability = SupportedCapability | UnusedCapability;
 

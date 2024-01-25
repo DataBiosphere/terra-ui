@@ -158,7 +158,7 @@ export class WdsDataTableProvider implements DataTableProvider {
       supportsEntityRenaming: false,
       supportsEntityUpdating: false, // TODO: enable as part of AJ-594
       supportsAttributeRenaming: false, // TODO: enable as part of AJ-1278, requires `edit.renameAttribute` capability
-      supportsAttributeDeleting: false, // TODO: enable as part of AJ-1275, requires `edit.deleteAttribute` capability
+      supportsAttributeDeleting: this.isCapabilityEnabled('edit.deleteAttribute'),
       supportsAttributeClearing: false,
       supportsExport: false,
       supportsPointCorrection: false,
