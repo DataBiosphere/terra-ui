@@ -86,8 +86,28 @@ export const WorkspaceData = (signal) => ({
     return res.json();
   },
   getCapabilities: async (root: string): Promise<Capabilities> => {
-    const res = await fetchWDS(root)('capabilities/v1', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
-    return res.json();
+    return fetchWDS(root)('capabilities/v1', _.mergeAll([authOpts(), { signal, method: 'GET' }]))
+      .then(async (response) => {
+        const json = await response.json();
+        const capabilities: Capabilities = {};
+
+        for (const key in json) {
+          if (Object.prototype.hasOwnProperty.call(json, key)) {
+            // Default to false if not boolean
+            const jsonValue = typeof json[key] === 'boolean' ? json[key] : false;
+            capabilities[key as Capability] = jsonValue;
+          }
+        }
+
+        return capabilities;
+      })
+      .catch((error) => {
+        if (error instanceof Response && error.status === 404) {
+          console.log("WDS doesn't support capabilities endpoint"); // eslint-disable-line no-console
+          return { capabilities: false } as Capabilities;
+        }
+        return Promise.reject(error);
+      });
   },
   deleteTable: async (root: string, instanceId: string, recordType: string): Promise<Response> => {
     const res = await fetchWDS(root)(
