@@ -116,7 +116,6 @@ describe('EntitiesContent', () => {
           setEntityMetadata: () => {},
           loadMetadata: () => {},
           snapshotName: null,
-          deleteColumnUpdateMetadata: () => {},
         })
       );
     });
@@ -206,7 +205,6 @@ describe('EntitiesContent', () => {
           setEntityMetadata: () => {},
           loadMetadata: () => {},
           snapshotName: null,
-          deleteColumnUpdateMetadata: () => {},
         })
       );
     });
@@ -282,7 +280,6 @@ describe('EntitiesContent', () => {
           setEntityMetadata: () => {},
           loadMetadata: () => {},
           snapshotName: null,
-          deleteColumnUpdateMetadata: () => {},
         })
       );
     });
@@ -370,7 +367,6 @@ describe('EntitiesContent', () => {
           setEntityMetadata: () => {},
           loadMetadata: () => {},
           snapshotName: null,
-          deleteColumnUpdateMetadata: () => {},
         })
       );
     });
@@ -460,7 +456,6 @@ describe('EntitiesContent', () => {
           setEntityMetadata: () => {},
           loadMetadata: () => {},
           snapshotName: null,
-          deleteColumnUpdateMetadata: () => {},
         })
       );
     });

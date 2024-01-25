@@ -262,7 +262,6 @@ const EntitiesContent = ({
   setEntityMetadata,
   loadMetadata,
   snapshotName,
-  deleteColumnUpdateMetadata,
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({});
@@ -524,7 +523,6 @@ const EntitiesContent = ({
                 [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]
               ),
             ]),
-          deleteColumnUpdateMetadata,
           controlPanelStyle: {
             background: colors.light(0.5),
             borderBottom: `1px solid ${colors.grey(0.4)}`,
