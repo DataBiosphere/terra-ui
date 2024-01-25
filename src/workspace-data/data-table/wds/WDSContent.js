@@ -13,6 +13,7 @@ const WDSContent = ({
   recordType,
   wdsSchema,
   dataProvider,
+  editable,
 }) => {
   // State
   const [refreshKey] = useState(0);
@@ -25,7 +26,7 @@ const WDSContent = ({
       dataProvider,
       persist: true,
       refreshKey,
-      editable: false,
+      editable,
       entityType: recordType,
       activeCrossTableTextFilter: false,
       entityMetadata,

@@ -116,6 +116,7 @@ describe('EntitiesContent', () => {
           setEntityMetadata: () => {},
           loadMetadata: () => {},
           snapshotName: null,
+          editable: false,
         })
       );
     });
@@ -205,6 +206,7 @@ describe('EntitiesContent', () => {
           setEntityMetadata: () => {},
           loadMetadata: () => {},
           snapshotName: null,
+          editable: false,
         })
       );
     });
@@ -280,6 +282,7 @@ describe('EntitiesContent', () => {
           setEntityMetadata: () => {},
           loadMetadata: () => {},
           snapshotName: null,
+          editable: false,
         })
       );
     });
@@ -367,6 +370,7 @@ describe('EntitiesContent', () => {
           setEntityMetadata: () => {},
           loadMetadata: () => {},
           snapshotName: null,
+          editable: false,
         })
       );
     });
@@ -456,6 +460,7 @@ describe('EntitiesContent', () => {
           setEntityMetadata: () => {},
           loadMetadata: () => {},
           snapshotName: null,
+          editable: false,
         })
       );
     });

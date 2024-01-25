@@ -1456,6 +1456,7 @@ export const WorkspaceData = _.flow(
                       activeCrossTableTextFilter,
                       loadMetadata,
                       forceRefresh,
+                      editable: canEditWorkspace,
                     }),
                 ],
                 [
@@ -1488,6 +1489,7 @@ export const WorkspaceData = _.flow(
                       dataProvider: wdsDataTableProvider,
                       recordType: selectedData.entityType,
                       wdsSchema: wdsTypes.state,
+                      editable: canEditWorkspace,
                     }),
                 ]
               ),

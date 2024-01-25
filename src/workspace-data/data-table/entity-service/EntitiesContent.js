@@ -262,6 +262,7 @@ const EntitiesContent = ({
   setEntityMetadata,
   loadMetadata,
   snapshotName,
+  editable,
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({});
@@ -485,7 +486,7 @@ const EntitiesContent = ({
           dataProvider,
           persist: true,
           refreshKey,
-          editable: !snapshotName && WorkspaceUtils.canEditWorkspace(workspace).value,
+          editable,
           entityType: entityKey,
           activeCrossTableTextFilter,
           entityMetadata,
