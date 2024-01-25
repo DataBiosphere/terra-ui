@@ -97,6 +97,8 @@ export type GetMetadataFn = (signal: AbortSignal) => Promise<EntityMetadata>;
 
 export type DeleteTableFn = (entityType: string) => Promise<Response>;
 
+export type DeleteColumnFn = (signal: AbortSignal, entityType: string, attributeName: string) => Promise<Response>;
+
 export type DownloadTsvFn = (signal: AbortSignal, entityType: string) => Promise<Blob>;
 
 export type IsInvalidTsvFn = (options: InvalidTsvOptions) => boolean;
@@ -142,6 +144,7 @@ export interface DataTableProvider {
   tsvFeatures: TSVFeatures;
   getPage: GetPageFn;
   deleteTable: DeleteTableFn;
+  deleteColumn: DeleteColumnFn;
   downloadTsv: DownloadTsvFn;
   uploadTsv: UploadTsvFn;
   // todos that we may need soon:

@@ -106,6 +106,18 @@ export const WorkspaceData = (signal) => ({
     );
     return res;
   },
+  deleteColumn: async (
+    root: string,
+    instanceId: string,
+    recordType: string,
+    attributeName: string
+  ): Promise<Response> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/types/v0.2/${recordType}/${attributeName}`,
+      _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
+    );
+    return res;
+  },
   downloadTsv: async (root: string, instanceId: string, recordType: string): Promise<Blob> => {
     const res = await fetchWDS(root)(`${instanceId}/tsv/v0.2/${recordType}`, _.merge(authOpts(), { signal }));
     const blob = await res.blob();

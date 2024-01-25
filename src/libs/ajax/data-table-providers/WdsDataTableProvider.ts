@@ -289,6 +289,11 @@ export class WdsDataTableProvider implements DataTableProvider {
     return Ajax().WorkspaceData.deleteTable(this.proxyUrl, this.workspaceId, entityType);
   };
 
+  deleteColumn = (signal: AbortSignal, entityType: string, attributeName: string): Promise<Response> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy URL not loaded');
+    return Ajax(signal).WorkspaceData.deleteColumn(this.proxyUrl, this.workspaceId, entityType, attributeName);
+  };
+
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
     return Ajax(signal).WorkspaceData.downloadTsv(this.proxyUrl, this.workspaceId, entityType);

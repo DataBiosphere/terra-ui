@@ -236,7 +236,7 @@ const DataTable = (props) => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Unable to delete column')
   )(async (attributeName) => {
-    await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName);
+    await dataProvider.deleteColumn(signal, entityType, attributeName);
 
     // Remove the deleted column from the metadata
     const newArray = _.get(entityType, entityMetadata).attributeNames;
