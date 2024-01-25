@@ -59,7 +59,10 @@ const forceSetItem = (storage: any, key: any, value: any) => {
       storage.setItem(key, value);
       return;
     } catch (error) {
-      const candidates = _.filter(([k]: [any]) => _.startsWith('dynamic-storage/', k), _.toPairs(storage));
+      const candidates: [string, unknown][] = _.filter(
+        ([k]: [any]) => _.startsWith('dynamic-storage/', k),
+        _.toPairs(storage)
+      );
       if (!candidates.length) {
         console.error('Could not write to storage, and no entries to delete');
         return;
@@ -69,7 +72,7 @@ const forceSetItem = (storage: any, key: any, value: any) => {
           const data: any = maybeParseJSON(v);
           return data && _.isInteger(data.timestamp) ? data.timestamp : -Infinity;
         }, candidates)
-      ) as [any];
+      ) as [string, unknown];
       storage.removeItem(chosenKey);
     }
   }
