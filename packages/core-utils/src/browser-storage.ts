@@ -69,7 +69,7 @@ const forceSetItem = (storage: any, key: any, value: any) => {
           const data: any = maybeParseJSON(v);
           return data && _.isInteger(data.timestamp) ? data.timestamp : -Infinity;
         }, candidates)
-      );
+      ) as [any];
       storage.removeItem(chosenKey);
     }
   }
