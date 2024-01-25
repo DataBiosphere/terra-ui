@@ -89,16 +89,7 @@ export const WorkspaceData = (signal) => ({
     return fetchWDS(root)('capabilities/v1', _.mergeAll([authOpts(), { signal, method: 'GET' }]))
       .then(async (response) => {
         const json = await response.json();
-        const capabilities: Capabilities = {};
-
-        for (const key in json) {
-          if (Object.prototype.hasOwnProperty.call(json, key)) {
-            // Default to false if not boolean
-            const jsonValue = typeof json[key] === 'boolean' ? json[key] : false;
-            capabilities[key as Capability] = jsonValue;
-          }
-        }
-
+        const capabilities: Capabilities = _.mapValues((value) => value === true, json);
         return capabilities;
       })
       .catch((error) => {
