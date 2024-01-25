@@ -15,9 +15,7 @@ jest.mock('src/libs/ajax/ajax-common', (): AjaxCommonExports => {
 describe('WorkspaceData', () => {
   describe('getCapabilities', () => {
     type SetupOptions = {
-      stubbedCapabilitiesJson?: string;
-      stubbedCapabilitiesResponse?: Response;
-      stubbedCapabilitiesRejection?: any;
+      stubbedCapabilitiesResponse?: Promise<Response>;
       wdsProxyUrl?: string;
     };
     type SetupResult = {
@@ -25,9 +23,7 @@ describe('WorkspaceData', () => {
     };
     function setup({
       wdsProxyUrl = 'https://wds.test.proxy.url',
-      stubbedCapabilitiesJson = '{"capabilities":true}',
-      stubbedCapabilitiesResponse = new Response(stubbedCapabilitiesJson),
-      stubbedCapabilitiesRejection = undefined,
+      stubbedCapabilitiesResponse = Promise.resolve(new Response('{"capabilities":true}')),
     }: SetupOptions): SetupResult {
       asMockedFn(fetchWDS).mockImplementation((wdsProxyUrlRoot: string) => {
         if (wdsProxyUrlRoot !== wdsProxyUrl) {
@@ -35,10 +31,7 @@ describe('WorkspaceData', () => {
         }
         return (path: RequestInfo | URL, _options: RequestInit | undefined) => {
           if (path === 'capabilities/v1') {
-            if (stubbedCapabilitiesRejection !== undefined) {
-              return Promise.reject(stubbedCapabilitiesRejection);
-            }
-            return Promise.resolve(stubbedCapabilitiesResponse);
+            return stubbedCapabilitiesResponse;
           }
           throw new Error('Unexpected path');
         };
@@ -51,7 +44,9 @@ describe('WorkspaceData', () => {
 
     it('returns true for capabilities when present and true', async () => {
       // Arrange
-      const { wdsProxyUrl } = setup({ stubbedCapabilitiesJson: '{ "capabilities": true }' });
+      const { wdsProxyUrl } = setup({
+        stubbedCapabilitiesResponse: Promise.resolve(new Response('{"capabilities": true }')),
+      });
 
       // Act
       const capabilities = await Ajax().WorkspaceData.getCapabilities(wdsProxyUrl);
@@ -63,7 +58,9 @@ describe('WorkspaceData', () => {
 
     it('returns false for capabilities when present and false', async () => {
       // Arrange
-      const { wdsProxyUrl } = setup({ stubbedCapabilitiesJson: '{ "capabilities": false }' });
+      const { wdsProxyUrl } = setup({
+        stubbedCapabilitiesResponse: Promise.resolve(new Response('{"capabilities": false }')),
+      });
 
       // Act
       const capabilities = await Ajax().WorkspaceData.getCapabilities(wdsProxyUrl);
@@ -75,7 +72,9 @@ describe('WorkspaceData', () => {
 
     it('returns false for capabilities when present and non-boolean', async () => {
       // Arrange
-      const { wdsProxyUrl } = setup({ stubbedCapabilitiesJson: '{ "capabilities": "false" }' });
+      const { wdsProxyUrl } = setup({
+        stubbedCapabilitiesResponse: Promise.resolve(new Response('{"capabilities": "true" }')),
+      });
 
       // Act
       const capabilities = await Ajax().WorkspaceData.getCapabilities(wdsProxyUrl);
@@ -87,7 +86,9 @@ describe('WorkspaceData', () => {
 
     it('returns true for an unknown capability that is present and true', async () => {
       // Arrange
-      const { wdsProxyUrl } = setup({ stubbedCapabilitiesJson: '{ "unknownCapability": true }' });
+      const { wdsProxyUrl } = setup({
+        stubbedCapabilitiesResponse: Promise.resolve(new Response('{"unknownCapability": true }')),
+      });
 
       // Act
       const capabilities = await Ajax().WorkspaceData.getCapabilities(wdsProxyUrl);
@@ -100,7 +101,7 @@ describe('WorkspaceData', () => {
     it('returns false for capabilities when response is a 404', async () => {
       // Arrange
       const { wdsProxyUrl } = setup({
-        stubbedCapabilitiesRejection: new Response('{ "message": "Not found"}', { status: 404 }),
+        stubbedCapabilitiesResponse: Promise.reject(new Response('{ "message": "Not found"}', { status: 404 })),
       });
       // this scenario logs a message indicating that capabilities aren't enabled; this should not
       // appear in test output
@@ -117,7 +118,9 @@ describe('WorkspaceData', () => {
     it('throws on an unexpected error', async () => {
       // Arrange
       const { wdsProxyUrl } = setup({
-        stubbedCapabilitiesRejection: new Response('{ "message": "Internal server error"}', { status: 500 }),
+        stubbedCapabilitiesResponse: Promise.reject(
+          new Response('{ "message": "Internal server error"}', { status: 500 })
+        ),
       });
 
       // Act
