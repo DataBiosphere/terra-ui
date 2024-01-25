@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 
 import { maybeParseJSON } from './io-utils';
-import { subscribable } from './state-utils';
+import { Atom, subscribable } from './state-utils';
 
 /**
  * This library provides a higher level interface on top of localStorage and sessionStorage.
@@ -159,7 +159,7 @@ export const listenDynamic = (storage: any, key: any, fn: any) => {
  * @param key the key for storing the value
  * @returns {import("@terra-ui-packages/core-utils").Atom<any>} stateful object that manages the given storage location
  */
-export const staticStorageSlot = (storage: any, key: any) => {
+export const staticStorageSlot = (storage: any, key: any): Atom<any> => {
   const { subscribe, next } = subscribable();
   const get = () => getStatic(storage, key);
   const set = (newValue: any) => {
