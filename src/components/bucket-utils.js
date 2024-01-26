@@ -3,15 +3,22 @@ import _ from 'lodash/fp';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import RequesterPaysModal from 'src/components/RequesterPaysModal';
+import { isRequesterPaysErrorInfo } from 'src/libs/ajax/ajax-common';
 import { forwardRefWithName } from 'src/libs/react-utils';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+
+// Returns true if the error object passed in was marked as a requester pays error. Note that this parsing of the
+// error response is done in checkRequesterPaysError, which is used by the GoogleStorage ajax library.
+export const isBucketErrorRequesterPays = (error) => {
+  return isRequesterPaysErrorInfo(error) && error.requesterPaysError;
+};
 
 export const withRequesterPaysHandler = _.curry((handler, fn) => async (...args) => {
   try {
     return await fn(...args);
   } catch (error) {
-    if (error.requesterPaysError) {
+    if (isBucketErrorRequesterPays(error)) {
       handler();
       return abandonedPromise();
     }
