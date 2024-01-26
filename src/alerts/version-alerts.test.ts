@@ -51,6 +51,8 @@ describe('getBadVersions', () => {
   it.each([
     { responseText: '# broken\nabcd123 \neeee456\n\n', expectedVersions: ['abcd123', 'eeee456'] },
     { responseText: 'abcd123', expectedVersions: ['abcd123'] },
+    { responseText: '', expectedVersions: [] },
+    { responseText: '\n  \n', expectedVersions: [] },
   ] as {
     responseText: string;
     expectedVersions: string[];
