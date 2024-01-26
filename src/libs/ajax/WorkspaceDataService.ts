@@ -53,15 +53,12 @@ export interface WDSJob {
   updated: string;
 }
 
-// The source of truth of valid capabilities can be found in: https://github.com/DataBiosphere/terra-workspace-data-service/blob/main/service/src/main/resources/capabilities.json
-type KnownCapability =
-  | 'capabilities'
-  | 'dataimport.pfb'
-  | 'dataimport.tdrmanifest'
-  | 'edit.deleteAttribute'
-  | 'edit.renameAttribute';
-type UnknownCapability = string;
-export type Capability = KnownCapability | UnknownCapability;
+// The source of truth of available capabilities can be found in: https://github.com/DataBiosphere/terra-workspace-data-service/blob/main/service/src/main/resources/capabilities.json
+// This list should only contain capabilities actively required or supported by the UI.
+// If a capability is no longer necessary (because all live WDS instances now support it), it should be removed from this list.
+type SupportedCapability = 'capabilities';
+type UnusedCapability = string;
+export type Capability = SupportedCapability | UnusedCapability;
 
 // Capabilities is just a kvp map of capability name to boolean. The value is true if the capability is enabled, false otherwise.
 export type Capabilities = {
