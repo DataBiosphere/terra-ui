@@ -22,12 +22,12 @@ interface EntityQuery {
   filterTerms: string;
   filterOperator: EntityQueryFilterOperator;
 }
-interface EntityQueryResultMetadata {
+export interface EntityQueryResultMetadata {
   unfilteredCount: number;
   filteredCount: number;
   filteredPageCount: number;
 }
-interface Entity {
+export interface Entity {
   name: string;
   entityType: string;
   attributes: Record<string, any>;
