@@ -524,7 +524,7 @@ const DataTable = (props) => {
                         text: entityName,
                       }),
                       editable &&
-                        dataProvider.providerName !== wdsProviderName &&
+                        dataProvider.features.supportsEntityRenaming &&
                         h(EditDataLink, {
                           'aria-label': `Rename ${entityType} ${entityName}`,
                           onClick: () => setRenamingEntity(entityName),
@@ -555,26 +555,32 @@ const DataTable = (props) => {
                               renderSearch: !!googleProject,
                               searchByColumn: (v) => searchByColumn(attributeName, v),
                               extraActions: _.concat(
-                                editable && dataProvider.providerName !== wdsProviderName
-                                  ? [
-                                      // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
+                                editable
+                                  ? _.compact([
+                                      // settimeout 0 is needed to delay opening the modals until after the popup menu closes.
                                       // Without this, autofocus doesn't work in the modals.
-                                      {
-                                        label: 'Rename Column',
-                                        ...actionProps,
-                                        onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0),
-                                      },
-                                      {
-                                        label: 'Delete Column',
-                                        ...actionProps,
-                                        onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0),
-                                      },
-                                      {
-                                        label: 'Clear Column',
-                                        ...actionProps,
-                                        onClick: () => setTimeout(() => setClearingColumn(attributeName), 0),
-                                      },
-                                    ]
+                                      dataProvider.features.supportsAttributeRenaming
+                                        ? {
+                                            label: 'Rename Column',
+                                            ...actionProps,
+                                            onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0),
+                                          }
+                                        : null,
+                                      dataProvider.features.supportsAttributeDeleting
+                                        ? {
+                                            label: 'Delete Column',
+                                            ...actionProps,
+                                            onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0),
+                                          }
+                                        : null,
+                                      dataProvider.features.supportsAttributeClearing
+                                        ? {
+                                            label: 'Clear Column',
+                                            ...actionProps,
+                                            onClick: () => setTimeout(() => setClearingColumn(attributeName), 0),
+                                          }
+                                        : null,
+                                    ])
                                   : [],
                                 extraColumnActions ? extraColumnActions(attributeName) : []
                               ),
@@ -605,6 +611,7 @@ const DataTable = (props) => {
                       });
                       const editLink =
                         editable &&
+                        dataProvider.features.supportsEntityUpdating &&
                         h(EditDataLink, {
                           'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
                           'aria-haspopup': 'dialog',

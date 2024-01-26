@@ -29,10 +29,16 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
   name: string;
 
   features: DataTableFeatures = {
+    supportsCapabilities: false,
     supportsTsvDownload: true,
     supportsTsvAjaxDownload: false,
     supportsTypeDeletion: true,
     supportsTypeRenaming: true,
+    supportsEntityRenaming: true,
+    supportsEntityUpdating: true,
+    supportsAttributeRenaming: true,
+    supportsAttributeDeleting: true,
+    supportsAttributeClearing: true,
     supportsExport: true,
     supportsPointCorrection: true,
     supportsFiltering: true,
