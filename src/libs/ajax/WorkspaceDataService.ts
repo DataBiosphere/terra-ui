@@ -54,15 +54,15 @@ export interface WDSJob {
   updated: string;
 }
 
-// The source of truth of valid capabilities can be found in: https://github.com/DataBiosphere/terra-workspace-data-service/blob/main/service/src/main/resources/capabilities.json
-export type KnownCapability =
-  | 'capabilities'
-  | 'dataimport.pfb'
-  | 'dataimport.tdrmanifest'
-  | 'edit.deleteAttribute'
-  | 'edit.renameAttribute';
-export type UnknownCapability = string;
-export type Capability = KnownCapability | UnknownCapability;
+// The source of truth of available capabilities can be found in:
+// https://github.com/DataBiosphere/terra-workspace-data-service/blob/main/service/src/main/resources/capabilities.json
+// This list should only contain capabilities actively required or supported by the UI.
+// If a capability is no longer necessary (because all live WDS instances now support it),
+// care should be taken to prune the conditional logic that relies on the capability, and
+// then the capability should be removed.
+type SupportedCapability = 'capabilities';
+type UnusedCapability = string;
+export type Capability = SupportedCapability | UnusedCapability;
 
 // Capabilities is just a kvp map of capability name to boolean. The value is true if the capability is enabled, false otherwise.
 export type Capabilities = {
@@ -87,8 +87,18 @@ export const WorkspaceData = (signal) => ({
     return res.json();
   },
   getCapabilities: async (root: string): Promise<Capabilities> => {
-    const res = await fetchWDS(root)('capabilities/v1', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
-    return res.json();
+    return fetchWDS(root)('capabilities/v1', _.mergeAll([authOpts(), { signal, method: 'GET' }]))
+      .then(async (response) => {
+        const json = await response.json();
+        const capabilities: Capabilities = _.mapValues((value) => value === true, json);
+        return capabilities;
+      })
+      .catch((error) => {
+        if (error instanceof Response && error.status === 404) {
+          return { capabilities: false } as Capabilities;
+        }
+        throw error;
+      });
   },
   deleteTable: async (root: string, instanceId: string, recordType: string): Promise<Response> => {
     const res = await fetchWDS(root)(

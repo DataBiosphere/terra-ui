@@ -100,6 +100,7 @@ describe('WorkspaceData', () => {
       status,
     };
 
+    const mockGetCapabilities = jest.fn().mockResolvedValue({});
     const mockGetSchema = jest.fn().mockResolvedValue([]);
     const mockListAppsV2 = jest.fn().mockResolvedValue([listAppResponse]);
     const mockEntityMetadata = jest.fn().mockRejectedValue([]);
@@ -113,6 +114,7 @@ describe('WorkspaceData', () => {
         }),
       },
       WorkspaceData: {
+        getCapabilities: mockGetCapabilities,
         getSchema: mockGetSchema,
       },
       Apps: {

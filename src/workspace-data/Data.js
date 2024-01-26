@@ -714,16 +714,14 @@ export const WorkspaceData = _.flow(
     );
 
     const loadWdsCapabilities = useCallback(
-      (url) => {
-        return Ajax(signal)
-          .WorkspaceData.getCapabilities(url)
-          .then((capabilitiesResult) => {
-            setWdsCapabilities({ status: 'Ready', state: capabilitiesResult });
-          })
-          .catch((error) => {
-            setWdsCapabilities({ status: 'Error', state: 'Error loading WDS capabilities' });
-            reportError('Error loading WDS capabilities', error);
-          });
+      async (url) => {
+        try {
+          const capabilitiesResult = await Ajax(signal).WorkspaceData.getCapabilities(url);
+          setWdsCapabilities({ status: 'Ready', state: capabilitiesResult });
+        } catch (error) {
+          setWdsCapabilities({ status: 'Error', state: 'Error loading WDS capabilities' });
+          reportError('Error loading WDS capabilities', error);
+        }
       },
       [signal]
     );
