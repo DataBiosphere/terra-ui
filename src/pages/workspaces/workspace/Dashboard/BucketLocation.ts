@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useCallback, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { requesterPaysWrapper } from 'src/components/bucket-utils';
+import { isBucketErrorRequesterPays, requesterPaysWrapper } from 'src/components/bucket-utils';
 import { ButtonSecondary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { getRegionInfo } from 'src/components/region-common';
@@ -42,7 +42,7 @@ export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })((props
         .checkBucketLocation(googleProject, bucketName);
       setBucketLocation(response);
     } catch (error) {
-      if (error != null && typeof error === 'object' && 'requesterPaysError' in error) {
+      if (isBucketErrorRequesterPays(error)) {
         setNeedsRequesterPaysProject(true);
       } else {
         reportError('Unable to get bucket location.', error);
