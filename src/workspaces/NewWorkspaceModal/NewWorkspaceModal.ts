@@ -1,8 +1,9 @@
 import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode, useState } from 'react';
-import { div, h, label, p, strong } from 'react-hyperscript-helpers';
+import { div, h, label, p, span, strong } from 'react-hyperscript-helpers';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
+import { isBucketErrorRequesterPays } from 'src/components/bucket-utils';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import {
   ButtonPrimary,
@@ -138,6 +139,7 @@ const NewWorkspaceModal = withDisplayName(
     const [createError, setCreateError] = useState<string>();
     const [bucketLocation, setBucketLocation] = useState(defaultLocation);
     const [sourceWorkspaceLocation, setSourceWorkspaceLocation] = useState(defaultLocation);
+    const [requesterPaysError, setRequesterPaysError] = useState(false);
     const [isAlphaRegionalityUser, setIsAlphaRegionalityUser] = useState(false);
     const signal = useCancellation();
 
@@ -303,13 +305,21 @@ const NewWorkspaceModal = withDisplayName(
               // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
               setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation);
               setSourceWorkspaceLocation(location);
+            })
+            .catch((error) => {
+              if (isBucketErrorRequesterPays(error)) {
+                setRequesterPaysError(true);
+              } else {
+                throw error;
+              }
             }),
       ])
     );
 
-    const shouldShowDifferentRegionWarning = () => {
-      return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation;
-    };
+    const shouldShowDifferentRegionWarning =
+      !!cloneWorkspace && !requesterPaysError && bucketLocation !== sourceWorkspaceLocation;
+
+    const cloningRequesterPaysWorkspace = !!cloneWorkspace && requesterPaysError;
 
     const isAzureBillingProject = (project?: BillingProject): project is AzureBillingProject =>
       isCloudProviderBillingProject(project, 'AZURE');
@@ -541,18 +551,23 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
-                    shouldShowDifferentRegionWarning() &&
+                    !!namespace &&
+                      (shouldShowDifferentRegionWarning || cloningRequesterPaysWorkspace) &&
                       div({ style: { ...warningStyle } }, [
                         icon('warning-standard', {
                           size: 24,
                           style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
                         }),
                         div({ style: { flex: 1 } }, [
-                          'Copying data from ',
-                          strong([getRegionInfo(sourceWorkspaceLocation, sourceLocationType).regionDescription]),
-                          ' to ',
-                          strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
-                          ' may incur network egress charges. ',
+                          cloningRequesterPaysWorkspace
+                            ? span(['Copying data may incur network egress charges. '])
+                            : span([
+                                'Copying data from ',
+                                strong([getRegionInfo(sourceWorkspaceLocation, sourceLocationType).regionDescription]),
+                                ' to ',
+                                strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
+                                ' may incur network egress charges. ',
+                              ]),
                           'To prevent charges, the new bucket location needs to stay in the same region as the original one. ',
                           h(
                             Link,
