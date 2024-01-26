@@ -5,7 +5,7 @@ import { Fragment } from 'react';
 import { div, h, iframe } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
 
-export const styles = {
+export const getStyles = (colors) => ({
   htmlFrame: {
     width: '100%',
     border: Style.standardLine,
@@ -15,16 +15,18 @@ export const styles = {
   },
   jsonFrame: {
     padding: '0.5rem',
+    backgroundColor: colors.light(),
     whiteSpace: 'pre-wrap',
     overflow: 'auto',
     overflowWrap: 'break-word',
     fontFamily: 'Menlo, monospace',
     maxHeight: 400,
   },
-};
+});
 
 const ErrorView = ({ error }) => {
   const { colors } = useThemeFromContext();
+  const styles = getStyles(colors);
 
   return div({ style: { marginTop: '1rem' } }, [
     cond(
@@ -46,7 +48,7 @@ const ErrorView = ({ error }) => {
                 return h(Fragment, [
                   json.message && div({ style: { marginBottom: '1rem' } }, [json.message]),
                   div({ style: { fontWeight: 600, marginBottom: '0.5rem' } }, ['Full error:']),
-                  div({ style: { ...styles.jsonFrame, backgroundColor: colors.light() } }, [JSON.stringify(json, null, 2)]),
+                  div({ style: styles.jsonFrame }, [JSON.stringify(json, null, 2)]),
                 ]);
               },
             ],
