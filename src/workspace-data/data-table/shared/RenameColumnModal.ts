@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { Fragment, ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common';
 import { ValidatedInput } from 'src/components/input';
@@ -10,10 +10,21 @@ import * as Utils from 'src/libs/utils';
 import { isGoogleWorkspace } from 'src/libs/workspace-utils';
 import validate from 'validate.js';
 
-export const RenameColumnModal = ({ onDismiss, onSuccess, workspace, entityType, attributeNames, oldAttributeName, dataProvider }) => {
+export type RenameColumnModalProps = {
+  onDismiss: () => void;
+  onSuccess: () => void;
+  workspace: any;
+  entityType: string;
+  attributeNames: string[];
+  oldAttributeName: string;
+  dataProvider: any;
+};
+
+export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
   // State
   const [newAttributeName, setNewAttributeName] = useState('');
   const [isBusy, setIsBusy] = useState(false);
+  const { onDismiss, onSuccess, workspace, entityType, attributeNames, oldAttributeName, dataProvider } = props;
 
   // TODO is there a difference between GCP and azure?
   //  Composed of only letters, numbers, underscores, or dashes; regex match "[A-z0-9_-]+"
@@ -76,7 +87,7 @@ export const RenameColumnModal = ({ onDismiss, onSuccess, workspace, entityType,
       h(IdContainer, [
         (id) =>
           h(Fragment, [
-            div('Workflow configurations that reference the current column name will need to be updated manually.'),
+            div(['Workflow configurations that reference the current column name will need to be updated manually.']),
             h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
             h(ValidatedInput, {
               inputProps: {
