@@ -103,9 +103,6 @@ describe('WorkspaceData', () => {
       const { wdsProxyUrl } = setup({
         stubbedCapabilitiesResponse: Promise.reject(new Response('{ "message": "Not found"}', { status: 404 })),
       });
-      // this scenario logs a message indicating that capabilities aren't enabled; this should not
-      // appear in test output
-      jest.spyOn(console, 'log').mockImplementation(() => {});
 
       // Act
       const capabilities = await Ajax().WorkspaceData.getCapabilities(wdsProxyUrl);

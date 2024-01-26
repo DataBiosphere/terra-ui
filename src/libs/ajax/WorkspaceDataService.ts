@@ -91,7 +91,6 @@ export const WorkspaceData = (signal) => ({
       })
       .catch((error) => {
         if (error instanceof Response && error.status === 404) {
-          console.log("WDS doesn't support capabilities endpoint"); // eslint-disable-line no-console
           return { capabilities: false } as Capabilities;
         }
         throw error;
