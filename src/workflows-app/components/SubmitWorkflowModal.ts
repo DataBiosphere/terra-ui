@@ -5,7 +5,7 @@ import { div, h, span } from 'react-hyperscript-helpers';
 import { generateAppName, getCurrentApp } from 'src/analysis/utils/app-utils';
 import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary } from 'src/components/common';
-import { styles as errorStyles } from 'src/components/ErrorView';
+import { getStyles as getErrorStyles } from 'src/components/ErrorView';
 import { icon } from 'src/components/icons';
 import { TextArea, TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
@@ -66,7 +66,7 @@ export const SubmitWorkflowModal = ({
   const canSubmit = canCompute;
 
   const { colors } = useThemeFromContext();
-
+  const errorStyles = getErrorStyles(colors);
   const submitRun = async () => {
     const runSetsPayload = {
       run_set_name: runSetName,
@@ -198,12 +198,7 @@ export const SubmitWorkflowModal = ({
             ]),
             div(
               {
-                style: {
-                  ...(errorStyles.jsonFrame as CSSProperties),
-                  backgroundColor: colors.light(),
-                  overflowY: 'scroll',
-                  maxHeight: 160,
-                },
+                style: { ...(errorStyles.jsonFrame as CSSProperties), overflowY: 'scroll', maxHeight: 160 },
                 'aria-label': 'Modal submission error',
               },
               [workflowSubmissionError]

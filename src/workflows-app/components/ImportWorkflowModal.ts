@@ -2,7 +2,7 @@ import { useThemeFromContext } from '@terra-ui-packages/components';
 import { CSSProperties } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common';
-import { styles as errorStyles } from 'src/components/ErrorView';
+import { getStyles as getErrorStyles } from 'src/components/ErrorView';
 import { centeredSpinner, icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import * as Nav from 'src/libs/nav';
@@ -33,6 +33,7 @@ export const ImportWorkflowModal = ({
   errorMessage,
 }: ImportWorkflowModalProps) => {
   const { colors } = useThemeFromContext();
+  const errorStyles = getErrorStyles(colors);
   const successBody = () => {
     return div({}, [
       div({ style: { paddingBottom: '1.5rem', display: 'flex', flex: 'none' } }, [
@@ -104,12 +105,7 @@ export const ImportWorkflowModal = ({
       ]),
       div(
         {
-          style: {
-            ...(errorStyles.jsonFrame as CSSProperties),
-            backgroundColor: colors.light(),
-            overflowY: 'scroll',
-            maxHeight: 150,
-          },
+          style: { ...(errorStyles.jsonFrame as CSSProperties), overflowY: 'scroll', maxHeight: 150 },
         },
         [errorMessage]
       ),
