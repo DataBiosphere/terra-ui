@@ -223,7 +223,8 @@ export const GcpComputeModalBase = ({
 }) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
+  const loading = _loading || isLoadingCloudEnvironments;
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(currentRuntime);
   const [currentPersistentDiskDetails, setCurrentPersistentDiskDetails] = useState(currentDisk);
   const [viewMode, setViewMode] = useState(undefined);
@@ -841,7 +842,7 @@ export const GcpComputeModalBase = ({
     const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig();
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig();
     const commonButtonProps = Utils.cond(
-      [isLoadingCloudEnvironments, () => ({ disabled: true, tooltip: 'Loading cloud environments' })],
+      [loading, () => ({ disabled: true, tooltip: 'Loading cloud environments' })],
       [
         hasGpu && viewMode !== 'deleteEnvironment',
         () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' }),
@@ -1739,7 +1740,7 @@ export const GcpComputeModalBase = ({
       ],
       [Utils.DEFAULT, renderMainForm]
     ),
-    (loading || isLoadingCloudEnvironments) && spinnerOverlay,
+    loading && spinnerOverlay,
     showDebugPanel && renderDebugger(),
   ]);
 };
