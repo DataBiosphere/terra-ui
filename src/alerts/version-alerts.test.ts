@@ -48,9 +48,15 @@ describe('useVersionAlerts', () => {
 });
 
 describe('getBadVersions', () => {
-  it('parses list of bad versions from firecloud-alerts bucket', async () => {
+  it.each([
+    { responseText: '# broken\nabcd123 \neeee456\n\n', expectedVersions: ['abcd123', 'eeee456'] },
+    { responseText: 'abcd123', expectedVersions: ['abcd123'] },
+  ] as {
+    responseText: string;
+    expectedVersions: string[];
+  }[])('parses list of bad versions from firecloud-alerts bucket', async ({ responseText, expectedVersions }) => {
     // Arrange
-    const ajaxGetBadVersions = jest.fn().mockResolvedValue('# broken\nabcd123 \neeee456\n\n');
+    const ajaxGetBadVersions = jest.fn().mockResolvedValue(responseText);
     asMockedFn(Ajax).mockReturnValue({
       FirecloudBucket: { getBadVersions: ajaxGetBadVersions },
     } as DeepPartial<AjaxContract> as AjaxContract);
@@ -60,7 +66,7 @@ describe('getBadVersions', () => {
 
     // Assert
     expect(ajaxGetBadVersions).toHaveBeenCalled();
-    expect(badVersions).toEqual(['abcd123', 'eeee456']);
+    expect(badVersions).toEqual(expectedVersions);
   });
 
   it('returns empty list if bad versions file does not exist', async () => {
