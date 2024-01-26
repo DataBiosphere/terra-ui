@@ -1,6 +1,5 @@
 import { Fragment, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { wdsToEntityServiceMetadata } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 
 import DataTable from '../shared/DataTable';
@@ -18,7 +17,7 @@ const WDSContent = ({
   const [refreshKey] = useState(0);
 
   // Render
-  const [entityMetadata, setEntityMetadata] = useState(() => wdsToEntityServiceMetadata(wdsSchema));
+  const [entityMetadata, setEntityMetadata] = useState(() => wdsSchema);
 
   const id = workspace.workspace.workspaceId;
   // dataProvider contains the proxyUrl for an instance of WDS
