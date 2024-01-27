@@ -48,13 +48,14 @@ interface ProjectCost {
   spend: string;
   compute: string;
   storage: string;
+  workspaceinfrastructure: string;
   other: string;
 }
 // End of interfaces for internal storage of data
 
 // Interfaces for dealing with the server SpendReport JSON response
 interface CategorySpendData {
-  category: 'Compute' | 'Storage' | 'Other';
+  category: 'Compute' | 'Storage' | 'WorkspaceInfrastructure' | 'Other';
   cost: string;
   credits: string;
   currency: string;
@@ -183,6 +184,13 @@ export const SpendReport = (props: SpendReportProps) => {
 
   const isProjectCostReady = projectCost !== null;
 
+  const azureCategoryCardCaptionMap = new Map([
+    ['spend', 'spend'],
+    ['workspaceinfrastructure', 'workspace infrastructure'],
+    ['compute', 'analysis compute'],
+    ['storage', 'workspace storage'],
+  ]);
+
   useEffect(() => {
     const maybeLoadProjectCost = async () => {
       if (!updatingProjectCost && !errorMessage && projectCost === null && props.viewSelected) {
@@ -205,22 +213,29 @@ export const SpendReport = (props: SpendReportProps) => {
           spend.spendDetails
         ) as AggregatedCategorySpendData;
         console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category');
-        const getCategoryCosts = (
-          categorySpendData: CategorySpendData[]
-        ): { compute: number; storage: number; other: number } => {
-          return {
-            compute: parseFloat(_.find(['category', 'Compute'], categorySpendData)?.cost ?? '0'),
-            storage: parseFloat(_.find(['category', 'Storage'], categorySpendData)?.cost ?? '0'),
-            other: parseFloat(_.find(['category', 'Other'], categorySpendData)?.cost ?? '0'),
-          };
+        const extractCategorizedCostItem = (category: string, categorySpendData: CategorySpendData[]) => {
+          return parseFloat(_.find(['category', category], categorySpendData)?.cost ?? '0');
+        };
+        const getCategoryCosts = (categorySpendData: CategorySpendData[]): Map<string, number> => {
+          const categoryCosts = new Map();
+          categoryCosts.set('compute', extractCategorizedCostItem('Compute', categorySpendData));
+          categoryCosts.set('storage', extractCategorizedCostItem('Storage', categorySpendData));
+          categoryCosts.set('other', extractCategorizedCostItem('Other', categorySpendData));
+          if (props.cloudPlatform !== 'GCP') {
+            categoryCosts.set(
+              'workspaceinfrastructure',
+              extractCategorizedCostItem('WorkspaceInfrastructure', categorySpendData)
+            );
+          }
+          return categoryCosts;
         };
         const costDict = getCategoryCosts(categoryDetails.spendData);
-
         setProjectCost({
           spend: costFormatter.format(parseFloat(spend.spendSummary.cost)),
-          compute: costFormatter.format(costDict.compute),
-          storage: costFormatter.format(costDict.storage),
-          other: costFormatter.format(costDict.other),
+          compute: costFormatter.format(costDict.get('compute')),
+          storage: costFormatter.format(costDict.get('storage')),
+          workspaceinfrastructure: costFormatter.format(costDict.get('workspaceinfrastructure')),
+          other: costFormatter.format(costDict.get('other')),
         });
 
         if (includePerWorkspaceCosts) {
@@ -257,9 +272,9 @@ export const SpendReport = (props: SpendReportProps) => {
               'Workspace spend report details do not include sub-aggregation by Category'
             );
             const costDict = getCategoryCosts(categoryDetails.spendData);
-            costPerWorkspace.computeCosts.push(costDict.compute);
-            costPerWorkspace.storageCosts.push(costDict.storage);
-            costPerWorkspace.otherCosts.push(costDict.other);
+            costPerWorkspace.computeCosts.push(costDict.get('compute'));
+            costPerWorkspace.storageCosts.push(costDict.get('storage'));
+            costPerWorkspace.otherCosts.push(costDict.get('other'));
           }, mostExpensiveWorkspaces);
           setCostPerWorkspace(costPerWorkspace);
         }
@@ -287,7 +302,7 @@ export const SpendReport = (props: SpendReportProps) => {
         {
           style: {
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))',
+            gridTemplateColumns: `repeat(${props.cloudPlatform === 'GCP' ? 3 : 4}, minmax(max-content, 1fr))`,
             rowGap: '1.66rem',
             columnGap: '1.25rem',
           },
@@ -324,12 +339,14 @@ export const SpendReport = (props: SpendReportProps) => {
             (name) =>
               h(CostCard, {
                 type: name,
-                title: `Total ${name}`,
+                title: `Total ${props.cloudPlatform === 'GCP' ? name : azureCategoryCardCaptionMap.get(name)}`,
                 amount: !isProjectCostReady ? '...' : projectCost[name],
                 isProjectCostReady,
                 showAsterisk: name === 'spend',
               }),
-            ['spend', 'compute', 'storage']
+            props.cloudPlatform === 'GCP'
+              ? ['spend', 'compute', 'storage']
+              : ['spend', 'workspaceinfrastructure', 'compute', 'storage']
           ),
         ]
       ),
