@@ -404,8 +404,8 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
 
   // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
   await billingPage.assertText('Total spend$1,110.17');
-  await billingPage.assertText('Total compute$999.00');
-  await billingPage.assertText('Total storage$22.00');
+  await billingPage.assertText('Total analysis compute$999.00');
+  await billingPage.assertText('Total workspace storage$22.00');
   await billingPage.assertText('Total workspace infrastructure$11.00');
   await billingPage.assertText(
     'Total spend includes $89.00 in other infrastructure or query costs related to the general operations of Terra. See our documentation to learn more about Azure costs.'
