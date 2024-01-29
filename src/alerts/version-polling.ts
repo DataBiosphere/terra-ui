@@ -4,7 +4,7 @@ import { getBadVersions, getLatestVersion, versionStore } from './version-alerts
 
 export const VERSION_POLLING_INTERVAL = 15 * 60 * 1000; // 15 minutes
 
-export const FORCED_UPDATE_DELAY = 2 * 60 * 1000; // 2 minutes
+export const FORCED_UPDATE_DELAY = 10 * 60 * 1000; // 10 minutes
 
 export const checkVersion = withErrorIgnoring(async (): Promise<void> => {
   const { currentVersion } = versionStore.get();
