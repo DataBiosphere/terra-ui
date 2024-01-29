@@ -174,6 +174,22 @@ describe('ConceptSearch', () => {
     expect(await screen.findByText('Dis')).toBeTruthy();
   });
 
+  it('testing HighlightConceptName, Checking that spaces still exist on both sides', async () => {
+    renderSearch('by');
+    const byText = await screen.findAllByText('by');
+    const filterByText = _.filter(
+      (element) => element.tagName === 'DIV' && element.style.fontWeight === '600',
+      byText
+    ).length;
+    expect(filterByText).toBe(1);
+
+    const disorderText = await screen.findByText('Disorder');
+    expect(disorderText.innerHTML).toBe('Disorder ');
+
+    const byBodySiteText = await screen.findByText('body site');
+    expect(byBodySiteText.innerHTML).toBe(' body site');
+  });
+
   it('loads the page with the initial cart', async () => {
     // Arrange
     renderSearch('', [displayedConcepts[0]]);
