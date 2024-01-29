@@ -49,15 +49,15 @@ const wrapContent =
 // _.map(contents -> ({ contents, depth: 0, isFetched: false, state: ‘closed’ }), initialRows)
 // _.map(contents -> ({ contents, depth: ????, isFetched: ????, state: ???? }), initialRows)
 
-type TreeGridRowInformation<T extends RowContents> =
-  | {
-      initialRows: T[];
-      shouldWrap: true;
-    }
-  | {
-      initialRows: Row<T>[];
-      shouldWrap: false;
-    };
+// type TreeGridRowInformation<T extends RowContents> =
+//   | {
+//       initialRows: T[];
+//       shouldWrap: true;
+//     }
+//   | {
+//       initialRows: Row<T>[];
+//       shouldWrap: false;
+//     };
 
 type TreeGridProps<T extends RowContents> = {
   /** the columns to display */
@@ -66,13 +66,13 @@ type TreeGridProps<T extends RowContents> = {
 
   /** Given a row, return its children. This is only called if row.hasChildren is true. */
   readonly getChildren: (row: T) => Promise<T[]>;
+  readonly initialRows: T[];
+};
 
-  readonly onOpenHierarchy: boolean;
-} & TreeGridRowInformation<T>;
+// & TreeGridRowInformation<T>;
 
 type TreeGridPropsInner<T extends RowContents> = TreeGridProps<T> & {
   readonly gridWidth: number;
-  readonly onOpenHierarchy: boolean;
 };
 
 function getVisibleRows<T extends RowContents>(allRows: Row<T>[]) {
@@ -101,9 +101,9 @@ const getRowIndex = <T extends RowContents>(row: Row<T>, rows: Row<T>[]) =>
 
 const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
   // update customWrapper to each props
-  const { columns, initialRows, getChildren, gridWidth, shouldWrap } = props;
-  // const [data, setData] = useState(onOpenHierarchy ? wrapHierarchy(initialRows) : _.map(wrapContent(0), initialRows));
-  const [data, setData] = useState(shouldWrap ? _.map(wrapContent(0), initialRows) : initialRows);
+  const { columns, initialRows, getChildren, gridWidth } = props;
+  const [data, setData] = useState(_.map(wrapContent(0), initialRows));
+  // const [data, setData] = useState(shouldWrap ? _.map(wrapContent(0), initialRows) : initialRows);
   const rowHeight = 40;
   const expand = async (row: Row<T>) => {
     const index = getRowIndex(row, data);
@@ -193,7 +193,7 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
  * computed as the number of rows times the row height.
  */
 export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
-  const { columns, onOpenHierarchy } = props;
+  const { columns } = props;
   const gridWidth = _.sum(_.map((c) => c.width, columns));
   return div([
     // generate a header row
@@ -224,6 +224,6 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
         ),
       ]
     ),
-    h(TreeGridInner<T>, { ...props, gridWidth, onOpenHierarchy }),
+    h(TreeGridInner<T>, { ...props, gridWidth }),
   ]);
 };
