@@ -1,7 +1,7 @@
 import { asMockedFn, withFakeTimers } from '@terra-ui-packages/test-utils';
 
 import { getBadVersions, getLatestVersion, versionStore } from './version-alerts';
-import { checkVersion, startPollingVersion, VERSION_POLLING_INTERVAL } from './version-polling';
+import { checkVersion, FORCED_UPDATE_DELAY, startPollingVersion, VERSION_POLLING_INTERVAL } from './version-polling';
 
 type VersionAlertsExports = typeof import('./version-alerts');
 jest.mock(
@@ -48,7 +48,8 @@ describe('checkVersion', () => {
       'sets update required time if current version is bad',
       withFakeTimers(async () => {
         // Arrange
-        jest.setSystemTime(1702396702141);
+        const initialTime = 1706504400000;
+        jest.setSystemTime(initialTime);
         asMockedFn(getBadVersions).mockResolvedValue(['abcd123']);
 
         // Act
@@ -56,7 +57,7 @@ describe('checkVersion', () => {
 
         // Assert
         const { updateRequiredBy } = versionStore.get();
-        expect(updateRequiredBy).toBe(1702396822141);
+        expect(updateRequiredBy).toBe(initialTime + FORCED_UPDATE_DELAY);
       })
     );
   });

@@ -119,25 +119,27 @@ describe('useTimeUntilRequiredUpdate', () => {
     'returns time until required update',
     withFakeTimers(() => {
       // Arrange
+      const initialTime = 1706504400000;
+      const timeUntilUpdateInSeconds = 60;
       versionStore.set({
         currentVersion: 'abcd123',
         latestVersion: '1234567',
-        updateRequiredBy: 1702396702141,
+        updateRequiredBy: initialTime + timeUntilUpdateInSeconds * 1000,
       });
 
-      jest.setSystemTime(1702396642141);
+      jest.setSystemTime(initialTime);
 
       // Act
       const { result: hookReturnRef } = renderHook(() => useTimeUntilRequiredUpdate());
 
       // Assert
-      expect(hookReturnRef.current).toBe(60);
+      expect(hookReturnRef.current).toBe(timeUntilUpdateInSeconds);
 
       // Act
-      act(() => jest.advanceTimersByTime(30000));
+      act(() => jest.advanceTimersByTime((timeUntilUpdateInSeconds / 2) * 1000));
 
       // Assert
-      expect(hookReturnRef.current).toBe(30);
+      expect(hookReturnRef.current).toBe(timeUntilUpdateInSeconds / 2);
     })
   );
 
@@ -145,17 +147,19 @@ describe('useTimeUntilRequiredUpdate', () => {
     'reloads browser when time until required update elapses',
     withFakeTimers(() => {
       // Arrange
+      const initialTime = 1706504400000;
+      const timeUntilUpdate = 60000;
       versionStore.set({
         currentVersion: 'abcd123',
         latestVersion: '1234567',
-        updateRequiredBy: 1702396702141,
+        updateRequiredBy: initialTime + timeUntilUpdate,
       });
 
-      jest.setSystemTime(1702396642141);
+      jest.setSystemTime(initialTime);
 
       // Act
       renderHook(() => useTimeUntilRequiredUpdate());
-      act(() => jest.advanceTimersByTime(60000));
+      act(() => jest.advanceTimersByTime(timeUntilUpdate));
 
       // Assert
       expect(window.location.reload).toHaveBeenCalled();
