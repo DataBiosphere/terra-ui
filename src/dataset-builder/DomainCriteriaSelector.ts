@@ -6,6 +6,7 @@ import {
   GetConceptsHierarchyMapResponse,
   GetConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
+import { getRenderArray } from 'src/dataset-builder/TestConstants';
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
@@ -54,9 +55,10 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
     }
   });
 
+  // change InitialRows --> Concept[] || Row<Concept>[]
   return rootConcepts.status === 'Ready'
     ? h(ConceptSelector, {
-        initialRows: rootConcepts.state.result, // call an API instead that will get
+        initialRows: rootConcepts.state.result,
         title: state.domainOption.category,
         initialCart: state.cart,
         onCancel: () => onStateChange(state.cancelState),
@@ -75,7 +77,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
       })
     : hierarchyConcepts.status === 'Ready'
     ? h(ConceptSelector, {
-        initialRows: [], // call an API instead that will get
+        initialRows: getRenderArray(hierarchyConcepts.state.result), // call an API instead that will get
         title: state.domainOption.category,
         initialCart: state.cart,
         onCancel: () => onStateChange(state.cancelState),
