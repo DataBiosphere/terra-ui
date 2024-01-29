@@ -1,18 +1,16 @@
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { isResourceDeletable } from 'src/analysis/utils/resource-utils';
 import { getDisplayRuntimeStatus } from 'src/analysis/utils/runtime-utils';
-import { cromwellAppToolLabels } from 'src/analysis/utils/tool-utils';
 import { Link } from 'src/components/common';
 import { makeMenuIcon } from 'src/components/PopupTrigger';
-import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
+import { isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoRuntimeStatus } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
 
-import { DecoratedComputeResource, LeoResourcePermissionsProvider } from './Environments.models';
+import { DecoratedComputeResource, PermissionsAndStateProvider } from './Environments.models';
 
-type DeletePermissionsProvider = Pick<LeoResourcePermissionsProvider, 'canDeleteApp'>;
+type DeletePermissionsProvider = Pick<PermissionsAndStateProvider, 'canDeleteApp' | 'canDeleteResource'>;
 
 export interface DeleteButtonProps {
   resource: DecoratedComputeResource;
@@ -23,9 +21,8 @@ export interface DeleteButtonProps {
 export const DeleteButton = (props: DeleteButtonProps): ReactNode => {
   const { resource, permissions, onClick } = props;
   const resourceType = isApp(resource) ? 'app' : 'runtime';
-  // Casting resource to type App to access the appType property
-  const castToApp = resource as App;
-  const isDeletable = isResourceDeletable(resourceType, resource) && permissions.canDeleteApp(resource);
+  const isDeletable =
+    resourceType === 'app' ? permissions.canDeleteApp(resource) : permissions.canDeleteResource(resourceType, resource);
 
   return h(
     Link,
@@ -33,7 +30,7 @@ export const DeleteButton = (props: DeleteButtonProps): ReactNode => {
       disabled: !isDeletable,
       tooltip: Utils.cond(
         [isDeletable, () => 'Delete cloud environment'],
-        [Object.keys(cromwellAppToolLabels).includes(castToApp.appType), () => 'Deleting not yet supported'],
+        [!permissions.canDeleteApp(resource), () => 'Deleting not yet supported'],
         [
           Utils.DEFAULT,
           () =>

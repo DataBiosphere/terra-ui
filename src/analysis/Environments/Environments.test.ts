@@ -22,11 +22,12 @@ import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvide
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { makeCompleteDate } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { stateAndPermissionsProvider } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { EnvironmentNavActions, Environments, EnvironmentsProps } from './Environments';
-import { LeoResourcePermissionsProvider } from './Environments.models';
+import { PermissionsAndStateProvider } from './Environments.models';
 
 jest.mock('src/libs/notifications', () => ({
   notify: jest.fn(),
@@ -36,10 +37,11 @@ const mockNav: NavLinkProvider<EnvironmentNavActions> = {
   getUrl: jest.fn().mockReturnValue('/'),
   navTo: jest.fn(),
 };
-const mockPermissions: LeoResourcePermissionsProvider = {
+const mockPermissions: PermissionsAndStateProvider = {
   canDeleteDisk: jest.fn(),
   canPauseResource: jest.fn(),
   canDeleteApp: jest.fn(),
+  canDeleteResource: jest.fn(),
 };
 
 const defaultUseWorkspacesProps = {
@@ -85,6 +87,7 @@ const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): Envi
   asMockedFn(mockPermissions.canDeleteDisk).mockReturnValue(true);
   asMockedFn(mockPermissions.canPauseResource).mockReturnValue(true);
   asMockedFn(mockPermissions.canDeleteApp).mockReturnValue(true);
+  asMockedFn(mockPermissions.canDeleteResource).mockReturnValue(true);
 
   const defaultProps: EnvironmentsProps = {
     nav: mockNav,
@@ -539,6 +542,7 @@ describe('Environments', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace, azureWorkspace2],
       });
+      props.permissions = stateAndPermissionsProvider;
 
       // Act
       await act(async () => {
@@ -549,11 +553,11 @@ describe('Environments', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstAppRow: HTMLElement = tableRows[0];
       const actionColumnButton1 = within(firstAppRow).getByRole('button', { name: 'Delete' });
+      screen.logTestingPlaygroundURL();
       expect(actionColumnButton1).not.toHaveAttribute('disabled');
 
       const secondAppRow: HTMLElement = tableRows[1];
       const actionColumnButton2 = within(secondAppRow).getByRole('button', { name: 'Delete' });
-      screen.debug(undefined, 300000);
       expect(actionColumnButton2).toHaveAttribute('disabled');
 
       const thirdAppRow: HTMLElement = tableRows[2];
