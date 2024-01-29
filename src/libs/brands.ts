@@ -66,17 +66,19 @@ export interface BrandConfiguration {
 
   landingPageCards?: {
     /** Card link */
-    link: {
-      path: string;
-      params?: object;
-      query?: object;
-    };
+    link: string;
 
     /** Card title */
     title: string;
 
     /** Card body */
     body: string;
+
+    /** Card link pathParams */
+    linkPathParams?: object;
+
+    /** Card link queryParams */
+    linkQueryParams?: object;
   }[];
 
   /** Optionally filter which datasets show up in the Data Catalog */
@@ -86,25 +88,19 @@ export interface BrandConfiguration {
   theme: Theme;
 }
 
-const landingPageCardsDefault = [
+export const landingPageCardsDefault = [
   {
-    link: {
-      path: 'workspaces',
-    },
+    link: 'workspaces',
     title: 'View Workspaces',
     body: 'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
   },
   {
-    link: {
-      path: 'library-showcase',
-    },
+    link: 'library-showcase',
     title: 'View Examples',
     body: 'Browse our gallery of showcase Workspaces to see how science gets done.',
   },
   {
-    link: {
-      path: 'library-datasets',
-    },
+    link: 'library-datasets',
     title: 'Browse Data',
     body: 'Access data from a rich ecosystem of data portals.',
   },
@@ -145,7 +141,6 @@ export const brands: Record<string, BrandConfiguration> = {
       color: analytixinLogo,
       white: analytixinLogoWhite,
     },
-    landingPageCards: landingPageCardsDefault,
     theme: {
       colorPalette: {
         ...baseColors,
@@ -174,7 +169,6 @@ export const brands: Record<string, BrandConfiguration> = {
       color: anvilLogo,
       white: anvilLogoWhite,
     },
-    landingPageCards: landingPageCardsDefault,
     theme: {
       colorPalette: { ...baseColors, primary: '#e0dd10', accent: '#035c94', light: '#f6f7f4', dark: '#012840' },
     },
@@ -196,7 +190,6 @@ export const brands: Record<string, BrandConfiguration> = {
       color: baselineLogo,
       white: baselineLogoWhite,
     },
-    landingPageCards: landingPageCardsDefault,
     theme: {
       colorPalette: { ...baseColors, primary: '#c41061', secondary: '#31164c', light: '#f6f7f4', dark: '#012840' },
     },
@@ -218,7 +211,6 @@ export const brands: Record<string, BrandConfiguration> = {
       color: bioDataCatalystLogo,
       white: bioDataCatalystLogoWhite,
     },
-    landingPageCards: landingPageCardsDefault,
     theme: {
       colorPalette: {
         ...baseColors,
@@ -247,7 +239,6 @@ export const brands: Record<string, BrandConfiguration> = {
       color: datastageLogo,
       white: datastageLogoWhite,
     },
-    landingPageCards: landingPageCardsDefault,
     theme: {
       colorPalette: {
         ...baseColors,
@@ -276,7 +267,6 @@ export const brands: Record<string, BrandConfiguration> = {
       color: elwaziLogo,
       white: elwaziLogoWhite,
     },
-    landingPageCards: landingPageCardsDefault,
     theme: {
       colorPalette: {
         ...baseColors,
@@ -313,7 +303,6 @@ export const brands: Record<string, BrandConfiguration> = {
       color: fcLogo,
       white: fcLogoWhite,
     },
-    landingPageCards: landingPageCardsDefault,
     theme: {
       colorPalette: { ...baseColors, primary: '#4d72aa' },
     },
@@ -335,7 +324,6 @@ export const brands: Record<string, BrandConfiguration> = {
       color: projectSingularLogo,
       white: projectSingularLogoWhite,
     },
-    landingPageCards: landingPageCardsDefault,
     theme: {
       colorPalette: { ...baseColors, primary: '#521b93', secondary: '#011c48', accent: '#521b93' },
     },
@@ -372,20 +360,16 @@ export const brands: Record<string, BrandConfiguration> = {
     landingPageBackground: publicHealthBackground,
     landingPageCards: [
       {
-        link: {
-          path: 'workspaces',
-        },
+        link: 'workspaces',
         title: 'My Workspaces',
         body: 'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
       },
       {
-        link: {
-          path: 'workspaces',
-          params: {},
-          query: { tab: 'public', 'tagsFilter[]': 'pathogen genomics' },
-        },
+        link: 'workspaces',
         title: 'Examples',
         body: 'Browse example pathogen genomic data and analysis tools together.',
+        linkPathParams: {},
+        linkQueryParams: { tab: 'public', 'tagsFilter[]': 'pathogen genomics' },
       },
     ],
     theme: {
@@ -423,7 +407,6 @@ export const brands: Record<string, BrandConfiguration> = {
       color: rareXLogo,
       white: rareXLogoWhite,
     },
-    landingPageCards: landingPageCardsDefault,
     theme: {
       colorPalette: {
         ...baseColors,
@@ -457,7 +440,6 @@ export const brands: Record<string, BrandConfiguration> = {
       white: terraLogoWhite,
       shadow: terraLogoShadow,
     },
-    landingPageCards: landingPageCardsDefault,
     theme: {
       colorPalette: { ...baseColors },
     },
