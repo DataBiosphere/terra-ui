@@ -8,7 +8,6 @@ import hexButton from 'src/images/hex-button.svg';
 import terraHero from 'src/images/terra-hero.png';
 import { Ajax } from 'src/libs/ajax';
 import { getEnabledBrand, isFirecloud, isTerra } from 'src/libs/brand-utils';
-import { landingPageCardsDefault } from 'src/libs/brands';
 import colors from 'src/libs/colors';
 import { withErrorHandling } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -52,11 +51,12 @@ const makeRightArrowWithBackgroundIcon = () =>
     [icon('arrowRight', { color: 'white' })]
   );
 
-const makeCard = _.map(({ link, title, body, linkPathParams, linkQueryParams }) =>
+const makeCards = _.map(({ link, title, body }) =>
   h(
     Clickable,
     {
-      href: Nav.getLink(link, linkPathParams, linkQueryParams),
+      key: title,
+      href: Nav.getLink(link.path, link.params, link.query),
       style: { ...Style.elements.card.container, ...styles.card },
       hover: { boxShadow: '0 3px 7px 0 rgba(0,0,0,0.5), 0 5px 3px 0 rgba(0,0,0,0.2)' },
     },
@@ -135,7 +135,7 @@ export const LandingPage = () => {
       ),
     // width is set to prevent text from overlapping the background image and decreasing legibility
     div({ style: { maxWidth: 'calc(100% - 460px)' } }, makeDocLinks(getEnabledBrand().docLinks)),
-    div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, makeCard(getEnabledBrand().landingPageCards || landingPageCardsDefault)),
+    div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, [makeCards(getEnabledBrand().landingPageCards)]),
     isTerra() &&
       div(
         {
