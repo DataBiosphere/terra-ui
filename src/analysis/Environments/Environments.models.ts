@@ -24,10 +24,5 @@ export interface PermissionsAndStateProvider {
   canDeleteResource: (resourceType, resource: App | PersistentDisk | Runtime) => boolean;
 }
 
-// export interface LeoResourcePermissionsProvider {
-//   canDeleteDisk: (disk: PersistentDisk) => boolean;
-//   canPauseResource: (resource: App | ListRuntimeItem) => boolean;
-// }
-
 export type DeleteRuntimeProvider = Pick<LeoRuntimeProvider, 'delete'>;
 export type DeleteDiskProvider = Pick<LeoDiskProvider, 'delete'>;
