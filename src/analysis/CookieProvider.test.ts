@@ -41,4 +41,31 @@ describe('CookieProvider', () => {
     expect(Ajax).toBeCalledTimes(1);
     expect(ajaxMock.Runtimes.invalidateCookie).toBeCalledTimes(1);
   });
+
+  it('does not error if api returns 401', async () => {
+    const ajaxMock = mockAjaxNeeds();
+    asMockedFn(ajaxMock.Runtimes.invalidateCookie).mockImplementation(() =>
+      Promise.reject(new Response(JSON.stringify({ success: false }), { status: 401 }))
+    );
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Act
+    await leoCookieProvider.invalidateCookies();
+
+    expect(Ajax).toBeCalledTimes(1);
+    expect(ajaxMock.Runtimes.invalidateCookie).toBeCalledTimes(1);
+    expect(errorSpy).toBeCalledTimes(1);
+  });
+
+  it('throws non 401 errors', async () => {
+    // Arrange
+    const ajaxMock = mockAjaxNeeds();
+    asMockedFn(ajaxMock.Runtimes.invalidateCookie).mockImplementation(() => Promise.reject(new Error('test error')));
+
+    // Act
+    const errorPromise = leoCookieProvider.invalidateCookies();
+
+    // Assert
+    await expect(errorPromise).rejects.toEqual(new Error('test error'));
+  });
 });
