@@ -73,6 +73,12 @@ export interface BrandConfiguration {
 
     /** Card body */
     body: string;
+
+    /** Card link pathParams */
+    linkPathParams?: object;
+
+    /** Card link queryParams */
+    linkQueryParams?: object;
   }[];
 
   /** Optionally filter which datasets show up in the Data Catalog */
@@ -89,12 +95,12 @@ export const landingPageCardsDefault = [
     body: 'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
   },
   {
-    link: 'library/showcase',
+    link: 'library-showcase',
     title: 'View Examples',
     body: 'Browse our gallery of showcase Workspaces to see how science gets done.',
   },
   {
-    link: 'library/datasets',
+    link: 'library-datasets',
     title: 'Browse Data',
     body: 'Access data from a rich ecosystem of data portals.',
   },
@@ -359,9 +365,11 @@ export const brands: Record<string, BrandConfiguration> = {
         body: 'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
       },
       {
-        link: 'workspaces?tab=public&tagsFilter%5B%5D=pathogen%20genomics',
+        link: 'workspaces',
         title: 'Examples',
         body: 'Browse example pathogen genomic data and analysis tools together.',
+        linkPathParams: {},
+        linkQueryParams: { tab: 'public', 'tagsFilter[]': 'pathogen genomics' },
       },
     ],
     theme: {

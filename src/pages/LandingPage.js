@@ -52,11 +52,11 @@ const makeRightArrowWithBackgroundIcon = () =>
     [icon('arrowRight', { color: 'white' })]
   );
 
-const makeCard = _.map(({ link, title, body }) =>
+const makeCard = _.map(({ link, title, body, linkPathParams, linkQueryParams }) =>
   h(
     Clickable,
     {
-      href: `#${link}`,
+      href: Nav.getLink(link, linkPathParams, linkQueryParams),
       style: { ...Style.elements.card.container, ...styles.card },
       hover: { boxShadow: '0 3px 7px 0 rgba(0,0,0,0.5), 0 5px 3px 0 rgba(0,0,0,0.2)' },
     },
