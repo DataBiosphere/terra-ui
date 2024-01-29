@@ -1,7 +1,7 @@
 import { icon, useThemeFromContext } from '@terra-ui-packages/components';
 import { formatDuration } from 'date-fns';
-import { ReactNode } from 'react';
-import { div, span } from 'react-hyperscript-helpers';
+import { Fragment, ReactNode } from 'react';
+import { div, h, span } from 'react-hyperscript-helpers';
 
 import { useTimeUntilRequiredUpdate } from './version-alerts';
 
@@ -33,13 +33,18 @@ export const RequiredUpdateAlert = (): ReactNode => {
     },
     [
       icon('warning-standard', { size: 26, color: colors.warning(), style: { marginRight: '1ch' } }),
-      'A required update is available. Terra will automatically refresh your browser in ',
-      span({ role: 'timer', style: { marginLeft: '0.5ch' } }, [
-        formatDuration({
-          minutes: minutesRemaining,
-          seconds: secondsRemaining,
-        }),
-      ]),
+      'A required update is available. Terra will automatically refresh your browser ',
+      timeUntilRequiredUpdate > 0
+        ? h(Fragment, [
+            'in ',
+            span({ role: 'timer', style: { marginLeft: '0.5ch' } }, [
+              formatDuration({
+                minutes: minutesRemaining,
+                seconds: secondsRemaining,
+              }),
+            ]),
+          ])
+        : 'now',
       '.',
     ]
   );
