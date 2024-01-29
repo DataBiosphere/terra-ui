@@ -60,11 +60,11 @@ export const useTimeUntilRequiredUpdate = (): number | undefined => {
   const { updateRequiredBy } = useStore(versionStore);
 
   const [timeRemaining, setTimeRemaining] = useState(
-    updateRequiredBy ? Math.floor((updateRequiredBy - Date.now()) / 1000) : undefined
+    updateRequiredBy ? Math.ceil((updateRequiredBy - Date.now()) / 1000) : undefined
   );
   const updateTimeRemaining = useCallback(() => {
     if (updateRequiredBy) {
-      const timeRemaining = Math.floor((updateRequiredBy - Date.now()) / 1000);
+      const timeRemaining = Math.ceil((updateRequiredBy - Date.now()) / 1000);
       if (timeRemaining <= 0) {
         window.location.reload();
       }
@@ -77,6 +77,7 @@ export const useTimeUntilRequiredUpdate = (): number | undefined => {
 
   const countdownInterval = useRef<number>();
   useEffect(() => {
+    updateTimeRemaining();
     if (updateRequiredBy && !countdownInterval.current) {
       countdownInterval.current = window.setInterval(updateTimeRemaining, 1000);
     } else if (!updateRequiredBy && countdownInterval.current) {

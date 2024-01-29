@@ -116,6 +116,36 @@ describe('useTimeUntilRequiredUpdate', () => {
   });
 
   it(
+    'rerenders when version store is updated',
+    withFakeTimers(() => {
+      // Arrange
+      versionStore.set({
+        currentVersion: 'abcd123',
+        latestVersion: '1234567',
+        updateRequiredBy: undefined,
+      });
+
+      const initialTime = 1706504400000;
+      jest.setSystemTime(initialTime);
+
+      const { result: hookReturnRef } = renderHook(() => useTimeUntilRequiredUpdate());
+
+      // Act
+      const updateIntervalInSeconds = 300;
+      act(() => {
+        versionStore.set({
+          currentVersion: 'abcd123',
+          latestVersion: '1234567',
+          updateRequiredBy: initialTime + updateIntervalInSeconds * 1000,
+        });
+      });
+
+      // Assert
+      expect(hookReturnRef.current).toBe(updateIntervalInSeconds);
+    })
+  );
+
+  it(
     'returns time until required update',
     withFakeTimers(() => {
       // Arrange
