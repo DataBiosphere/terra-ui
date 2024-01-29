@@ -86,7 +86,6 @@ describe('environmentsPermissions', () => {
         appType: 'GALAXY',
       },
       canDeleteApp: true,
-      resourceType: 'app',
     },
     {
       resource: {
@@ -95,7 +94,6 @@ describe('environmentsPermissions', () => {
         appType: 'CROMWELL',
       },
       canDeleteApp: false,
-      resourceType: 'app',
     },
     {
       resource: {
@@ -104,7 +102,6 @@ describe('environmentsPermissions', () => {
         appType: 'WORKFLOWS_APP',
       },
       canDeleteApp: false,
-      resourceType: 'app',
     },
     {
       resource: {
@@ -113,7 +110,6 @@ describe('environmentsPermissions', () => {
         appType: 'CROMWELL_RUNNER_APP',
       },
       canDeleteApp: false,
-      resourceType: 'app',
     },
     {
       resource: {
@@ -122,7 +118,6 @@ describe('environmentsPermissions', () => {
         appType: 'WDS',
       },
       canDeleteApp: true,
-      resourceType: 'app',
     },
     {
       resource: {
@@ -131,7 +126,6 @@ describe('environmentsPermissions', () => {
         appType: 'HAIL_BATCH',
       },
       canDeleteApp: true,
-      resourceType: 'app',
     },
   ] as { resource: DecoratedComputeResource; canDeleteApp: boolean }[])(
     'returns proper boolean for app deletion',
