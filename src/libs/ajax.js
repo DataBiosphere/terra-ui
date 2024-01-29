@@ -603,6 +603,11 @@ const FirecloudBucket = (signal) => ({
     const res = await fetchOk(`${getConfig().firecloudBucketRoot}/template-workspaces.json`, { signal });
     return res.json();
   },
+
+  getBadVersions: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/bad-versions.txt`, { signal });
+    return res.text();
+  },
 });
 
 const Methods = (signal) => ({

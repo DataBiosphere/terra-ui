@@ -1,36 +1,23 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { renderHook } from '@testing-library/react';
-import { getConfig } from 'src/libs/config';
+import { Ajax } from 'src/libs/ajax';
 
-import { getLatestVersion, latestVersionStore, useVersionAlerts } from './version-alerts';
+import { getBadVersions, useVersionAlerts, versionStore } from './version-alerts';
 
-type ConfigExports = typeof import('src/libs/config');
-jest.mock('src/libs/config', (): ConfigExports => {
-  return {
-    ...jest.requireActual<ConfigExports>('src/libs/config'),
-    getConfig: jest.fn().mockReturnValue({ gitRevision: 'abcd123' }),
-  };
-});
+type AjaxExports = typeof import('src/libs/ajax');
+jest.mock('src/libs/ajax');
 
-describe('getLatestVersion', () => {
-  it('fetches latest version from app build info', async () => {
-    // Arrange
-    const mockFetch = jest.spyOn(window, 'fetch').mockResolvedValue(new Response('{"gitRevision":"abcd123"}'));
-
-    // Act
-    const latestVersion = await getLatestVersion();
-
-    // Assert
-    expect(mockFetch).toHaveBeenCalledWith('/build-info.json');
-    expect(latestVersion).toBe('abcd123');
-  });
-});
+type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
 describe('useVersionAlerts', () => {
   it('returns an empty list if current version and latest version match', () => {
     // Arrange
-    asMockedFn(getConfig).mockReturnValue({ gitRevision: 'abcd123' });
-    latestVersionStore.set('abcd123');
+    versionStore.set({
+      currentVersion: 'abcd123',
+      latestVersion: 'abcd123',
+      isUpdateRequired: false,
+    });
 
     // Act
     const { result: hookReturnRef } = renderHook(() => useVersionAlerts());
@@ -41,8 +28,11 @@ describe('useVersionAlerts', () => {
 
   it('returns an alert if current version and latest version do not match', () => {
     // Arrange
-    asMockedFn(getConfig).mockReturnValue({ gitRevision: 'abcd123' });
-    latestVersionStore.set('1234567');
+    versionStore.set({
+      currentVersion: 'abcd123',
+      latestVersion: '1234567',
+      isUpdateRequired: false,
+    });
 
     // Act
     const { result: hookReturnRef } = renderHook(() => useVersionAlerts());
@@ -54,5 +44,44 @@ describe('useVersionAlerts', () => {
         title: 'Update available',
       })
     );
+  });
+});
+
+describe('getBadVersions', () => {
+  it.each([
+    { responseText: '# broken\nabcd123 \neeee456\n\n', expectedVersions: ['abcd123', 'eeee456'] },
+    { responseText: 'abcd123', expectedVersions: ['abcd123'] },
+    { responseText: '', expectedVersions: [] },
+    { responseText: '\n  \n', expectedVersions: [] },
+  ] as {
+    responseText: string;
+    expectedVersions: string[];
+  }[])('parses list of bad versions from firecloud-alerts bucket', async ({ responseText, expectedVersions }) => {
+    // Arrange
+    const ajaxGetBadVersions = jest.fn().mockResolvedValue(responseText);
+    asMockedFn(Ajax).mockReturnValue({
+      FirecloudBucket: { getBadVersions: ajaxGetBadVersions },
+    } as DeepPartial<AjaxContract> as AjaxContract);
+
+    // Act
+    const badVersions = await getBadVersions();
+
+    // Assert
+    expect(ajaxGetBadVersions).toHaveBeenCalled();
+    expect(badVersions).toEqual(expectedVersions);
+  });
+
+  it('returns empty list if bad versions file does not exist', async () => {
+    // Arrange
+    const ajaxGetBadVersions = jest.fn().mockRejectedValue(new Response('Not found', { status: 404 }));
+    asMockedFn(Ajax).mockReturnValue({
+      FirecloudBucket: { getBadVersions: ajaxGetBadVersions },
+    } as DeepPartial<AjaxContract> as AjaxContract);
+
+    // Act
+    const badVersions = await getBadVersions();
+
+    // Assert
+    expect(badVersions).toEqual([]);
   });
 });
