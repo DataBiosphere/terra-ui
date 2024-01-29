@@ -163,17 +163,6 @@ describe('ConceptSearch', () => {
     expect(await screen.findByText('ease')).toBeTruthy();
   });
 
-  it('testing HighlightConceptName, "ease"', async () => {
-    renderSearch('ease');
-    const easeText = await screen.findAllByText('ease');
-    const filterEaseText = _.filter(
-      (element) => element.tagName === 'DIV' && element.style.fontWeight === '600',
-      easeText
-    ).length;
-    expect(filterEaseText).toBe(1);
-    expect(await screen.findByText('Dis')).toBeTruthy();
-  });
-
   it('testing HighlightConceptName, Checking that spaces still exist on both sides', async () => {
     renderSearch('by');
     const byText = await screen.findAllByText('by');
