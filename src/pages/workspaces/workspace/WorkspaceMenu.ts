@@ -28,7 +28,7 @@ type DynamicWorkspaceInfo = { name: string; namespace: string };
 type WorkspaceInfo = DynamicWorkspaceInfo | LoadedWorkspaceInfo;
 
 interface WorkspaceMenuCallbacks {
-  onClone: (policies?: WorkspacePolicy[], bucketName?: string, description?: string) => void;
+  onClone: (policies?: WorkspacePolicy[], bucketName?: string, description?: string, googleProject?: string) => void;
   onShare: (policies?: WorkspacePolicy[], bucketName?: string) => void;
   onLock: () => void;
   onDelete: () => void;
@@ -99,10 +99,12 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
     'workspace.bucketName',
     'workspace.attributes.description',
     'workspace.cloudPlatform',
+    'workspace.googleProject',
     'workspace.isLocked',
     'workspace.state',
   ]) as { workspace?: Workspace };
   const bucketName = !!workspace && isGoogleWorkspace(workspace) ? workspace.workspace.bucketName : undefined;
+  const googleProject = !!workspace && isGoogleWorkspace(workspace) ? workspace.workspace.googleProject : undefined;
 
   const descriptionText =
     !!workspace && workspace.workspace.attributes !== undefined
@@ -123,7 +125,7 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
     callbacks: {
       ...callbacks,
       onShare: () => callbacks.onShare(workspace?.policies, bucketName),
-      onClone: () => callbacks.onClone(workspace?.policies, bucketName, descriptionText),
+      onClone: () => callbacks.onClone(workspace?.policies, bucketName, descriptionText, googleProject),
     },
   });
 };
