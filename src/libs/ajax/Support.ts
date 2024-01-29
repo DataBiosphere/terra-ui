@@ -1,7 +1,6 @@
 import _ from 'lodash/fp';
 import { jsonBody } from 'src/libs/ajax/ajax-common';
-
-import { fetchOk } from './network-core/fetch-core';
+import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 
 export interface ZendeskCreateSupportRequestRequest {
   name: string;

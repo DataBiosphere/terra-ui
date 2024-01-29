@@ -27,10 +27,9 @@ import {
   RawGetRuntimeItem,
   RawListRuntimeItem,
 } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 import { getConfig } from 'src/libs/config';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
-
-import { fetchOk } from '../network-core/fetch-core';
 
 export interface GoogleRuntimeWrapper {
   googleProject: string;

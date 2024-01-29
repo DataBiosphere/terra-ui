@@ -47,6 +47,7 @@ const TIMESTAMP_REGEX = '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\
 const cbasPact = new PactV3({
   consumer: 'terra-ui',
   provider: 'cbas',
+  log: path.resolve(process.cwd(), 'logs', 'pact.log'),
   logLevel: 'error',
   dir: path.resolve(process.cwd(), 'pacts'),
   spec: SpecificationVersion.SPECIFICATION_VERSION_V3,

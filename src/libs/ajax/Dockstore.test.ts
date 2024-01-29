@@ -1,8 +1,8 @@
+import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { fetchDockstore } from './ajax-common';
 import { Dockstore } from './Dockstore';
-import { fetchOk } from './network-core/fetch-core';
 
 type AjaxCommonExports = typeof import('./ajax-common');
 jest.mock('./ajax-common', (): Partial<AjaxCommonExports> => {

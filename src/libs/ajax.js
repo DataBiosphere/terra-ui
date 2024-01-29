@@ -22,6 +22,7 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { Disks } from 'src/libs/ajax/leonardo/Disks';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
+import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 import { OAuth2 } from 'src/libs/ajax/OAuth2';
 import { SamResources } from 'src/libs/ajax/SamResources';
 import { Support } from 'src/libs/ajax/Support';
@@ -35,8 +36,6 @@ import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResourc
 import { getConfig } from 'src/libs/config';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-
-import { fetchOk } from './ajax/network-core/fetch-core';
 
 const getSnapshotEntityMetadata = Utils.memoizeAsync(
   async (token, workspaceNamespace, workspaceName, googleProject, dataReference) => {

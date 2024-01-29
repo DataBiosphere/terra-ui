@@ -18,12 +18,11 @@ import {
   withUrlPrefix,
 } from 'src/libs/ajax/ajax-common';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
+import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 import { getConfig } from 'src/libs/config';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { canWrite, cloudProviderTypes } from 'src/libs/workspace-utils';
-
-import { fetchOk } from './network-core/fetch-core';
 
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing

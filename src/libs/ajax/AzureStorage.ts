@@ -4,11 +4,10 @@ import { AbsolutePath, getDisplayName, getExtension, getFileName } from 'src/ana
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { authOpts, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common';
+import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 import { getConfig } from 'src/libs/config';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
-
-import { fetchOk } from './network-core/fetch-core';
 
 type SasInfo = {
   url: string;
