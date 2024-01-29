@@ -85,5 +85,13 @@ export const useTimeUntilRequiredUpdate = (): number | undefined => {
     }
   }, [updateRequiredBy, updateTimeRemaining]);
 
+  useEffect(() => {
+    return () => {
+      if (countdownInterval.current) {
+        clearInterval(countdownInterval.current);
+      }
+    };
+  }, []);
+
   return timeRemaining;
 };
