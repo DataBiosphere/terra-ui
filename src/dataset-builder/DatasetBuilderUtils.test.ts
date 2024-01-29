@@ -188,9 +188,9 @@ describe('test HighlightConceptName', () => {
     const conceptName = 'Clinical Finding';
 
     const result = div({ style: { display: 'flex' } }, [
-      div(['']),
-      div({ style: { fontWeight: 600 } }, ['Clinic']),
-      div(['al Finding']),
+      div({ style: { whiteSpace: 'pre' } }, ['']),
+      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, ['Clinic']),
+      div({ style: { whiteSpace: 'pre' } }, ['al Finding']),
     ]);
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
@@ -200,9 +200,9 @@ describe('test HighlightConceptName', () => {
     const conceptName = 'Clinical Finding';
 
     const result = div({ style: { display: 'flex' } }, [
-      div(['']),
-      div({ style: { fontWeight: 600 } }, ['Clin']),
-      div(['ical Finding']),
+      div({ style: { whiteSpace: 'pre' } }, ['']),
+      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, ['Clin']),
+      div({ style: { whiteSpace: 'pre' } }, ['ical Finding']),
     ]);
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
@@ -212,9 +212,9 @@ describe('test HighlightConceptName', () => {
     const conceptName = 'Clinical Finding';
 
     const result = div({ style: { display: 'flex' } }, [
-      div(['Clini']),
-      div({ style: { fontWeight: 600 } }, ['cal']),
-      div([' Finding']),
+      div({ style: { whiteSpace: 'pre' } }, ['Clini']),
+      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, ['cal']),
+      div({ style: { whiteSpace: 'pre' } }, [' Finding']),
     ]);
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
@@ -224,9 +224,9 @@ describe('test HighlightConceptName', () => {
     const conceptName = 'Clinical Finding';
 
     const result = div({ style: { display: 'flex' } }, [
-      div(['Clinical ']),
-      div({ style: { fontWeight: 600 } }, ['Finding']),
-      div(['']),
+      div({ style: { whiteSpace: 'pre' } }, ['Clinical ']),
+      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, ['Finding']),
+      div({ style: { whiteSpace: 'pre' } }, ['']),
     ]);
 
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
