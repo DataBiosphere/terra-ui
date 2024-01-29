@@ -184,12 +184,27 @@ export const SpendReport = (props: SpendReportProps) => {
 
   const isProjectCostReady = projectCost !== null;
 
-  const azureCategoryCardCaptionMap = new Map([
-    ['spend', 'spend'],
-    ['workspaceinfrastructure', 'workspace infrastructure'],
-    ['compute', 'analysis compute'],
-    ['storage', 'workspace storage'],
-  ]);
+  const TOTAL_SPEND_CATEGORY = 'spend';
+  const WORKSPACEINFRASTRUCTURE_CATEGORY = 'workspaceinfrastructure';
+  const COMPUTE_CATEGORY = 'compute';
+  const STORAGE_CATEGORY = 'storage';
+
+  const getReportCategoryCardCaption = (name, cloudPlatformName) => {
+    const azureCategoryCardCaptionMap = new Map([
+      [TOTAL_SPEND_CATEGORY, 'spend'],
+      [WORKSPACEINFRASTRUCTURE_CATEGORY, 'workspace infrastructure'],
+      [COMPUTE_CATEGORY, 'analysis compute'],
+      [STORAGE_CATEGORY, 'workspace storage'],
+    ]);
+
+    return cloudPlatformName === 'GCP' ? name : azureCategoryCardCaptionMap.get(name);
+  };
+
+  // the order of the arrays below is important. it defines the order of elements on UI.
+  const reportCategories =
+    props.cloudPlatform === 'GCP'
+      ? [TOTAL_SPEND_CATEGORY, COMPUTE_CATEGORY, STORAGE_CATEGORY]
+      : [TOTAL_SPEND_CATEGORY, WORKSPACEINFRASTRUCTURE_CATEGORY, COMPUTE_CATEGORY, STORAGE_CATEGORY];
 
   useEffect(() => {
     const maybeLoadProjectCost = async () => {
@@ -299,7 +314,7 @@ export const SpendReport = (props: SpendReportProps) => {
         {
           style: {
             display: 'grid',
-            gridTemplateColumns: `repeat(${props.cloudPlatform === 'GCP' ? 3 : 4}, minmax(max-content, 1fr))`,
+            gridTemplateColumns: `repeat(${reportCategories.length}, minmax(max-content, 1fr))`,
             rowGap: '1.66rem',
             columnGap: '1.25rem',
           },
@@ -336,14 +351,12 @@ export const SpendReport = (props: SpendReportProps) => {
             (name) =>
               h(CostCard, {
                 type: name,
-                title: `Total ${props.cloudPlatform === 'GCP' ? name : azureCategoryCardCaptionMap.get(name)}`,
+                title: `Total ${getReportCategoryCardCaption(name, props.cloudPlatform)}`,
                 amount: !isProjectCostReady ? '...' : projectCost[name],
                 isProjectCostReady,
                 showAsterisk: name === 'spend',
               }),
-            props.cloudPlatform === 'GCP'
-              ? ['spend', 'compute', 'storage']
-              : ['spend', 'workspaceinfrastructure', 'compute', 'storage']
+            reportCategories
           ),
         ]
       ),
