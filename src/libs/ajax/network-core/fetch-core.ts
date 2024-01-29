@@ -4,6 +4,7 @@ import { ajaxOverridesStore } from 'src/libs/state';
 
 export type FetchFn = typeof fetch;
 
+// Allows use of ajaxOverrideStore to stub responses for testing
 export const withInstrumentation =
   (wrappedFetch: FetchFn) =>
   (...args) => {
@@ -46,5 +47,3 @@ const withErrorRejection =
   };
 
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch);
-
-// Allows use of ajaxOverrideStore to stub responses for testing
