@@ -183,95 +183,72 @@ describe('test conversion of DatasetAccessRequest', () => {
 });
 
 describe('test HighlightConceptName', () => {
+  const createHighlightConceptName = (beforeHighlight: string, highlightWord: string, afterHighlight: string) => {
+    return div({ style: { display: 'flex' } }, [
+      div({ style: { whiteSpace: 'pre' } }, [beforeHighlight]),
+      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, [highlightWord]),
+      div({ style: { whiteSpace: 'pre' } }, [afterHighlight]),
+    ]);
+  };
+
   test('searching beginning of conceptName', () => {
     const searchFilter = 'Clinic';
     const conceptName = 'Clinical Finding';
-
-    const result = div({ style: { display: 'flex' } }, [
-      div({ style: { whiteSpace: 'pre' } }, ['']),
-      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, ['Clinic']),
-      div({ style: { whiteSpace: 'pre' } }, ['al Finding']),
-    ]);
+    const result = createHighlightConceptName('', 'Clinic', 'al Finding');
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 
   test("Testing to make sure capitalization doesn't change", () => {
     const searchFilter = 'clin';
     const conceptName = 'Clinical Finding';
-
-    const result = div({ style: { display: 'flex' } }, [
-      div({ style: { whiteSpace: 'pre' } }, ['']),
-      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, ['Clin']),
-      div({ style: { whiteSpace: 'pre' } }, ['ical Finding']),
-    ]);
+    const result = createHighlightConceptName('', 'Clin', 'ical Finding');
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 
   test('searchedWord in the middle of conceptName', () => {
     const searchFilter = 'cal';
     const conceptName = 'Clinical Finding';
-
-    const result = div({ style: { display: 'flex' } }, [
-      div({ style: { whiteSpace: 'pre' } }, ['Clini']),
-      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, ['cal']),
-      div({ style: { whiteSpace: 'pre' } }, [' Finding']),
-    ]);
+    const result = createHighlightConceptName('Clini', 'cal', ' Finding');
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 
   test('searchedWord in the end of conceptName', () => {
     const searchFilter = 'Finding';
     const conceptName = 'Clinical Finding';
-
-    const result = div({ style: { display: 'flex' } }, [
-      div({ style: { whiteSpace: 'pre' } }, ['Clinical ']),
-      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, ['Finding']),
-      div({ style: { whiteSpace: 'pre' } }, ['']),
-    ]);
-
+    const result = createHighlightConceptName('Clinical ', 'Finding', '');
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 
   test('searchedWord in the not in conceptName: "XXX" in "Clinical Finding"', () => {
     const searchFilter = 'XXX';
     const conceptName = 'Clinical Finding';
-
     const result = div(['Clinical Finding']);
-
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 
   test('searchedWord in the not in conceptName: "Clinical" in "Clin"', () => {
     const searchFilter = 'Clinical';
     const conceptName = 'Clin';
-
     const result = div(['Clin']);
-
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 
   test('searchedWord is empty: "" ', () => {
     const searchFilter = '';
     const conceptName = 'Condition';
-
     const result = div(['Condition']);
-
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 
   test("doesn't bold whitespace", () => {
     let searchFilter = ' ';
     let conceptName = 'Clinical Finding';
-
     let result = div(['Clinical Finding']);
-
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
 
     searchFilter = '   ';
     conceptName = 'Clinical Finding';
-
     result = div(['Clinical Finding']);
-
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 });
