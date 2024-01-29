@@ -63,10 +63,10 @@ type TreeGridProps<T extends RowContents> = {
   /** the columns to display */
   readonly columns: Column<T>[];
   /** the initial rows to display */
+  readonly initialRows: T[];
 
   /** Given a row, return its children. This is only called if row.hasChildren is true. */
   readonly getChildren: (row: T) => Promise<T[]>;
-  readonly initialRows: T[];
 };
 
 // & TreeGridRowInformation<T>;
