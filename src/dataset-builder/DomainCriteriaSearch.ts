@@ -49,15 +49,20 @@ export const DomainCriteriaSearch = (props: DomainCriteriaSearchProps) => {
         onStateChange
       )(state.cohort);
     },
-    onOpenHierarchy: (domainOption: DomainOption, cart: Concept[], searchText: string) => {
+    onOpenHierarchy: (
+      domainOption: DomainOption,
+      cart: Concept[],
+      searchText: string,
+      selectedConcept: Concept = domainOption.root
+    ) => {
       onStateChange(
         domainCriteriaSelectorState.new(
           state.cohort,
           state.criteriaGroup,
-          domainOption,
+          domainOption, // this needs to be the root
           cart,
           domainCriteriaSearchState.new(state.cohort, state.criteriaGroup, state.domainOption, cart, searchText),
-          domainOption.root
+          selectedConcept
         )
       );
     },
