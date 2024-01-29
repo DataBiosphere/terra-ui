@@ -7,7 +7,6 @@ import {
   fetchDrsHub,
   fetchGoogleForms,
   fetchMartha,
-  fetchOk,
   fetchOrchestration,
   fetchRawls,
   jsonBody,
@@ -23,6 +22,7 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { Disks } from 'src/libs/ajax/leonardo/Disks';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
+import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 import { OAuth2 } from 'src/libs/ajax/OAuth2';
 import { SamResources } from 'src/libs/ajax/SamResources';
 import { Support } from 'src/libs/ajax/Support';

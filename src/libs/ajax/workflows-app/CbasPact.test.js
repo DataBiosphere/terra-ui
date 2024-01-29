@@ -2,7 +2,8 @@ import 'setimmediate';
 
 import { MatchersV3, PactV3, SpecificationVersion } from '@pact-foundation/pact';
 import path from 'path';
-import { fetchFromProxy, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common';
+import { fetchFromProxy, jsonBody } from 'src/libs/ajax/ajax-common';
+import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import {
   runSetInputDef,
@@ -14,8 +15,12 @@ import {
 jest.mock('src/libs/ajax/ajax-common', () => ({
   ...jest.requireActual('src/libs/ajax/ajax-common'),
   fetchFromProxy: jest.fn(),
-  fetchOk: jest.fn(),
   authOpts: jest.fn(),
+}));
+
+jest.mock('src/libs/ajax/network-core/fetch-core', () => ({
+  ...jest.requireActual('src/libs/ajax/network-core/fetch-core'),
+  fetchOk: jest.fn(),
 }));
 
 jest.mock('src/auth/auth', () => {

@@ -87,3 +87,4 @@ export const Metrics = (signal?: AbortSignal) => {
     }) as (anonId: string) => Promise<void>,
   };
 };
+export type MetricsContract = ReturnType<typeof Metrics>;
