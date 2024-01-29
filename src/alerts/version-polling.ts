@@ -15,7 +15,11 @@ export const checkVersion = withErrorIgnoring(async (): Promise<void> => {
   if (latestVersion !== currentVersion) {
     const badVersions = await getBadVersions();
     if (badVersions.includes(currentVersion)) {
-      versionStore.update((value) => ({ ...value, updateRequiredBy: Date.now() + FORCED_UPDATE_DELAY }));
+      versionStore.update((value) => ({
+        ...value,
+        updateRequiredBy:
+          value.updateRequiredBy === undefined ? Date.now() + FORCED_UPDATE_DELAY : value.updateRequiredBy,
+      }));
     }
   }
 });

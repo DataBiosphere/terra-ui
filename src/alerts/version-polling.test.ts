@@ -60,6 +60,29 @@ describe('checkVersion', () => {
         expect(updateRequiredBy).toBe(initialTime + FORCED_UPDATE_DELAY);
       })
     );
+
+    it(
+      'does not overwrite update required time on subsequent checks',
+      withFakeTimers(async () => {
+        // Arrange
+        const initialTime = 1706504400000;
+        jest.setSystemTime(initialTime);
+        asMockedFn(getBadVersions).mockResolvedValue(['abcd123']);
+
+        await checkVersion();
+
+        const { updateRequiredBy: updateRequiredByAfterFirstPoll } = versionStore.get();
+        expect(updateRequiredByAfterFirstPoll).toBe(initialTime + FORCED_UPDATE_DELAY);
+
+        // Act
+        jest.advanceTimersByTime(VERSION_POLLING_INTERVAL);
+        await checkVersion();
+
+        // Assert
+        const { updateRequiredBy: updateRequiredByAfterSecondPoll } = versionStore.get();
+        expect(updateRequiredByAfterSecondPoll).toBe(updateRequiredByAfterFirstPoll);
+      })
+    );
   });
 });
 
