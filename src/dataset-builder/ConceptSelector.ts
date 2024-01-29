@@ -25,15 +25,9 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
     const result = await DataRepo().dataset(datasetId).getConcepts(concept);
-    // console.log(result.result)
     return result.result;
   };
 
-  // getBranch
-
-  // console.log("Concept Selector");
-  // console.log(props);
-  // console.log();
   return h(Fragment, [
     div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -72,7 +66,6 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
         ],
         initialRows,
         // pass in a different set of initialRows
-        // instead of a new function here --> getInitialRows
         getChildren,
       }),
     ]),
