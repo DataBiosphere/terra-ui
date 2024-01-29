@@ -4,6 +4,7 @@ import {
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderConceptNode as ConceptNode,
 } from 'src/libs/ajax/DataRepo';
+// import { RowContents } from "src/components/TreeGrid";
 
 export const dummyDatasetModel = (): DatasetModel => ({
   name: 'AnalytiXIN',
@@ -161,6 +162,12 @@ export const dummyHierarchy = [
     id: 400,
     concept: dummyGetConceptForId(400),
     children: [401],
+    parent: 100,
+  },
+  {
+    id: 100,
+    concept: dummyGetConceptForId(100),
+    children: [400],
   },
 ];
 
@@ -194,3 +201,24 @@ export const getHierarchyMap = (id: number): Map<Concept, Concept[]> => {
   populateHierarchyMap(parentNode);
   return hierarchyMap;
 };
+
+export const getRenderArray = (hierarchyMap: Map<Concept, Concept[]>): Concept[] => {
+  const tree: {
+    name: string;
+    id: number;
+    hasChildren: boolean;
+    children: Concept[];
+  }[] = [];
+
+  hierarchyMap.forEach((value: Concept[], key: Concept) => {
+    tree.push({
+      name: key.name,
+      id: key.id,
+      hasChildren: key.hasChildren,
+      children: value,
+    });
+  });
+  return tree;
+};
+
+// make this into populated and ready for use in DomainCriteriaSelector
