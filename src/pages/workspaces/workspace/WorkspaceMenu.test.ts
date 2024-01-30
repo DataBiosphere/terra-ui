@@ -367,6 +367,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     // @ts-expect-error - Limit return values based on what is requested
     workspace: {
       cloudPlatform: 'Gcp',
+      googleProject: 'googleProjectName',
       bucketName: 'fc-bucketname',
       isLocked: false,
       state: 'Ready',
@@ -394,7 +395,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     policies: [protectedDataPolicy],
   };
 
-  const onClone = jest.fn((_policies, _bucketName, _description) => {});
+  const onClone = jest.fn((_policies, _bucketName, _description, _googleProject) => {});
   const onShare = jest.fn((_policies, _bucketName) => {});
   const namespace = 'test-namespace';
   const name = 'test-name';
@@ -423,6 +424,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       'workspace.bucketName',
       'workspace.attributes.description',
       'workspace.cloudPlatform',
+      'workspace.googleProject',
       'workspace.isLocked',
       'workspace.state',
     ];
@@ -434,7 +436,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     expect(workspaceDetails).toHaveBeenCalledWith({ namespace, name }, expectedRequestedFields);
   });
 
-  it('passes onClone the bucketName and description for a Google workspace', async () => {
+  it('passes onClone the bucketName, description, and googleProject for a Google workspace', async () => {
     // Arrange
     const user = userEvent.setup();
     asMockedFn(useWorkspaceDetails).mockReturnValue({
@@ -450,7 +452,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     // Assert
     const menuItem = screen.getByText('Clone');
     await user.click(menuItem);
-    expect(onClone).toBeCalledWith([], 'fc-bucketname', descriptionText);
+    expect(onClone).toBeCalledWith([], 'fc-bucketname', descriptionText, 'googleProjectName');
   });
 
   it('passes onClone the policies and description for an Azure workspace', async () => {
@@ -469,7 +471,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     // Assert
     const menuItem = screen.getByText('Clone');
     await user.click(menuItem);
-    expect(onClone).toBeCalledWith([protectedDataPolicy], undefined, descriptionText);
+    expect(onClone).toBeCalledWith([protectedDataPolicy], undefined, descriptionText, undefined);
   });
 
   it('passes onShare the bucketName for a Google workspace', async () => {

@@ -45,7 +45,6 @@ jest.mock('src/analysis/utils/cost-utils');
 jest.mock('src/libs/config', () => ({
   getConfig: () => ({
     terraDeploymentEnv: 'unitTest',
-    shouldUseDrsHub: true,
   }),
 }));
 jest.mock('src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection', () => {
