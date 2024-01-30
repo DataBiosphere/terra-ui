@@ -11,7 +11,6 @@ import * as Utils from 'src/libs/utils';
 import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard';
 import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
-import { discoverTesLogs } from 'src/workflows-app/utils/task-log-utils';
 
 /* FILTER UTILITY FUNCTIONS */
 export const taskNameFilter = (searchText) => {
@@ -129,7 +128,6 @@ const CallTable = ({
   workflowId,
   failedTasks,
   isAzure,
-  workspaceId,
 }) => {
   const [failuresModalParams, setFailuresModalParams] = useState();
   const [wizardSelection, setWizardSelection] = useState();
@@ -416,9 +414,7 @@ const CallTable = ({
                                         { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout', logFilename: 'stdout.txt' },
                                         { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr', logFilename: 'stderr.txt' },
                                       ],
-                                      (signal) => {
-                                        discoverTesLogs(signal, workspaceId, tes_stdout);
-                                      }
+                                      tes_stdout
                                     ),
                                 },
                                 ['Logs']

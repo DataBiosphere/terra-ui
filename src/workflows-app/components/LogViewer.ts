@@ -11,6 +11,8 @@ import { Ajax } from 'src/libs/ajax';
 import { useCancellation } from 'src/libs/react-utils';
 import { newTabLinkProps } from 'src/libs/utils';
 import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
+
+import { discoverTesLogs } from '../utils/task-log-utils';
 /**
  * Information needed to preview a log file.
  * @member logUri - The URI of the log file. Must be a valid Azure blob URI. No Sas token should be appended: a fresh one will be obtained.
@@ -19,7 +21,7 @@ import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-
  * @member logFilename - The filename of this particular log. Does not need to be unique.
  */
 export type LogInfo = {
-  logUri: string;
+  logUri: string | undefined;
   logTitle: string;
   logKey: string;
   logFilename: string;
@@ -34,7 +36,7 @@ export type LogViewerProps = {
   modalTitle: string;
   logs: LogInfo[]; // Known logs to show in this component
   workspaceId: string;
-  logFetchFn?: (signal: AbortSignal) => Promise<LogInfo[]>; // function to fetch additional logs
+  logDirectory: string | undefined; // an azure blob directory that contains additional logs to fetch.
   onDismiss: () => void;
 };
 
@@ -90,9 +92,11 @@ const infoBoxItemPerLogType: InfoBoxItemProps[] = [
   },
 ];
 
-export const LogViewer = ({ modalTitle, logs, workspaceId, onDismiss }: LogViewerProps) => {
+export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismiss }: LogViewerProps) => {
+  const [activeLogs, setActiveLogs] = useState<LogInfo[]>(logs);
+
   const [currentlyActiveLog, setCurrentlyActiveLog] = useState<LogInfo | undefined>(
-    _.isEmpty(logs) ? undefined : logs[0]
+    _.isEmpty(activeLogs) ? undefined : activeLogs[0]
   );
 
   const [activeTextContent, setActiveTextContent] = useState<LoadedState<string>>({
@@ -101,42 +105,15 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, onDismiss }: LogViewe
   });
   const [activeDownloadUri, setActiveDownloadUri] = useState<string | undefined>(undefined);
   const signal = useCancellation();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [discoveredLogs, setDiscoveredLogs] = useState<string[]>([]);
-  const discoverAdditionalLogs = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async (workspaceId: string, templateTesLog: string): Promise<string[]> => {
-      try {
-        // TODO: Prefix should be everything after the container name (and its trailing /) and before the filename.
-        const index = templateTesLog.indexOf(workspaceId);
-        if (index === -1) {
-          console.error(`Could not find workspaceId ${workspaceId} in log path of ${templateTesLog}`);
-        }
-        const blobFilepath = templateTesLog.substring(index + workspaceId.length + 1);
-        const blobDirectory = blobFilepath.substring(0, blobFilepath.lastIndexOf('/'));
-        const response = await Ajax(signal).AzureStorage.listFiles(workspaceId, blobDirectory);
-        return response.map((file) => file.name);
-      } catch (e) {
-        return ['errorlol'];
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [signal]
-  );
 
   useEffect(() => {
     const discover = async () => {
-      const templateTesLog = logs.find((log) => log.logKey === 'tes_stdout')?.logUri;
-      if (_.isEmpty(templateTesLog)) {
-        return;
-      }
-      const discovered = await discoverAdditionalLogs(workspaceId, templateTesLog);
-      // eslint-disable-next-line no-console
-      console.log(discovered);
-      setDiscoveredLogs(discovered);
+      if (logDirectory === undefined) return;
+      const discoveredTesLogs = await discoverTesLogs(signal, workspaceId, logDirectory);
+      setActiveLogs((activeLogs) => [...activeLogs, ...discoveredTesLogs]);
     };
     discover();
-  }, [discoverAdditionalLogs, workspaceId, logs]);
+  }, [signal, workspaceId, logDirectory]);
 
   const fetchLogContent = useCallback(
     async (azureBlobUri: string): Promise<FetchedLogData | null> => {
@@ -219,7 +196,7 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, onDismiss }: LogViewe
     }
   };
 
-  const tabsArray: SimpleTabProps[] = logs.map((log) => {
+  const tabsArray: SimpleTabProps[] = activeLogs.map((log) => {
     return { key: log.logKey, title: log.logTitle, width: tabMaxWidth };
   });
 
@@ -236,7 +213,7 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, onDismiss }: LogViewe
           size: undefined,
           side: undefined,
         },
-        [infoBoxContents(logs)]
+        [infoBoxContents(activeLogs)]
       ),
       showCancel: false,
       showX: true,
@@ -250,7 +227,7 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, onDismiss }: LogViewe
           value: currentlyActiveLog?.logKey,
           'aria-label': 'Log file tabs',
           onChange: (key: string) => {
-            const newLog = logs.find((log) => log.logKey === key);
+            const newLog = activeLogs.find((log) => log.logKey === key);
             setCurrentlyActiveLog(newLog);
           },
           tabs: tabsArray,
