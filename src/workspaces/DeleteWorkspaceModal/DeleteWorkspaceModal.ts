@@ -11,7 +11,7 @@ import colors from 'src/libs/colors';
 import { warningBoxStyle } from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
-import { useDeleteWorkspaceState } from 'src/pages/workspaces/hooks/useDeleteWorkspaceState';
+import { useDeleteWorkspaceState } from 'src/workspaces/hooks/useDeleteWorkspaceState';
 
 interface DeleteWorkspaceModalProps {
   workspace: Workspace;

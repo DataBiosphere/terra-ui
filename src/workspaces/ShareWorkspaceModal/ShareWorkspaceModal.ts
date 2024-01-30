@@ -15,14 +15,14 @@ import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { append, cond, withBusyState } from 'src/libs/utils';
 import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { CurrentCollaborators } from 'src/workspaces/ShareWorkspaceModal/CurrentCollaborators';
 import {
   aclEntryIsTerraSupport,
   terraSupportAccessLevel,
   terraSupportEmail,
   transformAcl,
   WorkspaceAcl,
-} from 'src/pages/workspaces/workspace/WorkspaceAcl';
-import { CurrentCollaborators } from 'src/workspaces/ShareWorkspaceModal/CurrentCollaborators';
+} from 'src/workspaces/WorkspaceAcl';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 

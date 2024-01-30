@@ -3,8 +3,8 @@ import React, { CSSProperties, Dispatch, Fragment, SetStateAction, useLayoutEffe
 import { div, h } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
 import { BaseWorkspace } from 'src/libs/workspace-utils';
-import { aclEntryIsTerraSupport, WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
+import { aclEntryIsTerraSupport, WorkspaceAcl } from 'src/workspaces/WorkspaceAcl';
 
 /**
  * Render a list of Collaborators of a workspace, and allow them to be modified or removed.

@@ -10,8 +10,7 @@ import { withErrorReporting } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import { isOwner } from 'src/libs/workspace-utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
-
-import { WorkspaceAcl } from '../WorkspaceAcl';
+import { WorkspaceAcl } from 'src/workspaces/WorkspaceAcl';
 
 interface OwnerNoticeProps {
   workspace: Workspace;
