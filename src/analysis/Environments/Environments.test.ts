@@ -242,6 +242,7 @@ describe('Environments', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
+      props.permissions.canDeleteResource = stateAndPermissionsProvider.canDeleteResource;
 
       // Act
       await act(async () => {
@@ -291,6 +292,7 @@ describe('Environments', () => {
       // TODO: Back to true once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
       expect(buttons4[0].getAttribute('aria-disabled')).toBe('false');
       expect(buttons4[1].textContent).toBe('Delete');
+      screen.logTestingPlaygroundURL();
       expect(buttons4[1].getAttribute('aria-disabled')).toBe('true');
     });
 
