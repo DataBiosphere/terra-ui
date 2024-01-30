@@ -14,7 +14,7 @@ import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { isValidWsExportTarget } from 'src/libs/workspace-utils';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/hooks/useWorkspaces';
 import validate from 'validate.js';
 
 const InfoTile = ({ isError = false, content }) => {

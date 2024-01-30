@@ -21,8 +21,8 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import { useWorkspaces } from 'src/workspaces/hooks/useWorkspaces';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import UploadPreviewTable from './UploadPreviewTable';
 

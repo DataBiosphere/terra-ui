@@ -12,7 +12,7 @@ import { memoWithName } from 'src/libs/react-utils';
 import { userStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/hooks/useWorkspaces';
 
 const NotificationCheckbox = ({ notificationKeys, label, setSaving, prefsData }) => {
   const notificationKeysWithValue = ({ notificationKeys, value }) => {

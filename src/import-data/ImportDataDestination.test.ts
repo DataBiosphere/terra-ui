@@ -7,8 +7,8 @@ import { BillingProject } from 'src/pages/billing/models/BillingProject';
 import { azureProtectedDataBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { makeAzureWorkspace, makeGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
+import { useWorkspaces } from 'src/workspaces/hooks/useWorkspaces';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 import { ImportRequest } from './import-types';
 import { canImportIntoWorkspace, ImportOptions } from './import-utils';
@@ -37,10 +37,10 @@ jest.mock('src/workspaces/NewWorkspaceModal/NewWorkspaceModal', (): NewWorkspace
   };
 });
 
-type UseWorkspacesExports = typeof import('src/workspaces/useWorkspaces');
-jest.mock('src/workspaces/useWorkspaces', (): UseWorkspacesExports => {
+type UseWorkspacesExports = typeof import('src/workspaces/hooks/useWorkspaces');
+jest.mock('src/workspaces/hooks/useWorkspaces', (): UseWorkspacesExports => {
   return {
-    ...jest.requireActual<UseWorkspacesExports>('src/workspaces/useWorkspaces'),
+    ...jest.requireActual<UseWorkspacesExports>('src/workspaces/hooks/useWorkspaces'),
     useWorkspaces: jest.fn(),
   };
 });
