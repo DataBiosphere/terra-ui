@@ -764,13 +764,6 @@ export const WorkspaceData = _.flow(
 
     const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first));
 
-    const deleteColumnUpdateMetadata = ({ attributeName, entityType }) => {
-      const newArray = _.get(entityType, entityMetadata).attributeNames;
-      const attributeNamesArrayUpdated = _.without([attributeName], newArray);
-      const updatedMetadata = _.set([entityType, 'attributeNames'], attributeNamesArrayUpdated, entityMetadata);
-      setEntityMetadata(updatedMetadata);
-    };
-
     const searchAcrossTables = async (typeNames, activeCrossTableTextFilter) => {
       setCrossTableSearchInProgress(true);
       try {
@@ -1462,8 +1455,8 @@ export const WorkspaceData = _.flow(
                       entityKey: selectedData.entityType,
                       activeCrossTableTextFilter,
                       loadMetadata,
-                      deleteColumnUpdateMetadata,
                       forceRefresh,
+                      editable: canEditWorkspace,
                     }),
                 ],
                 [
@@ -1496,6 +1489,7 @@ export const WorkspaceData = _.flow(
                       dataProvider: wdsDataTableProvider,
                       recordType: selectedData.entityType,
                       wdsSchema: wdsTypes.state,
+                      editable: canEditWorkspace,
                     }),
                 ]
               ),

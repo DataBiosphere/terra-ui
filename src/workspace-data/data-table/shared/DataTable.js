@@ -101,7 +101,6 @@ const DataTable = (props) => {
     persist,
     refreshKey,
     snapshotName,
-    deleteColumnUpdateMetadata,
     controlPanelStyle,
     border = true,
     extraColumnActions,
@@ -237,9 +236,15 @@ const DataTable = (props) => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Unable to delete column')
   )(async (attributeName) => {
-    await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName);
-    deleteColumnUpdateMetadata({ entityType, attributeName });
+    await dataProvider.deleteColumn(signal, entityType, attributeName);
 
+    // Remove the deleted column from the metadata
+    const newArray = _.get(entityType, entityMetadata).attributeNames;
+    const attributeNamesArrayUpdated = _.without([attributeName], newArray);
+    const updatedMetadata = _.set([entityType, 'attributeNames'], attributeNamesArrayUpdated, entityMetadata);
+    setEntityMetadata(updatedMetadata);
+
+    // Remove the deleted column from the entities
     const updatedEntities = _.map((entity) => {
       return { ...entity, attributes: _.omit([attributeName], entity.attributes) };
     }, entities);
