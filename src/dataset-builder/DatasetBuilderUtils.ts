@@ -279,8 +279,8 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
   const endIndex = startIndex + searchFilter.length;
 
   return div({ style: { display: 'flex' } }, [
-    div([conceptName.substring(0, startIndex)]),
-    div({ style: { fontWeight: 600 } }, [conceptName.substring(startIndex, endIndex)]),
-    div([conceptName.substring(endIndex)]),
+    div({ style: { whiteSpace: 'pre' } }, [conceptName.substring(0, startIndex)]),
+    div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, [conceptName.substring(startIndex, endIndex)]),
+    div({ style: { whiteSpace: 'pre' } }, [conceptName.substring(endIndex)]),
   ]);
 };
