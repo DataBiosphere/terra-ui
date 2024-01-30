@@ -1,4 +1,4 @@
-import { delay } from '@terra-ui-packages/core-utils';
+import { abandonedPromise, delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import {
   AuthTokenState,
@@ -11,8 +11,8 @@ import {
   SignOutCause,
 } from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { FetchFn, fetchOk, withCancellation, withInstrumentation } from 'src/libs/ajax/network-core/fetch-core';
 import { getConfig } from 'src/libs/config';
+import { ajaxOverridesStore } from 'src/libs/state';
 
 export const authOpts = (token = getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } });
 export const jsonBody = (body) => ({
@@ -20,6 +20,8 @@ export const jsonBody = (body) => ({
   headers: { 'Content-Type': 'application/json' },
 });
 export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
+
+type FetchFn = typeof fetch;
 
 export const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
   return wrappedFetch(prefix + path, ...args);
@@ -160,12 +162,54 @@ export const responseContainsRequesterPaysError = (responseText) => {
   return _.includes('requester pays', responseText);
 };
 
+// Allows use of ajaxOverrideStore to stub responses for testing
+const withInstrumentation =
+  (wrappedFetch) =>
+  (...args) => {
+    return _.flow(
+      ..._.map(
+        'fn',
+        _.filter(({ filter }) => {
+          const [url, { method = 'GET' } = {}] = args;
+          return _.isFunction(filter)
+            ? filter(...args)
+            : url.match(filter.url) && (!filter.method || filter.method === method);
+        }, ajaxOverridesStore.get())
+      )
+    )(wrappedFetch)(...args);
+  };
+
+// Ignores cancellation error when request is cancelled
+const withCancellation =
+  (wrappedFetch) =>
+  async (...args) => {
+    try {
+      return await wrappedFetch(...args);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return abandonedPromise();
+      }
+      throw error;
+    }
+  };
+
+// Converts non-200 responses to exceptions
+const withErrorRejection =
+  (wrappedFetch) =>
+  async (...args) => {
+    const res = await wrappedFetch(...args);
+    if (res.ok) {
+      return res;
+    }
+    throw res;
+  };
+
+export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch);
+
 export const fetchLeo = _.flow(
   withUrlPrefix(`${getConfig().leoUrlRoot}/`),
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
-
-export const fetchLeoWithoutAuthRetry = _.flow(withUrlPrefix(`${getConfig().leoUrlRoot}/`))(fetchOk);
 
 export const fetchSam = _.flow(
   withUrlPrefix(`${getConfig().samUrlRoot}/`),

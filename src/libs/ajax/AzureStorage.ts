@@ -3,8 +3,7 @@ import { AnalysisFile, AnalysisFileMetadata } from 'src/analysis/useAnalysisFile
 import { AbsolutePath, getDisplayName, getExtension, getFileName } from 'src/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
-import { authOpts, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common';
-import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
+import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common';
 import { getConfig } from 'src/libs/config';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';

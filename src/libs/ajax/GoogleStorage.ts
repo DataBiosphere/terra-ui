@@ -12,13 +12,13 @@ import { getAuthToken } from 'src/auth/auth';
 import {
   authOpts,
   checkRequesterPaysError,
+  fetchOk,
   fetchSam,
   jsonBody,
   withRetryOnError,
   withUrlPrefix,
 } from 'src/libs/ajax/ajax-common';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
-import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 import { getConfig } from 'src/libs/config';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
