@@ -6,7 +6,6 @@ import {
   fetchAgora,
   fetchDrsHub,
   fetchGoogleForms,
-  fetchMartha,
   fetchOk,
   fetchOrchestration,
   fetchRawls,
@@ -692,34 +691,21 @@ const Submissions = (signal) => ({
   },
 });
 
-const shouldUseDrsHub = !!getConfig().shouldUseDrsHub;
-
 const DrsUriResolver = (signal) => ({
-  // Currently both Martha and DRSHub can get a signed URL
+  // DRSHub now gets a signed URL instead of Martha
   getSignedUrl: async ({ bucket, object, dataObjectUri, googleProject }) => {
-    if (shouldUseDrsHub) {
-      const res = await fetchDrsHub(
-        '/api/v4/gcs/getSignedUrl',
-        _.mergeAll([jsonBody({ bucket, object, dataObjectUri, googleProject }), authOpts(), appIdentifier, { signal, method: 'POST' }])
-      );
-      return res.json();
-    }
-    const res = await fetchMartha(
-      'getSignedUrlV1',
-      _.mergeAll([jsonBody({ bucket, object, dataObjectUri }), authOpts(), appIdentifier, { signal, method: 'POST' }])
+    const res = await fetchDrsHub(
+      '/api/v4/gcs/getSignedUrl',
+      _.mergeAll([jsonBody({ bucket, object, dataObjectUri, googleProject }), authOpts(), appIdentifier, { signal, method: 'POST' }])
     );
     return res.json();
   },
 
   getDataObjectMetadata: async (url, fields) => {
-    if (shouldUseDrsHub) {
-      const res = await fetchDrsHub(
-        '/api/v4/drs/resolve',
-        _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
-      );
-      return res.json();
-    }
-    const res = await fetchMartha('martha_v3', _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }]));
+    const res = await fetchDrsHub(
+      '/api/v4/drs/resolve',
+      _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
+    );
     return res.json();
   },
 });
