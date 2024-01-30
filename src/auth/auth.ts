@@ -2,7 +2,6 @@ import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
-import { leoCookieProvider } from 'src/analysis/CookieProvider';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import {
   B2cIdTokenClaims,
@@ -15,7 +14,7 @@ import {
 } from 'src/auth/oidc-broker';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
-import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
+import { fetchOk } from 'src/libs/ajax/ajax-common';
 import { SamUserAttributes } from 'src/libs/ajax/User';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
@@ -66,7 +65,7 @@ export type SignOutCause =
   | 'idleStatusMonitor'
   | 'unspecified';
 
-export const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
+const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
   const eventToFire: MetricsEventName = switchCase<SignOutCause, MetricsEventName>(
     cause,
     ['requested', () => Events.user.signOut.requested],
@@ -101,26 +100,17 @@ export const sendAuthTokenDesyncMetric = () => {
   Ajax().Metrics.captureEvent(Events.user.authToken.desync, {});
 };
 
-// This can be called with an expired token, be careful of making any API calls here
-// Any API calls that rely on tokens should fail silently
-export const signOut = async (cause: SignOutCause = 'unspecified') => {
-  // The underlying API calls are already wrapped with `withErrorIgnoring`, but we include it here too to be defensive
-  // It is easier to test this way, and if the underlying API call were to remove that it,
-  // it would cause a serious bug that is hard for a developer to find/test when the token expires after 24 hours.
-  await sendSignOutMetrics(cause).catch(_.noop);
-
+export const signOut = (cause: SignOutCause = 'unspecified'): void => {
+  sendSignOutMetrics(cause);
   if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
     notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
   }
-
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
 
-  await leoCookieProvider.invalidateCookies();
-  getSessionStorage().clear();
-  await revokeTokens().catch(_.noop);
+  revokeTokens();
 
   const { cookiesAccepted } = authStore.get();
 

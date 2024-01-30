@@ -1,24 +1,15 @@
-import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 import { asMockedFn } from 'src/testing/test-utils';
 
-import { fetchDockstore } from './ajax-common';
+import { fetchDockstore, fetchOk } from './ajax-common';
 import { Dockstore } from './Dockstore';
 
 type AjaxCommonExports = typeof import('./ajax-common');
 jest.mock('./ajax-common', (): Partial<AjaxCommonExports> => {
   return {
     fetchDockstore: jest.fn(),
+    fetchOk: jest.fn(),
   };
 });
-
-type FetchCoreExports = typeof import('src/libs/ajax/network-core/fetch-core');
-jest.mock(
-  'src/libs/ajax/network-core/fetch-core',
-  (): FetchCoreExports => ({
-    ...jest.requireActual<FetchCoreExports>('src/libs/ajax/network-core/fetch-core'),
-    fetchOk: jest.fn(),
-  })
-);
 
 describe('Dockstore', () => {
   afterEach(() => {

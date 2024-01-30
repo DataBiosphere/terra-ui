@@ -1,7 +1,6 @@
 import * as qs from 'qs';
-import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 
-import { fetchDockstore } from './ajax-common';
+import { fetchDockstore, fetchOk } from './ajax-common';
 
 export type DockstoreWorkflowDescriptor = {
   path: string;

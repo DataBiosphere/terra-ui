@@ -1,4 +1,4 @@
-import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
+import { fetchOk } from 'src/libs/ajax/ajax-common';
 
 export const WorkflowScript = (signal) => ({
   get: async (workflowUrl) => {

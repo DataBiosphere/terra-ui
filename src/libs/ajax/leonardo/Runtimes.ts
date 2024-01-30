@@ -7,7 +7,7 @@ import {
   DEFAULT_RETRY_COUNT,
   DEFAULT_TIMEOUT_DURATION,
   fetchLeo,
-  fetchLeoWithoutAuthRetry,
+  fetchOk,
   jsonBody,
   makeRequestRetry,
 } from 'src/libs/ajax/ajax-common';
@@ -27,7 +27,6 @@ import {
   RawGetRuntimeItem,
   RawListRuntimeItem,
 } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 import { getConfig } from 'src/libs/config';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
 
@@ -178,9 +177,8 @@ export const Runtimes = (signal: AbortSignal) => {
       return normalizedRuntimes;
     },
 
-    invalidateCookie: (): Promise<Response> => {
-      // All other fetch wrappers retry auth. We should not retry if this call fails due to auth related reason here, the cookie is already invalid.
-      return fetchLeoWithoutAuthRetry('proxy/invalidateToken', _.merge(authOpts(), { signal, credentials: 'include' }));
+    invalidateCookie: () => {
+      return fetchLeo('proxy/invalidateToken', _.merge(authOpts(), { signal }));
     },
 
     setCookie: () => {
