@@ -553,7 +553,6 @@ describe('Environments', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstAppRow: HTMLElement = tableRows[0];
       const actionColumnButton1 = within(firstAppRow).getByRole('button', { name: 'Delete' });
-      screen.logTestingPlaygroundURL();
       expect(actionColumnButton1).not.toHaveAttribute('disabled');
 
       const secondAppRow: HTMLElement = tableRows[1];
