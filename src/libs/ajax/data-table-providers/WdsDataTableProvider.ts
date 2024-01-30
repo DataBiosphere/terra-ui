@@ -164,6 +164,7 @@ export class WdsDataTableProvider implements DataTableProvider {
       supportsTypeRenaming: false,
       supportsEntityRenaming: false,
       supportsEntityUpdating: true, // TODO: enable as part of AJ-594
+      supportEntityUpdatingTypes: ['string', 'number', 'boolean'],
       supportsAttributeRenaming: false, // TODO: enable as part of AJ-1278, requires `edit.renameAttribute` capability
       supportsAttributeDeleting: false, // TODO: enable as part of AJ-1275, requires `edit.deleteAttribute` capability
       supportsAttributeClearing: false,

@@ -19,22 +19,17 @@ export const SingleEntityEditorWds = ({
   dataProvider,
   entityTypes,
 }) => {
-  const { type: originalValueType } = getAttributeType(attributeValue);
+  const { type: originalValueType } = getAttributeType(attributeName, entityTypes, attributeValue, dataProvider);
   const [newValue, setNewValue] = useState(attributeValue);
   const isUnchanged = _.isEqual(attributeValue, newValue);
 
   const [isBusy, setIsBusy] = useState();
 
-  const modalTitle = `Edit ${typeof attributeValue} value`;
-  // console.log("type is: " + typeof attributeValue)
-  // format
-  // {"name":"sample2","attributes":[{"name":"HG00096","datatype":"STRING"},{"name":"annotated_sex","datatype":"STRING"},{"name":"bmi_baseline","datatype":"STRING"},{"name":"height_baseline","datatype":"NUMBER"},{"name":"sample_id","datatype":"STRING"},{"name":"undefined","datatype":"STRING"}],"count":2504,"primaryKey":"sample_id"}]
+  const modalTitle = `Edit ${originalValueType ?? ''} value`;
 
   const doEdit = async () => {
     try {
       setIsBusy(true);
-      // console.log("new value:", newValue)
-      // console.log("old value type:", entityTypes)
       const record = {};
       if (typeof newValue === 'object') {
         record[attributeName] = newValue.items;
@@ -42,7 +37,6 @@ export const SingleEntityEditorWds = ({
         record[attributeName] = newValue;
       }
 
-      // console.log(JSON.stringify(record));
       const listOfRecords = { attributes: record };
 
       await dataProvider.updateRecord({ instance: workspaceId, recordName: entityType, recordId: entityName, record: listOfRecords });
@@ -68,7 +62,10 @@ export const SingleEntityEditorWds = ({
           value: newValue,
           onChange: setNewValue,
           initialValue: attributeValue,
+          attributeName,
+          entityType,
           entityTypes,
+          dataProvider,
           showJsonTypeOption: originalValueType === 'json',
         }),
         div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [

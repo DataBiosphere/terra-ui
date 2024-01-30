@@ -177,6 +177,7 @@ describe('WdsDataTableProvider', () => {
   };
 
   let getRecords: jest.MockedFunction<WorkspaceDataContract['getRecords']>;
+  let updateRecord: jest.MockedFunction<WorkspaceDataContract['updateRecord']>;
   let getCapabilities: jest.MockedFunction<WorkspaceDataContract['getCapabilities']>;
   let deleteTable: jest.MockedFunction<WorkspaceDataContract['deleteTable']>;
   let downloadTsv: jest.MockedFunction<WorkspaceDataContract['downloadTsv']>;
@@ -185,6 +186,7 @@ describe('WdsDataTableProvider', () => {
 
   beforeEach(() => {
     getRecords = jest.fn().mockImplementation(getRecordsMockImpl);
+    updateRecord = jest.fn().mockImplementation(updateRecordMockImpl);
     getCapabilities = jest.fn().mockImplementation(getCapabilitiesMockImpl);
     deleteTable = jest.fn().mockImplementation(deleteTableMockImpl);
     downloadTsv = jest.fn().mockImplementation(downloadTsvMockImpl);
@@ -196,6 +198,7 @@ describe('WdsDataTableProvider', () => {
         ({
           WorkspaceData: {
             getRecords,
+            updateRecord,
             getCapabilities,
             deleteTable,
             downloadTsv,
@@ -688,6 +691,25 @@ describe('WdsDataTableProvider', () => {
           expect(actual.recordsModified).toBe(1);
         });
     });
+  });
+});
+
+describe('updateRecord', () => {
+  it('restructures a WDS response', () => {
+    // Arrange
+    const provider = new TestableWdsProvider();
+
+    const record = {};
+    record.test = 'string_value';
+    const listOfRecords = { attributes: record };
+    // Act
+    return provider
+      .updateRecord({ instance: uuid, recordName: 'test', recordId: 'record1', record: listOfRecords })
+      .then((actual) => {
+        // Assert
+        expect(updateRecord.mock.calls.length).toBe(1);
+        expect(actual.status).toBe(204);
+      });
   });
 });
 
