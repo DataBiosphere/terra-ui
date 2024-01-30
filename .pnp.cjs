@@ -12251,7 +12251,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["autoprefixer", "virtual:cfdd5895b74ac7a79b9f4c18e8be8afb0b1acb3a597d7bda3600ea11d10f84ec34df1846969235fed97882383d380cb1628972a3eea9400c03e307d53b99ff9b#npm:10.4.14"],\
             ["@types/postcss", null],\
             ["browserslist", "npm:4.21.10"],\
-            ["caniuse-lite", "npm:1.0.30001518"],\
+            ["caniuse-lite", "npm:1.0.30001581"],\
             ["fraction.js", "npm:4.2.0"],\
             ["normalize-range", "npm:0.1.2"],\
             ["picocolors", "npm:1.0.0"],\
@@ -12896,7 +12896,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/browserslist-npm-4.21.10-e2170a875b-1e27c0f111.zip/node_modules/browserslist/",\
           "packageDependencies": [\
             ["browserslist", "npm:4.21.10"],\
-            ["caniuse-lite", "npm:1.0.30001518"],\
+            ["caniuse-lite", "npm:1.0.30001581"],\
             ["electron-to-chromium", "npm:1.4.477"],\
             ["node-releases", "npm:2.0.13"],\
             ["update-browserslist-db", "virtual:e2170a875bba2f8fa9e93e47c65f2f250097e101a59d95ea6fd852f32965e8cd6cef3b5662aa7295279d5bc60c9a612ddb8515c7dd1b7e8fb9984dee1823e7d6#npm:1.0.11"]\
@@ -12907,7 +12907,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/browserslist-npm-4.22.2-87e70d8021-33ddfcd914.zip/node_modules/browserslist/",\
           "packageDependencies": [\
             ["browserslist", "npm:4.22.2"],\
-            ["caniuse-lite", "npm:1.0.30001576"],\
+            ["caniuse-lite", "npm:1.0.30001581"],\
             ["electron-to-chromium", "npm:1.4.625"],\
             ["node-releases", "npm:2.0.14"],\
             ["update-browserslist-db", "virtual:87e70d802146e5a0e8f2a12b5ab64004040c6640441dba54229a7db766cb1b88edabd3d3c814ce33d6ba839c4e517b12e9b0a7febfca22ac2a64177042bf3ee6#npm:1.0.13"]\
@@ -13077,17 +13077,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["caniuse-lite", [\
-        ["npm:1.0.30001518", {\
-          "packageLocation": "./.yarn/cache/caniuse-lite-npm-1.0.30001518-2e4e82df98-1b63272f6e.zip/node_modules/caniuse-lite/",\
+        ["npm:1.0.30001581", {\
+          "packageLocation": "./.yarn/cache/caniuse-lite-npm-1.0.30001581-7909cc6e66-ca4e2cd9d0.zip/node_modules/caniuse-lite/",\
           "packageDependencies": [\
-            ["caniuse-lite", "npm:1.0.30001518"]\
-          ],\
-          "linkType": "HARD"\
-        }],\
-        ["npm:1.0.30001576", {\
-          "packageLocation": "./.yarn/cache/caniuse-lite-npm-1.0.30001576-3d0983cdce-b8b332675f.zip/node_modules/caniuse-lite/",\
-          "packageDependencies": [\
-            ["caniuse-lite", "npm:1.0.30001576"]\
+            ["caniuse-lite", "npm:1.0.30001581"]\
           ],\
           "linkType": "HARD"\
         }]\
