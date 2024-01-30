@@ -48,7 +48,7 @@ interface ProjectCost {
   spend: string;
   compute: string;
   storage: string;
-  workspaceinfrastructure: string;
+  workspaceInfrastructure: string;
   other: string;
 }
 // End of interfaces for internal storage of data
@@ -185,7 +185,7 @@ export const SpendReport = (props: SpendReportProps) => {
   const isProjectCostReady = projectCost !== null;
 
   const TOTAL_SPEND_CATEGORY = 'spend';
-  const WORKSPACEINFRASTRUCTURE_CATEGORY = 'workspaceinfrastructure';
+  const WORKSPACEINFRASTRUCTURE_CATEGORY = 'workspaceInfrastructure';
   const COMPUTE_CATEGORY = 'compute';
   const STORAGE_CATEGORY = 'storage';
 
@@ -230,11 +230,11 @@ export const SpendReport = (props: SpendReportProps) => {
         console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category');
         const getCategoryCosts = (
           categorySpendData: CategorySpendData[]
-        ): { compute: number; storage: number; workspaceinfrastructure: number; other: number } => {
+        ): { compute: number; storage: number; workspaceInfrastructure: number; other: number } => {
           return {
             compute: parseFloat(_.find(['category', 'Compute'], categorySpendData)?.cost ?? '0'),
             storage: parseFloat(_.find(['category', 'Storage'], categorySpendData)?.cost ?? '0'),
-            workspaceinfrastructure: parseFloat(
+            workspaceInfrastructure: parseFloat(
               _.find(['category', 'WorkspaceInfrastructure'], categorySpendData)?.cost ?? '0'
             ),
             other: parseFloat(_.find(['category', 'Other'], categorySpendData)?.cost ?? '0'),
@@ -246,7 +246,7 @@ export const SpendReport = (props: SpendReportProps) => {
           spend: costFormatter.format(parseFloat(spend.spendSummary.cost)),
           compute: costFormatter.format(costDict.compute),
           storage: costFormatter.format(costDict.storage),
-          workspaceinfrastructure: costFormatter.format(costDict.workspaceinfrastructure),
+          workspaceInfrastructure: costFormatter.format(costDict.workspaceInfrastructure),
           other: costFormatter.format(costDict.other),
         });
 

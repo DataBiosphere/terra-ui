@@ -207,7 +207,7 @@ describe('SpendReport', () => {
     expect(screen.getByTestId('spend')).toHaveTextContent('$1,110.00*');
     expect(screen.getByTestId('compute')).toHaveTextContent('$999.00');
     expect(screen.getByTestId('storage')).toHaveTextContent('$22.00');
-    expect(screen.getByTestId('workspaceinfrastructure')).toHaveTextContent('$55.00');
+    expect(screen.getByTestId('workspaceInfrastructure')).toHaveTextContent('$55.00');
   });
 
   it('fetches reports based on selected date range, if active', async () => {
