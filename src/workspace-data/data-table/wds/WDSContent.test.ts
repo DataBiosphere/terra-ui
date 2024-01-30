@@ -118,6 +118,13 @@ describe('WDSContent', () => {
     return { user, props: { ...props, dataProvider: dataProvider as DataTableProvider } };
   };
 
+  const getColorColumnMenu = () => {
+    const columnMenus = screen.queryAllByRole('button', { name: 'Column menu' });
+    expect(columnMenus.length).toEqual(2);
+    const [_unusedIdColumnMenu, colorColumnMenu] = columnMenus;
+    return colorColumnMenu;
+  };
+
   describe('delete column button', () => {
     it('is displayed when editable and supportsAttributeDeleting are true', async () => {
       // Arrange
@@ -127,15 +134,11 @@ describe('WDSContent', () => {
         features: { ...defaultFeatures, supportsAttributeDeleting: true },
       });
 
+      // Act
       await act(() => {
         render(h(WDSContent, props));
       });
-
-      const columnMenus = screen.queryAllByRole('button', { name: 'Column menu' });
-      expect(columnMenus.length).toEqual(2);
-      const [_unusedIdColumnMenu, colorColumnMenu] = columnMenus;
-
-      await user.click(colorColumnMenu);
+      await user.click(getColorColumnMenu());
 
       const deleteColorColumnButton = screen.getByRole('button', { name: 'Delete Column' });
       const deleteConfirmationButton = screen.queryByTestId('confirm-delete');
@@ -164,13 +167,7 @@ describe('WDSContent', () => {
       await act(() => {
         render(h(WDSContent, props));
       });
-
-      const columnMenus = screen.queryAllByRole('button', { name: 'Column menu' });
-      expect(columnMenus.length).toEqual(2);
-      const [_unusedIdColumnMenu, colorColumnMenu] = columnMenus;
-
-      // Act
-      await user.click(colorColumnMenu);
+      await user.click(getColorColumnMenu());
 
       // Assert
       expect(screen.queryByRole('button', { name: 'Delete Column' })).not.toBeInTheDocument();
@@ -189,12 +186,7 @@ describe('WDSContent', () => {
         render(h(WDSContent, props));
       });
 
-      const columnMenus = screen.queryAllByRole('button', { name: 'Column menu' });
-      expect(columnMenus.length).toEqual(2);
-      const [_unusedIdColumnMenu, colorColumnMenu] = columnMenus;
-
-      // Act
-      await user.click(colorColumnMenu);
+      await user.click(getColorColumnMenu());
 
       // Assert
       expect(screen.queryByRole('button', { name: 'Delete Column' })).not.toBeInTheDocument();
@@ -215,10 +207,7 @@ describe('WDSContent', () => {
       await act(() => {
         render(h(WDSContent, props));
       });
-
-      const [_unusedIdColumnMenu, colorColumnMenu] = screen.queryAllByRole('button', { name: 'Column menu' });
-
-      await user.click(colorColumnMenu);
+      await user.click(getColorColumnMenu());
       await user.click(screen.getByRole('button', { name: 'Delete Column' }));
       await user.click(screen.getByTestId('confirm-delete'));
 
