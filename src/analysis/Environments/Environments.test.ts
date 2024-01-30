@@ -37,18 +37,6 @@ const mockNav: NavLinkProvider<EnvironmentNavActions> = {
   getUrl: jest.fn().mockReturnValue('/'),
   navTo: jest.fn(),
 };
-// const mockPermissions = jest.mock('src/pages/EnvironmentsPage/environmentsPermissions', () => ({
-//   canDeleteDisk: jest.fn().mockReturnValue(true),
-//   canPauseResource: jest.fn().mockReturnValue(true),
-//   canDeleteApp: jest.fn().mockReturnValue(true),
-//   canDeleteResource: jest.fn().mockReturnValue(true),
-// }));
-const mockPermissions: PermissionsAndStateProvider = {
-  canDeleteDisk: jest.fn().mockReturnValue(true),
-  canPauseResource: jest.fn().mockReturnValue(true),
-  canDeleteApp: jest.fn().mockReturnValue(true),
-  canDeleteResource: jest.fn().mockReturnValue(true),
-};
 
 const defaultUseWorkspacesProps = {
   workspaces: [defaultGoogleWorkspace] as WorkspaceWrapper[],
@@ -90,10 +78,12 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
 };
 
 const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
-  // asMockedFn(mockPermissions.canDeleteDisk).mockReturnValue(true);
-  // asMockedFn(mockPermissions.canPauseResource).mockReturnValue(true);
-  // asMockedFn(mockPermissions.canDeleteApp).mockReturnValue(true);
-  // asMockedFn(mockPermissions.canDeleteResource).mockReturnValue(true);
+  const mockPermissions: PermissionsAndStateProvider = {
+    canDeleteDisk: jest.fn().mockReturnValue(true),
+    canPauseResource: jest.fn().mockReturnValue(true),
+    canDeleteApp: jest.fn().mockReturnValue(true),
+    canDeleteResource: jest.fn().mockReturnValue(true),
+  };
 
   const defaultProps: EnvironmentsProps = {
     nav: mockNav,
