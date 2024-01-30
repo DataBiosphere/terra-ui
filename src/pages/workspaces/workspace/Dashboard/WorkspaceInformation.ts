@@ -3,8 +3,8 @@ import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { dl, h } from 'react-hyperscript-helpers';
 import { getPolicyDescriptions } from 'src/libs/workspace-utils';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
 import { InfoRow } from 'src/pages/workspaces/workspace/Dashboard/InfoRow';
+import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/hooks/useWorkspace';
 
 const roleString = {
   READER: 'Reader',

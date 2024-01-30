@@ -6,7 +6,7 @@ import { recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard } from 'src/co
 import { workspaceSubmissionStatus } from 'src/components/WorkspaceSubmissionStatusIcon';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
-import { getWorkspace, persistenceId } from 'src/pages/workspaces/WorkspacesList/WorkspacesList';
+import { getWorkspace, persistenceId } from 'src/workspaces/list/WorkspacesList';
 
 interface RecentlyViewedWorkspacesProps {
   workspaces: Workspace[];

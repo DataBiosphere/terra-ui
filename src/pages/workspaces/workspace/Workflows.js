@@ -25,7 +25,7 @@ import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Cod
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 export const styles = {
   cardContainer: (listView) => ({

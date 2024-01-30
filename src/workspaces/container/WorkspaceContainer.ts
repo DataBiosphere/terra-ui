@@ -17,17 +17,17 @@ import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { azureControlledAccessRequestMessage, isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { useAppPolling } from 'src/pages/workspaces/hooks/useAppPolling';
-import { useCloudEnvironmentPolling } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
-import { useSingleWorkspaceDeletionPolling } from 'src/pages/workspaces/hooks/useDeletionPolling';
+import { WorkspaceDeletingBanner } from 'src/workspaces/container/WorkspaceDeletingBanner';
+import { WorkspaceTabs } from 'src/workspaces/container/WorkspaceTabs';
+import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
+import { useAppPolling } from 'src/workspaces/hooks/useAppPolling';
+import { useCloudEnvironmentPolling } from 'src/workspaces/hooks/useCloudEnvironmentPolling';
+import { useSingleWorkspaceDeletionPolling } from 'src/workspaces/hooks/useDeletionPolling';
 import {
   InitializedWorkspaceWrapper as Workspace,
   StorageDetails,
   useWorkspace,
-} from 'src/pages/workspaces/hooks/useWorkspace';
-import { WorkspaceDeletingBanner } from 'src/pages/workspaces/workspace/WorkspaceDeletingBanner';
-import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
-import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
+} from 'src/workspaces/hooks/useWorkspace';
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';

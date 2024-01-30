@@ -4,7 +4,6 @@ import { forwardRef, ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
 import { canEditWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
 import { AuthDomainPanel } from 'src/pages/workspaces/workspace/Dashboard/AuthDomainPanel';
 import { CloudInformation } from 'src/pages/workspaces/workspace/Dashboard/CloudInformation';
 import { DatasetAttributes } from 'src/pages/workspaces/workspace/Dashboard/DatasetAttributes';
@@ -14,6 +13,7 @@ import { WorkspaceDescription } from 'src/pages/workspaces/workspace/Dashboard/W
 import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
 import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceNotifications';
 import { WorkspaceTags } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceTags';
+import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/hooks/useWorkspace';
 
 export interface WorkspaceDashboardProps {
   namespace: string;

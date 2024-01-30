@@ -3,9 +3,9 @@ import { axe } from 'jest-axe';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
-import { WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceTabs';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { WorkspaceTabs } from 'src/workspaces/container/WorkspaceTabs';
 // Mocking for Nav.getLink
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -17,11 +17,11 @@ jest.mock('src/libs/feature-previews', () => ({
   isFeaturePreviewEnabled: jest.fn(),
 }));
 
-type WorkspaceMenuExports = typeof import('src/pages/workspaces/workspace/WorkspaceMenu');
+type WorkspaceMenuExports = typeof import('src/workspaces/container/WorkspaceMenu');
 
 const mockWorkspaceMenu = jest.fn();
 jest.mock(
-  'src/pages/workspaces/workspace/WorkspaceMenu',
+  'src/workspaces/container/WorkspaceMenu',
   () =>
     function (props) {
       mockWorkspaceMenu(props);
@@ -29,8 +29,8 @@ jest.mock(
     }
 );
 
-jest.mock<WorkspaceMenuExports>('src/pages/workspaces/workspace/WorkspaceMenu', () => ({
-  ...jest.requireActual('src/pages/workspaces/workspace/WorkspaceMenu'),
+jest.mock<WorkspaceMenuExports>('src/workspaces/container/WorkspaceMenu', () => ({
+  ...jest.requireActual('src/workspaces/container/WorkspaceMenu'),
   WorkspaceMenu: (props) => {
     mockWorkspaceMenu(props);
     return null as ReactNode;

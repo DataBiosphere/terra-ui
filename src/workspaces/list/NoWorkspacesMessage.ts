@@ -3,9 +3,9 @@ import { Fragment, ReactNode, useContext } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { NoWorkspacesMessage } from 'src/components/workspace-utils';
 import { cond } from 'src/libs/utils';
-import { CategorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CategorizedWorkspaces';
-import { WorkspaceFilterValues } from 'src/pages/workspaces/WorkspacesList/WorkspaceFilters';
-import { WorkspaceUserActionsContext } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
+import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
+import { WorkspaceFilterValues } from 'src/workspaces/list/WorkspaceFilters';
+import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
 
 interface NoContentMessageProps {
   loadingWorkspaces: boolean;

@@ -31,7 +31,7 @@ import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 // The App launcher is where the iframe for the application lives
 // There are several different URL schemes that can be used to access the app launcher, which affect its functionality

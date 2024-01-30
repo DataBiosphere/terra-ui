@@ -11,8 +11,8 @@ import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
 import { RightBoxSection } from 'src/pages/workspaces/workspace/Dashboard/RightBoxSection';
+import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/hooks/useWorkspace';
 
 const styles: Record<string, CSSProperties> = {
   authDomain: {
