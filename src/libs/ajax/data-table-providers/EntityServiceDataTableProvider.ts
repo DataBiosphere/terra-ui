@@ -29,6 +29,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
   name: string;
 
   features: DataTableFeatures = {
+    supportsCapabilities: false,
     supportsTsvDownload: true,
     supportsTsvAjaxDownload: false,
     supportsTypeDeletion: true,
@@ -91,6 +92,10 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
 
   deleteTable = (entityType: string): Promise<Response> => {
     return Ajax().Workspaces.workspace(this.namespace, this.name).deleteEntitiesOfType(entityType);
+  };
+
+  deleteColumn = (signal: AbortSignal, entityType: string, attributeName: string): Promise<Response> => {
+    return Ajax(signal).Workspaces.workspace(this.namespace, this.name).deleteEntityColumn(entityType, attributeName);
   };
 
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {

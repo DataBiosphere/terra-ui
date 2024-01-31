@@ -138,13 +138,24 @@ const withAppIdentifier = (wrappedFetch) => (url, options) => {
   return wrappedFetch(url, _.merge(options, appIdentifier));
 };
 
-export const checkRequesterPaysError = async (response) => {
+export type RequesterPaysErrorInfo = {
+  requesterPaysError: boolean;
+};
+
+export const isRequesterPaysErrorInfo = (error: any): error is RequesterPaysErrorInfo => {
+  return error != null && typeof error === 'object' && 'requesterPaysError' in error;
+};
+
+export const checkRequesterPaysError = async (response): Promise<RequesterPaysErrorInfo> => {
   if (response.status === 400) {
     const data = await response.text();
-    const requesterPaysError = responseContainsRequesterPaysError(data);
-    return Object.assign(new Response(new Blob([data]), response), { requesterPaysError });
+    const requesterPaysErrorInfo: RequesterPaysErrorInfo = {
+      requesterPaysError: responseContainsRequesterPaysError(data),
+    };
+    return Object.assign(new Response(new Blob([data]), response), requesterPaysErrorInfo);
   }
-  return Object.assign(response, { requesterPaysError: false });
+  const unrecognizedErrorInfo: RequesterPaysErrorInfo = { requesterPaysError: false };
+  return Object.assign(response, unrecognizedErrorInfo);
 };
 
 export const responseContainsRequesterPaysError = (responseText) => {
@@ -255,11 +266,6 @@ export const fetchRex = _.flow(
 
 export const fetchBond = _.flow(
   withUrlPrefix(`${getConfig().bondUrlRoot}/`),
-  withRetryAfterReloadingExpiredAuthToken
-)(fetchOk);
-
-export const fetchMartha = _.flow(
-  withUrlPrefix(`${getConfig().marthaUrlRoot}/`),
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
