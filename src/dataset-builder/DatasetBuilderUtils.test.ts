@@ -408,4 +408,10 @@ describe('test gettingHierarchyMap', () => {
     hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
     expect(getHierarchyMap(408)).toStrictEqual(hierarchyMap);
   });
+
+  test('fetching hierarchy map of id 100', () => {
+    const hierarchyMap = new Map<Concept, Concept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), []);
+    expect(getHierarchyMap(100)).toStrictEqual(hierarchyMap);
+  });
 });
