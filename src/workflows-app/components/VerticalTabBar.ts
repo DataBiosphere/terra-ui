@@ -10,6 +10,7 @@ const styles = {
   tabBar: {
     container: {
       ...Style.tabBar.container,
+      paddingRight: 0,
     },
     tab: {
       ...Style.tabBar.tab,
@@ -66,7 +67,7 @@ export function VerticalTabBar({ activeTabKey, tabKeys, tabDisplayNames, onClick
         h(
           Clickable,
           {
-            style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), flexGrow: 1 },
+            style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), height: 60, width: '100%' },
             hover: selected ? {} : styles.tabBar.hover,
             onClick: onClickFn,
           },
@@ -96,7 +97,7 @@ export function VerticalTabBar({ activeTabKey, tabKeys, tabDisplayNames, onClick
           role: 'navigation',
           'aria-label': props['aria-label'], // duplicate the menu's label on the navigation element
           'aria-labelledby': props['aria-labelledby'],
-          style: { display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%' },
+          style: { display: 'flex', flexDirection: 'column', flexGrow: 1, width: '100%' },
         },
         [
           h(
@@ -104,7 +105,7 @@ export function VerticalTabBar({ activeTabKey, tabKeys, tabDisplayNames, onClick
             {
               role: 'menu',
               'aria-orientation': 'vertical',
-              style: { display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%' },
+              style: { display: 'flex', flexDirection: 'column', flexGrow: 1, width: '100%' },
               ...props,
             },
             [..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabKeys))]
