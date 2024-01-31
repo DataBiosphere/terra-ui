@@ -1,5 +1,10 @@
 import { workspaceAccessLevels } from 'src/libs/workspace-utils';
-import { aclEntryIsTerraSupport, RawWorkspaceAcl, transformAcl, WorkspaceAcl } from 'src/workspaces/WorkspaceAcl';
+import {
+  aclEntryIsTerraSupport,
+  RawWorkspaceAcl,
+  transformAcl,
+  WorkspaceAcl,
+} from 'src/workspaces/common/WorkspaceAcl';
 
 describe('utility functions for the workspace acl', () => {
   describe('transforming the raw acl with transformAcl', () => {

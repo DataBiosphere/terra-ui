@@ -5,8 +5,8 @@ import { getTerraUser } from 'src/libs/state';
 import { BaseWorkspace } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { AccessEntry, WorkspaceAcl } from 'src/workspaces/common/WorkspaceAcl';
 import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
-import { AccessEntry, WorkspaceAcl } from 'src/workspaces/WorkspaceAcl';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
