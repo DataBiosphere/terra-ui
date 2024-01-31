@@ -174,48 +174,19 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
   }, [currentlyActiveLog, fetchLogContent]);
 
   const renderActiveTextContent = () => {
-    switch (activeTextContent.status) {
-      case 'Loading':
-        return div([centeredSpinner()]);
-      case 'Error':
-        return div([activeTextContent.error.message]);
-      case 'Ready':
-        return div([activeTextContent.state]);
-      default:
-        return div(['Unknown error']);
-    }
-  };
-
-  const renderLogSpecificContent = () => {
+    const content = (activeTextContent) => {
+      switch (activeTextContent.status) {
+        case 'Loading':
+          return div([centeredSpinner()]);
+        case 'Error':
+          return div([activeTextContent.error.message]);
+        case 'Ready':
+          return div([activeTextContent.state]);
+        default:
+          return div(['Unknown error']);
+      }
+    };
     return [
-      div(
-        {
-          style: {
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            paddingTop: '0.5rem',
-          },
-        },
-        [
-          span({}, [
-            span({ style: { paddingRight: '0.5rem', fontWeight: 'bold', fontSize: 16 } }, ['File:']),
-            span({ style: { fontSize: 16 } }, [currentlyActiveLog?.logFilename]),
-          ]),
-          !_.isEmpty(activeDownloadUri) &&
-            h(
-              ButtonOutline,
-              {
-                'aria-label': 'Download log',
-                disabled: _.isEmpty(currentlyActiveLog?.logUri),
-                href: activeDownloadUri,
-                download: activeDownloadUri,
-                ...newTabLinkProps,
-              },
-              [span([icon('download', { style: { marginRight: '1ch' } }), 'Download'])]
-            ),
-        ]
-      ),
       div(
         {
           'aria-label': 'Log file content',
@@ -224,14 +195,44 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
             overflowY: 'auto',
             whiteSpace: 'pre-line',
             maxHeight: window.innerHeight * 0.6,
-            marginTop: '0.5rem',
             padding: '0.5rem',
             paddingRight: '10px', // reserve space for scrollbar
           },
         },
-        [renderActiveTextContent()]
+        [content(activeTextContent)]
       ),
     ];
+  };
+
+  const renderTopRow = () => {
+    return div(
+      {
+        style: {
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingTop: '0.5rem',
+        },
+      },
+      [
+        span({}, [
+          span({ style: { paddingRight: '0.5rem', fontWeight: 'bold', fontSize: 16 } }, ['File:']),
+          span({ style: { fontSize: 16 } }, [currentlyActiveLog?.logFilename]),
+        ]),
+        !_.isEmpty(activeDownloadUri) &&
+          h(
+            ButtonOutline,
+            {
+              'aria-label': 'Download log',
+              disabled: _.isEmpty(currentlyActiveLog?.logUri),
+              href: activeDownloadUri,
+              download: activeDownloadUri,
+              ...newTabLinkProps,
+            },
+            [span([icon('download', { style: { marginRight: '1ch' } }), 'Download'])]
+          ),
+      ]
+    );
   };
 
   const renderLefthandTabs = () => {
@@ -277,9 +278,12 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
       width: modalMaxWidth,
     },
     [
-      div({ style: { display: 'flex', height: '100%' } }, [
-        div({ style: { width: '25%' } }, renderLefthandTabs()),
-        div({ style: { width: '75%' } }, renderLogSpecificContent()),
+      div({}, [
+        div({}, [renderTopRow()]),
+        div({ style: { display: 'flex', height: '100%' } }, [
+          div({ style: { width: '25%' } }, renderLefthandTabs()),
+          div({ style: { width: '75%' } }, renderActiveTextContent()),
+        ]),
       ]),
     ]
   );

@@ -10,19 +10,21 @@ const styles = {
   tabBar: {
     container: {
       ...Style.tabBar.container,
-      height: '100%',
     },
     tab: {
       ...Style.tabBar.tab,
-      height: '100%',
     },
     active: {
       ...Style.tabBar.active,
-      height: '100%',
+      borderBottomWidth: 0,
+      borderBottomStyle: 'none',
+      borerBottomColor: 'transparent',
+      borderRightWidth: Style.tabBar.active.borderBottomWidth,
+      borderRightStyle: Style.tabBar.active.borderBottomStyle,
+      borderRightColor: Style.tabBar.active.borderBottomColor,
     },
     hover: {
       ...Style.tabBar.hover,
-      height: '100%',
     },
   },
 };
