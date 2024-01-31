@@ -11,7 +11,8 @@ import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataR
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
 
 type ConceptSelectorProps = {
-  readonly initialRows: Concept[];
+  readonly initialRows: Map<Concept, Concept[]>;
+  readonly domainOptionRoot: Concept;
   readonly title: string;
   readonly onCancel: () => void;
   readonly onCommit: (selected: Concept[]) => void;
@@ -21,7 +22,7 @@ type ConceptSelectorProps = {
 };
 
 export const ConceptSelector = (props: ConceptSelectorProps) => {
-  const { initialRows, title, onCancel, onCommit, actionText, datasetId, initialCart } = props;
+  const { initialRows, domainOptionRoot, title, onCancel, onCommit, actionText, datasetId, initialCart } = props;
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
     const result = await DataRepo().dataset(datasetId).getConcepts(concept);
@@ -65,6 +66,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
           { name: 'Roll-up count', width: 205, render: _.get('count') },
         ],
         initialRows,
+        domainOptionRoot,
         // pass in a different set of initialRows
         getChildren,
       }),
