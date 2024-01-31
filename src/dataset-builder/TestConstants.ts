@@ -117,10 +117,13 @@ export const dummyConcepts = [
   //
   { id: 400, name: 'Carcinoma of lung parenchyma', count: 100, hasChildren: true },
   { id: 401, name: 'Squamous cell carcinoma of lung', count: 100, hasChildren: true },
-  { id: 402, name: 'Non-small cell lung cancer', count: 100, hasChildren: false },
+  { id: 402, name: 'Non-small cell lung cancer', count: 100, hasChildren: true },
   { id: 403, name: 'Epidermal growth factor receptor negative ...', count: 100, hasChildren: false },
   { id: 404, name: 'Non-small cell lung cancer with mutation in epidermal..', count: 100, hasChildren: true },
   { id: 405, name: 'Non-small cell cancer of lung biopsy..', count: 100, hasChildren: false },
+  { id: 406, name: 'Non-small cell cancer of lung lymph node..', count: 100, hasChildren: false },
+  { id: 402, name: 'Small cell lung cancer', count: 100, hasChildren: false },
+  { id: 408, name: 'Lung Parenchcyma', count: 100, hasChildren: false },
 ];
 
 export const dummyGetConceptForId = (id: number): Concept => {
@@ -128,6 +131,12 @@ export const dummyGetConceptForId = (id: number): Concept => {
 };
 
 export const dummyHierarchy = [
+  {
+    id: 406,
+    concept: dummyGetConceptForId(406),
+    children: [],
+    parent: 404,
+  },
   {
     id: 405,
     concept: dummyGetConceptForId(405),
@@ -137,7 +146,7 @@ export const dummyHierarchy = [
   {
     id: 404,
     concept: dummyGetConceptForId(404),
-    children: [405],
+    children: [405, 406],
     parent: 401,
   },
   {
@@ -147,9 +156,15 @@ export const dummyHierarchy = [
     parent: 401,
   },
   {
+    id: 407,
+    concept: dummyGetConceptForId(407),
+    children: [],
+    parent: 402,
+  },
+  {
     id: 402,
     concept: dummyGetConceptForId(402),
-    children: [],
+    children: [407],
     parent: 401,
   },
   {
@@ -165,9 +180,15 @@ export const dummyHierarchy = [
     parent: 100,
   },
   {
+    id: 408,
+    concept: dummyGetConceptForId(408),
+    children: [],
+    parent: 100,
+  },
+  {
     id: 100,
     concept: dummyGetConceptForId(100),
-    children: [400],
+    children: [400, 408],
   },
 ];
 
@@ -183,21 +204,28 @@ export const dummyGetParentInHierarchy = (id: number): ConceptNode => {
   return node;
 };
 
-export const getHierarchyMap = (id: number): Map<Concept, Concept[]> => {
-  const parentNode = dummyGetParentInHierarchy(id);
+export const getHierarchyMap = (selectedConceptID: number): Map<Concept, Concept[]> => {
   const hierarchyMap = new Map<Concept, Concept[]>();
-
   const populateHierarchyMap = (node: ConceptNode) => {
     if (node.concept.hasChildren) {
       const children = node.children;
       const childrenObjects = _.map((childID) => dummyGetConceptForId(childID), children);
       hierarchyMap.set(node.concept, childrenObjects);
-      children.forEach((childID) => {
-        const childNode = dummyGetNodeFromHierarchy(childID);
-        populateHierarchyMap(childNode);
-      });
+    }
+    if (node.parent) {
+      populateHierarchyMap(dummyGetNodeFromHierarchy(node.parent));
     }
   };
-  populateHierarchyMap(parentNode);
+
+  // get the selectedConceptNode
+  const selectedConceptNode = dummyGetNodeFromHierarchy(selectedConceptID);
+  // if the selectedConceptNode has a parent, we want to populate the hierarchy of its parent
+  if (selectedConceptNode.parent) {
+    const selectedConceptParent = dummyGetNodeFromHierarchy(selectedConceptNode.parent);
+    populateHierarchyMap(selectedConceptParent);
+  } else {
+    // we chose the domain root concept
+    hierarchyMap.set(selectedConceptNode.concept, []);
+  }
   return hierarchyMap;
 };
