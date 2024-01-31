@@ -750,7 +750,7 @@ const DataTable = (props) => {
         ...updatingEntity,
         workspaceId: workspaceId.id,
         dataProvider,
-        entityTypes: entityMetadata.find((entity) => entity.name === entityType).attributes,
+        entityTypeAttributes: entityMetadata.find((entity) => entity.name === entityType).attributes,
         onSuccess: () => {
           setUpdatingEntity(undefined);
           Ajax().Metrics.captureEvent(Events.workspaceDataEditOne, extractWorkspaceDetails(workspace.workspace));

@@ -17,9 +17,9 @@ export const SingleEntityEditorWds = ({
   onDismiss,
   onSuccess,
   dataProvider,
-  entityTypes,
+  entityTypeAttributes,
 }) => {
-  const { type: originalValueType } = getAttributeType(attributeName, entityTypes, attributeValue, dataProvider);
+  const { type: originalValueType } = getAttributeType(attributeName, entityTypeAttributes, attributeValue, dataProvider);
   const [newValue, setNewValue] = useState(attributeValue);
   const isUnchanged = _.isEqual(attributeValue, newValue);
 
@@ -31,14 +31,14 @@ export const SingleEntityEditorWds = ({
     try {
       setIsBusy(true);
       const record = {};
-      if (typeof newValue === 'object') {
+      // for lists the records will be in the items
+      if (newValue.items !== undefined) {
         record[attributeName] = newValue.items;
       } else {
         record[attributeName] = newValue;
       }
 
       const listOfRecords = { attributes: record };
-
       await dataProvider.updateRecord({ instance: workspaceId, recordName: entityType, recordId: entityName, record: listOfRecords });
 
       onSuccess();
@@ -64,7 +64,7 @@ export const SingleEntityEditorWds = ({
           initialValue: attributeValue,
           attributeName,
           entityType,
-          entityTypes,
+          entityTypeAttributes,
           dataProvider,
           showJsonTypeOption: originalValueType === 'json',
         }),

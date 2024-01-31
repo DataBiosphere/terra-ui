@@ -1,8 +1,8 @@
 import * as Utils from 'src/libs/utils';
 
-export const getAttributeType = (attributeName, entityTypes, attributeValue, dataProvider) => {
+export const getAttributeType = (attributeName, entityTypeAttributes, attributeValue, dataProvider) => {
   // type that comes from the database schema in wds
-  let getTypeAttribute = entityTypes.find((attribute) => attribute.name === attributeName).datatype;
+  let getTypeAttribute = entityTypeAttributes.find((attribute) => attribute.name === attributeName).datatype;
 
   let isList = false;
   if (getTypeAttribute.includes('ARRAY')) {

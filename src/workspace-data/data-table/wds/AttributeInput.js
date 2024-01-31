@@ -12,16 +12,12 @@ const defaultValueForAttributeType = (attributeType) => {
   return Utils.switchCase(attributeType, ['string', () => ''], ['number', () => 0], ['boolean', () => false], ['json', () => ({})]);
 };
 
-const AttributeInput = ({ autoFocus = false, value: attributeValue, attributeName, dataProvider, onChange, entityTypes = [] }) => {
-  const { type: attributeType, isList, error } = getAttributeType(attributeName, entityTypes, attributeValue, dataProvider);
+const AttributeInput = ({ autoFocus = false, value: attributeValue, attributeName, dataProvider, onChange, entityTypeAttributes }) => {
+  const { type: attributeType, isList, error } = getAttributeType(attributeName, entityTypeAttributes, attributeValue, dataProvider);
 
   const renderInput = renderInputForAttributeType(attributeType);
 
-  const referenceEntityType = Utils.cond(
-    [attributeType === 'reference' && isList, () => (!_.isEmpty(attributeValue.items) ? attributeValue.items[0].entityType : entityTypes[0])],
-    [attributeType === 'reference', () => attributeValue.entityType]
-  );
-  const defaultValue = defaultValueForAttributeType(attributeType, referenceEntityType);
+  const defaultValue = defaultValueForAttributeType(attributeType);
 
   const focusLastListItemInput = useRef(false);
   const lastListItemInput = useRef(null);

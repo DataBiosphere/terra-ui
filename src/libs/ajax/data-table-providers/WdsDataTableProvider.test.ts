@@ -172,6 +172,19 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve({ message: 'Upload Succeeded', recordsModified: 1 });
   };
 
+  const updateRecordMockImpl: WorkspaceDataContract['updateRecord'] = (
+    _instanceId: string,
+    _recordType: string,
+    _recordId: string,
+    _record: object
+  ) => {
+    const expected: RecordAttributes = {
+      something: 123,
+      testAttr: 'string_value',
+    };
+    return Promise.resolve({ id: 'record1', type: 'test', attributes: expected });
+  };
+
   const listAppsV2MockImpl = (_workspaceId: string): Promise<ListAppItem[]> => {
     return Promise.resolve(testProxyUrlResponse);
   };
@@ -699,16 +712,17 @@ describe('updateRecord', () => {
     // Arrange
     const provider = new TestableWdsProvider();
 
-    const record = {};
-    record.test = 'string_value';
-    const listOfRecords = { attributes: record };
+    const expected: RecordAttributes = {
+      something: 123,
+      testAttr: 'string_value',
+    };
+
     // Act
     return provider
-      .updateRecord({ instance: uuid, recordName: 'test', recordId: 'record1', record: listOfRecords })
+      .updateRecord({ instance: uuid, recordName: 'test', recordId: 'record1', record: expected })
       .then((actual) => {
         // Assert
-        expect(updateRecord.mock.calls.length).toBe(1);
-        expect(actual.status).toBe(204);
+        expect(actual.attributes).toStrictEqual(expected);
       });
   });
 });
