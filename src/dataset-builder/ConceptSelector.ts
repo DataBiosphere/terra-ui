@@ -6,10 +6,9 @@ import { ActionBar } from 'src/components/ActionBar';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TreeGrid } from 'src/components/TreeGrid';
+import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
-
-import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
 
 type ConceptSelectorProps = {
   readonly initialRows: Concept[];
@@ -39,7 +38,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
     return result.result;
   };
   return h(Fragment, [
-    div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
+    h(BuilderPageHeader, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
         h(
           Link,

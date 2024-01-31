@@ -8,12 +8,11 @@ import { icon } from 'src/components/icons';
 import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
+import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import { GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
-
-import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
 
 type ConceptSearchProps = {
   readonly initialSearch: string;
@@ -45,7 +44,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
   const tableLeftPadding = { paddingLeft: '2rem' };
 
   return h(Fragment, [
-    div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
+    h(BuilderPageHeader, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
         h(
           Link,
