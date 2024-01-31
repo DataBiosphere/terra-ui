@@ -5,7 +5,7 @@ import * as Style from 'src/libs/style';
 
 import Tab from './Tab';
 
-type Tab = {
+type TabObject = {
   key: string;
   title: string;
   isValid: boolean;
@@ -36,7 +36,7 @@ const dots = div({ style: { display: 'flex', margin: '0 0.5rem' } }, [
 ]);
 
 type TabsProps = {
-  tabs: Tab[];
+  tabs: TabObject[];
   activeTab: string;
   onChangeTab: (arg0: string) => void;
 };
