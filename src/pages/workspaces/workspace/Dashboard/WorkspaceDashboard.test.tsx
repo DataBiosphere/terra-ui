@@ -3,7 +3,7 @@ import React from 'react';
 import { WorkspaceDashboard } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceDashboard';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleBucketOptions, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
-import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/hooks/useWorkspace';
+import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/container/state/useWorkspace';
 
 describe('WorkspaceDashboard', () => {
   const storageDetails: StorageDetails = {

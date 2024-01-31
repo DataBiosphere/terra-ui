@@ -7,7 +7,7 @@ import { reportError } from 'src/libs/error';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
-import { StorageDetails } from 'src/workspaces/hooks/useWorkspace';
+import { StorageDetails } from 'src/workspaces/container/state/useWorkspace';
 
 import { WorkspaceData } from './Data';
 

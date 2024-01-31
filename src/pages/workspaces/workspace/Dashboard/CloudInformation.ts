@@ -22,7 +22,7 @@ import {
 import { AzureStorageDetails } from 'src/pages/workspaces/workspace/Dashboard/AzureStorageDetails';
 import { BucketLocation } from 'src/pages/workspaces/workspace/Dashboard/BucketLocation';
 import { InfoRow } from 'src/pages/workspaces/workspace/Dashboard/InfoRow';
-import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/hooks/useWorkspace';
+import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/container/state/useWorkspace';
 
 interface CloudInformationProps {
   storageDetails: StorageDetails;

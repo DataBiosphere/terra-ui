@@ -12,7 +12,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
 import { RightBoxSection } from 'src/pages/workspaces/workspace/Dashboard/RightBoxSection';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/hooks/useWorkspace';
+import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/container/state/useWorkspace';
 
 const styles: Record<string, CSSProperties> = {
   authDomain: {

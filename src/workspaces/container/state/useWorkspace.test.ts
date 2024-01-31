@@ -10,7 +10,11 @@ import * as Notifications from 'src/libs/notifications';
 import { workspaceStore } from 'src/libs/state';
 import { renderHookInAct } from 'src/testing/test-utils';
 import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
-import { azureBucketRecheckRate, googlePermissionsRecheckRate, useWorkspace } from 'src/workspaces/hooks/useWorkspace';
+import {
+  azureBucketRecheckRate,
+  googlePermissionsRecheckRate,
+  useWorkspace,
+} from 'src/workspaces/container/state/useWorkspace';
 
 jest.mock('src/libs/ajax/AzureStorage');
 

@@ -5,7 +5,7 @@ import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import { AzureWorkspaceInfo, BaseWorkspace, GoogleWorkspaceInfo } from 'src/libs/workspace-utils';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
-import { useDeleteWorkspaceState } from 'src/workspaces/hooks/useDeleteWorkspaceState';
+import { useDeleteWorkspaceState } from 'src/workspaces/DeleteWorkspaceModal/state/useDeleteWorkspaceState';
 
 type AjaxExports = typeof import('src/libs/ajax');
 jest.mock('src/libs/ajax', (): AjaxExports => {

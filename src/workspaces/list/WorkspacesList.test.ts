@@ -5,7 +5,7 @@ import { Ajax } from 'src/libs/ajax';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
-import { useWorkspacesWithSubmissionStats } from 'src/workspaces/hooks/useWorkspacesWithSubmissionStats';
+import { useWorkspacesWithSubmissionStats } from 'src/workspaces/list/state/useWorkspacesWithSubmissionStats';
 import { WorkspacesList } from 'src/workspaces/list/WorkspacesList';
 
 type NavExports = typeof import('src/libs/nav');
@@ -52,11 +52,12 @@ jest.mock<WorkspaceFiltersExports>('src/workspaces/list/WorkspaceFilters', () =>
   WorkspaceFilters: jest.fn().mockReturnValue(null),
 }));
 
-jest.mock<UseWorkspaceWithSubmissionStatsExports>('src/workspaces/hooks/useWorkspacesWithSubmissionStats', () => ({
-  ...jest.requireActual('src/workspaces/hooks/useWorkspacesWithSubmissionStats'),
+jest.mock<UseWorkspaceWithSubmissionStatsExports>('src/workspaces/list/state/useWorkspacesWithSubmissionStats', () => ({
+  ...jest.requireActual('src/workspaces/list/state/useWorkspacesWithSubmissionStats'),
   useWorkspacesWithSubmissionStats: jest.fn(),
 }));
-type UseWorkspaceWithSubmissionStatsExports = typeof import('src/workspaces/hooks/useWorkspacesWithSubmissionStats');
+type UseWorkspaceWithSubmissionStatsExports =
+  typeof import('src/workspaces/list/state/useWorkspacesWithSubmissionStats');
 
 describe('WorkspaceList', () => {
   afterEach(() => {
