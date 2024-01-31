@@ -9,7 +9,7 @@ import * as Nav from 'src/libs/nav';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { useWorkspaces } from 'src/workspaces/hooks/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 
 const requesterPaysHelpInfo = div({ style: { paddingTop: '1rem' } }, [
   h(

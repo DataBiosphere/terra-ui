@@ -12,7 +12,7 @@ import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
 import { workflowNameValidation } from 'src/libs/workflow-utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
-import { useWorkspaces } from 'src/workspaces/hooks/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import validate from 'validate.js';
 
 const ExportWorkflowModal = ({ thisWorkspace, sameWorkspace, methodConfig, onSuccess, onDismiss }) => {

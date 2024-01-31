@@ -9,7 +9,7 @@ import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import Events, { extractCrossWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { useWorkspaces } from 'src/workspaces/hooks/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 
 export type LoadedAnalysisFiles = LoadedState<AnalysisFile[], unknown>;
 

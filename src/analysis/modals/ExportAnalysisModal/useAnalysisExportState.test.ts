@@ -6,7 +6,7 @@ import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvi
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
-import { useWorkspaces } from 'src/workspaces/hooks/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 
 import { errors, useAnalysisExportState } from './useAnalysisExportState';
 
@@ -39,11 +39,11 @@ jest.mock(
   })
 );
 
-type WorkspaceUtilsExports = typeof import('src/workspaces/hooks/useWorkspaces');
+type WorkspaceUtilsExports = typeof import('src/workspaces/common/state/useWorkspaces');
 jest.mock(
-  'src/workspaces/hooks/useWorkspaces',
+  'src/workspaces/common/state/useWorkspaces',
   (): WorkspaceUtilsExports => ({
-    ...jest.requireActual('src/workspaces/hooks/useWorkspaces'),
+    ...jest.requireActual('src/workspaces/common/state/useWorkspaces'),
     useWorkspaces: jest.fn(),
   })
 );

@@ -9,7 +9,7 @@ import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvide
 import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import { terraNavKey, TerraNavLinkProvider, terraNavLinkProvider } from 'src/libs/nav';
-import { useWorkspaces } from 'src/workspaces/hooks/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 
 import { leoResourcePermissions } from './environmentsPermissions';
 

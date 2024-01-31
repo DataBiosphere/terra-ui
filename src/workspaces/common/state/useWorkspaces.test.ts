@@ -4,7 +4,7 @@ import { reportError } from 'src/libs/error';
 import { workspacesStore } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
-import { useWorkspaces } from 'src/workspaces/hooks/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 
 type WorkspaceProviderExports = typeof import('src/libs/ajax/workspaces/providers/WorkspaceProvider');
 jest.mock(
