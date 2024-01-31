@@ -201,24 +201,3 @@ export const getHierarchyMap = (id: number): Map<Concept, Concept[]> => {
   populateHierarchyMap(parentNode);
   return hierarchyMap;
 };
-
-export const getRenderArray = (hierarchyMap: Map<Concept, Concept[]>): Concept[] => {
-  const tree: {
-    name: string;
-    id: number;
-    hasChildren: boolean;
-    children: Concept[];
-  }[] = [];
-
-  hierarchyMap.forEach((value: Concept[], key: Concept) => {
-    tree.push({
-      name: key.name,
-      id: key.id,
-      hasChildren: key.hasChildren,
-      children: value,
-    });
-  });
-  return tree;
-};
-
-// make this into populated and ready for use in DomainCriteriaSelector
