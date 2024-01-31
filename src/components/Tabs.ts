@@ -56,9 +56,9 @@ const Tabs = ({ tabs, activeTab: activeTabKey, onChangeTab }: TabsProps) =>
     [
       tabs.map(({ key, title, isValid, isLast }) => {
         if (isLast === true) {
-          return h(Fragment, [Tab({ key, title, isValid, activeTabKey, onChangeTab })]);
+          return h(Fragment, { key }, [Tab({ key, title, isValid, activeTabKey, onChangeTab })]);
         }
-        return h(Fragment, [Tab({ key, title, isValid, activeTabKey, onChangeTab }), dots]);
+        return h(Fragment, { key }, [Tab({ key, title, isValid, activeTabKey, onChangeTab }), dots]);
       }),
     ]
   );
