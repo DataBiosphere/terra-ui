@@ -60,7 +60,7 @@ export interface WDSJob {
 // If a capability is no longer necessary (because all live WDS instances now support it),
 // care should be taken to prune the conditional logic that relies on the capability, and
 // then the capability should be removed.
-type SupportedCapability = 'capabilities';
+type SupportedCapability = 'capabilities' | 'edit.deleteAttribute';
 type UnusedCapability = string;
 export type Capability = SupportedCapability | UnusedCapability;
 
@@ -103,6 +103,18 @@ export const WorkspaceData = (signal) => ({
   deleteTable: async (root: string, instanceId: string, recordType: string): Promise<Response> => {
     const res = await fetchWDS(root)(
       `${instanceId}/types/v0.2/${recordType}`,
+      _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
+    );
+    return res;
+  },
+  deleteColumn: async (
+    root: string,
+    instanceId: string,
+    recordType: string,
+    attributeName: string
+  ): Promise<Response> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/types/v0.2/${recordType}/${attributeName}`,
       _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
     );
     return res;

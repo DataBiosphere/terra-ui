@@ -262,7 +262,7 @@ const EntitiesContent = ({
   setEntityMetadata,
   loadMetadata,
   snapshotName,
-  deleteColumnUpdateMetadata,
+  editable,
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({});
@@ -486,7 +486,7 @@ const EntitiesContent = ({
           dataProvider,
           persist: true,
           refreshKey,
-          editable: !snapshotName && WorkspaceUtils.canEditWorkspace(workspace).value,
+          editable,
           entityType: entityKey,
           activeCrossTableTextFilter,
           entityMetadata,
@@ -524,7 +524,6 @@ const EntitiesContent = ({
                 [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]
               ),
             ]),
-          deleteColumnUpdateMetadata,
           controlPanelStyle: {
             background: colors.light(0.5),
             borderBottom: `1px solid ${colors.grey(0.4)}`,
