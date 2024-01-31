@@ -38,7 +38,7 @@ describe('RenameColumnModal', () => {
     const input = screen.getByLabelText(/New Name/);
     await userEvent.type(input, 'defaultEntityType_id');
     // Assert
-    expect(renameModal.getByText(/Column name may only contain alphanumeric characters/));
+    expect(renameModal.getByText(/Column name cannot be/));
   });
 
   it('Errors on existing name for column name', async () => {
