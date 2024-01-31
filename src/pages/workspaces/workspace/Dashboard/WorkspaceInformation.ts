@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import { dl, h } from 'react-hyperscript-helpers';
 import { getPolicyDescriptions } from 'src/libs/workspace-utils';
 import { InfoRow } from 'src/pages/workspaces/workspace/Dashboard/InfoRow';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/container/state/useWorkspace';
+import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
 
 const roleString = {
   READER: 'Reader',

@@ -13,9 +13,9 @@ import { useOnMount } from 'src/libs/react-utils';
 import { elements as StyleElements } from 'src/libs/style';
 import { newTabLinkProps } from 'src/libs/utils';
 import { cloudProviderTypes, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { useDeletionPolling } from 'src/workspaces/common/state/useDeletionPolling';
 import { categorizeWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
 import { RecentlyViewedWorkspaces } from 'src/workspaces/list/RecentlyViewedWorkspaces';
-import { useDeletionPolling } from 'src/workspaces/list/state/useDeletionPolling';
 import { useWorkspacesWithSubmissionStats } from 'src/workspaces/list/state/useWorkspacesWithSubmissionStats';
 import {
   getWorkspaceFiltersFromQuery,

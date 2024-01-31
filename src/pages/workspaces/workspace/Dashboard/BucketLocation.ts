@@ -13,7 +13,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import { GoogleWorkspace } from 'src/libs/workspace-utils';
-import { StorageDetails } from 'src/workspaces/container/state/useWorkspace';
+import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 
 interface BucketLocationProps {
   workspace: GoogleWorkspace & { workspaceInitialized: boolean };

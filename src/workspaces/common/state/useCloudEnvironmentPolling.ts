@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/container/state/useWorkspace';
+import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
 
 export interface CloudEnvironmentDetails {
   runtimes?: ListRuntimeItem[];

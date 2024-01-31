@@ -68,9 +68,9 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { canWrite, isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo } from 'src/libs/workspace-utils';
-import { AppDetails } from 'src/workspaces/container/state/useAppPolling';
-import { CloudEnvironmentDetails } from 'src/workspaces/container/state/useCloudEnvironmentPolling';
-import { InitializedWorkspaceWrapper, StorageDetails } from 'src/workspaces/container/state/useWorkspace';
+import { AppDetails } from 'src/workspaces/common/state/useAppPolling';
+import { CloudEnvironmentDetails } from 'src/workspaces/common/state/useCloudEnvironmentPolling';
+import { InitializedWorkspaceWrapper, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 const tableFields = {

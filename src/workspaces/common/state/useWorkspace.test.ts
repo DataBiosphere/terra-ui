@@ -14,7 +14,7 @@ import {
   azureBucketRecheckRate,
   googlePermissionsRecheckRate,
   useWorkspace,
-} from 'src/workspaces/container/state/useWorkspace';
+} from 'src/workspaces/common/state/useWorkspace';
 
 jest.mock('src/libs/ajax/AzureStorage');
 

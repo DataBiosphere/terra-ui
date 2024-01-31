@@ -11,7 +11,7 @@ import {
   defaultGoogleBucketOptions,
   defaultGoogleWorkspace,
 } from 'src/testing/workspace-fixtures';
-import { StorageDetails } from 'src/workspaces/container/state/useWorkspace';
+import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxExports = typeof import('src/libs/ajax');

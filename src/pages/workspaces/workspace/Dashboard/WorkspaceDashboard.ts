@@ -13,7 +13,7 @@ import { WorkspaceDescription } from 'src/pages/workspaces/workspace/Dashboard/W
 import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
 import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceNotifications';
 import { WorkspaceTags } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceTags';
-import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/container/state/useWorkspace';
+import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 
 export interface WorkspaceDashboardProps {
   namespace: string;

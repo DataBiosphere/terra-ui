@@ -58,7 +58,7 @@ import {
   isAzureWorkspace,
   isGoogleWorkspace,
 } from 'src/libs/workspace-utils';
-import { StorageDetails } from 'src/workspaces/container/state/useWorkspace';
+import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 
 const contextBarStyles: { [label: string]: CSSProperties } = {
   contextBarContainer: {
