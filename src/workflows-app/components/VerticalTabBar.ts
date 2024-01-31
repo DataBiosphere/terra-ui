@@ -1,0 +1,115 @@
+import _ from 'lodash/fp';
+import { useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import { Clickable } from 'src/components/common';
+import { VerticalNavigation } from 'src/components/keyboard-nav';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+
+const styles = {
+  tabBar: {
+    container: {
+      ...Style.tabBar.container,
+      height: '100%',
+    },
+    tab: {
+      ...Style.tabBar.tab,
+      height: '100%',
+    },
+    active: {
+      ...Style.tabBar.active,
+      height: '100%',
+    },
+    hover: {
+      ...Style.tabBar.hover,
+      height: '100%',
+    },
+  },
+};
+
+export type VerticalTabBarProps = {
+  activeTabKey: string;
+  tabKeys: string[]; // unique keys for each tab
+  tabDisplayNames?: Map<string, string>; // map of unique tab keys to display names. If not provided, tab keys will be used as display names
+  onClick: (tabKey: string) => void;
+};
+
+export function VerticalTabBar({ activeTabKey, tabKeys, tabDisplayNames, onClick, ...props }: VerticalTabBarProps) {
+  const [activeTab, setActiveTab] = useState(activeTabKey);
+
+  const navTab = (i, currentTab) => {
+    const selected: boolean = currentTab === activeTab;
+    const onClickFn = () => {
+      setActiveTab(currentTab);
+      onClick(currentTab);
+    };
+    return div(
+      {
+        key: currentTab,
+        role: 'menuitem',
+        'aria-setsize': tabKeys.length,
+        'aria-posinset': i + 1, // The first tab is 1
+        'aria-current': selected ? 'location' : undefined,
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 140,
+          flexGrow: 1,
+          alignSelf: 'stretch',
+          alignItems: 'center',
+          textAlign: 'center',
+        },
+      },
+      [
+        h(
+          Clickable,
+          {
+            style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), flexGrow: 1 },
+            hover: selected ? {} : styles.tabBar.hover,
+            onClick: onClickFn,
+          },
+          [
+            div(
+              {
+                style: {
+                  flex: '1 1 100%',
+                  marginBottom: selected ? -styles.tabBar.active.borderBottomWidth : undefined,
+                },
+              },
+              tabDisplayNames ? tabDisplayNames[currentTab] || currentTab : currentTab
+            ),
+          ]
+        ),
+      ]
+    );
+  };
+
+  return div(
+    {
+      style: { ...styles.tabBar.container, display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%' },
+    },
+    [
+      div(
+        {
+          role: 'navigation',
+          'aria-label': props['aria-label'], // duplicate the menu's label on the navigation element
+          'aria-labelledby': props['aria-labelledby'],
+          style: { display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%' },
+        },
+        [
+          h(
+            VerticalNavigation,
+            {
+              role: 'menu',
+              'aria-orientation': 'vertical',
+              style: { display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%' },
+              ...props,
+            },
+            [..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabKeys))]
+          ),
+        ]
+      ),
+      div({ style: { display: 'flex', flexGrow: 0, alignItems: 'center' } }),
+    ]
+  );
+}

@@ -6,10 +6,10 @@ import { ButtonOutline } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import Modal from 'src/components/Modal';
-import { SimpleTabBar } from 'src/components/tabBars';
 import { Ajax } from 'src/libs/ajax';
 import { useCancellation } from 'src/libs/react-utils';
 import { newTabLinkProps } from 'src/libs/utils';
+import { VerticalTabBar } from 'src/workflows-app/components/VerticalTabBar';
 import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
 import { discoverTesLogs } from '../utils/task-log-utils';
@@ -41,15 +41,6 @@ export type LogViewerProps = {
 };
 
 /**
- * Props for the SimpleTab component. See src/components/tabBars.js
- */
-type SimpleTabProps = {
-  key: string;
-  title: string;
-  width: number;
-};
-
-/**
  * Represents data that has been fetched using an Azure Blob URI
  */
 type FetchedLogData = {
@@ -62,7 +53,6 @@ type FetchedLogData = {
 const logLoadingErrorMessage =
   "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated.";
 const modalMaxWidth = 1100;
-const tabMaxWidth = modalMaxWidth / 4 - 20;
 
 /**
  * We want to show different tooltips for the info icon depending on which log files the
@@ -196,9 +186,75 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
     }
   };
 
-  const tabsArray: SimpleTabProps[] = activeLogs.map((log) => {
-    return { key: log.logKey, title: log.logTitle, width: tabMaxWidth };
-  });
+  const renderLogSpecificContent = () => {
+    return [
+      div(
+        {
+          style: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingTop: '0.5rem',
+          },
+        },
+        [
+          span({}, [
+            span({ style: { paddingRight: '0.5rem', fontWeight: 'bold', fontSize: 16 } }, ['File:']),
+            span({ style: { fontSize: 16 } }, [currentlyActiveLog?.logFilename]),
+          ]),
+          !_.isEmpty(activeDownloadUri) &&
+            h(
+              ButtonOutline,
+              {
+                'aria-label': 'Download log',
+                disabled: _.isEmpty(currentlyActiveLog?.logUri),
+                href: activeDownloadUri,
+                download: activeDownloadUri,
+                ...newTabLinkProps,
+              },
+              [span([icon('download', { style: { marginRight: '1ch' } }), 'Download'])]
+            ),
+        ]
+      ),
+      div(
+        {
+          'aria-label': 'Log file content',
+          style: {
+            fontFamily: 'Menlo, monospace',
+            overflowY: 'auto',
+            whiteSpace: 'pre-line',
+            maxHeight: window.innerHeight * 0.6,
+            marginTop: '0.5rem',
+            padding: '0.5rem',
+            paddingRight: '10px', // reserve space for scrollbar
+          },
+        },
+        [renderActiveTextContent()]
+      ),
+    ];
+  };
+
+  const renderLefthandTabs = () => {
+    if (_.isEmpty(currentlyActiveLog)) {
+      return [
+        h(VerticalTabBar, {
+          activeTabKey: 'missing_logs',
+          tabKeys: ['missing_logs'],
+          onClick(tabKey: string): void {
+            console.error(`No log found for tab key: ${tabKey}`);
+          },
+        }),
+      ];
+    }
+    return [
+      h(VerticalTabBar, {
+        activeTabKey: currentlyActiveLog.logKey,
+        tabKeys: activeLogs.map((log) => log.logKey),
+        tabDisplayNames: new Map(activeLogs.map((log) => [log.logKey, log.logTitle])),
+        onClick: (tabKey: string) => setCurrentlyActiveLog(activeLogs.find((log) => log.logKey === tabKey)),
+      }),
+    ];
+  };
 
   return h(
     Modal,
@@ -221,64 +277,10 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
       width: modalMaxWidth,
     },
     [
-      h(
-        SimpleTabBar,
-        {
-          value: currentlyActiveLog?.logKey,
-          'aria-label': 'Log file tabs',
-          onChange: (key: string) => {
-            const newLog = activeLogs.find((log) => log.logKey === key);
-            setCurrentlyActiveLog(newLog);
-          },
-          tabs: tabsArray,
-        },
-        [
-          div(
-            {
-              style: {
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                paddingTop: '0.5rem',
-              },
-            },
-            [
-              span({}, [
-                span({ style: { paddingRight: '0.5rem', fontWeight: 'bold', fontSize: 16 } }, ['File:']),
-                span({ style: { fontSize: 16 } }, [currentlyActiveLog?.logFilename]),
-              ]),
-              !_.isEmpty(activeDownloadUri) &&
-                h(
-                  ButtonOutline,
-                  {
-                    'aria-label': 'Download log',
-                    disabled: _.isEmpty(currentlyActiveLog?.logUri),
-                    href: activeDownloadUri,
-                    download: activeDownloadUri,
-                    ...newTabLinkProps,
-                  },
-                  [span([icon('download', { style: { marginRight: '1ch' } }), 'Download'])]
-                ),
-            ]
-          ),
-          div(
-            {
-              'aria-label': 'Log file content',
-              style: {
-                fontFamily: 'Menlo, monospace',
-                overflowY: 'auto',
-                whiteSpace: 'pre-line',
-                maxHeight: window.innerHeight * 0.6,
-                marginTop: '0.5rem',
-                padding: '0.5rem',
-                paddingRight: '10px', // reserve space for scrollbar
-              },
-            },
-            [renderActiveTextContent()]
-          ),
-        ]
-      ),
+      div({ style: { display: 'flex', height: '100%' } }, [
+        div({ style: { width: '25%' } }, renderLefthandTabs()),
+        div({ style: { width: '75%' } }, renderLogSpecificContent()),
+      ]),
     ]
   );
 };
-//
