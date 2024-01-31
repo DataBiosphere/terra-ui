@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { BaseSubmissionDetails } from 'src/workflows-app/SubmissionDetails';
 import { methodData, runsData, runSetData, simpleRunsData } from 'src/workflows-app/utils/mock-data';
-import { mockAzureApps, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
+import { mockAzureApps, mockAzureWorkspace, runSetOutputDef, runSetResponse } from 'src/workflows-app/utils/mock-responses';
 
 const submissionId = 'e8347247-4738-4ad1-a591-56c119f93f58';
 const cbasUrlRoot = 'https://lz-abc/terra-app-abc/cbas';
@@ -552,5 +552,141 @@ describe('Submission Details page', () => {
     });
 
     expect(screen.getByText('Some workflow statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument();
+  });
+
+  it('should display inputs on the Inputs tab', async () => {
+    const user = userEvent.setup();
+    const getRuns = jest.fn(() => Promise.resolve(runsData));
+    const getRunsSets = jest.fn(() => Promise.resolve(runSetData));
+    const getMethods = jest.fn(() => Promise.resolve(methodData));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRuns,
+          },
+          runSets: {
+            get: getRunsSets,
+          },
+          methods: {
+            getById: getMethods,
+          },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(BaseSubmissionDetails, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          submissionId,
+        })
+      );
+    });
+
+    const workflowsTabButton = screen.getByRole('button', { name: 'Workflows' });
+    expect(workflowsTabButton !== undefined);
+
+    const inputsTabButton = screen.getByRole('button', { name: 'Inputs' });
+    expect(inputsTabButton !== undefined);
+
+    // ** ACT **
+    // user clicks on inputs tab button
+    await user.click(inputsTabButton);
+
+    expect(screen.getByRole('table')).toBeInTheDocument();
+
+    const inputTable = screen.getByRole('table');
+    const rows = within(inputTable).getAllByRole('row');
+    expect(rows.length).toBe(JSON.parse(runSetData.run_sets[0].input_definition).length + 1); // one row for each input definition variable, plus headers
+
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    expect(headers.length).toBe(5);
+
+    const row1cells = within(rows[1]).getAllByRole('cell');
+    expect(row1cells.length).toBe(5);
+    expect(row1cells[0].textContent).toBe('hello');
+    expect(row1cells[1].textContent).toBe('addressee');
+    expect(row1cells[2].textContent).toBe('String');
+    expect(row1cells[3].textContent).toBe('record_lookup');
+    expect(row1cells[4].textContent).toBe('foo_name');
+  });
+
+  it('should display outputs on the Outputs tab', async () => {
+    // Add output definition to temporary runset data variable
+    const tempRunSetData = runSetData;
+    tempRunSetData.run_sets[0].output_definition = runSetResponse.run_sets[0].output_definition;
+
+    const user = userEvent.setup();
+    const getRuns = jest.fn(() => Promise.resolve(runsData));
+    const getRunsSets = jest.fn(() => Promise.resolve(tempRunSetData));
+    const getMethods = jest.fn(() => Promise.resolve(methodData));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRuns,
+          },
+          runSets: {
+            get: getRunsSets,
+          },
+          methods: {
+            getById: getMethods,
+          },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(BaseSubmissionDetails, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          submissionId,
+        })
+      );
+    });
+
+    const outputsTabButton = screen.getByRole('button', { name: 'Outputs' });
+    expect(outputsTabButton !== undefined);
+
+    // ** ACT **
+    // user clicks on outputs tab button
+    await user.click(outputsTabButton);
+
+    expect(screen.getByRole('table')).toBeInTheDocument();
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('row');
+    expect(rows.length).toBe(runSetOutputDef.length + 1); // one row for each output definition variable, plus headers
+
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    expect(headers.length).toBe(4);
+
+    const row1cells = within(rows[1]).getAllByRole('cell');
+    expect(row1cells.length).toBe(4);
+    expect(row1cells[0].textContent).toBe('target_workflow_1');
+    expect(row1cells[1].textContent).toBe('file_output');
+    expect(row1cells[2].textContent).toBe('File');
+    expect(row1cells[3].textContent).toBe('target_workflow_1_file_output'); // from previous run/template
+
+    const row2cells = within(rows[2]).getAllByRole('cell');
+    expect(row2cells.length).toBe(4);
+    expect(row2cells[0].textContent).toBe('target_workflow_1');
+    expect(row2cells[1].textContent).toBe('unused_output');
+    expect(row2cells[2].textContent).toBe('String');
+    expect(row2cells[3].textContent).toBe('');
   });
 });

@@ -1,10 +1,10 @@
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { Clickable } from 'src/components/common';
-import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
+
+import Tab from './Tab';
 
 const styles = {
   container: {
@@ -32,38 +32,9 @@ const styles = {
 
 const dots = div({ style: { display: 'flex', margin: '0 0.5rem' } }, [div({ style: styles.dot }), div({ style: styles.dot })]);
 
-const stepButton = ({ key, title, isValid, activeTabKey, onChangeTab }) =>
-  h(
-    Clickable,
-    {
-      style: styles.button(key === activeTabKey),
-      onClick: () => onChangeTab(key),
-    },
-    [
-      div(
-        {
-          style: {
-            marginBottom: key === activeTabKey ? -Style.tabBar.active.borderBottomWidth : undefined,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-          },
-        },
-        [
-          div({ style: { textAlign: 'center' } }, [
-            title,
-            div({ style: { fontWeight: styles.button(true).fontWeight, height: 0, visibility: 'hidden' } }, [title]), // so the width of the text container doesn't change with boldness
-          ]),
-          !isValid && icon('error-standard', { size: 14, style: { marginLeft: '1rem', color: colors.warning() } }),
-        ]
-      ),
-    ]
-  );
-
 const StepButtons = ({ tabs, activeTab: activeTabKey, onChangeTab, finalStep }) =>
   div({ style: styles.container }, [
-    ..._.map(({ key, title, isValid }) => h(Fragment, [stepButton({ key, title, isValid, activeTabKey, onChangeTab }), dots]), tabs),
+    ..._.map(({ key, title, isValid }) => h(Fragment, [Tab({ key, title, isValid, activeTabKey, onChangeTab }), dots]), tabs),
     finalStep,
   ]);
 

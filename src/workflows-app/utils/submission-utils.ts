@@ -3,14 +3,16 @@ import { div } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import { statusType as jobStatusType } from 'src/components/job-common';
 import colors from 'src/libs/colors';
-import { differenceFromDatesInSeconds, differenceFromNowInSeconds, maybeParseJSON } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
+import { differenceFromDatesInSeconds, differenceFromNowInSeconds, maybeParseJSON } from 'src/libs/utils';
 import {
   InputDefinition,
   InputSource,
   InputType,
   OptionalInputType,
   OutputDefinition,
+  OutputDestination,
+  OutputType,
   PrimitiveInputType,
   StructInputDefinition,
   StructInputType,
@@ -20,6 +22,27 @@ import {
 export const AutoRefreshInterval = 1000 * 60; // 1 minute
 export const WdsPollInterval = 1000 * 30; // 30 seconds
 export const CbasPollInterval = 1000 * 30; // 30 seconds
+
+export type InputTableData = {
+  configurationIndex: number;
+  inputTypeStr: string;
+  input_name: string;
+  input_type: InputType;
+  optional: boolean;
+  source: InputSource;
+  taskName: string;
+  variable: string;
+};
+
+export type OutputTableData = {
+  configurationIndex: number;
+  destination: OutputDestination;
+  outputTypeStr: string;
+  output_name: string;
+  output_type: OutputType;
+  taskName: string;
+  variable: string;
+};
 
 const iconSize = 24;
 export const addCountSuffix = (label, count = undefined) => {
@@ -477,3 +500,66 @@ export const validateInputs = (
     const inputMessage = validateInput(input, dataTableAttributes);
     return { name: 'input_name' in input ? input.input_name : input.field_name, ...inputMessage };
   });
+
+export const getInputTableData = (
+  configuredInputDefinition: InputDefinition[],
+  searchFilter: string,
+  includeOptionalInputs: boolean,
+  inputTableSort: { field: string; direction: boolean | 'asc' | 'desc' }
+): InputTableData[] => {
+  const val = _.flow(
+    (rows: InputDefinition[]) =>
+      rows.map((row, index): InputTableData => {
+        const { workflow, call, variable } = parseMethodString(row.input_name);
+        return {
+          taskName: call || workflow || '',
+          variable: variable || '',
+          inputTypeStr: renderTypeText(row.input_type),
+          configurationIndex: index,
+          optional: isInputOptional(row.input_type),
+          ...row,
+        };
+      }),
+    _.orderBy<InputTableData>(
+      [
+        'optional',
+        // @ts-expect-error
+        ({ [inputTableSort.field]: field }) => _.lowerCase(field),
+        ({ taskName }) => _.lowerCase(taskName),
+        ({ variable }) => _.lowerCase(variable),
+      ],
+      ['asc', inputTableSort.direction, 'asc', 'asc']
+    ),
+    (rows: InputTableData[]) => {
+      return rows.filter((row: InputTableData) => {
+        return (
+          (includeOptionalInputs || !row.optional) &&
+          (row.taskName.toLocaleLowerCase().includes(searchFilter.toLocaleLowerCase()) ||
+            row.variable.toLocaleLowerCase().includes(searchFilter.toLocaleLowerCase()))
+        );
+      });
+    }
+  )(configuredInputDefinition);
+
+  return val;
+};
+
+export const getOutputTableData = (
+  configuredOutputDefinition: OutputDefinition,
+  sort: { field: string; direction: string }
+): OutputTableData[] => {
+  return _.flow(
+    _.entries,
+    _.map(([index, row]) => {
+      const { workflow, call, variable } = parseMethodString(row.output_name);
+      return _.flow([
+        _.set('taskName', call || workflow || ''),
+        _.set('variable', variable || ''),
+        _.set('outputTypeStr', renderTypeText(row.output_type)),
+        _.set('configurationIndex', parseInt(index)),
+      ])(row);
+    }),
+    // @ts-expect-error
+    _.orderBy([({ [sort.field]: field }) => _.lowerCase(field)], [sort.direction])
+  )(configuredOutputDefinition);
+};

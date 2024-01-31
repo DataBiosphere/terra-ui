@@ -16,11 +16,10 @@ import {
 import { StructBuilderModal } from 'src/workflows-app/components/StructBuilder';
 import { InputDefinition, ObjectBuilderInputSource, StructInputType } from 'src/workflows-app/models/submission-models';
 import {
+  getInputTableData,
+  InputTableData,
   inputTypeStyle,
   InputValidationWithName,
-  isInputOptional,
-  parseMethodString,
-  renderTypeText,
   typeMatch,
 } from 'src/workflows-app/utils/submission-utils';
 
@@ -51,39 +50,12 @@ const InputsTable = ({
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes);
 
-  const inputTableData = _.flow(
-    (rows: InputDefinition[]) =>
-      rows.map((row, index) => {
-        const { workflow, call, variable } = parseMethodString(row.input_name);
-        return {
-          taskName: call || workflow || '',
-          variable: variable || '',
-          inputTypeStr: renderTypeText(row.input_type),
-          configurationIndex: index,
-          optional: isInputOptional(row.input_type),
-          ...row,
-        };
-      }),
-    (rows) =>
-      _.orderBy<(typeof rows)[number]>(
-        [
-          _.get('optional'),
-          ({ [inputTableSort.field]: field }) => _.lowerCase(field),
-          ({ taskName }) => _.lowerCase(taskName),
-          ({ variable }) => _.lowerCase(variable),
-        ],
-        ['asc', inputTableSort.direction, 'asc', 'asc'],
-        rows
-      ),
-    _.filter(
-      _.overEvery([
-        ({ optional }) => includeOptionalInputs || !optional,
-        ({ taskName, variable }) =>
-          _.lowerCase(taskName).includes(_.lowerCase(searchFilter)) ||
-          _.lowerCase(variable).includes(_.lowerCase(searchFilter)),
-      ])
-    )
-  )(configuredInputDefinition);
+  const inputTableData: InputTableData[] = getInputTableData(
+    configuredInputDefinition,
+    searchFilter,
+    includeOptionalInputs,
+    inputTableSort
+  );
 
   const inputRowsInDataTable = inputTableData.filter(
     (row) =>

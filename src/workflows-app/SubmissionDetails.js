@@ -3,13 +3,14 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, h2, h3 } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
+import Tabs from 'src/components/Tabs';
 import { Ajax } from 'src/libs/ajax';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { customFormatDuration, makeCompleteDate } from 'src/libs/utils';
+import { customFormatDuration, makeCompleteDate, maybeParseJSON } from 'src/libs/utils';
 import { HeaderSection, SubmitNewWorkflowButton } from 'src/workflows-app/components/job-common';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import {
@@ -22,6 +23,8 @@ import {
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 import FilterableWorkflowTable from './components/FilterableWorkflowTable';
+import SubmissionDetailsInputsTable from './components/SubmissionDetailsInputsTable';
+import SubmissionDetailsOutputsTable from './components/SubmissionDetailsOutputsTable';
 
 export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId }, _ref) => {
   // State
@@ -30,6 +33,9 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
   const [loading, setLoading] = useState(false);
   const [runSetData, setRunSetData] = useState();
   const [methodsData, setMethodsData] = useState();
+  const [activeTab, setActiveTab] = useState({ key: 'workflows' });
+  const [configuredInputDefinition, setConfiguredInputDefinition] = useState([]);
+  const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState([]);
 
   const signal = useCancellation();
   const scheduledRefresh = useRef();
@@ -73,7 +79,10 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     async (cbasUrlRoot) => {
       try {
         const runSets = await Ajax(signal).Cbas.runSets.get(cbasUrlRoot);
+        const newRunSetData = runSets.run_sets[0];
         setRunSetData(runSets.run_sets);
+        setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
+        setConfiguredOutputDefinition(maybeParseJSON(newRunSetData.output_definition));
         return runSets.run_sets;
       } catch (error) {
         notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
@@ -234,9 +243,34 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                   ),
               ]),
             ]),
+            h(Tabs, {
+              tabs: [
+                { key: 'workflows', title: 'Workflows', isValid: true, isLast: false },
+                { key: 'inputs', title: 'Inputs', isValid: true, isLast: false },
+                { key: 'outputs', title: 'Outputs', isValid: true, isLast: true },
+              ],
+              activeTab: activeTab.key || 'workflows',
+              onChangeTab: (v) => setActiveTab({ key: v }),
+            }),
           ]
         ),
-        div([h(FilterableWorkflowTable, { runsData, runsFullyUpdated, namespace, submissionId, workspaceName: name })]),
+        div(
+          {
+            style: {
+              display: 'flex',
+              flex: '1 0 auto',
+              backgroundColor: 'rgb(235, 236, 238)',
+            },
+          },
+          [
+            Utils.switchCase(
+              activeTab.key || 'workflows',
+              ['workflows', () => h(FilterableWorkflowTable, { runsData, runsFullyUpdated, namespace, submissionId, workspaceName: name })],
+              ['inputs', () => h(SubmissionDetailsInputsTable, { configuredInputDefinition })],
+              ['outputs', () => h(SubmissionDetailsOutputsTable, { configuredOutputDefinition })]
+            ),
+          ]
+        ),
       ]);
 };
 
