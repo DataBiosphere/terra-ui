@@ -194,7 +194,7 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
             fontFamily: 'Menlo, monospace',
             overflowY: 'auto',
             whiteSpace: 'pre-line',
-            maxHeight: window.innerHeight * 0.6,
+            height: window.innerHeight * 0.8,
             padding: '0.5rem',
             paddingRight: '10px', // reserve space for scrollbar
           },
@@ -210,8 +210,6 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
         style: {
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingTop: '0.5rem',
         },
       },
       [
@@ -279,7 +277,7 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
     },
     [
       div({}, [
-        div({}, [renderTopRow()]),
+        div({ style: { height: '2.25rem' } }, [renderTopRow()]),
         div({ style: { display: 'flex', height: '100%' } }, [
           div({ style: { width: '25%' } }, renderLefthandTabs()),
           div({ style: { width: '75%' } }, renderActiveTextContent()),

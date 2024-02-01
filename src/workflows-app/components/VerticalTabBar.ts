@@ -11,6 +11,8 @@ const styles = {
     container: {
       ...Style.tabBar.container,
       paddingRight: 0,
+      borderRight: Style.tabBar.container.borderBottom,
+      borderBottom: 'none',
     },
     tab: {
       ...Style.tabBar.tab,
@@ -55,9 +57,8 @@ export function VerticalTabBar({ activeTabKey, tabKeys, tabDisplayNames, onClick
         'aria-current': selected ? 'location' : undefined,
         style: {
           display: 'flex',
-          flexDirection: 'column',
           minWidth: 140,
-          flexGrow: 1,
+          height: 60,
           alignSelf: 'stretch',
           alignItems: 'center',
           textAlign: 'center',
@@ -97,7 +98,7 @@ export function VerticalTabBar({ activeTabKey, tabKeys, tabDisplayNames, onClick
           role: 'navigation',
           'aria-label': props['aria-label'], // duplicate the menu's label on the navigation element
           'aria-labelledby': props['aria-labelledby'],
-          style: { display: 'flex', flexDirection: 'column', flexGrow: 1, width: '100%' },
+          style: { display: 'flex', flexDirection: 'column', width: '100%' },
         },
         [
           h(
@@ -105,7 +106,7 @@ export function VerticalTabBar({ activeTabKey, tabKeys, tabDisplayNames, onClick
             {
               role: 'menu',
               'aria-orientation': 'vertical',
-              style: { display: 'flex', flexDirection: 'column', flexGrow: 1, width: '100%' },
+              style: { display: 'flex', flexDirection: 'column', width: '100%' },
               ...props,
             },
             [..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabKeys))]
