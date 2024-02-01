@@ -1,10 +1,9 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { useCallback, useEffect, useState } from 'react';
-import { dd, div, dl, dt, h, span } from 'react-hyperscript-helpers';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { ButtonOutline } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import { InfoBox } from 'src/components/InfoBox';
 import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { useCancellation } from 'src/libs/react-utils';
@@ -25,6 +24,7 @@ export type LogInfo = {
   logTitle: string;
   logKey: string;
   logFilename: string;
+  logTooltip?: string;
 };
 
 /**
@@ -53,34 +53,6 @@ type FetchedLogData = {
 const logLoadingErrorMessage =
   "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated.";
 const modalMaxWidth = 1100;
-
-/**
- * We want to show different tooltips for the info icon depending on which log files the
- * user is viewing.
- */
-type InfoBoxItemProps = {
-  title: string;
-  text: string;
-  logKeys: string[];
-};
-
-const infoBoxItemPerLogType: InfoBoxItemProps[] = [
-  {
-    title: 'Workflow Execution Log:',
-    text: 'Each workflow has a single execution log which comes from the engine running your workflow. Errors in this log might indicate a Terra systems issue, or a problem parsing your WDL.',
-    logKeys: ['execution_log'],
-  },
-  {
-    title: 'Task Standard Out/Error:',
-    text: "Task logs are from user-defined commands in your WDL. You might see an error in these logs if there was a logic or syntax error in a command, or if something went wrong with the tool you're running.",
-    logKeys: ['stdout', 'stderr'],
-  },
-  {
-    title: 'Backend Standard Out/Error:',
-    text: "Backend logs are from the Azure Cloud compute job that prepares your task to run and cleans up afterwards. You might see errors in these logs if the there was a problem downloading the task's input files or pulling its container, or if something went wrong on the compute node while the task was running.",
-    logKeys: ['tes_stdout', 'tes_stderr'],
-  },
-];
 
 export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismiss }: LogViewerProps) => {
   const [activeLogs, setActiveLogs] = useState<LogInfo[]>(logs);
@@ -120,24 +92,6 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
     },
     [signal]
   );
-
-  /**
-   * Iterate through the available tooltip messages and choose to show the ones
-   * that correspond to the given list of logs (the ones currently displayed).
-   */
-  const infoBoxContents = useCallback((logs: LogInfo[]) => {
-    const logKeysInUse = logs.map((log) => log.logKey);
-    const infoBoxItems = infoBoxItemPerLogType.flatMap((ib) => {
-      if (ib.logKeys.filter((value) => logKeysInUse.includes(value)).length > 0) {
-        return [
-          dt({ style: { fontWeight: 'bold' } }, [ib.title]),
-          dd({ style: { marginBottom: '0.5rem' } }, [ib.text]),
-        ];
-      }
-      return [];
-    });
-    return dl(infoBoxItems);
-  }, []);
 
   useEffect(() => {
     const loadAzureLog = async (logUri: string) => {
@@ -194,7 +148,7 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
             fontFamily: 'Menlo, monospace',
             overflowY: 'auto',
             whiteSpace: 'pre-line',
-            height: window.innerHeight * 0.8,
+            height: window.innerHeight * 0.6,
             padding: '0.5rem',
             paddingRight: '10px', // reserve space for scrollbar
           },
@@ -239,6 +193,7 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
         h(VerticalTabBar, {
           activeTabKey: 'missing_logs',
           tabKeys: ['missing_logs'],
+          maxHeight: window.innerHeight * 0.6,
           onClick(tabKey: string): void {
             console.error(`No log found for tab key: ${tabKey}`);
           },
@@ -250,6 +205,8 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
         activeTabKey: currentlyActiveLog.logKey,
         tabKeys: activeLogs.map((log) => log.logKey),
         tabDisplayNames: new Map(activeLogs.map((log) => [log.logKey, log.logTitle])),
+        tabTooltips: new Map(activeLogs.map((log) => [log.logKey, log.logTooltip || ''])),
+        maxHeight: window.innerHeight * 0.6,
         onClick: (tabKey: string) => setCurrentlyActiveLog(activeLogs.find((log) => log.logKey === tabKey)),
       }),
     ];
@@ -260,16 +217,6 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
     {
       onDismiss,
       title: modalTitle,
-      titleChildren: h(
-        InfoBox,
-        {
-          style: { marginLeft: '1ch' },
-          tooltip: undefined,
-          size: undefined,
-          side: undefined,
-        },
-        [infoBoxContents(activeLogs)]
-      ),
       showCancel: false,
       showX: true,
       showButtons: false,

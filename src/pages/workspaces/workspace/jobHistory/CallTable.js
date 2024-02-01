@@ -11,6 +11,7 @@ import * as Utils from 'src/libs/utils';
 import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard';
 import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
+import { taskLogTooltip } from 'src/workflows-app/utils/task-log-utils';
 
 /* FILTER UTILITY FUNCTIONS */
 export const taskNameFilter = (searchText) => {
@@ -411,8 +412,20 @@ const CallTable = ({
                                     showLogModal(
                                       'Task Logs',
                                       [
-                                        { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout', logFilename: 'stdout.txt' },
-                                        { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr', logFilename: 'stderr.txt' },
+                                        {
+                                          logUri: stdout,
+                                          logTitle: 'Task Standard Out',
+                                          logKey: 'stdout',
+                                          logFilename: 'stdout.txt',
+                                          logTooltip: taskLogTooltip,
+                                        },
+                                        {
+                                          logUri: stderr,
+                                          logTitle: 'Task Standard Err',
+                                          logKey: 'stderr',
+                                          logFilename: 'stderr.txt',
+                                          logTooltip: taskLogTooltip,
+                                        },
                                       ],
                                       tes_stdout
                                     ),

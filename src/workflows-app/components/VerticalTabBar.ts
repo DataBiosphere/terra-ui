@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
+import { InfoBox } from 'src/components/InfoBox';
 import { VerticalNavigation } from 'src/components/keyboard-nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -36,12 +37,22 @@ export type VerticalTabBarProps = {
   activeTabKey: string;
   tabKeys: string[]; // unique keys for each tab
   tabDisplayNames?: Map<string, string>; // map of unique tab keys to display names. If not provided, tab keys will be used as display names
+  tabTooltips?: Map<string, string>; // map of unique tab keys to tooltip text
+  maxHeight?: number;
   onClick: (tabKey: string) => void;
 };
 
-export function VerticalTabBar({ activeTabKey, tabKeys, tabDisplayNames, onClick, ...props }: VerticalTabBarProps) {
+export function VerticalTabBar({
+  activeTabKey,
+  tabKeys,
+  tabDisplayNames,
+  tabTooltips,
+  maxHeight,
+  onClick,
+  ...props
+}: VerticalTabBarProps) {
   const [activeTab, setActiveTab] = useState(activeTabKey);
-
+  const tabHeight = 60;
   const navTab = (i, currentTab) => {
     const selected: boolean = currentTab === activeTab;
     const onClickFn = () => {
@@ -58,7 +69,7 @@ export function VerticalTabBar({ activeTabKey, tabKeys, tabDisplayNames, onClick
         style: {
           display: 'flex',
           minWidth: 140,
-          height: 60,
+          height: tabHeight,
           alignSelf: 'stretch',
           alignItems: 'center',
           textAlign: 'center',
@@ -68,7 +79,12 @@ export function VerticalTabBar({ activeTabKey, tabKeys, tabDisplayNames, onClick
         h(
           Clickable,
           {
-            style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), height: 60, width: '100%' },
+            style: {
+              ...styles.tabBar.tab,
+              ...(selected ? styles.tabBar.active : {}),
+              height: tabHeight,
+              width: '100%',
+            },
             hover: selected ? {} : styles.tabBar.hover,
             onClick: onClickFn,
           },
@@ -77,10 +93,24 @@ export function VerticalTabBar({ activeTabKey, tabKeys, tabDisplayNames, onClick
               {
                 style: {
                   flex: '1 1 100%',
-                  marginBottom: selected ? -styles.tabBar.active.borderBottomWidth : undefined,
+                  marginRight: selected ? -styles.tabBar.active.borderRightWidth : undefined,
                 },
               },
-              tabDisplayNames ? tabDisplayNames[currentTab] || currentTab : currentTab
+              [
+                tabDisplayNames ? tabDisplayNames.get(currentTab) || currentTab : currentTab,
+                !_.isEmpty(tabTooltips?.get(currentTab))
+                  ? h(
+                      InfoBox,
+                      {
+                        style: { marginLeft: '1ch' },
+                        tooltip: undefined,
+                        size: undefined,
+                        side: undefined,
+                      },
+                      [tabTooltips?.get(currentTab) || '']
+                    )
+                  : undefined,
+              ]
             ),
           ]
         ),
@@ -90,7 +120,13 @@ export function VerticalTabBar({ activeTabKey, tabKeys, tabDisplayNames, onClick
 
   return div(
     {
-      style: { ...styles.tabBar.container, display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%' },
+      style: {
+        ...styles.tabBar.container,
+        display: 'flex',
+        flexDirection: 'column',
+        height: _.min([tabKeys.length * tabHeight, maxHeight]),
+        overflowY: 'scroll',
+      },
     },
     [
       div(
