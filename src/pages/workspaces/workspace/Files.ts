@@ -6,8 +6,8 @@ import AzureBlobStorageFileBrowserProvider from 'src/libs/ajax/file-browser-prov
 import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider';
 import { useQueryParameter } from 'src/libs/nav';
 import { forwardRefWithName } from 'src/libs/react-utils';
-import { isAzureWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
+import { isAzureWorkspace, WorkspaceWrapper } from 'src/workspaces/utils';
 import { useMemo } from 'use-memo-one';
 
 export const Files = _.flow(

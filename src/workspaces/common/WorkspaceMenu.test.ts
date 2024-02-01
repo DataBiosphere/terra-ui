@@ -4,17 +4,17 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
-import { useWorkspaceDetails } from 'src/components/workspace-utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
-import { AzureWorkspace, GoogleWorkspace, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
+import { useWorkspaceDetails } from 'src/workspaces/common/state/useWorkspaceDetails';
 import { tooltipText, WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
+import * as WorkspaceUtils from 'src/workspaces/utils';
+import { AzureWorkspace, GoogleWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
 
-jest.mock('src/components/workspace-utils', () => {
-  const originalModule = jest.requireActual('src/components/workspace-utils');
+type useWorkspaceDetailsExports = typeof import('src/workspaces/common/state/useWorkspaceDetails');
+jest.mock('src/workspaces/common/state/useWorkspaceDetails', (): useWorkspaceDetailsExports => {
   return {
-    ...originalModule,
+    ...jest.requireActual<useWorkspaceDetailsExports>('src/workspaces/common/state/useWorkspaceDetails'),
     useWorkspaceDetails: jest.fn(),
   };
 });

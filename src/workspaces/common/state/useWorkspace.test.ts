@@ -2,7 +2,6 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act } from '@testing-library/react';
 import _ from 'lodash/fp';
-import * as WorkspaceUtils from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import * as GoogleStorage from 'src/libs/ajax/GoogleStorage';
@@ -10,6 +9,7 @@ import * as Notifications from 'src/libs/notifications';
 import { workspaceStore } from 'src/libs/state';
 import { renderHookInAct } from 'src/testing/test-utils';
 import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
+import * as recentlyViewedWorkspaces from 'src/workspaces/common/state/recentlyViewedWorkspaces';
 import {
   azureBucketRecheckRate,
   googlePermissionsRecheckRate,
@@ -123,7 +123,7 @@ describe('useWorkspace', () => {
     jest.useFakeTimers();
 
     jest.spyOn(workspaceStore, 'set');
-    jest.spyOn(WorkspaceUtils, 'updateRecentlyViewedWorkspaces');
+    jest.spyOn(recentlyViewedWorkspaces, 'updateRecentlyViewedWorkspaces');
     jest.spyOn(GoogleStorage, 'saToken');
     jest.spyOn(Notifications, 'notify');
 
@@ -172,7 +172,7 @@ describe('useWorkspace', () => {
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false);
     expect(workspaceStore.set).toHaveBeenCalledWith(initializedGoogleWorkspace);
-    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).not.toHaveBeenCalled();
+    expect(recentlyViewedWorkspaces.updateRecentlyViewedWorkspaces).not.toHaveBeenCalled();
     expect(GoogleStorage.saToken).not.toHaveBeenCalled();
   });
 
@@ -227,7 +227,7 @@ describe('useWorkspace', () => {
     // Assert
     assertResult(result.current, initializedAzureWorkspace, expectedStorageDetails, false);
     expect(workspaceStore.set).toHaveBeenCalledWith(initializedAzureWorkspace);
-    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).not.toHaveBeenCalled();
+    expect(recentlyViewedWorkspaces.updateRecentlyViewedWorkspaces).not.toHaveBeenCalled();
     expect(GoogleStorage.saToken).not.toHaveBeenCalled();
   });
 
@@ -250,7 +250,7 @@ describe('useWorkspace', () => {
     // Assert
     assertResult(result.current, uninitializedGoogleWorkspace, expectedStillSyncingDetails, false);
     expect(workspaceStore.set).toHaveBeenCalledWith(uninitializedGoogleWorkspace);
-    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
+    expect(recentlyViewedWorkspaces.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
       uninitializedGoogleWorkspace.workspace.workspaceId
     );
     expect(GoogleStorage.saToken).toHaveBeenCalled();
@@ -496,7 +496,7 @@ describe('useWorkspace', () => {
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false);
     expect(workspaceStore.set).toHaveBeenCalledWith(initializedGoogleWorkspace);
-    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
+    expect(recentlyViewedWorkspaces.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
       initializedGoogleWorkspace.workspace.workspaceId
     );
     expect(GoogleStorage.saToken).toHaveBeenCalled();
@@ -542,7 +542,7 @@ describe('useWorkspace', () => {
     // Assert
     assertResult(result.current, uninitializedAzureWorkspace, expectedFirstStorageDetails, false);
     expect(workspaceStore.set).toHaveBeenCalledWith(uninitializedAzureWorkspace);
-    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
+    expect(recentlyViewedWorkspaces.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
       uninitializedAzureWorkspace.workspace.workspaceId
     );
     expect(GoogleStorage.saToken).not.toHaveBeenCalled();
@@ -618,7 +618,7 @@ describe('useWorkspace', () => {
 
     // Assert
     assertResult(result.current, uninitializedAzureWorkspace, expectedFirstStorageDetails, false);
-    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
+    expect(recentlyViewedWorkspaces.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
       uninitializedAzureWorkspace.workspace.workspaceId
     );
 
@@ -668,7 +668,7 @@ describe('useWorkspace', () => {
     // Assert
     assertResult(result.current, undefined, _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions), true);
     expect(workspaceStore.set).not.toHaveBeenCalled();
-    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).not.toHaveBeenCalled();
+    expect(recentlyViewedWorkspaces.updateRecentlyViewedWorkspaces).not.toHaveBeenCalled();
     expect(GoogleStorage.saToken).not.toHaveBeenCalled();
   });
 
@@ -707,7 +707,7 @@ describe('useWorkspace', () => {
     // Assert
     assertResult(result.current, expectedWorkspaceResponse, expectStorageDetails, false);
     expect(workspaceStore.set).toHaveBeenCalledWith(expectedWorkspaceResponse);
-    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
+    expect(recentlyViewedWorkspaces.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
       expectedWorkspaceResponse.workspace.workspaceId
     );
     expect(GoogleStorage.saToken).not.toHaveBeenCalled();
@@ -752,7 +752,7 @@ describe('useWorkspace', () => {
     // Assert
     assertResult(result.current, expectedWorkspaceResponse, expectStorageDetails, false);
     expect(workspaceStore.set).toHaveBeenCalledWith(expectedWorkspaceResponse);
-    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
+    expect(recentlyViewedWorkspaces.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(
       expectedWorkspaceResponse.workspace.workspaceId
     );
     expect(GoogleStorage.saToken).not.toHaveBeenCalled();

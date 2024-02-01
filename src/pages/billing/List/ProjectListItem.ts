@@ -11,10 +11,10 @@ import colors from 'src/libs/colors';
 import Events, { extractBillingDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
-import { isKnownCloudProvider } from 'src/libs/workspace-utils';
 import { billingRoles } from 'src/pages/billing/billing-utils';
 import { BillingProjectActions, BillingProjectActionsProps } from 'src/pages/billing/List/BillingProjectActions';
 import { BillingProject, isCreating, isDeleting, isErrored } from 'src/pages/billing/models/BillingProject';
+import { isKnownCloudProvider } from 'src/workspaces/utils';
 
 const listItemStyle = (selected, hovered) => {
   const style = {

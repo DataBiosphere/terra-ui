@@ -9,8 +9,6 @@ import ErrorView from 'src/components/ErrorView';
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown';
 import Modal from 'src/components/Modal';
 import { FlexTable, HeaderRenderer } from 'src/components/table';
-import { WorkspaceStarControl } from 'src/components/WorkspaceStarControl';
-import { workspaceSubmissionStatus, WorkspaceSubmissionStatusIcon } from 'src/components/WorkspaceSubmissionStatusIcon';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -19,6 +17,13 @@ import { useStore } from 'src/libs/react-utils';
 import { TerraUserState, userStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
+import { WorkspaceStarControl } from 'src/workspaces/list/WorkspaceStarControl';
+import {
+  workspaceSubmissionStatus,
+  WorkspaceSubmissionStatusIcon,
+} from 'src/workspaces/list/WorkspaceSubmissionStatusIcon';
+import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
 import {
   canRead,
   getCloudProviderFromWorkspace,
@@ -27,9 +32,7 @@ import {
   WorkspaceInfo,
   WorkspacePolicy,
   WorkspaceWrapper as Workspace,
-} from 'src/libs/workspace-utils';
-import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
-import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
+} from 'src/workspaces/utils';
 
 // This is actually the sort type from the FlexTable component
 // When that component is converted to typescript, we should use that instead

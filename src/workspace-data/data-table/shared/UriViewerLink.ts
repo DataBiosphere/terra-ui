@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { Fragment, ReactNode, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { isAzureUri, isGsUri } from '../uri-viewer/uri-viewer-utils';
 import { UriViewer } from '../uri-viewer/UriViewer';

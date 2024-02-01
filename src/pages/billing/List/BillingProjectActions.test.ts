@@ -5,17 +5,17 @@ import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { history } from 'src/libs/nav';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { BillingProjectActions } from 'src/pages/billing/List/BillingProjectActions';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');
 
-type WorkspaceUtilsExports = typeof import('src/workspaces/common/state/useWorkspaces');
-jest.mock('src/workspaces/common/state/useWorkspaces', (): WorkspaceUtilsExports => {
+type useWorkspacesExports = typeof import('src/workspaces/common/state/useWorkspaces');
+jest.mock('src/workspaces/common/state/useWorkspaces', (): useWorkspacesExports => {
   return {
-    ...jest.requireActual('src/workspaces/common/state/useWorkspaces'),
+    ...jest.requireActual<useWorkspacesExports>('src/workspaces/common/state/useWorkspaces'),
     useWorkspaces: jest.fn(),
   };
 });

@@ -2,9 +2,9 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as clipboard from 'clipboard-polyfill/text';
 import { h } from 'react-hyperscript-helpers';
-import { useWorkspaceById } from 'src/libs/workspace-hooks';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { useWorkspaceById } from 'src/workspaces/common/state/useWorkspaceById';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { useWdsStatus, WdsStatus } from './wds-status';
 import { WdsTroubleshooter } from './WdsTroubleshooter';
@@ -16,11 +16,10 @@ jest.mock('./wds-status', (): WdsStatusExports => {
   };
 });
 
-type WorkspaceHooksExports = typeof import('src/libs/workspace-hooks');
-jest.mock('src/libs/workspace-hooks', (): WorkspaceHooksExports => {
-  const actual = jest.requireActual<WorkspaceHooksExports>('src/libs/workspace-hooks');
+type useWorkspaceByIdExports = typeof import('src/workspaces/common/state/useWorkspaceById');
+jest.mock('src/workspaces/common/state/useWorkspaceById', (): useWorkspaceByIdExports => {
   return {
-    ...actual,
+    ...jest.requireActual<useWorkspaceByIdExports>('src/workspaces/common/state/useWorkspaceById'),
     useWorkspaceById: jest.fn(),
   };
 });

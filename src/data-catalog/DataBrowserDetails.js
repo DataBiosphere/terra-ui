@@ -20,8 +20,8 @@ import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, usePollingEffect } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderLabels } from 'src/libs/workspace-utils';
 import { commonStyles } from 'src/pages/library/SearchAndFilterComponent';
+import { cloudProviderLabels } from 'src/workspaces/utils';
 
 import {
   DatasetAccess,

@@ -3,7 +3,6 @@ import _ from 'lodash/fp';
 import { CSSProperties, ReactNode, useState } from 'react';
 import { div, h, i, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
-import { WorkspaceTagSelect } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { getEnabledBrand } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
@@ -13,6 +12,7 @@ import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
 import { RightBoxSection } from 'src/workspaces/dashboard/RightBoxSection';
+import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
 
 const styles: Record<string, CSSProperties> = {
   authDomain: {

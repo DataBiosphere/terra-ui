@@ -12,8 +12,8 @@ import { notify } from 'src/libs/notifications';
 import { useOnMount } from 'src/libs/react-utils';
 import { asyncImportJobStore, AzureAsyncImportJob, GCPAsyncImportJob } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceInfo } from 'src/libs/workspace-utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
+import { WorkspaceInfo } from 'src/workspaces/utils';
 
 import {
   BagItImportRequest,

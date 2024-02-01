@@ -9,7 +9,7 @@ import {
   protectedDataLabel,
   regionConstraintLabel,
   WorkspaceAccessLevel,
-} from 'src/libs/workspace-utils';
+} from 'src/workspaces/utils';
 
 interface WorkspaceAttributeNoticeProperties {
   accessLevel: WorkspaceAccessLevel;

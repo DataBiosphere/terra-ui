@@ -2,11 +2,11 @@ import { fireEvent, screen } from '@testing-library/react';
 import { Dispatch, SetStateAction } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { getTerraUser } from 'src/libs/state';
-import { BaseWorkspace } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
-import { AccessEntry, WorkspaceAcl } from 'src/workspaces/common/WorkspaceAcl';
+import { AccessEntry, WorkspaceAcl } from 'src/workspaces/acl-utils';
 import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
+import { BaseWorkspace } from 'src/workspaces/utils';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),

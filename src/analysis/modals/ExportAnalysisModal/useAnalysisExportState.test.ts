@@ -4,9 +4,9 @@ import { AbsolutePath, DisplayName, FileExtension, FileName } from 'src/analysis
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
-import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { errors, useAnalysisExportState } from './useAnalysisExportState';
 
@@ -39,14 +39,13 @@ jest.mock(
   })
 );
 
-type WorkspaceUtilsExports = typeof import('src/workspaces/common/state/useWorkspaces');
-jest.mock(
-  'src/workspaces/common/state/useWorkspaces',
-  (): WorkspaceUtilsExports => ({
-    ...jest.requireActual('src/workspaces/common/state/useWorkspaces'),
+type useWorkspacesExports = typeof import('src/workspaces/common/state/useWorkspaces');
+jest.mock('src/workspaces/common/state/useWorkspaces', (): useWorkspacesExports => {
+  return {
+    ...jest.requireActual<useWorkspacesExports>('src/workspaces/common/state/useWorkspaces'),
     useWorkspaces: jest.fn(),
-  })
-);
+  };
+});
 
 type AnalysisProviderExports = typeof import('src/libs/ajax/analysis-providers/AnalysisProvider');
 jest.mock(

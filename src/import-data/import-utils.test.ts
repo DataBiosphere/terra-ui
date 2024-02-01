@@ -1,5 +1,5 @@
-import { CloudProvider, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { makeAzureWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { ImportRequest } from './import-types';
 import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';

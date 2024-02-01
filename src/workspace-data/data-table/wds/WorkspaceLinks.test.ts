@@ -1,9 +1,9 @@
 import { screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { getLink } from 'src/libs/nav';
-import { useWorkspaceById } from 'src/libs/workspace-hooks';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { useWorkspaceById } from 'src/workspaces/common/state/useWorkspaceById';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { WorkspaceLink, WorkspaceLinkById } from './WorkspaceLinks';
 
@@ -16,11 +16,10 @@ jest.mock('src/libs/nav', (): NavExports => {
   };
 });
 
-type WorkspaceHooksExports = typeof import('src/libs/workspace-hooks');
-jest.mock('src/libs/workspace-hooks', (): WorkspaceHooksExports => {
-  const actual = jest.requireActual<WorkspaceHooksExports>('src/libs/workspace-hooks');
+type useWorkspaceByIdExports = typeof import('src/workspaces/common/state/useWorkspaceById');
+jest.mock('src/workspaces/common/state/useWorkspaceById', (): useWorkspaceByIdExports => {
   return {
-    ...actual,
+    ...jest.requireActual<useWorkspaceByIdExports>('src/workspaces/common/state/useWorkspaceById'),
     useWorkspaceById: jest.fn(),
   };
 });
