@@ -4,7 +4,7 @@ import { spinnerOverlay } from 'src/components/common';
 import {
   DomainCriteria,
   GetConceptsHierarchyMapResponse,
-  // GetConceptsResponse,
+  GetConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
@@ -37,11 +37,8 @@ export const toCriteria =
       domainOption,
     };
   };
-
-// 1. add this piece of state for selectedConcept
-// 2. Handling the state.selectedConcept
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
-  // const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
+  const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
   const [hierarchyConcepts, loadHierarchyConcepts] = useLoadedData<GetConceptsHierarchyMapResponse>();
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
   useOnMount(() => {
@@ -50,34 +47,36 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
       void loadHierarchyConcepts(() => DataRepo().dataset(datasetId).getConceptsHierarchy(selectedConcept));
     } else {
       // get me the children of this concept id
-      // void loadRootConcepts(() => DataRepo().dataset(datasetId).getConcepts(state.domainOption.root));
+      void loadRootConcepts(() => DataRepo().dataset(datasetId).getConcepts(state.domainOption.root));
     }
   });
 
-  // change InitialRows --> Concept[] || Row<Concept>[]
-  // return rootConcepts.status === 'Ready'
-  //   ? h(ConceptSelector, {
-  //       initialRows: rootConcepts.state.result,
-  //       title: state.domainOption.category,
-  //       initialCart: state.cart,
-  //       onCancel: () => onStateChange(state.cancelState),
-  //       onCommit: (selected: Concept[]) => {
-  //         const cartCriteria = _.map(toCriteria(state.domainOption, getNextCriteriaIndex), selected);
-  //         const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
-  //         add/remove all cart elements to the domain group's criteria list in the cohort
-  // _.flow(
-  //   _.update(`criteriaGroups.${groupIndex}.criteria`, _.xor(cartCriteria)),
-  //   cohortEditorState.new,
-  //   onStateChange
-  // )(state.cohort);
-  // },
-  // actionText: 'Add to group',
-  // datasetId,
-  // })
-  return hierarchyConcepts.status === 'Ready'
+  return rootConcepts.status === 'Ready'
     ? h(ConceptSelector, {
+        // initialRows: rootConcepts.state.result,
+        // NEED TO refactor rootConcepts.state.result --> Map<number, Concept[]>()
+        initialRows: new Map<number, Concept[]>(),
         domainOptionRoot: state.domainOption.root,
+        title: state.domainOption.category,
+        initialCart: state.cart,
+        onCancel: () => onStateChange(state.cancelState),
+        onCommit: (selected: Concept[]) => {
+          const cartCriteria = _.map(toCriteria(state.domainOption, getNextCriteriaIndex), selected);
+          const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
+          // add/remove all cart elements to the domain group's criteria list in the cohort
+          _.flow(
+            _.update(`criteriaGroups.${groupIndex}.criteria`, _.xor(cartCriteria)),
+            cohortEditorState.new,
+            onStateChange
+          )(state.cohort);
+        },
+        actionText: 'Add to group',
+        datasetId,
+      })
+    : hierarchyConcepts.status === 'Ready'
+    ? h(ConceptSelector, {
         initialRows: hierarchyConcepts.state.result, // call an API instead that will get
+        domainOptionRoot: state.domainOption.root,
         title: state.domainOption.category,
         initialCart: state.cart,
         onCancel: () => onStateChange(state.cancelState),
