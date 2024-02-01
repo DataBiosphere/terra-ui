@@ -58,6 +58,7 @@ const defaultProps: WDSContentProps = {
   wdsSchema: [marbleSchema],
   editable: true,
   dataProvider: {} as DataTableProvider,
+  loadMetadata: () => {},
 };
 const defaultFeatures: DataTableFeatures = {
   supportsCapabilities: true,

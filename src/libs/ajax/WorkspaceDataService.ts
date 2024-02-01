@@ -1,7 +1,6 @@
 import _ from 'lodash/fp';
 import { authOpts, fetchWDS, jsonBody } from 'src/libs/ajax/ajax-common';
 import {
-  AttributeSchema,
   RecordQueryResponse,
   RecordTypeSchema,
   SearchRequest,
@@ -53,6 +52,8 @@ export interface WDSJob {
   status: 'CREATED' | 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'ERROR' | 'CANCELLED' | 'UNKNOWN';
   updated: string;
 }
+
+export type AttributeSchemaUpdate = { name: string } | { datatype: string };
 
 // The source of truth of available capabilities can be found in:
 // https://github.com/DataBiosphere/terra-workspace-data-service/blob/main/service/src/main/resources/capabilities.json
@@ -191,7 +192,7 @@ export const WorkspaceData = (signal) => ({
     instanceId: string,
     recordType: string,
     oldAttribute: string,
-    newAttribute: AttributeSchema
+    newAttribute: AttributeSchemaUpdate
   ): Promise<any> => {
     const res = await fetchWDS(root)(
       `${instanceId}/types/v0.2/${recordType}/${oldAttribute}`,

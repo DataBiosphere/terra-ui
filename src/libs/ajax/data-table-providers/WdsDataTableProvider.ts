@@ -22,7 +22,7 @@ import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
 // interface definitions for WDS payload responses
 export interface AttributeSchema {
   name: string;
-  datatype: string | null;
+  datatype: string;
   relatesTo?: string;
 }
 
@@ -334,7 +334,6 @@ export class WdsDataTableProvider implements DataTableProvider {
       params.oldAttributeName,
       {
         name: params.newAttributeName,
-        datatype: null,
       }
     );
   };
