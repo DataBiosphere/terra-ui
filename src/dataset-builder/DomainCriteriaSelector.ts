@@ -53,9 +53,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
 
   return rootConcepts.status === 'Ready'
     ? h(ConceptSelector, {
-        // initialRows: rootConcepts.state.result,
-        // NEED TO refactor rootConcepts.state.result --> Map<number, Concept[]>()
-        initialRows: new Map<number, Concept[]>(),
+        initialRows: rootConcepts.state.result,
         domainOptionRoot: state.domainOption.root,
         title: state.domainOption.category,
         initialCart: state.cart,
@@ -75,7 +73,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
       })
     : hierarchyConcepts.status === 'Ready'
     ? h(ConceptSelector, {
-        initialRows: hierarchyConcepts.state.result, // call an API instead that will get
+        initialHierarchy: hierarchyConcepts.state.result, // call an API instead that will get
         domainOptionRoot: state.domainOption.root,
         title: state.domainOption.category,
         initialCart: state.cart,
