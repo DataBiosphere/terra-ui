@@ -10,6 +10,7 @@ import {
   TSVFeatures,
   TsvUploadButtonDisabledOptions,
   TsvUploadButtonTooltipOptions,
+  UpdateAttributeParameters,
   UploadParameters,
 } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import { LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
@@ -21,7 +22,7 @@ import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
 // interface definitions for WDS payload responses
 export interface AttributeSchema {
   name: string;
-  datatype: string;
+  datatype: string | null;
   relatesTo?: string;
 }
 
@@ -324,14 +325,17 @@ export class WdsDataTableProvider implements DataTableProvider {
     );
   };
 
-  updateAttribute = (entityType: string, oldAttribute: string, newAttribute: AttributeSchema): Promise<Blob> => {
+  updateAttribute = (params: UpdateAttributeParameters): Promise<Blob> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
     return Ajax().WorkspaceData.updateAttribute(
       this.proxyUrl,
       this.workspaceId,
-      entityType,
-      oldAttribute,
-      newAttribute
+      params.entityType,
+      params.oldAttributeName,
+      {
+        name: params.newAttributeName,
+        datatype: null,
+      }
     );
   };
 }

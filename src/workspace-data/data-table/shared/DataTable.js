@@ -747,7 +747,6 @@ const DataTable = (props) => {
       }),
     !!renamingColumn &&
       h(RenameColumnModal, {
-        workspace,
         entityType,
         oldAttributeName: renamingColumn,
         attributeNames: entityMetadata[entityType].attributeNames,

@@ -3,11 +3,9 @@ import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common';
 import { ValidatedInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
-import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
-import { isGoogleWorkspace } from 'src/libs/workspace-utils';
 import validate from 'validate.js';
 
 export type RenameColumnModalProps = {
@@ -24,7 +22,7 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
   // State
   const [newAttributeName, setNewAttributeName] = useState('');
   const [isBusy, setIsBusy] = useState(false);
-  const { onDismiss, onSuccess, workspace, entityType, attributeNames, oldAttributeName, dataProvider } = props;
+  const { onDismiss, onSuccess, entityType, attributeNames, oldAttributeName, dataProvider } = props;
 
   // TODO is there a difference between GCP and azure?
   //  Composed of only letters, numbers, underscores, or dashes; regex match "[A-z0-9_-]+"
@@ -59,16 +57,7 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
   const renameColumn = async () => {
     try {
       setIsBusy(true);
-      if (isGoogleWorkspace(workspace)) {
-        await Ajax()
-          .Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
-          .renameEntityColumn(entityType, oldAttributeName, newAttributeName);
-      } else {
-        // Azure
-        await dataProvider.updateAttribute(entityType, oldAttributeName, {
-          name: newAttributeName,
-        });
-      }
+      await dataProvider.updateAttribute({ entityType, oldAttributeName, newAttributeName });
       onSuccess();
     } catch (e) {
       onDismiss();
