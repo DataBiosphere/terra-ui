@@ -26,7 +26,7 @@ import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAcco
 import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard';
 import { GCPBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard';
 import ProjectDetail from 'src/pages/billing/Project';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 
 const BillingProjectSubheader = ({ title, children }) =>
   h(

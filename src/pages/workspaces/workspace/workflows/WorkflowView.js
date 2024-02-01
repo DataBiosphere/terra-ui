@@ -49,7 +49,7 @@ import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/Export
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
 import { sanitizeAttributeUpdateString } from 'src/pages/workspaces/workspace/workflows/workflow-view-utils';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 const sideMargin = '3rem';
 

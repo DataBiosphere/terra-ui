@@ -18,6 +18,7 @@ export const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUp
           setEntityMetadata: () => {},
           entityKey: tableName,
           loadMetadata,
+          editable: false, // snapshot data isn't ever editable
         }),
     ],
     () => h(SnapshotInfo, { workspace, resource: snapshotDetails[snapshotName].resource, snapshotName, onUpdate, onDelete })

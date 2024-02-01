@@ -1,9 +1,9 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { renderHook } from '@testing-library/react';
+import { asMockedFn, withFakeTimers } from '@terra-ui-packages/test-utils';
+import { act, renderHook } from '@testing-library/react';
 import { Ajax } from 'src/libs/ajax';
 
-import { getBadVersions, useVersionAlerts, versionStore } from './version-alerts';
+import { getBadVersions, useTimeUntilRequiredUpdate, useVersionAlerts, versionStore } from './version-alerts';
 
 type AjaxExports = typeof import('src/libs/ajax');
 jest.mock('src/libs/ajax');
@@ -16,7 +16,7 @@ describe('useVersionAlerts', () => {
     versionStore.set({
       currentVersion: 'abcd123',
       latestVersion: 'abcd123',
-      isUpdateRequired: false,
+      updateRequiredBy: undefined,
     });
 
     // Act
@@ -31,7 +31,7 @@ describe('useVersionAlerts', () => {
     versionStore.set({
       currentVersion: 'abcd123',
       latestVersion: '1234567',
-      isUpdateRequired: false,
+      updateRequiredBy: undefined,
     });
 
     // Act
@@ -84,4 +84,115 @@ describe('getBadVersions', () => {
     // Assert
     expect(badVersions).toEqual([]);
   });
+});
+
+describe('useTimeUntilRequiredUpdate', () => {
+  const originalLocation = window.location;
+
+  beforeAll(() => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { reload: jest.fn() },
+    });
+  });
+
+  afterAll(() => {
+    window.location = originalLocation;
+  });
+
+  it('returns undefined if no update is required', () => {
+    // Arrange
+    versionStore.set({
+      currentVersion: 'abcd123',
+      latestVersion: 'abcd123',
+      updateRequiredBy: undefined,
+    });
+
+    // Act
+    const { result: hookReturnRef } = renderHook(() => useTimeUntilRequiredUpdate());
+
+    // Assert
+    expect(hookReturnRef.current).toBeUndefined();
+  });
+
+  it(
+    'rerenders when version store is updated',
+    withFakeTimers(() => {
+      // Arrange
+      versionStore.set({
+        currentVersion: 'abcd123',
+        latestVersion: '1234567',
+        updateRequiredBy: undefined,
+      });
+
+      const initialTime = 1706504400000;
+      jest.setSystemTime(initialTime);
+
+      const { result: hookReturnRef } = renderHook(() => useTimeUntilRequiredUpdate());
+
+      // Act
+      const updateIntervalInSeconds = 300;
+      act(() => {
+        versionStore.set({
+          currentVersion: 'abcd123',
+          latestVersion: '1234567',
+          updateRequiredBy: initialTime + updateIntervalInSeconds * 1000,
+        });
+      });
+
+      // Assert
+      expect(hookReturnRef.current).toBe(updateIntervalInSeconds);
+    })
+  );
+
+  it(
+    'returns time until required update',
+    withFakeTimers(() => {
+      // Arrange
+      const initialTime = 1706504400000;
+      const timeUntilUpdateInSeconds = 60;
+      versionStore.set({
+        currentVersion: 'abcd123',
+        latestVersion: '1234567',
+        updateRequiredBy: initialTime + timeUntilUpdateInSeconds * 1000,
+      });
+
+      jest.setSystemTime(initialTime);
+
+      // Act
+      const { result: hookReturnRef } = renderHook(() => useTimeUntilRequiredUpdate());
+
+      // Assert
+      expect(hookReturnRef.current).toBe(timeUntilUpdateInSeconds);
+
+      // Act
+      act(() => jest.advanceTimersByTime((timeUntilUpdateInSeconds / 2) * 1000));
+
+      // Assert
+      expect(hookReturnRef.current).toBe(timeUntilUpdateInSeconds / 2);
+    })
+  );
+
+  it(
+    'reloads browser when time until required update elapses',
+    withFakeTimers(() => {
+      // Arrange
+      const initialTime = 1706504400000;
+      const timeUntilUpdate = 60000;
+      versionStore.set({
+        currentVersion: 'abcd123',
+        latestVersion: '1234567',
+        updateRequiredBy: initialTime + timeUntilUpdate,
+      });
+
+      jest.setSystemTime(initialTime);
+
+      // Act
+      renderHook(() => useTimeUntilRequiredUpdate());
+      act(() => jest.advanceTimersByTime(timeUntilUpdate));
+
+      // Assert
+      expect(window.location.reload).toHaveBeenCalled();
+    })
+  );
 });

@@ -1,4 +1,4 @@
-import { WorkspacesList } from 'src/pages/workspaces/WorkspacesList/WorkspacesList';
+import { WorkspacesList } from 'src/workspaces/list/WorkspacesList';
 
 export const navPaths = [
   {

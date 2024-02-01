@@ -9,9 +9,8 @@ import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import { isOwner } from 'src/libs/workspace-utils';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
-
-import { WorkspaceAcl } from '../WorkspaceAcl';
+import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
+import { WorkspaceAcl } from 'src/workspaces/common/WorkspaceAcl';
 
 interface OwnerNoticeProps {
   workspace: Workspace;
