@@ -3,7 +3,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, h2, h3 } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import Tabs from 'src/components/Tabs';
+import { SimpleTabBar } from 'src/components/tabBars';
 import { Ajax } from 'src/libs/ajax';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
@@ -242,14 +242,15 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                     )
                   ),
               ]),
-              h(Tabs, {
+              h(SimpleTabBar, {
+                'aria-label': 'view workflows results, inputs, or, outputs',
+                value: activeTab.key || 'workflows',
+                onChange: (v) => setActiveTab({ key: v }),
                 tabs: [
-                  { key: 'workflows', title: 'Workflows', isValid: true, isLast: false },
-                  { key: 'inputs', title: 'Inputs', isValid: true, isLast: false },
-                  { key: 'outputs', title: 'Outputs', isValid: true, isLast: true },
+                  { key: 'workflows', title: 'Workflows' },
+                  { key: 'inputs', title: 'Inputs' },
+                  { key: 'outputs', title: 'Outputs' },
                 ],
-                activeTab: activeTab.key || 'workflows',
-                onChangeTab: (v) => setActiveTab({ key: v }),
               }),
             ]),
           ]

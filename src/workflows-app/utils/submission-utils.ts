@@ -545,7 +545,7 @@ export const getInputTableData = (
 };
 
 export const getOutputTableData = (
-  configuredOutputDefinition: OutputDefinition,
+  configuredOutputDefinition: OutputDefinition[],
   sort: { field: string; direction: string }
 ): OutputTableData[] => {
   return _.flow(

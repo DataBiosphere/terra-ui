@@ -555,6 +555,7 @@ describe('Submission Details page', () => {
   });
 
   it('should display inputs on the Inputs tab', async () => {
+    // Arrange
     const user = userEvent.setup();
     const getRuns = jest.fn(() => Promise.resolve(runsData));
     const getRunsSets = jest.fn(() => Promise.resolve(runSetData));
@@ -591,18 +592,17 @@ describe('Submission Details page', () => {
       );
     });
 
-    const workflowsTabButton = screen.getByRole('button', { name: 'Workflows' });
+    const workflowsTabButton = screen.getByRole('tab', { name: 'Workflows' });
     expect(workflowsTabButton !== undefined);
 
-    const inputsTabButton = screen.getByRole('button', { name: 'Inputs' });
+    const inputsTabButton = screen.getByRole('tab', { name: 'Inputs' });
     expect(inputsTabButton !== undefined);
 
     // ** ACT **
     // user clicks on inputs tab button
     await user.click(inputsTabButton);
 
-    expect(screen.getByRole('table')).toBeInTheDocument();
-
+    // Assert
     const inputTable = screen.getByRole('table');
     const rows = within(inputTable).getAllByRole('row');
     expect(rows.length).toBe(JSON.parse(runSetData.run_sets[0].input_definition).length + 1); // one row for each input definition variable, plus headers
@@ -612,11 +612,11 @@ describe('Submission Details page', () => {
 
     const row1cells = within(rows[1]).getAllByRole('cell');
     expect(row1cells.length).toBe(5);
-    expect(row1cells[0].textContent).toBe('hello');
-    expect(row1cells[1].textContent).toBe('addressee');
-    expect(row1cells[2].textContent).toBe('String');
-    expect(row1cells[3].textContent).toBe('record_lookup');
-    expect(row1cells[4].textContent).toBe('foo_name');
+    expect(row1cells[0]).toHaveTextContent('hello');
+    expect(row1cells[1]).toHaveTextContent('addressee');
+    expect(row1cells[2]).toHaveTextContent('String');
+    expect(row1cells[3]).toHaveTextContent('record_lookup');
+    expect(row1cells[4]).toHaveTextContent('foo_name');
   });
 
   it('should display outputs on the Outputs tab', async () => {
@@ -624,6 +624,7 @@ describe('Submission Details page', () => {
     const tempRunSetData = runSetData;
     tempRunSetData.run_sets[0].output_definition = runSetResponse.run_sets[0].output_definition;
 
+    // Arrange
     const user = userEvent.setup();
     const getRuns = jest.fn(() => Promise.resolve(runsData));
     const getRunsSets = jest.fn(() => Promise.resolve(tempRunSetData));
@@ -660,14 +661,14 @@ describe('Submission Details page', () => {
       );
     });
 
-    const outputsTabButton = screen.getByRole('button', { name: 'Outputs' });
+    const outputsTabButton = screen.getByRole('tab', { name: 'Outputs' });
     expect(outputsTabButton !== undefined);
 
     // ** ACT **
     // user clicks on outputs tab button
     await user.click(outputsTabButton);
 
-    expect(screen.getByRole('table')).toBeInTheDocument();
+    // Assert
     const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(runSetOutputDef.length + 1); // one row for each output definition variable, plus headers
@@ -677,16 +678,16 @@ describe('Submission Details page', () => {
 
     const row1cells = within(rows[1]).getAllByRole('cell');
     expect(row1cells.length).toBe(4);
-    expect(row1cells[0].textContent).toBe('target_workflow_1');
-    expect(row1cells[1].textContent).toBe('file_output');
-    expect(row1cells[2].textContent).toBe('File');
-    expect(row1cells[3].textContent).toBe('target_workflow_1_file_output'); // from previous run/template
+    expect(row1cells[0]).toHaveTextContent('target_workflow_1');
+    expect(row1cells[1]).toHaveTextContent('file_output');
+    expect(row1cells[2]).toHaveTextContent('File');
+    expect(row1cells[3]).toHaveTextContent('target_workflow_1_file_output'); // from previous run/template
 
     const row2cells = within(rows[2]).getAllByRole('cell');
     expect(row2cells.length).toBe(4);
-    expect(row2cells[0].textContent).toBe('target_workflow_1');
-    expect(row2cells[1].textContent).toBe('unused_output');
-    expect(row2cells[2].textContent).toBe('String');
-    expect(row2cells[3].textContent).toBe('');
+    expect(row2cells[0]).toHaveTextContent('target_workflow_1');
+    expect(row2cells[1]).toHaveTextContent('unused_output');
+    expect(row2cells[2]).toHaveTextContent('String');
+    expect(row2cells[3]).toHaveTextContent('');
   });
 });

@@ -1,15 +1,19 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { FlexTable, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { getInputTableData, InputTableData } from 'src/workflows-app/utils/submission-utils';
 
-import { RecordLookupInputSource } from '../models/submission-models';
+import { InputDefinition, RecordLookupInputSource } from '../models/submission-models';
 
 const rowWidth = 100;
 const rowHeight = 50;
 
-const SubmissionDetailsInputsTable = ({ configuredInputDefinition }) => {
+type SubmissionDetailsInputsTableProps = {
+  configuredInputDefinition: InputDefinition[];
+};
+
+const SubmissionDetailsInputsTable = ({ configuredInputDefinition }: SubmissionDetailsInputsTableProps): ReactNode => {
   const [sort, setSort] = useState<{
     field: 'taskName' | 'variable';
     direction: 'asc' | 'desc';
@@ -17,8 +21,9 @@ const SubmissionDetailsInputsTable = ({ configuredInputDefinition }) => {
     field: 'taskName',
     direction: 'asc',
   });
-  const [includeOptionalInputs] = useState(true);
-  const [searchFilter] = useState('');
+
+  const includeOptionalInputs = true;
+  const searchFilter = '';
 
   const inputTableData: InputTableData[] = getInputTableData(
     configuredInputDefinition,

@@ -1,15 +1,21 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { FlexTable, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { getOutputTableData, OutputTableData } from 'src/workflows-app/utils/submission-utils';
 
-import { RecordUpdateOutputDestination } from '../models/submission-models';
+import { OutputDefinition, RecordUpdateOutputDestination } from '../models/submission-models';
 
 const rowWidth = 100;
 const rowHeight = 50;
 
-const SubmissionDetailsOutputsTable = ({ configuredOutputDefinition }) => {
+type SubmissionDetailsOutputsTableProps = {
+  configuredOutputDefinition: OutputDefinition[];
+};
+
+const SubmissionDetailsOutputsTable = ({
+  configuredOutputDefinition,
+}: SubmissionDetailsOutputsTableProps): ReactNode => {
   const [sort, setSort] = useState({ field: '', direction: 'asc' });
   const outputTableData: OutputTableData[] = getOutputTableData(configuredOutputDefinition, sort);
 
@@ -79,9 +85,9 @@ const SubmissionDetailsOutputsTable = ({ configuredOutputDefinition }) => {
                     headerRenderer: () => 'Attribute',
                     cellRenderer: ({ rowIndex }) => {
                       if (outputTableData[rowIndex].destination.type === 'record_update') {
-                        const source: RecordUpdateOutputDestination = outputTableData[rowIndex]
+                        const destination: RecordUpdateOutputDestination = outputTableData[rowIndex]
                           .destination as RecordUpdateOutputDestination;
-                        return h(TextCell, [source.record_attribute]);
+                        return h(TextCell, [destination.record_attribute]);
                       }
                       return h(TextCell, []);
                     },
