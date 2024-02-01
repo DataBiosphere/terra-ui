@@ -17,7 +17,7 @@ jest.mock('src/libs/feature-previews', () => ({
   isFeaturePreviewEnabled: jest.fn(),
 }));
 
-type WorkspaceMenuExports = typeof import('src/workspaces/container/WorkspaceMenu');
+type WorkspaceMenuExports = typeof import('src/workspaces/common/WorkspaceMenu');
 
 const mockWorkspaceMenu = jest.fn();
 jest.mock(
@@ -29,8 +29,8 @@ jest.mock(
     }
 );
 
-jest.mock<WorkspaceMenuExports>('src/workspaces/container/WorkspaceMenu', () => ({
-  ...jest.requireActual('src/workspaces/container/WorkspaceMenu'),
+jest.mock<WorkspaceMenuExports>('src/workspaces/common/WorkspaceMenu', () => ({
+  ...jest.requireActual('src/workspaces/common/WorkspaceMenu'),
   WorkspaceMenu: (props) => {
     mockWorkspaceMenu(props);
     return null as ReactNode;

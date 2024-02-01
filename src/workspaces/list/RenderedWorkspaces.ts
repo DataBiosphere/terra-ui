@@ -28,7 +28,7 @@ import {
   WorkspacePolicy,
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
-import { WorkspaceMenu } from 'src/workspaces/container/WorkspaceMenu';
+import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
 import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
 
 // This is actually the sort type from the FlexTable component

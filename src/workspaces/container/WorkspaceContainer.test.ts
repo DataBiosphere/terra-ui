@@ -53,9 +53,9 @@ jest.mock<StateExports>(
   })
 );
 
-type WorkspaceMenuExports = typeof import('src/workspaces/container/WorkspaceMenu');
-jest.mock<WorkspaceMenuExports>('src/workspaces/container/WorkspaceMenu', () => ({
-  ...jest.requireActual('src/workspaces/container/WorkspaceMenu'),
+type WorkspaceMenuExports = typeof import('src/workspaces/common/WorkspaceMenu');
+jest.mock<WorkspaceMenuExports>('src/workspaces/common/WorkspaceMenu', () => ({
+  ...jest.requireActual('src/workspaces/common/WorkspaceMenu'),
   WorkspaceMenu: jest.fn().mockReturnValue(null),
 }));
 

@@ -13,8 +13,8 @@ import {
   regionConstraintMessage,
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
+import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
 import { WorkspaceAttributeNotice } from 'src/workspaces/container/WorkspaceAttributeNotice';
-import { WorkspaceMenu } from 'src/workspaces/container/WorkspaceMenu';
 
 export interface WorkspaceTabsProps {
   namespace: string;

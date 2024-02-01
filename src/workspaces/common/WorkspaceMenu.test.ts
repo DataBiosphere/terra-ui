@@ -9,7 +9,7 @@ import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import { AzureWorkspace, GoogleWorkspace, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
-import { tooltipText, WorkspaceMenu } from 'src/workspaces/container/WorkspaceMenu';
+import { tooltipText, WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
 
 jest.mock('src/components/workspace-utils', () => {
   const originalModule = jest.requireActual('src/components/workspace-utils');
