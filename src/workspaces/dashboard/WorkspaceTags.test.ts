@@ -4,9 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { WorkspaceTags } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceTags';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { WorkspaceTags } from 'src/workspaces/dashboard/WorkspaceTags';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxExports = typeof import('src/libs/ajax');
