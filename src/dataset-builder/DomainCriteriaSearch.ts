@@ -36,6 +36,7 @@ export const DomainCriteriaSearch = (props: DomainCriteriaSearchProps) => {
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
   return h(ConceptSearch, {
     initialSearch: state.searchText,
+    domainOptionRoot: state.domainOption.root,
     initialCart: state.cart,
     domainOption: state.domainOption,
     onCancel: () => onStateChange(cohortEditorState.new(state.cohort)),
@@ -59,7 +60,7 @@ export const DomainCriteriaSearch = (props: DomainCriteriaSearchProps) => {
         domainCriteriaSelectorState.new(
           state.cohort,
           state.criteriaGroup,
-          domainOption, // this needs to be the root
+          domainOption,
           cart,
           domainCriteriaSearchState.new(state.cohort, state.criteriaGroup, state.domainOption, cart, searchText),
           selectedConcept
