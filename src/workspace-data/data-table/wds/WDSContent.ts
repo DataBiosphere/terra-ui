@@ -1,37 +1,39 @@
 import { Fragment, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
+import { DataTableProvider } from 'src/libs/ajax/data-table-providers/DataTableProvider';
+import { RecordTypeSchema } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
+import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
 import DataTable from '../shared/DataTable';
 
-const WDSContent = ({
-  workspace,
-  workspace: {
-    workspace: { namespace, name, googleProject },
-  },
-  recordType,
-  wdsSchema,
-  dataProvider,
-}) => {
+export interface WDSContentProps {
+  workspace: Workspace;
+  recordType: string;
+  wdsSchema: RecordTypeSchema[];
+  dataProvider: DataTableProvider;
+  editable: boolean;
+}
+
+export const WDSContent = ({ workspace, recordType, wdsSchema, dataProvider, editable }: WDSContentProps) => {
+  const googleProject = isGoogleWorkspace(workspace) ? workspace.workspace.googleProject : undefined;
   // State
   const [refreshKey] = useState(0);
 
   // Render
   const [entityMetadata, setEntityMetadata] = useState(() => wdsSchema);
 
-  const id = workspace.workspace.workspaceId;
   // dataProvider contains the proxyUrl for an instance of WDS
   return h(Fragment, [
     h(DataTable, {
       dataProvider,
       persist: true,
       refreshKey,
-      editable: true,
+      editable,
       entityType: recordType,
       activeCrossTableTextFilter: false,
       entityMetadata,
       googleProject,
-      workspaceId: { namespace, name, id },
       workspace,
       snapshotName: undefined,
       selectionModel: {

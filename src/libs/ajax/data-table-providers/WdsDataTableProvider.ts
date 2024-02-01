@@ -166,7 +166,7 @@ export class WdsDataTableProvider implements DataTableProvider {
       supportsEntityUpdating: true,
       supportEntityUpdatingTypes: ['string', 'number', 'boolean', 'json'], // remove this as part of AJ-<need to create ticket> for other types
       supportsAttributeRenaming: false, // TODO: enable as part of AJ-1278, requires `edit.renameAttribute` capability
-      supportsAttributeDeleting: false, // TODO: enable as part of AJ-1275, requires `edit.deleteAttribute` capability
+      supportsAttributeDeleting: this.isCapabilityEnabled('edit.deleteAttribute'),
       supportsAttributeClearing: false,
       supportsExport: false,
       supportsPointCorrection: false,
@@ -295,6 +295,11 @@ export class WdsDataTableProvider implements DataTableProvider {
   deleteTable = (entityType: string): Promise<Response> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
     return Ajax().WorkspaceData.deleteTable(this.proxyUrl, this.workspaceId, entityType);
+  };
+
+  deleteColumn = (signal: AbortSignal, entityType: string, attributeName: string): Promise<Response> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy URL not loaded');
+    return Ajax(signal).WorkspaceData.deleteColumn(this.proxyUrl, this.workspaceId, entityType, attributeName);
   };
 
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
