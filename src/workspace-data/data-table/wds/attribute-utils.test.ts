@@ -11,8 +11,7 @@ describe('getAttributeType', () => {
     { recordAttribute: 'booleans_list', expectedType: 'boolean', expectedIsList: true },
     { recordAttribute: 'json_field', expectedType: 'json', expectedIsList: false },
   ])('returns type of attribute value', ({ recordAttribute, expectedType, expectedIsList }) => {
-    const dataProvider = { features: { supportEntityUpdatingTypes: [] } };
-    dataProvider.features.supportEntityUpdatingTypes = ['string', 'json', 'number', 'boolean'];
+    const dataProvider = { features: { supportEntityUpdatingTypes: ['string', 'json', 'number', 'boolean'] } };
 
     const recordTypeAttribute = [
       {

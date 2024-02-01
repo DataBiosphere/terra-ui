@@ -67,6 +67,7 @@ const defaultFeatures: DataTableFeatures = {
   supportsTypeRenaming: false,
   supportsEntityRenaming: false,
   supportsEntityUpdating: false,
+  supportEntityUpdatingTypes: ['string', 'number', 'boolean', 'json'],
   supportsAttributeRenaming: false,
   supportsAttributeDeleting: false,
   supportsAttributeClearing: false,

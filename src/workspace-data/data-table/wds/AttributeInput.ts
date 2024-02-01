@@ -8,7 +8,7 @@ import * as Utils from 'src/libs/utils';
 import { renderInputForAttributeType } from '../shared/AttributeInput';
 import { getAttributeType } from './attribute-utils';
 
-const defaultValueForAttributeType = (attributeType: string) => {
+const defaultValueForAttributeType = (attributeType: string | undefined) => {
   return Utils.switchCase(
     attributeType,
     ['string', () => ''],
@@ -20,10 +20,12 @@ const defaultValueForAttributeType = (attributeType: string) => {
 
 export interface WDSAttributeInputProps {
   autoFocus: boolean;
-  value: string;
+  value: any;
   attributeName: string;
-  dataProvider: WdsDataTableProvider;
-  recordTypeAttributes: [{ name: string; dataType: string }];
+  dataProvider: object;
+  recordTypeAttributes: [{ name: string; datatype: string }];
+  onChange: any;
+  initialValue: any;
 }
 
 const AttributeInput = ({
@@ -47,7 +49,6 @@ const AttributeInput = ({
       lastListItemInput.current = null;
     }
     if (focusLastListItemInput.current && lastListItemInput.current) {
-      lastListItemInput.current.focus();
       focusLastListItemInput.current = false;
     }
   }, [attributeValue, isList]);

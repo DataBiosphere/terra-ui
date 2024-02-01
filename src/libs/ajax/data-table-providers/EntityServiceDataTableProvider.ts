@@ -36,6 +36,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     supportsTypeRenaming: true,
     supportsEntityRenaming: true,
     supportsEntityUpdating: true,
+    supportEntityUpdatingTypes: ['all'],
     supportsAttributeRenaming: true,
     supportsAttributeDeleting: true,
     supportsAttributeClearing: true,

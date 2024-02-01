@@ -1,8 +1,14 @@
+export interface WdsAttributeType {
+  type?: string;
+  isList?: boolean;
+  error?: string;
+}
+
 export const getAttributeType = (
   attributeName: string,
-  recordTypeAttributes: [{ name: string; dataType: string }],
-  dataProvider: WdsDataTableProvider
-) => {
+  recordTypeAttributes: { name: string; datatype: string }[],
+  dataProvider: any
+): WdsAttributeType => {
   // type that comes from the database schema in wds
   // when uploading form tsv, you can end up with an undefined column (if there are extra tabs) which causes errors with this logic
   if (attributeName !== undefined) {

@@ -176,7 +176,7 @@ describe('WdsDataTableProvider', () => {
     _instanceId: string,
     _recordType: string,
     _recordId: string,
-    _record: object
+    _record: { [attribute: string]: any }
   ) => {
     const expected: RecordAttributes = {
       something: 123,

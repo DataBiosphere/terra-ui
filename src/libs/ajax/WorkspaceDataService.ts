@@ -138,11 +138,11 @@ export const WorkspaceData = (signal) => ({
     instanceId: string,
     recordType: string,
     recordId: string,
-    attributes: { [attribute: string]: any }
+    record: { [attribute: string]: any }
   ): Promise<RecordResponseBody> => {
     const res = await fetchWDS(root)(
       `${instanceId}/records/v0.2/${recordType}/${recordId}`,
-      _.mergeAll([authOpts(), jsonBody(attributes), { signal, method: 'PATCH' }])
+      _.mergeAll([authOpts(), jsonBody(record), { signal, method: 'PATCH' }])
     );
     return res.json();
   },

@@ -65,7 +65,7 @@ export type RecordEditParameters = {
   instance: string;
   recordName: string;
   recordId: string;
-  record: object;
+  record: { [attribute: string]: any };
 };
 
 export type InvalidTsvOptions = {
@@ -124,6 +124,7 @@ export interface DataTableFeatures {
   supportsTypeRenaming: boolean;
   supportsEntityRenaming: boolean;
   supportsEntityUpdating: boolean;
+  supportEntityUpdatingTypes: string[];
   supportsAttributeRenaming: boolean;
   supportsAttributeDeleting: boolean;
   supportsAttributeClearing: boolean;

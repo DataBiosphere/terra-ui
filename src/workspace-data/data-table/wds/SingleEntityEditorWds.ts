@@ -8,6 +8,18 @@ import { reportError } from 'src/libs/error';
 import { getAttributeType } from './attribute-utils';
 import AttributeInput from './AttributeInput';
 
+export interface SingleEntityWdsProps {
+  recordType: string;
+  recordName: string;
+  attributeName: string;
+  attributeValue: any;
+  workspaceId: string;
+  onDismiss: any;
+  onSuccess: any;
+  dataProvider: any;
+  recordTypeAttributes: [{ name: string; datatype: string }];
+}
+
 export const SingleEntityEditorWds = ({
   recordType,
   recordName,
@@ -18,7 +30,7 @@ export const SingleEntityEditorWds = ({
   onSuccess,
   dataProvider,
   recordTypeAttributes,
-}) => {
+}: SingleEntityWdsProps) => {
   const { type: originalValueType } = getAttributeType(attributeName, recordTypeAttributes, dataProvider);
   const [newValue, setNewValue] = useState(attributeValue);
   const isUnchanged = _.isEqual(attributeValue, newValue);
