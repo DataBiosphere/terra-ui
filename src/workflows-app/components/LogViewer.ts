@@ -55,7 +55,9 @@ const logLoadingErrorMessage =
   "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated.";
 const modalMaxWidth = 1100;
 
-export const LogViewer = ({ modalTitle, logs, workspaceId, templateLog, onDismiss }: LogViewerProps) => {
+export const LogViewer = (logProps: LogViewerProps) => {
+  const { modalTitle, logs, workspaceId, templateLog, onDismiss } = logProps;
+
   const [activeLogs, setActiveLogs] = useState<LogInfo[]>(logs);
 
   const [currentlyActiveLog, setCurrentlyActiveLog] = useState<LogInfo | undefined>(

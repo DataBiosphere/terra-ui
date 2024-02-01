@@ -42,15 +42,8 @@ export type VerticalTabBarProps = {
   onClick: (tabKey: string) => void;
 };
 
-export function VerticalTabBar({
-  activeTabKey,
-  tabKeys,
-  tabDisplayNames,
-  tabTooltips,
-  maxHeight,
-  onClick,
-  ...props
-}: VerticalTabBarProps) {
+export function VerticalTabBar(verticalTabProps: VerticalTabBarProps) {
+  const { activeTabKey, tabKeys, tabDisplayNames, tabTooltips, maxHeight, onClick, ...props } = verticalTabProps;
   const [activeTab, setActiveTab] = useState(activeTabKey);
   const tabHeight = 60;
   const navTab = (i, currentTab) => {

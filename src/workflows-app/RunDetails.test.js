@@ -323,7 +323,6 @@ describe('BaseRunDetails - render smoke test', () => {
     await user.click(logInfoBox);
     expect(screen.queryByText('Each workflow has a single execution log', { exact: false })).toBeNull;
     screen.getByText('Task logs are from user-defined commands', { exact: false });
-    screen.getByText('Backend logs are from the Azure Cloud compute job', { exact: false });
   });
 
   it('shows a static error message on LogViewer if log cannot be retrieved', async () => {
@@ -363,16 +362,6 @@ describe('BaseRunDetails - render smoke test', () => {
     await user.click(stderrButton);
     expect(screen.getByText('stderr.txt')).toBeVisible();
     expect(screen.queryByText('stdout.txt')).not.toBeInTheDocument();
-
-    const backendStdoutButton = screen.getByText('Backend Standard Out');
-    await user.click(backendStdoutButton);
-    expect(screen.getByText('stdout.txt')).toBeVisible();
-    expect(screen.queryByText('stderr.txt')).not.toBeInTheDocument();
-
-    const backendStderrButton = screen.getByText('Backend Standard Err');
-    await user.click(backendStderrButton);
-    expect(screen.getByText('stderr.txt')).toBeVisible();
-    expect(screen.queryByText('stdout.txt')).not.toBeInTheDocument();
   });
 
   it('correctly identifies azure URIs', () => {
@@ -389,8 +378,6 @@ describe('BaseRunDetails - render smoke test', () => {
     // Verify all the element titles are present
     screen.getByText('Task Standard Out');
     screen.getByText('Task Standard Err');
-    screen.getByText('Backend Standard Out');
-    screen.getByText('Backend Standard Err');
     screen.getByLabelText('Download log');
     // Verify the data loaded properly
     screen.getByText('this is the text of a mock file');
@@ -414,8 +401,6 @@ describe('BaseRunDetails - render smoke test', () => {
     // Verify all the element titles are present
     screen.getByText('Task Standard Out');
     screen.getByText('Task Standard Err');
-    screen.getByText('Backend Standard Out');
-    screen.getByText('Backend Standard Err');
 
     // Verify the error is displayed.
     screen.getByText(
