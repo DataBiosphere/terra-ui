@@ -8,13 +8,13 @@ import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import * as GoogleStorage from 'src/libs/ajax/GoogleStorage';
 import * as Notifications from 'src/libs/notifications';
 import { workspaceStore } from 'src/libs/state';
+import { renderHookInAct } from 'src/testing/test-utils';
+import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
 import {
   azureBucketRecheckRate,
   googlePermissionsRecheckRate,
   useWorkspace,
-} from 'src/pages/workspaces/hooks/useWorkspace';
-import { renderHookInAct } from 'src/testing/test-utils';
-import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
+} from 'src/workspaces/common/state/useWorkspace';
 
 jest.mock('src/libs/ajax/AzureStorage');
 

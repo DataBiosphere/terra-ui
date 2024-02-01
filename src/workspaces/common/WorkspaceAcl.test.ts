@@ -4,7 +4,7 @@ import {
   RawWorkspaceAcl,
   transformAcl,
   WorkspaceAcl,
-} from 'src/pages/workspaces/workspace/WorkspaceAcl';
+} from 'src/workspaces/common/WorkspaceAcl';
 
 describe('utility functions for the workspace acl', () => {
   describe('transforming the raw acl with transformAcl', () => {

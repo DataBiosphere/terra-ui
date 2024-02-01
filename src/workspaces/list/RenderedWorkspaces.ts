@@ -28,8 +28,8 @@ import {
   WorkspacePolicy,
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
-import { WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceMenu';
-import { WorkspaceUserActionsContext } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
+import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
+import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
 
 // This is actually the sort type from the FlexTable component
 // When that component is converted to typescript, we should use that instead

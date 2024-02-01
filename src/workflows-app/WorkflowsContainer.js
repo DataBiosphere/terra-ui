@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { forwardRefWithName } from 'src/libs/react-utils';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 export const wrapWorkflowsPage = ({ name }) =>
   _.flow(

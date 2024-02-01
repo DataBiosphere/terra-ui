@@ -6,13 +6,10 @@ import { workspaceSubmissionStatus } from 'src/components/WorkspaceSubmissionSta
 import * as Nav from 'src/libs/nav';
 import { textMatch } from 'src/libs/utils';
 import { getCloudProviderFromWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
-import { CategorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CategorizedWorkspaces';
-import { NoContentMessage } from 'src/pages/workspaces/WorkspacesList/NoWorkspacesMessage';
-import { RenderedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RenderedWorkspaces';
-import {
-  getWorkspaceFiltersFromQuery,
-  WorkspaceFilterValues,
-} from 'src/pages/workspaces/WorkspacesList/WorkspaceFilters';
+import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
+import { NoContentMessage } from 'src/workspaces/list/NoWorkspacesMessage';
+import { RenderedWorkspaces } from 'src/workspaces/list/RenderedWorkspaces';
+import { getWorkspaceFiltersFromQuery, WorkspaceFilterValues } from 'src/workspaces/list/WorkspaceFilters';
 
 export interface WorkspaceTab {
   key: string;

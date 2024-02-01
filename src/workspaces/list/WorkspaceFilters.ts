@@ -14,7 +14,7 @@ import {
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
-import { CategorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CategorizedWorkspaces';
+import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
 
 const styles = {
   filter: { marginRight: '1rem', flex: '1 1 0', minWidth: 'max-content' },

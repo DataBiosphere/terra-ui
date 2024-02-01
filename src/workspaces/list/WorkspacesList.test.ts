@@ -3,10 +3,10 @@ import { act, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
-import { useWorkspacesWithSubmissionStats } from 'src/pages/workspaces/hooks/useWorkspacesWithSubmissionStats';
-import { WorkspacesList } from 'src/pages/workspaces/WorkspacesList/WorkspacesList';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { useWorkspacesWithSubmissionStats } from 'src/workspaces/list/state/useWorkspacesWithSubmissionStats';
+import { WorkspacesList } from 'src/workspaces/list/WorkspacesList';
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock(
@@ -46,21 +46,18 @@ jest.mock('src/libs/ajax', (): AjaxExports => {
   };
 });
 
-type WorkspaceFiltersExports = typeof import('src/pages/workspaces/WorkspacesList/WorkspaceFilters');
-jest.mock<WorkspaceFiltersExports>('src/pages/workspaces/WorkspacesList/WorkspaceFilters', () => ({
-  ...jest.requireActual('src/pages/workspaces/WorkspacesList/WorkspaceFilters'),
+type WorkspaceFiltersExports = typeof import('src/workspaces/list/WorkspaceFilters');
+jest.mock<WorkspaceFiltersExports>('src/workspaces/list/WorkspaceFilters', () => ({
+  ...jest.requireActual('src/workspaces/list/WorkspaceFilters'),
   WorkspaceFilters: jest.fn().mockReturnValue(null),
 }));
 
-jest.mock<UseWorkspaceWithSubmissionStatsExports>(
-  'src/pages/workspaces/hooks/useWorkspacesWithSubmissionStats',
-  () => ({
-    ...jest.requireActual('src/pages/workspaces/hooks/useWorkspacesWithSubmissionStats'),
-    useWorkspacesWithSubmissionStats: jest.fn(),
-  })
-);
+jest.mock<UseWorkspaceWithSubmissionStatsExports>('src/workspaces/list/state/useWorkspacesWithSubmissionStats', () => ({
+  ...jest.requireActual('src/workspaces/list/state/useWorkspacesWithSubmissionStats'),
+  useWorkspacesWithSubmissionStats: jest.fn(),
+}));
 type UseWorkspaceWithSubmissionStatsExports =
-  typeof import('src/pages/workspaces/hooks/useWorkspacesWithSubmissionStats');
+  typeof import('src/workspaces/list/state/useWorkspacesWithSubmissionStats');
 
 describe('WorkspaceList', () => {
   afterEach(() => {
