@@ -42,7 +42,7 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
         [
           ['name', 'entityType', `${entityType}_id`].includes(newAttributeName),
           () =>
-            'Column name cannot be "name", "entityType" or [entityType]_id where [entityType] is the name of the table.',
+            `Column name cannot be "name", "entityType" or "${entityType}_id".`,
         ],
 
         () => 'Column name may only contain alphanumeric characters, underscores, and dashes.'
