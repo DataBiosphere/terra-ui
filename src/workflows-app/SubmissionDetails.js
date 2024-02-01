@@ -242,16 +242,16 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                     )
                   ),
               ]),
+              h(Tabs, {
+                tabs: [
+                  { key: 'workflows', title: 'Workflows', isValid: true, isLast: false },
+                  { key: 'inputs', title: 'Inputs', isValid: true, isLast: false },
+                  { key: 'outputs', title: 'Outputs', isValid: true, isLast: true },
+                ],
+                activeTab: activeTab.key || 'workflows',
+                onChangeTab: (v) => setActiveTab({ key: v }),
+              }),
             ]),
-            h(Tabs, {
-              tabs: [
-                { key: 'workflows', title: 'Workflows', isValid: true, isLast: false },
-                { key: 'inputs', title: 'Inputs', isValid: true, isLast: false },
-                { key: 'outputs', title: 'Outputs', isValid: true, isLast: true },
-              ],
-              activeTab: activeTab.key || 'workflows',
-              onChangeTab: (v) => setActiveTab({ key: v }),
-            }),
           ]
         ),
         div(
