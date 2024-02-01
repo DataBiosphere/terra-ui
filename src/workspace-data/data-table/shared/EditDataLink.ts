@@ -16,3 +16,15 @@ export const EditDataLink = (props: EditDataLinkProps): ReactNode =>
     },
     [icon('edit')]
   );
+
+export const EditDataLinkDisabled = (props: EditDataLinkProps): ReactNode =>
+  h(
+    Link,
+    {
+      className: 'cell-hover-only',
+      style: { marginLeft: '1ch' },
+      tooltip: 'Edit of this value type is not currently supported.',
+      ...props,
+    },
+    [icon('edit')]
+  );

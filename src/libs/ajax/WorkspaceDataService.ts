@@ -138,7 +138,7 @@ export const WorkspaceData = (signal) => ({
     instanceId: string,
     recordType: string,
     recordId: string,
-    attributes: object
+    attributes: { [attribute: string]: any }
   ): Promise<RecordResponseBody> => {
     const res = await fetchWDS(root)(
       `${instanceId}/records/v0.2/${recordType}/${recordId}`,

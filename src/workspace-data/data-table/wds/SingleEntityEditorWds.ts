@@ -9,17 +9,17 @@ import { getAttributeType } from './attribute-utils';
 import AttributeInput from './AttributeInput';
 
 export const SingleEntityEditorWds = ({
-  entityType,
-  entityName,
+  recordType,
+  recordName,
   attributeName,
   attributeValue,
   workspaceId,
   onDismiss,
   onSuccess,
   dataProvider,
-  entityTypeAttributes,
+  recordTypeAttributes,
 }) => {
-  const { type: originalValueType } = getAttributeType(attributeName, entityTypeAttributes, attributeValue, dataProvider);
+  const { type: originalValueType } = getAttributeType(attributeName, recordTypeAttributes, dataProvider);
   const [newValue, setNewValue] = useState(attributeValue);
   const isUnchanged = _.isEqual(attributeValue, newValue);
 
@@ -39,12 +39,17 @@ export const SingleEntityEditorWds = ({
       }
 
       const listOfRecords = { attributes: record };
-      await dataProvider.updateRecord({ instance: workspaceId, recordName: entityType, recordId: entityName, record: listOfRecords });
+      await dataProvider.updateRecord({
+        instance: workspaceId,
+        recordName: recordType,
+        recordId: recordName,
+        record: listOfRecords,
+      });
 
       onSuccess();
     } catch (e) {
       onDismiss();
-      reportError('Unable to modify entity', e);
+      reportError('Unable to modify record', e);
     }
   };
 
@@ -63,8 +68,8 @@ export const SingleEntityEditorWds = ({
           onChange: setNewValue,
           initialValue: attributeValue,
           attributeName,
-          entityType,
-          entityTypeAttributes,
+          recordType,
+          recordTypeAttributes,
           dataProvider,
           showJsonTypeOption: originalValueType === 'json',
         }),

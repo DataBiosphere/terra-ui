@@ -708,7 +708,7 @@ describe('WdsDataTableProvider', () => {
 });
 
 describe('updateRecord', () => {
-  it('restructures a WDS response', () => {
+  it('restructures a WDS response', async () => {
     // Arrange
     const provider = new TestableWdsProvider();
 
@@ -718,12 +718,15 @@ describe('updateRecord', () => {
     };
 
     // Act
-    return provider
-      .updateRecord({ instance: uuid, recordName: 'test', recordId: 'record1', record: expected })
-      .then((actual) => {
-        // Assert
-        expect(actual.attributes).toStrictEqual(expected);
-      });
+    const actual = await provider.updateRecord({
+      instance: uuid,
+      recordName: 'test',
+      recordId: 'record1',
+      record: expected,
+    });
+
+    // Assert
+    expect(actual.attributes).toStrictEqual(expected);
   });
 });
 

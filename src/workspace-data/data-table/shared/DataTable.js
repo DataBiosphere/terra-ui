@@ -44,8 +44,9 @@ import {
   decodeColumnSettings,
 } from '../entity-service/SavedColumnSettings';
 import { SingleEntityEditor } from '../entity-service/SingleEntityEditor';
+import { getAttributeType } from '../wds/attribute-utils';
 import { SingleEntityEditorWds } from '../wds/SingleEntityEditorWds';
-import { EditDataLink } from './EditDataLink';
+import { EditDataLink, EditDataLinkDisabled } from './EditDataLink';
 import { HeaderOptions } from './HeaderOptions';
 
 const entityMap = (entities) => {
@@ -88,10 +89,8 @@ const DataTable = (props) => {
     entityType,
     entityMetadata,
     setEntityMetadata,
-    workspaceId,
     workspace,
     googleProject,
-    workspaceId: { namespace, name },
     onScroll,
     initialX,
     initialY,
@@ -108,6 +107,10 @@ const DataTable = (props) => {
     extraColumnActions,
     dataProvider,
   } = props;
+
+  const namespace = workspace.workspace.namespace;
+  const name = workspace.workspace.name;
+  const workspaceId = { namespace, name };
 
   const persistenceId = `${namespace}/${name}/${entityType}`;
 
@@ -340,7 +343,6 @@ const DataTable = (props) => {
   const nameWidth = columnWidths.name || 150;
 
   const showColumnSettingsModal = () => setUpdatingColumnSettings(columnSettings);
-
   return h(Fragment, [
     !!entities &&
       h(Fragment, [
@@ -614,16 +616,32 @@ const DataTable = (props) => {
                         style: { marginLeft: '1rem' },
                         text: entityAttributeText(dataInfo),
                       });
-                      const editLink =
-                        editable &&
-                        dataProvider.features.supportsEntityUpdating &&
-                        h(EditDataLink, {
-                          'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
-                          'aria-haspopup': 'dialog',
-                          'aria-expanded': !!updatingEntity,
-                          onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo }),
-                        });
 
+                      const attributes = entityMetadata.find((entity) => entity.name === entityType).attributes;
+                      const attributeType = getAttributeType(attributeName, attributes, dataProvider);
+                      let extraEditableCondition = false;
+                      // this will make fields that are not supported to fail to show the edit
+                      if (dataProvider.providerName === wdsProviderName && attributeType.type === undefined) {
+                        extraEditableCondition = true;
+                      }
+                      const editLink = !extraEditableCondition
+                        ? editable &&
+                          dataProvider.features.supportsEntityUpdating &&
+                          h(EditDataLink, {
+                            'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
+                            'aria-haspopup': 'dialog',
+                            'aria-expanded': !!updatingEntity,
+                            onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo }),
+                          })
+                        : editable &&
+                          dataProvider.features.supportsEntityUpdating &&
+                          h(EditDataLinkDisabled, {
+                            'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
+                            'aria-haspopup': 'dialog',
+                            'aria-expanded': !!updatingEntity,
+                            disabled: true,
+                            onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo }),
+                          });
                       if (!!dataInfo && _.isArray(dataInfo.items)) {
                         const isPlural = dataInfo.items.length !== 1;
                         const label = dataInfo?.itemsType === 'EntityReference' ? (isPlural ? 'entities' : 'entity') : isPlural ? 'items' : 'item';
@@ -751,11 +769,12 @@ const DataTable = (props) => {
     !!updatingEntity &&
       dataProvider.providerName === wdsProviderName &&
       h(SingleEntityEditorWds, {
-        entityType: _.find((entity) => entity.name === updatingEntity.entityName, entities).entityType,
+        recordType: _.find((entity) => entity.name === updatingEntity.entityName, entities).entityType,
+        recordName: updatingEntity.entityName,
         ...updatingEntity,
-        workspaceId: workspaceId.id,
+        workspaceId: workspace.workspace.workspaceId,
         dataProvider,
-        entityTypeAttributes: entityMetadata.find((entity) => entity.name === entityType).attributes,
+        recordTypeAttributes: entityMetadata.find((entity) => entity.name === entityType).attributes,
         onSuccess: () => {
           setUpdatingEntity(undefined);
           Ajax().Metrics.captureEvent(Events.workspaceDataEditOne, extractWorkspaceDetails(workspace.workspace));

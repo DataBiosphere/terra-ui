@@ -8,12 +8,33 @@ import * as Utils from 'src/libs/utils';
 import { renderInputForAttributeType } from '../shared/AttributeInput';
 import { getAttributeType } from './attribute-utils';
 
-const defaultValueForAttributeType = (attributeType) => {
-  return Utils.switchCase(attributeType, ['string', () => ''], ['number', () => 0], ['boolean', () => false], ['json', () => ({})]);
+const defaultValueForAttributeType = (attributeType: string) => {
+  return Utils.switchCase(
+    attributeType,
+    ['string', () => ''],
+    ['number', () => 0],
+    ['boolean', () => false],
+    ['json', () => ({})]
+  );
 };
 
-const AttributeInput = ({ autoFocus = false, value: attributeValue, attributeName, dataProvider, onChange, entityTypeAttributes }) => {
-  const { type: attributeType, isList, error } = getAttributeType(attributeName, entityTypeAttributes, attributeValue, dataProvider);
+export interface WDSAttributeInputProps {
+  autoFocus: boolean;
+  value: string;
+  attributeName: string;
+  dataProvider: WdsDataTableProvider;
+  recordTypeAttributes: [{ name: string; dataType: string }];
+}
+
+const AttributeInput = ({
+  autoFocus = false,
+  value: attributeValue,
+  attributeName,
+  dataProvider,
+  onChange,
+  recordTypeAttributes,
+}: WDSAttributeInputProps) => {
+  const { type: attributeType, isList, error } = getAttributeType(attributeName, recordTypeAttributes, dataProvider);
 
   const renderInput = renderInputForAttributeType(attributeType);
 
