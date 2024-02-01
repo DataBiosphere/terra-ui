@@ -17,7 +17,7 @@ export type AppWithWorkspace = DecoratedResourceAttributes & ListAppItem;
 export type DecoratedComputeResource = RuntimeWithWorkspace | AppWithWorkspace;
 export type DecoratedResource = DecoratedComputeResource | DiskWithWorkspace;
 
-export interface PermissionsAndStateProvider {
+export interface LeoResourcePermissionsProvider {
   canDeleteDisk: (disk: PersistentDisk) => boolean;
   canPauseResource: (resource: App | ListRuntimeItem) => boolean;
   canDeleteApp: (resource: DecoratedComputeResource) => boolean;

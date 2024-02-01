@@ -9,7 +9,7 @@ import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvide
 import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import { terraNavKey, TerraNavLinkProvider, terraNavLinkProvider } from 'src/libs/nav';
-import { stateAndPermissionsProvider } from 'src/pages/EnvironmentsPage/environmentsPermissions';
+import { leoResourcePermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 
 type NavMap<NavTypes, FnReturn> = {
@@ -48,7 +48,7 @@ export const EnvironmentsPage = (): ReactNode => {
       leoRuntimeData: leoRuntimeProvider,
       leoDiskData: leoDiskProvider,
       metrics: metricsProvider,
-      permissions: stateAndPermissionsProvider,
+      permissions: leoResourcePermissions,
     }),
   ]);
 };

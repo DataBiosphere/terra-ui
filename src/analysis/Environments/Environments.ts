@@ -49,7 +49,7 @@ import {
   DecoratedComputeResource,
   DecoratedResourceAttributes,
   DiskWithWorkspace,
-  PermissionsAndStateProvider,
+  LeoResourcePermissionsProvider,
   RuntimeWithWorkspace,
 } from './Environments.models';
 import { PauseButton } from './PauseButton';
@@ -74,7 +74,7 @@ export interface EnvironmentsProps {
   leoRuntimeData: LeoRuntimeProviderNeeds;
   leoDiskData: LeoDiskProviderNeeds;
   metrics: MetricsProvider;
-  permissions: PermissionsAndStateProvider;
+  permissions: LeoResourcePermissionsProvider;
 }
 
 export const Environments = (props: EnvironmentsProps): ReactNode => {

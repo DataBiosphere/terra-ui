@@ -7,9 +7,9 @@ import { makeMenuIcon } from 'src/components/PopupTrigger';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 
-import { PermissionsAndStateProvider } from './Environments.models';
+import { LeoResourcePermissionsProvider } from './Environments.models';
 
-type PausePermissionsProvider = Pick<PermissionsAndStateProvider, 'canPauseResource'>;
+type PausePermissionsProvider = Pick<LeoResourcePermissionsProvider, 'canPauseResource'>;
 
 interface PauseButtonProps {
   cloudEnvironment: App | ListRuntimeItem;

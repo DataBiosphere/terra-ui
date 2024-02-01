@@ -6,7 +6,7 @@ import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getTerraUser, TerraUser } from 'src/libs/state';
 
-import { stateAndPermissionsProvider } from './environmentsPermissions';
+import { leoResourcePermissions } from './environmentsPermissions';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
@@ -24,7 +24,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<PersistentDisk> as PersistentDisk;
 
     // Act
-    const canIDeleteDisk = stateAndPermissionsProvider.canDeleteDisk(myDisk);
+    const canIDeleteDisk = leoResourcePermissions.canDeleteDisk(myDisk);
 
     // Assert
     expect(canIDeleteDisk).toBe(true);
@@ -40,7 +40,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<PersistentDisk> as PersistentDisk;
 
     // Act
-    const canIDeleteDisk = stateAndPermissionsProvider.canDeleteDisk(otherDisk);
+    const canIDeleteDisk = leoResourcePermissions.canDeleteDisk(otherDisk);
 
     // Assert
     expect(canIDeleteDisk).toBe(false);
@@ -56,7 +56,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<ListRuntimeItem> as ListRuntimeItem;
 
     // Act
-    const canIDeleteDisk = stateAndPermissionsProvider.canPauseResource(myRuntime);
+    const canIDeleteDisk = leoResourcePermissions.canPauseResource(myRuntime);
 
     // Assert
     expect(canIDeleteDisk).toBe(true);
@@ -72,7 +72,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<ListRuntimeItem> as ListRuntimeItem;
 
     // Act
-    const canIDeleteDisk = stateAndPermissionsProvider.canPauseResource(otherRuntime);
+    const canIDeleteDisk = leoResourcePermissions.canPauseResource(otherRuntime);
 
     // Assert
     expect(canIDeleteDisk).toBe(false);
@@ -130,7 +130,7 @@ describe('environmentsPermissions', () => {
   ] as { resource: DecoratedComputeResource; canDeleteApp: boolean }[])(
     'returns proper boolean for app deletion',
     ({ resource, canDeleteApp }) => {
-      expect(stateAndPermissionsProvider.canDeleteApp(resource)).toBe(canDeleteApp);
+      expect(leoResourcePermissions.canDeleteApp(resource)).toBe(canDeleteApp);
     }
   );
 
@@ -210,7 +210,7 @@ describe('environmentsPermissions', () => {
   ] as { resource: App | PersistentDisk | Runtime; canDeleteResource: boolean; resourceType: string }[])(
     'returns correct boolean for resource deletion',
     ({ resource, canDeleteResource, resourceType }) => {
-      expect(stateAndPermissionsProvider.canDeleteResource(resourceType, resource)).toBe(canDeleteResource);
+      expect(leoResourcePermissions.canDeleteResource(resourceType, resource)).toBe(canDeleteResource);
     }
   );
 });

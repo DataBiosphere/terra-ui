@@ -8,9 +8,9 @@ import { isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoRuntimeStatus } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
 
-import { DecoratedComputeResource, PermissionsAndStateProvider } from './Environments.models';
+import { DecoratedComputeResource, LeoResourcePermissionsProvider } from './Environments.models';
 
-type DeletePermissionsProvider = Pick<PermissionsAndStateProvider, 'canDeleteApp' | 'canDeleteResource'>;
+type DeletePermissionsProvider = Pick<LeoResourcePermissionsProvider, 'canDeleteApp' | 'canDeleteResource'>;
 
 export interface DeleteButtonProps {
   resource: DecoratedComputeResource;

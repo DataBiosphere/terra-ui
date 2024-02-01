@@ -11,7 +11,7 @@ import { useWorkspaces } from 'src/workspaces/useWorkspaces';
 import { UseWorkspaces } from 'src/workspaces/useWorkspaces.models';
 
 import { EnvironmentsPage, makeNavProvider, navProvider } from './EnvironmentsPage';
-import { stateAndPermissionsProvider } from './environmentsPermissions';
+import { leoResourcePermissions } from './environmentsPermissions';
 
 jest.mock('src/analysis/Environments/Environments');
 
@@ -65,7 +65,7 @@ describe('Environments Page', () => {
         leoAppData: leoAppProvider,
         leoRuntimeData: leoRuntimeProvider,
         leoDiskData: leoDiskProvider,
-        permissions: stateAndPermissionsProvider,
+        permissions: leoResourcePermissions,
         metrics: mockMetricsProvider,
       } satisfies EnvironmentsProps),
       expect.anything()

@@ -22,12 +22,12 @@ import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvide
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { makeCompleteDate } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { stateAndPermissionsProvider } from 'src/pages/EnvironmentsPage/environmentsPermissions';
+import { leoResourcePermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { EnvironmentNavActions, Environments, EnvironmentsProps } from './Environments';
-import { PermissionsAndStateProvider } from './Environments.models';
+import { LeoResourcePermissionsProvider } from './Environments.models';
 
 jest.mock('src/libs/notifications', () => ({
   notify: jest.fn(),
@@ -78,7 +78,7 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
 };
 
 const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
-  const mockPermissions: PermissionsAndStateProvider = {
+  const mockPermissions: LeoResourcePermissionsProvider = {
     canDeleteDisk: jest.fn().mockReturnValue(true),
     canPauseResource: jest.fn().mockReturnValue(true),
     canDeleteApp: jest.fn().mockReturnValue(true),
@@ -238,7 +238,7 @@ describe('Environments', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
-      props.permissions.canDeleteResource = stateAndPermissionsProvider.canDeleteResource;
+      props.permissions.canDeleteResource = leoResourcePermissions.canDeleteResource;
 
       // Act
       await act(async () => {
@@ -539,7 +539,7 @@ describe('Environments', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace, azureWorkspace2],
       });
-      props.permissions = stateAndPermissionsProvider;
+      props.permissions = leoResourcePermissions;
 
       // Act
       await act(async () => {
