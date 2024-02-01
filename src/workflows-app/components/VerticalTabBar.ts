@@ -149,7 +149,6 @@ export function VerticalTabBar({
           ),
         ]
       ),
-      div({ style: { display: 'flex', flexGrow: 0, alignItems: 'center' } }),
     ]
   );
 }

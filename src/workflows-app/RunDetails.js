@@ -277,7 +277,7 @@ export const BaseRunDetails = (
               modalTitle: logsModalTitle,
               logs: logsArray,
               workspaceId,
-              logDirectory: templateTesLog,
+              templateLog: templateTesLog,
               onDismiss: () => {
                 setShowLog(false);
                 captureEvent(Events.workflowsAppCloseLogViewer);

@@ -14,13 +14,14 @@ import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-
 import { discoverTesLogs } from '../utils/task-log-utils';
 /**
  * Information needed to preview a log file.
- * @member logUri - The URI of the log file. Must be a valid Azure blob URI. No Sas token should be appended: a fresh one will be obtained.
+ * @member logUri - The URI of the log file. Must be a valid Azure blob URI. No Sas token should be appended: a fresh one will be obtained. Optional so we can save LogInfo at compile time but fetch the URI at runtime.
  * @member logTitle - The title of the log. Displayed to the user as a tab title.
  * @member logKey - A unique key for this particular log.
  * @member logFilename - The filename of this particular log. Does not need to be unique.
+ * @member logTooltip - If provided, will be displayed as a little (i) icon next to the tab title that shows a tooltip when clicked.
  */
 export type LogInfo = {
-  logUri: string | undefined;
+  logUri?: string;
   logTitle: string;
   logKey: string;
   logFilename: string;
@@ -36,7 +37,7 @@ export type LogViewerProps = {
   modalTitle: string;
   logs: LogInfo[]; // Known logs to show in this component
   workspaceId: string;
-  logDirectory: string | undefined; // an azure blob directory that contains additional logs to fetch.
+  templateLog?: string; // a full azure blob uri to a log file. If provided, we will search for additional logs in the same directory as this file.
   onDismiss: () => void;
 };
 
@@ -54,7 +55,7 @@ const logLoadingErrorMessage =
   "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated.";
 const modalMaxWidth = 1100;
 
-export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismiss }: LogViewerProps) => {
+export const LogViewer = ({ modalTitle, logs, workspaceId, templateLog, onDismiss }: LogViewerProps) => {
   const [activeLogs, setActiveLogs] = useState<LogInfo[]>(logs);
 
   const [currentlyActiveLog, setCurrentlyActiveLog] = useState<LogInfo | undefined>(
@@ -70,12 +71,12 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
 
   useEffect(() => {
     const discover = async () => {
-      if (logDirectory === undefined) return;
-      const discoveredTesLogs = await discoverTesLogs(signal, workspaceId, logDirectory);
+      if (templateLog === undefined) return;
+      const discoveredTesLogs = await discoverTesLogs(signal, workspaceId, templateLog);
       setActiveLogs((activeLogs) => [...activeLogs, ...discoveredTesLogs]);
     };
     discover();
-  }, [signal, workspaceId, logDirectory]);
+  }, [signal, workspaceId, templateLog]);
 
   const fetchLogContent = useCallback(
     async (azureBlobUri: string): Promise<FetchedLogData | null> => {
@@ -167,7 +168,7 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
         },
       },
       [
-        span({}, [
+        span([
           span({ style: { paddingRight: '0.5rem', fontWeight: 'bold', fontSize: 16 } }, ['File:']),
           span({ style: { fontSize: 16 } }, [currentlyActiveLog?.logFilename]),
         ]),
@@ -223,7 +224,7 @@ export const LogViewer = ({ modalTitle, logs, workspaceId, logDirectory, onDismi
       width: modalMaxWidth,
     },
     [
-      div({}, [
+      div([
         div({ style: { height: '2.25rem' } }, [renderTopRow()]),
         div({ style: { display: 'flex', height: '100%' } }, [
           div({ style: { width: '25%' } }, renderLefthandTabs()),
