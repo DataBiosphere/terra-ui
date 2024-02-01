@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
+import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { ConceptSearch } from 'src/dataset-builder/ConceptSearch';
 import { dummyDatasetModel, dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
@@ -31,7 +32,7 @@ describe('ConceptSearch', () => {
   const datasetId = '0';
   const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
 
-  const renderSearch = (initialSearch = '', initialCart: SnapshotBuilderConcept[] = []) => {
+  const renderSearch = (initialSearch = '', initialCart: SnapshotBuilderConcept[] = []) =>
     render(
       h(ConceptSearch, {
         actionText,
@@ -44,7 +45,6 @@ describe('ConceptSearch', () => {
         domainOption,
       })
     );
-  };
 
   const displayedConcepts = [dummyGetConceptForId(102), dummyGetConceptForId(103)];
   const mockSearch = jest.fn();
@@ -84,13 +84,12 @@ describe('ConceptSearch', () => {
   });
 
   it('filters based on search text', async () => {
-    // Arrange
-    renderSearch(displayedConcepts[0].name);
-    // Act
-    // Assert
-    expect(screen.findByText(displayedConcepts[0].name)).toBeTruthy();
-    // The second concept should not be displayed.
-    expect(() => screen.getByText(displayedConcepts[1].name)).toThrow();
+    // Arrange/Act
+    const searchText = 'search text';
+    // Need to explicitly call act() here to avoid a warning about state updates during rendering.
+    await act(() => renderSearch(searchText));
+    // Assert - the initial page load should have called search with the initial search text.
+    expect(mockSearch).toHaveBeenCalledWith(domainOption.root, searchText);
   });
 
   it('calls open hierarchy on click', async () => {

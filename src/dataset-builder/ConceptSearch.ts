@@ -29,6 +29,7 @@ type ConceptSearchProps = {
   readonly initialCart: Concept[];
 };
 
+const DebouncedTextInput = withDebouncedChange(TextInput);
 export const ConceptSearch = (props: ConceptSearchProps) => {
   const { initialSearch, domainOption, onCancel, onCommit, onOpenHierarchy, actionText, datasetId, initialCart } =
     props;
@@ -56,21 +57,26 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         ),
         div({ style: { marginLeft: 15 } }, [domainOption.category]),
       ]),
-      h(withDebouncedChange(TextInput), {
-        onChange: (value: string) => {
-          setSearch(value);
-        },
-        value: search,
-        placeholder: 'Search',
-        style: {
-          borderRadius: 25,
-          borderColor: colors.dark(0.2),
-          width: '100%',
-          maxWidth: 575,
-          height: '3rem',
-          marginRight: 20,
-        },
-      }),
+      div({ style: { position: 'relative' } }, [
+        h(DebouncedTextInput, {
+          onChange: (value: string) => {
+            setSearch(value);
+          },
+          value: search,
+          placeholder: 'Search',
+          type: 'search',
+          style: {
+            borderRadius: 25,
+            borderColor: colors.dark(0.2),
+            width: '100%',
+            maxWidth: 575,
+            height: '3rem',
+            marginRight: 20,
+            paddingLeft: 40,
+          },
+        }),
+        icon('search', { size: 18, style: { position: 'absolute', left: 15, top: '50%', marginTop: -9 } }),
+      ]),
       concepts.status === 'Ready'
         ? h(SimpleTable, {
             'aria-label': 'concept search results',
