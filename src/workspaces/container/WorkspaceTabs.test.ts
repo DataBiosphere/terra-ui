@@ -21,7 +21,7 @@ type WorkspaceMenuExports = typeof import('src/workspaces/common/WorkspaceMenu')
 
 const mockWorkspaceMenu = jest.fn();
 jest.mock(
-  'src/workspaces/container/WorkspaceMenu',
+  'src/workspaces/common/WorkspaceMenu',
   () =>
     function (props) {
       mockWorkspaceMenu(props);
