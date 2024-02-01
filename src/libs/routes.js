@@ -27,7 +27,6 @@ import * as UploadData from 'src/pages/UploadDataPage';
 import * as WorkflowsList from 'src/pages/workflows/List';
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails';
 import * as WorkspaceList from 'src/pages/workspaces/List';
-import * as WorkspaceMigration from 'src/pages/workspaces/migration/WorkspaceMigration';
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard/Dashboard';
 import * as WorkspaceFiles from 'src/pages/workspaces/workspace/Files';
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory';
@@ -35,6 +34,7 @@ import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/Su
 import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard';
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows';
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView';
+import * as WorkspaceMigration from 'src/pages/workspaces/WorkspaceMigration';
 import * as PrivacyPolicy from 'src/registration/privacy-policy/PrivacyPolicy';
 import * as TermsOfService from 'src/registration/terms-of-service/TermsOfServicePage';
 import * as WorkflowsApp from 'src/workflows-app/routes';

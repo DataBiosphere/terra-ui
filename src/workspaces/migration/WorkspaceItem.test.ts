@@ -4,9 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { MigrationStep, WorkspaceMigrationInfo } from 'src/pages/workspaces/migration/migration-utils';
-import { WorkspaceItem } from 'src/pages/workspaces/migration/WorkspaceItem';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { MigrationStep, WorkspaceMigrationInfo } from 'src/workspaces/migration/migration-utils';
+import { WorkspaceItem } from 'src/workspaces/migration/WorkspaceItem';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxWorkspacesContract = AjaxContract['Workspaces'];

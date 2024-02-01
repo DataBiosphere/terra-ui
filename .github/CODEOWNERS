@@ -20,7 +20,6 @@
 /src/pages/LandingPage* @DataBiosphere/terra-cobranding
 /src/pages/billing/ @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/workspaces/* @DataBiosphere/broadworkspaces-terra-ui
-/src/pages/workspaces/migration/* @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/workspaces/workspace/*Dashboard* @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/workspaces/workspace/*Workspace* @DataBiosphere/broadworkspaces-terra-ui
 /src/components/*Workspace* @DataBiosphere/broadworkspaces-terra-ui

@@ -9,7 +9,7 @@ import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { BillingProjectList } from 'src/pages/workspaces/migration/BillingProjectList';
+import { BillingProjectList } from 'src/workspaces/migration/BillingProjectList';
 
 const MigrationInformation = () => {
   const persistenceId = 'multiregionBucketMigration';
@@ -79,12 +79,3 @@ export const WorkspaceMigrationPage = () => {
     ]),
   ]);
 };
-
-export const navPaths = [
-  {
-    name: 'workspace-migration',
-    path: '/workspace-migration',
-    component: WorkspaceMigrationPage,
-    title: 'Workspace Migration',
-  },
-];

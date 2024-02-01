@@ -6,7 +6,7 @@ import {
   mergeWorkspacesWithNamespaces,
   parseServerResponse,
   WorkspaceMigrationInfo,
-} from 'src/pages/workspaces/migration/migration-utils';
+} from 'src/workspaces/migration/migration-utils';
 
 export const mockServerData = {
   'CARBilling-2/notmigrated': null,
