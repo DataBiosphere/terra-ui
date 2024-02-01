@@ -30,7 +30,7 @@ jest.mock('src/libs/nav', (): typeof import('src/libs/nav') => ({
 
 type DashboardPageExports = typeof import('src/workspaces/dashboard/WorkspaceDashboardPage');
 jest.mock(
-  'src/pages/workspaces/workspace/Dashboard/WorkspaceDashboardPage',
+  'src/workspaces/dashboard/WorkspaceDashboardPage',
   () =>
     ({
       WorkspaceDashboardPage: jest.fn(),
