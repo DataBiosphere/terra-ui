@@ -700,6 +700,7 @@ export const WorkspaceData = _.flow(
 
     const loadWdsTypes = useCallback(
       (url, workspaceId) => {
+        setWdsTypes({ status: 'None', state: [] });
         return Ajax(signal)
           .WorkspaceData.getSchema(url, workspaceId)
           .then((typesResult) => {
