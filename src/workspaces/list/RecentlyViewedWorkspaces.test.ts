@@ -3,10 +3,10 @@ import { h } from 'react-hyperscript-helpers';
 import { recentlyViewedPersistenceId } from 'src/components/workspace-utils';
 import { getLocalPref } from 'src/libs/prefs';
 import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
-import { RecentlyViewedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RecentlyViewedWorkspaces';
-import { persistenceId } from 'src/pages/workspaces/WorkspacesList/WorkspacesList';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { RecentlyViewedWorkspaces } from 'src/workspaces/list/RecentlyViewedWorkspaces';
+import { persistenceId } from 'src/workspaces/list/WorkspacesList';
 
 type NavExports = typeof import('src/libs/nav');
 

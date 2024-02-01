@@ -6,7 +6,7 @@ import { reportError } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import { workspacesStore } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { UseWorkspacesResult } from 'src/workspaces/useWorkspaces.models';
+import { UseWorkspacesResult } from 'src/workspaces/common/state/useWorkspaces.models';
 
 const defaultFieldsArgs: FieldsArg = [
   'accessLevel',

@@ -7,9 +7,9 @@ import { MenuTrigger } from 'src/components/PopupTrigger';
 import { useWorkspaceDetails } from 'src/components/workspace-utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import { AzureWorkspace, GoogleWorkspace, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
-import { tooltipText, WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceMenu';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
+import { tooltipText, WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
 
 jest.mock('src/components/workspace-utils', () => {
   const originalModule = jest.requireActual('src/components/workspace-utils');

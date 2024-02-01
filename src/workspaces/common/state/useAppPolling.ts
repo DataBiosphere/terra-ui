@@ -3,7 +3,7 @@ import { Ajax } from 'src/libs/ajax';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/pages/workspaces/hooks/useWorkspace';
+import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
 
 export interface AppDetails {
   apps?: ListAppItem[];

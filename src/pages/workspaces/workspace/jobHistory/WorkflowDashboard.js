@@ -24,8 +24,8 @@ import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 import { UriViewer } from 'src/workspace-data/data-table/uri-viewer/UriViewer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 const styles = {
   sectionTableLabel: { fontWeight: 600 },

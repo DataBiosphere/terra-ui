@@ -5,16 +5,16 @@ import { Ajax } from 'src/libs/ajax';
 import { LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
+import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 
 import { WorkspaceData } from './Data';
 
-type WorkspaceContainerExports = typeof import('src/pages/workspaces/workspace/WorkspaceContainer');
-jest.mock('src/pages/workspaces/workspace/WorkspaceContainer', (): WorkspaceContainerExports => {
+type WorkspaceContainerExports = typeof import('src/workspaces/container/WorkspaceContainer');
+jest.mock('src/workspaces/container/WorkspaceContainer', (): WorkspaceContainerExports => {
   return {
-    ...jest.requireActual<WorkspaceContainerExports>('src/pages/workspaces/workspace/WorkspaceContainer'),
+    ...jest.requireActual<WorkspaceContainerExports>('src/workspaces/container/WorkspaceContainer'),
     wrapWorkspace: jest.fn().mockImplementation((_opts) => (wrappedComponent) => wrappedComponent),
   };
 });

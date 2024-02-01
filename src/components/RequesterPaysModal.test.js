@@ -5,8 +5,8 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import RequesterPaysModal from './RequesterPaysModal';
 
-jest.mock('src/workspaces/useWorkspaces', () => ({
-  ...jest.requireActual('src/workspaces/useWorkspaces'),
+jest.mock('src/workspaces/common/state/useWorkspaces', () => ({
+  ...jest.requireActual('src/workspaces/common/state/useWorkspaces'),
   useWorkspaces: jest.fn().mockReturnValue({
     loading: false,
     workspaces: [
