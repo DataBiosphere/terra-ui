@@ -4,8 +4,8 @@ import React from 'react';
 import { act } from 'react-dom/test-utils';
 import { Ajax } from 'src/libs/ajax';
 import { AuthState, authStore } from 'src/libs/state';
+import { DashboardAuthContainer } from 'src/pages/workspaces/DashboardAuthContainer';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
-import { DashboardAuthContainer } from 'src/workspaces/dashboard/DashboardAuthContainer';
 import { WorkspaceDashboardPage, WorkspaceDashboardPageProps } from 'src/workspaces/dashboard/WorkspaceDashboardPage';
 
 type AjaxContract = ReturnType<typeof Ajax>;

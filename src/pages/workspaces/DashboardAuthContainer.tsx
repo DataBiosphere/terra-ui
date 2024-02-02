@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import { useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import SignIn from 'src/pages/SignIn';
-import DashboardPublic from 'src/workspaces/dashboard/DashboardPublic';
+import DashboardPublic from 'src/pages/workspaces/DashboardPublic';
 import { WorkspaceDashboardPage } from 'src/workspaces/dashboard/WorkspaceDashboardPage';
 
 export interface DashboardAuthContainerProps {

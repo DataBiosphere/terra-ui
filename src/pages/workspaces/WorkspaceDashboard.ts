@@ -1,4 +1,4 @@
-import { DashboardAuthContainer } from 'src/workspaces/dashboard/DashboardAuthContainer';
+import { DashboardAuthContainer } from 'src/pages/workspaces/DashboardAuthContainer';
 
 export const navPaths = [
   {
