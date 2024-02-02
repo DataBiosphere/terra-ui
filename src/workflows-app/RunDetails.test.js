@@ -31,6 +31,26 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({ cromwellUrlRoot, cbasUrlRoot, wdsUrlRoot }),
 }));
 
+jest.mock('./utils/task-log-utils', () => ({
+  ...jest.requireActual('src/workflows-app/utils/task-log-utils'),
+  discoverTesLogs: jest.fn().mockReturnValue([
+    {
+      logUri: 'someBlobUri.com',
+      logTitle: 'Download Standard Out',
+      logKey: 'tes_download_stdout',
+      logFilename: 'download_stdout',
+      logTooltip: 'LogTooltips.download',
+    },
+    {
+      logUri: 'someBlobUri.com',
+      logTitle: 'Download Standard Error',
+      logKey: 'tes_download_stderr',
+      logFilename: 'download_stderr',
+      logTooltip: 'LogTooltips.download',
+    },
+  ]),
+}));
+
 jest.mock('src/libs/nav', () => ({
   getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
   getLink: jest.fn(),
@@ -290,50 +310,59 @@ describe('BaseRunDetails - render smoke test', () => {
   });
 
   it('opens the log viewer modal when Workflow Execution Logs is clicked', async () => {
+    // Arrange
     const user = userEvent.setup();
+
+    // Act
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const executionLogButton = screen.getByText('Workflow Execution Log');
     await user.click(executionLogButton);
-    screen.getByText('workflow.log');
-    screen.getByText('this is the text of a mock file');
 
-    // Make sure the info box only include execution log info
-    const logInfoBox = screen.getByLabelText('More info');
+    // Assert
+    expect(screen.getByText('workflow.log')); // log content displayed
+    expect(screen.getByText('this is the text of a mock file'));
+    expect(screen.getByLabelText('Download log')).toHaveTextContent('Download');
+
+    const logInfoBox = screen.getByLabelText('More info'); // tiny tooltip button works
+    expect(screen.queryByText('Each workflow has a single execution log', { exact: false })).toBeNull();
     await user.click(logInfoBox);
-    screen.getByText('Each workflow has a single execution log', { exact: false });
-    expect(screen.queryByText('Task logs are from user-defined commands', { exact: false })).toBeNull;
-    expect(screen.queryByText('Backend logs are from the Azure Cloud compute job', { exact: false })).toBeNull;
+    expect(screen.queryByText('Each workflow has a single execution log', { exact: false }));
 
-    const closeButton = screen.getByLabelText('Close modal');
+    const closeButton = screen.getByLabelText('Close modal'); // close button works
     expect(captureEvent).not.toHaveBeenCalled();
     await user.click(closeButton);
     expect(captureEvent).toHaveBeenCalledWith(Events.workflowsAppCloseLogViewer, undefined, undefined);
   });
 
-  it('opens the log viewer modal when Logs is clicked', async () => {
+  it('opens the log viewer modal when Logs is clicked from the call table', async () => {
+    // Arrange
     const user = userEvent.setup();
+
+    // Act
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const table = screen.getByRole('table');
     const logsLink = within(table).getAllByText('Logs');
     await user.click(logsLink[0]);
-    screen.getByText('Task Standard Out');
 
-    // Make sure the info box only includes task and and backend log info
-    const logInfoBox = screen.getByLabelText('More info');
-    await user.click(logInfoBox);
-    expect(screen.queryByText('Each workflow has a single execution log', { exact: false })).toBeNull;
-    screen.getByText('Task logs are from user-defined commands', { exact: false });
+    // Assert
+    expect(screen.getByText('Task Standard Out'));
+    expect(screen.getByText('Task Standard Err'));
   });
 
   it('shows a static error message on LogViewer if log cannot be retrieved', async () => {
+    // Arrange
     const altMockObj = _.cloneDeep(mockObj);
     altMockObj.AzureStorage.blobByUri = jest.fn(() => ({ getMetadataAndTextContent: () => Promise.reject('Mock error') }));
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
+
+    // Act
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const table = screen.getByRole('table');
     const logsLink = within(table).getAllByText('Logs');
     await user.click(logsLink[0]);
+
+    // Assert
     expect(screen.queryByLabelText('Download log')).not.toBeDefined;
     screen.getByText('Task Standard Out');
     screen.getByText(
@@ -342,17 +371,31 @@ describe('BaseRunDetails - render smoke test', () => {
   });
 
   it('opens a log modal with functional tabs', async () => {
+    // Arrange
+    const mockFetchedLogData = {
+      uri: 'https://someBlobFilePath.blob.core.windows.net/asdf',
+      sasToken: 'asdf1234',
+      lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+      size: '324',
+      azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+      workspaceId: 'someWorkspaceId',
+      fileName: 'inputFile.txt',
+      name: 'inputFile.txt',
+      textContent: 'this is the text of a mock file',
+    };
+
     const altMockObj = _.cloneDeep(mockObj);
-    altMockObj.AzureStorage.blobByUri = jest.fn(() => ({ getMetadataAndTextContent: () => Promise.reject('Mock error') }));
+    altMockObj.AzureStorage.blobByUri = jest.fn(() => ({ getMetadataAndTextContent: () => Promise.resolve(mockFetchedLogData) }));
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
+
+    // Act
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const table = screen.getByRole('table');
     const logsLink = within(table).getAllByText('Logs');
     await user.click(logsLink[0]);
 
-    // We know we've successfully switchted tabs if:
-    // We click on a tab title, see a corresponding filename, and don't see other filenames.
+    // Assert
     const stdoutButton = screen.getByText('Task Standard Out');
     await user.click(stdoutButton);
     expect(screen.getByText('stdout.txt')).toBeVisible();
@@ -360,8 +403,17 @@ describe('BaseRunDetails - render smoke test', () => {
 
     const stderrButton = screen.getByText('Task Standard Err');
     await user.click(stderrButton);
-    expect(screen.getByText('stderr.txt')).toBeVisible();
+    expect(screen.getByText('stderr.txt')).toBeVisible(); // prove that switching tabs works
     expect(screen.queryByText('stdout.txt')).not.toBeInTheDocument();
+
+    // the presence of the download log tab is proof that the log viewer was able to fetch the (mocked) TES logs,
+    // which uses a different code path than the task logs do.
+    const downloadStdOutButton = screen.getByText('Download Standard Out');
+    await user.click(downloadStdOutButton);
+    expect(screen.getByText('download_stdout'));
+    expect(screen.getByText('Download Standard Out'));
+    expect(screen.getByText('Download Standard Error'));
+    screen.logTestingPlaygroundURL();
   });
 
   it('correctly identifies azure URIs', () => {

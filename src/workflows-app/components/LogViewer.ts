@@ -57,7 +57,6 @@ const modalMaxWidth = 1100;
 
 export const LogViewer = (logProps: LogViewerProps) => {
   const { modalTitle, logs, workspaceId, templateLog, onDismiss } = logProps;
-
   const [activeLogs, setActiveLogs] = useState<LogInfo[]>(logs);
 
   const [currentlyActiveLog, setCurrentlyActiveLog] = useState<LogInfo | undefined>(
