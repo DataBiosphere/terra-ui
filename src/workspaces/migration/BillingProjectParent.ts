@@ -16,8 +16,8 @@ import {
   inProgressIcon,
   successIcon,
   WorkspaceWithNamespace,
-} from 'src/pages/workspaces/migration/migration-utils';
-import { WorkspaceItem } from 'src/pages/workspaces/migration/WorkspaceItem';
+} from 'src/workspaces/migration/migration-utils';
+import { WorkspaceItem } from 'src/workspaces/migration/WorkspaceItem';
 import { useMemo } from 'use-memo-one';
 
 interface MigrateAllConfirmationProps {

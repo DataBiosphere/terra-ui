@@ -4,16 +4,16 @@ import { forwardRef, ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
 import { canEditWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { AuthDomainPanel } from 'src/pages/workspaces/workspace/Dashboard/AuthDomainPanel';
-import { CloudInformation } from 'src/pages/workspaces/workspace/Dashboard/CloudInformation';
-import { DatasetAttributes } from 'src/pages/workspaces/workspace/Dashboard/DatasetAttributes';
-import { OwnerNotice } from 'src/pages/workspaces/workspace/Dashboard/OwnerNotice';
-import { RightBoxSection } from 'src/pages/workspaces/workspace/Dashboard/RightBoxSection';
-import { WorkspaceDescription } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceDescription';
-import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
-import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceNotifications';
-import { WorkspaceTags } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceTags';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
+import { AuthDomainPanel } from 'src/workspaces/dashboard/AuthDomainPanel';
+import { CloudInformation } from 'src/workspaces/dashboard/CloudInformation';
+import { DatasetAttributes } from 'src/workspaces/dashboard/DatasetAttributes';
+import { OwnerNotice } from 'src/workspaces/dashboard/OwnerNotice';
+import { RightBoxSection } from 'src/workspaces/dashboard/RightBoxSection';
+import { WorkspaceDescription } from 'src/workspaces/dashboard/WorkspaceDescription';
+import { WorkspaceInformation } from 'src/workspaces/dashboard/WorkspaceInformation';
+import { WorkspaceNotifications } from 'src/workspaces/dashboard/WorkspaceNotifications';
+import { WorkspaceTags } from 'src/workspaces/dashboard/WorkspaceTags';
 
 export interface WorkspaceDashboardProps {
   namespace: string;

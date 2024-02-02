@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import * as breadcrumbs from 'src/components/breadcrumbs';
-import { WorkspaceDashboard } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceDashboard';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
+import { WorkspaceDashboard } from 'src/workspaces/dashboard/WorkspaceDashboard';
 
 export interface WorkspaceDashboardPageProps {
   namespace: string;

@@ -7,7 +7,7 @@ import { SimpleTable } from 'src/components/table';
 import * as Style from 'src/libs/style';
 import { append } from 'src/libs/utils';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
-import { displayConsentCodes, displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
+import { displayConsentCodes, displayLibraryAttributes } from 'src/workspaces/dashboard/library-attributes';
 
 interface DatasetAttributesProps {
   attributes: WorkspaceInfo['attributes'];

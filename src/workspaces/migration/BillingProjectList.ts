@@ -7,14 +7,14 @@ import colors from 'src/libs/colors';
 import { reportErrorAndRethrow, withErrorIgnoring } from 'src/libs/error';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { BillingProjectParent } from 'src/pages/workspaces/migration/BillingProjectParent';
+import { BillingProjectParent } from 'src/workspaces/migration/BillingProjectParent';
 import {
   BillingProjectMigrationInfo,
   mergeBillingProjectMigrationInfo,
   mergeWorkspacesWithNamespaces,
   parseServerResponse,
   WorkspaceWithNamespace,
-} from 'src/pages/workspaces/migration/migration-utils';
+} from 'src/workspaces/migration/migration-utils';
 
 export const inProgressRefreshRate = 10000;
 
