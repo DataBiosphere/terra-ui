@@ -315,6 +315,24 @@ describe('WdsDataTableProvider', () => {
         item: {
           count: 7,
           attributeNames: ['booleanAttr', 'numericAttr', 'stringAttr', 'timestamp'],
+          attributes: [
+            {
+              name: 'booleanAttr',
+              datatype: 'BOOLEAN',
+            },
+            {
+              name: 'stringAttr',
+              datatype: 'STRING',
+            },
+            {
+              name: 'numericAttr',
+              datatype: 'NUMBER',
+            },
+            {
+              name: 'timestamp',
+              datatype: 'STRING',
+            },
+          ],
           idName: 'stringAttr',
         },
       };
@@ -391,6 +409,16 @@ describe('WdsDataTableProvider', () => {
         item: {
           count: 7,
           attributeNames: ['arrayOfNums', 'stringAttr'],
+          attributes: [
+            {
+              name: 'arrayOfNums',
+              datatype: 'ARRAY_OF_NUMBER',
+            },
+            {
+              name: 'stringAttr',
+              datatype: 'STRING',
+            },
+          ],
           idName: 'stringAttr',
         },
       };
@@ -461,6 +489,24 @@ describe('WdsDataTableProvider', () => {
         item: {
           count: 7,
           attributeNames: ['numAttr', 'stringAttr', 'relationScalar', 'relationArray'],
+          attributes: [
+            {
+              name: 'relationScalar',
+              datatype: 'RELATION',
+            },
+            {
+              name: 'stringAttr',
+              datatype: 'STRING',
+            },
+            {
+              name: 'numericAttr',
+              datatype: 'NUMBER',
+            },
+            {
+              name: 'relationArray',
+              datatype: 'ARRAY_OF_RELATION',
+            },
+          ],
           idName: 'stringAttr',
         },
       };
@@ -535,6 +581,16 @@ describe('WdsDataTableProvider', () => {
         item: {
           count: 7,
           attributeNames: ['mixedArrayRelationFirst', 'mixedArrayRelationLast'],
+          attributes: [
+            {
+              name: 'mixedArrayRelationFirst',
+              datatype: 'ARRAY_OF_RELATION',
+            },
+            {
+              name: 'mixedArrayRelationLast',
+              datatype: 'ARRAY_OF_RELATION',
+            },
+          ],
           idName: 'sys_name',
         },
       };
@@ -588,6 +644,16 @@ describe('WdsDataTableProvider', () => {
         item: {
           count: 7,
           attributeNames: ['mixedArrayRelationFirst', 'mixedArrayRelationLast'],
+          attributes: [
+            {
+              name: 'mixedArrayRelationFirst',
+              datatype: 'ARRAY_OF_RELATION',
+            },
+            {
+              name: 'mixedArrayRelationLast',
+              datatype: 'ARRAY_OF_RELATION',
+            },
+          ],
           idName: 'sys_name',
         },
       };

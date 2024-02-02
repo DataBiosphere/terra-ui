@@ -1,7 +1,7 @@
 // define metadata structures
 export interface EntityTypeMetadata {
   attributeNames: string[];
-  attributes: [{ name: string; datatype: string }];
+  attributes: { name: string; datatype: string }[];
   count: number;
   idName: string;
 }
