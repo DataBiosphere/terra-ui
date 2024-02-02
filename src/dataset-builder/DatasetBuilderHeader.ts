@@ -13,18 +13,21 @@ interface BuilderPageHeaderProps {
   readonly children: React.ReactNode[];
 }
 
+const PAGE_PADDING_HEIGHT = 0;
+const PAGE_PADDING_WIDTH = 3;
+
 // The dataset builder has "pages" each of which has a similarly styled header.
 export const BuilderPageHeader = (props: BuilderPageHeaderProps) => {
   const { style, children } = props;
-  return div({ style: { padding: '0rem 3rem', ...style } }, children);
+  return div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem`, ...style } }, children);
 };
 
 export const DatasetBuilderHeader = ({ datasetDetails }: DatasetBuilderHeaderProps) => {
-  return h(
-    BuilderPageHeader,
+  return div(
     {
       style: {
         borderBottom: `2px solid ${colors.primary()}`,
+        padding: `${PAGE_PADDING_HEIGHT + 1}rem ${PAGE_PADDING_WIDTH}rem`,
       },
     },
     [
