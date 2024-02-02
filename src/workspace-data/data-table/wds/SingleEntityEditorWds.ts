@@ -35,7 +35,7 @@ export const SingleEntityEditorWds = ({
   const [newValue, setNewValue] = useState(attributeValue);
   const isUnchanged = _.isEqual(attributeValue, newValue);
 
-  const [isBusy, setIsBusy] = useState();
+  const [isBusy, setIsBusy] = useState(false);
 
   const modalTitle = `Edit ${originalValueType ?? ''} value`;
 
@@ -80,10 +80,8 @@ export const SingleEntityEditorWds = ({
           onChange: setNewValue,
           initialValue: attributeValue,
           attributeName,
-          recordType,
           recordTypeAttributes,
           dataProvider,
-          showJsonTypeOption: originalValueType === 'json',
         }),
         div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),

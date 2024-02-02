@@ -36,7 +36,7 @@ const AttributeInput = ({
   onChange,
   recordTypeAttributes,
 }: WDSAttributeInputProps) => {
-  const { type: attributeType, isList, error } = getAttributeType(attributeName, recordTypeAttributes, dataProvider);
+  const { type: attributeType, isList } = getAttributeType(attributeName, recordTypeAttributes, dataProvider);
 
   const renderInput = renderInputForAttributeType(attributeType);
 
@@ -54,70 +54,68 @@ const AttributeInput = ({
   }, [attributeValue, isList]);
 
   return h(Fragment, [
-    !error
-      ? isList
-        ? h(Fragment, [
-            div(
-              { style: { marginTop: '1rem' } },
-              _.map(
-                ([i, value]) =>
-                  div(
-                    {
-                      style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' },
-                    },
-                    [
-                      renderInput({
-                        'aria-label': `List value ${i + 1}`,
-                        autoFocus: i === 0 && autoFocus,
-                        ref: i === attributeValue.items.length - 1 ? lastListItemInput : undefined,
-                        value,
-                        onChange: (v) => {
-                          const newAttributeValue = _.update('items', _.set(i, v), attributeValue);
+    isList
+      ? h(Fragment, [
+          div(
+            { style: { marginTop: '1rem' } },
+            _.map(
+              ([i, value]) =>
+                div(
+                  {
+                    style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' },
+                  },
+                  [
+                    renderInput({
+                      'aria-label': `List value ${i + 1}`,
+                      autoFocus: i === 0 && autoFocus,
+                      ref: i === attributeValue.items.length - 1 ? lastListItemInput : undefined,
+                      value,
+                      onChange: (v) => {
+                        const newAttributeValue = _.update('items', _.set(i, v), attributeValue);
+                        onChange(newAttributeValue);
+                      },
+                    }),
+                    h(
+                      Link,
+                      {
+                        'aria-label': `Remove list value ${i + 1}`,
+                        disabled: _.size(attributeValue.items) === 1,
+                        onClick: () => {
+                          const newAttributeValue = _.update('items', _.pullAt(i), attributeValue);
                           onChange(newAttributeValue);
                         },
-                      }),
-                      h(
-                        Link,
-                        {
-                          'aria-label': `Remove list value ${i + 1}`,
-                          disabled: _.size(attributeValue.items) === 1,
-                          onClick: () => {
-                            const newAttributeValue = _.update('items', _.pullAt(i), attributeValue);
-                            onChange(newAttributeValue);
-                          },
-                          style: { marginLeft: '0.5rem' },
-                        },
-                        [icon('times', { size: 20 })]
-                      ),
-                    ]
-                  ),
-                Utils.toIndexPairs(attributeValue.items)
-              )
-            ),
-            h(
-              Link,
-              {
-                style: { display: 'block', marginTop: '1rem' },
-                onClick: () => {
-                  focusLastListItemInput.current = true;
-                  const newAttributeValue = _.update('items', Utils.append(defaultValue), attributeValue);
-                  onChange(newAttributeValue);
-                },
+                        style: { marginLeft: '0.5rem' },
+                      },
+                      [icon('times', { size: 20 })]
+                    ),
+                  ]
+                ),
+              Utils.toIndexPairs(attributeValue.items)
+            )
+          ),
+          h(
+            Link,
+            {
+              style: { display: 'block', marginTop: '1rem' },
+              onClick: () => {
+                focusLastListItemInput.current = true;
+                const newAttributeValue = _.update('items', Utils.append(defaultValue), attributeValue);
+                onChange(newAttributeValue);
               },
-              [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item']
-            ),
-          ])
-        : div({ style: { marginTop: '1.5rem' } }, [
-            renderInput({
-              'aria-label': 'New value',
-              autoFocus,
-              value: attributeValue,
-              onChange: (v) => {
-                onChange(v);
-              },
-            }),
-          ])
-      : div(error),
+            },
+            [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item']
+          ),
+        ])
+      : div({ style: { marginTop: '1.5rem' } }, [
+          renderInput({
+            'aria-label': 'New value',
+            autoFocus,
+            value: attributeValue,
+            onChange: (v) => {
+              onChange(v);
+            },
+          }),
+        ]),
   ]);
 };
 

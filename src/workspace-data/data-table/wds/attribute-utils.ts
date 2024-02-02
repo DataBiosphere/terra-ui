@@ -12,17 +12,19 @@ export const getAttributeType = (
   // type that comes from the database schema in wds
   // when uploading form tsv, you can end up with an undefined column (if there are extra tabs) which causes errors with this logic
   if (attributeName !== undefined) {
-    let getTypeAttribute = recordTypeAttributes.find((attribute) => attribute.name === attributeName).datatype;
+    let getTypeAttribute = recordTypeAttributes.find((attribute) => attribute.name === attributeName)?.datatype;
 
-    let isList = false;
-    if (getTypeAttribute.includes('ARRAY')) {
-      isList = true;
-      getTypeAttribute = getTypeAttribute.replace('ARRAY_OF_', '');
-    }
+    if (getTypeAttribute !== undefined) {
+      let isList = false;
+      if (getTypeAttribute.includes('ARRAY')) {
+        isList = true;
+        getTypeAttribute = getTypeAttribute.replace('ARRAY_OF_', '');
+      }
 
-    // if the type matches, editing is allowed
-    if (dataProvider.features.supportEntityUpdatingTypes.includes(getTypeAttribute.toLowerCase())) {
-      return { type: getTypeAttribute.toLowerCase(), isList };
+      // if the type matches, editing is allowed
+      if (dataProvider.features.supportEntityUpdatingTypes.includes(getTypeAttribute.toLowerCase())) {
+        return { type: getTypeAttribute.toLowerCase(), isList };
+      }
     }
   }
 

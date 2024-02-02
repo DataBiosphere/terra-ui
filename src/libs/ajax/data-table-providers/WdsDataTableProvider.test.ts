@@ -173,6 +173,7 @@ describe('WdsDataTableProvider', () => {
   };
 
   const updateRecordMockImpl: WorkspaceDataContract['updateRecord'] = (
+    _root: string,
     _instanceId: string,
     _recordType: string,
     _recordId: string,

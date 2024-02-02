@@ -617,12 +617,14 @@ const DataTable = (props) => {
                         text: entityAttributeText(dataInfo),
                       });
 
-                      const attributes = entityMetadata.find((entity) => entity.name === entityType).attributes;
-                      const attributeType = getAttributeType(attributeName, attributes, dataProvider);
                       let extraEditableCondition = false;
-                      // this will make fields that are not supported to fail to show the edit
-                      if (dataProvider.providerName === wdsProviderName && attributeType.type === undefined) {
-                        extraEditableCondition = true;
+                      if (dataProvider.providerName === wdsProviderName) {
+                        const attributes = entityMetadata.find((entity) => entity.name === entityType).attributes;
+                        const attributeType = getAttributeType(attributeName, attributes, dataProvider);
+                        // this will make fields that are not supported to fail to show the edit
+                        if (attributeType.type === undefined) {
+                          extraEditableCondition = true;
+                        }
                       }
                       const editLink = !extraEditableCondition
                         ? editable &&
