@@ -16,10 +16,10 @@ jest.mock('src/libs/nav', (): NavExports => {
   };
 });
 
-type useWorkspaceByIdExports = typeof import('src/workspaces/common/state/useWorkspaceById');
-jest.mock('src/workspaces/common/state/useWorkspaceById', (): useWorkspaceByIdExports => {
+type UseWorkspaceByIdExports = typeof import('src/workspaces/common/state/useWorkspaceById');
+jest.mock('src/workspaces/common/state/useWorkspaceById', (): UseWorkspaceByIdExports => {
   return {
-    ...jest.requireActual<useWorkspaceByIdExports>('src/workspaces/common/state/useWorkspaceById'),
+    ...jest.requireActual<UseWorkspaceByIdExports>('src/workspaces/common/state/useWorkspaceById'),
     useWorkspaceById: jest.fn(),
   };
 });

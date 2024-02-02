@@ -11,10 +11,10 @@ import { tooltipText, WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu'
 import * as WorkspaceUtils from 'src/workspaces/utils';
 import { AzureWorkspace, GoogleWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
 
-type useWorkspaceDetailsExports = typeof import('src/workspaces/common/state/useWorkspaceDetails');
-jest.mock('src/workspaces/common/state/useWorkspaceDetails', (): useWorkspaceDetailsExports => {
+type UseWorkspaceDetailsExports = typeof import('src/workspaces/common/state/useWorkspaceDetails');
+jest.mock('src/workspaces/common/state/useWorkspaceDetails', (): UseWorkspaceDetailsExports => {
   return {
-    ...jest.requireActual<useWorkspaceDetailsExports>('src/workspaces/common/state/useWorkspaceDetails'),
+    ...jest.requireActual<UseWorkspaceDetailsExports>('src/workspaces/common/state/useWorkspaceDetails'),
     useWorkspaceDetails: jest.fn(),
   };
 });
