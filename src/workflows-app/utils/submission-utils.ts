@@ -26,8 +26,8 @@ export const CbasPollInterval = 1000 * 30; // 30 seconds
 export type InputTableData = {
   configurationIndex: number;
   inputTypeStr: string;
-  input_name: string;
-  input_type: InputType;
+  inputName: string;
+  inputType: InputType;
   optional: boolean;
   source: InputSource;
   taskName: string;
@@ -38,8 +38,8 @@ export type OutputTableData = {
   configurationIndex: number;
   destination: OutputDestination;
   outputTypeStr: string;
-  output_name: string;
-  output_type: OutputType;
+  outputName: string;
+  outputType: OutputType;
   taskName: string;
   variable: string;
 };
@@ -507,19 +507,21 @@ export const getInputTableData = (
   includeOptionalInputs: boolean,
   inputTableSort: { field: string; direction: boolean | 'asc' | 'desc' }
 ): InputTableData[] => {
-  const val = _.flow(
-    (rows: InputDefinition[]) =>
-      rows.map((row, index): InputTableData => {
-        const { workflow, call, variable } = parseMethodString(row.input_name);
-        return {
-          taskName: call || workflow || '',
-          variable: variable || '',
-          inputTypeStr: renderTypeText(row.input_type),
-          configurationIndex: index,
-          optional: isInputOptional(row.input_type),
-          ...row,
-        };
-      }),
+  return _.flow(
+    Utils.toIndexPairs,
+    _.map(([index, row]: [number, InputDefinition]): InputTableData => {
+      const { workflow, call, variable } = parseMethodString(row.input_name);
+      return {
+        taskName: call || workflow || '',
+        variable: variable || '',
+        inputTypeStr: renderTypeText(row.input_type),
+        inputName: row.input_name,
+        inputType: row.input_type,
+        configurationIndex: index,
+        optional: isInputOptional(row.input_type),
+        ...row,
+      };
+    }),
     _.orderBy<InputTableData>(
       [
         'optional',
@@ -530,18 +532,14 @@ export const getInputTableData = (
       ],
       ['asc', inputTableSort.direction, 'asc', 'asc']
     ),
-    (rows: InputTableData[]) => {
-      return rows.filter((row: InputTableData) => {
-        return (
-          (includeOptionalInputs || !row.optional) &&
-          (row.taskName.toLocaleLowerCase().includes(searchFilter.toLocaleLowerCase()) ||
-            row.variable.toLocaleLowerCase().includes(searchFilter.toLocaleLowerCase()))
-        );
-      });
-    }
+    _.filter((row: InputTableData) => {
+      return (
+        (includeOptionalInputs || !row.optional) &&
+        (row.taskName.toLocaleLowerCase().includes(searchFilter.toLocaleLowerCase()) ||
+          row.variable.toLocaleLowerCase().includes(searchFilter.toLocaleLowerCase()))
+      );
+    })
   )(configuredInputDefinition);
-
-  return val;
 };
 
 export const getOutputTableData = (
@@ -549,15 +547,16 @@ export const getOutputTableData = (
   sort: { field: string; direction: string }
 ): OutputTableData[] => {
   return _.flow(
-    _.entries,
-    _.map(([index, row]) => {
+    Utils.toIndexPairs,
+    _.map(([index, row]: [number, OutputDefinition]) => {
       const { workflow, call, variable } = parseMethodString(row.output_name);
-      return _.flow([
-        _.set('taskName', call || workflow || ''),
-        _.set('variable', variable || ''),
-        _.set('outputTypeStr', renderTypeText(row.output_type)),
-        _.set('configurationIndex', parseInt(index)),
-      ])(row);
+      return {
+        ...row,
+        taskName: call || workflow || '',
+        variable: variable || '',
+        outputTypeStr: renderTypeText(row.output_type),
+        configurationIndex: index,
+      };
     }),
     // @ts-expect-error
     _.orderBy([({ [sort.field]: field }) => _.lowerCase(field)], [sort.direction])

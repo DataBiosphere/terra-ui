@@ -243,7 +243,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                   ),
               ]),
               h(SimpleTabBar, {
-                'aria-label': 'view workflows results, inputs, or, outputs',
+                'aria-label': 'view workflows results, inputs, or outputs',
                 value: activeTab.key || 'workflows',
                 onChange: (v) => setActiveTab({ key: v }),
                 tabs: [

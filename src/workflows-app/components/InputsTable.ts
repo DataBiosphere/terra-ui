@@ -61,7 +61,7 @@ const InputsTable = ({
     (row) =>
       _.has(row.variable, dataTableAttributes) &&
       row.source.type === 'none' &&
-      typeMatch(row.input_type, _.get(`${row.variable}.datatype`, dataTableAttributes))
+      typeMatch(row.inputType, _.get(`${row.variable}.datatype`, dataTableAttributes))
   );
 
   const recordLookup = (rowIndex: number) => {
@@ -106,7 +106,7 @@ const InputsTable = ({
   const sourceNone = (rowIndex: number) => {
     return h(
       TextCell,
-      { style: inputTypeStyle(inputTableData[rowIndex].input_type) },
+      { style: inputTypeStyle(inputTableData[rowIndex].inputType) },
       Utils.cond(
         [
           inputRowsInDataTable.some((input) => input.variable === inputTableData[rowIndex].variable),
@@ -157,7 +157,7 @@ const InputsTable = ({
       structBuilderRow !== undefined &&
       h(StructBuilderModal, {
         structName: inputTableData[structBuilderRow].variable,
-        structType: inputTableData[structBuilderRow].input_type as StructInputType,
+        structType: inputTableData[structBuilderRow].inputType as StructInputType,
         structSource: inputTableData[structBuilderRow].source as ObjectBuilderInputSource,
         setStructSource: (source) =>
           setConfiguredInputDefinition(
@@ -194,7 +194,7 @@ const InputsTable = ({
               h(HeaderCell, ['Variable']),
             ]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].input_type) }, [
+            return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].inputType) }, [
               inputTableData[rowIndex].variable,
             ]);
           },
@@ -204,7 +204,7 @@ const InputsTable = ({
           field: 'inputTypeStr',
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].input_type) }, [
+            return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].inputType) }, [
               inputTableData[rowIndex].inputTypeStr,
             ]);
           },
