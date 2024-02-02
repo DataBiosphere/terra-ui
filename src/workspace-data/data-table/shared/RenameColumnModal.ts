@@ -46,32 +46,33 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
     },
   });
 
-  const gcpColumnNameErrors = validate.single(newAttributeName, {
-    format: {
-      pattern: `^(?!name$|entityType$|${entityType}_id$).*`,
-      flags: 'i',
-      message: `Column name cannot be "name", "entityType" or "${entityType}_id".`,
-    },
-  });
-
-  const azureColumnNameErrors = validate.single(newAttributeName, {
-    format: {
-      pattern: '^(?!sys_).*',
-      flags: 'i',
-      message: 'Column name cannot start with "sys_".',
-    },
-  });
-
-  const columnNameErrors =
+  const gcpColumnNameErrors =
     dataProvider.providerName === 'Entity Service'
-      ? {
-          mutualColumnNameErrors,
-          gcpColumnNameErrors,
-        }
-      : {
-          mutualColumnNameErrors,
-          azureColumnNameErrors,
-        };
+      ? validate.single(newAttributeName, {
+          format: {
+            pattern: `^(?!name$|entityType$|${entityType}_id$).*`,
+            flags: 'i',
+            message: `Column name cannot be "name", "entityType" or "${entityType}_id".`,
+          },
+        })
+      : {};
+
+  const azureColumnNameErrors =
+    dataProvider.providerName === 'WDS'
+      ? validate.single(newAttributeName, {
+          format: {
+            pattern: '^(?!sys_).*',
+            flags: 'i',
+            message: 'Column name cannot start with "sys_".',
+          },
+        })
+      : {};
+
+  const columnNameErrors = {
+    mutualColumnNameErrors,
+    gcpColumnNameErrors,
+    azureColumnNameErrors,
+  };
 
   const renameColumn = async () => {
     try {
