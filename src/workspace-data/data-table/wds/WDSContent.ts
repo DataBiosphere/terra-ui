@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { DataTableProvider } from 'src/libs/ajax/data-table-providers/DataTableProvider';
-import { RecordTypeSchema } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { RecordTypeSchema, wdsToEntityServiceMetadata } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 
@@ -21,7 +21,7 @@ export const WDSContent = ({ workspace, recordType, wdsSchema, dataProvider, edi
   const [refreshKey] = useState(0);
 
   // Render
-  const [entityMetadata, setEntityMetadata] = useState(() => wdsSchema);
+  const [entityMetadata, setEntityMetadata] = useState(() => wdsToEntityServiceMetadata(wdsSchema));
 
   // dataProvider contains the proxyUrl for an instance of WDS
   return h(Fragment, [

@@ -803,16 +803,50 @@ describe('transformMetadata', () => {
       item: {
         count: 7,
         attributeNames: ['booleanAttr', 'stringAttr'],
+        attributes: [
+          {
+            name: 'booleanAttr',
+            datatype: 'BOOLEAN',
+          },
+          {
+            name: 'stringAttr',
+            datatype: 'STRING',
+          },
+        ],
         idName: 'item_id',
       },
       thing: {
         count: 4,
         attributeNames: ['numericAttr', 'stringAttr', 'timestamp'],
+        attributes: [
+          {
+            name: 'numericAttr',
+            datatype: 'NUMBER',
+          },
+          {
+            name: 'stringAttr',
+            datatype: 'STRING',
+          },
+          {
+            name: 'timestamp',
+            datatype: 'STRING',
+          },
+        ],
         idName: 'thing_id',
       },
       system: {
         count: 12345,
         attributeNames: ['one', 'two'],
+        attributes: [
+          {
+            name: 'one',
+            datatype: 'NUMBER',
+          },
+          {
+            name: 'two',
+            datatype: 'STRING',
+          },
+        ],
         idName: 'sys_name',
       },
     };

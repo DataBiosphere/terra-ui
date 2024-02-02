@@ -71,7 +71,12 @@ export const wdsToEntityServiceMetadata = (wdsSchema: RecordTypeSchema[]): Entit
     // exclude the primary-key attribute from the list of attributes. The data table reads
     // the primary-key attribute from the "idName" property.
     const attrs = _.filter((attr) => attr.name !== typeDef.primaryKey, typeDef.attributes);
-    return { count: typeDef.count, attributeNames: _.map((attr) => attr.name, attrs), idName: typeDef.primaryKey };
+    return {
+      count: typeDef.count,
+      attributeNames: _.map((attr) => attr.name, attrs),
+      attributes: attrs,
+      idName: typeDef.primaryKey,
+    };
   }, keyedSchema);
 };
 

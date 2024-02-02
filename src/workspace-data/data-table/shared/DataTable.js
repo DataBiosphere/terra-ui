@@ -619,7 +619,7 @@ const DataTable = (props) => {
 
                       let extraEditableCondition = false;
                       if (dataProvider.providerName === wdsProviderName) {
-                        const attributes = entityMetadata.find((entity) => entity.name === entityType).attributes;
+                        const attributes = entityMetadata[entityType].attributes;
                         const attributeType = getAttributeType(attributeName, attributes, dataProvider);
                         // this will make fields that are not supported to have the edit icon be disabled
                         if (attributeType.type === undefined) {
@@ -776,7 +776,7 @@ const DataTable = (props) => {
         ...updatingEntity,
         workspaceId: workspace.workspace.workspaceId,
         dataProvider,
-        recordTypeAttributes: entityMetadata.find((entity) => entity.name === entityType).attributes,
+        recordTypeAttributes: entityMetadata[entityType].attributes,
         onSuccess: () => {
           setUpdatingEntity(undefined);
           Ajax().Metrics.captureEvent(Events.workspaceDataEditOne, extractWorkspaceDetails(workspace.workspace));
