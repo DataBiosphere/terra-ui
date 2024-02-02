@@ -11,8 +11,8 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
-import { RightBoxSection } from 'src/workspaces/dashboard/RightBoxSection';
 import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
+import { RightBoxSection } from 'src/workspaces/dashboard/RightBoxSection';
 
 const styles: Record<string, CSSProperties> = {
   authDomain: {
