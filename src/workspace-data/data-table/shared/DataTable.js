@@ -621,7 +621,7 @@ const DataTable = (props) => {
                       if (dataProvider.providerName === wdsProviderName) {
                         const attributes = entityMetadata.find((entity) => entity.name === entityType).attributes;
                         const attributeType = getAttributeType(attributeName, attributes, dataProvider);
-                        // this will make fields that are not supported to fail to show the edit
+                        // this will make fields that are not supported to have the edit icon be disabled
                         if (attributeType.type === undefined) {
                           extraEditableCondition = true;
                         }
