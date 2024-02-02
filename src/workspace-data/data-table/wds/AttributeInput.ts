@@ -23,7 +23,7 @@ export interface WDSAttributeInputProps {
   value: any;
   attributeName: string;
   dataProvider: object;
-  recordTypeAttributes: [{ name: string; datatype: string }];
+  recordTypeAttributes: { name: string; datatype: string }[];
   onChange: any;
   initialValue: any;
 }

@@ -17,7 +17,7 @@ export interface SingleEntityWdsProps {
   onDismiss: any;
   onSuccess: any;
   dataProvider: any;
-  recordTypeAttributes: [{ name: string; datatype: string }];
+  recordTypeAttributes: { name: string; datatype: string }[];
 }
 
 export const SingleEntityEditorWds = ({

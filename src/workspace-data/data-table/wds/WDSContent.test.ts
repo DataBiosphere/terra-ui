@@ -40,8 +40,9 @@ const marbleSchema: RecordTypeSchema = {
   name: 'marble',
   count: 1,
   attributes: [
-    { name: 'id', datatype: 'number' },
-    { name: 'color', datatype: 'string' },
+    { name: 'id', datatype: 'NUMBER' },
+    { name: 'color', datatype: 'STRING' },
+    { name: 'favorite', datatype: 'BOOLEAN' },
   ],
   primaryKey: 'id',
 };
@@ -84,17 +85,17 @@ const defaultSetupOptions: SetupOptions = {
     {
       name: '1',
       entityType: 'marble',
-      attributes: { color: 'red' },
+      attributes: { color: 'red', favorite: true },
     },
     {
       name: '2',
       entityType: 'marble',
-      attributes: { color: 'yellow' },
+      attributes: { color: 'yellow', favorite: false },
     },
     {
       name: '3',
       entityType: 'marble',
-      attributes: { color: 'green' },
+      attributes: { color: 'green', favorite: false },
     },
   ],
 };
@@ -112,6 +113,7 @@ describe('WDSContent', () => {
     };
 
     const dataProvider: DeepPartial<DataTableProvider> = {
+      providerName: 'WDS',
       getPage: jest.fn().mockResolvedValue(getPageResponse),
       features,
     };
@@ -121,7 +123,7 @@ describe('WDSContent', () => {
 
   const getColorColumnMenu = () => {
     const columnMenus = screen.queryAllByRole('button', { name: 'Column menu' });
-    expect(columnMenus.length).toEqual(2);
+    expect(columnMenus.length).toEqual(3);
     const [_unusedIdColumnMenu, colorColumnMenu] = columnMenus;
     return colorColumnMenu;
   };
@@ -217,12 +219,16 @@ describe('WDSContent', () => {
     });
   });
 
-  describe('edit field icon is present based on type', () => {
-    it('is displayed when editable is true and type is supported', async () => {
+  describe('edit column', () => {
+    it('edit field icon is present for types that support editing', async () => {
       const { props } = setup({
         ...defaultSetupOptions,
         props: { ...defaultProps, editable: true },
-        features: { ...defaultFeatures, supportsEntityUpdating: true, supportEntityUpdatingTypes: ['string'] },
+        features: {
+          ...defaultFeatures,
+          supportsEntityUpdating: true,
+          supportEntityUpdatingTypes: ['string', 'number'],
+        },
       });
 
       // Act
@@ -230,7 +236,8 @@ describe('WDSContent', () => {
         render(h(WDSContent, props));
       });
 
-      // todo: need to figure out how to get the right column to check here
+      const editableValues = await screen.findAllByText('Edit value');
+      expect(editableValues.length).toEqual(3);
     });
   });
 });
