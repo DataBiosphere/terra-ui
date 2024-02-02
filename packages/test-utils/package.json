@@ -51,6 +51,6 @@
     "@types/node": "^20.6.2",
     "check-dts": "^0.7.2",
     "typescript": "~5.1.6",
-    "vite": "^4.3.9"
+    "vite": "^4.5.2"
   }
 }

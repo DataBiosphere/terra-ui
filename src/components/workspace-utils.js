@@ -15,7 +15,7 @@ import { useCancellation, useInstance, useOnMount, withDisplayName } from 'src/l
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderLabels, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 
 export const useWorkspaceDetails = ({ namespace, name }, fields) => {
   const [workspace, setWorkspace] = useState();

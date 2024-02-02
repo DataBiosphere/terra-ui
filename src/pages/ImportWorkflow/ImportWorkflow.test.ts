@@ -9,7 +9,7 @@ import * as Nav from 'src/libs/nav';
 import { getTerraUser } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
 import { ImportWorkflow } from './ImportWorkflow';
@@ -21,10 +21,10 @@ type AppsContract = ReturnType<typeof Apps>;
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/ajax/leonardo/Apps');
 
-type UseWorkspacesExports = typeof import('src/workspaces/useWorkspaces');
-jest.mock('src/workspaces/useWorkspaces', (): UseWorkspacesExports => {
+type UseWorkspacesExports = typeof import('src/workspaces/common/state/useWorkspaces');
+jest.mock('src/workspaces/common/state/useWorkspaces', (): UseWorkspacesExports => {
   return {
-    ...jest.requireActual<UseWorkspacesExports>('src/workspaces/useWorkspaces'),
+    ...jest.requireActual<UseWorkspacesExports>('src/workspaces/common/state/useWorkspaces'),
     useWorkspaces: jest.fn(),
   };
 });

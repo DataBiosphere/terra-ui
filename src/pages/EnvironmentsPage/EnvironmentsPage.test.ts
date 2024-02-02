@@ -7,8 +7,8 @@ import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeP
 import { MetricsProvider, useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import { terraNavKey, TerraNavLinkProvider } from 'src/libs/nav';
 import { asMockedFn } from 'src/testing/test-utils';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
-import { UseWorkspaces } from 'src/workspaces/useWorkspaces.models';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { UseWorkspaces } from 'src/workspaces/common/state/useWorkspaces.models';
 
 import { EnvironmentsPage, makeNavProvider, navProvider } from './EnvironmentsPage';
 import { leoResourcePermissions } from './environmentsPermissions';

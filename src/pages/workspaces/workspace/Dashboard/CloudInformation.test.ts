@@ -3,7 +3,6 @@ import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
 import { CloudInformation } from 'src/pages/workspaces/workspace/Dashboard/CloudInformation';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
@@ -12,6 +11,7 @@ import {
   defaultGoogleBucketOptions,
   defaultGoogleWorkspace,
 } from 'src/testing/workspace-fixtures';
+import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxExports = typeof import('src/libs/ajax');
