@@ -24,12 +24,13 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
   const [isBusy, setIsBusy] = useState(false);
   const { onDismiss, onSuccess, entityType, attributeNames, oldAttributeName, dataProvider } = props;
 
-  // TODO is there a difference between GCP and azure?
-  //  Composed of only letters, numbers, underscores, or dashes; regex match "[A-z0-9_-]+"
+  // Imposes same constraints on GCP and Azure:
+  // Composed of only letters, numbers, underscores, or dashes; regex match "[A-z0-9_-]+"
   // Not one of these reserved words:
-  // “name”
-  // “entityType”
-  // “${entityType}_id”, where ${entityType} is the name of the data table
+  //   “name”
+  //   “entityType”
+  //   “${entityType}_id”, where ${entityType} is the name of the data table
+  // Does not begin with “sys_”
   const columnNameErrors = validate.single(newAttributeName, {
     presence: {
       allowEmpty: false,
