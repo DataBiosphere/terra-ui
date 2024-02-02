@@ -22,12 +22,12 @@ jest.mock('src/libs/ajax', () => ({
 
 jest.mock('src/libs/notifications');
 
-type UtilsExports = typeof import('src/libs/workspace-utils');
+type WorkspaceUtilsExports = typeof import('src/workspaces/utils');
 
 jest.mock(
-  'src/libs/workspace-utils',
-  (): UtilsExports => ({
-    ...jest.requireActual('src/libs/workspace-utils'),
+  'src/workspaces/utils',
+  (): WorkspaceUtilsExports => ({
+    ...jest.requireActual('src/workspaces/utils'),
     canEditWorkspace: jest.fn(),
   })
 );
