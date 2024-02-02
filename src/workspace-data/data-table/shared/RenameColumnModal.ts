@@ -11,7 +11,6 @@ import validate from 'validate.js';
 export type RenameColumnModalProps = {
   onDismiss: () => void;
   onSuccess: () => void;
-  workspace: any;
   entityType: string;
   attributeNames: string[];
   oldAttributeName: string;
@@ -31,29 +30,48 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
   //   “entityType”
   //   “${entityType}_id”, where ${entityType} is the name of the data table
   // Does not begin with “sys_”
-  const columnNameErrors = validate.single(newAttributeName, {
+  const mutualColumnNameErrors = validate.single(newAttributeName, {
     presence: {
       allowEmpty: false,
       message: 'Column name is required',
     },
     format: {
-      pattern: `^(?!name$|entityType$|${entityType}_id$|sys_)[A-Za-z0-9_-]+$`,
+      pattern: '[A-Za-z0-9_-]+$',
       flags: 'i',
-      message: Utils.cond(
-        [
-          ['name', 'entityType', `${entityType}_id`].includes(newAttributeName),
-          () => `Column name cannot be "name", "entityType" or "${entityType}_id".`,
-        ],
-        [newAttributeName.startsWith('sys_'), () => 'Column name cannot start with "sys_".'],
-
-        () => 'Column name may only contain alphanumeric characters, underscores, and dashes.'
-      ),
+      message: 'Column name may only contain alphanumeric characters, underscores, and dashes.',
     },
     exclusion: {
       within: attributeNames,
       message: "'%{value}' already exists as an attribute name",
     },
   });
+
+  const gcpColumnNameErrors = validate.single(newAttributeName, {
+    format: {
+      pattern: `^(?!name$|entityType$|${entityType}_id$).*`,
+      flags: 'i',
+      message: `Column name cannot be "name", "entityType" or "${entityType}_id".`,
+    },
+  });
+
+  const azureColumnNameErrors = validate.single(newAttributeName, {
+    format: {
+      pattern: '^(?!sys_).*',
+      flags: 'i',
+      message: 'Column name cannot start with "sys_".',
+    },
+  });
+
+  const columnNameErrors =
+    dataProvider.providerName === 'Entity Service'
+      ? {
+          mutualColumnNameErrors,
+          gcpColumnNameErrors,
+        }
+      : {
+          mutualColumnNameErrors,
+          azureColumnNameErrors,
+        };
 
   const renameColumn = async () => {
     try {
