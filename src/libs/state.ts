@@ -267,8 +267,6 @@ export const knownBucketRequesterPaysStatuses = atom({});
 
 export const requesterPaysProjectStore = atom<unknown>(undefined);
 
-export const runtimesStore = atom<unknown>(undefined);
-
 export const workflowSelectionStore = atom({
   key: undefined,
   entityType: undefined,

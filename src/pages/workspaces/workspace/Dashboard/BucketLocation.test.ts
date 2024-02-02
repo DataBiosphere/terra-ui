@@ -13,6 +13,7 @@ import {
   defaultAzureStorageOptions,
   defaultGoogleBucketOptions,
   defaultGoogleWorkspace,
+  mockBucketRequesterPaysError,
 } from 'src/testing/workspace-fixtures';
 
 type AjaxContract = ReturnType<typeof Ajax>;
@@ -141,7 +142,6 @@ describe('BucketLocation', () => {
         defaultAzureStorageOptions,
       ]),
     };
-    const requesterPaysError = { message: 'Requester pays bucket', requesterPaysError: true };
     const captureEvent = jest.fn();
     asMockedFn(Ajax).mockImplementation(
       () =>
@@ -150,7 +150,7 @@ describe('BucketLocation', () => {
           Workspaces: {
             workspace: () =>
               ({
-                checkBucketLocation: () => Promise.reject(requesterPaysError),
+                checkBucketLocation: () => Promise.reject(mockBucketRequesterPaysError),
               } as Partial<AjaxContract['Workspaces']['workspace']>),
           } as Partial<AjaxContract['Workspaces']>,
         } as Partial<AjaxContract> as AjaxContract)
