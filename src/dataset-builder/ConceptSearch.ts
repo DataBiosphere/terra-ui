@@ -43,6 +43,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
     });
   }, [search, datasetId, domainOption.root, searchConcepts]);
   const tableLeftPadding = { paddingLeft: '2rem' };
+  const iconSize = 18;
 
   return h(Fragment, [
     h(BuilderPageHeader, [
@@ -75,7 +76,10 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
             paddingLeft: 40,
           },
         }),
-        icon('search', { size: 18, style: { position: 'absolute', left: 15, top: '50%', marginTop: -9 } }),
+        icon('search', {
+          size: iconSize,
+          style: { position: 'absolute', left: 15, top: '50%', marginTop: -(iconSize / 2) },
+        }),
       ]),
       concepts.status === 'Ready'
         ? h(SimpleTable, {
@@ -102,12 +106,9 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               { width: 100, key: 'hierarchy' },
             ],
             rows: _.map((concept) => {
-              const [label, iconName]: [string, IconId] = (() => {
-                if (_.contains(concept, cart)) {
-                  return ['remove', 'minus-circle-red'];
-                }
-                return ['add', 'plus-circle-filled'];
-              })();
+              const [label, iconName]: [string, IconId] = _.contains(concept, cart)
+                ? ['remove', 'minus-circle-red']
+                : ['add', 'plus-circle-filled'];
               return {
                 name: div({ style: { display: 'flex' } }, [
                   h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [

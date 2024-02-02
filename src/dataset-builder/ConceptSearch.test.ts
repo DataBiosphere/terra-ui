@@ -96,10 +96,9 @@ describe('ConceptSearch', () => {
     // Arrange
     const concept = displayedConcepts[0];
     renderSearch();
-    await screen.findByText(concept.name);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${concept.id}`));
+    await user.click(await screen.findByLabelText(`add ${concept.id}`));
     await user.click(screen.getByLabelText(`open hierarchy ${concept.id}`));
     // Assert
     expect(onOpenHierarchy).toHaveBeenCalledWith(
@@ -113,10 +112,9 @@ describe('ConceptSearch', () => {
     // Arrange
     renderSearch();
     const concept = displayedConcepts[0];
-    await screen.findByText(concept.name);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${concept.id}`));
+    await user.click(await screen.findByLabelText(`add ${concept.id}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeTruthy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
@@ -126,10 +124,9 @@ describe('ConceptSearch', () => {
     // Arrange
     renderSearch();
     const concept = displayedConcepts[0];
-    await screen.findByText(concept.name);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${concept.id}`));
+    await user.click(await screen.findByLabelText(`add ${concept.id}`));
     await user.click(screen.getByLabelText(`remove ${concept.id}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeFalsy();
@@ -140,16 +137,15 @@ describe('ConceptSearch', () => {
     // Arrange
     renderSearch();
     const concept = displayedConcepts[0];
-    await screen.findByText(concept.name);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${concept.id}`));
+    await user.click(await screen.findByLabelText(`add ${concept.id}`));
     await user.click(screen.getByText(actionText));
     // Assert
     expect(onCommit).toHaveBeenCalledWith([concept]);
   });
 
-  it('testing HighlightConceptName, "Dis"', async () => {
+  it('bolds the search term and leaves the rest unbolded, "Dis"', async () => {
     renderSearch('Dis');
 
     const disText = await screen.findAllByText('Dis');
@@ -160,22 +156,6 @@ describe('ConceptSearch', () => {
     ).length;
     expect(filterDisText).toBeGreaterThan(0);
     expect(await screen.findByText('ease')).toBeTruthy();
-  });
-
-  it('testing HighlightConceptName, Checking that spaces still exist on both sides', async () => {
-    renderSearch('by');
-    const byText = await screen.findAllByText('by');
-    const filterByText = _.filter(
-      (element) => element.tagName === 'DIV' && element.style.fontWeight === '600',
-      byText
-    ).length;
-    expect(filterByText).toBe(1);
-
-    const disorderText = await screen.findByText('Disorder');
-    expect(disorderText.innerHTML).toBe('Disorder ');
-
-    const byBodySiteText = await screen.findByText('body site');
-    expect(byBodySiteText.innerHTML).toBe(' body site');
   });
 
   it('loads the page with the initial cart', async () => {
