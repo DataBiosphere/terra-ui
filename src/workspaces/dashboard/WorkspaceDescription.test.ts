@@ -8,9 +8,9 @@ import { MarkdownEditor } from 'src/components/markdown';
 import { Ajax } from 'src/libs/ajax';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { canEditWorkspace } from 'src/libs/workspace-utils';
-import { WorkspaceDescription } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceDescription';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { WorkspaceDescription } from 'src/workspaces/dashboard/WorkspaceDescription';
 
 jest.mock('src/libs/error');
 

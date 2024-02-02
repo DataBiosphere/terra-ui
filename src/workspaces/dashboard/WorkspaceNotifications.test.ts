@@ -5,9 +5,9 @@ import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { userStore } from 'src/libs/state';
-import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceNotifications';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { WorkspaceNotifications } from 'src/workspaces/dashboard/WorkspaceNotifications';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 
