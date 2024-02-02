@@ -180,7 +180,7 @@ describe('ConceptSearch', () => {
 
   it('loads the page with the initial cart', async () => {
     // Arrange
-    renderSearch('', [displayedConcepts[0]]);
+    await act(() => renderSearch('', [displayedConcepts[0]]));
     // Assert
     expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
   });
