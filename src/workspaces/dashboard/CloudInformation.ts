@@ -19,10 +19,10 @@ import {
   isAzureWorkspace,
   isGoogleWorkspace,
 } from 'src/libs/workspace-utils';
-import { AzureStorageDetails } from 'src/pages/workspaces/workspace/Dashboard/AzureStorageDetails';
-import { BucketLocation } from 'src/pages/workspaces/workspace/Dashboard/BucketLocation';
-import { InfoRow } from 'src/pages/workspaces/workspace/Dashboard/InfoRow';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
+import { AzureStorageDetails } from 'src/workspaces/dashboard/AzureStorageDetails';
+import { BucketLocation } from 'src/workspaces/dashboard/BucketLocation';
+import { InfoRow } from 'src/workspaces/dashboard/InfoRow';
 
 interface CloudInformationProps {
   storageDetails: StorageDetails;

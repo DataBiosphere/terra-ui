@@ -3,9 +3,9 @@ import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { dl, h } from 'react-hyperscript-helpers';
 import { azureRegions } from 'src/libs/azure-regions';
-import { AzureStorageDetails } from 'src/pages/workspaces/workspace/Dashboard/AzureStorageDetails';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
+import { AzureStorageDetails } from 'src/workspaces/dashboard/AzureStorageDetails';
 
 describe('AzureStorageDetails', () => {
   const azureContext = {
