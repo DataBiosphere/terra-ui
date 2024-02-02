@@ -21,7 +21,7 @@ import {
   terraSupportEmail,
   transformAcl,
   WorkspaceAcl,
-} from 'src/pages/workspaces/workspace/WorkspaceAcl';
+} from 'src/workspaces/common/WorkspaceAcl';
 import { CurrentCollaborators } from 'src/workspaces/ShareWorkspaceModal/CurrentCollaborators';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';

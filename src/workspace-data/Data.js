@@ -31,7 +31,7 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import * as WorkspaceUtils from 'src/libs/workspace-utils';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 import EntitiesContent from './data-table/entity-service/EntitiesContent';
 import { ExportDataModal } from './data-table/entity-service/ExportDataModal';

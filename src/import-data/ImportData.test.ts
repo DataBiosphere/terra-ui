@@ -9,17 +9,17 @@ import { ENABLE_AZURE_PFB_IMPORT, ENABLE_AZURE_TDR_IMPORT } from 'src/libs/featu
 import { useRoute } from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 
 import { ImportDataContainer } from './ImportData';
 import { selectExistingWorkspacePrompt } from './ImportDataDestination';
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
 
-type WorkspaceUtilsExports = typeof import('src/workspaces/useWorkspaces');
-jest.mock('src/workspaces/useWorkspaces', (): WorkspaceUtilsExports => {
+type WorkspaceUtilsExports = typeof import('src/workspaces/common/state/useWorkspaces');
+jest.mock('src/workspaces/common/state/useWorkspaces', (): WorkspaceUtilsExports => {
   return {
-    ...jest.requireActual<WorkspaceUtilsExports>('src/workspaces/useWorkspaces'),
+    ...jest.requireActual<WorkspaceUtilsExports>('src/workspaces/common/state/useWorkspaces'),
     useWorkspaces: jest.fn(),
   };
 });
