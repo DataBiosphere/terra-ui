@@ -52,4 +52,16 @@ describe('RenameColumnModal', () => {
     // Assert
     expect(renameModal.getByText(/already exists as an attribute name/));
   });
+
+  it('Errors on column name starting with sys_', async () => {
+    // Arrange
+    const renameProps = { ...defaultRenameColumnModalProps };
+    // Act
+    const renameModal = render(h(RenameColumnModal, renameProps));
+    // User enters 'attribute2'
+    const input = screen.getByLabelText(/New Name/);
+    await userEvent.type(input, 'sys_attribute');
+    // Assert
+    expect(renameModal.getByText(/Column name cannot start with "sys_"/));
+  });
 });
