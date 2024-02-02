@@ -2,16 +2,12 @@ import { icon, Link } from '@terra-ui-packages/components';
 import { useEffect, useState } from 'react';
 import { div, h, h2, p } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
-import FooterWrapper from 'src/components/FooterWrapper';
-import TopBar from 'src/components/TopBar';
 import colors from 'src/libs/colors';
-import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { BillingProjectList } from 'src/workspaces/migration/BillingProjectList';
 
-const MigrationInformation = () => {
+export const MigrationInformation = () => {
   const persistenceId = 'multiregionBucketMigration';
   const [infoPanelOpen, setInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.infoPanelOpen);
 
@@ -66,16 +62,6 @@ const MigrationInformation = () => {
           ]),
         ]
       ),
-    ]),
-  ]);
-};
-
-export const WorkspaceMigrationPage = () => {
-  return h(FooterWrapper, [
-    h(TopBar, { title: 'Workspace Multi-Region Bucket Migrations', href: Nav.getLink('workspace-migration') }, []),
-    div({ role: 'main', style: { display: 'flex', flex: '1 1 auto', flexFlow: 'column' } }, [
-      h(MigrationInformation, {}),
-      h(BillingProjectList, {}),
     ]),
   ]);
 };
