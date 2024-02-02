@@ -88,6 +88,7 @@ module.exports = {
         vars: 'all',
         args: 'all',
         argsIgnorePattern: '_|^_|^props',
+        destructuredArrayIgnorePattern: '_|^_',
         ignoreRestSiblings: true,
       },
     ],

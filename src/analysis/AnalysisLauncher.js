@@ -43,7 +43,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { cookieReadyStore, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { canWrite, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 import { AzureComputeModal } from './modals/ComputeModal/AzureComputeModal/AzureComputeModal';
 

@@ -5859,7 +5859,7 @@ __metadata:
   dependencies:
     "@rollup/plugin-typescript": ^11.1.2
     tslib: ^2.6.1
-    vite: ^4.3.9
+    vite: ^4.5.2
   peerDependencies:
     typescript: ~5.1.6
     vite: ^4.3.9
@@ -5896,7 +5896,7 @@ __metadata:
     react-onclickoutside: ^6.13.0
     react-switch: ^6.1.0
     typescript: ~5.1.6
-    vite: ^4.3.9
+    vite: ^4.5.2
     vite-plugin-svgr: ^3.2.0
   peerDependencies:
     react: 18.2.0
@@ -5916,7 +5916,7 @@ __metadata:
     jest: ^27.4.3
     lodash: ^4.17.21
     typescript: ~5.1.6
-    vite: ^4.3.9
+    vite: ^4.5.2
   languageName: unknown
   linkType: soft
 
@@ -5944,7 +5944,7 @@ __metadata:
     jest-fail-on-console: ^3.1.1
     jest-watch-typeahead: ^1.0.0
     typescript: ~5.1.6
-    vite: ^4.3.9
+    vite: ^4.5.2
     whatwg-fetch: ^3.6.2
   peerDependencies:
     "@testing-library/react": ^14.0.0
@@ -8121,17 +8121,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.30001464, caniuse-lite@npm:^1.0.30001517":
-  version: 1.0.30001518
-  resolution: "caniuse-lite@npm:1.0.30001518"
-  checksum: 1b63272f6e3d628ac52e2547e0b75fc477004d4b19b63e34b2c045de7f2e48909f9ea513978fc5a46c4ab5ac6c9daf9cc5e6a78466e90684fb824c3f2105e8f5
-  languageName: node
-  linkType: hard
-
-"caniuse-lite@npm:^1.0.30001565":
-  version: 1.0.30001576
-  resolution: "caniuse-lite@npm:1.0.30001576"
-  checksum: b8b332675fe703d5e57b02df5f100345f2a3796c537a42422f5bfc82d3256b8bad3f4e2788553656d2650006d13a4b5db99725e2a9462cc0c8035ba494ba1857
+"caniuse-lite@npm:^1.0.30001464, caniuse-lite@npm:^1.0.30001517, caniuse-lite@npm:^1.0.30001565":
+  version: 1.0.30001581
+  resolution: "caniuse-lite@npm:1.0.30001581"
+  checksum: ca4e2cd9d0acf5e3c71fa2e7cd65561e4532d32b640145f634c333792074bb63de1239b35abfb6b6d372f97caf26f8d97faac7ba51ef190717ad2d3ae9c0d7a2
   languageName: node
   linkType: hard
 
@@ -14798,6 +14791,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nanoid@npm:^3.3.7":
+  version: 3.3.7
+  resolution: "nanoid@npm:3.3.7"
+  bin:
+    nanoid: bin/nanoid.cjs
+  checksum: d36c427e530713e4ac6567d488b489a36582ef89da1d6d4e3b87eded11eb10d7042a877958c6f104929809b2ab0bafa17652b076cdf84324aa75b30b722204f2
+  languageName: node
+  linkType: hard
+
 "nanospinner@npm:^1.1.0":
   version: 1.1.0
   resolution: "nanospinner@npm:1.1.0"
@@ -16141,7 +16143,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.26, postcss@npm:^8.4.31":
+"postcss@npm:^8.4.27":
+  version: 8.4.33
+  resolution: "postcss@npm:8.4.33"
+  dependencies:
+    nanoid: ^3.3.7
+    picocolors: ^1.0.0
+    source-map-js: ^1.0.2
+  checksum: 6f98b2af4b76632a3de20c4f47bf0e984a1ce1a531cf11adcb0b1d63a6cbda0aae4165e578b66c32ca4879038e3eaad386a6be725a8fb4429c78e3c1ab858fe9
+  languageName: node
+  linkType: hard
+
+"postcss@npm:^8.4.31":
   version: 8.4.31
   resolution: "postcss@npm:8.4.31"
   dependencies:
@@ -17589,7 +17602,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^2.25.0 || ^3.3.0":
+"rollup@npm:^2.25.0 || ^3.3.0, rollup@npm:^3.27.1":
   version: 3.29.4
   resolution: "rollup@npm:3.29.4"
   dependencies:
@@ -17600,20 +17613,6 @@ __metadata:
   bin:
     rollup: dist/bin/rollup
   checksum: 8bb20a39c8d91130825159c3823eccf4dc2295c9a0a5c4ed851a5bf2167dbf24d9a29f23461a54c955e5506395e6cc188eafc8ab0e20399d7489fb33793b184e
-  languageName: node
-  linkType: hard
-
-"rollup@npm:^3.25.2":
-  version: 3.27.0
-  resolution: "rollup@npm:3.27.0"
-  dependencies:
-    fsevents: ~2.3.2
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    rollup: dist/bin/rollup
-  checksum: f60c2c288d039dc14e1f6e7fd673b7fcb11928b5a781675791b37a741f63b7af110fc5d040d60d603175b6e03ff978bed83db018dd2ac542ef809fe1a5b32dae
   languageName: node
   linkType: hard
 
@@ -18755,7 +18754,7 @@ __metadata:
     use-memo-one: ^1.1.3
     uuid: ^8.3.2
     validate.js: ^0.13.1
-    vite: ^4.3.9
+    vite: ^4.5.2
     vite-plugin-svgr: ^3.2.0
   dependenciesMeta:
     "@fortawesome/fontawesome-common-types":
@@ -19657,14 +19656,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^4.3.9":
-  version: 4.4.7
-  resolution: "vite@npm:4.4.7"
+"vite@npm:^4.5.2":
+  version: 4.5.2
+  resolution: "vite@npm:4.5.2"
   dependencies:
     esbuild: ^0.18.10
     fsevents: ~2.3.2
-    postcss: ^8.4.26
-    rollup: ^3.25.2
+    postcss: ^8.4.27
+    rollup: ^3.27.1
   peerDependencies:
     "@types/node": ">= 14"
     less: "*"
@@ -19693,7 +19692,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 787c4d891da18d0a0545bee07dec73c3201979dcf2b1ea3dc13fdd2d3b9ad76d413bcc0e68502183e309007a612c1f4116adefe0093d95fbbb9cf1c1755f7e41
+  checksum: 9d1f84f703c2660aced34deee7f309278ed368880f66e9570ac115c793d91f7fffb80ab19c602b3c8bc1341fe23437d86a3fcca2a9ef82f7ef0cdac5a40d0c86
   languageName: node
   linkType: hard
 

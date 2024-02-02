@@ -94,6 +94,10 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     return Ajax().Workspaces.workspace(this.namespace, this.name).deleteEntitiesOfType(entityType);
   };
 
+  deleteColumn = (signal: AbortSignal, entityType: string, attributeName: string): Promise<Response> => {
+    return Ajax(signal).Workspaces.workspace(this.namespace, this.name).deleteEntityColumn(entityType, attributeName);
+  };
+
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
     return Ajax(signal).Workspaces.workspace(this.namespace, this.name).getEntitiesTsv(entityType);
   };
