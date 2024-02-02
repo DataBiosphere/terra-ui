@@ -67,7 +67,7 @@ const defaultFeatures: DataTableFeatures = {
   supportsTypeRenaming: false,
   supportsEntityRenaming: false,
   supportsEntityUpdating: false,
-  supportEntityUpdatingTypes: ['string', 'number', 'boolean', 'json'],
+  supportEntityUpdatingTypes: [],
   supportsAttributeRenaming: false,
   supportsAttributeDeleting: false,
   supportsAttributeClearing: false,
@@ -214,6 +214,23 @@ describe('WDSContent', () => {
 
       // Assert
       expect(deleteColumnMock).toHaveBeenCalledWith(expect.any(AbortSignal), 'marble', 'color');
+    });
+  });
+
+  describe('edit field icon is present based on type', () => {
+    it('is displayed when editable is true and type is supported', async () => {
+      const { props } = setup({
+        ...defaultSetupOptions,
+        props: { ...defaultProps, editable: true },
+        features: { ...defaultFeatures, supportsEntityUpdating: true, supportEntityUpdatingTypes: ['string'] },
+      });
+
+      // Act
+      await act(() => {
+        render(h(WDSContent, props));
+      });
+
+      // todo: need to figure out how to get the right column to check here
     });
   });
 });
