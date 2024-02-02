@@ -301,6 +301,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             {
               style: styles.toolCard,
               disabled: loading,
+              tooltip: loading ? 'Loading' : runtimeTool.label,
               onClick: () => {
                 setCurrentToolObj(runtimeTool);
                 setFileExt(runtimeTool.defaultExt);
@@ -330,7 +331,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
               },
               hover: !currentApp ? styles.hover : undefined,
               disabled: !!currentApp || loading,
-              tooltip: currentApp ? appDisabledMessages[appTool.label] : '',
+              tooltip: currentApp ? appDisabledMessages[appTool.label] : loading ? 'Loading' : '',
               key: appTool.label,
             },
             [toolImages[appTool.label]]
@@ -360,6 +361,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
               style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
               activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
               disabled: loading,
+              tooltip: loading ? 'Loading' : '',
               onDropRejected: () =>
                 reportError(
                   'Not a valid analysis file',
@@ -517,7 +519,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             ButtonPrimary,
             {
               disabled: loading || errors,
-              tooltip: Utils.summarizeErrors(errors),
+              tooltip: errors ? Utils.summarizeErrors(errors) : loading ? 'Loading' : '',
               onClick: async () => {
                 try {
                   const contents = Utils.cond(
