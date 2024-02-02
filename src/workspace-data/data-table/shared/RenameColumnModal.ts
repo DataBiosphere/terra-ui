@@ -25,11 +25,6 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
 
   // Imposes same constraints on GCP and Azure:
   // Composed of only letters, numbers, underscores, or dashes; regex match "[A-z0-9_-]+"
-  // Not one of these reserved words:
-  //   “name”
-  //   “entityType”
-  //   “${entityType}_id”, where ${entityType} is the name of the data table
-  // Does not begin with “sys_”
   const mutualColumnNameErrors = validate.single(newAttributeName, {
     presence: {
       allowEmpty: false,
@@ -46,6 +41,10 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
     },
   });
 
+  // On GCP only, cannot be one of these reserved words:
+  //   “name”
+  //   “entityType”
+  //   “${entityType}_id”, where ${entityType} is the name of the data table
   const gcpColumnNameErrors =
     dataProvider.providerName === 'Entity Service'
       ? validate.single(newAttributeName, {
@@ -57,6 +56,7 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
         })
       : {};
 
+  // On Azure only, cannot begin with “sys_”
   const azureColumnNameErrors =
     dataProvider.providerName === 'WDS'
       ? validate.single(newAttributeName, {
