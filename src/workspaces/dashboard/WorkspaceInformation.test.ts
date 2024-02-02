@@ -4,7 +4,6 @@ import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { azureRegions } from 'src/libs/azure-regions';
 import { WorkspacePolicy } from 'src/libs/workspace-utils';
-import { WorkspaceInformation } from 'src/pages/workspaces/workspace/Dashboard/WorkspaceInformation';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
   defaultAzureWorkspace,
@@ -13,6 +12,7 @@ import {
   protectedGoogleWorkspace,
   regionRestrictedAzureWorkspace,
 } from 'src/testing/workspace-fixtures';
+import { WorkspaceInformation } from 'src/workspaces/dashboard/WorkspaceInformation';
 
 jest.mock('src/libs/ajax');
 

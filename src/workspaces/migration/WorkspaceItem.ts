@@ -15,7 +15,7 @@ import {
   successIcon,
   WorkspaceMigrationInfo,
   WorkspaceWithNamespace,
-} from 'src/pages/workspaces/migration/migration-utils';
+} from 'src/workspaces/migration/migration-utils';
 
 interface MigrateConfirmationProps {
   onDismiss: () => void;

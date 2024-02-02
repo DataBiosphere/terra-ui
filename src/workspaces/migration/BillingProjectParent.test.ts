@@ -3,14 +3,14 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { div, h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { BillingProjectParent } from 'src/pages/workspaces/migration/BillingProjectParent';
-import { WorkspaceMigrationInfo } from 'src/pages/workspaces/migration/migration-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { BillingProjectParent } from 'src/workspaces/migration/BillingProjectParent';
+import { WorkspaceMigrationInfo } from 'src/workspaces/migration/migration-utils';
 import {
   bpWithFailed,
   bpWithInProgress,
   bpWithSucceededAndUnscheduled,
-} from 'src/pages/workspaces/migration/migration-utils.test';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+} from 'src/workspaces/migration/migration-utils.test';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxWorkspacesContract = AjaxContract['Workspaces'];

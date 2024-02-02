@@ -4,12 +4,9 @@ import React from 'react';
 import { act } from 'react-dom/test-utils';
 import { Ajax } from 'src/libs/ajax';
 import { AuthState, authStore } from 'src/libs/state';
-import { DashboardAuthContainer } from 'src/pages/workspaces/workspace/Dashboard/DashboardAuthContainer';
-import {
-  WorkspaceDashboardPage,
-  WorkspaceDashboardPageProps,
-} from 'src/pages/workspaces/workspace/Dashboard/WorkspaceDashboardPage';
+import { DashboardAuthContainer } from 'src/pages/workspaces/DashboardAuthContainer';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { WorkspaceDashboardPage, WorkspaceDashboardPageProps } from 'src/workspaces/dashboard/WorkspaceDashboardPage';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 
@@ -31,9 +28,9 @@ jest.mock('src/libs/nav', (): typeof import('src/libs/nav') => ({
   getLink: jest.fn(),
 }));
 
-type DashboardPageExports = typeof import('src/pages/workspaces/workspace/Dashboard/WorkspaceDashboardPage');
+type DashboardPageExports = typeof import('src/workspaces/dashboard/WorkspaceDashboardPage');
 jest.mock(
-  'src/pages/workspaces/workspace/Dashboard/WorkspaceDashboardPage',
+  'src/workspaces/dashboard/WorkspaceDashboardPage',
   () =>
     ({
       WorkspaceDashboardPage: jest.fn(),

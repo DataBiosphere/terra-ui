@@ -1,4 +1,4 @@
-import { displayAttributeValue } from 'src/pages/workspaces/workspace/Dashboard/DatasetAttributes';
+import { displayAttributeValue } from 'src/workspaces/dashboard/DatasetAttributes';
 
 describe('displayAttributeValue', () => {
   it('should join array elements with comma', () => {
