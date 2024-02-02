@@ -93,7 +93,7 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
       okButton: h(
         ButtonPrimary,
         {
-          disabled: isBusy || columnNameErrors,
+          disabled: isBusy || !!columnNameErrors,
           onClick: renameColumn,
         },
         ['Rename']
