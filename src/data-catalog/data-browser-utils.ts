@@ -43,7 +43,7 @@ export const getDatasetReleasePoliciesDisplayInformation = (
     [Utils.DEFAULT, () => ({ label: dataUsePermission! })]
   );
 
-export const makeDatasetReleasePolicyDisplayInformation = (dataUsePermission: string): ReactElement => {
+export const makeDatasetReleasePolicyDisplayInformation = (dataUsePermission: string | undefined): ReactElement => {
   const { label, description } = getDatasetReleasePoliciesDisplayInformation(dataUsePermission);
   return h(div, [
     label,
@@ -87,7 +87,7 @@ export const getAssayCategoryListFromDataset = (dataset: Dataset) =>
     _.uniqBy(_.toLower)
   )(dataset['prov:wasGeneratedBy']) as string[];
 
-export const formatDatasetTime = (time: string | null) => (time ? Utils.makeStandardDate(new Date(time)) : null);
+export const formatDatasetTime = (time: string | undefined) => (time ? Utils.makeStandardDate(new Date(time)) : null);
 
 // Return type should be decided by above
 export const getDatasetAccessType = (dataset: Dataset): DatasetAccessType =>

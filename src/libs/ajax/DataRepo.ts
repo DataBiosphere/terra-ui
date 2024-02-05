@@ -133,6 +133,24 @@ interface ColumnStatisticsTextValue {
   count: number;
 }
 
+export type JobStatus = 'running' | 'succeeded' | 'failed';
+
+export const jobStatusTypes: Record<JobStatus, JobStatus> = {
+  running: 'running',
+  succeeded: 'succeeded',
+  failed: 'failed',
+};
+
+export interface JobModel {
+  id: string;
+  description?: string;
+  job_status: JobStatus;
+  status_code: number;
+  submitted?: string;
+  completed?: string;
+  class_name?: string;
+}
+
 export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
@@ -146,11 +164,11 @@ export interface DataRepoContract {
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
-    exportSnapshot: () => Promise<{}>;
+    exportSnapshot: () => Promise<JobModel>;
   };
   job: (jobId: string) => {
-    details: () => Promise<{}>;
-    result: () => Promise<{}>;
+    details: () => Promise<JobModel>;
+    result: () => Promise<any>;
   };
 }
 
