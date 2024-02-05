@@ -7,8 +7,8 @@ import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 export interface BillingProjectActionsProps {
   projectName: string;

@@ -5,9 +5,22 @@ import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 
 import { DatasetBuilderBreadcrumbs } from './Breadcrumbs';
-import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
 
 type DatasetBuilderHeaderProps = { datasetDetails: DatasetModel };
+
+interface BuilderPageHeaderProps {
+  readonly style?: React.CSSProperties;
+  readonly children: React.ReactNode[];
+}
+
+const PAGE_PADDING_HEIGHT = 0;
+const PAGE_PADDING_WIDTH = 3;
+
+// The dataset builder has "pages" each of which has a similarly styled header.
+export const BuilderPageHeader = (props: BuilderPageHeaderProps) => {
+  const { style, children } = props;
+  return div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem`, ...style } }, children);
+};
 
 export const DatasetBuilderHeader = ({ datasetDetails }: DatasetBuilderHeaderProps) => {
   return div(

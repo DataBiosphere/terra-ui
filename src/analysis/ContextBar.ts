@@ -52,13 +52,13 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import {
   BaseWorkspace,
   getCloudProviderFromWorkspace,
   isAzureWorkspace,
   isGoogleWorkspace,
-} from 'src/libs/workspace-utils';
-import { StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
+} from 'src/workspaces/utils';
 
 const contextBarStyles: { [label: string]: CSSProperties } = {
   contextBarContainer: {

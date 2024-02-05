@@ -42,8 +42,8 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { cookieReadyStore, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { canWrite, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
+import { canWrite, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 
 import { AzureComputeModal } from './modals/ComputeModal/AzureComputeModal/AzureComputeModal';
 

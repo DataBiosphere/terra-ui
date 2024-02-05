@@ -5,14 +5,14 @@ import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/commo
 import ErrorView from 'src/components/ErrorView';
 import { ValidatedInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
-import { WorkspaceSelector } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
 import { workflowNameValidation } from 'src/libs/workflow-utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 import validate from 'validate.js';
 
 const ExportWorkflowModal = ({ thisWorkspace, sameWorkspace, methodConfig, onSuccess, onDismiss }) => {

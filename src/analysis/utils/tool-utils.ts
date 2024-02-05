@@ -6,7 +6,7 @@ import { isRuntime, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Utils from 'src/libs/utils';
-import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
+import { CloudProvider, cloudProviderTypes } from 'src/workspaces/utils';
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab';
 export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH' | 'WDS' | 'WORKFLOWS_APP' | 'CROMWELL_RUNNER_APP';

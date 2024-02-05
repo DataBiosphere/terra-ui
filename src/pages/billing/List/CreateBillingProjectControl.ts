@@ -4,7 +4,7 @@ import { ButtonOutline } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
-import { CloudProvider } from 'src/libs/workspace-utils';
+import { CloudProvider } from 'src/workspaces/utils';
 
 interface CreateBillingProjectControlProps {
   showCreateProjectModal: (type: CloudProvider) => void;

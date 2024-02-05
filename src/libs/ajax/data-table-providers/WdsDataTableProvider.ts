@@ -10,9 +10,11 @@ import {
   TSVFeatures,
   TsvUploadButtonDisabledOptions,
   TsvUploadButtonTooltipOptions,
+  UpdateAttributeParameters,
   UploadParameters,
 } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import { LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
+import { Capabilities, Capability } from 'src/libs/ajax/WorkspaceDataService';
 import { notificationStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
@@ -129,9 +131,10 @@ export const resolveWdsUrl = (apps) => {
 export const wdsProviderName = 'WDS';
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string, proxyUrl: string) {
+  constructor(workspaceId: string, proxyUrl: string, capabilities: Capabilities) {
     this.workspaceId = workspaceId;
     this.proxyUrl = proxyUrl;
+    this.capabilities = capabilities;
   }
 
   providerName: string = wdsProviderName;
@@ -140,21 +143,30 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   workspaceId: string;
 
-  features: DataTableFeatures = {
-    supportsTsvDownload: false,
-    supportsTsvAjaxDownload: true,
-    supportsTypeDeletion: true,
-    supportsTypeRenaming: false,
-    supportsEntityRenaming: false,
-    supportsEntityUpdating: false, // TODO: enable as part of AJ-594
-    supportsAttributeRenaming: false, // TODO: enable as part of AJ-1278, requires `edit.renameAttribute` capability
-    supportsAttributeDeleting: false, // TODO: enable as part of AJ-1275, requires `edit.deleteAttribute` capability
-    supportsAttributeClearing: false,
-    supportsExport: false,
-    supportsPointCorrection: false,
-    supportsFiltering: false,
-    supportsRowSelection: false,
+  capabilities: Capabilities;
+
+  private isCapabilityEnabled = (capability: Capability): boolean => {
+    return !!(this.capabilities && this.capabilities[capability] === true);
   };
+
+  get features(): DataTableFeatures {
+    return {
+      supportsCapabilities: this.isCapabilityEnabled('capabilities'),
+      supportsTsvDownload: false,
+      supportsTsvAjaxDownload: true,
+      supportsTypeDeletion: true,
+      supportsTypeRenaming: false,
+      supportsEntityRenaming: false,
+      supportsEntityUpdating: false, // TODO: enable as part of AJ-594
+      supportsAttributeRenaming: this.isCapabilityEnabled('edit.renameAttribute'),
+      supportsAttributeDeleting: this.isCapabilityEnabled('edit.deleteAttribute'),
+      supportsAttributeClearing: false,
+      supportsExport: false,
+      supportsPointCorrection: false,
+      supportsFiltering: false,
+      supportsRowSelection: false,
+    };
+  }
 
   tsvFeatures: TSVFeatures = {
     needsTypeInput: true,
@@ -278,6 +290,11 @@ export class WdsDataTableProvider implements DataTableProvider {
     return Ajax().WorkspaceData.deleteTable(this.proxyUrl, this.workspaceId, entityType);
   };
 
+  deleteColumn = (signal: AbortSignal, entityType: string, attributeName: string): Promise<Response> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy URL not loaded');
+    return Ajax(signal).WorkspaceData.deleteColumn(this.proxyUrl, this.workspaceId, entityType, attributeName);
+  };
+
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
     return Ajax(signal).WorkspaceData.downloadTsv(this.proxyUrl, this.workspaceId, entityType);
@@ -305,6 +322,19 @@ export class WdsDataTableProvider implements DataTableProvider {
       uploadParams.workspaceId,
       uploadParams.recordType,
       uploadParams.file
+    );
+  };
+
+  updateAttribute = (params: UpdateAttributeParameters): Promise<Blob> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
+    return Ajax().WorkspaceData.updateAttribute(
+      this.proxyUrl,
+      this.workspaceId,
+      params.entityType,
+      params.oldAttributeName,
+      {
+        name: params.newAttributeName,
+      }
     );
   };
 }

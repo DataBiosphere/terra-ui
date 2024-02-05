@@ -3,7 +3,7 @@ import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
-import { WorkspaceInfo } from 'src/libs/workspace-utils';
+import { WorkspaceInfo } from 'src/workspaces/utils';
 
 export interface DecoratedResourceAttributes {
   workspace?: WorkspaceInfo;

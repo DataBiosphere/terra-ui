@@ -1,3 +1,4 @@
+import { div } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
   AnyCriteriaApi,
@@ -14,6 +15,7 @@ import {
   DatasetAccessRequestApi,
   DomainCriteria,
   DomainCriteriaApi,
+  HighlightConceptName,
   ProgramDataListCriteria,
   ProgramDataListCriteriaApi,
   ProgramDataListOption,
@@ -177,5 +179,76 @@ describe('test conversion of valueSets', () => {
 describe('test conversion of DatasetAccessRequest', () => {
   test('datasetAccessRequest converted to datasetAccessRequestApi', () => {
     expect(convertDatasetAccessRequest(datasetAccessRequest)).toStrictEqual(datasetAccessRequestApi);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  const createHighlightConceptName = (beforeHighlight: string, highlightWord: string, afterHighlight: string) => {
+    return div({ style: { display: 'flex' } }, [
+      div({ style: { whiteSpace: 'pre' } }, [beforeHighlight]),
+      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, [highlightWord]),
+      div({ style: { whiteSpace: 'pre' } }, [afterHighlight]),
+    ]);
+  };
+
+  test('searching beginning of conceptName', () => {
+    const searchFilter = 'Clinic';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('', 'Clinic', 'al Finding');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test("Testing to make sure capitalization doesn't change", () => {
+    const searchFilter = 'clin';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('', 'Clin', 'ical Finding');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the middle of conceptName', () => {
+    const searchFilter = 'cal';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('Clini', 'cal', ' Finding');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the end of conceptName', () => {
+    const searchFilter = 'Finding';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('Clinical ', 'Finding', '');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the not in conceptName: "XXX" in "Clinical Finding"', () => {
+    const searchFilter = 'XXX';
+    const conceptName = 'Clinical Finding';
+    const result = div(['Clinical Finding']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the not in conceptName: "Clinical" in "Clin"', () => {
+    const searchFilter = 'Clinical';
+    const conceptName = 'Clin';
+    const result = div(['Clin']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord is empty: "" ', () => {
+    const searchFilter = '';
+    const conceptName = 'Condition';
+    const result = div(['Condition']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test("doesn't bold whitespace", () => {
+    let searchFilter = ' ';
+    let conceptName = 'Clinical Finding';
+    let result = div(['Clinical Finding']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+
+    searchFilter = '   ';
+    conceptName = 'Clinical Finding';
+    result = div(['Clinical Finding']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 });

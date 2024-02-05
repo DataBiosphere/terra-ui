@@ -2,7 +2,8 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
-import { AzureWorkspace, GoogleWorkspace, WorkspacePolicy } from 'src/libs/workspace-utils';
+import { RequesterPaysErrorInfo } from 'src/libs/ajax/ajax-common';
+import { AzureWorkspace, GoogleWorkspace, WorkspacePolicy } from 'src/workspaces/utils';
 
 export const defaultAzureWorkspace: AzureWorkspace = {
   workspace: {
@@ -109,3 +110,5 @@ export const defaultGoogleBucketOptions = {
   googleBucketType: locationTypes.default,
   fetchedGoogleBucketLocation: undefined,
 };
+
+export const mockBucketRequesterPaysError: RequesterPaysErrorInfo = { requesterPaysError: true };
