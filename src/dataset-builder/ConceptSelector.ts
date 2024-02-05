@@ -11,29 +11,18 @@ import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataR
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
 
 type ConceptSelectorProps = {
-  readonly initialRows?: Concept[];
   readonly title: string;
   readonly onCancel: () => void;
   readonly onCommit: (selected: Concept[]) => void;
   readonly actionText: string;
   readonly datasetId: string;
   readonly initialCart: Concept[];
-  readonly domainOptionRoot?: Concept;
-  readonly initialHierarchy?: Map<number, Concept[]>;
+  readonly domainOptionRoot: Concept;
+  readonly initialHierarchy: Map<number, Concept[]>;
 };
 
 export const ConceptSelector = (props: ConceptSelectorProps) => {
-  const {
-    initialRows,
-    title,
-    onCancel,
-    onCommit,
-    actionText,
-    datasetId,
-    initialCart,
-    domainOptionRoot,
-    initialHierarchy,
-  } = props;
+  const { title, onCancel, onCommit, actionText, datasetId, initialCart, domainOptionRoot, initialHierarchy } = props;
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
     const result = await DataRepo().dataset(datasetId).getConcepts(concept);
@@ -76,7 +65,6 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
           { name: 'Concept ID', width: 195, render: _.get('id') },
           { name: 'Roll-up count', width: 205, render: _.get('count') },
         ],
-        initialRows,
         initialHierarchy,
         domainOptionRoot,
         getChildren,

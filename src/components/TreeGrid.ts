@@ -85,6 +85,7 @@ const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<number, T[]
   // get the domainOptionRoot's children
   const domainOptionRootChildren: T[] | undefined = hierarchyMap.get(domainOptionRoot.id);
 
+  // console.log(domainOptionRootChildren)
   // if the domainOptionRoot doesn't have children return an empty array
   if (!domainOptionRootChildren) {
     return [];
@@ -100,13 +101,11 @@ type TreeGridProps<T extends RowContents> = {
   /** the columns to display */
   readonly columns: Column<T>[];
   /** the initial rows to display */
-  readonly initialRows?: T[];
-
-  readonly initialHierarchy?: Map<number, T[]>;
+  readonly initialHierarchy: Map<number, T[]>;
   /** Given a row, return its children. This is only called if row.hasChildren is true. */
   readonly getChildren: (row: T) => Promise<T[]>;
   /** Given the domain option root, create a hierarchy */
-  readonly domainOptionRoot?: T;
+  readonly domainOptionRoot: T;
 };
 
 type TreeGridPropsInner<T extends RowContents> = TreeGridProps<T> & {
@@ -139,12 +138,8 @@ const getRowIndex = <T extends RowContents>(row: Row<T>, rows: Row<T>[]) =>
 
 const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
   // update customWrapper to each props
-  const { columns, initialRows, getChildren, gridWidth, domainOptionRoot, initialHierarchy } = props;
-  const [data, setData] = useState(
-    initialHierarchy && domainOptionRoot
-      ? hierarchyMapToRows(initialHierarchy, domainOptionRoot)
-      : _.map(wrapContent(0), initialRows)
-  );
+  const { columns, getChildren, gridWidth, domainOptionRoot, initialHierarchy } = props;
+  const [data, setData] = useState(hierarchyMapToRows(initialHierarchy, domainOptionRoot));
   const rowHeight = 40;
   const expand = async (row: Row<T>) => {
     const index = getRowIndex(row, data);
