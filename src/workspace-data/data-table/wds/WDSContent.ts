@@ -13,6 +13,7 @@ export interface WDSContentProps {
   wdsSchema: RecordTypeSchema[];
   dataProvider: DataTableProvider;
   editable: boolean;
+  loadMetadata: () => void;
 }
 
 export const WDSContent = ({
@@ -24,6 +25,7 @@ export const WDSContent = ({
   wdsSchema,
   dataProvider,
   editable,
+  loadMetadata,
 }: WDSContentProps) => {
   const googleProject = isGoogleWorkspace(workspace) ? workspace.workspace.googleProject : undefined;
   // State
@@ -57,6 +59,7 @@ export const WDSContent = ({
         borderBottom: `1px solid ${colors.grey(0.4)}`,
       },
       border: false,
+      loadMetadata,
     }),
   ]);
 };

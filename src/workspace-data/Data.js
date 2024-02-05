@@ -700,6 +700,7 @@ export const WorkspaceData = _.flow(
 
     const loadWdsTypes = useCallback(
       (url, workspaceId) => {
+        setWdsTypes({ status: 'None', state: [] });
         return Ajax(signal)
           .WorkspaceData.getSchema(url, workspaceId)
           .then((typesResult) => {
@@ -1490,6 +1491,7 @@ export const WorkspaceData = _.flow(
                       recordType: selectedData.entityType,
                       wdsSchema: wdsTypes.state,
                       editable: canEditWorkspace,
+                      loadMetadata,
                     }),
                 ]
               ),

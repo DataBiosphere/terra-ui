@@ -10,6 +10,7 @@ import {
   TSVFeatures,
   TsvUploadButtonDisabledOptions,
   TsvUploadButtonTooltipOptions,
+  UpdateAttributeParameters,
   UploadParameters,
 } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import { asyncImportJobStore } from 'src/libs/state';
@@ -121,5 +122,15 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
       Utils.append({ targetWorkspace: { namespace: uploadParams.namespace, name: uploadParams.name }, jobId })
     );
     notifyDataImportProgress(jobId, 'Data will show up incrementally as the job progresses.');
+  };
+
+  updateAttribute = async (updateAttrParams: UpdateAttributeParameters): Promise<any> => {
+    return Ajax()
+      .Workspaces.workspace(this.namespace, this.name)
+      .renameEntityColumn(
+        updateAttrParams.entityType,
+        updateAttrParams.oldAttributeName,
+        updateAttrParams.newAttributeName
+      );
   };
 }

@@ -34,7 +34,6 @@ import * as WorkspaceUtils from 'src/workspaces/utils';
 import { concatenateAttributeNames } from '../entity-service/attribute-utils';
 import { entityAttributeText } from '../entity-service/entityAttributeText';
 import { EntityRenamer } from '../entity-service/EntityRenamer';
-import { RenameColumnModal } from '../entity-service/RenameColumnModal';
 import { renderDataCell } from '../entity-service/renderDataCell';
 import {
   allSavedColumnSettingsEntityTypeKey,
@@ -45,6 +44,7 @@ import {
 import { SingleEntityEditor } from '../entity-service/SingleEntityEditor';
 import { EditDataLink } from './EditDataLink';
 import { HeaderOptions } from './HeaderOptions';
+import { RenameColumnModal } from './RenameColumnModal';
 
 const entityMap = (entities) => {
   return _.fromPairs(_.map((e) => [e.name, e], entities));
@@ -747,10 +747,10 @@ const DataTable = (props) => {
       }),
     !!renamingColumn &&
       h(RenameColumnModal, {
-        namespace,
-        name,
         entityType,
         oldAttributeName: renamingColumn,
+        attributeNames: entityMetadata[entityType].attributeNames,
+        dataProvider,
         onSuccess: () => {
           setRenamingColumn(undefined);
           Ajax().Metrics.captureEvent(Events.workspaceDataRenameColumn, extractWorkspaceDetails(workspace.workspace));

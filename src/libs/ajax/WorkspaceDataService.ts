@@ -53,6 +53,8 @@ export interface WDSJob {
   updated: string;
 }
 
+export type AttributeSchemaUpdate = { name: string } | { datatype: string };
+
 // The source of truth of available capabilities can be found in:
 // https://github.com/DataBiosphere/terra-workspace-data-service/blob/main/service/src/main/resources/capabilities.json
 // This list should only contain capabilities actively required or supported by the UI.
@@ -183,6 +185,19 @@ export const WorkspaceData = (signal) => ({
   },
   getJobStatus: async (root: string, jobId: string): Promise<WDSJob> => {
     const res = await fetchWDS(root)(`job/v1/${jobId}`, _.merge(authOpts(), { signal }));
+    return res.json();
+  },
+  updateAttribute: async (
+    root: string,
+    instanceId: string,
+    recordType: string,
+    oldAttribute: string,
+    newAttribute: AttributeSchemaUpdate
+  ): Promise<any> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/types/v0.2/${recordType}/${oldAttribute}`,
+      _.mergeAll([authOpts(), jsonBody(newAttribute), { signal, method: 'PATCH' }])
+    );
     return res.json();
   },
 });
