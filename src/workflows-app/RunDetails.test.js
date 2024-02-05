@@ -20,6 +20,8 @@ import { BaseRunDetails } from 'src/workflows-app/RunDetails';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
+import { parseFullFilepathToContainerDirectory } from './utils/task-log-utils';
+
 jest.mock('src/libs/ajax');
 
 const wdsUrlRoot = 'https://lz-abc/wds-abc-c07807929cd1/';
@@ -36,6 +38,20 @@ jest.mock('./utils/task-log-utils', () => ({
   discoverTesLogs: jest.fn().mockReturnValue([
     {
       logUri: 'someBlobUri.com',
+      logTitle: 'Backend Standard Out',
+      logKey: 'tes_stdout',
+      logFilename: 'tes_stdout',
+      logTooltip: 'LogTooltips.backend',
+    },
+    {
+      logUri: 'someBlobUri.com',
+      logTitle: 'Backend Standard Err',
+      logKey: 'tes_stderr',
+      logFilename: 'tes_stderr',
+      logTooltip: 'LogTooltips.backend',
+    },
+    {
+      logUri: 'someBlobUri.com',
       logTitle: 'Download Standard Out',
       logKey: 'tes_download_stdout',
       logFilename: 'download_stdout',
@@ -43,7 +59,7 @@ jest.mock('./utils/task-log-utils', () => ({
     },
     {
       logUri: 'someBlobUri.com',
-      logTitle: 'Download Standard Error',
+      logTitle: 'Download Standard Err',
       logKey: 'tes_download_stderr',
       logFilename: 'download_stderr',
       logTooltip: 'LogTooltips.download',
@@ -396,6 +412,9 @@ describe('BaseRunDetails - render smoke test', () => {
     await user.click(logsLink[0]);
 
     // Assert
+    // Presence of 'Task' logs shows we can fetch Cromwell task logs
+    // Presence of 'Backend' logs shows we can fetch pre-TES 4.7 logs
+    // Presence of 'Download' logs shows we can fetch post TES 4.7 logs
     const stdoutButton = screen.getByText('Task Standard Out');
     await user.click(stdoutButton);
     expect(screen.getByText('stdout.txt')).toBeVisible();
@@ -408,12 +427,32 @@ describe('BaseRunDetails - render smoke test', () => {
 
     // the presence of the download log tab is proof that the log viewer was able to fetch the (mocked) TES logs,
     // which uses a different code path than the task logs do.
-    const downloadStdOutButton = screen.getByText('Download Standard Out');
+    const downloadStdOutButton = screen.getByText('Backend Standard Out');
     await user.click(downloadStdOutButton);
-    expect(screen.getByText('download_stdout'));
+    expect(screen.getByText('tes_stdout')).toBeVisible();
+    expect(screen.getByText('Backend Standard Out'));
+    expect(screen.getByText('Backend Standard Err'));
     expect(screen.getByText('Download Standard Out'));
-    expect(screen.getByText('Download Standard Error'));
-    screen.logTestingPlaygroundURL();
+    expect(screen.getByText('Download Standard Err'));
+  });
+
+  it('parses blob URIs correctly', () => {
+    const tesLogFile =
+      'https://lz813a3d637adefec2c6e88f.blob.core.windows.net/sc-bed4cf6c-8153-4f3d-852f-532cc17e6582/workspace-services/cbas/terra-app-c26307e1-4666-4a9a-aa27-dfb259be46a6/fetch_sra_to_bam/6d935b1a-e899-45da-9627-a94c23a2ca53/call-Fetch_SRA_to_BAM/tes_task/stderr.txt';
+
+    const tesLogFolder =
+      'https://lz813a3d637adefec2c6e88f.blob.core.windows.net/sc-bed4cf6c-8153-4f3d-852f-532cc17e6582/workspace-services/cbas/terra-app-c26307e1-4666-4a9a-aa27-dfb259be46a6/fetch_sra_to_bam/6d935b1a-e899-45da-9627-a94c23a2ca53/call-Fetch_SRA_to_BAM/tes_task/';
+
+    const tesLogFolderWithoutSlash =
+      'https://lz813a3d637adefec2c6e88f.blob.core.windows.net/sc-bed4cf6c-8153-4f3d-852f-532cc17e6582/workspace-services/cbas/terra-app-c26307e1-4666-4a9a-aa27-dfb259be46a6/fetch_sra_to_bam/6d935b1a-e899-45da-9627-a94c23a2ca53/call-Fetch_SRA_to_BAM/tes_task';
+
+    const workspaceId = 'bed4cf6c-8153-4f3d-852f-532cc17e6582';
+
+    const expected =
+      'workspace-services/cbas/terra-app-c26307e1-4666-4a9a-aa27-dfb259be46a6/fetch_sra_to_bam/6d935b1a-e899-45da-9627-a94c23a2ca53/call-Fetch_SRA_to_BAM/tes_task';
+    expect(parseFullFilepathToContainerDirectory(workspaceId, tesLogFile)).toEqual(expected);
+    expect(parseFullFilepathToContainerDirectory(workspaceId, tesLogFolder)).toEqual(expected);
+    expect(parseFullFilepathToContainerDirectory(workspaceId, tesLogFolderWithoutSlash)).toEqual(expected);
   });
 
   it('correctly identifies azure URIs', () => {

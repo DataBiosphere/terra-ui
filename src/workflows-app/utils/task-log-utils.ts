@@ -16,7 +16,7 @@ export const LogTooltips = {
 // As of 01/2024, we expect the cromwell backend to supply blob paths for stdout, stderr, tes_stdout, and tes_stderr.
 // Depending on the TES version used at the time of workflow execution, the tes_stdout and tes_stderr logs might not exist. If they don't,
 // we expect the exec/download/upload logs to exist instead. We can use the blob path for tes_stdout to query & search for the other logs.
-const potentialTesLogs: LogInfo[] = [
+export const potentialTesLogs: LogInfo[] = [
   {
     logUri: undefined,
     logTitle: 'Backend Standard Out',
@@ -54,7 +54,7 @@ const potentialTesLogs: LogInfo[] = [
   },
   {
     logUri: undefined,
-    logTitle: 'Download Standard Error',
+    logTitle: 'Download Standard Err',
     logKey: 'tes_download_stderr',
     logFilename: 'download_stderr',
     logTooltip: LogTooltips.download,
@@ -75,15 +75,33 @@ const potentialTesLogs: LogInfo[] = [
   },
 ];
 
-// converts a full azure blob path to the directory containing the file, relative to the storage container root.
-const parseFullFilepathToContainerDirectory = (workspaceId: string, logBlobPath: string): string => {
+const endsWithFilename = (path: string): boolean => {
+  const pathParts = path.split('/');
+  return pathParts[pathParts.length - 1].includes('.');
+};
+
+// Converts a full azure blob path to the directory containing the file, relative to the storage container root.
+// If the path does not end in a filename, it is assumed to be a directory path and is returned as-is, without a trailing slash.
+export const parseFullFilepathToContainerDirectory = (workspaceId: string, logBlobPath: string): string => {
   const index = logBlobPath.indexOf(workspaceId);
   if (index === -1) {
     console.error(`Could not find workspaceId ${workspaceId} in log path of ${logBlobPath}`);
   }
+
   const blobFilepath = logBlobPath.substring(index + workspaceId.length + 1); // remove the workspaceId, following slash, and everything before it
-  const blobDirectory = blobFilepath.substring(0, blobFilepath.lastIndexOf('/')); // remove the filename
-  return blobDirectory;
+
+  // If the string ends with a filename, remove the filename and preceding slash.
+  if (endsWithFilename(blobFilepath)) {
+    const blobDirectory = blobFilepath.substring(0, blobFilepath.lastIndexOf('/'));
+    return blobDirectory;
+  }
+
+  // Remove the trailing slash if present
+  if (blobFilepath.endsWith('/')) {
+    return blobFilepath.substring(0, blobFilepath.length - 1);
+  }
+
+  return blobFilepath;
 };
 
 export const discoverTesLogs = async (signal, workspaceId: string, tesLogBlobPath: string) => {

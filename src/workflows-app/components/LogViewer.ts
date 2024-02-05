@@ -37,7 +37,7 @@ export type LogViewerProps = {
   modalTitle: string;
   logs: LogInfo[]; // Known logs to show in this component
   workspaceId: string;
-  templateLog?: string; // a full azure blob uri to a log file. If provided, we will search for additional logs in the same directory as this file.
+  templateLogDirectory?: string; // a full azure blob uri to a log file, or to a folder of log files. If provided, we will search for additional logs in the same directory as this file/folder.
   onDismiss: () => void;
 };
 
@@ -56,7 +56,7 @@ const logLoadingErrorMessage =
 const modalMaxWidth = 1100;
 
 export const LogViewer = (logProps: LogViewerProps) => {
-  const { modalTitle, logs, workspaceId, templateLog, onDismiss } = logProps;
+  const { modalTitle, logs, workspaceId, templateLogDirectory, onDismiss } = logProps;
   const [activeLogs, setActiveLogs] = useState<LogInfo[]>(logs);
 
   const [currentlyActiveLog, setCurrentlyActiveLog] = useState<LogInfo | undefined>(
@@ -72,12 +72,12 @@ export const LogViewer = (logProps: LogViewerProps) => {
 
   useEffect(() => {
     const discover = async () => {
-      if (templateLog === undefined) return;
-      const discoveredTesLogs = await discoverTesLogs(signal, workspaceId, templateLog);
+      if (templateLogDirectory === undefined) return;
+      const discoveredTesLogs = await discoverTesLogs(signal, workspaceId, templateLogDirectory);
       setActiveLogs((activeLogs) => [...activeLogs, ...discoveredTesLogs]);
     };
     discover();
-  }, [signal, workspaceId, templateLog]);
+  }, [signal, workspaceId, templateLogDirectory]);
 
   const fetchLogContent = useCallback(
     async (azureBlobUri: string): Promise<FetchedLogData | null> => {
