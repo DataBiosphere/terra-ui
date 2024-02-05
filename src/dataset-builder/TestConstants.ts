@@ -95,26 +95,23 @@ export const dummyDatasetModel = (): DatasetModel => ({
 export const dummyConcepts = [
   // IDs must be unique.
   { id: 100, name: 'Condition', count: 100, hasChildren: true },
-  // { id: 101, name: 'Clinical Finding', count: 100, hasChildren: true },
-  // { id: 102, name: 'Disease', count: 100, hasChildren: true },
-  // { id: 103, name: 'Disorder by body site', count: 100, hasChildren: false },
-  // { id: 104, name: 'Inflammatory disorder', count: 100, hasChildren: false },
-  // { id: 105, name: 'Degenerative disorder', count: 100, hasChildren: false },
-  // { id: 106, name: 'Metabolic disease', count: 100, hasChildren: false },
-  // { id: 107, name: 'Finding by site', count: 100, hasChildren: false },
-  // { id: 108, name: 'Neurological finding', count: 100, hasChildren: false },
-  //
-  // { id: 200, name: 'Procedure', count: 100, hasChildren: true },
-  // { id: 201, name: 'Procedure', count: 100, hasChildren: true },
-  // { id: 202, name: 'Surgery', count: 100, hasChildren: false },
-  // { id: 203, name: 'Heart Surgery', count: 100, hasChildren: false },
-  // { id: 204, name: 'Cancer Surgery', count: 100, hasChildren: false },
-  //
-  // { id: 300, name: 'Observation', count: 100, hasChildren: true },
-  // { id: 301, name: 'Blood Pressure', count: 100, hasChildren: false },
-  // { id: 302, name: 'Weight', count: 100, hasChildren: false },
-  // { id: 303, name: 'Height', count: 100, hasChildren: false },
-  //
+  { id: 101, name: 'Clinical Finding', count: 100, hasChildren: true },
+  { id: 102, name: 'Disease', count: 100, hasChildren: true },
+  { id: 103, name: 'Disorder by body site', count: 100, hasChildren: false },
+  { id: 104, name: 'Inflammatory disorder', count: 100, hasChildren: false },
+  { id: 105, name: 'Degenerative disorder', count: 100, hasChildren: false },
+  { id: 106, name: 'Metabolic disease', count: 100, hasChildren: false },
+  { id: 107, name: 'Finding by site', count: 100, hasChildren: false },
+  { id: 108, name: 'Neurological finding', count: 100, hasChildren: false },
+  { id: 200, name: 'Procedure', count: 100, hasChildren: true },
+  { id: 201, name: 'Procedure', count: 100, hasChildren: true },
+  { id: 202, name: 'Surgery', count: 100, hasChildren: false },
+  { id: 203, name: 'Heart Surgery', count: 100, hasChildren: false },
+  { id: 204, name: 'Cancer Surgery', count: 100, hasChildren: false },
+  { id: 300, name: 'Observation', count: 100, hasChildren: true },
+  { id: 301, name: 'Blood Pressure', count: 100, hasChildren: false },
+  { id: 302, name: 'Weight', count: 100, hasChildren: false },
+  { id: 303, name: 'Height', count: 100, hasChildren: false },
   { id: 400, name: 'Carcinoma of lung parenchyma', count: 100, hasChildren: true },
   { id: 401, name: 'Squamous cell carcinoma of lung', count: 100, hasChildren: true },
   { id: 402, name: 'Non-small cell lung cancer', count: 100, hasChildren: true },
@@ -194,14 +191,6 @@ export const dummyHierarchy = [
 
 export const dummyGetNodeFromHierarchy = (id: number): ConceptNode => {
   return _.find({ id }, dummyHierarchy)!;
-};
-
-export const dummyGetParentInHierarchy = (id: number): ConceptNode => {
-  const node = dummyGetNodeFromHierarchy(id);
-  if (node.parent) {
-    return dummyGetParentInHierarchy(node.parent);
-  }
-  return node;
 };
 
 export const getHierarchyMap = (selectedConceptID: number): Map<number, Concept[]> => {
