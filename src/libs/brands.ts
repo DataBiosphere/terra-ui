@@ -15,6 +15,9 @@ import fcLogo from 'src/images/brands/firecloud/FireCloud-Logo.svg';
 import fcLogoWhite from 'src/images/brands/firecloud/FireCloud-Logo-White.svg';
 import projectSingularLogo from 'src/images/brands/projectSingular/project-singular-logo-black.svg';
 import projectSingularLogoWhite from 'src/images/brands/projectSingular/project-singular-logo-white.svg';
+import publicHealthBackground from 'src/images/brands/publicHealth/Terra-PHG-background.png';
+import publicHealthLogo from 'src/images/brands/publicHealth/Terra-PHG-Color.svg';
+import publicHealthLogoWhite from 'src/images/brands/publicHealth/Terra-PHG-White.svg';
 import rareXLogo from 'src/images/brands/rareX/rarex-logo-color.svg';
 import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg';
 import terraLogo from 'src/images/brands/terra/logo.svg';
@@ -61,12 +64,47 @@ export interface BrandConfiguration {
   /** Optional URL for landing page background image */
   landingPageBackground?: string;
 
+  landingPageCards?: {
+    /** Card link */
+    link: string;
+
+    /** Card title */
+    title: string;
+
+    /** Card body */
+    body: string;
+
+    /** Card link pathParams */
+    linkPathParams?: object;
+
+    /** Card link queryParams */
+    linkQueryParams?: object;
+  }[];
+
   /** Optionally filter which datasets show up in the Data Catalog */
   catalogDataCollectionsToInclude?: string[];
 
   /** Theme for components */
   theme: Theme;
 }
+
+export const landingPageCardsDefault = [
+  {
+    link: 'workspaces',
+    title: 'View Workspaces',
+    body: 'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
+  },
+  {
+    link: 'library-showcase',
+    title: 'View Examples',
+    body: 'Browse our gallery of showcase Workspaces to see how science gets done.',
+  },
+  {
+    link: 'library-datasets',
+    title: 'Browse Data',
+    body: 'Access data from a rich ecosystem of data portals.',
+  },
+];
 
 const baseColors: Theme['colorPalette'] = {
   primary: '#74ae43',
@@ -288,6 +326,61 @@ export const brands: Record<string, BrandConfiguration> = {
     },
     theme: {
       colorPalette: { ...baseColors, primary: '#521b93', secondary: '#011c48', accent: '#521b93' },
+    },
+  },
+  publicHealth: {
+    name: 'Terra for Public Health Genomics',
+    queryName: 'publicHealth',
+    welcomeHeader: 'Terra for Public Health Genomics',
+    description:
+      'Terra is a secure cloud-based data platform enabling pathogen genomic data analysis in public health, clinical, and academic settings.',
+    hostName: 'publichealth.terra.bio',
+    docLinks: [
+      {
+        link: 'https://dockstore.org/organizations/Theiagen',
+        text: 'Theiagen Workflow Repository',
+      },
+      {
+        link: 'https://docs.google.com/document/d/e/2PACX-1vTPQC-bYMRxXQ4Gz9ESH_Eo-E6UXD2qOL7_3iMxJaQF3pOyW3tUyu7G9Nvk-JTf8xDkOyhftvd9L-sa/pub',
+        text: 'Terra Cloud Costs FAQs',
+      },
+      {
+        link: 'mailto:publichealthgenomics@broadinstitute.org',
+        text: 'Contact us',
+      },
+      {
+        link: 'https://support.terra.bio/hc/en-us',
+        text: 'Terra Support',
+      },
+    ],
+    logos: {
+      color: publicHealthLogo,
+      white: publicHealthLogoWhite,
+    },
+    landingPageBackground: publicHealthBackground,
+    landingPageCards: [
+      {
+        link: 'workspaces',
+        title: 'My Workspaces',
+        body: 'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
+      },
+      {
+        link: 'workspaces',
+        title: 'Examples',
+        body: 'Browse example pathogen genomic data and analysis tools together.',
+        linkPathParams: {},
+        linkQueryParams: { tab: 'public', 'tagsFilter[]': 'pathogen genomics' },
+      },
+    ],
+    theme: {
+      colorPalette: {
+        ...baseColors,
+        primary: '#006DB6',
+        secondary: '#004D81',
+        accent: '#4D72AA',
+        light: '#E6F1F8',
+        dark: '#333F52',
+      },
     },
   },
   rareX: {
