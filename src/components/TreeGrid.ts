@@ -85,7 +85,6 @@ const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<number, T[]
   // get the domainOptionRoot's children
   const domainOptionRootChildren: T[] | undefined = hierarchyMap.get(domainOptionRoot.id);
 
-  // console.log(domainOptionRootChildren)
   // if the domainOptionRoot doesn't have children return an empty array
   if (!domainOptionRootChildren) {
     return [];
@@ -112,6 +111,9 @@ type TreeGridPropsInner<T extends RowContents> = TreeGridProps<T> & {
   readonly gridWidth: number;
 };
 
+/**
+ * Given all rows, return the rows that are currently visible.
+ */
 function getVisibleRows<T extends RowContents>(allRows: Row<T>[]) {
   const visibleRows: Row<T>[] = [];
   // Root elements are always visible.

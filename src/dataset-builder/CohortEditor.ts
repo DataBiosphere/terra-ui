@@ -252,11 +252,6 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
       placeholder: addCriteriaText,
       value: null,
       onChange: async (criteriaOption) => {
-        // console.log("CohortEditor");
-        // console.log(cohort);
-        // console.log(criteriaGroup);
-        // console.log(criteriaOption.value);
-        // console.log();
         if (criteriaOption !== null) {
           if (criteriaOption.value.kind === 'domain') {
             onStateChange(domainCriteriaSearchState.new(cohort, criteriaGroup, criteriaOption.value, [], ''));
