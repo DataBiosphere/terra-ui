@@ -16,7 +16,14 @@ export interface WDSContentProps {
   loadMetadata: () => void;
 }
 
-export const WDSContent = ({ workspace, recordType, wdsSchema, dataProvider, editable, loadMetadata }: WDSContentProps) => {
+export const WDSContent = ({
+  workspace,
+  recordType,
+  wdsSchema,
+  dataProvider,
+  editable,
+  loadMetadata,
+}: WDSContentProps) => {
   const googleProject = isGoogleWorkspace(workspace) ? workspace.workspace.googleProject : undefined;
   // State
   const [refreshKey] = useState(0);
