@@ -21,9 +21,9 @@ import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider'
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { makeCompleteDate } from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { EnvironmentNavActions, Environments, EnvironmentsProps } from './Environments';
 import { LeoResourcePermissionsProvider } from './Environments.models';

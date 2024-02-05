@@ -10,11 +10,11 @@ import { useCancellation, usePollingEffect } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { getCloudProviderFromWorkspace, isOwner } from 'src/libs/workspace-utils';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { doesAppProxyUrlExist, getCromwellUnsupportedMessage, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
+import { getCloudProviderFromWorkspace, isOwner } from 'src/workspaces/utils';
 
 const styles = {
   // Card's position: relative and the outer/inner styles are a little hack to fake nested links

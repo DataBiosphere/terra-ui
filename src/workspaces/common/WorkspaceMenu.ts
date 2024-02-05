@@ -5,14 +5,14 @@ import { h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
-import { useWorkspaceDetails } from 'src/components/workspace-utils';
+import { useWorkspaceDetails } from 'src/workspaces/common/state/useWorkspaceDetails';
 import {
   isGoogleWorkspace,
   isOwner,
   WorkspacePolicy,
   WorkspaceState,
   WorkspaceWrapper as Workspace,
-} from 'src/libs/workspace-utils';
+} from 'src/workspaces/utils';
 
 const isNameType = (o: WorkspaceInfo): o is DynamicWorkspaceInfo =>
   'name' in o && typeof o.name === 'string' && 'namespace' in o && typeof o.namespace === 'string';

@@ -2,9 +2,9 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { azureControlledAccessRequestMessage, AzureWorkspace, GoogleWorkspace } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { RequestAccessModal } from 'src/workspaces/RequestAccessModal/RequestAccessModal';
+import { azureControlledAccessRequestMessage, AzureWorkspace, GoogleWorkspace } from 'src/workspaces/utils';
 
 jest.mock('src/libs/ajax');
 type AjaxContract = ReturnType<typeof Ajax>;

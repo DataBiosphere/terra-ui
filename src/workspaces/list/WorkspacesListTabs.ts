@@ -2,14 +2,14 @@ import _ from 'lodash/fp';
 import { ReactNode, useMemo } from 'react';
 import { h, span } from 'react-hyperscript-helpers';
 import { SimpleTabBar } from 'src/components/tabBars';
-import { workspaceSubmissionStatus } from 'src/components/WorkspaceSubmissionStatusIcon';
 import * as Nav from 'src/libs/nav';
 import { textMatch } from 'src/libs/utils';
-import { getCloudProviderFromWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
-import { NoContentMessage } from 'src/workspaces/list/NoWorkspacesMessage';
+import { NoContentMessage } from 'src/workspaces/list/NoContentMessage';
 import { RenderedWorkspaces } from 'src/workspaces/list/RenderedWorkspaces';
 import { getWorkspaceFiltersFromQuery, WorkspaceFilterValues } from 'src/workspaces/list/WorkspaceFilters';
+import { workspaceSubmissionStatus } from 'src/workspaces/list/WorkspaceSubmissionStatusIcon';
+import { getCloudProviderFromWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 export interface WorkspaceTab {
   key: string;

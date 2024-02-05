@@ -1,6 +1,6 @@
 import { IconId, Link } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { ReactElement, useState } from 'react';
+import { CSSProperties, ReactElement, useState } from 'react';
 import { div, h, strong } from 'react-hyperscript-helpers';
 import { Grid } from 'react-virtualized';
 import { icon } from 'src/components/icons';
@@ -53,6 +53,7 @@ type TreeGridProps<T extends RowContents> = {
   readonly initialRows: T[];
   /** Given a row, return its children. This is only called if row.hasChildren is true. */
   readonly getChildren: (row: T) => Promise<T[]>;
+  readonly headerStyle?: CSSProperties;
 };
 
 type TreeGridPropsInner<T extends RowContents> = TreeGridProps<T> & {
@@ -155,9 +156,15 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
             ? div({ style: { paddingLeft: `${1 + row.depth}rem`, display: 'flex' } }, [
                 row.contents.hasChildren &&
                   (handler
-                    ? h(Link, { onClick: () => handler(row), 'aria-label': label, style: { paddingLeft: 5 } }, [
-                        icon(iconName, { size: 16 }),
-                      ])
+                    ? h(
+                        Link,
+                        {
+                          onClick: () => handler(row),
+                          'aria-label': `${label} ${row.contents.id}`,
+                          style: { paddingLeft: 5 },
+                        },
+                        [icon(iconName, { size: 16 })]
+                      )
                     : icon(iconName, { size: 16, style: { marginLeft: 5 } })),
                 div({ style: { display: 'flex', marginLeft: row.contents.hasChildren ? 10 : 5 + 16 + 10 } }, [
                   columns[columnIndex].render(row.contents),
@@ -178,21 +185,15 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
  * computed as the number of rows times the row height.
  */
 export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
-  const { columns } = props;
+  const { columns, headerStyle } = props;
   const gridWidth = _.sum(_.map((c) => c.width, columns));
   return div([
     // generate a header row
     div(
       {
         style: {
-          height: '100%',
+          ...headerStyle,
           width: _.sum(_.map((c) => c.width, columns)),
-          display: 'flex',
-          paddingTop: 15,
-          paddingBottom: 15,
-          backgroundColor: colors.light(0.4),
-          borderRadius: '8px 8px 0px 0px',
-          border: `.5px solid ${colors.dark(0.2)}`,
         },
       },
       [

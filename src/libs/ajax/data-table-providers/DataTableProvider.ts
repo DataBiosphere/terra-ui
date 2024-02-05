@@ -88,6 +88,12 @@ export type TsvUploadButtonTooltipOptions = {
   recordTypePresent: boolean;
 };
 
+export type UpdateAttributeParameters = {
+  entityType: string;
+  oldAttributeName: string;
+  newAttributeName: string;
+};
+
 export interface AttributeArray {
   itemsType: 'AttributeValue' | 'EntityReference';
   items: unknown[]; // truly "unknown" here; the backend Java representation is Object[]
@@ -116,6 +122,8 @@ export type IsTsvUploadButtonDisabledFn = (options: TsvUploadButtonDisabledOptio
 export type TsvUploadButtonTooltipFn = (options: TsvUploadButtonTooltipOptions) => string;
 
 export type UploadTsvFn = (uploadParams: UploadParameters) => Promise<any>;
+
+export type UpdateAttributeFn = (attributeUpdateParams: UpdateAttributeParameters) => Promise<any>;
 
 export interface DataTableFeatures {
   supportsCapabilities: boolean;
@@ -156,7 +164,7 @@ export interface DataTableProvider {
   deleteColumn: DeleteColumnFn;
   downloadTsv: DownloadTsvFn;
   uploadTsv: UploadTsvFn;
+  updateAttribute: UpdateAttributeFn;
   // todos that we may need soon:
   // getMetadata: GetMetadataFn
-  // updateAttribute: function, see also boolean
 }

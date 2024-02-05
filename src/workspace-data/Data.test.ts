@@ -4,10 +4,10 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
 import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { WorkspaceData } from './Data';
 

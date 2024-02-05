@@ -11,6 +11,7 @@ import {
   TSVFeatures,
   TsvUploadButtonDisabledOptions,
   TsvUploadButtonTooltipOptions,
+  UpdateAttributeParameters,
   UploadParameters,
 } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import { LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
@@ -170,7 +171,7 @@ export class WdsDataTableProvider implements DataTableProvider {
       supportsEntityRenaming: false,
       supportsEntityUpdating: true,
       supportEntityUpdatingTypes: ['string', 'number', 'boolean', 'json'], // remove this as part of AJ-<need to create ticket> for other types
-      supportsAttributeRenaming: false, // TODO: enable as part of AJ-1278, requires `edit.renameAttribute` capability
+      supportsAttributeRenaming: this.isCapabilityEnabled('edit.renameAttribute'),
       supportsAttributeDeleting: this.isCapabilityEnabled('edit.deleteAttribute'),
       supportsAttributeClearing: false,
       supportsExport: false,
@@ -346,6 +347,19 @@ export class WdsDataTableProvider implements DataTableProvider {
       recordEditParams.recordName,
       recordEditParams.recordId,
       recordEditParams.record
+    );
+  };
+
+  updateAttribute = (params: UpdateAttributeParameters): Promise<Blob> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
+    return Ajax().WorkspaceData.updateAttribute(
+      this.proxyUrl,
+      this.workspaceId,
+      params.entityType,
+      params.oldAttributeName,
+      {
+        name: params.newAttributeName,
+      }
     );
   };
 }
