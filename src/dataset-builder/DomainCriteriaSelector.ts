@@ -1,4 +1,5 @@
 import _ from 'lodash/fp';
+import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import {
@@ -41,6 +42,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
   const [hierarchyConcepts, loadHierarchyConcepts] = useLoadedData<GetConceptsHierarchyMapResponse>();
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
+  const [hierarchy, setHierarchy] = useState(new Map<number, Concept[]>());
   useOnMount(() => {
     const selectedConcept = state.selectedConcept;
     if (selectedConcept) {
@@ -51,29 +53,15 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
     }
   });
 
-  return rootConcepts.status === 'Ready'
+  if (rootConcepts.status === 'Ready') {
+    setHierarchy(new Map<number, Concept[]>([[state.domainOption.root.id, rootConcepts.state.result]]));
+  } else if (hierarchyConcepts.status === 'Ready') {
+    setHierarchy(hierarchyConcepts.state.result);
+  }
+
+  return rootConcepts.status === 'Ready' || hierarchyConcepts.status === 'Ready'
     ? h(ConceptSelector, {
-        initialRows: rootConcepts.state.result,
-        domainOptionRoot: state.domainOption.root,
-        title: state.domainOption.category,
-        initialCart: state.cart,
-        onCancel: () => onStateChange(state.cancelState),
-        onCommit: (selected: Concept[]) => {
-          const cartCriteria = _.map(toCriteria(state.domainOption, getNextCriteriaIndex), selected);
-          const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
-          // add/remove all cart elements to the domain group's criteria list in the cohort
-          _.flow(
-            _.update(`criteriaGroups.${groupIndex}.criteria`, _.xor(cartCriteria)),
-            cohortEditorState.new,
-            onStateChange
-          )(state.cohort);
-        },
-        actionText: 'Add to group',
-        datasetId,
-      })
-    : hierarchyConcepts.status === 'Ready'
-    ? h(ConceptSelector, {
-        initialHierarchy: hierarchyConcepts.state.result, // call an API instead that will get
+        initialHierarchy: hierarchy,
         domainOptionRoot: state.domainOption.root,
         title: state.domainOption.category,
         initialCart: state.cart,
