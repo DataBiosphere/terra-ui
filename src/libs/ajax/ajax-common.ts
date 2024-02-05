@@ -269,11 +269,6 @@ export const fetchBond = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
-export const fetchMartha = _.flow(
-  withUrlPrefix(`${getConfig().marthaUrlRoot}/`),
-  withRetryAfterReloadingExpiredAuthToken
-)(fetchOk);
-
 export const fetchDrsHub = _.flow(
   withUrlPrefix(`${getConfig().drsHubUrlRoot}/`),
   withRetryAfterReloadingExpiredAuthToken

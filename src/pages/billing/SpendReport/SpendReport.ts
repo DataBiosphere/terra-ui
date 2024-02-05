@@ -48,13 +48,14 @@ interface ProjectCost {
   spend: string;
   compute: string;
   storage: string;
+  workspaceInfrastructure: string;
   other: string;
 }
 // End of interfaces for internal storage of data
 
 // Interfaces for dealing with the server SpendReport JSON response
 interface CategorySpendData {
-  category: 'Compute' | 'Storage' | 'Other';
+  category: 'Compute' | 'Storage' | 'WorkspaceInfrastructure' | 'Other';
   cost: string;
   credits: string;
   currency: string;
@@ -183,6 +184,28 @@ export const SpendReport = (props: SpendReportProps) => {
 
   const isProjectCostReady = projectCost !== null;
 
+  const TOTAL_SPEND_CATEGORY = 'spend';
+  const WORKSPACEINFRASTRUCTURE_CATEGORY = 'workspaceInfrastructure';
+  const COMPUTE_CATEGORY = 'compute';
+  const STORAGE_CATEGORY = 'storage';
+
+  const getReportCategoryCardCaption = (name, cloudPlatformName) => {
+    const azureCategoryCardCaptionMap = new Map([
+      [TOTAL_SPEND_CATEGORY, 'spend'],
+      [WORKSPACEINFRASTRUCTURE_CATEGORY, 'workspace infrastructure'],
+      [COMPUTE_CATEGORY, 'analysis compute'],
+      [STORAGE_CATEGORY, 'workspace storage'],
+    ]);
+
+    return cloudPlatformName === 'GCP' ? name : azureCategoryCardCaptionMap.get(name);
+  };
+
+  // the order of the arrays below is important. it defines the order of elements on UI.
+  const reportCategories =
+    props.cloudPlatform === 'GCP'
+      ? [TOTAL_SPEND_CATEGORY, COMPUTE_CATEGORY, STORAGE_CATEGORY]
+      : [TOTAL_SPEND_CATEGORY, WORKSPACEINFRASTRUCTURE_CATEGORY, COMPUTE_CATEGORY, STORAGE_CATEGORY];
+
   useEffect(() => {
     const maybeLoadProjectCost = async () => {
       if (!updatingProjectCost && !errorMessage && projectCost === null && props.viewSelected) {
@@ -207,10 +230,13 @@ export const SpendReport = (props: SpendReportProps) => {
         console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category');
         const getCategoryCosts = (
           categorySpendData: CategorySpendData[]
-        ): { compute: number; storage: number; other: number } => {
+        ): { compute: number; storage: number; workspaceInfrastructure: number; other: number } => {
           return {
             compute: parseFloat(_.find(['category', 'Compute'], categorySpendData)?.cost ?? '0'),
             storage: parseFloat(_.find(['category', 'Storage'], categorySpendData)?.cost ?? '0'),
+            workspaceInfrastructure: parseFloat(
+              _.find(['category', 'WorkspaceInfrastructure'], categorySpendData)?.cost ?? '0'
+            ),
             other: parseFloat(_.find(['category', 'Other'], categorySpendData)?.cost ?? '0'),
           };
         };
@@ -220,6 +246,7 @@ export const SpendReport = (props: SpendReportProps) => {
           spend: costFormatter.format(parseFloat(spend.spendSummary.cost)),
           compute: costFormatter.format(costDict.compute),
           storage: costFormatter.format(costDict.storage),
+          workspaceInfrastructure: costFormatter.format(costDict.workspaceInfrastructure),
           other: costFormatter.format(costDict.other),
         });
 
@@ -287,7 +314,7 @@ export const SpendReport = (props: SpendReportProps) => {
         {
           style: {
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))',
+            gridTemplateColumns: `repeat(${reportCategories.length}, minmax(max-content, 1fr))`,
             rowGap: '1.66rem',
             columnGap: '1.25rem',
           },
@@ -324,12 +351,12 @@ export const SpendReport = (props: SpendReportProps) => {
             (name) =>
               h(CostCard, {
                 type: name,
-                title: `Total ${name}`,
+                title: `Total ${getReportCategoryCardCaption(name, props.cloudPlatform)}`,
                 amount: !isProjectCostReady ? '...' : projectCost[name],
                 isProjectCostReady,
                 showAsterisk: name === 'spend',
               }),
-            ['spend', 'compute', 'storage']
+            reportCategories
           ),
         ]
       ),

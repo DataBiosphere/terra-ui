@@ -8,7 +8,7 @@ import colors from 'src/libs/colors';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { BaseWorkspace, hasAccessLevel, isAzureWorkspace, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
-import { AccessEntry, WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
+import { AccessEntry, WorkspaceAcl } from 'src/workspaces/common/WorkspaceAcl';
 
 /**
  * @param aclItem {AccessEntry} the item to render

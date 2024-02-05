@@ -4,6 +4,8 @@ import { getBadVersions, getLatestVersion, versionStore } from './version-alerts
 
 export const VERSION_POLLING_INTERVAL = 15 * 60 * 1000; // 15 minutes
 
+export const FORCED_UPDATE_DELAY = 10 * 60 * 1000; // 10 minutes
+
 export const checkVersion = withErrorIgnoring(async (): Promise<void> => {
   const { currentVersion } = versionStore.get();
 
@@ -13,7 +15,11 @@ export const checkVersion = withErrorIgnoring(async (): Promise<void> => {
   if (latestVersion !== currentVersion) {
     const badVersions = await getBadVersions();
     if (badVersions.includes(currentVersion)) {
-      versionStore.update((value) => ({ ...value, isUpdateRequired: true }));
+      versionStore.update((value) => ({
+        ...value,
+        updateRequiredBy:
+          value.updateRequiredBy === undefined ? Date.now() + FORCED_UPDATE_DELAY : value.updateRequiredBy,
+      }));
     }
   }
 });

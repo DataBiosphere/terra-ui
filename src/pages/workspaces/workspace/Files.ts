@@ -7,7 +7,7 @@ import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFile
 import { useQueryParameter } from 'src/libs/nav';
 import { forwardRefWithName } from 'src/libs/react-utils';
 import { isAzureWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 import { useMemo } from 'use-memo-one';
 
 export const Files = _.flow(

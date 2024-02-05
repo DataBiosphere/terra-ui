@@ -311,7 +311,6 @@ export const GcpComputeModalBase = ({
 
     const { namespace, name, bucketName, googleProject } = getWorkspaceObject();
     const terraDeploymentEnv = getConfig().terraDeploymentEnv;
-    const customDrsResolverArgs = getConfig().shouldUseDrsHub ? { DRS_RESOLVER_ENDPOINT: 'api/v4/drs/resolve' } : {};
 
     const customEnvVars = {
       WORKSPACE_NAME: name,
@@ -319,8 +318,8 @@ export const GcpComputeModalBase = ({
       WORKSPACE_BUCKET: `gs://${bucketName}`,
       GOOGLE_PROJECT: googleProject,
       CUSTOM_IMAGE: isCustomSelectedImage.toString(),
+      DRS_RESOLVER_ENDPOINT: 'api/v4/drs/resolve',
       ...(!!terraDeploymentEnv && { TERRA_DEPLOYMENT_ENV: terraDeploymentEnv }),
-      ...customDrsResolverArgs,
     };
 
     sendCloudEnvironmentMetrics();

@@ -22,7 +22,7 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal';
 import { rerunFailures } from 'src/pages/workspaces/workspace/workflows/FailureRerunner';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 const styles = {
   submissionsTable: {
