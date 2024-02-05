@@ -23,17 +23,12 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
   const [isBusy, setIsBusy] = useState(false);
   const { onDismiss, onSuccess, entityType, attributeNames, oldAttributeName, dataProvider } = props;
 
-  // Imposes same constraints on GCP and Azure:
-  // Composed of only letters, numbers, underscores, or dashes; regex match "[A-z0-9_-]+"
+  // For both GCP and Azure:
+  // Cannot be blank or matching an existing attribute
   const mutualColumnNameErrors = validate.single(newAttributeName, {
     presence: {
       allowEmpty: false,
       message: 'Column name is required',
-    },
-    format: {
-      pattern: '[A-Za-z0-9_-]+$',
-      flags: 'i',
-      message: 'Column name may only contain alphanumeric characters, underscores, and dashes.',
     },
     exclusion: {
       within: attributeNames,
@@ -45,34 +40,49 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
   //   “name”
   //   “entityType”
   //   “${entityType}_id”, where ${entityType} is the name of the data table
+  // A single colon is allowed (for namespacing), otherwise only alphanumeric characters, underscores, and dashes are allowed
   const gcpColumnNameErrors =
     dataProvider.providerName === 'Entity Service'
       ? validate.single(newAttributeName, {
           format: {
-            pattern: `^(?!name$|entityType$|${entityType}_id$).*`,
+            pattern: `^(?!name$|entityType$|${entityType}_id$)[A-Za-z0-9_-]*:?[A-Za-z0-9]+$`,
             flags: 'i',
-            message: `Column name cannot be "name", "entityType" or "${entityType}_id".`,
+            message: Utils.cond(
+              [
+                newAttributeName.includes(':'),
+                () => 'Column name may only include a single colon indicating namespace.',
+              ],
+              [
+                ['name', 'entitytype', `${entityType}_id`].includes(newAttributeName),
+                () => `Column name cannot be "name", "entityType" or "${entityType}_id".`,
+              ],
+              () => 'Column name may only contain alphanumeric characters, underscores, and dashes.'
+            ),
           },
         })
-      : {};
+      : [];
 
   // On Azure only, cannot begin with “sys_”
+  // Must contain only alphanumeric characters, underscores, and dashes
   const azureColumnNameErrors =
     dataProvider.providerName === 'WDS'
       ? validate.single(newAttributeName, {
           format: {
-            pattern: '^(?!sys_).*',
+            pattern: '^(?!sys_)[A-Za-z0-9_-]+$',
             flags: 'i',
-            message: 'Column name cannot start with "sys_".',
+            message: Utils.cond(
+              [newAttributeName.startsWith('sys_'), () => 'Column name cannot start with "sys_"'],
+              () => 'Column name may only contain alphanumeric characters, underscores, and dashes.'
+            ),
           },
         })
-      : {};
+      : [];
 
-  const columnNameErrors = {
-    mutualColumnNameErrors,
-    gcpColumnNameErrors,
-    azureColumnNameErrors,
-  };
+  const columnNameErrors = [
+    ...(mutualColumnNameErrors || []),
+    ...(gcpColumnNameErrors || []),
+    ...(azureColumnNameErrors || []),
+  ];
 
   const renameColumn = async () => {
     try {
@@ -93,7 +103,7 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
       okButton: h(
         ButtonPrimary,
         {
-          disabled: isBusy || !!columnNameErrors,
+          disabled: isBusy || columnNameErrors.length > 0,
           onClick: renameColumn,
         },
         ['Rename']

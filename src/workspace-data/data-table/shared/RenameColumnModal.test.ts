@@ -87,4 +87,42 @@ describe('RenameColumnModal', () => {
     // Assert
     expect(renameModal.queryByText(/Column name cannot start with "sys_"/)).toBeNull();
   });
+
+  it('Does not allow colons in azure', async () => {
+    // Arrange
+    const renameProps = { ...defaultRenameColumnModalProps, dataProvider: { providerName: 'WDS' } };
+    // Act
+    const renameModal = render(h(RenameColumnModal, renameProps));
+    // User enters 'attribute2'
+    const input = screen.getByLabelText(/New Name/);
+    await userEvent.type(input, 'namespace:attribute');
+    // Assert
+    expect(renameModal.getByText(/Column name may only contain alphanumeric characters, underscores, and dashes./));
+  });
+
+  it('Allows a single colon in gcp', async () => {
+    // Arrange
+    const renameProps = { ...defaultRenameColumnModalProps };
+    // Act
+    const renameModal = render(h(RenameColumnModal, renameProps));
+    // User enters 'attribute2'
+    const input = screen.getByLabelText(/New Name/);
+    await userEvent.type(input, 'namespace:attribute');
+    // Assert
+    expect(
+      renameModal.queryByText(/Column name may only contain alphanumeric characters, underscores, and dashes./)
+    ).toBeNull();
+  });
+
+  it('Does not allow multiple colons in gcp', async () => {
+    // Arrange
+    const renameProps = { ...defaultRenameColumnModalProps };
+    // Act
+    const renameModal = render(h(RenameColumnModal, renameProps));
+    // User enters 'attribute2'
+    const input = screen.getByLabelText(/New Name/);
+    await userEvent.type(input, 'namespace:attribute:colon');
+    // Assert
+    expect(renameModal.getByText(/Column name may only include a single colon indicating namespace/));
+  });
 });
