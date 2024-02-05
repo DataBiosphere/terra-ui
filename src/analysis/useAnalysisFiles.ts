@@ -16,7 +16,7 @@ import { reportError, withErrorReporting } from 'src/libs/error';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { CloudProvider, cloudProviderTypes, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { CloudProvider, cloudProviderTypes, WorkspaceWrapper } from 'src/workspaces/utils';
 
 export interface AnalysisFileMetadata {
   lockExpiresAt: string;

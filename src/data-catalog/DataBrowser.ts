@@ -10,7 +10,6 @@ import { Dataset } from 'src/libs/ajax/Catalog';
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { CloudProvider, cloudProviderLabels } from 'src/libs/workspace-utils';
 import {
   commonStyles,
   FilterSection,
@@ -18,6 +17,7 @@ import {
   SearchAndFilterProps,
   Sort,
 } from 'src/pages/library/SearchAndFilterComponent';
+import { CloudProvider, cloudProviderLabels } from 'src/workspaces/utils';
 
 import {
   DatasetAccess,

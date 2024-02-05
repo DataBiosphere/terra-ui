@@ -30,7 +30,7 @@ import {
   WorkspaceAccessLevel,
   WorkspacePolicy,
   WorkspaceWrapper,
-} from './workspace-utils';
+} from './utils';
 
 describe('isValidWsExportTarget', () => {
   it('Returns true because source and dest workspaces are the same', () => {

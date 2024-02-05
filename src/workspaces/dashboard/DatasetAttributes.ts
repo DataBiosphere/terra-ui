@@ -6,8 +6,8 @@ import { div, h, span } from 'react-hyperscript-helpers';
 import { SimpleTable } from 'src/components/table';
 import * as Style from 'src/libs/style';
 import { append } from 'src/libs/utils';
-import { WorkspaceInfo } from 'src/libs/workspace-utils';
 import { displayConsentCodes, displayLibraryAttributes } from 'src/workspaces/dashboard/library-attributes';
+import { WorkspaceInfo } from 'src/workspaces/utils';
 
 interface DatasetAttributesProps {
   attributes: WorkspaceInfo['attributes'];

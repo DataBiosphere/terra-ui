@@ -30,8 +30,8 @@ import { getTerraUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 import EntitiesContent from './data-table/entity-service/EntitiesContent';
 import { ExportDataModal } from './data-table/entity-service/ExportDataModal';

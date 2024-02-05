@@ -1,5 +1,5 @@
 import { FieldsArg } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 /**
  * the expected hook return for useWorkpaces hook usage.

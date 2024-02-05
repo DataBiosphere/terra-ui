@@ -12,7 +12,6 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useQueryParameter } from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
@@ -20,6 +19,7 @@ import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { analysesDataInitialized, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 const subHeadersMap = {
   'workspace-workflows': 'Workflows in this workspace',

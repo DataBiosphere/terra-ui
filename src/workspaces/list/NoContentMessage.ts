@@ -1,8 +1,8 @@
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useContext } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { NoWorkspacesMessage } from 'src/components/workspace-utils';
 import { cond } from 'src/libs/utils';
+import { NoWorkspacesMessage } from 'src/workspaces/common/NoWorkspacesMessage';
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
 import { WorkspaceFilterValues } from 'src/workspaces/list/WorkspaceFilters';
 import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';

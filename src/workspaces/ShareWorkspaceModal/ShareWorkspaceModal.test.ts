@@ -4,11 +4,11 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getTerraUser } from 'src/libs/state';
-import { GoogleWorkspace } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace, protectedAzureWorkspace } from 'src/testing/workspace-fixtures';
-import { AccessEntry, RawWorkspaceAcl } from 'src/workspaces/common/WorkspaceAcl';
+import { AccessEntry, RawWorkspaceAcl } from 'src/workspaces/acl-utils';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
+import { GoogleWorkspace } from 'src/workspaces/utils';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),

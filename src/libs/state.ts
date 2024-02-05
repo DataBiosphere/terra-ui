@@ -13,7 +13,7 @@ import {
   SamUserAttributes,
 } from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
-import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import type { WorkspaceWrapper } from 'src/workspaces/utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 

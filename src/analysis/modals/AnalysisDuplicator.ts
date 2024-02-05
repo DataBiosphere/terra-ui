@@ -15,7 +15,7 @@ import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 's
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
-import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
+import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/workspaces/utils';
 import validate from 'validate.js';
 
 export interface AnalysisDuplicatorProps {

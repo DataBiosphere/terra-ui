@@ -1,9 +1,9 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { div, h } from 'react-hyperscript-helpers';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { RenderedWorkspaces } from 'src/workspaces/list/RenderedWorkspaces';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 // FlexTable uses react-virtualized's AutoSizer to size the table.
 // This makes the virtualized window large enough for all rows/columns to be rendered in tests.

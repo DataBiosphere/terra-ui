@@ -12,17 +12,11 @@ import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { formatBytes, newTabLinkProps } from 'src/libs/utils';
-import {
-  AzureWorkspace,
-  canWrite,
-  GoogleWorkspace,
-  isAzureWorkspace,
-  isGoogleWorkspace,
-} from 'src/libs/workspace-utils';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { AzureStorageDetails } from 'src/workspaces/dashboard/AzureStorageDetails';
 import { BucketLocation } from 'src/workspaces/dashboard/BucketLocation';
 import { InfoRow } from 'src/workspaces/dashboard/InfoRow';
+import { AzureWorkspace, canWrite, GoogleWorkspace, isAzureWorkspace, isGoogleWorkspace } from 'src/workspaces/utils';
 
 interface CloudInformationProps {
   storageDetails: StorageDetails;

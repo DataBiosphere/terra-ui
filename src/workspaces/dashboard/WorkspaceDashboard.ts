@@ -3,7 +3,6 @@ import _ from 'lodash/fp';
 import { forwardRef, ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
-import { canEditWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { AuthDomainPanel } from 'src/workspaces/dashboard/AuthDomainPanel';
 import { CloudInformation } from 'src/workspaces/dashboard/CloudInformation';
@@ -14,6 +13,7 @@ import { WorkspaceDescription } from 'src/workspaces/dashboard/WorkspaceDescript
 import { WorkspaceInformation } from 'src/workspaces/dashboard/WorkspaceInformation';
 import { WorkspaceNotifications } from 'src/workspaces/dashboard/WorkspaceNotifications';
 import { WorkspaceTags } from 'src/workspaces/dashboard/WorkspaceTags';
+import { canEditWorkspace, isGoogleWorkspace } from 'src/workspaces/utils';
 
 export interface WorkspaceDashboardProps {
   namespace: string;

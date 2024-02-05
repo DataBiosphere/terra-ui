@@ -2,9 +2,9 @@ import _ from 'lodash/fp';
 import React, { CSSProperties, Dispatch, Fragment, SetStateAction, useLayoutEffect, useRef } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
-import { BaseWorkspace } from 'src/libs/workspace-utils';
-import { aclEntryIsTerraSupport, WorkspaceAcl } from 'src/workspaces/common/WorkspaceAcl';
+import { aclEntryIsTerraSupport, WorkspaceAcl } from 'src/workspaces/acl-utils';
 import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
+import { BaseWorkspace } from 'src/workspaces/utils';
 
 /**
  * Render a list of Collaborators of a workspace, and allow them to be modified or removed.
