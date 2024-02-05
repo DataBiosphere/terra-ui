@@ -14,6 +14,8 @@ import { GCPBillingProjectWizard } from 'src/billing-ui/NewBillingProjectWizard/
 import ProjectDetail from 'src/billing-ui/Project';
 import Collapse from 'src/components/Collapse';
 import { customSpinnerOverlay } from 'src/components/common';
+import FooterWrapper from 'src/components/FooterWrapper';
+import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
@@ -38,13 +40,13 @@ const BillingProjectSubheader = ({ title, children }) =>
     [children]
   );
 
-interface ListPageProps {
+interface ListProps {
   queryParams: {
     selectedName: string | undefined;
   };
 }
 
-export const ListPage = (props: ListPageProps) => {
+export const List = (props: ListProps) => {
   // State
   const [billingProjects, setBillingProjects] = useState<BillingProject[]>(StateHistory.get().billingProjects || []);
   const [creatingBillingProjectType, setCreatingBillingProjectType] = useState<CloudProvider | null>();
@@ -57,7 +59,6 @@ export const ListPage = (props: ListPageProps) => {
   const signal = useCancellation();
   const interval = useRef<number>();
   const selectedName = props.queryParams.selectedName;
-  const billingProjectListWidth = 350;
 
   // Helpers
   const loadProjects = _.flow(
@@ -138,6 +139,8 @@ export const ListPage = (props: ListPageProps) => {
   });
 
   // Render
+  const breadcrumbs = 'Billing > Billing Project';
+  const billingProjectListWidth = 350;
   const [projectsOwned, projectsShared] = _.partition(
     ({ roles }) => _.includes(billingRoles.owner, roles),
     billingProjects
@@ -154,157 +157,175 @@ export const ListPage = (props: ListPageProps) => {
     };
   };
 
-  return div({ role: 'main', style: { display: 'flex', flex: 1, height: `calc(100% - ${Style.topBarHeight}px)` } }, [
-    div(
-      {
-        style: {
-          minWidth: billingProjectListWidth,
-          maxWidth: billingProjectListWidth,
-          boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)',
-          overflowY: 'auto',
-        },
-      },
-      [
-        div(
-          {
-            role: 'navigation',
-            style: {
-              fontSize: 16,
-              fontWeight: 600,
-              padding: '2rem 1rem 1rem',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              textTransform: 'uppercase',
-              color: colors.dark(),
-            },
+  return h(FooterWrapper, { fixedHeight: true }, [
+    h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
+      !!selectedName &&
+        div({ style: Style.breadcrumb.breadcrumb }, [
+          div({ style: Style.noWrapEllipsis }, [breadcrumbs]),
+          div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName]),
+        ]),
+    ]),
+    div({ role: 'main', style: { display: 'flex', flex: 1, height: `calc(100% - ${Style.topBarHeight}px)` } }, [
+      div(
+        {
+          style: {
+            minWidth: billingProjectListWidth,
+            maxWidth: billingProjectListWidth,
+            boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)',
+            overflowY: 'auto',
           },
-          [
-            h2({ style: { fontSize: 16 } }, ['Billing Projects']),
-            h(CreateBillingProjectControl, { showCreateProjectModal }),
-          ]
-        ),
-        h(BillingProjectSubheader, { title: 'Owned by You' }, [
-          div({ role: 'list' }, [
-            _.map(
-              (project) => h(ProjectListItem, { key: project.projectName, ...makeProjectListItemProps(project) }),
-              projectsOwned
-            ),
-          ]),
-        ]),
-        h(BillingProjectSubheader, { title: 'Shared with You' }, [
-          div({ role: 'list' }, [
-            _.map(
-              (project) => h(ProjectListItem, { key: project.projectName, ...makeProjectListItemProps(project) }),
-              projectsShared
-            ),
-          ]),
-        ]),
-      ]
-    ),
-    creatingBillingProjectType === 'GCP' &&
-      h(GCPNewBillingProjectModal, {
-        billingAccounts,
-        loadAccounts,
-        onDismiss: () => setCreatingBillingProjectType(null),
-        onSuccess: (billingProjectName) => {
-          Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
-            billingProjectName,
-            cloudPlatform: cloudProviderTypes.GCP,
-          });
-          setCreatingBillingProjectType(null);
-          loadProjects();
         },
-      }),
-    div(
-      {
-        style: {
-          overflowY: 'auto',
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-        },
-      },
-      [
-        Utils.cond(
-          [
-            !!selectedName && !_.some({ projectName: selectedName }, billingProjects),
-            () =>
-              div(
-                {
-                  style: {
-                    margin: '1rem auto 0 auto',
-                  },
-                },
-                [
-                  div([
-                    h2(['Error loading selected billing project.']),
-                    p(['It may not exist, or you may not have access to it.']),
-                  ]),
-                ]
+        [
+          div(
+            {
+              role: 'navigation',
+              style: {
+                fontSize: 16,
+                fontWeight: 600,
+                padding: '2rem 1rem 1rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                textTransform: 'uppercase',
+                color: colors.dark(),
+              },
+            },
+            [
+              h2({ style: { fontSize: 16 } }, ['Billing Projects']),
+              h(CreateBillingProjectControl, { showCreateProjectModal }),
+            ]
+          ),
+          h(BillingProjectSubheader, { title: 'Owned by You' }, [
+            div({ role: 'list' }, [
+              _.map(
+                (project) => h(ProjectListItem, { key: project.projectName, ...makeProjectListItemProps(project) }),
+                projectsOwned
               ),
-          ],
-          [
-            azureUserWithNoBillingProjects || creatingAzureBillingProject,
-            () =>
-              h(AzureBillingProjectWizard, {
-                onSuccess: (billingProjectName, protectedData) => {
-                  Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
-                    billingProjectName,
-                    cloudPlatform: cloudProviderTypes.AZURE,
-                    protectedData,
-                  });
-                  setCreatingBillingProjectType(null);
-                  loadProjects();
-                },
-              }),
-          ],
-          [
-            !isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser(),
-            () =>
-              h(GCPBillingProjectWizard, {
-                billingAccounts,
-                onSuccess: (billingProjectName) => {
-                  Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
-                    billingProjectName,
-                    cloudPlatform: cloudProviderTypes.GCP,
-                  });
-                  setCreatingBillingProjectType(null);
-                  loadProjects();
-                  Nav.history.push({
-                    pathname: Nav.getPath('billing'),
-                    search: qs.stringify({ selectedName: billingProjectName, type: 'project' }),
-                  });
-                },
-                authorizeAndLoadAccounts,
-              }),
-          ],
-          [
-            !!selectedName && _.some({ projectName: selectedName }, billingProjects),
-            () => {
-              const billingProject = _.find({ projectName: selectedName }, billingProjects);
-              return h(ProjectDetail, {
-                key: selectedName,
-                billingProject,
-                billingAccounts,
-                authorizeAndLoadAccounts,
-                reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
-                isOwner: _.find({ projectName: selectedName }, projectsOwned),
-                workspaces: allWorkspaces,
-                refreshWorkspaces,
-              });
-            },
-          ],
-          [
-            !_.isEmpty(projectsOwned) && !selectedName,
-            () => {
-              return div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project']);
-            },
-          ]
-        ),
-      ]
-    ),
-    (isLoadingProjects || isAuthorizing || isLoadingAccounts) &&
-      customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' }),
+            ]),
+          ]),
+          h(BillingProjectSubheader, { title: 'Shared with You' }, [
+            div({ role: 'list' }, [
+              _.map(
+                (project) => h(ProjectListItem, { key: project.projectName, ...makeProjectListItemProps(project) }),
+                projectsShared
+              ),
+            ]),
+          ]),
+        ]
+      ),
+      creatingBillingProjectType === 'GCP' &&
+        h(GCPNewBillingProjectModal, {
+          billingAccounts,
+          loadAccounts,
+          onDismiss: () => setCreatingBillingProjectType(null),
+          onSuccess: (billingProjectName) => {
+            Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+              billingProjectName,
+              cloudPlatform: cloudProviderTypes.GCP,
+            });
+            setCreatingBillingProjectType(null);
+            loadProjects();
+          },
+        }),
+      div(
+        {
+          style: {
+            overflowY: 'auto',
+            flexGrow: 1,
+            display: 'flex',
+            flexDirection: 'column',
+          },
+        },
+        [
+          Utils.cond(
+            [
+              !!selectedName && !_.some({ projectName: selectedName }, billingProjects),
+              () =>
+                div(
+                  {
+                    style: {
+                      margin: '1rem auto 0 auto',
+                    },
+                  },
+                  [
+                    div([
+                      h2(['Error loading selected billing project.']),
+                      p(['It may not exist, or you may not have access to it.']),
+                    ]),
+                  ]
+                ),
+            ],
+            [
+              azureUserWithNoBillingProjects || creatingAzureBillingProject,
+              () =>
+                h(AzureBillingProjectWizard, {
+                  onSuccess: (billingProjectName, protectedData) => {
+                    Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+                      billingProjectName,
+                      cloudPlatform: cloudProviderTypes.AZURE,
+                      protectedData,
+                    });
+                    setCreatingBillingProjectType(null);
+                    loadProjects();
+                  },
+                }),
+            ],
+            [
+              !isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser(),
+              () =>
+                h(GCPBillingProjectWizard, {
+                  billingAccounts,
+                  onSuccess: (billingProjectName) => {
+                    Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+                      billingProjectName,
+                      cloudPlatform: cloudProviderTypes.GCP,
+                    });
+                    setCreatingBillingProjectType(null);
+                    loadProjects();
+                    Nav.history.push({
+                      pathname: Nav.getPath('billing'),
+                      search: qs.stringify({ selectedName: billingProjectName, type: 'project' }),
+                    });
+                  },
+                  authorizeAndLoadAccounts,
+                }),
+            ],
+            [
+              !!selectedName && _.some({ projectName: selectedName }, billingProjects),
+              () => {
+                const billingProject = _.find({ projectName: selectedName }, billingProjects);
+                return h(ProjectDetail, {
+                  key: selectedName,
+                  billingProject,
+                  billingAccounts,
+                  authorizeAndLoadAccounts,
+                  reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
+                  isOwner: _.find({ projectName: selectedName }, projectsOwned),
+                  workspaces: allWorkspaces,
+                  refreshWorkspaces,
+                });
+              },
+            ],
+            [
+              !_.isEmpty(projectsOwned) && !selectedName,
+              () => {
+                return div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project']);
+              },
+            ]
+          ),
+        ]
+      ),
+      (isLoadingProjects || isAuthorizing || isLoadingAccounts) &&
+        customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' }),
+    ]),
   ]);
 };
+
+export const navPaths = [
+  {
+    name: 'billing',
+    path: '/billing',
+    component: List,
+    title: 'Billing',
+  },
+];
