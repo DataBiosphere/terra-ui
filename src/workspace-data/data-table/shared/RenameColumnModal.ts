@@ -22,6 +22,7 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
   const [newAttributeName, setNewAttributeName] = useState('');
   const [isBusy, setIsBusy] = useState(false);
   const { onDismiss, onSuccess, entityType, attributeNames, oldAttributeName, dataProvider } = props;
+  const [nameTouched, setNameTouched] = useState<boolean>(false);
 
   // For both GCP and Azure:
   // Cannot be blank or matching an existing attribute
@@ -94,7 +95,7 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
     Modal,
     {
       onDismiss,
-      title: 'Rename Column',
+      title: `Rename ${oldAttributeName}`,
       okButton: h(
         ButtonPrimary,
         {
@@ -118,9 +119,10 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
                 placeholder: 'Enter a name',
                 onChange: (v) => {
                   setNewAttributeName(v);
+                  setNameTouched(true);
                 },
               },
-              error: Utils.summarizeErrors(columnNameErrors),
+              error: nameTouched && Utils.summarizeErrors(columnNameErrors),
             }),
             isBusy && spinnerOverlay,
           ]),
