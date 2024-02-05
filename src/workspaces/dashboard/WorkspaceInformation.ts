@@ -2,9 +2,9 @@ import { InfoBox } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { dl, h } from 'react-hyperscript-helpers';
-import { getPolicyDescriptions } from 'src/libs/workspace-utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
 import { InfoRow } from 'src/workspaces/dashboard/InfoRow';
+import { getPolicyDescriptions } from 'src/workspaces/utils';
 
 const roleString = {
   READER: 'Reader',

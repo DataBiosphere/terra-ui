@@ -3,18 +3,18 @@ import { ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { Select } from 'src/components/common';
 import { DelayedSearchInput } from 'src/components/input';
-import { WorkspaceTagSelect } from 'src/components/workspace-utils';
-import { WorkspaceSubmissionStatus } from 'src/components/WorkspaceSubmissionStatusIcon';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
+import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
+import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
+import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
+import { WorkspaceSubmissionStatus } from 'src/workspaces/list/WorkspaceSubmissionStatusIcon';
 import {
   cloudProviderLabels,
   cloudProviderTypes,
   workspaceAccessLevels,
   WorkspaceWrapper as Workspace,
-} from 'src/libs/workspace-utils';
-import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
-import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
+} from 'src/workspaces/utils';
 
 const styles = {
   filter: { marginRight: '1rem', flex: '1 1 0', minWidth: 'max-content' },

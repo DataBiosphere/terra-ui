@@ -2,9 +2,9 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { workspaceProvider } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
 import { reportError } from 'src/libs/error';
 import { workspacesStore } from 'src/libs/state';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 type WorkspaceProviderExports = typeof import('src/libs/ajax/workspaces/providers/WorkspaceProvider');
 jest.mock(

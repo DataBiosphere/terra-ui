@@ -37,8 +37,8 @@ import { useCancellation, useGetter } from 'src/libs/react-utils';
 import { contactUsActive } from 'src/libs/state';
 import { elements as styleElements } from 'src/libs/style';
 import { cond, DEFAULT as COND_DEFAULT, formatUSD, makeCompleteDate, withBusyState } from 'src/libs/utils';
-import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { UseWorkspaces, UseWorkspacesResult } from 'src/workspaces/common/state/useWorkspaces.models';
+import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { DeleteAppModal } from './DeleteAppModal';
 import { DeleteButton } from './DeleteButton';

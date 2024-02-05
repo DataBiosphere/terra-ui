@@ -16,7 +16,6 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
 import { billingRoles } from 'src/pages/billing/billing-utils';
 import { CreateBillingProjectControl } from 'src/pages/billing/List/CreateBillingProjectControl';
 import { GCPNewBillingProjectModal } from 'src/pages/billing/List/GCPNewBillingProjectModal';
@@ -27,6 +26,7 @@ import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWi
 import { GCPBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard';
 import ProjectDetail from 'src/pages/billing/Project';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { CloudProvider, cloudProviderTypes } from 'src/workspaces/utils';
 
 const BillingProjectSubheader = ({ title, children }) =>
   h(

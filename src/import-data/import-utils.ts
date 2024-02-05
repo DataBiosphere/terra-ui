@@ -7,7 +7,7 @@ import {
   getCloudProviderFromWorkspace,
   isProtectedWorkspace,
   WorkspaceWrapper,
-} from 'src/libs/workspace-utils';
+} from 'src/workspaces/utils';
 
 import { ImportRequest } from './import-types';
 

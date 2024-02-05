@@ -12,7 +12,6 @@ import { updateSearch, useRoute } from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import { elements as StyleElements } from 'src/libs/style';
 import { newTabLinkProps } from 'src/libs/utils';
-import { cloudProviderTypes, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { useDeletionPolling } from 'src/workspaces/common/state/useDeletionPolling';
 import { categorizeWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
 import { RecentlyViewedWorkspaces } from 'src/workspaces/list/RecentlyViewedWorkspaces';
@@ -25,6 +24,7 @@ import {
 import { WorkspacesListModals } from 'src/workspaces/list/WorkspacesListModals';
 import { WorkspacesListTabs } from 'src/workspaces/list/WorkspacesListTabs';
 import { WorkspaceUserActions, WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
+import { cloudProviderTypes, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 export const persistenceId = 'workspaces/list';
 

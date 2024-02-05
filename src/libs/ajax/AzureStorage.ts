@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common';
 import { getConfig } from 'src/libs/config';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 type SasInfo = {
   url: string;

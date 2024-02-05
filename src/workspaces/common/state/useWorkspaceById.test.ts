@@ -3,7 +3,7 @@ import { act } from '@testing-library/react';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 
-import { useWorkspaceById } from './workspace-hooks';
+import { useWorkspaceById } from './useWorkspaceById';
 
 type AjaxExports = typeof import('src/libs/ajax');
 jest.mock('src/libs/ajax', (): AjaxExports => {

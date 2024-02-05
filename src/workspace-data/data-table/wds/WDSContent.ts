@@ -3,7 +3,7 @@ import { h } from 'react-hyperscript-helpers';
 import { DataTableProvider } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import { RecordTypeSchema, wdsToEntityServiceMetadata } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
-import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 import DataTable from '../shared/DataTable';
 

@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
-import { WorkspaceAccessLevel } from 'src/libs/workspace-utils';
 import { WorkspaceAttributeNotice } from 'src/workspaces/container/WorkspaceAttributeNotice';
+import { WorkspaceAccessLevel } from 'src/workspaces/utils';
 
 describe('WorkspaceAttributeNotice', () => {
   it('renders read-only, locked, and protected workspace attributes, with no accessibility issues', async () => {

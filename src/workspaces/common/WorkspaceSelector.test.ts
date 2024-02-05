@@ -1,10 +1,10 @@
 import { getAllByRole, getByRole, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
-import { WorkspaceSelector } from './workspace-utils';
+import { WorkspaceSelector } from './WorkspaceSelector';
 
 describe('WorkspaceSelector', () => {
   const workspaces: Workspace[] = [

@@ -4,7 +4,7 @@ import { Fragment, ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import * as Nav from 'src/libs/nav';
 import { newTabLinkProps } from 'src/libs/utils';
-import { GoogleWorkspace } from 'src/libs/workspace-utils';
+import { GoogleWorkspace } from 'src/workspaces/utils';
 
 interface AuthDomainPanelProps {
   workspace: GoogleWorkspace;
