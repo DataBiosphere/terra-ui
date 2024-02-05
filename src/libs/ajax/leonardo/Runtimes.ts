@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { version } from 'src/analysis/utils/gce-machines';
+import { CloudPlatform } from 'src/billing-logic/BillingProject';
 import {
   appIdentifier,
   authOpts,
@@ -28,7 +29,6 @@ import {
   RawListRuntimeItem,
 } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getConfig } from 'src/libs/config';
-import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
 
 export interface GoogleRuntimeWrapper {
   googleProject: string;

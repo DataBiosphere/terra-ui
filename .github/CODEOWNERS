@@ -1,6 +1,8 @@
 # Each line is a file pattern followed by one or more owners.
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-syntax
 /src/analysis @DataBiosphere/broad-interactive-analysis
+/src/billing-logic/ @DataBiosphere/broadworkspaces-terra-ui
+/src/billing-ui/ @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/EnvironmentsPage/ @DataBiosphere/broad-interactive-analysis
 /src/constants/datasets.js @DataBiosphere/data-explorer-eng
 /src/import-data/ @DataBiosphere/data-explorer-eng @DataBiosphere/analysisjourneys

@@ -1,8 +1,8 @@
 import { cond, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
+import { AzureBillingProject, BillingProject } from 'src/billing-logic/BillingProject';
 import { azureRegions } from 'src/libs/azure-regions';
-import { AzureBillingProject, BillingProject } from 'src/pages/billing/models/BillingProject';
 
 export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {

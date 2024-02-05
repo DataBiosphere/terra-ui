@@ -1,5 +1,8 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
+import { AzureManagedAppCoordinates } from 'src/billing-logic/AzureManagedAppCoordinates';
+import { BillingProject, BillingProjectMember, BillingRole } from 'src/billing-logic/BillingProject';
+import { GoogleBillingAccount } from 'src/billing-logic/GoogleBillingAccount';
 import {
   authOpts,
   fetchBillingProfileManager,
@@ -7,9 +10,6 @@ import {
   fetchRawls,
   jsonBody,
 } from 'src/libs/ajax/ajax-common';
-import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates';
-import { BillingProject, BillingProjectMember, BillingRole } from 'src/pages/billing/models/BillingProject';
-import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount';
 
 export const Billing = (signal?: AbortSignal) => ({
   listProjects: async (): Promise<BillingProject[]> => {

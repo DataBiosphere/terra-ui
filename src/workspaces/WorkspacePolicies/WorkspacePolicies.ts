@@ -3,8 +3,8 @@ import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import { CSSProperties, ReactNode } from 'react';
 import { div, h, li, ul } from 'react-hyperscript-helpers';
+import { BillingProject } from 'src/billing-logic/BillingProject';
 import * as Style from 'src/libs/style';
-import { BillingProject } from 'src/pages/billing/models/BillingProject';
 import { getPolicyDescriptions, WorkspaceWrapper } from 'src/workspaces/utils';
 
 type WorkspacePoliciesProps = {

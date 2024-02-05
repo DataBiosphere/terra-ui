@@ -1,4 +1,4 @@
-import { AzureBillingProject, GCPBillingProject } from 'src/pages/billing/models/BillingProject';
+import { AzureBillingProject, GCPBillingProject } from 'src/billing-logic/BillingProject';
 
 export const azureBillingProject: AzureBillingProject = {
   cloudPlatform: 'AZURE',
