@@ -1,9 +1,9 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { useDataCatalog } from 'src/data-catalog/data-browser-utils';
-import { DataBrowserDetails } from 'src/data-catalog/DataBrowserDetails';
-import { TEST_DATASET_ONE, TEST_DATASETS } from 'src/data-catalog/test-datasets';
+import { getDatasetReleasePoliciesDisplayInformation, useDataCatalog } from 'src/data-catalog/data-browser-utils';
+import { DataBrowserDetails, MainContent, MetadataDetailsComponent } from 'src/data-catalog/DataBrowserDetails';
+import { TEST_DATASET_ONE, TEST_DATASET_TWO, TEST_DATASETS } from 'src/data-catalog/test-datasets';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 const mockGoBack = jest.fn();
@@ -46,5 +46,40 @@ describe('DataBrowserDetails', () => {
     await user.click(backButton);
     // Assert
     expect(mockGoBack).toBeCalledTimes(1);
+  });
+
+  describe('MainContent', () => {
+    it('renders with name and description', async () => {
+      // Act
+      render(h(MainContent, { dataObj: TEST_DATASET_ONE }));
+      // Assert
+      expect(await screen.findByText(TEST_DATASET_ONE['dct:title'])).toBeTruthy();
+      expect(await screen.findByText(TEST_DATASET_ONE['dct:description'])).toBeTruthy();
+    });
+    it('renders workspace content if from a workspace', async () => {
+      // Act
+      render(h(MainContent, { dataObj: TEST_DATASET_ONE }));
+      // Assert
+      expect(await screen.findByText('This data is from the Terra workspace:')).toBeTruthy();
+    });
+    it('does not render workspace content if not from a workspace', async () => {
+      // Act
+      render(h(MainContent, { dataObj: TEST_DATASET_TWO }));
+      // Assert
+      expect(await screen.queryByText('This data is from the Terra workspace:')).toBeFalsy();
+    });
+  });
+
+  describe('MetadataDetailsComponent', () => {
+    it('renders', async () => {
+      // Act
+      render(h(MetadataDetailsComponent, { dataObj: TEST_DATASET_ONE }));
+      // Assert (We are only testing the properties which are on the test dataset)
+      expect(
+        await screen.findByText(
+          getDatasetReleasePoliciesDisplayInformation(TEST_DATASET_ONE['TerraDCAT_ap:hasDataUsePermission']).label
+        )
+      ).toBeTruthy();
+    });
   });
 });

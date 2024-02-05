@@ -52,7 +52,7 @@ interface MetadataDetailsComponentProps {
   dataObj: Dataset;
 }
 
-const MetadataDetailsComponent = ({ dataObj }: MetadataDetailsComponentProps) => {
+export const MetadataDetailsComponent = ({ dataObj }: MetadataDetailsComponentProps) => {
   return h(Fragment, [
     h2({ className: 'sr-only' }, [` ${dataObj['dct:title']} Metadata`]),
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
@@ -113,7 +113,7 @@ const MetadataDetailsComponent = ({ dataObj }: MetadataDetailsComponentProps) =>
   ]);
 };
 
-const MainContent = ({ dataObj }) => {
+export const MainContent = ({ dataObj }) => {
   const accessURL = dataObj['dcat:accessURL'];
   const workspaceName = accessURL?.includes('/#workspaces/') && accessURL.substring(accessURL.lastIndexOf('/') + 1);
   const linkStyle: CSSProperties = {
