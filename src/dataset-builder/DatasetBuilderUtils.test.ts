@@ -26,12 +26,7 @@ import {
   ValueSet,
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import {
-  dummyGetConceptForId,
-  dummyGetNodeFromHierarchy,
-  dummyGetParentInHierarchy,
-  getHierarchyMap,
-} from 'src/dataset-builder/TestConstants';
+import { dummyGetConceptForId, dummyGetNodeFromHierarchy, getHierarchyMap } from 'src/dataset-builder/TestConstants';
 import {
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderConcept,
@@ -295,34 +290,6 @@ describe('test dummyGetNodeFromHierarchy', () => {
   test('fetching id 400', () => {
     const dummyData = { id: 400, concept: dummyGetConceptForId(400), children: [401] };
     expect(dummyGetNodeFromHierarchy(400)).toStrictEqual(dummyData);
-  });
-});
-
-describe('test dummyGetParentInHierarchy', () => {
-  const dummyData = { id: 400, concept: dummyGetConceptForId(400), children: [401] };
-
-  test('testing on id 400', () => {
-    expect(dummyGetParentInHierarchy(400)).toStrictEqual(dummyData);
-  });
-
-  test('fetching id 401', () => {
-    expect(dummyGetParentInHierarchy(401)).toStrictEqual(dummyData);
-  });
-
-  test('fetching id 402', () => {
-    expect(dummyGetParentInHierarchy(402)).toStrictEqual(dummyData);
-  });
-
-  test('fetching id 403', () => {
-    expect(dummyGetParentInHierarchy(403)).toStrictEqual(dummyData);
-  });
-
-  test('fetching id 404', () => {
-    expect(dummyGetParentInHierarchy(404)).toStrictEqual(dummyData);
-  });
-
-  test('fetching id 405', () => {
-    expect(dummyGetParentInHierarchy(405)).toStrictEqual(dummyData);
   });
 });
 
