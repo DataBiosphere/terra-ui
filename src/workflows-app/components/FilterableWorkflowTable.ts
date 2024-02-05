@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { useState } from 'react';
-import { div, h, h2, h3, span } from 'react-hyperscript-helpers';
+import { div, h, h3, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
@@ -171,7 +171,6 @@ const FilterableWorkflowTable = ({
           },
         },
         [
-          div([h2(['Workflows'])]),
           runsFullyUpdated
             ? div([
                 icon('check', { size: 15, style: { color: colors.success() } }),
