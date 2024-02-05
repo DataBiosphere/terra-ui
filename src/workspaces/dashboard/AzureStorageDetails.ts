@@ -4,9 +4,9 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import { TooltipCell } from 'src/components/table';
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg';
 import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils';
-import { AzureContext } from 'src/libs/workspace-utils';
 import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { InfoRow } from 'src/workspaces/dashboard/InfoRow';
+import { AzureContext } from 'src/workspaces/utils';
 
 interface AzureStorageDetailsProps {
   azureContext: AzureContext;

@@ -2,7 +2,7 @@ import { DelayedRender } from '@terra-ui-packages/components';
 import { h, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { getLink } from 'src/libs/nav';
-import { useWorkspaceById } from 'src/libs/workspace-hooks';
+import { useWorkspaceById } from 'src/workspaces/common/state/useWorkspaceById';
 
 type WorkspaceLinkProps = {
   namespace: string;

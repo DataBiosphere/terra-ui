@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { useCancellation } from 'src/libs/react-utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 type UseWorkspaceResult =
   | {

@@ -1,9 +1,9 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceDeletingBanner } from 'src/workspaces/container/WorkspaceDeletingBanner';
+import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 // Mocking for Nav.getLink
 type NavExports = typeof import('src/libs/nav');

@@ -16,10 +16,10 @@ import { selectExistingWorkspacePrompt } from './ImportDataDestination';
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
 
-type WorkspaceUtilsExports = typeof import('src/workspaces/common/state/useWorkspaces');
-jest.mock('src/workspaces/common/state/useWorkspaces', (): WorkspaceUtilsExports => {
+type UseWorkspacesExports = typeof import('src/workspaces/common/state/useWorkspaces');
+jest.mock('src/workspaces/common/state/useWorkspaces', (): UseWorkspacesExports => {
   return {
-    ...jest.requireActual<WorkspaceUtilsExports>('src/workspaces/common/state/useWorkspaces'),
+    ...jest.requireActual<UseWorkspacesExports>('src/workspaces/common/state/useWorkspaces'),
     useWorkspaces: jest.fn(),
   };
 });

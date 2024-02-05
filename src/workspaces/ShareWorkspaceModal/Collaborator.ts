@@ -7,8 +7,8 @@ import { getPopupRoot } from 'src/components/popup-utils';
 import colors from 'src/libs/colors';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { BaseWorkspace, hasAccessLevel, isAzureWorkspace, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
-import { AccessEntry, WorkspaceAcl } from 'src/workspaces/common/WorkspaceAcl';
+import { AccessEntry, WorkspaceAcl } from 'src/workspaces/acl-utils';
+import { BaseWorkspace, hasAccessLevel, isAzureWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
 
 /**
  * @param aclItem {AccessEntry} the item to render

@@ -7,9 +7,9 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { errorWatcher } from 'src/libs/error.mock';
 import * as Nav from 'src/libs/nav';
 import { getTerraUser } from 'src/libs/state';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
 import { ImportWorkflow } from './ImportWorkflow';

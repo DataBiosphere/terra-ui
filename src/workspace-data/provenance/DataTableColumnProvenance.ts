@@ -4,7 +4,7 @@ import { div, h, li, ol, p, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { maxSubmissionsQueriedForProvenance } from './workspace-data-provenance-utils';
 

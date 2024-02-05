@@ -8,8 +8,8 @@ import { TextCell } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
-import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { getAttributeType } from 'src/workspace-data/data-table/entity-service/attribute-utils';
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/workspaces/utils';
 
 import { UriViewerLink } from '../shared/UriViewerLink';
 import { isAzureUri, isDrsUri, isGsUri } from '../uri-viewer/uri-viewer-utils';

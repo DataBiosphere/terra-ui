@@ -42,7 +42,7 @@ import {
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getAzurePricesForRegion, getDiskType } from 'src/libs/azure-utils';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 // GOOGLE COST METHODS begin
 

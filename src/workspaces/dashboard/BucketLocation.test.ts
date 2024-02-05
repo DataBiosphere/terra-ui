@@ -6,7 +6,6 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { GoogleWorkspace } from 'src/libs/workspace-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
   defaultAzureStorageOptions,
@@ -15,6 +14,7 @@ import {
   mockBucketRequesterPaysError,
 } from 'src/testing/workspace-fixtures';
 import { BucketLocation } from 'src/workspaces/dashboard/BucketLocation';
+import { GoogleWorkspace } from 'src/workspaces/utils';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 

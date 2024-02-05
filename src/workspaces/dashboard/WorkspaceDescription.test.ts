@@ -7,10 +7,10 @@ import { div, h } from 'react-hyperscript-helpers';
 import { MarkdownEditor } from 'src/components/markdown';
 import { Ajax } from 'src/libs/ajax';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { canEditWorkspace } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceDescription } from 'src/workspaces/dashboard/WorkspaceDescription';
+import { canEditWorkspace } from 'src/workspaces/utils';
 
 jest.mock('src/libs/error');
 
@@ -22,12 +22,12 @@ jest.mock('src/libs/ajax', () => ({
 
 jest.mock('src/libs/notifications');
 
-type UtilsExports = typeof import('src/libs/workspace-utils');
+type WorkspaceUtilsExports = typeof import('src/workspaces/utils');
 
 jest.mock(
-  'src/libs/workspace-utils',
-  (): UtilsExports => ({
-    ...jest.requireActual('src/libs/workspace-utils'),
+  'src/workspaces/utils',
+  (): WorkspaceUtilsExports => ({
+    ...jest.requireActual('src/workspaces/utils'),
     canEditWorkspace: jest.fn(),
   })
 );
