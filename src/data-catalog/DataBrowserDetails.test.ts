@@ -28,7 +28,7 @@ jest.mock('src/data-catalog/data-browser-utils', (): DataBrowserUtilsExports => 
 });
 
 describe('DataBrowserDetails', () => {
-  beforeEach(() => {
+  beforeAll(() => {
     // Arrange
     asMockedFn(useDataCatalog).mockReturnValue({
       dataCatalog: TEST_DATASETS,

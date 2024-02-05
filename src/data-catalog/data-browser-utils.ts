@@ -43,7 +43,7 @@ export const getDatasetReleasePoliciesDisplayInformation = (
     [Utils.DEFAULT, () => ({ label: dataUsePermission! })]
   );
 
-export const makeDatasetReleasePolicyDisplayInformation = (dataUsePermission: string | undefined): ReactElement => {
+export const makeDatasetReleasePolicyDisplayInformation = (dataUsePermission?: string): ReactElement => {
   const { label, description } = getDatasetReleasePoliciesDisplayInformation(dataUsePermission);
   return h(div, [
     label,

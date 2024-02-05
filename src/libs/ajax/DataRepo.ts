@@ -168,7 +168,7 @@ export interface DataRepoContract {
   };
   job: (jobId: string) => {
     details: () => Promise<JobModel>;
-    result: () => Promise<any>;
+    result: () => Promise<{}>;
   };
 }
 
