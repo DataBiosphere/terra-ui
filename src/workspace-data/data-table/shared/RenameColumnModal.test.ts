@@ -123,6 +123,6 @@ describe('RenameColumnModal', () => {
     const input = screen.getByLabelText(/New Name/);
     await userEvent.type(input, 'namespace:attribute:colon');
     // Assert
-    expect(renameModal.getByText(/Column name may only include a single colon indicating namespace/));
+    expect(renameModal.getByText(/Column name may only include a single colon/));
   });
 });

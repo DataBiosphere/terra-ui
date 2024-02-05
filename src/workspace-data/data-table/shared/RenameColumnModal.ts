@@ -44,18 +44,14 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
   const gcpColumnNameErrors =
     dataProvider.providerName === 'Entity Service'
       ? validate.single(newAttributeName, {
+          exclusion: {
+            within: ['name', 'entityType', `${entityType}_id`],
+            message: `Column name cannot be "name", "entityType" or "${entityType}_id".`,
+          },
           format: {
-            pattern: `^(?!name$|entityType$|${entityType}_id$)[A-Za-z0-9_-]*:?[A-Za-z0-9]+$`,
-            flags: 'i',
+            pattern: '[A-Za-z0-9_-]*:?[A-Za-z0-9_-]+$',
             message: Utils.cond(
-              [
-                newAttributeName.includes(':'),
-                () => 'Column name may only include a single colon indicating namespace.',
-              ],
-              [
-                ['name', 'entitytype', `${entityType}_id`].includes(newAttributeName),
-                () => `Column name cannot be "name", "entityType" or "${entityType}_id".`,
-              ],
+              [newAttributeName.includes(':'), () => 'Column name may only include a single colon.'],
               () => 'Column name may only contain alphanumeric characters, underscores, and dashes.'
             ),
           },
@@ -69,7 +65,6 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
       ? validate.single(newAttributeName, {
           format: {
             pattern: '^(?!sys_)[A-Za-z0-9_-]+$',
-            flags: 'i',
             message: Utils.cond(
               [newAttributeName.startsWith('sys_'), () => 'Column name cannot start with "sys_"'],
               () => 'Column name may only contain alphanumeric characters, underscores, and dashes.'
