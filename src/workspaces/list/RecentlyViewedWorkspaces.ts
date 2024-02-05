@@ -2,11 +2,12 @@ import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useMemo, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
-import { recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard } from 'src/components/workspace-utils';
-import { workspaceSubmissionStatus } from 'src/components/WorkspaceSubmissionStatusIcon';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
-import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { recentlyViewedPersistenceId } from 'src/workspaces/common/state/recentlyViewedWorkspaces';
+import { RecentlyViewedWorkspaceCard } from 'src/workspaces/list/RecentlyViewedWorkspaceCard';
 import { getWorkspace, persistenceId } from 'src/workspaces/list/WorkspacesList';
+import { workspaceSubmissionStatus } from 'src/workspaces/list/WorkspaceSubmissionStatusIcon';
+import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface RecentlyViewedWorkspacesProps {
   workspaces: Workspace[];

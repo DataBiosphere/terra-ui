@@ -4,6 +4,8 @@ import { h } from 'react-hyperscript-helpers';
 import { analysisTabName } from 'src/analysis/runtime-common-components';
 import { TabBar } from 'src/components/tabBars';
 import * as Nav from 'src/libs/nav';
+import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
+import { WorkspaceAttributeNotice } from 'src/workspaces/container/WorkspaceAttributeNotice';
 import {
   isAzureWorkspace,
   isGoogleWorkspace,
@@ -12,9 +14,7 @@ import {
   protectedDataMessage,
   regionConstraintMessage,
   WorkspaceWrapper as Workspace,
-} from 'src/libs/workspace-utils';
-import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
-import { WorkspaceAttributeNotice } from 'src/workspaces/container/WorkspaceAttributeNotice';
+} from 'src/workspaces/utils';
 
 export interface WorkspaceTabsProps {
   namespace: string;

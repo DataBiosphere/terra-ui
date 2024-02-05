@@ -3,13 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import {
-  AzureWorkspace,
-  groupConstraintLabel,
-  protectedDataLabel,
-  protectedDataMessage,
-  regionConstraintLabel,
-} from 'src/libs/workspace-utils';
-import {
   azureBillingProject,
   azureProtectedDataBillingProject,
   gcpBillingProject,
@@ -22,6 +15,13 @@ import {
   protectedDataPolicy,
   regionConstraintPolicy,
 } from 'src/testing/workspace-fixtures';
+import {
+  AzureWorkspace,
+  groupConstraintLabel,
+  protectedDataLabel,
+  protectedDataMessage,
+  regionConstraintLabel,
+} from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
 describe('WorkspacePolicies', () => {

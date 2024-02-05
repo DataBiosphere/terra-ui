@@ -2,8 +2,8 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { Capabilities, WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 import { ListAppItem } from '../leonardo/models/app-models';
 import {

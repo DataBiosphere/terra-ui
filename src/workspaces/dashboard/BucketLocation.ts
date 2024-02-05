@@ -12,8 +12,8 @@ import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { requesterPaysProjectStore } from 'src/libs/state';
-import { GoogleWorkspace } from 'src/libs/workspace-utils';
 import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
+import { GoogleWorkspace } from 'src/workspaces/utils';
 
 interface BucketLocationProps {
   workspace: GoogleWorkspace & { workspaceInitialized: boolean };

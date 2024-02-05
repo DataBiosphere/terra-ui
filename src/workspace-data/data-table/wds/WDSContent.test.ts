@@ -1,5 +1,5 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { act, screen } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import {
@@ -118,11 +118,8 @@ describe('WDSContent', () => {
     return { user, props: { ...props, dataProvider: dataProvider as DataTableProvider } };
   };
 
-  const getColorColumnMenu = () => {
-    const columnMenus = screen.queryAllByRole('button', { name: 'Column menu' });
-    expect(columnMenus.length).toEqual(2);
-    const [_unusedIdColumnMenu, colorColumnMenu] = columnMenus;
-    return colorColumnMenu;
+  const getColumnMenu = (name: string) => {
+    return within(screen.getByRole('columnheader', { name })).getByRole('button', { name: 'Column menu' });
   };
 
   describe('delete column button', () => {
@@ -138,7 +135,7 @@ describe('WDSContent', () => {
       await act(() => {
         render(h(WDSContent, props));
       });
-      await user.click(getColorColumnMenu());
+      await user.click(getColumnMenu('color'));
 
       const deleteColorColumnButton = screen.getByRole('button', { name: 'Delete Column' });
       const deleteConfirmationButton = screen.queryByTestId('confirm-delete');
@@ -167,7 +164,7 @@ describe('WDSContent', () => {
       await act(() => {
         render(h(WDSContent, props));
       });
-      await user.click(getColorColumnMenu());
+      await user.click(getColumnMenu('color'));
 
       // Assert
       expect(screen.queryByRole('button', { name: 'Delete Column' })).not.toBeInTheDocument();
@@ -186,7 +183,7 @@ describe('WDSContent', () => {
         render(h(WDSContent, props));
       });
 
-      await user.click(getColorColumnMenu());
+      await user.click(getColumnMenu('color'));
 
       // Assert
       expect(screen.queryByRole('button', { name: 'Delete Column' })).not.toBeInTheDocument();
@@ -207,7 +204,7 @@ describe('WDSContent', () => {
       await act(() => {
         render(h(WDSContent, props));
       });
-      await user.click(getColorColumnMenu());
+      await user.click(getColumnMenu('color'));
       await user.click(screen.getByRole('button', { name: 'Delete Column' }));
       await user.click(screen.getByTestId('confirm-delete'));
 

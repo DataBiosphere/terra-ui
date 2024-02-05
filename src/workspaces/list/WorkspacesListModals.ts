@@ -2,13 +2,13 @@ import { Fragment, ReactNode, useContext } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import { goToPath } from 'src/libs/nav';
-import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
 import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { RequestAccessModal } from 'src/workspaces/RequestAccessModal/RequestAccessModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
+import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface WorkspacesListModalsProps {
   getWorkspace: (string) => Workspace;

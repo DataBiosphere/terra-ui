@@ -65,7 +65,9 @@ const notifyCircleCITestResults = async () => {
 
   // Slack notification: CircleCI job failed. Message contains list of failed test names.
   const channelIDsAndNames = getFailedTestsAndChannelIDs(failedTestNames);
+  console.log(`Failed tests: \n${failedTestNames.map((test) => `* ${test}`).join('\n')}\n`);
   _.forEach(async ([channelId, testNames]) => {
+    console.log(`Notifying channel ${channelId} of ${testNames.length} test failures (${testNames.join(', ')})`);
     const messageBlocks = getMessageBlockTemplate(testNames);
     await postMessage({ channel: channelId, blocks: messageBlocks });
   }, _.toPairs(channelIDsAndNames));

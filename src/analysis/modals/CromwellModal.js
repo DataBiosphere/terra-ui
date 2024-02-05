@@ -13,8 +13,8 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useStore, withDisplayName } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes, getCloudProviderFromWorkspace, isAzureWorkspace } from 'src/libs/workspace-utils';
 import { cromwellLinkProps } from 'src/workflows-app/utils/app-utils';
+import { cloudProviderTypes, getCloudProviderFromWorkspace, isAzureWorkspace } from 'src/workspaces/utils';
 
 import { computeStyles } from './modalStyles';
 

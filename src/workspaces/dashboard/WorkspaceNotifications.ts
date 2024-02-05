@@ -9,7 +9,7 @@ import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { userStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
-import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface WorkspaceNotificationsProps {
   workspace: Workspace;

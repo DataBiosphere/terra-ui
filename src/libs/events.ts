@@ -7,7 +7,7 @@ import {
   WorkspaceAccessLevel,
   WorkspaceInfo,
   WorkspaceWrapper,
-} from 'src/libs/workspace-utils';
+} from 'src/workspaces/utils';
 
 /*
  * NOTE: In order to show up in reports, new events MUST be marked as expected in the Mixpanel
