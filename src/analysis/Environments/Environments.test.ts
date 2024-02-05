@@ -79,11 +79,15 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
 
 const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
   const mockPermissions: LeoResourcePermissionsProvider = {
-    canDeleteDisk: jest.fn().mockReturnValue(true),
-    canPauseResource: jest.fn().mockReturnValue(true),
-    canDeleteApp: jest.fn().mockReturnValue(true),
-    canDeleteResource: jest.fn().mockReturnValue(true),
+    canDeleteDisk: jest.fn(),
+    canPauseResource: jest.fn(),
+    canDeleteApp: jest.fn(),
+    canDeleteResource: jest.fn(),
   };
+  asMockedFn(mockPermissions.canDeleteDisk).mockReturnValue(true);
+  asMockedFn(mockPermissions.canPauseResource).mockReturnValue(true);
+  asMockedFn(mockPermissions.canDeleteApp).mockReturnValue(true);
+  asMockedFn(mockPermissions.canDeleteResource).mockReturnValue(true);
 
   const defaultProps: EnvironmentsProps = {
     nav: mockNav,
@@ -547,6 +551,8 @@ describe('Environments', () => {
       });
 
       // Assert
+      expect(screen.getAllByRole('row')).toHaveLength(6);
+
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstAppRow: HTMLElement = tableRows[0];
       const actionColumnButton1 = within(firstAppRow).getByRole('button', { name: 'Delete' });
