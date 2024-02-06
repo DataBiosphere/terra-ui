@@ -5,7 +5,6 @@ import { div, h } from 'react-hyperscript-helpers';
 import { NumberInput, TextInput } from 'src/components/input';
 import * as Utils from 'src/libs/utils';
 
-// can be pulled into shared
 export const renderInputForAttributeType = _.curry((attributeType, props) => {
   return Utils.switchCase(
     attributeType,

@@ -1,7 +1,7 @@
 export interface WdsAttributeType {
   type?: string;
   isList?: boolean;
-  error?: string;
+  message?: string;
 }
 
 export const getAttributeType = (
@@ -22,12 +22,13 @@ export const getAttributeType = (
       }
 
       // if the type matches, editing is allowed
-      if (dataProvider.features.supportEntityUpdatingTypes.includes(getTypeAttribute.toLowerCase())) {
+      if (dataProvider.features.supportsEntityUpdatingTypes.includes(getTypeAttribute.toLowerCase())) {
         return { type: getTypeAttribute.toLowerCase(), isList };
       }
+
+      return { message: 'Editing the current type is not supported.' };
     }
   }
 
-  // there is likely a better way to expose this
-  return { error: 'Editing the current type is not supported.' };
+  throw new Error('Unable to determine attribute type');
 };

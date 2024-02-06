@@ -69,7 +69,7 @@ const defaultFeatures: DataTableFeatures = {
   supportsTypeRenaming: false,
   supportsEntityRenaming: false,
   supportsEntityUpdating: false,
-  supportEntityUpdatingTypes: [],
+  supportsEntityUpdatingTypes: [],
   supportsAttributeRenaming: false,
   supportsAttributeDeleting: false,
   supportsAttributeClearing: false,
@@ -219,13 +219,14 @@ describe('WDSContent', () => {
 
   describe('edit column', () => {
     it('edit field icon is present for types that support editing', async () => {
+      // Arrange
       const { props } = setup({
         ...defaultSetupOptions,
         props: { ...defaultProps, editable: true },
         features: {
           ...defaultFeatures,
           supportsEntityUpdating: true,
-          supportEntityUpdatingTypes: ['string', 'number'],
+          supportsEntityUpdatingTypes: ['string', 'number'],
         },
       });
 
@@ -234,6 +235,9 @@ describe('WDSContent', () => {
         render(h(WDSContent, props));
       });
 
+      // Assert
+      // since only string and number are supported for editing, and number is the primary key
+      // only 3 column should be editable at this this
       const editableValues = await screen.findAllByText('Edit value');
       expect(editableValues.length).toEqual(3);
     });

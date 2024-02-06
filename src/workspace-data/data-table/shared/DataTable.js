@@ -45,7 +45,7 @@ import {
 import { SingleEntityEditor } from '../entity-service/SingleEntityEditor';
 import { getAttributeType } from '../wds/attribute-utils';
 import { SingleEntityEditorWds } from '../wds/SingleEntityEditorWds';
-import { EditDataLink, EditDataLinkDisabled } from './EditDataLink';
+import { EditDataLink } from './EditDataLink';
 import { HeaderOptions } from './HeaderOptions';
 import { RenameColumnModal } from './RenameColumnModal';
 
@@ -637,11 +637,12 @@ const DataTable = (props) => {
                           })
                         : editable &&
                           dataProvider.features.supportsEntityUpdating &&
-                          h(EditDataLinkDisabled, {
+                          h(EditDataLink, {
                             'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
                             'aria-haspopup': 'dialog',
                             'aria-expanded': !!updatingEntity,
                             disabled: true,
+                            tooltip: 'Editing this data type is not currently supported',
                             onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo }),
                           });
                       if (!!dataInfo && _.isArray(dataInfo.items)) {

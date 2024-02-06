@@ -1,6 +1,5 @@
 import { getAttributeType } from './attribute-utils';
 
-// this test needs to be edited
 describe('getAttributeType', () => {
   it.each([
     { recordAttribute: 'annotated_sex', expectedType: 'string', expectedIsList: false },
@@ -11,7 +10,7 @@ describe('getAttributeType', () => {
     { recordAttribute: 'booleans_list', expectedType: 'boolean', expectedIsList: true },
     { recordAttribute: 'json_field', expectedType: 'json', expectedIsList: false },
   ])('returns type of attribute value', ({ recordAttribute, expectedType, expectedIsList }) => {
-    const dataProvider = { features: { supportEntityUpdatingTypes: ['string', 'json', 'number', 'boolean'] } };
+    const dataProvider = { features: { supportsEntityUpdatingTypes: ['string', 'json', 'number', 'boolean'] } };
 
     const recordTypeAttribute = [
       {

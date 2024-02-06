@@ -38,7 +38,7 @@ export const SingleEntityEditorWds = ({
   const [isBusy, setIsBusy] = useState(false);
 
   const modalTitle = `Edit ${attributeName} value for ${recordName}`;
-  const modalDetails = originalValueType ? `Column Type is  ${originalValueType}` : '';
+  const modalDetails = originalValueType ? `Column type is  ${originalValueType}` : '';
 
   const doEdit = async () => {
     try {

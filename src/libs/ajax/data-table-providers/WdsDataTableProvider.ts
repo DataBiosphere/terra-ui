@@ -63,7 +63,7 @@ export interface TsvUploadResponse {
 export interface RecordResponseBody {
   id: string;
   type: string;
-  attributes: object;
+  attributes: { [attributeName: string]: any };
 }
 
 export const wdsToEntityServiceMetadata = (wdsSchema: RecordTypeSchema[]): EntityMetadata => {
@@ -170,7 +170,7 @@ export class WdsDataTableProvider implements DataTableProvider {
       supportsTypeRenaming: false,
       supportsEntityRenaming: false,
       supportsEntityUpdating: true,
-      supportEntityUpdatingTypes: ['string', 'number', 'boolean', 'json'], // remove this as part of AJ-<need to create ticket> for other types
+      supportsEntityUpdatingTypes: ['string', 'number', 'boolean', 'json'], // remove this as part of AJ-<need to create ticket> for other types
       supportsAttributeRenaming: this.isCapabilityEnabled('edit.renameAttribute'),
       supportsAttributeDeleting: this.isCapabilityEnabled('edit.deleteAttribute'),
       supportsAttributeClearing: false,

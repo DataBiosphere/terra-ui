@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useEffect, useRef } from 'react';
+import { Fragment, ReactNode, useEffect, useRef } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -8,7 +8,7 @@ import * as Utils from 'src/libs/utils';
 import { renderInputForAttributeType } from '../shared/AttributeInput';
 import { getAttributeType } from './attribute-utils';
 
-const defaultValueForAttributeType = (attributeType: string | undefined) => {
+const defaultValueForAttributeType = (attributeType: string | undefined): any => {
   return Utils.switchCase(
     attributeType,
     ['string', () => ''],
@@ -28,14 +28,15 @@ export interface WDSAttributeInputProps {
   initialValue: any;
 }
 
-const AttributeInput = ({
-  autoFocus = false,
-  value: attributeValue,
-  attributeName,
-  dataProvider,
-  onChange,
-  recordTypeAttributes,
-}: WDSAttributeInputProps) => {
+const AttributeInput = (props: WDSAttributeInputProps): ReactNode => {
+  const {
+    autoFocus = false,
+    value: attributeValue,
+    attributeName,
+    dataProvider,
+    onChange,
+    recordTypeAttributes,
+  } = props;
   const { type: attributeType, isList } = getAttributeType(attributeName, recordTypeAttributes, dataProvider);
 
   const renderInput = renderInputForAttributeType(attributeType);

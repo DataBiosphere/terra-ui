@@ -133,7 +133,7 @@ export interface DataTableFeatures {
   supportsTypeRenaming: boolean;
   supportsEntityRenaming: boolean;
   supportsEntityUpdating: boolean;
-  supportEntityUpdatingTypes?: string[];
+  supportsEntityUpdatingTypes?: string[];
   supportsAttributeRenaming: boolean;
   supportsAttributeDeleting: boolean;
   supportsAttributeClearing: boolean;
