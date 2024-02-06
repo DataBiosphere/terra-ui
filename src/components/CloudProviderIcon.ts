@@ -1,7 +1,7 @@
 import { h } from 'react-hyperscript-helpers';
 import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg';
 import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg';
-import { CloudProvider, cloudProviderLabels } from 'src/libs/workspace-utils';
+import { CloudProvider, cloudProviderLabels } from 'src/workspaces/utils';
 
 type CloudProviderIconProps = {
   cloudProvider: CloudProvider;

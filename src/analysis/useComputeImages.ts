@@ -5,7 +5,7 @@ import { ComputeImageProvider } from 'src/libs/ajax/compute-image-providers/Comp
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { workspaceStore } from 'src/libs/state';
-import { isGoogleWorkspaceInfo, WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { isGoogleWorkspaceInfo, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 export interface ComputeImage {
   id: string;

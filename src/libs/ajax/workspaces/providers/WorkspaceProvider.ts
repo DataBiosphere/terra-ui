@@ -1,6 +1,6 @@
 import { Ajax } from 'src/libs/ajax';
 import { AbortOption } from 'src/libs/ajax/data-provider-common';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 export type FieldsArg = string[];
 export type WorkspaceListOptions = AbortOption & {

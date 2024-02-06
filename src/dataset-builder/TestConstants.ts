@@ -87,7 +87,7 @@ export const dummyDatasetModel = (): DatasetModel => ({
   },
 });
 
-const dummyConcepts = [
+export const dummyConcepts = [
   // IDs must be unique.
   { id: 100, name: 'Condition', count: 100, hasChildren: true },
   { id: 101, name: 'Clinical Finding', count: 100, hasChildren: true },

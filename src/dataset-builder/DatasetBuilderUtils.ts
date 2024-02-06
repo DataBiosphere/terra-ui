@@ -1,5 +1,6 @@
-// Types that can be used to create a criteria.
 import _ from 'lodash/fp';
+import { ReactElement } from 'react';
+import { div } from 'react-hyperscript-helpers';
 import {
   ColumnStatisticsIntOrDoubleModel,
   ColumnStatisticsTextModel,
@@ -144,6 +145,10 @@ export interface GetConceptsResponse {
   result: Concept[];
 }
 
+export interface SearchConceptsResponse {
+  result: Concept[];
+}
+
 export type DatasetRequest = {
   cohorts: Cohort[];
   conceptSets: ConceptSet[];
@@ -261,4 +266,21 @@ export const convertProgramDataOptionToRangeOption = (
         `Datatype ${statistics.dataType} for ${programDataOption.tableName}/${programDataOption.columnName} is not numeric`
       );
   }
+};
+
+export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElement => {
+  const startIndex = conceptName.toLowerCase().indexOf(searchFilter.toLowerCase());
+
+  // searchFilter is empty or does not exist in conceptName
+  if (startIndex < 0 || searchFilter.trim() === '') {
+    return div([conceptName]);
+  }
+
+  const endIndex = startIndex + searchFilter.length;
+
+  return div({ style: { display: 'flex' } }, [
+    div({ style: { whiteSpace: 'pre' } }, [conceptName.substring(0, startIndex)]),
+    div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, [conceptName.substring(startIndex, endIndex)]),
+    div({ style: { whiteSpace: 'pre' } }, [conceptName.substring(endIndex)]),
+  ]);
 };

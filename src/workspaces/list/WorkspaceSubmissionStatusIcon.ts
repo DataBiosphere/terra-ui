@@ -5,7 +5,7 @@ import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import colors from 'src/libs/colors';
-import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 export type WorkspaceSubmissionStatus = 'success' | 'failure' | 'running';
 

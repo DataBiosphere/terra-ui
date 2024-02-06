@@ -5,8 +5,8 @@ import { FieldsArg, workspaceProvider } from 'src/libs/ajax/workspaces/providers
 import { reportError } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import { workspacesStore } from 'src/libs/state';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { UseWorkspacesResult } from 'src/workspaces/common/state/useWorkspaces.models';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 const defaultFieldsArgs: FieldsArg = [
   'accessLevel',

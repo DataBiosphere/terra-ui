@@ -6,7 +6,7 @@ import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Style from 'src/libs/style';
 import { useLocalPref } from 'src/libs/useLocalPref';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 interface RightBoxSectionProps {
   title: string;

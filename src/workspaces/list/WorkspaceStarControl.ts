@@ -11,7 +11,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useStore } from 'src/libs/react-utils';
 import { TerraUserState, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 interface WorkspaceStarControlProps {
   workspace: WorkspaceWrapper;

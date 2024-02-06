@@ -2,8 +2,8 @@ import { AbsolutePath } from 'src/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider';
-import { WorkspaceInfo } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { WorkspaceInfo } from 'src/workspaces/utils';
 
 type AjaxExports = typeof import('src/libs/ajax');
 jest.mock('src/libs/ajax', (): AjaxExports => {

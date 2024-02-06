@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 export const WorkspaceUserActionsContext = createContext<WorkspaceUserActionsState>({
   userActions: {

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { workspacesStore, workspaceStore } from 'src/libs/state';
 import { pollWithCancellation } from 'src/libs/utils';
-import { WorkspaceState, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { WorkspaceState, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 const updateWorkspacesList = (
   workspaces: Workspace[],

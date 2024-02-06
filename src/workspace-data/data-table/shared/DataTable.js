@@ -28,13 +28,12 @@ import { useCancellation } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 // TODO: Shared components should not depend on EntityService/WDS specific components.
 import { concatenateAttributeNames } from '../entity-service/attribute-utils';
 import { entityAttributeText } from '../entity-service/entityAttributeText';
 import { EntityRenamer } from '../entity-service/EntityRenamer';
-import { RenameColumnModal } from '../entity-service/RenameColumnModal';
 import { renderDataCell } from '../entity-service/renderDataCell';
 import {
   allSavedColumnSettingsEntityTypeKey,
@@ -45,6 +44,7 @@ import {
 import { SingleEntityEditor } from '../entity-service/SingleEntityEditor';
 import { EditDataLink } from './EditDataLink';
 import { HeaderOptions } from './HeaderOptions';
+import { RenameColumnModal } from './RenameColumnModal';
 
 const entityMap = (entities) => {
   return _.fromPairs(_.map((e) => [e.name, e], entities));
@@ -747,10 +747,10 @@ const DataTable = (props) => {
       }),
     !!renamingColumn &&
       h(RenameColumnModal, {
-        namespace,
-        name,
         entityType,
         oldAttributeName: renamingColumn,
+        attributeNames: entityMetadata[entityType].attributeNames,
+        dataProvider,
         onSuccess: () => {
           setRenamingColumn(undefined);
           Ajax().Metrics.captureEvent(Events.workspaceDataRenameColumn, extractWorkspaceDetails(workspace.workspace));

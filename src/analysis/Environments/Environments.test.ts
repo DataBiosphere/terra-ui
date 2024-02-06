@@ -25,6 +25,7 @@ import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { leoResourcePermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { EnvironmentNavActions, Environments, EnvironmentsProps } from './Environments';
 import { LeoResourcePermissionsProvider } from './Environments.models';

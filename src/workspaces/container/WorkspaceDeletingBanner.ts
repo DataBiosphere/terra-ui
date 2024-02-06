@@ -5,7 +5,7 @@ import ErrorView from 'src/components/ErrorView';
 import Modal from 'src/components/Modal';
 import TitleBar from 'src/components/TitleBar';
 import colors from 'src/libs/colors';
-import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface WorkspaceDeletingBannerProps {
   workspace?: Workspace;

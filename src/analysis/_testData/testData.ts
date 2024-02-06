@@ -18,8 +18,8 @@ import {
 import { GetRuntimeItem, ListRuntimeItem, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureRegion } from 'src/libs/azure-utils';
 import * as Utils from 'src/libs/utils';
-import { AzureWorkspace, cloudProviderTypes, GoogleWorkspace } from 'src/libs/workspace-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { AzureWorkspace, cloudProviderTypes, GoogleWorkspace } from 'src/workspaces/utils';
 import { v4 as uuid } from 'uuid';
 
 // this is important, so the test impl can diverge

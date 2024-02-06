@@ -8,7 +8,7 @@ import { reportError, withErrorReportingInModal } from 'src/libs/error';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { BaseWorkspace, isAzureWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils';
+import { BaseWorkspace, isAzureWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/workspaces/utils';
 
 export interface WorkspaceResources {
   nonDeleteableApps: App[];
