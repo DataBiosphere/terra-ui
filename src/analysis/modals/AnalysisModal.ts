@@ -361,7 +361,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
               style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
               activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
               disabled: loading,
-              tooltip: loading ? 'Loading' : '',
               onDropRejected: () =>
                 reportError(
                   'Not a valid analysis file',
