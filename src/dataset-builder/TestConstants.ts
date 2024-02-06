@@ -208,6 +208,12 @@ export const getHierarchyMap = (selectedConceptID: number): Map<number, Concept[
 
   // get the selectedConceptNode
   const selectedConceptNode = dummyGetNodeFromHierarchy(selectedConceptID);
+
+  // if the selected concept does not have a node in a hierarchy
+  if (!selectedConceptNode) {
+    return hierarchyMap;
+  }
+
   // if the selectedConceptNode has a parent, we want to populate the hierarchy of its parent
   if (selectedConceptNode.parent) {
     const selectedConceptParent = dummyGetNodeFromHierarchy(selectedConceptNode.parent);
