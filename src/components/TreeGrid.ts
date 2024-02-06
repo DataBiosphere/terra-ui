@@ -47,32 +47,30 @@ const wrapContent =
   });
 
 const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<number, T[]>, domainOptionRoot: T): Row<T>[] => {
-  // initialize an array of rows
-  const rows: Row<T>[] = [];
-  const depth = 0;
+  const traverseHierarchy = (parent: T, depth: number, rows: Row<T>[]): Row<T>[] => {
+    const updatedRows: Row<T>[] = [
+      ...rows,
+      {
+        contents: parent,
+        depth,
+        isFetched: true,
+        state: 'open',
+      },
+    ];
 
-  const traverseHierarchy = (parent: T, depth: number) => {
-    // push the parent row
-    rows.push({
-      contents: parent,
-      depth,
-      isFetched: true,
-      state: 'open',
-    });
-    // if the parent has Children
     if (parent.hasChildren) {
-      // get the children
+      // fetch all children of parent
       const children: T[] | undefined = hierarchyMap.get(parent.id);
-      // if children is undefined, return nothing
+      // children is undefined
       if (!children) {
-        return;
+        return updatedRows;
       }
-      // for each child, traverse through them, else, add them to the row
       children.forEach((child: T) => {
+        // if child has children, recursively call traverseHierarchy, else just add Row
         if (child.hasChildren) {
-          traverseHierarchy(child, depth + 1);
+          updatedRows.push(...traverseHierarchy(child, depth + 1, []));
         } else {
-          rows.push({
+          updatedRows.push({
             contents: child,
             depth: depth + 1,
             isFetched: false,
@@ -81,16 +79,20 @@ const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<number, T[]
         }
       });
     }
+    return updatedRows;
   };
-  // get the domainOptionRoot's children
+
+  // we use .get() to retrieve the values or children of domainOptionRoot
   const domainOptionRootChildren: T[] | undefined = hierarchyMap.get(domainOptionRoot.id);
 
-  // if the domainOptionRoot doesn't have children return an empty array
   if (!domainOptionRootChildren) {
     return [];
   }
+
+  let rows: Row<T>[] = [];
+  const depth = 0;
   domainOptionRootChildren.forEach((domainOptionRootChild) => {
-    traverseHierarchy(domainOptionRootChild, depth);
+    rows = traverseHierarchy(domainOptionRootChild, depth, rows);
   });
 
   return rows;
