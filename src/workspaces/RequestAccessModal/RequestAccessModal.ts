@@ -16,7 +16,7 @@ import {
   GoogleWorkspaceInfo,
   isAzureWorkspace,
   WorkspaceWrapper as Workspace,
-} from 'src/libs/workspace-utils';
+} from 'src/workspaces/utils';
 
 interface RequestAccessModalProps {
   onDismiss: () => void;

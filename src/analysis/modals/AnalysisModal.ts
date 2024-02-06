@@ -57,7 +57,7 @@ import {
   cloudProviderTypes,
   getCloudProviderFromWorkspace,
   isGoogleWorkspaceInfo,
-} from 'src/libs/workspace-utils';
+} from 'src/workspaces/utils';
 import validate from 'validate.js';
 
 const titleId = 'analysis-modal-title';

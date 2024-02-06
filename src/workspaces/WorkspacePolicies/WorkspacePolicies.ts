@@ -4,8 +4,8 @@ import pluralize from 'pluralize';
 import { CSSProperties, ReactNode } from 'react';
 import { div, h, li, ul } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
-import { getPolicyDescriptions, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { BillingProject } from 'src/pages/billing/models/BillingProject';
+import { getPolicyDescriptions, WorkspaceWrapper } from 'src/workspaces/utils';
 
 type WorkspacePoliciesProps = {
   workspace?: WorkspaceWrapper;

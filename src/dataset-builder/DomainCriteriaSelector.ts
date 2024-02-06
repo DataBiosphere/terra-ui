@@ -5,13 +5,19 @@ import { DomainCriteria, GetConceptsResponse } from 'src/dataset-builder/Dataset
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
+  SnapshotBuilderConcept,
   SnapshotBuilderDomainOption as DomainOption,
 } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useOnMount } from 'src/libs/react-utils';
 
 import { ConceptSelector } from './ConceptSelector';
-import { cohortEditorState, DomainCriteriaSelectorState } from './dataset-builder-types';
+import {
+  AnyDatasetBuilderState,
+  cohortEditorState,
+  DomainCriteriaSearchState,
+  DomainCriteriaSelectorState,
+} from './dataset-builder-types';
 import { OnStateChangeHandler } from './DatasetBuilder';
 
 interface DomainCriteriaSelectorProps {
@@ -34,6 +40,23 @@ export const toCriteria =
     };
   };
 
+export const saveSelected =
+  (
+    state: DomainCriteriaSelectorState | DomainCriteriaSearchState,
+    getNextCriteriaIndex: () => number,
+    onStateChange: (state: AnyDatasetBuilderState) => void
+  ) =>
+  (selected: SnapshotBuilderConcept[]) => {
+    const cartCriteria = _.map(toCriteria(state.domainOption, getNextCriteriaIndex), selected);
+    const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
+    // add/remove all cart elements to the domain group's criteria list in the cohort
+    _.flow(
+      _.update(`criteriaGroups.${groupIndex}.criteria`, _.xor(cartCriteria)),
+      cohortEditorState.new,
+      onStateChange
+    )(state.cohort);
+  };
+
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
@@ -44,17 +67,9 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
     ? h(ConceptSelector, {
         initialRows: rootConcepts.state.result,
         title: state.domainOption.category,
-        onCancel: () => onStateChange(cohortEditorState.new(state.cohort)),
-        onCommit: (selected: Concept[]) => {
-          const cartCriteria = _.map(toCriteria(state.domainOption, getNextCriteriaIndex), selected);
-          const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
-          // add/remove all cart elements to the domain group's criteria list in the cohort
-          _.flow(
-            _.update(`criteriaGroups.${groupIndex}.criteria`, _.xor(cartCriteria)),
-            cohortEditorState.new,
-            onStateChange
-          )(state.cohort);
-        },
+        initialCart: state.cart,
+        onCancel: () => onStateChange(state.cancelState),
+        onCommit: saveSelected(state, getNextCriteriaIndex, onStateChange),
         actionText: 'Add to group',
         datasetId,
       })

@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { azureRegions } from 'src/libs/azure-regions';
-import { WorkspacePolicy } from 'src/libs/workspace-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
   defaultAzureWorkspace,
@@ -13,6 +12,7 @@ import {
   regionRestrictedAzureWorkspace,
 } from 'src/testing/workspace-fixtures';
 import { WorkspaceInformation } from 'src/workspaces/dashboard/WorkspaceInformation';
+import { WorkspacePolicy } from 'src/workspaces/utils';
 
 jest.mock('src/libs/ajax');
 

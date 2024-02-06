@@ -4,7 +4,6 @@ import { div, h } from 'react-hyperscript-helpers';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { Link } from 'src/components/common';
 import { locationTypes } from 'src/components/region-common';
-import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { responseContainsRequesterPaysError } from 'src/libs/ajax/ajax-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
@@ -15,7 +14,8 @@ import { clearNotification, notify } from 'src/libs/notifications';
 import { useStore } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import { differenceFromNowInSeconds, withBusyState } from 'src/libs/utils';
-import { canWrite, isAzureWorkspace, isGoogleWorkspace, isOwner, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { updateRecentlyViewedWorkspaces } from 'src/workspaces/common/state/recentlyViewedWorkspaces';
+import { canWrite, isAzureWorkspace, isGoogleWorkspace, isOwner, WorkspaceWrapper } from 'src/workspaces/utils';
 
 export interface StorageDetails {
   googleBucketLocation: string; // historically returns defaultLocation if bucket location cannot be retrieved or Azure

@@ -37,7 +37,7 @@ import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 const titleId = 'azure-compute-modal-title';
 

@@ -16,8 +16,8 @@ import { useOnMount } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderLabels, cloudProviderTypes } from 'src/libs/workspace-utils';
 import { SearchAndFilterComponent } from 'src/pages/library/SearchAndFilterComponent';
+import { cloudProviderLabels, cloudProviderTypes } from 'src/workspaces/utils';
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 // All workspaces match by their tags

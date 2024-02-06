@@ -4,11 +4,11 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { goToPath } from 'src/libs/nav';
 import { workspacesStore, workspaceStore } from 'src/libs/state';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { InitializedWorkspaceWrapper } from 'src/workspaces/common/state/useWorkspace';
 import { WorkspaceContainer } from 'src/workspaces/container/WorkspaceContainer';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock(

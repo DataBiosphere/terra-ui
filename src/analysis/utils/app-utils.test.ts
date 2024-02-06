@@ -12,8 +12,8 @@ import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
-import { cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { cloudProviderTypes, WorkspaceInfo } from 'src/workspaces/utils';
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),

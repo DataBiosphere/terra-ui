@@ -16,7 +16,6 @@ import { withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { azureControlledAccessRequestMessage, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { useAppPolling } from 'src/workspaces/common/state/useAppPolling';
 import { useCloudEnvironmentPolling } from 'src/workspaces/common/state/useCloudEnvironmentPolling';
 import { useSingleWorkspaceDeletionPolling } from 'src/workspaces/common/state/useDeletionPolling';
@@ -31,6 +30,7 @@ import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWork
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
+import { azureControlledAccessRequestMessage, isGoogleWorkspace } from 'src/workspaces/utils';
 
 const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {

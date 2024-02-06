@@ -5,7 +5,13 @@ import { h } from 'react-hyperscript-helpers';
 import { DataRepo, DataRepoContract } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { cohortEditorState, domainCriteriaSelectorState, newCohort, newCriteriaGroup } from './dataset-builder-types';
+import {
+  cohortEditorState,
+  domainCriteriaSelectorState,
+  homepageState,
+  newCohort,
+  newCriteriaGroup,
+} from './dataset-builder-types';
 import { DomainCriteriaSelector, toCriteria } from './DomainCriteriaSelector';
 import { dummyDatasetModel, dummyGetConceptForId } from './TestConstants';
 
@@ -19,7 +25,7 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
 });
 
 describe('DomainCriteriaSelector', () => {
-  const mockDatasetResponse: Partial<DataRepoContract> = {
+  const mockDataRepoContract: Partial<DataRepoContract> = {
     dataset: (_datasetId) =>
       ({
         getConcepts: () => Promise.resolve({ result: [concept] }),
@@ -30,8 +36,14 @@ describe('DomainCriteriaSelector', () => {
   const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
   const cohort = newCohort('cohort');
   cohort.criteriaGroups.push(newCriteriaGroup());
-  asMockedFn(DataRepo).mockImplementation(() => mockDatasetResponse as DataRepoContract);
-  const state = domainCriteriaSelectorState.new(cohort, cohort.criteriaGroups[0], domainOption);
+  asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+  const state = domainCriteriaSelectorState.new(
+    cohort,
+    cohort.criteriaGroups[0],
+    domainOption,
+    [],
+    homepageState.new()
+  );
   const criteriaIndex = 1234;
   const getNextCriteriaIndex = () => criteriaIndex;
 
@@ -49,7 +61,7 @@ describe('DomainCriteriaSelector', () => {
     // Act
     await screen.findByText(state.domainOption.category);
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText('add'));
+    await user.click(screen.getByLabelText(`add ${concept.id}`));
     await user.click(screen.getByText('Add to group'));
     // Assert
     const expectedCriteria = toCriteria(domainOption, getNextCriteriaIndex)(concept);
@@ -58,7 +70,7 @@ describe('DomainCriteriaSelector', () => {
     );
   });
 
-  it('returns to the cohort editor on cancel', async () => {
+  it('returns to the cancel state on cancel', async () => {
     const onStateChange = jest.fn();
     // Arrange
     render(h(DomainCriteriaSelector, { state, onStateChange, datasetId, getNextCriteriaIndex }));
@@ -67,6 +79,6 @@ describe('DomainCriteriaSelector', () => {
     const user = userEvent.setup();
     await user.click(screen.getByLabelText('cancel'));
     // Assert
-    expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(cohort));
+    expect(onStateChange).toHaveBeenCalledWith(state.cancelState);
   });
 });

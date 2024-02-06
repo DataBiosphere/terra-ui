@@ -62,7 +62,7 @@ import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 import validate from 'validate.js';
 
 import { computeStyles } from '../../modalStyles';

@@ -18,11 +18,11 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { poll } from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { MethodVersion, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { InputDefinition, OutputDefinition } from 'src/workflows-app/models/submission-models';
 import { loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { convertInputTypes } from 'src/workflows-app/utils/submission-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 type SubmitWorkflowModalProps = {
   method: WorkflowMethod;

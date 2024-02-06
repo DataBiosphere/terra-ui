@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/workspaces/utils';
 
 export interface AppDetails {
   apps?: ListAppItem[];
