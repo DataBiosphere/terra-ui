@@ -1,12 +1,6 @@
 import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
-import { div, h, h2 } from 'react-hyperscript-helpers';
-import { ActionBar } from 'src/components/ActionBar';
-import { Link, spinnerOverlay } from 'src/components/common';
-import { icon } from 'src/components/icons';
-import { SimpleTable } from 'src/components/table';
-import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import { div, h, h2, strong } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { Link, spinnerOverlay } from 'src/components/common';
@@ -20,7 +14,6 @@ import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOptio
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 
-
 type ConceptSearchProps = {
   readonly initialSearch: string;
   readonly domainOption: SnapshotBuilderDomainOption;
@@ -31,13 +24,11 @@ type ConceptSearchProps = {
     cart: Concept[],
     searchText: string,
     selectedConcept?: Concept
-    selected: Concept[],
   ) => void;
   readonly actionText: string;
   readonly datasetId: string;
   readonly initialCart: Concept[];
 };
-
 
 const DebouncedTextInput = withDebouncedChange(TextInput);
 export const ConceptSearch = (props: ConceptSearchProps) => {
@@ -52,7 +43,8 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
       return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, search);
     });
   }, [search, datasetId, domainOption.root, searchConcepts]);
-
+  const tableLeftPadding = { paddingLeft: '2rem' };
+  const iconSize = 18;
   return h(Fragment, [
     h(BuilderPageHeader, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [

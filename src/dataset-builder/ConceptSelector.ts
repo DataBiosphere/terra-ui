@@ -44,7 +44,6 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
     initialHierarchy,
     selectedConceptName,
   } = props;
-};
 
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {

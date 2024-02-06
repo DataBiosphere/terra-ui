@@ -1,5 +1,4 @@
-import _ from 'lodash/fp';
-import { DomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
+import { h } from 'react-hyperscript-helpers';
 import { saveSelected } from 'src/dataset-builder/DomainCriteriaSelector';
 import { SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption as DomainOption } from 'src/libs/ajax/DataRepo';
 
@@ -19,23 +18,21 @@ interface DomainCriteriaSearchProps {
   readonly getNextCriteriaIndex: () => number;
 }
 
-
 export const DomainCriteriaSearch = (props: DomainCriteriaSearchProps) => {
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
   return h(ConceptSearch, {
     initialSearch: state.searchText,
     domainOptionRoot: state.domainOption.root,
+    initialCart: state.cart,
+    domainOption: state.domainOption,
+    onCancel: () => onStateChange(cohortEditorState.new(state.cohort)),
+    onCommit: saveSelected(state, getNextCriteriaIndex, onStateChange),
     onOpenHierarchy: (
       domainOption: DomainOption,
       cart: Concept[],
       searchText: string,
       selectedConcept: Concept = domainOption.root
     ) => {
-
-    initialCart: state.cart,
-    domainOption: state.domainOption,
-    onCancel: () => onStateChange(cohortEditorState.new(state.cohort)),
-    onCommit: saveSelected(state, getNextCriteriaIndex, onStateChange),
       onStateChange(
         domainCriteriaSelectorState.new(
           state.cohort,

@@ -1,4 +1,3 @@
-import { span, strong } from 'react-hyperscript-helpers';
 import { div } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
@@ -27,7 +26,7 @@ import {
   ValueSet,
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { dummyGetConceptForId, dummyGetNodeFromHierarchy, getHierarchyMap } from 'src/dataset-builder/TestConstants';
+import { dummyGetConceptForId, getHierarchyMap } from 'src/dataset-builder/TestConstants';
 import {
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderConcept,
@@ -188,7 +187,6 @@ describe('test conversion of DatasetAccessRequest', () => {
   });
 });
 
-
 describe('test gettingHierarchyMap', () => {
   /**
    * HIERARCHY REPRESENTATION
@@ -260,8 +258,10 @@ describe('test gettingHierarchyMap', () => {
     const hierarchyMap = new Map<number, Concept[]>();
     hierarchyMap.set(100, []);
     expect(getHierarchyMap(100)).toStrictEqual(hierarchyMap);
+  });
+});
 
-    
+describe('test HighlightConceptName', () => {
   const createHighlightConceptName = (beforeHighlight: string, highlightWord: string, afterHighlight: string) => {
     return div({ style: { display: 'flex' } }, [
       div({ style: { whiteSpace: 'pre' } }, [beforeHighlight]),

@@ -272,7 +272,6 @@ export const convertProgramDataOptionToRangeOption = (
   }
 };
 
-
 export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElement => {
   const startIndex = conceptName.toLowerCase().indexOf(searchFilter.toLowerCase());
 
