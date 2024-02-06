@@ -10,11 +10,11 @@ on:
       ##
 
       test_url:
-        required: false
+        required: true
         type: string
         description: "URL of terraui instance to test against, required"
       environment:
-        required: false
+        required: true
         type: string
         default: dev
         description: "environment config to use, default: dev"
@@ -28,15 +28,15 @@ on:
         type: string
         description: "The branch of terra-ui to run integration tests against"
       notify-slack-channels-upon-workflow-success:
-        description: 'optional: comma seperated slack channel(s) to notify on success'
+        description: 'optional: comma separated slack channel(s) to notify on success i.e. terra-ui,workbench-release'
         required: false
         type: string
       notify-slack-channels-upon-workflow-failure:
-        description: 'optional: comma seperated slack channel(s) to notify on failure'
+        description: 'optional: comma separated slack channel(s) to notify on failure i.e. terra-ui,workbench-release'
         required: false
         type: string
       notify-slack-channels-upon-workflow-completion:
-        description: 'optional: comma seperated slack channel(s) to notify on completion'
+        description: 'optional: comma separated slack channel(s) to notify on completion i.e. terra-ui,workbench-release'
         required: false
         type: string
       relates-to-chart-releases:
@@ -53,10 +53,10 @@ jobs:
       tests: ${{ steps.setVariables.outputs.tests }}
     steps:
       - id: setVariables
-        run: |
-          echo "tests=$input" >> $GITHUB_OUTPUT
         env:
           input: ${{ inputs.tests_to_run }}
+        run: |
+          echo "tests=`echo {} | jq '"$input" | split(",")'`" >> $GITHUB_OUTPUT
 
   # run terra-ui e2e tests, short name for better GHA readability
   terraui-e2e:
