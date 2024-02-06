@@ -1,6 +1,5 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { h } from 'react-hyperscript-helpers';
 
 import { InfoBox } from './InfoBox';
 import { renderWithTheme } from './internal/test-utils';
@@ -8,7 +7,7 @@ import { renderWithTheme } from './internal/test-utils';
 describe('InfoBox', () => {
   it('renders an icon button', async () => {
     // Act
-    renderWithTheme(h(InfoBox, ['More information about the thing.']));
+    renderWithTheme(<InfoBox>More information about the thing.</InfoBox>);
     const trigger = screen.getByRole('button');
 
     // Assert
@@ -20,7 +19,7 @@ describe('InfoBox', () => {
 
   it('allows overriding the default icon', async () => {
     // Act
-    renderWithTheme(h(InfoBox, { icon: 'error-standard' }, ['More information about the thing.']));
+    renderWithTheme(<InfoBox icon="error-standard">More information about the thing.</InfoBox>);
     const trigger = screen.getByRole('button');
 
     // Assert
@@ -32,7 +31,7 @@ describe('InfoBox', () => {
     // Arrange
     const user = userEvent.setup();
 
-    renderWithTheme(h(InfoBox, ['More information about the thing.']));
+    renderWithTheme(<InfoBox>More information about the thing.</InfoBox>);
 
     // Act
     const trigger = screen.getByRole('button');

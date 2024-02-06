@@ -13,9 +13,6 @@
     "module": "esnext",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
-    "paths": {
-      "react-hyperscript-helpers": ["./types/react-hyperscript-helpers"]
-    },
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,

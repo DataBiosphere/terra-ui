@@ -2,7 +2,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { render } from '@testing-library/react';
 import { ReactElement } from 'react';
-import { h } from 'react-hyperscript-helpers';
 
 import { Theme, ThemeProvider } from '../theme';
 
@@ -22,10 +21,7 @@ const terraTheme: Theme = {
 };
 
 export const TestThemeProvider = (props) => {
-  return h(ThemeProvider, {
-    ...props,
-    theme: terraTheme,
-  });
+  return <ThemeProvider {...props} theme={terraTheme} />;
 };
 
 export const renderWithTheme = (ui: ReactElement) => {

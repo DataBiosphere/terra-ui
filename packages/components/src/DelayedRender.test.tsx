@@ -1,5 +1,4 @@
 import { act, render, screen } from '@testing-library/react';
-import { div, h } from 'react-hyperscript-helpers';
 
 import { DelayedRender } from './DelayedRender';
 
@@ -9,7 +8,7 @@ describe('DelayedRender', () => {
     jest.useFakeTimers();
 
     // Act
-    render(h(DelayedRender, { delay: 3000 }, [div(['Hello world'])]));
+    render(<DelayedRender delay={3000}>Hello world</DelayedRender>);
 
     const isRenderedInitially = screen.queryByText('Hello world') !== null;
 

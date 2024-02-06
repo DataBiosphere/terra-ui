@@ -5,7 +5,6 @@ import {
   cloneElement,
   ForwardedRef,
   forwardRef,
-  Fragment,
   ReactElement,
   ReactNode,
   useCallback,
@@ -13,7 +12,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
 import onClickOutside from 'react-onclickoutside';
 
 import { FocusTrap } from './FocusTrap';
@@ -59,12 +57,12 @@ const Popup = onClickOutside(function (props: PopupProps) {
     viewportSize: viewportBounds,
   });
 
-  return h(PopupPortal, [
-    div(
-      {
-        ref: elementRef,
-        ...popupProps,
-        style: {
+  return (
+    <PopupPortal>
+      <div
+        ref={elementRef}
+        {...popupProps}
+        style={{
           border: `1px solid ${colors.dark(0.55)}`,
           borderRadius: 4,
           backgroundColor: 'white',
@@ -75,11 +73,12 @@ const Popup = onClickOutside(function (props: PopupProps) {
           left: 0,
           transform: `translate(${position.left}px, ${position.top}px)`,
           visibility: !viewportBounds.width ? 'hidden' : popupProps.style?.visibility,
-        },
-      },
-      [children]
-    ),
-  ]);
+        }}
+      >
+        {children}
+      </div>
+    </PopupPortal>
+  );
 });
 
 export interface PopupTriggerProps {
@@ -130,26 +129,25 @@ export const PopupTrigger = forwardRef((props: PopupTriggerProps, ref: Forwarded
 
   const labelledby = child.props['aria-labelledby'] || childId;
 
-  return h(Fragment, [
-    cloneElement(child, {
-      'aria-controls': open ? popupId : undefined,
-      'aria-expanded': open,
-      'aria-haspopup': role,
-      'aria-owns': open ? popupId : undefined,
-      // Add childId as a class to match Popup's outsideClickIgnoreClass.
-      className: `${child.props.className || ''} ${childId}`,
-      id: childId,
-      onClick: (e) => {
-        child.props.onClick?.(e);
-        setOpen(!open);
-      },
-    } satisfies AllHTMLAttributes<HTMLElement>),
-    open &&
-      h(
-        Popup,
-        {
-          outsideClickIgnoreClass: childId,
-          popupProps: {
+  return (
+    <>
+      {cloneElement(child, {
+        'aria-controls': open ? popupId : undefined,
+        'aria-expanded': open,
+        'aria-haspopup': role,
+        'aria-owns': open ? popupId : undefined,
+        // Add childId as a class to match Popup's outsideClickIgnoreClass.
+        className: `${child.props.className || ''} ${childId}`,
+        id: childId,
+        onClick: (e) => {
+          child.props.onClick?.(e);
+          setOpen(!open);
+        },
+      } satisfies AllHTMLAttributes<HTMLElement>)}
+      {open && (
+        <Popup
+          outsideClickIgnoreClass={childId}
+          popupProps={{
             // aria-modal is only relevant for dialog popups.
             'aria-modal': role === 'dialog' ? true : undefined,
             ...otherPopupProps,
@@ -157,14 +155,16 @@ export const PopupTrigger = forwardRef((props: PopupTriggerProps, ref: Forwarded
             id: popupId,
             role,
             onClick: closeOnClick ? close : undefined,
-          },
-          side,
-          targetId: childId,
-          handleClickOutside: close,
-        },
-        [h(FocusTrap, { onEscape: close }, [content])]
-      ),
-  ]);
+          }}
+          side={side}
+          targetId={childId}
+          handleClickOutside={close}
+        >
+          <FocusTrap onEscape={close}>{content}</FocusTrap>
+        </Popup>
+      )}
+    </>
+  );
 });
 
 PopupTrigger.displayName = 'PopupTrigger';

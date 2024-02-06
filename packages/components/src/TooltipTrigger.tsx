@@ -1,16 +1,5 @@
 import _ from 'lodash/fp';
-import {
-  Children,
-  cloneElement,
-  CSSProperties,
-  Fragment,
-  ReactElement,
-  ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import { div, h, path, svg } from 'react-hyperscript-helpers';
+import { Children, cloneElement, CSSProperties, ReactElement, ReactNode, useEffect, useRef, useState } from 'react';
 
 import { useUniqueId } from './hooks/useUniqueId';
 import { containsOnlyUnlabelledIcon } from './internal/a11y-utils';
@@ -101,28 +90,27 @@ const Tooltip = (props: TooltipProps): ReactNode => {
     }
   };
 
-  return h(PopupPortal, [
-    div(
-      {
-        id,
-        role: 'tooltip',
-        ref: elementRef,
-        style: {
+  return (
+    <PopupPortal>
+      <div
+        id={id}
+        role="tooltip"
+        ref={elementRef}
+        style={{
           ...styles.tooltip,
           display: shouldRender ? undefined : 'none',
           transform: `translate(${position.left}px, ${position.top}px)`,
           color: theme.colors.dark(),
           borderColor: theme.colors.secondary(),
-        },
-      },
-      [
-        children,
-        svg({ viewBox: '0 0 2 1', style: { ...styles.notch, ...getNotchPositionStyle() } }, [
-          path({ d: 'M0,1l1,-1l1,1Z' }),
-        ]),
-      ]
-    ),
-  ]);
+        }}
+      >
+        {children}
+        <svg viewBox="0 0 2 1" style={{ ...styles.notch, ...getNotchPositionStyle() }}>
+          <path d="M0,1l1,-1l1,1Z" />
+        </svg>
+      </div>
+    </PopupPortal>
+  );
 };
 
 export interface TooltipTriggerProps extends Pick<TooltipProps, 'delay' | 'side'> {
@@ -152,32 +140,41 @@ export const TooltipTrigger = (props: TooltipTriggerProps): ReactNode => {
   // you can explicitly pass in a boolean as `useTooltipAsLabel` to force the correct behavior.
   const useAsLabel = _.isNil(useTooltipAsLabel) ? containsOnlyUnlabelledIcon(child.props) : useTooltipAsLabel;
 
-  return h(Fragment, [
-    cloneElement(child, {
-      id: childId,
-      'aria-labelledby': hasTooltipContent && useAsLabel ? descriptionId : undefined,
-      'aria-describedby': hasTooltipContent && !useAsLabel ? descriptionId : undefined,
-      onMouseEnter: (...args) => {
-        child.props.onMouseEnter?.(...args);
-        setIsOpen(true);
-      },
-      onMouseLeave: (...args) => {
-        child.props.onMouseLeave?.(...args);
-        setIsOpen(false);
-      },
-      onFocus: (...args) => {
-        child.props.onFocus?.(...args);
-        setIsOpen(true);
-      },
-      onBlur: (...args) => {
-        child.props.onBlur?.(...args);
-        setIsOpen(false);
-      },
-    }),
-    hasTooltipContent &&
-      h(Fragment, [
-        isOpen && h(Tooltip, { delay, id: tooltipId, side, targetId: childId }, [content]),
-        div({ id: descriptionId, style: { display: 'none' } }, [content]),
-      ]),
-  ]);
+  return (
+    <>
+      {cloneElement(child, {
+        id: childId,
+        'aria-labelledby': hasTooltipContent && useAsLabel ? descriptionId : undefined,
+        'aria-describedby': hasTooltipContent && !useAsLabel ? descriptionId : undefined,
+        onMouseEnter: (...args) => {
+          child.props.onMouseEnter?.(...args);
+          setIsOpen(true);
+        },
+        onMouseLeave: (...args) => {
+          child.props.onMouseLeave?.(...args);
+          setIsOpen(false);
+        },
+        onFocus: (...args) => {
+          child.props.onFocus?.(...args);
+          setIsOpen(true);
+        },
+        onBlur: (...args) => {
+          child.props.onBlur?.(...args);
+          setIsOpen(false);
+        },
+      })}
+      {hasTooltipContent && (
+        <>
+          {isOpen && (
+            <Tooltip delay={delay} id={tooltipId} side={side} targetId={childId}>
+              {content}
+            </Tooltip>
+          )}
+          <div id={descriptionId} style={{ display: 'none' }}>
+            {content}
+          </div>
+        </>
+      )}
+    </>
+  );
 };

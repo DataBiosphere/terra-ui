@@ -1,6 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { h } from 'react-hyperscript-helpers';
 
 import { Clickable, ClickableProps } from './Clickable';
 import { TooltipTrigger, TooltipTriggerProps } from './TooltipTrigger';
@@ -16,7 +15,7 @@ jest.mock('./TooltipTrigger', (): TooltipTriggerExports => {
 
 describe('Clickable', () => {
   const renderClickable = (props: ClickableProps = {}): HTMLElement => {
-    render(h(Clickable, props, ['Click here']));
+    render(<Clickable {...props}>Click here</Clickable>);
     return screen.getByText('Click here');
   };
 

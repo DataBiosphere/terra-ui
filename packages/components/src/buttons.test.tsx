@@ -1,5 +1,3 @@
-import { h } from 'react-hyperscript-helpers';
-
 import { ButtonOutline, ButtonPrimary, ButtonSecondary } from './buttons';
 import { Clickable } from './Clickable';
 import { renderWithTheme as render } from './internal/test-utils';
@@ -17,10 +15,10 @@ jest.mock('./Clickable', (): ClickableExports => {
 
 describe.each([{ component: ButtonPrimary }, { component: ButtonSecondary }, { component: ButtonOutline }])(
   '$component.name',
-  ({ component }) => {
+  ({ component: Component }) => {
     it('renders a styled Clickable', () => {
       // Act
-      render(h(component));
+      render(<Component />);
 
       // Assert
       expect(Clickable).toHaveBeenCalledWith(
@@ -32,10 +30,10 @@ describe.each([{ component: ButtonPrimary }, { component: ButtonSecondary }, { c
     describe('when disabled', () => {
       it('is styled differently', () => {
         // Act
-        render(h(component));
+        render(<Component />);
         const enabledStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].style;
 
-        render(h(component, { disabled: true }));
+        render(<Component disabled />);
         const disabledStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].style;
 
         // Assert
@@ -44,7 +42,7 @@ describe.each([{ component: ButtonPrimary }, { component: ButtonSecondary }, { c
 
       it('has no hover style', () => {
         // Act
-        render(h(component, { disabled: true }));
+        render(<Component disabled />);
         const disabledHoverStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].hover;
 
         // Assert
@@ -57,10 +55,10 @@ describe.each([{ component: ButtonPrimary }, { component: ButtonSecondary }, { c
 describe('ButtonPrimary', () => {
   it('can be styled differently to indicate a dangerous action', () => {
     // Act
-    render(h(ButtonPrimary));
+    render(<ButtonPrimary />);
     const defaultStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].style;
 
-    render(h(ButtonPrimary, { danger: true }));
+    render(<ButtonPrimary danger />);
     const dangerStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].style;
 
     // Assert

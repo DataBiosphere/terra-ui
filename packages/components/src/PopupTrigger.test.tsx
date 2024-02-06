@@ -1,7 +1,6 @@
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Fragment, RefObject } from 'react';
-import { button, h } from 'react-hyperscript-helpers';
+import { RefObject } from 'react';
 
 import { renderWithTheme } from './internal/test-utils';
 import { PopupTrigger, PopupTriggerProps, PopupTriggerRef } from './PopupTrigger';
@@ -12,14 +11,11 @@ describe('PopupTrigger', () => {
     childProps: Partial<JSX.IntrinsicElements['button']> = {}
   ): { trigger: HTMLElement } => {
     renderWithTheme(
-      h(
-        PopupTrigger,
-        {
-          content: 'This is a popup',
-          ...props,
-        },
-        [button(childProps, ['Toggle Popup'])]
-      )
+      <PopupTrigger content="This is a popup" {...props}>
+        <button type="button" {...childProps}>
+          Toggle Popup
+        </button>
+      </PopupTrigger>
     );
 
     const trigger = screen.getByRole('button');
@@ -146,16 +142,19 @@ describe('PopupTrigger', () => {
     const user = userEvent.setup();
 
     renderWithTheme(
-      h(Fragment, [
-        h(
-          PopupTrigger,
-          {
-            content: h(Fragment, [button(['Button A']), button(['Button B'])]),
-          },
-          [button(['Toggle Popup'])]
-        ),
-        button(['Button C']),
-      ])
+      <>
+        <PopupTrigger
+          content={
+            <>
+              <button type="button">Button A</button>
+              <button type="button">Button B</button>
+            </>
+          }
+        >
+          <button type="button">Toggle Popup</button>
+        </PopupTrigger>
+        <button type="button">Button C</button>
+      </>
     );
 
     const trigger = screen.getByRole('button', { name: 'Toggle Popup' });
@@ -204,14 +203,9 @@ describe('PopupTrigger', () => {
 
     const ref: RefObject<PopupTriggerRef> = { current: null };
     renderWithTheme(
-      h(
-        PopupTrigger,
-        {
-          ref,
-          content: 'This is a popup',
-        },
-        [button(['Toggle Popup'])]
-      )
+      <PopupTrigger ref={ref} content="This is a popup">
+        <button type="button">Toggle Popup</button>
+      </PopupTrigger>
     );
 
     const trigger = screen.getByRole('button', { name: 'Toggle Popup' });

@@ -1,8 +1,7 @@
 import { withFakeTimers } from '@terra-ui-packages/test-utils';
 import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Fragment, useState } from 'react';
-import { button, h } from 'react-hyperscript-helpers';
+import { useState } from 'react';
 
 import { getPopupRoot } from './internal/PopupPortal';
 import { renderWithTheme } from './internal/test-utils';
@@ -12,14 +11,9 @@ describe('Modal', () => {
   const renderModal = (props: Partial<ModalProps> = {}): void => {
     const { children, ...otherProps } = props;
     renderWithTheme(
-      h(
-        Modal,
-        {
-          onDismiss: jest.fn(),
-          ...otherProps,
-        },
-        [children]
-      )
+      <Modal onDismiss={jest.fn()} {...otherProps}>
+        {children}
+      </Modal>
     );
   };
 
@@ -151,7 +145,11 @@ describe('Modal', () => {
 
         // Act
         renderModal({
-          okButton: button({ onClick: onOk }, ['Start']),
+          okButton: (
+            <button type="button" onClick={onOk}>
+              Start
+            </button>
+          ),
         });
 
         const okButton = screen.getByText('Start');
@@ -227,14 +225,16 @@ describe('Modal', () => {
       const user = userEvent.setup();
 
       renderWithTheme(
-        h(Fragment, [
-          h(Modal, { showButtons: false, onDismiss: jest.fn() }, [
-            button({ style: { display: 'contents', width: 100 } }, ['A']),
-            button(['B']),
-            button(['C']),
-          ]),
-          button(['D']),
-        ])
+        <>
+          <Modal showButtons={false} onDismiss={jest.fn()}>
+            <button type="button" style={{ display: 'contents', width: 100 }}>
+              A
+            </button>
+            <button type="button">B</button>
+            <button type="button">C</button>
+          </Modal>
+          <button type="button">D</button>
+        </>
       );
 
       const [buttonA, buttonB, buttonC] = ['A', 'B', 'C'].map((btnText) =>
@@ -262,25 +262,28 @@ describe('Modal', () => {
         const TestHarness = () => {
           const [isModalOpen, setIsModalOpen] = useState(false);
 
-          return h(Fragment, [
-            button(
-              {
-                onClick: () => {
+          return (
+            <>
+              <button
+                type="button"
+                onClick={() => {
                   setIsModalOpen(true);
-                },
-              },
-              ['Open modal']
-            ),
-            isModalOpen &&
-              h(Modal, {
-                onDismiss: () => {
-                  setIsModalOpen(false);
-                },
-              }),
-          ]);
+                }}
+              >
+                Open modal
+              </button>
+              {isModalOpen && (
+                <Modal
+                  onDismiss={() => {
+                    setIsModalOpen(false);
+                  }}
+                />
+              )}
+            </>
+          );
         };
 
-        renderWithTheme(h(TestHarness));
+        renderWithTheme(<TestHarness />);
 
         // Move focus to the "Open modal" button.
         const openModalButton = screen.getByText('Open modal');
