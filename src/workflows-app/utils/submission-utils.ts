@@ -184,17 +184,19 @@ export type InputValidationWithName = InputValidation & {
   name: string;
 };
 
+const inputValueRequiredMessage = 'This input value is required';
+
 const validateRequiredHasSource = (inputSource: InputSource, inputType: InputType): IsInputValid => {
   if (inputType.type === 'optional') {
     return true;
   }
 
   if (!inputSource) {
-    return { type: 'error', message: 'This attribute is required' };
+    return { type: 'error', message: inputValueRequiredMessage };
   }
 
   if (inputSource.type === 'none') {
-    return { type: 'error', message: 'This attribute is required' };
+    return { type: 'error', message: inputValueRequiredMessage };
   }
   if (inputSource.type === 'object_builder' && inputType.type === 'struct') {
     const sourceFieldsFilled = _.flow(
@@ -219,10 +221,10 @@ const validateRequiredHasSource = (inputSource: InputSource, inputType: InputTyp
       return true;
     }
 
-    return !!inputSource.parameter_value || { type: 'error', message: 'This attribute is required' };
+    return !!inputSource.parameter_value || { type: 'error', message: inputValueRequiredMessage };
   }
   if (inputSource.type === 'record_lookup' && inputSource.record_attribute === '') {
-    return { type: 'error', message: 'This attribute is required' };
+    return { type: 'error', message: inputValueRequiredMessage };
   }
   return true;
 };

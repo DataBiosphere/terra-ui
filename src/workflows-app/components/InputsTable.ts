@@ -225,7 +225,7 @@ const InputsTable = ({
         },
         {
           size: { basis: 300, grow: 1 },
-          headerRenderer: () => h(HeaderCell, ['Attribute']),
+          headerRenderer: () => h(HeaderCell, ['Input value']),
           cellRenderer: ({ rowIndex }) => {
             const source = _.get(`${rowIndex}.source`, inputTableData);
             const inputName = _.get(`${rowIndex}.input_name`, inputTableData);

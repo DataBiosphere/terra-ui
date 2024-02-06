@@ -221,7 +221,7 @@ export const StructBuilder = (props: StructBuilderProps) => {
                 },
                 {
                   size: { basis: 300, grow: 1 },
-                  headerRenderer: () => h(HeaderCell, ['Attribute']),
+                  headerRenderer: () => h(HeaderCell, ['Input value']),
                   cellRenderer: ({ rowIndex }) => {
                     // rowIndex is the index of this input in the currently displayed table
                     // configurationIndex is the index of this input the struct input definition
