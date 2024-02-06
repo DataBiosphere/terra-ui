@@ -1238,9 +1238,13 @@ export const WorkspaceData = _.flow(
                   importingReference &&
                     h(ReferenceDataImporter, {
                       onDismiss: () => setImportingReference(false),
-                      onSuccess: () => {
+                      onSuccess: (reference) => {
                         setImportingReference(false);
                         refreshWorkspace();
+                        Ajax().Metrics.captureEvent(Events.workspaceDataAddReferenceData, {
+                          ...extractWorkspaceDetails(workspace.workspace),
+                          reference,
+                        });
                       },
                       namespace,
                       name,
@@ -1248,12 +1252,16 @@ export const WorkspaceData = _.flow(
                   deletingReference &&
                     h(ReferenceDataDeleter, {
                       onDismiss: () => setDeletingReference(false),
-                      onSuccess: () => {
+                      onSuccess: (reference) => {
                         setDeletingReference(false);
                         if (selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === deletingReference) {
                           setSelectedData(undefined);
                         }
                         refreshWorkspace();
+                        Ajax().Metrics.captureEvent(Events.workspaceDataRemoveReference, {
+                          ...extractWorkspaceDetails(workspace.workspace),
+                          reference,
+                        });
                       },
                       namespace,
                       name,
