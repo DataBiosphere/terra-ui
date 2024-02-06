@@ -19,10 +19,21 @@ type ConceptSelectorProps = {
   readonly initialCart: Concept[];
   readonly domainOptionRoot: Concept;
   readonly initialHierarchy: Map<number, Concept[]>;
+  readonly selectedConceptName?: string;
 };
 
 export const ConceptSelector = (props: ConceptSelectorProps) => {
-  const { title, onCancel, onCommit, actionText, datasetId, initialCart, domainOptionRoot, initialHierarchy } = props;
+  const {
+    title,
+    onCancel,
+    onCommit,
+    actionText,
+    datasetId,
+    initialCart,
+    domainOptionRoot,
+    initialHierarchy,
+    selectedConceptName,
+  } = props;
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
     const result = await DataRepo().dataset(datasetId).getConcepts(concept);
@@ -58,7 +69,11 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
                 h(Link, { 'aria-label': label, onClick: () => setCart(_.xor(cart, [concept])) }, [
                   icon(iconName, { size: 16 }),
                 ]),
-                div({ style: { marginLeft: 5 } }, [concept.name]),
+                div({ style: { marginLeft: 5 } }, [
+                  selectedConceptName === concept.name
+                    ? div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, [concept.name])
+                    : concept.name,
+                ]),
               ]);
             },
           },

@@ -83,6 +83,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
         },
         actionText: 'Add to group',
         datasetId,
+        selectedConceptName: state.selectedConcept?.name,
       })
     : spinnerOverlay;
 };
