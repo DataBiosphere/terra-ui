@@ -58,27 +58,27 @@ const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<number, T[]
       },
     ];
 
-    if (parent.hasChildren) {
-      // fetch all children of parent
-      const children: T[] | undefined = hierarchyMap.get(parent.id);
-      // children is undefined
-      if (!children) {
-        return updatedRows;
-      }
-      children.forEach((child: T) => {
-        // if child has children, recursively call traverseHierarchy, else just add Row
-        if (child.hasChildren) {
-          updatedRows.push(...traverseHierarchy(child, depth + 1, []));
-        } else {
-          updatedRows.push({
-            contents: child,
-            depth: depth + 1,
-            isFetched: false,
-            state: 'closed',
-          });
-        }
-      });
+    // fetch all children of parent
+    const children: T[] | undefined = hierarchyMap.get(parent.id);
+    // if parent doesn't have children, return updatedRows
+    if (!children) {
+      return updatedRows;
     }
+    children.forEach((child: T) => {
+      // if child has children, recursively call traverseHierarchy to get its branch
+      if (child.hasChildren) {
+        updatedRows.push(...traverseHierarchy(child, depth + 1, []));
+      }
+      // if child does not have children, add to Rows
+      else {
+        updatedRows.push({
+          contents: child,
+          depth: depth + 1,
+          isFetched: false,
+          state: 'closed',
+        });
+      }
+    });
     return updatedRows;
   };
 
