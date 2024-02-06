@@ -37,7 +37,8 @@ export const SingleEntityEditorWds = ({
 
   const [isBusy, setIsBusy] = useState(false);
 
-  const modalTitle = `Edit ${originalValueType ?? ''} value`;
+  const modalTitle = `Edit ${attributeName} value for ${recordName}`;
+  const modalDetails = originalValueType ? `Column Type is  ${originalValueType}` : '';
 
   const doEdit = async () => {
     try {
@@ -73,6 +74,7 @@ export const SingleEntityEditorWds = ({
       showButtons: false,
     },
     [
+      div([modalDetails]),
       h(Fragment, [
         h(AttributeInput, {
           autoFocus: true,
