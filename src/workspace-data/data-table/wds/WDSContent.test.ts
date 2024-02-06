@@ -40,8 +40,9 @@ const marbleSchema: RecordTypeSchema = {
   name: 'marble',
   count: 1,
   attributes: [
-    { name: 'id', datatype: 'number' },
-    { name: 'color', datatype: 'string' },
+    { name: 'id', datatype: 'NUMBER' },
+    { name: 'color', datatype: 'STRING' },
+    { name: 'favorite', datatype: 'BOOLEAN' },
   ],
   primaryKey: 'id',
 };
@@ -68,6 +69,7 @@ const defaultFeatures: DataTableFeatures = {
   supportsTypeRenaming: false,
   supportsEntityRenaming: false,
   supportsEntityUpdating: false,
+  supportsEntityUpdatingTypes: [],
   supportsAttributeRenaming: false,
   supportsAttributeDeleting: false,
   supportsAttributeClearing: false,
@@ -84,17 +86,17 @@ const defaultSetupOptions: SetupOptions = {
     {
       name: '1',
       entityType: 'marble',
-      attributes: { color: 'red' },
+      attributes: { color: 'red', favorite: true },
     },
     {
       name: '2',
       entityType: 'marble',
-      attributes: { color: 'yellow' },
+      attributes: { color: 'yellow', favorite: false },
     },
     {
       name: '3',
       entityType: 'marble',
-      attributes: { color: 'green' },
+      attributes: { color: 'green', favorite: false },
     },
   ],
 };
@@ -112,6 +114,7 @@ describe('WDSContent', () => {
     };
 
     const dataProvider: DeepPartial<DataTableProvider> = {
+      providerName: 'WDS',
       getPage: jest.fn().mockResolvedValue(getPageResponse),
       features,
     };
@@ -211,6 +214,32 @@ describe('WDSContent', () => {
 
       // Assert
       expect(deleteColumnMock).toHaveBeenCalledWith(expect.any(AbortSignal), 'marble', 'color');
+    });
+  });
+
+  describe('edit column', () => {
+    it('edit field icon is present for types that support editing', async () => {
+      // Arrange
+      const { props } = setup({
+        ...defaultSetupOptions,
+        props: { ...defaultProps, editable: true },
+        features: {
+          ...defaultFeatures,
+          supportsEntityUpdating: true,
+          supportsEntityUpdatingTypes: ['string', 'number'],
+        },
+      });
+
+      // Act
+      await act(() => {
+        render(h(WDSContent, props));
+      });
+
+      // Assert
+      // since only string and number are supported for editing, and number is the primary key
+      // only 3 column should be editable at this this
+      const editableValues = await screen.findAllByText('Edit value');
+      expect(editableValues.length).toEqual(3);
     });
   });
 });
