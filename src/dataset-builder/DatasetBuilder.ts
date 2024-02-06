@@ -36,9 +36,8 @@ import { validate } from 'validate.js';
 
 import { CohortEditor } from './CohortEditor';
 import { ConceptSetCreator } from './ConceptSetCreator';
-import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
 import { AnyDatasetBuilderState, cohortEditorState, homepageState, newCohort, Updater } from './dataset-builder-types';
-import { DatasetBuilderHeader } from './DatasetBuilderHeader';
+import { BuilderPageHeader, DatasetBuilderHeader } from './DatasetBuilderHeader';
 import { DomainCriteriaSelector } from './DomainCriteriaSelector';
 
 const SelectorSubHeader = ({ children }) => div({ style: { fontSize: 12, fontWeight: 600 } }, children);
@@ -602,7 +601,7 @@ export const DatasetBuilderContents = ({
 
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
-      div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
+      h(BuilderPageHeader, [
         h2(['Datasets']),
         div([
           'Build a dataset by selecting the concept sets and values for one or more of your cohorts. Then export the completed dataset to Notebooks where you can perform your analysis',

@@ -22,12 +22,12 @@ interface EntityQuery {
   filterTerms: string;
   filterOperator: EntityQueryFilterOperator;
 }
-interface EntityQueryResultMetadata {
+export interface EntityQueryResultMetadata {
   unfilteredCount: number;
   filteredCount: number;
   filteredPageCount: number;
 }
-interface Entity {
+export interface Entity {
   name: string;
   entityType: string;
   attributes: Record<string, any>;
@@ -80,6 +80,12 @@ export type TsvUploadButtonTooltipOptions = {
   recordTypePresent: boolean;
 };
 
+export type UpdateAttributeParameters = {
+  entityType: string;
+  oldAttributeName: string;
+  newAttributeName: string;
+};
+
 export interface AttributeArray {
   itemsType: 'AttributeValue' | 'EntityReference';
   items: unknown[]; // truly "unknown" here; the backend Java representation is Object[]
@@ -97,6 +103,8 @@ export type GetMetadataFn = (signal: AbortSignal) => Promise<EntityMetadata>;
 
 export type DeleteTableFn = (entityType: string) => Promise<Response>;
 
+export type DeleteColumnFn = (signal: AbortSignal, entityType: string, attributeName: string) => Promise<Response>;
+
 export type DownloadTsvFn = (signal: AbortSignal, entityType: string) => Promise<Blob>;
 
 export type IsInvalidTsvFn = (options: InvalidTsvOptions) => boolean;
@@ -107,11 +115,19 @@ export type TsvUploadButtonTooltipFn = (options: TsvUploadButtonTooltipOptions) 
 
 export type UploadTsvFn = (uploadParams: UploadParameters) => Promise<any>;
 
+export type UpdateAttributeFn = (attributeUpdateParams: UpdateAttributeParameters) => Promise<any>;
+
 export interface DataTableFeatures {
+  supportsCapabilities: boolean;
   supportsTsvDownload: boolean;
   supportsTsvAjaxDownload: boolean;
   supportsTypeDeletion: boolean;
   supportsTypeRenaming: boolean;
+  supportsEntityRenaming: boolean;
+  supportsEntityUpdating: boolean;
+  supportsAttributeRenaming: boolean;
+  supportsAttributeDeleting: boolean;
+  supportsAttributeClearing: boolean;
   supportsExport: boolean;
   supportsPointCorrection: boolean;
   supportsFiltering: boolean;
@@ -136,9 +152,10 @@ export interface DataTableProvider {
   tsvFeatures: TSVFeatures;
   getPage: GetPageFn;
   deleteTable: DeleteTableFn;
+  deleteColumn: DeleteColumnFn;
   downloadTsv: DownloadTsvFn;
   uploadTsv: UploadTsvFn;
+  updateAttribute: UpdateAttributeFn;
   // todos that we may need soon:
   // getMetadata: GetMetadataFn
-  // updateAttribute: function, see also boolean
 }

@@ -22,7 +22,7 @@ import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
 import { getConfig } from 'src/libs/config';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { canWrite, cloudProviderTypes } from 'src/libs/workspace-utils';
+import { canWrite, cloudProviderTypes } from 'src/workspaces/utils';
 
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing

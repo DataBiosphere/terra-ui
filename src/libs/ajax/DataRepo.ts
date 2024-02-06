@@ -12,8 +12,10 @@ import {
   GetConceptsResponse,
   ProgramDataListOption,
   ProgramDataRangeOption,
+  SearchConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { dummyConcepts, getHierarchyMap } from 'src/dataset-builder/TestConstants';
+
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
 export type SnapshotBuilderConcept = {
@@ -153,9 +155,8 @@ export interface DataRepoContract {
     getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
     getConceptsHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptsHierarchyMapResponse>;
-
     // Search returns a list of matching concepts with a domain sorted by participant count. The result is truncated to N concepts.
-    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<GetConceptsResponse>;
+    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SearchConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
@@ -227,6 +228,7 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
           result: getHierarchyMap(_concept.id),
         });
       },
+
       searchConcepts: async (_domain: SnapshotBuilderConcept, text: string) => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         return Promise.resolve({

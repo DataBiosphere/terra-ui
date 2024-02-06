@@ -4,7 +4,7 @@ import { GcpPersistentDiskSizeNumberInput } from 'src/analysis/modals/ComputeMod
 import { PersistentDiskTypeInputContainer } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInputContainer';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { GcpPersistentDiskOptions, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
-import { CloudProvider } from 'src/libs/workspace-utils';
+import { CloudProvider } from 'src/workspaces/utils';
 
 export interface GcpPersistentDiskSectionProps {
   persistentDiskExists: boolean;

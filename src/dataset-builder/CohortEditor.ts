@@ -5,6 +5,7 @@ import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/c
 import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
+import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import {
   AnyCriteria,
   Cohort,
@@ -23,7 +24,6 @@ import {
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 
-import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
 import { domainCriteriaSearchState, homepageState, newCriteriaGroup, Updater } from './dataset-builder-types';
 import { OnStateChangeHandler } from './DatasetBuilder';
 
@@ -101,7 +101,7 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                       )(criteria),
                   }),
                 ]);
-              case 'range':
+              case 'range': {
                 const numberInputStyles = {
                   width: '4rem',
                   padding: 0,
@@ -141,6 +141,7 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                     }),
                   ]),
                 ]);
+              }
               default:
                 return div(['Unknown criteria']);
             }
@@ -477,49 +478,44 @@ type CohortEditorContentsProps = {
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
   const { updateCohort, cohort, dataset, onStateChange, getNextCriteriaIndex } = props;
-  return div(
-    {
-      style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` },
-    },
-    [
-      h2({ style: { display: 'flex', alignItems: 'center' } }, [
-        h(
-          Link,
-          {
-            onClick: () => {
-              onStateChange(homepageState.new());
-            },
-            'aria-label': 'cancel',
+  return h(BuilderPageHeader, [
+    h2({ style: { display: 'flex', alignItems: 'center' } }, [
+      h(
+        Link,
+        {
+          onClick: () => {
+            onStateChange(homepageState.new());
           },
-          [icon('left-circle-filled', { size: 32 })]
-        ),
-        div({ style: { marginLeft: 15 } }, [cohort.name]),
-      ]),
-      h3(['To be included in the cohort, participants...']),
-      div({ style: { display: 'flow' } }, [
-        h(CohortGroups, {
-          key: cohort.name,
-          dataset,
-          cohort,
-          updateCohort,
-          onStateChange,
-          getNextCriteriaIndex,
-        }),
-        h(
-          ButtonOutline,
-          {
-            style: { marginTop: wideMargin },
-            onClick: (e) => {
-              updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, newCriteriaGroup()));
-              // Lose button focus, since button moves out from under the user's cursor.
-              e.currentTarget.blur();
-            },
+          'aria-label': 'cancel',
+        },
+        [icon('left-circle-filled', { size: 32 })]
+      ),
+      div({ style: { marginLeft: 15 } }, [cohort.name]),
+    ]),
+    h3(['To be included in the cohort, participants...']),
+    div({ style: { display: 'flow' } }, [
+      h(CohortGroups, {
+        key: cohort.name,
+        dataset,
+        cohort,
+        updateCohort,
+        onStateChange,
+        getNextCriteriaIndex,
+      }),
+      h(
+        ButtonOutline,
+        {
+          style: { marginTop: wideMargin },
+          onClick: (e) => {
+            updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, newCriteriaGroup()));
+            // Lose button focus, since button moves out from under the user's cursor.
+            e.currentTarget.blur();
           },
-          ['Add group']
-        ),
-      ]),
-    ]
-  );
+        },
+        ['Add group']
+      ),
+    ]),
+  ]);
 };
 
 interface CohortEditorProps {

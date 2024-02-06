@@ -30,8 +30,8 @@ import { getTerraUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 import EntitiesContent from './data-table/entity-service/EntitiesContent';
 import { ExportDataModal } from './data-table/entity-service/ExportDataModal';
@@ -573,6 +573,7 @@ export const WorkspaceData = _.flow(
 
     const [wdsApp, setWdsApp] = useState({ status: 'None', state: undefined });
     const [wdsTypes, setWdsTypes] = useState({ status: 'None', state: [] });
+    const [wdsCapabilities, setWdsCapabilities] = useState({ status: 'None', state: undefined });
 
     const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } =
       useDataTableVersions(workspace);
@@ -589,8 +590,8 @@ export const WorkspaceData = _.flow(
     const wdsDataTableProvider = useMemo(() => {
       const app = wdsApp?.state;
       const proxyUrl = app?.proxyUrls?.wds;
-      return new WdsDataTableProvider(workspaceId, proxyUrl);
-    }, [workspaceId, wdsApp]);
+      return new WdsDataTableProvider(workspaceId, proxyUrl, wdsCapabilities?.state);
+    }, [workspaceId, wdsApp, wdsCapabilities]);
 
     const loadEntityMetadata = async () => {
       try {
@@ -699,6 +700,7 @@ export const WorkspaceData = _.flow(
 
     const loadWdsTypes = useCallback(
       (url, workspaceId) => {
+        setWdsTypes({ status: 'None', state: [] });
         return Ajax(signal)
           .WorkspaceData.getSchema(url, workspaceId)
           .then((typesResult) => {
@@ -712,6 +714,19 @@ export const WorkspaceData = _.flow(
       [signal]
     );
 
+    const loadWdsCapabilities = useCallback(
+      async (url) => {
+        try {
+          const capabilitiesResult = await Ajax(signal).WorkspaceData.getCapabilities(url);
+          setWdsCapabilities({ status: 'Ready', state: capabilitiesResult });
+        } catch (error) {
+          setWdsCapabilities({ status: 'Error', state: 'Error loading WDS capabilities' });
+          reportError('Error loading WDS capabilities', error);
+        }
+      },
+      [signal]
+    );
+
     const loadWdsData = useCallback(async () => {
       // Try to load the proxy URL
       if (!wdsApp || !['Ready', 'Error'].includes(wdsApp.status)) {
@@ -720,14 +735,16 @@ export const WorkspaceData = _.flow(
         // https://github.com/DataBiosphere/terra-ui/pull/4202#discussion_r1319145491
         if (foundApp) {
           loadWdsTypes(foundApp.proxyUrls?.wds, workspaceId);
+          loadWdsCapabilities(foundApp.proxyUrls?.wds);
         }
       }
       // If we have the proxy URL try to load the WDS types
       else if (wdsApp?.status === 'Ready') {
         const proxyUrl = wdsApp.state.proxyUrls?.wds;
         await loadWdsTypes(proxyUrl, workspaceId);
+        await loadWdsCapabilities(proxyUrl);
       }
-    }, [wdsApp, loadWdsApp, loadWdsTypes, workspaceId]);
+    }, [wdsApp, loadWdsApp, loadWdsTypes, loadWdsCapabilities, workspaceId]);
 
     useEffect(() => {
       if (isAzureWorkspace) {
@@ -747,13 +764,6 @@ export const WorkspaceData = _.flow(
     }, [loadWdsData, workspaceId, wdsApp, wdsTypes, isAzureWorkspace]);
 
     const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first));
-
-    const deleteColumnUpdateMetadata = ({ attributeName, entityType }) => {
-      const newArray = _.get(entityType, entityMetadata).attributeNames;
-      const attributeNamesArrayUpdated = _.without([attributeName], newArray);
-      const updatedMetadata = _.set([entityType, 'attributeNames'], attributeNamesArrayUpdated, entityMetadata);
-      setEntityMetadata(updatedMetadata);
-    };
 
     const searchAcrossTables = async (typeNames, activeCrossTableTextFilter) => {
       setCrossTableSearchInProgress(true);
@@ -1446,8 +1456,8 @@ export const WorkspaceData = _.flow(
                       entityKey: selectedData.entityType,
                       activeCrossTableTextFilter,
                       loadMetadata,
-                      deleteColumnUpdateMetadata,
                       forceRefresh,
+                      editable: canEditWorkspace,
                     }),
                 ],
                 [
@@ -1480,6 +1490,8 @@ export const WorkspaceData = _.flow(
                       dataProvider: wdsDataTableProvider,
                       recordType: selectedData.entityType,
                       wdsSchema: wdsTypes.state,
+                      editable: canEditWorkspace,
+                      loadMetadata,
                     }),
                 ]
               ),

@@ -5,13 +5,13 @@ import { useAnalysisExportState } from 'src/analysis/modals/ExportAnalysisModal/
 import { AnalysisFile } from 'src/analysis/useAnalysisFiles';
 import { AbsolutePath, DisplayName, FileExtension, FileName } from 'src/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
-import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import {
   asMockedFn,
   renderWithAppContexts as render,
   SelectHelper,
   setUpAutoSizerTesting,
 } from 'src/testing/test-utils';
+import { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { ExportAnalysisModal } from './ExportAnalysisModal';
 
@@ -34,12 +34,12 @@ jest.mock(
   })
 );
 
-type WorkspaceUtilsExports = typeof import('src/libs/workspace-utils');
+type WorkspaceUtilsExports = typeof import('src/workspaces/utils');
 type LodashFpExports = typeof import('lodash/fp');
-jest.mock('src/libs/workspace-utils', (): WorkspaceUtilsExports => {
+jest.mock('src/workspaces/utils', (): WorkspaceUtilsExports => {
   const _ = jest.requireActual<LodashFpExports>('lodash/fp');
   return {
-    ...jest.requireActual('src/libs/workspace-utils'),
+    ...jest.requireActual('src/workspaces/utils'),
     isValidWsExportTarget: jest.fn().mockImplementation(
       _.curry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {
         // mock this to have a much simpler check then the real implementation

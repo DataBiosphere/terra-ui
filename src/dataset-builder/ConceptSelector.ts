@@ -1,14 +1,14 @@
 import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { CSSProperties, Fragment, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TreeGrid } from 'src/components/TreeGrid';
+import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
-
-import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
+import colors from 'src/libs/colors';
 
 type ConceptSelectorProps = {
   readonly title: string;
@@ -20,6 +20,16 @@ type ConceptSelectorProps = {
   readonly domainOptionRoot: Concept;
   readonly initialHierarchy: Map<number, Concept[]>;
   readonly selectedConceptName?: string;
+};
+
+export const tableHeaderStyle: CSSProperties = {
+  height: '100%',
+  display: 'flex',
+  paddingTop: 15,
+  paddingBottom: 15,
+  backgroundColor: colors.light(0.4),
+  borderRadius: '8px 8px 0px 0px',
+  border: `.5px solid ${colors.dark(0.2)}`,
 };
 
 export const ConceptSelector = (props: ConceptSelectorProps) => {
@@ -34,6 +44,8 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
     initialHierarchy,
     selectedConceptName,
   } = props;
+};
+
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
     const result = await DataRepo().dataset(datasetId).getConcepts(concept);
@@ -41,7 +53,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
   };
 
   return h(Fragment, [
-    div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
+    h(BuilderPageHeader, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
         h(
           Link,
@@ -66,7 +78,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
                 return ['add', 'plus-circle-filled'];
               })();
               return h(Fragment, [
-                h(Link, { 'aria-label': label, onClick: () => setCart(_.xor(cart, [concept])) }, [
+                h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
                   icon(iconName, { size: 16 }),
                 ]),
                 div({ style: { marginLeft: 5 } }, [
@@ -83,6 +95,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
         initialHierarchy,
         domainOptionRoot,
         getChildren,
+        headerStyle: tableHeaderStyle,
       }),
     ]),
     cart.length !== 0 &&

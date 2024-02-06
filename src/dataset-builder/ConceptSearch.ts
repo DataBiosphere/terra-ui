@@ -7,12 +7,19 @@ import { Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { SimpleTable } from 'src/components/table';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
+import { div, h, h2, strong } from 'react-hyperscript-helpers';
+import { ActionBar } from 'src/components/ActionBar';
+import { Link, spinnerOverlay } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import { TextInput, withDebouncedChange } from 'src/components/input';
+import { SimpleTable } from 'src/components/table';
+import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
+import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import { GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 
-import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
 
 type ConceptSearchProps = {
   readonly initialSearch: string;
@@ -24,12 +31,15 @@ type ConceptSearchProps = {
     cart: Concept[],
     searchText: string,
     selectedConcept?: Concept
+    selected: Concept[],
   ) => void;
   readonly actionText: string;
   readonly datasetId: string;
   readonly initialCart: Concept[];
 };
 
+
+const DebouncedTextInput = withDebouncedChange(TextInput);
 export const ConceptSearch = (props: ConceptSearchProps) => {
   const { initialSearch, domainOption, onCancel, onCommit, onOpenHierarchy, actionText, datasetId, initialCart } =
     props;
@@ -42,8 +52,9 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
       return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, search);
     });
   }, [search, datasetId, domainOption.root, searchConcepts]);
+
   return h(Fragment, [
-    div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
+    h(BuilderPageHeader, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
         h(
           Link,
@@ -55,47 +66,67 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         ),
         div({ style: { marginLeft: 15 } }, [domainOption.category]),
       ]),
-      h(StringInput, {
-        onChange: (value: string) => {
-          setSearch(value);
-        },
-        value: search,
-        placeholder: 'Search',
-      }),
+
+      div({ style: { position: 'relative' } }, [
+        h(DebouncedTextInput, {
+          onChange: (value: string) => {
+            setSearch(value);
+          },
+          value: search,
+          placeholder: 'Search',
+          type: 'search',
+          style: {
+            borderRadius: 25,
+            borderColor: colors.dark(0.2),
+            width: '100%',
+            maxWidth: 575,
+            height: '3rem',
+            marginRight: 20,
+            paddingLeft: 40,
+          },
+        }),
+        icon('search', {
+          size: iconSize,
+          style: { position: 'absolute', left: 15, top: '50%', marginTop: -(iconSize / 2) },
+        }),
+      ]),
       concepts.status === 'Ready'
         ? h(SimpleTable, {
             'aria-label': 'concept search results',
             underRowKey: 'underRow',
-            rowStyle: { marginTop: 5, marginBottom: 5 },
+
+            rowStyle: {
+              backgroundColor: 'white',
+              ...tableLeftPadding,
+            },
             headerRowStyle: {
-              height: '100%',
-              display: 'flex',
-              paddingTop: 15,
-              paddingBottom: 15,
-              backgroundColor: colors.light(0.4),
-              borderRadius: '8px 8px 0px 0px',
-              border: `.5px solid ${colors.dark(0.2)}`,
+              ...tableHeaderStyle,
+              ...tableLeftPadding,
+              marginTop: '1rem',
+            },
+            cellStyle: {
+              paddingTop: 10,
+              paddingBottom: 10,
             },
             columns: [
-              { header: 'Concept Name', width: 710, key: 'name' },
-              { header: 'Concept ID', width: 195, key: 'id' },
-              { header: 'Code', width: 195, key: 'code' },
-              { header: 'Roll-up count', width: 205, key: 'count' },
+              { header: strong(['Concept name']), width: 710, key: 'name' },
+              { header: strong(['Concept ID']), width: 195, key: 'id' },
+              { header: strong(['Code']), width: 195, key: 'code' },
+              { header: strong(['Roll-up count']), width: 205, key: 'count' },
               { width: 100, key: 'hierarchy' },
             ],
             rows: _.map((concept) => {
-              const [label, iconName]: [string, IconId] = (() => {
-                if (_.contains(concept, cart)) {
-                  return ['remove', 'minus-circle-red'];
-                }
-                return ['add', 'plus-circle-filled'];
-              })();
+              const [label, iconName]: [string, IconId] = _.contains(concept, cart)
+                ? ['remove', 'minus-circle-red']
+                : ['add', 'plus-circle-filled'];
               return {
                 name: div({ style: { display: 'flex' } }, [
-                  h(Link, { 'aria-label': label, onClick: () => setCart(_.xor(cart, [concept])) }, [
+                  h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
                     icon(iconName, { size: 16 }),
                   ]),
-                  div({ style: { marginLeft: 5 } }, [HighlightConceptName(concept.name, search)]),
+                  div({ style: { marginLeft: 5 } }, [
+                    h(HighlightConceptName, { conceptName: concept.name, searchFilter: search }),
+                  ]),
                 ]),
                 id: concept.id,
                 count: concept.count,
@@ -103,11 +134,15 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   h(
                     Link,
                     {
-                      'aria-label': label,
-                      onClick: () => onOpenHierarchy(domainOption, cart, search, concept),
+                      'aria-label': `open hierarchy ${concept.id}`,
+                      onClick: () =>
+                        onOpenHierarchy(
+                          { id: concept.id, category: domainOption.category, root: concept },
+                          cart,
+                          search
+                        ),
                     },
-                    // FIXME: use font awsome list-tree
-                    [icon('listAlt')]
+                    [icon('view-list')]
                   ),
                   div({ style: { marginLeft: 5 } }, ['Hierarchy']),
                 ]),

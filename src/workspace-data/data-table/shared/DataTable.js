@@ -28,13 +28,12 @@ import { useCancellation } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 // TODO: Shared components should not depend on EntityService/WDS specific components.
 import { concatenateAttributeNames } from '../entity-service/attribute-utils';
 import { entityAttributeText } from '../entity-service/entityAttributeText';
 import { EntityRenamer } from '../entity-service/EntityRenamer';
-import { RenameColumnModal } from '../entity-service/RenameColumnModal';
 import { renderDataCell } from '../entity-service/renderDataCell';
 import {
   allSavedColumnSettingsEntityTypeKey,
@@ -45,6 +44,7 @@ import {
 import { SingleEntityEditor } from '../entity-service/SingleEntityEditor';
 import { EditDataLink } from './EditDataLink';
 import { HeaderOptions } from './HeaderOptions';
+import { RenameColumnModal } from './RenameColumnModal';
 
 const entityMap = (entities) => {
   return _.fromPairs(_.map((e) => [e.name, e], entities));
@@ -101,7 +101,6 @@ const DataTable = (props) => {
     persist,
     refreshKey,
     snapshotName,
-    deleteColumnUpdateMetadata,
     controlPanelStyle,
     border = true,
     extraColumnActions,
@@ -237,9 +236,15 @@ const DataTable = (props) => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Unable to delete column')
   )(async (attributeName) => {
-    await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName);
-    deleteColumnUpdateMetadata({ entityType, attributeName });
+    await dataProvider.deleteColumn(signal, entityType, attributeName);
 
+    // Remove the deleted column from the metadata
+    const newArray = _.get(entityType, entityMetadata).attributeNames;
+    const attributeNamesArrayUpdated = _.without([attributeName], newArray);
+    const updatedMetadata = _.set([entityType, 'attributeNames'], attributeNamesArrayUpdated, entityMetadata);
+    setEntityMetadata(updatedMetadata);
+
+    // Remove the deleted column from the entities
     const updatedEntities = _.map((entity) => {
       return { ...entity, attributes: _.omit([attributeName], entity.attributes) };
     }, entities);
@@ -522,6 +527,7 @@ const DataTable = (props) => {
                         text: entityName,
                       }),
                       editable &&
+                        dataProvider.features.supportsEntityRenaming &&
                         h(EditDataLink, {
                           'aria-label': `Rename ${entityType} ${entityName}`,
                           onClick: () => setRenamingEntity(entityName),
@@ -553,25 +559,31 @@ const DataTable = (props) => {
                               searchByColumn: (v) => searchByColumn(attributeName, v),
                               extraActions: _.concat(
                                 editable
-                                  ? [
-                                      // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
+                                  ? _.compact([
+                                      // settimeout 0 is needed to delay opening the modals until after the popup menu closes.
                                       // Without this, autofocus doesn't work in the modals.
-                                      {
-                                        label: 'Rename Column',
-                                        ...actionProps,
-                                        onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0),
-                                      },
-                                      {
-                                        label: 'Delete Column',
-                                        ...actionProps,
-                                        onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0),
-                                      },
-                                      {
-                                        label: 'Clear Column',
-                                        ...actionProps,
-                                        onClick: () => setTimeout(() => setClearingColumn(attributeName), 0),
-                                      },
-                                    ]
+                                      dataProvider.features.supportsAttributeRenaming
+                                        ? {
+                                            label: 'Rename Column',
+                                            ...actionProps,
+                                            onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0),
+                                          }
+                                        : null,
+                                      dataProvider.features.supportsAttributeDeleting
+                                        ? {
+                                            label: 'Delete Column',
+                                            ...actionProps,
+                                            onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0),
+                                          }
+                                        : null,
+                                      dataProvider.features.supportsAttributeClearing
+                                        ? {
+                                            label: 'Clear Column',
+                                            ...actionProps,
+                                            onClick: () => setTimeout(() => setClearingColumn(attributeName), 0),
+                                          }
+                                        : null,
+                                    ])
                                   : [],
                                 extraColumnActions ? extraColumnActions(attributeName) : []
                               ),
@@ -602,6 +614,7 @@ const DataTable = (props) => {
                       });
                       const editLink =
                         editable &&
+                        dataProvider.features.supportsEntityUpdating &&
                         h(EditDataLink, {
                           'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
                           'aria-haspopup': 'dialog',
@@ -734,10 +747,10 @@ const DataTable = (props) => {
       }),
     !!renamingColumn &&
       h(RenameColumnModal, {
-        namespace,
-        name,
         entityType,
         oldAttributeName: renamingColumn,
+        attributeNames: entityMetadata[entityType].attributeNames,
+        dataProvider,
         onSuccess: () => {
           setRenamingColumn(undefined);
           Ajax().Metrics.captureEvent(Events.workspaceDataRenameColumn, extractWorkspaceDetails(workspace.workspace));

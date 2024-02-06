@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
-import { h } from 'react-hyperscript-helpers';
 import { DomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
+import { saveSelected } from 'src/dataset-builder/DomainCriteriaSelector';
 import { SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption as DomainOption } from 'src/libs/ajax/DataRepo';
 
 import { ConceptSearch } from './ConceptSearch';
@@ -19,43 +19,23 @@ interface DomainCriteriaSearchProps {
   readonly getNextCriteriaIndex: () => number;
 }
 
-export const toCriteria =
-  (domainOption: DomainOption, getNextCriteriaIndex: () => number) =>
-  (concept: Concept): DomainCriteria => {
-    return {
-      kind: 'domain',
-      name: concept.name,
-      id: concept.id,
-      index: getNextCriteriaIndex(),
-      count: concept.count,
-      domainOption,
-    };
-  };
 
 export const DomainCriteriaSearch = (props: DomainCriteriaSearchProps) => {
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
   return h(ConceptSearch, {
     initialSearch: state.searchText,
     domainOptionRoot: state.domainOption.root,
-    initialCart: state.cart,
-    domainOption: state.domainOption,
-    onCancel: () => onStateChange(cohortEditorState.new(state.cohort)),
-    onCommit: (selected: Concept[]) => {
-      const cartCriteria = _.map(toCriteria(state.domainOption, getNextCriteriaIndex), selected);
-      const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
-      // add/remove all cart elements to the domain group's criteria list in the cohort
-      _.flow(
-        _.update(`criteriaGroups.${groupIndex}.criteria`, _.xor(cartCriteria)),
-        cohortEditorState.new,
-        onStateChange
-      )(state.cohort);
-    },
     onOpenHierarchy: (
       domainOption: DomainOption,
       cart: Concept[],
       searchText: string,
       selectedConcept: Concept = domainOption.root
     ) => {
+
+    initialCart: state.cart,
+    domainOption: state.domainOption,
+    onCancel: () => onStateChange(cohortEditorState.new(state.cohort)),
+    onCommit: saveSelected(state, getNextCriteriaIndex, onStateChange),
       onStateChange(
         domainCriteriaSelectorState.new(
           state.cohort,

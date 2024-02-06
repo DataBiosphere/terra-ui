@@ -11,7 +11,6 @@ import { icon } from 'src/components/icons';
 import { DelayedSearchInput } from 'src/components/input';
 import { NameModal } from 'src/components/NameModal';
 import TopBar from 'src/components/TopBar';
-import { NoWorkspacesMessage, WorkspaceTagSelect } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
@@ -20,9 +19,11 @@ import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import { NoWorkspacesMessage } from 'src/workspaces/common/NoWorkspacesMessage';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 import UploadPreviewTable from './UploadPreviewTable';
 

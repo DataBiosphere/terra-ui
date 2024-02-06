@@ -7,7 +7,7 @@ import Modal from 'src/components/Modal';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 type ImportWorkflowModalProps = {
   importLoading: boolean;

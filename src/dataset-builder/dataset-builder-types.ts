@@ -57,6 +57,7 @@ export interface DomainCriteriaSelectorState extends DatasetBuilderState {
   readonly cart: Concept[];
   readonly cancelState: AnyDatasetBuilderState;
   readonly selectedConcept?: Concept;
+
 }
 
 export const domainCriteriaSelectorState = {
@@ -75,6 +76,7 @@ export const domainCriteriaSelectorState = {
     cart,
     cancelState,
     selectedConcept,
+
   }),
 };
 
@@ -93,8 +95,8 @@ export const domainCriteriaSearchState = {
     cohort: Cohort,
     criteriaGroup: CriteriaGroup,
     domainOption: DomainOption,
-    cart: Concept[],
-    searchText: string
+    cart: Concept[] = [],
+    searchText = ''
   ): DomainCriteriaSearchState => ({
     mode: 'domain-criteria-search',
     cohort,

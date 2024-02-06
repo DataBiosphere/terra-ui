@@ -46,7 +46,7 @@ describe('ConceptSelector', () => {
     renderSelector();
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText('add'));
+    await user.click(screen.getByLabelText(`add ${initialRows[0].id}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeTruthy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
@@ -57,8 +57,8 @@ describe('ConceptSelector', () => {
     renderSelector();
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText('add'));
-    await user.click(screen.getByLabelText('remove'));
+    await user.click(screen.getByLabelText(`add ${initialRows[0].id}`));
+    await user.click(screen.getByLabelText(`remove ${initialRows[0].id}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeFalsy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeFalsy();
@@ -69,7 +69,7 @@ describe('ConceptSelector', () => {
     renderSelector();
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText('add'));
+    await user.click(screen.getByLabelText(`add ${initialRows[0].id}`));
     await user.click(screen.getByText(actionText));
     // Assert
     expect(onCommit).toHaveBeenCalledWith(initialRows);
@@ -97,7 +97,7 @@ describe('ConceptSelector', () => {
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText('expand'));
+    await user.click(screen.getByLabelText(`expand ${initialRows[0].id}`));
     // Assert
     // Concept with ID 102 corresponds to Disease
     expect(screen.getByText('Disease')).toBeTruthy();
@@ -106,18 +106,19 @@ describe('ConceptSelector', () => {
   it('supports multiple add to cart', async () => {
     // Arrange
     renderSelector();
+    const expandConcept = dummyGetConceptForId(102);
     const mockDataRepoContract: DataRepoContract = {
       dataset: (_datasetId) =>
         ({
-          getConcepts: () => Promise.resolve({ result: [dummyGetConceptForId(102)] }),
+          getConcepts: () => Promise.resolve({ result: [expandConcept] }),
         } as Partial<DataRepoContract['dataset']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText('expand'));
-    await user.click(screen.getAllByLabelText('add')[0]);
-    await user.click(screen.getAllByLabelText('add')[0]);
+    await user.click(screen.getByLabelText(`expand ${initialRows[0].id}`));
+    await user.click(screen.getAllByLabelText(`add ${initialRows[0].id}`)[0]);
+    await user.click(screen.getAllByLabelText(`add ${expandConcept.id}`)[0]);
     // Assert
     expect(screen.getByText('2 concepts', { exact: false })).toBeTruthy();
   });

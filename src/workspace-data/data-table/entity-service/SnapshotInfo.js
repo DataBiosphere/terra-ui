@@ -15,7 +15,7 @@ import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { canWrite } from 'src/libs/workspace-utils';
+import { canWrite } from 'src/workspaces/utils';
 import validate from 'validate.js';
 
 const SnapshotLabeledInfo = ({ title, text }) => {

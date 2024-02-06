@@ -4,7 +4,7 @@ import { App, DisplayAppStatus, LeoAppStatus } from 'src/libs/ajax/leonardo/mode
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { CloudProvider, cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
+import { CloudProvider, cloudProviderTypes, WorkspaceInfo } from 'src/workspaces/utils';
 import { v4 as uuid } from 'uuid';
 
 const getCurrentAppExcludingStatuses = (
