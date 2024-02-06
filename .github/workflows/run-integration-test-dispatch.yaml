@@ -54,9 +54,9 @@ jobs:
     steps:
       - id: setVariables
         env:
-          input: ${{ inputs.tests_to_run }}
+          TESTS_TO_RUN: ${{ inputs.tests_to_run }}
         run: |
-          echo "tests=`echo {} | jq '"$input" | split(",")'`" >> $GITHUB_OUTPUT
+          echo "tests=`echo {} | jq --arg tests_to_run \"${TESTS_TO_RUN}\" '"$tests_to_run" | split(",")'`" >> $GITHUB_OUTPUT
 
   # run terra-ui e2e tests, short name for better GHA readability
   terraui-e2e:
