@@ -172,11 +172,26 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve({ message: 'Upload Succeeded', recordsModified: 1 });
   };
 
+  const updateRecordMockImpl: WorkspaceDataContract['updateRecord'] = (
+    _root: string,
+    _instanceId: string,
+    _recordType: string,
+    _recordId: string,
+    _record: { [attribute: string]: any }
+  ) => {
+    const expected: RecordAttributes = {
+      something: 123,
+      testAttr: 'string_value',
+    };
+    return Promise.resolve({ id: 'record1', type: 'test', attributes: expected });
+  };
+
   const listAppsV2MockImpl = (_workspaceId: string): Promise<ListAppItem[]> => {
     return Promise.resolve(testProxyUrlResponse);
   };
 
   let getRecords: jest.MockedFunction<WorkspaceDataContract['getRecords']>;
+  let updateRecord: jest.MockedFunction<WorkspaceDataContract['updateRecord']>;
   let getCapabilities: jest.MockedFunction<WorkspaceDataContract['getCapabilities']>;
   let deleteTable: jest.MockedFunction<WorkspaceDataContract['deleteTable']>;
   let downloadTsv: jest.MockedFunction<WorkspaceDataContract['downloadTsv']>;
@@ -185,6 +200,7 @@ describe('WdsDataTableProvider', () => {
 
   beforeEach(() => {
     getRecords = jest.fn().mockImplementation(getRecordsMockImpl);
+    updateRecord = jest.fn().mockImplementation(updateRecordMockImpl);
     getCapabilities = jest.fn().mockImplementation(getCapabilitiesMockImpl);
     deleteTable = jest.fn().mockImplementation(deleteTableMockImpl);
     downloadTsv = jest.fn().mockImplementation(downloadTsvMockImpl);
@@ -196,6 +212,7 @@ describe('WdsDataTableProvider', () => {
         ({
           WorkspaceData: {
             getRecords,
+            updateRecord,
             getCapabilities,
             deleteTable,
             downloadTsv,
@@ -298,6 +315,24 @@ describe('WdsDataTableProvider', () => {
         item: {
           count: 7,
           attributeNames: ['booleanAttr', 'numericAttr', 'stringAttr', 'timestamp'],
+          attributes: [
+            {
+              name: 'booleanAttr',
+              datatype: 'BOOLEAN',
+            },
+            {
+              name: 'stringAttr',
+              datatype: 'STRING',
+            },
+            {
+              name: 'numericAttr',
+              datatype: 'NUMBER',
+            },
+            {
+              name: 'timestamp',
+              datatype: 'STRING',
+            },
+          ],
           idName: 'stringAttr',
         },
       };
@@ -374,6 +409,16 @@ describe('WdsDataTableProvider', () => {
         item: {
           count: 7,
           attributeNames: ['arrayOfNums', 'stringAttr'],
+          attributes: [
+            {
+              name: 'arrayOfNums',
+              datatype: 'ARRAY_OF_NUMBER',
+            },
+            {
+              name: 'stringAttr',
+              datatype: 'STRING',
+            },
+          ],
           idName: 'stringAttr',
         },
       };
@@ -444,6 +489,24 @@ describe('WdsDataTableProvider', () => {
         item: {
           count: 7,
           attributeNames: ['numAttr', 'stringAttr', 'relationScalar', 'relationArray'],
+          attributes: [
+            {
+              name: 'relationScalar',
+              datatype: 'RELATION',
+            },
+            {
+              name: 'stringAttr',
+              datatype: 'STRING',
+            },
+            {
+              name: 'numericAttr',
+              datatype: 'NUMBER',
+            },
+            {
+              name: 'relationArray',
+              datatype: 'ARRAY_OF_RELATION',
+            },
+          ],
           idName: 'stringAttr',
         },
       };
@@ -518,6 +581,16 @@ describe('WdsDataTableProvider', () => {
         item: {
           count: 7,
           attributeNames: ['mixedArrayRelationFirst', 'mixedArrayRelationLast'],
+          attributes: [
+            {
+              name: 'mixedArrayRelationFirst',
+              datatype: 'ARRAY_OF_RELATION',
+            },
+            {
+              name: 'mixedArrayRelationLast',
+              datatype: 'ARRAY_OF_RELATION',
+            },
+          ],
           idName: 'sys_name',
         },
       };
@@ -571,6 +644,16 @@ describe('WdsDataTableProvider', () => {
         item: {
           count: 7,
           attributeNames: ['mixedArrayRelationFirst', 'mixedArrayRelationLast'],
+          attributes: [
+            {
+              name: 'mixedArrayRelationFirst',
+              datatype: 'ARRAY_OF_RELATION',
+            },
+            {
+              name: 'mixedArrayRelationLast',
+              datatype: 'ARRAY_OF_RELATION',
+            },
+          ],
           idName: 'sys_name',
         },
       };
@@ -691,6 +774,29 @@ describe('WdsDataTableProvider', () => {
   });
 });
 
+describe('updateRecord', () => {
+  it('restructures a WDS response', async () => {
+    // Arrange
+    const provider = new TestableWdsProvider();
+
+    const expected: RecordAttributes = {
+      something: 123,
+      testAttr: 'string_value',
+    };
+
+    // Act
+    const actual = await provider.updateRecord({
+      instance: uuid,
+      recordName: 'test',
+      recordId: 'record1',
+      record: expected,
+    });
+
+    // Assert
+    expect(actual.attributes).toStrictEqual(expected);
+  });
+});
+
 describe('transformMetadata', () => {
   it('restructures a WDS response', () => {
     // Arrange
@@ -763,16 +869,50 @@ describe('transformMetadata', () => {
       item: {
         count: 7,
         attributeNames: ['booleanAttr', 'stringAttr'],
+        attributes: [
+          {
+            name: 'booleanAttr',
+            datatype: 'BOOLEAN',
+          },
+          {
+            name: 'stringAttr',
+            datatype: 'STRING',
+          },
+        ],
         idName: 'item_id',
       },
       thing: {
         count: 4,
         attributeNames: ['numericAttr', 'stringAttr', 'timestamp'],
+        attributes: [
+          {
+            name: 'numericAttr',
+            datatype: 'NUMBER',
+          },
+          {
+            name: 'stringAttr',
+            datatype: 'STRING',
+          },
+          {
+            name: 'timestamp',
+            datatype: 'STRING',
+          },
+        ],
         idName: 'thing_id',
       },
       system: {
         count: 12345,
         attributeNames: ['one', 'two'],
+        attributes: [
+          {
+            name: 'one',
+            datatype: 'NUMBER',
+          },
+          {
+            name: 'two',
+            datatype: 'STRING',
+          },
+        ],
         idName: 'sys_name',
       },
     };
