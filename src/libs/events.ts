@@ -67,7 +67,7 @@ const eventsList = {
   catalogLandingPageBanner: 'catalog:landingPageBanner',
   catalogViewDetails: 'catalog:view:details',
   catalogViewPreviewData: 'catalog:view:previewData',
-  catalogWorkspaceLink: 'catalog:workspaceLink',
+  catalogWorkspaceLinkFromDetailsView: 'catalog:workspaceLink:detailsView',
   catalogWorkspaceLinkExportFinished: 'catalog:workspaceLink:completed',
   datasetLibraryBrowseData: 'library:browseData',
   dataTableSaveColumnSettings: 'dataTable:saveColumnSettings',
