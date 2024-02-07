@@ -155,7 +155,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
   const actionTooltip = access === datasetAccessTypes.Granted ? '' : uiMessaging.controlledFeatureTooltip;
 
   const importDataToWorkspace = (dataset) => {
-    Ajax().Metrics.captureEvent(Events.catalogWorkspaceLink, {
+    Ajax().Metrics.captureEvent(Events.catalogWorkspaceLinkFromDetailsView, {
       id,
       title: dataObj['dct:title'],
       source: dataset['dcat:accessURL'],
