@@ -199,7 +199,7 @@ describe('DataTable', () => {
     // Get the checkboxes on this page
     const newPageChecks = screen.getAllByRole('checkbox', { checked: true });
     expect(newPageChecks.length).toEqual(101);
-  }, 20000);
+  }, 10000);
 
   it('selects page', async () => {
     // Arrange

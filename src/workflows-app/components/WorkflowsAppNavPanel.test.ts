@@ -15,7 +15,6 @@ const defaultAnalysesData: AnalysesData = {
   refreshRuntimes: () => Promise.resolve(),
   appDataDisks: [],
   persistentDisks: [],
-  isLoadingCloudEnvironments: false,
 };
 
 const defaultAnalysesDataWithAppsRefreshed: AnalysesData = {
