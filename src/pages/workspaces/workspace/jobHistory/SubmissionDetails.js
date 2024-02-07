@@ -32,6 +32,7 @@ import { forwardRefWithName, useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { downloadIO, downloadWorkflows, ioTask, ioVariable } from 'src/libs/workflow-utils';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
@@ -269,7 +270,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
 const SubmissionWorkflowIOTable = ({ type, inputOutputs }) => {
   const [textFilter, setTextFilter] = useState('');
   const [sort, setSort] = useState({ field: 'task', direction: 'asc' });
-
+  const valueColumnName = type === 'inputs' ? WorkflowTableColumnNames.INPUT_VALUE : WorkflowTableColumnNames.OUTPUT_NAME;
   const filteredInputOutputs = _.flow(
     _.toPairs,
     _.map(([name, value]) => ({
@@ -321,7 +322,7 @@ const SubmissionWorkflowIOTable = ({ type, inputOutputs }) => {
               },
               {
                 field: 'value',
-                headerRenderer: () => h(Sortable, { sort, field: 'value', onSort: setSort }, ['Input value']),
+                headerRenderer: () => h(Sortable, { sort, field: 'value', onSort: setSort }, [valueColumnName]),
                 cellRenderer: ({ rowIndex }) => h(TextCell, [filteredInputOutputs[rowIndex].value]),
               },
             ],

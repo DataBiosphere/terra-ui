@@ -5,6 +5,7 @@ import { statusType as jobStatusType } from 'src/components/job-common';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds, maybeParseJSON } from 'src/libs/utils';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import {
   InputDefinition,
   InputSource,
@@ -184,7 +185,7 @@ export type InputValidationWithName = InputValidation & {
   name: string;
 };
 
-const inputValueRequiredMessage = 'This input value is required';
+const inputValueRequiredMessage = `This ${WorkflowTableColumnNames.INPUT_VALUE.toLowerCase()} is required`;
 
 const validateRequiredHasSource = (inputSource: InputSource, inputType: InputType): IsInputValid => {
   if (inputType.type === 'optional') {

@@ -7,6 +7,7 @@ import { DelayedSearchInput, TextInput } from 'src/components/input';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import { inputSourceLabels, inputSourceTypes, inputTypeParamDefaults, unwrapOptional } from 'src/workflows-app/utils/submission-utils';
 
 const inputButtonRowStyle = {
@@ -75,10 +76,10 @@ export const InputsButtonRow = ({
 
 export const RecordLookupSelect = (props) => {
   const { source, setSource, dataTableAttributes } = props;
-
+  const placeholderLabel = `Select ${WorkflowTableColumnNames.INPUT_VALUE}`;
   return h(Select, {
     isDisabled: false,
-    'aria-label': 'Select an Input value',
+    'aria-label': placeholderLabel,
     isClearable: false,
     value: source.record_attribute,
     onChange: ({ value }) => {
@@ -89,7 +90,7 @@ export const RecordLookupSelect = (props) => {
       };
       setSource(newSource);
     },
-    placeholder: source.record_attribute || 'Select Input value',
+    placeholder: source.record_attribute || placeholderLabel,
     options: _.keys(dataTableAttributes),
     // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
     styles: { container: (old) => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) },

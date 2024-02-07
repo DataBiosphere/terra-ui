@@ -76,3 +76,8 @@ export const downloadWorkflows = (rows, filename) => {
   const blob = new Blob([Utils.makeTSV(reorderedTSVContents)], { type: 'text/tab-separated-values' });
   FileSaver.saveAs(blob, `${filename}.tsv`);
 };
+
+export enum WorkflowTableColumnNames {
+  INPUT_VALUE = 'Input value',
+  OUTPUT_NAME = 'Output name',
+}
