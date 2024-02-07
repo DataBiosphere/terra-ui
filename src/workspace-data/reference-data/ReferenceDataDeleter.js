@@ -22,7 +22,7 @@ export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, re
           await Ajax()
             .Workspaces.workspace(namespace, name)
             .deleteAttributes(_.map((key) => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType])));
-          onSuccess();
+          onSuccess(referenceDataType);
         } catch (error) {
           reportError('Error deleting reference data', error);
           onDismiss();

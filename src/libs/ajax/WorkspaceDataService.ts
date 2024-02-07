@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { authOpts, fetchWDS, jsonBody } from 'src/libs/ajax/ajax-common';
 import {
   RecordQueryResponse,
+  RecordResponseBody,
   RecordTypeSchema,
   SearchRequest,
   TsvUploadResponse,
@@ -52,6 +53,8 @@ export interface WDSJob {
   status: 'CREATED' | 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'ERROR' | 'CANCELLED' | 'UNKNOWN';
   updated: string;
 }
+
+export type AttributeSchemaUpdate = { name: string } | { datatype: string };
 
 // The source of truth of available capabilities can be found in:
 // https://github.com/DataBiosphere/terra-workspace-data-service/blob/main/service/src/main/resources/capabilities.json
@@ -132,6 +135,19 @@ export const WorkspaceData = (signal) => ({
     );
     return res.json();
   },
+  updateRecord: async (
+    root: string,
+    instanceId: string,
+    recordType: string,
+    recordId: string,
+    record: { [attribute: string]: any }
+  ): Promise<RecordResponseBody> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/records/v0.2/${recordType}/${recordId}`,
+      _.mergeAll([authOpts(), jsonBody(record), { signal, method: 'PATCH' }])
+    );
+    return res.json();
+  },
   getVersion: async (root: string): Promise<WDSVersionResponse> => {
     const res = await fetchWDS(root)('version', _.merge(authOpts(), { signal }));
     return res.json();
@@ -183,6 +199,19 @@ export const WorkspaceData = (signal) => ({
   },
   getJobStatus: async (root: string, jobId: string): Promise<WDSJob> => {
     const res = await fetchWDS(root)(`job/v1/${jobId}`, _.merge(authOpts(), { signal }));
+    return res.json();
+  },
+  updateAttribute: async (
+    root: string,
+    instanceId: string,
+    recordType: string,
+    oldAttribute: string,
+    newAttribute: AttributeSchemaUpdate
+  ): Promise<any> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/types/v0.2/${recordType}/${oldAttribute}`,
+      _.mergeAll([authOpts(), jsonBody(newAttribute), { signal, method: 'PATCH' }])
+    );
     return res.json();
   },
 });

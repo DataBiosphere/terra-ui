@@ -1,11 +1,21 @@
-import { getAllByRole, getByRole, screen } from '@testing-library/react';
+import { getAllByRole, getByRole, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import * as clipboard from 'clipboard-polyfill/text';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { basename } from 'src/components/file-browser/file-browser-utils';
 import FilesTable, { FilesTableProps } from 'src/components/file-browser/FilesTable';
 import { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
+
+type ClipboardPolyfillExports = typeof import('clipboard-polyfill/text');
+jest.mock('clipboard-polyfill/text', (): ClipboardPolyfillExports => {
+  const actual = jest.requireActual<ClipboardPolyfillExports>('clipboard-polyfill/text');
+  return {
+    ...actual,
+    writeText: jest.fn().mockResolvedValue(undefined),
+  };
+});
 
 // FileBrowserTable uses react-virtualized's AutoSizer to size the table.
 // This makes the virtualized window large enough for all rows/columns to be rendered in tests.
@@ -43,7 +53,6 @@ describe('FilesTable', () => {
   ];
 
   it.each([
-    { field: 'name', columnIndex: 1, expected: ['file1.txt', 'file2.bam', 'file3.vcf'] },
     { field: 'size', columnIndex: 2, expected: ['1 KB', '1 MB', '1 GB'] },
     // { field: 'last modified', columnIndex: 2, expected: [] }
   ])('renders a column with file $field', ({ columnIndex, expected }) => {
@@ -83,11 +92,35 @@ describe('FilesTable', () => {
     const fileLinks = fileNameCells.map((cell) => getByRole(cell, 'link'));
 
     // Assert
+    expect(fileLinks.map((link) => link.textContent)).toEqual(['file1.txt', 'file2.bam', 'file3.vcf']);
     expect(fileLinks.map((link) => link.getAttribute('href'))).toEqual([
       'gs://test-bucket/path/to/file1.txt',
       'gs://test-bucket/path/to/file2.bam',
       'gs://test-bucket/path/to/file3.vcf',
     ]);
+  });
+
+  it('renders a button to copy file URL to clipboard', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    render(
+      h(FilesTable, {
+        files,
+        selectedFiles: {},
+        setSelectedFiles: () => {},
+        onClickFile: jest.fn(),
+        onRenameFile: () => {},
+      })
+    );
+
+    // Act
+    const firstRow = screen.getAllByRole('row')[1]; // skip header row
+    const copyUrlButton = within(firstRow).getByLabelText('Copy file URL to clipboard');
+    await user.click(copyUrlButton);
+
+    // Assert
+    expect(clipboard.writeText).toHaveBeenCalledWith('gs://test-bucket/path/to/file1.txt');
   });
 
   it('calls onClickFile callback when a file link is clicked', async () => {

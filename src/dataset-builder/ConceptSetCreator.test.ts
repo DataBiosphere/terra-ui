@@ -25,11 +25,13 @@ describe('ConceptSetCreator', () => {
     return { conceptSetUpdater, onStateChange };
   };
 
+  const rootConcept = dataset!.snapshotBuilderSettings!.domainOptions[0].root;
+
   it('renders the domain criteria selector', async () => {
     // Arrange
     renderConceptSetCreator();
     // Assert
-    expect(await screen.findByText(dataset!.snapshotBuilderSettings!.domainOptions[0].root.name)).toBeTruthy();
+    expect(await screen.findByText(rootConcept.name)).toBeTruthy();
   });
 
   it('updates the builder concept sets on save', async () => {
@@ -37,14 +39,12 @@ describe('ConceptSetCreator', () => {
     const { conceptSetUpdater, onStateChange } = renderConceptSetCreator();
     // Act
     const user = userEvent.setup();
-    // There are three Add buttons, click the first one.
-    await user.click(screen.getAllByLabelText('add')[0]);
+    // Click the add button for the root concept.
+    await user.click(screen.getByLabelText(`add ${rootConcept.id}`));
     await user.click(screen.getByText('Add to concept sets'));
     // Assert
     expect(onStateChange).toHaveBeenCalledWith(homepageState.new());
-    expect(conceptSetUpdater.mock.calls[0][0]([])).toEqual([
-      toConceptSet(dataset!.snapshotBuilderSettings!.domainOptions[0].root),
-    ]);
+    expect(conceptSetUpdater.mock.calls[0][0]([])).toEqual([toConceptSet(rootConcept)]);
   });
 
   it('returns to the home page on cancel', async () => {
