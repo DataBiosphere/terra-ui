@@ -12,7 +12,7 @@ on:
       test_url:
         required: true
         type: string
-        description: "URL of terraui instance to test against, required"
+        description: "URL of terraui instance to test against, required. example: https://bvdp-saturn-staging.appspot.com"
       environment:
         required: true
         type: string
