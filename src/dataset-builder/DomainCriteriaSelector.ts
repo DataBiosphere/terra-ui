@@ -69,9 +69,9 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   const [hierarchy, setHierarchy] = useState(new Map<number, Concept[]>());
   const [isHierarchyLoaded, setIsHierarchyLoaded] = useState(false);
   useOnMount(() => {
-    const selectedConcept = state.selectedConcept;
-    if (selectedConcept) {
-      void loadHierarchyConcepts(() => DataRepo().dataset(datasetId).getConceptsHierarchy(selectedConcept));
+    const openedConcept = state.openedConcept;
+    if (openedConcept) {
+      void loadHierarchyConcepts(() => DataRepo().dataset(datasetId).getConceptsHierarchy(openedConcept));
     } else {
       // get me the children of this concept id
       void loadRootConcepts(() => DataRepo().dataset(datasetId).getConcepts(state.domainOption.root));
@@ -98,7 +98,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
         onCommit: saveSelected(state, getNextCriteriaIndex, onStateChange),
         actionText: 'Add to group',
         datasetId,
-        selectedConceptName: state.selectedConcept?.name,
+        openedConceptName: state.openedConcept?.name,
       })
     : spinnerOverlay;
 };

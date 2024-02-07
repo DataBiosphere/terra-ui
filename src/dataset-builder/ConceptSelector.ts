@@ -19,7 +19,7 @@ type ConceptSelectorProps = {
   readonly initialCart: Concept[];
   readonly domainOptionRoot: Concept;
   readonly initialHierarchy: Map<number, Concept[]>;
-  readonly selectedConceptName?: string;
+  readonly openedConceptName?: string;
 };
 
 export const tableHeaderStyle: CSSProperties = {
@@ -42,7 +42,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
     initialCart,
     domainOptionRoot,
     initialHierarchy,
-    selectedConceptName,
+    openedConceptName,
   } = props;
 
   const [cart, setCart] = useState<Concept[]>(initialCart);
@@ -81,7 +81,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
                   icon(iconName, { size: 16 }),
                 ]),
                 div({ style: { marginLeft: 5 } }, [
-                  selectedConceptName === concept.name
+                  openedConceptName === concept.name
                     ? div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, [concept.name])
                     : concept.name,
                 ]),
