@@ -62,7 +62,6 @@ const defaultModalProps = {
   onError: jest.fn(),
   currentRuntime: undefined,
   currentDisk: undefined,
-  isLoadingCloudEnvironments: false,
   tool: runtimeToolLabels.Jupyter,
   workspace: defaultGoogleWorkspace,
   location: testDefaultLocation,
@@ -133,19 +132,6 @@ describe('GcpComputeModal', () => {
 
     // Assert
     verifyEnabled(getCreateButton());
-    screen.getByText('Jupyter Cloud Environment');
-  });
-
-  it('disables submit while loading', async () => {
-    // Arrange
-
-    // Act
-    await act(async () => {
-      render(h(GcpComputeModalBase, { ...defaultModalProps, isLoadingCloudEnvironments: true }));
-    });
-
-    // Assert
-    verifyDisabled(getCreateButton());
     screen.getByText('Jupyter Cloud Environment');
   });
 
