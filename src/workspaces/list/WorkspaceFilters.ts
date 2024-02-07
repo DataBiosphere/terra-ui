@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { CloudPlatform } from 'src/billing-logic/BillingProject';
+import { CloudPlatform } from 'src/billing-core/models';
 import { Select } from 'src/components/common';
 import { DelayedSearchInput } from 'src/components/input';
 import * as Nav from 'src/libs/nav';

@@ -3,12 +3,7 @@ import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, label, p, span, strong } from 'react-hyperscript-helpers';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
-import {
-  AzureBillingProject,
-  BillingProject,
-  CloudPlatform,
-  GCPBillingProject,
-} from 'src/billing-logic/BillingProject';
+import { AzureBillingProject, BillingProject, CloudPlatform, GCPBillingProject } from 'src/billing-core/models';
 import { isBucketErrorRequesterPays } from 'src/components/bucket-utils';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import {

@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { BillingProject } from 'src/billing-logic/BillingProject';
+import { BillingProject } from 'src/billing-core/models';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { azureProtectedDataBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';

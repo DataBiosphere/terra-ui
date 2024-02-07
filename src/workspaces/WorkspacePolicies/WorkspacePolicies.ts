@@ -3,7 +3,7 @@ import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import { CSSProperties, ReactNode } from 'react';
 import { div, h, li, ul } from 'react-hyperscript-helpers';
-import { BillingProject } from 'src/billing-logic/BillingProject';
+import { BillingProject } from 'src/billing-core/models';
 import * as Style from 'src/libs/style';
 import { getPolicyDescriptions, WorkspaceWrapper } from 'src/workspaces/utils';
 

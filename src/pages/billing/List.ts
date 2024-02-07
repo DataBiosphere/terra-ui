@@ -1,5 +1,5 @@
 import { div, h } from 'react-hyperscript-helpers';
-import { ListPage } from 'src/billing-ui/List/ListPage';
+import { ListPage } from 'src/billing/List/ListPage';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
 import * as Nav from 'src/libs/nav';
