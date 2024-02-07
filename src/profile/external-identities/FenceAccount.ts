@@ -4,6 +4,7 @@ import * as qs from 'qs';
 import { Fragment, useState } from 'react';
 import { div, h, h3, span } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useOnMount, useStore } from 'src/libs/react-utils';
@@ -24,7 +25,9 @@ export const FenceAccount = ({ provider: { key, name, expiresAfter, short } }) =
   const [isLinking, setIsLinking] = useState(Nav.useRoute().name === 'fence-callback' && key === provider);
 
   // Helpers
-  const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`;
+  const redirectUrl = `${
+    window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin
+  }/${Nav.getLink('fence-callback')}`;
 
   // Lifecycle
   useOnMount(() => {
