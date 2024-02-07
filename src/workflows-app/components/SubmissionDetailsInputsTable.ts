@@ -88,7 +88,7 @@ const SubmissionDetailsInputsTable = ({ configuredInputDefinition }: SubmissionD
                 {
                   size: { basis: 500, grow: 0 },
                   field: 'attribute',
-                  headerRenderer: () => 'Attribute',
+                  headerRenderer: () => 'Input value',
                   cellRenderer: ({ rowIndex }) => {
                     if (inputTableData[rowIndex].source.type === 'record_lookup') {
                       const source: RecordLookupInputSource = inputTableData[rowIndex]

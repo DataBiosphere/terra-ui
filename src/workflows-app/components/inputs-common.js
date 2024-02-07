@@ -78,7 +78,7 @@ export const RecordLookupSelect = (props) => {
 
   return h(Select, {
     isDisabled: false,
-    'aria-label': 'Select an Attribute',
+    'aria-label': 'Select an Input value',
     isClearable: false,
     value: source.record_attribute,
     onChange: ({ value }) => {
@@ -89,7 +89,7 @@ export const RecordLookupSelect = (props) => {
       };
       setSource(newSource);
     },
-    placeholder: source.record_attribute || 'Select Attribute',
+    placeholder: source.record_attribute || 'Select Input value',
     options: _.keys(dataTableAttributes),
     // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
     styles: { container: (old) => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) },

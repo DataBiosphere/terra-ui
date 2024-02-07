@@ -321,7 +321,7 @@ const SubmissionWorkflowIOTable = ({ type, inputOutputs }) => {
               },
               {
                 field: 'value',
-                headerRenderer: () => h(Sortable, { sort, field: 'value', onSort: setSort }, ['Attribute']),
+                headerRenderer: () => h(Sortable, { sort, field: 'value', onSort: setSort }, ['Input value']),
                 cellRenderer: ({ rowIndex }) => h(TextCell, [filteredInputOutputs[rowIndex].value]),
               },
             ],

@@ -164,7 +164,7 @@ const WorkflowIOTable = ({
       {
         headerRenderer: () =>
           h(Fragment, [
-            h(HeaderCell, ['Attribute']),
+            h(HeaderCell, ['Input value']),
             !readOnly &&
               !isSnapshot &&
               which === 'outputs' &&
