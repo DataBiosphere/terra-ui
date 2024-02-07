@@ -70,19 +70,19 @@ jobs:
       ##
 
       - name: "Checkout terra-ui code"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.target_branch }}
           repository: databiosphere/terra-ui
           path: terraui
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Auth Lyle to GCP
         id: 'lyle-auth'
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           token_format: 'id_token'
           workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
@@ -93,7 +93,7 @@ jobs:
 
       - name: Auth firecloud to GCP
         id: 'terra-auth'
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
@@ -123,7 +123,7 @@ jobs:
 
       - name: 'Upload Test Artifacts'
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: terra-ui-logs-${{ github.run_id }}
           path: |
