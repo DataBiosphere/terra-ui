@@ -1,17 +1,17 @@
 import { div, h } from 'react-hyperscript-helpers';
-import { ListPage } from 'src/billing/List/ListPage';
+import { BillingList } from 'src/billing/List/BillingList';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 
-interface ListProps {
+interface BillingListPageProps {
   queryParams: {
     selectedName: string | undefined;
   };
 }
 
-export const List = (props: ListProps) => {
+const BillingListPage = (props: BillingListPageProps) => {
   const selectedName = props.queryParams.selectedName;
   const breadcrumbs = 'Billing > Billing Project';
 
@@ -23,7 +23,7 @@ export const List = (props: ListProps) => {
           div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName]),
         ]),
     ]),
-    h(ListPage, { queryParams: { selectedName } }),
+    h(BillingList, { queryParams: { selectedName } }),
   ]);
 };
 
@@ -31,7 +31,7 @@ export const navPaths = [
   {
     name: 'billing',
     path: '/billing',
-    component: List,
+    component: BillingListPage,
     title: 'Billing',
   },
 ];

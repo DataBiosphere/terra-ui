@@ -38,13 +38,13 @@ const BillingProjectSubheader = ({ title, children }) =>
     [children]
   );
 
-interface ListPageProps {
+interface BillingListProps {
   queryParams: {
     selectedName: string | undefined;
   };
 }
 
-export const ListPage = (props: ListPageProps) => {
+export const BillingList = (props: BillingListProps) => {
   // State
   const [billingProjects, setBillingProjects] = useState<BillingProject[]>(StateHistory.get().billingProjects || []);
   const [creatingBillingProjectType, setCreatingBillingProjectType] = useState<CloudProvider | null>();
