@@ -57,6 +57,7 @@ jobs:
           TESTS_TO_RUN: ${{ inputs.tests_to_run }}
         # jq a comma seperated string into a json array, also chomp white spaces, and then stringify. "apple, tree" -> ["apple","tree"] -> "[\"apple\",\"tree\"]"
         run: |
+          jq --version
           echo "tests=`jq --arg tests_to_run ${TESTS_TO_RUN} -n '$tests_to_run | gsub("\\s"; "") | split(",")' | jq '.| tostring'`" >> $GITHUB_OUTPUT
 
   # run terra-ui e2e tests, short name for better GHA readability
