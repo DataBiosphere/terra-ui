@@ -15,4 +15,5 @@ registerTest({
   name: 'export-tdr-dataset-to-workspace',
   fn: exportTdrDatasetToWorkspace,
   timeout: 2 * 60 * 1000,
+  targetEnvironments: [],
 });

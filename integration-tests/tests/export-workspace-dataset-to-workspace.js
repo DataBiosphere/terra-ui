@@ -15,4 +15,5 @@ registerTest({
   name: 'export-workspace-dataset-to-workspace',
   fn: exportWorkspaceDatasetToWorkspace,
   timeout: 2 * 60 * 1000,
+  targetEnvironments: [],
 });

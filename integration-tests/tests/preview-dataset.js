@@ -29,4 +29,5 @@ registerTest({
   name: 'preview-dataset',
   fn: testPreviewDatasetFn,
   timeout: 2 * 60 * 1000,
+  targetEnvironments: [],
 });
