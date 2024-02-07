@@ -87,7 +87,7 @@ export const getAssayCategoryListFromDataset = (dataset: Dataset) =>
     _.uniqBy(_.toLower)
   )(dataset['prov:wasGeneratedBy']) as string[];
 
-export const formatDatasetTime = (time: string | undefined) => (time ? Utils.makeStandardDate(new Date(time)) : null);
+export const formatDatasetTime = (time?: string) => (time ? Utils.makeStandardDate(new Date(time)) : undefined);
 
 // Return type should be decided by above
 export const getDatasetAccessType = (dataset: Dataset): DatasetAccessType =>
