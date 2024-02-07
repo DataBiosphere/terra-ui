@@ -21,8 +21,8 @@ on:
       tests_to_run:
         required: false
         type: string
-        default: '[\"\"]'
-        description: "json array of tests to run, i.e. '[\"tests/find-workflow.js\",\"'tests/request-access.js'\"]' default: run all"
+        default: ''
+        description: "comma separated list of tests to run, i.e. 'tests/find-workflow.js,tests/request-access.js'. empty list (default) will run all tests."
       target_branch:
         required: false
         type: string
