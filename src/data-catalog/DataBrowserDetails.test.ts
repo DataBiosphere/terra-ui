@@ -2,7 +2,12 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { getDatasetReleasePoliciesDisplayInformation, useDataCatalog } from 'src/data-catalog/data-browser-utils';
-import { DataBrowserDetails, MainContent, MetadataDetailsComponent } from 'src/data-catalog/DataBrowserDetails';
+import {
+  DataBrowserDetails,
+  MainContent,
+  MetadataDetailsComponent,
+  SidebarComponent,
+} from 'src/data-catalog/DataBrowserDetails';
 import { TEST_DATASET_ONE, TEST_DATASET_TWO, TEST_DATASETS } from 'src/data-catalog/test-datasets';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -80,6 +85,20 @@ describe('DataBrowserDetails', () => {
           getDatasetReleasePoliciesDisplayInformation(TEST_DATASET_ONE['TerraDCAT_ap:hasDataUsePermission']).label
         )
       ).toBeTruthy();
+    });
+  });
+
+  describe('SidebarComponent', () => {
+    it('renders', async () => {
+      // Act
+      render(h(SidebarComponent, { dataObj: TEST_DATASET_ONE, id: TEST_DATASET_ONE.id }));
+      // Assert
+      expect(await screen.findByText('Granted Access')).toBeTruthy();
+      expect(await screen.findByText('Epigenomic, Genomic, Transcriptomic')).toBeTruthy();
+      expect(await screen.findByText('bam')).toBeTruthy();
+      expect(await screen.findByText('bai')).toBeTruthy();
+      expect(await screen.findByText('Preview data')).toBeTruthy();
+      expect(await screen.findByText('Prepare for analysis')).toBeTruthy();
     });
   });
 });

@@ -145,7 +145,12 @@ export const MainContent = ({ dataObj }) => {
   ]);
 };
 
-export const SidebarComponent = ({ dataObj, id }) => {
+interface SidebarComponentProps {
+  dataObj: Dataset;
+  id: string;
+}
+
+export const SidebarComponent = ({ dataObj, id }: SidebarComponentProps) => {
   const [feedbackShowing, setFeedbackShowing] = useState(false);
   const [datasetNotSupportedForExport, setDatasetNotSupportedForExport] = useState(false);
   const [snapshotExportJobId, setSnapshotExportJobId] = useState<string>();
@@ -202,7 +207,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
         },
       },
       [
-        h2({ className: 'sr-only' }, [`${dataObj.type} Data Details`]),
+        h2({ className: 'sr-only' }, [`${dataObj['dct:title']} Data Details`]),
         div(
           {
             style: {
@@ -371,7 +376,14 @@ export const SidebarComponent = ({ dataObj, id }) => {
   ]);
 };
 
-const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }) => {
+interface SnapshotExportModalProps {
+  jobId: string;
+  dataset: Dataset;
+  onDismiss: () => void;
+  onFailure: () => void;
+}
+
+const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }: SnapshotExportModalProps) => {
   const signal = useCancellation();
   const [jobStatus, setJobStatus] = useState('running');
   const [abortWarningShowing, setAbortWarningShowing] = useState(false);
@@ -449,7 +461,11 @@ const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }) => {
   );
 };
 
-export const DataBrowserDetails = ({ id }) => {
+interface DataBrowserDetailsProps {
+  id: string;
+}
+
+export const DataBrowserDetails = ({ id }: DataBrowserDetailsProps) => {
   const { dataCatalog } = useDataCatalog();
   const dataMap = _.keyBy('id', dataCatalog);
   const dataObj = dataMap[id];
