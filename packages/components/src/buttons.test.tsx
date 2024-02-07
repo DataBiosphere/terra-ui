@@ -15,10 +15,10 @@ jest.mock('./Clickable', (): ClickableExports => {
 
 describe.each([{ component: ButtonPrimary }, { component: ButtonSecondary }, { component: ButtonOutline }])(
   '$component.name',
-  ({ component: Component }) => {
+  ({ component: ButtonComponent }) => {
     it('renders a styled Clickable', () => {
       // Act
-      render(<Component />);
+      render(<ButtonComponent />);
 
       // Assert
       expect(Clickable).toHaveBeenCalledWith(
@@ -30,10 +30,10 @@ describe.each([{ component: ButtonPrimary }, { component: ButtonSecondary }, { c
     describe('when disabled', () => {
       it('is styled differently', () => {
         // Act
-        render(<Component />);
+        render(<ButtonComponent />);
         const enabledStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].style;
 
-        render(<Component disabled />);
+        render(<ButtonComponent disabled />);
         const disabledStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].style;
 
         // Assert
@@ -42,7 +42,7 @@ describe.each([{ component: ButtonPrimary }, { component: ButtonSecondary }, { c
 
       it('has no hover style', () => {
         // Act
-        render(<Component disabled />);
+        render(<ButtonComponent disabled />);
         const disabledHoverStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].hover;
 
         // Assert
