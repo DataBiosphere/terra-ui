@@ -21,7 +21,7 @@
   "files": [
     "lib/cjs/**",
     "lib/es/**",
-    "lib/types/**",
+    "lib/types/**/*.d.ts",
     "transforms/**"
   ],
   "dependencies": {

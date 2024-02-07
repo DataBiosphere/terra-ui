@@ -18,9 +18,6 @@ export interface WDSContentProps {
 
 export const WDSContent = ({
   workspace,
-  workspace: {
-    workspace: { namespace, name },
-  },
   recordType,
   wdsSchema,
   dataProvider,
@@ -34,6 +31,7 @@ export const WDSContent = ({
   // Render
   const [entityMetadata, setEntityMetadata] = useState(() => wdsToEntityServiceMetadata(wdsSchema));
 
+  // dataProvider contains the proxyUrl for an instance of WDS
   return h(Fragment, [
     h(DataTable, {
       dataProvider,
@@ -44,7 +42,6 @@ export const WDSContent = ({
       activeCrossTableTextFilter: false,
       entityMetadata,
       googleProject,
-      workspaceId: { namespace, name },
       workspace,
       snapshotName: undefined,
       selectionModel: {
