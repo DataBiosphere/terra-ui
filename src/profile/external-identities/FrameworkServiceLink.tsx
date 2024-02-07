@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
-interface FrameworkServiceLinkProps extends ClickableProps {
+interface FrameworkServiceLinkProps extends Omit<ClickableProps, 'onClick'> {
   linkText: string;
   providerKey: string;
   redirectUrl: string;
