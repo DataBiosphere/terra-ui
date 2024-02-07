@@ -28,7 +28,7 @@ export const DeleteButton = (props: DeleteButtonProps): ReactNode => {
       disabled: !isDeletable,
       tooltip: Utils.cond(
         [isDeletable, () => 'Delete cloud environment'],
-        [!permissions.canDeleteApp(resource), () => 'Deleting not yet supported'],
+        [isApp(resource) && !permissions.canDeleteApp(resource), () => 'Deleting not yet supported'],
         [
           Utils.DEFAULT,
           () =>
