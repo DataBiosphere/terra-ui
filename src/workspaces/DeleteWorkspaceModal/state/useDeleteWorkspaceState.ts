@@ -61,9 +61,9 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
       ? await Ajax(signal).Runtimes.listV2WithWorkspace(workspaceInfo.workspaceId)
       : [];
 
-    const [deletableApps, nonDeletableApps] = _.partition((app) => isResourceDeletable('app', app), apps);
+    const [deletableApps, nonDeletableApps] = _.partition((app) => isResourceDeletable(app), apps);
     const [deletableRuntimes, nonDeletableRuntimes] = _.partition(
-      (runtime) => isResourceDeletable('runtime', runtime),
+      (runtime) => isResourceDeletable(runtime),
       currentRuntimesList
     );
     return {
