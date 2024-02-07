@@ -2,6 +2,7 @@
 # If trying to run terra-ui tests as part of CI from other GHA, use the run-integration-tests workflow_call instead.
 name: External Terra UI Test
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
 
@@ -55,7 +56,7 @@ jobs:
       - id: setVariables
         env:
           TESTS_TO_RUN: ${{ inputs.tests_to_run }}
-        # jq a comma seperated string into a json array, also chomp white spaces, and then stringify. "apple, tree" -> ["apple","tree"] -> "[\"apple\",\"tree\"]"
+        # jq a comma seperated string into a json array, also chomp white spaces. "apple, tree" -> ["apple","tree"]
         run: |
           jq --version
           echo "tests=$(jq --arg tests_to_run ${{ env.TESTS_TO_RUN }} -c -n '$tests_to_run | gsub("\\s"; "") | split(",")')" >> $GITHUB_OUTPUT
@@ -70,7 +71,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
-    uses: databiosphere/terra-ui/.github/workflows/run-integration-tests.yaml@dev
+    uses: databiosphere/terra-ui/.github/workflows/run-e2e-tests.yaml@dev
     with:
       test_url: ${{ inputs.test_url }}
       environment: ${{ inputs.environment }}
