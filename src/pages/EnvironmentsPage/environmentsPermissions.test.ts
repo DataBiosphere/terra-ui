@@ -1,6 +1,5 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { DecoratedComputeResource } from 'src/analysis/Environments/Environments.models';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
@@ -90,6 +89,14 @@ describe('environmentsPermissions', () => {
     {
       resource: {
         appName: 'terra-app-3f07f6aa-6531-4151-824d-0ab8d0f19cd1',
+        status: 'CREATING',
+        appType: 'GALAXY',
+      },
+      canDeleteApp: false,
+    },
+    {
+      resource: {
+        appName: 'terra-app-3f07f6aa-6531-4151-824d-0ab8d0f19cd1',
         status: 'RUNNING',
         appType: 'CROMWELL',
       },
@@ -127,7 +134,7 @@ describe('environmentsPermissions', () => {
       },
       canDeleteApp: true,
     },
-  ] as { resource: DecoratedComputeResource; canDeleteApp: boolean }[])(
+  ] as { resource: App; canDeleteApp: boolean }[])(
     'returns proper boolean for app deletion',
     ({ resource, canDeleteApp }) => {
       expect(leoResourcePermissions.canDeleteApp(resource)).toBe(canDeleteApp);
@@ -140,27 +147,37 @@ describe('environmentsPermissions', () => {
         workspaceId: 'e5795cea-b98f-4b45-a92d-57173e4d1ea4',
         runtimeName: 'saturn-eb643cb0-e6f3-451c-88cd-0c79edd2df64',
         status: 'Stopped',
+        runtimeConfig: {
+          machineType: 'machine',
+          persistentDiskId: 313,
+          region: null,
+        },
+        cloudContext: 'AZURE',
       },
       canDeleteResource: true,
-      resourceType: 'runtime',
     },
     {
       resource: {
         workspaceId: 'e5795cea-b98f-4b45-a92d-57173e4d1ea4',
         runtimeName: 'saturn-eb643cb0-e6f3-451c-88cd-0c79edd2df64',
         status: 'Creating',
+        runtimeConfig: {
+          machineType: 'machine',
+          persistentDiskId: 313,
+          region: null,
+        },
+        cloudContext: 'AZURE',
       },
       canDeleteResource: false,
-      resourceType: 'runtime',
     },
     {
       resource: {
         workspaceId: 'e5795cea-b98f-4b45-a92d-57173e4d1ea4',
         runtimeName: 'saturn-eb643cb0-e6f3-451c-88cd-0c79edd2df64',
         status: 'Creating',
+        diskType: 'abc123',
       },
       canDeleteResource: false,
-      resourceType: 'disk',
     },
     {
       resource: {
@@ -169,7 +186,6 @@ describe('environmentsPermissions', () => {
         appType: 'GALAXY',
       },
       canDeleteResource: true,
-      resourceType: 'app',
     },
     {
       resource: {
@@ -178,7 +194,6 @@ describe('environmentsPermissions', () => {
         appType: 'CROMWELL',
       },
       canDeleteResource: true,
-      resourceType: 'app',
     },
     {
       resource: {
@@ -187,7 +202,6 @@ describe('environmentsPermissions', () => {
         appType: 'WORKFLOWS_APP',
       },
       canDeleteResource: true,
-      resourceType: 'app',
     },
     {
       resource: {
@@ -196,7 +210,6 @@ describe('environmentsPermissions', () => {
         appType: 'CROMWELL_RUNNER_APP',
       },
       canDeleteResource: true,
-      resourceType: 'app',
     },
     {
       resource: {
@@ -205,12 +218,11 @@ describe('environmentsPermissions', () => {
         appType: 'WDS',
       },
       canDeleteResource: true,
-      resourceType: 'app',
     },
-  ] as { resource: App | PersistentDisk | Runtime; canDeleteResource: boolean; resourceType: string }[])(
+  ] as { resource: App | PersistentDisk | Runtime; canDeleteResource: boolean }[])(
     'returns correct boolean for resource deletion',
-    ({ resource, canDeleteResource, resourceType }) => {
-      expect(leoResourcePermissions.canDeleteResource(resourceType, resource)).toBe(canDeleteResource);
+    ({ resource, canDeleteResource }) => {
+      expect(leoResourcePermissions.canDeleteResource(resource)).toBe(canDeleteResource);
     }
   );
 });

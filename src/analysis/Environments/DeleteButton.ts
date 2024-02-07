@@ -20,9 +20,7 @@ export interface DeleteButtonProps {
 
 export const DeleteButton = (props: DeleteButtonProps): ReactNode => {
   const { resource, permissions, onClick } = props;
-  const resourceType = isApp(resource) ? 'app' : 'runtime';
-  const isDeletable =
-    resourceType === 'app' ? permissions.canDeleteApp(resource) : permissions.canDeleteResource(resourceType, resource);
+  const isDeletable = isApp(resource) ? permissions.canDeleteApp(resource) : permissions.canDeleteResource(resource);
 
   return h(
     Link,
