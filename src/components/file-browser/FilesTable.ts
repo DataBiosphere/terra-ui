@@ -1,7 +1,8 @@
 import filesize from 'filesize';
-import React, { Dispatch, SetStateAction } from 'react';
+import React, { Dispatch, Fragment, SetStateAction } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
+import { ClipboardButton } from 'src/components/ClipboardButton';
 import { Checkbox, Link } from 'src/components/common';
 import { basename } from 'src/components/file-browser/file-browser-utils';
 import { FileMenu } from 'src/components/file-browser/FileMenu';
@@ -91,21 +92,31 @@ const FilesTable = (props: FilesTableProps) => {
               headerRenderer: () => h(HeaderCell, ['Name']),
               cellRenderer: ({ rowIndex }) => {
                 const file = files[rowIndex];
-                return h(
-                  Link,
-                  {
-                    href: file.url,
-                    style: {
-                      ...(Style.noWrapEllipsis as React.CSSProperties),
-                      textDecoration: 'underline',
+                return h(Fragment, [
+                  h(
+                    Link,
+                    {
+                      href: file.url,
+                      style: {
+                        ...(Style.noWrapEllipsis as React.CSSProperties),
+                        textDecoration: 'underline',
+                      },
+                      onClick: (e) => {
+                        e.preventDefault();
+                        onClickFile(file);
+                      },
                     },
-                    onClick: (e) => {
-                      e.preventDefault();
-                      onClickFile(file);
-                    },
-                  },
-                  [basename(file.path)]
-                );
+                    [basename(file.path)]
+                  ),
+                  h(ClipboardButton, {
+                    'aria-label': 'Copy file URL to clipboard',
+                    className: 'cell-hover-only',
+                    iconSize: 14,
+                    text: file.url,
+                    tooltip: 'Copy file URL to clipboard',
+                    style: { marginLeft: '1ch' },
+                  }),
+                ]);
               },
             },
             {

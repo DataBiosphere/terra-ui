@@ -15,7 +15,7 @@ import { DataRepo, DataRepoContract, SnapshotBuilderProgramDataOption } from 'sr
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';
-import { domainCriteriaSelectorState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
+import { domainCriteriaSearchState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
 import { dummyDatasetModel } from './TestConstants';
 
 jest.mock('src/libs/ajax/GoogleStorage');
@@ -460,7 +460,7 @@ describe('CohortEditor', () => {
     ]);
   });
 
-  it('shows the domain criteria selector', async () => {
+  it('shows the domain criteria search', async () => {
     // Arrange
     const { onStateChange } = showCohortEditor();
     const user = userEvent.setup();
@@ -472,7 +472,7 @@ describe('CohortEditor', () => {
     await user.click(domainMenuItem);
     // Assert
     expect(onStateChange).toBeCalledWith(
-      domainCriteriaSelectorState.new(expect.anything(), expect.anything(), _.set('kind', 'domain', domainOption))
+      domainCriteriaSearchState.new(expect.anything(), expect.anything(), _.set('kind', 'domain', domainOption), [], '')
     );
   });
 });
