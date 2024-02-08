@@ -5891,7 +5891,6 @@ __metadata:
     react: 18.2.0
     react-dom: 18.2.0
     react-focus-lock: ^2.9.5
-    react-hyperscript-helpers: ^2.0.0
     react-modal: ^3.16.1
     react-onclickoutside: ^6.13.0
     react-switch: ^6.1.0
@@ -5948,6 +5947,7 @@ __metadata:
     whatwg-fetch: ^3.6.2
   peerDependencies:
     "@testing-library/react": ^14.0.0
+    react: 18.2.0
   languageName: unknown
   linkType: soft
 

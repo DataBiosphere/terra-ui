@@ -7,6 +7,7 @@ import {
   EntityMetadata,
   EntityQueryOptions,
   EntityQueryResponse,
+  RecordEditParameters,
   TSVFeatures,
   TsvUploadButtonDisabledOptions,
   TsvUploadButtonTooltipOptions,
@@ -59,13 +60,24 @@ export interface TsvUploadResponse {
   recordsModified: number;
 }
 
+export interface RecordResponseBody {
+  id: string;
+  type: string;
+  attributes: { [attributeName: string]: any };
+}
+
 export const wdsToEntityServiceMetadata = (wdsSchema: RecordTypeSchema[]): EntityMetadata => {
   const keyedSchema: Record<string, RecordTypeSchema> = _.keyBy((x) => x.name, wdsSchema);
   return _.mapValues((typeDef) => {
     // exclude the primary-key attribute from the list of attributes. The data table reads
     // the primary-key attribute from the "idName" property.
     const attrs = _.filter((attr) => attr.name !== typeDef.primaryKey, typeDef.attributes);
-    return { count: typeDef.count, attributeNames: _.map((attr) => attr.name, attrs), idName: typeDef.primaryKey };
+    return {
+      count: typeDef.count,
+      attributeNames: _.map((attr) => attr.name, attrs),
+      attributes: attrs,
+      idName: typeDef.primaryKey,
+    };
   }, keyedSchema);
 };
 
@@ -157,7 +169,8 @@ export class WdsDataTableProvider implements DataTableProvider {
       supportsTypeDeletion: true,
       supportsTypeRenaming: false,
       supportsEntityRenaming: false,
-      supportsEntityUpdating: false, // TODO: enable as part of AJ-594
+      supportsEntityUpdating: true,
+      supportsEntityUpdatingTypes: ['string', 'number', 'boolean', 'json'], // remove this as part of AJ-<need to create ticket> for other types
       supportsAttributeRenaming: this.isCapabilityEnabled('edit.renameAttribute'),
       supportsAttributeDeleting: this.isCapabilityEnabled('edit.deleteAttribute'),
       supportsAttributeClearing: false,
@@ -322,6 +335,18 @@ export class WdsDataTableProvider implements DataTableProvider {
       uploadParams.workspaceId,
       uploadParams.recordType,
       uploadParams.file
+    );
+  };
+
+  updateRecord = (recordEditParams: RecordEditParameters): Promise<RecordResponseBody> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
+
+    return Ajax().WorkspaceData.updateRecord(
+      this.proxyUrl,
+      recordEditParams.instance,
+      recordEditParams.recordName,
+      recordEditParams.recordId,
+      recordEditParams.record
     );
   };
 

@@ -4,6 +4,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { TextInput } from 'src/components/input';
 import { HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/components/table';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import { WithWarnings } from 'src/workflows-app/components/inputs-common';
 import { getOutputTableData } from 'src/workflows-app/utils/submission-utils';
 
@@ -65,7 +66,7 @@ const OutputsTable = (props) => {
         {
           headerRenderer: () =>
             div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flex: '1 1 auto' } }, [
-              h(HeaderCell, { style: { overflow: 'visible' } }, ['Attribute']),
+              h(HeaderCell, { style: { overflow: 'visible' } }, [WorkflowTableColumnNames.OUTPUT_NAME]),
               h(Fragment, [
                 div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
                 h(Link, { style: { minWidth: 'fit-content' }, onClick: clearOutputs }, ['Clear outputs']),

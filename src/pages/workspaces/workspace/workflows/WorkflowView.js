@@ -40,7 +40,13 @@ import { workflowSelectionStore } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { downloadIO, getWorkflowInputSuggestionsForAttributesOfSetMembers, ioTask, ioVariable } from 'src/libs/workflow-utils';
+import {
+  downloadIO,
+  getWorkflowInputSuggestionsForAttributesOfSetMembers,
+  ioTask,
+  ioVariable,
+  WorkflowTableColumnNames,
+} from 'src/libs/workflow-utils';
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent';
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
@@ -164,7 +170,7 @@ const WorkflowIOTable = ({
       {
         headerRenderer: () =>
           h(Fragment, [
-            h(HeaderCell, ['Attribute']),
+            h(HeaderCell, [WorkflowTableColumnNames.INPUT_VALUE]),
             !readOnly &&
               !isSnapshot &&
               which === 'outputs' &&

@@ -5,6 +5,7 @@ import { statusType as jobStatusType } from 'src/components/job-common';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds, maybeParseJSON } from 'src/libs/utils';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import {
   InputDefinition,
   InputSource,
@@ -184,17 +185,19 @@ export type InputValidationWithName = InputValidation & {
   name: string;
 };
 
+const inputValueRequiredMessage = `This ${WorkflowTableColumnNames.INPUT_VALUE.toLowerCase()} is required`;
+
 const validateRequiredHasSource = (inputSource: InputSource, inputType: InputType): IsInputValid => {
   if (inputType.type === 'optional') {
     return true;
   }
 
   if (!inputSource) {
-    return { type: 'error', message: 'This attribute is required' };
+    return { type: 'error', message: inputValueRequiredMessage };
   }
 
   if (inputSource.type === 'none') {
-    return { type: 'error', message: 'This attribute is required' };
+    return { type: 'error', message: inputValueRequiredMessage };
   }
   if (inputSource.type === 'object_builder' && inputType.type === 'struct') {
     const sourceFieldsFilled = _.flow(
@@ -219,10 +222,10 @@ const validateRequiredHasSource = (inputSource: InputSource, inputType: InputTyp
       return true;
     }
 
-    return !!inputSource.parameter_value || { type: 'error', message: 'This attribute is required' };
+    return !!inputSource.parameter_value || { type: 'error', message: inputValueRequiredMessage };
   }
   if (inputSource.type === 'record_lookup' && inputSource.record_attribute === '') {
-    return { type: 'error', message: 'This attribute is required' };
+    return { type: 'error', message: inputValueRequiredMessage };
   }
   return true;
 };

@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { authOpts, fetchWDS, jsonBody } from 'src/libs/ajax/ajax-common';
 import {
   RecordQueryResponse,
+  RecordResponseBody,
   RecordTypeSchema,
   SearchRequest,
   TsvUploadResponse,
@@ -131,6 +132,19 @@ export const WorkspaceData = (signal) => ({
     const res = await fetchWDS(root)(
       `${instanceId}/tsv/v0.2/${recordType}`,
       _.mergeAll([authOpts(), { body: formData, signal, method: 'POST' }])
+    );
+    return res.json();
+  },
+  updateRecord: async (
+    root: string,
+    instanceId: string,
+    recordType: string,
+    recordId: string,
+    record: { [attribute: string]: any }
+  ): Promise<RecordResponseBody> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/records/v0.2/${recordType}/${recordId}`,
+      _.mergeAll([authOpts(), jsonBody(record), { signal, method: 'PATCH' }])
     );
     return res.json();
   },

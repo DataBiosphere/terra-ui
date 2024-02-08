@@ -2,6 +2,7 @@ import { ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { FlexTable, Sortable, TextCell } from 'src/components/table';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import { getInputTableData, InputTableData } from 'src/workflows-app/utils/submission-utils';
 
 import { InputDefinition, RecordLookupInputSource } from '../models/submission-models';
@@ -88,7 +89,7 @@ const SubmissionDetailsInputsTable = ({ configuredInputDefinition }: SubmissionD
                 {
                   size: { basis: 500, grow: 0 },
                   field: 'attribute',
-                  headerRenderer: () => 'Attribute',
+                  headerRenderer: () => WorkflowTableColumnNames.INPUT_VALUE,
                   cellRenderer: ({ rowIndex }) => {
                     if (inputTableData[rowIndex].source.type === 'record_lookup') {
                       const source: RecordLookupInputSource = inputTableData[rowIndex]
