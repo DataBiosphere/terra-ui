@@ -36,5 +36,7 @@ registerTest({
   name: 'request-access',
   fn: testRequestAccessFn,
   timeout: 2 * 60 * 1000, // 2 min timeout
+  // Tests are disabled until we reprioritize catalog support. See:
+  // https://broadworkbench.atlassian.net/browse/DC-810
   targetEnvironments: [],
 });
