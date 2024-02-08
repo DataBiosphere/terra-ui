@@ -3,18 +3,21 @@ import { h } from 'react-hyperscript-helpers';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { TooltipCell } from 'src/components/table';
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg';
+import { Ajax } from 'src/libs/ajax';
 import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils';
+import Events, { EventWorkspaceDetails } from 'src/libs/events';
 import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { InfoRow } from 'src/workspaces/dashboard/InfoRow';
 import { AzureContext } from 'src/workspaces/utils';
 
-interface AzureStorageDetailsProps {
+export interface AzureStorageDetailsProps {
   azureContext: AzureContext;
   storageDetails: StorageDetails;
+  eventWorkspaceDetails: EventWorkspaceDetails;
 }
 
 export const AzureStorageDetails = (props: AzureStorageDetailsProps): ReactNode => {
-  const { azureContext, storageDetails } = props;
+  const { azureContext, storageDetails, eventWorkspaceDetails } = props;
   return h(Fragment, [
     h(InfoRow, { title: 'Cloud Name' }, [
       h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } }),
@@ -37,6 +40,11 @@ export const AzureStorageDetails = (props: AzureStorageDetailsProps): ReactNode 
         'aria-label': 'Copy resource group ID to clipboard',
         text: azureContext.managedResourceGroupId,
         style: { marginLeft: '0.25rem' },
+        onClick: (_) => {
+          Ajax().Metrics.captureEvent(Events.workspaceDashboardCopyResourceGroup, {
+            ...eventWorkspaceDetails,
+          });
+        },
       }),
     ]),
     h(InfoRow, { title: 'Storage Container URL' }, [
@@ -45,6 +53,11 @@ export const AzureStorageDetails = (props: AzureStorageDetailsProps): ReactNode 
         'aria-label': 'Copy storage container URL to clipboard',
         text: storageDetails.azureContainerUrl || '',
         style: { marginLeft: '0.25rem' },
+        onClick: (_) => {
+          Ajax().Metrics.captureEvent(Events.workspaceDashboardCopyStorageContainerUrl, {
+            ...eventWorkspaceDetails,
+          });
+        },
       }),
     ]),
     h(InfoRow, { title: 'Storage SAS URL' }, [
@@ -53,6 +66,11 @@ export const AzureStorageDetails = (props: AzureStorageDetailsProps): ReactNode 
         'aria-label': 'Copy SAS URL to clipboard',
         text: storageDetails.azureContainerSasUrl || '',
         style: { marginLeft: '0.25rem' },
+        onClick: (_) => {
+          Ajax().Metrics.captureEvent(Events.workspaceDashboardCopySASUrl, {
+            ...eventWorkspaceDetails,
+          });
+        },
       }),
     ]),
   ]);

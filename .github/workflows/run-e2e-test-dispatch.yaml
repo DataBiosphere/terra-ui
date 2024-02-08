@@ -1,0 +1,87 @@
+# Workflow Dispatch to run terra-ui integration tests
+# If trying to run terra-ui tests as part of CI from other GHA, use the run-e2e-tests workflow_call instead.
+name: External Terra UI Test
+on:
+  workflow_dispatch:
+    inputs:
+
+      ##
+      ## Configurations:
+      ##
+
+      test_url:
+        required: true
+        type: string
+        description: "URL of terraui instance to test against, required. example: https://bvdp-saturn-staging.appspot.com"
+      environment:
+        required: true
+        type: string
+        default: dev
+        description: "environment config to use, default: dev"
+      tests_to_run:
+        required: true
+        type: string
+        description: "comma separated list of tests to run, i.e. 'tests/find-workflow.js,tests/request-access.js'"
+      target_branch:
+        required: false
+        type: string
+        description: "The branch of terra-ui to run integration tests against"
+      notify-slack-channels-upon-workflow-success:
+        description: 'optional: comma separated slack channel(s) to notify on success i.e. terra-ui,workbench-release'
+        required: false
+        type: string
+      notify-slack-channels-upon-workflow-failure:
+        description: 'optional: comma separated slack channel(s) to notify on failure i.e. terra-ui,workbench-release'
+        required: false
+        type: string
+      notify-slack-channels-upon-workflow-completion:
+        description: 'optional: comma separated slack channel(s) to notify on completion i.e. terra-ui,workbench-release'
+        required: false
+        type: string
+      relates-to-chart-releases:
+        description: 'optional: Chart releases (chart instances) related to or affected by the calling workflow. i.e. sam-dev'
+        required: false
+        type: string
+
+jobs:
+  # A dance we must do to make the text string parsable
+  # jqs a comma separated string into a json array, chomping white spaces. 
+  # "apple, tree" -> ["apple","tree"]
+  setup-inputs:
+    runs-on: ubuntu-latest
+    outputs:
+      tests: ${{ steps.setVariables.outputs.tests }}
+    steps:
+      - id: setVariables
+        env:
+          TESTS_TO_RUN: ${{ inputs.tests_to_run }}
+        run: |
+          echo "tests=$(jq --arg tests_to_run "${{ env.TESTS_TO_RUN }}" -c -n '$tests_to_run | gsub("\\s"; "") | split(",")')" >> $GITHUB_OUTPUT
+
+  # run terra-ui e2e tests, short name for better GHA readability
+  terraui-e2e:
+    needs: setup-inputs
+    strategy:
+      fail-fast: false 
+      matrix:
+        tests_to_run: ${{fromjson(needs.setup-inputs.outputs.tests)}}
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    uses: databiosphere/terra-ui/.github/workflows/run-e2e-tests.yaml@dev
+    with:
+      test_url: ${{ inputs.test_url }}
+      environment: ${{ inputs.environment }}
+      tests_to_run: ${{ matrix.tests_to_run }}
+      target_branch: ${{ inputs.target_branch }}
+
+  report-workflow:
+    uses: broadinstitute/sherlock/.github/workflows/client-report-workflow.yaml@main
+    with:
+      notify-slack-channels-upon-workflow-success: ${{ inputs.notify-slack-channels-upon-workflow-success }}
+      notify-slack-channels-upon-workflow-failure: ${{ inputs.notify-slack-channels-upon-workflow-failure }}
+      notify-slack-channels-upon-workflow-completion: ${{ inputs.notify-slack-channels-upon-workflow-completion }}
+      relates-to-chart-releases: ${{ inputs.relates-to-chart-releases }}
+
+    permissions:
+      id-token: write

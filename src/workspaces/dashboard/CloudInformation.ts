@@ -35,7 +35,13 @@ const AzureCloudInformation = (props: AzureCloudInformationProps): ReactNode => 
   const { workspace, storageDetails } = props;
   const azureContext = workspace.azureContext;
   return h(Fragment, [
-    dl([h(AzureStorageDetails, { azureContext, storageDetails })]),
+    dl([
+      h(AzureStorageDetails, {
+        azureContext,
+        storageDetails,
+        eventWorkspaceDetails: extractWorkspaceDetails(workspace),
+      }),
+    ]),
     div({ style: { margin: '0.5rem', fontSize: 12 } }, [
       div([
         'Use SAS URL in conjunction with ',
@@ -126,6 +132,11 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           'aria-label': 'Copy google project ID to clipboard',
           text: googleProject,
           style: { marginLeft: '0.25rem' },
+          onClick: (_) => {
+            Ajax().Metrics.captureEvent(Events.workspaceDashboardCopyGoogleProjectId, {
+              ...extractWorkspaceDetails(workspace),
+            });
+          },
         }),
       ]),
       h(InfoRow, { title: 'Bucket Name' }, [
@@ -134,6 +145,11 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           'aria-label': 'Copy bucket name to clipboard',
           text: bucketName,
           style: { marginLeft: '0.25rem' },
+          onClick: (_) => {
+            Ajax().Metrics.captureEvent(Events.workspaceDashboardCopyBucketName, {
+              ...extractWorkspaceDetails(workspace),
+            });
+          },
         }),
       ]),
       canWrite(accessLevel) &&
