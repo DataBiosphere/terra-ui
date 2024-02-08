@@ -104,7 +104,7 @@ describe('WorkspaceFilters', () => {
     });
     const filterSelector = screen.getByLabelText('Search workspaces by keyword');
     await filterSelector.click();
-    await user.type(filterSelector, 'foo');
+    await user.type(filterSelector, 'f');
 
     // Move focus to another element because we emit the event on blur.
     const otherSelector = screen.getByLabelText('Filter by billing project');
