@@ -75,8 +75,8 @@ describe('TreeGrid', () => {
     expect(screen.queryByText(col2(root))).toBeTruthy();
     expect(screen.queryByText(col3(root))).toBeTruthy();
     // The children are initially not visible.
-    expect(screen.queryByText(domainOptionRootChildren![0].name)).toBeTruthy();
-    expect(screen.queryByText(domainOptionRootChildren![1].name)).toBeTruthy();
+    expect(screen.queryByText(child1.name)).toBeTruthy();
+    expect(screen.queryByText(child2.name)).toBeTruthy();
   });
 
   it('renders a tree, children not visible after collapse', async () => {
@@ -89,8 +89,8 @@ describe('TreeGrid', () => {
     await user.click(screen.getByLabelText(`collapse ${root.id}`));
     // Assert
     // The children are now visible.
-    expect(screen.queryByText(domainOptionRootChildren![0].name)).toBeFalsy();
-    expect(screen.queryByText(domainOptionRootChildren![1].name)).toBeFalsy();
+    expect(screen.queryByText(child1.name)).toBeFalsy();
+    expect(screen.queryByText(child2.name)).toBeFalsy();
   });
 
   it('renders a tree, children visible again after collapse and expand', async () => {
@@ -104,8 +104,8 @@ describe('TreeGrid', () => {
 
     // Assert
     // The children are no longer visible.
-    expect(screen.queryByText(domainOptionRootChildren![0].name)).toBeTruthy();
-    expect(screen.queryByText(domainOptionRootChildren![1].name)).toBeTruthy();
+    expect(screen.queryByText(child1.name)).toBeTruthy();
+    expect(screen.queryByText(child2.name)).toBeTruthy();
   });
 
   it('renders a tree, second call to expand uses cached values', async () => {
@@ -115,12 +115,20 @@ describe('TreeGrid', () => {
     // Act
     const user = userEvent.setup();
 
+    // expand
     await user.click(screen.getByLabelText(`expand ${child2.id}`));
+    expect(screen.queryByText(child3.name)).toBeTruthy();
+
+    // collapse
     await user.click(screen.getByLabelText(`collapse ${child2.id}`));
+    expect(screen.queryByText(child3.name)).toBeFalsy();
+
+    // expand
     await user.click(screen.getByLabelText(`expand ${child2.id}`));
+    expect(screen.queryByText(child3.name)).toBeTruthy();
 
     // Assert
-    // Expanded twice, but only one call to getChildren.
+    // Expanded twice, but only one call to getChildren because child is already fetched.
     expect(getChildrenCount).toBe(1);
   });
 });
