@@ -5,6 +5,7 @@ import { Link } from 'src/components/common';
 import { HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/components/table';
 import { RecordTypeSchema } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import * as Utils from 'src/libs/utils';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import {
   InputsButtonRow,
   InputSourceSelect,
@@ -225,7 +226,7 @@ const InputsTable = ({
         },
         {
           size: { basis: 300, grow: 1 },
-          headerRenderer: () => h(HeaderCell, ['Attribute']),
+          headerRenderer: () => h(HeaderCell, [WorkflowTableColumnNames.INPUT_VALUE]),
           cellRenderer: ({ rowIndex }) => {
             const source = _.get(`${rowIndex}.source`, inputTableData);
             const inputName = _.get(`${rowIndex}.input_name`, inputTableData);
