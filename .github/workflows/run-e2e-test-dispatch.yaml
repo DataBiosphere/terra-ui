@@ -68,7 +68,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
-    uses: databiosphere/terra-ui/.github/workflows/run-e2e-tests.yaml@DDO-3418-workflows-dispatch-test
+    uses: databiosphere/terra-ui/.github/workflows/run-e2e-tests.yaml@dev
     with:
       test_url: ${{ inputs.test_url }}
       environment: ${{ inputs.environment }}
