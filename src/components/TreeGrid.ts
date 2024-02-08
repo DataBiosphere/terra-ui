@@ -118,7 +118,6 @@ const getRowIndex = <T extends RowContents>(row: Row<T>, rows: Row<T>[]) =>
   _.findIndex((r) => r.contents.id === row.contents.id, rows);
 
 const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
-  // update customWrapper to each props
   const { columns, getChildren, gridWidth, domainOptionRoot, initialHierarchy } = props;
   const [data, setData] = useState(hierarchyMapToRows(initialHierarchy, domainOptionRoot));
   const rowHeight = 40;
