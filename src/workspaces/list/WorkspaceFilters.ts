@@ -4,6 +4,8 @@ import { div, h } from 'react-hyperscript-helpers';
 import { CloudPlatform } from 'src/billing-core/models';
 import { Select } from 'src/components/common';
 import { DelayedSearchInput } from 'src/components/input';
+import { Ajax } from 'src/libs/ajax';
+import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
@@ -36,6 +38,9 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         placeholder: 'Search by keyword',
         'aria-label': 'Search workspaces by keyword',
         onChange: (newFilter) => Nav.updateSearch({ ...query, filter: newFilter || undefined }),
+        onBlur: (_) => {
+          Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'keyword' });
+        },
         value: filters.nameFilter,
       }),
     ]),
@@ -47,7 +52,11 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         value: _.map((tag) => ({ label: tag, value: tag }), filters.tags),
         placeholder: 'Tags',
         'aria-label': 'Filter by tags',
-        onChange: (data) => Nav.updateSearch({ ...query, tagsFilter: _.map('value', data) }),
+        onChange: (data) => {
+          const option = _.map('value', data);
+          Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'tags', option });
+          Nav.updateSearch({ ...query, tagsFilter: option });
+        },
       }),
     ]),
     div({ style: styles.filter }, [
@@ -58,7 +67,11 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         placeholder: 'Access levels',
         'aria-label': 'Filter by access levels',
         value: filters.accessLevels,
-        onChange: (data) => Nav.updateSearch({ ...query, accessLevelsFilter: _.map('value', data) }),
+        onChange: (data) => {
+          const option = _.map('value', data);
+          Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'access', option });
+          Nav.updateSearch({ ...query, accessLevelsFilter: option });
+        },
         options: [...workspaceAccessLevels], // need to re-create the list otherwise the readonly type of workspaceAccessLevels conflicts with the type of options
         getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
       }),
@@ -71,7 +84,11 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         'aria-label': 'Filter by billing project',
         value: filters.projects,
         hideSelectedOptions: true,
-        onChange: (data) => Nav.updateSearch({ ...query, projectsFilter: data?.value || undefined }),
+        onChange: (data) => {
+          const option = data?.value || undefined;
+          Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'billingProject', option });
+          Nav.updateSearch({ ...query, projectsFilter: option });
+        },
         options: _.flow(_.map('workspace.namespace'), _.uniq, _.sortBy(_.identity))(workspaces),
       }),
     ]),
@@ -84,7 +101,11 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         'aria-label': 'Filter by submission status',
         value: filters.submissions,
         hideSelectedOptions: true,
-        onChange: (data) => Nav.updateSearch({ ...query, submissionsFilter: _.map('value', data) }),
+        onChange: (data) => {
+          const option = _.map('value', data);
+          Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'submissionStatus', option });
+          Nav.updateSearch({ ...query, submissionsFilter: option });
+        },
         options: ['running', 'success', 'failure'],
         getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
       }),
@@ -97,7 +118,11 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         'aria-label': 'Filter by cloud platform',
         value: filters.cloudPlatform,
         hideSelectedOptions: true,
-        onChange: (data) => Nav.updateSearch({ ...query, cloudPlatform: data?.value || undefined }),
+        onChange: (data) => {
+          const option = data?.value || undefined;
+          Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'cloudPlatform', option });
+          Nav.updateSearch({ ...query, cloudPlatform: option });
+        },
         options: _.sortBy((cloudProvider) => cloudProviderLabels[cloudProvider], _.keys(cloudProviderTypes)),
         getOptionLabel: ({ value }) => (value ? cloudProviderLabels[value] : undefined),
       }),

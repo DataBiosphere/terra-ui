@@ -1,6 +1,8 @@
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
+import { Ajax } from 'src/libs/ajax';
+import Events from 'src/libs/events';
 import { updateSearch, useRoute } from 'src/libs/nav';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -24,6 +26,17 @@ jest.mock(
     useRoute: jest.fn().mockImplementation(() => ({ params: {}, query: {} })),
     updateSearch: jest.fn(),
   })
+);
+
+type AjaxContract = ReturnType<typeof Ajax>;
+
+jest.mock('src/libs/ajax');
+
+asMockedFn(Ajax).mockImplementation(
+  () =>
+    ({
+      Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
+    } as Partial<AjaxContract> as AjaxContract)
 );
 
 describe('The WorkspacesListTabs component', () => {
@@ -162,7 +175,7 @@ describe('The WorkspacesListTabs component', () => {
     expect(refreshWorkspaces).toHaveBeenCalled();
   });
 
-  it('switches to an inactive tab when clicked', () => {
+  it('switches to an inactive tab when clicked and emits an event', () => {
     // Arrange
     const workspaces: CategorizedWorkspaces = {
       myWorkspaces: [defaultAzureWorkspace],
@@ -171,6 +184,14 @@ describe('The WorkspacesListTabs component', () => {
       featured: [],
     };
     asMockedFn(updateSearch);
+
+    const captureEvent = jest.fn();
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
 
     // Act
     const refreshWorkspaces = jest.fn();
@@ -188,5 +209,7 @@ describe('The WorkspacesListTabs component', () => {
     const publicTab = tabs[3];
     act(() => fireEvent.click(publicTab));
     expect(updateSearch).toHaveBeenCalledWith({ tab: 'public' });
+    expect(captureEvent).toHaveBeenNthCalledWith(1, `${Events.workspacesListSelectTab}:view:myWorkspaces`, {});
+    expect(captureEvent).toHaveBeenNthCalledWith(2, `${Events.workspacesListSelectTab}:view:public`, {});
   });
 });
