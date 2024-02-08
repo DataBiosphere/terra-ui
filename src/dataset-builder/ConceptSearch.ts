@@ -23,7 +23,7 @@ type ConceptSearchProps = {
     domainOption: SnapshotBuilderDomainOption,
     cart: Concept[],
     searchText: string,
-    selectedConcept?: Concept
+    openedConcept?: Concept
   ) => void;
   readonly actionText: string;
   readonly datasetId: string;
