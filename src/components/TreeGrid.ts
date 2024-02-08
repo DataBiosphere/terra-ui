@@ -47,52 +47,51 @@ const wrapContent =
   });
 
 const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<number, T[]>, domainOptionRoot: T): Row<T>[] => {
-  const traverseHierarchy = (parent: T, depth: number, rows: Row<T>[]): Row<T>[] => {
-    const updatedRows: Row<T>[] = [
-      ...rows,
-      {
-        contents: parent,
-        depth,
-        isFetched: true,
-        state: 'open',
-      },
-    ];
+  const traverseHierarchy = (parent: T, depth: number, previousRows: Row<T>[]): Row<T>[] => {
+    // create row with parent information
+    const parentRow: Row<T> = {
+      contents: parent,
+      depth,
+      isFetched: true,
+      state: 'open',
+    };
 
     // fetch all children of parent
-    const children: T[] | undefined = hierarchyMap.get(parent.id);
-    // if parent doesn't have children, return updatedRows
-    if (!children) {
-      return updatedRows;
-    }
-    children.forEach((child: T) => {
+    const children: T[] = hierarchyMap.get(parent.id) || [];
+    // returns rows out of all children of parent
+    const childRows: Row<T>[] = children.flatMap((child: T) => {
       // if child has children, recursively call traverseHierarchy to get its branch
-      if (child.hasChildren) {
-        updatedRows.push(...traverseHierarchy(child, depth + 1, []));
+      const childHasChildren: T[] = hierarchyMap.get(child.id) || [];
+      // if child does not have children add child to Rows
+      if (childHasChildren.length === 0) {
+        return [
+          {
+            contents: child,
+            depth: depth + 1,
+            isFetched: false,
+            state: 'closed',
+          },
+        ];
       }
-      // if child does not have children, add to Rows
-      else {
-        updatedRows.push({
-          contents: child,
-          depth: depth + 1,
-          isFetched: false,
-          state: 'closed',
-        });
-      }
+      return traverseHierarchy(child, depth + 1, []);
     });
-    return updatedRows;
+
+    // return all previousRows, append parentRow, and childRows
+    return [...previousRows, parentRow, ...childRows];
   };
 
-  // we use .get() to retrieve the values or children of domainOptionRoot
-  const domainOptionRootChildren: T[] | undefined = hierarchyMap.get(domainOptionRoot.id);
+  // initialize rows
+  const rows: Row<T>[] = [];
 
-  if (!domainOptionRootChildren) {
-    return [];
-  }
-
-  let rows: Row<T>[] = [];
+  // initialize depth
   const depth = 0;
+
+  // get the children of domainOptionRoot
+  const domainOptionRootChildren: T[] = hierarchyMap.get(domainOptionRoot.id) || [];
+
+  // for each child of domainOptionRoot, traverse the hierarchy
   domainOptionRootChildren.forEach((domainOptionRootChild) => {
-    rows = traverseHierarchy(domainOptionRootChild, depth, rows);
+    rows.push(...traverseHierarchy(domainOptionRootChild, depth, []));
   });
 
   return rows;
@@ -107,6 +106,7 @@ type TreeGridProps<T extends RowContents> = {
   readonly getChildren: (row: T) => Promise<T[]>;
   /** Given the domain option root, create a hierarchy */
   readonly domainOptionRoot: T;
+  /** Optional header style */
   readonly headerStyle?: CSSProperties;
 };
 
