@@ -2,7 +2,7 @@ import { AnalysisFile } from 'src/analysis/useAnalysisFiles';
 import { AbsolutePath, getExtension, getFileName, stripExtension } from 'src/analysis/utils/file-utils';
 import { getToolLabelFromFileExtension, ToolLabel } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
-import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
+import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/workspaces/utils';
 
 export interface AnalysisProviderContract {
   listAnalyses: (workspaceInfo: WorkspaceInfo, signal?: AbortSignal) => Promise<AnalysisFile[]>;

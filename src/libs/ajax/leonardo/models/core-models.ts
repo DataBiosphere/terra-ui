@@ -1,7 +1,7 @@
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { CloudProvider } from 'src/libs/workspace-utils';
+import { CloudProvider } from 'src/workspaces/utils';
 
 export interface AuditInfo {
   creator: string;

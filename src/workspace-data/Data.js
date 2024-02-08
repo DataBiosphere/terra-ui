@@ -30,8 +30,8 @@ import { getTerraUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 import EntitiesContent from './data-table/entity-service/EntitiesContent';
 import { ExportDataModal } from './data-table/entity-service/ExportDataModal';
@@ -700,6 +700,7 @@ export const WorkspaceData = _.flow(
 
     const loadWdsTypes = useCallback(
       (url, workspaceId) => {
+        setWdsTypes({ status: 'None', state: [] });
         return Ajax(signal)
           .WorkspaceData.getSchema(url, workspaceId)
           .then((typesResult) => {
@@ -1237,9 +1238,13 @@ export const WorkspaceData = _.flow(
                   importingReference &&
                     h(ReferenceDataImporter, {
                       onDismiss: () => setImportingReference(false),
-                      onSuccess: () => {
+                      onSuccess: (reference) => {
                         setImportingReference(false);
                         refreshWorkspace();
+                        Ajax().Metrics.captureEvent(Events.workspaceDataAddReferenceData, {
+                          ...extractWorkspaceDetails(workspace.workspace),
+                          reference,
+                        });
                       },
                       namespace,
                       name,
@@ -1247,12 +1252,16 @@ export const WorkspaceData = _.flow(
                   deletingReference &&
                     h(ReferenceDataDeleter, {
                       onDismiss: () => setDeletingReference(false),
-                      onSuccess: () => {
+                      onSuccess: (reference) => {
                         setDeletingReference(false);
                         if (selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === deletingReference) {
                           setSelectedData(undefined);
                         }
                         refreshWorkspace();
+                        Ajax().Metrics.captureEvent(Events.workspaceDataRemoveReference, {
+                          ...extractWorkspaceDetails(workspace.workspace),
+                          reference,
+                        });
                       },
                       namespace,
                       name,
@@ -1490,6 +1499,7 @@ export const WorkspaceData = _.flow(
                       recordType: selectedData.entityType,
                       wdsSchema: wdsTypes.state,
                       editable: canEditWorkspace,
+                      loadMetadata,
                     }),
                 ]
               ),

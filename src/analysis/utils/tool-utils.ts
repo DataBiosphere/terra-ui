@@ -6,10 +6,11 @@ import { isRuntime, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Utils from 'src/libs/utils';
-import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
+import { CloudProvider, cloudProviderTypes } from 'src/workspaces/utils';
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab';
 export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH' | 'WDS' | 'WORKFLOWS_APP' | 'CROMWELL_RUNNER_APP';
+export type CromwellAppToolLabel = 'CROMWELL' | 'WORKFLOWS_APP' | 'CROMWELL_RUNNER_APP';
 export type AppAccessScope = 'USER_PRIVATE' | 'WORKSPACE_SHARED';
 export type LaunchableToolLabel = 'spark' | 'terminal' | 'RStudio' | 'JupyterLab';
 export type ToolLabel = RuntimeToolLabel | AppToolLabel;
@@ -46,6 +47,12 @@ export const appToolLabels: Record<AppToolLabel, AppToolLabel> = {
   CROMWELL_RUNNER_APP: 'CROMWELL_RUNNER_APP',
   HAIL_BATCH: 'HAIL_BATCH',
   WDS: 'WDS',
+};
+
+export const cromwellAppToolLabels: Record<CromwellAppToolLabel, CromwellAppToolLabel> = {
+  CROMWELL: 'CROMWELL',
+  WORKFLOWS_APP: 'WORKFLOWS_APP',
+  CROMWELL_RUNNER_APP: 'CROMWELL_RUNNER_APP',
 };
 
 export const appAccessScopes: Record<AppAccessScope, AppAccessScope> = {

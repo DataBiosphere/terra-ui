@@ -40,6 +40,13 @@ import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-uti
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import {
+  AzureBillingProject,
+  BillingProject,
+  CloudPlatform,
+  GCPBillingProject,
+} from 'src/pages/billing/models/BillingProject';
+import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
+import {
   cloudProviderLabels,
   isAzureWorkspace,
   isGoogleWorkspace,
@@ -49,14 +56,7 @@ import {
   protectedDataMessage,
   WorkspaceInfo,
   WorkspaceWrapper,
-} from 'src/libs/workspace-utils';
-import {
-  AzureBillingProject,
-  BillingProject,
-  CloudPlatform,
-  GCPBillingProject,
-} from 'src/pages/billing/models/BillingProject';
-import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
+} from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 

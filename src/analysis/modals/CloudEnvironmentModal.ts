@@ -57,13 +57,8 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import {
-  BaseWorkspace,
-  CloudProvider,
-  cloudProviderTypes,
-  getCloudProviderFromWorkspace,
-} from 'src/libs/workspace-utils';
 import { cromwellLinkProps, getCromwellUnsupportedMessage } from 'src/workflows-app/utils/app-utils';
+import { BaseWorkspace, CloudProvider, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 
 const titleId = 'cloud-env-modal';
 

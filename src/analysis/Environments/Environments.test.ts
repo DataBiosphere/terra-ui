@@ -1,5 +1,5 @@
 import { NavLinkProvider } from '@terra-ui-packages/core-utils';
-import { act, fireEvent, getAllByRole, screen } from '@testing-library/react';
+import { act, fireEvent, getAllByRole, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -21,9 +21,10 @@ import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider'
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { makeCompleteDate } from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { leoResourcePermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { EnvironmentNavActions, Environments, EnvironmentsProps } from './Environments';
 import { LeoResourcePermissionsProvider } from './Environments.models';
@@ -35,10 +36,6 @@ jest.mock('src/libs/notifications', () => ({
 const mockNav: NavLinkProvider<EnvironmentNavActions> = {
   getUrl: jest.fn().mockReturnValue('/'),
   navTo: jest.fn(),
-};
-const mockPermissions: LeoResourcePermissionsProvider = {
-  canDeleteDisk: jest.fn(),
-  canPauseResource: jest.fn(),
 };
 
 const defaultUseWorkspacesProps = {
@@ -81,8 +78,16 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
 };
 
 const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
+  const mockPermissions: LeoResourcePermissionsProvider = {
+    canDeleteDisk: jest.fn(),
+    canPauseResource: jest.fn(),
+    canDeleteApp: jest.fn(),
+    canDeleteResource: jest.fn(),
+  };
   asMockedFn(mockPermissions.canDeleteDisk).mockReturnValue(true);
   asMockedFn(mockPermissions.canPauseResource).mockReturnValue(true);
+  asMockedFn(mockPermissions.canDeleteApp).mockReturnValue(true);
+  asMockedFn(mockPermissions.canDeleteResource).mockReturnValue(true);
 
   const defaultProps: EnvironmentsProps = {
     nav: mockNav,
@@ -237,6 +242,7 @@ describe('Environments', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
+      props.permissions.canDeleteResource = leoResourcePermissions.canDeleteResource;
 
       // Act
       await act(async () => {
@@ -522,6 +528,48 @@ describe('Environments', () => {
       expect(getTextContentForColumn(fourthAppRow, 6)).toBe(azureApp2.region);
       expect(getTextContentForColumn(fourthAppRow, 7)).toBe(makeCompleteDate(azureApp2.auditInfo.createdDate));
       expect(getTextContentForColumn(fourthAppRow, 8)).toBe(makeCompleteDate(azureApp2.auditInfo.dateAccessed));
+    });
+
+    it('Renders Cromwell apps with disabled delete', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
+
+      const googleApp1 = generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace);
+      const azureApp1 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.CROMWELL }, defaultAzureWorkspace);
+      const azureWorkspace2 = generateAzureWorkspace();
+      const azureApp2 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.WORKFLOWS_APP }, azureWorkspace2);
+      asMockedFn(props.leoAppData.listWithoutProject).mockResolvedValue([googleApp1, azureApp1, azureApp2]);
+      asMockedFn(props.useWorkspaces).mockReturnValue({
+        ...defaultUseWorkspacesProps,
+        workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace, azureWorkspace2],
+      });
+      props.permissions = leoResourcePermissions;
+
+      // Act
+      await act(async () => {
+        render(h(Environments, props));
+      });
+
+      // Assert
+      expect(screen.getAllByRole('row')).toHaveLength(6);
+
+      const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
+      const firstAppRow: HTMLElement = tableRows[0];
+      const actionColumnButton1 = within(firstAppRow).getByRole('button', { name: 'Delete' });
+      expect(actionColumnButton1).not.toHaveAttribute('disabled');
+
+      const secondAppRow: HTMLElement = tableRows[1];
+      const actionColumnButton2 = within(secondAppRow).getByRole('button', { name: 'Delete' });
+      expect(actionColumnButton2).toHaveAttribute('disabled');
+
+      const thirdAppRow: HTMLElement = tableRows[2];
+      const actionColumnButton3 = within(thirdAppRow).getByRole('button', { name: 'Delete' });
+      expect(actionColumnButton3).toHaveAttribute('disabled');
+
+      // Check for tooltip, and that it's only present for azure apps
+      const notSupportedTooltip = screen.getAllByText('Deleting not yet supported');
+      expect(notSupportedTooltip).toBeInTheDocument;
+      expect(notSupportedTooltip.length).toBe(2);
     });
 
     it.each([

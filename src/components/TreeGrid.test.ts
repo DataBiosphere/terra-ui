@@ -74,7 +74,7 @@ describe('TreeGrid', () => {
     // Act
     const user = userEvent.setup();
     // Click the expand button.
-    await user.click(screen.getByLabelText('expand'));
+    await user.click(screen.getByLabelText(`expand ${tree.id}`));
     // Assert
     // The children are now visible.
     expect(screen.queryByText(tree.children![0].name)).toBeTruthy();
@@ -87,8 +87,8 @@ describe('TreeGrid', () => {
 
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText('expand'));
-    await user.click(screen.getByLabelText('collapse'));
+    await user.click(screen.getByLabelText(`expand ${tree.id}`));
+    await user.click(screen.getByLabelText(`collapse ${tree.id}`));
 
     // Assert
     // The children are no longer visible.
@@ -102,9 +102,9 @@ describe('TreeGrid', () => {
 
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText('expand'));
-    await user.click(screen.getByLabelText('collapse'));
-    await user.click(screen.getByLabelText('expand'));
+    await user.click(screen.getByLabelText(`expand ${tree.id}`));
+    await user.click(screen.getByLabelText(`collapse ${tree.id}`));
+    await user.click(screen.getByLabelText(`expand ${tree.id}`));
 
     // Assert
     // Expanded twice, but only one call to getChildren.

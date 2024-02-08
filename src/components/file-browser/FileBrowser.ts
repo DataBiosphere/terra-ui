@@ -15,8 +15,8 @@ import FileBrowserProvider, {
 import colors from 'src/libs/colors';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import { dataTableVersionsPathRoot } from 'src/workspace-data/data-table/versioning/data-table-versioning-utils';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 interface FileBrowserProps {
   initialPath?: string;

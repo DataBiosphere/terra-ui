@@ -7,7 +7,7 @@ import {
   WorkspaceAccessLevel,
   WorkspaceInfo,
   WorkspaceWrapper,
-} from 'src/libs/workspace-utils';
+} from 'src/workspaces/utils';
 
 /*
  * NOTE: In order to show up in reports, new events MUST be marked as expected in the Mixpanel
@@ -67,7 +67,7 @@ const eventsList = {
   catalogLandingPageBanner: 'catalog:landingPageBanner',
   catalogViewDetails: 'catalog:view:details',
   catalogViewPreviewData: 'catalog:view:previewData',
-  catalogWorkspaceLink: 'catalog:workspaceLink',
+  catalogWorkspaceLinkFromDetailsView: 'catalog:workspaceLink:detailsView',
   catalogWorkspaceLinkExportFinished: 'catalog:workspaceLink:completed',
   datasetLibraryBrowseData: 'library:browseData',
   dataTableSaveColumnSettings: 'dataTable:saveColumnSettings',
@@ -126,6 +126,11 @@ const eventsList = {
   workspaceCreate: 'workspace:create',
   workspaceDashboardToggleSection: 'workspace:dashboard:toggleSection',
   workspaceDashboardAddTag: 'workspace:dashboard:addTag',
+  workspaceDashboardCopyGoogleProjectId: 'workspace:dashboard:copyGoogleProjectId',
+  workspaceDashboardCopyBucketName: 'workspace:dashboard:copyBucketName',
+  workspaceDashboardCopyResourceGroup: 'workspace:dashboard:copyResourceGroup',
+  workspaceDashboardCopySASUrl: 'workspace:dashboard:copySASUrl',
+  workspaceDashboardCopyStorageContainerUrl: 'workspace:dashboard:copyStorageContainerUrl',
   workspaceDashboardDeleteTag: 'workspace:dashboard:deleteTag',
   workspaceDashboardEditDescription: 'workspace:dashboard:editDescription',
   workspaceDashboardSaveDescription: 'workspace:dashboard:saveDescription',
@@ -133,6 +138,7 @@ const eventsList = {
   workspaceOpenedBucketInBrowser: 'workspace:openedBucketInBrowser',
   workspaceOpenedProjectInConsole: 'workspace:openedProjectInCloudConsole',
   workspaceDataAddColumn: 'workspace:data:addColumn',
+  workspaceDataAddReferenceData: 'workspace:data:addReferenceData',
   workspaceDataAddRow: 'workspace:data:addRow',
   workspaceDataClearColumn: 'workspace:data:clearColumn',
   workspaceDataCopy: 'workspace:data:copy',
@@ -152,6 +158,7 @@ const eventsList = {
   workspaceDataOpenWithNotebook: 'workspace:data:notebook',
   workspaceDataImport: 'workspace:data:import',
   workspaceDataUpload: 'workspace:data:upload',
+  workspaceDataRemoveReference: 'workspace:data:removeReference',
   workspaceDataRenameColumn: 'workspace:data:renameColumn',
   workspaceDataRenameEntity: 'workspace:data:renameEntity',
   workspaceDataRenameTable: 'workspace:data:rename-table',
