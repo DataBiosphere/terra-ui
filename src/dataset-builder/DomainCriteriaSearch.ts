@@ -31,7 +31,7 @@ export const DomainCriteriaSearch = (props: DomainCriteriaSearchProps) => {
       domainOption: DomainOption,
       cart: Concept[],
       searchText: string,
-      selectedConcept: Concept = domainOption.root
+      openedConcept: Concept = domainOption.root
     ) => {
       onStateChange(
         domainCriteriaSelectorState.new(
@@ -40,7 +40,7 @@ export const DomainCriteriaSearch = (props: DomainCriteriaSearchProps) => {
           domainOption,
           cart,
           domainCriteriaSearchState.new(state.cohort, state.criteriaGroup, state.domainOption, cart, searchText),
-          selectedConcept
+          openedConcept
         )
       );
     },
