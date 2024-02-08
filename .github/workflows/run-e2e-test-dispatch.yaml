@@ -19,10 +19,9 @@ on:
         default: dev
         description: "environment config to use, default: dev"
       tests_to_run:
-        required: false
+        required: true
         type: string
-        default: ''
-        description: "comma separated list of tests to run, i.e. 'tests/find-workflow.js,tests/request-access.js'. empty list (default) will run all tests without parallelism"
+        description: "comma separated list of tests to run, i.e. 'tests/find-workflow.js,tests/request-access.js'"
       target_branch:
         required: false
         type: string
@@ -46,7 +45,8 @@ on:
 
 jobs:
   # A dance we must do to make the text string parsable
-  # https://stackoverflow.com/questions/70990637/how-to-convert-a-string-to-an-array-for-github-actions-matrix
+  # jqs a comma separated string into a json array, chomping white spaces. 
+  # "apple, tree" -> ["apple","tree"]
   setup-inputs:
     runs-on: ubuntu-latest
     outputs:
@@ -55,9 +55,7 @@ jobs:
       - id: setVariables
         env:
           TESTS_TO_RUN: ${{ inputs.tests_to_run }}
-        # jq a comma seperated string into a json array, also chomp white spaces. "apple, tree" -> ["apple","tree"]
         run: |
-          jq --version
           echo "tests=$(jq --arg tests_to_run "${{ env.TESTS_TO_RUN }}" -c -n '$tests_to_run | gsub("\\s"; "") | split(",")')" >> $GITHUB_OUTPUT
 
   # run terra-ui e2e tests, short name for better GHA readability
