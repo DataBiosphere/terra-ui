@@ -105,6 +105,7 @@ export const NihAccount = ({ nihToken }) => {
               style: { marginTop: '1rem' },
               title: 'Authorized to access',
               titleFirst: true,
+              initialOpenState: true,
             },
             [
               div({ style: { marginTop: '0.5rem' } }, [

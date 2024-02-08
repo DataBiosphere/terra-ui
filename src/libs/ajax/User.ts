@@ -194,6 +194,44 @@ export type SamUserAttributesRequest = {
 
 export type OrchestrationUserRegistrationRequest = object;
 
+export type OAuth2ProviderKey = 'github' | 'ras';
+export type OAuth2ProviderParams = {
+  queryParams: {
+    scopes: string[];
+    redirectUri: string;
+  };
+  supportsAccessToken: boolean;
+  supportsIdToken: boolean;
+};
+export const oauth2ProviderConfig = (providerKey: OAuth2ProviderKey): OAuth2ProviderParams => {
+  switch (providerKey) {
+    case 'github':
+      return {
+        queryParams: {
+          scopes: ['read:user', 'user:email'],
+          redirectUri: `${
+            window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin
+          }/ecm-callback`,
+        },
+        supportsAccessToken: true,
+        supportsIdToken: false,
+      };
+    case 'ras':
+      return {
+        queryParams: {
+          scopes: ['openid', 'email', 'ga4gh_passport_v1'],
+          redirectUri: `${
+            window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin
+          }/ecm-callback`,
+        },
+        supportsAccessToken: false,
+        supportsIdToken: true,
+      };
+    default:
+      throw new Error(`Unknown OAuth2 provider key: ${providerKey}`);
+  }
+};
+
 // TODO: Remove this as a part of https://broadworkbench.atlassian.net/browse/ID-460
 const getFirstTimeStamp = Utils.memoizeAsync(
   async (token): Promise<RexFirstTimestampResponse> => {
@@ -358,6 +396,53 @@ export const User = (signal?: AbortSignal) => {
       await fetchBond(`api/link/v1/${providerKey}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
     },
 
+    oAuth2Account: (providerKey: OAuth2ProviderKey) => {
+      const root = `api/oauth2/v1/${providerKey}`;
+      const { queryParams, supportsAccessToken, supportsIdToken } = oauth2ProviderConfig(providerKey);
+
+      return {
+        getAccountLinkStatus: async (): Promise<EcmLinkAccountResponse | undefined> => {
+          try {
+            const res = await fetchEcm(root, _.merge(authOpts(), { signal }));
+            return res.json();
+          } catch (error: unknown) {
+            if (error instanceof Response && error.status === 404) {
+              return undefined;
+            }
+            throw error;
+          }
+        },
+        getAuthorizationUrl: async (): Promise<string> => {
+          return await fetchEcm(
+            `${root}/authorizationUrl?${qs.stringify(queryParams, { indices: false })}`,
+            _.merge(authOpts(), { signal })
+          );
+        },
+        linkAccountWithAuthorizationCode: async (oauthcode: string, state: string): Promise<EcmLinkAccountResponse> => {
+          const res = await fetchEcm(
+            `${root}/authorizationCode?${qs.stringify({ ...queryParams, oauthcode, state }, { indices: false })}`,
+            _.merge(authOpts(), { signal, method: 'POST' })
+          );
+          return res.json();
+        },
+        unlinkAccount: async (): Promise<void> => {
+          return fetchEcm(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
+        },
+        getAccessToken: async (): Promise<string> => {
+          if (!supportsAccessToken) {
+            throw new Error(`Provider ${providerKey} does not support access tokens`);
+          }
+          return fetchEcm(`${root}/accessToken`, _.merge(authOpts(), { signal }));
+        },
+        getIdentityToken: async (): Promise<string> => {
+          if (!supportsIdToken) {
+            throw new Error(`Provider ${providerKey} does not support identity tokens`);
+          }
+          return fetchEcm(`${root}/identityToken`, _.merge(authOpts(), { signal }));
+        },
+      };
+    },
+
     externalAccount: (providerKey: string) => {
       const root = `api/oidc/v1/${providerKey}`;
       const queryParams = {
@@ -368,13 +453,13 @@ export const User = (signal?: AbortSignal) => {
       };
 
       return {
-        get: async (): Promise<string[] | null> => {
+        get: async (): Promise<EcmLinkAccountResponse | undefined> => {
           try {
             const res = await fetchEcm(root, _.merge(authOpts(), { signal }));
             return res.json();
           } catch (error: unknown) {
             if (error instanceof Response && error.status === 404) {
-              return null;
+              return undefined;
             }
             throw error;
           }
@@ -388,9 +473,15 @@ export const User = (signal?: AbortSignal) => {
           return res.json();
         },
 
-        getPassport: async (): Promise<{}> => {
-          const res = await fetchEcm(`${root}/passport`, _.merge(authOpts(), { signal }));
-          return res.json();
+        getPassport: async (): Promise<string> => {
+          try {
+            return await fetchEcm(`${root}/passport`, _.merge(authOpts(), { signal }));
+          } catch (error: unknown) {
+            if (error instanceof Response && error.status === 404) {
+              return '';
+            }
+            throw error;
+          }
         },
 
         linkAccount: async (oauthcode: string, state: string): Promise<EcmLinkAccountResponse> => {
