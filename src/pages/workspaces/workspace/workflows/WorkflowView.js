@@ -919,7 +919,7 @@ export const WorkflowView = _.flow(
                   div({ style: { display: 'flex', margin: '0.5rem 0 0 2rem' } }, [
                     div([
                       div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
-                      label(['Select root entity type:']),
+                      label(['Select data table:']),
                       snapshotReferenceError &&
                         h(
                           TooltipTrigger,
