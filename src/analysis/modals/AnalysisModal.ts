@@ -144,14 +144,11 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             Utils.cond(
               [doesCloudEnvForToolExist, onSuccess],
               [
-                !doesCloudEnvForToolExist && !!currentRuntime && isResourceDeletable('runtime', currentRuntime),
+                !doesCloudEnvForToolExist && !!currentRuntime && isResourceDeletable(currentRuntime),
                 () => setViewMode(environmentMode),
               ],
               [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(environmentMode)],
-              [
-                !doesCloudEnvForToolExist && !!currentRuntime && !isResourceDeletable('runtime', currentRuntime),
-                onSuccess,
-              ]
+              [!doesCloudEnvForToolExist && !!currentRuntime && !isResourceDeletable(currentRuntime), onSuccess]
             ),
         ],
         [environmentMode, onSuccess],
@@ -368,9 +365,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                   : runtimeToolLabels.JupyterLab;
                 const tool = toolLabel ? tools[toolLabel] : undefined;
                 setCurrentToolObj(tool);
-                currentRuntime &&
-                !isResourceDeletable('runtime', currentRuntime) &&
-                currentRuntimeToolLabel !== toolLabel
+                currentRuntime && !isResourceDeletable(currentRuntime) && currentRuntimeToolLabel !== toolLabel
                   ? onSuccess()
                   : enterNextViewMode(tool, analysisMode);
                 uploadFiles(files);
@@ -494,7 +489,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           ]),
         (isJupyterLab || isRStudio || isJupyter) &&
           currentRuntime &&
-          !isResourceDeletable('runtime', currentRuntime) &&
+          !isResourceDeletable(currentRuntime) &&
           currentRuntimeToolLabel !== toolLabel &&
           div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
             h(WarningTitle, { iconSize: 16 }, [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]),

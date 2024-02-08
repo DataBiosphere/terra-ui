@@ -114,3 +114,8 @@ export interface AzurePdSelectOption {
 }
 
 export const azureDiskSizes: number[] = [32, 64, 128, 256, 512, 1024, 2048, 4095];
+
+export const isPersistentDisk = (obj: any): obj is PersistentDisk => {
+  const castDisk = obj as PersistentDisk;
+  return castDisk && castDisk.diskType !== undefined;
+};
