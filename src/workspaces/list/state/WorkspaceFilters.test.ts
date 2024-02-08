@@ -28,12 +28,11 @@ jest.mock('src/libs/ajax');
 
 describe('WorkspaceFilters', () => {
   it.each([
-    // Not testing filter by tag because the async tag loading is challenging to mock out.
     {
-      label: 'Filter by cloud platform',
-      item: 'Microsoft Azure',
-      eventData: { filter: 'cloudPlatform', option: 'AZURE' },
-      filterParam: { cloudPlatform: 'AZURE' },
+      label: 'Filter by tags',
+      item: 'tag2 (2)',
+      eventData: { filter: 'tags', option: ['tag2'] },
+      filterParam: { tagsFilter: ['tag2'] },
     },
     {
       label: 'Filter by access levels',
@@ -53,6 +52,12 @@ describe('WorkspaceFilters', () => {
       eventData: { filter: 'submissionStatus', option: ['success'] },
       filterParam: { submissionsFilter: ['success'] },
     },
+    {
+      label: 'Filter by cloud platform',
+      item: 'Microsoft Azure',
+      eventData: { filter: 'cloudPlatform', option: 'AZURE' },
+      filterParam: { cloudPlatform: 'AZURE' },
+    },
   ] as { label: string; item: string; eventData: object; filterParam: object }[])(
     'can update the filter for "$label" and emit an event',
     async ({ label, item, eventData, filterParam }) => {
@@ -62,7 +67,10 @@ describe('WorkspaceFilters', () => {
         () =>
           ({
             Workspaces: {
-              getTags: () => jest.fn().mockResolvedValue([]),
+              getTags: jest.fn().mockResolvedValue([
+                { tag: 'tag1', count: 1 },
+                { tag: 'tag2', count: 2 },
+              ]),
             } as DeepPartial<AjaxContract['Workspaces']>,
             Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
           } as Partial<AjaxContract> as AjaxContract)
@@ -92,7 +100,7 @@ describe('WorkspaceFilters', () => {
       () =>
         ({
           Workspaces: {
-            getTags: () => jest.fn().mockResolvedValue([]),
+            getTags: jest.fn().mockResolvedValue([]),
           } as DeepPartial<AjaxContract['Workspaces']>,
           Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
         } as Partial<AjaxContract> as AjaxContract)
