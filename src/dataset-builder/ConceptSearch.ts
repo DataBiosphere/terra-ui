@@ -45,6 +45,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
   }, [search, datasetId, domainOption.root, searchConcepts]);
   const tableLeftPadding = { paddingLeft: '2rem' };
   const iconSize = 18;
+
   return h(Fragment, [
     h(BuilderPageHeader, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -58,7 +59,6 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         ),
         div({ style: { marginLeft: 15 } }, [domainOption.category]),
       ]),
-
       div({ style: { position: 'relative' } }, [
         h(DebouncedTextInput, {
           onChange: (value: string) => {
@@ -86,7 +86,6 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         ? h(SimpleTable, {
             'aria-label': 'concept search results',
             underRowKey: 'underRow',
-
             rowStyle: {
               backgroundColor: 'white',
               ...tableLeftPadding,
