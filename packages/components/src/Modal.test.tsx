@@ -227,9 +227,7 @@ describe('Modal', () => {
       renderWithTheme(
         <>
           <Modal showButtons={false} onDismiss={jest.fn()}>
-            <button type="button" style={{ display: 'contents', width: 100 }}>
-              A
-            </button>
+            <button type="button">A</button>
             <button type="button">B</button>
             <button type="button">C</button>
           </Modal>
