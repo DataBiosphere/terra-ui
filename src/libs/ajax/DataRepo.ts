@@ -15,7 +15,6 @@ import {
   SearchConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { dummyConcepts, getHierarchyMap } from 'src/dataset-builder/TestConstants';
-
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
 export type SnapshotBuilderConcept = {
