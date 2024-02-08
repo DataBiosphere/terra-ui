@@ -29,7 +29,7 @@ export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name })
               await Ajax()
                 .Workspaces.workspace(namespace, name)
                 .shallowMergeNewAttributes(_.mapKeys((k) => `referenceData_${selectedReference}_${k}`, ReferenceData[selectedReference]));
-              onSuccess();
+              onSuccess(selectedReference);
             } catch (error) {
               await reportError('Error importing reference data', error);
               onDismiss();

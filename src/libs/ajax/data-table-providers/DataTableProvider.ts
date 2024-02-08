@@ -1,6 +1,7 @@
 // define metadata structures
 export interface EntityTypeMetadata {
   attributeNames: string[];
+  attributes: { name: string; datatype: string }[];
   count: number;
   idName: string;
 }
@@ -59,6 +60,13 @@ export type UploadParameters = {
   name: string;
   workspaceId: string;
   recordType: string;
+};
+
+export type RecordEditParameters = {
+  instance: string;
+  recordName: string;
+  recordId: string;
+  record: { [attribute: string]: any };
 };
 
 export type InvalidTsvOptions = {
@@ -125,6 +133,7 @@ export interface DataTableFeatures {
   supportsTypeRenaming: boolean;
   supportsEntityRenaming: boolean;
   supportsEntityUpdating: boolean;
+  supportsEntityUpdatingTypes?: string[];
   supportsAttributeRenaming: boolean;
   supportsAttributeDeleting: boolean;
   supportsAttributeClearing: boolean;

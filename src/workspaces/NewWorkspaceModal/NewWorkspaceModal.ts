@@ -3,6 +3,7 @@ import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, label, p, span, strong } from 'react-hyperscript-helpers';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
+import { AzureBillingProject, BillingProject, CloudPlatform, GCPBillingProject } from 'src/billing-core/models';
 import { isBucketErrorRequesterPays } from 'src/components/bucket-utils';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import {
@@ -39,12 +40,6 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import {
-  AzureBillingProject,
-  BillingProject,
-  CloudPlatform,
-  GCPBillingProject,
-} from 'src/pages/billing/models/BillingProject';
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
 import {
   cloudProviderLabels,
