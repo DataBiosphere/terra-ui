@@ -82,7 +82,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
                 ]),
                 div({ style: { marginLeft: 5 } }, [
                   openedConceptName === concept.name
-                    ? div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, [concept.name])
+                    ? div({ style: { fontWeight: 600 } }, [concept.name])
                     : concept.name,
                 ]),
               ]);
