@@ -50,7 +50,7 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         onBlur: (_) => {
           if (keywordLastEvented !== lastKeywordSearched) {
             keywordLastEvented = lastKeywordSearched;
-            Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'keyword' });
+            Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'keyword', option: keywordLastEvented });
           }
         },
         value: filters.nameFilter,

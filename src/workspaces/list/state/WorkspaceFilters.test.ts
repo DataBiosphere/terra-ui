@@ -125,7 +125,7 @@ describe('WorkspaceFilters', () => {
     await user.click(otherSelector);
 
     // Assert
-    expect(captureEvent).toHaveBeenCalledWith(Events.workspaceListFilter, { filter: 'keyword' });
+    expect(captureEvent).toHaveBeenCalledWith(Events.workspaceListFilter, { filter: 'keyword', option: 'x' });
     expect(updateSearch).toHaveBeenCalledWith({ filter: 'x' });
   });
 });
