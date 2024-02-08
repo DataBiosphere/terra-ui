@@ -119,7 +119,7 @@ export const dummyConcepts = [
   { id: 404, name: 'Non-small cell lung cancer with mutation in epidermal..', count: 100, hasChildren: true },
   { id: 405, name: 'Non-small cell cancer of lung biopsy..', count: 100, hasChildren: false },
   { id: 406, name: 'Non-small cell cancer of lung lymph node..', count: 100, hasChildren: false },
-  { id: 402, name: 'Small cell lung cancer', count: 100, hasChildren: false },
+  { id: 407, name: 'Small cell lung cancer', count: 100, hasChildren: true },
   { id: 408, name: 'Lung Parenchcyma', count: 100, hasChildren: false },
 ];
 
