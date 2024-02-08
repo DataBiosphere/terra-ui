@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { CloudPlatform } from 'src/billing-core/models';
 import { Select } from 'src/components/common';
@@ -7,6 +7,7 @@ import { DelayedSearchInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
+import { useInstance } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
@@ -32,14 +33,25 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
   const { query } = Nav.useRoute();
   const filters = getWorkspaceFiltersFromQuery(query);
 
+  let keywordLastEvented = useInstance(() => filters.nameFilter);
+  const [lastKeywordSearched, setLastKeywordSearched] = useState(keywordLastEvented);
+
   return div({ style: { display: 'flex', margin: '1rem 0' } }, [
     div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
       h(DelayedSearchInput, {
         placeholder: 'Search by keyword',
         'aria-label': 'Search workspaces by keyword',
-        onChange: (newFilter) => Nav.updateSearch({ ...query, filter: newFilter || undefined }),
+        onChange: (newFilter) => {
+          // Store in a state variable to make unit testing possible (as opposed to onBlur comparing the current
+          // value to what exists in filters.nameFilter).
+          setLastKeywordSearched(newFilter);
+          Nav.updateSearch({ ...query, filter: newFilter || undefined });
+        },
         onBlur: (_) => {
-          Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'keyword' });
+          if (keywordLastEvented !== lastKeywordSearched) {
+            keywordLastEvented = lastKeywordSearched;
+            Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'keyword' });
+          }
         },
         value: filters.nameFilter,
       }),

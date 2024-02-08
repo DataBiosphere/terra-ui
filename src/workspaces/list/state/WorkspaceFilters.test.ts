@@ -1,4 +1,4 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { DeepPartial, delay } from '@terra-ui-packages/core-utils';
 import { act } from '@testing-library/react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -81,6 +81,9 @@ describe('WorkspaceFilters', () => {
       await act(async () => {
         render(h(WorkspaceFilters, { workspaces: [defaultGoogleWorkspace] }));
       });
+      if (label.indexOf('tags') !== -1) {
+        await act(() => delay(300)); // debounced loading of initial tags
+      }
       const filterSelector = screen.getByLabelText(label);
       await user.click(filterSelector);
 
@@ -105,14 +108,17 @@ describe('WorkspaceFilters', () => {
           Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
         } as Partial<AjaxContract> as AjaxContract)
     );
+    asMockedFn(updateSearch);
 
     // Act
     await act(async () => {
       render(h(WorkspaceFilters, { workspaces: [defaultGoogleWorkspace] }));
     });
+
     const filterSelector = screen.getByLabelText('Search workspaces by keyword');
     await filterSelector.click();
-    await user.type(filterSelector, 'f');
+    await user.type(filterSelector, 'x');
+    await act(() => delay(300)); // debounced search
 
     // Move focus to another element because we emit the event on blur.
     const otherSelector = screen.getByLabelText('Filter by billing project');
@@ -120,5 +126,6 @@ describe('WorkspaceFilters', () => {
 
     // Assert
     expect(captureEvent).toHaveBeenCalledWith(Events.workspaceListFilter, { filter: 'keyword' });
+    expect(updateSearch).toHaveBeenCalledWith({ filter: 'x' });
   });
 });
