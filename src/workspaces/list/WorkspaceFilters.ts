@@ -1,11 +1,11 @@
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
+import { CloudPlatform } from 'src/billing-core/models';
 import { Select } from 'src/components/common';
 import { DelayedSearchInput } from 'src/components/input';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
-import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
 import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
 import { WorkspaceSubmissionStatus } from 'src/workspaces/list/WorkspaceSubmissionStatusIcon';
