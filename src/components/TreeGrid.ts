@@ -56,13 +56,14 @@ const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<number, T[]
       isFetched: children.length > 0,
       state: children.length > 0 ? 'open' : 'closed',
     };
-    // recursively traverse through all children
+    // recursively traverse hierarchy of all children
     const childRows: Row<T>[] = children.flatMap((child) => traverseHierarchy(child, depth + 1, []));
     return [...previousRows, parentRow, ...childRows];
   };
 
   const rows: Row<T>[] = [];
   const depth = 0;
+  // get all children of domain option root
   const domainOptionRootChildren = hierarchyMap.get(domainOptionRoot.id) || [];
 
   domainOptionRootChildren.forEach((child) => {
