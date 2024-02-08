@@ -332,7 +332,6 @@ describe('Workflow View (GCP)', () => {
 
     const attributeTextbox = screen.getByRole('textbox', { name: /echo_to_file input1 attribute/i });
     fireEvent.change(attributeTextbox, { target: { value: 'this.string' } });
-    // await user.type(attributeTextbox, 'this.string');
 
     const saveButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Save'))[0];
     await user.click(saveButton);
