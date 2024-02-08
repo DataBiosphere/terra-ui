@@ -1,5 +1,4 @@
 import { ForwardedRef, forwardRef, ReactNode } from 'react';
-import { h } from 'react-hyperscript-helpers';
 
 import { Interactive, InteractiveProps } from './Interactive';
 import { Side } from './internal/popup-utils';
@@ -26,25 +25,27 @@ export const Clickable = forwardRef((props: ClickableProps, ref: ForwardedRef<HT
     ...otherProps
   } = props;
 
-  const interactiveElement = h(
-    Interactive,
-    {
-      ref,
-      'aria-disabled': !!disabled,
-      disabled,
-      href: !disabled ? href : undefined,
-      tabIndex: disabled ? -1 : 0,
-      tagName,
-      onClick: (e) => onClick && !disabled && onClick(e),
-      ...otherProps,
-    },
-    [children]
+  const interactiveElement = (
+    <Interactive
+      ref={ref}
+      aria-disabled={!!disabled}
+      disabled={disabled}
+      href={!disabled ? href : undefined}
+      tabIndex={disabled ? -1 : 0}
+      tagName={tagName}
+      onClick={(e) => onClick && !disabled && onClick(e)}
+      {...otherProps}
+    >
+      {children}
+    </Interactive>
   );
 
   if (tooltip) {
-    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel }, [
-      interactiveElement,
-    ]);
+    return (
+      <TooltipTrigger content={tooltip} side={tooltipSide} delay={tooltipDelay} useTooltipAsLabel={useTooltipAsLabel}>
+        {interactiveElement}
+      </TooltipTrigger>
+    );
   }
   return interactiveElement;
 });

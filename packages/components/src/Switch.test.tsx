@@ -1,6 +1,5 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { h } from 'react-hyperscript-helpers';
 
 import { renderWithTheme } from './internal/test-utils';
 import { Switch } from './Switch';
@@ -8,7 +7,7 @@ import { Switch } from './Switch';
 describe('Switch', () => {
   it('renders a switch', () => {
     // Act
-    renderWithTheme(h(Switch, { checked: false, onChange: jest.fn() }));
+    renderWithTheme(<Switch checked={false} onChange={jest.fn()} />);
 
     // Assert
     screen.getByRole('switch');
@@ -16,7 +15,7 @@ describe('Switch', () => {
 
   it.each([{ checked: true }, { checked: false }])('is controlled ($checked)', ({ checked }) => {
     // Act
-    renderWithTheme(h(Switch, { checked, onChange: jest.fn() }));
+    renderWithTheme(<Switch checked={checked} onChange={jest.fn()} />);
 
     // Assert
     const inputElement: HTMLInputElement = screen.getByRole('switch');
@@ -29,7 +28,7 @@ describe('Switch', () => {
     const offLabel = 'Off';
 
     // Act
-    renderWithTheme(h(Switch, { checked: false, onLabel, offLabel, onChange: jest.fn() }));
+    renderWithTheme(<Switch checked={false} onLabel={onLabel} offLabel={offLabel} onChange={jest.fn()} />);
 
     // Assert
     screen.getByText(onLabel);
@@ -41,7 +40,7 @@ describe('Switch', () => {
     const user = userEvent.setup();
 
     const onChange = jest.fn();
-    renderWithTheme(h(Switch, { checked: false, onChange }));
+    renderWithTheme(<Switch checked={false} onChange={onChange} />);
 
     const inputElement = screen.getByRole('switch');
 
@@ -57,7 +56,7 @@ describe('Switch', () => {
     const ref = { current: null };
 
     // Act
-    renderWithTheme(h(Switch, { ref, checked: false, onChange: jest.fn() }));
+    renderWithTheme(<Switch ref={ref} checked={false} onChange={jest.fn()} />);
 
     // Assert
     expect(ref.current).toBeInstanceOf(HTMLInputElement);
@@ -68,7 +67,7 @@ describe('Switch', () => {
     const ref = jest.fn();
 
     // Act
-    renderWithTheme(h(Switch, { ref, checked: false, onChange: jest.fn() }));
+    renderWithTheme(<Switch ref={ref} checked={false} onChange={jest.fn()} />);
 
     // Assert
     expect(ref).toHaveBeenCalledWith(expect.any(HTMLInputElement));

@@ -63,7 +63,6 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
-import { h } from 'react-hyperscript-helpers';
 
 import { ReactComponent as angleDoubleUp } from './icons/angle-double-up-regular.svg';
 import { ReactComponent as angleUp } from './icons/angle-up-regular.svg';
@@ -95,12 +94,12 @@ import { ReactComponent as trashCircleFilled } from './icons/trash-circle-filled
 import { ReactComponent as warningInfo } from './icons/warning-info.svg';
 import { ReactComponent as wdl } from './icons/wdl.svg';
 
-const fa = _.curry((shape, { size, ...props }) =>
-  h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props))
-);
-const custom = _.curry((shape, { size, ...props }) =>
-  h(shape, _.merge({ 'aria-hidden': true, focusable: false, style: { height: size, width: size } }, props))
-);
+const fa = _.curry((shape, { size, ...props }) => (
+  <FontAwesomeIcon {..._.merge({ icon: shape, style: { height: size, width: size } }, props)} />
+));
+const custom = _.curry((Shape, { size, ...props }) => (
+  <Shape {..._.merge({ 'aria-hidden': true, focusable: false, style: { height: size, width: size } }, props)} />
+));
 
 const rotate = _.curry((rotation, shape, props) =>
   shape(_.merge({ style: { transform: `rotate(${rotation}deg)` } }, props))

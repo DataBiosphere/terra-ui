@@ -1,7 +1,6 @@
 import { withFakeTimers } from '@terra-ui-packages/test-utils';
 import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { button, h } from 'react-hyperscript-helpers';
 
 import { icon } from './icon';
 import { getPopupRoot } from './internal/PopupPortal';
@@ -16,14 +15,9 @@ describe('TooltipTrigger', () => {
     childProps: Partial<JSX.IntrinsicElements['button']> = {}
   ) => {
     return renderWithTheme(
-      h(
-        TooltipTrigger,
-        {
-          content: tooltipContent,
-          ...props,
-        },
-        [button(childProps)]
-      )
+      <TooltipTrigger content={tooltipContent} {...props}>
+        <button type="button" {...childProps} />
+      </TooltipTrigger>
     );
   };
 

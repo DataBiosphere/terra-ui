@@ -1,5 +1,4 @@
 import { CSSProperties, ReactNode } from 'react';
-import { h } from 'react-hyperscript-helpers';
 
 import { Clickable, ClickableProps } from './Clickable';
 import { useThemeFromContext } from './theme';
@@ -25,12 +24,11 @@ export const ButtonPrimary = (props: ButtonPrimaryProps): ReactNode => {
 
   const { colors } = useThemeFromContext();
 
-  return h(
-    Clickable,
-    {
-      ...otherProps,
-      disabled,
-      style: {
+  return (
+    <Clickable
+      {...otherProps}
+      disabled={disabled}
+      style={{
         ...buttonStyle,
         border: `1px solid ${disabled ? colors.dark(0.4) : danger ? colors.danger(1.2) : colors.accent(1.2)}`,
         borderRadius: 5,
@@ -39,15 +37,18 @@ export const ButtonPrimary = (props: ButtonPrimaryProps): ReactNode => {
         backgroundColor: disabled ? colors.dark(0.25) : danger ? colors.danger() : colors.accent(),
         cursor: disabled ? 'not-allowed' : 'pointer',
         ...style,
-      },
-      hover: disabled
-        ? undefined
-        : {
-            backgroundColor: danger ? colors.danger(0.85) : colors.accent(0.85),
-            ...hover,
-          },
-    },
-    [children]
+      }}
+      hover={
+        disabled
+          ? undefined
+          : {
+              backgroundColor: danger ? colors.danger(0.85) : colors.accent(0.85),
+              ...hover,
+            }
+      }
+    >
+      {children}
+    </Clickable>
   );
 };
 
@@ -58,25 +59,27 @@ export const ButtonSecondary = (props: ButtonSecondaryProps): ReactNode => {
 
   const { colors } = useThemeFromContext();
 
-  return h(
-    Clickable,
-    {
-      ...otherProps,
-      disabled,
-      style: {
+  return (
+    <Clickable
+      {...otherProps}
+      disabled={disabled}
+      style={{
         ...buttonStyle,
         color: disabled ? colors.dark(0.7) : colors.accent(),
         cursor: disabled ? 'not-allowed' : 'pointer',
         ...style,
-      },
-      hover: disabled
-        ? undefined
-        : {
-            color: colors.accent(0.8),
-            ...hover,
-          },
-    },
-    [children]
+      }}
+      hover={
+        disabled
+          ? undefined
+          : {
+              color: colors.accent(0.8),
+              ...hover,
+            }
+      }
+    >
+      {children}
+    </Clickable>
   );
 };
 
@@ -87,24 +90,26 @@ export const ButtonOutline = (props: ButtonOutlineProps): ReactNode => {
 
   const { colors } = useThemeFromContext();
 
-  return h(
-    ButtonPrimary,
-    {
-      ...otherProps,
-      disabled,
-      style: {
+  return (
+    <ButtonPrimary
+      {...otherProps}
+      disabled={disabled}
+      style={{
         border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
         color: colors.accent(),
         backgroundColor: disabled ? colors.dark(0.25) : 'white',
         ...style,
-      },
-      hover: disabled
-        ? undefined
-        : {
-            backgroundColor: colors.accent(0.1),
-            ...hover,
-          },
-    },
-    [children]
+      }}
+      hover={
+        disabled
+          ? undefined
+          : {
+              backgroundColor: colors.accent(0.1),
+              ...hover,
+            }
+      }
+    >
+      {children}
+    </ButtonPrimary>
   );
 };

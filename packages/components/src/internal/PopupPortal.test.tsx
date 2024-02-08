@@ -1,5 +1,4 @@
 import { render } from '@testing-library/react';
-import { div, h } from 'react-hyperscript-helpers';
 
 import { getPopupRoot, PopupPortal, popupRootId } from './PopupPortal';
 
@@ -33,7 +32,11 @@ describe('getPopupRoot', () => {
 describe('PopupPortal', () => {
   it('renders children into popup root element', () => {
     // Act
-    render(h(PopupPortal, [div(['Hello world'])]));
+    render(
+      <PopupPortal>
+        <div>Hello world</div>
+      </PopupPortal>
+    );
 
     // Assert
     expect(document.getElementById(popupRootId)).toHaveTextContent('Hello world');

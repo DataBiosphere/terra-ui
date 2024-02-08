@@ -1,12 +1,11 @@
 import { render, screen } from '@testing-library/react';
-import { div, h } from 'react-hyperscript-helpers';
 
 import { ErrorBoundary } from './ErrorBoundary';
 
 describe('ErrorBoundary', () => {
   it('renders children', () => {
     // Act
-    render(h(ErrorBoundary, [div(['Hello world'])]));
+    render(<ErrorBoundary>Hello world</ErrorBoundary>);
 
     // Assert
     screen.getByText('Hello world');
@@ -22,7 +21,11 @@ describe('ErrorBoundary', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
 
     // Act
-    const { container } = render(h(ErrorBoundary, [h(TestComponent)]));
+    const { container } = render(
+      <ErrorBoundary>
+        <TestComponent />
+      </ErrorBoundary>
+    );
 
     // Assert
     expect(container).toBeEmptyDOMElement();
@@ -40,7 +43,11 @@ describe('ErrorBoundary', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
 
     // Act
-    render(h(ErrorBoundary, { onError }, [h(TestComponent)]));
+    render(
+      <ErrorBoundary onError={onError}>
+        <TestComponent />
+      </ErrorBoundary>
+    );
 
     // Assert
     expect(onError).toHaveBeenCalledWith(new Error('Something went wrong!'));
