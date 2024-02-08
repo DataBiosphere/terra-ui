@@ -1,5 +1,5 @@
 # Workflow Dispatch to run terra-ui integration tests
-# If trying to run terra-ui tests as part of CI from other GHA, use the run-integration-tests workflow_call instead.
+# If trying to run terra-ui tests as part of CI from other GHA, use the run-e2e-tests workflow_call instead.
 name: External Terra UI Test
 on:
   workflow_dispatch:
