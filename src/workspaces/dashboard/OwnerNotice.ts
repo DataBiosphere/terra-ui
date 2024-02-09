@@ -26,7 +26,7 @@ export const OwnerNotice = (props: OwnerNoticeProps): ReactNode => {
 
   useEffect(() => {
     const { namespace, name } = workspace.workspace;
-    const loadAcl = withErrorReporting('Error loading ACL', async () => {
+    const loadAcl = withErrorReporting('Error loading ACL')(async () => {
       const { acl } = await Ajax(signal).Workspaces.workspace(namespace, name).getAcl();
       setAcl(acl);
     });
