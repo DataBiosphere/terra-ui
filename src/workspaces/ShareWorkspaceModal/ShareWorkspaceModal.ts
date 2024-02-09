@@ -15,6 +15,7 @@ import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { append, cond, withBusyState } from 'src/libs/utils';
 import {
+  AccessEntry,
   aclEntryIsTerraSupport,
   terraSupportAccessLevel,
   terraSupportEmail,
@@ -97,7 +98,8 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   const addCollaborator = (collaboratorEmail) => {
     if (!validate.single(collaboratorEmail, { email: true, exclusion: aclEmails })) {
       setSearchValue('');
-      setAcl(append({ email: collaboratorEmail, accessLevel: 'READER' }));
+      // TODO: Why does the appended entry need to be cast?
+      setAcl(append({ email: collaboratorEmail, accessLevel: 'READER' } as AccessEntry));
       setLastAddedEmail(collaboratorEmail);
     }
   };

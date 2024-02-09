@@ -6,6 +6,7 @@ import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
 
 export {
+  append,
   cond,
   DEFAULT,
   formatBytes,
@@ -152,8 +153,6 @@ export const convertValue = _.curry((type, value) => {
  * Converts a string to start case, for a label, but handles all caps correctly.
  */
 export const normalizeLabel = _.flow(_.camelCase, _.startCase);
-
-export const append = _.curry((value, arr) => _.concat(arr, [value]));
 
 const withBusyStateFn =
   <R, F extends AnyPromiseFn>(

@@ -1,6 +1,7 @@
 // This file is where any notifications not tied to a specific action are managed for leonardo-related resource
 // For example, if you load a page and your apps/runtimes are in an error state, this component is responsible for that notification
 
+import { append } from '@terra-ui-packages/core-utils';
 import { isToday } from 'date-fns';
 import { isAfter } from 'date-fns/fp';
 import _ from 'lodash/fp';
@@ -174,7 +175,7 @@ export const AnalysisNotificationManager = (props: AnalysisNotificationManagerPr
       notify('error', 'Error Creating Cloud Environment', {
         message: h(RuntimeErrorNotification, { runtime }),
       });
-      errorNotifiedRuntimes.update(Utils.append(runtime.id));
+      errorNotifiedRuntimes.update(append(runtime.id));
     } else if (
       runtime?.status === 'Running' &&
       prevRuntime?.status !== 'Running' &&
@@ -227,7 +228,7 @@ export const AnalysisNotificationManager = (props: AnalysisNotificationManagerPr
       notify('error', 'Error Creating Galaxy App', {
         message: h(AppErrorNotification, { app: galaxyApp }),
       });
-      errorNotifiedApps.update(Utils.append(galaxyApp.appName));
+      errorNotifiedApps.update(append(galaxyApp.appName));
     }
   }, [runtimes, apps, namespace, name]); // eslint-disable-line react-hooks/exhaustive-deps
 
