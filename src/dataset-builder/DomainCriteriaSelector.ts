@@ -94,7 +94,10 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
         domainOptionRoot: state.domainOption.root,
         title: state.domainOption.category,
         initialCart: state.cart,
-        onCancel: () => onStateChange(state.cancelState),
+        onCancel: (cart: Concept[]) =>
+          onStateChange(
+            state.cancelState.mode === 'domain-criteria-search' ? { ...state.cancelState, cart } : state.cancelState
+          ),
         onCommit: saveSelected(state, getNextCriteriaIndex, onStateChange),
         actionText: 'Add to group',
         datasetId,

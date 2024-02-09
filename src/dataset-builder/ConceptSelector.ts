@@ -12,7 +12,7 @@ import colors from 'src/libs/colors';
 
 type ConceptSelectorProps = {
   readonly title: string;
-  readonly onCancel: () => void;
+  readonly onCancel: (selected: Concept[]) => void;
   readonly onCommit: (selected: Concept[]) => void;
   readonly actionText: string;
   readonly datasetId: string;
@@ -57,7 +57,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
         h(
           Link,
           {
-            onClick: onCancel,
+            onClick: () => onCancel(cart),
             'aria-label': 'cancel',
           },
           [icon('left-circle-filled', { size: 32 })]
