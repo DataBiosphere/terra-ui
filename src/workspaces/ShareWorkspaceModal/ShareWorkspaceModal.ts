@@ -1,4 +1,5 @@
 import { Switch } from '@terra-ui-packages/components';
+import { append } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
@@ -13,7 +14,7 @@ import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import { append, cond, withBusyState } from 'src/libs/utils';
+import { cond, withBusyState } from 'src/libs/utils';
 import {
   AccessEntry,
   aclEntryIsTerraSupport,

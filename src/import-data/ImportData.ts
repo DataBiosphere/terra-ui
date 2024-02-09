@@ -1,3 +1,4 @@
+import { append } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
@@ -75,7 +76,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         jobId,
         wdsProxyUrl: wdsUrl,
       };
-      asyncImportJobStore.update(Utils.append<AsyncImportJob>(newJob));
+      asyncImportJobStore.update(append<AsyncImportJob>(newJob));
       notifyDataImportProgress(jobId);
     } else {
       const { namespace, name } = workspace;
@@ -86,7 +87,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         targetWorkspace: { namespace, name },
         jobId,
       };
-      asyncImportJobStore.update(Utils.append(newJob));
+      asyncImportJobStore.update(append(newJob));
       notifyDataImportProgress(jobId);
     }
   };
@@ -119,7 +120,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         jobId,
         wdsProxyUrl: wdsUrl,
       };
-      asyncImportJobStore.update(Utils.append<AsyncImportJob>(newJob));
+      asyncImportJobStore.update(append<AsyncImportJob>(newJob));
       notifyDataImportProgress(jobId);
     } else {
       const { namespace, name } = workspace;
@@ -128,7 +129,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         .importJob(importRequest.manifestUrl.toString(), 'tdrexport', {
           tdrSyncPermissions: importRequest.syncPermissions,
         });
-      asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
+      asyncImportJobStore.update(append({ targetWorkspace: { namespace, name }, jobId }));
       notifyDataImportProgress(jobId);
     }
   };
