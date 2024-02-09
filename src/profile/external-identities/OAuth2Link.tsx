@@ -1,15 +1,17 @@
 import { Clickable } from '@terra-ui-packages/components';
 import React from 'react';
 import { useState } from 'react';
-import { ButtonPrimary, Link } from 'src/components/common';
+import { LazyClipboardButton } from 'src/components/ClipboardButton';
+import { ButtonPrimary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
-import { EcmLinkAccountResponse, OAuth2ProviderKey } from 'src/libs/ajax/User';
+import { EcmLinkAccountResponse } from 'src/libs/ajax/ExternalCredentials';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
+import { OAuth2Provider } from 'src/profile/external-identities/OAuth2Providers';
 import { SpacedSpinner } from 'src/profile/SpacedSpinner';
 
 const styles = {
@@ -52,14 +54,12 @@ const styles = {
 
 interface OAuth2LinkProps {
   queryParams: { state?: string; code?: string };
-  provider: OAuth2ProviderKey;
-  prettyName: string;
+  provider: OAuth2Provider;
 }
 export const OAuth2Link = (props: OAuth2LinkProps) => {
   const {
     queryParams: { state, code },
     provider,
-    prettyName,
   } = props;
 
   const signal = useCancellation();
@@ -67,11 +67,11 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
   const [accountLoaded, setAccountLoaded] = useState<boolean>(false);
 
   useOnMount(() => {
-    const loadAccount = withErrorReporting(`Error loading ${prettyName} account`, async () => {
-      setAccountInfo(await Ajax(signal).User.oAuth2Account(provider).getAccountLinkStatus());
+    const loadAccount = withErrorReporting(`Error loading ${provider.name} account`, async () => {
+      setAccountInfo(await Ajax(signal).ExternalCredentials(provider).getAccountLinkStatus());
     });
-    const linkAccount = withErrorReporting(`Error linking ${prettyName} account`, async (code, state) => {
-      setAccountInfo(await Ajax().User.oAuth2Account(provider).linkAccountWithAuthorizationCode(code, state));
+    const linkAccount = withErrorReporting(`Error linking ${provider.name} account`, async (code, state) => {
+      setAccountInfo(await Ajax(signal).ExternalCredentials(provider).linkAccountWithAuthorizationCode(code, state));
     });
 
     if (Nav.getCurrentRoute().name === 'ecm-callback' && state && JSON.parse(atob(state)).provider === provider) {
@@ -83,20 +83,20 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
     setAccountLoaded(true);
   });
 
-  const unlinkAccount = withErrorReporting(`Error unlinking ${prettyName} account`, async () => {
-    await Ajax().User.externalAccount(provider).unlink();
+  const unlinkAccount = withErrorReporting(`Error unlinking ${provider.name} account`, async () => {
+    await Ajax(signal).ExternalCredentials(provider).unlinkAccount();
     setAccountInfo(undefined);
   });
 
-  const getAuthUrlAndRedirect = withErrorReporting(`Error getting Authorization URL for ${prettyName}`, async () => {
-    const url = await Ajax(signal).User.oAuth2Account(provider).getAuthorizationUrl();
+  const getAuthUrlAndRedirect = withErrorReporting(`Error getting Authorization URL for ${provider.name}`, async () => {
+    const url = await Ajax(signal).ExternalCredentials(provider).getAuthorizationUrl();
     window.open(url, Utils.newTabLinkProps.target, 'noopener,noreferrer');
   });
 
   return (
     <div style={styles.idLink.container}>
       <div style={styles.idLink.linkContentTop(false)}>
-        <h3 style={{ marginTop: 0, ...styles.idLink.linkName }}>{prettyName}</h3>
+        <h3 style={{ marginTop: 0, ...styles.idLink.linkName }}>{provider.name}</h3>
         {!accountLoaded && <SpacedSpinner>Loading account status...</SpacedSpinner>}
         {accountLoaded && (
           <div>
@@ -105,7 +105,7 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
               target={Utils.newTabLinkProps.target}
               rel={Utils.newTabLinkProps.rel}
             >
-              Link your {prettyName} account
+              Link your {provider.name} account
             </ButtonPrimary>
           </div>
         )}
@@ -121,17 +121,26 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
             </div>
             <div>
               <Clickable
-                aria-label={`Renew your ${prettyName} link`}
+                aria-label={`Renew your ${provider.name} link`}
                 onClick={getAuthUrlAndRedirect}
                 style={styles.clickableLink}
               >
                 Renew{icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })}
               </Clickable>
               <span style={{ margin: '0 0.25rem 0' }}> | </span>
-              <Clickable aria-label={`Unlink from ${prettyName}`} onClick={unlinkAccount} style={styles.clickableLink}>
+              <Clickable
+                aria-label={`Unlink from ${provider.name}`}
+                onClick={unlinkAccount}
+                style={styles.clickableLink}
+              >
                 Unlink
               </Clickable>
             </div>
+            {provider.supportsIdToken && (
+              <LazyClipboardButton getText={Ajax(signal).ExternalCredentials(provider).getIdentityToken}>
+                Copy passport to clipboard
+              </LazyClipboardButton>
+            )}
           </>
         )}
       </div>

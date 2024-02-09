@@ -6,7 +6,7 @@ import allProviders from 'src/libs/providers';
 import { FenceAccount } from 'src/profile/external-identities/FenceAccount';
 import { NihAccount } from 'src/profile/external-identities/NihAccount';
 import { OAuth2Link } from 'src/profile/external-identities/OAuth2Link';
-import { PassportLinker } from 'src/profile/external-identities/PassportLinker';
+import { oauth2Provider } from 'src/profile/external-identities/OAuth2Providers';
 
 type ExternalIdentitiesProps = {
   queryParams: { [key: string]: string };
@@ -24,8 +24,8 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps) => {
         ),
         allProviders
       )}
-      {getConfig().externalCredsUrlRoot && <PassportLinker queryParams={queryParams} provider="ras" prettyName="RAS" />}
-      <OAuth2Link queryParams={queryParams} provider="github" prettyName="GitHub" />
+      {getConfig().externalCredsUrlRoot && <OAuth2Link queryParams={queryParams} provider={oauth2Provider('ras')} />}
+      <OAuth2Link queryParams={queryParams} provider={oauth2Provider('github')} />
     </PageBox>
   );
 };
