@@ -1,6 +1,4 @@
-import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Children, useCallback, useEffect, useRef } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import RSelect, {
   components as RSelectComponents,
@@ -10,14 +8,12 @@ import RSelect, {
   PropsValue as RSelectPropsValue,
   SingleValue as RSelectSingleValue,
 } from 'react-select';
-import RAsyncCreatableSelect from 'react-select/async-creatable';
-import { List } from 'react-virtualized';
-import { AutoSizer } from 'src/components/common/VirtualizedSelectAutoSizer';
-import { icon } from 'src/components/icons';
-import colors from 'src/libs/colors';
-import { useOnMount } from 'src/libs/react-utils';
 
-export { Select } from '@terra-ui-packages/components';
+import { useUniqueId } from './hooks/useUniqueId';
+import { icon } from './icon';
+import { useThemeFromContext } from './theme';
+
+let colors: any;
 
 const commonSelectProps: Partial<RSelectProps> = {
   theme: (base) =>
@@ -182,117 +178,29 @@ export type SelectProps<
  * @param [props.placeholder] - The placeholder value for the select
  * @param [props.styles] - custom styling for the select
  */
-
-export type GroupedSelectProps<
-  Value,
-  IsMulti extends boolean,
-  Option extends { value: Value; label?: string | undefined },
-  Group extends RSelectGroupBase<Option>
-> = Omit<BaseSelectProps<Value, Option, IsMulti, Group>, 'findValue' | 'options'> & {
-  options: Group[];
-};
-
-/**
- * @param props - see {@link https://react-select.com/props#select-props}
- * @param props.value - a member of an inner options object
- * @param props.options - an object with toplevel pairs of label:options where label is a group label and options is an array of objects containing value:label pairs
- * @param [props.id] - The HTML ID to give the form element
- */
-export const GroupedSelect = <
+export const Select = <
   Value,
   IsMulti extends boolean = false,
-  Option extends { value: Value; label?: string | undefined } = { value: Value; label?: string | undefined },
-  Group extends RSelectGroupBase<Option> = RSelectGroupBase<Option>
+  Option extends { value: Value; label?: string | undefined } = { value: Value; label: string | undefined }
 >({
   value,
   options = [],
   ...props
-}: GroupedSelectProps<Value, IsMulti, Option, Group>) => {
-  // cast because types don't carry through Lodash
-  const flattenedOptions = _.flatMap('options', options) as Option[];
-  const findValue = (target: Value) => (_.find({ value: target }, flattenedOptions) || null) as Option | null;
+}: SelectProps<Value, IsMulti, Option>) => {
+  colors = useThemeFromContext().colors;
+  // Allows passing options as list of values instead of options objects.
+  // For example:
+  // options: ['foo', 'bar']
+  // instead of:
+  // options: [{ value: 'foo' }, { value: 'bar' }]
+  //
+  // Cast as Options[] is because TS can't figure out how the `!_isObject(options[0])` condition affects the type of newOptions.
+  const newOptions = (
+    options && !_.isObject(options[0]) ? _.map((value) => ({ value }), options) : options
+  ) as Option[];
 
-  const ParameterizedBaseSelect = BaseSelect as typeof BaseSelect<Value, Option, IsMulti, Group>;
-  return h(ParameterizedBaseSelect, { value, options, findValue, ...props });
-};
+  const findValue = (target: Value) => (_.find({ value: target }, newOptions) || null) as Option | null;
 
-export const AsyncCreatableSelect = (props) => {
-  return h(RAsyncCreatableSelect, {
-    ...commonSelectProps,
-    ...props,
-  });
-};
-
-const VirtualizedMenuList = (props) => {
-  const { children, focusedOption, getStyles, getValue, maxHeight } = props;
-
-  const list = useRef<List>();
-
-  const scrollToOptionForValue = useCallback(
-    (value) => {
-      const renderedOptions = Children.map(children, (child) => child.props.data);
-      const valueIndex = renderedOptions.findIndex((opt) => opt.value === value);
-      if (valueIndex !== -1) {
-        list.current!.scrollToRow(valueIndex);
-      }
-    },
-    [children]
-  );
-
-  // Scroll to the currently selected value (if there is one) when the menu is opened.
-  useOnMount(() => {
-    const [selectedOption] = getValue();
-    if (selectedOption) {
-      scrollToOptionForValue(selectedOption.value);
-    }
-  });
-
-  // When navigating option with arrow keys, scroll the virtualized list so that the focused option is visible.
-  useEffect(() => {
-    if (focusedOption) {
-      scrollToOptionForValue(focusedOption.value);
-    }
-  }, [children, focusedOption]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const hasRenderedOptions = Array.isArray(children);
-
-  // If no options are rendered, then render the "no options" message.
-  if (!hasRenderedOptions) {
-    return children;
-  }
-
-  const rowCount = children.length;
-  const rowHeight = 40;
-  const height = _.clamp(rowHeight, maxHeight, rowHeight * rowCount);
-
-  return h(AutoSizer, { disableHeight: true }, [
-    ({ width }) => {
-      // @ts-expect-error
-      return h(List, {
-        ref: list,
-        height,
-        width,
-        rowCount,
-        rowHeight,
-        rowRenderer: ({ index, style, key }) => div({ key, style }, [children[index]]),
-        style: { ...getStyles('menuList', props), boxSizing: 'content-box' },
-      });
-    },
-  ]);
-};
-
-export const VirtualizedSelect = (props) => {
-  return h(
-    Select,
-    _.merge(
-      {
-        // react-select performs poorly when it has to render hundreds or thousands of options.
-        // This can happen for example in a workspace menu if the user has many workspaces.
-        // To address that, this component virtualizes the list of options.
-        // See https://broadworkbench.atlassian.net/browse/SUP-808 for more information.
-        components: { MenuList: VirtualizedMenuList },
-      },
-      props
-    )
-  );
+  const ParameterizedBaseSelect = BaseSelect as typeof BaseSelect<Value, Option, IsMulti, never>;
+  return h(ParameterizedBaseSelect, { value, options: newOptions, findValue, ...props });
 };
