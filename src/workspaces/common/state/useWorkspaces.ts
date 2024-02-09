@@ -1,8 +1,9 @@
+import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import { useAutoLoadedData } from 'src/libs/ajax/loaded-data/useAutoLoadedData';
 import { useLoadedDataEvents } from 'src/libs/ajax/loaded-data/useLoadedDataEvents';
 import { withCachedData } from 'src/libs/ajax/loaded-data/withCachedData';
 import { FieldsArg, workspaceProvider } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
-import { reportError } from 'src/libs/error';
+import { withErrorReporter } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import { workspacesStore } from 'src/libs/state';
 import { UseWorkspacesResult } from 'src/workspaces/common/state/useWorkspaces.models';
@@ -26,6 +27,7 @@ const defaultFieldsArgs: FieldsArg = [
  */
 export const useWorkspaces = (fieldsArg?: FieldsArg, stringAttributeMaxLength?: number): UseWorkspacesResult => {
   const signal = useCancellation();
+  const { reportError } = withErrorReporter(useNotificationsFromContext());
   const fields: FieldsArg = fieldsArg || defaultFieldsArgs;
   const getData = async (): Promise<WorkspaceWrapper[]> =>
     await workspaceProvider.list(fields, { stringAttributeMaxLength, signal });

@@ -11,7 +11,7 @@ import { mockAbortResponse, mockAzureApps, mockAzureWorkspace } from 'src/workfl
 
 // Necessary to mock the AJAX module.
 jest.mock('src/libs/ajax');
-jest.mock('src/libs/notifications.js');
+jest.mock('src/libs/notifications');
 jest.mock('src/libs/ajax/leonardo/Apps');
 jest.mock('src/libs/nav', () => ({
   getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),

@@ -32,9 +32,9 @@ declare module 'react-hyperscript-helpers' {
 
   export const h: HHelper;
 
-  type TagName = keyof JSX.IntrinsicElements;
+  type TagName = keyof React.JSX.IntrinsicElements;
 
-  type HTMLElementProps<T extends TagName> = JSX.IntrinsicElements[T];
+  type HTMLElementProps<T extends TagName> = React.JSX.IntrinsicElements[T];
 
   type DataAttributeKey = `data-${string}`;
 

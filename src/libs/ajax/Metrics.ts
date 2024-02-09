@@ -75,13 +75,13 @@ export const Metrics = (signal?: AbortSignal) => {
     );
   };
   return {
-    captureEvent: withErrorIgnoring(captureEventFn) as unknown as typeof captureEventFn,
+    captureEvent: withErrorIgnoring()(captureEventFn) as unknown as typeof captureEventFn,
 
-    syncProfile: withErrorIgnoring(() => {
+    syncProfile: withErrorIgnoring()(() => {
       return fetchBard('api/syncProfile', _.merge(authOpts(), { signal, method: 'POST' }));
     }) as () => Promise<void>,
 
-    identify: withErrorIgnoring((anonId: string) => {
+    identify: withErrorIgnoring()((anonId: string) => {
       const body = { anonId };
       return fetchBard('api/identify', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
     }) as (anonId: string) => Promise<void>,
