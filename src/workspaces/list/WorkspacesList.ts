@@ -71,7 +71,7 @@ export const WorkspacesList = (): ReactNode => {
   });
 
   useOnMount(() => {
-    const loadFeatured = withErrorIgnoring(async () => {
+    const loadFeatured = withErrorIgnoring()(async () => {
       setFeaturedList(await Ajax().FirecloudBucket.getFeaturedWorkspaces());
     });
     loadFeatured();

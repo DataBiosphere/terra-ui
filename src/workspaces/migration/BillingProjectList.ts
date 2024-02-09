@@ -28,7 +28,7 @@ export const BillingProjectList = (): ReactNode => {
   const fontSize = 16;
   const interval = useRef<number>();
 
-  const updateWorkspacesSilently = withErrorIgnoring(
+  const updateWorkspacesSilently = withErrorIgnoring()(
     async (workspacesWithNamespaces: { namespace: string; name: string }[]) => {
       if (!workspacesWithNamespaces) {
         workspacesWithNamespaces = getInProgressWorkspaces();
