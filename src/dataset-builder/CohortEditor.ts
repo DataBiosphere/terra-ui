@@ -338,9 +338,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
     setGroupParticipantCount(async () =>
       DataRepo()
         .dataset(dataset.id)
-        .getCounts({
-          cohorts: [{ criteriaGroups: [criteriaGroup], name: 'dummmy' }],
-        })
+        .getCounts({ cohorts: [{ criteriaGroups: [criteriaGroup], name: '' }] })
     );
   }, [criteriaGroup, dataset.id, setGroupParticipantCount]);
 
