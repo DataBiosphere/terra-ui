@@ -46,8 +46,13 @@ export function VerticalTabBar(verticalTabProps: VerticalTabBarProps) {
   const { activeTabKey, tabKeys, tabDisplayNames, tabTooltips, maxHeight, onClick, ...props } = verticalTabProps;
   const [activeTab, setActiveTab] = useState(activeTabKey);
   const tabHeight = 60;
+
   const navTab = (i, currentTab) => {
     const selected: boolean = currentTab === activeTab;
+    // We add a green border to the right of the active tab to make it look like it's selected
+    // Subtract that border from the padding-right of the active tab to keep the tab width consistent
+    const desiredPaddingRight = 10;
+    const buttonPadding = selected ? desiredPaddingRight - styles.tabBar.active.borderRightWidth : desiredPaddingRight;
     const onClickFn = () => {
       setActiveTab(currentTab);
       onClick(currentTab);
@@ -61,11 +66,9 @@ export function VerticalTabBar(verticalTabProps: VerticalTabBarProps) {
         'aria-current': selected ? 'location' : undefined,
         style: {
           display: 'flex',
-          minWidth: 140,
+          width: '100%',
           height: tabHeight,
-          alignSelf: 'stretch',
-          alignItems: 'center',
-          textAlign: 'center',
+          padding: '0 0px',
         },
       },
       [
@@ -76,7 +79,9 @@ export function VerticalTabBar(verticalTabProps: VerticalTabBarProps) {
               ...styles.tabBar.tab,
               ...(selected ? styles.tabBar.active : {}),
               height: tabHeight,
+              justifyContent: 'left',
               width: '100%',
+              paddingRight: buttonPadding,
             },
             hover: selected ? {} : styles.tabBar.hover,
             onClick: onClickFn,
@@ -85,8 +90,11 @@ export function VerticalTabBar(verticalTabProps: VerticalTabBarProps) {
             div(
               {
                 style: {
-                  flex: '1 1 100%',
-                  marginRight: selected ? -styles.tabBar.active.borderRightWidth : undefined,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  alignContent: 'left',
+                  width: '100%',
                 },
               },
               [
@@ -95,7 +103,6 @@ export function VerticalTabBar(verticalTabProps: VerticalTabBarProps) {
                   ? h(
                       InfoBox,
                       {
-                        style: { marginLeft: '1ch' },
                         tooltip: undefined,
                         size: undefined,
                         side: undefined,

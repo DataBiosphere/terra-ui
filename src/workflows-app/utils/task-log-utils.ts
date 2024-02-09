@@ -9,7 +9,7 @@ export const LogTooltips = {
     "Backend logs are from the Azure Cloud compute job that prepares your task to run and cleans up afterwards. You might see errors in these logs if the there was a problem downloading the task's input files, pulling its container, or if something went wrong on the compute node while the task was running.",
   download: 'Download logs are from the process of downloading task input files from the cloud onto the compute node.',
   upload:
-    'Upload logs are from the process of uploading task output files from the compute node to the workspace data table.',
+    'Upload logs are from the process of uploading task output files from the compute node to the workspace blob storage container.',
 };
 
 // We will display a subset of these logs in the UI.
