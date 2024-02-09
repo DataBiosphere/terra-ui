@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { ReactNode, useMemo } from 'react';
 import { h, span } from 'react-hyperscript-helpers';
 import { SimpleTabBar } from 'src/components/tabBars';
+import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { textMatch } from 'src/libs/utils';
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
@@ -44,6 +45,7 @@ export const WorkspacesListTabs = (props: WorkspacesListTabsProps): ReactNode =>
     SimpleTabBar,
     {
       'aria-label': 'choose a workspace collection',
+      metricsPrefix: Events.workspacesListSelectTab,
       value: filters.tab,
       onChange: (newTab) => {
         if (newTab === filters.tab) {
