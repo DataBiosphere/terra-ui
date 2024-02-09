@@ -119,7 +119,6 @@ export interface CriteriaGroup {
   criteria: LoadingAnyCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
-  count: number;
 }
 
 export interface Cohort extends DatasetBuilderType {
@@ -218,9 +217,6 @@ export type DatasetParticipantCountRequest = {
   cohorts: Cohort[];
 };
 
-export type DatasetParticipantCountRequestApi = {
-  cohorts: CohortApi[];
-};
 export type DatasetParticipantCountResponse = {
   result: {
     total: number;
