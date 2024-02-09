@@ -95,6 +95,7 @@ export function VerticalTabBar(verticalTabProps: VerticalTabBarProps) {
                   alignItems: 'center',
                   alignContent: 'left',
                   width: '100%',
+                  marginRight: '5px',
                 },
               },
               [
