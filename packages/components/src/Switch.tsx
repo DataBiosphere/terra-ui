@@ -1,5 +1,4 @@
 import { ForwardedRef, forwardRef, ReactNode } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
 import RSwitch, { ReactSwitchProps } from 'react-switch';
 
 import { useThemeFromContext } from './theme';
@@ -11,9 +10,9 @@ interface SwitchLabelProps {
 
 const SwitchLabel = (props: SwitchLabelProps): ReactNode => {
   const { children, isOn } = props;
-  return div(
-    {
-      style: {
+  return (
+    <div
+      style={{
         display: 'flex',
         justifyContent: isOn ? 'flex-start' : 'flex-end',
         fontSize: 15,
@@ -22,9 +21,10 @@ const SwitchLabel = (props: SwitchLabelProps): ReactNode => {
         height: '100%',
         lineHeight: '28px',
         ...(isOn ? { marginLeft: '0.75rem' } : { marginRight: '0.5rem' }),
-      },
-    },
-    [children]
+      }}
+    >
+      {children}
+    </div>
   );
 };
 
@@ -39,25 +39,26 @@ export const Switch = forwardRef((props: SwitchProps, ref: ForwardedRef<HTMLInpu
 
   const { colors } = useThemeFromContext();
 
-  return h(RSwitch, {
-    // Forward ref to underlying input element instead of RSwitch instance.
-    // @ts-expect-error Types for React Hyperscript Helpers don't support refs well.
-    ref: (rSwitch: any) => {
-      const inputEl: HTMLInputElement = rSwitch ? rSwitch.$inputRef : null;
-      if (ref && 'current' in ref) {
-        ref.current = inputEl;
-      } else if (typeof ref === 'function') {
-        ref(inputEl);
-      }
-    },
-    onColor: colors.success(1.5),
-    offColor: colors.dark(0.8),
-    checkedIcon: h(SwitchLabel, { isOn: true }, [onLabel]),
-    uncheckedIcon: h(SwitchLabel, { isOn: false }, [offLabel]),
-    width: 80,
-    onChange: (checked) => onChange(checked),
-    ...otherProps,
-  });
+  return (
+    <RSwitch
+      // Forward ref to underlying input element instead of RSwitch instance.
+      ref={(rSwitch: any) => {
+        const inputEl: HTMLInputElement = rSwitch ? rSwitch.$inputRef : null;
+        if (ref && 'current' in ref) {
+          ref.current = inputEl;
+        } else if (typeof ref === 'function') {
+          ref(inputEl);
+        }
+      }}
+      onColor={colors.success(1.5)}
+      offColor={colors.dark(0.8)}
+      checkedIcon={<SwitchLabel isOn>{onLabel}</SwitchLabel>}
+      uncheckedIcon={<SwitchLabel isOn={false}>{offLabel}</SwitchLabel>}
+      width={80}
+      onChange={(checked) => onChange(checked)}
+      {...otherProps}
+    />
+  );
 });
 
 Switch.displayName = 'Switch';

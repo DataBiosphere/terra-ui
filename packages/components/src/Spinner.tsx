@@ -1,5 +1,4 @@
-import { Fragment, ReactNode } from 'react';
-import { h, span } from 'react-hyperscript-helpers';
+import { ReactNode } from 'react';
 
 import { DelayedRender } from './DelayedRender';
 import { icon, IconProps } from './icon';
@@ -19,8 +18,14 @@ export const Spinner = (props: SpinnerProps): ReactNode => {
 
   const { colors } = useThemeFromContext();
 
-  return h(Fragment, [
-    icon('loadingSpinner', { size: 24, style: { color: colors.primary(), ...style }, ...otherProps }),
-    h(DelayedRender, { delay: 150 }, [span({ role: 'alert', style: visuallyHidden }, [message])]),
-  ]);
+  return (
+    <>
+      {icon('loadingSpinner', { size: 24, style: { color: colors.primary(), ...style }, ...otherProps })}
+      <DelayedRender delay={150}>
+        <span role="alert" style={visuallyHidden}>
+          {message}
+        </span>
+      </DelayedRender>
+    </>
+  );
 };

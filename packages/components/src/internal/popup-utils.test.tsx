@@ -1,6 +1,5 @@
 import { render } from '@testing-library/react';
 import { useRef } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
 
 import { computePopupPosition, Position, Side, Size, useBoundingRects } from './popup-utils';
 
@@ -130,11 +129,11 @@ describe('useBoundingRects', () => {
       const [boundingRect] = useBoundingRects([{ ref }]);
       receivedBoundingRect(boundingRect);
 
-      return div({ ref, style: { width: 200, height: 100, margin: '100px 0 0 50px' } });
+      return <div ref={ref} style={{ width: 200, height: 100, margin: '100px 0 0 50px' }} />;
     };
 
     // Act
-    render(h(TestComponent));
+    render(<TestComponent />);
 
     // Assert
     expect(receivedBoundingRect).toHaveBeenCalledWith({
@@ -155,11 +154,11 @@ describe('useBoundingRects', () => {
       const [boundingRect] = useBoundingRects([{ id: 'test-element' }]);
       receivedBoundingRect(boundingRect);
 
-      return div({ id: 'test-element', style: { width: 200, height: 100, margin: '100px 0 0 50px' } });
+      return <div id="test-element" style={{ width: 200, height: 100, margin: '100px 0 0 50px' }} />;
     };
 
     // Act
-    render(h(TestComponent));
+    render(<TestComponent />);
 
     // Assert
     expect(receivedBoundingRect).toHaveBeenCalledWith({
@@ -184,7 +183,7 @@ describe('useBoundingRects', () => {
     };
 
     // Act
-    render(h(TestComponent));
+    render(<TestComponent />);
 
     // Assert
     expect(receivedBoundingRect).toHaveBeenCalledWith({

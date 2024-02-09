@@ -10138,7 +10138,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react", "npm:18.2.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:18.2.0"],\
             ["react-focus-lock", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:2.9.5"],\
-            ["react-hyperscript-helpers", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.0.0"],\
             ["react-modal", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.16.1"],\
             ["react-onclickoutside", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:6.13.0"],\
             ["react-switch", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:6.1.0"],\
@@ -10179,7 +10178,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react", "npm:18.2.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:18.2.0"],\
             ["react-focus-lock", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:2.9.5"],\
-            ["react-hyperscript-helpers", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.0.0"],\
             ["react-modal", "virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:3.16.1"],\
             ["react-onclickoutside", "virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:6.13.0"],\
             ["react-switch", "virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:6.1.0"],\
@@ -10221,6 +10219,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@testing-library/react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.0.0"],\
             ["@types/jest", "npm:28.1.8"],\
             ["@types/node", "npm:20.6.2"],\
+            ["@types/react", "npm:18.2.15"],\
             ["@types/testing-library__react", null],\
             ["babel-jest", "virtual:c61c4ebeda316964fa7846363a7565f2740824705a1360049b2c57598f5a019c8e10d28d26e7d0f8012883671f61d8251daaead08ed2a3d1744547f0a0f71840#npm:27.5.1"],\
             ["babel-preset-react-app", "npm:10.0.1"],\
@@ -10233,13 +10232,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest-axe", "npm:6.0.0"],\
             ["jest-fail-on-console", "npm:3.1.1"],\
             ["jest-watch-typeahead", "virtual:c61c4ebeda316964fa7846363a7565f2740824705a1360049b2c57598f5a019c8e10d28d26e7d0f8012883671f61d8251daaead08ed2a3d1744547f0a0f71840#npm:1.0.0"],\
+            ["react", "npm:18.2.0"],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
             ["vite", "virtual:c61c4ebeda316964fa7846363a7565f2740824705a1360049b2c57598f5a019c8e10d28d26e7d0f8012883671f61d8251daaead08ed2a3d1744547f0a0f71840#npm:4.5.2"],\
             ["whatwg-fetch", "npm:3.6.2"]\
           ],\
           "packagePeers": [\
             "@testing-library/react",\
-            "@types/testing-library__react"\
+            "@types/react",\
+            "@types/testing-library__react",\
+            "react"\
           ],\
           "linkType": "SOFT"\
         }],\
@@ -10255,6 +10257,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@testing-library/react", "virtual:c61c4ebeda316964fa7846363a7565f2740824705a1360049b2c57598f5a019c8e10d28d26e7d0f8012883671f61d8251daaead08ed2a3d1744547f0a0f71840#npm:14.0.0"],\
             ["@types/jest", "npm:28.1.8"],\
             ["@types/node", "npm:20.6.2"],\
+            ["@types/react", null],\
             ["@types/testing-library__react", null],\
             ["babel-jest", "virtual:c61c4ebeda316964fa7846363a7565f2740824705a1360049b2c57598f5a019c8e10d28d26e7d0f8012883671f61d8251daaead08ed2a3d1744547f0a0f71840#npm:27.5.1"],\
             ["babel-preset-react-app", "npm:10.0.1"],\
@@ -10267,12 +10270,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest-axe", "npm:6.0.0"],\
             ["jest-fail-on-console", "npm:3.1.1"],\
             ["jest-watch-typeahead", "virtual:c61c4ebeda316964fa7846363a7565f2740824705a1360049b2c57598f5a019c8e10d28d26e7d0f8012883671f61d8251daaead08ed2a3d1744547f0a0f71840#npm:1.0.0"],\
+            ["react", null],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
             ["vite", "virtual:c61c4ebeda316964fa7846363a7565f2740824705a1360049b2c57598f5a019c8e10d28d26e7d0f8012883671f61d8251daaead08ed2a3d1744547f0a0f71840#npm:4.5.2"],\
             ["whatwg-fetch", "npm:3.6.2"]\
           ],\
           "packagePeers": [\
-            "@types/testing-library__react"\
+            "@types/react",\
+            "@types/testing-library__react",\
+            "react"\
           ],\
           "linkType": "SOFT"\
         }],\

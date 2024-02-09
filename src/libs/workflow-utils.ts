@@ -46,7 +46,7 @@ export const ioTask = (ioName) => _.nth(-2, ioName.split('.'));
 export const ioVariable = (ioName) => _.nth(-1, ioName.split('.'));
 
 export const downloadIO = (io, filename) => {
-  const prepIO = _.mapValues((v) => (/^".*"/.test(v) ? v.slice(1, -1) : `\${${v}}`));
+  const prepIO = _.mapValues((v: string) => (/^".*"/.test(v) ? v.slice(1, -1) : `\${${v}}`));
 
   const blob = new Blob([JSON.stringify(prepIO(io))], { type: 'application/json' });
   FileSaver.saveAs(blob, `${filename}.json`);
@@ -76,3 +76,8 @@ export const downloadWorkflows = (rows, filename) => {
   const blob = new Blob([Utils.makeTSV(reorderedTSVContents)], { type: 'text/tab-separated-values' });
   FileSaver.saveAs(blob, `${filename}.tsv`);
 };
+
+export enum WorkflowTableColumnNames {
+  INPUT_VALUE = 'Input value',
+  OUTPUT_NAME = 'Output name',
+}

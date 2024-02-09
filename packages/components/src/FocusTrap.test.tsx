@@ -1,7 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Fragment } from 'react';
-import { button, h } from 'react-hyperscript-helpers';
 
 import { FocusTrap } from './FocusTrap';
 
@@ -11,7 +9,11 @@ describe('FocusTrap', () => {
     const user = userEvent.setup();
 
     const { container } = render(
-      h(Fragment, [h(FocusTrap, [button(['A']), button(['B']), button(['C'])]), button(['D'])])
+      <FocusTrap onEscape={jest.fn()}>
+        <button type="button">A</button>
+        <button type="button">B</button>
+        <button type="button">C</button>
+      </FocusTrap>
     );
 
     const wrapper = container.children.item(1) as HTMLElement;

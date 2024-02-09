@@ -1,5 +1,4 @@
 import { CSSProperties, ReactNode } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
 
 import { Clickable } from './Clickable';
 import { icon } from './icon';
@@ -21,22 +20,11 @@ export const InfoBox = (props: InfoBoxProps): ReactNode => {
 
   const { colors } = useThemeFromContext();
 
-  return h(
-    PopupTrigger,
-    {
-      side,
-      content: div({ style: { padding: '0.5rem', width: 300 } }, [children]),
-    },
-    [
-      h(
-        Clickable,
-        {
-          'aria-label': 'More info',
-          tagName: 'span',
-          tooltip,
-        },
-        [icon(iconId, { size, style: { color: colors.accent(), cursor: 'pointer', ...style } })]
-      ),
-    ]
+  return (
+    <PopupTrigger content={<div style={{ padding: '0.5rem', width: 300 }}>{children}</div>} side={side}>
+      <Clickable aria-label="More info" tagName="span" tooltip={tooltip}>
+        {icon(iconId, { size, style: { color: colors.accent(), cursor: 'pointer', ...style } })}
+      </Clickable>
+    </PopupTrigger>
   );
 };

@@ -1,5 +1,4 @@
 import { render } from '@testing-library/react';
-import { h } from 'react-hyperscript-helpers';
 
 import { ErrorBoundary } from './ErrorBoundary';
 import { Theme, ThemeProvider, useThemeFromContext } from './theme';
@@ -31,7 +30,11 @@ describe('useThemeFromContext', () => {
     };
 
     // Act
-    render(h(ThemeProvider, { theme }, [h(TestComponent)]));
+    render(
+      <ThemeProvider theme={theme}>
+        <TestComponent />
+      </ThemeProvider>
+    );
 
     // Assert
     expect(onRenderWithTheme).toHaveBeenCalledWith(expect.objectContaining(theme));
@@ -50,7 +53,11 @@ describe('useThemeFromContext', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
 
     // Act
-    render(h(ErrorBoundary, { onError: onRenderError }, [h(TestComponent)]));
+    render(
+      <ErrorBoundary onError={onRenderError}>
+        <TestComponent />
+      </ErrorBoundary>
+    );
 
     // Assert
     expect(onRenderError).toHaveBeenCalledWith(

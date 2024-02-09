@@ -1,5 +1,4 @@
 import { CSSProperties, ReactNode, useEffect, useRef } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
 import RModal, { Props as RModalProps } from 'react-modal';
 
 import { ButtonPrimary, ButtonSecondary } from './buttons';
@@ -137,35 +136,34 @@ export const Modal = (props: ModalProps): ReactNode => {
     };
   }, []);
 
-  return h(
-    RModal,
-    {
-      aria: {
+  return (
+    <RModal
+      aria={{
         labelledby: hasTitle ? titleId : undefined,
         modal: true,
-      },
+      }}
       // Adding aria-hidden to the app container is unnecessary with aria-modal set on the modal.
       // See https://github.com/DataBiosphere/terra-ui/pull/2541
-      ariaHideApp: false,
-      contentRef: (node: HTMLDivElement) => {
+      ariaHideApp={false}
+      contentRef={(node: HTMLDivElement) => {
         modalElement.current = node;
-      },
-      isOpen: true,
-      parentSelector: getPopupRoot,
+      }}
+      isOpen
+      parentSelector={getPopupRoot}
       // Customize focus handling using onAfterOpen to properly manage focus where
       // react-modal and react-focus-lock interact.
       // See https://github.com/DataBiosphere/terra-ui/pull/1938
-      shouldFocusAfterRender: false,
-      shouldReturnFocusAfterClose: false,
-      style: {
+      shouldFocusAfterRender={false}
+      shouldReturnFocusAfterClose={false}
+      style={{
         overlay: modalStyles.overlay,
         content: {
           ...modalStyles.modal,
           width,
           ...styles?.modal,
         },
-      },
-      onAfterOpen: () => {
+      }}
+      onAfterOpen={() => {
         // Since this is called right after the Modal is mounted, modalElement.current should always be non-null here.
         const nodeToFocus = modalElement.current!.contains(document.activeElement)
           ? document.activeElement
@@ -195,51 +193,61 @@ export const Modal = (props: ModalProps): ReactNode => {
             }
           }
         }, 0);
-      },
-      onRequestClose: onDismiss,
-      ...otherProps,
-    },
-    [
-      hasTitle &&
-        div({ style: modalStyles.header }, [
-          div({ id: titleId, style: modalStyles.title }, [title]),
-          titleChildren,
-          showX &&
-            h(
-              Clickable,
-              {
-                'aria-label': 'Close modal',
-                style: { alignSelf: 'flex-start', marginLeft: 'auto' },
-                onClick: onDismiss,
-              },
-              [icon('times-circle')]
-            ),
-        ]),
-      children,
-      showButtons &&
-        div({ style: { ...modalStyles.buttonRow, ...styles?.buttonRow } }, [
-          showCancel &&
-            h(
-              ButtonSecondary,
-              {
-                style: { marginRight: '1rem' },
-                onClick: onDismiss,
-              },
-              [cancelText]
-            ),
-          (() => {
+      }}
+      onRequestClose={onDismiss}
+      {...otherProps}
+    >
+      {hasTitle && (
+        <div style={modalStyles.header}>
+          <div id={titleId} style={modalStyles.title}>
+            {title}
+          </div>
+          {titleChildren}
+          {showX && (
+            <Clickable
+              aria-label="Close modal"
+              style={{ alignSelf: 'flex-start', marginLeft: 'auto' }}
+              onClick={onDismiss}
+            >
+              {icon('times-circle')}
+            </Clickable>
+          )}
+        </div>
+      )}
+      {children}
+      {showButtons && (
+        <div style={{ ...modalStyles.buttonRow, ...styles?.buttonRow }}>
+          {showCancel && (
+            <ButtonSecondary style={{ marginRight: '1rem' }} onClick={onDismiss}>
+              {cancelText}
+            </ButtonSecondary>
+          )}
+          {(() => {
             if (okButton === undefined) {
-              return h(ButtonPrimary, { onClick: onDismiss, danger }, ['OK']);
+              return (
+                <ButtonPrimary danger={danger} onClick={onDismiss}>
+                  OK
+                </ButtonPrimary>
+              );
             }
             if (typeof okButton === 'string') {
-              return h(ButtonPrimary, { onClick: onDismiss, danger }, [okButton]);
+              return (
+                <ButtonPrimary danger={danger} onClick={onDismiss}>
+                  {okButton}
+                </ButtonPrimary>
+              );
             }
             if (typeof okButton === 'function') {
-              return h(ButtonPrimary, { onClick: okButton, danger }, ['OK']);
+              return (
+                <ButtonPrimary danger={danger} onClick={okButton}>
+                  OK
+                </ButtonPrimary>
+              );
             }
             return okButton;
-          })(),
-        ]),
-    ]
+          })()}
+        </div>
+      )}
+    </RModal>
   );
 };

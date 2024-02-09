@@ -130,7 +130,7 @@ describe('WorkspaceTags', () => {
       Metrics: { captureEvent: mockCaptureEvent } as Partial<AjaxContract['Metrics']>,
       Workspaces: {
         // the tags select component still calls this
-        getTags: jest.fn().mockResolvedValue([initialTags]),
+        getTags: jest.fn().mockResolvedValue([]),
         workspace: jest.fn().mockReturnValue({
           deleteTag: mockDeleteTagsFn,
         }),

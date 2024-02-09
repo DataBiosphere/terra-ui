@@ -82,6 +82,7 @@ describe('WorkspaceList', () => {
       FirecloudBucket: {
         getFeaturedWorkspaces: () => [],
       },
+      Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
     };
 
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
@@ -131,6 +132,7 @@ describe('WorkspaceList', () => {
       FirecloudBucket: {
         getFeaturedWorkspaces: () => [],
       },
+      Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
     };
 
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
@@ -201,6 +203,7 @@ describe('WorkspaceList', () => {
       FirecloudBucket: {
         getFeaturedWorkspaces: () => [],
       },
+      Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
     };
 
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);

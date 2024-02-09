@@ -1,6 +1,5 @@
 import { withFakeTimers } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
-import { h } from 'react-hyperscript-helpers';
 
 import { renderWithTheme } from './internal/test-utils';
 import { Spinner } from './Spinner';
@@ -9,7 +8,7 @@ import { visuallyHidden } from './styles';
 describe('Spinner', () => {
   it('renders a spinner icon', () => {
     // Act
-    renderWithTheme(h(Spinner));
+    renderWithTheme(<Spinner />);
 
     // Assert
     const icon = document.querySelector('[data-icon="loadingSpinner"]');
@@ -20,7 +19,7 @@ describe('Spinner', () => {
     'renders a visually hidden alert after a delay',
     withFakeTimers(() => {
       // Act
-      renderWithTheme(h(Spinner, { message: 'Loading the data' }));
+      renderWithTheme(<Spinner message="Loading the data" />);
 
       const isMessageRenderedImmediately = !!screen.queryByText('Loading the data');
       act(() => jest.advanceTimersByTime(150));

@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
 import FocusLock from 'react-focus-lock';
-import { h } from 'react-hyperscript-helpers';
 
 export type FocusTrapProps = JSX.IntrinsicElements['div'] & {
   onEscape: () => void;
@@ -15,10 +14,9 @@ export type FocusTrapProps = JSX.IntrinsicElements['div'] & {
 export const FocusTrap = (props: FocusTrapProps): ReactNode => {
   const { children, style, onEscape, ...otherProps } = props;
 
-  return h(
-    FocusLock,
-    {
-      lockProps: {
+  return (
+    <FocusLock
+      lockProps={{
         tabIndex: 0,
         style: {
           outline: 'none',
@@ -31,9 +29,10 @@ export const FocusTrap = (props: FocusTrapProps): ReactNode => {
             e.stopPropagation();
           }
         },
-      },
-      returnFocus: true,
-    },
-    [children]
+      }}
+      returnFocus
+    >
+      {children}
+    </FocusLock>
   );
 };
