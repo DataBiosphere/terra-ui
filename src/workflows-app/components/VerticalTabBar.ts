@@ -21,7 +21,7 @@ const styles = {
     active: {
       ...Style.tabBar.active,
       borderBottomWidth: 0,
-      borderBottomStyle: 'none',
+      borderBottom: 'none',
       borerBottomColor: 'transparent',
       borderRightWidth: Style.tabBar.active.borderBottomWidth,
       borderRightStyle: Style.tabBar.active.borderBottomStyle,
