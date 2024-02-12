@@ -4,7 +4,6 @@ import {
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderConceptNode as ConceptNode,
 } from 'src/libs/ajax/DataRepo';
-// import { RowContents } from "src/components/TreeGrid";
 
 export const dummyDatasetModel = (): DatasetModel => ({
   name: 'AnalytiXIN',
@@ -193,7 +192,7 @@ export const dummyGetNodeFromHierarchy = (id: number): ConceptNode => {
   return _.find({ id }, dummyHierarchy)!;
 };
 
-export const getHierarchyMap = (selectedConceptID: number): Map<number, Concept[]> => {
+export const getHierarchyMap = (openedConceptID: number): Map<number, Concept[]> => {
   const hierarchyMap = new Map<number, Concept[]>();
   const populateHierarchyMap = (node: ConceptNode) => {
     if (node.concept.hasChildren) {
@@ -206,21 +205,21 @@ export const getHierarchyMap = (selectedConceptID: number): Map<number, Concept[
     }
   };
 
-  // get the selectedConceptNode
-  const selectedConceptNode = dummyGetNodeFromHierarchy(selectedConceptID);
+  // get the openedConceptNode
+  const openedConceptNode = dummyGetNodeFromHierarchy(openedConceptID);
 
-  // if the selected concept does not have a node in a hierarchy
-  if (!selectedConceptNode) {
+  // if the opened concept does not have a node in a hierarchy
+  if (!openedConceptNode) {
     return hierarchyMap;
   }
 
-  // if the selectedConceptNode has a parent, we want to populate the hierarchy of its parent
-  if (selectedConceptNode.parent) {
-    const selectedConceptParent = dummyGetNodeFromHierarchy(selectedConceptNode.parent);
+  // if the openedConceptNode has a parent, we want to populate the hierarchy of its parent
+  if (openedConceptNode.parent) {
+    const selectedConceptParent = dummyGetNodeFromHierarchy(openedConceptNode.parent);
     populateHierarchyMap(selectedConceptParent);
   } else {
     // we chose the domain root concept
-    hierarchyMap.set(selectedConceptNode.concept.id, []);
+    hierarchyMap.set(openedConceptNode.concept.id, []);
   }
   return hierarchyMap;
 };
