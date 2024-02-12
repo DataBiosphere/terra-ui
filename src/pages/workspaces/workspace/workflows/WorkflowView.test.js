@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
@@ -331,7 +331,7 @@ describe('Workflow View (GCP)', () => {
     await user.click(okButton);
 
     const attributeTextbox = screen.getByRole('textbox', { name: /echo_to_file input1 attribute/i });
-    await user.type(attributeTextbox, 'this.string');
+    fireEvent.change(attributeTextbox, { target: { value: 'this.string' } });
 
     const saveButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Save'))[0];
     await user.click(saveButton);

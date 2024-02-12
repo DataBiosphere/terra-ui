@@ -7,9 +7,57 @@ import {
   fetchRawls,
   jsonBody,
 } from 'src/libs/ajax/ajax-common';
-import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates';
-import { BillingProject, BillingProjectMember, BillingRole } from 'src/pages/billing/models/BillingProject';
-import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount';
+
+export interface GoogleBillingAccount {
+  accountName: string;
+  firecloudHasAccess?: boolean;
+  displayName: string;
+}
+
+export interface AzureManagedAppCoordinates {
+  tenantId: string; // UUID as string
+  subscriptionId: string; // UUID as string
+  managedResourceGroupId: string;
+  region?: string;
+  applicationDeploymentName?: string;
+}
+
+export type CloudPlatform = 'GCP' | 'AZURE' | 'UNKNOWN';
+
+export type BillingRole = 'Owner' | 'User';
+
+export interface BillingProjectMember {
+  email: string;
+  role: BillingRole;
+}
+
+interface BaseBillingProject {
+  cloudPlatform: CloudPlatform;
+  projectName: string;
+  invalidBillingAccount: boolean;
+  roles: BillingRole[];
+  status: 'Creating' | 'Ready' | 'Error' | 'Deleting' | 'DeletionFailed' | 'AddingToPerimeter' | 'CreatingLandingZone';
+  message?: string;
+}
+
+export interface AzureBillingProject extends BaseBillingProject {
+  cloudPlatform: 'AZURE';
+  managedAppCoordinates: AzureManagedAppCoordinates;
+  landingZoneId: string;
+  protectedData: boolean;
+}
+
+export interface GCPBillingProject extends BaseBillingProject {
+  cloudPlatform: 'GCP';
+  billingAccount: string;
+  servicePerimeter?: string;
+}
+
+export interface UnknownBillingProject extends BaseBillingProject {
+  cloudPlatform: 'UNKNOWN';
+}
+
+export type BillingProject = AzureBillingProject | GCPBillingProject | UnknownBillingProject;
 
 export const Billing = (signal?: AbortSignal) => ({
   listProjects: async (): Promise<BillingProject[]> => {

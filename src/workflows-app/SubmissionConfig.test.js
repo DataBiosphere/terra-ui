@@ -1666,7 +1666,7 @@ describe('Submitting a run set', () => {
     await user.click(selectOption);
 
     // ** ASSERT **
-    // check that the Attribute column has expected behavior
+    // check that the Input value column has expected behavior
     within(thirdInputRow[4]).getByText('Optional');
 
     // ** ACT **

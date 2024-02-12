@@ -29,4 +29,7 @@ registerTest({
   name: 'preview-dataset',
   fn: testPreviewDatasetFn,
   timeout: 2 * 60 * 1000,
+  // Tests are disabled until we reprioritize catalog support. See:
+  // https://broadworkbench.atlassian.net/browse/DC-810
+  targetEnvironments: [],
 });
