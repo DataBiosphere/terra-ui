@@ -1,17 +1,28 @@
 import _ from 'lodash/fp';
-import { useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, h3, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
+import { collapseStatus } from 'src/components/job-common';
 import Modal from 'src/components/Modal';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
+import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { AppProxyUrlStatus } from 'src/libs/state';
 import { customFormatDuration, differenceFromNowInSeconds } from 'src/libs/utils';
 import { statusType } from 'src/workflows-app/components/job-common';
-import { makeStatusLine } from 'src/workflows-app/utils/submission-utils';
+import {
+  fetchMetadata,
+  makeStatusLine,
+  parseMethodString,
+  WorkflowMetadata,
+} from 'src/workflows-app/utils/submission-utils';
+
+import { loadAppUrls } from '../utils/app-utils';
 
 type Run = {
   duration: number;
@@ -35,6 +46,13 @@ type FilterableWorkflowTableProps = {
   namespace: string;
   submissionId: string;
   workspaceName: string;
+  workspaceId: string;
+  setShowLog: (showLog: boolean) => boolean;
+  setLogsModalTitle: (modalTitle: string) => boolean;
+  setLogsArray: (logsArray: string[]) => boolean;
+  setTaskDataTitle: (dataTitle: string) => boolean;
+  setTaskDataJson: (data: string[]) => boolean;
+  setShowTaskData: (showData: boolean) => boolean;
 };
 
 const FilterableWorkflowTable = ({
@@ -43,6 +61,13 @@ const FilterableWorkflowTable = ({
   namespace,
   submissionId,
   workspaceName,
+  workspaceId,
+  setShowLog,
+  setLogsModalTitle,
+  setLogsArray,
+  setTaskDataTitle,
+  setTaskDataJson,
+  setShowTaskData,
 }: FilterableWorkflowTableProps) => {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [filterOption, setFilterOption] = useState<string>();
@@ -51,6 +76,29 @@ const FilterableWorkflowTable = ({
   const [viewErrorsId, setViewErrorsId] = useState<number>();
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR'];
+  const signal = useCancellation();
+  const stateRefreshTimer = useRef();
+  const [workflows, setWorkflows] = useState(new Map());
+  // const [paginatedPreviousRuns, setPaginatedPreviousRuns] = useState<Run[]>();
+  // const [sortedPreviousRuns, setSortedPreviousRuns] = useState<Run[]>();
+
+  const showLogModal = useCallback(
+    (modalTitle: string, logsArray: []) => {
+      setShowLog(true);
+      setLogsModalTitle(modalTitle);
+      setLogsArray(logsArray);
+    },
+    [setLogsArray, setLogsModalTitle, setShowLog]
+  );
+
+  const showTaskDataModal = useCallback(
+    (taskDataTitle: string, taskJson: []) => {
+      setTaskDataTitle(taskDataTitle);
+      setTaskDataJson(taskJson);
+      setShowTaskData(true);
+    },
+    [setShowTaskData, setTaskDataJson, setTaskDataTitle]
+  );
 
   const getFilteredRuns = (filterOption: string, runsData: Run[]): Run[] => {
     const filteredRuns: Run[] = [];
@@ -107,6 +155,34 @@ const FilterableWorkflowTable = ({
     return runsSorted;
   };
 
+  // const sortedPreviousRuns = useMemo(() => {
+  //   const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;
+  //   return sortRuns(sort.field, sort.direction, filteredPreviousRuns);
+  // }, [filterOption, getFilteredRuns, runsData, sort.direction, sort.field]);
+
+  // const paginatedPreviousRuns = useMemo(() => {
+  //   const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
+  //   const lastPageIndex: number = firstPageIndex + itemsPerPage;
+  //   return sortedPreviousRuns.slice(firstPageIndex, lastPageIndex);
+  // }, [itemsPerPage, pageNumber, sortedPreviousRuns]);
+
+  // useLayoutEffect(() => {
+  //   const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;
+  //   const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
+  //   const lastPageIndex: number = firstPageIndex + itemsPerPage;
+  //   setSortedPreviousRuns(sortRuns(sort.field, sort.direction, filteredPreviousRuns));
+  //   setPaginatedPreviousRuns(sortedPreviousRuns.slice(firstPageIndex, lastPageIndex));
+  // }, [
+  //   filterOption,
+  //   getFilteredRuns,
+  //   runsData,
+  //   pageNumber,
+  //   itemsPerPage,
+  //   sort.field,
+  //   sort.direction,
+  //   sortedPreviousRuns,
+  // ]);
+
   enum FilterOptions {
     Error = 'Error',
     NoFilter = 'No filter',
@@ -119,6 +195,7 @@ const FilterableWorkflowTable = ({
   const lastPageIndex: number = firstPageIndex + itemsPerPage;
   const sortedPreviousRuns: Run[] = sortRuns(sort.field, sort.direction, filteredPreviousRuns);
   const paginatedPreviousRuns: Run[] = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex);
+  // console.log('UPDATED');
   const rowWidth = 100;
   const rowHeight = 50;
 
@@ -150,6 +227,89 @@ const FilterableWorkflowTable = ({
         return differenceFromNowInSeconds(submissionDate) < 10 ? statusType.initializing : statusType.unknown;
     }
   };
+
+  // Duped from RunDetails.js
+  const includeKey = useMemo(
+    () => [
+      'backendStatus',
+      'executionStatus',
+      'shardIndex',
+      'jobId',
+      'start',
+      'end',
+      'stderr',
+      'stdout',
+      'tes_stdout',
+      'tes_stderr',
+      'attempt',
+      'subWorkflowId', // needed for task type column
+    ],
+    []
+  );
+  const excludeKey = useMemo(() => [], []);
+
+  const loadWorkflows = useCallback(
+    async (workflowId: string) => {
+      try {
+        const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
+        if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
+          const metadata = await fetchMetadata(cromwellProxyUrlState.state, workflowId, signal, includeKey, excludeKey);
+          // console.log(metadata);
+          workflows.set(workflowId, metadata);
+          const newWorkflows = new Map(workflows);
+          setWorkflows(newWorkflows);
+          if (!_.isEmpty(metadata?.calls)) {
+            if (_.includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
+              // @ts-expect-error
+              stateRefreshTimer.current = setTimeout(() => {
+                loadWorkflows(workflowId);
+              }, 60000);
+            }
+          }
+        }
+      } catch (error) {
+        notify('error', 'Error loading run details', {
+          detail: error instanceof Response ? await error.text() : error,
+        });
+      }
+    },
+    [workspaceId, signal, includeKey, excludeKey, workflows]
+  );
+
+  const getKeys = (keyValuePairs: {}) => {
+    for (const key of Object.getOwnPropertyNames(keyValuePairs)) {
+      keyValuePairs[key];
+      delete Object.assign(keyValuePairs, {
+        [parseMethodString(key).variable]: keyValuePairs[key],
+      })[key];
+    }
+  };
+
+  /*
+   * Data fetchers
+   */
+  useOnMount(() => {
+    // console.log(paginatedPreviousRuns);
+    const load = async () => {
+      for (const run of paginatedPreviousRuns) {
+        if (run.engine_id !== undefined) {
+          await loadWorkflows(run.engine_id);
+        }
+      }
+    };
+    load();
+    return () => {
+      clearTimeout(stateRefreshTimer.current);
+    };
+  });
+
+  // useEffect(() => {
+  // const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;
+  // const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
+  // const lastPageIndex: number = firstPageIndex + itemsPerPage;
+  // const sortedPreviousRuns: Run[] = sortRuns(sort.field, sort.direction, filteredPreviousRuns);
+  // paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex);
+  // }, [runsData]);
 
   return div(
     {
@@ -194,6 +354,23 @@ const FilterableWorkflowTable = ({
             styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
             options: filterOptions,
           }),
+          div(
+            {
+              style: {
+                float: 'right',
+              },
+            },
+            [
+              h(
+                Link,
+                {
+                  href: Nav.getLink('workspace-files', { name: workspaceName, namespace }),
+                  target: '_blank',
+                },
+                [icon('folder-open', { size: 18 }), 'Submission Execution Directory']
+              ),
+            ]
+          ),
           div(
             {
               style: {
@@ -308,6 +485,55 @@ const FilterableWorkflowTable = ({
                               span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
                             ]);
                           }
+                        },
+                      },
+                      {
+                        size: { basis: 400, grow: 0 },
+                        field: 'taskData',
+                        headerRenderer: () => 'Workflow Data',
+                        cellRenderer: ({ rowIndex }) => {
+                          const workflow: WorkflowMetadata = workflows.get(
+                            paginatedPreviousRuns[rowIndex].engine_id as string
+                          ) as WorkflowMetadata;
+                          return h(TextCell, [
+                            h(
+                              Link,
+                              {
+                                onClick: () => {
+                                  const logUri = workflow.workflowLog;
+                                  showLogModal('Workflow Execution Log', [
+                                    {
+                                      logUri,
+                                      logTitle: 'Workflow Execution Log',
+                                      logKey: 'execution_log',
+                                      logFilename: 'workflow.log',
+                                    },
+                                  ]);
+                                },
+                              },
+                              ['Logs\t']
+                            ),
+                            h(
+                              Link,
+                              {
+                                onClick: () => {
+                                  getKeys(workflow.inputs);
+                                  showTaskDataModal('Inputs', workflow.inputs);
+                                },
+                              },
+                              ['Inputs\t']
+                            ),
+                            h(
+                              Link,
+                              {
+                                onClick: () => {
+                                  getKeys(workflow.outputs);
+                                  showTaskDataModal('Outputs', workflow.outputs);
+                                },
+                              },
+                              ['Outputs']
+                            ),
+                          ]);
                         },
                       },
                     ],

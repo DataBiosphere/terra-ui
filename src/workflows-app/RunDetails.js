@@ -21,6 +21,8 @@ import { WorkflowInfoBox } from 'src/workflows-app/components/WorkflowInfoBox';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
+import { fetchMetadata } from './utils/submission-utils';
+
 export const CromwellPollInterval = 1000 * 30; // 30 seconds
 
 export const BaseRunDetails = (
@@ -92,18 +94,17 @@ export const BaseRunDetails = (
     []
   );
   const excludeKey = useMemo(() => [], []);
-  const fetchMetadata = useCallback(
-    async (cromwellProxyUrl, workflowId) => Ajax(signal).CromwellApp.workflows(workflowId).metadata(cromwellProxyUrl, { includeKey, excludeKey }),
-    [includeKey, excludeKey, signal]
-  );
 
   const loadWorkflow = useCallback(
     async (workflowId, updateWorkflowPath = undefined) => {
+      // const fetchWorkflow = () => {};
+
+      // const setWorkflowData = () => {};
       try {
         const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
         if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
           let failedTasks = {};
-          const metadata = await fetchMetadata(cromwellProxyUrlState.state, workflowId);
+          const metadata = await fetchMetadata(cromwellProxyUrlState.state, workflowId, signal, includeKey, excludeKey);
           if (metadata?.status?.toLocaleLowerCase() === 'failed') {
             try {
               failedTasks = await Ajax(signal).CromwellApp.workflows(workflowId).failedTasks(cromwellProxyUrlState.state);
@@ -128,7 +129,7 @@ export const BaseRunDetails = (
         notify('error', 'Error loading run details', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [signal, fetchMetadata, workspaceId]
+    [signal, workspaceId, includeKey, excludeKey]
   );
 
   //  Below two methods are data fetchers used in the call cache wizard. Defined

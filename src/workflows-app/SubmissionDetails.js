@@ -5,13 +5,17 @@ import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { SimpleTabBar } from 'src/components/tabBars';
 import { Ajax } from 'src/libs/ajax';
+import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
+import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { customFormatDuration, makeCompleteDate, maybeParseJSON } from 'src/libs/utils';
+import InputOutputModal from 'src/workflows-app/components/InputOutputModal';
 import { HeaderSection, SubmitNewWorkflowButton } from 'src/workflows-app/components/job-common';
+import { LogViewer } from 'src/workflows-app/components/LogViewer';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import {
   AutoRefreshInterval,
@@ -37,9 +41,18 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState([]);
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState([]);
 
+  const [logsModalTitle, setLogsModalTitle] = useState('');
+  const [logsArray, setLogsArray] = useState([]);
+  const [showLog, setShowLog] = useState(false);
+  const [taskDataTitle, setTaskDataTitle] = useState('');
+  const [taskDataJson, setTaskDataJson] = useState({});
+  const [showTaskData, setShowTaskData] = useState(false);
+  const [sasToken, setSasToken] = useState('');
+
   const signal = useCancellation();
   const scheduledRefresh = useRef();
   const workspaceId = workspace.workspace.workspaceId;
+  const { captureEvent } = useMetricsEvent();
 
   const loadMethodsData = useCallback(
     async (cbasUrlRoot, methodId, methodVersion) => {
@@ -61,19 +74,23 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
   const loadRuns = useCallback(
     async (cbasUrlRoot) => {
       try {
-        const runsResponse = await Ajax(signal).Cbas.runs.get(cbasUrlRoot, submissionId);
-        const runsAnnotatedWithDurations = _.map(
-          (r) => _.merge(r, { duration: getDuration(r.state, r.submission_date, r.last_modified_timestamp, isRunInTerminalState) }),
-          runsResponse.runs
-        );
-        setRunsData(runsAnnotatedWithDurations);
-        setRunsFullyUpdated(runsResponse.fully_updated);
+        return await Ajax(signal).Cbas.runs.get(cbasUrlRoot, submissionId);
       } catch (error) {
         notify('error', 'Error loading saved workflows', { detail: error instanceof Response ? await error.text() : error });
       }
     },
     [signal, submissionId]
   );
+
+  const setRuns = async (runsResponse) => {
+    const runsAnnotatedWithDurations = _.map(
+      (r) => _.merge(r, { duration: getDuration(r.state, r.submission_date, r.last_modified_timestamp, isRunInTerminalState) }),
+      runsResponse.runs
+    );
+    setRunsData(runsAnnotatedWithDurations);
+    // console.log(runsData);
+    setRunsFullyUpdated(runsResponse.fully_updated);
+  };
 
   const loadRunSets = useCallback(
     async (cbasUrlRoot) => {
@@ -117,7 +134,8 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
           const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
           if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-            await loadRuns(cbasProxyUrlState.state);
+            const runsResponse = await loadRuns(cbasProxyUrlState.state);
+            setRuns(runsResponse);
             const runSets = await loadRunSets(cbasProxyUrlState.state);
             if (runSets !== undefined) {
               setRunSetData(runSets);
@@ -135,7 +153,8 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
             });
           }
         } else {
-          await loadRuns(cbasProxyUrlDetails.state);
+          const runsResponse = await loadRuns(cbasProxyUrlDetails.state);
+          setRuns(runsResponse);
 
           const runSets = await loadRunSets(cbasProxyUrlDetails.state);
           if (runSets !== undefined) {
@@ -158,6 +177,13 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
   });
 
   useOnMount(() => {
+    const fetchSasToken = async () => {
+      const { sas } = await Ajax(signal).AzureStorage.details(workspaceId);
+      setSasToken(sas.token);
+    };
+
+    fetchSasToken();
+
     const loadWorkflowsApp = async () => {
       const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
@@ -255,6 +281,22 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
             ]),
           ]
         ),
+        showLog &&
+          h(LogViewer, {
+            modalTitle: logsModalTitle,
+            logs: logsArray,
+            onDismiss: () => {
+              setShowLog(false);
+              captureEvent(Events.workflowsAppCloseLogViewer);
+            },
+          }),
+        showTaskData &&
+          h(InputOutputModal, {
+            title: taskDataTitle,
+            jsonData: taskDataJson,
+            onDismiss: () => setShowTaskData(false),
+            sasToken,
+          }),
         div(
           {
             style: {
@@ -266,7 +308,24 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
           [
             Utils.switchCase(
               activeTab.key || 'workflows',
-              ['workflows', () => h(FilterableWorkflowTable, { runsData, runsFullyUpdated, namespace, submissionId, workspaceName: name })],
+              [
+                'workflows',
+                () =>
+                  h(FilterableWorkflowTable, {
+                    runsData,
+                    runsFullyUpdated,
+                    namespace,
+                    submissionId,
+                    workspaceName: name,
+                    workspaceId,
+                    setShowLog,
+                    setLogsModalTitle,
+                    setLogsArray,
+                    setTaskDataTitle,
+                    setTaskDataJson,
+                    setShowTaskData,
+                  }),
+              ],
               ['inputs', () => h(SubmissionDetailsInputsTable, { configuredInputDefinition })],
               ['outputs', () => h(SubmissionDetailsOutputsTable, { configuredOutputDefinition })]
             ),

@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { div } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import { statusType as jobStatusType } from 'src/components/job-common';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds, maybeParseJSON } from 'src/libs/utils';
@@ -43,6 +44,26 @@ export type OutputTableData = {
   outputType: OutputType;
   taskName: string;
   variable: string;
+};
+
+export type WorkflowMetadata = {
+  actualWorkflowLanguage: string;
+  actualWorkflowLanguageVersion: string;
+  calls: {};
+  end: string;
+  id: string;
+  inputs: {};
+  labels: {};
+  outputs: {};
+  start: string;
+  status: string;
+  submission: string;
+  submittedFiles: {};
+  workflowCallback: {};
+  workflowLog: string;
+  workflowName: string;
+  workflowProcessingEvents: Array<Object>;
+  workflowRoot: string;
 };
 
 const iconSize = 24;
@@ -565,3 +586,12 @@ export const getOutputTableData = (
     _.orderBy([({ [sort.field]: field }) => _.lowerCase(field)], [sort.direction])
   )(configuredOutputDefinition);
 };
+
+export const fetchMetadata = async (
+  cromwellProxyUrl: string,
+  workflowId: string,
+  signal: AbortSignal,
+  includeKey: string[],
+  excludeKey: string[]
+): Promise<WorkflowMetadata> =>
+  Ajax(signal).CromwellApp.workflows(workflowId).metadata(cromwellProxyUrl, { includeKey, excludeKey });
