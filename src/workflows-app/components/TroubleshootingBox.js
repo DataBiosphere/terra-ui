@@ -4,6 +4,7 @@ import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
+import { LogTooltips } from 'src/workflows-app/utils/task-log-utils';
 
 export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, workflowId, showLogModal }) => {
   return div(
@@ -37,7 +38,13 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
           {
             onClick: () => {
               showLogModal('Workflow Execution Log', [
-                { logUri, logTitle: 'Workflow Execution Log', logKey: 'execution_log', logFilename: 'workflow.log' },
+                {
+                  logUri,
+                  logTitle: 'Execution Log',
+                  logKey: 'execution_log',
+                  logFilename: 'workflow.log',
+                  logTooltip: LogTooltips.workflowExecution,
+                },
               ]);
             },
           },
