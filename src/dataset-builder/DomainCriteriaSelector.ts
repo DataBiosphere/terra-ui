@@ -32,8 +32,9 @@ export const toCriteria =
   (concept: Concept): DomainCriteria => {
     return {
       kind: 'domain',
+      conceptId: concept.id,
       name: concept.name,
-      id: concept.id,
+      id: domainOption.id,
       index: getNextCriteriaIndex(),
       count: concept.count,
       domainOption,
