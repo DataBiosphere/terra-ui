@@ -1,3 +1,4 @@
+import { PopupTrigger } from '@terra-ui-packages/components';
 import { formatDatetime, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
@@ -17,7 +18,7 @@ import { getDisplayRuntimeStatus, isGcpContext } from 'src/analysis/utils/runtim
 import { AppToolLabel } from 'src/analysis/utils/tool-utils';
 import { Clickable, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger';
+import { makeMenuIcon } from 'src/components/PopupTrigger';
 import SupportRequestWrapper from 'src/components/SupportRequest';
 import { SimpleFlexTable, Sortable } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
