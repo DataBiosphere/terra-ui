@@ -2,16 +2,15 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { RowContents, TreeGrid } from 'src/components/TreeGrid';
-import { SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type Node = RowContents & {
   name: string;
 };
 
-const initialHierarchy = new Map<number, SnapshotBuilderConcept[]>();
-// to show root, we need a domainOptionRoot that points to it
-const domainOptionRoot: Node = { id: 0, name: 'Point to Root', hasChildren: true };
+const initialHierarchy = new Map<number, Node[]>();
+// to show root, we need a rootPointer because parent of hierarchy will not show
+const rootPointer: Node = { id: 0, name: 'Point to Root', hasChildren: true };
 const root: Node = { id: 1, name: 'root', hasChildren: true };
 const child1: Node = { id: 2, name: 'child1', hasChildren: false };
 const child2: Node = { id: 3, name: 'child2', hasChildren: true };
@@ -25,16 +24,15 @@ const testConcepts = [
   { id: 4, name: 'child3', hasChildren: false },
 ];
 const testHierarchy = [
-  { id: 0, concept: domainOptionRoot, children: [1] },
+  { id: 0, concept: rootPointer, children: [1] },
   { id: 1, concept: root, children: [2, 3], parent: 0 },
   { id: 2, concept: child1, children: [], parent: 1 },
   { id: 3, concept: child2, children: [4], parent: 1 },
   { id: 4, concept: child3, children: [], parent: 3 },
 ];
-const domainOptionRootChildren = [child1, child2];
-initialHierarchy.set(domainOptionRoot.id, [root]);
-initialHierarchy.set(root.id, domainOptionRootChildren);
-
+const rootChildren = [child1, child2];
+initialHierarchy.set(root.id, rootChildren);
+initialHierarchy.set(rootPointer.id, [root]);
 const col2 = (node: Node) => `${node.name}_2`;
 const col3 = (node: Node) => `${node.name}_3`;
 
@@ -59,7 +57,6 @@ describe('TreeGrid', () => {
           const children = parent.children;
           return _.map((childID) => _.find({ id: childID }, testConcepts) as Node, children);
         },
-        domainOptionRoot,
       })
     );
   };
