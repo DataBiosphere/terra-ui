@@ -13,6 +13,7 @@ import { GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/D
 import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
+import { useOnMount } from 'src/libs/react-utils';
 
 type ConceptSearchProps = {
   readonly initialSearch: string;
@@ -33,15 +34,22 @@ const DebouncedTextInput = withDebouncedChange(TextInput);
 export const ConceptSearch = (props: ConceptSearchProps) => {
   const { initialSearch, domainOption, onCancel, onCommit, onOpenHierarchy, actionText, datasetId, initialCart } =
     props;
-  const [search, setSearch] = useState<string>(initialSearch);
+  const [searchText, setSearchText] = useState<string>(initialSearch);
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const [concepts, searchConcepts] = useLoadedData<GetConceptsResponse>();
 
-  useEffect(() => {
+  useOnMount(() => {
     void searchConcepts(() => {
-      return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, search);
+      return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, searchText);
     });
-  }, [search, datasetId, domainOption.root, searchConcepts]);
+  });
+  useEffect(() => {
+    if (searchText.length > 2 || searchText === '') {
+      void searchConcepts(() => {
+        return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, searchText);
+      });
+    }
+  }, [searchText, datasetId, domainOption.root, searchConcepts]);
   const tableLeftPadding = { paddingLeft: '2rem' };
   const iconSize = 18;
 
@@ -61,9 +69,9 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
       div({ style: { position: 'relative' } }, [
         h(DebouncedTextInput, {
           onChange: (value: string) => {
-            setSearch(value);
+            setSearchText(value);
           },
-          value: search,
+          value: searchText,
           placeholder: 'Search',
           type: 'search',
           style: {
@@ -105,39 +113,44 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               { header: strong(['Roll-up count']), width: 205, key: 'count' },
               { width: 100, key: 'hierarchy' },
             ],
-            rows: _.map((concept) => {
-              const [label, iconName]: [string, IconId] = _.contains(concept, cart)
-                ? ['remove', 'minus-circle-red']
-                : ['add', 'plus-circle-filled'];
-              return {
-                name: div({ style: { display: 'flex' } }, [
-                  h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
-                    icon(iconName, { size: 16 }),
+            rows: _.map(
+              (concept) => {
+                const [label, iconName]: [string, IconId] = _.contains(concept, cart)
+                  ? ['remove', 'minus-circle-red']
+                  : ['add', 'plus-circle-filled'];
+                return {
+                  name: div({ style: { display: 'flex' } }, [
+                    h(
+                      Link,
+                      { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) },
+                      [icon(iconName, { size: 16 })]
+                    ),
+                    div({ style: { marginLeft: 5 } }, [
+                      h(HighlightConceptName, { conceptName: concept.name, searchFilter: searchText }),
+                    ]),
                   ]),
-                  div({ style: { marginLeft: 5 } }, [
-                    h(HighlightConceptName, { conceptName: concept.name, searchFilter: search }),
+                  id: concept.id,
+                  count: concept.count,
+                  hierarchy: div({ style: { display: 'flex' } }, [
+                    h(
+                      Link,
+                      {
+                        'aria-label': `open hierarchy ${concept.id}`,
+                        onClick: () =>
+                          onOpenHierarchy(
+                            { id: concept.id, category: domainOption.category, root: concept },
+                            cart,
+                            searchText
+                          ),
+                      },
+                      [icon('view-list')]
+                    ),
+                    div({ style: { marginLeft: 5 } }, ['Hierarchy']),
                   ]),
-                ]),
-                id: concept.id,
-                count: concept.count,
-                hierarchy: div({ style: { display: 'flex' } }, [
-                  h(
-                    Link,
-                    {
-                      'aria-label': `open hierarchy ${concept.id}`,
-                      onClick: () =>
-                        onOpenHierarchy(
-                          { id: concept.id, category: domainOption.category, root: concept },
-                          cart,
-                          search
-                        ),
-                    },
-                    [icon('view-list')]
-                  ),
-                  div({ style: { marginLeft: 5 } }, ['Hierarchy']),
-                ]),
-              };
-            }, concepts.state.result),
+                };
+              },
+              concepts.state.result.sort((a, b) => (a.count ?? 0) - (b.count ?? 0))
+            ),
           })
         : spinnerOverlay,
     ]),
