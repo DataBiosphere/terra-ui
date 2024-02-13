@@ -1,3 +1,4 @@
+import { formatDate } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { b, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers';
@@ -626,7 +627,7 @@ export const GcpComputeModalBase = ({
       : '';
 
     return div({ style: { whiteSpace: 'pre', ...style } }, [
-      div({ style: Style.proportionalNumbers }, ['Updated: ', selectedImage?.updated ? Utils.makeStandardDate(selectedImage.updated) : null]),
+      div({ style: Style.proportionalNumbers }, ['Updated: ', selectedImage?.updated ? formatDate(selectedImage.updated) : null]),
       h(
         Link,
         {
