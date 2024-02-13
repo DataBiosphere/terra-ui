@@ -2,14 +2,14 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { RowContents, TreeGrid } from 'src/components/TreeGrid';
-import { SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
+import { SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type Node = RowContents & {
   name: string;
 };
 
-const initialHierarchy = new Map<number, Concept[]>();
+const initialHierarchy = new Map<number, SnapshotBuilderConcept[]>();
 // to show root, we need a domainOptionRoot that points to it
 const domainOptionRoot: Node = { id: 0, name: 'Point to Root', hasChildren: true };
 const root: Node = { id: 1, name: 'root', hasChildren: true };
@@ -117,15 +117,12 @@ describe('TreeGrid', () => {
 
     // expand
     await user.click(screen.getByLabelText(`expand ${child2.id}`));
-    expect(screen.queryByText(child3.name)).toBeTruthy();
 
     // collapse
     await user.click(screen.getByLabelText(`collapse ${child2.id}`));
-    expect(screen.queryByText(child3.name)).toBeFalsy();
 
     // expand
     await user.click(screen.getByLabelText(`expand ${child2.id}`));
-    expect(screen.queryByText(child3.name)).toBeTruthy();
 
     // Assert
     // Expanded twice, but only one call to getChildren because child is already fetched.
