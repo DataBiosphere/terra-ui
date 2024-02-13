@@ -174,7 +174,7 @@ export const AnalysisNotificationManager = (props: AnalysisNotificationManagerPr
       notify('error', 'Error Creating Cloud Environment', {
         message: h(RuntimeErrorNotification, { runtime }),
       });
-      errorNotifiedRuntimes.update(Utils.append(runtime.id));
+      errorNotifiedRuntimes.update((value) => [...value, runtime.id]);
     } else if (
       runtime?.status === 'Running' &&
       prevRuntime?.status !== 'Running' &&
@@ -227,7 +227,7 @@ export const AnalysisNotificationManager = (props: AnalysisNotificationManagerPr
       notify('error', 'Error Creating Galaxy App', {
         message: h(AppErrorNotification, { app: galaxyApp }),
       });
-      errorNotifiedApps.update(Utils.append(galaxyApp.appName));
+      errorNotifiedApps.update((value) => [...value, galaxyApp.appName]);
     }
   }, [runtimes, apps, namespace, name]); // eslint-disable-line react-hooks/exhaustive-deps
 
