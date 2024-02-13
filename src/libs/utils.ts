@@ -1,4 +1,12 @@
-import { AnyPromiseFn, cond, delay, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
+import {
+  AnyPromiseFn,
+  cond,
+  delay,
+  formatDate,
+  formatDatetime,
+  GenericPromiseFn,
+  safeCurry,
+} from '@terra-ui-packages/core-utils';
 import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
@@ -11,19 +19,13 @@ export {
   formatBytes,
   formatNumber,
   formatUSD,
+  formatDatetime as makeCompleteDate,
+  formatDate as makeStandardDate,
   maybeParseJSON,
   switchCase,
 } from '@terra-ui-packages/core-utils';
 
-const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
-const completeDateFormat = new Intl.DateTimeFormat('default', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-  hour: 'numeric',
-  minute: 'numeric',
-});
 const completeDateFormatParts = [
   new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' }),
   new Intl.DateTimeFormat('default', { hour: 'numeric', minute: 'numeric' }),
@@ -35,18 +37,12 @@ export const makePrettyDate = (dateString: number | string | Date): string => {
   return cond(
     [isToday(date), () => 'Today'],
     [isYesterday(date), () => 'Yesterday'],
-    [differenceInCalendarMonths(date, Date.now()) <= 6, () => dateFormat.format(date)],
+    [differenceInCalendarMonths(date, Date.now()) <= 6, () => formatDate(date)],
     () => monthYearFormat.format(date)
   );
 };
 
-export const makeStandardDate = (dateString: number | string | Date): string => dateFormat.format(new Date(dateString));
-
-export const makeCompleteDate = (dateString: number | string | Date): string =>
-  completeDateFormat.format(new Date(dateString));
-
-export const formatTimestampInSeconds = (secondsSinceEpoch: number): string =>
-  completeDateFormat.format(new Date(secondsSinceEpoch * 1000));
+export const formatTimestampInSeconds = (secondsSinceEpoch: number): string => formatDatetime(secondsSinceEpoch * 1000);
 
 export const makeCompleteDateParts = (dateString) => {
   return _.map((part) => part.format(new Date(dateString)), completeDateFormatParts);
