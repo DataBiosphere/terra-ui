@@ -44,7 +44,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
     });
   });
   useEffect(() => {
-    if (searchText.length > 2 || searchText === '') {
+    if (searchText.length > 2) {
       void searchConcepts(() => {
         return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, searchText);
       });
