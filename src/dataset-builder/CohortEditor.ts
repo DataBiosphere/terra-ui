@@ -58,6 +58,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
       DataRepo()
         .dataset(datasetId)
         .getCounts({
+          // Create a "cohort" to get the count of participants for this criteria on its own.
           cohorts: [{ criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }], name: '' }],
         })
     );
