@@ -20,6 +20,7 @@ export interface Criteria {
  * They are generally subsets or mappings of the UI types. */
 
 export interface CriteriaApi {
+  // This is the ID for either the domain or the program data option
   id: number;
   kind: 'domain' | 'range' | 'list';
   name: string;
@@ -28,6 +29,7 @@ export interface CriteriaApi {
 
 export interface DomainCriteriaApi extends CriteriaApi {
   kind: 'domain';
+  // This is the id for the selected concept
   conceptId: number;
 }
 
