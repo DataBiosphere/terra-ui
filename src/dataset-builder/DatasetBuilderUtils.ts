@@ -28,7 +28,7 @@ export interface CriteriaApi {
 
 export interface DomainCriteriaApi extends CriteriaApi {
   kind: 'domain';
-  id: number;
+  conceptId: number;
 }
 
 export interface ProgramDataOption {

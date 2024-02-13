@@ -57,6 +57,7 @@ const domainCriteriaApi: DomainCriteriaApi = {
   kind: 'domain',
   name: 'domainCriteria',
   id: 2,
+  conceptId: 100,
 };
 
 const rangeOption: ProgramDataRangeOption = {
