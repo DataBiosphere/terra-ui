@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { div, h, h3, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ClipboardButton } from 'src/components/ClipboardButton';
@@ -11,7 +11,7 @@ import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/compo
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { useCancellation } from 'src/libs/react-utils';
 import { AppProxyUrlStatus } from 'src/libs/state';
 import { customFormatDuration, differenceFromNowInSeconds } from 'src/libs/utils';
 import { statusType } from 'src/workflows-app/components/job-common';
@@ -79,8 +79,8 @@ const FilterableWorkflowTable = ({
   const signal = useCancellation();
   const stateRefreshTimer = useRef();
   const [workflows, setWorkflows] = useState(new Map());
-  // const [paginatedPreviousRuns, setPaginatedPreviousRuns] = useState<Run[]>();
-  // const [sortedPreviousRuns, setSortedPreviousRuns] = useState<Run[]>();
+  const [paginatedPreviousRuns, setPaginatedPreviousRuns] = useState<Run[]>([]);
+  const [sortedPreviousRuns, setSortedPreviousRuns] = useState<Run[]>([]);
 
   const showLogModal = useCallback(
     (modalTitle: string, logsArray: []) => {
@@ -189,12 +189,12 @@ const FilterableWorkflowTable = ({
     Succeeded = 'Succeeded',
   }
 
-  const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;
+  // const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;
   const filterOptions: FilterOptions[] = [FilterOptions.Error, FilterOptions.NoFilter, FilterOptions.Succeeded];
-  const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
-  const lastPageIndex: number = firstPageIndex + itemsPerPage;
-  const sortedPreviousRuns: Run[] = sortRuns(sort.field, sort.direction, filteredPreviousRuns);
-  const paginatedPreviousRuns: Run[] = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex);
+  // const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
+  // const lastPageIndex: number = firstPageIndex + itemsPerPage;
+  // const sortedPreviousRuns: Run[] = sortRuns(sort.field, sort.direction, filteredPreviousRuns);
+  // const paginatedPreviousRuns: Run[] = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex);
   // console.log('UPDATED');
   const rowWidth = 100;
   const rowHeight = 50;
@@ -288,10 +288,19 @@ const FilterableWorkflowTable = ({
   /*
    * Data fetchers
    */
-  useOnMount(() => {
+  useEffect(() => {
+    const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;
+    // console.log(runsData);
+    const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
+    const lastPageIndex: number = firstPageIndex + itemsPerPage;
+    const sortedRuns = sortRuns(sort.field, sort.direction, filteredPreviousRuns);
+    setSortedPreviousRuns(sortedRuns);
+    const paginatedRuns = sortedRuns.slice(firstPageIndex, lastPageIndex);
+    setPaginatedPreviousRuns(paginatedRuns);
     // console.log(paginatedPreviousRuns);
+
     const load = async () => {
-      for (const run of paginatedPreviousRuns) {
+      for (const run of paginatedRuns) {
         if (run.engine_id !== undefined) {
           await loadWorkflows(run.engine_id);
         }
@@ -301,7 +310,8 @@ const FilterableWorkflowTable = ({
     return () => {
       clearTimeout(stateRefreshTimer.current);
     };
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runsData, filterOption, pageNumber, itemsPerPage, sort.field, sort.direction]);
 
   // useEffect(() => {
   // const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;

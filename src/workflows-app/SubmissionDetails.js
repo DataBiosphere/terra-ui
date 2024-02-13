@@ -311,6 +311,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
               [
                 'workflows',
                 () =>
+                  runsData &&
                   h(FilterableWorkflowTable, {
                     runsData,
                     runsFullyUpdated,

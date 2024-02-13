@@ -1223,8 +1223,6 @@ describe('Submission Details page', () => {
       );
     });
 
-    screen.logTestingPlaygroundURL();
-
     const inputsButtons = screen.getAllByRole('button', { name: 'Inputs' });
     expect(inputsButtons !== undefined);
 
@@ -1235,5 +1233,6 @@ describe('Submission Details page', () => {
     // }
     // Act
     await user.click(inputsButtons[0]);
+    screen.logTestingPlaygroundURL();
   });
 });
