@@ -61,16 +61,7 @@ const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<number, T[]
     return [...previousRows, parentRow, ...childRows];
   };
 
-  const rows: Row<T>[] = [];
-  const depth = 0;
-  // get all children of domain option root
-  const domainOptionRootChildren = hierarchyMap.get(domainOptionRoot.id) || [];
-
-  domainOptionRootChildren.forEach((child) => {
-    rows.push(...traverseHierarchy(child, depth, []));
-  });
-
-  return rows;
+  return traverseHierarchy(domainOptionRoot, 0, []);
 };
 
 type TreeGridProps<T extends RowContents> = {
