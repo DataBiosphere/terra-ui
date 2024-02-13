@@ -41,9 +41,11 @@ export const BaseRunDetails = (
   const [workflow, setWorkflow] = useState();
   const [callObjects, setCallObjects] = useState({});
   const [failedTasks, setFailedTasks] = useState({});
+
   const [showLog, setShowLog] = useState(false);
   const [logsModalTitle, setLogsModalTitle] = useState('');
   const [logsArray, setLogsArray] = useState([]);
+  const [tesLogDirectory, setTesLogDirectory] = useState('');
 
   const [taskDataTitle, setTaskDataTitle] = useState('');
   const [taskDataJson, setTaskDataJson] = useState({});
@@ -56,10 +58,11 @@ export const BaseRunDetails = (
   const { captureEvent } = useMetricsEvent();
 
   const [sasToken, setSasToken] = useState('');
-  const showLogModal = useCallback((modalTitle, logsArray) => {
+  const showLogModal = useCallback((modalTitle, logsArray, tesLog) => {
     setShowLog(true);
     setLogsModalTitle(modalTitle);
     setLogsArray(logsArray);
+    setTesLogDirectory(tesLog);
   }, []);
 
   const showTaskDataModal = useCallback((taskDataTitle, taskJson) => {
@@ -273,6 +276,8 @@ export const BaseRunDetails = (
             h(LogViewer, {
               modalTitle: logsModalTitle,
               logs: logsArray,
+              workspaceId,
+              templateLogDirectory: tesLogDirectory,
               onDismiss: () => {
                 setShowLog(false);
                 captureEvent(Events.workflowsAppCloseLogViewer);
