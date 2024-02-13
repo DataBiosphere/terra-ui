@@ -46,7 +46,7 @@ const wrapContent =
     state: 'closed',
   });
 
-const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<number, T[]>, domainOptionRoot: T): Row<T>[] => {
+const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<number, T[]>): Row<T>[] => {
   const traverseHierarchy = (parent: T, depth: number, previousRows: Row<T>[]): Row<T>[] => {
     // does parent have children?
     const children = hierarchyMap.get(parent.id) || [];
@@ -61,7 +61,16 @@ const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<number, T[]
     return [...previousRows, parentRow, ...childRows];
   };
 
-  return traverseHierarchy(domainOptionRoot, 0, []);
+  // hierarchyMap assumes that the domainOption
+  const rootID: number | undefined = Array.from(hierarchyMap.keys()).pop();
+
+  if (rootID !== undefined) {
+    // get all children of domain option root
+    const rootChildren = hierarchyMap.get(rootID) || [];
+    // traverse through all root children
+    return rootChildren.flatMap((child) => traverseHierarchy(child, 0, []));
+  }
+  return [];
 };
 
 type TreeGridProps<T extends RowContents> = {
@@ -71,8 +80,6 @@ type TreeGridProps<T extends RowContents> = {
   readonly initialHierarchy: Map<number, T[]>;
   /** Given a row, return its children. This is only called if row.hasChildren is true. */
   readonly getChildren: (row: T) => Promise<T[]>;
-  /** Given the domain option root, create a hierarchy */
-  readonly domainOptionRoot: T;
   /** Optional header style */
   readonly headerStyle?: CSSProperties;
 };
@@ -109,8 +116,8 @@ const getRowIndex = <T extends RowContents>(row: Row<T>, rows: Row<T>[]) =>
   _.findIndex((r) => r.contents.id === row.contents.id, rows);
 
 const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
-  const { columns, getChildren, gridWidth, domainOptionRoot, initialHierarchy } = props;
-  const [data, setData] = useState(hierarchyMapToRows(initialHierarchy, domainOptionRoot));
+  const { columns, getChildren, gridWidth, initialHierarchy } = props;
+  const [data, setData] = useState(hierarchyMapToRows(initialHierarchy));
   const rowHeight = 40;
   const expand = async (row: Row<T>) => {
     const index = getRowIndex(row, data);
