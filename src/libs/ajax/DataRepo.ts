@@ -13,7 +13,6 @@ import {
   ProgramDataRangeOption,
   SearchConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { dummyConcepts } from 'src/dataset-builder/TestConstants';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
 export type SnapshotBuilderConcept = {
@@ -229,12 +228,12 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
         ),
       getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-      searchConcepts: async (_domain: SnapshotBuilderConcept, text: string) => {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return Promise.resolve({
-          result: _.filter((concept) => concept.name.toLowerCase().includes(text.toLowerCase()), dummyConcepts),
-        });
-      },
+      searchConcepts: async (_domain: SnapshotBuilderConcept, searchText: string): Promise<GetConceptsResponse> =>
+        callDataRepo(
+          `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${_domain.name}/${encodeURIComponent(
+            searchText !== '' ? searchText : ' '
+          )}`
+        ),
       queryDatasetColumnStatisticsById: (programDataOption) =>
         handleProgramDataOptions(datasetId, programDataOption, signal),
     };
