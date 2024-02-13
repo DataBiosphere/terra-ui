@@ -17,7 +17,6 @@ type ConceptSelectorProps = {
   readonly actionText: string;
   readonly datasetId: string;
   readonly initialCart: Concept[];
-  readonly domainOptionRoot: Concept;
   readonly initialHierarchy: Map<number, Concept[]>;
   readonly openedConceptName?: string;
 };
@@ -33,17 +32,7 @@ export const tableHeaderStyle: CSSProperties = {
 };
 
 export const ConceptSelector = (props: ConceptSelectorProps) => {
-  const {
-    title,
-    onCancel,
-    onCommit,
-    actionText,
-    datasetId,
-    initialCart,
-    domainOptionRoot,
-    initialHierarchy,
-    openedConceptName,
-  } = props;
+  const { title, onCancel, onCommit, actionText, datasetId, initialCart, initialHierarchy, openedConceptName } = props;
 
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
@@ -92,7 +81,6 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
           { name: 'Roll-up count', width: 205, render: _.get('count') },
         ],
         initialHierarchy,
-        domainOptionRoot,
         getChildren,
         headerStyle: tableHeaderStyle,
       }),

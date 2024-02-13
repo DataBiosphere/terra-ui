@@ -34,7 +34,6 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
   hierarchyMap.set(domainOptionRoot.id, _.map(_.get('root'), snapshotBuilderSettings?.domainOptions));
   return h(ConceptSelector, {
     initialHierarchy: hierarchyMap,
-    domainOptionRoot,
     initialCart: [],
     title: 'Add concept',
     onCancel: () => onStateChange(homepageState.new()),
