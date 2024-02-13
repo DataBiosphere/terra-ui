@@ -61,7 +61,7 @@ const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<number, T[]
     return [...previousRows, parentRow, ...childRows];
   };
 
-  // hierarchyMap assumes that the domainOption
+  // hierarchyMap assumes that the root is the last key
   const rootID: number | undefined = Array.from(hierarchyMap.keys()).pop();
 
   if (rootID !== undefined) {
