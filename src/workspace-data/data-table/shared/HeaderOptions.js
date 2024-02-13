@@ -1,3 +1,4 @@
+import { PopupTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useRef } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -5,7 +6,7 @@ import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
-import PopupTrigger, { MenuDivider } from 'src/components/PopupTrigger';
+import { MenuDivider } from 'src/components/PopupTrigger';
 import { Sortable } from 'src/components/table';
 
 export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch, searchByColumn, children }) => {
