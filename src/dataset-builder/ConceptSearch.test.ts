@@ -146,12 +146,12 @@ describe('ConceptSearch', () => {
   });
 
   it('bolds the search term and leaves the rest unbolded, "Dis"', async () => {
-    renderSearch('Dis');
+    await act(() => renderSearch('Dis'));
 
-    const disText = await screen.findAllByText('Dis');
+    const disText = await screen.getAllByText('Dis');
 
     const filterDisText = _.filter(
-      (element) => element.tagName === 'DIV' && element.style.fontWeight === '600',
+      (element) => element.tagName === 'SPAN' && element.style.fontWeight === '600',
       disText
     ).length;
     expect(filterDisText).toBeGreaterThan(0);
