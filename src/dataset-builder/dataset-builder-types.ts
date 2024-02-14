@@ -8,7 +8,6 @@ export const newCriteriaGroup = (): CriteriaGroup => {
     criteria: [],
     mustMeet: true,
     meetAll: false,
-    count: 0,
   };
 };
 

@@ -120,7 +120,6 @@ const criteriaGroup: CriteriaGroup = {
   criteria: anyCriteriaArray,
   mustMeet: true,
   meetAll: false,
-  count: 50,
 };
 
 const criteriaGroupApi: CriteriaGroupApi = {
