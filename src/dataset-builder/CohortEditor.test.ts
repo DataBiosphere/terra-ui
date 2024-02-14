@@ -133,6 +133,7 @@ describe('CohortEditor', () => {
     const criteria: DomainCriteria = {
       kind: 'domain',
       id: 0,
+      conceptId: 0,
       index: 0,
       name: 'test criteria',
       count: 0,
@@ -154,6 +155,7 @@ describe('CohortEditor', () => {
     // Arrange
     mockListStatistics();
     const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+      id: 0,
       name: 'list',
       kind: 'list',
       tableName: 'table',
@@ -171,6 +173,7 @@ describe('CohortEditor', () => {
     const updateCriteria = jest.fn();
     mockListStatistics();
     const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+      id: 0,
       name: 'list',
       kind: 'list',
       tableName: 'table',
@@ -201,6 +204,7 @@ describe('CohortEditor', () => {
     // Arrange
     mockRangeStatistics();
     const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+      id: 0,
       name: 'range',
       kind: 'range',
       tableName: 'table',
@@ -218,6 +222,7 @@ describe('CohortEditor', () => {
     const user = userEvent.setup();
     mockRangeStatistics();
     const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+      id: 0,
       name: 'range',
       kind: 'range',
       tableName: 'table',
@@ -245,6 +250,7 @@ describe('CohortEditor', () => {
     mockRangeStatistics(min, max);
 
     const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+      id: 0,
       name: 'range',
       kind: 'range',
       tableName: 'table',
@@ -268,6 +274,7 @@ describe('CohortEditor', () => {
     // Arrange
     mockRangeStatistics();
     const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+      id: 0,
       name: 'range',
       kind: 'range',
       tableName: 'table',

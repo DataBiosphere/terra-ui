@@ -200,6 +200,7 @@ export async function criteriaFromOption(
       const rangeOption = generatedOptions;
       return {
         kind: 'range',
+        id: rangeOption.id,
         rangeOption,
         name: rangeOption.name,
         index,
@@ -211,6 +212,7 @@ export async function criteriaFromOption(
       const listOption = generatedOptions;
       return {
         kind: 'list',
+        id: listOption.id,
         listOption,
         name: option.name,
         index,
