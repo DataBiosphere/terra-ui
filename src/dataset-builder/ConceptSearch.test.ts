@@ -147,6 +147,7 @@ describe('ConceptSearch', () => {
 
   it('bolds the search term and leaves the rest unbolded, "Dis"', async () => {
     renderSearch('Dis');
+
     const disText = await screen.findAllByText('Dis');
 
     const filterDisText = _.filter(
