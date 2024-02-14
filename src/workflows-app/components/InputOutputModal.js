@@ -63,7 +63,7 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
                 height: tableHeight({ actualRows: dataArray.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
                 width,
                 rowCount: dataArray.length,
-                noContentMessage: 'No Inputs',
+                noContentMessage: `No ${title}`,
                 columns: [
                   {
                     size: { basis: 100, grow: 30 },

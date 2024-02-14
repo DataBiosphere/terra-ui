@@ -97,9 +97,6 @@ export const BaseRunDetails = (
 
   const loadWorkflow = useCallback(
     async (workflowId, updateWorkflowPath = undefined) => {
-      // const fetchWorkflow = () => {};
-
-      // const setWorkflowData = () => {};
       try {
         const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
         if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {

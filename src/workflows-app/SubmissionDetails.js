@@ -42,7 +42,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState([]);
 
   const [logsModalTitle, setLogsModalTitle] = useState('');
-  const [logsArray, setLogsArray] = useState([]);
+  const [logsArray, setLogsArray] = useState();
   const [showLog, setShowLog] = useState(false);
   const [taskDataTitle, setTaskDataTitle] = useState('');
   const [taskDataJson, setTaskDataJson] = useState({});

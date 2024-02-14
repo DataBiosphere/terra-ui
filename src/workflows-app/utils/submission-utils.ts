@@ -52,9 +52,9 @@ export type WorkflowMetadata = {
   calls: {};
   end: string;
   id: string;
-  inputs: {};
+  inputs: [];
   labels: {};
-  outputs: {};
+  outputs: [];
   start: string;
   status: string;
   submission: string;

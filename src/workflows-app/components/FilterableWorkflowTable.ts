@@ -49,9 +49,9 @@ type FilterableWorkflowTableProps = {
   workspaceId: string;
   setShowLog: (showLog: boolean) => boolean;
   setLogsModalTitle: (modalTitle: string) => boolean;
-  setLogsArray: (logsArray: string[]) => boolean;
+  setLogsArray: (logsArray: [{}]) => boolean;
   setTaskDataTitle: (dataTitle: string) => boolean;
-  setTaskDataJson: (data: string[]) => boolean;
+  setTaskDataJson: (data: {}) => boolean;
   setShowTaskData: (showData: boolean) => boolean;
 };
 
@@ -83,7 +83,7 @@ const FilterableWorkflowTable = ({
   const [sortedPreviousRuns, setSortedPreviousRuns] = useState<Run[]>([]);
 
   const showLogModal = useCallback(
-    (modalTitle: string, logsArray: []) => {
+    (modalTitle: string, logsArray: [{}]) => {
       setShowLog(true);
       setLogsModalTitle(modalTitle);
       setLogsArray(logsArray);
@@ -92,7 +92,7 @@ const FilterableWorkflowTable = ({
   );
 
   const showTaskDataModal = useCallback(
-    (taskDataTitle: string, taskJson: []) => {
+    (taskDataTitle: string, taskJson: {}) => {
       setTaskDataTitle(taskDataTitle);
       setTaskDataJson(taskJson);
       setShowTaskData(true);
@@ -155,47 +155,13 @@ const FilterableWorkflowTable = ({
     return runsSorted;
   };
 
-  // const sortedPreviousRuns = useMemo(() => {
-  //   const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;
-  //   return sortRuns(sort.field, sort.direction, filteredPreviousRuns);
-  // }, [filterOption, getFilteredRuns, runsData, sort.direction, sort.field]);
-
-  // const paginatedPreviousRuns = useMemo(() => {
-  //   const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
-  //   const lastPageIndex: number = firstPageIndex + itemsPerPage;
-  //   return sortedPreviousRuns.slice(firstPageIndex, lastPageIndex);
-  // }, [itemsPerPage, pageNumber, sortedPreviousRuns]);
-
-  // useLayoutEffect(() => {
-  //   const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;
-  //   const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
-  //   const lastPageIndex: number = firstPageIndex + itemsPerPage;
-  //   setSortedPreviousRuns(sortRuns(sort.field, sort.direction, filteredPreviousRuns));
-  //   setPaginatedPreviousRuns(sortedPreviousRuns.slice(firstPageIndex, lastPageIndex));
-  // }, [
-  //   filterOption,
-  //   getFilteredRuns,
-  //   runsData,
-  //   pageNumber,
-  //   itemsPerPage,
-  //   sort.field,
-  //   sort.direction,
-  //   sortedPreviousRuns,
-  // ]);
-
   enum FilterOptions {
     Error = 'Error',
     NoFilter = 'No filter',
     Succeeded = 'Succeeded',
   }
 
-  // const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;
   const filterOptions: FilterOptions[] = [FilterOptions.Error, FilterOptions.NoFilter, FilterOptions.Succeeded];
-  // const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
-  // const lastPageIndex: number = firstPageIndex + itemsPerPage;
-  // const sortedPreviousRuns: Run[] = sortRuns(sort.field, sort.direction, filteredPreviousRuns);
-  // const paginatedPreviousRuns: Run[] = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex);
-  // console.log('UPDATED');
   const rowWidth = 100;
   const rowHeight = 50;
 
@@ -228,7 +194,6 @@ const FilterableWorkflowTable = ({
     }
   };
 
-  // Duped from RunDetails.js
   const includeKey = useMemo(
     () => [
       'backendStatus',
@@ -254,7 +219,6 @@ const FilterableWorkflowTable = ({
         const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
         if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
           const metadata = await fetchMetadata(cromwellProxyUrlState.state, workflowId, signal, includeKey, excludeKey);
-          // console.log(metadata);
           workflows.set(workflowId, metadata);
           const newWorkflows = new Map(workflows);
           setWorkflows(newWorkflows);
@@ -290,14 +254,12 @@ const FilterableWorkflowTable = ({
    */
   useEffect(() => {
     const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;
-    // console.log(runsData);
     const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
     const lastPageIndex: number = firstPageIndex + itemsPerPage;
     const sortedRuns = sortRuns(sort.field, sort.direction, filteredPreviousRuns);
     setSortedPreviousRuns(sortedRuns);
     const paginatedRuns = sortedRuns.slice(firstPageIndex, lastPageIndex);
     setPaginatedPreviousRuns(paginatedRuns);
-    // console.log(paginatedPreviousRuns);
 
     const load = async () => {
       for (const run of paginatedRuns) {
@@ -312,14 +274,6 @@ const FilterableWorkflowTable = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runsData, filterOption, pageNumber, itemsPerPage, sort.field, sort.direction]);
-
-  // useEffect(() => {
-  // const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;
-  // const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
-  // const lastPageIndex: number = firstPageIndex + itemsPerPage;
-  // const sortedPreviousRuns: Run[] = sortRuns(sort.field, sort.direction, filteredPreviousRuns);
-  // paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex);
-  // }, [runsData]);
 
   return div(
     {
