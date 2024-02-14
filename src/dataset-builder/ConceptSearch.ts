@@ -151,8 +151,9 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   ]),
                 };
               },
+              // sort concepts in descending order
               // a.count is optional, we use `??` to handle undefined values, if undefined, replace with 0
-              concepts.state.result.sort((a, b) => (a.count ?? 0) - (b.count ?? 0))
+              concepts.state.result.sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
             ),
           })
         : spinnerOverlay,
