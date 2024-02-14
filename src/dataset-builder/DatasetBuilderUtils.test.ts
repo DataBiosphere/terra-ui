@@ -1,4 +1,4 @@
-import { div } from 'react-hyperscript-helpers';
+import { div, span } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
   AnyCriteriaApi,
@@ -184,10 +184,10 @@ describe('test conversion of DatasetAccessRequest', () => {
 
 describe('test HighlightConceptName', () => {
   const createHighlightConceptName = (beforeHighlight: string, highlightWord: string, afterHighlight: string) => {
-    return div({ style: { display: 'flex' } }, [
-      div({ style: { whiteSpace: 'pre' } }, [beforeHighlight]),
-      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, [highlightWord]),
-      div({ style: { whiteSpace: 'pre' } }, [afterHighlight]),
+    return div({ style: { display: 'pre-wrap' } }, [
+      span([beforeHighlight]),
+      span({ style: { fontWeight: 600 } }, [highlightWord]),
+      span([afterHighlight]),
     ]);
   };
 
