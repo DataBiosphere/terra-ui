@@ -38,9 +38,11 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const [concepts, searchConcepts] = useLoadedData<GetConceptsResponse>();
 
+  // when mounting ConceptSearch, we want to retrieve a list of searchConcepts
   useOnMount(() => {
     void searchConcepts(() => {
-      return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, searchText);
+      // if searchText is '' then searchConcepts will error out, we must use ' '
+      return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, ' ');
     });
   });
   useEffect(() => {
@@ -149,6 +151,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   ]),
                 };
               },
+              // a.count is optional, we use `??` to handle undefined values, if undefined, replace with 0
               concepts.state.result.sort((a, b) => (a.count ?? 0) - (b.count ?? 0))
             ),
           })
