@@ -228,10 +228,10 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
         ),
       getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-      searchConcepts: async (_domain: SnapshotBuilderConcept, searchText: string): Promise<GetConceptsResponse> =>
+      searchConcepts: async (domain: SnapshotBuilderConcept, searchText: string): Promise<GetConceptsResponse> =>
         // we use encodeURIComponent to encode special characters like spaces
         callDataRepo(
-          `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${_domain.name}/${encodeURIComponent(
+          `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${domain.name}/${encodeURIComponent(
             searchText
           )}`
         ),
