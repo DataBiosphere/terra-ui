@@ -95,8 +95,6 @@ describe('AzureComputeModal', () => {
   });
 
   it('disables submit while loading', async () => {
-    // Arrange
-
     // Act
     await act(async () => {
       render(h(AzureComputeModalBase, { ...defaultModalProps, isLoadingCloudEnvironments: true }));

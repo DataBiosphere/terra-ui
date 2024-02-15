@@ -13,6 +13,7 @@ export interface CloudEnvironmentDetails {
   refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
   persistentDisks?: PersistentDisk[];
   appDataDisks?: PersistentDisk[];
+  // TODO use LoadedState instead
   isLoadingCloudEnvironments: boolean;
 }
 
@@ -43,7 +44,6 @@ export const useCloudEnvironmentPolling = (
   };
   const load = async (maybeStale?: boolean): Promise<void> => {
     try {
-      setIsLoadingCloudEnvironments(true);
       const cloudEnvFilters = _.pickBy((l) => !_.isUndefined(l), {
         role: 'creator',
         saturnWorkspaceName,

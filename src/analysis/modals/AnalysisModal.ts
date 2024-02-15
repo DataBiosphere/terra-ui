@@ -513,7 +513,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             ButtonPrimary,
             {
               disabled: loading || errors,
-              tooltip: errors ? Utils.summarizeErrors(errors) : loading ? 'Loading' : '',
+              tooltip: (!!errors && Utils.summarizeErrors(errors)) || (loading && 'Loading') || '',
               onClick: async () => {
                 try {
                   const contents = Utils.cond(

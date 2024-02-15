@@ -35,7 +35,6 @@ import {
 import colors from 'src/libs/colors';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/workspaces/utils';
 
@@ -65,14 +64,11 @@ export const AzureComputeModalBase = ({
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false);
   const hasGpu = () => !!azureMachineTypes[computeConfig.machineType]?.hasGpu;
   // Lifecycle
-  useOnMount(() => {
-    const announceModalOpen = async () => {
-      Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
-        existingConfig: !!currentRuntime,
-        ...extractWorkspaceDetails(workspace.workspace),
-      });
-    };
-    announceModalOpen();
+  useEffect(() => {
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+      existingConfig: !!currentRuntime,
+      ...extractWorkspaceDetails(workspace.workspace),
+    });
   });
 
   useEffect(() => {
@@ -92,7 +88,7 @@ export const AzureComputeModalBase = ({
       });
     });
     refreshRuntime();
-  }, [currentRuntime, location, onError, workspaceId, setCurrentRuntimeDetails, setComputeConfig]);
+  }, [currentRuntime, location, onError, workspaceId]);
 
   const renderTitleAndTagline = () => {
     return h(Fragment, [
