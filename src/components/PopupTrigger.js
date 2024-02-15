@@ -5,8 +5,6 @@ import { icon } from 'src/components/icons';
 import { VerticalNavigation } from 'src/components/keyboard-nav';
 import colors from 'src/libs/colors';
 
-export default PopupTrigger;
-
 export const makeMenuIcon = (iconName, props) => {
   return icon(iconName, _.merge({ size: 15, style: { marginRight: '.3rem' } }, props));
 };

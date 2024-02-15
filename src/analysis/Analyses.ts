@@ -1,5 +1,5 @@
 import { Switch } from '@terra-ui-packages/components';
-import { withHandlers } from '@terra-ui-packages/core-utils';
+import { formatDatetime, withHandlers } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -373,7 +373,7 @@ const AnalysisCard = ({
               },
               [icon('lock')]
             ),
-          h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+          h(TooltipTrigger, { content: formatDatetime(lastModified) }, [
             div({ style: { fontSize: '0.8rem', display: 'flex', alignItems: 'center', textAlign: 'left' } }, [
               Utils.makePrettyDate(lastModified),
             ]),

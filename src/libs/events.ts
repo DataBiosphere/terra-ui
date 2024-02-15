@@ -171,6 +171,8 @@ const eventsList = {
   workspaceSnapshotDelete: 'workspace:snapshot:delete',
   workspaceSnapshotContentsView: 'workspace:snapshot:contents:view',
   workspaceStar: 'workspace:star',
+  workspaceListFilter: 'workspace:list:filter',
+  workspacesListSelectTab: 'workspace:list:tab',
 } as const;
 
 // Helper type to create BaseMetricsEventName.

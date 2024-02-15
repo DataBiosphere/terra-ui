@@ -49,6 +49,7 @@ const domainOption: SnapshotBuilderDomainOption = {
 };
 
 const domainCriteria: DomainCriteria = {
+  conceptId: 100,
   kind: 'domain',
   name: 'domainCriteria',
   domainOption,
@@ -61,9 +62,11 @@ const domainCriteriaApi: DomainCriteriaApi = {
   kind: 'domain',
   name: 'domainCriteria',
   id: 2,
+  conceptId: 100,
 };
 
 const rangeOption: ProgramDataRangeOption = {
+  id: 2,
   kind: 'range',
   min: 0,
   max: 101,
@@ -71,6 +74,7 @@ const rangeOption: ProgramDataRangeOption = {
 };
 
 const rangeCriteria: ProgramDataRangeCriteria = {
+  id: 2,
   kind: 'range',
   name: 'rangeCriteria',
   rangeOption,
@@ -81,6 +85,7 @@ const rangeCriteria: ProgramDataRangeCriteria = {
 };
 
 const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
+  id: 2,
   kind: 'range',
   name: 'rangeCriteria',
   low: 1,
@@ -90,6 +95,7 @@ const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
 const optionValues: ProgramDataListValue[] = [{ id: 5, name: 'listOptionListValue' }];
 
 const listOption: ProgramDataListOption = {
+  id: 2,
   kind: 'list',
   name: 'listOption',
   values: optionValues,
@@ -103,6 +109,7 @@ const criteriaListValues: ProgramDataListValue[] = [
 const criteriaListValuesApi: number[] = [7, 8];
 
 const listCriteria: ProgramDataListCriteria = {
+  id: 2,
   kind: 'list',
   name: 'listCriteria',
   index: 9,
@@ -111,6 +118,7 @@ const listCriteria: ProgramDataListCriteria = {
 };
 
 const listCriteriaApi: ProgramDataListCriteriaApi = {
+  id: 2,
   kind: 'list',
   name: 'listCriteria',
   values: criteriaListValuesApi,
@@ -125,7 +133,6 @@ const criteriaGroup: CriteriaGroup = {
   criteria: anyCriteriaArray,
   mustMeet: true,
   meetAll: false,
-  count: 50,
 };
 
 const criteriaGroupApi: CriteriaGroupApi = {
