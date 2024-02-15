@@ -587,11 +587,7 @@ export const getOutputTableData = (
   )(configuredOutputDefinition);
 };
 
-export const fetchMetadata = async (
-  cromwellProxyUrl: string,
-  workflowId: string,
-  signal: AbortSignal,
-  includeKey: string[],
-  excludeKey: string[]
-): Promise<WorkflowMetadata> =>
-  Ajax(signal).CromwellApp.workflows(workflowId).metadata(cromwellProxyUrl, { includeKey, excludeKey });
+export const fetchMetadata = async (options): Promise<WorkflowMetadata> =>
+  Ajax(options.signal)
+    .CromwellApp.workflows(options.workflowId)
+    .metadata(options.cromwellProxyUrl, { includeKey: options.includeKeys, excludeKey: options.excludeKeys });

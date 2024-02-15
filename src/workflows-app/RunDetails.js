@@ -101,7 +101,13 @@ export const BaseRunDetails = (
         const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
         if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
           let failedTasks = {};
-          const metadata = await fetchMetadata(cromwellProxyUrlState.state, workflowId, signal, includeKey, excludeKey);
+          const metadata = await fetchMetadata({
+            cromwellProxyUrl: cromwellProxyUrlState.state,
+            workflowId,
+            signal,
+            includeKeys: includeKey,
+            excludeKeys: excludeKey,
+          });
           if (metadata?.status?.toLocaleLowerCase() === 'failed') {
             try {
               failedTasks = await Ajax(signal).CromwellApp.workflows(workflowId).failedTasks(cromwellProxyUrlState.state);

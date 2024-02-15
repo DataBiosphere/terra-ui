@@ -94,9 +94,7 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -174,9 +172,7 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -225,9 +221,7 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -312,9 +306,7 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -377,9 +369,7 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -461,9 +451,7 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -536,9 +524,7 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -592,9 +578,7 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -627,9 +611,7 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -676,9 +658,7 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -753,9 +733,7 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -849,9 +827,7 @@ describe('Submission Details page', () => {
                 azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
               }),
           })),
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
         Metrics: {
           captureEvent,
@@ -874,19 +850,18 @@ describe('Submission Details page', () => {
     });
 
     const executionLogsButtons = screen.getAllByRole('button', { name: 'Logs' });
-    expect(executionLogsButtons !== undefined);
 
     for (const executionLogsButton of executionLogsButtons) {
       // Act
       await user.click(executionLogsButton);
 
       // Assert
-      expect(screen.getByRole('dialog', { name: 'Workflow Execution Log' }) !== undefined);
-      expect(screen.getByText('File:') !== undefined);
-      expect(screen.getByText('workflow.log') !== undefined);
-      expect(screen.findByRole('link', { name: 'Download log' }) !== undefined);
-      expect(screen.getByRole('button', { name: 'Workflow Execution Log' }) !== undefined);
-      expect(screen.findByText('this is the text of a mock file') !== undefined);
+      screen.getByRole('dialog', { name: 'Workflow Execution Log' });
+      screen.getByText('File:');
+      screen.getByText('workflow.log');
+      screen.findByRole('link', { name: 'Download log' });
+      screen.getByRole('button', { name: 'Workflow Execution Log' });
+      screen.findByText('this is the text of a mock file');
     }
   });
 
@@ -923,23 +898,7 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
-          blobByUri: jest.fn(() => ({
-            getMetadataAndTextContent: () =>
-              Promise.resolve({
-                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-outputs/outputFile.txt',
-                sasToken: '1234-this-is-a-mock-sas-token-5678',
-                fileName: 'outputFile.txt',
-                name: 'outputFile.txt',
-                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
-                size: '324',
-                contentType: 'text/plain',
-                textContent: 'this is the text of a mock file',
-                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-outputs/outputFile.txt',
-              }),
-          })),
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
         Metrics: {
           captureEvent,
@@ -962,7 +921,6 @@ describe('Submission Details page', () => {
     });
 
     const inputsButtons = screen.getAllByRole('button', { name: 'Inputs' });
-    expect(inputsButtons !== undefined);
 
     for (const inputsButton of inputsButtons) {
       // Act
@@ -974,20 +932,20 @@ describe('Submission Details page', () => {
       expect(rows.length).toBe(4); // one row for each input definition variable, plus headers
 
       const headers = within(rows[0]).getAllByRole('columnheader');
-      expect(headers.length).toBe(2);
+      expect(headers).toHaveLength(2);
 
       const row1cells = within(rows[1]).getAllByRole('cell');
-      expect(row1cells.length).toBe(2);
+      expect(row1cells).toHaveLength(2);
       expect(row1cells[0]).toHaveTextContent('SRA_ID');
       expect(row1cells[1]).toHaveTextContent('SRR13379731');
 
       const row2cells = within(rows[2]).getAllByRole('cell');
-      expect(row2cells.length).toBe(2);
+      expect(row2cells).toHaveLength(2);
       expect(row2cells[0]).toHaveTextContent('machine_mem_gb');
       expect(row2cells[1]).toHaveTextContent('');
 
       const row3cells = within(rows[3]).getAllByRole('cell');
-      expect(row3cells.length).toBe(2);
+      expect(row3cells).toHaveLength(2);
       expect(row3cells[0]).toHaveTextContent('docker');
       expect(row3cells[1]).toHaveTextContent('quay.io/broadinstitute/ncbi-tools:2.10.7.10');
     }
@@ -1026,23 +984,7 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
-          blobByUri: jest.fn(() => ({
-            getMetadataAndTextContent: () =>
-              Promise.resolve({
-                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-outputs/outputFile.txt',
-                sasToken: '1234-this-is-a-mock-sas-token-5678',
-                fileName: 'outputFile.txt',
-                name: 'outputFile.txt',
-                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
-                size: '324',
-                contentType: 'text/plain',
-                textContent: 'this is the text of a mock file',
-                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-outputs/outputFile.txt',
-              }),
-          })),
-          details: jest.fn(() => {
-            return Promise.resolve({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } });
-          }),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
         Metrics: {
           captureEvent,
@@ -1065,7 +1007,6 @@ describe('Submission Details page', () => {
     });
 
     const outputsButtons = screen.getAllByRole('button', { name: 'Outputs' });
-    expect(outputsButtons !== undefined);
 
     for (const outputsButton of outputsButtons) {
       // Act
@@ -1074,68 +1015,68 @@ describe('Submission Details page', () => {
       screen.getByRole('dialog', { name: 'Outputs' });
       const table = screen.getByRole('table', { name: 'inputs outputs table' });
       const rows = within(table).getAllByRole('row');
-      expect(rows.length).toBe(13); // one row for each output definition variable, plus headers
+      expect(rows).toHaveLength(13); // one row for each output definition variable, plus headers
 
       const headers = within(rows[0]).getAllByRole('columnheader');
-      expect(headers.length).toBe(2);
+      expect(headers).toHaveLength(2);
 
       const row1cells = within(rows[1]).getAllByRole('cell');
-      expect(row1cells.length).toBe(2);
+      expect(row1cells).toHaveLength(2);
       expect(row1cells[0]).toHaveTextContent('sra_metadata');
       expect(row1cells[1]).toHaveTextContent('SRR13379731.json');
 
       const row2cells = within(rows[2]).getAllByRole('cell');
-      expect(row2cells.length).toBe(2);
+      expect(row2cells).toHaveLength(2);
       expect(row2cells[0]).toHaveTextContent('reads_ubam');
       expect(row2cells[1]).toHaveTextContent('SRR13379731.bam');
 
       const row3cells = within(rows[3]).getAllByRole('cell');
-      expect(row3cells.length).toBe(2);
+      expect(row3cells).toHaveLength(2);
       expect(row3cells[0]).toHaveTextContent('biosample_accession');
       expect(row3cells[1]).toHaveTextContent('kljkl2kj');
 
       const row4cells = within(rows[4]).getAllByRole('cell');
-      expect(row4cells.length).toBe(2);
+      expect(row4cells).toHaveLength(2);
       expect(row4cells[0]).toHaveTextContent('sample_geo_loc');
       expect(row4cells[1]).toHaveTextContent('USA');
 
       const row5cells = within(rows[5]).getAllByRole('cell');
-      expect(row5cells.length).toBe(2);
+      expect(row5cells).toHaveLength(2);
       expect(row5cells[0]).toHaveTextContent('sample_collection_date');
       expect(row5cells[1]).toHaveTextContent('2020-11-30');
 
       const row6cells = within(rows[6]).getAllByRole('cell');
-      expect(row6cells.length).toBe(2);
+      expect(row6cells).toHaveLength(2);
       expect(row6cells[0]).toHaveTextContent('sequencing_center');
       expect(row6cells[1]).toHaveTextContent('SEQ_CENTER');
 
       const row7cells = within(rows[7]).getAllByRole('cell');
-      expect(row7cells.length).toBe(2);
+      expect(row7cells).toHaveLength(2);
       expect(row7cells[0]).toHaveTextContent('sequencing_platform');
       expect(row7cells[1]).toHaveTextContent('PLATFORM COMPANY');
 
       const row8cells = within(rows[8]).getAllByRole('cell');
-      expect(row8cells.length).toBe(2);
+      expect(row8cells).toHaveLength(2);
       expect(row8cells[0]).toHaveTextContent('library_id');
       expect(row8cells[1]).toHaveTextContent('ST-VALUE-2012556126');
 
       const row9cells = within(rows[9]).getAllByRole('cell');
-      expect(row9cells.length).toBe(2);
+      expect(row9cells).toHaveLength(2);
       expect(row9cells[0]).toHaveTextContent('run_date');
       expect(row9cells[1]).toHaveTextContent('2022-06-22');
 
       const row10cells = within(rows[10]).getAllByRole('cell');
-      expect(row10cells.length).toBe(2);
+      expect(row10cells).toHaveLength(2);
       expect(row10cells[0]).toHaveTextContent('sample_collected_by');
       expect(row10cells[1]).toHaveTextContent('Random lab');
 
       const row11cells = within(rows[11]).getAllByRole('cell');
-      expect(row11cells.length).toBe(2);
+      expect(row11cells).toHaveLength(2);
       expect(row11cells[0]).toHaveTextContent('sample_strain');
       expect(row11cells[1]).toHaveTextContent('SARS-CoV-2/USA/44165/2020');
 
       const row12cells = within(rows[12]).getAllByRole('cell');
-      expect(row12cells.length).toBe(2);
+      expect(row12cells).toHaveLength(2);
       expect(row12cells[0]).toHaveTextContent('sequencing_platform_model');
       expect(row12cells[1]).toHaveTextContent('NextSeq 550');
     }

@@ -41,12 +41,8 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState([]);
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState([]);
 
-  const [logsModalTitle, setLogsModalTitle] = useState('');
-  const [logsArray, setLogsArray] = useState();
-  const [showLog, setShowLog] = useState(false);
-  const [taskDataTitle, setTaskDataTitle] = useState('');
-  const [taskDataJson, setTaskDataJson] = useState({});
-  const [showTaskData, setShowTaskData] = useState(false);
+  const [logsModal, setLogsModal] = useState({});
+  const [taskDataModal, setTaskDataModal] = useState({});
   const [sasToken, setSasToken] = useState('');
 
   const signal = useCancellation();
@@ -281,20 +277,20 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
             ]),
           ]
         ),
-        showLog &&
+        logsModal.showLog &&
           h(LogViewer, {
-            modalTitle: logsModalTitle,
-            logs: logsArray,
+            modalTitle: logsModal.modalTitle,
+            logs: logsModal.logsArray,
             onDismiss: () => {
-              setShowLog(false);
+              setLogsModal({ modalTitle: logsModal.modalTitle, logsArray: logsModal.logsArray, showLog: false });
               captureEvent(Events.workflowsAppCloseLogViewer);
             },
           }),
-        showTaskData &&
+        taskDataModal.showData &&
           h(InputOutputModal, {
-            title: taskDataTitle,
-            jsonData: taskDataJson,
-            onDismiss: () => setShowTaskData(false),
+            title: taskDataModal.taskDataTitle,
+            jsonData: taskDataModal.taskJson,
+            onDismiss: () => setTaskDataModal({ taskDataTitle: taskDataModal.taskDataTitle, taskJson: taskDataModal.taskJson, showData: false }),
             sasToken,
           }),
         div(
@@ -319,12 +315,8 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                     submissionId,
                     workspaceName: name,
                     workspaceId,
-                    setShowLog,
-                    setLogsModalTitle,
-                    setLogsArray,
-                    setTaskDataTitle,
-                    setTaskDataJson,
-                    setShowTaskData,
+                    setLogsModal,
+                    setTaskDataModal,
                   }),
               ],
               ['inputs', () => h(SubmissionDetailsInputsTable, { configuredInputDefinition })],
