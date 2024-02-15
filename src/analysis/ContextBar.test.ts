@@ -412,6 +412,7 @@ const contextBarProps: ContextBarProps = {
   refreshRuntimes: () => Promise.resolve(),
   storageDetails: defaultGoogleBucketOptions,
   refreshApps: () => Promise.resolve(),
+  isLoadingCloudEnvironments: false,
   workspace: defaultGoogleWorkspace,
 };
 
@@ -423,6 +424,7 @@ const contextBarPropsForAzure: ContextBarProps = {
   refreshRuntimes: () => Promise.resolve(),
   storageDetails: { ...defaultGoogleBucketOptions, ...populatedAzureStorageOptions },
   refreshApps: () => Promise.resolve(),
+  isLoadingCloudEnvironments: false,
   workspace: defaultAzureWorkspace,
 };
 
