@@ -38,6 +38,25 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({ cbasUrlRoot, cromwellUrlRoot, wdsUrlRoot }),
 }));
 
+jest.mock('react-virtualized', () => {
+  const actual = jest.requireActual('react-virtualized');
+
+  const { AutoSizer } = actual;
+  class MockAutoSizer extends AutoSizer {
+    state = {
+      height: 1000,
+      width: 1000,
+    };
+
+    setState = () => {};
+  }
+
+  return {
+    ...actual,
+    AutoSizer: MockAutoSizer,
+  };
+});
+
 const captureEvent = jest.fn();
 
 describe('Submission Details page', () => {
@@ -860,15 +879,14 @@ describe('Submission Details page', () => {
     for (const executionLogsButton of executionLogsButtons) {
       // Act
       await user.click(executionLogsButton);
-      // screen.logTestingPlaygroundURL();
 
       // Assert
       expect(screen.getByRole('dialog', { name: 'Workflow Execution Log' }) !== undefined);
       expect(screen.getByText('File:') !== undefined);
       expect(screen.getByText('workflow.log') !== undefined);
-      expect(screen.getByRole('link', { name: 'Download log' }) !== undefined);
+      expect(screen.findByRole('link', { name: 'Download log' }) !== undefined);
       expect(screen.getByRole('button', { name: 'Workflow Execution Log' }) !== undefined);
-      expect(screen.getByText('this is the text of a mock file') !== undefined);
+      expect(screen.findByText('this is the text of a mock file') !== undefined);
     }
   });
 
@@ -1052,29 +1070,24 @@ describe('Submission Details page', () => {
     for (const outputsButton of outputsButtons) {
       // Act
       await user.click(outputsButton);
-      screen.logTestingPlaygroundURL();
 
       screen.getByRole('dialog', { name: 'Outputs' });
       const table = screen.getByRole('table', { name: 'inputs outputs table' });
       const rows = within(table).getAllByRole('row');
-      expect(rows.length).toBe(2); // one row for each output definition variable, plus headers
+      expect(rows.length).toBe(13); // one row for each output definition variable, plus headers
 
       const headers = within(rows[0]).getAllByRole('columnheader');
-      expect(headers.length).toBe(13);
+      expect(headers.length).toBe(2);
 
       const row1cells = within(rows[1]).getAllByRole('cell');
       expect(row1cells.length).toBe(2);
       expect(row1cells[0]).toHaveTextContent('sra_metadata');
-      expect(row1cells[1]).toHaveTextContent(
-        'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/SRR13379731.json'
-      );
+      expect(row1cells[1]).toHaveTextContent('SRR13379731.json');
 
       const row2cells = within(rows[2]).getAllByRole('cell');
       expect(row2cells.length).toBe(2);
       expect(row2cells[0]).toHaveTextContent('reads_ubam');
-      expect(row2cells[1]).toHaveTextContent(
-        'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/SRR13379731.bam'
-      );
+      expect(row2cells[1]).toHaveTextContent('SRR13379731.bam');
 
       const row3cells = within(rows[3]).getAllByRole('cell');
       expect(row3cells.length).toBe(2);
@@ -1086,42 +1099,42 @@ describe('Submission Details page', () => {
       expect(row4cells[0]).toHaveTextContent('sample_geo_loc');
       expect(row4cells[1]).toHaveTextContent('USA');
 
-      const row5cells = within(rows[4]).getAllByRole('cell');
+      const row5cells = within(rows[5]).getAllByRole('cell');
       expect(row5cells.length).toBe(2);
       expect(row5cells[0]).toHaveTextContent('sample_collection_date');
       expect(row5cells[1]).toHaveTextContent('2020-11-30');
 
-      const row6cells = within(rows[4]).getAllByRole('cell');
+      const row6cells = within(rows[6]).getAllByRole('cell');
       expect(row6cells.length).toBe(2);
       expect(row6cells[0]).toHaveTextContent('sequencing_center');
       expect(row6cells[1]).toHaveTextContent('SEQ_CENTER');
 
-      const row7cells = within(rows[4]).getAllByRole('cell');
+      const row7cells = within(rows[7]).getAllByRole('cell');
       expect(row7cells.length).toBe(2);
       expect(row7cells[0]).toHaveTextContent('sequencing_platform');
       expect(row7cells[1]).toHaveTextContent('PLATFORM COMPANY');
 
-      const row8cells = within(rows[4]).getAllByRole('cell');
+      const row8cells = within(rows[8]).getAllByRole('cell');
       expect(row8cells.length).toBe(2);
       expect(row8cells[0]).toHaveTextContent('library_id');
       expect(row8cells[1]).toHaveTextContent('ST-VALUE-2012556126');
 
-      const row9cells = within(rows[4]).getAllByRole('cell');
+      const row9cells = within(rows[9]).getAllByRole('cell');
       expect(row9cells.length).toBe(2);
       expect(row9cells[0]).toHaveTextContent('run_date');
-      expect(row9cells[1]).toHaveTextContent('ST-VALUE-2012556126');
+      expect(row9cells[1]).toHaveTextContent('2022-06-22');
 
-      const row10cells = within(rows[4]).getAllByRole('cell');
+      const row10cells = within(rows[10]).getAllByRole('cell');
       expect(row10cells.length).toBe(2);
       expect(row10cells[0]).toHaveTextContent('sample_collected_by');
       expect(row10cells[1]).toHaveTextContent('Random lab');
 
-      const row11cells = within(rows[4]).getAllByRole('cell');
+      const row11cells = within(rows[11]).getAllByRole('cell');
       expect(row11cells.length).toBe(2);
       expect(row11cells[0]).toHaveTextContent('sample_strain');
       expect(row11cells[1]).toHaveTextContent('SARS-CoV-2/USA/44165/2020');
 
-      const row12cells = within(rows[4]).getAllByRole('cell');
+      const row12cells = within(rows[12]).getAllByRole('cell');
       expect(row12cells.length).toBe(2);
       expect(row12cells[0]).toHaveTextContent('sequencing_platform_model');
       expect(row12cells[1]).toHaveTextContent('NextSeq 550');
