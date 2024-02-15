@@ -943,17 +943,17 @@ describe('Submission Details page', () => {
       );
     });
 
-    const outputsButtons = screen.getAllByRole('button', { name: 'Inputs' });
-    expect(outputsButtons !== undefined);
+    const inputsButtons = screen.getAllByRole('button', { name: 'Inputs' });
+    expect(inputsButtons !== undefined);
 
-    for (const outputsButton of outputsButtons) {
+    for (const inputsButton of inputsButtons) {
       // Act
-      await user.click(outputsButton);
+      await user.click(inputsButton);
 
       screen.getByRole('dialog', { name: 'Inputs' });
       const table = screen.getByRole('table', { name: 'inputs outputs table' });
       const rows = within(table).getAllByRole('row');
-      expect(rows.length).toBe(4); // one row for each output definition variable, plus headers
+      expect(rows.length).toBe(4); // one row for each input definition variable, plus headers
 
       const headers = within(rows[0]).getAllByRole('columnheader');
       expect(headers.length).toBe(2);
@@ -1060,24 +1060,71 @@ describe('Submission Details page', () => {
       expect(rows.length).toBe(2); // one row for each output definition variable, plus headers
 
       const headers = within(rows[0]).getAllByRole('columnheader');
-      expect(headers.length).toBe(2);
+      expect(headers.length).toBe(13);
 
       const row1cells = within(rows[1]).getAllByRole('cell');
-      // expect(row1cells.length).toBe(2);
+      expect(row1cells.length).toBe(2);
       expect(row1cells[0]).toHaveTextContent('sra_metadata');
       expect(row1cells[1]).toHaveTextContent(
         'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/SRR13379731.json'
       );
 
-      // const row2cells = within(rows[2]).getAllByRole('cell');
-      // expect(row2cells.length).toBe(2);
-      // expect(row2cells[0]).toHaveTextContent('machine_mem_gb');
-      // expect(row2cells[1]).toHaveTextContent('');
+      const row2cells = within(rows[2]).getAllByRole('cell');
+      expect(row2cells.length).toBe(2);
+      expect(row2cells[0]).toHaveTextContent('reads_ubam');
+      expect(row2cells[1]).toHaveTextContent(
+        'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/SRR13379731.bam'
+      );
 
-      // const row3cells = within(rows[3]).getAllByRole('cell');
-      // expect(row3cells.length).toBe(2);
-      // expect(row3cells[0]).toHaveTextContent('docker');
-      // expect(row3cells[1]).toHaveTextContent('quay.io/broadinstitute/ncbi-tools:2.10.7.10');
+      const row3cells = within(rows[3]).getAllByRole('cell');
+      expect(row3cells.length).toBe(2);
+      expect(row3cells[0]).toHaveTextContent('biosample_accession');
+      expect(row3cells[1]).toHaveTextContent('kljkl2kj');
+
+      const row4cells = within(rows[4]).getAllByRole('cell');
+      expect(row4cells.length).toBe(2);
+      expect(row4cells[0]).toHaveTextContent('sample_geo_loc');
+      expect(row4cells[1]).toHaveTextContent('USA');
+
+      const row5cells = within(rows[4]).getAllByRole('cell');
+      expect(row5cells.length).toBe(2);
+      expect(row5cells[0]).toHaveTextContent('sample_collection_date');
+      expect(row5cells[1]).toHaveTextContent('2020-11-30');
+
+      const row6cells = within(rows[4]).getAllByRole('cell');
+      expect(row6cells.length).toBe(2);
+      expect(row6cells[0]).toHaveTextContent('sequencing_center');
+      expect(row6cells[1]).toHaveTextContent('SEQ_CENTER');
+
+      const row7cells = within(rows[4]).getAllByRole('cell');
+      expect(row7cells.length).toBe(2);
+      expect(row7cells[0]).toHaveTextContent('sequencing_platform');
+      expect(row7cells[1]).toHaveTextContent('PLATFORM COMPANY');
+
+      const row8cells = within(rows[4]).getAllByRole('cell');
+      expect(row8cells.length).toBe(2);
+      expect(row8cells[0]).toHaveTextContent('library_id');
+      expect(row8cells[1]).toHaveTextContent('ST-VALUE-2012556126');
+
+      const row9cells = within(rows[4]).getAllByRole('cell');
+      expect(row9cells.length).toBe(2);
+      expect(row9cells[0]).toHaveTextContent('run_date');
+      expect(row9cells[1]).toHaveTextContent('ST-VALUE-2012556126');
+
+      const row10cells = within(rows[4]).getAllByRole('cell');
+      expect(row10cells.length).toBe(2);
+      expect(row10cells[0]).toHaveTextContent('sample_collected_by');
+      expect(row10cells[1]).toHaveTextContent('Random lab');
+
+      const row11cells = within(rows[4]).getAllByRole('cell');
+      expect(row11cells.length).toBe(2);
+      expect(row11cells[0]).toHaveTextContent('sample_strain');
+      expect(row11cells[1]).toHaveTextContent('SARS-CoV-2/USA/44165/2020');
+
+      const row12cells = within(rows[4]).getAllByRole('cell');
+      expect(row12cells.length).toBe(2);
+      expect(row12cells[0]).toHaveTextContent('sequencing_platform_model');
+      expect(row12cells[1]).toHaveTextContent('NextSeq 550');
     }
   });
 });

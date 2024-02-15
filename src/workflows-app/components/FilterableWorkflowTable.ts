@@ -1,11 +1,10 @@
 import _ from 'lodash/fp';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, h3, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { collapseStatus } from 'src/components/job-common';
 import Modal from 'src/components/Modal';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import colors from 'src/libs/colors';
@@ -77,8 +76,6 @@ const FilterableWorkflowTable = ({
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR'];
   const signal = useCancellation();
-  const stateRefreshTimer = useRef();
-  const [workflows, setWorkflows] = useState(new Map());
   const [paginatedPreviousRuns, setPaginatedPreviousRuns] = useState<Run[]>([]);
   const [sortedPreviousRuns, setSortedPreviousRuns] = useState<Run[]>([]);
 
@@ -213,34 +210,7 @@ const FilterableWorkflowTable = ({
   );
   const excludeKey = useMemo(() => [], []);
 
-  const loadWorkflows = useCallback(
-    async (workflowId: string) => {
-      try {
-        const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
-        if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
-          const metadata = await fetchMetadata(cromwellProxyUrlState.state, workflowId, signal, includeKey, excludeKey);
-          workflows.set(workflowId, metadata);
-          const newWorkflows = new Map(workflows);
-          setWorkflows(newWorkflows);
-          if (!_.isEmpty(metadata?.calls)) {
-            if (_.includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
-              // @ts-expect-error
-              stateRefreshTimer.current = setTimeout(() => {
-                loadWorkflows(workflowId);
-              }, 60000);
-            }
-          }
-        }
-      } catch (error) {
-        notify('error', 'Error loading run details', {
-          detail: error instanceof Response ? await error.text() : error,
-        });
-      }
-    },
-    [workspaceId, signal, includeKey, excludeKey, workflows]
-  );
-
-  const getKeys = (keyValuePairs: {}) => {
+  const getKeys = (keyValuePairs: {}): undefined => {
     for (const key of Object.getOwnPropertyNames(keyValuePairs)) {
       keyValuePairs[key];
       delete Object.assign(keyValuePairs, {
@@ -248,6 +218,23 @@ const FilterableWorkflowTable = ({
       })[key];
     }
   };
+
+  const loadWorkflows = useCallback(
+    async (workflowId: string): Promise<WorkflowMetadata | void> => {
+      try {
+        const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
+        if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
+          return await fetchMetadata(cromwellProxyUrlState.state, workflowId, signal, includeKey, excludeKey);
+        }
+      } catch (error) {
+        notify('error', 'Error loading run details', {
+          detail: error instanceof Response ? await error.text() : error,
+        });
+      }
+      return Promise.resolve();
+    },
+    [workspaceId, signal, includeKey, excludeKey]
+  );
 
   /*
    * Data fetchers
@@ -258,20 +245,7 @@ const FilterableWorkflowTable = ({
     const lastPageIndex: number = firstPageIndex + itemsPerPage;
     const sortedRuns = sortRuns(sort.field, sort.direction, filteredPreviousRuns);
     setSortedPreviousRuns(sortedRuns);
-    const paginatedRuns = sortedRuns.slice(firstPageIndex, lastPageIndex);
-    setPaginatedPreviousRuns(paginatedRuns);
-
-    const load = async () => {
-      for (const run of paginatedRuns) {
-        if (run.engine_id !== undefined) {
-          await loadWorkflows(run.engine_id);
-        }
-      }
-    };
-    load();
-    return () => {
-      clearTimeout(stateRefreshTimer.current);
-    };
+    setPaginatedPreviousRuns(sortedRuns.slice(firstPageIndex, lastPageIndex));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runsData, filterOption, pageNumber, itemsPerPage, sort.field, sort.direction]);
 
@@ -456,14 +430,14 @@ const FilterableWorkflowTable = ({
                         field: 'taskData',
                         headerRenderer: () => 'Workflow Data',
                         cellRenderer: ({ rowIndex }) => {
-                          const workflow: WorkflowMetadata = workflows.get(
-                            paginatedPreviousRuns[rowIndex].engine_id as string
-                          ) as WorkflowMetadata;
                           return h(TextCell, [
                             h(
                               Link,
                               {
-                                onClick: () => {
+                                onClick: async () => {
+                                  const workflow: WorkflowMetadata = (await loadWorkflows(
+                                    paginatedPreviousRuns[rowIndex].engine_id as string
+                                  )) as WorkflowMetadata;
                                   const logUri = workflow.workflowLog;
                                   showLogModal('Workflow Execution Log', [
                                     {
@@ -480,7 +454,10 @@ const FilterableWorkflowTable = ({
                             h(
                               Link,
                               {
-                                onClick: () => {
+                                onClick: async () => {
+                                  const workflow: WorkflowMetadata = (await loadWorkflows(
+                                    paginatedPreviousRuns[rowIndex].engine_id as string
+                                  )) as WorkflowMetadata;
                                   getKeys(workflow.inputs);
                                   showTaskDataModal('Inputs', workflow.inputs);
                                 },
@@ -490,7 +467,10 @@ const FilterableWorkflowTable = ({
                             h(
                               Link,
                               {
-                                onClick: () => {
+                                onClick: async () => {
+                                  const workflow: WorkflowMetadata = (await loadWorkflows(
+                                    paginatedPreviousRuns[rowIndex].engine_id as string
+                                  )) as WorkflowMetadata;
                                   getKeys(workflow.outputs);
                                   showTaskDataModal('Outputs', workflow.outputs);
                                 },
