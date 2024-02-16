@@ -41,8 +41,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
   // when mounting ConceptSearch, we want to retrieve a list of searchConcepts
   useOnMount(() => {
     void searchConcepts(() => {
-      // if searchText is '' then searchConcepts will error out, we must use ' '
-      return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, ' ');
+      return DataRepo().dataset(datasetId).searchConcepts(domainOption.root);
     });
   });
   useEffect(() => {
