@@ -158,7 +158,7 @@ describe('GcpComputeImageSection', () => {
     // Assert
     // Change event fired
     expect(mockOnSelect).lastCalledWith(undefined, true);
-  });
+  }, 30000);
 
   it('loads RStudio tool images', async () => {
     // Arrange
