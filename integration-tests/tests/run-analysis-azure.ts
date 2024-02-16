@@ -22,6 +22,7 @@ const {
   input,
   noSpinnersAfter,
   waitForNoModal,
+  waitForNoSpinners,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
@@ -56,6 +57,7 @@ const testRunAnalysisAzure = _.flowRight(
   await click(page, `//*[@title="${notebookName}.ipynb"]`);
   await dismissInfoNotifications(page);
   await findText(page, 'PREVIEW (READ-ONLY)');
+  await waitForNoSpinners(page);
 
   // Attempt to open analysis; create a cloud env
   await click(page, clickable({ textContains: 'Open' }));
