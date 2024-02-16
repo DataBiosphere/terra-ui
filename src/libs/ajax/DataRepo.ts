@@ -163,7 +163,7 @@ export interface DataRepoContract {
     getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
     // Search returns a list of matching concepts with a domain sorted by participant count. The result is truncated to N concepts.
-    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SearchConceptsResponse>;
+    searchConcepts(domain: SnapshotBuilderConcept, text?: string): Promise<SearchConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
@@ -228,13 +228,16 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
         ),
       getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-      searchConcepts: async (domain: SnapshotBuilderConcept, searchText: string): Promise<GetConceptsResponse> =>
-        // we use encodeURIComponent to encode special characters like spaces
-        callDataRepo(
-          `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${domain.name}/${encodeURIComponent(
-            searchText
-          )}`
-        ),
+      searchConcepts: async (domain: SnapshotBuilderConcept, searchText?: string): Promise<GetConceptsResponse> => {
+        // searchText is an optional query parameter and if its not present, we want to just search based off domain
+        let url = `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${domain.name}/search`;
+        // if searchText exist, we want to include it into the url
+        if (searchText !== undefined) {
+          // If searchText is provided, append it to the URL
+          url += `?searchText=${encodeURIComponent(searchText)}`;
+        }
+        return callDataRepo(url);
+      },
       queryDatasetColumnStatisticsById: (programDataOption) =>
         handleProgramDataOptions(datasetId, programDataOption, signal),
     };
