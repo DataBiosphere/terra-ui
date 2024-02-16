@@ -74,7 +74,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
     if (openedConcept) {
       void loadHierarchyConcepts(() => DataRepo().dataset(datasetId).getConceptsHierarchy(openedConcept));
     } else {
-      // get me the children of this concept id
+      // get the children of this concept
       void loadRootConcepts(() => DataRepo().dataset(datasetId).getConcepts(state.domainOption.root));
     }
   });
