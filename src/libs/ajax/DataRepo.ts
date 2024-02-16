@@ -230,9 +230,9 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
       searchConcepts: async (domain: SnapshotBuilderConcept, searchText?: string): Promise<GetConceptsResponse> => {
-        // searchText is an optional query parameter and if its not present, we want to just search based off domain
+        // searchText is an optional query parameter and if it's not present, we want to just search based off domain
         let url = `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${domain.name}/search`;
-        // if searchText exist, we want to include it into the url
+        // if searchText exist, include in the url
         if (searchText !== undefined) {
           // If searchText is provided, append it to the URL
           url += `?searchText=${encodeURIComponent(searchText)}`;
