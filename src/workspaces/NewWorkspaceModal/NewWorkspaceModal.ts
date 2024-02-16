@@ -549,7 +549,7 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
-                    !!namespace &&
+                    !!selectedBillingProject &&
                       !!cloneWorkspace &&
                       h(CloneEgressWarning, {
                         sourceWorkspace: cloneWorkspace,
