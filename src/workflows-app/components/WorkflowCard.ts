@@ -23,6 +23,13 @@ export type MethodVersion = {
   url: string;
   method_version_id?: string;
 };
+export type SourceDetails = {
+  private: boolean;
+  repository: string;
+  organization: string;
+  path: string;
+  method_id: string;
+};
 
 /** Represents a workflow method from CBAS */
 export type WorkflowMethod = {
@@ -32,6 +39,7 @@ export type WorkflowMethod = {
   description?: string;
   source: WorkflowSource;
   method_versions: MethodVersion[];
+  source_details: SourceDetails[];
 };
 
 /** Represents a set of workflows grouped together */
