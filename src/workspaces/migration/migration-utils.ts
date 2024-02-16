@@ -115,6 +115,7 @@ export const parseServerResponse = (
         namespace,
         name,
         migrationStep: status.migrationStep ?? 'Unscheduled',
+        // eslint-disable-next-line no-nested-ternary
         outcome: status.outcome === 'success' ? 'success' : _.isObject(status.outcome) ? 'failure' : undefined,
         failureReason: getFailureMessage(),
         tempBucketTransferProgress: status.tempBucketTransferProgress,

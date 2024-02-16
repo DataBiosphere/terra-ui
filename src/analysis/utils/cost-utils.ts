@@ -118,6 +118,7 @@ export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
   if (!config) return 0;
   const computeRegion = config.normalizedRegion;
 
+  // eslint-disable-next-line no-nested-ternary
   const machineType: string = isGceRuntimeConfig(config)
     ? config.machineType
     : isDataprocConfig(config)

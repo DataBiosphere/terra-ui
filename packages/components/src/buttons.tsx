@@ -30,10 +30,12 @@ export const ButtonPrimary = (props: ButtonPrimaryProps): ReactNode => {
       disabled={disabled}
       style={{
         ...buttonStyle,
+        // eslint-disable-next-line no-nested-ternary
         border: `1px solid ${disabled ? colors.dark(0.4) : danger ? colors.danger(1.2) : colors.accent(1.2)}`,
         borderRadius: 5,
         color: 'white',
         padding: '0.875rem',
+        // eslint-disable-next-line no-nested-ternary
         backgroundColor: disabled ? colors.dark(0.25) : danger ? colors.danger() : colors.accent(),
         cursor: disabled ? 'not-allowed' : 'pointer',
         ...style,

@@ -171,6 +171,7 @@ const AnalysisCard = ({
   // if there is a currentUserHash & lastLockedBy, they are not equal, and the lock isn't expired
   const isLocked: boolean =
     currentUserHash && lastLockedBy ? lastLockedBy !== currentUserHash && !isLockExpired : false;
+  // eslint-disable-next-line no-nested-ternary
   const lockedBy = lastLockedBy ? (potentialLockers ? potentialLockers[lastLockedBy] : null) : null;
 
   const analysisName: FileName = getFileName(name);

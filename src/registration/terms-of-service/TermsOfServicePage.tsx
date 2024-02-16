@@ -65,6 +65,7 @@ export const TermsOfServicePage = () => {
     </div>
   );
 
+  // eslint-disable-next-line no-nested-ternary
   const buttons = showButtons
     ? requiredToAcceptTermsOfService
       ? acceptTosButtons

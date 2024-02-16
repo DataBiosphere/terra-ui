@@ -19,6 +19,7 @@ export const NameModal = ({ onSuccess, onDismiss, thing, value, validator = null
       setError(validationMessage);
     } else if (_.isFunction(validator)) {
       const msg = validator(name);
+      // eslint-disable-next-line no-nested-ternary
       setError(msg === false ? null : _.isString(msg) ? msg : validationMessage);
     } else {
       setError(null);

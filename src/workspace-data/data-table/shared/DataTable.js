@@ -647,6 +647,7 @@ const DataTable = (props) => {
                           });
                       if (!!dataInfo && _.isArray(dataInfo.items)) {
                         const isPlural = dataInfo.items.length !== 1;
+                        // eslint-disable-next-line no-nested-ternary
                         const label = dataInfo?.itemsType === 'EntityReference' ? (isPlural ? 'entities' : 'entity') : isPlural ? 'items' : 'item';
                         const itemsLink = h(
                           Link,
@@ -677,6 +678,7 @@ const DataTable = (props) => {
                 initialX,
                 initialY,
                 sort,
+                // eslint-disable-next-line no-nested-ternary
                 numFixedColumns: visibleColumns.length > 0 ? (dataProvider.features.supportsRowSelection ? 2 : 1) : 0,
                 columns: defaultColumns,
                 styleCell: ({ rowIndex }) => {
