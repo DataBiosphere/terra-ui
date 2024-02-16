@@ -4,7 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: [ dev ]
-
+env:
+  PUBLISH_CONTRACTS_RUN_NAME: 'publish-contracts-${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt }}'
+  CAN_I_DEPLOY_RUN_NAME: 'can-i-deploy-${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt }}'
 jobs:
   setup-and-test:
     runs-on: ubuntu-latest
@@ -40,6 +42,15 @@ jobs:
       contents: 'read'
       id-token: 'write'
     steps:
+      - name: Bump the tag to a new version
+        uses: databiosphere/github-actions/actions/bumper@bumper-0.3.0
+        id: tag
+        env:
+          DEFAULT_BUMP: patch
+          GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+          RELEASE_BRANCHES: dev
+          WITH_V: true
+          DRY_RUN: true
       - name: Publish Pact contracts
         uses: broadinstitute/workflow-dispatch@v4.0.0
         with:
