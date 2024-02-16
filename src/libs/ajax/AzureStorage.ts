@@ -44,6 +44,10 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     return tokenResponse.json();
   },
 
+  /**
+   * Note that this method will throw an error if there is no shared access storage container available
+   * (which is an expected transient state while a workspace is being cloned).
+   */
   containerInfo: async (workspaceId: string): Promise<StorageContainerInfo> => {
     const data = await Ajax(signal).WorkspaceManagerResources.controlledResources(workspaceId);
     const container = _.find(
