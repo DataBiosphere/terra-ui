@@ -375,7 +375,7 @@ const isNowSignedIn = (oldState: AuthState, state: AuthState) => {
   return oldState.signInStatus !== 'authenticated' && state.signInStatus === 'authenticated';
 };
 
-export const isUserInitialized = (state: AuthState) => {
+export const isUserInitialized = (state: AuthState): boolean => {
   return state.signInStatus !== 'uninitialized';
 };
 
