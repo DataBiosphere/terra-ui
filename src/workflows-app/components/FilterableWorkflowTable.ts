@@ -438,8 +438,14 @@ const FilterableWorkflowTable = ({
                         field: 'taskData',
                         headerRenderer: () => 'Workflow Data',
                         cellRenderer: ({ rowIndex }) => {
+                          const style = {
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr 1fr',
+                            gridColumnGap: '0.6em',
+                            gridRowGap: '0.3em',
+                          };
                           if (paginatedPreviousRuns[rowIndex].engine_id) {
-                            return h(TextCell, [
+                            const links = [
                               h(
                                 Link,
                                 {
@@ -458,7 +464,7 @@ const FilterableWorkflowTable = ({
                                     }
                                   },
                                 },
-                                ['Logs\t']
+                                ['Logs']
                               ),
                               h(
                                 Link,
@@ -472,7 +478,7 @@ const FilterableWorkflowTable = ({
                                     }
                                   },
                                 },
-                                ['Inputs\t']
+                                ['Inputs']
                               ),
                               h(
                                 Link,
@@ -488,7 +494,8 @@ const FilterableWorkflowTable = ({
                                 },
                                 ['Outputs']
                               ),
-                            ]);
+                            ];
+                            return div({ style }, [links]);
                           }
                           return div(['Error: Workflow ID not found']);
                         },
