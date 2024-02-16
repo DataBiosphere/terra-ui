@@ -79,6 +79,7 @@ export interface AnalysisModalProps {
   apps: App[] | undefined;
   appDataDisks: AppDataDisk[] | undefined;
   persistentDisks: PersistentDisk[] | undefined;
+  isLoadingCloudEnvironments: boolean;
   onDismiss: () => void;
   onError: () => void;
   onSuccess: () => void;
@@ -94,6 +95,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     onError,
     onSuccess,
     runtimes,
+    isLoadingCloudEnvironments,
     apps,
     appDataDisks,
     persistentDisks,
@@ -110,18 +112,17 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const prevAnalysisName = usePrevious(analysisName);
     const [currentToolObj, setCurrentToolObj] = useState<Tool>();
     const [fileExt, setFileExt] = useState('');
-    const currentTool: ToolLabel | undefined = currentToolObj?.label;
 
+    const { loadedState, createAnalysis, pendingCreate } = analysisFileStore;
+    const loading =
+      isLoadingCloudEnvironments || loadedState.status === 'Loading' || pendingCreate.status === 'Loading';
+
+    const currentTool: ToolLabel | undefined = currentToolObj?.label;
     const currentRuntime: Runtime | undefined = getCurrentRuntime(runtimes);
     const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks);
     const currentRuntimeToolLabel = currentRuntime && getToolLabelFromCloudEnv(currentRuntime);
     const currentApp = (toolLabel: AppToolLabel): App | undefined => getCurrentApp(toolLabel, apps);
 
-    // TODO: Bring in as props from Analyses OR bring entire AnalysisFileStore from props.
-    const { loadedState, createAnalysis, pendingCreate } = analysisFileStore;
-    // TODO: When the above is done, this check below may not be necessary.
-    const analyses = loadedState.status !== 'None' ? loadedState.state : null;
-    const status = loadedState.status;
     const resetView = () => {
       setViewMode(undefined);
       setAnalysisName('');
@@ -217,6 +218,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         tool: currentTool,
         currentRuntime,
         currentDisk,
+        isLoadingCloudEnvironments,
         onDismiss,
         onError,
         onSuccess,
@@ -229,6 +231,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         tool: currentTool,
         currentRuntime,
         currentDisk: persistentDisks ? persistentDisks[0] : undefined,
+        isLoadingCloudEnvironments,
         onDismiss,
         onSuccess,
       });
@@ -294,6 +297,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             Clickable,
             {
               style: styles.toolCard,
+              disabled: loading,
+              tooltip: loading ? 'Loading' : runtimeTool.label,
               onClick: () => {
                 setCurrentToolObj(runtimeTool);
                 setFileExt(runtimeTool.defaultExt);
@@ -322,8 +327,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                 enterNextViewMode(appTool.label);
               },
               hover: !currentApp ? styles.hover : undefined,
-              disabled: !!currentApp,
-              tooltip: currentApp ? appDisabledMessages[appTool.label] : '',
+              disabled: !!currentApp || loading,
+              tooltip: (currentApp && appDisabledMessages[appTool.label]) || (loading && 'Loading') || '',
               key: appTool.label,
             },
             [toolImages[appTool.label]]
@@ -352,6 +357,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
               accept: `.${runtimeTools.Jupyter.ext.join(', .')}, .${runtimeTools.RStudio.ext.join(', .')}`,
               style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
               activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
+              disabled: loading,
               onDropRejected: () =>
                 reportError(
                   'Not a valid analysis file',
@@ -441,7 +447,9 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       const errors = validate(
         { analysisName: `${analysisName}.${fileExt}`, notebookKernel },
         {
-          analysisName: analysisNameValidator(_.map(({ name }) => getFileName(name), analyses)),
+          analysisName: analysisNameValidator(
+            _.map(({ name }) => getFileName(name), loadedState.status === 'None' ? [] : loadedState.state)
+          ),
           notebookKernel: { presence: { allowEmpty: true } },
         }
       );
@@ -504,9 +512,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           h(
             ButtonPrimary,
             {
-              // TODO: See spinner overlay comment. Change to pendingCreate.status === 'Loading' || errors.
-              disabled: status === 'Loading' || pendingCreate.status === 'Loading' || errors,
-              tooltip: Utils.summarizeErrors(errors),
+              disabled: loading || errors,
+              tooltip: (!!errors && Utils.summarizeErrors(errors)) || (loading && 'Loading') || '',
               onClick: async () => {
                 try {
                   const contents = Utils.cond(
@@ -531,10 +538,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             ['Create Analysis']
           ),
         ]),
-        // TODO: Once Analyses.js is converted to implement useAnalysisFiles and refresh is called within create,
-        // change next line to pendingCreate.status === 'Loading' && spinnerOverlay
-        // Currently this will be close enough to the desired functionality.
-        (status === 'Loading' || pendingCreate.status === 'Loading') && spinnerOverlay,
+        loading && spinnerOverlay,
       ]);
     };
 
