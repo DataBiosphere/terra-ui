@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       pact-b64: ${{ steps.encode.outputs.pact-b64 }}
+      new-tag: ${{ steps.tag.outputs.new_tag }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Node
