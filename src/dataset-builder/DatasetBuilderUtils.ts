@@ -20,6 +20,8 @@ export interface Criteria {
  * They are generally subsets or mappings of the UI types. */
 
 export interface CriteriaApi {
+  // This is the ID for either the domain or the program data option
+  id: number;
   kind: 'domain' | 'range' | 'list';
   name: string;
   count?: number;
@@ -27,16 +29,18 @@ export interface CriteriaApi {
 
 export interface DomainCriteriaApi extends CriteriaApi {
   kind: 'domain';
-  id: number;
+  // This is the id for the selected concept
+  conceptId: number;
 }
 
 export interface ProgramDataOption {
   kind: 'range' | 'list';
+  id: number;
+  name: string;
 }
 
 export interface ProgramDataRangeOption extends ProgramDataOption {
   kind: 'range';
-  name: string;
   min: number;
   max: number;
 }
@@ -85,6 +89,7 @@ export type DatasetAccessRequestApi = {
 /** Below are the UI types */
 
 export interface DomainCriteria extends DomainCriteriaApi, Criteria {
+  conceptId: number;
   domainOption: DomainOption;
 }
 
@@ -99,7 +104,6 @@ export interface ProgramDataListValue {
 
 export interface ProgramDataListOption extends ProgramDataOption {
   kind: 'list';
-  name: string;
   values: ProgramDataListValue[];
 }
 
@@ -119,7 +123,6 @@ export interface CriteriaGroup {
   criteria: LoadingAnyCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
-  count: number;
 }
 
 export interface Cohort extends DatasetBuilderType {
@@ -187,7 +190,7 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
 };
 
 export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
-  const mergeObject = { kind: criteria.kind, name: criteria.name };
+  const mergeObject = { kind: criteria.kind, id: criteria.id, name: criteria.name };
   switch (criteria.kind) {
     case 'range':
       return _.merge(mergeObject, { low: criteria.low, high: criteria.high }) as ProgramDataRangeCriteriaApi;
@@ -196,7 +199,7 @@ export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
         values: _.map((value) => value.id, criteria.values),
       }) as ProgramDataListCriteriaApi;
     case 'domain':
-      return _.merge(mergeObject, { id: criteria.id }) as DomainCriteriaApi;
+      return _.merge(mergeObject, { conceptId: criteria.conceptId }) as DomainCriteriaApi;
     default:
       throw new Error('Criteria not of type range, list, or domain.');
   }
@@ -218,9 +221,6 @@ export type DatasetParticipantCountRequest = {
   cohorts: Cohort[];
 };
 
-export type DatasetParticipantCountRequestApi = {
-  cohorts: CohortApi[];
-};
 export type DatasetParticipantCountResponse = {
   result: {
     total: number;
@@ -234,6 +234,7 @@ export const convertDatasetParticipantCountRequest = (request: DatasetParticipan
 export const convertProgramDataOptionToListOption = (
   programDataOption: SnapshotBuilderProgramDataOption
 ): ProgramDataListOption => ({
+  id: programDataOption.id,
   name: programDataOption.name,
   kind: 'list',
   values: _.map(
@@ -257,6 +258,7 @@ export const convertProgramDataOptionToRangeOption = (
     case 'numeric':
       return {
         name: programDataOption.name,
+        id: programDataOption.id,
         kind: 'range',
         min: statistics.minValue,
         max: statistics.maxValue,

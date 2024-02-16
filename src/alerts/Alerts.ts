@@ -1,10 +1,9 @@
-import { IconId } from '@terra-ui-packages/components';
+import { IconId, PopupTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, li, p, span, ul } from 'react-hyperscript-helpers';
 import { Clickable, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import PopupTrigger from 'src/components/PopupTrigger';
 import colors from 'src/libs/colors';
 import { useLinkExpirationAlerts } from 'src/libs/link-expiration-alerts';
 import { usePrevious } from 'src/libs/react-utils';

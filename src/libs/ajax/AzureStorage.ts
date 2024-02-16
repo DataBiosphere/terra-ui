@@ -104,7 +104,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
   },
 
   listNotebooks: async (workspaceId: string): Promise<AnalysisFile[]> => {
-    const notebooks = await AzureStorage(signal).listFiles(workspaceId, '.ipynb');
+    const notebooks = await AzureStorage(signal).listFiles(workspaceId, '', '.ipynb');
     return _.map(
       (notebook) => ({
         lastModified: new Date(notebook.lastModified).getTime(),

@@ -1,4 +1,4 @@
-import { NavLinkProvider } from '@terra-ui-packages/core-utils';
+import { formatDatetime, NavLinkProvider } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, getAllByRole, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
@@ -20,7 +20,6 @@ import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
-import { makeCompleteDate } from 'src/libs/utils';
 import { leoResourcePermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -153,8 +152,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstRuntimeRow, 3)).toBe(runtime1.labels.tool);
       expect(getTextContentForColumn(firstRuntimeRow, 5)).toBe(runtime1.status);
       expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe(_.toLower(runtime1.runtimeConfig.normalizedRegion));
-      expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(makeCompleteDate(runtime1.auditInfo.createdDate));
-      expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(makeCompleteDate(runtime1.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(formatDatetime(runtime1.auditInfo.createdDate));
+      expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(formatDatetime(runtime1.auditInfo.dateAccessed));
     });
 
     it('Renders page correctly with multiple runtimes and workspaces', async () => {
@@ -183,8 +182,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstRuntimeRow, 3)).toBe(_.capitalize(runtime2.labels.tool));
       expect(getTextContentForColumn(firstRuntimeRow, 5)).toBe(runtime2.status);
       expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe((runtime2.runtimeConfig as AzureConfig).region);
-      expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(makeCompleteDate(runtime2.auditInfo.createdDate));
-      expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(makeCompleteDate(runtime2.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(formatDatetime(runtime2.auditInfo.createdDate));
+      expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(formatDatetime(runtime2.auditInfo.dateAccessed));
 
       expect(getTextContentForColumn(tableRows[2], 0)).toBe(`${runtime1.labels.saturnWorkspaceNamespace}`);
       expect(getTextContentForColumn(tableRows[2], 1)).toBe(`${runtime1.labels.saturnWorkspaceName}`);
@@ -192,8 +191,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(tableRows[2], 3)).toBe(runtime1.labels.tool);
       expect(getTextContentForColumn(tableRows[2], 5)).toBe(runtime1.status);
       expect(getTextContentForColumn(tableRows[2], 6)).toBe(_.toLower(runtime1.runtimeConfig.normalizedRegion));
-      expect(getTextContentForColumn(tableRows[2], 7)).toBe(makeCompleteDate(runtime1.auditInfo.createdDate));
-      expect(getTextContentForColumn(tableRows[2], 8)).toBe(makeCompleteDate(runtime1.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(tableRows[2], 7)).toBe(formatDatetime(runtime1.auditInfo.createdDate));
+      expect(getTextContentForColumn(tableRows[2], 8)).toBe(formatDatetime(runtime1.auditInfo.dateAccessed));
     });
 
     it('Renders page correctly for a Dataproc Runtime', async () => {
@@ -223,10 +222,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstRuntimeRow, 5)).toBe(dataprocRuntime.status);
       // @ts-expect-error ignore this ts error here, we know what type of runtime config it is since it is test data (therefore, we know zone exists)
       expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe(dataprocRuntime.runtimeConfig.region);
-      expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(makeCompleteDate(dataprocRuntime.auditInfo.createdDate));
-      expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(
-        makeCompleteDate(dataprocRuntime.auditInfo.dateAccessed)
-      );
+      expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(formatDatetime(dataprocRuntime.auditInfo.createdDate));
+      expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(formatDatetime(dataprocRuntime.auditInfo.dateAccessed));
     });
 
     it('Renders buttons for runtimes properly', async () => {
@@ -461,8 +458,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstAppRow, 3)).toBe(_.capitalize(galaxyApp.appType));
       expect(getTextContentForColumn(firstAppRow, 5)).toBe(_.capitalize(galaxyApp.status));
       expect(getTextContentForColumn(firstAppRow, 6)).toBe(galaxyApp.region);
-      expect(getTextContentForColumn(firstAppRow, 7)).toBe(makeCompleteDate(galaxyApp.auditInfo.createdDate));
-      expect(getTextContentForColumn(firstAppRow, 8)).toBe(makeCompleteDate(galaxyApp.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(firstAppRow, 7)).toBe(formatDatetime(galaxyApp.auditInfo.createdDate));
+      expect(getTextContentForColumn(firstAppRow, 8)).toBe(formatDatetime(galaxyApp.auditInfo.dateAccessed));
     });
 
     it('Renders page correctly with multiple apps and workspaces', async () => {
@@ -496,8 +493,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstAppRow, 3)).toBe(_.capitalize(googleApp1.appType));
       expect(getTextContentForColumn(firstAppRow, 5)).toBe(_.capitalize(googleApp1.status));
       expect(getTextContentForColumn(firstAppRow, 6)).toBe(googleApp1.region);
-      expect(getTextContentForColumn(firstAppRow, 7)).toBe(makeCompleteDate(googleApp1.auditInfo.createdDate));
-      expect(getTextContentForColumn(firstAppRow, 8)).toBe(makeCompleteDate(googleApp1.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(firstAppRow, 7)).toBe(formatDatetime(googleApp1.auditInfo.createdDate));
+      expect(getTextContentForColumn(firstAppRow, 8)).toBe(formatDatetime(googleApp1.auditInfo.dateAccessed));
 
       const secondAppRow: HTMLElement = tableRows[1];
       expect(getTextContentForColumn(secondAppRow, 0)).toBe(googleApp2.labels.saturnWorkspaceNamespace);
@@ -506,8 +503,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(secondAppRow, 3)).toBe(_.capitalize(googleApp2.appType));
       expect(getTextContentForColumn(secondAppRow, 5)).toBe(_.capitalize(googleApp2.status));
       expect(getTextContentForColumn(secondAppRow, 6)).toBe(googleApp2.region);
-      expect(getTextContentForColumn(secondAppRow, 7)).toBe(makeCompleteDate(googleApp2.auditInfo.createdDate));
-      expect(getTextContentForColumn(secondAppRow, 8)).toBe(makeCompleteDate(googleApp1.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(secondAppRow, 7)).toBe(formatDatetime(googleApp2.auditInfo.createdDate));
+      expect(getTextContentForColumn(secondAppRow, 8)).toBe(formatDatetime(googleApp1.auditInfo.dateAccessed));
 
       const thirdAppRow: HTMLElement = tableRows[2];
       expect(getTextContentForColumn(thirdAppRow, 0)).toBe(azureApp1.labels.saturnWorkspaceNamespace);
@@ -516,8 +513,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(thirdAppRow, 3)).toBe(_.capitalize(azureApp1.appType));
       expect(getTextContentForColumn(thirdAppRow, 5)).toBe(_.capitalize(azureApp1.status));
       expect(getTextContentForColumn(thirdAppRow, 6)).toBe(azureApp1.region);
-      expect(getTextContentForColumn(thirdAppRow, 7)).toBe(makeCompleteDate(azureApp1.auditInfo.createdDate));
-      expect(getTextContentForColumn(thirdAppRow, 8)).toBe(makeCompleteDate(azureApp1.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(thirdAppRow, 7)).toBe(formatDatetime(azureApp1.auditInfo.createdDate));
+      expect(getTextContentForColumn(thirdAppRow, 8)).toBe(formatDatetime(azureApp1.auditInfo.dateAccessed));
 
       const fourthAppRow: HTMLElement = tableRows[3];
       expect(getTextContentForColumn(fourthAppRow, 0)).toBe(azureApp2.labels.saturnWorkspaceNamespace);
@@ -526,8 +523,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(fourthAppRow, 3)).toBe(_.capitalize(azureApp2.appType));
       expect(getTextContentForColumn(fourthAppRow, 5)).toBe(_.capitalize(azureApp2.status));
       expect(getTextContentForColumn(fourthAppRow, 6)).toBe(azureApp2.region);
-      expect(getTextContentForColumn(fourthAppRow, 7)).toBe(makeCompleteDate(azureApp2.auditInfo.createdDate));
-      expect(getTextContentForColumn(fourthAppRow, 8)).toBe(makeCompleteDate(azureApp2.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(fourthAppRow, 7)).toBe(formatDatetime(azureApp2.auditInfo.createdDate));
+      expect(getTextContentForColumn(fourthAppRow, 8)).toBe(formatDatetime(azureApp2.auditInfo.dateAccessed));
     });
 
     it('Renders Cromwell apps with disabled delete', async () => {
@@ -673,8 +670,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstDiskRow, 3)).toBe(`${disk.size}`);
       expect(getTextContentForColumn(firstDiskRow, 4)).toBe(disk.status);
       expect(getTextContentForColumn(firstDiskRow, 5)).toBe(disk.zone);
-      expect(getTextContentForColumn(firstDiskRow, 6)).toBe(makeCompleteDate(disk.auditInfo.createdDate));
-      expect(getTextContentForColumn(firstDiskRow, 7)).toBe(makeCompleteDate(disk.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(firstDiskRow, 6)).toBe(formatDatetime(disk.auditInfo.createdDate));
+      expect(getTextContentForColumn(firstDiskRow, 7)).toBe(formatDatetime(disk.auditInfo.dateAccessed));
     });
 
     it('Renders page correctly with multiple workspaces/disks', async () => {
@@ -710,8 +707,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstDiskRow, 3)).toBe(`${googleDisk1.size}`);
       expect(getTextContentForColumn(firstDiskRow, 4)).toBe(googleDisk1.status);
       expect(getTextContentForColumn(firstDiskRow, 5)).toBe(googleDisk1.zone);
-      expect(getTextContentForColumn(firstDiskRow, 6)).toBe(makeCompleteDate(googleDisk1.auditInfo.createdDate));
-      expect(getTextContentForColumn(firstDiskRow, 7)).toBe(makeCompleteDate(googleDisk1.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(firstDiskRow, 6)).toBe(formatDatetime(googleDisk1.auditInfo.createdDate));
+      expect(getTextContentForColumn(firstDiskRow, 7)).toBe(formatDatetime(googleDisk1.auditInfo.dateAccessed));
 
       const secondDiskRow: HTMLElement = tableRows[4];
       expect(getTextContentForColumn(secondDiskRow, 0)).toBe(googleDisk2.labels.saturnWorkspaceNamespace);
@@ -719,8 +716,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(secondDiskRow, 3)).toBe(`${googleDisk2.size}`);
       expect(getTextContentForColumn(secondDiskRow, 4)).toBe(googleDisk2.status);
       expect(getTextContentForColumn(secondDiskRow, 5)).toBe(googleDisk2.zone);
-      expect(getTextContentForColumn(secondDiskRow, 6)).toBe(makeCompleteDate(googleDisk2.auditInfo.createdDate));
-      expect(getTextContentForColumn(secondDiskRow, 7)).toBe(makeCompleteDate(googleDisk2.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(secondDiskRow, 6)).toBe(formatDatetime(googleDisk2.auditInfo.createdDate));
+      expect(getTextContentForColumn(secondDiskRow, 7)).toBe(formatDatetime(googleDisk2.auditInfo.dateAccessed));
 
       const thirdDiskRow: HTMLElement = tableRows[5];
       expect(getTextContentForColumn(thirdDiskRow, 0)).toBe(azureDisk1.labels.saturnWorkspaceNamespace);
@@ -728,8 +725,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(thirdDiskRow, 3)).toBe(`${azureDisk1.size}`);
       expect(getTextContentForColumn(thirdDiskRow, 4)).toBe(azureDisk1.status);
       expect(getTextContentForColumn(thirdDiskRow, 5)).toBe(azureDisk1.zone);
-      expect(getTextContentForColumn(thirdDiskRow, 6)).toBe(makeCompleteDate(azureDisk1.auditInfo.createdDate));
-      expect(getTextContentForColumn(thirdDiskRow, 7)).toBe(makeCompleteDate(azureDisk1.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(thirdDiskRow, 6)).toBe(formatDatetime(azureDisk1.auditInfo.createdDate));
+      expect(getTextContentForColumn(thirdDiskRow, 7)).toBe(formatDatetime(azureDisk1.auditInfo.dateAccessed));
 
       const fourthDiskRow: HTMLElement = tableRows[6];
       expect(getTextContentForColumn(fourthDiskRow, 0)).toBe(azureDisk2.labels.saturnWorkspaceNamespace);
@@ -737,8 +734,8 @@ describe('Environments', () => {
       expect(getTextContentForColumn(fourthDiskRow, 3)).toBe(`${azureDisk2.size}`);
       expect(getTextContentForColumn(fourthDiskRow, 4)).toBe(azureDisk2.status);
       expect(getTextContentForColumn(fourthDiskRow, 5)).toBe(azureDisk2.zone);
-      expect(getTextContentForColumn(fourthDiskRow, 6)).toBe(makeCompleteDate(azureDisk2.auditInfo.createdDate));
-      expect(getTextContentForColumn(fourthDiskRow, 7)).toBe(makeCompleteDate(azureDisk2.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(fourthDiskRow, 6)).toBe(formatDatetime(azureDisk2.auditInfo.createdDate));
+      expect(getTextContentForColumn(fourthDiskRow, 7)).toBe(formatDatetime(azureDisk2.auditInfo.dateAccessed));
     });
 
     it.each([

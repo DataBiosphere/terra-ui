@@ -1,5 +1,6 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import Slider from 'src/components/common/Slider';
@@ -10,6 +11,7 @@ import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
+  DatasetParticipantCountResponse,
   LoadingAnyCriteria,
   ProgramDataListCriteria,
   ProgramDataListValue,
@@ -21,6 +23,7 @@ import {
   SnapshotBuilderDomainOption as DomainOption,
   SnapshotBuilderProgramDataOption,
 } from 'src/libs/ajax/DataRepo';
+import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 
@@ -37,15 +40,31 @@ const narrowMargin = 5;
 const wideMargin = 10;
 
 type CriteriaViewProps = {
-  criteria: AnyCriteria;
-  deleteCriteria: (criteria: AnyCriteria) => void;
-  updateCriteria: (criteria: AnyCriteria) => void;
+  readonly datasetId: string;
+  readonly criteria: AnyCriteria;
+  readonly deleteCriteria: (criteria: AnyCriteria) => void;
+  readonly updateCriteria: (criteria: AnyCriteria) => void;
 };
 
 const addCriteriaText = 'Add criteria';
 
-export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: CriteriaViewProps) =>
-  div(
+export const CriteriaView = (props: CriteriaViewProps) => {
+  const { datasetId, criteria, deleteCriteria, updateCriteria } = props;
+
+  const [criteriaCount, setCriteriaCount] = useLoadedData<DatasetParticipantCountResponse>();
+
+  useEffect(() => {
+    setCriteriaCount(async () =>
+      DataRepo()
+        .dataset(datasetId)
+        .getCounts({
+          // Create a "cohort" to get the count of participants for this criteria on its own.
+          cohorts: [{ criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }], name: '' }],
+        })
+    );
+  }, [criteria, datasetId, setCriteriaCount]);
+
+  return div(
     {
       style: {
         ...flexWithBaseline,
@@ -148,9 +167,10 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
           })(),
         ]),
       ]),
-      `Count: ${criteria.count}`,
+      div(['Count: ', criteriaCount.status === 'Ready' ? criteriaCount.state.result.total : h(Spinner)]),
     ]
   );
+};
 
 const addKindToDomainOption = (domainOption: DomainOption): DomainOptionWithKind => ({
   ...domainOption,
@@ -180,6 +200,7 @@ export async function criteriaFromOption(
       const rangeOption = generatedOptions;
       return {
         kind: 'range',
+        id: rangeOption.id,
         rangeOption,
         name: rangeOption.name,
         index,
@@ -191,6 +212,7 @@ export async function criteriaFromOption(
       const listOption = generatedOptions;
       return {
         kind: 'list',
+        id: listOption.id,
         listOption,
         name: option.name,
         index,
@@ -313,6 +335,16 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
     );
   };
 
+  const [groupParticipantCount, setGroupParticipantCount] = useLoadedData<DatasetParticipantCountResponse>();
+
+  useEffect(() => {
+    setGroupParticipantCount(async () =>
+      DataRepo()
+        .dataset(dataset.id)
+        .getCounts({ cohorts: [{ criteriaGroups: [criteriaGroup], name: '' }] })
+    );
+  }, [criteriaGroup, dataset.id, setGroupParticipantCount]);
+
   return div(
     {
       style: {
@@ -373,6 +405,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
                       icon('loadingSpinner', { size: 24 }),
                     ])
                   : h(CriteriaView, {
+                      datasetId: dataset.id,
                       deleteCriteria,
                       updateCriteria,
                       criteria,
@@ -408,7 +441,12 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
             fontWeight: 'bold',
           },
         },
-        [div({ style: { marginRight: wideMargin } }, [`Group count: ${criteriaGroup.count}`])]
+        [
+          div({ style: { marginRight: wideMargin } }, [
+            'Group count: ',
+            groupParticipantCount.status === 'Ready' ? groupParticipantCount.state.result.total : h(Spinner),
+          ]),
+        ]
       ),
     ]
   );

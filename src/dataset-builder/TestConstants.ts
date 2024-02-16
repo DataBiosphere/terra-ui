@@ -10,20 +10,29 @@ export const dummyDatasetModel = (): DatasetModel => ({
   properties: {},
   snapshotBuilderSettings: {
     programDataOptions: [
-      { name: 'Year of birth', kind: 'range', tableName: 'person', columnName: 'year_of_birth' },
       {
+        id: 0,
+        name: 'Year of birth',
+        kind: 'range',
+        tableName: 'person',
+        columnName: 'year_of_birth',
+      },
+      {
+        id: 1,
         name: 'Ethnicity',
         kind: 'list',
         tableName: 'person',
         columnName: 'ethnicity',
       },
       {
+        id: 2,
         name: 'Gender identity',
         kind: 'list',
         tableName: 'person',
         columnName: 'gender_identity',
       },
       {
+        id: 3,
         name: 'Race',
         kind: 'list',
         tableName: 'person',
