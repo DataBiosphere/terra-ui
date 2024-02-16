@@ -45,6 +45,7 @@ export interface AzureBillingProject extends BaseBillingProject {
   managedAppCoordinates: AzureManagedAppCoordinates;
   landingZoneId: string;
   protectedData: boolean;
+  region?: string; // will exist after backfill
 }
 
 export interface GCPBillingProject extends BaseBillingProject {

@@ -27,9 +27,11 @@ import {
   isSupportedBucketLocation,
 } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
+import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
+import { getRegionLabel } from 'src/libs/azure-utils';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { reportErrorAndRethrow, withErrorReportingInModal } from 'src/libs/error';
@@ -132,7 +134,8 @@ const NewWorkspaceModal = withDisplayName(
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState<string>();
     const [bucketLocation, setBucketLocation] = useState(defaultLocation);
-    const [sourceWorkspaceLocation, setSourceWorkspaceLocation] = useState(defaultLocation);
+    const [sourceAzureWorkspaceRegion, setSourceAzureWorkspaceRegion] = useState<string>('');
+    const [sourceGCPWorkspaceRegion, setSourceGcpWorkspaceRegion] = useState(defaultLocation);
     const [requesterPaysError, setRequesterPaysError] = useState(false);
     const [isAlphaRegionalityUser, setIsAlphaRegionalityUser] = useState(false);
     const signal = useCancellation();
@@ -170,7 +173,7 @@ const NewWorkspaceModal = withDisplayName(
                 .Workspaces.workspace(cloneWorkspace!.workspace.namespace, cloneWorkspace!.workspace.name)
                 .clone(body);
               const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces();
-              Ajax().Metrics.captureEvent(Events.workspaceClone, {
+              const metricsData = {
                 featured: _.some(
                   { namespace: cloneWorkspace!.workspace.namespace, name: cloneWorkspace!.workspace.name },
                   featuredList
@@ -179,19 +182,27 @@ const NewWorkspaceModal = withDisplayName(
                   // Clone response does not include cloudPlatform, cross-cloud cloning is not supported.
                   workspace: _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() }),
                 }),
-              });
+                fromWorkspaceRegion: isAzureWorkspace(cloneWorkspace)
+                  ? sourceAzureWorkspaceRegion
+                  : sourceGCPWorkspaceRegion,
+                toWorkspaceRegion: isAzureBillingProject(selectedBillingProject)
+                  ? selectedBillingProject.region
+                  : bucketLocation,
+              };
+              Ajax().Metrics.captureEvent(Events.workspaceClone, metricsData);
               return workspace;
             },
           ],
           async () => {
             const workspace = await Ajax().Workspaces.create(body);
-            Ajax().Metrics.captureEvent(
-              Events.workspaceCreate,
-              extractWorkspaceDetails(
+            const metricsData = {
+              ...extractWorkspaceDetails(
                 // Create response does not include cloudPlatform.
                 _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() })
-              )
-            );
+              ),
+              region: isAzureBillingProject(selectedBillingProject) ? selectedBillingProject.region : bucketLocation,
+            };
+            Ajax().Metrics.captureEvent(Events.workspaceCreate, metricsData);
             return workspace;
           }
         );
@@ -298,7 +309,7 @@ const NewWorkspaceModal = withDisplayName(
             .then(({ location }) => {
               // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
               setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation);
-              setSourceWorkspaceLocation(location);
+              setSourceGcpWorkspaceRegion(location);
             })
             .catch((error) => {
               if (isBucketErrorRequesterPays(error)) {
@@ -307,11 +318,44 @@ const NewWorkspaceModal = withDisplayName(
                 throw error;
               }
             }),
+        !!cloneWorkspace &&
+          isAzureWorkspace(cloneWorkspace) &&
+          AzureStorage(signal)
+            .containerInfo(cloneWorkspace.workspace.workspaceId)
+            .then(({ region }) => {
+              setSourceAzureWorkspaceRegion(region);
+            })
+            .catch((error) => {
+              // We don't want to block the user from cloning a workspace if we can't get the region.
+              // There is a known transitory state when workspaces are being cloned during which we cannot
+              // get the storage container region.
+              console.log(`Error getting Azure storage container region: ${error}`); // eslint-disable-line no-console
+            }),
       ])
     );
 
+    const shouldShowAzureRegionWarning = (selectedBillingProject: AzureBillingProject): boolean => {
+      // Cloning an Azure Workspace
+      return (
+        !!cloneWorkspace &&
+        isAzureWorkspace(cloneWorkspace) &&
+        // We don't have region information for the workspace being cloned (can be a transient error)
+        (sourceAzureWorkspaceRegion === '' ||
+          // We don't have region information for the selected billing project (may not be backfilled)
+          !selectedBillingProject.region ||
+          // The regions don't match
+          selectedBillingProject.region !== sourceAzureWorkspaceRegion)
+      );
+    };
+
+    const haveAzureRegionNames = (selectedBillingProject: AzureBillingProject): boolean => {
+      return (
+        !!selectedBillingProject.region && selectedBillingProject.region !== '' && sourceAzureWorkspaceRegion !== ''
+      );
+    };
+
     const shouldShowDifferentRegionWarning =
-      !!cloneWorkspace && !requesterPaysError && bucketLocation !== sourceWorkspaceLocation;
+      !!cloneWorkspace && !requesterPaysError && bucketLocation !== sourceGCPWorkspaceRegion;
 
     const cloningRequesterPaysWorkspace = !!cloneWorkspace && requesterPaysError;
 
@@ -385,7 +429,7 @@ const NewWorkspaceModal = withDisplayName(
       prettify: (v) => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v)),
     });
 
-    const sourceLocationType = getLocationType(sourceWorkspaceLocation);
+    const sourceLocationType = getLocationType(sourceGCPWorkspaceRegion);
     const destLocationType = getLocationType(bucketLocation);
 
     const onFocusAria = ({ focused, isDisabled }) => {
@@ -496,6 +540,11 @@ const NewWorkspaceModal = withDisplayName(
                                         }),
                                       projectName,
                                       isAzureBillingProject(project) &&
+                                        project.region &&
+                                        div({ key: `region-${projectName}`, style: { marginLeft: '0.25rem' } }, [
+                                          `(${getRegionLabel(project.region)})`,
+                                        ]),
+                                      isAzureBillingProject(project) &&
                                         project.protectedData &&
                                         icon(protectedDataIcon, {
                                           key: `protected-${projectName}`,
@@ -545,6 +594,14 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
+                    // !!namespace && !!cloneWorkspace && h(CloneEgressWarning, {
+                    //   isAzureWorkspace: isAzureWorkspace(cloneWorkspace),
+                    //   sourceAzureWorkspaceRegion: sourceAzureWorkspaceRegion,
+                    //   selectedBillingProjectRegion: isAzureBillingProject(selectedBillingProject) ? selectedBillingProject.region : undefined,
+                    //   requesterPaysError: requesterPaysError,
+                    //   selectedGcpBucketLocation: bucketLocation,
+                    //   sourceGCPWorkspaceRegion: sourceGCPWorkspaceRegion}),
+                    // // Google case: show warning if the bucket location is different from the source workspace location
                     !!namespace &&
                       (shouldShowDifferentRegionWarning || cloningRequesterPaysWorkspace) &&
                       div({ style: { ...warningStyle } }, [
@@ -557,7 +614,7 @@ const NewWorkspaceModal = withDisplayName(
                             ? span(['Copying data may incur network egress charges. '])
                             : span([
                                 'Copying data from ',
-                                strong([getRegionInfo(sourceWorkspaceLocation, sourceLocationType).regionDescription]),
+                                strong([getRegionInfo(sourceGCPWorkspaceRegion, sourceLocationType).regionDescription]),
                                 ' to ',
                                 strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
                                 ' may incur network egress charges. ',
@@ -574,6 +631,28 @@ const NewWorkspaceModal = withDisplayName(
                               icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
                             ]
                           ),
+                        ]),
+                      ]),
+                    !!namespace &&
+                      isAzureBillingProject(selectedBillingProject) &&
+                      shouldShowAzureRegionWarning(selectedBillingProject) &&
+                      div({ style: { ...warningStyle } }, [
+                        icon('warning-standard', {
+                          size: 24,
+                          style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
+                        }),
+                        div({ style: { flex: 1 } }, [
+                          // Have to get the condition right here
+                          !haveAzureRegionNames(selectedBillingProject)
+                            ? span(['Copying data may incur network egress charges. '])
+                            : span([
+                                'Copying data from ',
+                                strong([getRegionLabel(sourceAzureWorkspaceRegion)]),
+                                ' to ',
+                                strong([getRegionLabel(selectedBillingProject.region)]),
+                                ' may incur network egress charges. ',
+                              ]),
+                          'If possible, select a billing project in the same region as the original workspace to prevent charges.',
                         ]),
                       ]),
                     h(IdContainer, [
