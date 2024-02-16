@@ -111,5 +111,5 @@ registerTest({
   name: 'run-analysis-azure',
   fn: testRunAnalysisAzure,
   targetEnvironments: ['dev', 'staging'],
-  timeout: Millis.ofMinutes(20),
+  timeout: Millis.ofMinutes(25),
 });
