@@ -1,14 +1,13 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
-import { RowContents, TreeGrid } from 'src/components/TreeGrid';
+import { hierarchyMapToRows, RowContents, TreeGrid } from 'src/components/TreeGrid';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type Node = RowContents & {
   name: string;
 };
 
-const initialHierarchy = new Map<number, Node[]>();
 // to show root, we need a rootPointer because parent of hierarchy will not show
 const rootPointer: Node = { id: 0, name: 'Point to Root', hasChildren: true };
 const root: Node = { id: 1, name: 'root', hasChildren: true };
@@ -31,8 +30,11 @@ const testHierarchy = [
   { id: 4, concept: child3, children: [], parent: 3 },
 ];
 const rootChildren = [child1, child2];
-initialHierarchy.set(root.id, rootChildren);
-initialHierarchy.set(rootPointer.id, [root]);
+const initialHierarchy = new Map<Node, Node[]>([
+  [rootPointer, [root]],
+  [root, rootChildren],
+]);
+
 const col2 = (node: Node) => `${node.name}_2`;
 const col3 = (node: Node) => `${node.name}_3`;
 
@@ -43,7 +45,7 @@ const columns = [
 ];
 
 describe('TreeGrid', () => {
-  let getChildrenCount;
+  let getChildrenCount: number;
   const renderTree = () => {
     getChildrenCount = 0;
     render(
@@ -60,6 +62,14 @@ describe('TreeGrid', () => {
       })
     );
   };
+
+  it('initializes the tree with nodes in the correct orrder', () => {
+    expect(hierarchyMapToRows(initialHierarchy)).toEqual([
+      { contents: root, depth: 0, isFetched: true, state: 'open' },
+      { contents: child1, depth: 1, isFetched: false, state: 'closed' },
+      { contents: child2, depth: 1, isFetched: false, state: 'closed' },
+    ]);
+  });
 
   it('renders a tree, header and root visible, children not hidden', () => {
     // Arrange
