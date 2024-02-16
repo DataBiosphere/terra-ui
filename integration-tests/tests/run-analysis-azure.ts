@@ -44,7 +44,7 @@ const testRunAnalysisAzure = _.flowRight(
     action: () => findText(page, 'Azure Cloud Environment'),
     timeout: Millis.ofMinute,
   });
-  await click(page, clickable({ textContains: 'Close', isEnabled: true }), { timeout: Millis.ofMinute });
+  await click(page, clickable({ textContains: 'Close' }), { timeout: Millis.ofMinute });
   await waitForNoModal(page);
 
   // Navigate to analysis launcher
