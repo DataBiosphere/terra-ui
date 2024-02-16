@@ -114,46 +114,39 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               { header: strong(['Roll-up count']), width: 205, key: 'count' },
               { width: 100, key: 'hierarchy' },
             ],
-            rows: _.map(
-              (concept) => {
-                const [label, iconName]: [string, IconId] = _.contains(concept, cart)
-                  ? ['remove', 'minus-circle-red']
-                  : ['add', 'plus-circle-filled'];
-                return {
-                  name: div({ style: { display: 'flex' } }, [
-                    h(
-                      Link,
-                      { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) },
-                      [icon(iconName, { size: 16 })]
-                    ),
-                    div({ style: { marginLeft: 5 } }, [
-                      h(HighlightConceptName, { conceptName: concept.name, searchFilter: searchText }),
-                    ]),
+            rows: _.map((concept) => {
+              const [label, iconName]: [string, IconId] = _.contains(concept, cart)
+                ? ['remove', 'minus-circle-red']
+                : ['add', 'plus-circle-filled'];
+              return {
+                name: div({ style: { display: 'flex' } }, [
+                  h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
+                    icon(iconName, { size: 16 }),
                   ]),
-                  id: concept.id,
-                  count: concept.count,
-                  hierarchy: div({ style: { display: 'flex' } }, [
-                    h(
-                      Link,
-                      {
-                        'aria-label': `open hierarchy ${concept.id}`,
-                        onClick: () =>
-                          onOpenHierarchy(
-                            { id: concept.id, category: domainOption.category, root: concept },
-                            cart,
-                            searchText
-                          ),
-                      },
-                      [icon('view-list')]
-                    ),
-                    div({ style: { marginLeft: 5 } }, ['Hierarchy']),
+                  div({ style: { marginLeft: 5 } }, [
+                    h(HighlightConceptName, { conceptName: concept.name, searchFilter: searchText }),
                   ]),
-                };
-              },
-              // sort concepts in descending order
-              // a.count is optional, we use `??` to handle undefined values, if undefined, replace with 0
-              concepts.state.result.sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
-            ),
+                ]),
+                id: concept.id,
+                count: concept.count,
+                hierarchy: div({ style: { display: 'flex' } }, [
+                  h(
+                    Link,
+                    {
+                      'aria-label': `open hierarchy ${concept.id}`,
+                      onClick: () =>
+                        onOpenHierarchy(
+                          { id: concept.id, category: domainOption.category, root: concept },
+                          cart,
+                          searchText
+                        ),
+                    },
+                    [icon('view-list')]
+                  ),
+                  div({ style: { marginLeft: 5 } }, ['Hierarchy']),
+                ]),
+              };
+            }, concepts.state.result),
           })
         : spinnerOverlay,
     ]),
