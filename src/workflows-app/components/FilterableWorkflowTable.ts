@@ -165,7 +165,6 @@ const FilterableWorkflowTable = ({
   );
   const firstPageIndex: number = useMemo(() => (pageNumber - 1) * itemsPerPage, [itemsPerPage, pageNumber]);
   const lastPageIndex: number = useMemo(() => firstPageIndex + itemsPerPage, [firstPageIndex, itemsPerPage]);
-  // const sortedRuns = sortRuns(sort.field, sort.direction, filteredPreviousRuns);
   const sortedPreviousRuns: Run[] = useMemo(
     () => sortRuns(sort.field, sort.direction, filteredPreviousRuns),
     [filteredPreviousRuns, sort.direction, sort.field]
@@ -495,7 +494,7 @@ const FilterableWorkflowTable = ({
                                 ['Outputs']
                               ),
                             ];
-                            return div({ style }, [links]);
+                            return div({ style }, links);
                           }
                           return div(['Error: Workflow ID not found']);
                         },

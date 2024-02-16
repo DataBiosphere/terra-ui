@@ -84,7 +84,6 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
       runsResponse.runs
     );
     setRunsData(runsAnnotatedWithDurations);
-    // console.log(runsData);
     setRunsFullyUpdated(runsResponse.fully_updated);
   };
 
