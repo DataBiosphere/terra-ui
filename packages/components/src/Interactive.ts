@@ -1,4 +1,3 @@
-import _ from 'lodash/fp';
 import { AllHTMLAttributes, createElement, ForwardedRef, forwardRef, useState } from 'react';
 
 import { injectStyle } from './injectStyle';
@@ -86,7 +85,7 @@ export const Interactive = forwardRef((props: InteractiveProps, ref: ForwardedRe
   );
 
   const computedTabIndex = Utils.cond(
-    [_.isNumber(tabIndex), () => tabIndex],
+    [typeof tabIndex === 'number', () => tabIndex],
     [disabled, () => -1],
     [!!onClick, () => 0],
     () => undefined
@@ -111,16 +110,12 @@ export const Interactive = forwardRef((props: InteractiveProps, ref: ForwardedRe
    * is hovered or focused, the CSS injected above sets --hover-X to be equal to the value of --app-hover-X.
    * This overrides the value from the `style` prop with the value from the `hover` prop.
    */
-  const cssVariables = _.flow(
-    _.toPairs,
-    _.flatMap(([key, value]) => {
-      return [
-        [`--app-hover-${key}`, value],
-        [key, `var(--hover-${key}, ${style[key]})`],
-      ];
-    }),
-    _.fromPairs
-  )(hover);
+  const cssVariables = Object.fromEntries(
+    Object.entries(hover).flatMap(([key, value]) => [
+      [`--app-hover-${key}`, value],
+      [key, `var(--hover-${key}, ${style[key]})`],
+    ])
+  );
 
   return createElement(
     TagName,

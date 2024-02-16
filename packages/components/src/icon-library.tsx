@@ -61,7 +61,6 @@ import {
   faVirus,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 
 import { ReactComponent as angleDoubleUp } from './icons/angle-double-up-regular.svg';
@@ -94,16 +93,22 @@ import { ReactComponent as trashCircleFilled } from './icons/trash-circle-filled
 import { ReactComponent as warningInfo } from './icons/warning-info.svg';
 import { ReactComponent as wdl } from './icons/wdl.svg';
 
-const fa = _.curry((shape, { size, ...props }) => (
-  <FontAwesomeIcon {..._.merge({ icon: shape, style: { height: size, width: size } }, props)} />
-));
-const custom = _.curry((Shape, { size, ...props }) => (
-  <Shape {..._.merge({ 'aria-hidden': true, focusable: false, style: { height: size, width: size } }, props)} />
-));
+const fa = (shape: any) => (props: any) => {
+  const { size, style, ...otherProps } = props;
+  return <FontAwesomeIcon {...otherProps} icon={shape} style={{ height: size, width: size, ...style }} />;
+};
 
-const rotate = _.curry((rotation, shape, props) =>
-  shape(_.merge({ style: { transform: `rotate(${rotation}deg)` } }, props))
-);
+const custom = (Shape: any) => (props: any) => {
+  const { size, style, ...otherProps } = props;
+  return <Shape aria-hidden focusable={false} {...otherProps} style={{ height: size, width: size, ...style }} />;
+};
+
+const rotate = (rotation: number, renderIcon: any) => {
+  return (props: any) => {
+    const { style, ...otherProps } = props;
+    return renderIcon({ ...otherProps, style: { transform: `rotate(${rotation}deg)`, ...style } });
+  };
+};
 
 const iconLibrary = {
   'angle-down': rotate(180, custom(angleUp)),
@@ -138,7 +143,7 @@ const iconLibrary = {
   downloadRegular: custom(downloadRegular),
   edit: fa(faPen),
   'ellipsis-v': fa(faEllipsisV),
-  'ellipsis-v-circle': (props) => fa(faEllipsisV, { mask: faCircle, transform: 'shrink-8', ...props }),
+  'ellipsis-v-circle': (props) => fa(faEllipsisV)({ mask: faCircle, transform: 'shrink-8', ...props }),
   'error-standard': fa(faExclamationCircle),
   'expand-arrows-alt': fa(faExpandArrowsAlt),
   export: custom(fileExport),
@@ -168,7 +173,7 @@ const iconLibrary = {
   plus: fa(faPlus),
   'plus-circle': fa(faPlusCircle),
   'plus-circle-filled': custom(plusCircleFilled),
-  'lighter-plus-circle': (props) => fa(faPlus, { mask: faCircle, transform: 'shrink-6', ...props }),
+  'lighter-plus-circle': (props) => fa(faPlus)({ mask: faCircle, transform: 'shrink-6', ...props }),
   'pop-out': custom(externalLinkAlt),
   purchaseOrder: fa(faFileInvoiceDollar),
   question: fa(faQuestion),
@@ -185,7 +190,7 @@ const iconLibrary = {
   syncAlt: fa(faSyncAlt),
   tachometer: fa(faTachometerAlt),
   tasks: fa(faTasks),
-  terminal: (props) => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),
+  terminal: (props) => fa(faTerminal)({ mask: faSquareSolid, transform: 'shrink-8', ...props }),
   times: custom(times),
   'talk-bubble': custom(talkBubble),
   'times-circle': fa(faTimesCircle),

@@ -1,9 +1,8 @@
-import _ from 'lodash/fp';
 import { Children, cloneElement, CSSProperties, ReactElement, ReactNode, useEffect, useRef, useState } from 'react';
 
 import { useUniqueId } from './hooks/useUniqueId';
 import { containsOnlyUnlabelledIcon } from './internal/a11y-utils';
-import { computePopupPosition, Side, useBoundingRects } from './internal/popup-utils';
+import { clamp, computePopupPosition, Side, useBoundingRects } from './internal/popup-utils';
 import { PopupPortal } from './internal/PopupPortal';
 import { useThemeFromContext } from './theme';
 
@@ -72,8 +71,8 @@ const Tooltip = (props: TooltipProps): ReactNode => {
   });
 
   const getNotchPositionStyle = (): CSSProperties => {
-    const left = _.clamp(12, tooltipBounds.width - 12, (targetBounds.left + targetBounds.right) / 2 - position.left);
-    const top = _.clamp(12, tooltipBounds.height - 12, (targetBounds.top + targetBounds.bottom) / 2 - position.top);
+    const left = clamp((targetBounds.left + targetBounds.right) / 2 - position.left, 12, tooltipBounds.width - 12);
+    const top = clamp((targetBounds.top + targetBounds.bottom) / 2 - position.top, 12, tooltipBounds.height - 12);
 
     // Use 1 in placement below to to avoid a faint line along the base of the triangle, where it meets up with the tooltip rectangle.
     switch (finalSide) {
@@ -138,7 +137,7 @@ export const TooltipTrigger = (props: TooltipTriggerProps): ReactNode => {
   //
   // If the auto-detection can't make the proper determination, for example, because the icon is wrapped in other elements,
   // you can explicitly pass in a boolean as `useTooltipAsLabel` to force the correct behavior.
-  const useAsLabel = _.isNil(useTooltipAsLabel) ? containsOnlyUnlabelledIcon(child.props) : useTooltipAsLabel;
+  const useAsLabel = useTooltipAsLabel === undefined ? containsOnlyUnlabelledIcon(child.props) : useTooltipAsLabel;
 
   return (
     <>

@@ -1,5 +1,6 @@
-import _ from 'lodash/fp';
 import { useState } from 'react';
+
+let uniqueIdCounter = 0;
 
 /**
  * Returns a unique ID that will not change between component render cycles.
@@ -12,6 +13,6 @@ import { useState } from 'react';
  * input({ id, ... })
  */
 export const useUniqueId = (prefix = 'element'): string => {
-  const [uniqueId] = useState(() => _.uniqueId(''));
+  const [uniqueId] = useState(() => uniqueIdCounter++);
   return `${prefix}-${uniqueId}`;
 };

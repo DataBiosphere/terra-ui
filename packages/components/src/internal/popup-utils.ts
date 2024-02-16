@@ -1,5 +1,6 @@
-import _ from 'lodash/fp';
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
+
+export const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
 
 export interface Size {
   width: number;
@@ -44,15 +45,17 @@ export const computePopupPosition = (args: ComputePopupPositionArgs): ComputePop
   const { elementSize, gap, preferredSide, targetPosition, viewportSize } = args;
 
   const getPosition = (s: Side): Pick<Position, 'left' | 'top'> => {
-    const left = _.flow(
-      _.clamp(0, viewportSize.width - elementSize.width),
-      _.clamp(targetPosition.left - elementSize.width + 16, targetPosition.right - 16)
-    )((targetPosition.left + targetPosition.right) / 2 - elementSize.width / 2);
+    const left = clamp(
+      (targetPosition.left + targetPosition.right) / 2 - elementSize.width / 2,
+      Math.max(targetPosition.left - elementSize.width + 16, 0),
+      Math.min(targetPosition.right - 16, viewportSize.width - elementSize.width)
+    );
 
-    const top = _.flow(
-      _.clamp(0, viewportSize.height - elementSize.height),
-      _.clamp(targetPosition.top - elementSize.height + 16, targetPosition.bottom - 16)
-    )((targetPosition.top + targetPosition.bottom) / 2 - elementSize.height / 2);
+    const top = clamp(
+      (targetPosition.top + targetPosition.bottom) / 2 - elementSize.height / 2,
+      Math.max(targetPosition.top - elementSize.height + 16, 0),
+      Math.min(targetPosition.bottom - 16, viewportSize.height - elementSize.height)
+    );
 
     switch (s) {
       case 'top':
@@ -104,14 +107,27 @@ export const computePopupPosition = (args: ComputePopupPositionArgs): ComputePop
 
 type BoundingRect = Size & Position;
 
-const toBoundingRect: (domRect: DOMRect) => BoundingRect = _.pick([
-  'width',
-  'height',
-  'top',
-  'right',
-  'bottom',
-  'left',
-]);
+const toBoundingRect = (domRect: DOMRect): BoundingRect => {
+  return {
+    width: domRect.width,
+    height: domRect.height,
+    top: domRect.top,
+    right: domRect.right,
+    bottom: domRect.bottom,
+    left: domRect.left,
+  };
+};
+
+const areBoundingRectsEqual = (a: BoundingRect, b: BoundingRect): boolean => {
+  return (
+    a.width === b.width &&
+    a.height === b.height &&
+    a.top === b.top &&
+    a.right === b.right &&
+    a.bottom === b.bottom &&
+    a.left === b.left
+  );
+};
 
 export type UseBoundingRectsSelector =
   | { ref: RefObject<HTMLElement | null | undefined> }
@@ -162,7 +178,10 @@ export const useBoundingRects = (selectors: UseBoundingRectsSelector[]): Boundin
       return { width: 0, height: 0, top: 0, right: 0, bottom: 0, left: 0 };
     });
 
-    if (!_.isEqual(newDimensions, dimensionsRef.current)) {
+    const dimensionsHaveChanged =
+      newDimensions.length !== dimensionsRef.current!.length ||
+      !dimensionsRef.current!.every((d, i) => areBoundingRectsEqual(d, newDimensions[i]));
+    if (dimensionsHaveChanged) {
       setDimensions(newDimensions);
     }
 
