@@ -1,6 +1,7 @@
 import { h } from 'react-hyperscript-helpers';
+import { DomainOption } from 'src/dataset-builder/DatasetBuilderUtils';
 import { saveSelected } from 'src/dataset-builder/DomainCriteriaSelector';
-import { SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption as DomainOption } from 'src/libs/ajax/DataRepo';
+import { SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 
 import { ConceptSearch } from './ConceptSearch';
 import {

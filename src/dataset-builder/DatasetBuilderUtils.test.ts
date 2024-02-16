@@ -15,6 +15,7 @@ import {
   DatasetAccessRequestApi,
   DomainCriteria,
   DomainCriteriaApi,
+  DomainOption,
   HighlightConceptName,
   ProgramDataListCriteria,
   ProgramDataListCriteriaApi,
@@ -26,7 +27,7 @@ import {
   ValueSet,
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { SnapshotBuilderConcept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
+import { SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 
 const concept: SnapshotBuilderConcept = {
   id: 0,
@@ -35,9 +36,10 @@ const concept: SnapshotBuilderConcept = {
   hasChildren: false,
 };
 
-const domainOption: SnapshotBuilderDomainOption = {
+const domainOption: DomainOption = {
   id: 1,
-  category: 'category',
+  name: 'category',
+  kind: 'domain',
   conceptCount: 10,
   participantCount: 20,
   root: concept,
@@ -45,18 +47,17 @@ const domainOption: SnapshotBuilderDomainOption = {
 
 const domainCriteria: DomainCriteria = {
   conceptId: 100,
+  conceptName: 'conceptName',
   kind: 'domain',
-  name: 'domainCriteria',
-  domainOption,
-  id: 2,
+  option: domainOption,
   index: 0,
   count: 100,
 };
 
 const domainCriteriaApi: DomainCriteriaApi = {
   kind: 'domain',
-  name: 'domainCriteria',
-  id: 2,
+  name: 'category',
+  id: 1,
   conceptId: 100,
 };
 
@@ -69,10 +70,8 @@ const rangeOption: ProgramDataRangeOption = {
 };
 
 const rangeCriteria: ProgramDataRangeCriteria = {
-  id: 2,
   kind: 'range',
-  name: 'rangeCriteria',
-  rangeOption,
+  option: rangeOption,
   index: 4,
   count: 100,
   low: 1,
@@ -82,7 +81,7 @@ const rangeCriteria: ProgramDataRangeCriteria = {
 const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
   id: 2,
   kind: 'range',
-  name: 'rangeCriteria',
+  name: 'rangeOption',
   low: 1,
   high: 99,
 };
@@ -104,18 +103,16 @@ const criteriaListValues: ProgramDataListValue[] = [
 const criteriaListValuesApi: number[] = [7, 8];
 
 const listCriteria: ProgramDataListCriteria = {
-  id: 2,
   kind: 'list',
-  name: 'listCriteria',
   index: 9,
-  listOption,
+  option: listOption,
   values: criteriaListValues,
 };
 
 const listCriteriaApi: ProgramDataListCriteriaApi = {
   id: 2,
   kind: 'list',
-  name: 'listCriteria',
+  name: 'listOption',
   values: criteriaListValuesApi,
 };
 

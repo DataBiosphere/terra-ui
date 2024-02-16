@@ -4,6 +4,7 @@ import _ from 'lodash/fp';
 import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { ConceptSearch } from 'src/dataset-builder/ConceptSearch';
+import { convertApiDomainOptionToDomainOption } from 'src/dataset-builder/DatasetBuilderUtils';
 import { dummyDatasetModel, dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
 import { DataRepo, DataRepoContract, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -30,7 +31,9 @@ describe('ConceptSearch', () => {
   const onOpenHierarchy = jest.fn();
   const actionText = 'action text';
   const datasetId = '0';
-  const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
+  const domainOption = convertApiDomainOptionToDomainOption(
+    dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0]
+  );
 
   const renderSearch = (initialSearch = '', initialCart: SnapshotBuilderConcept[] = []) =>
     render(
@@ -101,11 +104,7 @@ describe('ConceptSearch', () => {
     await user.click(await screen.findByLabelText(`add ${concept.id}`));
     await user.click(screen.getByLabelText(`open hierarchy ${concept.id}`));
     // Assert
-    expect(onOpenHierarchy).toHaveBeenCalledWith(
-      { id: concept.id, category: domainOption.category, root: concept },
-      [concept],
-      ''
-    );
+    expect(onOpenHierarchy).toHaveBeenCalledWith(domainOption, [concept], '');
   });
 
   it('supports add to cart', async () => {
