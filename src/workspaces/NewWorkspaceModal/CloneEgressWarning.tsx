@@ -1,5 +1,6 @@
 import { icon, Link } from '@terra-ui-packages/components';
 import { CSSProperties, ReactNode } from 'react';
+import * as React from 'react';
 import { getLocationType, getRegionInfo } from 'src/components/region-common';
 import { getRegionLabel } from 'src/libs/azure-utils';
 import colors from 'src/libs/colors';
