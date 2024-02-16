@@ -8,7 +8,7 @@ import {
   DatasetAccessRequestApi,
   DatasetParticipantCountRequest,
   DatasetParticipantCountResponse,
-  GetConceptsHierarchyMapResponse,
+  GetConceptsHierarchyResponse,
   GetConceptsResponse,
   ProgramDataListOption,
   ProgramDataRangeOption,
@@ -172,7 +172,7 @@ export interface DataRepoContract {
     createSnapshotRequest(request: DatasetAccessRequest): Promise<DatasetAccessRequestApi>;
     getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
-    getConceptsHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptsHierarchyMapResponse>;
+    getConceptsHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptsHierarchyResponse>;
     // Search returns a list of matching concepts with a domain sorted by participant count. The result is truncated to N concepts.
     searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SearchConceptsResponse>;
   };

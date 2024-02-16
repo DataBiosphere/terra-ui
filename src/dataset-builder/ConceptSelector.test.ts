@@ -25,8 +25,8 @@ describe('ConceptSelector', () => {
   // Using 101 so the ID doesn't match the count.
   const root = dummyGetConceptForId(100);
   const rootChildren = [dummyGetConceptForId(101)];
-  const initialHierarchy = new Map<number, SnapshotBuilderConcept[]>();
-  initialHierarchy.set(root.id, rootChildren);
+  const initialHierarchy = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
+  initialHierarchy.set(root, rootChildren);
   const initialCart: SnapshotBuilderConcept[] = [];
   const renderSelector = () => {
     render(

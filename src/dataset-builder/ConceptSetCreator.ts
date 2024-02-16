@@ -23,7 +23,7 @@ export const toConceptSet = (concept: Concept): ConceptSet => {
 export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
   const { onStateChange, dataset, conceptSetUpdater } = props;
   const { snapshotBuilderSettings, id } = dataset;
-  const hierarchyMap = new Map<number, Concept[]>();
+  const hierarchyMap = new Map<Concept, Concept[]>();
   // create a root for all domainOptions
   const domainOptionRoot: Concept = {
     id: 0,
@@ -31,7 +31,7 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
     count: 100,
     hasChildren: true,
   };
-  hierarchyMap.set(domainOptionRoot.id, _.map(_.get('root'), snapshotBuilderSettings?.domainOptions));
+  hierarchyMap.set(domainOptionRoot, _.map(_.get('root'), snapshotBuilderSettings?.domainOptions));
   return h(ConceptSelector, {
     initialHierarchy: hierarchyMap,
     initialCart: [],

@@ -201,13 +201,13 @@ export const dummyGetNodeFromHierarchy = (id: number): ConceptNode => {
   return _.find({ id }, dummyHierarchy)!;
 };
 
-export const getHierarchyMap = (openedConceptID: number): Map<number, Concept[]> => {
-  const hierarchyMap = new Map<number, Concept[]>();
+export const getHierarchyMap = (openedConceptID: number): Map<Concept, Concept[]> => {
+  const hierarchyMap = new Map<Concept, Concept[]>();
   const populateHierarchyMap = (node: ConceptNode) => {
     if (node.concept.hasChildren) {
       const children = node.children;
       const childrenObjects = _.map((childID) => dummyGetConceptForId(childID), children);
-      hierarchyMap.set(node.concept.id, childrenObjects);
+      hierarchyMap.set(node.concept, childrenObjects);
     }
     if (node.parent) {
       populateHierarchyMap(dummyGetNodeFromHierarchy(node.parent));
@@ -228,7 +228,7 @@ export const getHierarchyMap = (openedConceptID: number): Map<number, Concept[]>
     populateHierarchyMap(selectedConceptParent);
   } else {
     // we chose the domain root concept
-    hierarchyMap.set(openedConceptNode.concept.id, []);
+    hierarchyMap.set(openedConceptNode.concept, []);
   }
   return hierarchyMap;
 };

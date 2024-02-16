@@ -17,7 +17,7 @@ type ConceptSelectorProps = {
   readonly actionText: string;
   readonly datasetId: string;
   readonly initialCart: Concept[];
-  readonly initialHierarchy: Map<number, Concept[]>;
+  readonly initialHierarchy: Map<Concept, Concept[]>;
   readonly openedConceptName?: string;
 };
 

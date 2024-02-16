@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import {
   DomainCriteria,
-  GetConceptsHierarchyMapResponse,
+  GetConceptsHierarchyResponse,
   GetConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
@@ -65,9 +65,9 @@ export const saveSelected =
 
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
-  const [hierarchyConcepts, loadHierarchyConcepts] = useLoadedData<GetConceptsHierarchyMapResponse>();
+  const [hierarchyConcepts, loadHierarchyConcepts] = useLoadedData<GetConceptsHierarchyResponse>();
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
-  const [hierarchy, setHierarchy] = useState(new Map<number, Concept[]>());
+  const [hierarchy, setHierarchy] = useState(new Map<Concept, Concept[]>());
   const [isHierarchyLoaded, setIsHierarchyLoaded] = useState(false);
   useOnMount(() => {
     const openedConcept = state.openedConcept;
@@ -81,7 +81,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
 
   useEffect(() => {
     if (rootConcepts.status === 'Ready') {
-      setHierarchy(new Map<number, Concept[]>([[state.domainOption.root.id, rootConcepts.state.result]]));
+      setHierarchy(new Map<Concept, Concept[]>([[state.domainOption.root, rootConcepts.state.result]]));
       setIsHierarchyLoaded(true);
     } else if (hierarchyConcepts.status === 'Ready') {
       setHierarchy(hierarchyConcepts.state.result);
