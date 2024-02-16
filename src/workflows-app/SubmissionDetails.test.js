@@ -863,6 +863,12 @@ describe('Submission Details page', () => {
       screen.getByRole('button', { name: 'Workflow Execution Log' });
       screen.findByText('this is the text of a mock file');
     }
+
+    const closeButton = screen.getByRole('button', {
+      name: 'Close modal',
+    });
+
+    await user.click(closeButton);
   });
 
   it('should open the task data modal when Inputs button is clicked', async () => {
@@ -915,7 +921,6 @@ describe('Submission Details page', () => {
           workspace: mockAzureWorkspace,
           submissionId,
           workflowId: '00001111-2222-3333-aaaa-bbbbccccdddd',
-          uri: 'https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
         })
       );
     });
@@ -1001,7 +1006,6 @@ describe('Submission Details page', () => {
           workspace: mockAzureWorkspace,
           submissionId,
           workflowId: '00001111-2222-3333-aaaa-bbbbccccdddd',
-          uri: 'https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
         })
       );
     });
