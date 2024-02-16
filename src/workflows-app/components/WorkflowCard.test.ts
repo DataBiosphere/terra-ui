@@ -4,7 +4,7 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { WorkflowCard, WorkflowMethodSet } from 'src/workflows-app/components/WorkflowCard';
-import { methodDataWithVersions } from 'src/workflows-app/utils/mock-data';
+import { methodDataWithVersions, methodDataWithVersionsAndDetails } from 'src/workflows-app/utils/mock-data';
 
 describe('Single workflow card', () => {
   it('should render a simple method with description and no children', () => {
@@ -35,6 +35,18 @@ describe('Single workflow card', () => {
     const button = screen.getByRole('button', { name: 'Click me' });
     await user.click(button);
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not render a lock icon for a public method', async () => {
+    render(h(WorkflowCard, { method: methodDataWithVersions.methods[0] }));
+    expect(document.querySelector("[data-icon='lock']")).not.toBeInTheDocument();
+    expect(screen.queryByText('This is a private method')).not.toBeInTheDocument();
+  });
+
+  it('should render a lock icon for a private method', async () => {
+    render(h(WorkflowCard, { method: methodDataWithVersionsAndDetails.methods[0] }));
+    expect(document.querySelector("[data-icon='lock']"));
+    expect(screen.getByText(/This is a private method/));
   });
 });
 
