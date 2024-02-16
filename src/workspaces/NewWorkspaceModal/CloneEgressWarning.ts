@@ -56,6 +56,17 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
     style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
   });
 
+  const genericEgressMessage = span(['Copying data may incur network egress charges. ']);
+  const renderRegionSpecificMessage = (sourceRegion: string, destinationRegion: string) => {
+    return span([
+      'Copying data from ',
+      strong([sourceRegion]),
+      ' to ',
+      strong([destinationRegion]),
+      ' may incur network egress charges. ',
+    ]);
+  };
+
   if (shouldShowAzureRegionWarning) {
     const haveAzureRegionNames =
       !!selectedAzureBillingProjectRegion &&
@@ -66,14 +77,11 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
       warningIcon,
       div({ style: { flex: 1 } }, [
         !haveAzureRegionNames
-          ? span(['Copying data may incur network egress charges. '])
-          : span([
-              'Copying data from ',
-              strong([getRegionLabel(sourceAzureWorkspaceRegion)]),
-              ' to ',
-              strong([getRegionLabel(selectedAzureBillingProjectRegion)]),
-              ' may incur network egress charges. ',
-            ]),
+          ? genericEgressMessage
+          : renderRegionSpecificMessage(
+              getRegionLabel(sourceAzureWorkspaceRegion),
+              getRegionLabel(selectedAzureBillingProjectRegion)
+            ),
         'If possible, select a billing project in the same region as the original workspace to prevent charges.',
       ]),
     ]);
@@ -82,19 +90,12 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
     return div({ style: { ...warningStyle } }, [
       warningIcon,
       div({ style: { flex: 1 } }, [
-        requesterPaysError // Have to show a generic warning as we don't have the source region
-          ? span(['Copying data may incur network egress charges. '])
-          : span([
-              'Copying data from ',
-              strong([
-                getRegionInfo(sourceGCPWorkspaceRegion, getLocationType(sourceGCPWorkspaceRegion)).regionDescription,
-              ]),
-              ' to ',
-              strong([
-                getRegionInfo(selectedGcpBucketLocation, getLocationType(selectedGcpBucketLocation)).regionDescription,
-              ]),
-              ' may incur network egress charges. ',
-            ]),
+        requesterPaysError
+          ? genericEgressMessage
+          : renderRegionSpecificMessage(
+              getRegionInfo(sourceGCPWorkspaceRegion, getLocationType(sourceGCPWorkspaceRegion)).regionDescription,
+              getRegionInfo(selectedGcpBucketLocation, getLocationType(selectedGcpBucketLocation)).regionDescription
+            ),
         'To prevent charges, the new bucket location needs to stay in the same region as the original one. ',
         h(
           Link,
