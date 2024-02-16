@@ -1686,7 +1686,7 @@ describe('NewWorkspaceModal', () => {
     );
   });
 
-  it('shows a generic message if getting the Azure storage container information fails', async () => {
+  it('shows a generic message when cloning to a different billing project if getting the Azure storage container information fails', async () => {
     // Arrange
     const user = userEvent.setup();
     // Whether the billing project has a region doesn't actually matter for this case.
