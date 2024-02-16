@@ -9,7 +9,7 @@ import { Ajax } from 'src/libs/ajax';
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { getRegionLabel } from 'src/libs/azure-utils';
-import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import Events from 'src/libs/events';
 import { goToPath } from 'src/libs/nav';
 import {
   azureBillingProject,
@@ -52,6 +52,10 @@ const dummyGroupsResponse = {
       },
     };
   },
+};
+
+const dummyGroupAjax: DeepPartial<AjaxContract> = {
+  Groups: dummyGroupsResponse,
 };
 
 const nonBillingAjax: DeepPartial<AjaxContract> = {
@@ -971,7 +975,7 @@ describe('NewWorkspaceModal', () => {
   });
 
   describe('while creating a workspace', () => {
-    const createWorkspace = jest.fn().mockReturnValue(mockWorkspaces.Gcp);
+    const createWorkspace = jest.fn().mockReturnValue(defaultGoogleWorkspace.workspace);
     const captureEvent = jest.fn();
 
     beforeEach(async () => {
@@ -987,7 +991,7 @@ describe('NewWorkspaceModal', () => {
               create: createWorkspace,
             },
             Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-            Groups: dummyGroupsResponse,
+            ...dummyGroupAjax,
           } as AjaxContract)
       );
 
@@ -1027,8 +1031,12 @@ describe('NewWorkspaceModal', () => {
     it('emits a metrics event for a GCP workspace', async () => {
       expect(createWorkspace).toHaveBeenCalled();
       const expectedEvent = {
-        ...extractWorkspaceDetails(_.merge(mockWorkspaces.Gcp, { cloudPlatform: 'GCP' })),
+        cloudPlatform: 'GCP',
         region: 'US-CENTRAL1',
+        workspaceName: defaultGoogleWorkspace.workspace.name,
+        workspaceNamespace: defaultGoogleWorkspace.workspace.namespace,
+        hasProtectedData: undefined,
+        workspaceAccessLevel: undefined,
       };
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceCreate, expectedEvent);
     });
@@ -1041,7 +1049,7 @@ describe('NewWorkspaceModal', () => {
     const billingProjectWithRegion = _.cloneDeep(azureBillingProject);
     billingProjectWithRegion.region = 'eastus';
 
-    const createWorkspace = jest.fn().mockResolvedValue(mockWorkspaces.Azure);
+    const createWorkspace = jest.fn().mockResolvedValue(defaultAzureWorkspace.workspace);
     const captureEvent = jest.fn();
 
     asMockedFn(Ajax).mockImplementation(
@@ -1054,7 +1062,7 @@ describe('NewWorkspaceModal', () => {
             create: createWorkspace,
           },
           Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-          Groups: dummyGroupsResponse,
+          ...dummyGroupAjax,
         } as AjaxContract)
     );
 
@@ -1082,8 +1090,12 @@ describe('NewWorkspaceModal', () => {
     // Assert
     expect(createWorkspace).toHaveBeenCalled();
     const expectedEvent = {
-      ...extractWorkspaceDetails(_.merge(mockWorkspaces.Azure, { cloudPlatform: 'AZURE' })),
+      cloudPlatform: 'AZURE',
       region: 'eastus',
+      workspaceName: defaultAzureWorkspace.workspace.name,
+      workspaceNamespace: defaultAzureWorkspace.workspace.namespace,
+      hasProtectedData: undefined,
+      workspaceAccessLevel: undefined,
     };
     expect(captureEvent).toHaveBeenCalledWith(Events.workspaceCreate, expectedEvent);
   });
@@ -1739,7 +1751,7 @@ describe('NewWorkspaceModal', () => {
           },
           Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
           FirecloudBucket: { getFeaturedWorkspaces: jest.fn() },
-          Groups: dummyGroupsResponse,
+          ...dummyGroupAjax,
         } as AjaxContract)
     );
 

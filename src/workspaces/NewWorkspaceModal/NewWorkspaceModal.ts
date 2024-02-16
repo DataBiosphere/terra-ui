@@ -1,8 +1,8 @@
 import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { CSSProperties, Fragment, ReactNode, useState } from 'react';
-import { div, h, label, p, span, strong } from 'react-hyperscript-helpers';
+import { Fragment, ReactNode, useState } from 'react';
+import { div, h, label, p } from 'react-hyperscript-helpers';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { AzureBillingProject, BillingProject, CloudPlatform, GCPBillingProject } from 'src/billing-core/models';
 import { isBucketErrorRequesterPays } from 'src/components/bucket-utils';
@@ -19,13 +19,7 @@ import {
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { TextArea, ValidatedInput } from 'src/components/input';
-import {
-  allRegions,
-  availableBucketRegions,
-  getLocationType,
-  getRegionInfo,
-  isSupportedBucketLocation,
-} from 'src/components/region-common';
+import { allRegions, availableBucketRegions, isSupportedBucketLocation } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -41,6 +35,7 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { CloneEgressWarning } from 'src/workspaces/NewWorkspaceModal/CloneEgressWarning';
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
 import {
   cloudProviderLabels,
@@ -55,18 +50,6 @@ import {
 } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
-
-const warningStyle: CSSProperties = {
-  border: `1px solid ${colors.warning(0.8)}`,
-  borderRadius: '5px',
-  backgroundColor: colors.warning(0.15),
-  display: 'flex',
-  lineHeight: '18px',
-  padding: '1rem 1rem',
-  margin: '0.5rem 0 1rem',
-  fontWeight: 'normal',
-  fontSize: 14,
-};
 
 const constraints = {
   name: {
@@ -135,7 +118,7 @@ const NewWorkspaceModal = withDisplayName(
     const [createError, setCreateError] = useState<string>();
     const [bucketLocation, setBucketLocation] = useState(defaultLocation);
     const [sourceAzureWorkspaceRegion, setSourceAzureWorkspaceRegion] = useState<string>('');
-    const [sourceGCPWorkspaceRegion, setSourceGcpWorkspaceRegion] = useState(defaultLocation);
+    const [sourceGCPWorkspaceRegion, setSourceGcpWorkspaceRegion] = useState<string>(defaultLocation);
     const [requesterPaysError, setRequesterPaysError] = useState(false);
     const [isAlphaRegionalityUser, setIsAlphaRegionalityUser] = useState(false);
     const signal = useCancellation();
@@ -182,7 +165,7 @@ const NewWorkspaceModal = withDisplayName(
                   // Clone response does not include cloudPlatform, cross-cloud cloning is not supported.
                   workspace: _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() }),
                 }),
-                fromWorkspaceRegion: isAzureWorkspace(cloneWorkspace)
+                fromWorkspaceRegion: isAzureWorkspace(cloneWorkspace!)
                   ? sourceAzureWorkspaceRegion
                   : sourceGCPWorkspaceRegion,
                 toWorkspaceRegion: isAzureBillingProject(selectedBillingProject)
@@ -334,31 +317,6 @@ const NewWorkspaceModal = withDisplayName(
       ])
     );
 
-    const shouldShowAzureRegionWarning = (selectedBillingProject: AzureBillingProject): boolean => {
-      // Cloning an Azure Workspace
-      return (
-        !!cloneWorkspace &&
-        isAzureWorkspace(cloneWorkspace) &&
-        // We don't have region information for the workspace being cloned (can be a transient error)
-        (sourceAzureWorkspaceRegion === '' ||
-          // We don't have region information for the selected billing project (may not be backfilled)
-          !selectedBillingProject.region ||
-          // The regions don't match
-          selectedBillingProject.region !== sourceAzureWorkspaceRegion)
-      );
-    };
-
-    const haveAzureRegionNames = (selectedBillingProject: AzureBillingProject): boolean => {
-      return (
-        !!selectedBillingProject.region && selectedBillingProject.region !== '' && sourceAzureWorkspaceRegion !== ''
-      );
-    };
-
-    const shouldShowDifferentRegionWarning =
-      !!cloneWorkspace && !requesterPaysError && bucketLocation !== sourceGCPWorkspaceRegion;
-
-    const cloningRequesterPaysWorkspace = !!cloneWorkspace && requesterPaysError;
-
     const isAzureBillingProject = (project?: BillingProject): project is AzureBillingProject =>
       isCloudProviderBillingProject(project, 'AZURE');
 
@@ -428,9 +386,6 @@ const NewWorkspaceModal = withDisplayName(
     const errors = validate({ namespace, name }, constraints, {
       prettify: (v) => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v)),
     });
-
-    const sourceLocationType = getLocationType(sourceGCPWorkspaceRegion);
-    const destLocationType = getLocationType(bucketLocation);
 
     const onFocusAria = ({ focused, isDisabled }) => {
       return `${isDisabled ? 'Disabled option ' : 'Option '}${focused['aria-label']}, focused.`;
@@ -594,67 +549,18 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
-                    // !!namespace && !!cloneWorkspace && h(CloneEgressWarning, {
-                    //   isAzureWorkspace: isAzureWorkspace(cloneWorkspace),
-                    //   sourceAzureWorkspaceRegion: sourceAzureWorkspaceRegion,
-                    //   selectedBillingProjectRegion: isAzureBillingProject(selectedBillingProject) ? selectedBillingProject.region : undefined,
-                    //   requesterPaysError: requesterPaysError,
-                    //   selectedGcpBucketLocation: bucketLocation,
-                    //   sourceGCPWorkspaceRegion: sourceGCPWorkspaceRegion}),
-                    // // Google case: show warning if the bucket location is different from the source workspace location
                     !!namespace &&
-                      (shouldShowDifferentRegionWarning || cloningRequesterPaysWorkspace) &&
-                      div({ style: { ...warningStyle } }, [
-                        icon('warning-standard', {
-                          size: 24,
-                          style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
-                        }),
-                        div({ style: { flex: 1 } }, [
-                          cloningRequesterPaysWorkspace
-                            ? span(['Copying data may incur network egress charges. '])
-                            : span([
-                                'Copying data from ',
-                                strong([getRegionInfo(sourceGCPWorkspaceRegion, sourceLocationType).regionDescription]),
-                                ' to ',
-                                strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
-                                ' may incur network egress charges. ',
-                              ]),
-                          'To prevent charges, the new bucket location needs to stay in the same region as the original one. ',
-                          h(
-                            Link,
-                            {
-                              href: 'https://support.terra.bio/hc/en-us/articles/360058964552',
-                              ...Utils.newTabLinkProps,
-                            },
-                            [
-                              'For more information please read the documentation.',
-                              icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
-                            ]
-                          ),
-                        ]),
-                      ]),
-                    !!namespace &&
-                      isAzureBillingProject(selectedBillingProject) &&
-                      shouldShowAzureRegionWarning(selectedBillingProject) &&
-                      div({ style: { ...warningStyle } }, [
-                        icon('warning-standard', {
-                          size: 24,
-                          style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
-                        }),
-                        div({ style: { flex: 1 } }, [
-                          // Have to get the condition right here
-                          !haveAzureRegionNames(selectedBillingProject)
-                            ? span(['Copying data may incur network egress charges. '])
-                            : span([
-                                'Copying data from ',
-                                strong([getRegionLabel(sourceAzureWorkspaceRegion)]),
-                                ' to ',
-                                strong([getRegionLabel(selectedBillingProject.region)]),
-                                ' may incur network egress charges. ',
-                              ]),
-                          'If possible, select a billing project in the same region as the original workspace to prevent charges.',
-                        ]),
-                      ]),
+                      !!cloneWorkspace &&
+                      h(CloneEgressWarning, {
+                        isAzureWorkspace: isAzureWorkspace(cloneWorkspace),
+                        sourceAzureWorkspaceRegion,
+                        selectedAzureBillingProjectRegion: isAzureBillingProject(selectedBillingProject)
+                          ? selectedBillingProject.region
+                          : undefined,
+                        requesterPaysError,
+                        selectedGcpBucketLocation: bucketLocation,
+                        sourceGCPWorkspaceRegion,
+                      }),
                     h(IdContainer, [
                       (id) =>
                         h(Fragment, [

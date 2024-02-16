@@ -20,17 +20,17 @@ const warningStyle: CSSProperties = {
 
 export interface CloneEgressWarningProps {
   isAzureWorkspace: boolean;
-  sourceAzureWorkspaceRegion: string;
-  selectedBillingProjectRegion: string | undefined;
+  sourceAzureWorkspaceRegion: string; // default value is ''
+  selectedAzureBillingProjectRegion: string | undefined;
+  sourceGCPWorkspaceRegion: string; // default is a defaultLocation ('US-CENTRAL1')
+  selectedGcpBucketLocation: string | undefined;
   requesterPaysError: boolean;
-  selectedGcpBucketLocation: string;
-  sourceGCPWorkspaceRegion: string;
 }
 
 export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode => {
   const isAzureWorkspace = props.isAzureWorkspace;
   const sourceAzureWorkspaceRegion = props.sourceAzureWorkspaceRegion;
-  const selectedBillingProjectRegion = props.selectedBillingProjectRegion;
+  const selectedAzureBillingProjectRegion = props.selectedAzureBillingProjectRegion;
   const requesterPaysError = props.requesterPaysError;
   const selectedGcpBucketLocation = props.selectedGcpBucketLocation;
   const sourceGCPWorkspaceRegion = props.sourceGCPWorkspaceRegion;
@@ -40,35 +40,59 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
     // We don't have region information for the workspace being cloned (can be a transient error)
     (sourceAzureWorkspaceRegion === '' ||
       // We don't have region information for the selected billing project (may not be backfilled)
-      !selectedBillingProjectRegion ||
-      // The regions don't match
-      selectedBillingProjectRegion !== sourceAzureWorkspaceRegion);
+      !selectedAzureBillingProjectRegion ||
+      // Have both regions, but they don't match
+      selectedAzureBillingProjectRegion !== sourceAzureWorkspaceRegion);
 
-  const haveAzureRegionNames =
-    !!selectedBillingProjectRegion && selectedBillingProjectRegion !== '' && sourceAzureWorkspaceRegion !== '';
+  const shouldShowGcpRegionWarning =
+    !isAzureWorkspace &&
+    // Requester pays error, so we don't know the source region
+    (requesterPaysError ||
+      // Regions are different
+      (!!selectedGcpBucketLocation && selectedGcpBucketLocation !== sourceGCPWorkspaceRegion));
 
-  const shouldShowGcpDifferentRegionWarning =
-    !isAzureWorkspace && !requesterPaysError && selectedGcpBucketLocation !== sourceGCPWorkspaceRegion;
+  const warningIcon = icon('warning-standard', {
+    size: 24,
+    style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
+  });
 
-  const cloningRequesterPaysWorkspace = !isAzureWorkspace && requesterPaysError;
-
-  if (shouldShowGcpDifferentRegionWarning || cloningRequesterPaysWorkspace) {
-    const sourceLocationType = getLocationType(sourceGCPWorkspaceRegion);
-    const destLocationType = getLocationType(selectedGcpBucketLocation);
+  if (shouldShowAzureRegionWarning) {
+    const haveAzureRegionNames =
+      !!selectedAzureBillingProjectRegion &&
+      selectedAzureBillingProjectRegion !== '' &&
+      sourceAzureWorkspaceRegion !== '';
 
     return div({ style: { ...warningStyle } }, [
-      icon('warning-standard', {
-        size: 24,
-        style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
-      }),
+      warningIcon,
       div({ style: { flex: 1 } }, [
-        cloningRequesterPaysWorkspace
+        !haveAzureRegionNames
           ? span(['Copying data may incur network egress charges. '])
           : span([
               'Copying data from ',
-              strong([getRegionInfo(sourceGCPWorkspaceRegion, sourceLocationType).regionDescription]),
+              strong([getRegionLabel(sourceAzureWorkspaceRegion)]),
               ' to ',
-              strong([getRegionInfo(selectedGcpBucketLocation, destLocationType).regionDescription]),
+              strong([getRegionLabel(selectedAzureBillingProjectRegion)]),
+              ' may incur network egress charges. ',
+            ]),
+        'If possible, select a billing project in the same region as the original workspace to prevent charges.',
+      ]),
+    ]);
+  }
+  if (shouldShowGcpRegionWarning) {
+    return div({ style: { ...warningStyle } }, [
+      warningIcon,
+      div({ style: { flex: 1 } }, [
+        requesterPaysError // Have to show a generic warning as we don't have the source region
+          ? span(['Copying data may incur network egress charges. '])
+          : span([
+              'Copying data from ',
+              strong([
+                getRegionInfo(sourceGCPWorkspaceRegion, getLocationType(sourceGCPWorkspaceRegion)).regionDescription,
+              ]),
+              ' to ',
+              strong([
+                getRegionInfo(selectedGcpBucketLocation, getLocationType(selectedGcpBucketLocation)).regionDescription,
+              ]),
               ' may incur network egress charges. ',
             ]),
         'To prevent charges, the new bucket location needs to stay in the same region as the original one. ',
@@ -86,25 +110,7 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
       ]),
     ]);
   }
-  if (isAzureWorkspace && shouldShowAzureRegionWarning) {
-    return div({ style: { ...warningStyle } }, [
-      icon('warning-standard', {
-        size: 24,
-        style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
-      }),
-      div({ style: { flex: 1 } }, [
-        !haveAzureRegionNames
-          ? span(['Copying data may incur network egress charges. '])
-          : span([
-              'Copying data from ',
-              strong([getRegionLabel(sourceAzureWorkspaceRegion)]),
-              ' to ',
-              strong([getRegionLabel(selectedBillingProjectRegion)]),
-              ' may incur network egress charges. ',
-            ]),
-        'If possible, select a billing project in the same region as the original workspace to prevent charges.',
-      ]),
-    ]);
-  }
+
+  // No warning to display
   return null;
 };
