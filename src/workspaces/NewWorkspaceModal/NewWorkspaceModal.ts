@@ -552,12 +552,10 @@ const NewWorkspaceModal = withDisplayName(
                     !!namespace &&
                       !!cloneWorkspace &&
                       h(CloneEgressWarning, {
-                        isAzureWorkspace: isAzureWorkspace(cloneWorkspace),
+                        sourceWorkspace: cloneWorkspace,
                         sourceAzureWorkspaceRegion,
-                        selectedAzureBillingProjectRegion: isAzureBillingProject(selectedBillingProject)
-                          ? selectedBillingProject.region
-                          : undefined,
-                        requesterPaysError,
+                        selectedBillingProject,
+                        requesterPaysWorkspace: requesterPaysError,
                         selectedGcpBucketLocation: bucketLocation,
                         sourceGCPWorkspaceRegion,
                       }),

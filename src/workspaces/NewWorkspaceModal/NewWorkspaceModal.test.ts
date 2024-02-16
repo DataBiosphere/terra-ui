@@ -1727,6 +1727,49 @@ describe('NewWorkspaceModal', () => {
     screen.getByText(nonRegionSpecificEgressWarning);
   });
 
+  it('does not show an egress message if the user is cloning within the same billing project', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const cloneWorkspace = _.cloneDeep(defaultAzureWorkspace);
+    cloneWorkspace.workspace.namespace = azureBillingProject.projectName;
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: {
+            listProjects: async () => [azureBillingProject],
+          },
+          ...nonBillingAjax,
+        } as AjaxContract)
+    );
+
+    // The container error does not matter -- we will not show an egress message
+    // because the selected billing project matches the namespace of the clone workspace.
+    const errorAzureStorageMock: Partial<AzureStorageContract> = {
+      containerInfo: () => Promise.reject(new Response('Mock container error', { status: 500 })),
+    };
+    asMockedFn(AzureStorage).mockImplementation(() => errorAzureStorageMock as AzureStorageContract);
+
+    // Don't show expected message about storage container not being available
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace,
+          onDismiss: () => {},
+          onSuccess: () => {},
+        })
+      );
+    });
+
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    await projectSelect.selectOption(/Azure Billing Project/);
+
+    expect(screen.queryByText(egressWarning)).toBeNull();
+  });
+
   it('emits a metrics event when cloning an Azure workspace', async () => {
     // Arrange
     const user = userEvent.setup();

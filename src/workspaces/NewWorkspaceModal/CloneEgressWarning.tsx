@@ -2,9 +2,11 @@ import { icon, Link } from '@terra-ui-packages/components';
 import { CSSProperties, ReactNode } from 'react';
 import * as React from 'react';
 import { getLocationType, getRegionInfo } from 'src/components/region-common';
+import { BillingProject } from 'src/libs/ajax/Billing';
 import { getRegionLabel } from 'src/libs/azure-utils';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
+import { BaseWorkspace, isAzureWorkspace } from 'src/workspaces/utils';
 
 const warningStyle: CSSProperties = {
   border: `1px solid ${colors.warning(0.8)}`,
@@ -19,38 +21,47 @@ const warningStyle: CSSProperties = {
 };
 
 export interface CloneEgressWarningProps {
-  isAzureWorkspace: boolean;
+  sourceWorkspace: BaseWorkspace;
   sourceAzureWorkspaceRegion: string; // default value is ''
-  selectedAzureBillingProjectRegion: string | undefined;
+  selectedBillingProject: BillingProject;
   sourceGCPWorkspaceRegion: string; // default is a defaultLocation ('US-CENTRAL1')
   selectedGcpBucketLocation: string | undefined;
-  requesterPaysError: boolean;
+  requesterPaysWorkspace: boolean;
 }
 
 export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode => {
-  const isAzureWorkspace = props.isAzureWorkspace;
+  const sourceWorkspace = props.sourceWorkspace;
   const sourceAzureWorkspaceRegion = props.sourceAzureWorkspaceRegion;
-  const selectedAzureBillingProjectRegion = props.selectedAzureBillingProjectRegion;
-  const requesterPaysError = props.requesterPaysError;
+  const selectedBillingProject = props.selectedBillingProject;
+  const requesterPaysWorkspace = props.requesterPaysWorkspace;
   const selectedGcpBucketLocation = props.selectedGcpBucketLocation;
   const sourceGCPWorkspaceRegion = props.sourceGCPWorkspaceRegion;
 
+  const azureBillingProjectRegion = 'region' in selectedBillingProject ? selectedBillingProject.region : '';
+
+  const haveAzureRegionNames = azureBillingProjectRegion !== '' && sourceAzureWorkspaceRegion !== '';
+
   const shouldShowAzureRegionWarning =
-    isAzureWorkspace &&
-    (sourceAzureWorkspaceRegion === '' ||
-      !selectedAzureBillingProjectRegion ||
-      selectedAzureBillingProjectRegion !== sourceAzureWorkspaceRegion);
+    isAzureWorkspace(sourceWorkspace) &&
+    // We are cloning to a different billing project AND
+    selectedBillingProject.projectName !== sourceWorkspace.workspace.namespace &&
+    // We don't have region information for either the source workspace (can be a transient state)
+    // or the destination billing project (not backfilled yet) OR
+    (!haveAzureRegionNames ||
+      // regions are different
+      azureBillingProjectRegion !== sourceAzureWorkspaceRegion);
 
   const shouldShowGcpRegionWarning =
-    !isAzureWorkspace &&
-    (requesterPaysError || (!!selectedGcpBucketLocation && selectedGcpBucketLocation !== sourceGCPWorkspaceRegion));
+    !isAzureWorkspace(sourceWorkspace) &&
+    // If requester pays workspace, don't know the source region
+    (requesterPaysWorkspace || (!!selectedGcpBucketLocation && selectedGcpBucketLocation !== sourceGCPWorkspaceRegion));
 
   const warningIcon = icon('warning-standard', {
     size: 24,
     style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
   });
 
-  const genericEgressMessage = <span>Copying data may incur network egress charges. </span>;
+  const genericEgressMessage = <span>Copying data may incur network egress charges.</span>;
   const renderRegionSpecificMessage = (sourceRegion: string, destinationRegion: string): ReactNode => {
     return (
       <span>
@@ -61,11 +72,6 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
   };
 
   if (shouldShowAzureRegionWarning) {
-    const haveAzureRegionNames =
-      !!selectedAzureBillingProjectRegion &&
-      selectedAzureBillingProjectRegion !== '' &&
-      sourceAzureWorkspaceRegion !== '';
-
     return (
       <div style={warningStyle}>
         {warningIcon}
@@ -74,7 +80,7 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
             ? genericEgressMessage
             : renderRegionSpecificMessage(
                 getRegionLabel(sourceAzureWorkspaceRegion),
-                getRegionLabel(selectedAzureBillingProjectRegion)
+                getRegionLabel(azureBillingProjectRegion)
               )}
           <span> </span>
           If possible, select a billing project in the same region as the original workspace to prevent charges.
@@ -87,7 +93,7 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
       <div style={warningStyle}>
         {warningIcon}
         <div style={{ flex: 1 }}>
-          {requesterPaysError
+          {requesterPaysWorkspace
             ? genericEgressMessage
             : renderRegionSpecificMessage(
                 getRegionInfo(sourceGCPWorkspaceRegion, getLocationType(sourceGCPWorkspaceRegion)).regionDescription,
