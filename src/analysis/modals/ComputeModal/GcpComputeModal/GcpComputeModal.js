@@ -773,7 +773,7 @@ export const GcpComputeModalBase = ({
 
   useEffect(() => {
     // Can't pass an async function into useEffect so we define the function in the body and then call it
-    const doUseOnMount = _.flow(
+    const doUseCurrentRuntime = _.flow(
       withErrorReporting('Error loading cloud environment'),
       Utils.withBusyState(setLoading)
     )(async () => {
@@ -834,7 +834,7 @@ export const GcpComputeModalBase = ({
       });
     });
 
-    doUseOnMount();
+    doUseCurrentRuntime();
   }, [currentRuntime, currentDisk, location]);
 
   // Render functions -- begin

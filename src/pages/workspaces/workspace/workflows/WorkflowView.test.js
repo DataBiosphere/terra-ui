@@ -350,5 +350,5 @@ describe('Workflow View (GCP)', () => {
       name: 'echo_to_file-configured',
       namespace: 'gatk',
     });
-  }, 10000);
+  });
 });

@@ -328,7 +328,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
               },
               hover: !currentApp ? styles.hover : undefined,
               disabled: !!currentApp || loading,
-              tooltip: currentApp ? appDisabledMessages[appTool.label] : loading ? 'Loading' : '',
+              tooltip: (currentApp && appDisabledMessages[appTool.label]) || (loading && 'Loading') || '',
               key: appTool.label,
             },
             [toolImages[appTool.label]]
