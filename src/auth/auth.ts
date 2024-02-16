@@ -375,21 +375,17 @@ const isNowSignedIn = (oldState: AuthState, state: AuthState) => {
   return oldState.signInStatus !== 'authenticated' && state.signInStatus === 'authenticated';
 };
 
-export const isUserLoaded = (state: AuthState) => {
-  return state.signInStatus === 'userLoaded';
-};
-
-export const hasAcceptedTermsOfService = (state: AuthState): boolean => {
-  return state.termsOfService.permitsSystemUsage ?? false;
+export const isUserInitialized = (state: AuthState) => {
+  return state.signInStatus !== 'uninitialized';
 };
 
 export const ensureAuthSettled = () => {
-  if (isUserLoaded(authStore.get())) {
+  if (isUserInitialized(authStore.get())) {
     return;
   }
   return new Promise((resolve) => {
     const subscription = authStore.subscribe((state) => {
-      if (isUserLoaded(state)) {
+      if (isUserInitialized(state)) {
         resolve(undefined);
         subscription.unsubscribe();
       }
