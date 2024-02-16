@@ -1550,7 +1550,7 @@ describe('NewWorkspaceModal', () => {
       // Have to use textContent to work around bolded sections of text.
       const warning = screen.getByText('Copying data from', { exact: false });
       expect(warning.textContent).toEqual(
-        'Copying data from us-central1 (Iowa) to northamerica-northeast1 (Montreal) may incur network egress charges. '
+        'Copying data from us-central1 (Iowa) to northamerica-northeast1 (Montreal) may incur network egress charges.'
       );
     });
 
@@ -1674,7 +1674,7 @@ describe('NewWorkspaceModal', () => {
             expect(warning.textContent).toEqual(
               `Copying data from ${getRegionLabel(workspaceRegion)} to ${getRegionLabel(
                 billingProjectRegion
-              )} may incur network egress charges. `
+              )} may incur network egress charges.`
             );
           } else {
             screen.getByText(nonRegionSpecificEgressWarning);
