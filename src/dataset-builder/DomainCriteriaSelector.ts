@@ -1,12 +1,7 @@
 import _ from 'lodash/fp';
-import { useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import {
-  DomainCriteria,
-  GetConceptsHierarchyResponse,
-  GetConceptsResponse,
-} from 'src/dataset-builder/DatasetBuilderUtils';
+import { DomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
@@ -64,34 +59,26 @@ export const saveSelected =
   };
 
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
-  const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
-  const [hierarchyConcepts, loadHierarchyConcepts] = useLoadedData<GetConceptsHierarchyResponse>();
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
-  const [hierarchy, setHierarchy] = useState(new Map<Concept, Concept[]>());
-  const [isHierarchyLoaded, setIsHierarchyLoaded] = useState(false);
+  const [hierarchy, setHierarchy] = useLoadedData<Map<Concept, Concept[]>>();
   useOnMount(() => {
     const openedConcept = state.openedConcept;
     if (openedConcept) {
-      void loadHierarchyConcepts(() => DataRepo().dataset(datasetId).getConceptsHierarchy(openedConcept));
+      void setHierarchy(async () => {
+        return (await DataRepo().dataset(datasetId).getConceptsHierarchy(openedConcept)).result;
+      });
     } else {
       // get the children of this concept
-      void loadRootConcepts(() => DataRepo().dataset(datasetId).getConcepts(state.domainOption.root));
+      void setHierarchy(async () => {
+        const results = (await DataRepo().dataset(datasetId).getConcepts(state.domainOption.root)).result;
+        return new Map<Concept, Concept[]>([[state.domainOption.root, results]]);
+      });
     }
   });
 
-  useEffect(() => {
-    if (rootConcepts.status === 'Ready') {
-      setHierarchy(new Map<Concept, Concept[]>([[state.domainOption.root, rootConcepts.state.result]]));
-      setIsHierarchyLoaded(true);
-    } else if (hierarchyConcepts.status === 'Ready') {
-      setHierarchy(hierarchyConcepts.state.result);
-      setIsHierarchyLoaded(true);
-    }
-  }, [rootConcepts, hierarchyConcepts, state.domainOption]);
-
-  return isHierarchyLoaded
+  return hierarchy.status === 'Ready'
     ? h(ConceptSelector, {
-        initialHierarchy: hierarchy,
+        initialHierarchy: hierarchy.state,
         domainOptionRoot: state.domainOption.root,
         title: state.domainOption.category,
         initialCart: state.cart,
@@ -102,7 +89,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
         onCommit: saveSelected(state, getNextCriteriaIndex, onStateChange),
         actionText: 'Add to group',
         datasetId,
-        openedConceptName: state.openedConcept?.name,
+        openedConcept: state.openedConcept,
       })
     : spinnerOverlay;
 };
