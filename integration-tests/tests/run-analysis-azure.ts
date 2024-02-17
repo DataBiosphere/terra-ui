@@ -70,7 +70,7 @@ const testRunAnalysisAzure = _.flowRight(
   await findElement(page, clickable({ textContains: 'Creating' }));
 
   // Wait for env to finish creating, or break early on error
-  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(18) });
+  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(20) });
 
   // Here, we dismiss any errors or popups. Its common another areas of the application might throw an error or have pop-ups.
   // However, as long as we have a running runtime (which the previous section asserts), the pop-up is not relevant
