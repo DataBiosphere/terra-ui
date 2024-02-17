@@ -62,6 +62,7 @@ export const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<T, T
   };
 
   // hierarchyMap assumes that the root is the first map entry
+  // using depth of -1 because we don't want to show the root
   return _.tail(traverseHierarchy(hierarchyMap.keys().next().value, -1, []));
 };
 
