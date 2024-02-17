@@ -149,7 +149,7 @@ export interface GetConceptsResponse {
 }
 
 export interface GetConceptsHierarchyResponse {
-  result: Map<number, Concept[]>;
+  result: Map<Concept, Concept[]>;
 }
 
 export interface SearchConceptsResponse {
