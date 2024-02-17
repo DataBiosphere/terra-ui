@@ -24,13 +24,6 @@ export type SnapshotBuilderConcept = {
   hasChildren: boolean;
 };
 
-export type SnapshotBuilderConceptNode = {
-  id: number;
-  concept: SnapshotBuilderConcept;
-  children: number[];
-  parent?: number;
-};
-
 export type SnapshotBuilderDomainOption = {
   id: number;
   category: string;

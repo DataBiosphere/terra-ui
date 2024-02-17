@@ -1,9 +1,6 @@
 import _ from 'lodash/fp';
-import {
-  DatasetModel,
-  SnapshotBuilderConcept as Concept,
-  SnapshotBuilderConceptNode as ConceptNode,
-} from 'src/libs/ajax/DataRepo';
+import { SnapshotBuilderConceptNode as ConceptNode } from 'src/dataset-builder/dataset-builder-types';
+import { DatasetModel, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 
 export const dummyDatasetModel = (): DatasetModel => ({
   name: 'AnalytiXIN',
