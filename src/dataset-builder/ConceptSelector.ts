@@ -18,7 +18,7 @@ type ConceptSelectorProps = {
   readonly datasetId: string;
   readonly initialCart: Concept[];
   readonly initialHierarchy: Map<Concept, Concept[]>;
-  readonly openedConceptName?: string;
+  readonly openedConcept?: Concept;
 };
 
 export const tableHeaderStyle: CSSProperties = {
@@ -32,7 +32,7 @@ export const tableHeaderStyle: CSSProperties = {
 };
 
 export const ConceptSelector = (props: ConceptSelectorProps) => {
-  const { title, onCancel, onCommit, actionText, datasetId, initialCart, initialHierarchy, openedConceptName } = props;
+  const { title, onCancel, onCommit, actionText, datasetId, initialCart, initialHierarchy, openedConcept } = props;
 
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
@@ -70,9 +70,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
                   icon(iconName, { size: 16 }),
                 ]),
                 div({ style: { marginLeft: 5 } }, [
-                  openedConceptName === concept.name
-                    ? div({ style: { fontWeight: 600 } }, [concept.name])
-                    : concept.name,
+                  openedConcept?.id === concept.id ? div({ style: { fontWeight: 600 } }, [concept.name]) : concept.name,
                 ]),
               ]);
             },
