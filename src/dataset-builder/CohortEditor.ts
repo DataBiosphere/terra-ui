@@ -277,7 +277,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
       onChange: async (criteriaOption) => {
         if (criteriaOption !== null) {
           if (criteriaOption.value.kind === 'domain') {
-            onStateChange(domainCriteriaSearchState.new(cohort, criteriaGroup, criteriaOption.value, [], ''));
+            onStateChange(domainCriteriaSearchState.new(cohort, criteriaGroup, criteriaOption.value));
           } else {
             const criteriaIndex = getNextCriteriaIndex();
             updateCohort(
