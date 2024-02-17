@@ -230,5 +230,5 @@ export const getHierarchyMap = (openedConceptID: number): Map<Concept, Concept[]
     // we chose the domain root concept
     hierarchyMap.set(openedConceptNode.concept, []);
   }
-  return hierarchyMap;
+  return new Map<Concept, Concept[]>(Array.from(hierarchyMap.entries()).reverse());
 };
