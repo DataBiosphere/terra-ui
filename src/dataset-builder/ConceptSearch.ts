@@ -135,7 +135,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                     Link,
                     {
                       'aria-label': `open hierarchy ${concept.id}`,
-                      onClick: () => onOpenHierarchy(domainOption, cart, search, concept),
+                      onClick: () => onOpenHierarchy(domainOption, cart, searchText, concept),
                     },
                     [icon('view-list')]
                   ),
