@@ -14,7 +14,7 @@ import {
   ProgramDataRangeOption,
   SearchConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { dummyConcepts, getHierarchyMap } from 'src/dataset-builder/TestConstants';
+import { getHierarchyMap } from 'src/dataset-builder/TestConstants';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
 export type SnapshotBuilderConcept = {
@@ -247,7 +247,6 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
         return Promise.resolve({
           result: getHierarchyMap(_concept.id),
         });
-      },
       },
       queryDatasetColumnStatisticsById: (programDataOption) =>
         handleProgramDataOptions(datasetId, programDataOption, signal),
