@@ -8,11 +8,13 @@ import {
   DatasetAccessRequestApi,
   DatasetParticipantCountRequest,
   DatasetParticipantCountResponse,
+  GetConceptsHierarchyResponse,
   GetConceptsResponse,
   ProgramDataListOption,
   ProgramDataRangeOption,
   SearchConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
+import { dummyConcepts, getHierarchyMap } from 'src/dataset-builder/TestConstants';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
 export type SnapshotBuilderConcept = {
@@ -163,6 +165,7 @@ export interface DataRepoContract {
     createSnapshotRequest(request: DatasetAccessRequest): Promise<DatasetAccessRequestApi>;
     getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
+    getConceptsHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptsHierarchyResponse>;
     // Search returns a list of matching concepts with a domain sorted by participant count. The result is truncated to N concepts.
     searchConcepts(domain: SnapshotBuilderConcept, text?: string): Promise<SearchConceptsResponse>;
   };
@@ -238,6 +241,13 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
           url += `?searchText=${encodeURIComponent(searchText)}`;
         }
         return callDataRepo(url);
+      },
+      getConceptsHierarchy: async (_concept: SnapshotBuilderConcept) => {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return Promise.resolve({
+          result: getHierarchyMap(_concept.id),
+        });
+      },
       },
       queryDatasetColumnStatisticsById: (programDataOption) =>
         handleProgramDataOptions(datasetId, programDataOption, signal),

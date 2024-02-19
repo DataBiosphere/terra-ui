@@ -85,6 +85,7 @@ export interface ContextBarProps {
   refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
   storageDetails: StorageDetails;
   refreshApps: (maybeStale?: boolean) => Promise<void>;
+  isLoadingCloudEnvironments: boolean;
   workspace: BaseWorkspace;
   persistentDisks: PersistentDisk[];
 }
@@ -96,6 +97,7 @@ export const ContextBar = ({
   refreshRuntimes,
   storageDetails,
   refreshApps,
+  isLoadingCloudEnvironments,
   workspace,
   persistentDisks,
 }: ContextBarProps) => {
@@ -248,6 +250,7 @@ export const ContextBar = ({
       appDataDisks,
       refreshRuntimes,
       refreshApps,
+      isLoadingCloudEnvironments,
       workspace,
       canCompute,
       persistentDisks,

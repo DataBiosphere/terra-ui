@@ -17,6 +17,7 @@ const {
   input,
   noSpinnersAfter,
   waitForNoModal,
+  waitForNoSpinners,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
@@ -48,12 +49,14 @@ const testRunRStudioFn = _.flowRight(
     action: () => findText(page, 'RStudio Cloud Environment'),
     timeout: Millis.ofMinute,
   });
-  await click(page, clickable({ textContains: 'Close', isEnabled: true }), { timeout: Millis.ofMinute });
+  await click(page, clickable({ textContains: 'Close' }), { timeout: Millis.ofMinute });
   await waitForNoModal(page);
 
   // Navigate to analysis launcher
   await click(page, `//*[@title="${rFileName}.Rmd"]`);
   await dismissInfoNotifications(page);
+  await findText(page, 'PREVIEW (READ-ONLY)');
+  await waitForNoSpinners(page);
 
   // Attempt to open analysis; create a cloud env
   await noSpinnersAfter(page, {

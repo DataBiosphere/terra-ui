@@ -101,11 +101,7 @@ describe('ConceptSearch', () => {
     await user.click(await screen.findByLabelText(`add ${concept.id}`));
     await user.click(screen.getByLabelText(`open hierarchy ${concept.id}`));
     // Assert
-    expect(onOpenHierarchy).toHaveBeenCalledWith(
-      { id: concept.id, category: domainOption.category, root: concept },
-      [concept],
-      ''
-    );
+    expect(onOpenHierarchy).toHaveBeenCalledWith(domainOption, [concept], '', concept);
   });
 
   it('supports add to cart', async () => {

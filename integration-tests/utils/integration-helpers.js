@@ -120,7 +120,7 @@ const makeGcpWorkspace = async (options) => {
 };
 
 const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceName, retries = 5 }) => {
-  gotoPage(page, `${testUrl}#workspaces/${billingProject}/${workspaceName}`);
+  await gotoPage(page, `${testUrl}#workspaces/${billingProject}/${workspaceName}`);
   const isDeleted = await retryUntil({
     getResult: async () => {
       await dismissAllNotifications(page);
@@ -542,6 +542,7 @@ module.exports = {
   deleteRuntimesV2,
   deleteWorkspaceV2,
   enableDataCatalog,
+  getWorkspaceId,
   gotoAnalysisTab,
   navigateToDataCatalog,
   testWorkspaceName: getTestWorkspaceName,
