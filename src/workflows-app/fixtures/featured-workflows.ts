@@ -26,6 +26,13 @@ export const featuredWorkflowsData = [
     last_run: {
       previously_run: false,
     },
+    source_details: {
+      private: false,
+      repository: 'warp',
+      organization: 'broadinstitute',
+      path: 'Optimus_v5.8.0/pipelines/skylab/optimus/Optimus.wdl',
+      method_id: undefined,
+    },
   },
   {
     name: 'MultiSampleSmartSeq2SingleNucleus',
@@ -41,6 +48,13 @@ export const featuredWorkflowsData = [
     last_run: {
       previously_run: false,
     },
+    source_details: {
+      private: false,
+      repository: 'warp',
+      organization: 'broadinstitute',
+      path: 'MultiSampleSmartSeq2SingleNucleus_v1.2.24/pipelines/skylab/smartseq2_single_nucleus_multisample/MultiSampleSmartSeq2SingleNucleus.wdl',
+      method_id: undefined,
+    },
   },
   {
     name: 'scATAC',
@@ -54,6 +68,13 @@ export const featuredWorkflowsData = [
     ],
     last_run: {
       previously_run: false,
+    },
+    source_details: {
+      private: false,
+      repository: 'warp',
+      organization: 'broadinstitute',
+      path: 'scATAC_v1.3.1/pipelines/skylab/scATAC/scATAC.wdl',
+      method_id: undefined,
     },
   },
   {
@@ -69,6 +90,13 @@ export const featuredWorkflowsData = [
     last_run: {
       previously_run: false,
     },
+    source_details: {
+      private: false,
+      repository: 'warp',
+      organization: 'broadinstitute',
+      path: 'WholeGenomeGermlineSingleSample_v3.1.6/pipelines/broad/dna_seq/germline/single_sample/wgs/WholeGenomeGermlineSingleSample.wdl',
+      method_id: undefined,
+    },
   },
   {
     name: 'ExomeGermlineSingleSample',
@@ -82,6 +110,13 @@ export const featuredWorkflowsData = [
     ],
     last_run: {
       previously_run: false,
+    },
+    source_details: {
+      private: false,
+      repository: 'warp',
+      organization: 'broadinstitute',
+      path: 'ExomeGermlineSingleSample_v3.0.0/pipelines/broad/dna_seq/germline/single_sample/exome/ExomeGermlineSingleSample.wdl',
+      method_id: undefined,
     },
   },
   {
@@ -102,6 +137,13 @@ export const featuredWorkflowsData = [
         ],
         last_run: {
           previously_run: false,
+        },
+        source_details: {
+          private: false,
+          repository: 'viral-pipelines',
+          organization: 'broadinstitute',
+          path: 'v2.1.33.16/pipes/WDL/workflows/fetch_sra_to_bam.wdl',
+          method_id: 'e1a9d46c-7578-4c65-bc8c-976667cbd4e0',
         },
         template: {
           method_input_mappings: [
@@ -292,6 +334,13 @@ export const featuredWorkflowsData = [
         ],
         last_run: {
           previously_run: false,
+        },
+        source_details: {
+          private: false,
+          repository: 'viral-pipelines',
+          organization: 'broadinstitute',
+          path: 'v2.1.33.16/pipes/WDL/workflows/assemble_refbased.wdl',
+          method_id: undefined,
         },
         template: {
           method_input_mappings: [
@@ -1716,6 +1765,13 @@ export const featuredWorkflowsData = [
         ],
         last_run: {
           previously_run: false,
+        },
+        source_details: {
+          private: false,
+          repository: 'viral-pipelines',
+          organization: 'broadinstitute',
+          path: 'v2.1.33.16/pipes/WDL/workflows/sarscov2_nextstrain.wdl',
+          method_id: undefined,
         },
         template: {
           method_input_mappings: [
