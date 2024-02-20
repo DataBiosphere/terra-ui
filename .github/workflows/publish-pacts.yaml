@@ -14,6 +14,15 @@ jobs:
       pact-b64: ${{ steps.encode.outputs.pact-b64 }}
       new-tag: ${{ steps.tag.outputs.new_tag }}
     steps:
+      - name: Bump the tag to a new version
+        uses: databiosphere/github-actions/actions/bumper@bumper-0.3.0
+        id: tag
+        env:
+          DEFAULT_BUMP: patch
+          GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+          RELEASE_BRANCHES: dev
+          WITH_V: true
+          DRY_RUN: true
       - uses: actions/checkout@v3
       - id: extract-branch
         run: |
@@ -57,15 +66,6 @@ jobs:
       contents: 'read'
       id-token: 'write'
     steps:
-      - name: Bump the tag to a new version
-        uses: databiosphere/github-actions/actions/bumper@bumper-0.3.0
-        id: tag
-        env:
-          DEFAULT_BUMP: patch
-          GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
-          RELEASE_BRANCHES: dev
-          WITH_V: true
-          DRY_RUN: true
       - name: Publish Pact contracts
         uses: broadinstitute/workflow-dispatch@v4.0.0
         with:
