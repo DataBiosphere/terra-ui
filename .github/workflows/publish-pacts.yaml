@@ -73,4 +73,11 @@ jobs:
           repo: broadinstitute/terra-github-workflows
           ref: refs/heads/main
           token: ${{ secrets.BROADBOT_TOKEN}} # github token for access to kick off a job in the private repo
-          inputs: '{ "pact-b64": "${{ needs.setup-and-test.outputs.pact-b64 }}", "repo-owner": "DataBiosphere", "repo-name": "terra-ui", "repo-branch": "dev" }'
+          inputs: '{
+            "run-name": "${{ env.PUBLISH_CONTRACTS_RUN_NAME }}",
+            "pact-b64": "${{ needs.setup-and-test.outputs.pact-b64 }}",
+            "repo-owner": "${{ github.repository_owner }}",
+            "repo-name": "${{ github.event.repository.name }}",
+            "repo-branch": "${{ needs.setup-and-test.outputs.repo-branch }}",
+            "release-tag": "${{ needs.setup-and-test.outputs.new-tag }}"
+          }'
