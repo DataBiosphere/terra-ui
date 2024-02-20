@@ -54,6 +54,10 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
     },
     [
       div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
+        // When jsonData is null, we are expecting that an HTTP request is pending
+        // and so will show a loading spinner while it finishes fetching.
+        // When jsonData is undefined, that means that the HTTP request completed but fetched no data,
+        // so we show an empty table.
         jsonData !== null
           ? h(AutoSizer, { disableHeight: true }, [
               ({ width }) =>
