@@ -1,4 +1,5 @@
 import _ from 'lodash/fp';
+import { SnapshotBuilderConceptNode as ConceptNode } from 'src/dataset-builder/dataset-builder-types';
 import { DatasetModel, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 
 export const dummyDatasetModel = (): DatasetModel => ({
@@ -107,19 +108,124 @@ export const dummyConcepts = [
   { id: 106, name: 'Metabolic disease', count: 100, hasChildren: false },
   { id: 107, name: 'Finding by site', count: 100, hasChildren: false },
   { id: 108, name: 'Neurological finding', count: 100, hasChildren: false },
-
   { id: 200, name: 'Procedure', count: 100, hasChildren: true },
   { id: 201, name: 'Procedure', count: 100, hasChildren: true },
   { id: 202, name: 'Surgery', count: 100, hasChildren: false },
   { id: 203, name: 'Heart Surgery', count: 100, hasChildren: false },
   { id: 204, name: 'Cancer Surgery', count: 100, hasChildren: false },
-
   { id: 300, name: 'Observation', count: 100, hasChildren: true },
   { id: 301, name: 'Blood Pressure', count: 100, hasChildren: false },
   { id: 302, name: 'Weight', count: 100, hasChildren: false },
   { id: 303, name: 'Height', count: 100, hasChildren: false },
+  { id: 400, name: 'Carcinoma of lung parenchyma', count: 100, hasChildren: true },
+  { id: 401, name: 'Squamous cell carcinoma of lung', count: 100, hasChildren: true },
+  { id: 402, name: 'Non-small cell lung cancer', count: 100, hasChildren: true },
+  { id: 403, name: 'Epidermal growth factor receptor negative ...', count: 100, hasChildren: false },
+  { id: 404, name: 'Non-small cell lung cancer with mutation in epidermal..', count: 100, hasChildren: true },
+  { id: 405, name: 'Non-small cell cancer of lung biopsy..', count: 100, hasChildren: false },
+  { id: 406, name: 'Non-small cell cancer of lung lymph node..', count: 100, hasChildren: false },
+  { id: 407, name: 'Small cell lung cancer', count: 100, hasChildren: true },
+  { id: 408, name: 'Lung Parenchcyma', count: 100, hasChildren: false },
 ];
 
 export const dummyGetConceptForId = (id: number): Concept => {
   return _.find({ id }, dummyConcepts)!;
+};
+
+export const dummyHierarchy = [
+  {
+    id: 406,
+    concept: dummyGetConceptForId(406),
+    children: [],
+    parent: 404,
+  },
+  {
+    id: 405,
+    concept: dummyGetConceptForId(405),
+    children: [],
+    parent: 404,
+  },
+  {
+    id: 404,
+    concept: dummyGetConceptForId(404),
+    children: [405, 406],
+    parent: 401,
+  },
+  {
+    id: 403,
+    concept: dummyGetConceptForId(403),
+    children: [],
+    parent: 401,
+  },
+  {
+    id: 407,
+    concept: dummyGetConceptForId(407),
+    children: [],
+    parent: 402,
+  },
+  {
+    id: 402,
+    concept: dummyGetConceptForId(402),
+    children: [407],
+    parent: 401,
+  },
+  {
+    id: 401,
+    concept: dummyGetConceptForId(401),
+    children: [402, 403, 404],
+    parent: 400,
+  },
+  {
+    id: 400,
+    concept: dummyGetConceptForId(400),
+    children: [401],
+    parent: 100,
+  },
+  {
+    id: 408,
+    concept: dummyGetConceptForId(408),
+    children: [],
+    parent: 100,
+  },
+  {
+    id: 100,
+    concept: dummyGetConceptForId(100),
+    children: [400, 408],
+  },
+];
+
+export const dummyGetNodeFromHierarchy = (id: number): ConceptNode => {
+  return _.find({ id }, dummyHierarchy)!;
+};
+
+export const getHierarchyMap = (openedConceptID: number): Map<Concept, Concept[]> => {
+  const hierarchyMap = new Map<Concept, Concept[]>();
+  const populateHierarchyMap = (node: ConceptNode) => {
+    if (node.concept.hasChildren) {
+      const children = node.children;
+      const childrenObjects = _.map((childID) => dummyGetConceptForId(childID), children);
+      hierarchyMap.set(node.concept, childrenObjects);
+    }
+    if (node.parent) {
+      populateHierarchyMap(dummyGetNodeFromHierarchy(node.parent));
+    }
+  };
+
+  // get the openedConceptNode
+  const openedConceptNode = dummyGetNodeFromHierarchy(openedConceptID);
+
+  // if the opened concept does not have a node in a hierarchy
+  if (!openedConceptNode) {
+    return hierarchyMap;
+  }
+
+  // if the openedConceptNode has a parent, we want to populate the hierarchy of its parent
+  if (openedConceptNode.parent) {
+    const selectedConceptParent = dummyGetNodeFromHierarchy(openedConceptNode.parent);
+    populateHierarchyMap(selectedConceptParent);
+  } else {
+    // we chose the domain root concept
+    hierarchyMap.set(openedConceptNode.concept, []);
+  }
+  return new Map<Concept, Concept[]>(Array.from(hierarchyMap.entries()).reverse());
 };

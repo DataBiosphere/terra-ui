@@ -21,8 +21,9 @@ type ConceptSearchProps = {
   readonly onCommit: (selected: Concept[]) => void;
   readonly onOpenHierarchy: (
     domainOption: SnapshotBuilderDomainOption,
-    selected: Concept[],
-    searchText: string
+    cart: Concept[],
+    searchText: string,
+    openedConcept?: Concept
   ) => void;
   readonly actionText: string;
   readonly datasetId: string;
@@ -125,12 +126,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                     Link,
                     {
                       'aria-label': `open hierarchy ${concept.id}`,
-                      onClick: () =>
-                        onOpenHierarchy(
-                          { id: concept.id, category: domainOption.category, root: concept },
-                          cart,
-                          search
-                        ),
+                      onClick: () => onOpenHierarchy(domainOption, cart, search, concept),
                     },
                     [icon('view-list')]
                   ),

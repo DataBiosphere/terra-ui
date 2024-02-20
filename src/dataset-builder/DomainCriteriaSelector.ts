@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import { DomainCriteria, GetConceptsResponse } from 'src/dataset-builder/DatasetBuilderUtils';
+import { DomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
@@ -59,20 +59,37 @@ export const saveSelected =
   };
 
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
-  const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
+  const [hierarchy, setHierarchy] = useLoadedData<Map<Concept, Concept[]>>();
   useOnMount(() => {
-    void loadRootConcepts(() => DataRepo().dataset(datasetId).getConcepts(state.domainOption.root));
+    const openedConcept = state.openedConcept;
+    if (openedConcept) {
+      void setHierarchy(async () => {
+        return (await DataRepo().dataset(datasetId).getConceptsHierarchy(openedConcept)).result;
+      });
+    } else {
+      // get the children of this concept
+      void setHierarchy(async () => {
+        const results = (await DataRepo().dataset(datasetId).getConcepts(state.domainOption.root)).result;
+        return new Map<Concept, Concept[]>([[state.domainOption.root, results]]);
+      });
+    }
   });
-  return rootConcepts.status === 'Ready'
+
+  return hierarchy.status === 'Ready'
     ? h(ConceptSelector, {
-        initialRows: rootConcepts.state.result,
+        initialHierarchy: hierarchy.state,
+        domainOptionRoot: state.domainOption.root,
         title: state.domainOption.category,
         initialCart: state.cart,
-        onCancel: () => onStateChange(state.cancelState),
+        onCancel: (cart: Concept[]) =>
+          onStateChange(
+            state.cancelState.mode === 'domain-criteria-search' ? { ...state.cancelState, cart } : state.cancelState
+          ),
         onCommit: saveSelected(state, getNextCriteriaIndex, onStateChange),
         actionText: 'Add to group',
         datasetId,
+        openedConcept: state.openedConcept,
       })
     : spinnerOverlay;
 };
