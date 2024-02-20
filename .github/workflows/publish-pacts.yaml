@@ -18,6 +18,7 @@ jobs:
     outputs:
       pact-b64: ${{ steps.encode.outputs.pact-b64 }}
       new-tag: ${{ steps.tag.outputs.new_tag }}
+      repo-branch: ${{ steps.extract-branch.outputs.repo-branch }}
     steps:
       - uses: actions/checkout@v3
       - id: extract-branch
