@@ -6,7 +6,7 @@ export type OAuth2Provider = {
   key: OAuth2ProviderKey;
   name: string;
   queryParams: {
-    scopes: string[];
+    scopes?: string[];
     redirectUri: string;
   };
   supportsAccessToken: boolean;
@@ -20,10 +20,9 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         key: providerKey,
         name: 'GitHub',
         queryParams: {
-          scopes: ['read:user', 'user:email'],
           redirectUri: `${
             window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin
-          }/ecm-callback`,
+          }/oauth_callback`,
         },
         supportsAccessToken: true,
         supportsIdToken: false,
