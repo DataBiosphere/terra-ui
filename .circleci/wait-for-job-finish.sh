@@ -27,5 +27,5 @@ date
 
 # Something is wrong. Log response for error troubleshooting
 curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM" | jq -r '.'
-echo "ERROR: Exceeded maximum waiting time 7 minutes."
+echo "ERROR: Exceeded maximum waiting time 15 minutes."
 exit 1
