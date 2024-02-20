@@ -2,6 +2,11 @@ name: Publish Pacts
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [ WM-2494_terra-ui-contract-test-updates ]
+    paths-ignore:
+      - 'README.md'
+      - 'integration-tests'
   push:
     branches: [ dev ]
 env:
@@ -14,15 +19,6 @@ jobs:
       pact-b64: ${{ steps.encode.outputs.pact-b64 }}
       new-tag: ${{ steps.tag.outputs.new_tag }}
     steps:
-      - name: Bump the tag to a new version
-        uses: databiosphere/github-actions/actions/bumper@bumper-0.3.0
-        id: tag
-        env:
-          DEFAULT_BUMP: patch
-          GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
-          RELEASE_BRANCHES: dev
-          WITH_V: true
-          DRY_RUN: true
       - uses: actions/checkout@v3
       - id: extract-branch
         run: |
@@ -38,6 +34,17 @@ jobs:
             exit 1
           fi
           echo "repo-branch=${GITHUB_REF/refs\/heads\//""}" >> $GITHUB_OUTPUT
+
+      - name: Bump the tag to a new version
+        uses: databiosphere/github-actions/actions/bumper@bumper-0.3.0
+        id: tag
+        env:
+          DEFAULT_BUMP: patch
+          GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+          RELEASE_BRANCHES: dev
+          WITH_V: true
+          DRY_RUN: true
+
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
