@@ -10,6 +10,10 @@
   "drsHubUrlRoot": "https://drshub.dsde-prod.broadinstitute.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts",
   "firecloudUrlRoot": "https://portal.firecloud.org",
+  "externalCreds": {
+    "urlRoot": "https://externalcreds.dsde-dev.broadinstitute.org",
+    "providers": []
+  },
   "isProd": true,
   "jobManagerUrlRoot": "https://job-manager.dsde-prod.broadinstitute.org/jobs",
   "leoUrlRoot": "https://notebooks.firecloud.org",

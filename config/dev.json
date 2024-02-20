@@ -9,7 +9,10 @@
   "devUrlRoot": "https://bvdp-saturn-dev.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",
   "drsHubUrlRoot": "https://drshub.dsde-dev.broadinstitute.org",
-  "externalCredsUrlRoot": "https://externalcreds.dsde-dev.broadinstitute.org",
+  "externalCreds": {
+    "urlRoot": "https://externalcreds.dsde-dev.broadinstitute.org",
+    "providers": ["ras", "github"]
+  },
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-dev",
   "firecloudUrlRoot": "https://firecloud.dsde-dev.broadinstitute.org",
   "isProd": false,

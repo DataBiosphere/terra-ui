@@ -24,8 +24,9 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps) => {
         ),
         allProviders
       )}
-      {getConfig().externalCredsUrlRoot && <OAuth2Link queryParams={queryParams} provider={oauth2Provider('ras')} />}
-      <OAuth2Link queryParams={queryParams} provider={oauth2Provider('github')} />
+      {getConfig().externalCreds.providers.map((providerKey) => (
+        <OAuth2Link queryParams={queryParams} provider={oauth2Provider(providerKey)} />
+      ))}
     </PageBox>
   );
 };
