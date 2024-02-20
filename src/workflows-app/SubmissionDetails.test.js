@@ -849,26 +849,20 @@ describe('Submission Details page', () => {
       );
     });
 
-    const executionLogsButtons = screen.getAllByRole('button', { name: 'Logs' });
+    const executionLogButtons = screen.getAllByRole('button', { name: 'Log' });
 
-    for (const executionLogsButton of executionLogsButtons) {
+    for (const executionLogButton of executionLogButtons) {
       // Act
-      await user.click(executionLogsButton);
+      await user.click(executionLogButton);
 
       // Assert
       screen.getByRole('dialog', { name: 'Workflow Execution Log' });
       screen.getByText('File:');
       screen.getByText('workflow.log');
-      screen.findByRole('link', { name: 'Download log' });
+      await screen.findByRole('link', { name: 'Download log' });
       screen.getByRole('button', { name: 'Workflow Execution Log' });
-      screen.findByText('this is the text of a mock file');
+      screen.getByText('this is the text of a mock file');
     }
-
-    const closeButton = screen.getByRole('button', {
-      name: 'Close modal',
-    });
-
-    await user.click(closeButton);
   });
 
   it('should open the task data modal when Inputs button is clicked', async () => {

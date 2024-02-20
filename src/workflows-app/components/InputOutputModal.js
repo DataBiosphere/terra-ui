@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Link } from 'src/components/common';
-import { icon } from 'src/components/icons';
+import { centeredSpinner, icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import { FlexTable, HeaderCell, tableHeight } from 'src/components/table';
 import { getConfig } from 'src/libs/config';
@@ -54,57 +54,59 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
     },
     [
       div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
-        h(AutoSizer, { disableHeight: true }, [
-          ({ width }) =>
-            h(
-              FlexTable,
-              {
-                'aria-label': 'inputs outputs table',
-                height: tableHeight({ actualRows: dataArray.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
-                width,
-                rowCount: dataArray.length,
-                noContentMessage: `No ${title}`,
-                columns: [
+        jsonData
+          ? h(AutoSizer, { disableHeight: true }, [
+              ({ width }) =>
+                h(
+                  FlexTable,
                   {
-                    size: { basis: 100, grow: 30 },
-                    field: 'key',
-                    headerRenderer: () => h(HeaderCell, ['Key']),
-                    cellRenderer: ({ rowIndex }) => {
-                      return div({}, dataArray[rowIndex][0]);
-                    },
-                  },
-                  {
-                    size: { basis: 100, grow: 70 },
-                    field: 'value',
-                    headerRenderer: () => h(HeaderCell, ['Value']),
-                    cellRenderer: ({ rowIndex }) => {
-                      let output = [];
-                      const targetData = dataArray[rowIndex][1];
-                      if (Array.isArray(targetData)) {
-                        output = targetData.map((item, index) => {
-                          const key = `output-${rowIndex}-item-${index}`;
-                          return isAzureUri(item) ? renderBlobLink(item, key) : span({ key }, item);
-                        });
-                      } else {
-                        const key = `output-${rowIndex}-item`;
-                        output.push(isAzureUri(targetData) ? renderBlobLink(targetData, key) : div({ key }, targetData));
-                      }
-                      return div(
-                        {
-                          style: {
-                            display: 'flex',
-                            flexDirection: 'column',
-                          },
+                    'aria-label': 'inputs outputs table',
+                    height: tableHeight({ actualRows: dataArray.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
+                    width,
+                    rowCount: dataArray.length,
+                    noContentMessage: `No ${title}`,
+                    columns: [
+                      {
+                        size: { basis: 100, grow: 30 },
+                        field: 'key',
+                        headerRenderer: () => h(HeaderCell, ['Key']),
+                        cellRenderer: ({ rowIndex }) => {
+                          return div({}, dataArray[rowIndex][0]);
                         },
-                        [output]
-                      );
-                    },
+                      },
+                      {
+                        size: { basis: 100, grow: 70 },
+                        field: 'value',
+                        headerRenderer: () => h(HeaderCell, ['Value']),
+                        cellRenderer: ({ rowIndex }) => {
+                          let output = [];
+                          const targetData = dataArray[rowIndex][1];
+                          if (Array.isArray(targetData)) {
+                            output = targetData.map((item, index) => {
+                              const key = `output-${rowIndex}-item-${index}`;
+                              return isAzureUri(item) ? renderBlobLink(item, key) : span({ key }, item);
+                            });
+                          } else {
+                            const key = `output-${rowIndex}-item`;
+                            output.push(isAzureUri(targetData) ? renderBlobLink(targetData, key) : div({ key }, targetData));
+                          }
+                          return div(
+                            {
+                              style: {
+                                display: 'flex',
+                                flexDirection: 'column',
+                              },
+                            },
+                            [output]
+                          );
+                        },
+                      },
+                    ],
                   },
-                ],
-              },
-              []
-            ),
-        ]),
+                  []
+                ),
+            ])
+          : div([centeredSpinner()]),
       ]),
     ]
   );

@@ -41,8 +41,8 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState([]);
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState([]);
 
-  const [logsModal, setLogsModal] = useState({});
-  const [taskDataModal, setTaskDataModal] = useState({});
+  const [logsModal, setLogsModal] = useState(undefined);
+  const [taskDataModal, setTaskDataModal] = useState(undefined);
   const [sasToken, setSasToken] = useState('');
 
   const signal = useCancellation();
@@ -276,20 +276,20 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
             ]),
           ]
         ),
-        logsModal.showLog &&
+        logsModal &&
           h(LogViewer, {
             modalTitle: logsModal.modalTitle,
             logs: logsModal.logsArray,
             onDismiss: () => {
-              setLogsModal({ modalTitle: logsModal.modalTitle, logsArray: logsModal.logsArray, showLog: false });
+              setLogsModal(undefined);
               captureEvent(Events.workflowsAppCloseLogViewer);
             },
           }),
-        taskDataModal.showData &&
+        taskDataModal &&
           h(InputOutputModal, {
             title: taskDataModal.taskDataTitle,
             jsonData: taskDataModal.taskJson,
-            onDismiss: () => setTaskDataModal({ taskDataTitle: taskDataModal.taskDataTitle, taskJson: taskDataModal.taskJson, showData: false }),
+            onDismiss: () => setTaskDataModal(undefined),
             sasToken,
           }),
         div(

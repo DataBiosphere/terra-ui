@@ -52,9 +52,9 @@ export type WorkflowMetadata = {
   calls: {};
   end: string;
   id: string;
-  inputs: [];
+  inputs: {}[];
   labels: {};
-  outputs: [];
+  outputs: {}[];
   start: string;
   status: string;
   submission: string;
@@ -62,8 +62,16 @@ export type WorkflowMetadata = {
   workflowCallback: {};
   workflowLog: string;
   workflowName: string;
-  workflowProcessingEvents: Array<Object>;
+  workflowProcessingEvents: {}[];
   workflowRoot: string;
+};
+
+export type MetadataOptions = {
+  cromwellProxyUrl: string;
+  excludeKeys: string[];
+  includeKeys: string[];
+  signal: AbortSignal;
+  workflowId: string;
 };
 
 const iconSize = 24;
@@ -587,7 +595,7 @@ export const getOutputTableData = (
   )(configuredOutputDefinition);
 };
 
-export const fetchMetadata = async (options): Promise<WorkflowMetadata> =>
+export const fetchMetadata = async (options: MetadataOptions): Promise<WorkflowMetadata> =>
   Ajax(options.signal)
     .CromwellApp.workflows(options.workflowId)
     .metadata(options.cromwellProxyUrl, { includeKey: options.includeKeys, excludeKey: options.excludeKeys });
