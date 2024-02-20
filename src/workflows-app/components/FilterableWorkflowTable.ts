@@ -47,7 +47,7 @@ type LogsModalProps = {
 
 type TaskDataModalProps = {
   taskDataTitle: string;
-  taskJson: Object | undefined;
+  taskJson: {} | null;
 };
 
 type FilterableWorkflowTableProps = {
@@ -84,7 +84,7 @@ const getFilteredRuns = (filterOption: string, runsData: Run[], errorStates: str
 const stripTaskPrefixFromKeys = <T extends Record<string, any>>(keyValuePairs: T): { [k: string]: any } => {
   return Object.fromEntries(
     Object.entries(keyValuePairs).map(([key, value]) => [
-      `${parseMethodString(key).workflow}.${parseMethodString(key).variable}`,
+      `${parseMethodString(key).workflow}.\n${parseMethodString(key).variable}`,
       value,
     ])
   );
@@ -118,7 +118,7 @@ const FilterableWorkflowTable = ({
   );
 
   const showTaskDataModal = useCallback(
-    (taskDataTitle: string, taskJson: {} | undefined) => {
+    (taskDataTitle: string, taskJson: {} | null) => {
       setTaskDataModal({ taskDataTitle, taskJson });
     },
     [setTaskDataModal]
@@ -427,14 +427,14 @@ const FilterableWorkflowTable = ({
                         },
                       },
                       {
-                        size: { basis: 250, grow: 0 },
+                        size: { basis: 325, grow: 0 },
                         field: 'taskData',
                         headerRenderer: () => 'Workflow Data',
                         cellRenderer: ({ rowIndex }) => {
                           const style = {
                             display: 'grid',
                             gridTemplateColumns: '1fr 1fr 1fr',
-                            gridColumnGap: '0.6em',
+                            gridColumnGap: '1em',
                             gridRowGap: '0.3em',
                           };
                           if (paginatedPreviousRuns[rowIndex].engine_id) {
@@ -443,7 +443,7 @@ const FilterableWorkflowTable = ({
                                 Link,
                                 {
                                   onClick: async () => {
-                                    showTaskDataModal('Inputs', undefined);
+                                    showTaskDataModal('Inputs', null);
                                     const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
                                     if (workflow !== undefined) {
                                       // Perform this function to transform the keys to a more user friendly form, e.g. 'fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID' => 'SRA_ID'
@@ -458,7 +458,7 @@ const FilterableWorkflowTable = ({
                                 Link,
                                 {
                                   onClick: async () => {
-                                    showTaskDataModal('Outputs', undefined);
+                                    showTaskDataModal('Outputs', null);
                                     const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
                                     if (workflow !== undefined) {
                                       // Perform this function to transform the keys to a more user friendly form, e.g. 'fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID' => 'SRA_ID'

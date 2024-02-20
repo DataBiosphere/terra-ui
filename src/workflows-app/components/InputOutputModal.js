@@ -54,7 +54,7 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
     },
     [
       div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
-        jsonData
+        jsonData !== null
           ? h(AutoSizer, { disableHeight: true }, [
               ({ width }) =>
                 h(
