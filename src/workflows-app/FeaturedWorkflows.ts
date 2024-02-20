@@ -85,7 +85,6 @@ export const FeaturedWorkflows = ({
         const matchingMethod = methodsData.find((existingMethod) =>
           existingMethod.method_versions.some((version) => version.url === featuredMethod.method_versions[0].url)
         );
-        // console.log(methods);
         return [
           matchingMethod !== undefined,
           { ...featuredMethod, last_run: matchingMethod ? matchingMethod.last_run : featuredMethod.last_run },
