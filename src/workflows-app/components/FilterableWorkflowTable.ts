@@ -47,7 +47,7 @@ type LogsModalProps = {
 
 type TaskDataModalProps = {
   taskDataTitle: string;
-  taskJson: {} | undefined;
+  taskJson: Object | undefined;
 };
 
 type FilterableWorkflowTableProps = {
