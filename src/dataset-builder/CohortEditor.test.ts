@@ -320,7 +320,7 @@ describe('CohortEditor', () => {
         onStateChange: _.noop,
         getNextCriteriaIndex,
         domainOptions,
-        programDataOptions: { state: programDataOptions, status: 'Ready' },
+        programDataOptions,
       })
     );
     return { cohort, updateCohort };
@@ -428,6 +428,7 @@ describe('CohortEditor', () => {
         originalCohort,
         updateCohorts,
         getNextCriteriaIndex,
+        programDataOptions: [],
       })
     );
     return { originalCohort, onStateChange, updateCohorts };

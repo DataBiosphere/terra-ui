@@ -1,5 +1,4 @@
 import { Spinner } from '@terra-ui-packages/components';
-import { LoadedState } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import React, { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
@@ -24,7 +23,6 @@ import {
 import { DataRepo, DatasetModel } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
-import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
 import { domainCriteriaSearchState, homepageState, newCriteriaGroup, Updater } from './dataset-builder-types';
@@ -210,7 +208,7 @@ type AddCriteriaSelectorProps = {
   getNextCriteriaIndex: () => number;
   cohort: Cohort;
   domainOptions: DomainOption[];
-  programDataOptions: LoadedState<(ProgramDataListOption | ProgramDataRangeOption)[], unknown>;
+  programDataOptions: (ProgramDataListOption | ProgramDataRangeOption)[];
 };
 
 const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
@@ -245,15 +243,12 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
         },
         {
           label: 'Program Data',
-          options:
-            programDataOptions.status === 'Ready'
-              ? _.map((programDataOption) => {
-                  return {
-                    value: programDataOption,
-                    label: programDataOption.name,
-                  };
-                }, programDataOptions.state)
-              : [],
+          options: _.map((programDataOption) => {
+            return {
+              value: programDataOption,
+              label: programDataOption.name,
+            };
+          }, programDataOptions),
         },
       ],
       'aria-label': addCriteriaText,
@@ -287,7 +282,7 @@ type CriteriaGroupViewProps = {
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
   domainOptions: DomainOption[];
-  programDataOptions: LoadedState<(ProgramDataListOption | ProgramDataRangeOption)[], unknown>;
+  programDataOptions: (ProgramDataListOption | ProgramDataRangeOption)[];
 };
 
 export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
@@ -442,7 +437,7 @@ type CohortGroupsProps = {
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
   domainOptions: DomainOption[];
-  programDataOptions: LoadedState<(ProgramDataListOption | ProgramDataRangeOption)[], unknown>;
+  programDataOptions: (ProgramDataListOption | ProgramDataRangeOption)[];
 };
 const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
   const { dataset, cohort, updateCohort, onStateChange, getNextCriteriaIndex, domainOptions, programDataOptions } =
@@ -502,7 +497,7 @@ type CohortEditorContentsProps = {
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
   domainOptions: DomainOption[];
-  programDataOptions: LoadedState<(ProgramDataListOption | ProgramDataRangeOption)[], unknown>;
+  programDataOptions: (ProgramDataListOption | ProgramDataRangeOption)[];
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
   const { updateCohort, cohort, dataset, onStateChange, getNextCriteriaIndex, domainOptions, programDataOptions } =
@@ -555,28 +550,18 @@ interface CohortEditorProps {
   readonly originalCohort: Cohort;
   readonly updateCohorts: Updater<Cohort[]>;
   readonly getNextCriteriaIndex: () => number;
+  readonly programDataOptions: (ProgramDataListOption | ProgramDataRangeOption)[];
 }
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
-  const { onStateChange, dataset, originalCohort, updateCohorts, getNextCriteriaIndex } = props;
+  const { onStateChange, dataset, originalCohort, updateCohorts, getNextCriteriaIndex, programDataOptions } = props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
-  const [programDataOptions, loadProgramDataOptions] =
-    useLoadedData<(ProgramDataRangeOption | ProgramDataListOption)[]>();
+
+  // Program data options passed in because we want to cache them per dataset
   const domainOptions = _.map(
     (snapshotBuilderDomainOption) => convertApiDomainOptionToDomainOption(snapshotBuilderDomainOption),
     dataset?.snapshotBuilderSettings?.domainOptions
   );
-  useOnMount(() => {
-    void loadProgramDataOptions(() =>
-      Promise.all(
-        _.map(
-          (snapshotBuilderProgramDataOption) =>
-            DataRepo().dataset(dataset.id).queryDatasetColumnStatisticsById(snapshotBuilderProgramDataOption),
-          dataset?.snapshotBuilderSettings?.programDataOptions
-        )
-      )
-    );
-  });
   const updateCohort = (updateCohort: (Cohort) => Cohort) => setCohort(updateCohort);
 
   return h(Fragment, [
