@@ -38,6 +38,8 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({ cbasUrlRoot, cromwellUrlRoot, wdsUrlRoot }),
 }));
 
+// The test does not allot space for the table on the input/output modal, so this mock
+// creates space for the table thereby allowing it to render and preventing test failures.
 jest.mock('react-virtualized', () => {
   const actual = jest.requireActual('react-virtualized');
 
