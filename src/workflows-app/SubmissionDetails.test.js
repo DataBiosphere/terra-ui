@@ -940,16 +940,8 @@ describe('Submission Details page', () => {
           .getAllByRole('cell')
           .map((el) => el.textContent);
 
-      const row1cells = within(rows[1]).getAllByRole('cell');
-      expect(row1cells).toHaveLength(2);
       expect(getRowContent(1)).toEqual(['fetch_sra_to_bam.\nSRA_ID', 'SRR13379731']);
-
-      const row2cells = within(rows[2]).getAllByRole('cell');
-      expect(row2cells).toHaveLength(2);
       expect(getRowContent(2)).toEqual(['fetch_sra_to_bam.\nmachine_mem_gb', '']);
-
-      const row3cells = within(rows[3]).getAllByRole('cell');
-      expect(row3cells).toHaveLength(2);
       expect(getRowContent(3)).toEqual(['fetch_sra_to_bam.\ndocker', 'quay.io/broadinstitute/ncbi-tools:2.10.7.10']);
     }
   });
@@ -1027,52 +1019,17 @@ describe('Submission Details page', () => {
       const headers = within(rows[0]).getAllByRole('columnheader');
       expect(headers).toHaveLength(2);
 
-      const row1cells = within(rows[1]).getAllByRole('cell');
-      expect(row1cells).toHaveLength(2);
       expect(getRowContent(1)).toEqual(['fetch_sra_to_bam.\nsra_metadata', 'SRR13379731.json']);
-
-      const row2cells = within(rows[2]).getAllByRole('cell');
-      expect(row2cells).toHaveLength(2);
       expect(getRowContent(2)).toEqual(['fetch_sra_to_bam.\nreads_ubam', 'SRR13379731.bam']);
-
-      const row3cells = within(rows[3]).getAllByRole('cell');
-      expect(row3cells).toHaveLength(2);
       expect(getRowContent(3)).toEqual(['fetch_sra_to_bam.\nbiosample_accession', 'kljkl2kj']);
-
-      const row4cells = within(rows[4]).getAllByRole('cell');
-      expect(row4cells).toHaveLength(2);
       expect(getRowContent(4)).toEqual(['fetch_sra_to_bam.\nsample_geo_loc', 'USA']);
-
-      const row5cells = within(rows[5]).getAllByRole('cell');
-      expect(row5cells).toHaveLength(2);
       expect(getRowContent(5)).toEqual(['fetch_sra_to_bam.\nsample_collection_date', '2020-11-30']);
-
-      const row6cells = within(rows[6]).getAllByRole('cell');
-      expect(row6cells).toHaveLength(2);
       expect(getRowContent(6)).toEqual(['fetch_sra_to_bam.\nsequencing_center', 'SEQ_CENTER']);
-
-      const row7cells = within(rows[7]).getAllByRole('cell');
-      expect(row7cells).toHaveLength(2);
       expect(getRowContent(7)).toEqual(['fetch_sra_to_bam.\nsequencing_platform', 'PLATFORM COMPANY']);
-
-      const row8cells = within(rows[8]).getAllByRole('cell');
-      expect(row8cells).toHaveLength(2);
       expect(getRowContent(8)).toEqual(['fetch_sra_to_bam.\nlibrary_id', 'ST-VALUE-2012556126']);
-
-      const row9cells = within(rows[9]).getAllByRole('cell');
-      expect(row9cells).toHaveLength(2);
       expect(getRowContent(9)).toEqual(['fetch_sra_to_bam.\nrun_date', '2022-06-22']);
-
-      const row10cells = within(rows[10]).getAllByRole('cell');
-      expect(row10cells).toHaveLength(2);
       expect(getRowContent(10)).toEqual(['fetch_sra_to_bam.\nsample_collected_by', 'Random lab']);
-
-      const row11cells = within(rows[11]).getAllByRole('cell');
-      expect(row11cells).toHaveLength(2);
       expect(getRowContent(11)).toEqual(['fetch_sra_to_bam.\nsample_strain', 'SARS-CoV-2/USA/44165/2020']);
-
-      const row12cells = within(rows[12]).getAllByRole('cell');
-      expect(row12cells).toHaveLength(2);
       expect(getRowContent(12)).toEqual(['fetch_sra_to_bam.\nsequencing_platform_model', 'NextSeq 550']);
     }
   });
