@@ -79,8 +79,8 @@ export interface EnvironmentsProps {
 
 export const Environments = (props: EnvironmentsProps): ReactNode => {
   const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, metrics } = props;
-  const signal = useCancellation();
   const { colors } = useThemeFromContext();
+  const signal = useCancellation();
 
   type WorkspaceWrapperLookup = { [namespace: string]: { [name: string]: WorkspaceWrapper } };
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
