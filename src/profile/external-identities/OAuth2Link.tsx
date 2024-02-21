@@ -65,6 +65,9 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
   const signal = useCancellation();
   const [accountInfo, setAccountInfo] = useState<EcmLinkAccountResponse>();
   const [accountLoaded, setAccountLoaded] = useState<boolean>(false);
+  const [isLinking] = useState(
+    Nav.getCurrentRoute().name === 'oauth_callback' && state && JSON.parse(atob(state)).provider === provider.key
+  );
 
   useOnMount(() => {
     const loadAccount = withErrorReporting(`Error loading ${provider.name} account`, async () => {
@@ -74,8 +77,9 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
       setAccountInfo(await Ajax(signal).ExternalCredentials(provider).linkAccountWithAuthorizationCode(code, state));
     });
 
-    if (Nav.getCurrentRoute().name === 'ecm-callback' && state && JSON.parse(atob(state)).provider === provider) {
-      window.history.replaceState({}, '', `/${Nav.getLink('profile')}`);
+    if (isLinking) {
+      const profileLink = `/${Nav.getLink('profile?tab=externalIdentities')}`;
+      window.history.replaceState({}, '', profileLink);
       linkAccount(code, state);
     } else {
       loadAccount();
@@ -98,7 +102,7 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
       <div style={styles.idLink.linkContentTop(false)}>
         <h3 style={{ marginTop: 0, ...styles.idLink.linkName }}>{provider.name}</h3>
         {!accountLoaded && <SpacedSpinner>Loading account status...</SpacedSpinner>}
-        {accountLoaded && (
+        {accountLoaded && !accountInfo && (
           <div>
             <ButtonPrimary
               onClick={getAuthUrlAndRedirect}
@@ -138,7 +142,7 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
             </div>
             {provider.supportsIdToken && (
               <LazyClipboardButton getText={Ajax(signal).ExternalCredentials(provider).getIdentityToken}>
-                Copy passport to clipboard
+                Copy identity token to clipboard
               </LazyClipboardButton>
             )}
           </>

@@ -38,7 +38,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
           }/ecm-callback`,
         },
         supportsAccessToken: false,
-        supportsIdToken: true,
+        supportsIdToken: false, // turning off clipboard copying for now.
       };
     default:
       throw new Error(`Unknown OAuth2 provider key: ${providerKey}`);
