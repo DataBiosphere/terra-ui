@@ -81,6 +81,11 @@ const getFilteredRuns = (filterOption: string, runsData: Run[], errorStates: str
   });
 };
 
+/**
+ * Transform the keys to a more user friendly form, e.g. 'fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID' => 'fetch_sra_to_bam.SRA_ID'.
+ * @param keyValuePairs Pairs of keys and values whose key task prefixes will be stripped
+ * @returns a new object with modified keys
+ */
 const stripTaskPrefixFromKeys = <T extends Record<string, any>>(keyValuePairs: T): { [k: string]: any } => {
   return Object.fromEntries(
     Object.entries(keyValuePairs).map(([key, value]) => [
@@ -109,20 +114,6 @@ const FilterableWorkflowTable = ({
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR'];
   const signal = useCancellation();
-
-  const showLogModal = useCallback(
-    (modalTitle: string, logsArray: LogInfo[]) => {
-      setLogsModal({ modalTitle, logsArray });
-    },
-    [setLogsModal]
-  );
-
-  const showTaskDataModal = useCallback(
-    (taskDataTitle: string, taskJson: {} | null) => {
-      setTaskDataModal({ taskDataTitle, taskJson });
-    },
-    [setTaskDataModal]
-  );
 
   const sortRuns = (field: string, direction: string, runs: Run[]): Run[] => {
     const runsSorted: Run[] = [];
@@ -165,6 +156,7 @@ const FilterableWorkflowTable = ({
   const filterOptions: FilterOptions[] = [FilterOptions.Error, FilterOptions.NoFilter, FilterOptions.Succeeded];
   const filteredPreviousRuns: Run[] = useMemo(
     () => (filterOption ? getFilteredRuns(filterOption, runsData, errorStates) : runsData),
+    // Don't re-run if errorStates changes (since it never should change).
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [filterOption, runsData]
   );
@@ -213,7 +205,7 @@ const FilterableWorkflowTable = ({
   const includeKeys = useMemo(() => [], []);
   const excludeKeys = useMemo(() => ['calls'], []);
 
-  const loadWorkflows = useCallback(
+  const loadWorkflow = useCallback(
     async (workflowId: string | undefined): Promise<WorkflowMetadata | undefined> => {
       if (workflowId === undefined) {
         return undefined;
@@ -243,7 +235,7 @@ const FilterableWorkflowTable = ({
     if (currentWorkflow && currentWorkflow.id === paginatedPreviousRuns[rowIndex].engine_id) {
       return currentWorkflow;
     }
-    const workflow: WorkflowMetadata | undefined = await loadWorkflows(paginatedPreviousRuns[rowIndex].engine_id);
+    const workflow: WorkflowMetadata | undefined = await loadWorkflow(paginatedPreviousRuns[rowIndex].engine_id);
     if (workflow !== undefined) {
       setCurrentWorkflow(workflow);
     }
@@ -443,12 +435,11 @@ const FilterableWorkflowTable = ({
                                 Link,
                                 {
                                   onClick: async () => {
-                                    showTaskDataModal('Inputs', null);
+                                    setTaskDataModal({ taskDataTitle: 'Inputs', taskJson: null });
                                     const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
                                     if (workflow !== undefined) {
-                                      // Perform this function to transform the keys to a more user friendly form, e.g. 'fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID' => 'SRA_ID'
                                       const shortenedInputs = stripTaskPrefixFromKeys(workflow.inputs);
-                                      showTaskDataModal('Inputs', shortenedInputs);
+                                      setTaskDataModal({ taskDataTitle: 'Inputs', taskJson: shortenedInputs });
                                     }
                                   },
                                 },
@@ -458,12 +449,11 @@ const FilterableWorkflowTable = ({
                                 Link,
                                 {
                                   onClick: async () => {
-                                    showTaskDataModal('Outputs', null);
+                                    setTaskDataModal({ taskDataTitle: 'Outputs', taskJson: null });
                                     const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
                                     if (workflow !== undefined) {
-                                      // Perform this function to transform the keys to a more user friendly form, e.g. 'fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID' => 'SRA_ID'
                                       const shortenedOutputs = stripTaskPrefixFromKeys(workflow.outputs);
-                                      showTaskDataModal('Outputs', shortenedOutputs);
+                                      setTaskDataModal({ taskDataTitle: 'Outputs', taskJson: shortenedOutputs });
                                     }
                                   },
                                 },
@@ -476,15 +466,18 @@ const FilterableWorkflowTable = ({
                                     const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
                                     if (workflow !== undefined) {
                                       const logUri = workflow.workflowLog;
-                                      showLogModal('Workflow Execution Log', [
-                                        {
-                                          logUri,
-                                          logTitle: 'Workflow Execution Log',
-                                          logKey: 'execution_log',
-                                          logFilename: 'workflow.log',
-                                          logTooltip: LogTooltips.workflowExecution,
-                                        },
-                                      ]);
+                                      setLogsModal({
+                                        modalTitle: 'Workflow Execution Log',
+                                        logsArray: [
+                                          {
+                                            logUri,
+                                            logTitle: 'Workflow Execution Log',
+                                            logKey: 'execution_log',
+                                            logFilename: 'workflow.log',
+                                            logTooltip: LogTooltips.workflowExecution,
+                                          },
+                                        ],
+                                      });
                                     }
                                   },
                                 },

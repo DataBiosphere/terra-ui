@@ -78,7 +78,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     [signal, submissionId]
   );
 
-  const setRuns = async (runsResponse) => {
+  const setRuns = (runsResponse) => {
     const runsAnnotatedWithDurations = _.map(
       (r) => _.merge(r, { duration: getDuration(r.state, r.submission_date, r.last_modified_timestamp, isRunInTerminalState) }),
       runsResponse.runs

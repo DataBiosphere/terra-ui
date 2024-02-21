@@ -58,8 +58,9 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
         // and so will show a loading spinner while it finishes fetching.
         // When jsonData is undefined, that means that the HTTP request completed but fetched no data,
         // so we show an empty table.
-        jsonData !== null
-          ? h(AutoSizer, { disableHeight: true }, [
+        jsonData === null
+          ? div([centeredSpinner()])
+          : h(AutoSizer, { disableHeight: true }, [
               ({ width }) =>
                 h(
                   FlexTable,
@@ -109,8 +110,7 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
                   },
                   []
                 ),
-            ])
-          : div([centeredSpinner()]),
+            ]),
       ]),
     ]
   );
