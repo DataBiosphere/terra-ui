@@ -6,8 +6,7 @@ export const CromwellApp = (signal) => ({
   workflows: (workflowId) => {
     return {
       metadata: async (cromwellUrlRoot, options) => {
-        const includeKey = options.includeKey;
-        const excludeKey = options.excludeKey;
+        const { includeKey, excludeKey } = options;
         const keyParams = qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' });
         const res = await fetchFromProxy(cromwellUrlRoot)(
           `api/workflows/v1/${workflowId}/metadata?${keyParams}`,
