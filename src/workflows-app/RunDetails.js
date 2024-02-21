@@ -96,7 +96,7 @@ export const BaseRunDetails = (
   );
   const excludeKey = useMemo(() => [], []);
   const fetchMetadata = useCallback(
-    async (cromwellProxyUrl, workflowId) => Ajax(signal).CromwellApp.workflows(workflowId).metadata(cromwellProxyUrl, includeKey, excludeKey),
+    async (cromwellProxyUrl, workflowId) => Ajax(signal).CromwellApp.workflows(workflowId).metadata(cromwellProxyUrl, { includeKey, excludeKey }),
     [includeKey, excludeKey, signal]
   );
 
@@ -150,7 +150,7 @@ export const BaseRunDetails = (
     async (wfId, includeKey, excludeKey) => {
       const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
       if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
-        return Ajax(signal).CromwellApp.workflows(wfId).metadata(cromwellProxyUrlState.state, includeKey, excludeKey);
+        return Ajax(signal).CromwellApp.workflows(wfId).metadata(cromwellProxyUrlState.state, { includeKey, excludeKey });
       }
     },
     [signal, workspaceId]
