@@ -56,12 +56,14 @@ describe('OAuth2Link', () => {
     it('shows the button to link an account', async () => {
       // Arrange
       const getLinkStatusFn = jest.fn().mockResolvedValue(undefined);
+      const getAuthorizationUrlFn = jest.fn().mockResolvedValue('https://foo.bar.com/oauth2/authorize');
       asMockedFn(Ajax).mockImplementation(
         () =>
           ({
             ExternalCredentials: () => {
               return {
                 getAccountLinkStatus: getLinkStatusFn,
+                getAuthorizationUrl: getAuthorizationUrlFn,
               };
             },
           } as DeepPartial<AjaxContract> as AjaxContract)
@@ -72,6 +74,7 @@ describe('OAuth2Link', () => {
       // Assert
       screen.getByText(`Link your ${testAccessTokenProvider.name} account`);
       expect(getLinkStatusFn).toHaveBeenCalled();
+      expect(getAuthorizationUrlFn).not.toHaveBeenCalled();
       expect(await axe(container)).toHaveNoViolations();
     });
   });
