@@ -81,7 +81,6 @@ describe('OAuth2Link', () => {
   describe('When the link account button is clicked', () => {
     it('reaches out to ECM to get an authorization url and opens a new window/tab', async () => {
       // Arrange
-      // asMockedFn(getPath).mockReturnValue()
       global.open = jest.fn(); // this needs to be here, but I can't seem to actually check if its called
       const getLinkStatusFn = jest.fn().mockResolvedValue(undefined);
       const getAuthorizationUrlFn = jest.fn().mockResolvedValue('https://foo.bar.com/oauth2/authorize');
@@ -162,8 +161,6 @@ describe('OAuth2Link', () => {
       screen.getByText(linkStatus.externalUserId);
       screen.getByText('Link Expiration:');
       screen.getByText(Utils.makeCompleteDate(linkStatus.expirationTimestamp));
-
-      // expect(await axe(container)).toHaveNoViolations();
     });
     it("unlinks the account when 'Unlink' is clicked", async () => {
       // Arrange

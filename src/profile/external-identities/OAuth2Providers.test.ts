@@ -6,7 +6,7 @@ describe('OAuth2Provider', () => {
     expect(githubProvider.name).toEqual('GitHub');
   });
   it('should return the correct provider for RAS', () => {
-    const githubProvider = oauth2Provider('ras');
-    expect(githubProvider.name).toEqual('RAS');
+    const rasProvider = oauth2Provider('ras');
+    expect(rasProvider.name).toEqual('RAS');
   });
 });

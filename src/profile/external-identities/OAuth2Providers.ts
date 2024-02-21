@@ -1,6 +1,7 @@
 import { getConfig } from 'src/libs/config';
 
 export type OAuth2ProviderKey = 'github' | 'ras';
+export type OAuth2Callback = 'oauth_callback' | 'ecm-callback';
 
 export type OAuth2Provider = {
   key: OAuth2ProviderKey;
@@ -13,6 +14,9 @@ export type OAuth2Provider = {
   supportsIdToken: boolean;
 };
 
+const createRedirectUri = (callback: OAuth2Callback) => {
+  return `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/${callback}`;
+};
 export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider => {
   switch (providerKey) {
     case 'github':
@@ -20,9 +24,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         key: providerKey,
         name: 'GitHub',
         queryParams: {
-          redirectUri: `${
-            window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin
-          }/oauth_callback`,
+          redirectUri: createRedirectUri('oauth_callback'),
         },
         supportsAccessToken: true,
         supportsIdToken: false,
@@ -33,9 +35,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         name: 'RAS',
         queryParams: {
           scopes: ['openid', 'email', 'ga4gh_passport_v1'],
-          redirectUri: `${
-            window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin
-          }/ecm-callback`,
+          redirectUri: createRedirectUri('ecm-callback'),
         },
         supportsAccessToken: false,
         supportsIdToken: false, // turning off clipboard copying for now.

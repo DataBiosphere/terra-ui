@@ -11,7 +11,7 @@ import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { OAuth2Provider } from 'src/profile/external-identities/OAuth2Providers';
+import { OAuth2Callback, OAuth2Provider } from 'src/profile/external-identities/OAuth2Providers';
 import { SpacedSpinner } from 'src/profile/SpacedSpinner';
 
 const styles = {
@@ -65,8 +65,9 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
   const signal = useCancellation();
   const [accountInfo, setAccountInfo] = useState<EcmLinkAccountResponse>();
   const [accountLoaded, setAccountLoaded] = useState<boolean>(false);
+  const callbacks: Array<OAuth2Callback> = ['oauth_callback', 'ecm-callback']; // ecm-callback is deprecated, but still needs to be supported
   const [isLinking] = useState(
-    Nav.getCurrentRoute().name === 'oauth_callback' && state && JSON.parse(atob(state)).provider === provider.key
+    callbacks.includes(Nav.getCurrentRoute().name) && state && JSON.parse(atob(state)).provider === provider.key
   );
 
   useOnMount(() => {
