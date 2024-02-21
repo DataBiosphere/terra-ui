@@ -76,8 +76,8 @@ export const BaseRunDetails = (
       'backendStatus',
       'executionStatus',
       'shardIndex',
-      // 'outputs', //not sure if I need this yet
-      // 'inputs', //not sure if I need this yet
+      'outputs',
+      'inputs',
       'jobId',
       'start',
       'end',
@@ -87,13 +87,16 @@ export const BaseRunDetails = (
       'tes_stderr',
       'attempt',
       'subWorkflowId', // needed for task type column
-      // 'subWorkflowMetadata' //may need this later
+      'status',
+      'submittedFiles',
+      'callCaching',
+      'workflowLog',
     ],
     []
   );
   const excludeKey = useMemo(() => [], []);
   const fetchMetadata = useCallback(
-    async (cromwellProxyUrl, workflowId) => Ajax(signal).CromwellApp.workflows(workflowId).metadata(cromwellProxyUrl, { includeKey, excludeKey }),
+    async (cromwellProxyUrl, workflowId) => Ajax(signal).CromwellApp.workflows(workflowId).metadata(cromwellProxyUrl, includeKey, excludeKey),
     [includeKey, excludeKey, signal]
   );
 
