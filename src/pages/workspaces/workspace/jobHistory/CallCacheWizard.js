@@ -263,6 +263,7 @@ const CallCacheWizard = ({ onDismiss, workflowId, callFqn, index, loadCallCacheD
       ]),
       divider,
       div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, ['Result: View cache diff']),
+      // TODO: Remove nested ternary to align with style guide
       // eslint-disable-next-line no-nested-ternary
       diffError
         ? h(ErrorView, { error: diffError })

@@ -678,6 +678,7 @@ const DataTable = (props) => {
                 initialX,
                 initialY,
                 sort,
+                // TODO: Remove nested ternary to align with style guide
                 // eslint-disable-next-line no-nested-ternary
                 numFixedColumns: visibleColumns.length > 0 ? (dataProvider.features.supportsRowSelection ? 2 : 1) : 0,
                 columns: defaultColumns,

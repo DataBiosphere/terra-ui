@@ -65,6 +65,7 @@ export const TermsOfServicePage = () => {
     </div>
   );
 
+  // TODO: Remove nested ternary to align with style guide
   // eslint-disable-next-line no-nested-ternary
   const buttons = showButtons
     ? requiredToAcceptTermsOfService

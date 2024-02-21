@@ -118,6 +118,7 @@ export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
   if (!config) return 0;
   const computeRegion = config.normalizedRegion;
 
+  // TODO: Remove nested ternary to align with style guide
   // eslint-disable-next-line no-nested-ternary
   const machineType: string = isGceRuntimeConfig(config)
     ? config.machineType

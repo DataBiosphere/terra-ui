@@ -1146,6 +1146,7 @@ export const WorkspaceData = _.flow(
                                           {
                                             wrapperProps: { role: 'listitem' },
                                             buttonStyle: { borderBottom: 0, height: 40, ...(canCompute ? {} : { color: colors.dark(0.25) }) },
+                                            // TODO: Remove nested ternary to align with style guide
                                             // eslint-disable-next-line no-nested-ternary
                                             tooltip: canCompute
                                               ? tableName
