@@ -70,7 +70,6 @@ module.exports = {
     'no-constant-condition': ['error', {checkLoops: false}],
     'no-empty': ['error', { allowEmptyCatch: true }],
     'no-continue': 'off',
-    'no-nested-ternary': 'off',
     'no-param-reassign': 'off',
     'no-plusplus': 'off',
     'no-promise-executor-return': 'off',
