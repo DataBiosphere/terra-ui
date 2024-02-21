@@ -76,8 +76,8 @@ export const BaseRunDetails = (
       'backendStatus',
       'executionStatus',
       'shardIndex',
-      // 'outputs', //not sure if I need this yet
-      // 'inputs', //not sure if I need this yet
+      'outputs',
+      'inputs',
       'jobId',
       'start',
       'end',
@@ -87,7 +87,10 @@ export const BaseRunDetails = (
       'tes_stderr',
       'attempt',
       'subWorkflowId', // needed for task type column
-      // 'subWorkflowMetadata' //may need this later
+      'status',
+      'submittedFiles',
+      'callCaching',
+      'workflowLog',
     ],
     []
   );
@@ -147,7 +150,7 @@ export const BaseRunDetails = (
     async (wfId, includeKey, excludeKey) => {
       const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
       if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
-        return Ajax(signal).CromwellApp.workflows(wfId).metadata(cromwellProxyUrlState.state, includeKey, excludeKey);
+        return Ajax(signal).CromwellApp.workflows(wfId).metadata(cromwellProxyUrlState.state, { includeKey, excludeKey });
       }
     },
     [signal, workspaceId]
