@@ -11,7 +11,7 @@
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts",
   "firecloudUrlRoot": "https://portal.firecloud.org",
   "externalCreds": {
-    "urlRoot": "https://externalcreds.dsde-dev.broadinstitute.org",
+    "urlRoot": "https://externalcreds.dsde-prod.broadinstitute.org",
     "providers": []
   },
   "isProd": true,

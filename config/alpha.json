@@ -10,7 +10,7 @@
   "dockstoreUrlRoot": "https://staging.dockstore.org",
   "drsHubUrlRoot": "https://drshub.dsde-alpha.broadinstitute.org",
   "externalCreds": {
-    "urlRoot": "https://externalcreds.dsde-dev.broadinstitute.org",
+    "urlRoot": "https://externalcreds.dsde-alpha.broadinstitute.org",
     "providers": ["ras"]
   },  "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-alpha",
   "firecloudUrlRoot": "https://firecloud.dsde-alpha.broadinstitute.org",
