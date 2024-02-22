@@ -167,47 +167,6 @@ export type SelectProps<
   options: (Value | Option)[];
 };
 
-/**
- * @param props - see {@link https://react-select.com/props#select-props}
- * @param props.value - a member of options
- * @param props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
- * @param props.onChange - The function to call when a user makes a selection
- * @param [props.getOptionLabel] - a function to custom style the options
- * @param [props.id] - The HTML ID to give the form element
- * @param [props.isClearable] - whether the select can be cleared
- * @param [props.isDisabled] - whether the select is disabled
- * @param [props.isSearchable] - whether the select can be cleared
- * @param [props.isMulti] - whether the select is multiselect or not
- * @param [props.menuPlacement] - determines where the menu is placed
- * @param [props.placeholder] - The placeholder value for the select
- * @param [props.styles] - custom styling for the select
- */
-// const Select = <
-//   Value,
-//   IsMulti extends boolean = false,
-//   Option extends { value: Value; label?: string | undefined } = { value: Value; label: string | undefined }
-// >({
-//   value,
-//   options = [],
-//   ...props
-// }: SelectProps<Value, IsMulti, Option>) => {
-//   // Allows passing options as list of values instead of options objects.
-//   // For example:
-//   // options: ['foo', 'bar']
-//   // instead of:
-//   // options: [{ value: 'foo' }, { value: 'bar' }]
-//   //
-//   // Cast as Options[] is because TS can't figure out how the `!_isObject(options[0])` condition affects the type of newOptions.
-//   const newOptions = (
-//     options && !_.isObject(options[0]) ? _.map((value) => ({ value }), options) : options
-//   ) as Option[];
-//
-//   const findValue = (target: Value) => (_.find({ value: target }, newOptions) || null) as Option | null;
-//
-//   const ParameterizedBaseSelect = BaseSelect as typeof BaseSelect<Value, Option, IsMulti, never>;
-//   return h(ParameterizedBaseSelect, { value, options: newOptions, findValue, ...props });
-// };
-
 export type GroupedSelectProps<
   Value,
   IsMulti extends boolean,
