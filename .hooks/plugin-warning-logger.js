@@ -3,11 +3,12 @@ module.exports = {
   factory: () => ({
     hooks: {
       validateProject() {
-        const nodeVersion = process.version
+        const expectedNodeMajorVersion = 20;
+        const actualNodeVersion = process.version
 
-        if (!nodeVersion.startsWith('v18.')) {
+        if (!actualNodeVersion.startsWith(`v${expectedNodeMajorVersion}.`)) {
           console.error('\x1b[1m' /* bold */ + '╔'.padEnd(79, '═') + '╗')
-          console.error(`║ Must be running node 18, you have ${nodeVersion}`.padEnd(79) + '║')
+          console.error(`║ Must be running Node ${expectedNodeMajorVersion}, you have ${actualNodeVersion}`.padEnd(79) + '║')
           console.error('║ See https://nodejs.org/en/download/ for installation options'.padEnd(79) + '║')
           console.error('╚'.padEnd(79, '═') + '╝')
           console.error('\x1b[0m' /* not-bold */)

@@ -165,7 +165,7 @@
       "built": false
     }
   },
-  "packageManager": "yarn@3.6.1",
+  "packageManager": "yarn@3.6.3",
   "workspaces": [
     "packages/*",
     "integration-tests"
