@@ -202,7 +202,7 @@ commands:
               bash ../.circleci/wait-for-job-finish.sh
               node --require ../.pnp.cjs ./slack/notify-circleci-test-results.js
             fi
-          no_output_timeout: 15m
+          no_output_timeout: 25m
           when: always
 
   notify-qa:
