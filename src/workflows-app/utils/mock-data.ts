@@ -14,7 +14,7 @@ export const workflowParams = [
   },
 ];
 
-export const runsData = {
+export const mockRunsData = {
   runs: [
     {
       run_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
