@@ -232,14 +232,12 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
         ),
       getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-      searchConcepts: async (domain: SnapshotBuilderConcept, searchText?: string): Promise<GetConceptsResponse> => {
-        // searchText is an optional query parameter and if it's not provided, search based off the domain
-        let url = `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${domain.name}/search`;
-        // if searchText is provided, append it to the URL
-        if (searchText !== undefined) {
-          url += `?searchText=${encodeURIComponent(searchText)}`;
-        }
-        return callDataRepo(url);
+      searchConcepts: async (domain: SnapshotBuilderConcept, searchText: string): Promise<GetConceptsResponse> => {
+        return callDataRepo(
+          `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${
+            domain.name
+          }/search?searchText=${encodeURIComponent(searchText)}`
+        );
       },
       getConceptsHierarchy: async (_concept: SnapshotBuilderConcept) => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
