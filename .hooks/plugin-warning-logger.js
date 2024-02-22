@@ -3,17 +3,16 @@ module.exports = {
   factory: () => ({
     hooks: {
       validateProject() {
-        const expectedNodeMajorVersion = 20;
-        const actualNodeVersion = process.version
+        const expectedNodeVersion = '20.11';
+        const actualNodeVersion = process.version;
 
-        if (!actualNodeVersion.startsWith(`v${expectedNodeMajorVersion}.`)) {
-          console.error('\x1b[1m' /* bold */ + '╔'.padEnd(79, '═') + '╗')
-          console.error(`║ Must be running Node ${expectedNodeMajorVersion}, you have ${actualNodeVersion}`.padEnd(79) + '║')
-          console.error('║ See https://nodejs.org/en/download/ for installation options'.padEnd(79) + '║')
-          console.error('╚'.padEnd(79, '═') + '╝')
-          console.error('\x1b[0m' /* not-bold */)
-
-          process.exit(1)
+        if (!actualNodeVersion.startsWith(`v${expectedNodeVersion}.`)) {
+          console.warn('\x1b[1m' /* bold */ + '╔'.padEnd(79, '═') + '╗');
+          console.warn(`║ You are using Node ${actualNodeVersion}.`.padEnd(79) + '║');
+          console.warn(`║ For consistency with CI environments, Node v${expectedNodeVersion} is recommended.`.padEnd(79) + '║');
+          console.warn('║ See https://nodejs.org/en/download/ for installation options'.padEnd(79) + '║');
+          console.warn('╚'.padEnd(79, '═') + '╝');
+          console.warn('\x1b[0m' /* not-bold */);
         }
       },
       wrapScriptExecution(executor, project, locator, scriptName) {
