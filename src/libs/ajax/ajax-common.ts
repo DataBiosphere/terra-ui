@@ -279,7 +279,7 @@ export const fetchDrsHub = _.flow(
 export const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk);
 
 export const fetchEcm = _.flow(
-  withUrlPrefix(`${getConfig().externalCreds.urlRoot}/`),
+  withUrlPrefix(`${getConfig().externalCreds?.urlRoot}/`),
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 

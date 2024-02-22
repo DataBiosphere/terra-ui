@@ -24,7 +24,7 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps) => {
         ),
         allProviders
       )}
-      {getConfig().externalCreds.providers.map((providerKey) => (
+      {getConfig().externalCreds?.providers.map((providerKey) => (
         <OAuth2Link queryParams={queryParams} provider={oauth2Provider(providerKey)} />
       ))}
     </PageBox>
