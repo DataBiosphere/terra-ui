@@ -277,6 +277,7 @@ jobs:
           channel: "C7H40L71D" # dsde-qa-notify
   integration-tests-pr-staging:
     executor: puppeteer
+    resource_class: medium+
     parallelism: 4
     steps:
       - integration-tests:
