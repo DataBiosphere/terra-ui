@@ -105,7 +105,7 @@ describe('OAuth2Link', () => {
     });
     it('links the account when the user is redirected back to Terra', async () => {
       // Arrange
-      asMockedFn(getCurrentRoute).mockImplementation(() => ({ name: 'oauth_callback' }));
+      asMockedFn(getCurrentRoute).mockImplementation(() => ({ name: 'oauth-callback' }));
       const queryParams = {
         oauthcode: 'abcde12345',
         state: btoa(JSON.stringify({ provider: testAccessTokenProvider.key, nonce: 'abcxyz' })),

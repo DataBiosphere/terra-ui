@@ -47,13 +47,13 @@ export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OA
       return res.json();
     },
     unlinkAccount: async (): Promise<void> => {
-      return fetchEcm(oidcRoot, _.merge(authOpts(), { signal, method: 'DELETE' }));
+      await fetchEcm(oidcRoot, _.merge(authOpts(), { signal, method: 'DELETE' }));
     },
     getAccessToken: async (): Promise<string> => {
       if (!supportsAccessToken) {
         throw new Error(`Provider ${providerKey} does not support access tokens`);
       }
-      return fetchEcm(`${oauthRoot}/accessToken`, _.merge(authOpts(), { signal }));
+      return await fetchEcm(`${oauthRoot}/accessToken`, _.merge(authOpts(), { signal }));
     },
     getIdentityToken: async (): Promise<string> => {
       if (!supportsIdToken) {

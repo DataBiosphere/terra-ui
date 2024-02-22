@@ -10,9 +10,10 @@
   "dockstoreUrlRoot": "https://staging.dockstore.org",
   "drsHubUrlRoot": "https://drshub.dsde-alpha.broadinstitute.org",
   "externalCreds": {
-    "urlRoot": "https://externalcreds.dsde-alpha.broadinstitute.org",
-    "providers": ["ras"]
-  },  "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-alpha",
+    "providers": ["ras"],
+    "urlRoot": "https://externalcreds.dsde-alpha.broadinstitute.org"
+  },
+  "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-alpha",
   "firecloudUrlRoot": "https://firecloud.dsde-alpha.broadinstitute.org",
   "isProd": true,
   "jobManagerUrlRoot": "https://job-manager.dsde-alpha.broadinstitute.org/jobs",

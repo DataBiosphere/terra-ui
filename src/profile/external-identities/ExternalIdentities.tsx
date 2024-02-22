@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import { getConfig } from 'src/libs/config';
 import allProviders from 'src/libs/providers';
@@ -12,7 +12,7 @@ type ExternalIdentitiesProps = {
   queryParams: { [key: string]: string };
 };
 
-export const ExternalIdentities = (props: ExternalIdentitiesProps) => {
+export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode => {
   const { queryParams } = props;
 
   return (
@@ -25,7 +25,11 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps) => {
         allProviders
       )}
       {getConfig().externalCreds?.providers.map((providerKey) => (
-        <OAuth2Link queryParams={queryParams} provider={oauth2Provider(providerKey)} />
+        <OAuth2Link
+          key={`oauth2link-${providerKey}`}
+          queryParams={queryParams}
+          provider={oauth2Provider(providerKey)}
+        />
       ))}
     </PageBox>
   );

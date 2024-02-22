@@ -1,7 +1,9 @@
 import { getConfig } from 'src/libs/config';
 
 export type OAuth2ProviderKey = 'github' | 'ras';
-export type OAuth2Callback = 'oauth_callback' | 'ecm-callback';
+export type OAuth2Callback =
+  | { name: 'oauth-callback'; link: 'oauth_callback' }
+  | { name: 'ecm-callback'; link: 'ecm-callback' };
 
 export type OAuth2Provider = {
   key: OAuth2ProviderKey;
@@ -14,7 +16,7 @@ export type OAuth2Provider = {
   supportsIdToken: boolean;
 };
 
-const createRedirectUri = (callback: OAuth2Callback) => {
+const createRedirectUri = (callback: OAuth2Callback['link']) => {
   return `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/${callback}`;
 };
 export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider => {

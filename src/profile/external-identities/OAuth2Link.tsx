@@ -1,7 +1,6 @@
 import { Clickable } from '@terra-ui-packages/components';
-import React from 'react';
-import { useState } from 'react';
-import { LazyClipboardButton } from 'src/components/ClipboardButton';
+import React, { useState } from 'react';
+import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
@@ -65,10 +64,9 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
   const signal = useCancellation();
   const [accountInfo, setAccountInfo] = useState<EcmLinkAccountResponse>();
   const [accountLoaded, setAccountLoaded] = useState<boolean>(false);
-  const callbacks: Array<OAuth2Callback> = ['oauth_callback', 'ecm-callback']; // ecm-callback is deprecated, but still needs to be supported
-  const [isLinking] = useState(
-    callbacks.includes(Nav.getCurrentRoute().name) && state && JSON.parse(atob(state)).provider === provider.key
-  );
+  const callbacks: Array<OAuth2Callback['name']> = ['oauth-callback', 'ecm-callback']; // ecm-callback is deprecated, but still needs to be supported
+  const isLinking =
+    callbacks.includes(Nav.getCurrentRoute().name) && state && JSON.parse(atob(state)).provider === provider.key;
 
   useOnMount(() => {
     const loadAccount = withErrorReporting(`Error loading ${provider.name} account`, async () => {
@@ -79,7 +77,7 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
     });
 
     if (isLinking) {
-      const profileLink = `/${Nav.getLink('profile', { tab: 'externalIdentities' })}`;
+      const profileLink = `/${Nav.getLink('profile', {}, { tab: 'externalIdentities' })}`;
       window.history.replaceState({}, '', profileLink);
       linkAccount(code, state);
     } else {
@@ -142,9 +140,9 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
               </Clickable>
             </div>
             {provider.supportsIdToken && (
-              <LazyClipboardButton getText={Ajax(signal).ExternalCredentials(provider).getIdentityToken}>
+              <ClipboardButton text={Ajax(signal).ExternalCredentials(provider).getIdentityToken}>
                 Copy identity token to clipboard
-              </LazyClipboardButton>
+              </ClipboardButton>
             )}
           </>
         )}

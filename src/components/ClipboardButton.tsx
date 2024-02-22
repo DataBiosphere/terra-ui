@@ -2,8 +2,7 @@ import { Clickable, ClickableProps } from '@terra-ui-packages/components';
 import { delay } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
-import { PropsWithChildren, ReactNode, useState } from 'react';
-import React from 'react';
+import React, { PropsWithChildren, ReactNode, useState } from 'react';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -17,28 +16,14 @@ const styles = {
     fontWeight: 500,
   },
 };
-interface ClipboardButtonProps extends PropsWithChildren<ClickableProps> {
-  text: string;
-  iconSize?: number;
-}
 
-interface LazyClipboardButtonProps extends PropsWithChildren<ClickableProps> {
-  getText: () => Promise<string>;
+interface ClipboardButtonProps extends PropsWithChildren<ClickableProps> {
+  text: (() => Promise<string>) | string;
   iconSize?: number;
 }
 
 export const ClipboardButton = (props: ClipboardButtonProps): ReactNode => {
-  const { text, onClick, children, iconSize, ...rest } = props;
-  return (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <LazyClipboardButton getText={() => Promise.resolve(text)} iconSize={iconSize} onClick={onClick} {...rest}>
-      {children}
-    </LazyClipboardButton>
-  );
-};
-
-export const LazyClipboardButton = (props: LazyClipboardButtonProps): ReactNode => {
-  const { getText, children, iconSize, onClick, ...rest } = props;
+  const { text, children, iconSize, onClick, ...rest } = props;
   const [copied, setCopied] = useState(false);
 
   return (
@@ -52,8 +37,12 @@ export const LazyClipboardButton = (props: LazyClipboardButtonProps): ReactNode 
         Utils.withBusyState(setCopied)
       )(async (e) => {
         onClick?.(e);
-        const text = await getText();
-        await clipboard.writeText(text);
+        if (typeof text === 'string') {
+          await clipboard.writeText(text);
+        } else {
+          const t = await text();
+          await clipboard.writeText(t);
+        }
         await delay(1500);
       })}
     >
