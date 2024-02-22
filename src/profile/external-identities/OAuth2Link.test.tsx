@@ -1,5 +1,6 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import React from 'react';
 import { Ajax } from 'src/libs/ajax';
@@ -81,6 +82,7 @@ describe('OAuth2Link', () => {
   describe('When the link account button is clicked', () => {
     it('reaches out to ECM to get an authorization url and opens a new window/tab', async () => {
       // Arrange
+      const user = userEvent.setup();
       jest.spyOn(window, 'open').mockImplementation(() => null);
       const getLinkStatusFn = jest.fn().mockResolvedValue(undefined);
       const getAuthorizationUrlFn = jest.fn().mockResolvedValue('https://foo.bar.com/oauth2/authorize');
@@ -100,7 +102,7 @@ describe('OAuth2Link', () => {
 
       // Assert
       const button = screen.getByText(`Link your ${testAccessTokenProvider.name} account`);
-      await act(() => fireEvent.click(button));
+      await user.click(button);
       expect(getAuthorizationUrlFn).toHaveBeenCalled();
       expect(window.open).toHaveBeenCalled();
     });
@@ -165,6 +167,7 @@ describe('OAuth2Link', () => {
     });
     it("unlinks the account when 'Unlink' is clicked", async () => {
       // Arrange
+      const user = userEvent.setup();
       const linkStatus = { externalUserId: 'testUser', expirationTimestamp: new Date(), authenticated: true };
       const getLinkStatusFn = jest.fn().mockResolvedValue(linkStatus);
       const unlinkAccountFn = jest.fn().mockResolvedValue(undefined);
@@ -182,7 +185,7 @@ describe('OAuth2Link', () => {
       // Act
       const { container } = await act(() => render(<OAuth2Link queryParams={{}} provider={testAccessTokenProvider} />));
       const unlinkButton = screen.getByText('Unlink');
-      await act(() => fireEvent.click(unlinkButton));
+      await user.click(unlinkButton);
 
       // Assert
       expect(unlinkAccountFn).toHaveBeenCalled();
