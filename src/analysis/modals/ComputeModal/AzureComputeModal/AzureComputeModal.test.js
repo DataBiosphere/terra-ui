@@ -61,6 +61,7 @@ const defaultAjaxImpl = {
 };
 
 const verifyEnabled = (item) => expect(item).not.toHaveAttribute('disabled');
+const verifyDisabled = (item) => expect(item).toHaveAttribute('disabled');
 
 describe('AzureComputeModal', () => {
   beforeAll(() => {});
@@ -91,6 +92,17 @@ describe('AzureComputeModal', () => {
     screen.getByText('Azure Cloud Environment');
     const deleteButton = screen.queryByText('Delete Environment');
     expect(deleteButton).toBeNull();
+  });
+
+  it('disables submit while loading', async () => {
+    // Act
+    await act(async () => {
+      render(h(AzureComputeModalBase, { ...defaultModalProps, isLoadingCloudEnvironments: true }));
+    });
+
+    // Assert
+    verifyDisabled(getCreateButton());
+    screen.getByText('Azure Cloud Environment');
   });
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {

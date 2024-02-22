@@ -4,6 +4,7 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declaration": true,
+    "declarationMap": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
@@ -12,9 +13,6 @@
     "module": "esnext",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
-    "paths": {
-      "react-hyperscript-helpers": ["./types/react-hyperscript-helpers"]
-    },
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,

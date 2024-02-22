@@ -7,7 +7,7 @@ import * as DataBrowserDetails from 'src/data-catalog/DataBrowserDetails';
 import * as DataBrowserPreview from 'src/data-catalog/DataBrowserPreview';
 import * as ImportDataPage from 'src/import-data/ImportDataPage';
 import { routeHandlersStore } from 'src/libs/state';
-import * as Projects from 'src/pages/billing/List/List';
+import * as Projects from 'src/pages/billing/BillingListPage';
 import * as Environments from 'src/pages/EnvironmentsPage/EnvironmentsPage';
 import * as FeaturePreviews from 'src/pages/FeaturePreviews';
 import * as Group from 'src/pages/groups/Group';

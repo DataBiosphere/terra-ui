@@ -1,5 +1,5 @@
 import { Switch } from '@terra-ui-packages/components';
-import { withHandlers } from '@terra-ui-packages/core-utils';
+import { formatDatetime, withHandlers } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -67,11 +67,11 @@ import { userStore } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { canWrite, isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo } from 'src/libs/workspace-utils';
 import { AppDetails } from 'src/workspaces/common/state/useAppPolling';
 import { CloudEnvironmentDetails } from 'src/workspaces/common/state/useCloudEnvironmentPolling';
 import { InitializedWorkspaceWrapper, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
+import { canWrite, isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo } from 'src/workspaces/utils';
 
 const tableFields = {
   application: 'application',
@@ -171,6 +171,8 @@ const AnalysisCard = ({
   // if there is a currentUserHash & lastLockedBy, they are not equal, and the lock isn't expired
   const isLocked: boolean =
     currentUserHash && lastLockedBy ? lastLockedBy !== currentUserHash && !isLockExpired : false;
+  // TODO: Remove nested ternary to align with style guide
+  // eslint-disable-next-line no-nested-ternary
   const lockedBy = lastLockedBy ? (potentialLockers ? potentialLockers[lastLockedBy] : null) : null;
 
   const analysisName: FileName = getFileName(name);
@@ -373,7 +375,7 @@ const AnalysisCard = ({
               },
               [icon('lock')]
             ),
-          h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+          h(TooltipTrigger, { content: formatDatetime(lastModified) }, [
             div({ style: { fontSize: '0.8rem', display: 'flex', alignItems: 'center', textAlign: 'left' } }, [
               Utils.makePrettyDate(lastModified),
             ]),
@@ -428,7 +430,15 @@ export interface SortOrderInfo {
 export const BaseAnalyses = (
   {
     workspace,
-    analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+    analysesData: {
+      apps,
+      refreshApps,
+      runtimes,
+      refreshRuntimes,
+      appDataDisks,
+      persistentDisks,
+      isLoadingCloudEnvironments,
+    },
     storageDetails: { googleBucketLocation, azureContainerRegion },
     onRequesterPaysError,
   }: AnalysesProps,
@@ -752,6 +762,7 @@ export const BaseAnalyses = (
                   runtimes,
                   persistentDisks,
                   refreshRuntimes,
+                  isLoadingCloudEnvironments,
                   appDataDisks,
                   refreshAnalyses,
                   analyses,

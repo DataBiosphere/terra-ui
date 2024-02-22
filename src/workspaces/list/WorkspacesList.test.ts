@@ -2,11 +2,11 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { useWorkspacesWithSubmissionStats } from 'src/workspaces/list/state/useWorkspacesWithSubmissionStats';
 import { WorkspacesList } from 'src/workspaces/list/WorkspacesList';
+import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock(
@@ -82,6 +82,7 @@ describe('WorkspaceList', () => {
       FirecloudBucket: {
         getFeaturedWorkspaces: () => [],
       },
+      Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
     };
 
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
@@ -131,6 +132,7 @@ describe('WorkspaceList', () => {
       FirecloudBucket: {
         getFeaturedWorkspaces: () => [],
       },
+      Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
     };
 
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
@@ -201,6 +203,7 @@ describe('WorkspaceList', () => {
       FirecloudBucket: {
         getFeaturedWorkspaces: () => [],
       },
+      Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
     };
 
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);

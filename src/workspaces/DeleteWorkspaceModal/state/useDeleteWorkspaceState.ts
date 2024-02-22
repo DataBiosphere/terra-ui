@@ -8,7 +8,7 @@ import { reportError, withErrorReportingInModal } from 'src/libs/error';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { BaseWorkspace, isAzureWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils';
+import { BaseWorkspace, isAzureWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/workspaces/utils';
 
 export interface WorkspaceResources {
   nonDeleteableApps: App[];
@@ -61,9 +61,9 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
       ? await Ajax(signal).Runtimes.listV2WithWorkspace(workspaceInfo.workspaceId)
       : [];
 
-    const [deletableApps, nonDeletableApps] = _.partition((app) => isResourceDeletable('app', app), apps);
+    const [deletableApps, nonDeletableApps] = _.partition((app) => isResourceDeletable(app), apps);
     const [deletableRuntimes, nonDeletableRuntimes] = _.partition(
-      (runtime) => isResourceDeletable('runtime', runtime),
+      (runtime) => isResourceDeletable(runtime),
       currentRuntimesList
     );
     return {

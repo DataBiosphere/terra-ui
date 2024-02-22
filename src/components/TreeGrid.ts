@@ -1,6 +1,6 @@
 import { IconId, Link } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { ReactElement, useState } from 'react';
+import { CSSProperties, ReactElement, useState } from 'react';
 import { div, h, strong } from 'react-hyperscript-helpers';
 import { Grid } from 'react-virtualized';
 import { icon } from 'src/components/icons';
@@ -46,13 +46,35 @@ const wrapContent =
     state: 'closed',
   });
 
+export const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<T, T[]>): Row<T>[] => {
+  const traverseHierarchy = (parent: T, depth: number, previousRows: Row<T>[]): Row<T>[] => {
+    // does parent have children?
+    const children = hierarchyMap.get(parent) || [];
+    const parentRow: Row<T> = {
+      contents: parent,
+      depth,
+      isFetched: children.length > 0,
+      state: children.length > 0 ? 'open' : 'closed',
+    };
+    // recursively traverse hierarchy of all children
+    const childRows = children.flatMap((child) => traverseHierarchy(child, depth + 1, []));
+    return [...previousRows, parentRow, ...childRows];
+  };
+
+  // hierarchyMap assumes that the root is the first map entry
+  // using depth of -1 because we don't want to show the root
+  return _.tail(traverseHierarchy(hierarchyMap.keys().next().value, -1, []));
+};
+
 type TreeGridProps<T extends RowContents> = {
   /** the columns to display */
   readonly columns: Column<T>[];
   /** the initial rows to display */
-  readonly initialRows: T[];
+  readonly initialHierarchy: Map<T, T[]>;
   /** Given a row, return its children. This is only called if row.hasChildren is true. */
   readonly getChildren: (row: T) => Promise<T[]>;
+  /** Optional header style */
+  readonly headerStyle?: CSSProperties;
 };
 
 type TreeGridPropsInner<T extends RowContents> = TreeGridProps<T> & {
@@ -87,8 +109,8 @@ const getRowIndex = <T extends RowContents>(row: Row<T>, rows: Row<T>[]) =>
   _.findIndex((r) => r.contents.id === row.contents.id, rows);
 
 const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
-  const { columns, initialRows, getChildren, gridWidth } = props;
-  const [data, setData] = useState(_.map(wrapContent(0), initialRows));
+  const { columns, getChildren, gridWidth, initialHierarchy } = props;
+  const [data, setData] = useState(hierarchyMapToRows(initialHierarchy));
   const rowHeight = 40;
   const expand = async (row: Row<T>) => {
     const index = getRowIndex(row, data);
@@ -155,9 +177,15 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
             ? div({ style: { paddingLeft: `${1 + row.depth}rem`, display: 'flex' } }, [
                 row.contents.hasChildren &&
                   (handler
-                    ? h(Link, { onClick: () => handler(row), 'aria-label': label, style: { paddingLeft: 5 } }, [
-                        icon(iconName, { size: 16 }),
-                      ])
+                    ? h(
+                        Link,
+                        {
+                          onClick: () => handler(row),
+                          'aria-label': `${label} ${row.contents.id}`,
+                          style: { paddingLeft: 5 },
+                        },
+                        [icon(iconName, { size: 16 })]
+                      )
                     : icon(iconName, { size: 16, style: { marginLeft: 5 } })),
                 div({ style: { display: 'flex', marginLeft: row.contents.hasChildren ? 10 : 5 + 16 + 10 } }, [
                   columns[columnIndex].render(row.contents),
@@ -178,21 +206,15 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
  * computed as the number of rows times the row height.
  */
 export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
-  const { columns } = props;
+  const { columns, headerStyle } = props;
   const gridWidth = _.sum(_.map((c) => c.width, columns));
   return div([
     // generate a header row
     div(
       {
         style: {
-          height: '100%',
+          ...headerStyle,
           width: _.sum(_.map((c) => c.width, columns)),
-          display: 'flex',
-          paddingTop: 15,
-          paddingBottom: 15,
-          backgroundColor: colors.light(0.4),
-          borderRadius: '8px 8px 0px 0px',
-          border: `.5px solid ${colors.dark(0.2)}`,
         },
       },
       [

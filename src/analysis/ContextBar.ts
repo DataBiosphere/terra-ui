@@ -52,13 +52,13 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import {
   BaseWorkspace,
   getCloudProviderFromWorkspace,
   isAzureWorkspace,
   isGoogleWorkspace,
-} from 'src/libs/workspace-utils';
-import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
+} from 'src/workspaces/utils';
 
 const contextBarStyles: { [label: string]: CSSProperties } = {
   contextBarContainer: {
@@ -85,6 +85,7 @@ export interface ContextBarProps {
   refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
   storageDetails: StorageDetails;
   refreshApps: (maybeStale?: boolean) => Promise<void>;
+  isLoadingCloudEnvironments: boolean;
   workspace: BaseWorkspace;
   persistentDisks: PersistentDisk[];
 }
@@ -96,6 +97,7 @@ export const ContextBar = ({
   refreshRuntimes,
   storageDetails,
   refreshApps,
+  isLoadingCloudEnvironments,
   workspace,
   persistentDisks,
 }: ContextBarProps) => {
@@ -248,6 +250,7 @@ export const ContextBar = ({
       appDataDisks,
       refreshRuntimes,
       refreshApps,
+      isLoadingCloudEnvironments,
       workspace,
       canCompute,
       persistentDisks,

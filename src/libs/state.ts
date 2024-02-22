@@ -13,7 +13,7 @@ import {
   SamUserAttributes,
 } from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
-import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import type { WorkspaceWrapper } from 'src/workspaces/utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 
@@ -259,9 +259,9 @@ export const workspacesStore = atom<WorkspaceWrapper[]>([]);
 
 export const rerunFailuresStatus = atom<unknown>(undefined);
 
-export const errorNotifiedRuntimes = atom<unknown[]>([]);
+export const errorNotifiedRuntimes = atom<number[]>([]);
 
-export const errorNotifiedApps = atom<unknown[]>([]);
+export const errorNotifiedApps = atom<string[]>([]);
 
 export const knownBucketRequesterPaysStatuses = atom({});
 

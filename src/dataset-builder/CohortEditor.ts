@@ -1,14 +1,17 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
+import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
+  DatasetParticipantCountResponse,
   LoadingAnyCriteria,
   ProgramDataListCriteria,
   ProgramDataListValue,
@@ -20,11 +23,11 @@ import {
   SnapshotBuilderDomainOption as DomainOption,
   SnapshotBuilderProgramDataOption,
 } from 'src/libs/ajax/DataRepo';
+import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 
-import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
-import { domainCriteriaSelectorState, homepageState, newCriteriaGroup, Updater } from './dataset-builder-types';
+import { domainCriteriaSearchState, homepageState, newCriteriaGroup, Updater } from './dataset-builder-types';
 import { OnStateChangeHandler } from './DatasetBuilder';
 
 const flexWithBaseline = {
@@ -37,15 +40,31 @@ const narrowMargin = 5;
 const wideMargin = 10;
 
 type CriteriaViewProps = {
-  criteria: AnyCriteria;
-  deleteCriteria: (criteria: AnyCriteria) => void;
-  updateCriteria: (criteria: AnyCriteria) => void;
+  readonly datasetId: string;
+  readonly criteria: AnyCriteria;
+  readonly deleteCriteria: (criteria: AnyCriteria) => void;
+  readonly updateCriteria: (criteria: AnyCriteria) => void;
 };
 
 const addCriteriaText = 'Add criteria';
 
-export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: CriteriaViewProps) =>
-  div(
+export const CriteriaView = (props: CriteriaViewProps) => {
+  const { datasetId, criteria, deleteCriteria, updateCriteria } = props;
+
+  const [criteriaCount, setCriteriaCount] = useLoadedData<DatasetParticipantCountResponse>();
+
+  useEffect(() => {
+    setCriteriaCount(async () =>
+      DataRepo()
+        .dataset(datasetId)
+        .getCounts({
+          // Create a "cohort" to get the count of participants for this criteria on its own.
+          cohorts: [{ criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }], name: '' }],
+        })
+    );
+  }, [criteria, datasetId, setCriteriaCount]);
+
+  return div(
     {
       style: {
         ...flexWithBaseline,
@@ -101,7 +120,7 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                       )(criteria),
                   }),
                 ]);
-              case 'range':
+              case 'range': {
                 const numberInputStyles = {
                   width: '4rem',
                   padding: 0,
@@ -141,15 +160,17 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                     }),
                   ]),
                 ]);
+              }
               default:
                 return div(['Unknown criteria']);
             }
           })(),
         ]),
       ]),
-      `Count: ${criteria.count}`,
+      div(['Count: ', criteriaCount.status === 'Ready' ? criteriaCount.state.result.total : h(Spinner)]),
     ]
   );
+};
 
 const addKindToDomainOption = (domainOption: DomainOption): DomainOptionWithKind => ({
   ...domainOption,
@@ -179,6 +200,7 @@ export async function criteriaFromOption(
       const rangeOption = generatedOptions;
       return {
         kind: 'range',
+        id: rangeOption.id,
         rangeOption,
         name: rangeOption.name,
         index,
@@ -190,6 +212,7 @@ export async function criteriaFromOption(
       const listOption = generatedOptions;
       return {
         kind: 'list',
+        id: listOption.id,
         listOption,
         name: option.name,
         index,
@@ -254,7 +277,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
       onChange: async (criteriaOption) => {
         if (criteriaOption !== null) {
           if (criteriaOption.value.kind === 'domain') {
-            onStateChange(domainCriteriaSelectorState.new(cohort, criteriaGroup, criteriaOption.value));
+            onStateChange(domainCriteriaSearchState.new(cohort, criteriaGroup, criteriaOption.value));
           } else {
             const criteriaIndex = getNextCriteriaIndex();
             updateCohort(
@@ -311,6 +334,16 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
       )
     );
   };
+
+  const [groupParticipantCount, setGroupParticipantCount] = useLoadedData<DatasetParticipantCountResponse>();
+
+  useEffect(() => {
+    setGroupParticipantCount(async () =>
+      DataRepo()
+        .dataset(dataset.id)
+        .getCounts({ cohorts: [{ criteriaGroups: [criteriaGroup], name: '' }] })
+    );
+  }, [criteriaGroup, dataset.id, setGroupParticipantCount]);
 
   return div(
     {
@@ -372,6 +405,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
                       icon('loadingSpinner', { size: 24 }),
                     ])
                   : h(CriteriaView, {
+                      datasetId: dataset.id,
                       deleteCriteria,
                       updateCriteria,
                       criteria,
@@ -407,7 +441,12 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
             fontWeight: 'bold',
           },
         },
-        [div({ style: { marginRight: wideMargin } }, [`Group count: ${criteriaGroup.count}`])]
+        [
+          div({ style: { marginRight: wideMargin } }, [
+            'Group count: ',
+            groupParticipantCount.status === 'Ready' ? groupParticipantCount.state.result.total : h(Spinner),
+          ]),
+        ]
       ),
     ]
   );
@@ -477,49 +516,44 @@ type CohortEditorContentsProps = {
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
   const { updateCohort, cohort, dataset, onStateChange, getNextCriteriaIndex } = props;
-  return div(
-    {
-      style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` },
-    },
-    [
-      h2({ style: { display: 'flex', alignItems: 'center' } }, [
-        h(
-          Link,
-          {
-            onClick: () => {
-              onStateChange(homepageState.new());
-            },
-            'aria-label': 'cancel',
+  return h(BuilderPageHeader, [
+    h2({ style: { display: 'flex', alignItems: 'center' } }, [
+      h(
+        Link,
+        {
+          onClick: () => {
+            onStateChange(homepageState.new());
           },
-          [icon('left-circle-filled', { size: 32 })]
-        ),
-        div({ style: { marginLeft: 15 } }, [cohort.name]),
-      ]),
-      h3(['To be included in the cohort, participants...']),
-      div({ style: { display: 'flow' } }, [
-        h(CohortGroups, {
-          key: cohort.name,
-          dataset,
-          cohort,
-          updateCohort,
-          onStateChange,
-          getNextCriteriaIndex,
-        }),
-        h(
-          ButtonOutline,
-          {
-            style: { marginTop: wideMargin },
-            onClick: (e) => {
-              updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, newCriteriaGroup()));
-              // Lose button focus, since button moves out from under the user's cursor.
-              e.currentTarget.blur();
-            },
+          'aria-label': 'cancel',
+        },
+        [icon('left-circle-filled', { size: 32 })]
+      ),
+      div({ style: { marginLeft: 15 } }, [cohort.name]),
+    ]),
+    h3(['To be included in the cohort, participants...']),
+    div({ style: { display: 'flow' } }, [
+      h(CohortGroups, {
+        key: cohort.name,
+        dataset,
+        cohort,
+        updateCohort,
+        onStateChange,
+        getNextCriteriaIndex,
+      }),
+      h(
+        ButtonOutline,
+        {
+          style: { marginTop: wideMargin },
+          onClick: (e) => {
+            updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, newCriteriaGroup()));
+            // Lose button focus, since button moves out from under the user's cursor.
+            e.currentTarget.blur();
           },
-          ['Add group']
-        ),
-      ]),
-    ]
-  );
+        },
+        ['Add group']
+      ),
+    ]),
+  ]);
 };
 
 interface CohortEditorProps {

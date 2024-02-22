@@ -19,6 +19,7 @@ import {
   DatasetBuilderValue,
   DatasetParticipantCountResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
+import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
   DataRepo,
   datasetIncludeTypes,
@@ -35,9 +36,8 @@ import { validate } from 'validate.js';
 
 import { CohortEditor } from './CohortEditor';
 import { ConceptSetCreator } from './ConceptSetCreator';
-import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from './constants';
 import { AnyDatasetBuilderState, cohortEditorState, homepageState, newCohort, Updater } from './dataset-builder-types';
-import { DatasetBuilderHeader } from './DatasetBuilderHeader';
+import { BuilderPageHeader, DatasetBuilderHeader } from './DatasetBuilderHeader';
 import { DomainCriteriaSelector } from './DomainCriteriaSelector';
 
 const SelectorSubHeader = ({ children }) => div({ style: { fontSize: 12, fontWeight: 600 } }, children);
@@ -601,7 +601,7 @@ export const DatasetBuilderContents = ({
 
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
-      div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
+      h(BuilderPageHeader, [
         h2(['Datasets']),
         div([
           'Build a dataset by selecting the concept sets and values for one or more of your cohorts. Then export the completed dataset to Notebooks where you can perform your analysis',
@@ -695,6 +695,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
         .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
     );
   });
+
   return datasetModel.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
@@ -723,6 +724,13 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   : div(['No Dataset Builder Settings Found']);
               case 'domain-criteria-selector':
                 return h(DomainCriteriaSelector, {
+                  state: datasetBuilderState,
+                  onStateChange,
+                  datasetId,
+                  getNextCriteriaIndex,
+                });
+              case 'domain-criteria-search':
+                return h(DomainCriteriaSearch, {
                   state: datasetBuilderState,
                   onStateChange,
                   datasetId,

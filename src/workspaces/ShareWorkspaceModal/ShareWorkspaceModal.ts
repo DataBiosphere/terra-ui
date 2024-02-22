@@ -14,15 +14,16 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { append, cond, withBusyState } from 'src/libs/utils';
-import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import {
+  AccessEntry,
   aclEntryIsTerraSupport,
   terraSupportAccessLevel,
   terraSupportEmail,
   transformAcl,
   WorkspaceAcl,
-} from 'src/workspaces/common/WorkspaceAcl';
+} from 'src/workspaces/acl-utils';
 import { CurrentCollaborators } from 'src/workspaces/ShareWorkspaceModal/CurrentCollaborators';
+import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 
@@ -97,7 +98,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   const addCollaborator = (collaboratorEmail) => {
     if (!validate.single(collaboratorEmail, { email: true, exclusion: aclEmails })) {
       setSearchValue('');
-      setAcl(append({ email: collaboratorEmail, accessLevel: 'READER' }));
+      setAcl(append({ email: collaboratorEmail, accessLevel: 'READER' } as AccessEntry));
       setLastAddedEmail(collaboratorEmail);
     }
   };

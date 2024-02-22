@@ -15,7 +15,7 @@ import { DataRepo, DataRepoContract, SnapshotBuilderProgramDataOption } from 'sr
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';
-import { domainCriteriaSelectorState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
+import { domainCriteriaSearchState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
 import { dummyDatasetModel } from './TestConstants';
 
 jest.mock('src/libs/ajax/GoogleStorage');
@@ -74,6 +74,22 @@ describe('CohortEditor', () => {
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   };
 
+  const mockGetCounts = (count: number) => {
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      dataset: (_datasetId) =>
+        ({
+          getCounts: () =>
+            Promise.resolve({
+              result: {
+                total: count,
+              },
+              sql: 'sql',
+            }),
+        } as Partial<DataRepoContract['dataset']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+  };
+
   const mockOption = (option: SnapshotBuilderProgramDataOption) => {
     switch (option.kind) {
       case 'range':
@@ -93,6 +109,7 @@ describe('CohortEditor', () => {
   const renderCriteriaView = (propsOverrides: CriteriaViewPropsOverrides) =>
     render(
       h(CriteriaView, {
+        datasetId: datasetDetails.id,
         deleteCriteria: _.noop,
         updateCriteria: _.noop,
         key: '1',
@@ -100,22 +117,23 @@ describe('CohortEditor', () => {
       })
     );
 
-  it('renders unknown criteria', () => {
+  it('renders unknown criteria', async () => {
     // Arrange
     const criteria = { name: 'bogus', invalid: 'property' };
 
     // The 'as any' is required to create an invalid criteria for testing purposes.
     renderCriteriaView({ criteria: criteria as any });
     // Assert
+    expect(await screen.findByText('Unknown criteria')).toBeTruthy();
     expect(screen.queryByText(criteria.name)).toBeFalsy();
-    expect(screen.queryByText('Unknown criteria')).toBeTruthy();
   });
 
-  it('renders domain criteria', () => {
+  it('renders domain criteria', async () => {
     // Arrange
     const criteria: DomainCriteria = {
       kind: 'domain',
       id: 0,
+      conceptId: 0,
       index: 0,
       name: 'test criteria',
       count: 0,
@@ -129,7 +147,7 @@ describe('CohortEditor', () => {
     };
     renderCriteriaView({ criteria });
     // Assert
-    expect(screen.getByText(criteria.domainOption.category, { exact: false })).toBeTruthy();
+    expect(await screen.findByText(criteria.domainOption.category, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.name)).toBeTruthy();
   });
 
@@ -137,6 +155,7 @@ describe('CohortEditor', () => {
     // Arrange
     mockListStatistics();
     const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+      id: 0,
       name: 'list',
       kind: 'list',
       tableName: 'table',
@@ -144,7 +163,7 @@ describe('CohortEditor', () => {
     })) as ProgramDataListCriteria;
     renderCriteriaView({ criteria });
 
-    expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
+    expect(await screen.findByText(criteria.name, { exact: false })).toBeTruthy();
     expect(criteria.values.length).toBe(0);
   });
 
@@ -154,16 +173,14 @@ describe('CohortEditor', () => {
     const updateCriteria = jest.fn();
     mockListStatistics();
     const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+      id: 0,
       name: 'list',
       kind: 'list',
       tableName: 'table',
       columnName: 'column',
     })) as ProgramDataListCriteria;
     criteria.values = [{ id: 0, name: 'value 0' }];
-    renderCriteriaView({
-      updateCriteria,
-      criteria,
-    });
+    renderCriteriaView({ updateCriteria, criteria });
     // Act
     await user.click(await screen.findByLabelText('Remove value 0'));
     // Assert
@@ -187,16 +204,15 @@ describe('CohortEditor', () => {
     // Arrange
     mockRangeStatistics();
     const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+      id: 0,
       name: 'range',
       kind: 'range',
       tableName: 'table',
       columnName: 'column',
     })) as ProgramDataRangeCriteria;
-    renderCriteriaView({
-      criteria,
-    });
+    renderCriteriaView({ criteria });
     // Assert
-    expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
+    expect(await screen.findByText(criteria.name, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.low, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.high, { exact: false })).toBeTruthy();
   });
@@ -206,16 +222,14 @@ describe('CohortEditor', () => {
     const user = userEvent.setup();
     mockRangeStatistics();
     const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+      id: 0,
       name: 'range',
       kind: 'range',
       tableName: 'table',
       columnName: 'column',
     })) as ProgramDataRangeCriteria;
     const updateCriteria = jest.fn();
-    renderCriteriaView({
-      criteria,
-      updateCriteria,
-    });
+    renderCriteriaView({ criteria, updateCriteria });
     const lowInput = 65;
     const highInput = 75;
     // Act
@@ -236,19 +250,19 @@ describe('CohortEditor', () => {
     mockRangeStatistics(min, max);
 
     const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+      id: 0,
       name: 'range',
       kind: 'range',
       tableName: 'table',
       columnName: 'column',
     })) as ProgramDataRangeCriteria;
     const updateCriteria = jest.fn();
-    renderCriteriaView({
-      criteria,
-      updateCriteria,
-    });
+    renderCriteriaView({ criteria, updateCriteria });
     // Act
     // We need to use fireEvent for this because rc-slider uses deprecated KeyboardEvent properties which and keyCode
-    fireEvent.keyDown(screen.getByLabelText(`${criteria.name} low slider`), { keyCode: KEY_RIGHT /* Right Arrow */ });
+    fireEvent.keyDown(await screen.findByLabelText(`${criteria.name} low slider`), {
+      keyCode: KEY_RIGHT /* Right Arrow */,
+    });
     fireEvent.keyDown(screen.getByLabelText(`${criteria.name} high slider`), { keyCode: KEY_LEFT /* Left Arrow */ });
 
     // Arrange
@@ -260,6 +274,7 @@ describe('CohortEditor', () => {
     // Arrange
     mockRangeStatistics();
     const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+      id: 0,
       name: 'range',
       kind: 'range',
       tableName: 'table',
@@ -298,18 +313,19 @@ describe('CohortEditor', () => {
     return { cohort, updateCohort };
   }
 
-  it('renders criteria group', () => {
+  it('renders criteria group', async () => {
     // Arrange
+    const count = 12345;
+    mockGetCounts(count);
     const { cohort } = showCriteriaGroup((criteriaGroup) => {
       criteriaGroup.meetAll = false;
       criteriaGroup.mustMeet = false;
-      criteriaGroup.count = 1234;
     });
     // Assert
     expect(screen.getByText('Must not')).toBeTruthy();
     expect(screen.getByText('any')).toBeTruthy();
     const criteriaGroup = cohort.criteriaGroups[0];
-    expect(screen.getByText(`${criteriaGroup.count}`, { exact: false })).toBeTruthy();
+    expect(await screen.findByText(`${count}`, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteriaGroup.name)).toBeTruthy();
   });
 
@@ -431,7 +447,7 @@ describe('CohortEditor', () => {
     cohort.criteriaGroups.push(criteriaGroup);
     showCohortEditor(cohort);
     // Assert
-    expect(screen.getByText('Save cohort')).toHaveAttribute('disabled');
+    expect(await screen.findByText('Save cohort')).toHaveAttribute('disabled');
   });
 
   it('cancels editing a cohort', async () => {
@@ -460,7 +476,7 @@ describe('CohortEditor', () => {
     ]);
   });
 
-  it('shows the domain criteria selector', async () => {
+  it('shows the domain criteria search', async () => {
     // Arrange
     const { onStateChange } = showCohortEditor();
     const user = userEvent.setup();
@@ -472,7 +488,7 @@ describe('CohortEditor', () => {
     await user.click(domainMenuItem);
     // Assert
     expect(onStateChange).toBeCalledWith(
-      domainCriteriaSelectorState.new(expect.anything(), expect.anything(), _.set('kind', 'domain', domainOption))
+      domainCriteriaSearchState.new(expect.anything(), expect.anything(), _.set('kind', 'domain', domainOption), [], '')
     );
   });
 });

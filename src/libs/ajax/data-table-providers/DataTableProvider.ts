@@ -1,6 +1,7 @@
 // define metadata structures
 export interface EntityTypeMetadata {
   attributeNames: string[];
+  attributes: { name: string; datatype: string }[];
   count: number;
   idName: string;
 }
@@ -61,6 +62,13 @@ export type UploadParameters = {
   recordType: string;
 };
 
+export type RecordEditParameters = {
+  instance: string;
+  recordName: string;
+  recordId: string;
+  record: { [attribute: string]: any };
+};
+
 export type InvalidTsvOptions = {
   fileImportModeMatches: boolean;
   filePresent: boolean;
@@ -78,6 +86,12 @@ export type TsvUploadButtonTooltipOptions = {
   filePresent: boolean;
   isInvalid?: boolean;
   recordTypePresent: boolean;
+};
+
+export type UpdateAttributeParameters = {
+  entityType: string;
+  oldAttributeName: string;
+  newAttributeName: string;
 };
 
 export interface AttributeArray {
@@ -109,6 +123,8 @@ export type TsvUploadButtonTooltipFn = (options: TsvUploadButtonTooltipOptions) 
 
 export type UploadTsvFn = (uploadParams: UploadParameters) => Promise<any>;
 
+export type UpdateAttributeFn = (attributeUpdateParams: UpdateAttributeParameters) => Promise<any>;
+
 export interface DataTableFeatures {
   supportsCapabilities: boolean;
   supportsTsvDownload: boolean;
@@ -117,6 +133,7 @@ export interface DataTableFeatures {
   supportsTypeRenaming: boolean;
   supportsEntityRenaming: boolean;
   supportsEntityUpdating: boolean;
+  supportsEntityUpdatingTypes?: string[];
   supportsAttributeRenaming: boolean;
   supportsAttributeDeleting: boolean;
   supportsAttributeClearing: boolean;
@@ -147,7 +164,7 @@ export interface DataTableProvider {
   deleteColumn: DeleteColumnFn;
   downloadTsv: DownloadTsvFn;
   uploadTsv: UploadTsvFn;
+  updateAttribute: UpdateAttributeFn;
   // todos that we may need soon:
   // getMetadata: GetMetadataFn
-  // updateAttribute: function, see also boolean
 }

@@ -3,11 +3,10 @@ import { asMockedFn, withFakeTimers } from '@terra-ui-packages/test-utils';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { CloudPlatform } from 'src/billing-core/models';
 import { Ajax } from 'src/libs/ajax';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { goToPath } from 'src/libs/nav';
-import { AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
-import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
 import {
   azureBillingProject,
   azureProtectedDataBillingProject,
@@ -20,6 +19,7 @@ import {
   mockBucketRequesterPaysError,
   protectedAzureWorkspace,
 } from 'src/testing/workspace-fixtures';
+import { AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/workspaces/utils';
 
 import NewWorkspaceModal from './NewWorkspaceModal';
 

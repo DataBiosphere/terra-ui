@@ -2,6 +2,7 @@ import { ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { FlexTable, Sortable, TextCell } from 'src/components/table';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import { getOutputTableData, OutputTableData } from 'src/workflows-app/utils/submission-utils';
 
 import { OutputDefinition, RecordUpdateOutputDestination } from '../models/submission-models';
@@ -63,7 +64,7 @@ const SubmissionDetailsOutputsTable = ({
               {
                 size: { basis: 500, grow: 0 },
                 field: 'attribute',
-                headerRenderer: () => 'Attribute',
+                headerRenderer: () => WorkflowTableColumnNames.OUTPUT_NAME,
                 cellRenderer: ({ rowIndex }) => {
                   if (outputTableData[rowIndex].destination.type === 'record_update') {
                     const destination: RecordUpdateOutputDestination = outputTableData[rowIndex]

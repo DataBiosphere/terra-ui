@@ -867,7 +867,7 @@ export const SimpleTable = ({
                     'aria-colindex': colindex + 1, // The first column is 1
                     className: 'table-cell',
                     style: {
-                      borderTop: `1px solid ${colors.dark(0.2)}`,
+                      borderTop: i === 0 ? 0 : `1px solid ${colors.dark(0.2)}`,
                       ...cellStyles,
                       ...styles.flexCell(size),
                     },

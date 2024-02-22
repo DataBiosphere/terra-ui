@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common';
 import { getConfig } from 'src/libs/config';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 type SasInfo = {
   url: string;
@@ -70,7 +70,11 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     };
   },
 
-  listFiles: async (workspaceId: string, suffixFilter = ''): Promise<AzureFileRaw[]> => {
+  // A prefix filter is used to only include files from a parent directory and below. It is the path starting *after* the the container name (which generally looks like sc-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx, the x's being the workspace ID)
+  // So, in order to include only the files in the workspace-services/cbas directory you would include 'workspace-services/cbas' as the prefix filter.
+  // Importantly, the prefix filter is handled by the Azure Backend, which makes it more efficient than the suffix filter, which is handled on the client frontend.
+  // The suffix filter is used to filter the files returned by the Azure Backend. It can be used to filter the files by file extension or file name, for example. If the returned number of files is very large, this may be a slow operation.
+  listFiles: async (workspaceId: string, prefixFilter = '', suffixFilter = ''): Promise<AzureFileRaw[]> => {
     if (!workspaceId) {
       return [];
     }
@@ -81,10 +85,9 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     const azureContainerUrl = _.flow(
       _.split('?'),
       _.head,
-      Utils.append(`?restype=container&comp=list&${token}`),
+      Utils.append(`?restype=container&comp=list&prefix=${prefixFilter}&${token}`),
       _.join('')
     )(url);
-
     const res = await fetchOk(azureContainerUrl);
     const text = await res.text();
     const xml = new window.DOMParser().parseFromString(text, 'text/xml');
@@ -101,7 +104,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
   },
 
   listNotebooks: async (workspaceId: string): Promise<AnalysisFile[]> => {
-    const notebooks = await AzureStorage(signal).listFiles(workspaceId, '.ipynb');
+    const notebooks = await AzureStorage(signal).listFiles(workspaceId, '', '.ipynb');
     return _.map(
       (notebook) => ({
         lastModified: new Date(notebook.lastModified).getTime(),

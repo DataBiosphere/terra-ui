@@ -5,10 +5,10 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
-import { WorkspaceLinkById } from 'src/components/WorkspaceLinks';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { WorkspaceLinkById } from 'src/workspace-data/data-table/wds/WorkspaceLinks';
 
 import { useWdsStatus } from './wds-status';
 
@@ -62,6 +62,8 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
   ]) => {
     return tr({ key: label }, [
       td({ style: { fontWeight: 'bold' } }, [
+        // TODO: Remove nested ternary to align with style guide
+        // eslint-disable-next-line no-nested-ternary
         iconRunning ? checkIcon('running') : iconSuccess ? checkIcon('success') : checkIcon('failure'),
       ]),
       td({ style: { fontWeight: 'bold', whiteSpace: 'nowrap' } }, [label]),

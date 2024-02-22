@@ -11,7 +11,7 @@ import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
-import { canEditWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
+import { canEditWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface WorkspaceDescriptionProps {
   workspace: Workspace;

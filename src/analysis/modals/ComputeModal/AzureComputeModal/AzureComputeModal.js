@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
 import { AzurePersistentDiskSection } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSection';
@@ -35,9 +35,8 @@ import {
 import colors from 'src/libs/colors';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 const titleId = 'azure-compute-modal-title';
 
@@ -48,11 +47,13 @@ export const AzureComputeModalBase = ({
   workspace,
   currentRuntime,
   currentDisk,
+  isLoadingCloudEnvironments,
   location,
   tool,
   hideCloseButton = false,
 }) => {
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
+  const loading = _loading || isLoadingCloudEnvironments;
   const [viewMode, setViewMode] = useState(undefined);
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(currentRuntime);
   const [currentPersistentDiskDetails] = useState(currentDisk);
@@ -63,16 +64,19 @@ export const AzureComputeModalBase = ({
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false);
   const hasGpu = () => !!azureMachineTypes[computeConfig.machineType]?.hasGpu;
   // Lifecycle
-  useOnMount(() => {
-    const loadCloudEnvironment = _.flow(
+  useEffect(() => {
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+      existingConfig: !!currentRuntime,
+      ...extractWorkspaceDetails(workspace.workspace),
+    });
+  });
+
+  useEffect(() => {
+    const refreshRuntime = _.flow(
       withErrorReportingInModal('Error loading cloud environment', onError),
       Utils.withBusyState(setLoading)
     )(async () => {
       const runtimeDetails = currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null;
-      Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
-        existingConfig: !!currentRuntime,
-        ...extractWorkspaceDetails(workspace.workspace),
-      });
       setCurrentRuntimeDetails(runtimeDetails);
       setComputeConfig({
         machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
@@ -83,8 +87,8 @@ export const AzureComputeModalBase = ({
         autopauseThreshold: runtimeDetails ? runtimeDetails.autopauseThreshold || autopauseDisabledValue : defaultAutopauseThreshold,
       });
     });
-    loadCloudEnvironment();
-  });
+    refreshRuntime();
+  }, [currentRuntime, location, onError, workspaceId]);
 
   const renderTitleAndTagline = () => {
     return h(Fragment, [
@@ -106,6 +110,7 @@ export const AzureComputeModalBase = ({
           ButtonOutline,
           {
             onClick: () => setViewMode('deleteEnvironment'),
+            disabled: loading,
           },
           [
             Utils.cond(
@@ -280,8 +285,11 @@ export const AzureComputeModalBase = ({
   const renderActionButton = () => {
     const commonButtonProps = {
       tooltipSide: 'left',
-      disabled: Utils.cond([viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)], () => doesRuntimeExist()),
+      disabled: Utils.cond([loading, true], [viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)], () =>
+        doesRuntimeExist()
+      ),
       tooltip: Utils.cond(
+        [loading, 'Loading cloud environments'],
         [viewMode === 'deleteEnvironment', () => (getIsRuntimeBusy(currentRuntimeDetails) ? 'Cannot delete a runtime while it is busy' : undefined)],
         [doesRuntimeExist(), () => 'Update not supported for azure runtimes'],
         () => undefined

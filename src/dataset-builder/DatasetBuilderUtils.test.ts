@@ -1,3 +1,4 @@
+import { div } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
   AnyCriteriaApi,
@@ -14,6 +15,7 @@ import {
   DatasetAccessRequestApi,
   DomainCriteria,
   DomainCriteriaApi,
+  HighlightConceptName,
   ProgramDataListCriteria,
   ProgramDataListCriteriaApi,
   ProgramDataListOption,
@@ -24,7 +26,12 @@ import {
   ValueSet,
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { SnapshotBuilderConcept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
+import { dummyGetConceptForId, getHierarchyMap } from 'src/dataset-builder/TestConstants';
+import {
+  SnapshotBuilderConcept as Concept,
+  SnapshotBuilderConcept,
+  SnapshotBuilderDomainOption,
+} from 'src/libs/ajax/DataRepo';
 
 const concept: SnapshotBuilderConcept = {
   id: 0,
@@ -42,6 +49,7 @@ const domainOption: SnapshotBuilderDomainOption = {
 };
 
 const domainCriteria: DomainCriteria = {
+  conceptId: 100,
   kind: 'domain',
   name: 'domainCriteria',
   domainOption,
@@ -54,9 +62,11 @@ const domainCriteriaApi: DomainCriteriaApi = {
   kind: 'domain',
   name: 'domainCriteria',
   id: 2,
+  conceptId: 100,
 };
 
 const rangeOption: ProgramDataRangeOption = {
+  id: 2,
   kind: 'range',
   min: 0,
   max: 101,
@@ -64,6 +74,7 @@ const rangeOption: ProgramDataRangeOption = {
 };
 
 const rangeCriteria: ProgramDataRangeCriteria = {
+  id: 2,
   kind: 'range',
   name: 'rangeCriteria',
   rangeOption,
@@ -74,6 +85,7 @@ const rangeCriteria: ProgramDataRangeCriteria = {
 };
 
 const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
+  id: 2,
   kind: 'range',
   name: 'rangeCriteria',
   low: 1,
@@ -83,6 +95,7 @@ const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
 const optionValues: ProgramDataListValue[] = [{ id: 5, name: 'listOptionListValue' }];
 
 const listOption: ProgramDataListOption = {
+  id: 2,
   kind: 'list',
   name: 'listOption',
   values: optionValues,
@@ -96,6 +109,7 @@ const criteriaListValues: ProgramDataListValue[] = [
 const criteriaListValuesApi: number[] = [7, 8];
 
 const listCriteria: ProgramDataListCriteria = {
+  id: 2,
   kind: 'list',
   name: 'listCriteria',
   index: 9,
@@ -104,6 +118,7 @@ const listCriteria: ProgramDataListCriteria = {
 };
 
 const listCriteriaApi: ProgramDataListCriteriaApi = {
+  id: 2,
   kind: 'list',
   name: 'listCriteria',
   values: criteriaListValuesApi,
@@ -118,7 +133,6 @@ const criteriaGroup: CriteriaGroup = {
   criteria: anyCriteriaArray,
   mustMeet: true,
   meetAll: false,
-  count: 50,
 };
 
 const criteriaGroupApi: CriteriaGroupApi = {
@@ -177,5 +191,166 @@ describe('test conversion of valueSets', () => {
 describe('test conversion of DatasetAccessRequest', () => {
   test('datasetAccessRequest converted to datasetAccessRequestApi', () => {
     expect(convertDatasetAccessRequest(datasetAccessRequest)).toStrictEqual(datasetAccessRequestApi);
+  });
+});
+
+describe('test gettingHierarchyMap', () => {
+  /**
+   * HIERARCHY REPRESENTATION
+   *             100
+   *           /    \
+   *         400    408
+   *          |
+   *         401
+   *        / | \
+   *       /  |  \
+   *      /   |   \
+   *    402  403  404
+   *     |         \
+   *    407       / \
+   *             /   \
+   *           405   406
+   */
+
+  test('fetching hierarchy map of id 400', () => {
+    const hierarchyMap = new Map<Concept, Concept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    expect(getHierarchyMap(400)).toStrictEqual(hierarchyMap);
+  });
+  test('fetching hierarchy map of id 401', () => {
+    const hierarchyMap = new Map<Concept, Concept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
+    expect(getHierarchyMap(401)).toStrictEqual(hierarchyMap);
+  });
+  test('fetching hierarchy map of id 402', () => {
+    const hierarchyMap = new Map<Concept, Concept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
+    hierarchyMap.set(dummyGetConceptForId(401), [
+      dummyGetConceptForId(402),
+      dummyGetConceptForId(403),
+      dummyGetConceptForId(404),
+    ]);
+    expect(getHierarchyMap(402)).toStrictEqual(hierarchyMap);
+  });
+  test('fetching hierarchy map of id 403', () => {
+    const hierarchyMap = new Map<Concept, Concept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
+    hierarchyMap.set(dummyGetConceptForId(401), [
+      dummyGetConceptForId(402),
+      dummyGetConceptForId(403),
+      dummyGetConceptForId(404),
+    ]);
+    expect(getHierarchyMap(403)).toStrictEqual(hierarchyMap);
+  });
+  test('fetching hierarchy map of id 404', () => {
+    const hierarchyMap = new Map<Concept, Concept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
+    hierarchyMap.set(dummyGetConceptForId(401), [
+      dummyGetConceptForId(402),
+      dummyGetConceptForId(403),
+      dummyGetConceptForId(404),
+    ]);
+    expect(getHierarchyMap(404)).toStrictEqual(hierarchyMap);
+  });
+
+  test('fetching hierarchy map of id 407', () => {
+    const hierarchyMap = new Map<Concept, Concept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
+    hierarchyMap.set(dummyGetConceptForId(401), [
+      dummyGetConceptForId(402),
+      dummyGetConceptForId(403),
+      dummyGetConceptForId(404),
+    ]);
+    hierarchyMap.set(dummyGetConceptForId(402), [dummyGetConceptForId(407)]);
+
+    expect(getHierarchyMap(407)).toStrictEqual(hierarchyMap);
+  });
+
+  test('fetching hierarchy map of id 408', () => {
+    const hierarchyMap = new Map<Concept, Concept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    expect(getHierarchyMap(408)).toStrictEqual(hierarchyMap);
+  });
+
+  test('fetching hierarchy map of id 100', () => {
+    const hierarchyMap = new Map<Concept, Concept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), []);
+    expect(getHierarchyMap(100)).toStrictEqual(hierarchyMap);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  const createHighlightConceptName = (beforeHighlight: string, highlightWord: string, afterHighlight: string) => {
+    return div({ style: { display: 'flex' } }, [
+      div({ style: { whiteSpace: 'pre' } }, [beforeHighlight]),
+      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, [highlightWord]),
+      div({ style: { whiteSpace: 'pre' } }, [afterHighlight]),
+    ]);
+  };
+
+  test('searching beginning of conceptName', () => {
+    const searchFilter = 'Clinic';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('', 'Clinic', 'al Finding');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test("Testing to make sure capitalization doesn't change", () => {
+    const searchFilter = 'clin';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('', 'Clin', 'ical Finding');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the middle of conceptName', () => {
+    const searchFilter = 'cal';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('Clini', 'cal', ' Finding');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the end of conceptName', () => {
+    const searchFilter = 'Finding';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('Clinical ', 'Finding', '');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the not in conceptName: "XXX" in "Clinical Finding"', () => {
+    const searchFilter = 'XXX';
+    const conceptName = 'Clinical Finding';
+    const result = div(['Clinical Finding']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the not in conceptName: "Clinical" in "Clin"', () => {
+    const searchFilter = 'Clinical';
+    const conceptName = 'Clin';
+    const result = div(['Clin']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord is empty: "" ', () => {
+    const searchFilter = '';
+    const conceptName = 'Condition';
+    const result = div(['Condition']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test("doesn't bold whitespace", () => {
+    let searchFilter = ' ';
+    let conceptName = 'Clinical Finding';
+    let result = div(['Clinical Finding']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+
+    searchFilter = '   ';
+    conceptName = 'Clinical Finding';
+    result = div(['Clinical Finding']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 });

@@ -13,6 +13,8 @@ export interface CloudEnvironmentDetails {
   refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
   persistentDisks?: PersistentDisk[];
   appDataDisks?: PersistentDisk[];
+  // TODO use LoadedState instead
+  isLoadingCloudEnvironments: boolean;
 }
 
 export const useCloudEnvironmentPolling = (
@@ -29,6 +31,7 @@ export const useCloudEnvironmentPolling = (
 
   const timeout = useRef<NodeJS.Timeout>();
   const [runtimes, setRuntimes] = useState<ListRuntimeItem[]>();
+  const [isLoadingCloudEnvironments, setIsLoadingCloudEnvironments] = useState<boolean>(true);
   const [persistentDisks, setPersistentDisks] = useState<PersistentDisk[]>();
   const [appDataDisks, setAppDataDisks] = useState<PersistentDisk[]>();
 
@@ -63,6 +66,7 @@ export const useCloudEnvironmentPolling = (
       setAppDataDisks(_.remove((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
       setPersistentDisks(_.filter((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
       const runtime = getCurrentRuntime(newRuntimes);
+      setIsLoadingCloudEnvironments(false);
       reschedule(
         maybeStale ||
           ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring'].includes(
@@ -94,5 +98,5 @@ export const useCloudEnvironmentPolling = (
     };
     //  eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, namespace, workspace]);
-  return { runtimes, refreshRuntimes, persistentDisks, appDataDisks };
+  return { runtimes, refreshRuntimes, persistentDisks, appDataDisks, isLoadingCloudEnvironments };
 };

@@ -1,5 +1,9 @@
 import { Cohort, CriteriaGroup } from 'src/dataset-builder/DatasetBuilderUtils';
-import { SnapshotBuilderDomainOption as DomainOption } from 'src/libs/ajax/DataRepo';
+import {
+  SnapshotBuilderConcept as Concept,
+  SnapshotBuilderConcept,
+  SnapshotBuilderDomainOption as DomainOption,
+} from 'src/libs/ajax/DataRepo';
 
 let groupCount = 1;
 export const newCriteriaGroup = (): CriteriaGroup => {
@@ -8,8 +12,14 @@ export const newCriteriaGroup = (): CriteriaGroup => {
     criteria: [],
     mustMeet: true,
     meetAll: false,
-    count: 0,
   };
+};
+
+export type SnapshotBuilderConceptNode = {
+  id: number;
+  concept: SnapshotBuilderConcept;
+  children: number[];
+  parent?: number;
 };
 
 export const newCohort = (name: string): Cohort => {
@@ -24,7 +34,8 @@ type DatasetBuilderMode =
   | 'cohort-editor'
   | 'concept-selector'
   | 'concept-set-creator'
-  | 'domain-criteria-selector';
+  | 'domain-criteria-selector'
+  | 'domain-criteria-search';
 
 export interface DatasetBuilderState {
   mode: DatasetBuilderMode;
@@ -53,14 +64,54 @@ export interface DomainCriteriaSelectorState extends DatasetBuilderState {
   readonly cohort: Cohort;
   readonly criteriaGroup: CriteriaGroup;
   readonly domainOption: DomainOption;
+  readonly cart: Concept[];
+  readonly cancelState: AnyDatasetBuilderState;
+  readonly openedConcept?: Concept;
 }
 
 export const domainCriteriaSelectorState = {
-  new: (cohort: Cohort, criteriaGroup: CriteriaGroup, domainOption: DomainOption): DomainCriteriaSelectorState => ({
+  new: (
+    cohort: Cohort,
+    criteriaGroup: CriteriaGroup,
+    domainOption: DomainOption,
+    cart: Concept[],
+    cancelState: AnyDatasetBuilderState,
+    openedConcept?: Concept
+  ): DomainCriteriaSelectorState => ({
     mode: 'domain-criteria-selector',
     cohort,
     criteriaGroup,
     domainOption,
+    cart,
+    cancelState,
+    openedConcept,
+  }),
+};
+
+export interface DomainCriteriaSearchState extends DatasetBuilderState {
+  mode: 'domain-criteria-search';
+
+  readonly cohort: Cohort;
+  readonly criteriaGroup: CriteriaGroup;
+  readonly domainOption: DomainOption;
+  readonly cart: Concept[];
+  readonly searchText: string;
+}
+
+export const domainCriteriaSearchState = {
+  new: (
+    cohort: Cohort,
+    criteriaGroup: CriteriaGroup,
+    domainOption: DomainOption,
+    cart: Concept[] = [],
+    searchText = ''
+  ): DomainCriteriaSearchState => ({
+    mode: 'domain-criteria-search',
+    cohort,
+    criteriaGroup,
+    domainOption,
+    cart,
+    searchText,
   }),
 };
 
@@ -72,6 +123,7 @@ export type AnyDatasetBuilderState =
   | HomepageState
   | CohortEditorState
   | ConceptSetCreatorState
-  | DomainCriteriaSelectorState;
+  | DomainCriteriaSelectorState
+  | DomainCriteriaSearchState;
 
 export type Updater<T> = (updater: (value: T) => T) => void;

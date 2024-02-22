@@ -16,7 +16,6 @@ import { withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { azureControlledAccessRequestMessage, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { useAppPolling } from 'src/workspaces/common/state/useAppPolling';
 import { useCloudEnvironmentPolling } from 'src/workspaces/common/state/useCloudEnvironmentPolling';
 import { useSingleWorkspaceDeletionPolling } from 'src/workspaces/common/state/useDeletionPolling';
@@ -31,6 +30,7 @@ import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWork
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
+import { azureControlledAccessRequestMessage, isGoogleWorkspace } from 'src/workspaces/utils';
 
 const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
   return h(TitleBar, {
@@ -79,7 +79,15 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
     breadcrumbs,
     title,
     activeTab,
-    analysesData: { apps = [], refreshApps, runtimes = [], refreshRuntimes, appDataDisks = [], persistentDisks = [] },
+    analysesData: {
+      apps = [],
+      refreshApps,
+      runtimes = [],
+      refreshRuntimes,
+      appDataDisks = [],
+      persistentDisks = [],
+      isLoadingCloudEnvironments,
+    },
     storageDetails,
     refresh,
     workspace,
@@ -140,6 +148,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
             runtimes,
             persistentDisks,
             refreshRuntimes,
+            isLoadingCloudEnvironments,
             storageDetails,
           }),
       ]),
@@ -253,11 +262,8 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
         namespace,
         name
       );
-      const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(
-        name,
-        namespace,
-        workspace
-      );
+      const { runtimes, refreshRuntimes, persistentDisks, appDataDisks, isLoadingCloudEnvironments } =
+        useCloudEnvironmentPolling(name, namespace, workspace);
       const { apps, refreshApps, lastRefresh } = useAppPolling(name, namespace, workspace);
 
       if (accessError) {
@@ -274,7 +280,16 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
           refreshWorkspace,
           title: _.isFunction(title) ? title(props) : title,
           breadcrumbs: breadcrumbs(props),
-          analysesData: { apps, refreshApps, lastRefresh, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+          analysesData: {
+            apps,
+            refreshApps,
+            lastRefresh,
+            runtimes,
+            refreshRuntimes,
+            appDataDisks,
+            persistentDisks,
+            isLoadingCloudEnvironments,
+          },
           storageDetails,
           refresh: async () => {
             await refreshWorkspace();
@@ -297,6 +312,7 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
                 refreshRuntimes,
                 appDataDisks,
                 persistentDisks,
+                isLoadingCloudEnvironments,
               },
               storageDetails,
               ...props,

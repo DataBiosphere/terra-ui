@@ -40,8 +40,13 @@ import { workflowSelectionStore } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { downloadIO, getWorkflowInputSuggestionsForAttributesOfSetMembers, ioTask, ioVariable } from 'src/libs/workflow-utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import {
+  downloadIO,
+  getWorkflowInputSuggestionsForAttributesOfSetMembers,
+  ioTask,
+  ioVariable,
+  WorkflowTableColumnNames,
+} from 'src/libs/workflow-utils';
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent';
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
@@ -50,6 +55,7 @@ import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/Launch
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
 import { sanitizeAttributeUpdateString } from 'src/pages/workspaces/workspace/workflows/workflow-view-utils';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 const sideMargin = '3rem';
 
@@ -164,7 +170,7 @@ const WorkflowIOTable = ({
       {
         headerRenderer: () =>
           h(Fragment, [
-            h(HeaderCell, ['Attribute']),
+            h(HeaderCell, [WorkflowTableColumnNames.INPUT_VALUE]),
             !readOnly &&
               !isSnapshot &&
               which === 'outputs' &&
@@ -919,7 +925,7 @@ export const WorkflowView = _.flow(
                   div({ style: { display: 'flex', margin: '0.5rem 0 0 2rem' } }, [
                     div([
                       div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
-                      label(['Select root entity type:']),
+                      label(['Select data table:']),
                       snapshotReferenceError &&
                         h(
                           TooltipTrigger,
