@@ -32,7 +32,7 @@ export type WorkflowMethod = {
   description?: string;
   source: WorkflowSource;
   method_versions: MethodVersion[];
-  isPrivate?: boolean;
+  isPrivate: boolean;
 };
 
 /** Represents a set of workflows grouped together */
