@@ -167,7 +167,7 @@ export interface DataRepoContract {
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
     getConceptsHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptsHierarchyResponse>;
     // Search returns a list of matching concepts with a domain sorted by participant count. The result is truncated to N concepts.
-    searchConcepts(domain: SnapshotBuilderConcept, text?: string): Promise<SearchConceptsResponse>;
+    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SearchConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
