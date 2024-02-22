@@ -1,4 +1,4 @@
-import { useUniqueId } from '@terra-ui-packages/components';
+import { Select, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Children, useCallback, useEffect, useRef } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -16,6 +16,8 @@ import { AutoSizer } from 'src/components/common/VirtualizedSelectAutoSizer';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { useOnMount } from 'src/libs/react-utils';
+
+export { Select } from '@terra-ui-packages/components';
 
 const commonSelectProps: Partial<RSelectProps> = {
   theme: (base) =>
@@ -180,31 +182,31 @@ export type SelectProps<
  * @param [props.placeholder] - The placeholder value for the select
  * @param [props.styles] - custom styling for the select
  */
-export const Select = <
-  Value,
-  IsMulti extends boolean = false,
-  Option extends { value: Value; label?: string | undefined } = { value: Value; label: string | undefined }
->({
-  value,
-  options = [],
-  ...props
-}: SelectProps<Value, IsMulti, Option>) => {
-  // Allows passing options as list of values instead of options objects.
-  // For example:
-  // options: ['foo', 'bar']
-  // instead of:
-  // options: [{ value: 'foo' }, { value: 'bar' }]
-  //
-  // Cast as Options[] is because TS can't figure out how the `!_isObject(options[0])` condition affects the type of newOptions.
-  const newOptions = (
-    options && !_.isObject(options[0]) ? _.map((value) => ({ value }), options) : options
-  ) as Option[];
-
-  const findValue = (target: Value) => (_.find({ value: target }, newOptions) || null) as Option | null;
-
-  const ParameterizedBaseSelect = BaseSelect as typeof BaseSelect<Value, Option, IsMulti, never>;
-  return h(ParameterizedBaseSelect, { value, options: newOptions, findValue, ...props });
-};
+// const Select = <
+//   Value,
+//   IsMulti extends boolean = false,
+//   Option extends { value: Value; label?: string | undefined } = { value: Value; label: string | undefined }
+// >({
+//   value,
+//   options = [],
+//   ...props
+// }: SelectProps<Value, IsMulti, Option>) => {
+//   // Allows passing options as list of values instead of options objects.
+//   // For example:
+//   // options: ['foo', 'bar']
+//   // instead of:
+//   // options: [{ value: 'foo' }, { value: 'bar' }]
+//   //
+//   // Cast as Options[] is because TS can't figure out how the `!_isObject(options[0])` condition affects the type of newOptions.
+//   const newOptions = (
+//     options && !_.isObject(options[0]) ? _.map((value) => ({ value }), options) : options
+//   ) as Option[];
+//
+//   const findValue = (target: Value) => (_.find({ value: target }, newOptions) || null) as Option | null;
+//
+//   const ParameterizedBaseSelect = BaseSelect as typeof BaseSelect<Value, Option, IsMulti, never>;
+//   return h(ParameterizedBaseSelect, { value, options: newOptions, findValue, ...props });
+// };
 
 export type GroupedSelectProps<
   Value,
