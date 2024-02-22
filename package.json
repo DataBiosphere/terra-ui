@@ -136,7 +136,8 @@
   },
   "resolutions": {
     "fbjs/ua-parser-js": "^1.0.33",
-    "outdated-browser-rework/ua-parser-js": "^1.0.33"
+    "outdated-browser-rework/ua-parser-js": "^1.0.33",
+    "axios": "0.28.0"
   },
   "browserslist": [
     ">0.2%",
