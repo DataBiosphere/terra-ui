@@ -38,7 +38,8 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const [concepts, searchConcepts] = useLoadedData<GetConceptsResponse>();
 
-  // when searchText.length === 0, pass in undefined as searchText because searchConcepts will be based off domain
+  // 'text' in searchConcepts is an optional parameter and when searchText.length === 0, pass in undefined.
+  // this will return concepts based off `domain option root` instead of `searchText and domain option root`
   useEffect(() => {
     if (searchText.length === 0 || searchText.length > 2) {
       void searchConcepts(() => {
