@@ -13,7 +13,6 @@ import { GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/D
 import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
-import { useOnMount } from 'src/libs/react-utils';
 
 type ConceptSearchProps = {
   readonly initialSearch: string;
@@ -39,16 +38,13 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const [concepts, searchConcepts] = useLoadedData<GetConceptsResponse>();
 
-  // when mounting ConceptSearch, we want to retrieve a list of searchConcepts
-  useOnMount(() => {
-    void searchConcepts(() => {
-      return DataRepo().dataset(datasetId).searchConcepts(domainOption.root);
-    });
-  });
+  // when searchText.length === 0, pass in undefined as searchText because searchConcepts will be based off domain
   useEffect(() => {
-    if (searchText.length > 2) {
+    if (searchText.length === 0 || searchText.length > 2) {
       void searchConcepts(() => {
-        return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, searchText);
+        return DataRepo()
+          .dataset(datasetId)
+          .searchConcepts(domainOption.root, searchText.length > 2 ? searchText : undefined);
       });
     }
   }, [searchText, datasetId, domainOption.root, searchConcepts]);
