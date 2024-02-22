@@ -229,7 +229,7 @@ export const LogViewer = (logProps: LogViewerProps) => {
         div({ style: { height: '2.25rem' } }, [renderTopRow()]),
         div({ style: { display: 'flex', height: '100%' } }, [
           div({ style: { width: '25%' } }, renderLefthandTabs()),
-          div({ style: { width: '75%' } }, renderActiveTextContent()),
+          div({ style: { width: '75%', marginTop: '0.5rem' } }, renderActiveTextContent()),
         ]),
       ]),
     ]

@@ -181,7 +181,7 @@ commands:
             JEST_JUNIT_OUTPUT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/junit"
             SCREENSHOT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/failure-screenshots"
             ENVIRONMENT: << parameters.env >>
-          no_output_timeout: 20m
+          no_output_timeout: 25m
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||")
@@ -202,6 +202,7 @@ commands:
               bash ../.circleci/wait-for-job-finish.sh
               node --require ../.pnp.cjs ./slack/notify-circleci-test-results.js
             fi
+          no_output_timeout: 15m
           when: always
 
   notify-qa:

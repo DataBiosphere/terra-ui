@@ -1,7 +1,5 @@
 import { h } from 'react-hyperscript-helpers';
-import { DomainOption } from 'src/dataset-builder/DatasetBuilderUtils';
 import { saveSelected } from 'src/dataset-builder/DomainCriteriaSelector';
-import { SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 
 import { ConceptSearch } from './ConceptSearch';
 import {
@@ -27,14 +25,15 @@ export const DomainCriteriaSearch = (props: DomainCriteriaSearchProps) => {
     domainOption: state.domainOption,
     onCancel: () => onStateChange(cohortEditorState.new(state.cohort)),
     onCommit: saveSelected(state, getNextCriteriaIndex, onStateChange),
-    onOpenHierarchy: (domainOption: DomainOption, cart: Concept[], searchText: string) => {
+    onOpenHierarchy: (domainOption, cart, searchText, openedConcept) => {
       onStateChange(
         domainCriteriaSelectorState.new(
           state.cohort,
           state.criteriaGroup,
           domainOption,
           cart,
-          domainCriteriaSearchState.new(state.cohort, state.criteriaGroup, state.domainOption, cart, searchText)
+          domainCriteriaSearchState.new(state.cohort, state.criteriaGroup, state.domainOption, cart, searchText),
+          openedConcept
         )
       );
     },

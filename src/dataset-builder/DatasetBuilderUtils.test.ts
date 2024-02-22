@@ -27,6 +27,7 @@ import {
   ValueSet,
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
+import { dummyGetConceptForId, getHierarchyMap } from 'src/dataset-builder/TestConstants';
 import { SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 
 const concept: SnapshotBuilderConcept = {
@@ -183,6 +184,96 @@ describe('test conversion of valueSets', () => {
 describe('test conversion of DatasetAccessRequest', () => {
   test('datasetAccessRequest converted to datasetAccessRequestApi', () => {
     expect(convertDatasetAccessRequest(datasetAccessRequest)).toStrictEqual(datasetAccessRequestApi);
+  });
+});
+
+describe('test gettingHierarchyMap', () => {
+  /**
+   * HIERARCHY REPRESENTATION
+   *             100
+   *           /    \
+   *         400    408
+   *          |
+   *         401
+   *        / | \
+   *       /  |  \
+   *      /   |   \
+   *    402  403  404
+   *     |         \
+   *    407       / \
+   *             /   \
+   *           405   406
+   */
+
+  test('fetching hierarchy map of id 400', () => {
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    expect(getHierarchyMap(400)).toStrictEqual(hierarchyMap);
+  });
+  test('fetching hierarchy map of id 401', () => {
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
+    expect(getHierarchyMap(401)).toStrictEqual(hierarchyMap);
+  });
+  test('fetching hierarchy map of id 402', () => {
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
+    hierarchyMap.set(dummyGetConceptForId(401), [
+      dummyGetConceptForId(402),
+      dummyGetConceptForId(403),
+      dummyGetConceptForId(404),
+    ]);
+    expect(getHierarchyMap(402)).toStrictEqual(hierarchyMap);
+  });
+  test('fetching hierarchy map of id 403', () => {
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
+    hierarchyMap.set(dummyGetConceptForId(401), [
+      dummyGetConceptForId(402),
+      dummyGetConceptForId(403),
+      dummyGetConceptForId(404),
+    ]);
+    expect(getHierarchyMap(403)).toStrictEqual(hierarchyMap);
+  });
+  test('fetching hierarchy map of id 404', () => {
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
+    hierarchyMap.set(dummyGetConceptForId(401), [
+      dummyGetConceptForId(402),
+      dummyGetConceptForId(403),
+      dummyGetConceptForId(404),
+    ]);
+    expect(getHierarchyMap(404)).toStrictEqual(hierarchyMap);
+  });
+
+  test('fetching hierarchy map of id 407', () => {
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
+    hierarchyMap.set(dummyGetConceptForId(401), [
+      dummyGetConceptForId(402),
+      dummyGetConceptForId(403),
+      dummyGetConceptForId(404),
+    ]);
+    hierarchyMap.set(dummyGetConceptForId(402), [dummyGetConceptForId(407)]);
+
+    expect(getHierarchyMap(407)).toStrictEqual(hierarchyMap);
+  });
+
+  test('fetching hierarchy map of id 408', () => {
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
+    expect(getHierarchyMap(408)).toStrictEqual(hierarchyMap);
+  });
+
+  test('fetching hierarchy map of id 100', () => {
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
+    hierarchyMap.set(dummyGetConceptForId(100), []);
+    expect(getHierarchyMap(100)).toStrictEqual(hierarchyMap);
   });
 });
 

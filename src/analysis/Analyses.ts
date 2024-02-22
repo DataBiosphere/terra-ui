@@ -171,6 +171,8 @@ const AnalysisCard = ({
   // if there is a currentUserHash & lastLockedBy, they are not equal, and the lock isn't expired
   const isLocked: boolean =
     currentUserHash && lastLockedBy ? lastLockedBy !== currentUserHash && !isLockExpired : false;
+  // TODO: Remove nested ternary to align with style guide
+  // eslint-disable-next-line no-nested-ternary
   const lockedBy = lastLockedBy ? (potentialLockers ? potentialLockers[lastLockedBy] : null) : null;
 
   const analysisName: FileName = getFileName(name);
@@ -428,7 +430,15 @@ export interface SortOrderInfo {
 export const BaseAnalyses = (
   {
     workspace,
-    analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+    analysesData: {
+      apps,
+      refreshApps,
+      runtimes,
+      refreshRuntimes,
+      appDataDisks,
+      persistentDisks,
+      isLoadingCloudEnvironments,
+    },
     storageDetails: { googleBucketLocation, azureContainerRegion },
     onRequesterPaysError,
   }: AnalysesProps,
@@ -752,6 +762,7 @@ export const BaseAnalyses = (
                   runtimes,
                   persistentDisks,
                   refreshRuntimes,
+                  isLoadingCloudEnvironments,
                   appDataDisks,
                   refreshAnalyses,
                   analyses,

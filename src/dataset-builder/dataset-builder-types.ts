@@ -11,6 +11,13 @@ export const newCriteriaGroup = (): CriteriaGroup => {
   };
 };
 
+export type SnapshotBuilderConceptNode = {
+  id: number;
+  concept: Concept;
+  children: number[];
+  parent?: number;
+};
+
 export const newCohort = (name: string): Cohort => {
   return {
     name,
@@ -55,6 +62,7 @@ export interface DomainCriteriaSelectorState extends DatasetBuilderState {
   readonly domainOption: DomainOption;
   readonly cart: Concept[];
   readonly cancelState: AnyDatasetBuilderState;
+  readonly openedConcept?: Concept;
 }
 
 export const domainCriteriaSelectorState = {
@@ -63,7 +71,8 @@ export const domainCriteriaSelectorState = {
     criteriaGroup: CriteriaGroup,
     domainOption: DomainOption,
     cart: Concept[],
-    cancelState: AnyDatasetBuilderState
+    cancelState: AnyDatasetBuilderState,
+    openedConcept?: Concept
   ): DomainCriteriaSelectorState => ({
     mode: 'domain-criteria-selector',
     cohort,
@@ -71,6 +80,7 @@ export const domainCriteriaSelectorState = {
     domainOption,
     cart,
     cancelState,
+    openedConcept,
   }),
 };
 

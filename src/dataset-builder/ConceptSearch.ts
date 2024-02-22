@@ -19,7 +19,12 @@ type ConceptSearchProps = {
   readonly domainOption: DomainOption;
   readonly onCancel: () => void;
   readonly onCommit: (selected: Concept[]) => void;
-  readonly onOpenHierarchy: (domainOption: DomainOption, selected: Concept[], searchText: string) => void;
+  readonly onOpenHierarchy: (
+    domainOption: DomainOption,
+    cart: Concept[],
+    searchText: string,
+    openedConcept?: Concept
+  ) => void;
   readonly actionText: string;
   readonly datasetId: string;
   readonly initialCart: Concept[];
@@ -121,7 +126,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                     Link,
                     {
                       'aria-label': `open hierarchy ${concept.id}`,
-                      onClick: () => onOpenHierarchy(domainOption, cart, search),
+                      onClick: () => onOpenHierarchy(domainOption, cart, search, concept),
                     },
                     [icon('view-list')]
                   ),

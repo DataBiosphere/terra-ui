@@ -27,6 +27,8 @@ export const withCachedData = <S, F extends LoadedDataFn<S>>(store: Atom<S>, use
     });
 
     const finalResult: typeof dataResult =
+      // TODO: Remove nested ternary to align with style guide
+      // eslint-disable-next-line no-nested-ternary
       dataResult.status !== 'None'
         ? {
             ...dataResult,
