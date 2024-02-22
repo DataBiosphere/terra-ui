@@ -40,13 +40,13 @@ describe('Single workflow card', () => {
   it('should not render a lock icon for a public method', async () => {
     render(h(WorkflowCard, { method: methodDataWithVersions.methods[0] }));
     expect(document.querySelector("[data-icon='lock']")).not.toBeInTheDocument();
-    expect(screen.queryByText('This is a private method')).not.toBeInTheDocument();
+    expect(screen.queryByText('This is a private workflow')).not.toBeInTheDocument();
   });
 
   it('should render a lock icon for a private method', async () => {
     render(h(WorkflowCard, { method: methodDataWithVersionsAndDetails.methods[0] }));
     expect(document.querySelector("[data-icon='lock']"));
-    expect(screen.getByText(/This is a private method/));
+    expect(screen.getByText(/This is a private workflow/));
   });
 });
 

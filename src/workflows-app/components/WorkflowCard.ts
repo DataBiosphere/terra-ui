@@ -23,13 +23,6 @@ export type MethodVersion = {
   url: string;
   method_version_id?: string;
 };
-export type SourceDetails = {
-  private: boolean;
-  repository: string;
-  organization: string;
-  path: string;
-  method_id: string | undefined;
-};
 
 /** Represents a workflow method from CBAS */
 export type WorkflowMethod = {
@@ -39,7 +32,7 @@ export type WorkflowMethod = {
   description?: string;
   source: WorkflowSource;
   method_versions: MethodVersion[];
-  source_details?: SourceDetails;
+  isPrivate?: boolean;
 };
 
 /** Represents a set of workflows grouped together */
@@ -58,9 +51,9 @@ export type WorkflowCardProps = {
 
 export const WorkflowCard = ({ method, subCard, children }: PropsWithChildren<WorkflowCardProps>) => {
   const isWorkflowSet = 'methods' in method; // Used to narrow type
-  const isPrivate = isWorkflowSet ? false : method.source_details?.private;
+  const isPrivate = isWorkflowSet ? false : method.isPrivate;
   const showLock = isPrivate
-    ? h(TooltipCell, { tooltip: 'This is a private method', style: { marginLeft: '0.5em' } }, [icon('lock')])
+    ? h(TooltipCell, { tooltip: 'This is a private workflow', style: { marginLeft: '0.5em' } }, [icon('lock')])
     : undefined;
 
   return div(
@@ -108,8 +101,6 @@ export const WorkflowCard = ({ method, subCard, children }: PropsWithChildren<Wo
             [
               h3({ style: { color: subCard ? 'black' : colors.accent(1.1), margin: '0 0 1rem' } }, [
                 div({ style: { display: 'flex', alignItems: 'center' } }, [method.name, showLock]),
-
-                // span({}, [showLock]),
               ]),
               !isWorkflowSet &&
                 div(
