@@ -693,20 +693,21 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
     return criteriaCount;
   };
 
+  const loadDatasetProgramDataOptions = (dataset) =>
+    Promise.all(
+      _.map(
+        (snapshotBuilderProgramDataOption) =>
+          DataRepo().dataset(dataset.id).queryDatasetColumnStatisticsById(snapshotBuilderProgramDataOption),
+        dataset?.snapshotBuilderSettings?.programDataOptions
+      )
+    );
+
   useOnMount(() => {
     void loadDatasetModel(async () => {
       const dataset = await DataRepo()
         .dataset(datasetId)
         .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
-      void loadProgramDataOptions(() =>
-        Promise.all(
-          _.map(
-            (snapshotBuilderProgramDataOption) =>
-              DataRepo().dataset(dataset.id).queryDatasetColumnStatisticsById(snapshotBuilderProgramDataOption),
-            dataset?.snapshotBuilderSettings?.programDataOptions
-          )
-        )
-      );
+      void loadProgramDataOptions(() => loadDatasetProgramDataOptions(dataset));
       return dataset;
     });
   });

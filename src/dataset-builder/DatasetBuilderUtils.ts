@@ -15,7 +15,7 @@ export interface Criteria {
   index: number;
   count?: number;
   // The kind is duplicated to make use of the discriminator type
-  kind: 'domain' | 'range' | 'list';
+  kind: OptionTypeNames;
   option: Option;
 }
 
@@ -25,7 +25,7 @@ export interface Criteria {
 export interface CriteriaApi {
   // This is the ID for either the domain or the program data option
   id: number;
-  kind: 'domain' | 'range' | 'list';
+  kind: OptionTypeNames;
   name: string;
   count?: number;
 }
@@ -79,10 +79,12 @@ export type DatasetAccessRequestApi = {
 
 /** Below are the UI types */
 
+type OptionTypeNames = 'domain' | 'range' | 'list';
+
 export interface Option {
   id: number;
   name: string;
-  kind: 'domain' | 'range' | 'list';
+  kind: OptionTypeNames;
 }
 
 export interface ProgramDataRangeOption extends Option {
