@@ -1,4 +1,4 @@
-import { PopupTrigger } from '@terra-ui-packages/components';
+import { PopupTrigger, useThemeFromContext } from '@terra-ui-packages/components';
 import { formatDatetime, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
@@ -31,7 +31,6 @@ import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider'
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { MetricsProvider } from 'src/libs/ajax/metrics/useMetrics';
-import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
@@ -80,6 +79,7 @@ export interface EnvironmentsProps {
 
 export const Environments = (props: EnvironmentsProps): ReactNode => {
   const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, metrics } = props;
+  const { colors } = useThemeFromContext();
   const signal = useCancellation();
 
   type WorkspaceWrapperLookup = { [namespace: string]: { [name: string]: WorkspaceWrapper } };
