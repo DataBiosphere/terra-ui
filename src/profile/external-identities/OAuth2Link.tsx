@@ -79,7 +79,7 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
     });
 
     if (isLinking) {
-      const profileLink = `/${Nav.getLink('profile?tab=externalIdentities')}`;
+      const profileLink = `/${Nav.getLink('profile', { tab: 'externalIdentities' })}`;
       window.history.replaceState({}, '', profileLink);
       linkAccount(code, state);
     } else {

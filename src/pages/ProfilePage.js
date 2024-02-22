@@ -27,7 +27,7 @@ export const navPaths = [
     title: 'Profile',
   },
   {
-    name: 'oauth-callback',
+    name: 'oauth_callback',
     path: '/oauth_callback',
     component: ProfilePage,
     title: 'Profile',

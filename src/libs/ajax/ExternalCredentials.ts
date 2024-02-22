@@ -10,12 +10,13 @@ export interface EcmLinkAccountResponse {
 }
 export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OAuth2Provider) => {
   const { key: providerKey, queryParams, supportsAccessToken, supportsIdToken } = oAuth2Provider;
-  const root = `/api/oidc/v1/${providerKey}`;
+  const oauthRoot = `/api/oauth/v1/${providerKey}`;
+  const oidcRoot = `/api/oidc/v1/${providerKey}`;
 
   return {
     getAccountLinkStatus: async (): Promise<EcmLinkAccountResponse | undefined> => {
       try {
-        const res = await fetchEcm(root, _.merge(authOpts(), { signal }));
+        const res = await fetchEcm(oidcRoot, _.merge(authOpts(), { signal }));
         return res.json();
       } catch (error: unknown) {
         if (error instanceof Response && error.status === 404) {
@@ -26,14 +27,14 @@ export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OA
     },
     getAuthorizationUrl: async (): Promise<string> => {
       const res = await fetchEcm(
-        `${root}/authorization-url?${qs.stringify(queryParams, { indices: false })}`,
+        `${oauthRoot}/authorization-url?${qs.stringify(queryParams, { indices: false })}`,
         _.merge(authOpts(), { signal })
       );
-      return res.json();
+      return res.text();
     },
     linkAccountWithAuthorizationCode: async (oauthcode: string, state: string): Promise<EcmLinkAccountResponse> => {
       const res = await fetchEcm(
-        `${root}/oauthcode?${qs.stringify(
+        `${oauthRoot}/oauthcode?${qs.stringify(
           {
             ...queryParams,
             oauthcode,
@@ -46,19 +47,19 @@ export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OA
       return res.json();
     },
     unlinkAccount: async (): Promise<void> => {
-      return fetchEcm(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
+      return fetchEcm(oidcRoot, _.merge(authOpts(), { signal, method: 'DELETE' }));
     },
     getAccessToken: async (): Promise<string> => {
       if (!supportsAccessToken) {
         throw new Error(`Provider ${providerKey} does not support access tokens`);
       }
-      return fetchEcm(`${root}/accessToken`, _.merge(authOpts(), { signal }));
+      return fetchEcm(`${oauthRoot}/accessToken`, _.merge(authOpts(), { signal }));
     },
     getIdentityToken: async (): Promise<string> => {
       if (!supportsIdToken) {
         throw new Error(`Provider ${providerKey} does not support identity tokens`);
       }
-      const res = await fetchEcm(`${root}/passport`, _.merge(authOpts(), { signal }));
+      const res = await fetchEcm(`${oauthRoot}/passport`, _.merge(authOpts(), { signal }));
       return res.text();
     },
   };
