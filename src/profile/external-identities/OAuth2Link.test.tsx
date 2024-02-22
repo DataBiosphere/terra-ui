@@ -81,7 +81,7 @@ describe('OAuth2Link', () => {
   describe('When the link account button is clicked', () => {
     it('reaches out to ECM to get an authorization url and opens a new window/tab', async () => {
       // Arrange
-      global.open = jest.fn(); // this needs to be here, but I can't seem to actually check if its called
+      jest.spyOn(window, 'open').mockImplementation(() => null);
       const getLinkStatusFn = jest.fn().mockResolvedValue(undefined);
       const getAuthorizationUrlFn = jest.fn().mockResolvedValue('https://foo.bar.com/oauth2/authorize');
       asMockedFn(Ajax).mockImplementation(
@@ -100,8 +100,9 @@ describe('OAuth2Link', () => {
 
       // Assert
       const button = screen.getByText(`Link your ${testAccessTokenProvider.name} account`);
-      fireEvent.click(button);
+      await act(() => fireEvent.click(button));
       expect(getAuthorizationUrlFn).toHaveBeenCalled();
+      expect(window.open).toHaveBeenCalled();
     });
     it('links the account when the user is redirected back to Terra', async () => {
       // Arrange
