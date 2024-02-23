@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import RSelect, {
   components as RSelectComponents,
   GroupBase as RSelectGroupBase,
@@ -11,22 +11,9 @@ import RSelect, {
 
 import { useUniqueId } from './hooks/useUniqueId';
 import { icon } from './icon';
-import { useThemeFromContext } from './theme';
+import { EnrichedTheme, useThemeFromContext } from './theme';
 
-let colors: {
-  primary: (intensity?: number) => string;
-  secondary: (intensity?: number) => string;
-  accent: (intensity?: number) => string;
-  success: (intensity?: number) => string;
-  warning: (intensity?: number) => string;
-  danger: (intensity?: number) => string;
-  light: (intensity?: number) => string;
-  dark: (intensity?: number) => string;
-  grey: (intensity?: number) => string;
-  disabled: (intensity?: number) => string;
-};
-
-const commonSelectProps: Partial<RSelectProps> = {
+const getCommonSelectProps = ({ colors }: EnrichedTheme): Partial<RSelectProps> => ({
   theme: (base) =>
     _.merge(base, {
       colors: {
@@ -105,23 +92,7 @@ const commonSelectProps: Partial<RSelectProps> = {
       </RSelectComponents.Menu>
     ),
   },
-};
-
-const formatGroupLabel = (group: { label?: string }) => {
-  return (
-    <div
-      style={{
-        color: colors.dark(),
-        fontSize: 14,
-        height: 30,
-        fontWeight: 600,
-        borderBottom: `1px solid ${colors.dark(0.25)}`,
-      }}
-    >
-      {group.label}
-    </div>
-  );
-};
+});
 
 type BaseSelectProps<
   Value,
@@ -160,11 +131,29 @@ const BaseSelect = <
   findValue,
   ...props
 }: BaseSelectProps<Value, Option, IsMulti, Group>) => {
+  const theme = useThemeFromContext();
+
   const newValue: RSelectPropsValue<Option> = props.isMulti
     ? _.compact(_.map(findValue, value as Value[]))
     : findValue(value as Value);
   const myId = useUniqueId();
   const inputId = id || myId;
+
+  const formatGroupLabel = (group: { label?: string }): ReactNode => {
+    return (
+      <div
+        style={{
+          color: theme.colors.dark(),
+          fontSize: 14,
+          height: 30,
+          fontWeight: 600,
+          borderBottom: `1px solid ${theme.colors.dark(0.25)}`,
+        }}
+      >
+        {group.label}
+      </div>
+    );
+  };
 
   const ParameterizedRSelect = RSelect as typeof RSelect<Option, IsMulti, Group>;
 
@@ -173,7 +162,7 @@ const BaseSelect = <
       {..._.merge(
         {
           inputId,
-          ...commonSelectProps,
+          ...getCommonSelectProps(theme),
           getOptionLabel: ({ value, label }) => label || value.toString(),
           value: newValue || null, // need null instead of undefined to clear the select
           formatGroupLabel,
@@ -223,7 +212,6 @@ export const Select = <
   // options: [{ value: 'foo' }, { value: 'bar' }]
   //
   // Use Array.isArray to check if options is an array and the first element is not an object.
-  colors = useThemeFromContext().colors;
   const newOptions = (
     options && !_.isObject(options[0]) ? _.map((value) => ({ value }), options) : options
   ) as Option[];
