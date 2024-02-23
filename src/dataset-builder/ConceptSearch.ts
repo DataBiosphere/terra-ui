@@ -9,18 +9,18 @@ import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
-import { GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
+import { DomainOption, GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
+import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 
 type ConceptSearchProps = {
   readonly initialSearch: string;
-  readonly domainOption: SnapshotBuilderDomainOption;
+  readonly domainOption: DomainOption;
   readonly onCancel: () => void;
   readonly onCommit: (selected: Concept[]) => void;
   readonly onOpenHierarchy: (
-    domainOption: SnapshotBuilderDomainOption,
+    domainOption: DomainOption,
     cart: Concept[],
     searchText: string,
     openedConcept?: Concept
@@ -59,7 +59,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
           },
           [icon('left-circle-filled', { size: 32 })]
         ),
-        div({ style: { marginLeft: 15 } }, [domainOption.category]),
+        div({ style: { marginLeft: 15 } }, [domainOption.name]),
       ]),
       div({ style: { position: 'relative' } }, [
         h(DebouncedTextInput, {
