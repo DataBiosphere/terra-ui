@@ -1,7 +1,12 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
 const uuid = require('uuid');
-const { deleteRuntimesV2, gotoAnalysisTab, withAzureWorkspace } = require('../utils/integration-helpers');
+const {
+  deleteRuntimesV2,
+  getWorkspaceId,
+  gotoAnalysisTab,
+  withAzureWorkspace,
+} = require('../utils/integration-helpers');
 const {
   Millis,
   click,
@@ -17,6 +22,7 @@ const {
   input,
   noSpinnersAfter,
   waitForNoModal,
+  waitForNoSpinners,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
@@ -51,6 +57,7 @@ const testRunAnalysisAzure = _.flowRight(
   await click(page, `//*[@title="${notebookName}.ipynb"]`);
   await dismissInfoNotifications(page);
   await findText(page, 'PREVIEW (READ-ONLY)');
+  await waitForNoSpinners(page);
 
   // Attempt to open analysis; create a cloud env
   await click(page, clickable({ textContains: 'Open' }));
@@ -63,7 +70,7 @@ const testRunAnalysisAzure = _.flowRight(
   await findElement(page, clickable({ textContains: 'Creating' }));
 
   // Wait for env to finish creating, or break early on error
-  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(18) });
+  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(20) });
 
   // Here, we dismiss any errors or popups. Its common another areas of the application might throw an error or have pop-ups.
   // However, as long as we have a running runtime (which the previous section asserts), the pop-up is not relevant
@@ -96,14 +103,13 @@ const testRunAnalysisAzure = _.flowRight(
   await click(frame, '//button[starts-with(@title, "Save and create checkpoint")]');
 
   // Cleanup
-  await deleteRuntimesV2({ page, billingProject, workspaceName });
+  const workspaceId = await getWorkspaceId({ page, billingProject, workspaceName });
+  await deleteRuntimesV2({ page, billingProject, workspaceId });
 });
 
-// Run this test manually against staging when needed. Note the very long timeout; Azure VMs can take 20 minutes to create
 registerTest({
   name: 'run-analysis-azure',
   fn: testRunAnalysisAzure,
-  targetEnvironments: ['dev'],
-  // targetEnvironments: ['dev', 'staging'], // uncomment for manually triggered runs against staging - DO NOT COMMIT
-  timeout: Millis.ofMinutes(25), // exceeds circleCI max timeout; needs to be this high to pass reliably
+  targetEnvironments: ['dev', 'staging'],
+  timeout: Millis.ofMinutes(25),
 });

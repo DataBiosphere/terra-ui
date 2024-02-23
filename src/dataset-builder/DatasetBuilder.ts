@@ -695,6 +695,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
         .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
     );
   });
+
   return datasetModel.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),

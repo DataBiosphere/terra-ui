@@ -4,13 +4,15 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
+import { metadata as runDetailsMetadata } from 'src/workflows-app/fixtures/test-workflow';
 import { BaseSubmissionDetails } from 'src/workflows-app/SubmissionDetails';
-import { methodData, runsData, runSetData, simpleRunsData } from 'src/workflows-app/utils/mock-data';
+import { methodData, mockRunsData, runSetData, simpleRunsData } from 'src/workflows-app/utils/mock-data';
 import { mockAzureApps, mockAzureWorkspace, runSetOutputDef, runSetResponse } from 'src/workflows-app/utils/mock-responses';
 
 const submissionId = 'e8347247-4738-4ad1-a591-56c119f93f58';
 const cbasUrlRoot = 'https://lz-abc/terra-app-abc/cbas';
 const cromwellUrlRoot = 'https://lz-abc/terra-app-abc/cromwell';
+const wdsUrlRoot = 'https://lz-abc/wds-abc-c07807929cd1/';
 
 // Necessary to mock the AJAX module.
 jest.mock('src/libs/ajax');
@@ -33,8 +35,31 @@ jest.mock('src/libs/feature-previews', () => ({
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
-  getConfig: jest.fn().mockReturnValue({ cbasUrlRoot, cromwellUrlRoot }),
+  getConfig: jest.fn().mockReturnValue({ cbasUrlRoot, cromwellUrlRoot, wdsUrlRoot }),
 }));
+
+// The test does not allot space for the table on the input/output modal, so this mock
+// creates space for the table thereby allowing it to render and preventing test failures.
+jest.mock('react-virtualized', () => {
+  const actual = jest.requireActual('react-virtualized');
+
+  const { AutoSizer } = actual;
+  class MockAutoSizer extends AutoSizer {
+    state = {
+      height: 1000,
+      width: 1000,
+    };
+
+    setState = () => {};
+  }
+
+  return {
+    ...actual,
+    AutoSizer: MockAutoSizer,
+  };
+});
+
+const captureEvent = jest.fn();
 
 describe('Submission Details page', () => {
   beforeEach(() => {
@@ -47,7 +72,7 @@ describe('Submission Details page', () => {
   });
 
   it('should correctly display previous 2 runs', async () => {
-    const getRuns = jest.fn(() => Promise.resolve(runsData));
+    const getRuns = jest.fn(() => Promise.resolve(mockRunsData));
     const getRunsSets = jest.fn(() => Promise.resolve(runSetData));
     const getMethods = jest.fn(() => Promise.resolve(methodData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
@@ -66,6 +91,12 @@ describe('Submission Details page', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -89,14 +120,14 @@ describe('Submission Details page', () => {
     const table = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '4');
+    expect(table).toHaveAttribute('aria-colcount', '5');
     expect(table).toHaveAttribute('aria-rowcount', '3');
 
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(3);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(4);
+    expect(headers.length).toBe(5);
     within(headers[0]).getByText('Sample ID');
     within(headers[1]).getByText('Status');
     within(headers[2]).getByText('Duration');
@@ -104,14 +135,14 @@ describe('Submission Details page', () => {
 
     // check data rows are rendered as expected (default sorting is by duration in desc order)
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromDataRow1.length).toBe(4);
+    expect(cellsFromDataRow1.length).toBe(5);
     within(cellsFromDataRow1[0]).getByText('FOO2');
     within(cellsFromDataRow1[1]).getByText('Failed');
     within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds');
     within(cellsFromDataRow1[3]).getByText('b29e84b1-ad1b-4462-a9a0-7ec849bf30a8');
 
     const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
-    expect(cellsFromDataRow2.length).toBe(4);
+    expect(cellsFromDataRow2.length).toBe(5);
     within(cellsFromDataRow2[0]).getByText('FOO1');
     within(cellsFromDataRow2[1]).getByText('Succeeded');
     within(cellsFromDataRow2[2]).getByText('37 seconds');
@@ -139,6 +170,12 @@ describe('Submission Details page', () => {
         Apps: {
           listAppsV2: mockLeoResponse,
         },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
+        },
       };
     });
 
@@ -161,7 +198,7 @@ describe('Submission Details page', () => {
     const table = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '4');
+    expect(table).toHaveAttribute('aria-colcount', '5');
     expect(table).toHaveAttribute('aria-rowcount', '1');
 
     // check that noContentMessage shows up as expected
@@ -170,7 +207,7 @@ describe('Submission Details page', () => {
 
   it('should sort by duration column properly', async () => {
     const user = userEvent.setup();
-    const getRuns = jest.fn(() => Promise.resolve(runsData));
+    const getRuns = jest.fn(() => Promise.resolve(mockRunsData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
     Ajax.mockImplementation(() => {
       return {
@@ -181,6 +218,12 @@ describe('Submission Details page', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -203,7 +246,7 @@ describe('Submission Details page', () => {
     expect(rows.length).toBe(3);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(4);
+    expect(headers.length).toBe(5);
 
     // Act - click on sort button on Duration column to sort by ascending order
     await user.click(await within(headers[2]).findByRole('button'));
@@ -211,14 +254,14 @@ describe('Submission Details page', () => {
     // Assert
     // check that rows are now sorted by duration in ascending order
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromDataRow1.length).toBe(4);
+    expect(cellsFromDataRow1.length).toBe(5);
     within(cellsFromDataRow1[0]).getByText('FOO1');
     within(cellsFromDataRow1[1]).getByText('Succeeded');
     within(cellsFromDataRow1[2]).getByText('37 seconds');
     within(cellsFromDataRow1[3]).getByText('d16721eb-8745-4aa2-b71e-9ade2d6575aa');
 
     const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
-    expect(cellsFromDataRow2.length).toBe(4);
+    expect(cellsFromDataRow2.length).toBe(5);
     within(cellsFromDataRow2[0]).getByText('FOO2');
     within(cellsFromDataRow2[1]).getByText('Failed');
     within(cellsFromDataRow2[2]).getByText('52 minutes 10 seconds');
@@ -230,14 +273,14 @@ describe('Submission Details page', () => {
     // Assert
     // check that rows are now sorted by duration in descending order
     const cellsFromUpdatedDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromUpdatedDataRow1.length).toBe(4);
+    expect(cellsFromUpdatedDataRow1.length).toBe(5);
     within(cellsFromUpdatedDataRow1[0]).getByText('FOO2');
     within(cellsFromUpdatedDataRow1[1]).getByText('Failed');
     within(cellsFromUpdatedDataRow1[2]).getByText('52 minutes 10 seconds');
     within(cellsFromUpdatedDataRow1[3]).getByText('b29e84b1-ad1b-4462-a9a0-7ec849bf30a8');
 
     const cellsFromUpdatedDataRow2 = within(rows[2]).getAllByRole('cell');
-    expect(cellsFromUpdatedDataRow2.length).toBe(4);
+    expect(cellsFromUpdatedDataRow2.length).toBe(5);
     within(cellsFromUpdatedDataRow2[0]).getByText('FOO1');
     within(cellsFromUpdatedDataRow2[1]).getByText('Succeeded');
     within(cellsFromUpdatedDataRow2[2]).getByText('37 seconds');
@@ -245,7 +288,7 @@ describe('Submission Details page', () => {
   });
 
   it('display run set details', async () => {
-    const getRuns = jest.fn(() => Promise.resolve(runsData));
+    const getRuns = jest.fn(() => Promise.resolve(mockRunsData));
     const getRunsSets = jest.fn(() => Promise.resolve(runSetData));
     const getMethods = jest.fn(() => Promise.resolve(methodData));
     Ajax.mockImplementation(() => {
@@ -260,6 +303,12 @@ describe('Submission Details page', () => {
           methods: {
             getById: getMethods,
           },
+        },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -302,7 +351,7 @@ describe('Submission Details page', () => {
 
   it('should correctly select and change results', async () => {
     const user = userEvent.setup();
-    const getRuns = jest.fn(() => Promise.resolve(runsData));
+    const getRuns = jest.fn(() => Promise.resolve(mockRunsData));
     const getRunsSets = jest.fn(() => Promise.resolve(runSetData));
     const getMethods = jest.fn(() => Promise.resolve(methodData));
     Ajax.mockImplementation(() => {
@@ -317,6 +366,12 @@ describe('Submission Details page', () => {
           methods: {
             getById: getMethods,
           },
+        },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -344,14 +399,14 @@ describe('Submission Details page', () => {
     const table = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '4');
+    expect(table).toHaveAttribute('aria-colcount', '5');
     expect(table).toHaveAttribute('aria-rowcount', '2');
 
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(2);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(4);
+    expect(headers.length).toBe(5);
     within(headers[0]).getByText('Sample ID');
     within(headers[1]).getByText('Status');
     within(headers[2]).getByText('Duration');
@@ -359,7 +414,7 @@ describe('Submission Details page', () => {
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromDataRow1.length).toBe(4);
+    expect(cellsFromDataRow1.length).toBe(5);
     within(cellsFromDataRow1[0]).getByText('FOO2');
     within(cellsFromDataRow1[1]).getByText('Failed');
     within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds');
@@ -394,6 +449,12 @@ describe('Submission Details page', () => {
             get: getRecentRunsMethod,
           },
         },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
+        },
       };
     });
 
@@ -412,21 +473,21 @@ describe('Submission Details page', () => {
     const table = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '4');
+    expect(table).toHaveAttribute('aria-colcount', '5');
     expect(table).toHaveAttribute('aria-rowcount', '2');
 
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(2);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(4);
+    expect(headers.length).toBe(5);
     within(headers[0]).getByText('Sample ID');
     within(headers[1]).getByText('Status');
     within(headers[2]).getByText('Duration');
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromDataRow1.length).toBe(4);
+    expect(cellsFromDataRow1.length).toBe(5);
     within(cellsFromDataRow1[0]).getByText('FOO2');
     within(cellsFromDataRow1[1]).getByText('Initializing'); // Note: not UNKNOWN!
     // << Don't validate duration here since it depends on the test rendering time and is not particularly relevant >>
@@ -461,6 +522,12 @@ describe('Submission Details page', () => {
             get: getRecentRunsMethod,
           },
         },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
+        },
       };
     });
 
@@ -479,21 +546,21 @@ describe('Submission Details page', () => {
     const table = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '4');
+    expect(table).toHaveAttribute('aria-colcount', '5');
     expect(table).toHaveAttribute('aria-rowcount', '2');
 
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(2);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(4);
+    expect(headers.length).toBe(5);
     within(headers[0]).getByText('Sample ID');
     within(headers[1]).getByText('Status');
     within(headers[2]).getByText('Duration');
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromDataRow1.length).toBe(4);
+    expect(cellsFromDataRow1.length).toBe(5);
     within(cellsFromDataRow1[0]).getByText('FOO2');
     within(cellsFromDataRow1[1]).getByText('Initializing'); // Note: not UNKNOWN!
     // << Don't validate duration here since it depends on the test rendering time and is not particularly relevant >>
@@ -508,6 +575,12 @@ describe('Submission Details page', () => {
           runs: {
             get: getRecentRunsMethod,
           },
+        },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -536,6 +609,12 @@ describe('Submission Details page', () => {
             get: getRecentRunsMethod,
           },
         },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
+        },
       };
     });
 
@@ -557,7 +636,7 @@ describe('Submission Details page', () => {
   it('should display inputs on the Inputs tab', async () => {
     // Arrange
     const user = userEvent.setup();
-    const getRuns = jest.fn(() => Promise.resolve(runsData));
+    const getRuns = jest.fn(() => Promise.resolve(mockRunsData));
     const getRunsSets = jest.fn(() => Promise.resolve(runSetData));
     const getMethods = jest.fn(() => Promise.resolve(methodData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
@@ -576,6 +655,12 @@ describe('Submission Details page', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -626,7 +711,7 @@ describe('Submission Details page', () => {
 
     // Arrange
     const user = userEvent.setup();
-    const getRuns = jest.fn(() => Promise.resolve(runsData));
+    const getRuns = jest.fn(() => Promise.resolve(mockRunsData));
     const getRunsSets = jest.fn(() => Promise.resolve(tempRunSetData));
     const getMethods = jest.fn(() => Promise.resolve(methodData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
@@ -645,6 +730,12 @@ describe('Submission Details page', () => {
         },
         Apps: {
           listAppsV2: mockLeoResponse,
+        },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
     });
@@ -689,5 +780,257 @@ describe('Submission Details page', () => {
     expect(row2cells[1]).toHaveTextContent('unused_output');
     expect(row2cells[2]).toHaveTextContent('String');
     expect(row2cells[3]).toHaveTextContent('');
+  });
+
+  it('should open the log viewer modal when Execution Logs button is clicked', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const getRuns = jest.fn(() => Promise.resolve(mockRunsData));
+    const getRunsSets = jest.fn(() => Promise.resolve(runSetData));
+    const getMethods = jest.fn(() => Promise.resolve(methodData));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRuns,
+          },
+          runSets: {
+            get: getRunsSets,
+          },
+          methods: {
+            getById: getMethods,
+          },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+        CromwellApp: {
+          workflows: () => {
+            return {
+              metadata: jest.fn(() => {
+                return Promise.resolve(runDetailsMetadata);
+              }),
+            };
+          },
+        },
+        AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
+        },
+        Metrics: {
+          captureEvent,
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(BaseSubmissionDetails, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          submissionId,
+          workflowId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+          uri: 'https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+        })
+      );
+    });
+
+    const executionLogButtons = screen.getAllByRole('button', { name: 'Log' });
+
+    for (const executionLogButton of executionLogButtons) {
+      // Act
+      await user.click(executionLogButton);
+
+      // Assert
+      screen.getByRole('dialog', { name: 'Workflow Execution Log' });
+      screen.getByText('File:');
+      screen.getByText('workflow.log');
+      await screen.findByRole('link', { name: 'Download log' });
+      screen.getByRole('button', { name: 'Workflow Execution Log' });
+      screen.getByText('this is the text of a mock file');
+    }
+  });
+
+  it('should open the task data modal when Inputs button is clicked', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const getRuns = jest.fn(() => Promise.resolve(mockRunsData));
+    const getRunsSets = jest.fn(() => Promise.resolve(runSetData));
+    const getMethods = jest.fn(() => Promise.resolve(methodData));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRuns,
+          },
+          runSets: {
+            get: getRunsSets,
+          },
+          methods: {
+            getById: getMethods,
+          },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+        CromwellApp: {
+          workflows: () => {
+            return {
+              metadata: jest.fn(() => {
+                return Promise.resolve(runDetailsMetadata);
+              }),
+            };
+          },
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
+        },
+        Metrics: {
+          captureEvent,
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(BaseSubmissionDetails, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          submissionId,
+          workflowId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+        })
+      );
+    });
+
+    const inputsButtons = screen.getAllByRole('button', { name: 'Inputs' });
+
+    for (const inputsButton of inputsButtons) {
+      // Act
+      await user.click(inputsButton);
+
+      screen.getByRole('dialog', { name: 'Inputs' });
+      const table = screen.getByRole('table', { name: 'inputs outputs table' });
+      const rows = within(table).getAllByRole('row');
+      expect(rows.length).toBe(4); // one row for each input definition variable, plus headers
+
+      const headers = within(rows[0]).getAllByRole('columnheader');
+      expect(headers).toHaveLength(2);
+
+      const getRowContent = (rowIndex) =>
+        within(rows[rowIndex])
+          .getAllByRole('cell')
+          .map((el) => el.textContent);
+
+      expect(getRowContent(1)).toEqual(['fetch_sra_to_bam.\nSRA_ID', 'SRR13379731']);
+      expect(getRowContent(2)).toEqual(['fetch_sra_to_bam.\nmachine_mem_gb', '']);
+      expect(getRowContent(3)).toEqual(['fetch_sra_to_bam.\ndocker', 'quay.io/broadinstitute/ncbi-tools:2.10.7.10']);
+    }
+  });
+
+  it('should open the task data modal when Outputs button is clicked', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const getRuns = jest.fn(() => Promise.resolve(mockRunsData));
+    const getRunsSets = jest.fn(() => Promise.resolve(runSetData));
+    const getMethods = jest.fn(() => Promise.resolve(methodData));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRuns,
+          },
+          runSets: {
+            get: getRunsSets,
+          },
+          methods: {
+            getById: getMethods,
+          },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+        CromwellApp: {
+          workflows: () => {
+            return {
+              metadata: jest.fn(() => {
+                return Promise.resolve(runDetailsMetadata);
+              }),
+            };
+          },
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
+        },
+        Metrics: {
+          captureEvent,
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(BaseSubmissionDetails, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          submissionId,
+          workflowId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+        })
+      );
+    });
+
+    const outputsButtons = screen.getAllByRole('button', { name: 'Outputs' });
+
+    for (const outputsButton of outputsButtons) {
+      // Act
+      await user.click(outputsButton);
+
+      screen.getByRole('dialog', { name: 'Outputs' });
+      const table = screen.getByRole('table', { name: 'inputs outputs table' });
+      const rows = within(table).getAllByRole('row');
+      expect(rows).toHaveLength(13); // one row for each output definition variable, plus headers
+
+      const getRowContent = (rowIndex) =>
+        within(rows[rowIndex])
+          .getAllByRole('cell')
+          .map((el) => el.textContent);
+
+      const headers = within(rows[0]).getAllByRole('columnheader');
+      expect(headers).toHaveLength(2);
+
+      expect(getRowContent(1)).toEqual(['fetch_sra_to_bam.\nsra_metadata', 'SRR13379731.json']);
+      expect(getRowContent(2)).toEqual(['fetch_sra_to_bam.\nreads_ubam', 'SRR13379731.bam']);
+      expect(getRowContent(3)).toEqual(['fetch_sra_to_bam.\nbiosample_accession', 'kljkl2kj']);
+      expect(getRowContent(4)).toEqual(['fetch_sra_to_bam.\nsample_geo_loc', 'USA']);
+      expect(getRowContent(5)).toEqual(['fetch_sra_to_bam.\nsample_collection_date', '2020-11-30']);
+      expect(getRowContent(6)).toEqual(['fetch_sra_to_bam.\nsequencing_center', 'SEQ_CENTER']);
+      expect(getRowContent(7)).toEqual(['fetch_sra_to_bam.\nsequencing_platform', 'PLATFORM COMPANY']);
+      expect(getRowContent(8)).toEqual(['fetch_sra_to_bam.\nlibrary_id', 'ST-VALUE-2012556126']);
+      expect(getRowContent(9)).toEqual(['fetch_sra_to_bam.\nrun_date', '2022-06-22']);
+      expect(getRowContent(10)).toEqual(['fetch_sra_to_bam.\nsample_collected_by', 'Random lab']);
+      expect(getRowContent(11)).toEqual(['fetch_sra_to_bam.\nsample_strain', 'SARS-CoV-2/USA/44165/2020']);
+      expect(getRowContent(12)).toEqual(['fetch_sra_to_bam.\nsequencing_platform_model', 'NextSeq 550']);
+    }
   });
 });

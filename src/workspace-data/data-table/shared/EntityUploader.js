@@ -1,3 +1,4 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
@@ -10,7 +11,6 @@ import { PasteOnlyInput, ValidatedInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
 import { getRegionInfo, locationTypes } from 'src/components/region-common';
 import { SimpleTabBar } from 'src/components/tabBars';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils';
