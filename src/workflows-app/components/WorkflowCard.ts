@@ -1,5 +1,7 @@
 import { PropsWithChildren } from 'react';
 import { div, h, h3 } from 'react-hyperscript-helpers';
+import { icon } from 'src/components/icons';
+import { TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -30,6 +32,7 @@ export type WorkflowMethod = {
   description?: string;
   source: WorkflowSource;
   method_versions: MethodVersion[];
+  isPrivate?: boolean | null;
 };
 
 /** Represents a set of workflows grouped together */
@@ -48,6 +51,15 @@ export type WorkflowCardProps = {
 
 export const WorkflowCard = ({ method, subCard, children }: PropsWithChildren<WorkflowCardProps>) => {
   const isWorkflowSet = 'methods' in method; // Used to narrow type
+  let isPrivate;
+  if (isWorkflowSet || method.isPrivate == null) {
+    isPrivate = false;
+  } else {
+    isPrivate = method.isPrivate;
+  }
+  const showLock = isPrivate
+    ? h(TooltipCell, { tooltip: 'This is a private workflow', style: { marginLeft: '0.5em' } }, [icon('lock')])
+    : undefined;
 
   return div(
     {
@@ -92,7 +104,9 @@ export const WorkflowCard = ({ method, subCard, children }: PropsWithChildren<Wo
               },
             },
             [
-              h3({ style: { color: subCard ? 'black' : colors.accent(1.1), margin: '0 0 1rem' } }, [method.name]),
+              h3({ style: { color: subCard ? 'black' : colors.accent(1.1), margin: '0 0 1rem' } }, [
+                div({ style: { display: 'flex', alignItems: 'center' } }, [method.name, showLock]),
+              ]),
               !isWorkflowSet &&
                 div(
                   {

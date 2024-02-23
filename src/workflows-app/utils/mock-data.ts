@@ -98,6 +98,54 @@ export const methodDataWithVersions = {
           url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
         },
       ],
+      isPrivate: false,
+    } satisfies WorkflowMethod,
+  ],
+};
+
+export const methodDataNoPrivate = {
+  methods: [
+    {
+      ...methodData.methods[0],
+      method_versions: [
+        {
+          method_version_id: '20000000-0000-0000-0000-000000000004',
+          name: '1.0',
+          url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
+        },
+      ],
+    } satisfies WorkflowMethod,
+  ],
+};
+
+export const methodDataWithNullPrivate = {
+  methods: [
+    {
+      ...methodData.methods[0],
+      method_versions: [
+        {
+          method_version_id: '20000000-0000-0000-0000-000000000004',
+          name: '1.0',
+          url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
+        },
+      ],
+      isPrivate: null,
+    } satisfies WorkflowMethod,
+  ],
+};
+
+export const methodDataWithVersionsAndDetails = {
+  methods: [
+    {
+      ...methodData.methods[0],
+      method_versions: [
+        {
+          method_version_id: '20000000-0000-0000-0000-000000000004',
+          name: '1.0',
+          url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
+        },
+      ],
+      isPrivate: true,
     } satisfies WorkflowMethod,
   ],
 };
