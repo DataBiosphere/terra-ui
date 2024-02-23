@@ -1,4 +1,4 @@
-FROM node:18.10
+FROM node:20.11
 
 COPY . /terra-ui/
 RUN cd terra-ui \
