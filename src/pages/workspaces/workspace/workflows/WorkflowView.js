@@ -1,4 +1,4 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Component, Fragment, useEffect, useState } from 'react';
@@ -22,7 +22,6 @@ import { InfoBox } from 'src/components/InfoBox';
 import { DelayedAutocompleteTextArea, DelayedSearchInput, NumberInput, TextInput } from 'src/components/input';
 import { MarkdownViewer } from 'src/components/markdown';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import StepButtons from 'src/components/StepButtons';
 import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table';

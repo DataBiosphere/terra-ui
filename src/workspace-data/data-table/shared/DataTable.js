@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { b, div, h, span } from 'react-hyperscript-helpers';
@@ -16,7 +17,6 @@ import {
 import { icon } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';

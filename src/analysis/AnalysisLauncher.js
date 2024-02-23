@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import { atom } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
@@ -28,7 +29,6 @@ import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/b
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { Metrics } from 'src/libs/ajax/Metrics';

@@ -1,4 +1,4 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode, useState } from 'react';
@@ -19,7 +19,6 @@ import {
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { TextArea, ValidatedInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import {
   allRegions,
   availableBucketRegions,

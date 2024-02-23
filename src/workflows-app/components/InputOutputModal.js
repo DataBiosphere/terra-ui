@@ -1,9 +1,9 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import { FlexTable, HeaderCell, tableHeight } from 'src/components/table';
 import { getConfig } from 'src/libs/config';
 import { newTabLinkProps } from 'src/libs/utils';
