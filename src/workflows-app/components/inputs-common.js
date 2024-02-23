@@ -1,10 +1,10 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
 import { Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { DelayedSearchInput, TextInput } from 'src/components/input';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';

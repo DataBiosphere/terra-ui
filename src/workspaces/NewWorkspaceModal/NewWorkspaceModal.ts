@@ -1,3 +1,4 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode, useState } from 'react';
@@ -26,7 +27,6 @@ import {
   getRegionInfo,
   isSupportedBucketLocation,
 } from 'src/components/region-common';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';

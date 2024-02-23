@@ -1,3 +1,4 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useImperativeHandle, useRef, useState } from 'react';
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers';
@@ -12,7 +13,6 @@ import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, HeaderRenderer, TextCell, TooltipCell } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
