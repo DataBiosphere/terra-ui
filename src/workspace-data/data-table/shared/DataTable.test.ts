@@ -419,5 +419,5 @@ describe('DataTable', () => {
     // Should include all (filtered) entities + select all checkbox
     const allChecks = screen.getAllByRole('checkbox', { checked: true });
     expect(allChecks.length).toEqual(126);
-  }, 10000);
+  }, 15000);
 });

@@ -1,11 +1,10 @@
-import { Interactive } from '@terra-ui-packages/components';
+import { Interactive, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { h, span } from 'react-hyperscript-helpers';
 import { parseGsUri } from 'src/components/data/data-utils';
 import { icon } from 'src/components/icons';
 import { TextCell } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { getAttributeType } from 'src/workspace-data/data-table/entity-service/attribute-utils';
