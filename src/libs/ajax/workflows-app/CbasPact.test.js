@@ -40,7 +40,7 @@ const RUNSET_STATE_REGEX = 'UNKNOWN|QUEUED|RUNNING|COMPLETE|ERROR|CANCELED|CANCE
 const TIMESTAMP_REGEX = '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}\\+[0-9]{2}\\:[0-9]{2}';
 
 const cbasPact = new PactV3({
-  consumer: 'terra-ui',
+  consumer: 'terraui',
   provider: 'cbas',
   logLevel: 'error',
   dir: path.resolve(process.cwd(), 'pacts'),

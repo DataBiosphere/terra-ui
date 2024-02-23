@@ -62,6 +62,8 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
   ]) => {
     return tr({ key: label }, [
       td({ style: { fontWeight: 'bold' } }, [
+        // TODO: Remove nested ternary to align with style guide
+        // eslint-disable-next-line no-nested-ternary
         iconRunning ? checkIcon('running') : iconSuccess ? checkIcon('success') : checkIcon('failure'),
       ]),
       td({ style: { fontWeight: 'bold', whiteSpace: 'nowrap' } }, [label]),

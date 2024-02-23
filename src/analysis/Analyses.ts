@@ -1,4 +1,4 @@
-import { Switch } from '@terra-ui-packages/components';
+import { Switch, TooltipTrigger } from '@terra-ui-packages/components';
 import { formatDatetime, withHandlers } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
@@ -47,7 +47,6 @@ import { MenuButton } from 'src/components/MenuButton';
 import { PageBox } from 'src/components/PageBox';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import galaxyLogo from 'src/images/galaxy-logo.svg';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
@@ -171,6 +170,8 @@ const AnalysisCard = ({
   // if there is a currentUserHash & lastLockedBy, they are not equal, and the lock isn't expired
   const isLocked: boolean =
     currentUserHash && lastLockedBy ? lastLockedBy !== currentUserHash && !isLockExpired : false;
+  // TODO: Remove nested ternary to align with style guide
+  // eslint-disable-next-line no-nested-ternary
   const lockedBy = lastLockedBy ? (potentialLockers ? potentialLockers[lastLockedBy] : null) : null;
 
   const analysisName: FileName = getFileName(name);

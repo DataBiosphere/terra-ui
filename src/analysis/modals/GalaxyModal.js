@@ -1,3 +1,4 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
@@ -14,7 +15,6 @@ import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { GcpPersistentDiskOptions, googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
 import colors from 'src/libs/colors';

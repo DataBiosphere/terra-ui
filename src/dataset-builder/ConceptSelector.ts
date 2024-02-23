@@ -11,13 +11,14 @@ import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataR
 import colors from 'src/libs/colors';
 
 type ConceptSelectorProps = {
-  readonly initialRows: Concept[];
   readonly title: string;
-  readonly onCancel: () => void;
+  readonly onCancel: (selected: Concept[]) => void;
   readonly onCommit: (selected: Concept[]) => void;
   readonly actionText: string;
   readonly datasetId: string;
   readonly initialCart: Concept[];
+  readonly initialHierarchy: Map<Concept, Concept[]>;
+  readonly openedConcept?: Concept;
 };
 
 export const tableHeaderStyle: CSSProperties = {
@@ -31,19 +32,21 @@ export const tableHeaderStyle: CSSProperties = {
 };
 
 export const ConceptSelector = (props: ConceptSelectorProps) => {
-  const { initialRows, title, onCancel, onCommit, actionText, datasetId, initialCart } = props;
+  const { title, onCancel, onCommit, actionText, datasetId, initialCart, initialHierarchy, openedConcept } = props;
+
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
     const result = await DataRepo().dataset(datasetId).getConcepts(concept);
     return result.result;
   };
+
   return h(Fragment, [
     h(BuilderPageHeader, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
         h(
           Link,
           {
-            onClick: onCancel,
+            onClick: () => onCancel(cart),
             'aria-label': 'cancel',
           },
           [icon('left-circle-filled', { size: 32 })]
@@ -66,14 +69,16 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
                 h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
                   icon(iconName, { size: 16 }),
                 ]),
-                div({ style: { marginLeft: 5 } }, [concept.name]),
+                div({ style: { marginLeft: 5 } }, [
+                  openedConcept?.id === concept.id ? div({ style: { fontWeight: 600 } }, [concept.name]) : concept.name,
+                ]),
               ]);
             },
           },
           { name: 'Concept ID', width: 195, render: _.get('id') },
           { name: 'Roll-up count', width: 205, render: _.get('count') },
         ],
-        initialRows,
+        initialHierarchy,
         getChildren,
         headerStyle: tableHeaderStyle,
       }),

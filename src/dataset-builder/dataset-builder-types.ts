@@ -1,5 +1,9 @@
 import { Cohort, CriteriaGroup } from 'src/dataset-builder/DatasetBuilderUtils';
-import { SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption as DomainOption } from 'src/libs/ajax/DataRepo';
+import {
+  SnapshotBuilderConcept as Concept,
+  SnapshotBuilderConcept,
+  SnapshotBuilderDomainOption as DomainOption,
+} from 'src/libs/ajax/DataRepo';
 
 let groupCount = 1;
 export const newCriteriaGroup = (): CriteriaGroup => {
@@ -9,6 +13,13 @@ export const newCriteriaGroup = (): CriteriaGroup => {
     mustMeet: true,
     meetAll: false,
   };
+};
+
+export type SnapshotBuilderConceptNode = {
+  id: number;
+  concept: SnapshotBuilderConcept;
+  children: number[];
+  parent?: number;
 };
 
 export const newCohort = (name: string): Cohort => {
@@ -55,6 +66,7 @@ export interface DomainCriteriaSelectorState extends DatasetBuilderState {
   readonly domainOption: DomainOption;
   readonly cart: Concept[];
   readonly cancelState: AnyDatasetBuilderState;
+  readonly openedConcept?: Concept;
 }
 
 export const domainCriteriaSelectorState = {
@@ -63,7 +75,8 @@ export const domainCriteriaSelectorState = {
     criteriaGroup: CriteriaGroup,
     domainOption: DomainOption,
     cart: Concept[],
-    cancelState: AnyDatasetBuilderState
+    cancelState: AnyDatasetBuilderState,
+    openedConcept?: Concept
   ): DomainCriteriaSelectorState => ({
     mode: 'domain-criteria-selector',
     cohort,
@@ -71,6 +84,7 @@ export const domainCriteriaSelectorState = {
     domainOption,
     cart,
     cancelState,
+    openedConcept,
   }),
 };
 

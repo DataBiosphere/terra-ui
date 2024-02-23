@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
-import { div } from 'react-hyperscript-helpers';
+import { div, span } from 'react-hyperscript-helpers';
 import {
   ColumnStatisticsIntOrDoubleModel,
   ColumnStatisticsTextModel,
@@ -148,6 +148,10 @@ export interface GetConceptsResponse {
   result: Concept[];
 }
 
+export interface GetConceptsHierarchyResponse {
+  result: Map<Concept, Concept[]>;
+}
+
 export interface SearchConceptsResponse {
   result: Concept[];
 }
@@ -280,9 +284,9 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
 
   const endIndex = startIndex + searchFilter.length;
 
-  return div({ style: { display: 'flex' } }, [
-    div({ style: { whiteSpace: 'pre' } }, [conceptName.substring(0, startIndex)]),
-    div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, [conceptName.substring(startIndex, endIndex)]),
-    div({ style: { whiteSpace: 'pre' } }, [conceptName.substring(endIndex)]),
+  return div({ style: { display: 'pre-wrap' } }, [
+    span([conceptName.substring(0, startIndex)]),
+    span({ style: { fontWeight: 600 } }, [conceptName.substring(startIndex, endIndex)]),
+    span([conceptName.substring(endIndex)]),
   ]);
 };

@@ -21,8 +21,9 @@ type ConceptSearchProps = {
   readonly onCommit: (selected: Concept[]) => void;
   readonly onOpenHierarchy: (
     domainOption: SnapshotBuilderDomainOption,
-    selected: Concept[],
-    searchText: string
+    cart: Concept[],
+    searchText: string,
+    openedConcept?: Concept
   ) => void;
   readonly actionText: string;
   readonly datasetId: string;
@@ -33,15 +34,17 @@ const DebouncedTextInput = withDebouncedChange(TextInput);
 export const ConceptSearch = (props: ConceptSearchProps) => {
   const { initialSearch, domainOption, onCancel, onCommit, onOpenHierarchy, actionText, datasetId, initialCart } =
     props;
-  const [search, setSearch] = useState<string>(initialSearch);
+  const [searchText, setSearchText] = useState<string>(initialSearch);
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const [concepts, searchConcepts] = useLoadedData<GetConceptsResponse>();
 
   useEffect(() => {
-    void searchConcepts(() => {
-      return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, search);
-    });
-  }, [search, datasetId, domainOption.root, searchConcepts]);
+    if (searchText.length === 0 || searchText.length > 2) {
+      void searchConcepts(() => {
+        return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, searchText);
+      });
+    }
+  }, [searchText, datasetId, domainOption.root, searchConcepts]);
   const tableLeftPadding = { paddingLeft: '2rem' };
   const iconSize = 18;
 
@@ -61,9 +64,9 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
       div({ style: { position: 'relative' } }, [
         h(DebouncedTextInput, {
           onChange: (value: string) => {
-            setSearch(value);
+            setSearchText(value);
           },
-          value: search,
+          value: searchText,
           placeholder: 'Search',
           type: 'search',
           style: {
@@ -115,7 +118,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                     icon(iconName, { size: 16 }),
                   ]),
                   div({ style: { marginLeft: 5 } }, [
-                    h(HighlightConceptName, { conceptName: concept.name, searchFilter: search }),
+                    h(HighlightConceptName, { conceptName: concept.name, searchFilter: searchText }),
                   ]),
                 ]),
                 id: concept.id,
@@ -125,12 +128,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                     Link,
                     {
                       'aria-label': `open hierarchy ${concept.id}`,
-                      onClick: () =>
-                        onOpenHierarchy(
-                          { id: concept.id, category: domainOption.category, root: concept },
-                          cart,
-                          search
-                        ),
+                      onClick: () => onOpenHierarchy(domainOption, cart, searchText, concept),
                     },
                     [icon('view-list')]
                   ),
