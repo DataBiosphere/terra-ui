@@ -5,6 +5,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { WorkflowCard, WorkflowMethodSet } from 'src/workflows-app/components/WorkflowCard';
 import {
+  methodDataNoPrivate,
   methodDataWithNullPrivate,
   methodDataWithVersions,
   methodDataWithVersionsAndDetails,
