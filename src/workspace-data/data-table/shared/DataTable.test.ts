@@ -181,7 +181,7 @@ describe('DataTable', () => {
     // Get the checkboxes on this page
     const newPageChecks = screen.getAllByRole('checkbox', { checked: true });
     expect(newPageChecks.length).toEqual(11);
-  }, 20000);
+  });
 
   it('selects page', async () => {
     // Arrange
@@ -249,7 +249,7 @@ describe('DataTable', () => {
     // Get the checkboxes on this page
     const newPageChecks = screen.getAllByRole('checkbox', { checked: false });
     expect(newPageChecks.length).toEqual(11);
-  }, 10000);
+  });
 
   it('passes filters to getPaginatedEntities', async () => {
     // Arrange
@@ -318,7 +318,7 @@ describe('DataTable', () => {
       'sample',
       expect.objectContaining({ columnFilter: 'sample_id=even' })
     );
-  }, 13000);
+  });
 
   it('selects filtered', async () => {
     // Arrange
@@ -386,5 +386,5 @@ describe('DataTable', () => {
     // Should include all (filtered) entities + select all checkbox
     const allChecks = screen.getAllByRole('checkbox', { checked: true });
     expect(allChecks.length).toEqual(11);
-  }, 15000);
+  });
 });
