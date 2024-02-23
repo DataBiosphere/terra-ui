@@ -7,6 +7,7 @@ import type {
 import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import type { CSSProperties, PropsWithChildren } from 'react';
 import { createContext, Fragment, useContext, useMemo } from 'react';
@@ -14,7 +15,6 @@ import { div, h, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer, List } from 'react-virtualized';
 import { Checkbox } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import * as Style from 'src/libs/style';
 
 export interface ColumnData {
