@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import RSelect, {
   components as RSelectComponents,
   GroupBase as RSelectGroupBase,
@@ -222,7 +222,5 @@ export const Select = <
   };
 
   const ParameterizedBaseSelect = BaseSelect as typeof BaseSelect<Value, Option, IsMulti, never>;
-  const baseSelectProd = { value, options: newOptions, findValue, ...props };
-
-  return React.createElement(ParameterizedBaseSelect, { ...baseSelectProd });
+  return <ParameterizedBaseSelect findValue={findValue} value={value} options={newOptions} {...props} />;
 };
