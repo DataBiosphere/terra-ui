@@ -134,7 +134,7 @@ describe('CohortEditor', () => {
       option: {
         kind: 'domain',
         id: 0,
-        name: 'test category',
+        name: 'test name',
         participantCount: 0,
         conceptCount: 0,
         root: { id: 0, name: 'test concept', count: 0, hasChildren: false },
