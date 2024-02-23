@@ -125,15 +125,14 @@ const BaseSelect = <
   Option extends { value: Value; label?: string | undefined },
   IsMulti extends boolean,
   Group extends RSelectGroupBase<Option>
->({
-  value,
-  id,
-  findValue,
-  ...props
-}: BaseSelectProps<Value, Option, IsMulti, Group>) => {
+>(
+  props: BaseSelectProps<Value, Option, IsMulti, Group>
+): ReactNode => {
+  const { findValue, id, value, ...otherProps } = props;
+
   const theme = useThemeFromContext();
 
-  const newValue: RSelectPropsValue<Option> = props.isMulti
+  const newValue: RSelectPropsValue<Option> = otherProps.isMulti
     ? _.compact(_.map(findValue, value as Value[]))
     : findValue(value as Value);
   const myId = useUniqueId();
@@ -167,7 +166,7 @@ const BaseSelect = <
           value: newValue || null, // need null instead of undefined to clear the select
           formatGroupLabel,
         },
-        props
+        otherProps
       )}
     />
   );
@@ -200,11 +199,11 @@ export const Select = <
   Value,
   IsMulti extends boolean = false,
   Option extends { value: Value; label?: string | undefined } = { value: Value; label: string | undefined }
->({
-  value,
-  options = [],
-  ...props
-}: SelectProps<Value, IsMulti, Option>) => {
+>(
+  props: SelectProps<Value, IsMulti, Option>
+) => {
+  const { options = [], value, ...otherProps } = props;
+
   // Allows passing options as a list of values instead of options objects.
   // For example:
   // options: ['foo', 'bar']
@@ -222,5 +221,5 @@ export const Select = <
   };
 
   const ParameterizedBaseSelect = BaseSelect as typeof BaseSelect<Value, Option, IsMulti, never>;
-  return <ParameterizedBaseSelect findValue={findValue} value={value} options={newOptions} {...props} />;
+  return <ParameterizedBaseSelect findValue={findValue} value={value} options={newOptions} {...otherProps} />;
 };
