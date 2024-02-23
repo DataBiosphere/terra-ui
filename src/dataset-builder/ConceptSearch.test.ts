@@ -83,6 +83,31 @@ describe('ConceptSearch', () => {
     expect(mockSearch).toHaveBeenCalledWith(domainOption.root, searchText);
   });
 
+  it('searchConcepts is called when initial search length is 0', async () => {
+    // Arrange
+    await act(() => renderSearch());
+    // Assert - searchConcepts is called because searchText.length is 0
+    expect(mockSearch).toBeCalledTimes(1);
+  });
+
+  it('searchConcepts is not called when initial search length is 1 or 2', async () => {
+    // Arrange
+    renderSearch('a');
+    // Assert - searchConcepts is not called because searchText.length is 1
+    expect(mockSearch).toBeCalledTimes(0);
+
+    // Arrange
+    renderSearch('ab');
+    // Assert - searchConcepts is not called because searchText.length is 2
+    expect(mockSearch).toBeCalledTimes(0);
+  });
+  it('searchConcepts is called when initial search length is greater than 2', async () => {
+    // Arrange
+    await act(() => renderSearch('abc'));
+    // Assert - searchConcepts is called because searchText.length is greater than 2
+    expect(mockSearch).toBeCalledTimes(1);
+  });
+
   it('filters based on search text', async () => {
     // Arrange/Act
     const searchText = 'search text';
