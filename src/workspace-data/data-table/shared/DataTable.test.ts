@@ -60,7 +60,10 @@ jest.mock('react-virtualized', (): ReactVirtualizedExports => {
 
 const mockDataProvider = new EntityServiceDataTableProvider('test-namespace', 'test-workspace');
 
-const EntitiesContentHarness = (props) => {
+/**
+ * TestHarness provides some of the same state management that EntitiesContent/WDSContent do in the app.
+ */
+const TestHarness = (props) => {
   const [selectedEntities, setSelectedEntities] = useState({});
   return h(DataTable, {
     ...props,
@@ -118,7 +121,7 @@ describe('DataTable', () => {
 
     await act(async () => {
       render(
-        h(EntitiesContentHarness, {
+        h(TestHarness, {
           entityType,
           entityMetadata,
           setEntityMetadata: () => {},
@@ -185,7 +188,7 @@ describe('DataTable', () => {
 
     await act(async () => {
       render(
-        h(EntitiesContentHarness, {
+        h(TestHarness, {
           entityType,
           entityMetadata,
           setEntityMetadata: () => {},
@@ -252,7 +255,7 @@ describe('DataTable', () => {
 
     await act(async () => {
       render(
-        h(EntitiesContentHarness, {
+        h(TestHarness, {
           entityType,
           entityMetadata,
           setEntityMetadata: () => {},
@@ -320,7 +323,7 @@ describe('DataTable', () => {
 
     await act(async () => {
       render(
-        h(EntitiesContentHarness, {
+        h(TestHarness, {
           entityType,
           entityMetadata,
           setEntityMetadata: () => {},
