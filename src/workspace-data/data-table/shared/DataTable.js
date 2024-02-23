@@ -86,6 +86,7 @@ const displayData = ({ itemsType, items }) => {
 
 const DataTable = (props) => {
   const {
+    defaultItemsPerPage = 100,
     entityType,
     entityMetadata,
     setEntityMetadata,
@@ -122,7 +123,7 @@ const DataTable = (props) => {
   const [filteredCount, setFilteredCount] = useState(0);
   const [totalRowCount, setTotalRowCount] = useState(0);
 
-  const [itemsPerPage, setItemsPerPage] = useState(100);
+  const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
   const [pageNumber, setPageNumber] = useState(1);
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' });
   const [activeTextFilter, setActiveTextFilter] = useState(activeCrossTableTextFilter || '');

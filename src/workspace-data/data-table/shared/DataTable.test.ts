@@ -28,7 +28,7 @@ jest.mock('react-notifications-component', (): DeepPartial<ReactNotificationsCom
 const entityType = 'sample';
 const entities = _.map(
   (n) => ({ entityType: 'sample', name: `sample_${n}`, attributes: { attr: n % 2 === 0 ? 'even' : 'odd' } }),
-  _.range(0, 250)
+  _.range(0, 25)
 );
 const entityMetadata = {
   sample: {
@@ -154,6 +154,7 @@ describe('DataTable', () => {
           border: true,
           extraColumnActions: '',
           dataProvider: mockDataProvider,
+          defaultItemsPerPage: 10,
         })
       );
     });
@@ -164,14 +165,14 @@ describe('DataTable', () => {
     const button = screen.getByRole('button', { name: '"Select All" options' });
     await user.click(button);
 
-    const pageButton = screen.getByRole('button', { name: 'All (250)' });
+    const pageButton = screen.getByRole('button', { name: 'All (25)' });
     await user.click(pageButton);
 
     // Assert
 
     // Should include all rows + the 'Select all' check
     const allChecks = screen.getAllByRole('checkbox', { checked: true });
-    expect(allChecks.length).toEqual(101);
+    expect(allChecks.length).toEqual(11);
 
     // Go to next page
     const nextPageButton = screen.getByRole('button', { name: 'Next page' });
@@ -179,7 +180,7 @@ describe('DataTable', () => {
 
     // Get the checkboxes on this page
     const newPageChecks = screen.getAllByRole('checkbox', { checked: true });
-    expect(newPageChecks.length).toEqual(101);
+    expect(newPageChecks.length).toEqual(11);
   }, 20000);
 
   it('selects page', async () => {
@@ -221,6 +222,7 @@ describe('DataTable', () => {
           border: true,
           extraColumnActions: '',
           dataProvider: mockDataProvider,
+          defaultItemsPerPage: 10,
         })
       );
     });
@@ -238,7 +240,7 @@ describe('DataTable', () => {
 
     // Should include all rows + the 'Select all' check
     const allChecks = screen.getAllByRole('checkbox', { checked: true });
-    expect(allChecks.length).toEqual(101);
+    expect(allChecks.length).toEqual(11);
 
     // Go to next page
     const nextPageButton = screen.getByRole('button', { name: 'Next page' });
@@ -246,7 +248,7 @@ describe('DataTable', () => {
 
     // Get the checkboxes on this page
     const newPageChecks = screen.getAllByRole('checkbox', { checked: false });
-    expect(newPageChecks.length).toEqual(101);
+    expect(newPageChecks.length).toEqual(11);
   }, 10000);
 
   it('passes filters to getPaginatedEntities', async () => {
@@ -288,6 +290,7 @@ describe('DataTable', () => {
           border: true,
           extraColumnActions: '',
           dataProvider: mockDataProvider,
+          defaultItemsPerPage: 10,
         })
       );
     });
@@ -308,7 +311,7 @@ describe('DataTable', () => {
     const checkbox = screen.getByRole('button', { name: '"Select All" options' });
     await user.click(checkbox);
 
-    const pageButton = screen.getByRole('button', { name: 'Filtered (125)' });
+    const pageButton = screen.getByRole('button', { name: 'Filtered (13)' });
     await user.click(pageButton);
 
     expect(paginatedEntitiesOfType).toHaveBeenCalledWith(
@@ -356,6 +359,7 @@ describe('DataTable', () => {
           border: true,
           extraColumnActions: '',
           dataProvider: mockDataProvider,
+          defaultItemsPerPage: 10,
         })
       );
     });
@@ -376,11 +380,11 @@ describe('DataTable', () => {
     const checkbox = screen.getByRole('button', { name: '"Select All" options' });
     await user.click(checkbox);
 
-    const pageButton = screen.getByRole('button', { name: 'Filtered (125)' });
+    const pageButton = screen.getByRole('button', { name: 'Filtered (13)' });
     await user.click(pageButton);
 
     // Should include all (filtered) entities + select all checkbox
     const allChecks = screen.getAllByRole('checkbox', { checked: true });
-    expect(allChecks.length).toEqual(101);
+    expect(allChecks.length).toEqual(11);
   }, 15000);
 });
