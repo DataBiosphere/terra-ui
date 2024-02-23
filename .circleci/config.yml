@@ -6,7 +6,6 @@ parameters:
     enum:
       - build-deploy
       - integration-tests-staging
-      - integration-tests-alpha
     default: build-deploy
 
 orbs:
@@ -96,7 +95,7 @@ commands:
         default: "SA_KEY_JSON"
       env:
         type: enum
-        enum: [dev, staging, alpha]
+        enum: [dev, staging]
         default: dev
       pr:
         type: boolean
@@ -150,7 +149,7 @@ commands:
         default: false
       env:
         type: enum
-        enum: [ staging, alpha ]
+        enum: [ staging ]
         default: staging
       log_dir:
         type: string
@@ -259,14 +258,6 @@ jobs:
     executor: gcloud
     steps:
       - deploy-env
-  deploy-alpha:
-    executor: gcloud
-    steps:
-      - deploy-env:
-          sa_key_var: "ALPHA_SA_KEY_JSON"
-          env: "alpha"
-      - notify-qa:
-          channel: "C7H40L71D" # dsde-qa-notify
   deploy-staging:
     executor: gcloud
     steps:
@@ -283,12 +274,6 @@ jobs:
       - integration-tests:
           local: true
           env: staging
-  integration-tests-alpha:
-    executor: puppeteer
-    parallelism: 4
-    steps:
-      - integration-tests:
-          env: alpha
   integration-tests-staging:
     executor: puppeteer
     parallelism: 4
@@ -315,10 +300,6 @@ workflows:
           <<: *filter-dev-branch
           requires:
             - build
-      - deploy-alpha:
-          <<: *filter-dev-branch
-          requires:
-            - build
       - deploy-staging:
           <<: *filter-dev-branch
           requires:
@@ -332,11 +313,6 @@ workflows:
       equal: [integration-tests-staging, << pipeline.parameters.workflow_to_run >>]
     jobs:
       - integration-tests-staging
-  integration-tests-alpha:
-    when:
-      equal: [integration-tests-alpha, << pipeline.parameters.workflow_to_run >>]
-    jobs:
-      - integration-tests-alpha
   nightly-integration-tests:
     triggers:
       - schedule:
