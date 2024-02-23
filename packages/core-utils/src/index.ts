@@ -1,5 +1,6 @@
 export * from './format/date-format';
 export * from './format/number-format';
+export * from './fp-utils';
 export * from './io-utils';
 export * from './logic-utils';
 export * from './nav/nav-utils';

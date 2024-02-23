@@ -6,6 +6,7 @@ import {
   formatDatetime,
   GenericPromiseFn,
   safeCurry,
+  toIndexPairs,
 } from '@terra-ui-packages/core-utils';
 import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
@@ -23,6 +24,7 @@ export {
   formatDate as makeStandardDate,
   maybeParseJSON,
   switchCase,
+  toIndexPairs,
 } from '@terra-ui-packages/core-utils';
 
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
@@ -58,12 +60,6 @@ export const differenceFromNowInSeconds = (jsonDateString) => {
 export const differenceFromDatesInSeconds = (jsonDateStringStart, jsonDateStringEnd) => {
   return differenceInSeconds(parseJSON(jsonDateStringStart), parseJSON(jsonDateStringEnd));
 };
-
-export const toIndexPairs = <T>(obj: T[]): [number, T][] =>
-  _.flow(
-    _.toPairs,
-    _.map(([k, v]: [string, T]) => [+k, v])
-  )(obj);
 
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 /**
