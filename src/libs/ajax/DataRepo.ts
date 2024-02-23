@@ -14,7 +14,7 @@ import {
   ProgramDataRangeOption,
   SearchConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { dummyConcepts, getHierarchyMap } from 'src/dataset-builder/TestConstants';
+import { getHierarchyMap } from 'src/dataset-builder/TestConstants';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
 export type SnapshotBuilderConcept = {
@@ -166,7 +166,6 @@ export interface DataRepoContract {
     getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
     getConceptsHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptsHierarchyResponse>;
-    // Search returns a list of matching concepts with a domain sorted by participant count. The result is truncated to N concepts.
     searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SearchConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {
@@ -232,18 +231,17 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
         ),
       getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-
+      searchConcepts: async (domain: SnapshotBuilderConcept, searchText: string): Promise<GetConceptsResponse> => {
+        return callDataRepo(
+          `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${
+            domain.name
+          }/search?searchText=${encodeURIComponent(searchText)}`
+        );
+      },
       getConceptsHierarchy: async (_concept: SnapshotBuilderConcept) => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         return Promise.resolve({
           result: getHierarchyMap(_concept.id),
-        });
-      },
-
-      searchConcepts: async (_domain: SnapshotBuilderConcept, text: string) => {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return Promise.resolve({
-          result: _.filter((concept) => concept.name.toLowerCase().includes(text.toLowerCase()), dummyConcepts),
         });
       },
       queryDatasetColumnStatisticsById: (programDataOption) =>
