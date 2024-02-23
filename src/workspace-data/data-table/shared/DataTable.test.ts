@@ -5,7 +5,7 @@ import _ from 'lodash/fp';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { DataTableProvider } from 'src/libs/ajax/data-table-providers/DataTableProvider';
+import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -25,10 +25,18 @@ jest.mock('react-notifications-component', (): DeepPartial<ReactNotificationsCom
   };
 });
 
+const entityType = 'sample';
 const entities = _.map(
   (n) => ({ entityType: 'sample', name: `sample_${n}`, attributes: { attr: n % 2 === 0 ? 'even' : 'odd' } }),
   _.range(0, 250)
 );
+const entityMetadata = {
+  sample: {
+    idName: 'sample_id',
+    attributeNames: [],
+    count: entities.length,
+  },
+};
 
 type ReactVirtualizedExports = typeof import('react-virtualized');
 jest.mock('react-virtualized', (): ReactVirtualizedExports => {
@@ -50,43 +58,7 @@ jest.mock('react-virtualized', (): ReactVirtualizedExports => {
   };
 });
 
-// Returns a filtered subset of |entities| if a filter is included - more than one page
-// Else 100-item pages depending on page number
-const getPage = jest
-  .fn()
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  .mockImplementation((signal, entityType, queryOptions: { pageNumber; columnFilter }, entityMetadata) => {
-    if (queryOptions.columnFilter) {
-      return Promise.resolve({
-        results: _.filter((s: { attributes: { attr: string } }) => s.attributes.attr === 'even', entities),
-        resultMetadata: { filteredCount: 125, unfilteredCount: 250, filteredPageCount: 2 },
-      });
-    }
-    if (!queryOptions.pageNumber || queryOptions.pageNumber === 1) {
-      return Promise.resolve({
-        results: entities.slice(0, 100),
-        resultMetadata: { filteredCount: 250, unfilteredCount: 250, filteredPageCount: 3 },
-      });
-    }
-    if (queryOptions.pageNumber === 2) {
-      return Promise.resolve({
-        results: entities.slice(100, 200),
-        resultMetadata: { filteredCount: 250, unfilteredCount: 250, filteredPageCount: 3 },
-      });
-    }
-    return Promise.resolve({
-      results: entities.slice(200),
-      resultMetadata: { filteredCount: 250, unfilteredCount: 250, filteredPageCount: 3 },
-    });
-  });
-
-const mockDataProvider: DeepPartial<DataTableProvider> = {
-  getPage,
-  features: {
-    supportsFiltering: true,
-    supportsRowSelection: true,
-  },
-};
+const mockDataProvider = new EntityServiceDataTableProvider('test-namespace', 'test-workspace');
 
 const EntitiesContentHarness = (props) => {
   const [selectedEntities, setSelectedEntities] = useState({});
@@ -101,15 +73,27 @@ const EntitiesContentHarness = (props) => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const paginatedEntitiesOfType = jest.fn().mockImplementation((entityType, params) => {
-  if (params.columnFilter) {
-    return Promise.resolve({
-      results: _.filter((s: { attributes: { attr: string } }) => s.attributes.attr === 'even', entities),
-      resultMetadata: { filteredCount: 125, unfilteredCount: 250, filteredPageCount: 2 },
-    });
+  const { columnFilter, page = 1, pageSize } = params;
+
+  let results = entities;
+  let filteredCount = entities.length;
+
+  if (columnFilter) {
+    results = results.filter((e) => e.attributes.attr === 'even');
+    filteredCount = results.length;
   }
+
+  const offset = (page - 1) * pageSize;
+  const limit = pageSize;
+  results = results.slice(offset, offset + limit);
+
   return Promise.resolve({
-    results: entities,
-    resultMetadata: { filteredCount: 250, unfilteredCount: 250, filteredPageCount: 3 },
+    results,
+    resultMetadata: {
+      filteredCount,
+      unfilteredCount: entities.length,
+      filteredPageCount: Math.ceil(filteredCount / pageSize),
+    },
   });
 });
 
@@ -135,14 +119,8 @@ describe('DataTable', () => {
     await act(async () => {
       render(
         h(EntitiesContentHarness, {
-          entityType: 'sample',
-          entityMetadata: {
-            sample: {
-              idName: 'sample_id',
-              attributeNames: [],
-              count: 250,
-            },
-          },
+          entityType,
+          entityMetadata,
           setEntityMetadata: () => {},
           workspace: {
             ...defaultGoogleWorkspace,
@@ -208,14 +186,8 @@ describe('DataTable', () => {
     await act(async () => {
       render(
         h(EntitiesContentHarness, {
-          entityType: 'sample',
-          entityMetadata: {
-            sample: {
-              idName: 'sample_id',
-              attributeNames: [],
-              count: 250,
-            },
-          },
+          entityType,
+          entityMetadata,
           setEntityMetadata: () => {},
           workspace: {
             ...defaultGoogleWorkspace,
@@ -281,14 +253,8 @@ describe('DataTable', () => {
     await act(async () => {
       render(
         h(EntitiesContentHarness, {
-          entityType: 'sample',
-          entityMetadata: {
-            sample: {
-              idName: 'sample_id',
-              attributeNames: [],
-              count: 250,
-            },
-          },
+          entityType,
+          entityMetadata,
           setEntityMetadata: () => {},
           workspace: {
             ...defaultGoogleWorkspace,
@@ -355,14 +321,8 @@ describe('DataTable', () => {
     await act(async () => {
       render(
         h(EntitiesContentHarness, {
-          entityType: 'sample',
-          entityMetadata: {
-            sample: {
-              idName: 'sample_id',
-              attributeNames: [],
-              count: 250,
-            },
-          },
+          entityType,
+          entityMetadata,
           setEntityMetadata: () => {},
           workspace: {
             ...defaultGoogleWorkspace,
@@ -418,6 +378,6 @@ describe('DataTable', () => {
 
     // Should include all (filtered) entities + select all checkbox
     const allChecks = screen.getAllByRole('checkbox', { checked: true });
-    expect(allChecks.length).toEqual(126);
+    expect(allChecks.length).toEqual(101);
   }, 15000);
 });
