@@ -65,7 +65,11 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
     const openedConcept = state.openedConcept;
     if (openedConcept) {
       void setHierarchy(async () => {
-        return (await DataRepo().dataset(datasetId).getConceptsHierarchy(openedConcept)).result;
+        const results = (await DataRepo().dataset(datasetId).getConceptHierarchy(openedConcept)).result;
+        // convert results to a map
+        const map = new Map<Concept, Concept[]>();
+        _.forEach((value) => map.set(value.concept, value.children), results);
+        return map;
       });
     } else {
       // get the children of this concept

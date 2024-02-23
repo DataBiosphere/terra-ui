@@ -148,8 +148,13 @@ export interface GetConceptsResponse {
   result: Concept[];
 }
 
+export interface ConceptAndChildren {
+  concept: Concept;
+  children: Concept[];
+}
+
 export interface GetConceptsHierarchyResponse {
-  result: Map<Concept, Concept[]>;
+  result: ConceptAndChildren[];
 }
 
 export interface SearchConceptsResponse {
