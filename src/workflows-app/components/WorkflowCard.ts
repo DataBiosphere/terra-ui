@@ -51,7 +51,12 @@ export type WorkflowCardProps = {
 
 export const WorkflowCard = ({ method, subCard, children }: PropsWithChildren<WorkflowCardProps>) => {
   const isWorkflowSet = 'methods' in method; // Used to narrow type
-  const isPrivate = isWorkflowSet ? false : method.isPrivate;
+  let isPrivate;
+  if (isWorkflowSet || method.isPrivate == null) {
+    isPrivate = false;
+  } else {
+    isPrivate = method.isPrivate;
+  }
   const showLock = isPrivate
     ? h(TooltipCell, { tooltip: 'This is a private workflow', style: { marginLeft: '0.5em' } }, [icon('lock')])
     : undefined;

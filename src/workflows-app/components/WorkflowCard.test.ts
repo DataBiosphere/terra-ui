@@ -4,7 +4,11 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { WorkflowCard, WorkflowMethodSet } from 'src/workflows-app/components/WorkflowCard';
-import { methodDataWithVersions, methodDataWithVersionsAndDetails } from 'src/workflows-app/utils/mock-data';
+import {
+  methodDataWithNullPrivate,
+  methodDataWithVersions,
+  methodDataWithVersionsAndDetails,
+} from 'src/workflows-app/utils/mock-data';
 
 describe('Single workflow card', () => {
   it('should render a simple method with description and no children', () => {
@@ -39,6 +43,12 @@ describe('Single workflow card', () => {
 
   it('should not render a lock icon for a public method', async () => {
     render(h(WorkflowCard, { method: methodDataWithVersions.methods[0] }));
+    expect(document.querySelector("[data-icon='lock']")).not.toBeInTheDocument();
+    expect(screen.queryByText('This is a private workflow')).not.toBeInTheDocument();
+  });
+
+  it('should not render a lock icon for isPrivate null method', async () => {
+    render(h(WorkflowCard, { method: methodDataWithNullPrivate.methods[0] }));
     expect(document.querySelector("[data-icon='lock']")).not.toBeInTheDocument();
     expect(screen.queryByText('This is a private workflow')).not.toBeInTheDocument();
   });
