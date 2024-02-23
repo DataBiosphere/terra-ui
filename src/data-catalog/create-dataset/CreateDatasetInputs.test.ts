@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as _ from 'lodash/fp';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { MarkdownEditor } from 'src/components/markdown';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { CatalogNumberInput, ListInput, MarkdownInput, SelectInput, StringInput } from './CreateDatasetInputs';
 
