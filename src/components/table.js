@@ -726,7 +726,8 @@ export const GridTable = forwardRefWithName(
                   // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/cell_role
                   return _.flow(
                     _.groupBy('rowIndex'),
-                    Utils.toIndexPairs,
+                    _.toPairs,
+                    _.map(([k, v]) => [+k, v]),
                     _.map(([rowIndex, cells]) => {
                       const rowDatum = rowSizeAndPositionManager.getSizeAndPositionOfCell(rowIndex);
                       return div(
