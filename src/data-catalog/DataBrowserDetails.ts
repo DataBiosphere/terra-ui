@@ -1,4 +1,4 @@
-import { Spinner } from '@terra-ui-packages/components';
+import { Modal, Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import qs from 'qs';
 import { CSSProperties, Fragment, useState } from 'react';
@@ -9,7 +9,6 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { libraryTopMatter } from 'src/components/library-common';
 import { MarkdownViewer } from 'src/components/markdown';
-import Modal from 'src/components/Modal';
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg';
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg';
 import { Ajax } from 'src/libs/ajax';

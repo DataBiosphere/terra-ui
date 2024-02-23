@@ -1,11 +1,10 @@
-import { Switch, TooltipTrigger } from '@terra-ui-packages/components';
+import { Modal, modalStyles, Switch, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
-import Modal, { modalStyles } from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { reportError } from 'src/libs/error';

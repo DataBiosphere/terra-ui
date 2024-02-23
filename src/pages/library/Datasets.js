@@ -1,10 +1,9 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import { Fragment, useState } from 'react';
 import { b, div, h, img, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { libraryTopMatter } from 'src/components/library-common';
-import Modal from 'src/components/Modal';
 import { Browser } from 'src/data-catalog/DataBrowser';
 import thousandGenomesAnvil from 'src/images/library/datasets/1000Genome-Anvil-logo.png';
 import thousandGenomesLogo from 'src/images/library/datasets/1000Genome-logo.png';

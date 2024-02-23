@@ -1,4 +1,4 @@
-import { Clickable, Spinner } from '@terra-ui-packages/components';
+import { Clickable, Modal, Spinner } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
 import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
@@ -8,7 +8,6 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import { ValidatedInput, ValidatedTextArea } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';

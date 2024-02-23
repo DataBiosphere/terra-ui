@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { Fragment, useEffect, useMemo, useState } from 'react';
@@ -13,7 +14,6 @@ import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { TextInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { SimpleTabBar } from 'src/components/tabBars';
 import { ariaSort, HeaderRenderer } from 'src/components/table';

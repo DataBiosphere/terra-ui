@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import PropTypes from 'prop-types';
@@ -6,7 +7,6 @@ import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, RadioButton } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { ValidatedInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { FormLabel } from 'src/libs/forms';
 import * as Style from 'src/libs/style';

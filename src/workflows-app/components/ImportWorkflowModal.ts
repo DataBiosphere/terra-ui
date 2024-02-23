@@ -1,9 +1,9 @@
+import { Modal } from '@terra-ui-packages/components';
 import { CSSProperties } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common';
 import { styles as errorStyles } from 'src/components/ErrorView';
 import { centeredSpinner, icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';

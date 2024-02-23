@@ -1,9 +1,9 @@
+import { Modal } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, Link, spinnerOverlay, VirtualizedSelect } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { requesterPaysProjectStore } from 'src/libs/state';

@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import { cond, DEFAULT } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
@@ -5,7 +6,6 @@ import { ReactNode, useState } from 'react';
 import { b, div, h, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { ButtonOutline, ButtonPrimary } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';

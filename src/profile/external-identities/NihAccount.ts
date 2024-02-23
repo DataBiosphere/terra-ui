@@ -1,11 +1,10 @@
-import { icon } from '@terra-ui-packages/components';
+import { icon, Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, h3, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { NihDatasetPermission } from 'src/libs/ajax/User';
 import { withErrorReporting } from 'src/libs/error';

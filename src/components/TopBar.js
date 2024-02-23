@@ -1,4 +1,4 @@
-import { FocusTrap } from '@terra-ui-packages/components';
+import { FocusTrap, Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useRef, useState } from 'react';
 import { UnmountClosed as RCollapse } from 'react-collapse';
@@ -10,7 +10,6 @@ import { signIn, signOut } from 'src/auth/auth';
 import { Clickable, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextArea } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import ProfilePicture from 'src/components/ProfilePicture';
 import { SkipNavLink, SkipNavTarget } from 'src/components/skipNavLink';
 import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg';

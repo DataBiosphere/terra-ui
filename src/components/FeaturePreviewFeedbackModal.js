@@ -1,9 +1,9 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common';
 import { TextArea, TextInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorIgnoring } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';

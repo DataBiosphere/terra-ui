@@ -1,7 +1,7 @@
+import { Modal } from '@terra-ui-packages/components';
 import { ReactNode } from 'react';
 import { h, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary } from 'src/components/common';
-import Modal from 'src/components/Modal';
 
 import { tableNameForImport } from './data-table-versioning-utils';
 

@@ -1,9 +1,9 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useState } from 'react';
 import { div, fieldset, h, legend } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, LabeledCheckbox } from 'src/components/common';
 import { TextInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import { FormLabel } from 'src/libs/forms';
 
 interface DataTableSaveVersionModalProps {

@@ -1,5 +1,5 @@
+import { Modal } from '@terra-ui-packages/components';
 import { h } from 'react-hyperscript-helpers';
-import Modal from 'src/components/Modal';
 import WDLViewer from 'src/components/WDLViewer';
 
 const ViewWorkflowScriptModal = ({ workflowScript, onDismiss }) => {
