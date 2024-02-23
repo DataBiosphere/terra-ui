@@ -211,7 +211,7 @@ export const Select = <
   // instead of:
   // options: [{ value: 'foo' }, { value: 'bar' }]
   //
-  // Use Array.isArray to check if options is an array and the first element is not an object.
+  // Cast as Options[] is because TS can't figure out how the `!_isObject(options[0])` condition affects the type of newOptions.
   const newOptions = (
     options && !_.isObject(options[0]) ? _.map((value) => ({ value }), options) : options
   ) as Option[];
