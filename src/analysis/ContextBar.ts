@@ -8,7 +8,7 @@
  * $ yarn test-local analysis-context-bar
  */
 
-import { Interactive } from '@terra-ui-packages/components';
+import { Interactive, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { br, div, h, img, span } from 'react-hyperscript-helpers';
@@ -35,7 +35,6 @@ import {
 import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { getRegionInfo } from 'src/components/region-common';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import cromwellImg from 'src/images/cromwell-logo.png'; // To be replaced by something square
 import galaxyLogo from 'src/images/galaxy-project-logo-square.png';
 import hailLogo from 'src/images/hail-logo.svg';

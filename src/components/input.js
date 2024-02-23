@@ -1,4 +1,4 @@
-import { useWindowDimensions } from '@terra-ui-packages/components';
+import { TooltipTrigger, useWindowDimensions } from '@terra-ui-packages/components';
 import Downshift from 'downshift';
 import _ from 'lodash/fp';
 import { Fragment, useRef, useState } from 'react';
@@ -7,7 +7,6 @@ import TextAreaAutosize from 'react-textarea-autosize';
 import { ButtonPrimary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { PopupPortal, useDynamicPosition } from 'src/components/popup-utils';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
 import { combineRefs, forwardRefWithName, useGetter, useInstance, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';

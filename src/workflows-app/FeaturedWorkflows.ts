@@ -1,3 +1,4 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Dispatch, Fragment, SetStateAction, useCallback, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
@@ -6,7 +7,6 @@ import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import colors from 'src/libs/colors';

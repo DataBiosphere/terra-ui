@@ -1,9 +1,9 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, fieldset, h, label, legend, span } from 'react-hyperscript-helpers';
 import { IdContainer, LabeledCheckbox, Link, RadioButton, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import * as Utils from 'src/libs/utils';
 
 import { renderInputForAttributeType } from '../shared/AttributeInput';
