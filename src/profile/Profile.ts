@@ -33,7 +33,8 @@ export const Profile = (): ReactNode => {
   }, [profileStatus]);
 
   const { query, name } = Nav.useRoute();
-  const tab: string = query.tab || (name === 'fence-callback' ? 'externalIdentities' : 'personalInfo');
+  const callbacks = ['fence-callback', 'ecm-callback', 'oauth-callback'];
+  const tab: string = query.tab || (callbacks.includes(name) ? 'externalIdentities' : 'personalInfo');
 
   const tabs = [
     { key: 'personalInfo', title: 'Personal Information' },
