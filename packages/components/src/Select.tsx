@@ -8,6 +8,7 @@ import RSelect, {
   PropsValue as RSelectPropsValue,
   SingleValue as RSelectSingleValue,
 } from 'react-select';
+import  from 'react-select/async-creatable';
 
 import { useUniqueId } from './hooks/useUniqueId';
 import { icon } from './icon';
@@ -120,7 +121,7 @@ type BaseSelectProps<
  * const options = [{ value: 'foo' }, { value: 'bar' }]
  * h(BaseSelect, { options, value: options[0] })
  */
-const BaseSelect = <
+export const BaseSelect = <
   Value,
   Option extends { value: Value; label?: string | undefined },
   IsMulti extends boolean,
@@ -222,4 +223,41 @@ export const Select = <
 
   const ParameterizedBaseSelect = BaseSelect as typeof BaseSelect<Value, Option, IsMulti, never>;
   return <ParameterizedBaseSelect findValue={findValue} value={value} options={newOptions} {...otherProps} />;
+};
+
+export type GroupedSelectProps<
+  Value,
+  IsMulti extends boolean,
+  Option extends { value: Value; label?: string | undefined },
+  Group extends RSelectGroupBase<Option>
+> = Omit<BaseSelectProps<Value, Option, IsMulti, Group>, 'findValue' | 'options'> & {
+  options: Group[];
+};
+
+/**
+ * @param props - see {@link https://react-select.com/props#select-props}
+ * @param props.value - a member of an inner options object
+ * @param props.options - an object with toplevel pairs of label:options where label is a group label and options is an array of objects containing value:label pairs
+ * @param [props.id] - The HTML ID to give the form element
+ */
+export const GroupedSelect = <
+  Value,
+  IsMulti extends boolean = false,
+  Option extends { value: Value; label?: string | undefined } = { value: Value; label?: string | undefined },
+  Group extends RSelectGroupBase<Option> = RSelectGroupBase<Option>
+>({
+  value,
+  options = [],
+  ...props
+}: GroupedSelectProps<Value, IsMulti, Option, Group>) => {
+  // cast because types don't carry through Lodash
+  const flattenedOptions = _.flatMap('options', options) as Option[];
+  const findValue = (target: Value) => (_.find({ value: target }, flattenedOptions) || null) as Option | null;
+
+  const ParameterizedBaseSelect = BaseSelect as typeof BaseSelect<Value, Option, IsMulti, Group>;
+  return <ParameterizedBaseSelect findValue={findValue} value={value} options={options} {...props} />;
+};
+
+export const AsyncCreatableSelect = (props) => {
+  return <RAsyncCreatableSelect {..._.merge(getCommonSelectProps, props)} />;
 };
