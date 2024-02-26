@@ -49,17 +49,17 @@ const wrapContent =
   });
 
 export const populateTreeFromRoot = <T extends RowContents>(root: T): Row<T>[] => {
-  const createRows = (parent: RowContents, depth: number, previousRows: Row<T>[]): Row<T>[] => {
+  const createRows = (parent: T, depth: number, previousRows: Row<T>[]): Row<T>[] => {
     // does parent have children?
     const children = parent.children ?? [];
     const parentRow: Row<T> = {
-      contents: parent as T,
+      contents: parent,
       depth,
       isFetched: children.length > 0,
       state: children.length > 0 ? 'open' : 'closed',
     };
     // For each child, generate its rows. Add the generated rows to the end.
-    const childRows = children.flatMap((child) => createRows(child, depth + 1, []));
+    const childRows = children.flatMap((child) => createRows(child as T, depth + 1, []));
     return [...previousRows, parentRow, ...childRows];
   };
 
