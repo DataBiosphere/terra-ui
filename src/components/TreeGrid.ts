@@ -13,6 +13,7 @@ export type RowContents = {
   id: number;
   /** If true, this row has children. */
   hasChildren: boolean;
+  children?: RowContents[];
 };
 
 export type Column<T extends RowContents> = {
@@ -46,12 +47,12 @@ const wrapContent =
     state: 'closed',
   });
 
-export const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<T, T[]>): Row<T>[] => {
-  const traverseHierarchy = (parent: T, depth: number, previousRows: Row<T>[]): Row<T>[] => {
+export const hierarchyMapToRows = <T extends RowContents>(root: T): Row<T>[] => {
+  const traverseHierarchy = (parent: RowContents, depth: number, previousRows: Row<T>[]): Row<T>[] => {
     // does parent have children?
-    const children = hierarchyMap.get(parent) || [];
+    const children = parent.children ?? [];
     const parentRow: Row<T> = {
-      contents: parent,
+      contents: parent as T,
       depth,
       isFetched: children.length > 0,
       state: children.length > 0 ? 'open' : 'closed',
@@ -63,14 +64,14 @@ export const hierarchyMapToRows = <T extends RowContents>(hierarchyMap: Map<T, T
 
   // hierarchyMap assumes that the root is the first map entry
   // using depth of -1 because we don't want to show the root
-  return _.tail(traverseHierarchy(hierarchyMap.keys().next().value, -1, []));
+  return _.tail(traverseHierarchy(root, -1, []));
 };
 
 type TreeGridProps<T extends RowContents> = {
   /** the columns to display */
   readonly columns: Column<T>[];
-  /** the initial rows to display */
-  readonly initialHierarchy: Map<T, T[]>;
+  /** the initial tree to display */
+  readonly initialHierarchy: T;
   /** Given a row, return its children. This is only called if row.hasChildren is true. */
   readonly getChildren: (row: T) => Promise<T[]>;
   /** Optional header style */

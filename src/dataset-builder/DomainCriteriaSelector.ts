@@ -60,22 +60,18 @@ export const saveSelected =
 
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
-  const [hierarchy, setHierarchy] = useLoadedData<Map<Concept, Concept[]>>();
+  const [hierarchy, setHierarchy] = useLoadedData<Concept>();
   useOnMount(() => {
     const openedConcept = state.openedConcept;
     if (openedConcept) {
       void setHierarchy(async () => {
-        const results = (await DataRepo().dataset(datasetId).getConceptHierarchy(openedConcept)).result;
-        // convert results to a map
-        const map = new Map<Concept, Concept[]>();
-        _.forEach((value) => map.set(value.concept, value.children), results);
-        return map;
+        return (await DataRepo().dataset(datasetId).getConceptHierarchy(openedConcept)).result;
       });
     } else {
       // get the children of this concept
       void setHierarchy(async () => {
         const results = (await DataRepo().dataset(datasetId).getConcepts(state.domainOption.root)).result;
-        return new Map<Concept, Concept[]>([[state.domainOption.root, results]]);
+        return { ...state.domainOption.root, children: results };
       });
     }
   });

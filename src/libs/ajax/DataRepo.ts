@@ -22,6 +22,7 @@ export type SnapshotBuilderConcept = {
   name: string;
   count?: number;
   hasChildren: boolean;
+  children?: SnapshotBuilderConcept[];
 };
 
 export type SnapshotBuilderDomainOption = {
