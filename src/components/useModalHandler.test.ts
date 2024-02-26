@@ -1,9 +1,9 @@
+import { Modal } from '@terra-ui-packages/components';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ReactNode } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { useModalHandler } from 'src/components/useModalHandler';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 

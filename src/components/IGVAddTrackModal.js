@@ -1,10 +1,10 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { form, h, label } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer } from 'src/components/common';
 import { parseGsUri } from 'src/components/data/data-utils';
 import { TextInput, ValidatedInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import * as Utils from 'src/libs/utils';
 
 const IGVAddTrackModal = ({ onDismiss, onSubmitTrack }) => {

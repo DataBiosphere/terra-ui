@@ -1,4 +1,4 @@
-import { PopupTrigger, useThemeFromContext } from '@terra-ui-packages/components';
+import { PopupTrigger, TooltipTrigger, useThemeFromContext } from '@terra-ui-packages/components';
 import { formatDatetime, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
@@ -21,7 +21,6 @@ import { icon } from 'src/components/icons';
 import { makeMenuIcon } from 'src/components/PopupTrigger';
 import SupportRequestWrapper from 'src/components/SupportRequest';
 import { SimpleFlexTable, Sortable } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { useModalHandler } from 'src/components/useModalHandler';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';

@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import { subscribable } from '@terra-ui-packages/core-utils';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -6,7 +7,6 @@ import { basename, dirname } from 'src/components/file-browser/file-browser-util
 import { FileDetails } from 'src/components/file-browser/FileDetails';
 import FilesInDirectory from 'src/components/file-browser/FilesInDirectory';
 import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs';
-import Modal from 'src/components/Modal';
 import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import FileBrowserProvider, {
   FileBrowserDirectory,

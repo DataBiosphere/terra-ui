@@ -1,8 +1,8 @@
+import { Modal } from '@terra-ui-packages/components';
 import { Fragment, ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common';
 import { ValidatedInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';

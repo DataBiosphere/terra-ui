@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import { Fragment, useState } from 'react';
@@ -5,7 +6,6 @@ import { div, fieldset, h, label, legend, p, span } from 'react-hyperscript-help
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';

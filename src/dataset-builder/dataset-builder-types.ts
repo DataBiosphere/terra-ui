@@ -1,9 +1,5 @@
-import { Cohort, CriteriaGroup } from 'src/dataset-builder/DatasetBuilderUtils';
-import {
-  SnapshotBuilderConcept as Concept,
-  SnapshotBuilderConcept,
-  SnapshotBuilderDomainOption as DomainOption,
-} from 'src/libs/ajax/DataRepo';
+import { Cohort, CriteriaGroup, DomainOption } from 'src/dataset-builder/DatasetBuilderUtils';
+import { SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 
 let groupCount = 1;
 export const newCriteriaGroup = (): CriteriaGroup => {
@@ -17,7 +13,7 @@ export const newCriteriaGroup = (): CriteriaGroup => {
 
 export type SnapshotBuilderConceptNode = {
   id: number;
-  concept: SnapshotBuilderConcept;
+  concept: Concept;
   children: number[];
   parent?: number;
 };

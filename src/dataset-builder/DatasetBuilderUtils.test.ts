@@ -1,4 +1,4 @@
-import { div } from 'react-hyperscript-helpers';
+import { div, span } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
   AnyCriteriaApi,
@@ -15,6 +15,7 @@ import {
   DatasetAccessRequestApi,
   DomainCriteria,
   DomainCriteriaApi,
+  DomainOption,
   HighlightConceptName,
   ProgramDataListCriteria,
   ProgramDataListCriteriaApi,
@@ -27,11 +28,7 @@ import {
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { dummyGetConceptForId, getHierarchyMap } from 'src/dataset-builder/TestConstants';
-import {
-  SnapshotBuilderConcept as Concept,
-  SnapshotBuilderConcept,
-  SnapshotBuilderDomainOption,
-} from 'src/libs/ajax/DataRepo';
+import { SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 
 const concept: SnapshotBuilderConcept = {
   id: 0,
@@ -40,9 +37,10 @@ const concept: SnapshotBuilderConcept = {
   hasChildren: false,
 };
 
-const domainOption: SnapshotBuilderDomainOption = {
+const domainOption: DomainOption = {
   id: 1,
-  category: 'category',
+  name: 'category',
+  kind: 'domain',
   conceptCount: 10,
   participantCount: 20,
   root: concept,
@@ -50,18 +48,17 @@ const domainOption: SnapshotBuilderDomainOption = {
 
 const domainCriteria: DomainCriteria = {
   conceptId: 100,
+  conceptName: 'conceptName',
   kind: 'domain',
-  name: 'domainCriteria',
-  domainOption,
-  id: 2,
+  option: domainOption,
   index: 0,
   count: 100,
 };
 
 const domainCriteriaApi: DomainCriteriaApi = {
   kind: 'domain',
-  name: 'domainCriteria',
-  id: 2,
+  name: 'category',
+  id: 1,
   conceptId: 100,
 };
 
@@ -74,10 +71,8 @@ const rangeOption: ProgramDataRangeOption = {
 };
 
 const rangeCriteria: ProgramDataRangeCriteria = {
-  id: 2,
   kind: 'range',
-  name: 'rangeCriteria',
-  rangeOption,
+  option: rangeOption,
   index: 4,
   count: 100,
   low: 1,
@@ -87,7 +82,7 @@ const rangeCriteria: ProgramDataRangeCriteria = {
 const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
   id: 2,
   kind: 'range',
-  name: 'rangeCriteria',
+  name: 'rangeOption',
   low: 1,
   high: 99,
 };
@@ -109,18 +104,16 @@ const criteriaListValues: ProgramDataListValue[] = [
 const criteriaListValuesApi: number[] = [7, 8];
 
 const listCriteria: ProgramDataListCriteria = {
-  id: 2,
   kind: 'list',
-  name: 'listCriteria',
   index: 9,
-  listOption,
+  option: listOption,
   values: criteriaListValues,
 };
 
 const listCriteriaApi: ProgramDataListCriteriaApi = {
   id: 2,
   kind: 'list',
-  name: 'listCriteria',
+  name: 'listOption',
   values: criteriaListValuesApi,
 };
 
@@ -213,18 +206,18 @@ describe('test gettingHierarchyMap', () => {
    */
 
   test('fetching hierarchy map of id 400', () => {
-    const hierarchyMap = new Map<Concept, Concept[]>();
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
     hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
     expect(getHierarchyMap(400)).toStrictEqual(hierarchyMap);
   });
   test('fetching hierarchy map of id 401', () => {
-    const hierarchyMap = new Map<Concept, Concept[]>();
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
     hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
     hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
     expect(getHierarchyMap(401)).toStrictEqual(hierarchyMap);
   });
   test('fetching hierarchy map of id 402', () => {
-    const hierarchyMap = new Map<Concept, Concept[]>();
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
     hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
     hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
     hierarchyMap.set(dummyGetConceptForId(401), [
@@ -235,7 +228,7 @@ describe('test gettingHierarchyMap', () => {
     expect(getHierarchyMap(402)).toStrictEqual(hierarchyMap);
   });
   test('fetching hierarchy map of id 403', () => {
-    const hierarchyMap = new Map<Concept, Concept[]>();
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
     hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
     hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
     hierarchyMap.set(dummyGetConceptForId(401), [
@@ -246,7 +239,7 @@ describe('test gettingHierarchyMap', () => {
     expect(getHierarchyMap(403)).toStrictEqual(hierarchyMap);
   });
   test('fetching hierarchy map of id 404', () => {
-    const hierarchyMap = new Map<Concept, Concept[]>();
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
     hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
     hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
     hierarchyMap.set(dummyGetConceptForId(401), [
@@ -258,7 +251,7 @@ describe('test gettingHierarchyMap', () => {
   });
 
   test('fetching hierarchy map of id 407', () => {
-    const hierarchyMap = new Map<Concept, Concept[]>();
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
     hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
     hierarchyMap.set(dummyGetConceptForId(400), [dummyGetConceptForId(401)]);
     hierarchyMap.set(dummyGetConceptForId(401), [
@@ -272,13 +265,13 @@ describe('test gettingHierarchyMap', () => {
   });
 
   test('fetching hierarchy map of id 408', () => {
-    const hierarchyMap = new Map<Concept, Concept[]>();
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
     hierarchyMap.set(dummyGetConceptForId(100), [dummyGetConceptForId(400), dummyGetConceptForId(408)]);
     expect(getHierarchyMap(408)).toStrictEqual(hierarchyMap);
   });
 
   test('fetching hierarchy map of id 100', () => {
-    const hierarchyMap = new Map<Concept, Concept[]>();
+    const hierarchyMap = new Map<SnapshotBuilderConcept, SnapshotBuilderConcept[]>();
     hierarchyMap.set(dummyGetConceptForId(100), []);
     expect(getHierarchyMap(100)).toStrictEqual(hierarchyMap);
   });
@@ -286,10 +279,10 @@ describe('test gettingHierarchyMap', () => {
 
 describe('test HighlightConceptName', () => {
   const createHighlightConceptName = (beforeHighlight: string, highlightWord: string, afterHighlight: string) => {
-    return div({ style: { display: 'flex' } }, [
-      div({ style: { whiteSpace: 'pre' } }, [beforeHighlight]),
-      div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, [highlightWord]),
-      div({ style: { whiteSpace: 'pre' } }, [afterHighlight]),
+    return div({ style: { display: 'pre-wrap' } }, [
+      span([beforeHighlight]),
+      span({ style: { fontWeight: 600 } }, [highlightWord]),
+      span([afterHighlight]),
     ]);
   };
 

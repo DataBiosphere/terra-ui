@@ -1,4 +1,4 @@
-import { Spinner } from '@terra-ui-packages/components';
+import { Modal, Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { b, div, h, label, p, span } from 'react-hyperscript-helpers';
@@ -6,7 +6,6 @@ import { ButtonPrimary, IdContainer, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { ValidatedTextArea } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import { getRegionInfo } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { launch } from 'src/libs/analysis';

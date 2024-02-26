@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useImperativeHandle, useState } from 'react';
 import { a, div, h, label, span } from 'react-hyperscript-helpers';
@@ -8,7 +9,6 @@ import { centeredSpinner, icon } from 'src/components/icons';
 import { DelayedSearchInput } from 'src/components/input';
 import { MarkdownViewer } from 'src/components/markdown';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { PageBox } from 'src/components/PageBox';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';

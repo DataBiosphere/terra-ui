@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -6,7 +7,6 @@ import { billingProjectNameValidator } from 'src/billing/utils';
 import { GoogleBillingAccount } from 'src/billing-core/models';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';

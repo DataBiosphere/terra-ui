@@ -1,4 +1,5 @@
 import ReactJson from '@microlink/react-json-view';
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, hr, label } from 'react-hyperscript-helpers';
@@ -7,7 +8,6 @@ import ErrorView from 'src/components/ErrorView';
 import { icon } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import { breadcrumbHistoryCaret } from 'src/components/job-common';
-import Modal from 'src/components/Modal';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';

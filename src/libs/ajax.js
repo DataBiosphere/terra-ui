@@ -16,6 +16,7 @@ import { Billing } from 'src/libs/ajax/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
 import { DataRepo } from 'src/libs/ajax/DataRepo';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
+import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Groups } from 'src/libs/ajax/Groups';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
@@ -728,6 +729,7 @@ export const Ajax = (signal) => {
     Disks: Disks(signal),
     Dockstore: Dockstore(signal),
     DrsUriResolver: DrsUriResolver(signal),
+    ExternalCredentials: ExternalCredentials(signal),
     FirecloudBucket: FirecloudBucket(signal),
     Groups: Groups(signal),
     Methods: Methods(signal),

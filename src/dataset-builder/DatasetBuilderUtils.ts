@@ -1,11 +1,12 @@
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
-import { div } from 'react-hyperscript-helpers';
+import { div, span } from 'react-hyperscript-helpers';
 import {
   ColumnStatisticsIntOrDoubleModel,
   ColumnStatisticsTextModel,
   SnapshotBuilderConcept as Concept,
-  SnapshotBuilderDomainOption as DomainOption,
+  SnapshotBuilderConcept,
+  SnapshotBuilderDomainOption,
   SnapshotBuilderProgramDataOption,
 } from 'src/libs/ajax/DataRepo';
 
@@ -13,7 +14,9 @@ import {
 export interface Criteria {
   index: number;
   count?: number;
-  loading?: boolean;
+  // The kind is duplicated to make use of the discriminator type
+  kind: OptionTypeNames;
+  option: Option;
 }
 
 /** API types represent the data of UI types in the format expected by the backend.
@@ -22,7 +25,7 @@ export interface Criteria {
 export interface CriteriaApi {
   // This is the ID for either the domain or the program data option
   id: number;
-  kind: 'domain' | 'range' | 'list';
+  kind: OptionTypeNames;
   name: string;
   count?: number;
 }
@@ -31,18 +34,6 @@ export interface DomainCriteriaApi extends CriteriaApi {
   kind: 'domain';
   // This is the id for the selected concept
   conceptId: number;
-}
-
-export interface ProgramDataOption {
-  kind: 'range' | 'list';
-  id: number;
-  name: string;
-}
-
-export interface ProgramDataRangeOption extends ProgramDataOption {
-  kind: 'range';
-  min: number;
-  max: number;
 }
 
 export interface ProgramDataRangeCriteriaApi extends CriteriaApi {
@@ -88,13 +79,39 @@ export type DatasetAccessRequestApi = {
 
 /** Below are the UI types */
 
-export interface DomainCriteria extends DomainCriteriaApi, Criteria {
-  conceptId: number;
-  domainOption: DomainOption;
+type OptionTypeNames = 'domain' | 'range' | 'list';
+
+export interface Option {
+  id: number;
+  name: string;
+  kind: OptionTypeNames;
 }
 
-export interface ProgramDataRangeCriteria extends ProgramDataRangeCriteriaApi, Criteria {
-  rangeOption: ProgramDataRangeOption;
+export interface ProgramDataRangeOption extends Option {
+  kind: 'range';
+  min: number;
+  max: number;
+}
+
+export interface DomainOption extends Option {
+  kind: 'domain';
+  conceptCount?: number;
+  participantCount?: number;
+  root: SnapshotBuilderConcept;
+}
+
+export interface DomainCriteria extends Criteria {
+  kind: 'domain';
+  conceptId: number;
+  conceptName: string;
+  option: DomainOption;
+}
+
+export interface ProgramDataRangeCriteria extends Criteria {
+  kind: 'range';
+  option: ProgramDataRangeOption;
+  low: number;
+  high: number;
 }
 
 export interface ProgramDataListValue {
@@ -102,25 +119,23 @@ export interface ProgramDataListValue {
   name: string;
 }
 
-export interface ProgramDataListOption extends ProgramDataOption {
+export interface ProgramDataListOption extends Option {
   kind: 'list';
   values: ProgramDataListValue[];
 }
 
-export interface ProgramDataListCriteria extends Criteria, CriteriaApi {
+export interface ProgramDataListCriteria extends Criteria {
   kind: 'list';
-  listOption: ProgramDataListOption;
+  option: ProgramDataListOption;
   values: ProgramDataListValue[];
 }
 
 export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
-export type LoadingAnyCriteria = AnyCriteria | { loading: true; index: number };
-
 /** A group of criteria. */
 export interface CriteriaGroup {
   name: string;
-  criteria: LoadingAnyCriteria[];
+  criteria: AnyCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
 }
@@ -183,10 +198,7 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
         name: criteriaGroup.name,
         mustMeet: criteriaGroup.mustMeet,
         meetAll: criteriaGroup.meetAll,
-        criteria: _.flow(
-          _.filter((criteria: LoadingAnyCriteria) => !criteria.loading),
-          _.map((criteria: AnyCriteria) => convertCriteria(criteria))
-        )(criteriaGroup.criteria),
+        criteria: _.map((criteria: AnyCriteria) => convertCriteria(criteria), criteriaGroup.criteria),
       }),
       cohort.criteriaGroups
     ),
@@ -194,7 +206,8 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
 };
 
 export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
-  const mergeObject = { kind: criteria.kind, id: criteria.id, name: criteria.name };
+  const { kind, id, name } = criteria.option;
+  const mergeObject = { kind, id, name };
   switch (criteria.kind) {
     case 'range':
       return _.merge(mergeObject, { low: criteria.low, high: criteria.high }) as ProgramDataRangeCriteriaApi;
@@ -231,6 +244,12 @@ export type DatasetParticipantCountResponse = {
   };
   sql: string;
 };
+
+export const convertApiDomainOptionToDomainOption = (domainOption: SnapshotBuilderDomainOption): DomainOption => ({
+  ...domainOption,
+  name: domainOption.category,
+  kind: 'domain',
+});
 
 export const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
   return { cohorts: _.map(convertCohort, request.cohorts) };
@@ -284,9 +303,9 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
 
   const endIndex = startIndex + searchFilter.length;
 
-  return div({ style: { display: 'flex' } }, [
-    div({ style: { whiteSpace: 'pre' } }, [conceptName.substring(0, startIndex)]),
-    div({ style: { fontWeight: 600, whiteSpace: 'pre' } }, [conceptName.substring(startIndex, endIndex)]),
-    div({ style: { whiteSpace: 'pre' } }, [conceptName.substring(endIndex)]),
+  return div({ style: { display: 'pre-wrap' } }, [
+    span([conceptName.substring(0, startIndex)]),
+    span({ style: { fontWeight: 600 } }, [conceptName.substring(startIndex, endIndex)]),
+    span([conceptName.substring(endIndex)]),
   ]);
 };

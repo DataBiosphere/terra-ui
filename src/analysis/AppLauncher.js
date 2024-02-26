@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h, iframe, p, strong } from 'react-hyperscript-helpers';
@@ -21,7 +22,6 @@ import {
 } from 'src/analysis/utils/tool-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';

@@ -1,7 +1,6 @@
-import { IconId } from '@terra-ui-packages/components';
+import { IconId, TooltipTrigger } from '@terra-ui-packages/components';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
 import {
   canWrite,

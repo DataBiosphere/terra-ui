@@ -1,4 +1,4 @@
-import { Clickable, Spinner } from '@terra-ui-packages/components';
+import { Clickable, Modal, Spinner } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
 import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
@@ -8,7 +8,6 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import { ValidatedInput, ValidatedTextArea } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
@@ -18,6 +17,8 @@ import {
   DatasetBuilderType,
   DatasetBuilderValue,
   DatasetParticipantCountResponse,
+  ProgramDataListOption,
+  ProgramDataRangeOption,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
@@ -683,20 +684,33 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const [conceptSets, setConceptSets] = useState<DatasetConceptSets[]>([]);
   const onStateChange = setDatasetBuilderState;
 
+  const [programDataOptions, loadProgramDataOptions] =
+    useLoadedData<(ProgramDataRangeOption | ProgramDataListOption)[]>();
+
   const getNextCriteriaIndex = () => {
     criteriaCount++;
     return criteriaCount;
   };
 
-  useOnMount(() => {
-    void loadDatasetModel(() =>
-      DataRepo()
-        .dataset(datasetId)
-        .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
+  const loadDatasetProgramDataOptions = (dataset) =>
+    Promise.all(
+      _.map(
+        (snapshotBuilderProgramDataOption) =>
+          DataRepo().dataset(dataset.id).queryDatasetColumnStatisticsById(snapshotBuilderProgramDataOption),
+        dataset?.snapshotBuilderSettings?.programDataOptions
+      )
     );
-  });
 
-  return datasetModel.status === 'Ready'
+  useOnMount(() => {
+    void loadDatasetModel(async () => {
+      const dataset = await DataRepo()
+        .dataset(datasetId)
+        .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
+      void loadProgramDataOptions(() => loadDatasetProgramDataOptions(dataset));
+      return dataset;
+    });
+  });
+  return datasetModel.status === 'Ready' && programDataOptions.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         h(DatasetBuilderHeader, { datasetDetails: datasetModel.state }),
@@ -720,6 +734,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                       dataset: datasetModel.state,
                       updateCohorts: setCohorts,
                       getNextCriteriaIndex,
+                      programDataOptions: programDataOptions.status === 'Ready' ? programDataOptions.state : [],
                     })
                   : div(['No Dataset Builder Settings Found']);
               case 'domain-criteria-selector':

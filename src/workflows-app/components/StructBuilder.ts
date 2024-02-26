@@ -1,9 +1,9 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Dispatch, SetStateAction, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ButtonPrimary, Link } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { HeaderCell, SimpleFlexTable, TextCell } from 'src/components/table';
 import { AttributeSchema } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import * as Utils from 'src/libs/utils';

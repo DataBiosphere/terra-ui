@@ -1,10 +1,9 @@
-import { ButtonPrimary } from '@terra-ui-packages/components';
+import { ButtonPrimary, Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { b, div, h, label, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import colors from 'src/libs/colors';
 
 import { IdContainer } from './IdContainer';

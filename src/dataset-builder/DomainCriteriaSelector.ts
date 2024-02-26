@@ -1,13 +1,8 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import { DomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
-import {
-  DataRepo,
-  SnapshotBuilderConcept as Concept,
-  SnapshotBuilderConcept,
-  SnapshotBuilderDomainOption as DomainOption,
-} from 'src/libs/ajax/DataRepo';
+import { DomainCriteria, DomainOption } from 'src/dataset-builder/DatasetBuilderUtils';
+import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useOnMount } from 'src/libs/react-utils';
 
@@ -33,11 +28,10 @@ export const toCriteria =
     return {
       kind: 'domain',
       conceptId: concept.id,
-      name: concept.name,
-      id: domainOption.id,
+      conceptName: concept.name,
       index: getNextCriteriaIndex(),
       count: concept.count,
-      domainOption,
+      option: domainOption,
     };
   };
 
@@ -80,7 +74,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
     ? h(ConceptSelector, {
         initialHierarchy: hierarchy.state,
         domainOptionRoot: state.domainOption.root,
-        title: state.domainOption.category,
+        title: state.domainOption.name,
         initialCart: state.cart,
         onCancel: (cart: Concept[]) =>
           onStateChange(

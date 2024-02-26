@@ -1,8 +1,8 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Select, spinnerOverlay } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 

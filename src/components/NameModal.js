@@ -1,9 +1,9 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer } from 'src/components/common';
 import { ValidatedInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import { FormLabel } from 'src/libs/forms';
 
 export const NameModal = ({ onSuccess, onDismiss, thing, value, validator = null, validationMessage = 'Invalid input' }) => {

@@ -1,4 +1,4 @@
-import { icon, TooltipTrigger } from '@terra-ui-packages/components';
+import { icon, Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useContext, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -7,7 +7,6 @@ import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { Link } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown';
-import Modal from 'src/components/Modal';
 import { FlexTable, HeaderRenderer } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
