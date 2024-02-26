@@ -165,7 +165,7 @@ export interface DataRepoContract {
     createSnapshotRequest(request: DatasetAccessRequest): Promise<DatasetAccessRequestApi>;
     getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
-    getConceptsHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptsHierarchyResponse>;
+    getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptsHierarchyResponse>;
     searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SearchConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {
