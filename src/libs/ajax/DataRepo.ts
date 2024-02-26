@@ -8,7 +8,7 @@ import {
   DatasetAccessRequestApi,
   DatasetParticipantCountRequest,
   DatasetParticipantCountResponse,
-  GetConceptsHierarchyResponse,
+  GetConceptHierarchyResponse,
   GetConceptsResponse,
   ProgramDataListOption,
   ProgramDataRangeOption,
@@ -165,7 +165,7 @@ export interface DataRepoContract {
     createSnapshotRequest(request: DatasetAccessRequest): Promise<DatasetAccessRequestApi>;
     getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
-    getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptsHierarchyResponse>;
+    getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptHierarchyResponse>;
     searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SearchConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {

@@ -163,7 +163,7 @@ export interface GetConceptsResponse {
   result: Concept[];
 }
 
-export interface GetConceptsHierarchyResponse {
+export interface GetConceptHierarchyResponse {
   result: Concept;
 }
 

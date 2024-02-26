@@ -70,7 +70,7 @@ export const populateTreeFromRoot = <T extends RowContents>(root: T): Row<T>[] =
 type TreeGridProps<T extends RowContents> = {
   /** the columns to display */
   readonly columns: Column<T>[];
-  /** The root of the tree to display. Note that the root itself is hidden. */
+  /** The root of the tree to display. Note that the root node is hidden, and only its children are shown. */
   readonly root: T;
   /** Given a row, return its children. This is only called if row.hasChildren is true. */
   readonly getChildren: (row: T) => Promise<T[]>;
