@@ -13,6 +13,7 @@ export type RowContents = {
   id: number;
   /** If true, this row has children. */
   hasChildren: boolean;
+  /** Used when initially populating the tree. If present, this contains all of a node's children. */
   children?: RowContents[];
 };
 
@@ -47,8 +48,8 @@ const wrapContent =
     state: 'closed',
   });
 
-export const hierarchyMapToRows = <T extends RowContents>(root: T): Row<T>[] => {
-  const traverseHierarchy = (parent: RowContents, depth: number, previousRows: Row<T>[]): Row<T>[] => {
+export const populateTreeFromRoot = <T extends RowContents>(root: T): Row<T>[] => {
+  const createRows = (parent: RowContents, depth: number, previousRows: Row<T>[]): Row<T>[] => {
     // does parent have children?
     const children = parent.children ?? [];
     const parentRow: Row<T> = {
@@ -57,21 +58,20 @@ export const hierarchyMapToRows = <T extends RowContents>(root: T): Row<T>[] => 
       isFetched: children.length > 0,
       state: children.length > 0 ? 'open' : 'closed',
     };
-    // recursively traverse hierarchy of all children
-    const childRows = children.flatMap((child) => traverseHierarchy(child, depth + 1, []));
+    // For each child, generate its rows. Add the generated rows to the end.
+    const childRows = children.flatMap((child) => createRows(child, depth + 1, []));
     return [...previousRows, parentRow, ...childRows];
   };
 
-  // hierarchyMap assumes that the root is the first map entry
-  // using depth of -1 because we don't want to show the root
-  return _.tail(traverseHierarchy(root, -1, []));
+  // To hide the root, call tail() and use a depth of -1, so the root's children are at depth 0.
+  return _.tail(createRows(root, -1, []));
 };
 
 type TreeGridProps<T extends RowContents> = {
   /** the columns to display */
   readonly columns: Column<T>[];
-  /** the initial tree to display */
-  readonly initialHierarchy: T;
+  /** The root of the tree to display. Note that the root itself is hidden. */
+  readonly root: T;
   /** Given a row, return its children. This is only called if row.hasChildren is true. */
   readonly getChildren: (row: T) => Promise<T[]>;
   /** Optional header style */
@@ -110,8 +110,8 @@ const getRowIndex = <T extends RowContents>(row: Row<T>, rows: Row<T>[]) =>
   _.findIndex((r) => r.contents.id === row.contents.id, rows);
 
 const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
-  const { columns, getChildren, gridWidth, initialHierarchy } = props;
-  const [data, setData] = useState(hierarchyMapToRows(initialHierarchy));
+  const { columns, getChildren, gridWidth, root } = props;
+  const [data, setData] = useState(populateTreeFromRoot(root));
   const rowHeight = 40;
   const expand = async (row: Row<T>) => {
     const index = getRowIndex(row, data);

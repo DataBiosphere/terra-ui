@@ -72,7 +72,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
 
   return hierarchy.status === 'Ready'
     ? h(ConceptSelector, {
-        initialHierarchy: hierarchy.state,
+        rootConcept: hierarchy.state,
         domainOptionRoot: state.domainOption.root,
         title: state.domainOption.name,
         initialCart: state.cart,

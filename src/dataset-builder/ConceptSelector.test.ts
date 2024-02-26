@@ -23,13 +23,13 @@ describe('ConceptSelector', () => {
   const actionText = 'action text';
   const datasetId = '0';
   // Using 101 so the ID doesn't match the count.
-  const root = { ...dummyGetConceptForId(100), children: [dummyGetConceptForId(101)] };
+  const rootConcept = { ...dummyGetConceptForId(100), children: [dummyGetConceptForId(101)] };
   const initialCart: SnapshotBuilderConcept[] = [];
   const renderSelector = () => {
     render(
       h(ConceptSelector, {
         actionText,
-        initialHierarchy: root,
+        rootConcept,
         initialCart,
         onCancel,
         onCommit,
@@ -39,14 +39,15 @@ describe('ConceptSelector', () => {
     );
   };
 
+  const firstChild = rootConcept.children[0];
   it('renders the concept selector', () => {
     // Arrange
     renderSelector();
     // Assert
     expect(screen.queryByText(title)).toBeTruthy();
-    expect(screen.queryByText(root.children[0].name)).toBeTruthy();
-    expect(screen.queryByText(root.children[0].id)).toBeTruthy();
-    expect(screen.queryByText(root.children[0].count || 0)).toBeTruthy();
+    expect(screen.queryByText(firstChild.name)).toBeTruthy();
+    expect(screen.queryByText(firstChild.id)).toBeTruthy();
+    expect(screen.queryByText(firstChild.count || 0)).toBeTruthy();
     // Action text not visible until a row is selected.
     expect(screen.queryByText(actionText)).toBeFalsy();
   });
@@ -56,7 +57,7 @@ describe('ConceptSelector', () => {
     renderSelector();
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${root.children[0].id}`));
+    await user.click(screen.getByLabelText(`add ${firstChild.id}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeTruthy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
@@ -67,8 +68,8 @@ describe('ConceptSelector', () => {
     renderSelector();
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${root.children[0].id}`));
-    await user.click(screen.getByLabelText(`remove ${root.children[0].id}`));
+    await user.click(screen.getByLabelText(`add ${firstChild.id}`));
+    await user.click(screen.getByLabelText(`remove ${firstChild.id}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeFalsy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeFalsy();
@@ -79,10 +80,10 @@ describe('ConceptSelector', () => {
     renderSelector();
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${root.children[0].id}`));
+    await user.click(screen.getByLabelText(`add ${firstChild.id}`));
     await user.click(screen.getByText(actionText));
     // Assert
-    expect(onCommit).toHaveBeenCalledWith(root.children);
+    expect(onCommit).toHaveBeenCalledWith(rootConcept.children);
   });
 
   it('calls cancel on cancel', async () => {
@@ -108,7 +109,7 @@ describe('ConceptSelector', () => {
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`expand ${root.children[0].id}`));
+    await user.click(screen.getByLabelText(`expand ${firstChild.id}`));
     // Assert
     // Concept with ID 102 corresponds to Disease
     expect(screen.getByText('Disease')).toBeTruthy();
@@ -127,8 +128,8 @@ describe('ConceptSelector', () => {
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`expand ${root.children[0].id}`));
-    await user.click(screen.getAllByLabelText(`add ${root.children[0].id}`)[0]);
+    await user.click(screen.getByLabelText(`expand ${firstChild.id}`));
+    await user.click(screen.getAllByLabelText(`add ${firstChild.id}`)[0]);
     await user.click(screen.getAllByLabelText(`add ${expandConcept.id}`)[0]);
     // Assert
     expect(screen.getByText('2 concepts', { exact: false })).toBeTruthy();

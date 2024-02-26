@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
-import { hierarchyMapToRows, RowContents, TreeGrid } from 'src/components/TreeGrid';
+import { populateTreeFromRoot, RowContents, TreeGrid } from 'src/components/TreeGrid';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type Node = RowContents & {
@@ -46,7 +46,7 @@ describe('TreeGrid', () => {
     render(
       TreeGrid({
         columns,
-        initialHierarchy: rootPointer,
+        root: rootPointer,
         getChildren: async (node) => {
           getChildrenCount++;
           const id = node.id;
@@ -59,7 +59,7 @@ describe('TreeGrid', () => {
   };
 
   it('initializes the tree with nodes in the correct orrder', () => {
-    expect(hierarchyMapToRows(rootPointer)).toEqual([
+    expect(populateTreeFromRoot(rootPointer)).toEqual([
       { contents: root, depth: 0, isFetched: true, state: 'open' },
       { contents: child1, depth: 1, isFetched: false, state: 'closed' },
       { contents: child2, depth: 1, isFetched: false, state: 'closed' },
