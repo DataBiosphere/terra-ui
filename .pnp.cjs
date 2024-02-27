@@ -7113,7 +7113,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@pact-foundation/pact-core", "npm:13.13.9"],\
             ["@types/bluebird", "npm:3.5.38"],\
             ["@types/express", "npm:4.17.17"],\
-            ["axios", "npm:0.28.0"],\
+            ["axios", "npm:0.27.2"],\
             ["bluebird", "npm:3.5.5"],\
             ["body-parser", "npm:1.20.2"],\
             ["cli-color", "npm:2.0.3"],\
@@ -12400,13 +12400,20 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["axios", [\
-        ["npm:0.28.0", {\
-          "packageLocation": "./.yarn/cache/axios-npm-0.28.0-3c9815353b-d378237751.zip/node_modules/axios/",\
+        ["npm:0.25.0", {\
+          "packageLocation": "./.yarn/cache/axios-npm-0.25.0-a1c287d287-2a8a3787c0.zip/node_modules/axios/",\
           "packageDependencies": [\
-            ["axios", "npm:0.28.0"],\
-            ["follow-redirects", "virtual:3c9815353b1b5f50f6a022959f137187c45bfc24d20e3586ad08022b07e24c42553785e511e110f3510c24ffdff4f09cd751c840e6c034ce5bbbea601f7b7321#npm:1.15.5"],\
-            ["form-data", "npm:4.0.0"],\
-            ["proxy-from-env", "npm:1.1.0"]\
+            ["axios", "npm:0.25.0"],\
+            ["follow-redirects", "virtual:dbe3a48aea1dd5649e16abaf23d4ae05582d2149e16141955113766a0f84f681baf358c77ddccfc82eb23e4ccc66c6c912df62a9c01f2a83f1842bf86cc297b1#npm:1.15.5"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:0.27.2", {\
+          "packageLocation": "./.yarn/cache/axios-npm-0.27.2-dbe3a48aea-38cb754046.zip/node_modules/axios/",\
+          "packageDependencies": [\
+            ["axios", "npm:0.27.2"],\
+            ["follow-redirects", "virtual:dbe3a48aea1dd5649e16abaf23d4ae05582d2149e16141955113766a0f84f681baf358c77ddccfc82eb23e4ccc66c6c912df62a9c01f2a83f1842bf86cc297b1#npm:1.15.5"],\
+            ["form-data", "npm:4.0.0"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -16710,10 +16717,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:3c9815353b1b5f50f6a022959f137187c45bfc24d20e3586ad08022b07e24c42553785e511e110f3510c24ffdff4f09cd751c840e6c034ce5bbbea601f7b7321#npm:1.15.5", {\
-          "packageLocation": "./.yarn/__virtual__/follow-redirects-virtual-65535ef4c7/0/cache/follow-redirects-npm-1.15.5-9d14db76ca-5ca49b5ce6.zip/node_modules/follow-redirects/",\
+        ["virtual:dbe3a48aea1dd5649e16abaf23d4ae05582d2149e16141955113766a0f84f681baf358c77ddccfc82eb23e4ccc66c6c912df62a9c01f2a83f1842bf86cc297b1#npm:1.15.5", {\
+          "packageLocation": "./.yarn/__virtual__/follow-redirects-virtual-c3a9c2b13a/0/cache/follow-redirects-npm-1.15.5-9d14db76ca-5ca49b5ce6.zip/node_modules/follow-redirects/",\
           "packageDependencies": [\
-            ["follow-redirects", "virtual:3c9815353b1b5f50f6a022959f137187c45bfc24d20e3586ad08022b07e24c42553785e511e110f3510c24ffdff4f09cd751c840e6c034ce5bbbea601f7b7321#npm:1.15.5"],\
+            ["follow-redirects", "virtual:dbe3a48aea1dd5649e16abaf23d4ae05582d2149e16141955113766a0f84f681baf358c77ddccfc82eb23e4ccc66c6c912df62a9c01f2a83f1842bf86cc297b1#npm:1.15.5"],\
             ["@types/debug", null],\
             ["debug", null]\
           ],\
@@ -17737,7 +17744,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["http-proxy", "npm:1.18.1"],\
             ["eventemitter3", "npm:4.0.7"],\
-            ["follow-redirects", "virtual:3c9815353b1b5f50f6a022959f137187c45bfc24d20e3586ad08022b07e24c42553785e511e110f3510c24ffdff4f09cd751c840e6c034ce5bbbea601f7b7321#npm:1.15.5"],\
+            ["follow-redirects", "virtual:dbe3a48aea1dd5649e16abaf23d4ae05582d2149e16141955113766a0f84f681baf358c77ddccfc82eb23e4ccc66c6c912df62a9c01f2a83f1842bf86cc297b1#npm:1.15.5"],\
             ["requires-port", "npm:1.0.0"]\
           ],\
           "linkType": "HARD"\
@@ -27323,7 +27330,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/wait-on-npm-6.0.1-9e03b09170-e4d62aa414.zip/node_modules/wait-on/",\
           "packageDependencies": [\
             ["wait-on", "npm:6.0.1"],\
-            ["axios", "npm:0.28.0"],\
+            ["axios", "npm:0.25.0"],\
             ["joi", "npm:17.6.0"],\
             ["lodash", "npm:4.17.21"],\
             ["minimist", "npm:1.2.6"],\
