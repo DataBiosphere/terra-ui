@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
-import { hierarchyMapToRows, RowContents, TreeGrid } from 'src/components/TreeGrid';
+import { populateTreeFromRoot, RowContents, TreeGrid } from 'src/components/TreeGrid';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type Node = RowContents & {
@@ -9,11 +9,11 @@ type Node = RowContents & {
 };
 
 // to show root, we need a rootPointer because parent of hierarchy will not show
-const rootPointer: Node = { id: 0, name: 'Point to Root', hasChildren: true };
-const root: Node = { id: 1, name: 'root', hasChildren: true };
 const child1: Node = { id: 2, name: 'child1', hasChildren: false };
 const child2: Node = { id: 3, name: 'child2', hasChildren: true };
 const child3: Node = { id: 4, name: 'child3', hasChildren: false };
+const root: Node = { id: 1, name: 'root', hasChildren: true, children: [child1, child2] };
+const rootPointer: Node = { id: 0, name: 'Point to Root', hasChildren: true, children: [root] };
 
 const testConcepts = [
   { id: 0, name: 'Point to Root', hasChildren: true },
@@ -29,11 +29,6 @@ const testHierarchy = [
   { id: 3, concept: child2, children: [4], parent: 1 },
   { id: 4, concept: child3, children: [], parent: 3 },
 ];
-const rootChildren = [child1, child2];
-const initialHierarchy = new Map<Node, Node[]>([
-  [rootPointer, [root]],
-  [root, rootChildren],
-]);
 
 const col2 = (node: Node) => `${node.name}_2`;
 const col3 = (node: Node) => `${node.name}_3`;
@@ -51,7 +46,7 @@ describe('TreeGrid', () => {
     render(
       TreeGrid({
         columns,
-        initialHierarchy,
+        root: rootPointer,
         getChildren: async (node) => {
           getChildrenCount++;
           const id = node.id;
@@ -64,7 +59,7 @@ describe('TreeGrid', () => {
   };
 
   it('initializes the tree with nodes in the correct orrder', () => {
-    expect(hierarchyMapToRows(initialHierarchy)).toEqual([
+    expect(populateTreeFromRoot(rootPointer)).toEqual([
       { contents: root, depth: 0, isFetched: true, state: 'open' },
       { contents: child1, depth: 1, isFetched: false, state: 'closed' },
       { contents: child2, depth: 1, isFetched: false, state: 'closed' },

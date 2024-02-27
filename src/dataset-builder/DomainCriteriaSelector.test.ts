@@ -30,10 +30,12 @@ describe('DomainCriteriaSelector', () => {
     dataset: (_datasetId) =>
       ({
         getConcepts: () => Promise.resolve({ result: [concept] }),
+        getConceptHierarchy: () => Promise.resolve({ result: { ...concept, children } }),
       } as Partial<DataRepoContract['dataset']>),
   } as Partial<DataRepoContract> as DataRepoContract;
   const datasetId = '';
   const concept = dummyGetConceptForId(101);
+  const children = [dummyGetConceptForId(102)];
   const domainOption = convertApiDomainOptionToDomainOption(
     dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0]
   );
@@ -55,6 +57,20 @@ describe('DomainCriteriaSelector', () => {
     render(h(DomainCriteriaSelector, { state, onStateChange: jest.fn(), datasetId, getNextCriteriaIndex }));
     // Assert
     expect(await screen.findByText(state.domainOption.name)).toBeTruthy();
+  });
+
+  it('renders the domain criteria selector with a hierarchy', async () => {
+    // Arrange
+    render(
+      h(DomainCriteriaSelector, {
+        state: { ...state, openedConcept: concept },
+        onStateChange: jest.fn(),
+        datasetId,
+        getNextCriteriaIndex,
+      })
+    );
+    // Assert
+    expect(await screen.findByText(children[0].name)).toBeTruthy();
   });
 
   it('updates the domain group on save', async () => {
