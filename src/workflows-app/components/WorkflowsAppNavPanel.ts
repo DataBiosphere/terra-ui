@@ -6,6 +6,7 @@ import { AnalysesData } from 'src/analysis/Analyses';
 import Collapse from 'src/components/Collapse';
 import { Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
+import TitleBar from 'src/components/TitleBar';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
@@ -267,15 +268,25 @@ export const WorkflowsAppNavPanel = ({
       [
         workflowsAppErrors.length !== 0,
         () =>
-          div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
-            h2({ style: { marginTop: 0 } }, ['Workflows Infrastructure Error']),
-            div({ style: { marginTop: '1rem' } }, [
-              h(ErrorAlert, {
-                errorValue: workflowsAppErrors[0],
-                mainMessageField: 'errorMessage',
+          div(
+            { style: { ...Style.elements.card.container, height: 'fit-content', width: '50rem', margin: '2rem 4rem' } },
+            [
+              h(TitleBar, {
+                id: 'workflow-app-launch-page',
+                title: 'Error launching Workflows app',
+                style: { marginBottom: '0.5rem' },
               }),
-            ]),
-          ]),
+              div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'flex-center' } }, [
+                'A problem has occurred launching the shared Workflows App ("WORKFLOWS_APP") in this workspace. If the problem persists, please contact support.',
+              ]),
+              _.map((error) => {
+                return h(ErrorAlert, {
+                  errorValue: error,
+                  mainMessageField: 'errorMessage',
+                });
+              }, workflowsAppErrors),
+            ]
+          ),
       ],
       [
         pageReady,

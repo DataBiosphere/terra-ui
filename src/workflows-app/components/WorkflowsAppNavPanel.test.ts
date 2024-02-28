@@ -244,6 +244,14 @@ describe('Workflows App Navigation Panel', () => {
               googleErrorCode: null,
               traceId: null,
             },
+            {
+              errorMessage: 'Second error message',
+              timestamp: '2024-01-23T18:41:42.831Z',
+              action: 'deleteApp',
+              source: 'app',
+              googleErrorCode: null,
+              traceId: null,
+            },
           ],
           status: 'ERROR',
           auditInfo: {
@@ -275,7 +283,7 @@ describe('Workflows App Navigation Panel', () => {
       );
     });
 
-    expect(screen.getByText('Workflows Infrastructure Error')).toBeInTheDocument();
+    expect(screen.getByText('Error launching Workflows app')).toBeInTheDocument();
     expect(screen.getByText('Sample error message')).toBeInTheDocument();
   });
 });
