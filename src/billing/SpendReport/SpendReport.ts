@@ -2,9 +2,9 @@ import { subDays } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { Fragment, lazy, Suspense, useEffect, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
+import { ErrorAlert } from 'src/alerts/ErrorAlert';
 import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import { CostCard } from 'src/billing/SpendReport/CostCard';
-import { ErrorAlert } from 'src/billing/SpendReport/ErrorAlert';
 import { CloudPlatform } from 'src/billing-core/models';
 import { customSpinnerOverlay, IdContainer, Select } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
@@ -309,7 +309,7 @@ export const SpendReport = (props: SpendReportProps) => {
 
   return h(Fragment, [
     div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
-      !!errorMessage && h(ErrorAlert, { errorMessage }),
+      !!errorMessage && h(ErrorAlert, { errorValue: errorMessage }),
       div(
         {
           style: {

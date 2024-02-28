@@ -5,8 +5,14 @@ import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 
-export const ErrorAlert = ({ errorMessage }) => {
-  const error: any | undefined = Utils.maybeParseJSON(errorMessage);
+type ErrorAlertProps = {
+  errorValue: string | object;
+  mainMessageField?: string;
+};
+
+export const ErrorAlert = ({ errorValue, mainMessageField = 'message' }: ErrorAlertProps) => {
+  const errorObject: any | undefined = _.isObject(errorValue) ? errorValue : Utils.maybeParseJSON(errorValue);
+  const mainMessage = errorObject?.[mainMessageField];
   return div(
     {
       style: {
@@ -31,13 +37,13 @@ export const ErrorAlert = ({ errorMessage }) => {
         ]),
         Utils.cond(
           [
-            _.isString(errorMessage),
+            _.isObject(errorObject),
             () =>
               div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'center' } }, [
                 div(
                   { style: { fontWeight: 'bold', marginLeft: '0.2rem' }, role: 'alert' },
                   // @ts-ignore
-                  _.upperFirst(error.message)
+                  _.upperFirst(mainMessage)
                 ),
                 h(Collapse, { title: 'Full Error Detail', style: { marginTop: '0.5rem' } }, [
                   div(
@@ -53,12 +59,12 @@ export const ErrorAlert = ({ errorMessage }) => {
                         maxHeight: 400,
                       },
                     },
-                    [JSON.stringify(error, null, 2)]
+                    [JSON.stringify(errorObject, null, 2)]
                   ),
                 ]),
               ]),
           ],
-          () => div({ style: { display: 'flex', alignItems: 'center' }, role: 'alert' }, errorMessage.toString())
+          () => div({ style: { display: 'flex', alignItems: 'center' }, role: 'alert' }, [errorValue.toString()])
         ),
       ]),
     ]

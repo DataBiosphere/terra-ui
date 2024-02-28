@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { CSSProperties, useEffect } from 'react';
 import { div, h, h2, span } from 'react-hyperscript-helpers';
+import { ErrorAlert } from 'src/alerts/ErrorAlert';
 import { AnalysesData } from 'src/analysis/Analyses';
 import Collapse from 'src/components/Collapse';
 import { Clickable } from 'src/components/common';
@@ -107,6 +108,9 @@ export const WorkflowsAppNavPanel = ({
   }, [name, namespace, selectedSubHeader]);
 
   const isSubHeaderActive = (subHeader: string) => pageReady && selectedSubHeader === subHeader;
+
+  const workflowsApp = analysesData.apps ? analysesData.apps.find((app) => app.appType === 'WORKFLOWS_APP') : undefined;
+  const workflowsAppErrors = workflowsApp && workflowsApp.status === 'ERROR' ? workflowsApp.errors : [];
 
   return div({ style: { display: 'flex', flex: 1, height: 'calc(100% - 66px)', position: 'relative' } }, [
     div(
@@ -258,6 +262,19 @@ export const WorkflowsAppNavPanel = ({
           div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
             h2({ style: { marginTop: 0 } }, ['Loading Workflows App']),
             loadingYourWorkflowsApp(),
+          ]),
+      ],
+      [
+        workflowsAppErrors.length !== 0,
+        () =>
+          div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
+            h2({ style: { marginTop: 0 } }, ['Workflows Infrastructure Error']),
+            div({ style: { marginTop: '1rem' } }, [
+              h(ErrorAlert, {
+                errorValue: workflowsAppErrors[0],
+                mainMessageField: 'errorMessage',
+              }),
+            ]),
           ]),
       ],
       [
