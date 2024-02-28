@@ -18,7 +18,6 @@ import {UseWorkspaces} from "src/workspaces/useWorkspaces.models";
 import {WorkspaceWrapper} from "src/libs/workspace-utils";
 import {PersistentDisk} from "src/libs/ajax/leonardo/models/disk-models";
 import {DiskBasics} from "src/libs/ajax/leonardo/providers/LeoDiskProvider";
-import {ReactNotifications} from "react-notifications-component";
 import {NotificationsContract, NotificationsProvider} from "@terra-ui-packages/notifications";
 
 const meta: Meta<typeof Environments> = {
