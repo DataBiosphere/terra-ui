@@ -279,11 +279,13 @@ export const WorkflowsAppNavPanel = ({
               div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'flex-center' } }, [
                 'A problem has occurred launching the shared Workflows App ("WORKFLOWS_APP") in this workspace. If the problem persists, please contact support.',
               ]),
-              _.map((error) => {
-                return h(ErrorAlert, {
-                  errorValue: error,
-                  mainMessageField: 'errorMessage',
-                });
+              _.map.convert({ cap: false })((error, index) => {
+                return div({ key: index }, [
+                  h(ErrorAlert, {
+                    errorValue: error,
+                    mainMessageField: 'errorMessage',
+                  }),
+                ]);
               }, workflowsAppErrors),
             ]
           ),
