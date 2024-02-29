@@ -14,6 +14,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useQueryParameter } from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { toIndexPairs } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
@@ -279,14 +280,14 @@ export const WorkflowsAppNavPanel = ({
               div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'flex-center' } }, [
                 'A problem has occurred launching the shared Workflows App ("WORKFLOWS_APP") in this workspace. If the problem persists, please contact support.',
               ]),
-              _.map.convert({ cap: false })((error, index) => {
+              _.map(([index, error]) => {
                 return div({ key: index }, [
                   h(ErrorAlert, {
                     errorValue: error,
                     mainMessageField: 'errorMessage',
                   }),
                 ]);
-              }, workflowsAppErrors),
+              }, toIndexPairs(workflowsAppErrors)),
             ]
           ),
       ],
