@@ -1,9 +1,9 @@
+import { Modal } from '@terra-ui-packages/components';
 import { ReactNode, useEffect, useState } from 'react';
 import { b, div, h, span } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';

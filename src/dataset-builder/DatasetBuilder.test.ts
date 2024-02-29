@@ -60,12 +60,16 @@ describe('DatasetBuilder', () => {
 
   const mockWithValues = (datasetDetailsResponse: DatasetModel) => {
     const datasetDetailsMock = jest.fn((_include) => Promise.resolve(datasetDetailsResponse));
+    const queryDatasetColumnStatisticsByIdMock = jest.fn((_dataOption) =>
+      Promise.resolve({ kind: 'range', min: 0, max: 100, id: 0, name: 'unused' })
+    );
     asMockedFn(DataRepo).mockImplementation(
       () =>
         ({
           dataset: (_datasetId) =>
             ({
               details: datasetDetailsMock,
+              queryDatasetColumnStatisticsById: queryDatasetColumnStatisticsByIdMock,
             } as Partial<DataRepoContract['dataset']>),
         } as Partial<DataRepoContract> as DataRepoContract)
     );

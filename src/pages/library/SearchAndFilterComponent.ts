@@ -1,4 +1,4 @@
-import { useUniqueId } from '@terra-ui-packages/components';
+import { Modal, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import * as qs from 'qs';
@@ -8,7 +8,6 @@ import Collapse from 'src/components/Collapse';
 import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { DelayedAutoCompleteInput, DelayedSearchInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';

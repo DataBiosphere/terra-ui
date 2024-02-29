@@ -1,9 +1,9 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer } from 'src/components/common';
 import { ValidatedInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import { FormLabel } from 'src/libs/forms';
 
 export const NameModal = ({ onSuccess, onDismiss, thing, value, validator = null, validationMessage = 'Invalid input' }) => {
@@ -19,6 +19,8 @@ export const NameModal = ({ onSuccess, onDismiss, thing, value, validator = null
       setError(validationMessage);
     } else if (_.isFunction(validator)) {
       const msg = validator(name);
+      // TODO: Remove nested ternary to align with style guide
+      // eslint-disable-next-line no-nested-ternary
       setError(msg === false ? null : _.isString(msg) ? msg : validationMessage);
     } else {
       setError(null);

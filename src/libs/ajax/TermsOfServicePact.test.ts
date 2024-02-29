@@ -25,7 +25,7 @@ jest.mock('src/auth/auth', () => {
 const { boolean } = MatchersV3;
 
 const termsOfServicePact = new PactV3({
-  consumer: 'terra-ui',
+  consumer: 'terraui',
   provider: 'sam',
   logLevel: 'error',
   dir: path.resolve(process.cwd(), 'pacts'),

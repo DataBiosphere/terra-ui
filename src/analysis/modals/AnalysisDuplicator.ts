@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
@@ -8,7 +9,6 @@ import { analysisNameInput, analysisNameValidator } from 'src/analysis/utils/not
 import { ToolLabel } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';

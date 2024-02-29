@@ -1,8 +1,7 @@
-import { icon, Link } from '@terra-ui-packages/components';
+import { icon, Link, Modal } from '@terra-ui-packages/components';
 import { Fragment, ReactNode, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import ErrorView from 'src/components/ErrorView';
-import Modal from 'src/components/Modal';
 import TitleBar from 'src/components/TitleBar';
 import colors from 'src/libs/colors';
 import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';

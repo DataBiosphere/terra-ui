@@ -224,6 +224,8 @@ export const commaJoin = (list, conjunction = 'or') => {
     _.flow(
       toIndexPairs,
       _.flatMap(([i, val]) => {
+        // TODO: Remove nested ternary to align with style guide
+        // eslint-disable-next-line no-nested-ternary
         return [i === 0 ? '' : i === list.length - 1 ? ` ${conjunction} ` : ', ', val];
       })
     )(list)

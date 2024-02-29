@@ -1,6 +1,6 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import { h } from 'react-hyperscript-helpers';
 import { PersistentDiskTypeInput } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInput';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 
 export interface PersistentDiskTypeContainerProps {
   persistentDiskExists: boolean;

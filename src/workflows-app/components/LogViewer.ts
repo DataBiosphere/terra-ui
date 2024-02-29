@@ -1,10 +1,10 @@
+import { Modal } from '@terra-ui-packages/components';
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { useCallback, useEffect, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { ButtonOutline } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { useCancellation } from 'src/libs/react-utils';
 import { newTabLinkProps } from 'src/libs/utils';
@@ -229,7 +229,7 @@ export const LogViewer = (logProps: LogViewerProps) => {
         div({ style: { height: '2.25rem' } }, [renderTopRow()]),
         div({ style: { display: 'flex', height: '100%' } }, [
           div({ style: { width: '25%' } }, renderLefthandTabs()),
-          div({ style: { width: '75%' } }, renderActiveTextContent()),
+          div({ style: { width: '75%', marginTop: '0.5rem' } }, renderActiveTextContent()),
         ]),
       ]),
     ]

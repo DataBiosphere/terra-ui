@@ -1,4 +1,4 @@
-import { Spinner } from '@terra-ui-packages/components';
+import { Modal, Spinner } from '@terra-ui-packages/components';
 import * as clipboard from 'clipboard-polyfill/text';
 import FileSaver from 'file-saver';
 import JSZip from 'jszip';
@@ -14,7 +14,6 @@ import { icon } from 'src/components/icons';
 import IGVBrowser from 'src/components/IGVBrowser';
 import IGVFileSelector from 'src/components/IGVFileSelector';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import { ModalToolButton } from 'src/components/ModalToolButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';

@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { b, div, h, p } from 'react-hyperscript-helpers';
@@ -6,7 +7,6 @@ import { ButtonPrimary, ButtonSecondary, IdContainer, Link, spinnerOverlay } fro
 import { icon } from 'src/components/icons';
 import { ValidatedInput } from 'src/components/input';
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 import { reportError } from 'src/libs/error';

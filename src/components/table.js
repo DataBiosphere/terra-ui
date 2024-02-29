@@ -1,4 +1,4 @@
-import { Interactive } from '@terra-ui-packages/components';
+import { Interactive, Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import PropTypes from 'prop-types';
 import { Fragment, useImperativeHandle, useRef, useState } from 'react';
@@ -9,8 +9,6 @@ import { defaultCellRangeRenderer, Grid as RVGrid, ScrollSync as RVScrollSync } 
 import { ColumnSettingsList } from 'src/components/ColumnSettingsList';
 import { ButtonPrimary, Clickable, IdContainer, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
 import { forwardRefWithName, useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
