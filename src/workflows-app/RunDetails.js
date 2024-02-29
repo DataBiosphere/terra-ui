@@ -93,6 +93,7 @@ export const BaseRunDetails = (
       'submittedFiles',
       'callCaching',
       'workflowLog',
+      'failures',
     ],
     []
   );
