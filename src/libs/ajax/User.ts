@@ -216,6 +216,29 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
+    getTieredFeatures: async (): Promise<string[]> => {
+      const res = await fetchSam(
+        '/api/resources/v2?format=flat&resourceTypes=tiered-feature&roles=user',
+        _.mergeAll([authOpts(), { signal }])
+      );
+      const json = await res.json();
+      return json.resources.map((resource) => resource.resourceId);
+    },
+
+    gimmeAccess: async (tieredFeature: string, email: string): Promise<void> => {
+      await fetchSam(
+        `/api/resources/v2/tiered-feature/${tieredFeature}/policies/user/memberEmails/${email}`,
+        _.mergeAll([authOpts(), { signal, method: 'PUT' }])
+      );
+    },
+
+    removeMyAccess: async (tieredFeature: string, email: string): Promise<void> => {
+      await fetchSam(
+        `/api/resources/v2/tiered-feature/${tieredFeature}/policies/user/memberEmails/${email}`,
+        _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
+      );
+    },
+
     registerWithProfile: async (
       acceptsTermsOfService: boolean,
       profile: CreateTerraUserProfileRequest

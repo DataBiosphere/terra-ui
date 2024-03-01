@@ -132,6 +132,7 @@ export interface TerraUserState {
   profile: TerraUserProfile;
   terraUser: TerraUser;
   terraUserAttributes: SamUserAttributes;
+  tieredFeatures: string[];
 }
 
 /**
@@ -165,6 +166,7 @@ export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
   terraUserAttributes: {
     marketingConsent: true,
   },
+  tieredFeatures: [],
 });
 
 export const getTerraUser = (): TerraUser => userStore.get().terraUser;

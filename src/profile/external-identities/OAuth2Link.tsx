@@ -1,5 +1,6 @@
 import { Clickable } from '@terra-ui-packages/components';
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
+import { loadTerraUser } from 'src/auth/auth';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -8,7 +9,8 @@ import { EcmLinkAccountResponse } from 'src/libs/ajax/ExternalCredentials';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { OAuth2Callback, OAuth2Provider } from 'src/profile/external-identities/OAuth2Providers';
 import { SpacedSpinner } from 'src/profile/SpacedSpinner';
@@ -67,6 +69,9 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
   const callbacks: Array<OAuth2Callback['name']> = ['oauth-callback', 'ecm-callback']; // ecm-callback is deprecated, but still needs to be supported
   const isLinking =
     callbacks.includes(Nav.getCurrentRoute().name) && state && JSON.parse(atob(state)).provider === provider.key;
+  const { tieredFeatures, terraUser } = useStore(userStore);
+
+  const isFeatureEnabled = tieredFeatures.includes(`${provider.key}-account-linking`);
 
   useOnMount(() => {
     const loadAccount = withErrorReporting(`Error loading ${provider.name} account`, async () => {
@@ -96,57 +101,102 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
     window.open(url, Utils.newTabLinkProps.target, 'noopener,noreferrer');
   });
 
-  return (
-    <div style={styles.idLink.container}>
-      <div style={styles.idLink.linkContentTop(false)}>
-        <h3 style={{ marginTop: 0, ...styles.idLink.linkName }}>{provider.name}</h3>
-        {!accountLoaded && <SpacedSpinner>Loading account status...</SpacedSpinner>}
-        {accountLoaded && !accountInfo && (
+  const gimmeAccess = async () => {
+    await Ajax(signal).User.gimmeAccess(`${provider.key}-account-linking`, terraUser.email!);
+    await loadTerraUser();
+  };
+
+  const removeMyAcccess = async () => {
+    await Ajax(signal).User.removeMyAccess(`${provider.key}-account-linking`, terraUser.email!);
+    await loadTerraUser();
+  };
+
+  let content: ReactNode | undefined;
+  if (isFeatureEnabled) {
+    content = (
+      <div style={styles.idLink.container}>
+        <div style={styles.idLink.linkContentTop(false)}>
+          <h3 style={{ marginTop: 0, ...styles.idLink.linkName }}>{provider.name}</h3>
+          {!accountLoaded && <SpacedSpinner>Loading account status...</SpacedSpinner>}
           <div>
             <ButtonPrimary
-              onClick={getAuthUrlAndRedirect}
-              target={Utils.newTabLinkProps.target}
-              rel={Utils.newTabLinkProps.rel}
+              aria-label={`Remove access to ${provider.name} account linking`}
+              onClick={async () => await removeMyAcccess()}
+              danger
             >
-              Link your {provider.name} account
+              Remove my access to {provider.name} account linking!
             </ButtonPrimary>
           </div>
-        )}
-        {accountInfo && (
-          <>
+          {accountLoaded && !accountInfo && (
             <div>
-              <span style={styles.idLink.linkDetailLabel}>Username:</span>
-              {accountInfo.externalUserId}
-            </div>
-            <div>
-              <span style={styles.idLink.linkDetailLabel}>Link Expiration:</span>
-              <span>{Utils.makeCompleteDate(accountInfo.expirationTimestamp)}</span>
-            </div>
-            <div>
-              <Clickable
-                aria-label={`Renew your ${provider.name} link`}
+              <ButtonPrimary
                 onClick={getAuthUrlAndRedirect}
-                style={styles.clickableLink}
+                target={Utils.newTabLinkProps.target}
+                rel={Utils.newTabLinkProps.rel}
               >
-                Renew{icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })}
-              </Clickable>
-              <span style={{ margin: '0 0.25rem 0' }}> | </span>
-              <Clickable
-                aria-label={`Unlink from ${provider.name}`}
-                onClick={unlinkAccount}
-                style={styles.clickableLink}
-              >
-                Unlink
-              </Clickable>
+                Link your {provider.name} account
+              </ButtonPrimary>
             </div>
-            {provider.supportsIdToken && (
-              <ClipboardButton text={Ajax(signal).ExternalCredentials(provider).getIdentityToken}>
-                Copy identity token to clipboard
-              </ClipboardButton>
-            )}
-          </>
-        )}
+          )}
+          {accountInfo && (
+            <>
+              <div>
+                <span style={styles.idLink.linkDetailLabel}>Username:</span>
+                {accountInfo.externalUserId}
+              </div>
+              <div>
+                <span style={styles.idLink.linkDetailLabel}>Link Expiration:</span>
+                <span>{Utils.makeCompleteDate(accountInfo.expirationTimestamp)}</span>
+              </div>
+              <div>
+                <Clickable
+                  aria-label={`Renew your ${provider.name} link`}
+                  onClick={getAuthUrlAndRedirect}
+                  style={styles.clickableLink}
+                >
+                  Renew{icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })}
+                </Clickable>
+                <span style={{ margin: '0 0.25rem 0' }}> | </span>
+                <Clickable
+                  aria-label={`Unlink from ${provider.name}`}
+                  onClick={unlinkAccount}
+                  style={styles.clickableLink}
+                >
+                  Unlink
+                </Clickable>
+              </div>
+              {provider.supportsIdToken && (
+                <ClipboardButton text={Ajax(signal).ExternalCredentials(provider).getIdentityToken}>
+                  Copy identity token to clipboard
+                </ClipboardButton>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  } else {
+    content = (
+      <div style={styles.idLink.container}>
+        <div style={styles.idLink.linkContentTop(false)}>
+          <h3 style={{ marginTop: 0, ...styles.idLink.linkName }}>{provider.name}</h3>
+          <div>
+            <p>
+              Linking your {provider.name} account is not an available feature. Please consider signing an agreement
+              with Terra.
+            </p>
+            <ButtonPrimary
+              aria-label={`Gimme access to ${provider.name} account linking`}
+              onClick={async () => gimmeAccess()}
+              danger
+            >
+              Gimme access to {provider.name} account linking!
+            </ButtonPrimary>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return content;
 };
