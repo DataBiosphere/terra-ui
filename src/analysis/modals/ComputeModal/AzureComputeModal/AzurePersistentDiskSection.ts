@@ -1,6 +1,5 @@
 import React from 'react';
 import { div } from 'react-hyperscript-helpers';
-import { SingleValue } from 'react-select';
 import { AboutPersistentDiskSection } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskSection';
 import { AzurePersistentDiskSizeSelectInput } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSizeSelectInput';
 import { PersistentDiskTypeInputContainer } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInputContainer';
@@ -12,7 +11,7 @@ export interface AzurePersistentDiskSectionProps {
   persistentDiskSize: number;
   persistentDiskType: AzurePdType;
   onChangePersistentDiskType: (type: SharedPdType) => void;
-  onChangePersistentDiskSize: (size: SingleValue<number | undefined>) => void;
+  onChangePersistentDiskSize: (size: number | undefined | null) => void;
   onClickAbout: () => void;
 }
 

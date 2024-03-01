@@ -1,10 +1,8 @@
+import { PersistentDiskTypeInputProps } from '@terra-ui-packages/components';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import {
-  PersistentDiskTypeInput,
-  PersistentDiskTypeInputProps,
-} from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInput';
+import { PersistentDiskTypeInput } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInput';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 const defaultPersistentDiskTypeInputProps: PersistentDiskTypeInputProps = {

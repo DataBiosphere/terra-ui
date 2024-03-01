@@ -1,10 +1,8 @@
+import { AzurePersistentDiskSizeSelectInputProps } from '@terra-ui-packages/components';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import {
-  AzurePersistentDiskSizeSelectInput,
-  AzurePersistentDiskSizeSelectInputProps,
-} from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSizeSelectInput';
+import { AzurePersistentDiskSizeSelectInput } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSizeSelectInput';
 import { defaultAzureDiskSize } from 'src/libs/azure-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 

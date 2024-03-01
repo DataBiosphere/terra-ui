@@ -1,9 +1,15 @@
+import { AzureDiskType, AzurePdType, GoogleDiskType, GooglePdType } from '@terra-ui-packages/components';
 import { Mutate } from '@terra-ui-packages/core-utils';
 import { AuditInfo, CloudContext, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 
-export type AzureDiskType = 'Standard_LRS'; // TODO: Uncomment when enabling SSDs | 'StandardSSD_LRS';
-
-export type GoogleDiskType = 'pd-standard' | 'pd-ssd' | 'pd-balanced';
+export type {
+  AzureDiskType,
+  AzurePdType,
+  GoogleDiskType,
+  GooglePdType,
+  SharedPdType,
+  PdSelectOption,
+} from '@terra-ui-packages/components';
 
 // TODO: Use this in the select dropdown instead of the object.
 // TODO: Will require refactoring in GcpComputeModal
@@ -51,19 +57,6 @@ export interface RawGetDiskItem extends RawListDiskItem {
   formattedBy: string | null;
 }
 
-export interface GooglePdType {
-  value: GoogleDiskType;
-  label: string;
-  regionToPricesName: string;
-}
-
-export interface AzurePdType {
-  value: AzureDiskType;
-  label: string;
-  // TODO: Pricing skuLetter: 'S'; Enable SSD types | 'E';
-}
-
-export type SharedPdType = GooglePdType | AzurePdType;
 export const AzurePersistentDiskOptions: AzurePdType[] = [
   {
     value: 'Standard_LRS',
@@ -102,11 +95,6 @@ export type AppDataDisk = PersistentDisk;
 export type PersistentDiskDetail = Mutate<RawGetDiskItem, 'diskType', GooglePdType>;
 
 export const GcpPersistentDiskOptions = [googlePdTypes.standard, googlePdTypes.balanced, googlePdTypes.ssd];
-
-export interface PdSelectOption {
-  value: SharedPdType;
-  label: string;
-}
 
 export interface AzurePdSelectOption {
   value: AzureDiskType;
