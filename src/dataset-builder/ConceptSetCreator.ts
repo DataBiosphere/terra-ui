@@ -34,13 +34,13 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
   return h(ConceptSelector, {
     rootConcept: domainOptionRoot,
     initialCart: [],
-    title: 'Add concept',
+    title: 'Add tables',
     onCancel: () => onStateChange(homepageState.new()),
     onCommit: (selected: Concept[]) => {
       conceptSetUpdater((conceptSets) => _.flow(_.map(toConceptSet), _.union(conceptSets))(selected));
       onStateChange(homepageState.new());
     },
-    actionText: 'Add to concept sets',
+    actionText: 'Add to tables',
     datasetId: id,
   });
 };

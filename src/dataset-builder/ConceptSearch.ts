@@ -1,4 +1,3 @@
-import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, strong } from 'react-hyperscript-helpers';
@@ -6,10 +5,9 @@ import { ActionBar } from 'src/components/ActionBar';
 import { Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextInput, withDebouncedChange } from 'src/components/input';
-import { SimpleTable } from 'src/components/table';
-import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
-import { DomainOption, GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
+import { DomainOption, GetConceptsResponse } from 'src/dataset-builder/DatasetBuilderUtils';
+import { StyledSimpleTable } from 'src/dataset-builder/StyledSimpleTable';
 import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
@@ -45,7 +43,6 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
       });
     }
   }, [searchText, datasetId, domainOption.root, searchConcepts]);
-  const tableLeftPadding = { paddingLeft: '2rem' };
   const iconSize = 18;
 
   return h(Fragment, [
@@ -85,22 +82,15 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         }),
       ]),
       concepts.status === 'Ready'
-        ? h(SimpleTable, {
-            'aria-label': 'concept search results',
-            underRowKey: 'underRow',
-            rowStyle: {
-              backgroundColor: 'white',
-              ...tableLeftPadding,
-            },
-            headerRowStyle: {
-              ...tableHeaderStyle,
-              ...tableLeftPadding,
-              marginTop: '1rem',
-            },
-            cellStyle: {
-              paddingTop: 10,
-              paddingBottom: 10,
-            },
+        ? h(StyledSimpleTable, {
+            search: true,
+            hierarchy: true,
+            searchText,
+            cart,
+            setCart,
+            onOpenHierarchy,
+            concepts: concepts.state.result,
+            domainOption,
             columns: [
               { header: strong(['Concept name']), width: 710, key: 'name' },
               { header: strong(['Concept ID']), width: 195, key: 'id' },
@@ -108,34 +98,6 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               { header: strong(['Roll-up count']), width: 205, key: 'count' },
               { width: 100, key: 'hierarchy' },
             ],
-            rows: _.map((concept) => {
-              const [label, iconName]: [string, IconId] = _.contains(concept, cart)
-                ? ['remove', 'minus-circle-red']
-                : ['add', 'plus-circle-filled'];
-              return {
-                name: div({ style: { display: 'flex' } }, [
-                  h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
-                    icon(iconName, { size: 16 }),
-                  ]),
-                  div({ style: { marginLeft: 5 } }, [
-                    h(HighlightConceptName, { conceptName: concept.name, searchFilter: searchText }),
-                  ]),
-                ]),
-                id: concept.id,
-                count: concept.count,
-                hierarchy: div({ style: { display: 'flex' } }, [
-                  h(
-                    Link,
-                    {
-                      'aria-label': `open hierarchy ${concept.id}`,
-                      onClick: () => onOpenHierarchy(domainOption, cart, searchText, concept),
-                    },
-                    [icon('view-list')]
-                  ),
-                  div({ style: { marginLeft: 5 } }, ['Hierarchy']),
-                ]),
-              };
-            }, concepts.state.result),
           })
         : spinnerOverlay,
     ]),

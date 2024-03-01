@@ -386,7 +386,7 @@ export const ConceptSetSelector = ({
     onChange,
     objectSets: [
       {
-        header: 'Concept sets',
+        header: 'Tables',
         values: conceptSets,
         makeIcon: (value, header) =>
           h(
@@ -398,10 +398,10 @@ export const ConceptSetSelector = ({
             [icon('trash-circle-filled', { size: 20 })]
           ),
       },
-      { header: 'Prepackaged concept sets', values: prepackagedConceptSets ?? [] },
+      { header: 'Prepackaged tables', values: prepackagedConceptSets ?? [] },
     ],
     selectedObjectSets: selectedConceptSets,
-    header: 'Select concept sets',
+    header: 'Select tables',
     subheader: 'Which information to include about participants',
     style: { marginLeft: '1rem' },
   });
