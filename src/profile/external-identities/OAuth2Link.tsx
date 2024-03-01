@@ -9,6 +9,7 @@ import { EcmLinkAccountResponse } from 'src/libs/ajax/ExternalCredentials';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -103,11 +104,19 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
 
   const gimmeAccess = async () => {
     await Ajax(signal).User.gimmeAccess(`${provider.key}-account-linking`, terraUser.email!);
+    notify('info', 'Access Granted via Sam Tiered Features!', {
+      id: `granted-access-${provider.key}-account-linking`,
+      detail: `Granted access to ${provider.name} Account Linking via Sam Tiered Features`,
+    });
     await loadTerraUser();
   };
 
   const removeMyAcccess = async () => {
     await Ajax(signal).User.removeMyAccess(`${provider.key}-account-linking`, terraUser.email!);
+    notify('error', 'Access Revoked via Sam Tiered Features!', {
+      id: `revoked-access-${provider.key}-account-linking`,
+      detail: `Revoked access to ${provider.name} Account Linking via Sam Tiered Features`,
+    });
     await loadTerraUser();
   };
 
