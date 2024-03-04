@@ -69,10 +69,10 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
     callbacks.includes(Nav.getCurrentRoute().name) && state && JSON.parse(atob(state)).provider === provider.key;
 
   useOnMount(() => {
-    const loadAccount = withErrorReporting(`Error loading ${provider.name} account`)( async () => {
+    const loadAccount = withErrorReporting(`Error loading ${provider.name} account`)(async () => {
       setAccountInfo(await Ajax(signal).ExternalCredentials(provider).getAccountLinkStatus());
     });
-    const linkAccount = withErrorReporting(`Error linking ${provider.name} account`)( async (code, state) => {
+    const linkAccount = withErrorReporting(`Error linking ${provider.name} account`)(async (code, state) => {
       setAccountInfo(await Ajax(signal).ExternalCredentials(provider).linkAccountWithAuthorizationCode(code, state));
     });
 
