@@ -165,7 +165,15 @@ export const CriteriaView = (props: CriteriaViewProps) => {
           })(),
         ]),
       ]),
-      div(['Count: ', criteriaCount.status === 'Ready' ? criteriaCount.state.result.total : h(Spinner)]),
+      div([
+        'Count: ',
+        // eslint-disable-next-line no-nested-ternary
+        criteriaCount.status === 'Ready'
+          ? criteriaCount.state.result.total === 19
+            ? '<20'
+            : criteriaCount.state.result.total
+          : h(Spinner),
+      ]),
     ]
   );
 };
@@ -422,7 +430,12 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
         [
           div({ style: { marginRight: wideMargin } }, [
             'Group count: ',
-            groupParticipantCount.status === 'Ready' ? groupParticipantCount.state.result.total : h(Spinner),
+            // eslint-disable-next-line no-nested-ternary
+            groupParticipantCount.status === 'Ready'
+              ? groupParticipantCount.state.result.total === 19
+                ? '<20'
+                : groupParticipantCount.state.result.total
+              : h(Spinner),
           ]),
         ]
       ),

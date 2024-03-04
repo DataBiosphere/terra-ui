@@ -645,8 +645,11 @@ export const DatasetBuilderContents = ({
       requestValid &&
         h(ActionBar, {
           prompt: h(Fragment, [
+            // eslint-disable-next-line no-nested-ternary
             datasetRequestParticipantCount.status === 'Ready'
-              ? datasetRequestParticipantCount.state.result.total
+              ? datasetRequestParticipantCount.state.result.total === 19
+                ? '<20'
+                : datasetRequestParticipantCount.state.result.total
               : h(Spinner),
             ' Participants in this dataset',
           ]),
