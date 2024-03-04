@@ -1,7 +1,20 @@
-import { PersistentDiskTypeInputProps, PersistentDiskTypeSelect, useUniqueId } from '@terra-ui-packages/components';
+import { useUniqueId } from '@terra-ui-packages/components';
 import React from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
+import { SingleValue } from 'react-select';
+import { IComputeConfig } from 'src/analysis/modal-utils';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
+import { Select } from 'src/components/common';
+import { PdSelectOption, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
+
+export interface PersistentDiskTypeInputProps {
+  value: SharedPdType;
+  onChange: (e: SingleValue<{ value: SharedPdType; label: string | undefined }>) => void;
+  isDisabled?: boolean;
+  options: PdSelectOption[];
+}
+
+const PersistentDiskTypeSelect = Select as typeof Select<IComputeConfig['persistentDiskType']>;
 
 export const PersistentDiskTypeInput: React.FC<PersistentDiskTypeInputProps> = (
   props: PersistentDiskTypeInputProps

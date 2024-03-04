@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import React from 'react';
 import { h } from 'react-hyperscript-helpers';
+import { SingleValue } from 'react-select';
 import { ComputeImage } from 'src/analysis/useComputeImages';
 import { GroupedSelect } from 'src/components/common';
 
@@ -65,7 +66,7 @@ export const GcpComputeImageSelect: React.FC<GcpComputeImageSelectProps> = (prop
   return h(GroupedSelect, {
     ...restProps,
     value: selectedComputeImageUrl,
-    onChange: ({ value }: any) => {
+    onChange: ({ value }: SingleValue<any>) => {
       setSelectedComputeImageUrl(value);
     },
     isSearchable: true,
