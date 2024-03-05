@@ -1,10 +1,10 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
 import { SaveFilesHelp, SaveFilesHelpAzure } from 'src/analysis/runtime-common-components';
 import { isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { LabeledCheckbox, spinnerOverlay } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { isAzureConfig, isGceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { withErrorReporting } from 'src/libs/error';

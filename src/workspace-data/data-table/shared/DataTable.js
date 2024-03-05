@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { b, div, h, span } from 'react-hyperscript-helpers';
@@ -16,7 +17,6 @@ import {
 import { icon } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
@@ -86,6 +86,7 @@ const displayData = ({ itemsType, items }) => {
 
 const DataTable = (props) => {
   const {
+    defaultItemsPerPage = 100,
     entityType,
     entityMetadata,
     setEntityMetadata,
@@ -122,7 +123,7 @@ const DataTable = (props) => {
   const [filteredCount, setFilteredCount] = useState(0);
   const [totalRowCount, setTotalRowCount] = useState(0);
 
-  const [itemsPerPage, setItemsPerPage] = useState(100);
+  const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
   const [pageNumber, setPageNumber] = useState(1);
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' });
   const [activeTextFilter, setActiveTextFilter] = useState(activeCrossTableTextFilter || '');
@@ -647,6 +648,7 @@ const DataTable = (props) => {
                           });
                       if (!!dataInfo && _.isArray(dataInfo.items)) {
                         const isPlural = dataInfo.items.length !== 1;
+                        // eslint-disable-next-line no-nested-ternary
                         const label = dataInfo?.itemsType === 'EntityReference' ? (isPlural ? 'entities' : 'entity') : isPlural ? 'items' : 'item';
                         const itemsLink = h(
                           Link,
@@ -677,6 +679,8 @@ const DataTable = (props) => {
                 initialX,
                 initialY,
                 sort,
+                // TODO: Remove nested ternary to align with style guide
+                // eslint-disable-next-line no-nested-ternary
                 numFixedColumns: visibleColumns.length > 0 ? (dataProvider.features.supportsRowSelection ? 2 : 1) : 0,
                 columns: defaultColumns,
                 styleCell: ({ rowIndex }) => {

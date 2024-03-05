@@ -2,20 +2,54 @@ name: Publish Pacts
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [ dev ]
+    paths-ignore:
+      - 'README.md'
+      - 'integration-tests'
   push:
     branches: [ dev ]
-
+env:
+  PUBLISH_CONTRACTS_RUN_NAME: 'publish-contracts-${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt }}'
+  CAN_I_DEPLOY_RUN_NAME: 'can-i-deploy-${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt }}'
 jobs:
   setup-and-test:
     runs-on: ubuntu-latest
     outputs:
       pact-b64: ${{ steps.encode.outputs.pact-b64 }}
+      new-tag: ${{ steps.tag.outputs.new_tag }}
+      repo-branch: ${{ steps.extract-branch.outputs.repo-branch }}
     steps:
       - uses: actions/checkout@v3
+      - id: extract-branch
+        run: |
+          GITHUB_EVENT_NAME=${{ github.event_name }}
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            GITHUB_REF=${{ github.ref }}
+          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            GITHUB_REF=refs/heads/${{ github.head_ref }}
+          elif [[ "$GITHUB_EVENT_NAME" == "merge_group" ]]; then
+            GITHUB_REF=refs/heads/${{ github.head_ref }}
+          else
+            echo "Failed to extract branch information"
+            exit 1
+          fi
+          echo "repo-branch=${GITHUB_REF/refs\/heads\//""}" >> $GITHUB_OUTPUT
+
+      - name: Bump the tag to a new version
+        uses: databiosphere/github-actions/actions/bumper@bumper-0.3.0
+        id: tag
+        env:
+          DEFAULT_BUMP: patch
+          GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+          RELEASE_BRANCHES: dev
+          WITH_V: true
+          DRY_RUN: true
+
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: '~20.11'
 
       - name: Install dependencies
         run: |
@@ -27,7 +61,7 @@ jobs:
       - name: Encode the pact as non-breaking base 64 string
         id: encode
         env:
-          PACT_FULL_PATH: 'pacts/terra-ui-cbas.json'  # Currently, workflows are limited to a single Pact file (see WM-1858).
+          PACT_FULL_PATH: 'pacts/terraui-cbas.json'  # Currently, workflows are limited to a single Pact file (see WM-1858).
         run: |
           NON_BREAKING_B64=$(cat $PACT_FULL_PATH | base64 -w 0)
           echo "pact-b64=${NON_BREAKING_B64}" >> $GITHUB_OUTPUT
@@ -41,10 +75,17 @@ jobs:
       id-token: 'write'
     steps:
       - name: Publish Pact contracts
-        uses: aurelien-baudet/workflow-dispatch@93e95b157d791ae7f42aef8f8a0d3d723eba1c31 #commit sha for v2.1.1
+        uses: broadinstitute/workflow-dispatch@v4.0.0
         with:
           workflow: publish-contracts.yaml
           repo: broadinstitute/terra-github-workflows
           ref: refs/heads/main
           token: ${{ secrets.BROADBOT_TOKEN}} # github token for access to kick off a job in the private repo
-          inputs: '{ "pact-b64": "${{ needs.setup-and-test.outputs.pact-b64 }}", "repo-owner": "DataBiosphere", "repo-name": "terra-ui", "repo-branch": "dev" }'
+          inputs: '{
+            "run-name": "${{ env.PUBLISH_CONTRACTS_RUN_NAME }}",
+            "pact-b64": "${{ needs.setup-and-test.outputs.pact-b64 }}",
+            "repo-owner": "${{ github.repository_owner }}",
+            "repo-name": "${{ github.event.repository.name }}",
+            "repo-branch": "${{ needs.setup-and-test.outputs.repo-branch }}",
+            "release-tag": "${{ needs.setup-and-test.outputs.new-tag }}"
+          }'

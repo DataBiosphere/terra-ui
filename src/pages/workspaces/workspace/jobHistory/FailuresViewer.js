@@ -1,7 +1,7 @@
 import ReactJson from '@microlink/react-json-view';
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import Modal from 'src/components/Modal';
 
 export const FailuresViewer = ({ failures }) => {
   const restructureFailures = (failuresArray) => {

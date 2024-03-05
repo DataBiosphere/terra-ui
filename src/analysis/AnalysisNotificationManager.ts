@@ -1,6 +1,7 @@
 // This file is where any notifications not tied to a specific action are managed for leonardo-related resource
 // For example, if you load a page and your apps/runtimes are in an error state, this component is responsible for that notification
 
+import { Modal } from '@terra-ui-packages/components';
 import { isToday } from 'date-fns';
 import { isAfter } from 'date-fns/fp';
 import _ from 'lodash/fp';
@@ -13,7 +14,6 @@ import { dataSyncingDocUrl } from 'src/analysis/utils/gce-machines';
 import { cloudProviders, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { appTools, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';

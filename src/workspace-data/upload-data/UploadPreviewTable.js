@@ -1,3 +1,4 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { code, div, em, h, h3, p, span, strong } from 'react-hyperscript-helpers';
@@ -6,7 +7,6 @@ import { ButtonPrimary, ButtonSecondary, fixedSpinnerOverlay } from 'src/compone
 import { icon } from 'src/components/icons';
 import { NameModal } from 'src/components/NameModal';
 import { GridTable, HeaderCell, Resizable, Sortable } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';

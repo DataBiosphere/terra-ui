@@ -9,20 +9,21 @@ import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
-import { GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
+import { DomainOption, GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
+import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 
 type ConceptSearchProps = {
   readonly initialSearch: string;
-  readonly domainOption: SnapshotBuilderDomainOption;
+  readonly domainOption: DomainOption;
   readonly onCancel: () => void;
   readonly onCommit: (selected: Concept[]) => void;
   readonly onOpenHierarchy: (
-    domainOption: SnapshotBuilderDomainOption,
-    selected: Concept[],
-    searchText: string
+    domainOption: DomainOption,
+    cart: Concept[],
+    searchText: string,
+    openedConcept?: Concept
   ) => void;
   readonly actionText: string;
   readonly datasetId: string;
@@ -33,15 +34,17 @@ const DebouncedTextInput = withDebouncedChange(TextInput);
 export const ConceptSearch = (props: ConceptSearchProps) => {
   const { initialSearch, domainOption, onCancel, onCommit, onOpenHierarchy, actionText, datasetId, initialCart } =
     props;
-  const [search, setSearch] = useState<string>(initialSearch);
+  const [searchText, setSearchText] = useState<string>(initialSearch);
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const [concepts, searchConcepts] = useLoadedData<GetConceptsResponse>();
 
   useEffect(() => {
-    void searchConcepts(() => {
-      return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, search);
-    });
-  }, [search, datasetId, domainOption.root, searchConcepts]);
+    if (searchText.length === 0 || searchText.length > 2) {
+      void searchConcepts(() => {
+        return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, searchText);
+      });
+    }
+  }, [searchText, datasetId, domainOption.root, searchConcepts]);
   const tableLeftPadding = { paddingLeft: '2rem' };
   const iconSize = 18;
 
@@ -56,14 +59,14 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
           },
           [icon('left-circle-filled', { size: 32 })]
         ),
-        div({ style: { marginLeft: 15 } }, [domainOption.category]),
+        div({ style: { marginLeft: 15 } }, [domainOption.name]),
       ]),
       div({ style: { position: 'relative' } }, [
         h(DebouncedTextInput, {
           onChange: (value: string) => {
-            setSearch(value);
+            setSearchText(value);
           },
-          value: search,
+          value: searchText,
           placeholder: 'Search',
           type: 'search',
           style: {
@@ -115,7 +118,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                     icon(iconName, { size: 16 }),
                   ]),
                   div({ style: { marginLeft: 5 } }, [
-                    h(HighlightConceptName, { conceptName: concept.name, searchFilter: search }),
+                    h(HighlightConceptName, { conceptName: concept.name, searchFilter: searchText }),
                   ]),
                 ]),
                 id: concept.id,
@@ -125,12 +128,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                     Link,
                     {
                       'aria-label': `open hierarchy ${concept.id}`,
-                      onClick: () =>
-                        onOpenHierarchy(
-                          { id: concept.id, category: domainOption.category, root: concept },
-                          cart,
-                          search
-                        ),
+                      onClick: () => onOpenHierarchy(domainOption, cart, searchText, concept),
                     },
                     [icon('view-list')]
                   ),

@@ -1,9 +1,9 @@
+import { Modal } from '@terra-ui-packages/components';
 import filesize from 'filesize';
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { dd, div, dl, dt, h, p, strong } from 'react-hyperscript-helpers';
 import { ButtonPrimary } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import colors from 'src/libs/colors';
 
 export const ProgressBar = ({ max, now }) => {

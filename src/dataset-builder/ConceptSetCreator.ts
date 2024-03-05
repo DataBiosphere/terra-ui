@@ -23,8 +23,16 @@ export const toConceptSet = (concept: Concept): ConceptSet => {
 export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
   const { onStateChange, dataset, conceptSetUpdater } = props;
   const { snapshotBuilderSettings, id } = dataset;
+  // create a root for all domainOptions
+  const domainOptionRoot: Concept = {
+    id: 0,
+    name: 'Point to Domain Options',
+    count: 100,
+    hasChildren: true,
+    children: _.map(_.get('root'), snapshotBuilderSettings?.domainOptions),
+  };
   return h(ConceptSelector, {
-    initialRows: _.map(_.get('root'), snapshotBuilderSettings?.domainOptions),
+    rootConcept: domainOptionRoot,
     initialCart: [],
     title: 'Add concept',
     onCancel: () => onStateChange(homepageState.new()),

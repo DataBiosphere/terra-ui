@@ -1,12 +1,10 @@
-import { Switch } from '@terra-ui-packages/components';
+import { Modal, modalStyles, Switch, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
-import Modal, { modalStyles } from 'src/components/Modal';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { reportError } from 'src/libs/error';
@@ -15,6 +13,7 @@ import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { append, cond, withBusyState } from 'src/libs/utils';
 import {
+  AccessEntry,
   aclEntryIsTerraSupport,
   terraSupportAccessLevel,
   terraSupportEmail,
@@ -97,7 +96,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   const addCollaborator = (collaboratorEmail) => {
     if (!validate.single(collaboratorEmail, { email: true, exclusion: aclEmails })) {
       setSearchValue('');
-      setAcl(append({ email: collaboratorEmail, accessLevel: 'READER' }));
+      setAcl(append({ email: collaboratorEmail, accessLevel: 'READER' } as AccessEntry));
       setLastAddedEmail(collaboratorEmail);
     }
   };

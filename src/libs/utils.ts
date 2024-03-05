@@ -149,7 +149,12 @@ export const convertValue = _.curry((type, value) => {
  */
 export const normalizeLabel = _.flow(_.camelCase, _.startCase);
 
-export const append = _.curry((value, arr) => _.concat(arr, [value]));
+type AppendFn = {
+  <T>(value: T, arr: T[]): T[];
+  <T>(value: T): (arr: T[]) => T[];
+};
+
+export const append: AppendFn = _.curry((value, arr) => _.concat(arr, [value]));
 
 const withBusyStateFn =
   <R, F extends AnyPromiseFn>(
@@ -219,6 +224,8 @@ export const commaJoin = (list, conjunction = 'or') => {
     _.flow(
       toIndexPairs,
       _.flatMap(([i, val]) => {
+        // TODO: Remove nested ternary to align with style guide
+        // eslint-disable-next-line no-nested-ternary
         return [i === 0 ? '' : i === list.length - 1 ? ` ${conjunction} ` : ', ', val];
       })
     )(list)

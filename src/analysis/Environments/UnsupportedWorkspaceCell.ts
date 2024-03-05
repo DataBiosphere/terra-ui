@@ -1,6 +1,6 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import { div, h } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
 
 // These are for calling attention to resources that are most likely linked to GCP v1 workspaces.

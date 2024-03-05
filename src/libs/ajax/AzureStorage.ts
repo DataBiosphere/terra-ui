@@ -13,6 +13,12 @@ type SasInfo = {
   token: string;
 };
 
+type StorageContainerInfo = {
+  region: string;
+  storageContainerName: string;
+  resourceId: string;
+};
+
 type StorageDetails = {
   location: string;
   storageContainerName: string;
@@ -42,7 +48,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
    * Note that this method will throw an error if there is no shared access storage container available
    * (which is an expected transient state while a workspace is being cloned).
    */
-  details: async (workspaceId: string): Promise<StorageDetails> => {
+  containerInfo: async (workspaceId: string): Promise<StorageContainerInfo> => {
     const data = await Ajax(signal).WorkspaceManagerResources.controlledResources(workspaceId);
     const container = _.find(
       {
@@ -60,12 +66,24 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     if (!container) {
       throw new Error('The workspace does not have a shared access storage container.');
     }
+    return {
+      region: container.metadata.controlledResourceMetadata.region,
+      storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
+      resourceId: container.metadata.resourceId,
+    };
+  },
 
-    const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId);
+  /**
+   * Note that this method will throw an error if there is no shared access storage container available
+   * (which is an expected transient state while a workspace is being cloned).
+   */
+  details: async (workspaceId: string): Promise<StorageDetails> => {
+    const containerInfo = await AzureStorage(signal).containerInfo(workspaceId);
+    const sas = await AzureStorage(signal).sasToken(workspaceId, containerInfo.resourceId);
 
     return {
-      location: container.metadata.controlledResourceMetadata.region,
-      storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
+      location: containerInfo.region,
+      storageContainerName: containerInfo.storageContainerName,
       sas,
     };
   },

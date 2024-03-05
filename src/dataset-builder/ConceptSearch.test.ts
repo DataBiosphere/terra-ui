@@ -4,6 +4,7 @@ import _ from 'lodash/fp';
 import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { ConceptSearch } from 'src/dataset-builder/ConceptSearch';
+import { convertApiDomainOptionToDomainOption } from 'src/dataset-builder/DatasetBuilderUtils';
 import { dummyDatasetModel, dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
 import { DataRepo, DataRepoContract, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -30,7 +31,9 @@ describe('ConceptSearch', () => {
   const onOpenHierarchy = jest.fn();
   const actionText = 'action text';
   const datasetId = '0';
-  const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
+  const domainOption = convertApiDomainOptionToDomainOption(
+    dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0]
+  );
 
   const renderSearch = (initialSearch = '', initialCart: SnapshotBuilderConcept[] = []) =>
     render(
@@ -83,6 +86,31 @@ describe('ConceptSearch', () => {
     expect(mockSearch).toHaveBeenCalledWith(domainOption.root, searchText);
   });
 
+  it('searchConcepts is called when initial search length is 0', async () => {
+    // Arrange
+    await act(() => renderSearch());
+    // Assert - searchConcepts is called because searchText.length is 0
+    expect(mockSearch).toBeCalledTimes(1);
+  });
+
+  it('searchConcepts is not called when initial search length is 1 or 2', async () => {
+    // Arrange
+    renderSearch('a');
+    // Assert - searchConcepts is not called because searchText.length is 1
+    expect(mockSearch).toBeCalledTimes(0);
+
+    // Arrange
+    renderSearch('ab');
+    // Assert - searchConcepts is not called because searchText.length is 2
+    expect(mockSearch).toBeCalledTimes(0);
+  });
+  it('searchConcepts is called when initial search length is greater than 2', async () => {
+    // Arrange
+    await act(() => renderSearch('abc'));
+    // Assert - searchConcepts is called because searchText.length is greater than 2
+    expect(mockSearch).toBeCalledTimes(1);
+  });
+
   it('filters based on search text', async () => {
     // Arrange/Act
     const searchText = 'search text';
@@ -101,11 +129,7 @@ describe('ConceptSearch', () => {
     await user.click(await screen.findByLabelText(`add ${concept.id}`));
     await user.click(screen.getByLabelText(`open hierarchy ${concept.id}`));
     // Assert
-    expect(onOpenHierarchy).toHaveBeenCalledWith(
-      { id: concept.id, category: domainOption.category, root: concept },
-      [concept],
-      ''
-    );
+    expect(onOpenHierarchy).toHaveBeenCalledWith(domainOption, [concept], '', concept);
   });
 
   it('supports add to cart', async () => {
@@ -151,7 +175,7 @@ describe('ConceptSearch', () => {
     const disText = await screen.findAllByText('Dis');
 
     const filterDisText = _.filter(
-      (element) => element.tagName === 'DIV' && element.style.fontWeight === '600',
+      (element) => element.tagName === 'SPAN' && element.style.fontWeight === '600',
       disText
     ).length;
     expect(filterDisText).toBeGreaterThan(0);

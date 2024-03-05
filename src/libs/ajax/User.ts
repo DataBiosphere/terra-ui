@@ -1,15 +1,6 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import {
-  authOpts,
-  fetchBond,
-  fetchEcm,
-  fetchOrchestration,
-  fetchRex,
-  fetchSam,
-  jsonBody,
-} from 'src/libs/ajax/ajax-common';
-import { getConfig } from 'src/libs/config';
+import { authOpts, fetchBond, fetchOrchestration, fetchRex, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
 import { getTerraUser, TerraUserProfile } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
@@ -156,12 +147,6 @@ export interface BondFenceUrlResponse {
 export interface BondFenceStatusResponse {
   issued_at: Date;
   username: string;
-}
-
-export interface EcmLinkAccountResponse {
-  externalUserId: string;
-  expirationTimestamp: Date;
-  authenticated: boolean;
 }
 
 export interface SamInviteUserResponse {
@@ -356,55 +341,6 @@ export const User = (signal?: AbortSignal) => {
 
     unlinkFenceAccount: async (providerKey: string): Promise<void> => {
       await fetchBond(`api/link/v1/${providerKey}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
-    },
-
-    externalAccount: (providerKey: string) => {
-      const root = `api/oidc/v1/${providerKey}`;
-      const queryParams = {
-        scopes: ['openid', 'email', 'ga4gh_passport_v1'],
-        redirectUri: `${
-          window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin
-        }/ecm-callback`,
-      };
-
-      return {
-        get: async (): Promise<string[] | null> => {
-          try {
-            const res = await fetchEcm(root, _.merge(authOpts(), { signal }));
-            return res.json();
-          } catch (error: unknown) {
-            if (error instanceof Response && error.status === 404) {
-              return null;
-            }
-            throw error;
-          }
-        },
-
-        getAuthUrl: async (): Promise<string> => {
-          const res = await fetchEcm(
-            `${root}/authorization-url?${qs.stringify(queryParams, { indices: false })}`,
-            _.merge(authOpts(), { signal })
-          );
-          return res.json();
-        },
-
-        getPassport: async (): Promise<{}> => {
-          const res = await fetchEcm(`${root}/passport`, _.merge(authOpts(), { signal }));
-          return res.json();
-        },
-
-        linkAccount: async (oauthcode: string, state: string): Promise<EcmLinkAccountResponse> => {
-          const res = await fetchEcm(
-            `${root}/oauthcode?${qs.stringify({ ...queryParams, oauthcode, state }, { indices: false })}`,
-            _.merge(authOpts(), { signal, method: 'POST' })
-          );
-          return res.json();
-        },
-
-        unlink: async (): Promise<void> => {
-          return fetchEcm(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
-        },
-      };
     },
 
     isUserRegistered: async (email: string): Promise<boolean> => {

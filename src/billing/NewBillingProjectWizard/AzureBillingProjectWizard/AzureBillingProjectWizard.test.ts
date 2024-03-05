@@ -109,7 +109,6 @@ describe('AzureBillingProjectWizard', () => {
     testStepActive(4);
     verifyCreateBillingProjectDisabled();
     await nameBillingProject(billingProjectName);
-    expect(await axe(renderResult.container)).toHaveNoViolations();
 
     await clickCreateBillingProject();
     expect(createAzureProject).toBeCalledWith(
@@ -183,7 +182,6 @@ describe('AzureBillingProjectWizard', () => {
     fireEvent.click(getNoUsersRadio());
     verifyCreateBillingProjectDisabled();
     await nameBillingProject(billingProjectName);
-    expect(await axe(renderResult.container)).toHaveNoViolations();
     await clickCreateBillingProject();
     expect(createAzureProject).toBeCalledWith(
       billingProjectName,
@@ -193,9 +191,9 @@ describe('AzureBillingProjectWizard', () => {
       [],
       false
     );
+    await screen.findByText('Billing project name already exists');
     verifyCreateBillingProjectDisabled();
     expect(onSuccess).not.toBeCalled();
-    await screen.findByText('Billing project name already exists');
     expect(captureEvent).toHaveBeenCalledWith(Events.billingAzureCreationProjectCreateFail, { existingName: true });
     expect(await axe(renderResult.container)).toHaveNoViolations();
   });

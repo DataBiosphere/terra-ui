@@ -80,6 +80,7 @@ const defaultAnalysesData: AnalysesData = {
   lastRefresh: null,
   runtimes: [],
   refreshRuntimes: () => Promise.resolve(),
+  isLoadingCloudEnvironments: false,
   appDataDisks: [],
   persistentDisks: [],
 };

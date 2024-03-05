@@ -1,10 +1,10 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
 import { SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-components';
 import { appTools } from 'src/analysis/utils/tool-utils';
 import { LabeledCheckbox, spinnerOverlay } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { withErrorReportingInModal } from 'src/libs/error';

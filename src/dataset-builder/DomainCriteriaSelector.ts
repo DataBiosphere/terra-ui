@@ -1,13 +1,8 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import { DomainCriteria, GetConceptsResponse } from 'src/dataset-builder/DatasetBuilderUtils';
-import {
-  DataRepo,
-  SnapshotBuilderConcept as Concept,
-  SnapshotBuilderConcept,
-  SnapshotBuilderDomainOption as DomainOption,
-} from 'src/libs/ajax/DataRepo';
+import { DomainCriteria, DomainOption } from 'src/dataset-builder/DatasetBuilderUtils';
+import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useOnMount } from 'src/libs/react-utils';
 
@@ -33,11 +28,10 @@ export const toCriteria =
     return {
       kind: 'domain',
       conceptId: concept.id,
-      name: concept.name,
-      id: domainOption.id,
+      conceptName: concept.name,
       index: getNextCriteriaIndex(),
       count: concept.count,
-      domainOption,
+      option: domainOption,
     };
   };
 
@@ -59,20 +53,37 @@ export const saveSelected =
   };
 
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
-  const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
+  const [hierarchy, setHierarchy] = useLoadedData<Concept>();
   useOnMount(() => {
-    void loadRootConcepts(() => DataRepo().dataset(datasetId).getConcepts(state.domainOption.root));
+    const openedConcept = state.openedConcept;
+    if (openedConcept) {
+      void setHierarchy(async () => {
+        return (await DataRepo().dataset(datasetId).getConceptHierarchy(openedConcept)).result;
+      });
+    } else {
+      // get the children of this concept
+      void setHierarchy(async () => {
+        const results = (await DataRepo().dataset(datasetId).getConcepts(state.domainOption.root)).result;
+        return { ...state.domainOption.root, children: results };
+      });
+    }
   });
-  return rootConcepts.status === 'Ready'
+
+  return hierarchy.status === 'Ready'
     ? h(ConceptSelector, {
-        initialRows: rootConcepts.state.result,
-        title: state.domainOption.category,
+        rootConcept: hierarchy.state,
+        domainOptionRoot: state.domainOption.root,
+        title: state.domainOption.name,
         initialCart: state.cart,
-        onCancel: () => onStateChange(state.cancelState),
+        onCancel: (cart: Concept[]) =>
+          onStateChange(
+            state.cancelState.mode === 'domain-criteria-search' ? { ...state.cancelState, cart } : state.cancelState
+          ),
         onCommit: saveSelected(state, getNextCriteriaIndex, onStateChange),
         actionText: 'Add to group',
         datasetId,
+        openedConcept: state.openedConcept,
       })
     : spinnerOverlay;
 };
