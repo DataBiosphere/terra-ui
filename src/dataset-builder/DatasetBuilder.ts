@@ -1,4 +1,4 @@
-import { Clickable, Modal, Spinner } from '@terra-ui-packages/components';
+import { Clickable, Modal } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
 import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
@@ -17,6 +17,7 @@ import {
   DatasetBuilderType,
   DatasetBuilderValue,
   DatasetParticipantCountResponse,
+  DisplayParticipantCount,
   ProgramDataListOption,
   ProgramDataRangeOption,
 } from 'src/dataset-builder/DatasetBuilderUtils';
@@ -645,12 +646,7 @@ export const DatasetBuilderContents = ({
       requestValid &&
         h(ActionBar, {
           prompt: h(Fragment, [
-            // eslint-disable-next-line no-nested-ternary
-            datasetRequestParticipantCount.status === 'Ready'
-              ? datasetRequestParticipantCount.state.result.total === 19
-                ? '<20'
-                : datasetRequestParticipantCount.state.result.total
-              : h(Spinner),
+            DisplayParticipantCount(datasetRequestParticipantCount),
             ' Participants in this dataset',
           ]),
           actionText: 'Request access to this dataset',

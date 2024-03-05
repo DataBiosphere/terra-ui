@@ -1,4 +1,3 @@
-import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
@@ -13,6 +12,7 @@ import {
   convertApiDomainOptionToDomainOption,
   CriteriaGroup,
   DatasetParticipantCountResponse,
+  DisplayParticipantCount,
   DomainOption,
   ProgramDataListCriteria,
   ProgramDataListOption,
@@ -165,15 +165,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
           })(),
         ]),
       ]),
-      div([
-        'Count: ',
-        // eslint-disable-next-line no-nested-ternary
-        criteriaCount.status === 'Ready'
-          ? criteriaCount.state.result.total === 19
-            ? '<20'
-            : criteriaCount.state.result.total
-          : h(Spinner),
-      ]),
+      div(['Count: ', DisplayParticipantCount(criteriaCount)]),
     ]
   );
 };
@@ -427,17 +419,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
             fontWeight: 'bold',
           },
         },
-        [
-          div({ style: { marginRight: wideMargin } }, [
-            'Group count: ',
-            // eslint-disable-next-line no-nested-ternary
-            groupParticipantCount.status === 'Ready'
-              ? groupParticipantCount.state.result.total === 19
-                ? '<20'
-                : groupParticipantCount.state.result.total
-              : h(Spinner),
-          ]),
-        ]
+        [div({ style: { marginRight: wideMargin } }, ['Group count: ', DisplayParticipantCount(groupParticipantCount)])]
       ),
     ]
   );

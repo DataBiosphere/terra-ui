@@ -1,6 +1,7 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
-import { div, span } from 'react-hyperscript-helpers';
+import { div, h, span } from 'react-hyperscript-helpers';
 import {
   ColumnStatisticsIntOrDoubleModel,
   ColumnStatisticsTextModel,
@@ -239,10 +240,13 @@ export type DatasetParticipantCountRequest = {
 };
 
 export type DatasetParticipantCountResponse = {
-  result: {
-    total: number;
+  state: {
+    result: {
+      total: number;
+    };
   };
   sql: string;
+  status: string;
 };
 
 export const convertApiDomainOptionToDomainOption = (domainOption: SnapshotBuilderDomainOption): DomainOption => ({
@@ -308,4 +312,13 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
     span({ style: { fontWeight: 600 } }, [conceptName.substring(startIndex, endIndex)]),
     span([conceptName.substring(endIndex)]),
   ]);
+};
+
+export const DisplayParticipantCount = (participantCountResponse: DatasetParticipantCountResponse): ReactElement => {
+  if (participantCountResponse.status === 'Ready') {
+    return div([
+      participantCountResponse.state.result.total === 20 ? '<20' : participantCountResponse.state.result.total,
+    ]);
+  }
+  return h(Spinner);
 };
