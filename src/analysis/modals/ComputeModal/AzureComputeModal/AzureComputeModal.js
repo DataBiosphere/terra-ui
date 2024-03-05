@@ -324,6 +324,7 @@ export const AzureComputeModalBase = ({
       desiredPersistentDisk_size: computeConfig.persistentDiskSize,
       desiredPersistentDisk_type: 'Standard', // IA-4164 - Azure disks are currently only Standard (HDD), when we add types update this.
       desiredPersistentDisk_costPerMonth: getAzureDiskCostEstimate(computeConfig),
+      desiredRuntime_gpuEnabled: hasGpu(),
       tool: runtimeToolLabels.JupyterLab,
       application: runtimeToolLabels.JupyterLab,
     });
