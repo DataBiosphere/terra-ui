@@ -478,7 +478,6 @@ export const GcpComputeModalBase = ({
 
     return {
       hasGpu: computeConfig.hasGpu,
-      gpuEnabled: computeConfig.gpuEnabled,
       autopauseThreshold: computeConfig.autopauseThreshold,
       runtime: Utils.cond(
         [
@@ -649,7 +648,7 @@ export const GcpComputeModalBase = ({
   };
 
   const sendCloudEnvironmentMetrics = () => {
-    const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk, hasGpu: desiredGpuEnabled } = getDesiredEnvironmentConfig();
+    const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk, hasGpu: desiredRuntimeHasGpu } = getDesiredEnvironmentConfig();
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig();
     const desiredMachineType =
       desiredRuntime && (desiredRuntime.cloudService === cloudServices.GCE ? desiredRuntime.machineType : desiredRuntime.masterMachineType);
@@ -668,7 +667,7 @@ export const GcpComputeModalBase = ({
       ..._.mapKeys((key) => `desiredRuntime_${key}`, desiredRuntime),
       desiredRuntime_exists: !!desiredRuntime,
       desiredRuntime_cpus: desiredRuntime ? desiredRuntimeCpus : undefined,
-      desiredRuntime_gpuEnabled: desiredRuntime ? desiredGpuEnabled : undefined,
+      desiredRuntime_gpuEnabled: desiredRuntime ? desiredRuntimeHasGpu : undefined,
       desiredRuntime_memory: desiredRuntime ? desiredRuntimeMemory : undefined,
       desiredRuntime_costPerHour: desiredRuntime ? runtimeConfigCost(formatRuntimeConfigForCosts()) : undefined,
       desiredRuntime_pausedCostPerHour: desiredRuntime ? runtimeConfigBaseCost(formatRuntimeConfigForCosts()) : undefined,
