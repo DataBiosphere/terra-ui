@@ -477,6 +477,7 @@ export const GcpComputeModalBase = ({
     const desiredNumberOfWorkers = isDataprocCluster(runtimeType) ? computeConfig.numberOfWorkers : 0;
 
     return {
+      hasGpu: computeConfig.hasGpu,
       gpuEnabled: computeConfig.gpuEnabled,
       autopauseThreshold: computeConfig.autopauseThreshold,
       runtime: Utils.cond(
@@ -648,7 +649,7 @@ export const GcpComputeModalBase = ({
   };
 
   const sendCloudEnvironmentMetrics = () => {
-    const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk, gpuEnabled: desiredGpuEnabled } = getDesiredEnvironmentConfig();
+    const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk, hasGpu: desiredGpuEnabled } = getDesiredEnvironmentConfig();
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig();
     const desiredMachineType =
       desiredRuntime && (desiredRuntime.cloudService === cloudServices.GCE ? desiredRuntime.machineType : desiredRuntime.masterMachineType);
