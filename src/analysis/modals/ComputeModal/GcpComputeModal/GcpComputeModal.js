@@ -666,6 +666,7 @@ export const GcpComputeModalBase = ({
       ..._.mapKeys((key) => `desiredRuntime_${key}`, desiredRuntime),
       desiredRuntime_exists: !!desiredRuntime,
       desiredRuntime_cpus: desiredRuntime ? desiredRuntimeCpus : undefined,
+      desiredRuntime_gpuEnabled: desiredRuntime ? desiredRuntime.gpuConfig?.numOfGpus > 0 : undefined,
       desiredRuntime_memory: desiredRuntime ? desiredRuntimeMemory : undefined,
       desiredRuntime_costPerHour: desiredRuntime ? runtimeConfigCost(formatRuntimeConfigForCosts()) : undefined,
       desiredRuntime_pausedCostPerHour: desiredRuntime ? runtimeConfigBaseCost(formatRuntimeConfigForCosts()) : undefined,
