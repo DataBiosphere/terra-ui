@@ -93,7 +93,7 @@ describe('CloudInformation', () => {
 
   it('retrieves bucket and storage estimate when the workspace is initialized', async () => {
     // Arrange
-    const mockBucketUsage = jest.fn().mockResolvedValue({ usageInBytes: 100, lastUpdated: '2023-12-01' });
+    const mockBucketUsage = jest.fn().mockResolvedValue({ usageInBytes: 100, lastUpdated: '2023-11-01' });
     const mockStorageCostEstimate = jest.fn().mockResolvedValue({
       estimate: '1 million dollars',
       lastUpdated: '2023-12-01',
@@ -116,6 +116,12 @@ describe('CloudInformation', () => {
 
     // Assert
     expect(screen.getByTitle('Google Cloud Platform')).not.toBeNull;
+    // Cost estimate
+    expect(screen.getByText('Updated on 12/1/2023')).not.toBeNull();
+    expect(screen.getByText('1 million dollars')).not.toBeNull();
+    // Bucket usage
+    expect(screen.getByText('Updated on 11/1/2023')).not.toBeNull();
+    expect(screen.getByText('100 B')).not.toBeNull();
 
     expect(mockBucketUsage).toHaveBeenCalled();
     expect(mockStorageCostEstimate).toHaveBeenCalled();
