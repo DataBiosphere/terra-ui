@@ -1,3 +1,4 @@
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
@@ -165,7 +166,10 @@ export const CriteriaView = (props: CriteriaViewProps) => {
           })(),
         ]),
       ]),
-      div(['Count: ', DisplayParticipantCount(criteriaCount)]),
+      div([
+        'Count: ',
+        criteriaCount.status === 'Ready' ? DisplayParticipantCount(criteriaCount.state.result.total) : h(Spinner),
+      ]),
     ]
   );
 };
@@ -419,7 +423,14 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
             fontWeight: 'bold',
           },
         },
-        [div({ style: { marginRight: wideMargin } }, ['Group count: ', DisplayParticipantCount(groupParticipantCount)])]
+        [
+          div({ style: { marginRight: wideMargin } }, [
+            'Group count: ',
+            groupParticipantCount.status === 'Ready'
+              ? DisplayParticipantCount(groupParticipantCount.state.result.total)
+              : h(Spinner),
+          ]),
+        ]
       ),
     ]
   );

@@ -1,8 +1,6 @@
-import { Spinner } from '@terra-ui-packages/components';
-import { LoadedState } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
-import { div, h, span } from 'react-hyperscript-helpers';
+import { div, span } from 'react-hyperscript-helpers';
 import {
   ColumnStatisticsIntOrDoubleModel,
   ColumnStatisticsTextModel,
@@ -241,10 +239,8 @@ export type DatasetParticipantCountRequest = {
 };
 
 export type DatasetParticipantCountResponse = {
-  state: {
-    result: {
-      total: number;
-    };
+  result: {
+    total: number;
   };
   sql: string;
   status: string;
@@ -315,13 +311,7 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
   ]);
 };
 
-export const DisplayParticipantCount = (
-  participantCountResponse: LoadedState<DatasetParticipantCountResponse, unknown>
-): ReactElement => {
-  if (participantCountResponse.status === 'Ready') {
-    return div([
-      participantCountResponse.state.result.total === 20 ? '<20' : participantCountResponse.state.result.total,
-    ]);
-  }
-  return h(Spinner);
+export const DisplayParticipantCount = (count: number): ReactElement => {
+  // TODO before merge - switch this count to 19 to match api change
+  return div([count === 20 ? 'less than 20' : count]);
 };
