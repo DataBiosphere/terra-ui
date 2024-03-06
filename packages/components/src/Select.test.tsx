@@ -12,17 +12,24 @@ describe('Select Component', () => {
   ];
 
   it('renders', () => {
+    // Act
     renderWithTheme(<Select options={options} value="foo" onChange={() => {}} />);
+
+    // Assert
     expect(screen.getByText('Foo')).toBeInTheDocument();
   });
 
   it('calls onChange when an option is selected', async () => {
+    // Arrange
     const user = userEvent.setup();
     const mockOnChange = jest.fn();
+
+    // Act
     renderWithTheme(<Select options={options} value="foo" onChange={mockOnChange} />);
-    // Click on the select component and choose another option, confirm onChange is called
     await user.click(screen.getByText('Foo'));
     await user.click(screen.getByText('Bar'));
+
+    // Assert
     expect(mockOnChange).toHaveBeenCalledTimes(1);
     expect(mockOnChange).toHaveBeenCalledWith(
       expect.objectContaining({ value: 'bar', label: 'Bar' }),
@@ -44,27 +51,46 @@ describe('GroupedSelect Component', () => {
   ];
 
   it('renders', () => {
+    // Act
     renderWithTheme(<GroupedSelect options={groupedOptions} value="red" onChange={() => {}} />);
+
+    // Assert
     expect(screen.getByText('Red')).toBeInTheDocument();
   });
 
-  it('calls onChange when an option is selected', async () => {
+  it('Ensure that all available options are displayed when the Select option is chosen', async () => {
+    // Arrange
     const user = userEvent.setup();
 
     const mockOnChange = jest.fn();
+
+    // Act
     renderWithTheme(<GroupedSelect options={groupedOptions} value="blue" onChange={mockOnChange} />);
     expect(screen.getByText('Blue')).toBeInTheDocument();
     await user.click(screen.getByText('Blue'));
-    // Clicking the dropdown will show all the options which include the group name as well
+
+    // Assert
+    // Confirm dropdown will show all the options including the group name
     expect(screen.getByText('Colors')).toBeInTheDocument();
     expect(screen.getByText('Size')).toBeInTheDocument();
 
     expect(screen.getByText('Red')).toBeInTheDocument();
     expect(screen.getByText('Medium')).toBeInTheDocument();
+  });
 
-    // Choose another option, confirm onChange is called
+  it('calls onChange when an option is selected', async () => {
+    // Arrange
+    const user = userEvent.setup();
 
+    const mockOnChange = jest.fn();
+
+    // Act
+    renderWithTheme(<GroupedSelect options={groupedOptions} value="red" onChange={mockOnChange} />);
+    expect(screen.getByText('Red')).toBeInTheDocument();
+    await user.click(screen.getByText('Red'));
     await user.click(screen.getByText('Medium'));
+
+    // Assert
     expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ value: 'med' }), expect.anything());
   });
 });
@@ -76,12 +102,17 @@ describe('AsyncCreatableSelect Component', () => {
   ];
 
   it('renders', async () => {
+    // Arrange
     const user = userEvent.setup();
     renderWithTheme(<AsyncCreatableSelect options={options} value="car" onChange={() => {}} />);
+
+    // Act
     const selectComponent = screen.getByText('Select...');
     expect(selectComponent).toBeInTheDocument();
     await user.click(selectComponent);
     await user.paste('MBTA');
+
+    // Assert
     expect(screen.getByDisplayValue('MBTA')).toBeInTheDocument();
   });
 });
