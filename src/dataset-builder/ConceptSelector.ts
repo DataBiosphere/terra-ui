@@ -34,6 +34,13 @@ export const tableHeaderStyle: CSSProperties = {
 export const ConceptSelector = (props: ConceptSelectorProps) => {
   const { title, onCancel, onCommit, actionText, datasetId, initialCart, rootConcept, openedConcept } = props;
 
+  // none of the rows should be expandable
+  if (rootConcept !== undefined && rootConcept.children !== undefined) {
+    for (const child of rootConcept.children) {
+      child.hasChildren = false;
+    }
+  }
+
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
     const result = await DataRepo().dataset(datasetId).getConcepts(concept);
