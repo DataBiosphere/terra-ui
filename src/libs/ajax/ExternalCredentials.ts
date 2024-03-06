@@ -16,7 +16,7 @@ export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OA
   return {
     getAccountLinkStatus: async (): Promise<EcmLinkAccountResponse | undefined> => {
       try {
-        const res = await fetchEcm(oidcRoot, _.merge(authOpts(), { signal }));
+        const res = await fetchEcm(oauthRoot, _.merge(authOpts(), { signal }));
         return res.json();
       } catch (error: unknown) {
         if (error instanceof Response && error.status === 404) {
@@ -47,19 +47,19 @@ export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OA
       return res.json();
     },
     unlinkAccount: async (): Promise<void> => {
-      await fetchEcm(oidcRoot, _.merge(authOpts(), { signal, method: 'DELETE' }));
+      await fetchEcm(oauthRoot, _.merge(authOpts(), { signal, method: 'DELETE' }));
     },
     getAccessToken: async (): Promise<string> => {
       if (!supportsAccessToken) {
         throw new Error(`Provider ${providerKey} does not support access tokens`);
       }
-      return await fetchEcm(`${oauthRoot}/accessToken`, _.merge(authOpts(), { signal }));
+      return await fetchEcm(`${oauthRoot}/access-token`, _.merge(authOpts(), { signal }));
     },
     getIdentityToken: async (): Promise<string> => {
       if (!supportsIdToken) {
         throw new Error(`Provider ${providerKey} does not support identity tokens`);
       }
-      const res = await fetchEcm(`${oauthRoot}/passport`, _.merge(authOpts(), { signal }));
+      const res = await fetchEcm(`${oidcRoot}/passport`, _.merge(authOpts(), { signal }));
       return res.text();
     },
   };
