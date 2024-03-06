@@ -1,4 +1,5 @@
 import { Spinner } from '@terra-ui-packages/components';
+import { LoadedState } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -314,7 +315,9 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
   ]);
 };
 
-export const DisplayParticipantCount = (participantCountResponse: DatasetParticipantCountResponse): ReactElement => {
+export const DisplayParticipantCount = (
+  participantCountResponse: LoadedState<DatasetParticipantCountResponse, unknown>
+): ReactElement => {
   if (participantCountResponse.status === 'Ready') {
     return div([
       participantCountResponse.state.result.total === 20 ? '<20' : participantCountResponse.state.result.total,
