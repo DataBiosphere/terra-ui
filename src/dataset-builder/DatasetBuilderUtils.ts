@@ -243,7 +243,6 @@ export type DatasetParticipantCountResponse = {
     total: number;
   };
   sql: string;
-  status: string;
 };
 
 export const convertApiDomainOptionToDomainOption = (domainOption: SnapshotBuilderDomainOption): DomainOption => ({
