@@ -8365,6 +8365,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cli-color@npm:^2.0.1":
+  version: 2.0.4
+  resolution: "cli-color@npm:2.0.4"
+  dependencies:
+    d: ^1.0.1
+    es5-ext: ^0.10.64
+    es6-iterator: ^2.0.3
+    memoizee: ^0.4.15
+    timers-ext: ^0.1.7
+  checksum: ac78b5440520072b0220db7ef32958c640f8197c777e0981c6c94233039ab3891dcf5ccfc1fee52f55aa9debb9703d5191657d95e2e135f0a42d2bb737ab9030
+  languageName: node
+  linkType: hard
+
 "cli-cursor@npm:^3.1.0":
   version: 3.1.0
   resolution: "cli-cursor@npm:3.1.0"
@@ -8971,6 +8984,16 @@ __metadata:
     find-pkg: ^0.1.2
     fs-exists-sync: ^0.1.0
   checksum: 55ab180af86306fe7268c63dd87a737a12e1cb5146be6bcd7fe298df5f5c594cad85907a47fee02cee322d7dc98197a2b45e4d7ebfb0b2c93892bde7d787fe56
+  languageName: node
+  linkType: hard
+
+"d@npm:1, d@npm:^1.0.1":
+  version: 1.0.2
+  resolution: "d@npm:1.0.2"
+  dependencies:
+    es5-ext: ^0.10.64
+    type: ^2.7.2
+  checksum: 775db1e8ced6707cddf64a5840522fcf5475d38ef49a5d615be0ac47f86ef64d15f5a73de1522b09327cc466d4dc35ea83dbfeed456f7a0fdcab138deb800355
   languageName: node
   linkType: hard
 
@@ -9749,6 +9772,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"es5-ext@npm:^0.10.35, es5-ext@npm:^0.10.46, es5-ext@npm:^0.10.53, es5-ext@npm:^0.10.62, es5-ext@npm:^0.10.64, es5-ext@npm:~0.10.14, es5-ext@npm:~0.10.2, es5-ext@npm:~0.10.46":
+  version: 0.10.64
+  resolution: "es5-ext@npm:0.10.64"
+  dependencies:
+    es6-iterator: ^2.0.3
+    es6-symbol: ^3.1.3
+    esniff: ^2.0.1
+    next-tick: ^1.1.0
+  checksum: 01179fab0769fdbef213062222f99d0346724dbaccf04b87c0e6ee7f0c97edabf14be647ca1321f0497425ea7145de0fd278d1b3f3478864b8933e7136a5c645
+  languageName: node
+  linkType: hard
+
+"es6-iterator@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "es6-iterator@npm:2.0.3"
+  dependencies:
+    d: 1
+    es5-ext: ^0.10.35
+    es6-symbol: ^3.1.1
+  checksum: 6e48b1c2d962c21dee604b3d9f0bc3889f11ed5a8b33689155a2065d20e3107e2a69cc63a71bd125aeee3a589182f8bbcb5c8a05b6a8f38fa4205671b6d09697
+  languageName: node
+  linkType: hard
+
 "es6-symbol@npm:^3.1.1, es6-symbol@npm:^3.1.3":
   version: 3.1.3
   resolution: "es6-symbol@npm:3.1.3"
@@ -9756,6 +9802,18 @@ __metadata:
     d: ^1.0.1
     ext: ^1.1.2
   checksum: cd49722c2a70f011eb02143ef1c8c70658d2660dead6641e160b94619f408b9cf66425515787ffe338affdf0285ad54f4eae30ea5bd510e33f8659ec53bcaa70
+  languageName: node
+  linkType: hard
+
+"es6-weak-map@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "es6-weak-map@npm:2.0.3"
+  dependencies:
+    d: 1
+    es5-ext: ^0.10.46
+    es6-iterator: ^2.0.3
+    es6-symbol: ^3.1.1
+  checksum: 19ca15f46d50948ce78c2da5f21fb5b1ef45addd4fe17b5df952ff1f2a3d6ce4781249bc73b90995257264be2a98b2ec749bb2aba0c14b5776a1154178f9c927
   languageName: node
   linkType: hard
 
@@ -10382,6 +10440,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"esniff@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "esniff@npm:2.0.1"
+  dependencies:
+    d: ^1.0.1
+    es5-ext: ^0.10.62
+    event-emitter: ^0.3.5
+    type: ^2.7.2
+  checksum: d814c0e5c39bce9925b2e65b6d8767af72c9b54f35a65f9f3d6e8c606dce9aebe35a9599d30f15b0807743f88689f445163cfb577a425de4fb8c3c5bc16710cc
+  languageName: node
+  linkType: hard
+
 "espree@npm:^9.0.0, espree@npm:^9.3.1":
   version: 9.6.0
   resolution: "espree@npm:9.6.0"
@@ -10453,6 +10523,16 @@ __metadata:
   version: 1.8.1
   resolution: "etag@npm:1.8.1"
   checksum: 571aeb3dbe0f2bbd4e4fadbdb44f325fc75335cd5f6f6b6a091e6a06a9f25ed5392f0863c5442acb0646787446e816f13cbfc6edce5b07658541dff573cab1ff
+  languageName: node
+  linkType: hard
+
+"event-emitter@npm:^0.3.5":
+  version: 0.3.5
+  resolution: "event-emitter@npm:0.3.5"
+  dependencies:
+    d: 1
+    es5-ext: ~0.10.14
+  checksum: 27c1399557d9cd7e0aa0b366c37c38a4c17293e3a10258e8b692a847dd5ba9fb90429c3a5a1eeff96f31f6fa03ccbd31d8ad15e00540b22b22f01557be706030
   languageName: node
   linkType: hard
 
@@ -14202,6 +14282,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lru-queue@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "lru-queue@npm:0.1.0"
+  dependencies:
+    es5-ext: ~0.10.2
+  checksum: 7f2c53c5e7f2de20efb6ebb3086b7aea88d6cf9ae91ac5618ece974122960c4e8ed04988e81d92c3e63d60b12c556b14d56ef7a9c5a4627b23859b813e39b1a2
+  languageName: node
+  linkType: hard
+
 "lz-string@npm:^1.5.0":
   version: 1.5.0
   resolution: "lz-string@npm:1.5.0"
@@ -14383,6 +14472,22 @@ __metadata:
   version: 6.0.0
   resolution: "memoize-one@npm:6.0.0"
   checksum: f185ea69f7cceae5d1cb596266dcffccf545e8e7b4106ec6aa93b71ab9d16460dd118ac8b12982c55f6d6322fcc1485de139df07eacffaae94888b9b3ad7675f
+  languageName: node
+  linkType: hard
+
+"memoizee@npm:^0.4.15":
+  version: 0.4.15
+  resolution: "memoizee@npm:0.4.15"
+  dependencies:
+    d: ^1.0.1
+    es5-ext: ^0.10.53
+    es6-weak-map: ^2.0.3
+    event-emitter: ^0.3.5
+    is-promise: ^2.2.2
+    lru-queue: ^0.1.0
+    next-tick: ^1.1.0
+    timers-ext: ^0.1.7
+  checksum: 4065d94416dbadac56edf5947bf342beca0e9f051f33ad60d7c4baf3f6ca0f3c6fdb770c5caed5a89c0ceaf9121428582f396445d591785281383d60aa883418
   languageName: node
   linkType: hard
 
@@ -18629,6 +18734,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"timers-ext@npm:^0.1.7":
+  version: 0.1.7
+  resolution: "timers-ext@npm:0.1.7"
+  dependencies:
+    es5-ext: ~0.10.46
+    next-tick: 1
+  checksum: ef3f27a0702a88d885bcbb0317c3e3ecd094ce644da52e7f7d362394a125d9e3578292a8f8966071a980d8abbc3395725333b1856f3ae93835b46589f700d938
+  languageName: node
+  linkType: hard
+
 "tiny-invariant@npm:^1.0.2":
   version: 1.1.0
   resolution: "tiny-invariant@npm:1.1.0"
@@ -18872,13 +18987,6 @@ __metadata:
     media-typer: 0.3.0
     mime-types: ~2.1.24
   checksum: 2c8e47675d55f8b4e404bcf529abdf5036c537a04c2b20177bcf78c9e3c1da69da3942b1346e6edb09e823228c0ee656ef0e033765ec39a70d496ef601a0c657
-  languageName: node
-  linkType: hard
-
-"type@npm:^1.0.1":
-  version: 1.2.0
-  resolution: "type@npm:1.2.0"
-  checksum: dae8c64f82c648b985caf321e9dd6e8b7f4f2e2d4f846fc6fd2c8e9dc7769382d8a52369ddbaccd59aeeceb0df7f52fb339c465be5f2e543e81e810e413451ee
   languageName: node
   linkType: hard
 
