@@ -10249,6 +10249,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-focus-lock", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:2.9.5"],\
             ["react-modal", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.16.1"],\
             ["react-onclickoutside", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:6.13.0"],\
+            ["react-select", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.7.4"],\
             ["react-switch", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:6.1.0"],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
             ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:4.5.2"],\
@@ -10289,6 +10290,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-focus-lock", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:2.9.5"],\
             ["react-modal", "virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:3.16.1"],\
             ["react-onclickoutside", "virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:6.13.0"],\
+            ["react-select", "virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:5.7.4"],\
             ["react-switch", "virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:6.1.0"],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
             ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:4.5.2"],\
@@ -23955,6 +23957,32 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             "react"\
           ],\
           "linkType": "HARD"\
+        }],\
+        ["virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:5.7.4", {\
+          "packageLocation": "./.yarn/__virtual__/react-select-virtual-343382e5ad/0/cache/react-select-npm-5.7.4-a84a65df36-ca72941ad1.zip/node_modules/react-select/",\
+          "packageDependencies": [\
+            ["react-select", "virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:5.7.4"],\
+            ["@babel/runtime", "npm:7.22.6"],\
+            ["@emotion/cache", "npm:11.11.0"],\
+            ["@emotion/react", "virtual:78df86ad5dfe72b608fb496d44e416cd9611c8aacb1e1a81ae9d184ee55a841bba22bcc747279d3f6f304cb25a2b6d16cdf32a99dd32370f375b22988ff23963#npm:11.11.1"],\
+            ["@floating-ui/dom", "npm:1.4.5"],\
+            ["@types/react", "npm:18.2.15"],\
+            ["@types/react-dom", null],\
+            ["@types/react-transition-group", "npm:4.4.4"],\
+            ["memoize-one", "npm:6.0.0"],\
+            ["prop-types", "npm:15.8.1"],\
+            ["react", "npm:18.2.0"],\
+            ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:18.2.0"],\
+            ["react-transition-group", "virtual:343382e5ad818dbc55123f7efc588fd9810a729a352b9ca11cef72dfc9060746d7abc7655e51d70ff24a60e5154b079ca42969454824203351c2f5abf584f4c3#npm:4.4.5"],\
+            ["use-isomorphic-layout-effect", "virtual:1eb0e5d22ff3ab5cdfc4c57f3c884a789056920d7f74ec16562b962286e0287a3045fa5f51213d809745d635b72b1ed9edb9ee716c12a9787ab71ffed2f1bf0e#npm:1.1.2"]\
+          ],\
+          "packagePeers": [\
+            "@types/react-dom",\
+            "@types/react",\
+            "react-dom",\
+            "react"\
+          ],\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["react-simplemde-editor", [\
@@ -24131,6 +24159,27 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-transition-group", "npm:4.4.5"]\
           ],\
           "linkType": "SOFT"\
+        }],\
+        ["virtual:343382e5ad818dbc55123f7efc588fd9810a729a352b9ca11cef72dfc9060746d7abc7655e51d70ff24a60e5154b079ca42969454824203351c2f5abf584f4c3#npm:4.4.5", {\
+          "packageLocation": "./.yarn/__virtual__/react-transition-group-virtual-492ea4cf8f/0/cache/react-transition-group-npm-4.4.5-98ea4ef96e-7560284010.zip/node_modules/react-transition-group/",\
+          "packageDependencies": [\
+            ["react-transition-group", "virtual:343382e5ad818dbc55123f7efc588fd9810a729a352b9ca11cef72dfc9060746d7abc7655e51d70ff24a60e5154b079ca42969454824203351c2f5abf584f4c3#npm:4.4.5"],\
+            ["@babel/runtime", "npm:7.22.6"],\
+            ["@types/react", "npm:18.2.15"],\
+            ["@types/react-dom", null],\
+            ["dom-helpers", "npm:5.2.1"],\
+            ["loose-envify", "npm:1.4.0"],\
+            ["prop-types", "npm:15.8.1"],\
+            ["react", "npm:18.2.0"],\
+            ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:18.2.0"]\
+          ],\
+          "packagePeers": [\
+            "@types/react-dom",\
+            "@types/react",\
+            "react-dom",\
+            "react"\
+          ],\
+          "linkType": "HARD"\
         }],\
         ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.5", {\
           "packageLocation": "./.yarn/__virtual__/react-transition-group-virtual-0a3dcbbab4/0/cache/react-transition-group-npm-4.4.5-98ea4ef96e-7560284010.zip/node_modules/react-transition-group/",\
