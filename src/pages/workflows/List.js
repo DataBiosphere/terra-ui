@@ -37,6 +37,22 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
   };
 
   const tabName = tab || 'mine';
+  const tabNames = ['mine', 'public', 'featured'];
+  const tabDisplayNames = (workflowsMap) => {
+    const countString = (tab) => {
+      if (workflowsMap === undefined) {
+        return '';
+      }
+      return ` (${workflowsMap[tab]?.length || 0})`;
+    };
+
+    return {
+      mine: `My Workflows${countString('mine')}`,
+      public: `Public Workflows${countString('public')}`,
+      featured: `Featured Workflows${countString('featured')}`,
+    };
+  };
+
   const tabs = { mine: 'My Workflows', public: 'Public Workflows', featured: 'Featured Workflows' };
 
   useOnMount(() => {
@@ -76,8 +92,8 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
     h(TabBar, {
       'aria-label': 'workflows menu',
       activeTab: tabName,
-      tabNames: Object.keys(tabs),
-      displayNames: tabs,
+      tabNames,
+      displayNames: tabDisplayNames(workflows),
       getHref: (currentTab) => `${Nav.getLink('workflows')}${getUpdatedQuery({ newTab: currentTab })}`,
       getOnClick: (currentTab) => (e) => {
         e.preventDefault();
