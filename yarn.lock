@@ -5977,7 +5977,7 @@ __metadata:
     vite: ^4.5.2
   peerDependencies:
     typescript: ~5.1.6
-    vite: ^4.3.9
+    vite: ^4.5.2
   languageName: unknown
   linkType: soft
 
