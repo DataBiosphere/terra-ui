@@ -3,7 +3,7 @@ import * as qs from 'qs';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
-import { Link } from 'src/components/common';
+import { ButtonPrimary, Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { DelayedSearchInput } from 'src/components/input';
 import { TabBar } from 'src/components/tabBars';
@@ -14,12 +14,14 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { CreateWorkflowModal } from 'src/pages/workflows/workflow/CreateWorkflowModal';
 
 // TODO: add error handling, consider wrapping query updates in useEffect
 const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
   const signal = useCancellation();
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' });
   const [workflows, setWorkflows] = useState();
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const getTabQueryName = (newTab) => (newTab === 'mine' ? undefined : newTab);
 
@@ -89,6 +91,8 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
         value: filter,
       }),
     ]),
+    showCreateModal && h(CreateWorkflowModal, { onDismiss: () => setShowCreateModal(false) }),
+    h(ButtonPrimary, { onClick: () => setShowCreateModal(true) }, ['Create New Workflow']),
     h(TabBar, {
       'aria-label': 'workflows menu',
       activeTab: tabName,

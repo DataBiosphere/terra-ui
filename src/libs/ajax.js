@@ -634,6 +634,18 @@ const Methods = (signal) => ({
     return res.json();
   },
 
+  createWorkflow: async (namespace, name, synopsis, snapshotComment, documentation, payload) => {
+    const res = await fetchAgora(
+      'methods',
+      _.mergeAll([
+        authOpts(),
+        jsonBody({ namespace, name, synopsis, snapshotComment, documentation, payload, entityType: 'Workflow' }),
+        { signal, method: 'POST' },
+      ])
+    );
+    return res.json();
+  },
+
   method: (namespace, name, snapshotId) => {
     const root = `methods/${namespace}/${name}/${snapshotId}`;
 
