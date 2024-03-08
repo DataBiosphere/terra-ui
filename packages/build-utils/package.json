@@ -12,7 +12,7 @@
     "build": "true"
   },
   "dependencies": {
-    "@rollup/plugin-typescript": "^11.1.2",
+    "@rollup/plugin-typescript": "^11.1.6",
     "tslib": "^2.6.1"
   },
   "devDependencies": {
