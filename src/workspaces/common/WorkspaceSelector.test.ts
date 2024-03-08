@@ -1,6 +1,7 @@
-import { getAllByRole, getByRole, render, screen } from '@testing-library/react';
+import { getAllByRole, getByRole, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 

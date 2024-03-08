@@ -6008,6 +6008,7 @@ __metadata:
     react-focus-lock: ^2.9.5
     react-modal: ^3.16.1
     react-onclickoutside: ^6.13.0
+    react-select: ^5.7.4
     react-switch: ^6.1.0
     typescript: ~5.1.6
     vite: ^4.5.2

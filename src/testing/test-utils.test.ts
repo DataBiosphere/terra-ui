@@ -1,9 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Select } from 'src/components/common';
 
-import { SelectHelper } from './test-utils';
+import { renderWithAppContexts as render, SelectHelper } from './test-utils';
 
 const TextSelect = Select as typeof Select<string, boolean>;
 
