@@ -311,6 +311,5 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
 };
 
 export const displayParticipantCount = (count: number): string => {
-  // TODO before merge - switch this count to 19 to match api change
-  return count <= 20 && count > 0 ? 'Less than 20' : count.toString();
+  return count <= 19 && count > 0 ? 'Less than 20' : count.toString();
 };
