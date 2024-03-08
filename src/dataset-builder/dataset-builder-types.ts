@@ -113,7 +113,15 @@ export const domainCriteriaSearchState = {
 
 export interface ConceptSetCreatorState extends DatasetBuilderState {
   mode: 'concept-set-creator';
+  cart: Concept[];
 }
+
+export const conceptSetCreatorState = {
+  new: (cart: Concept[]): ConceptSetCreatorState => ({
+    mode: 'concept-set-creator',
+    cart,
+  }),
+};
 
 export type AnyDatasetBuilderState =
   | HomepageState

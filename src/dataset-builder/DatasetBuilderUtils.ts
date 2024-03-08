@@ -145,6 +145,8 @@ export interface Cohort extends DatasetBuilderType {
 }
 
 export interface ConceptSet extends DatasetBuilderType {
+  name: string;
+  concept: Concept;
   featureValueGroupName: string;
 }
 

@@ -11,17 +11,26 @@ export type ConceptSetCreatorProps = {
   readonly onStateChange: OnStateChangeHandler;
   readonly dataset: DatasetModel;
   readonly conceptSetUpdater: Updater<ConceptSet[]>;
+  readonly cart: Concept[];
 };
 
+// featureValueGroupName represents a domain name
+// this works because the only concepts passed in are also domains
+// such as Condition
 export const toConceptSet = (concept: Concept): ConceptSet => {
   return {
     name: concept.name,
+    concept,
     featureValueGroupName: concept.name,
   };
 };
 
+export const toConcept = (conceptSet: ConceptSet): Concept => {
+  return conceptSet.concept;
+};
+
 export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
-  const { onStateChange, dataset, conceptSetUpdater } = props;
+  const { onStateChange, dataset, conceptSetUpdater, cart } = props;
   const { snapshotBuilderSettings, id } = dataset;
   // create a root for all domainOptions
   const domainOptionRoot: Concept = {
@@ -33,7 +42,7 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
   };
   return h(ConceptSelector, {
     rootConcept: domainOptionRoot,
-    initialCart: [],
+    initialCart: cart,
     title: 'Add concept',
     onCancel: () => onStateChange(homepageState.new()),
     onCommit: (selected: Concept[]) => {

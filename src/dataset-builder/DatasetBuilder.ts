@@ -36,8 +36,15 @@ import * as Utils from 'src/libs/utils';
 import { validate } from 'validate.js';
 
 import { CohortEditor } from './CohortEditor';
-import { ConceptSetCreator } from './ConceptSetCreator';
-import { AnyDatasetBuilderState, cohortEditorState, homepageState, newCohort, Updater } from './dataset-builder-types';
+import { ConceptSetCreator, toConcept } from './ConceptSetCreator';
+import {
+  AnyDatasetBuilderState,
+  cohortEditorState,
+  conceptSetCreatorState,
+  homepageState,
+  newCohort,
+  Updater,
+} from './dataset-builder-types';
 import { BuilderPageHeader, DatasetBuilderHeader } from './DatasetBuilderHeader';
 import { DomainCriteriaSelector } from './DomainCriteriaSelector';
 
@@ -377,7 +384,7 @@ export const ConceptSetSelector = ({
     headerAction: h(
       Link,
       {
-        onClick: () => onStateChange({ mode: 'concept-set-creator' }),
+        onClick: () => onStateChange(conceptSetCreatorState.new(_.map(toConcept, conceptSets))),
         'aria-label': 'Create new concept set',
       },
       [icon('plus-circle-filled', { size: 24 })]
@@ -757,6 +764,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                       onStateChange,
                       dataset: datasetModel.state,
                       conceptSetUpdater: setConceptSets,
+                      cart: datasetBuilderState.cart,
                     })
                   : div(['No Dataset Builder Settings Found']);
               default:
