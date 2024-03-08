@@ -649,7 +649,7 @@ export const DatasetBuilderContents = ({
             datasetRequestParticipantCount.status === 'Ready'
               ? displayParticipantCount(datasetRequestParticipantCount.state.result.total)
               : h(Spinner),
-            'participants in this dataset',
+            ' participants in this dataset',
           ]),
           actionText: 'Request access to this dataset',
           onClick: () => setRequestingAccess(true),
