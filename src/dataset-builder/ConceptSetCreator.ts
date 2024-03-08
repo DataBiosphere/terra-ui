@@ -41,7 +41,11 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
     children: _.map(_.get('root'), snapshotBuilderSettings?.domainOptions),
   };
   return h(ConceptSelector, {
-    rootConcept: domainOptionRoot,
+    // Concept selection currently only supports top level domains, so nodes should not be expandable
+    rootConcept: {
+      ...domainOptionRoot,
+      children: _.map((child) => ({ ...child, hasChildren: false }), domainOptionRoot.children),
+    },
     initialCart: cart,
     title: 'Add concept',
     onCancel: () => onStateChange(homepageState.new()),
