@@ -269,7 +269,8 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     await initializeValidDatasetRequest(user);
     // Assert
-    expect(await screen.findByText('100 Participants in this dataset')).toBeTruthy();
+    expect(await screen.findByText('100')).toBeTruthy();
+    expect(await screen.findByText('participants in this dataset')).toBeTruthy();
     expect(await screen.findByText('Request access to this dataset')).toBeTruthy();
   });
 

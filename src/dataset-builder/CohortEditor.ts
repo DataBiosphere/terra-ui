@@ -13,7 +13,7 @@ import {
   convertApiDomainOptionToDomainOption,
   CriteriaGroup,
   DatasetParticipantCountResponse,
-  DisplayParticipantCount,
+  displayParticipantCount,
   DomainOption,
   ProgramDataListCriteria,
   ProgramDataListOption,
@@ -168,7 +168,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
       ]),
       div([
         'Count: ',
-        criteriaCount.status === 'Ready' ? DisplayParticipantCount(criteriaCount.state.result.total) : h(Spinner),
+        criteriaCount.status === 'Ready' ? displayParticipantCount(criteriaCount.state.result.total) : h(Spinner),
       ]),
     ]
   );
@@ -427,7 +427,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
           div({ style: { marginRight: wideMargin } }, [
             'Group count: ',
             groupParticipantCount.status === 'Ready'
-              ? DisplayParticipantCount(groupParticipantCount.state.result.total)
+              ? displayParticipantCount(groupParticipantCount.state.result.total)
               : h(Spinner),
           ]),
         ]
