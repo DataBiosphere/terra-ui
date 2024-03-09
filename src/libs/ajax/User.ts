@@ -188,6 +188,14 @@ const getFirstTimeStamp = Utils.memoizeAsync(
   { keyFn: (...args) => JSON.stringify(args) }
 ) as (token: string) => Promise<RexFirstTimestampResponse>;
 
+const getRegisteredAtDate = Utils.memoizeAsync(
+  async (token): Promise<SamUserResponse> => {
+    const res = await fetchSam('api/users/v2/self', _.mergeAll([authOpts(token), { method: 'GET' }]));
+    return res.json();
+  },
+  { keyFn: (...args) => JSON.stringify(args) }
+) as (token: string) => Promise<SamUserResponse>;
+
 export const User = (signal?: AbortSignal) => {
   return {
     getStatus: async (): Promise<SamUserRegistrationStatusResponse> => {
@@ -270,6 +278,10 @@ export const User = (signal?: AbortSignal) => {
 
     firstTimestamp: (): Promise<RexFirstTimestampResponse> => {
       return getFirstTimeStamp(getTerraUser().token!);
+    },
+
+    registeredAtDate: (): Promise<SamUserResponse> => {
+      return getRegisteredAtDate(getTerraUser().token!);
     },
 
     getNihStatus: async (): Promise<OrchestrationNihStatusResponse | undefined> => {
