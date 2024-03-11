@@ -6,16 +6,18 @@ import { h } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
   Cohort,
-  convertApiDomainOptionToDomainOption,
   CriteriaGroup,
   DomainCriteria,
-  DomainOption,
   ProgramDataListCriteria,
-  ProgramDataListOption,
   ProgramDataRangeCriteria,
-  ProgramDataRangeOption,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DataRepo, DataRepoContract } from 'src/libs/ajax/DataRepo';
+import {
+  DataRepo,
+  DataRepoContract,
+  SnapshotBuilderDomainOption,
+  SnapshotBuilderProgramDataListOption,
+  SnapshotBuilderProgramDataRangeOption,
+} from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';
@@ -62,11 +64,13 @@ describe('CohortEditor', () => {
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   };
 
-  const programDataRangeOption = (min = 55, max = 99): ProgramDataRangeOption => {
+  const programDataRangeOption = (min = 55, max = 99): SnapshotBuilderProgramDataRangeOption => {
     return {
       id: 0,
       kind: 'range',
       name: 'range',
+      tableName: 'person',
+      columnName: 'range_column',
       min,
       max,
     };
@@ -137,6 +141,8 @@ describe('CohortEditor', () => {
         name: 'test name',
         participantCount: 0,
         conceptCount: 0,
+        tableName: 'domain_occurrence',
+        columnName: 'domain_concept_id',
         root: { id: 0, name: 'test concept', count: 0, hasChildren: false },
       },
     };
@@ -153,6 +159,8 @@ describe('CohortEditor', () => {
       id: 0,
       name: 'list',
       kind: 'list',
+      tableName: 'person',
+      columnName: 'list_column',
       values: [],
     })) as ProgramDataListCriteria;
     renderCriteriaView({ criteria });
@@ -169,6 +177,8 @@ describe('CohortEditor', () => {
       id: 0,
       name: 'list',
       kind: 'list',
+      tableName: 'person',
+      columnName: 'list_column_id',
       values: [
         {
           id: 0,
@@ -207,6 +217,8 @@ describe('CohortEditor', () => {
       id: 0,
       name: 'range',
       kind: 'range',
+      tableName: 'person',
+      columnName: 'range_column',
       min: 55,
       max: 99,
     })) as ProgramDataRangeCriteria;
@@ -225,6 +237,8 @@ describe('CohortEditor', () => {
       id: 0,
       name: 'range',
       kind: 'range',
+      tableName: 'person',
+      columnName: 'range_column',
       min: 55,
       max: 99,
     })) as ProgramDataRangeCriteria;
@@ -250,6 +264,8 @@ describe('CohortEditor', () => {
 
     const criteria = (await criteriaFromOption(0, {
       id: 0,
+      tableName: 'person',
+      columnName: 'range_column',
       name: 'range',
       kind: 'range',
       min,
@@ -275,6 +291,8 @@ describe('CohortEditor', () => {
     // Arrange
     const criteria = (await criteriaFromOption(0, {
       id: 0,
+      tableName: 'person',
+      columnName: 'range_column',
       name: 'range',
       kind: 'range',
       min: 55,
@@ -293,8 +311,8 @@ describe('CohortEditor', () => {
 
   interface ShowCriteriaGroupArgs {
     initializeGroup?: ((criteriaGroup: CriteriaGroup) => void) | undefined;
-    domainOptions?: DomainOption[];
-    programDataOptions?: (ProgramDataRangeOption | ProgramDataListOption)[];
+    domainOptions?: SnapshotBuilderDomainOption[];
+    programDataOptions?: (SnapshotBuilderProgramDataRangeOption | SnapshotBuilderProgramDataListOption)[];
   }
 
   function showCriteriaGroup(args?: ShowCriteriaGroupArgs) {
@@ -310,17 +328,20 @@ describe('CohortEditor', () => {
     }
     cohort.criteriaGroups.push(criteriaGroup);
     const updateCohort = jest.fn();
+    const datasetDetailsUpdated = _.flow(
+      _.set('snapshotBuilderSettings.domainOptions', domainOptions),
+      _.set('snapshotBuilderSettings.programDataOptions', programDataOptions)
+    )(datasetDetails);
+
     render(
       h(CriteriaGroupView, {
         index: 0,
         criteriaGroup,
         updateCohort,
         cohort,
-        dataset: datasetDetails,
+        dataset: datasetDetailsUpdated,
         onStateChange: _.noop,
         getNextCriteriaIndex,
-        domainOptions,
-        programDataOptions,
       })
     );
     return { cohort, updateCohort };
@@ -428,7 +449,6 @@ describe('CohortEditor', () => {
         originalCohort,
         updateCohorts,
         getNextCriteriaIndex,
-        programDataOptions: [],
       })
     );
     return { originalCohort, onStateChange, updateCohorts };
@@ -485,14 +505,17 @@ describe('CohortEditor', () => {
     // Act
     await user.click(screen.getByText('Add group'));
     await user.click(screen.getByLabelText('Add criteria'));
-    const domainOption = convertApiDomainOptionToDomainOption(
-      datasetDetails!.snapshotBuilderSettings!.domainOptions[0]
-    );
-    const domainMenuItem = screen.getByText(domainOption.name);
+    const domainMenuItem = screen.getByText(datasetDetails!.snapshotBuilderSettings!.domainOptions[0].name);
     await user.click(domainMenuItem);
     // Assert
     expect(onStateChange).toBeCalledWith(
-      domainCriteriaSearchState.new(expect.anything(), expect.anything(), _.set('kind', 'domain', domainOption), [], '')
+      domainCriteriaSearchState.new(
+        expect.anything(),
+        expect.anything(),
+        _.set('kind', 'domain', datasetDetails!.snapshotBuilderSettings!.domainOptions[0]),
+        [],
+        ''
+      )
     );
   });
 });

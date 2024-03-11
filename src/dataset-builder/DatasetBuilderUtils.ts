@@ -2,12 +2,13 @@ import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
-  ColumnStatisticsIntOrDoubleModel,
-  ColumnStatisticsTextModel,
   SnapshotBuilderConcept as Concept,
-  SnapshotBuilderConcept,
   SnapshotBuilderDomainOption,
-  SnapshotBuilderProgramDataOption,
+  SnapshotBuilderOption,
+  SnapshotBuilderOptionTypeNames,
+  SnapshotBuilderProgramDataListItem,
+  SnapshotBuilderProgramDataListOption,
+  SnapshotBuilderProgramDataRangeOption,
 } from 'src/libs/ajax/DataRepo';
 
 /** A specific criteria based on a type. */
@@ -15,8 +16,8 @@ export interface Criteria {
   index: number;
   count?: number;
   // The kind is duplicated to make use of the discriminator type
-  kind: OptionTypeNames;
-  option: Option;
+  kind: SnapshotBuilderOptionTypeNames;
+  option: SnapshotBuilderOption;
 }
 
 /** API types represent the data of UI types in the format expected by the backend.
@@ -25,7 +26,7 @@ export interface Criteria {
 export interface CriteriaApi {
   // This is the ID for either the domain or the program data option
   id: number;
-  kind: OptionTypeNames;
+  kind: SnapshotBuilderOptionTypeNames;
   name: string;
   count?: number;
 }
@@ -78,56 +79,24 @@ export type DatasetAccessRequestApi = {
 };
 
 /** Below are the UI types */
-
-type OptionTypeNames = 'domain' | 'range' | 'list';
-
-export interface Option {
-  id: number;
-  name: string;
-  kind: OptionTypeNames;
-}
-
-export interface ProgramDataRangeOption extends Option {
-  kind: 'range';
-  min: number;
-  max: number;
-}
-
-export interface DomainOption extends Option {
-  kind: 'domain';
-  conceptCount?: number;
-  participantCount?: number;
-  root: SnapshotBuilderConcept;
-}
-
 export interface DomainCriteria extends Criteria {
   kind: 'domain';
   conceptId: number;
   conceptName: string;
-  option: DomainOption;
+  option: SnapshotBuilderDomainOption;
 }
 
 export interface ProgramDataRangeCriteria extends Criteria {
   kind: 'range';
-  option: ProgramDataRangeOption;
+  option: SnapshotBuilderProgramDataRangeOption;
   low: number;
   high: number;
 }
 
-export interface ProgramDataListValue {
-  id: number;
-  name: string;
-}
-
-export interface ProgramDataListOption extends Option {
-  kind: 'list';
-  values: ProgramDataListValue[];
-}
-
 export interface ProgramDataListCriteria extends Criteria {
   kind: 'list';
-  option: ProgramDataListOption;
-  values: ProgramDataListValue[];
+  option: SnapshotBuilderProgramDataListOption;
+  values: SnapshotBuilderProgramDataListItem[];
 }
 
 export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
@@ -245,52 +214,8 @@ export type DatasetParticipantCountResponse = {
   sql: string;
 };
 
-export const convertApiDomainOptionToDomainOption = (domainOption: SnapshotBuilderDomainOption): DomainOption => ({
-  ...domainOption,
-  name: domainOption.category,
-  kind: 'domain',
-});
-
 export const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
   return { cohorts: _.map(convertCohort, request.cohorts) };
-};
-export const convertProgramDataOptionToListOption = (
-  programDataOption: SnapshotBuilderProgramDataOption
-): ProgramDataListOption => ({
-  id: programDataOption.id,
-  name: programDataOption.name,
-  kind: 'list',
-  values: _.map(
-    (num) => ({
-      id: num,
-      name: `${programDataOption.name} ${num}`,
-    }),
-    [0, 1, 2, 3, 4]
-  ),
-});
-
-export const convertProgramDataOptionToRangeOption = (
-  programDataOption: SnapshotBuilderProgramDataOption,
-  statistics: ColumnStatisticsIntOrDoubleModel | ColumnStatisticsTextModel
-): ProgramDataRangeOption => {
-  switch (statistics.dataType) {
-    case 'float':
-    case 'float64':
-    case 'integer':
-    case 'int64':
-    case 'numeric':
-      return {
-        name: programDataOption.name,
-        id: programDataOption.id,
-        kind: 'range',
-        min: statistics.minValue,
-        max: statistics.maxValue,
-      };
-    default:
-      throw new Error(
-        `Datatype ${statistics.dataType} for ${programDataOption.tableName}/${programDataOption.columnName} is not numeric`
-      );
-  }
 };
 
 export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElement => {
