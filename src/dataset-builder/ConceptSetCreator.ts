@@ -50,7 +50,7 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
     title: 'Add concept',
     onCancel: () => onStateChange(homepageState.new()),
     onCommit: (selected: Concept[]) => {
-      conceptSetUpdater((conceptSets) => _.flow(_.map(toConceptSet), _.union(conceptSets))(selected));
+      conceptSetUpdater(() => _.flow(_.map(toConceptSet))(selected));
       onStateChange(homepageState.new());
     },
     actionText: 'Add to concept sets',
