@@ -1,0 +1,19 @@
+name: Publish packages
+on:
+  push:
+    branches:
+      - dev
+jobs:
+  publish-packages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Publish packages to NPM registry
+        run: |
+          npx google-artifactregistry-auth --yes --repo-config ./.npmrc
+          yarn install --immutable
+          ./scripts/publish-packages.sh
