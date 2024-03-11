@@ -392,24 +392,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                     h(
                       DropDownSubItem,
                       {
-                        href: 'https://support.terra.bio/hc/en-us/sections/4408259082139-Tutorials',
-                        onClick: hideNav,
-                        ...Utils.newTabLinkProps,
-                      },
-                      ['Tutorials']
-                    ),
-                    h(
-                      DropDownSubItem,
-                      {
-                        href: 'https://support.terra.bio/hc/en-us/sections/4408259363739',
-                        onClick: hideNav,
-                        ...Utils.newTabLinkProps,
-                      },
-                      ['Videos']
-                    ),
-                    h(
-                      DropDownSubItem,
-                      {
                         href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
                         onClick: hideNav,
                         ...Utils.newTabLinkProps,
