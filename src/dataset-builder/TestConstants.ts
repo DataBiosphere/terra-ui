@@ -90,8 +90,16 @@ export const dummyDatasetModel = (): DatasetModel => ({
       },
     ],
     datasetConceptSets: [
-      { name: 'Demographics', featureValueGroupName: 'Person' },
-      { name: 'All surveys', featureValueGroupName: 'Surveys' },
+      {
+        name: 'Demographics',
+        concept: { id: 1, name: 'Person', count: 100, hasChildren: false },
+        featureValueGroupName: 'Person',
+      },
+      {
+        name: 'All surveys',
+        concept: { id: 1, name: 'Surveys', count: 100, hasChildren: false },
+        featureValueGroupName: 'Surveys',
+      },
     ],
   },
 });

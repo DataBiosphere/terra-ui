@@ -5,7 +5,6 @@ import {
   ColumnStatisticsIntOrDoubleModel,
   ColumnStatisticsTextModel,
   SnapshotBuilderConcept as Concept,
-  SnapshotBuilderConcept,
   SnapshotBuilderDomainOption,
   SnapshotBuilderProgramDataOption,
 } from 'src/libs/ajax/DataRepo';
@@ -97,7 +96,7 @@ export interface DomainOption extends Option {
   kind: 'domain';
   conceptCount?: number;
   participantCount?: number;
-  root: SnapshotBuilderConcept;
+  root: Concept;
 }
 
 export interface DomainCriteria extends Criteria {
