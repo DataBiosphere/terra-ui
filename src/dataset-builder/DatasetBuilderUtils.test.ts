@@ -142,7 +142,7 @@ const valueSet: ValueSet = { domain: 'valueDomain', values: [{ name: 'valueName'
 
 const valueSetApi: ValueSetApi = { name: 'valueDomain', values: ['valueName'] };
 
-const conceptSet: ConceptSet = { name: 'conceptSetName', featureValueGroupName: 'featureValueGroupName' };
+const conceptSet: ConceptSet = { name: 'conceptSetName', concept, featureValueGroupName: 'featureValueGroupName' };
 
 const datasetAccessRequest: DatasetAccessRequest = {
   name: 'RequestName',

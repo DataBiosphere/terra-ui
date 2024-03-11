@@ -34,6 +34,8 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   };
 });
 
+const concept = { id: 100, name: 'concept', count: 10, hasChildren: false, children: [] };
+
 describe('DatasetBuilder', () => {
   const dummyDatasetDetailsWithId = dummyDatasetModel();
   type DatasetBuilderContentsPropsOverrides = {
@@ -78,7 +80,7 @@ describe('DatasetBuilder', () => {
   const initializeValidDatasetRequest = async (user) => {
     showDatasetBuilderContents({
       cohorts: [newCohort('cohort 1')],
-      conceptSets: [{ name: 'concept set 1', featureValueGroupName: 'Condition' }],
+      conceptSets: [{ name: 'concept set 1', concept, featureValueGroupName: 'Condition' }],
     });
     await user.click(screen.getByLabelText('cohort 1'));
     await user.click(screen.getByLabelText('concept set 1'));
@@ -104,8 +106,8 @@ describe('DatasetBuilder', () => {
     render(
       h(ConceptSetSelector, {
         conceptSets: [
-          { name: 'concept set 1', featureValueGroupName: 'a' },
-          { name: 'concept set 2', featureValueGroupName: 'b' },
+          { name: 'concept set 1', concept, featureValueGroupName: 'a' },
+          { name: 'concept set 2', concept, featureValueGroupName: 'b' },
         ],
         prepackagedConceptSets: dummyDatasetDetailsWithId!.snapshotBuilderSettings!.datasetConceptSets,
         selectedConceptSets: [],
@@ -198,8 +200,8 @@ describe('DatasetBuilder', () => {
     showDatasetBuilderContents({
       cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
       conceptSets: [
-        { name: 'concept set 1', featureValueGroupName: 'Condition' },
-        { name: 'concept set 2', featureValueGroupName: 'Procedure' },
+        { name: 'concept set 1', concept, featureValueGroupName: 'Condition' },
+        { name: 'concept set 2', concept, featureValueGroupName: 'Procedure' },
       ],
     });
     // Act
@@ -232,7 +234,9 @@ describe('DatasetBuilder', () => {
   it('places selectable values defaulted to selected when concept set is selected', async () => {
     // Arrange
     const user = userEvent.setup();
-    showDatasetBuilderContents({ conceptSets: [{ name: 'concept set 1', featureValueGroupName: 'Condition' }] });
+    showDatasetBuilderContents({
+      conceptSets: [{ name: 'concept set 1', concept, featureValueGroupName: 'Condition' }],
+    });
     // Act
     await user.click(screen.getByLabelText('concept set 1'));
     // Assert
@@ -292,7 +296,7 @@ describe('DatasetBuilder', () => {
     // Act
     await user.click(await screen.findByLabelText('Create new concept set'));
     // Assert
-    expect(onStateChange).toHaveBeenCalledWith({ mode: 'concept-set-creator' });
+    expect(onStateChange).toHaveBeenCalledWith({ mode: 'concept-set-creator', cart: [] });
   });
 
   it('enables editing cohorts', async () => {
@@ -329,8 +333,8 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     const updateConceptSets = jest.fn();
     const conceptSets = [
-      { name: 'concept set 1', featureValueGroupName: 'Condition' },
-      { name: 'concept set 2', featureValueGroupName: 'Procedure' },
+      { name: 'concept set 1', concept, featureValueGroupName: 'Condition' },
+      { name: 'concept set 2', concept, featureValueGroupName: 'Procedure' },
     ];
     showDatasetBuilderContents({ updateConceptSets, conceptSets });
     // Act
