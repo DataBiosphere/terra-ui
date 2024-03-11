@@ -8,10 +8,22 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
+      id-token: 'write'
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '~20.11'
+      - name: Auth to GCP
+        id: 'auth'
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
+          service_account: 'dsp-artifact-registry-push@dsp-artifact-registry.iam.gserviceaccount.com'
       - name: Publish packages to NPM registry
         run: |
           npx google-artifactregistry-auth --yes --repo-config ./.npmrc

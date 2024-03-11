@@ -12,4 +12,9 @@ if git diff --cached -U0 | grep -E --color ${FORBIDDEN}; then
   exit 1
 fi
 
+if [[ $(git ls-files .yarn/cache --exclude-standard --others) ]]; then
+  echo "Changes to Yarn cache need to be committed" 1>&2
+  exit 1
+fi
+
 yarn lint-staged
