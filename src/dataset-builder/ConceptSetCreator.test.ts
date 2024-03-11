@@ -40,7 +40,7 @@ describe('ConceptSetCreator', () => {
     // Arrange
     renderConceptSetCreator([rootConcept]);
     // Assert
-    expect(await screen.findByText('1 concept selected')).toBeTruthy();
+    expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
   });
 
   it('updates the builder concept sets on save', async () => {

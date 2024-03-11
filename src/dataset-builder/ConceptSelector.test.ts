@@ -25,12 +25,12 @@ describe('ConceptSelector', () => {
   // Using 101 so the ID doesn't match the count.
   const rootConcept = { ...dummyGetConceptForId(100), children: [dummyGetConceptForId(101)] };
   const initialCart: SnapshotBuilderConcept[] = [];
-  const renderSelector = () => {
+  const renderSelector = (cart?: SnapshotBuilderConcept[]) => {
     render(
       h(ConceptSelector, {
         actionText,
         rootConcept,
-        initialCart,
+        initialCart: cart || initialCart,
         onCancel,
         onCommit,
         title,
@@ -40,6 +40,8 @@ describe('ConceptSelector', () => {
   };
 
   const firstChild = rootConcept.children[0];
+  const secondChild = rootConcept.children[1];
+
   it('renders the concept selector', () => {
     // Arrange
     renderSelector();
@@ -52,6 +54,22 @@ describe('ConceptSelector', () => {
     expect(screen.queryByText(actionText)).toBeFalsy();
   });
 
+  it('renders the concept selector with a non-empty initial cart', () => {
+    // Arrange
+    renderSelector([firstChild]);
+    // Assert
+    expect(screen.queryByText(actionText)).toBeTruthy();
+    expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
+  });
+
+  it('renders the concept selector with a multiple concepts in initial cart', () => {
+    // Arrange
+    renderSelector([firstChild, secondChild]);
+    // Assert
+    expect(screen.queryByText(actionText)).toBeTruthy();
+    expect(screen.queryByText('2 concepts', { exact: false })).toBeTruthy();
+  });
+
   it('supports add to cart', async () => {
     // Arrange
     renderSelector();
@@ -61,6 +79,17 @@ describe('ConceptSelector', () => {
     // Assert
     expect(screen.queryByText(actionText)).toBeTruthy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
+  });
+
+  it('supports add to cart with existing cart items', async () => {
+    // Arrange
+    renderSelector([secondChild]);
+    // Act
+    const user = userEvent.setup();
+    await user.click(screen.getByLabelText(`add ${firstChild.id}`));
+    // Assert
+    expect(screen.queryByText(actionText)).toBeTruthy();
+    expect(screen.queryByText('2 concept', { exact: false })).toBeTruthy();
   });
 
   it('supports remove from cart', async () => {
