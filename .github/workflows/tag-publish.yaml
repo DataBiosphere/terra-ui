@@ -117,6 +117,7 @@ jobs:
             "${{ steps.image-name.outputs.name }}:latest"
 
       - name: Publish packages to NPM registry on merge commits
+        if: github.event_name != 'pull_request'
         run: |
           npx google-artifactregistry-auth --yes --repo-config ./.npmrc
           yarn install --immutable
