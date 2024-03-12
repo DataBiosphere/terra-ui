@@ -1,8 +1,7 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts, fetchBond, fetchOrchestration, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
-import { getTerraUser, TerraUserProfile } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
+import { TerraUserProfile } from 'src/libs/state';
 
 export interface SamUserRegistrationStatusResponse {
   userSubjectId: string;
@@ -175,14 +174,6 @@ export type SamUserAttributesRequest = {
 
 export type OrchestrationUserRegistrationRequest = object;
 
-const getSamUserResponse = Utils.memoizeAsync(
-  async (token): Promise<SamUserResponse> => {
-    const res = await fetchSam('api/users/v2/self', _.mergeAll([authOpts(token), { method: 'GET' }]));
-    return res.json();
-  },
-  { keyFn: (...args) => JSON.stringify(args) }
-) as (token: string) => Promise<SamUserResponse>;
-
 export const User = (signal?: AbortSignal) => {
   return {
     getStatus: async (): Promise<SamUserRegistrationStatusResponse> => {
@@ -263,9 +254,9 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
-    registeredAtDate: async (): Promise<number> => {
-      const res = await getSamUserResponse(getTerraUser().token!);
-      return new Date(res.registeredAt!).getTime();
+    getSamUserResponse: async (): Promise<SamUserResponse> => {
+      const res = await fetchSam('api/users/v2/self', _.mergeAll([authOpts(), { method: 'GET' }]));
+      return res.json();
     },
 
     getNihStatus: async (): Promise<OrchestrationNihStatusResponse | undefined> => {

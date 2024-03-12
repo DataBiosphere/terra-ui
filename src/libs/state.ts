@@ -11,6 +11,7 @@ import {
   NihDatasetPermission,
   SamUserAllowances,
   SamUserAttributes,
+  SamUserResponse,
 } from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/workspaces/utils';
@@ -132,6 +133,7 @@ export interface TerraUserState {
   profile: TerraUserProfile;
   terraUser: TerraUser;
   terraUserAttributes: SamUserAttributes;
+  samUser: SamUserResponse | undefined;
 }
 
 /**
@@ -165,6 +167,7 @@ export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
   terraUserAttributes: {
     marketingConsent: true,
   },
+  samUser: undefined,
 });
 
 export const getTerraUser = (): TerraUser => userStore.get().terraUser;

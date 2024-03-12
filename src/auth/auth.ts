@@ -526,8 +526,9 @@ authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
-        window.Appcues.identify(userStore.get().terraUser.id!, {
-          dateJoined: await Ajax().User.registeredAtDate(),
+        const { terraUser, samUser } = userStore.get();
+        window.Appcues.identify(terraUser.id!, {
+          dateJoined: samUser!.registeredAt!.getTime(),
         });
         window.Appcues.on('all', captureAppcuesEvent);
       }
@@ -571,17 +572,20 @@ export const loadTerraUser = async (): Promise<void> => {
     const getAllowances = Ajax().User.getUserAllowances();
     const getAttributes = Ajax().User.getUserAttributes();
     const getTermsOfService = Ajax().TermsOfService.getUserTermsOfServiceDetails();
-    const [profile, terraUserAllowances, terraUserAttributes, termsOfService] = await Promise.all([
+    const getSamUser = Ajax().User.getSamUserResponse();
+    const [profile, terraUserAllowances, terraUserAttributes, termsOfService, samUser] = await Promise.all([
       getProfile,
       getAllowances,
       getAttributes,
       getTermsOfService,
+      getSamUser,
     ]);
     clearNotification(sessionTimeoutProps.id);
     userStore.update((state: TerraUserState) => ({
       ...state,
       profile,
       terraUserAttributes,
+      samUser,
     }));
     authStore.update((state: AuthState) => ({
       ...state,
