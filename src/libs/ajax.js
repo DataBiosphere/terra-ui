@@ -665,6 +665,14 @@ const Methods = (signal) => ({
         return res.json();
       },
 
+      toWorkspaceFromTemplate: async (workspace, templatedConfig) => {
+        const res = await fetchRawls(
+          `workspaces/${workspace.namespace}/${workspace.name}/methodconfigs`,
+          _.mergeAll([authOpts(), jsonBody(templatedConfig), { signal, method: 'POST' }])
+        );
+        return res.json();
+      },
+
       toWorkspace: async (workspace, config = {}) => {
         const res = await fetchRawls(
           `workspaces/${workspace.namespace}/${workspace.name}/methodconfigs`,

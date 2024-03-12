@@ -80,6 +80,7 @@ export type WorkspaceState =
   | 'Ready'
   | 'Updating'
   | 'UpdateFailed'
+  | 'UpdateFailed'
   | 'Deleting'
   | 'DeleteFailed'
   | 'Deleted'; // For UI only - not a state in rawls

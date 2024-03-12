@@ -1,4 +1,4 @@
-import { TooltipTrigger, useUniqueId } from '@terra-ui-packages/components';
+import { ButtonPrimary, TooltipTrigger, useUniqueId } from '@terra-ui-packages/components';
 import * as clipboard from 'clipboard-polyfill/text';
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
@@ -23,6 +23,8 @@ import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { snapshotsListStore, snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { ExportToWorkspaceConfigPicker } from 'src/pages/workflows/workflow/ExportToWorkspaceConfigPicker';
+import { ExportToWorkspaceSelectWorkspace } from 'src/pages/workflows/workflow/ExportToWorkspaceSelectWorkspace';
 
 // TODO: add error handling, dedupe
 const InfoTile = ({ title, children }) => {
@@ -115,13 +117,31 @@ const WorkflowSummary = () => {
   const [importUrlCopied, setImportUrlCopied] = useState();
   const importUrl = `${getConfig().orchestrationUrlRoot}/ga4gh/v1/tools/${namespace}:${name}/versions/${snapshotId}/plain-WDL/descriptor`;
 
+  const [exportToWorkspaceModalState, setExportToWorkspaceModalState] = useState('closed');
+
   return div({ style: { flex: 1, display: 'flex' }, role: 'tabpanel' }, [
+    exportToWorkspaceModalState === 'configPicker' &&
+      h(ExportToWorkspaceConfigPicker, {
+        namespace,
+        name,
+        setModalState: setExportToWorkspaceModalState,
+        onDismiss: () => setExportToWorkspaceModalState('closed'),
+      }),
+    exportToWorkspaceModalState === 'selectWorkspace' &&
+      h(ExportToWorkspaceSelectWorkspace, {
+        methodNamespace: namespace,
+        methodName: name,
+        snapshotId,
+        onDismiss: () => setExportToWorkspaceModalState('closed'),
+      }),
     div({ style: Style.dashboard.leftBox }, [
       synopsis && h(Fragment, [h2({ style: Style.dashboard.header }, ['Synopsis']), div({ style: { fontSize: 16 } }, [synopsis])]),
       h2({ style: Style.dashboard.header }, ['Documentation']),
       documentation
         ? h(MarkdownViewer, { renderers: { link: newWindowLinkRenderer } }, [documentation])
         : div({ style: { fontStyle: 'italic' } }, ['No documentation provided']),
+      h2({ style: Style.dashboard.header }, ['Control']),
+      h(ButtonPrimary, { onClick: () => setExportToWorkspaceModalState('configPicker') }, ['Export to Workspace']),
     ]),
     div({ style: Style.dashboard.rightBox }, [
       h2({ style: Style.dashboard.header }, ['Snapshot information']),
