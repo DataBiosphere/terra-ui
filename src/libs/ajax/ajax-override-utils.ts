@@ -18,6 +18,7 @@ type FetchWrapper = (wrappedFetch: FetchFn) => FetchFn;
 export const mapJsonBody = (fn: (body: any) => any): FetchWrapper => {
   return (wrappedFetch: FetchFn): FetchFn => {
     return async (...args) => {
+      // @ts-ignore A spread argument must either have a tuple type or be passed to a rest parameter.
       const response: Response = await wrappedFetch(...args);
       const responseBody: any = await response.json();
       const newResponseBody: any = fn(responseBody);
@@ -41,6 +42,7 @@ export const makeError = (opts: { status: number; frequency?: number }): FetchWr
         const response = new Response('Instrumented error', { status });
         return Promise.resolve(response);
       }
+      // @ts-ignore A spread argument must either have a tuple type or be passed to a rest parameter.
       return wrappedFetch(...args);
     };
   };
