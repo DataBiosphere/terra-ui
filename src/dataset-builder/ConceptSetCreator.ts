@@ -50,7 +50,7 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
     title: 'Add concept',
     onCancel: () => onStateChange(homepageState.new()),
     onCommit: (selected: Concept[]) => {
-      // insures cart persistence without duplicating items in the cart
+      // ensures cart persistence without duplicating items in the cart
       conceptSetUpdater(() => _.flow(_.map(toConceptSet))(selected));
       onStateChange(homepageState.new());
     },
