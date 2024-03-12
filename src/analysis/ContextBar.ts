@@ -347,7 +347,7 @@ export const ContextBar = ({
               'data-testid': 'terminal-button-id',
               tooltipSide: 'left',
               href: terminalLaunchLink,
-              onClick: withErrorReporting('Error starting runtime', async () => {
+              onClick: withErrorReporting('Error starting runtime')(async () => {
                 await Ajax().Metrics.captureEvent(Events.analysisLaunch, {
                   origin: 'contextBar',
                   application: 'terminal',

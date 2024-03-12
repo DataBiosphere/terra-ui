@@ -177,7 +177,7 @@ const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, buck
   const [lockedByEmail, setLockedByEmail] = useState();
 
   useOnMount(() => {
-    const findLockedByEmail = withErrorReporting('Error loading locker information', async () => {
+    const findLockedByEmail = withErrorReporting('Error loading locker information')(async () => {
       const potentialLockers = await findPotentialNotebookLockers({ canShare, namespace, workspaceName: name, bucketName });
       const currentLocker = potentialLockers[lockedBy];
       setLockedByEmail(currentLocker);
@@ -375,7 +375,7 @@ const PreviewHeader = ({
   const enableJupyterLabPersistenceId = `${namespace}/${name}/${ENABLE_JUPYTERLAB_ID}`;
   const [enableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false);
 
-  const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
+  const checkIfLocked = withErrorReporting('Error checking analysis lock status')(async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
       .Buckets.analysis(googleProject, bucketName, getFileName(analysisName), currentFileToolLabel)
       .getObject();
@@ -388,7 +388,7 @@ const PreviewHeader = ({
     }
   });
 
-  const startAndRefresh = withErrorReporting('Error starting compute', async (refreshRuntimes, runtime) => {
+  const startAndRefresh = withErrorReporting('Error starting compute')(async (refreshRuntimes, runtime) => {
     await Ajax().Runtimes.runtimeWrapper(runtime).start();
     await refreshRuntimes(true);
   });
@@ -540,7 +540,7 @@ const PreviewHeader = ({
             h(
               MenuButton,
               {
-                onClick: withErrorReporting('Error copying to clipboard', async () => {
+                onClick: withErrorReporting('Error copying to clipboard')(async () => {
                   await clipboard.writeText(`${window.location.host}/${analysisLink}`);
                   notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 });
                 }),

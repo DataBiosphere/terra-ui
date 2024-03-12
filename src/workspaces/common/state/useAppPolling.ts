@@ -51,7 +51,7 @@ export const useAppPolling = (name: string, namespace: string, workspace?: Works
       throw error;
     }
   };
-  const refreshApps = withErrorReporting('Error loading apps', loadApps) as (maybeStale?: boolean) => Promise<void>;
+  const refreshApps = withErrorReporting('Error loading apps')(loadApps);
   const refreshAppsSilently = withErrorIgnoring(loadApps);
   useEffect(() => {
     if (

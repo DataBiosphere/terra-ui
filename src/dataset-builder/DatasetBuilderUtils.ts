@@ -234,3 +234,7 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
     span([conceptName.substring(endIndex)]),
   ]);
 };
+
+export const displayParticipantCount = (count: number): string => {
+  return count <= 19 && count > 0 ? 'Less than 20' : count.toString();
+};

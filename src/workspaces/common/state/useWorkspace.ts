@@ -177,7 +177,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     }
   };
 
-  const loadAzureStorageDetails = withErrorReporting('Error loading storage information', async (workspace) => {
+  const loadAzureStorageDetails = withErrorReporting('Error loading storage information')(async (workspace) => {
     storeAzureStorageDetails(await AzureStorage(signal).details(workspace.workspace.workspaceId));
   });
 

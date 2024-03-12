@@ -20,7 +20,10 @@ const LockWorkspaceModal = ({
     onDismiss();
   };
 
-  const toggleWorkspaceLock = withErrorReportingInModal('Error toggling workspace lock', onFailureDismiss, async () => {
+  const toggleWorkspaceLock = withErrorReportingInModal(
+    'Error toggling workspace lock',
+    onFailureDismiss
+  )(async () => {
     setTogglingLock(true);
     isLocked ? await Ajax().Workspaces.workspace(namespace, name).unlock() : await Ajax().Workspaces.workspace(namespace, name).lock();
     onDismiss();

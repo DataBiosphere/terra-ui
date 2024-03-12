@@ -17,6 +17,7 @@ import {
   DatasetBuilderType,
   DatasetBuilderValue,
   DatasetParticipantCountResponse,
+  displayParticipantCount,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
@@ -644,9 +645,9 @@ export const DatasetBuilderContents = ({
         h(ActionBar, {
           prompt: h(Fragment, [
             datasetRequestParticipantCount.status === 'Ready'
-              ? datasetRequestParticipantCount.state.result.total
+              ? displayParticipantCount(datasetRequestParticipantCount.state.result.total)
               : h(Spinner),
-            ' Participants in this dataset',
+            ' participants in this dataset',
           ]),
           actionText: 'Request access to this dataset',
           onClick: () => setRequestingAccess(true),

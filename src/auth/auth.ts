@@ -468,7 +468,7 @@ interface GoogleUserInfo {
 }
 
 // This is intended for integration tests to short circuit the login flow
-window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) => {
+window.forceSignIn = withErrorReporting('Error forcing sign in')(async (token) => {
   await initializeAuth(); // don't want this clobbered when real auth initializes
   const res = await fetchOk('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { Authorization: `Bearer ${token}` },
@@ -547,7 +547,7 @@ authStore.subscribe((state: AuthState) => {
 });
 
 authStore.subscribe(
-  withErrorReporting('Error checking groups for timeout status', async (state: AuthState, oldState: AuthState) => {
+  withErrorReporting('Error checking groups for timeout status')(async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
       const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list());
       authStore.update((state) => ({ ...state, isTimeoutEnabled }));
@@ -611,7 +611,7 @@ const doSignInEvents = (state: AuthState) => {
 };
 
 authStore.subscribe(
-  withErrorReporting('Error loading user', async (state: AuthState, oldState: AuthState) => {
+  withErrorReporting('Error loading user')(async (state: AuthState, oldState: AuthState) => {
     if (isNowSignedIn(oldState, state)) {
       await loadTerraUser();
       if (state.userJustSignedIn) {
@@ -624,7 +624,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting('Error loading NIH account link status', async (state: AuthState, oldState: AuthState) => {
+  withErrorReporting('Error loading NIH account link status')(async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
       const nihStatus = await Ajax().User.getNihStatus();
       authStore.update((state: AuthState) => ({ ...state, nihStatus, nihStatusLoaded: true }));
@@ -652,8 +652,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting(
-    'Error loading Framework Services account status',
+  withErrorReporting('Error loading Framework Services account status')(
     async (state: AuthState, oldState: AuthState) => {
       if (userCanNowUseTerra(oldState, state)) {
         await Promise.all(
