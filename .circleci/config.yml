@@ -227,6 +227,13 @@ jobs:
           keys:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
       - run: yarn install --immutable
+      - run:
+          name: "Check for missing cache files"
+          command: |
+            if [[ $(git ls-files .yarn/cache --exclude-standard --others) ]]; then
+              echo "Changes to Yarn cache need to be committed" 1>&2
+              exit 1
+            fi
       - run: yarn run build
       - run: yarn eslint --max-warnings=0 .
       - run: yarn workspaces foreach --exclude terra-integration-tests run test --coverage --maxWorkers=2 --passWithNoTests
