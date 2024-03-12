@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { authOpts, fetchBond, fetchOrchestration, fetchRex, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts, fetchBond, fetchOrchestration, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
 import { getTerraUser, TerraUserProfile } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
@@ -154,10 +154,6 @@ export interface SamInviteUserResponse {
   userEmail: string;
 }
 
-export interface RexFirstTimestampResponse {
-  timestamp: Date;
-}
-
 export interface SamUserResponse {
   id: string;
   googleSubjectId?: string;
@@ -179,16 +175,7 @@ export type SamUserAttributesRequest = {
 
 export type OrchestrationUserRegistrationRequest = object;
 
-// TODO: Remove this as a part of https://broadworkbench.atlassian.net/browse/ID-460
-const getFirstTimeStamp = Utils.memoizeAsync(
-  async (token): Promise<RexFirstTimestampResponse> => {
-    const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]));
-    return res.json();
-  },
-  { keyFn: (...args) => JSON.stringify(args) }
-) as (token: string) => Promise<RexFirstTimestampResponse>;
-
-const getRegisteredAtDate = Utils.memoizeAsync(
+const getSamUserResponse = Utils.memoizeAsync(
   async (token): Promise<SamUserResponse> => {
     const res = await fetchSam('api/users/v2/self', _.mergeAll([authOpts(token), { method: 'GET' }]));
     return res.json();
@@ -276,12 +263,9 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
-    firstTimestamp: (): Promise<RexFirstTimestampResponse> => {
-      return getFirstTimeStamp(getTerraUser().token!);
-    },
-
-    registeredAtDate: (): Promise<SamUserResponse> => {
-      return getRegisteredAtDate(getTerraUser().token!);
+    registeredAtDate: async (): Promise<number> => {
+      const res = await getSamUserResponse(getTerraUser().token!);
+      return new Date(res.registeredAt!).getTime();
     },
 
     getNihStatus: async (): Promise<OrchestrationNihStatusResponse | undefined> => {

@@ -1,5 +1,4 @@
 import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
-import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
@@ -528,7 +527,7 @@ authStore.subscribe(
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
         window.Appcues.identify(userStore.get().terraUser.id!, {
-          dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime(),
+          dateJoined: await Ajax().User.registeredAtDate(),
         });
         window.Appcues.on('all', captureAppcuesEvent);
       }
