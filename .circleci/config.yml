@@ -30,7 +30,9 @@ anchors:
   filter-pr-branch: &filter-pr-branch
     filters:
       branches:
-        ignore: dev
+        ignore:
+          - dev
+          - /gh-readonly-queue\/.*/
 
   filter-dev-branch: &filter-dev-branch
     filters:
