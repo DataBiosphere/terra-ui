@@ -572,20 +572,20 @@ export const loadTerraUser = async (): Promise<void> => {
     const getAllowances = Ajax().User.getUserAllowances();
     const getAttributes = Ajax().User.getUserAttributes();
     const getTermsOfService = Ajax().TermsOfService.getUserTermsOfServiceDetails();
-    const getTieredFeatures = Ajax().User.getTieredFeatures();
-    const [profile, terraUserAllowances, terraUserAttributes, termsOfService, tieredFeatures] = await Promise.all([
+    const getEnterpriseFeatures = Ajax().User.getEnterpriseFeatures();
+    const [profile, terraUserAllowances, terraUserAttributes, termsOfService, enterpriseFeatures] = await Promise.all([
       getProfile,
       getAllowances,
       getAttributes,
       getTermsOfService,
-      getTieredFeatures,
+      getEnterpriseFeatures,
     ]);
     clearNotification(sessionTimeoutProps.id);
     userStore.update((state: TerraUserState) => ({
       ...state,
       profile,
       terraUserAttributes,
-      tieredFeatures,
+      enterpriseFeatures,
     }));
     authStore.update((state: AuthState) => ({
       ...state,

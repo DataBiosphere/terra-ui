@@ -216,25 +216,25 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
-    getTieredFeatures: async (): Promise<string[]> => {
+    getEnterpriseFeatures: async (): Promise<string[]> => {
       const res = await fetchSam(
-        '/api/resources/v2?format=flat&resourceTypes=tiered-feature&roles=user',
+        '/api/resources/v2?format=flat&resourceTypes=enterprise-feature&roles=user',
         _.mergeAll([authOpts(), { signal }])
       );
       const json = await res.json();
       return json.resources.map((resource) => resource.resourceId);
     },
 
-    gimmeAccess: async (tieredFeature: string, email: string): Promise<void> => {
+    gimmeAccess: async (enterpriseFeature: string, email: string): Promise<void> => {
       await fetchSam(
-        `/api/resources/v2/tiered-feature/${tieredFeature}/policies/user/memberEmails/${email}`,
+        `/api/resources/v2/enterprise-feature/${enterpriseFeature}/policies/user/memberEmails/${email}`,
         _.mergeAll([authOpts(), { signal, method: 'PUT' }])
       );
     },
 
-    removeMyAccess: async (tieredFeature: string, email: string): Promise<void> => {
+    removeMyAccess: async (enterpriseFeature: string, email: string): Promise<void> => {
       await fetchSam(
-        `/api/resources/v2/tiered-feature/${tieredFeature}/policies/user/memberEmails/${email}`,
+        `/api/resources/v2/enterprise-feature/${enterpriseFeature}/policies/user/memberEmails/${email}`,
         _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
       );
     },

@@ -70,9 +70,9 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
   const callbacks: Array<OAuth2Callback['name']> = ['oauth-callback', 'ecm-callback']; // ecm-callback is deprecated, but still needs to be supported
   const isLinking =
     callbacks.includes(Nav.getCurrentRoute().name) && state && JSON.parse(atob(state)).provider === provider.key;
-  const { tieredFeatures, terraUser } = useStore(userStore);
+  const { enterpriseFeatures, terraUser } = useStore(userStore);
 
-  const isFeatureEnabled = tieredFeatures.includes(`${provider.key}-account-linking`);
+  const isFeatureEnabled = enterpriseFeatures.includes(`${provider.key}-account-linking`);
 
   useOnMount(() => {
     const loadAccount = withErrorReporting(`Error loading ${provider.name} account`, async () => {
@@ -104,18 +104,18 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
 
   const gimmeAccess = async () => {
     await Ajax(signal).User.gimmeAccess(`${provider.key}-account-linking`, terraUser.email!);
-    notify('info', 'Access Granted via Sam Tiered Features!', {
+    notify('info', 'Access Granted via Sam Enterprise Features!', {
       id: `granted-access-${provider.key}-account-linking`,
-      detail: `Granted access to ${provider.name} Account Linking via Sam Tiered Features`,
+      detail: `Granted access to ${provider.name} Account Linking via Sam Enterprise Features`,
     });
     await loadTerraUser();
   };
 
   const removeMyAcccess = async () => {
     await Ajax(signal).User.removeMyAccess(`${provider.key}-account-linking`, terraUser.email!);
-    notify('error', 'Access Revoked via Sam Tiered Features!', {
+    notify('error', 'Access Revoked via Sam Enterprise Features!', {
       id: `revoked-access-${provider.key}-account-linking`,
-      detail: `Revoked access to ${provider.name} Account Linking via Sam Tiered Features`,
+      detail: `Revoked access to ${provider.name} Account Linking via Sam Enterprise Features`,
     });
     await loadTerraUser();
   };
