@@ -190,7 +190,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const loadData = withErrorIgnoring(refreshData);
 
   const pauseComputeAndRefresh = withBusyState(setLoading, async (compute: DecoratedComputeResource) => {
-    const wrappedPauseCompute = withErrorReporting('Error pausing compute', async () => {
+    const wrappedPauseCompute = withErrorReporting('Error pausing compute')(async () => {
       if (isRuntime(compute)) {
         return leoRuntimeData.stop(compute);
       }
