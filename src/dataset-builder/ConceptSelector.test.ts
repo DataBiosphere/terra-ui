@@ -104,6 +104,17 @@ describe('ConceptSelector', () => {
     expect(screen.queryByText('1 concept', { exact: false })).toBeFalsy();
   });
 
+  it('supports remove from cart, when previously in cart', async () => {
+    // Arrange
+    renderSelector([firstChild]);
+    // Act
+    const user = userEvent.setup();
+    await user.click(screen.getByLabelText(`remove ${firstChild.id}`));
+    // Assert
+    expect(screen.queryByText(actionText)).toBeFalsy();
+    expect(screen.queryByText('1 concept', { exact: false })).toBeFalsy();
+  });
+
   it('calls commit on action', async () => {
     // Arrange
     renderSelector();

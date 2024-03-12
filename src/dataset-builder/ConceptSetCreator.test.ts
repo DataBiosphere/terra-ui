@@ -43,6 +43,13 @@ describe('ConceptSetCreator', () => {
     expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
   });
 
+  it('renders the concept set selector with an item in the cart', async () => {
+    // Arrange
+    renderConceptSetCreator([rootConcept]);
+    // Assert
+    expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
+  });
+
   it('updates the builder concept sets on save', async () => {
     // Arrange
     const { conceptSetUpdater, onStateChange } = renderConceptSetCreator([]);
