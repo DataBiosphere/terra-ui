@@ -116,13 +116,6 @@ jobs:
             "${{ steps.image-name.outputs.tagged }}" \
             "${{ steps.image-name.outputs.name }}:latest"
 
-      - name: Publish packages to NPM registry on merge commits
-        if: github.event_name != 'pull_request'
-        run: |
-          npx google-artifactregistry-auth --yes --repo-config ./.npmrc
-          yarn install --immutable
-          ./scripts/publish-packages.sh
-
   report-to-sherlock:
     uses: broadinstitute/sherlock/.github/workflows/client-report-app-version.yaml@main
     needs: tag-push-job
