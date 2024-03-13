@@ -29,7 +29,7 @@ export const UnsupportedWorkspaceCell = ({ status, message }) => {
     >
       <TooltipTrigger content={message}>
         <div aria-label={message}>
-          `${status}`,
+          {status}
           {icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })}
         </div>
       </TooltipTrigger>
