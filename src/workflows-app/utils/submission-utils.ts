@@ -2,15 +2,19 @@ import _ from 'lodash/fp';
 import { div } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import { statusType as jobStatusType } from 'src/components/job-common';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
-import { differenceFromDatesInSeconds, differenceFromNowInSeconds, maybeParseJSON } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
+import { differenceFromDatesInSeconds, differenceFromNowInSeconds, maybeParseJSON } from 'src/libs/utils';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import {
   InputDefinition,
   InputSource,
   InputType,
   OptionalInputType,
   OutputDefinition,
+  OutputDestination,
+  OutputType,
   PrimitiveInputType,
   StructInputDefinition,
   StructInputType,
@@ -20,6 +24,55 @@ import {
 export const AutoRefreshInterval = 1000 * 60; // 1 minute
 export const WdsPollInterval = 1000 * 30; // 30 seconds
 export const CbasPollInterval = 1000 * 30; // 30 seconds
+
+export type InputTableData = {
+  configurationIndex: number;
+  inputTypeStr: string;
+  inputName: string;
+  inputType: InputType;
+  optional: boolean;
+  source: InputSource;
+  taskName: string;
+  variable: string;
+};
+
+export type OutputTableData = {
+  configurationIndex: number;
+  destination: OutputDestination;
+  outputTypeStr: string;
+  outputName: string;
+  outputType: OutputType;
+  taskName: string;
+  variable: string;
+};
+
+export type WorkflowMetadata = {
+  actualWorkflowLanguage: string;
+  actualWorkflowLanguageVersion: string;
+  calls: {};
+  end: string;
+  id: string;
+  inputs: {}[];
+  labels: {};
+  outputs: {}[];
+  start: string;
+  status: string;
+  submission: string;
+  submittedFiles: {};
+  workflowCallback: {};
+  workflowLog: string;
+  workflowName: string;
+  workflowProcessingEvents: {}[];
+  workflowRoot: string;
+};
+
+export type MetadataOptions = {
+  cromwellProxyUrl: string;
+  excludeKeys: string[];
+  includeKeys: string[];
+  signal: AbortSignal;
+  workflowId: string;
+};
 
 const iconSize = 24;
 export const addCountSuffix = (label, count = undefined) => {
@@ -161,17 +214,19 @@ export type InputValidationWithName = InputValidation & {
   name: string;
 };
 
+const inputValueRequiredMessage = `This ${WorkflowTableColumnNames.INPUT_VALUE.toLowerCase()} is required`;
+
 const validateRequiredHasSource = (inputSource: InputSource, inputType: InputType): IsInputValid => {
   if (inputType.type === 'optional') {
     return true;
   }
 
   if (!inputSource) {
-    return { type: 'error', message: 'This attribute is required' };
+    return { type: 'error', message: inputValueRequiredMessage };
   }
 
   if (inputSource.type === 'none') {
-    return { type: 'error', message: 'This attribute is required' };
+    return { type: 'error', message: inputValueRequiredMessage };
   }
   if (inputSource.type === 'object_builder' && inputType.type === 'struct') {
     const sourceFieldsFilled = _.flow(
@@ -196,10 +251,10 @@ const validateRequiredHasSource = (inputSource: InputSource, inputType: InputTyp
       return true;
     }
 
-    return !!inputSource.parameter_value || { type: 'error', message: 'This attribute is required' };
+    return !!inputSource.parameter_value || { type: 'error', message: inputValueRequiredMessage };
   }
   if (inputSource.type === 'record_lookup' && inputSource.record_attribute === '') {
-    return { type: 'error', message: 'This attribute is required' };
+    return { type: 'error', message: inputValueRequiredMessage };
   }
   return true;
 };
@@ -477,3 +532,70 @@ export const validateInputs = (
     const inputMessage = validateInput(input, dataTableAttributes);
     return { name: 'input_name' in input ? input.input_name : input.field_name, ...inputMessage };
   });
+
+export const getInputTableData = (
+  configuredInputDefinition: InputDefinition[],
+  searchFilter: string,
+  includeOptionalInputs: boolean,
+  inputTableSort: { field: string; direction: boolean | 'asc' | 'desc' }
+): InputTableData[] => {
+  return _.flow(
+    Utils.toIndexPairs,
+    _.map(([index, row]: [number, InputDefinition]): InputTableData => {
+      const { workflow, call, variable } = parseMethodString(row.input_name);
+      return {
+        taskName: call || workflow || '',
+        variable: variable || '',
+        inputTypeStr: renderTypeText(row.input_type),
+        inputName: row.input_name,
+        inputType: row.input_type,
+        configurationIndex: index,
+        optional: isInputOptional(row.input_type),
+        ...row,
+      };
+    }),
+    _.orderBy<InputTableData>(
+      [
+        'optional',
+        // @ts-expect-error
+        ({ [inputTableSort.field]: field }) => _.lowerCase(field),
+        ({ taskName }) => _.lowerCase(taskName),
+        ({ variable }) => _.lowerCase(variable),
+      ],
+      ['asc', inputTableSort.direction, 'asc', 'asc']
+    ),
+    _.filter((row: InputTableData) => {
+      return (
+        (includeOptionalInputs || !row.optional) &&
+        (row.taskName.toLocaleLowerCase().includes(searchFilter.toLocaleLowerCase()) ||
+          row.variable.toLocaleLowerCase().includes(searchFilter.toLocaleLowerCase()))
+      );
+    })
+  )(configuredInputDefinition);
+};
+
+export const getOutputTableData = (
+  configuredOutputDefinition: OutputDefinition[],
+  sort: { field: string; direction: string }
+): OutputTableData[] => {
+  return _.flow(
+    Utils.toIndexPairs,
+    _.map(([index, row]: [number, OutputDefinition]) => {
+      const { workflow, call, variable } = parseMethodString(row.output_name);
+      return {
+        ...row,
+        taskName: call || workflow || '',
+        variable: variable || '',
+        outputTypeStr: renderTypeText(row.output_type),
+        configurationIndex: index,
+      };
+    }),
+    // @ts-expect-error
+    _.orderBy([({ [sort.field]: field }) => _.lowerCase(field)], [sort.direction])
+  )(configuredOutputDefinition);
+};
+
+export const fetchMetadata = async (options: MetadataOptions): Promise<WorkflowMetadata> =>
+  Ajax(options.signal)
+    .CromwellApp.workflows(options.workflowId)
+    .metadata(options.cromwellProxyUrl, { includeKey: options.includeKeys, excludeKey: options.excludeKeys });

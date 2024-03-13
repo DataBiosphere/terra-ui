@@ -1,4 +1,5 @@
 import { Spinner, useThemeFromContext } from '@terra-ui-packages/components';
+import { Modal, Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -8,7 +9,6 @@ import { ButtonPrimary } from 'src/components/common';
 import { getStyles as getErrorStyles } from 'src/components/ErrorView';
 import { icon } from 'src/components/icons';
 import { TextArea, TextInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import { RecordResponse } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -17,11 +17,11 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { poll } from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { MethodVersion, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { InputDefinition, OutputDefinition } from 'src/workflows-app/models/submission-models';
 import { loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { convertInputTypes } from 'src/workflows-app/utils/submission-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 type SubmitWorkflowModalProps = {
   method: WorkflowMethod;

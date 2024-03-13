@@ -17,6 +17,7 @@ const defaultAnalysesData: AnalysesData = {
   refreshRuntimes: () => Promise.resolve(),
   appDataDisks: [],
   persistentDisks: [],
+  isLoadingCloudEnvironments: false,
 };
 
 jest.mock('src/libs/config', () => ({

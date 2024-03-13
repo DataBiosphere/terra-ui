@@ -1,14 +1,14 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { BillingProject } from 'src/billing-core/models';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { CloudProvider, WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { BillingProject } from 'src/pages/billing/models/BillingProject';
 import { azureProtectedDataBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { makeAzureWorkspace, makeGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { ImportRequest } from './import-types';
 import { canImportIntoWorkspace, ImportOptions } from './import-utils';
@@ -37,10 +37,10 @@ jest.mock('src/workspaces/NewWorkspaceModal/NewWorkspaceModal', (): NewWorkspace
   };
 });
 
-type UseWorkspacesExports = typeof import('src/workspaces/useWorkspaces');
-jest.mock('src/workspaces/useWorkspaces', (): UseWorkspacesExports => {
+type UseWorkspacesExports = typeof import('src/workspaces/common/state/useWorkspaces');
+jest.mock('src/workspaces/common/state/useWorkspaces', (): UseWorkspacesExports => {
   return {
-    ...jest.requireActual<UseWorkspacesExports>('src/workspaces/useWorkspaces'),
+    ...jest.requireActual<UseWorkspacesExports>('src/workspaces/common/state/useWorkspaces'),
     useWorkspaces: jest.fn(),
   };
 });

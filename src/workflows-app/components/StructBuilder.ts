@@ -1,12 +1,13 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Dispatch, SetStateAction, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ButtonPrimary, Link } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { HeaderCell, SimpleFlexTable, TextCell } from 'src/components/table';
 import { AttributeSchema } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import * as Utils from 'src/libs/utils';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import {
   InputsButtonRow,
   InputSourceSelect,
@@ -221,7 +222,7 @@ export const StructBuilder = (props: StructBuilderProps) => {
                 },
                 {
                   size: { basis: 300, grow: 1 },
-                  headerRenderer: () => h(HeaderCell, ['Attribute']),
+                  headerRenderer: () => h(HeaderCell, [WorkflowTableColumnNames.INPUT_VALUE]),
                   cellRenderer: ({ rowIndex }) => {
                     // rowIndex is the index of this input in the currently displayed table
                     // configurationIndex is the index of this input the struct input definition

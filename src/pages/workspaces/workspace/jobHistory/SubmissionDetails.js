@@ -1,3 +1,4 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import { delay } from '@terra-ui-packages/core-utils';
 import { differenceInDays, parseISO } from 'date-fns/fp';
 import _ from 'lodash/fp';
@@ -21,7 +22,6 @@ import {
 } from 'src/components/job-common';
 import { SimpleTabBar } from 'src/components/tabBars';
 import { FlexTable, flexTableDefaultRowHeight, Sortable, TextCell, TooltipCell } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
@@ -32,8 +32,9 @@ import { forwardRefWithName, useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { downloadIO, downloadWorkflows, ioTask, ioVariable } from 'src/libs/workflow-utils';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborting', 'Succeeded', 'Failed', 'Aborted'];
 
@@ -269,7 +270,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
 const SubmissionWorkflowIOTable = ({ type, inputOutputs }) => {
   const [textFilter, setTextFilter] = useState('');
   const [sort, setSort] = useState({ field: 'task', direction: 'asc' });
-
+  const valueColumnName = type === 'inputs' ? WorkflowTableColumnNames.INPUT_VALUE : WorkflowTableColumnNames.OUTPUT_NAME;
   const filteredInputOutputs = _.flow(
     _.toPairs,
     _.map(([name, value]) => ({
@@ -321,7 +322,7 @@ const SubmissionWorkflowIOTable = ({ type, inputOutputs }) => {
               },
               {
                 field: 'value',
-                headerRenderer: () => h(Sortable, { sort, field: 'value', onSort: setSort }, ['Attribute']),
+                headerRenderer: () => h(Sortable, { sort, field: 'value', onSort: setSort }, [valueColumnName]),
                 cellRenderer: ({ rowIndex }) => h(TextCell, [filteredInputOutputs[rowIndex].value]),
               },
             ],
@@ -358,7 +359,7 @@ const SubmissionDetails = _.flow(
    */
 
   useEffect(() => {
-    const initialize = withErrorReporting('Unable to fetch submission details', async () => {
+    const initialize = withErrorReporting('Unable to fetch submission details')(async () => {
       if (
         _.isEmpty(submission) ||
         _.some(({ status }) => _.includes(collapseStatus(status), [statusType.running, statusType.submitted]), submission.workflows)

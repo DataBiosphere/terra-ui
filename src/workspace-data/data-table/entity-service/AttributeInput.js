@@ -1,14 +1,12 @@
-import ReactJson from '@microlink/react-json-view';
-import { Switch } from '@terra-ui-packages/components';
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, fieldset, h, label, legend, span } from 'react-hyperscript-helpers';
 import { IdContainer, LabeledCheckbox, Link, RadioButton, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { NumberInput, TextInput } from 'src/components/input';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import * as Utils from 'src/libs/utils';
 
+import { renderInputForAttributeType } from '../shared/AttributeInput';
 import { convertAttributeValue, getAttributeType } from './attribute-utils';
 
 export const AttributeTypeInput = ({
@@ -82,71 +80,6 @@ export const AttributeTypeInput = ({
       ]),
   ]);
 };
-
-const renderInputForAttributeType = _.curry((attributeType, props) => {
-  return Utils.switchCase(
-    attributeType,
-    [
-      'string',
-      () => {
-        const { value = '', ...otherProps } = props;
-        return h(TextInput, {
-          autoFocus: true,
-          placeholder: 'Enter a value',
-          value,
-          ...otherProps,
-        });
-      },
-    ],
-    [
-      'reference',
-      () => {
-        const { value, onChange, ...otherProps } = props;
-        return h(TextInput, {
-          autoFocus: true,
-          placeholder: `Enter a ${value.entityType}_id`,
-          value: value.entityName,
-          onChange: (v) => onChange({ ...value, entityName: v }),
-          ...otherProps,
-        });
-      },
-    ],
-    [
-      'number',
-      () => {
-        const { value = 0, ...otherProps } = props;
-        return h(NumberInput, { autoFocus: true, isClearable: false, value, ...otherProps });
-      },
-    ],
-    [
-      'boolean',
-      () => {
-        const { value = false, ...otherProps } = props;
-        return div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } }, [
-          h(Switch, { checked: value, ...otherProps }),
-        ]);
-      },
-    ],
-    [
-      'json',
-      () => {
-        const { value, onChange, ...otherProps } = props;
-        return h(ReactJson, {
-          ...otherProps,
-          style: { ...otherProps.style, whiteSpace: 'pre-wrap' },
-          src: value,
-          displayObjectSize: false,
-          displayDataTypes: false,
-          enableClipboard: false,
-          name: false,
-          onAdd: _.flow(_.get('updated_src'), onChange),
-          onDelete: _.flow(_.get('updated_src'), onChange),
-          onEdit: _.flow(_.get('updated_src'), onChange),
-        });
-      },
-    ]
-  );
-});
 
 const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
   return Utils.switchCase(

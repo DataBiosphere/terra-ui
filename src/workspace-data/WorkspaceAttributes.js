@@ -14,8 +14,8 @@ import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import { renderDataCell } from 'src/workspace-data/data-table/entity-service/renderDataCell';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 export const getDisplayedAttribute = (arr) => {
   const { key, value, description = '' } = _.mergeAll(arr);

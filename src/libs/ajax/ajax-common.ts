@@ -269,11 +269,6 @@ export const fetchBond = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
-export const fetchMartha = _.flow(
-  withUrlPrefix(`${getConfig().marthaUrlRoot}/`),
-  withRetryAfterReloadingExpiredAuthToken
-)(fetchOk);
-
 export const fetchDrsHub = _.flow(
   withUrlPrefix(`${getConfig().drsHubUrlRoot}/`),
   withRetryAfterReloadingExpiredAuthToken
@@ -284,7 +279,7 @@ export const fetchDrsHub = _.flow(
 export const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk);
 
 export const fetchEcm = _.flow(
-  withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`),
+  withUrlPrefix(`${getConfig().externalCreds?.urlRoot}/`),
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 

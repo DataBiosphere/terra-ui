@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import { atom } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
@@ -28,7 +29,6 @@ import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/b
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { Metrics } from 'src/libs/ajax/Metrics';
@@ -42,8 +42,8 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { cookieReadyStore, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { canWrite, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
+import { canWrite, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 
 import { AzureComputeModal } from './modals/ComputeModal/AzureComputeModal/AzureComputeModal';
 
@@ -71,7 +71,7 @@ const AnalysisLauncher = _.flow(
       analysisName,
       workspace,
       workspace: { accessLevel, canCompute },
-      analysesData: { runtimes, refreshRuntimes, persistentDisks },
+      analysesData: { runtimes, refreshRuntimes, persistentDisks, isLoadingCloudEnvironments },
       storageDetails: { googleBucketLocation, azureContainerRegion },
     },
     _ref
@@ -117,6 +117,7 @@ const AnalysisLauncher = _.flow(
                   workspace,
                   setCreateOpen,
                   refreshRuntimes,
+                  isLoadingCloudEnvironments,
                   readOnlyAccess: !(canWrite(accessLevel) && canCompute),
                 }),
                 h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel: currentFileToolLabel, workspace }),
@@ -166,7 +167,7 @@ const AnalysisLauncher = _.flow(
             setCreateOpen(false);
           },
         }),
-        busy && spinnerOverlay,
+        (busy || isLoadingCloudEnvironments) && spinnerOverlay,
       ]),
     ]);
   }
@@ -176,7 +177,7 @@ const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, buck
   const [lockedByEmail, setLockedByEmail] = useState();
 
   useOnMount(() => {
-    const findLockedByEmail = withErrorReporting('Error loading locker information', async () => {
+    const findLockedByEmail = withErrorReporting('Error loading locker information')(async () => {
       const potentialLockers = await findPotentialNotebookLockers({ canShare, namespace, workspaceName: name, bucketName });
       const currentLocker = potentialLockers[lockedBy];
       setLockedByEmail(currentLocker);
@@ -374,7 +375,7 @@ const PreviewHeader = ({
   const enableJupyterLabPersistenceId = `${namespace}/${name}/${ENABLE_JUPYTERLAB_ID}`;
   const [enableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false);
 
-  const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
+  const checkIfLocked = withErrorReporting('Error checking analysis lock status')(async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
       .Buckets.analysis(googleProject, bucketName, getFileName(analysisName), currentFileToolLabel)
       .getObject();
@@ -387,7 +388,7 @@ const PreviewHeader = ({
     }
   });
 
-  const startAndRefresh = withErrorReporting('Error starting compute', async (refreshRuntimes, runtime) => {
+  const startAndRefresh = withErrorReporting('Error starting compute')(async (refreshRuntimes, runtime) => {
     await Ajax().Runtimes.runtimeWrapper(runtime).start();
     await refreshRuntimes(true);
   });
@@ -539,7 +540,7 @@ const PreviewHeader = ({
             h(
               MenuButton,
               {
-                onClick: withErrorReporting('Error copying to clipboard', async () => {
+                onClick: withErrorReporting('Error copying to clipboard')(async () => {
                   await clipboard.writeText(`${window.location.host}/${analysisLink}`);
                   notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 });
                 }),

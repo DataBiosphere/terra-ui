@@ -1,5 +1,6 @@
+import { formatDate } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { b, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers';
 import { buildExistingEnvironmentConfig } from 'src/analysis/modal-utils';
 import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
@@ -59,10 +60,9 @@ import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { betaVersionTag } from 'src/libs/logos';
 import * as Nav from 'src/libs/nav';
-import { useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 import validate from 'validate.js';
 
 import { computeStyles } from '../../modalStyles';
@@ -215,6 +215,7 @@ export const GcpComputeModalBase = ({
   onSuccess,
   currentRuntime,
   currentDisk,
+  isLoadingCloudEnvironments,
   tool,
   workspace,
   location,
@@ -222,7 +223,8 @@ export const GcpComputeModalBase = ({
 }) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
+  const loading = _loading || isLoadingCloudEnvironments;
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(currentRuntime);
   const [currentPersistentDiskDetails, setCurrentPersistentDiskDetails] = useState(currentDisk);
   const [viewMode, setViewMode] = useState(undefined);
@@ -311,7 +313,6 @@ export const GcpComputeModalBase = ({
 
     const { namespace, name, bucketName, googleProject } = getWorkspaceObject();
     const terraDeploymentEnv = getConfig().terraDeploymentEnv;
-    const customDrsResolverArgs = getConfig().shouldUseDrsHub ? { DRS_RESOLVER_ENDPOINT: 'api/v4/drs/resolve' } : {};
 
     const customEnvVars = {
       WORKSPACE_NAME: name,
@@ -319,8 +320,8 @@ export const GcpComputeModalBase = ({
       WORKSPACE_BUCKET: `gs://${bucketName}`,
       GOOGLE_PROJECT: googleProject,
       CUSTOM_IMAGE: isCustomSelectedImage.toString(),
+      DRS_RESOLVER_ENDPOINT: 'api/v4/drs/resolve',
       ...(!!terraDeploymentEnv && { TERRA_DEPLOYMENT_ENV: terraDeploymentEnv }),
-      ...customDrsResolverArgs,
     };
 
     sendCloudEnvironmentMetrics();
@@ -627,7 +628,7 @@ export const GcpComputeModalBase = ({
       : '';
 
     return div({ style: { whiteSpace: 'pre', ...style } }, [
-      div({ style: Style.proportionalNumbers }, ['Updated: ', selectedImage?.updated ? Utils.makeStandardDate(selectedImage.updated) : null]),
+      div({ style: Style.proportionalNumbers }, ['Updated: ', selectedImage?.updated ? formatDate(selectedImage.updated) : null]),
       h(
         Link,
         {
@@ -647,7 +648,7 @@ export const GcpComputeModalBase = ({
   };
 
   const sendCloudEnvironmentMetrics = () => {
-    const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig();
+    const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk, hasGpu: desiredRuntimeHasGpu } = getDesiredEnvironmentConfig();
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig();
     const desiredMachineType =
       desiredRuntime && (desiredRuntime.cloudService === cloudServices.GCE ? desiredRuntime.machineType : desiredRuntime.masterMachineType);
@@ -666,6 +667,7 @@ export const GcpComputeModalBase = ({
       ..._.mapKeys((key) => `desiredRuntime_${key}`, desiredRuntime),
       desiredRuntime_exists: !!desiredRuntime,
       desiredRuntime_cpus: desiredRuntime ? desiredRuntimeCpus : undefined,
+      desiredRuntime_gpuEnabled: desiredRuntime ? desiredRuntimeHasGpu : undefined,
       desiredRuntime_memory: desiredRuntime ? desiredRuntimeMemory : undefined,
       desiredRuntime_costPerHour: desiredRuntime ? runtimeConfigCost(formatRuntimeConfigForCosts()) : undefined,
       desiredRuntime_pausedCostPerHour: desiredRuntime ? runtimeConfigBaseCost(formatRuntimeConfigForCosts()) : undefined,
@@ -763,17 +765,19 @@ export const GcpComputeModalBase = ({
   };
 
   // Lifecycle
-  useOnMount(() => {
+  useEffect(() => {
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+      existingConfig: !!currentRuntime,
+      ...extractWorkspaceDetails(workspace?.workspace),
+    });
+  }, [currentRuntime, workspace?.workspace]);
+
+  useEffect(() => {
     // Can't pass an async function into useEffect so we define the function in the body and then call it
-    const doUseOnMount = _.flow(
+    const doUseCurrentRuntime = _.flow(
       withErrorReporting('Error loading cloud environment'),
       Utils.withBusyState(setLoading)
     )(async () => {
-      Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
-        existingConfig: !!currentRuntime,
-        ...extractWorkspaceDetails(getWorkspaceObject()),
-      });
-
       const [runtimeDetails, persistentDiskDetails] = await Promise.all([
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         currentDisk ? Ajax().Disks.disksV1().disk(currentDisk.googleProject, currentDisk.name).details() : null,
@@ -793,7 +797,7 @@ export const GcpComputeModalBase = ({
       const runtimeImageUrl = getImageUrlFromRuntime(runtimeDetails);
       const locationType = getLocationType(location);
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType);
-      const runtimeConfig = runtimeDetails?.runtimeConfig || computeConfig;
+      const runtimeConfig = runtimeDetails?.runtimeConfig;
       const gpuConfig = runtimeConfig?.gpuConfig;
       const autopauseThresholdCalculated = runtimeDetails?.autopauseThreshold ?? defaultAutopauseThreshold;
       const newRuntimeType = Utils.switchCase(
@@ -805,8 +809,7 @@ export const GcpComputeModalBase = ({
       const masterDiskSize = Utils.cond(
         [!!runtimeConfig?.diskSize, () => runtimeConfig.diskSize],
         [!!runtimeConfig?.masterDiskSize, () => runtimeConfig.masterDiskSize],
-        [isDataproc(newRuntimeType), () => defaultDataprocMasterDiskSize],
-        () => defaultGceBootDiskSize
+        () => defaultDataprocMasterDiskSize
       );
 
       setCustomImageUrl(runtimeImageUrl ?? '');
@@ -832,14 +835,15 @@ export const GcpComputeModalBase = ({
       });
     });
 
-    doUseOnMount();
-  });
+    doUseCurrentRuntime();
+  }, [currentRuntime, currentDisk, location]);
 
   // Render functions -- begin
   const renderActionButton = () => {
     const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig();
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig();
     const commonButtonProps = Utils.cond(
+      [loading, () => ({ disabled: true, tooltip: 'Loading cloud environments' })],
       [
         hasGpu && viewMode !== 'deleteEnvironment',
         () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' }),
@@ -1590,6 +1594,7 @@ export const GcpComputeModalBase = ({
             ButtonOutline,
             {
               onClick: () => setViewMode('deleteEnvironment'),
+              disabled: isLoadingCloudEnvironments,
             },
             [
               Utils.cond(

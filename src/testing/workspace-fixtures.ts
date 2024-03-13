@@ -3,7 +3,7 @@ import _ from 'lodash/fp';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
 import { RequesterPaysErrorInfo } from 'src/libs/ajax/ajax-common';
-import { AzureWorkspace, GoogleWorkspace, WorkspacePolicy } from 'src/libs/workspace-utils';
+import { AzureWorkspace, GoogleWorkspace, WorkspacePolicy } from 'src/workspaces/utils';
 
 export const defaultAzureWorkspace: AzureWorkspace = {
   workspace: {

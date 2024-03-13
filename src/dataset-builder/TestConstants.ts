@@ -10,20 +10,29 @@ export const dummyDatasetModel = (): DatasetModel => ({
   properties: {},
   snapshotBuilderSettings: {
     programDataOptions: [
-      { name: 'Year of birth', kind: 'range', tableName: 'person', columnName: 'year_of_birth' },
       {
+        id: 0,
+        name: 'Year of birth',
+        kind: 'range',
+        tableName: 'person',
+        columnName: 'year_of_birth',
+      },
+      {
+        id: 1,
         name: 'Ethnicity',
         kind: 'list',
         tableName: 'person',
         columnName: 'ethnicity',
       },
       {
+        id: 2,
         name: 'Gender identity',
         kind: 'list',
         tableName: 'person',
         columnName: 'gender_identity',
       },
       {
+        id: 3,
         name: 'Race',
         kind: 'list',
         tableName: 'person',
@@ -98,17 +107,24 @@ const dummyConcepts = [
   { id: 106, name: 'Metabolic disease', count: 100, hasChildren: false },
   { id: 107, name: 'Finding by site', count: 100, hasChildren: false },
   { id: 108, name: 'Neurological finding', count: 100, hasChildren: false },
-
   { id: 200, name: 'Procedure', count: 100, hasChildren: true },
   { id: 201, name: 'Procedure', count: 100, hasChildren: true },
   { id: 202, name: 'Surgery', count: 100, hasChildren: false },
   { id: 203, name: 'Heart Surgery', count: 100, hasChildren: false },
   { id: 204, name: 'Cancer Surgery', count: 100, hasChildren: false },
-
   { id: 300, name: 'Observation', count: 100, hasChildren: true },
   { id: 301, name: 'Blood Pressure', count: 100, hasChildren: false },
   { id: 302, name: 'Weight', count: 100, hasChildren: false },
   { id: 303, name: 'Height', count: 100, hasChildren: false },
+  { id: 400, name: 'Carcinoma of lung parenchyma', count: 100, hasChildren: true },
+  { id: 401, name: 'Squamous cell carcinoma of lung', count: 100, hasChildren: true },
+  { id: 402, name: 'Non-small cell lung cancer', count: 100, hasChildren: true },
+  { id: 403, name: 'Epidermal growth factor receptor negative ...', count: 100, hasChildren: false },
+  { id: 404, name: 'Non-small cell lung cancer with mutation in epidermal..', count: 100, hasChildren: true },
+  { id: 405, name: 'Non-small cell cancer of lung biopsy..', count: 100, hasChildren: false },
+  { id: 406, name: 'Non-small cell cancer of lung lymph node..', count: 100, hasChildren: false },
+  { id: 407, name: 'Small cell lung cancer', count: 100, hasChildren: true },
+  { id: 408, name: 'Lung Parenchcyma', count: 100, hasChildren: false },
 ];
 
 export const dummyGetConceptForId = (id: number): Concept => {

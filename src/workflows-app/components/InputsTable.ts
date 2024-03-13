@@ -5,6 +5,7 @@ import { Link } from 'src/components/common';
 import { HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/components/table';
 import { RecordTypeSchema } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import * as Utils from 'src/libs/utils';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import {
   InputsButtonRow,
   InputSourceSelect,
@@ -16,11 +17,10 @@ import {
 import { StructBuilderModal } from 'src/workflows-app/components/StructBuilder';
 import { InputDefinition, ObjectBuilderInputSource, StructInputType } from 'src/workflows-app/models/submission-models';
 import {
+  getInputTableData,
+  InputTableData,
   inputTypeStyle,
   InputValidationWithName,
-  isInputOptional,
-  parseMethodString,
-  renderTypeText,
   typeMatch,
 } from 'src/workflows-app/utils/submission-utils';
 
@@ -51,45 +51,18 @@ const InputsTable = ({
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes);
 
-  const inputTableData = _.flow(
-    (rows: InputDefinition[]) =>
-      rows.map((row, index) => {
-        const { workflow, call, variable } = parseMethodString(row.input_name);
-        return {
-          taskName: call || workflow || '',
-          variable: variable || '',
-          inputTypeStr: renderTypeText(row.input_type),
-          configurationIndex: index,
-          optional: isInputOptional(row.input_type),
-          ...row,
-        };
-      }),
-    (rows) =>
-      _.orderBy<(typeof rows)[number]>(
-        [
-          _.get('optional'),
-          ({ [inputTableSort.field]: field }) => _.lowerCase(field),
-          ({ taskName }) => _.lowerCase(taskName),
-          ({ variable }) => _.lowerCase(variable),
-        ],
-        ['asc', inputTableSort.direction, 'asc', 'asc'],
-        rows
-      ),
-    _.filter(
-      _.overEvery([
-        ({ optional }) => includeOptionalInputs || !optional,
-        ({ taskName, variable }) =>
-          _.lowerCase(taskName).includes(_.lowerCase(searchFilter)) ||
-          _.lowerCase(variable).includes(_.lowerCase(searchFilter)),
-      ])
-    )
-  )(configuredInputDefinition);
+  const inputTableData: InputTableData[] = getInputTableData(
+    configuredInputDefinition,
+    searchFilter,
+    includeOptionalInputs,
+    inputTableSort
+  );
 
   const inputRowsInDataTable = inputTableData.filter(
     (row) =>
       _.has(row.variable, dataTableAttributes) &&
       row.source.type === 'none' &&
-      typeMatch(row.input_type, _.get(`${row.variable}.datatype`, dataTableAttributes))
+      typeMatch(row.inputType, _.get(`${row.variable}.datatype`, dataTableAttributes))
   );
 
   const recordLookup = (rowIndex: number) => {
@@ -134,7 +107,7 @@ const InputsTable = ({
   const sourceNone = (rowIndex: number) => {
     return h(
       TextCell,
-      { style: inputTypeStyle(inputTableData[rowIndex].input_type) },
+      { style: inputTypeStyle(inputTableData[rowIndex].inputType) },
       Utils.cond(
         [
           inputRowsInDataTable.some((input) => input.variable === inputTableData[rowIndex].variable),
@@ -185,7 +158,7 @@ const InputsTable = ({
       structBuilderRow !== undefined &&
       h(StructBuilderModal, {
         structName: inputTableData[structBuilderRow].variable,
-        structType: inputTableData[structBuilderRow].input_type as StructInputType,
+        structType: inputTableData[structBuilderRow].inputType as StructInputType,
         structSource: inputTableData[structBuilderRow].source as ObjectBuilderInputSource,
         setStructSource: (source) =>
           setConfiguredInputDefinition(
@@ -222,7 +195,7 @@ const InputsTable = ({
               h(HeaderCell, ['Variable']),
             ]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].input_type) }, [
+            return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].inputType) }, [
               inputTableData[rowIndex].variable,
             ]);
           },
@@ -232,7 +205,7 @@ const InputsTable = ({
           field: 'inputTypeStr',
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].input_type) }, [
+            return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].inputType) }, [
               inputTableData[rowIndex].inputTypeStr,
             ]);
           },
@@ -253,7 +226,7 @@ const InputsTable = ({
         },
         {
           size: { basis: 300, grow: 1 },
-          headerRenderer: () => h(HeaderCell, ['Attribute']),
+          headerRenderer: () => h(HeaderCell, [WorkflowTableColumnNames.INPUT_VALUE]),
           cellRenderer: ({ rowIndex }) => {
             const source = _.get(`${rowIndex}.source`, inputTableData);
             const inputName = _.get(`${rowIndex}.input_name`, inputTableData);

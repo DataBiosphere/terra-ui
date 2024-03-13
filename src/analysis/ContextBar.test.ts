@@ -23,13 +23,13 @@ import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-util
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
   defaultAzureWorkspace,
   defaultGoogleBucketOptions,
   defaultGoogleWorkspace,
 } from 'src/testing/workspace-fixtures';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 const GALAXY_COMPUTE_COST = 10;
 const GALAXY_DISK_COST = 1;
@@ -412,6 +412,7 @@ const contextBarProps: ContextBarProps = {
   refreshRuntimes: () => Promise.resolve(),
   storageDetails: defaultGoogleBucketOptions,
   refreshApps: () => Promise.resolve(),
+  isLoadingCloudEnvironments: false,
   workspace: defaultGoogleWorkspace,
 };
 
@@ -423,6 +424,7 @@ const contextBarPropsForAzure: ContextBarProps = {
   refreshRuntimes: () => Promise.resolve(),
   storageDetails: { ...defaultGoogleBucketOptions, ...populatedAzureStorageOptions },
   refreshApps: () => Promise.resolve(),
+  isLoadingCloudEnvironments: false,
   workspace: defaultAzureWorkspace,
 };
 

@@ -23,7 +23,7 @@ jest.mock('src/libs/react-utils', () => {
 jest.mock('src/libs/error', () => {
   return {
     ...jest.requireActual('src/libs/error'),
-    withErrorIgnoring: jest.fn(),
+    withErrorIgnoring: jest.fn((fn) => fn),
   };
 });
 
@@ -48,15 +48,15 @@ describe('PeriodicAzureCookieSetter', () => {
 
   it('should call withErrorIgnoring', () => {
     usePollingEffectMock.mockImplementation((effectFn, { ms, leading }) =>
-      withErrorIgnoring(effectFn, { ms, leading })
+      withErrorIgnoring(effectFn)({ ms, leading })
     );
     // Arrange
     render(h(PeriodicAzureCookieSetter));
 
     // Assert
     expect(usePollingEffect).toHaveBeenCalled();
+    expect(usePollingEffect).toHaveBeenCalledWith(expect.any(Function), { ms: 5 * 60 * 1000, leading: true });
     expect(withErrorIgnoring).toHaveBeenCalled();
     expect(withErrorIgnoring).toHaveBeenCalledWith(expect.any(Function));
-    expect(withErrorIgnoring).toHaveBeenCalledWith(undefined, { ms: 5 * 60 * 1000, leading: true });
   });
 });

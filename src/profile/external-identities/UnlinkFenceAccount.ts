@@ -1,9 +1,8 @@
-import { ClickableProps } from '@terra-ui-packages/components';
+import { ClickableProps, Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import { notify } from 'src/libs/notifications';

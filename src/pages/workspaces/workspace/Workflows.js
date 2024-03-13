@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useImperativeHandle, useState } from 'react';
 import { a, div, h, label, span } from 'react-hyperscript-helpers';
@@ -8,7 +9,6 @@ import { centeredSpinner, icon } from 'src/components/icons';
 import { DelayedSearchInput } from 'src/components/input';
 import { MarkdownViewer } from 'src/components/markdown';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { PageBox } from 'src/components/PageBox';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
@@ -20,12 +20,12 @@ import { forwardRefWithName, memoWithName, useCancellation, useOnMount } from 's
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Code';
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 export const styles = {
   cardContainer: (listView) => ({

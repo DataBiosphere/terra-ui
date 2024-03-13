@@ -1,9 +1,9 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { div, h, p, span, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { withErrorReporting } from 'src/libs/error';
@@ -16,7 +16,7 @@ import {
   GoogleWorkspaceInfo,
   isAzureWorkspace,
   WorkspaceWrapper as Workspace,
-} from 'src/libs/workspace-utils';
+} from 'src/workspaces/utils';
 
 interface RequestAccessModalProps {
   onDismiss: () => void;

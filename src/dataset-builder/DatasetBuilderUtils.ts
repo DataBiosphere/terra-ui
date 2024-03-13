@@ -1,10 +1,12 @@
-// Types that can be used to create a criteria.
 import _ from 'lodash/fp';
+import { ReactElement } from 'react';
+import { div, span } from 'react-hyperscript-helpers';
 import {
   ColumnStatisticsIntOrDoubleModel,
   ColumnStatisticsTextModel,
   SnapshotBuilderConcept as Concept,
-  SnapshotBuilderDomainOption as DomainOption,
+  SnapshotBuilderConcept,
+  SnapshotBuilderDomainOption,
   SnapshotBuilderProgramDataOption,
 } from 'src/libs/ajax/DataRepo';
 
@@ -12,32 +14,26 @@ import {
 export interface Criteria {
   index: number;
   count?: number;
-  loading?: boolean;
+  // The kind is duplicated to make use of the discriminator type
+  kind: OptionTypeNames;
+  option: Option;
 }
 
 /** API types represent the data of UI types in the format expected by the backend.
  * They are generally subsets or mappings of the UI types. */
 
 export interface CriteriaApi {
-  kind: 'domain' | 'range' | 'list';
+  // This is the ID for either the domain or the program data option
+  id: number;
+  kind: OptionTypeNames;
   name: string;
   count?: number;
 }
 
 export interface DomainCriteriaApi extends CriteriaApi {
   kind: 'domain';
-  id: number;
-}
-
-export interface ProgramDataOption {
-  kind: 'range' | 'list';
-}
-
-export interface ProgramDataRangeOption extends ProgramDataOption {
-  kind: 'range';
-  name: string;
-  min: number;
-  max: number;
+  // This is the id for the selected concept
+  conceptId: number;
 }
 
 export interface ProgramDataRangeCriteriaApi extends CriteriaApi {
@@ -83,12 +79,39 @@ export type DatasetAccessRequestApi = {
 
 /** Below are the UI types */
 
-export interface DomainCriteria extends DomainCriteriaApi, Criteria {
-  domainOption: DomainOption;
+type OptionTypeNames = 'domain' | 'range' | 'list';
+
+export interface Option {
+  id: number;
+  name: string;
+  kind: OptionTypeNames;
 }
 
-export interface ProgramDataRangeCriteria extends ProgramDataRangeCriteriaApi, Criteria {
-  rangeOption: ProgramDataRangeOption;
+export interface ProgramDataRangeOption extends Option {
+  kind: 'range';
+  min: number;
+  max: number;
+}
+
+export interface DomainOption extends Option {
+  kind: 'domain';
+  conceptCount?: number;
+  participantCount?: number;
+  root: SnapshotBuilderConcept;
+}
+
+export interface DomainCriteria extends Criteria {
+  kind: 'domain';
+  conceptId: number;
+  conceptName: string;
+  option: DomainOption;
+}
+
+export interface ProgramDataRangeCriteria extends Criteria {
+  kind: 'range';
+  option: ProgramDataRangeOption;
+  low: number;
+  high: number;
 }
 
 export interface ProgramDataListValue {
@@ -96,29 +119,25 @@ export interface ProgramDataListValue {
   name: string;
 }
 
-export interface ProgramDataListOption extends ProgramDataOption {
+export interface ProgramDataListOption extends Option {
   kind: 'list';
-  name: string;
   values: ProgramDataListValue[];
 }
 
-export interface ProgramDataListCriteria extends Criteria, CriteriaApi {
+export interface ProgramDataListCriteria extends Criteria {
   kind: 'list';
-  listOption: ProgramDataListOption;
+  option: ProgramDataListOption;
   values: ProgramDataListValue[];
 }
 
 export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
-export type LoadingAnyCriteria = AnyCriteria | { loading: true; index: number };
-
 /** A group of criteria. */
 export interface CriteriaGroup {
   name: string;
-  criteria: LoadingAnyCriteria[];
+  criteria: AnyCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
-  count: number;
 }
 
 export interface Cohort extends DatasetBuilderType {
@@ -141,6 +160,14 @@ export type ValueSet = {
 };
 
 export interface GetConceptsResponse {
+  result: Concept[];
+}
+
+export interface GetConceptHierarchyResponse {
+  result: Concept;
+}
+
+export interface SearchConceptsResponse {
   result: Concept[];
 }
 
@@ -171,10 +198,7 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
         name: criteriaGroup.name,
         mustMeet: criteriaGroup.mustMeet,
         meetAll: criteriaGroup.meetAll,
-        criteria: _.flow(
-          _.filter((criteria: LoadingAnyCriteria) => !criteria.loading),
-          _.map((criteria: AnyCriteria) => convertCriteria(criteria))
-        )(criteriaGroup.criteria),
+        criteria: _.map((criteria: AnyCriteria) => convertCriteria(criteria), criteriaGroup.criteria),
       }),
       cohort.criteriaGroups
     ),
@@ -182,7 +206,8 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
 };
 
 export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
-  const mergeObject = { kind: criteria.kind, name: criteria.name };
+  const { kind, id, name } = criteria.option;
+  const mergeObject = { kind, id, name };
   switch (criteria.kind) {
     case 'range':
       return _.merge(mergeObject, { low: criteria.low, high: criteria.high }) as ProgramDataRangeCriteriaApi;
@@ -191,7 +216,7 @@ export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
         values: _.map((value) => value.id, criteria.values),
       }) as ProgramDataListCriteriaApi;
     case 'domain':
-      return _.merge(mergeObject, { id: criteria.id }) as DomainCriteriaApi;
+      return _.merge(mergeObject, { conceptId: criteria.conceptId }) as DomainCriteriaApi;
     default:
       throw new Error('Criteria not of type range, list, or domain.');
   }
@@ -213,9 +238,6 @@ export type DatasetParticipantCountRequest = {
   cohorts: Cohort[];
 };
 
-export type DatasetParticipantCountRequestApi = {
-  cohorts: CohortApi[];
-};
 export type DatasetParticipantCountResponse = {
   result: {
     total: number;
@@ -223,12 +245,19 @@ export type DatasetParticipantCountResponse = {
   sql: string;
 };
 
+export const convertApiDomainOptionToDomainOption = (domainOption: SnapshotBuilderDomainOption): DomainOption => ({
+  ...domainOption,
+  name: domainOption.category,
+  kind: 'domain',
+});
+
 export const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
   return { cohorts: _.map(convertCohort, request.cohorts) };
 };
 export const convertProgramDataOptionToListOption = (
   programDataOption: SnapshotBuilderProgramDataOption
 ): ProgramDataListOption => ({
+  id: programDataOption.id,
   name: programDataOption.name,
   kind: 'list',
   values: _.map(
@@ -252,6 +281,7 @@ export const convertProgramDataOptionToRangeOption = (
     case 'numeric':
       return {
         name: programDataOption.name,
+        id: programDataOption.id,
         kind: 'range',
         min: statistics.minValue,
         max: statistics.maxValue,
@@ -261,4 +291,25 @@ export const convertProgramDataOptionToRangeOption = (
         `Datatype ${statistics.dataType} for ${programDataOption.tableName}/${programDataOption.columnName} is not numeric`
       );
   }
+};
+
+export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElement => {
+  const startIndex = conceptName.toLowerCase().indexOf(searchFilter.toLowerCase());
+
+  // searchFilter is empty or does not exist in conceptName
+  if (startIndex < 0 || searchFilter.trim() === '') {
+    return div([conceptName]);
+  }
+
+  const endIndex = startIndex + searchFilter.length;
+
+  return div({ style: { display: 'pre-wrap' } }, [
+    span([conceptName.substring(0, startIndex)]),
+    span({ style: { fontWeight: 600 } }, [conceptName.substring(startIndex, endIndex)]),
+    span([conceptName.substring(endIndex)]),
+  ]);
+};
+
+export const displayParticipantCount = (count: number): string => {
+  return count <= 19 && count > 0 ? 'Less than 20' : count.toString();
 };

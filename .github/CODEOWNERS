@@ -1,6 +1,8 @@
 # Each line is a file pattern followed by one or more owners.
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-syntax
 /src/analysis @DataBiosphere/broad-interactive-analysis
+/src/billing-core/ @DataBiosphere/broadworkspaces-terra-ui
+/src/billing/ @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/EnvironmentsPage/ @DataBiosphere/broad-interactive-analysis
 /src/constants/datasets.js @DataBiosphere/data-explorer-eng
 /src/import-data/ @DataBiosphere/data-explorer-eng @DataBiosphere/analysisjourneys
@@ -20,13 +22,6 @@
 /src/pages/LandingPage* @DataBiosphere/terra-cobranding
 /src/pages/billing/ @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/workspaces/* @DataBiosphere/broadworkspaces-terra-ui
-/src/pages/workspaces/hooks/* @DataBiosphere/broadworkspaces-terra-ui
-/src/pages/workspaces/migration/* @DataBiosphere/broadworkspaces-terra-ui
-/src/pages/workspaces/workspace/*Dashboard* @DataBiosphere/broadworkspaces-terra-ui
-/src/pages/workspaces/workspace/*Workspace* @DataBiosphere/broadworkspaces-terra-ui
-/src/pages/workspaces/WorkspacesList/* @DataBiosphere/broadworkspaces-terra-ui
-/src/components/*Workspace* @DataBiosphere/broadworkspaces-terra-ui
-/src/components/workspace-utils* @DataBiosphere/broadworkspaces-terra-ui
 /src/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
 /src/workspace-data/ @DataBiosphere/analysisjourneys
 /src/workspaces/ @DataBiosphere/broadworkspaces-terra-ui

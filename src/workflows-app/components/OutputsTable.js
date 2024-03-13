@@ -4,27 +4,16 @@ import { div, h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { TextInput } from 'src/components/input';
 import { HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/components/table';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import { WithWarnings } from 'src/workflows-app/components/inputs-common';
-import { parseMethodString, renderTypeText } from 'src/workflows-app/utils/submission-utils';
+import { getOutputTableData } from 'src/workflows-app/utils/submission-utils';
 
 const OutputsTable = (props) => {
   const { configuredOutputDefinition, setConfiguredOutputDefinition } = props;
 
   const [outputTableSort, setOutputTableSort] = useState({ field: '', direction: 'asc' });
 
-  const outputTableData = _.flow(
-    _.entries,
-    _.map(([index, row]) => {
-      const { workflow, call, variable } = parseMethodString(row.output_name);
-      return _.flow([
-        _.set('taskName', call || workflow || ''),
-        _.set('variable', variable || ''),
-        _.set('outputTypeStr', renderTypeText(row.output_type)),
-        _.set('configurationIndex', parseInt(index)),
-      ])(row);
-    }),
-    _.orderBy([({ [outputTableSort.field]: field }) => _.lowerCase(field)], [outputTableSort.direction])
-  )(configuredOutputDefinition);
+  const outputTableData = getOutputTableData(configuredOutputDefinition, outputTableSort);
 
   const clearOutputs = () => {
     setConfiguredOutputDefinition(_.map((output) => _.set('destination', { type: 'none' })(output))(configuredOutputDefinition));
@@ -77,7 +66,7 @@ const OutputsTable = (props) => {
         {
           headerRenderer: () =>
             div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flex: '1 1 auto' } }, [
-              h(HeaderCell, { style: { overflow: 'visible' } }, ['Attribute']),
+              h(HeaderCell, { style: { overflow: 'visible' } }, [WorkflowTableColumnNames.OUTPUT_NAME]),
               h(Fragment, [
                 div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
                 h(Link, { style: { minWidth: 'fit-content' }, onClick: clearOutputs }, ['Clear outputs']),

@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h, iframe, p, strong } from 'react-hyperscript-helpers';
@@ -21,7 +22,6 @@ import {
 } from 'src/analysis/utils/tool-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
@@ -31,7 +31,7 @@ import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 // The App launcher is where the iframe for the application lives
 // There are several different URL schemes that can be used to access the app launcher, which affect its functionality
@@ -84,7 +84,7 @@ const ApplicationLauncher = _.flow(
 
     const FileOutdatedModal = ({ onDismiss, bucketName }) => {
       const handleChoice = _.flow(
-        withErrorReportingInModal('Error setting up analysis file syncing')(onDismiss),
+        withErrorReportingInModal('Error setting up analysis file syncing', onDismiss),
         Utils.withBusyState(setBusy)
       )(async (shouldCopy) => {
         // this modal only opens when the state variable outdatedAnalyses is non empty (keeps track of a user's outdated RStudio files). it gives users two options when their files are in use by another user
@@ -205,7 +205,7 @@ const ApplicationLauncher = _.flow(
 
     useOnMount(() => {
       const loadUserEmail = async () => {
-        const findHashedEmail = withErrorReporting('Error loading user email information', async () => {
+        const findHashedEmail = withErrorReporting('Error loading user email information')(async () => {
           const hashedEmail = await notebookLockHash(bucketName, email);
           setHashedOwnerEmail(hashedEmail);
         });
@@ -221,7 +221,7 @@ const ApplicationLauncher = _.flow(
       const runtime = getCurrentRuntime(runtimes);
       const runtimeStatus = getConvertedRuntimeStatus(runtime);
 
-      const computeIframeSrc = withErrorReporting('Error loading application iframe', async () => {
+      const computeIframeSrc = withErrorReporting('Error loading application iframe')(async () => {
         const getSparkInterfaceSource = (proxyUrl) => {
           console.assert(_.endsWith('/jupyter', proxyUrl), 'Unexpected ending for proxy URL');
           const proxyUrlWithlastSegmentDropped = _.flow(_.split('/'), _.dropRight(1), _.join('/'))(proxyUrl);

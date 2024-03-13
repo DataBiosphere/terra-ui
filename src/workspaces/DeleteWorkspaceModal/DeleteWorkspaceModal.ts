@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import { useState } from 'react';
@@ -6,12 +7,11 @@ import { bucketBrowserUrl } from 'src/auth/auth';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import colors from 'src/libs/colors';
 import { warningBoxStyle } from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/libs/workspace-utils';
-import { useDeleteWorkspaceState } from 'src/pages/workspaces/hooks/useDeleteWorkspaceState';
+import { useDeleteWorkspaceState } from 'src/workspaces/DeleteWorkspaceModal/state/useDeleteWorkspaceState';
+import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface DeleteWorkspaceModalProps {
   workspace: Workspace;

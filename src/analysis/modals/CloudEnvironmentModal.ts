@@ -57,13 +57,8 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import {
-  BaseWorkspace,
-  CloudProvider,
-  cloudProviderTypes,
-  getCloudProviderFromWorkspace,
-} from 'src/libs/workspace-utils';
 import { cromwellLinkProps, getCromwellUnsupportedMessage } from 'src/workflows-app/utils/app-utils';
+import { BaseWorkspace, CloudProvider, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 
 const titleId = 'cloud-env-modal';
 
@@ -77,6 +72,7 @@ export const CloudEnvironmentModal = ({
   appDataDisks,
   refreshRuntimes,
   refreshApps,
+  isLoadingCloudEnvironments,
   workspace,
   persistentDisks,
   // Note: for Azure environments `location` and `computeRegion` are identical
@@ -93,6 +89,7 @@ export const CloudEnvironmentModal = ({
   appDataDisks: PersistentDisk[];
   refreshRuntimes: () => Promise<void>;
   refreshApps: () => Promise<void>;
+  isLoadingCloudEnvironments: boolean;
   workspace: BaseWorkspace;
   persistentDisks: PersistentDisk[];
   location: string;
@@ -120,6 +117,7 @@ export const CloudEnvironmentModal = ({
       tool,
       currentRuntime,
       currentDisk,
+      isLoadingCloudEnvironments,
       location,
       onDismiss,
       onSuccess,
@@ -133,6 +131,7 @@ export const CloudEnvironmentModal = ({
       workspace,
       currentRuntime,
       currentDisk: getReadyPersistentDisk(persistentDisks),
+      isLoadingCloudEnvironments,
       location,
       tool,
       onDismiss,

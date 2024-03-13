@@ -15,6 +15,7 @@ const defaultAnalysesData: AnalysesData = {
   refreshRuntimes: () => Promise.resolve(),
   appDataDisks: [],
   persistentDisks: [],
+  isLoadingCloudEnvironments: false,
 };
 
 const defaultAnalysesDataWithAppsRefreshed: AnalysesData = {
@@ -211,5 +212,78 @@ describe('Workflows App Navigation Panel', () => {
     });
 
     expect(screen.queryByText('Launch Workflows app to run workflows')).not.toBeInTheDocument();
+  });
+
+  it('renders an error screen when WORKFLOWS_APP is in error state', async () => {
+    const analysesDataWithAppsInError: AnalysesData = {
+      ...defaultAnalysesDataWithAppsRefreshed,
+      apps: [
+        {
+          workspaceId: 'test-id',
+          cloudContext: {
+            cloudProvider: 'AZURE',
+            cloudResource: 'test-resource',
+          },
+          kubernetesRuntimeConfig: {
+            numNodes: 1,
+            machineType: 'test-machine-type',
+            autoscalingEnabled: false,
+          },
+          proxyUrls: {},
+          diskName: 'test-disk',
+          accessScope: 'test-scope',
+          labels: {},
+          region: 'test-region',
+          appName: 'WORKFLOWS_APP',
+          errors: [
+            {
+              errorMessage: 'Sample error message',
+              timestamp: '2024-01-23T18:41:42.831Z',
+              action: 'createApp',
+              source: 'app',
+              googleErrorCode: null,
+              traceId: null,
+            },
+            {
+              errorMessage: 'Second error message',
+              timestamp: '2024-01-23T18:41:42.831Z',
+              action: 'deleteApp',
+              source: 'app',
+              googleErrorCode: null,
+              traceId: null,
+            },
+          ],
+          status: 'ERROR',
+          auditInfo: {
+            creator: 'ssalahi@broadinstitute.org',
+            createdDate: '2024-01-23T18:41:42.186232Z',
+            destroyedDate: null,
+            dateAccessed: '2024-01-23T18:41:42.186232Z',
+          },
+          appType: 'WORKFLOWS_APP',
+        },
+      ],
+    };
+
+    await act(() => {
+      render(
+        h(WorkflowsAppNavPanel, {
+          loading: false,
+          launcherDisabled: true,
+          launching: false,
+          createWorkflowsApp: jest.fn(),
+          pageReady: true,
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: analysesDataWithAppsInError,
+          setLoading: jest.fn(),
+          signal: jest.fn(),
+        })
+      );
+    });
+
+    expect(screen.getByText('Error launching Workflows app')).toBeInTheDocument();
+    expect(screen.getByText('Sample error message')).toBeInTheDocument();
   });
 });

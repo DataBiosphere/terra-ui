@@ -1,4 +1,5 @@
-import { Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
+import { PopupTrigger, TooltipTrigger, useThemeFromContext } from '@terra-ui-packages/components';
+import { formatDatetime, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, h2, strong } from 'react-hyperscript-helpers';
@@ -17,10 +18,9 @@ import { getDisplayRuntimeStatus, isGcpContext } from 'src/analysis/utils/runtim
 import { AppToolLabel } from 'src/analysis/utils/tool-utils';
 import { Clickable, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger';
+import { makeMenuIcon } from 'src/components/PopupTrigger';
 import SupportRequestWrapper from 'src/components/SupportRequest';
 import { SimpleFlexTable, Sortable } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { useModalHandler } from 'src/components/useModalHandler';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
@@ -30,15 +30,14 @@ import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider'
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { MetricsProvider } from 'src/libs/ajax/metrics/useMetrics';
-import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
 import { contactUsActive } from 'src/libs/state';
 import { elements as styleElements } from 'src/libs/style';
-import { cond, DEFAULT as COND_DEFAULT, formatUSD, makeCompleteDate, withBusyState } from 'src/libs/utils';
-import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { UseWorkspaces, UseWorkspacesResult } from 'src/workspaces/useWorkspaces.models';
+import { cond, DEFAULT as COND_DEFAULT, formatUSD, withBusyState } from 'src/libs/utils';
+import { UseWorkspaces, UseWorkspacesResult } from 'src/workspaces/common/state/useWorkspaces.models';
+import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { DeleteAppModal } from './DeleteAppModal';
 import { DeleteButton } from './DeleteButton';
@@ -79,6 +78,7 @@ export interface EnvironmentsProps {
 
 export const Environments = (props: EnvironmentsProps): ReactNode => {
   const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, metrics } = props;
+  const { colors } = useThemeFromContext();
   const signal = useCancellation();
 
   type WorkspaceWrapperLookup = { [namespace: string]: { [name: string]: WorkspaceWrapper } };
@@ -190,7 +190,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const loadData = withErrorIgnoring(refreshData);
 
   const pauseComputeAndRefresh = withBusyState(setLoading, async (compute: DecoratedComputeResource) => {
-    const wrappedPauseCompute = withErrorReporting('Error pausing compute', async () => {
+    const wrappedPauseCompute = withErrorReporting('Error pausing compute')(async () => {
       if (isRuntime(compute)) {
         return leoRuntimeData.stop(compute);
       }
@@ -568,7 +568,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 field: 'created',
                 headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
                 cellRenderer: ({ rowIndex }) => {
-                  return makeCompleteDate(filteredCloudEnvironments[rowIndex].auditInfo.createdDate);
+                  return formatDatetime(filteredCloudEnvironments[rowIndex].auditInfo.createdDate);
                 },
               },
               {
@@ -576,7 +576,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 field: 'accessed',
                 headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
                 cellRenderer: ({ rowIndex }) => {
-                  return makeCompleteDate(filteredCloudEnvironments[rowIndex].auditInfo.dateAccessed);
+                  return formatDatetime(filteredCloudEnvironments[rowIndex].auditInfo.dateAccessed);
                 },
               },
               {
@@ -600,6 +600,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                     h(PauseButton, { cloudEnvironment, permissions, pauseComputeAndRefresh }),
                     h(DeleteButton, {
                       resource: cloudEnvironment,
+                      permissions,
                       onClick: (resource) => {
                         isApp(resource) ? deleteAppModal.open(resource) : setDeleteRuntimeId(resource.id);
                       },
@@ -737,7 +738,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 headerRenderer: () =>
                   h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
                 cellRenderer: ({ rowIndex }) => {
-                  return makeCompleteDate(filteredDisks[rowIndex].auditInfo.createdDate);
+                  return formatDatetime(filteredDisks[rowIndex].auditInfo.createdDate);
                 },
               },
               {
@@ -746,7 +747,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 headerRenderer: () =>
                   h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
                 cellRenderer: ({ rowIndex }) => {
-                  return makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed);
+                  return formatDatetime(filteredDisks[rowIndex].auditInfo.dateAccessed);
                 },
               },
               {

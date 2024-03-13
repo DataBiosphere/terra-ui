@@ -1,4 +1,4 @@
-import { useUniqueId } from '@terra-ui-packages/components';
+import { TooltipTrigger, useUniqueId } from '@terra-ui-packages/components';
 import * as clipboard from 'clipboard-polyfill/text';
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
@@ -12,7 +12,6 @@ import { centeredSpinner, icon } from 'src/components/icons';
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown';
 import { TabBar } from 'src/components/tabBars';
 import { FlexTable, HeaderCell } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import TopBar from 'src/components/TopBar';
 import WDLViewer from 'src/components/WDLViewer';
 import { Ajax } from 'src/libs/ajax';
@@ -143,7 +142,7 @@ const WorkflowSummary = () => {
           {
             style: { margin: '0 0.5rem', flexShrink: 0 },
             tooltip: 'Copy import URL',
-            onClick: withErrorReporting('Error copying to clipboard', async () => {
+            onClick: withErrorReporting('Error copying to clipboard')(async () => {
               await clipboard.writeText(importUrl);
               setImportUrlCopied(true);
               setTimeout(() => setImportUrlCopied(), 1500);

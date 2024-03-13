@@ -1,3 +1,4 @@
+import { div, span } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
   AnyCriteriaApi,
@@ -14,6 +15,8 @@ import {
   DatasetAccessRequestApi,
   DomainCriteria,
   DomainCriteriaApi,
+  DomainOption,
+  HighlightConceptName,
   ProgramDataListCriteria,
   ProgramDataListCriteriaApi,
   ProgramDataListOption,
@@ -24,7 +27,7 @@ import {
   ValueSet,
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { SnapshotBuilderConcept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
+import { SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 
 const concept: SnapshotBuilderConcept = {
   id: 0,
@@ -33,30 +36,33 @@ const concept: SnapshotBuilderConcept = {
   hasChildren: false,
 };
 
-const domainOption: SnapshotBuilderDomainOption = {
+const domainOption: DomainOption = {
   id: 1,
-  category: 'category',
+  name: 'category',
+  kind: 'domain',
   conceptCount: 10,
   participantCount: 20,
   root: concept,
 };
 
 const domainCriteria: DomainCriteria = {
+  conceptId: 100,
+  conceptName: 'conceptName',
   kind: 'domain',
-  name: 'domainCriteria',
-  domainOption,
-  id: 2,
+  option: domainOption,
   index: 0,
   count: 100,
 };
 
 const domainCriteriaApi: DomainCriteriaApi = {
   kind: 'domain',
-  name: 'domainCriteria',
-  id: 2,
+  name: 'category',
+  id: 1,
+  conceptId: 100,
 };
 
 const rangeOption: ProgramDataRangeOption = {
+  id: 2,
   kind: 'range',
   min: 0,
   max: 101,
@@ -65,8 +71,7 @@ const rangeOption: ProgramDataRangeOption = {
 
 const rangeCriteria: ProgramDataRangeCriteria = {
   kind: 'range',
-  name: 'rangeCriteria',
-  rangeOption,
+  option: rangeOption,
   index: 4,
   count: 100,
   low: 1,
@@ -74,8 +79,9 @@ const rangeCriteria: ProgramDataRangeCriteria = {
 };
 
 const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
+  id: 2,
   kind: 'range',
-  name: 'rangeCriteria',
+  name: 'rangeOption',
   low: 1,
   high: 99,
 };
@@ -83,6 +89,7 @@ const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
 const optionValues: ProgramDataListValue[] = [{ id: 5, name: 'listOptionListValue' }];
 
 const listOption: ProgramDataListOption = {
+  id: 2,
   kind: 'list',
   name: 'listOption',
   values: optionValues,
@@ -97,15 +104,15 @@ const criteriaListValuesApi: number[] = [7, 8];
 
 const listCriteria: ProgramDataListCriteria = {
   kind: 'list',
-  name: 'listCriteria',
   index: 9,
-  listOption,
+  option: listOption,
   values: criteriaListValues,
 };
 
 const listCriteriaApi: ProgramDataListCriteriaApi = {
+  id: 2,
   kind: 'list',
-  name: 'listCriteria',
+  name: 'listOption',
   values: criteriaListValuesApi,
 };
 
@@ -118,7 +125,6 @@ const criteriaGroup: CriteriaGroup = {
   criteria: anyCriteriaArray,
   mustMeet: true,
   meetAll: false,
-  count: 50,
 };
 
 const criteriaGroupApi: CriteriaGroupApi = {
@@ -177,5 +183,76 @@ describe('test conversion of valueSets', () => {
 describe('test conversion of DatasetAccessRequest', () => {
   test('datasetAccessRequest converted to datasetAccessRequestApi', () => {
     expect(convertDatasetAccessRequest(datasetAccessRequest)).toStrictEqual(datasetAccessRequestApi);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  const createHighlightConceptName = (beforeHighlight: string, highlightWord: string, afterHighlight: string) => {
+    return div({ style: { display: 'pre-wrap' } }, [
+      span([beforeHighlight]),
+      span({ style: { fontWeight: 600 } }, [highlightWord]),
+      span([afterHighlight]),
+    ]);
+  };
+
+  test('searching beginning of conceptName', () => {
+    const searchFilter = 'Clinic';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('', 'Clinic', 'al Finding');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test("Testing to make sure capitalization doesn't change", () => {
+    const searchFilter = 'clin';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('', 'Clin', 'ical Finding');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the middle of conceptName', () => {
+    const searchFilter = 'cal';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('Clini', 'cal', ' Finding');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the end of conceptName', () => {
+    const searchFilter = 'Finding';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('Clinical ', 'Finding', '');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the not in conceptName: "XXX" in "Clinical Finding"', () => {
+    const searchFilter = 'XXX';
+    const conceptName = 'Clinical Finding';
+    const result = div(['Clinical Finding']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the not in conceptName: "Clinical" in "Clin"', () => {
+    const searchFilter = 'Clinical';
+    const conceptName = 'Clin';
+    const result = div(['Clin']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord is empty: "" ', () => {
+    const searchFilter = '';
+    const conceptName = 'Condition';
+    const result = div(['Condition']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test("doesn't bold whitespace", () => {
+    let searchFilter = ' ';
+    let conceptName = 'Clinical Finding';
+    let result = div(['Clinical Finding']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+
+    searchFilter = '   ';
+    conceptName = 'Clinical Finding';
+    result = div(['Clinical Finding']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
   });
 });

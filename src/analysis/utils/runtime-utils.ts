@@ -17,7 +17,7 @@ import {
   Runtime,
 } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
-import { CloudProvider } from 'src/libs/workspace-utils';
+import { CloudProvider } from 'src/workspaces/utils';
 import { v4 as uuid } from 'uuid';
 
 export const runtimeTypes = {

@@ -42,7 +42,7 @@ import {
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getAzurePricesForRegion, getDiskType } from 'src/libs/azure-utils';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 // GOOGLE COST METHODS begin
 
@@ -118,6 +118,8 @@ export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
   if (!config) return 0;
   const computeRegion = config.normalizedRegion;
 
+  // TODO: Remove nested ternary to align with style guide
+  // eslint-disable-next-line no-nested-ternary
   const machineType: string = isGceRuntimeConfig(config)
     ? config.machineType
     : isDataprocConfig(config)

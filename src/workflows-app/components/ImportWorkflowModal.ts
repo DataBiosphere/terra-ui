@@ -1,13 +1,13 @@
 import { useThemeFromContext } from '@terra-ui-packages/components';
+import { Modal } from '@terra-ui-packages/components';
 import { CSSProperties } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common';
 import { getStyles as getErrorStyles } from 'src/components/ErrorView';
 import { centeredSpinner, icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 type ImportWorkflowModalProps = {
   importLoading: boolean;

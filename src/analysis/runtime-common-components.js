@@ -16,7 +16,7 @@ import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, 
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 export const StatusMessage = ({ hideSpinner, children }) => {
   return div({ style: { paddingLeft: '2rem', display: 'flex', alignItems: 'center' } }, [
@@ -56,7 +56,7 @@ export function RuntimeKicker({ runtime, refreshRuntimes }) {
   const signal = useCancellation();
   const [busy, setBusy] = useState();
 
-  const startRuntimeOnce = withErrorReporting('Error starting cloud environment', async () => {
+  const startRuntimeOnce = withErrorReporting('Error starting cloud environment')(async () => {
     while (!signal.aborted) {
       const currentRuntime = getRuntime();
       const { googleProject, runtimeName, cloudContext, workspaceId } = currentRuntime || {};

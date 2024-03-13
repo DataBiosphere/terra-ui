@@ -27,6 +27,8 @@ module.exports = {
     // Allow writing components as arrow functions.
     'react/function-component-definition': 'off',
     'react/prop-types': 'off',
+    'react/jsx-props-no-spreading': 'off',
+    'react/react-in-jsx-scope': 'off',
     'react/require-default-props': 'off',
     'react/sort-comp': 'off',
     'react/static-property-placement': 'off',
@@ -37,7 +39,7 @@ module.exports = {
     // duplicates and combines them into one import from 'date-fns'.
     'import/no-duplicates': 'off',
     // Allow tests' dependencies to be listed in devDependencies or dependencies.
-    'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.{js,ts}'] }],
+    'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.{js,ts,tsx}'] }],
     'import/no-named-as-default': 'off',
     // Named exports are more convenient for mocking.
     'import/prefer-default-export': 'off',
@@ -68,7 +70,6 @@ module.exports = {
     'no-constant-condition': ['error', {checkLoops: false}],
     'no-empty': ['error', { allowEmptyCatch: true }],
     'no-continue': 'off',
-    'no-nested-ternary': 'off',
     'no-param-reassign': 'off',
     'no-plusplus': 'off',
     'no-promise-executor-return': 'off',
@@ -88,6 +89,7 @@ module.exports = {
         vars: 'all',
         args: 'all',
         argsIgnorePattern: '_|^_|^props',
+        destructuredArrayIgnorePattern: '_|^_',
         ignoreRestSiblings: true,
       },
     ],

@@ -1,15 +1,15 @@
+import { Modal } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, Link, spinnerOverlay, VirtualizedSelect } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { isGoogleWorkspace } from 'src/workspaces/utils';
 
 const requesterPaysHelpInfo = div({ style: { paddingTop: '1rem' } }, [
   h(

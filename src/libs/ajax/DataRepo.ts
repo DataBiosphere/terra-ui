@@ -8,9 +8,11 @@ import {
   DatasetAccessRequestApi,
   DatasetParticipantCountRequest,
   DatasetParticipantCountResponse,
+  GetConceptHierarchyResponse,
   GetConceptsResponse,
   ProgramDataListOption,
   ProgramDataRangeOption,
+  SearchConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
@@ -19,6 +21,7 @@ export type SnapshotBuilderConcept = {
   name: string;
   count?: number;
   hasChildren: boolean;
+  children?: SnapshotBuilderConcept[];
 };
 
 export type SnapshotBuilderDomainOption = {
@@ -30,6 +33,7 @@ export type SnapshotBuilderDomainOption = {
 };
 
 export interface SnapshotBuilderProgramDataOption {
+  id: number;
   kind: 'range' | 'list';
   name: string;
   tableName: string;
@@ -133,6 +137,24 @@ interface ColumnStatisticsTextValue {
   count: number;
 }
 
+export type JobStatus = 'running' | 'succeeded' | 'failed';
+
+export const jobStatusTypes: Record<JobStatus, JobStatus> = {
+  running: 'running',
+  succeeded: 'succeeded',
+  failed: 'failed',
+};
+
+export interface JobModel {
+  id: string;
+  description?: string;
+  job_status: JobStatus;
+  status_code: number;
+  submitted?: string;
+  completed?: string;
+  class_name?: string;
+}
+
 export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
@@ -143,13 +165,15 @@ export interface DataRepoContract {
     createSnapshotRequest(request: DatasetAccessRequest): Promise<DatasetAccessRequestApi>;
     getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
+    getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptHierarchyResponse>;
+    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SearchConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
-    exportSnapshot: () => Promise<{}>;
+    exportSnapshot: () => Promise<JobModel>;
   };
   job: (jobId: string) => {
-    details: () => Promise<{}>;
+    details: () => Promise<JobModel>;
     result: () => Promise<{}>;
   };
 }
@@ -207,6 +231,15 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
         ),
       getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
+      searchConcepts: async (domain: SnapshotBuilderConcept, searchText: string): Promise<GetConceptsResponse> => {
+        return callDataRepo(
+          `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${
+            domain.name
+          }/search?searchText=${encodeURIComponent(searchText)}`
+        );
+      },
+      getConceptHierarchy: async (concept: SnapshotBuilderConcept) =>
+        callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/conceptHierarchy/${concept.id}`),
       queryDatasetColumnStatisticsById: (programDataOption) =>
         handleProgramDataOptions(datasetId, programDataOption, signal),
     };
