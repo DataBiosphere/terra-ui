@@ -1,6 +1,6 @@
 import { TooltipTrigger } from '@terra-ui-packages/components';
 import { useThemeFromContext } from '@terra-ui-packages/components';
-import { div, h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { icon } from 'src/components/icons';
 
 // These are for calling attention to resources that are most likely linked to GCP v1 workspaces.
@@ -12,9 +12,9 @@ export const unsupportedCloudEnvironmentMessage =
 export const UnsupportedWorkspaceCell = ({ status, message }) => {
   const { colors } = useThemeFromContext();
 
-  return div(
-    {
-      style: {
+  return (
+    <div
+      style={{
         display: 'flex',
         flex: 1,
         flexDirection: 'column',
@@ -25,15 +25,14 @@ export const UnsupportedWorkspaceCell = ({ status, message }) => {
         paddingLeft: '1rem',
         backgroundColor: colors.danger(0.15),
         justifyContent: 'center',
-      },
-    },
-    [
-      h(TooltipTrigger, { content: message }, [
-        div({ 'aria-label': message }, [
+      }}
+    >
+      <TooltipTrigger content={message}>
+        <div aria-label={message}>
           `${status}`,
-          icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } }),
-        ]),
-      ]),
-    ]
+          {icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })}
+        </div>
+      </TooltipTrigger>
+    </div>
   );
 };
