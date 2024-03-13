@@ -66,7 +66,7 @@ export const WorkspaceItem = (props: WorkspaceItemProps): ReactNode => {
   const bucketSizeFailed = 'Unable to fetch Bucket Size';
   const signal = useCancellation();
 
-  const migrateWorkspace = reportErrorAndRethrow('Error starting migration', async () => {
+  const migrateWorkspace = reportErrorAndRethrow('Error starting migration')(async () => {
     // Dismiss confirmation
     setConfirmMigration(false);
 

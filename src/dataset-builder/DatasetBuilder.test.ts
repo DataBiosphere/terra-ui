@@ -273,7 +273,23 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     await initializeValidDatasetRequest(user);
     // Assert
-    expect(await screen.findByText('100 Participants in this dataset')).toBeTruthy();
+    expect(await screen.findByText('100 participants in this dataset')).toBeTruthy();
+    expect(await screen.findByText('Request access to this dataset')).toBeTruthy();
+  });
+
+  it('hides the count with there are few participants in this dataset ', async () => {
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      dataset: (_datasetId) =>
+        ({
+          getCounts: () => Promise.resolve({ result: { total: 19 }, sql: '' }),
+        } as Partial<DataRepoContract['dataset']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+    // Arrange
+    const user = userEvent.setup();
+    await initializeValidDatasetRequest(user);
+    // Assert
+    expect(await screen.findByText('Less than 20 participants in this dataset')).toBeTruthy();
     expect(await screen.findByText('Request access to this dataset')).toBeTruthy();
   });
 

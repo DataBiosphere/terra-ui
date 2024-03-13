@@ -10,7 +10,7 @@ export const WorkspaceTagSelect = (props) => {
   const signal = useCancellation();
   const getTagSuggestions = useInstance(() =>
     debouncePromise(
-      withErrorReporting('Error loading tags', async (text) => {
+      withErrorReporting('Error loading tags')(async (text) => {
         return _.map(({ tag, count }) => {
           return { value: tag, label: `${tag} (${count})` };
         }, await Ajax(signal).Workspaces.getTags(text, 10));

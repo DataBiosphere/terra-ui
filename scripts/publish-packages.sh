@@ -3,7 +3,12 @@
 set -euo pipefail
 
 SCRIPTS_DIR="$(dirname "$0")"
-cd "${SCRIPTS_DIR}/../packages"
+cd "${SCRIPTS_DIR}/.."
+
+# Build all packages.
+yarn build-packages
+
+cd "packages"
 for d in */ ; do
     cd "$d"
 
@@ -28,9 +33,6 @@ for d in */ ; do
 
     # If the current and published versions differ, then publish the package.
     if [ "${PUBLISHED_VERSION}" != "${PACKAGE_VERSION}" ]; then
-      echo "Building ${PACKAGE_NAME}."
-      yarn build
-
       echo "Publishing ${PACKAGE_NAME}."
       npm publish
       echo "Successfully published version ${PACKAGE_VERSION} of ${PACKAGE_NAME}."

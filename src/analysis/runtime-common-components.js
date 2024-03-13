@@ -56,7 +56,7 @@ export function RuntimeKicker({ runtime, refreshRuntimes }) {
   const signal = useCancellation();
   const [busy, setBusy] = useState();
 
-  const startRuntimeOnce = withErrorReporting('Error starting cloud environment', async () => {
+  const startRuntimeOnce = withErrorReporting('Error starting cloud environment')(async () => {
     while (!signal.aborted) {
       const currentRuntime = getRuntime();
       const { googleProject, runtimeName, cloudContext, workspaceId } = currentRuntime || {};

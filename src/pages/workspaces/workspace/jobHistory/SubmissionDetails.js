@@ -359,7 +359,7 @@ const SubmissionDetails = _.flow(
    */
 
   useEffect(() => {
-    const initialize = withErrorReporting('Unable to fetch submission details', async () => {
+    const initialize = withErrorReporting('Unable to fetch submission details')(async () => {
       if (
         _.isEmpty(submission) ||
         _.some(({ status }) => _.includes(collapseStatus(status), [statusType.running, statusType.submitted]), submission.workflows)

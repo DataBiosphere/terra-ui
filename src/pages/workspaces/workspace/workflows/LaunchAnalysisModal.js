@@ -48,7 +48,7 @@ const LaunchAnalysisModal = ({
   const signal = useCancellation();
 
   useOnMount(() => {
-    const loadBucketLocation = withErrorReporting('Error loading bucket location', async () => {
+    const loadBucketLocation = withErrorReporting('Error loading bucket location')(async () => {
       const { location, locationType } = await Ajax(signal)
         .Workspaces.workspace(namespace, workspaceName)
         .checkBucketLocation(googleProject, bucketName);
