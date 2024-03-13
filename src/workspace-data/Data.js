@@ -951,11 +951,11 @@ export const WorkspaceData = _.flow(
                                   setEntityMetadata(_.unset(tableName));
                                 },
                                 isShowingVersionHistory,
-                                onSaveVersion: withErrorReporting('Error saving version', (versionOpts) => {
+                                onSaveVersion: withErrorReporting('Error saving version')((versionOpts) => {
                                   setShowDataTableVersionHistory(_.set(type, true));
                                   return saveDataTableVersion(type, versionOpts);
                                 }),
-                                onToggleVersionHistory: withErrorReporting('Error loading version history', (showVersionHistory) => {
+                                onToggleVersionHistory: withErrorReporting('Error loading version history')((showVersionHistory) => {
                                   setShowDataTableVersionHistory(_.set(type, showVersionHistory));
                                   if (showVersionHistory) {
                                     loadDataTableVersions(type.endsWith('_set') ? getRootTypeForSetTable(type) : type);
@@ -1476,11 +1476,11 @@ export const WorkspaceData = _.flow(
                     h(DataTableVersion, {
                       workspace,
                       version: selectedData.version,
-                      onDelete: reportErrorAndRethrow('Error deleting version', async () => {
+                      onDelete: reportErrorAndRethrow('Error deleting version')(async () => {
                         await deleteDataTableVersion(selectedData.version);
                         setSelectedData(undefined);
                       }),
-                      onImport: reportErrorAndRethrow('Error importing version', async () => {
+                      onImport: reportErrorAndRethrow('Error importing version')(async () => {
                         const { tableName } = await importDataTableVersion(selectedData.version);
                         await loadMetadata();
                         setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName });

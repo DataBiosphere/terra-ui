@@ -7,7 +7,7 @@ interface TitleBarProps {
   id?: string;
   onPrevious?: MouseEventHandler;
   title: ReactNode;
-  onDismiss: MouseEventHandler;
+  onDismiss?: MouseEventHandler;
   titleChildren?: ReactNode;
   style?: React.CSSProperties;
   titleStyles?: React.CSSProperties;

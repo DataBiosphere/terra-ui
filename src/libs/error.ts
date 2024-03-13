@@ -1,9 +1,8 @@
-import { AnyPromiseFn, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
-import _ from 'lodash/fp';
+import { AnyPromiseFn } from '@terra-ui-packages/core-utils';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { notify } from 'src/libs/notifications';
 
-export const reportError = async (title, obj?: unknown) => {
+export const reportError = async (title: string, obj?: unknown) => {
   console.error(title, obj); // helpful when the notify component fails to render
   // Do not show an error notification when a session times out.
   // Notification for this case is handled elsewhere.
@@ -15,41 +14,39 @@ export const reportError = async (title, obj?: unknown) => {
 };
 
 export type ErrorCallback = (error: unknown) => void | Promise<void>;
-const withErrorHandlingFn =
-  <R, F extends AnyPromiseFn>(
-    callback: ErrorCallback,
-    fn: GenericPromiseFn<F, R | void>
-  ): GenericPromiseFn<F, R | void> =>
-  async (...args: Parameters<F>): Promise<R | void> => {
-    try {
-      return await fn(...args);
-    } catch (error) {
-      await callback(error);
-    }
-  };
 
 /**
  * Invoke the `callback` with any error thrown when evaluating the async `fn` with `...args`.
  */
-export const withErrorHandling = safeCurry(withErrorHandlingFn);
+export const withErrorHandling = (callback: ErrorCallback) => {
+  return <F extends AnyPromiseFn>(fn: F) => {
+    return (async (...args: Parameters<F>) => {
+      try {
+        return await fn(...args);
+      } catch (error) {
+        await callback(error);
+      }
+    }) as F;
+  };
+};
 
-// TODO type this properly  - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 /**
  * Return a Promise to the result of evaluating the async `fn` with `...args` or undefined if
  * evaluation fails.
  */
-export const withErrorIgnoring = withErrorHandling(_.noop) as any;
+export const withErrorIgnoring = withErrorHandling(() => {});
 
 /**
  * Return a Promise to the result of evaluating the async `fn` with `...args`. If evaluation fails,
  * report the error to the user with `title` as a side effect.
  */
-export const reportErrorAndRethrow = _.curry((title, fn) => {
-  return _.flip(withErrorHandling)(fn, (error) => {
-    reportError(title, error);
-    throw error;
-  });
-});
+export const reportErrorAndRethrow = (title: string) => {
+  return <F extends AnyPromiseFn>(fn: F) =>
+    withErrorHandling(async (error): Promise<void> => {
+      await reportError(title, error);
+      throw error;
+    })(fn);
+};
 
 /**
  *  This function is designed for use in modals
@@ -57,23 +54,18 @@ export const reportErrorAndRethrow = _.curry((title, fn) => {
  *  preventing the modal itself from closing on error
  *  As such, we must ensure we call the dismiss function if an error occurs
  */
-export const withErrorReportingInModal = _.curry((title, onDismiss, fn) => {
-  return _.flip(withErrorHandling)(fn, async (error) => {
+export const withErrorReportingInModal = (title: string, onDismiss: () => void) => {
+  return withErrorHandling(async (error) => {
     await reportError(title, error);
     onDismiss();
     throw error;
   });
-});
-
-const withErrorReportingFn = <R, F extends AnyPromiseFn>(
-  title: string,
-  fn: GenericPromiseFn<F, R>
-): GenericPromiseFn<F, R> => {
-  return withErrorIgnoring(reportErrorAndRethrow(title)(fn));
 };
 
 /**
  * Return a Promise to the result of evaluating the async `fn` with `...args` or undefined if
  * evaluation fails. If evaluation fails, report the error to the user with `title`.
  */
-export const withErrorReporting = safeCurry(withErrorReportingFn);
+export const withErrorReporting = (title: string) => {
+  return <F extends AnyPromiseFn>(fn: F) => withErrorIgnoring(reportErrorAndRethrow(title)(fn));
+};

@@ -86,7 +86,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
   useEffect(() => {
     const { namespace, name } = workspace.workspace;
 
-    const loadStorageCost = withErrorReporting('Error loading storage cost data', async () => {
+    const loadStorageCost = withErrorReporting('Error loading storage cost data')(async () => {
       try {
         const { estimate, lastUpdated } = await Ajax(signal)
           .Workspaces.workspace(namespace, name)
@@ -101,7 +101,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
       }
     });
 
-    const loadBucketSize = withErrorReporting('Error loading bucket size.', async () => {
+    const loadBucketSize = withErrorReporting('Error loading bucket size.')(async () => {
       try {
         const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage();
         setBucketSize({ isSuccess: true, usage: formatBytes(usageInBytes), lastUpdated });
