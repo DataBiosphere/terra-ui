@@ -1,7 +1,7 @@
 import { TooltipTrigger } from '@terra-ui-packages/components';
+import { useThemeFromContext } from '@terra-ui-packages/components';
 import { div, h } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
-import colors from 'src/libs/colors';
 
 // These are for calling attention to resources that are most likely linked to GCP v1 workspaces.
 // Rawls will no longer return v1 workspaces, but Leo does not have a way to filter out disks/cloud environments related to them.
@@ -9,8 +9,10 @@ export const unsupportedDiskMessage =
   'This disk is not associated with a supported workspace. It is recommended that you delete it to avoid additional cloud costs.';
 export const unsupportedCloudEnvironmentMessage =
   'This cloud environment is not associated with a supported workspace. It is recommended that you delete it to avoid additional cloud costs.';
-export const UnsupportedWorkspaceCell = ({ status, message }) =>
-  div(
+export const UnsupportedWorkspaceCell = ({ status, message }) => {
+  const { colors } = useThemeFromContext();
+
+  return div(
     {
       style: {
         display: 'flex',
@@ -34,3 +36,4 @@ export const UnsupportedWorkspaceCell = ({ status, message }) =>
       ]),
     ]
   );
+};
