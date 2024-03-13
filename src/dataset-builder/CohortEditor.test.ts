@@ -31,6 +31,13 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   };
 });
 
+jest.mock('src/components/input', () => {
+  return {
+    ...jest.requireActual('src/components/input'),
+    withDebouncedChange: (component) => component,
+  };
+});
+
 describe('CohortEditor', () => {
   type CriteriaViewPropsOverrides = {
     criteria: AnyCriteria;
