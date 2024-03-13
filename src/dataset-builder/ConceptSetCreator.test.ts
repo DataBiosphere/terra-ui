@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
+import { SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { ConceptSetCreator, toConceptSet } from './ConceptSetCreator';
@@ -13,7 +13,7 @@ jest.mock('src/libs/ajax/GoogleStorage');
 describe('ConceptSetCreator', () => {
   const dataset = dummyDatasetModel();
 
-  const renderConceptSetCreator = (cart: SnapshotBuilderConcept[]) => {
+  const renderConceptSetCreator = (cart: Concept[]) => {
     const conceptSetUpdater = jest.fn();
     const onStateChange = jest.fn();
     render(
