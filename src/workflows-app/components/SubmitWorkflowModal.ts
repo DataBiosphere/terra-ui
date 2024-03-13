@@ -1,5 +1,4 @@
-import { Spinner, useThemeFromContext } from '@terra-ui-packages/components';
-import { Modal, Spinner } from '@terra-ui-packages/components';
+import { Modal, Spinner, useThemeFromContext } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
