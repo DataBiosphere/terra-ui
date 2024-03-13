@@ -5,7 +5,7 @@ import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
-import { NumberInput } from 'src/components/input';
+import { NumberInput, withDebouncedChange } from 'src/components/input';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import {
   AnyCriteria,
@@ -47,6 +47,8 @@ type CriteriaViewProps = {
 
 const addCriteriaText = 'Add criteria';
 
+const DebouncedSlider = withDebouncedChange(Slider);
+const DebouncedNumberInput = withDebouncedChange(NumberInput);
 export const CriteriaView = (props: CriteriaViewProps) => {
   const { datasetId, criteria, deleteCriteria, updateCriteria } = props;
 
@@ -128,7 +130,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
                 return h(Fragment, [
                   div([strong([`${criteria.option.name}:`]), ` ${criteria.low} - ${criteria.high}`]),
                   div({ style: { display: 'flex', alignItems: 'center' } }, [
-                    h(NumberInput, {
+                    h(DebouncedNumberInput, {
                       min: criteria.option.min,
                       max: criteria.high,
                       isClearable: false,
@@ -138,7 +140,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
                       'aria-label': `${criteria.option.name} low`,
                       style: numberInputStyles,
                     }),
-                    h(Slider, {
+                    h(DebouncedSlider, {
                       range: true,
                       value: [criteria.low, criteria.high],
                       min: criteria.option.min,
@@ -147,7 +149,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
                       style: { marginLeft: rangeSliderMargin },
                       ariaLabelForHandle: [`${criteria.option.name} low slider`, `${criteria.option.name} high slider`],
                     }),
-                    h(NumberInput, {
+                    h(DebouncedNumberInput, {
                       min: criteria.low,
                       max: criteria.option.max,
                       isClearable: false,
