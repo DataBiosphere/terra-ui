@@ -75,10 +75,10 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
   const isFeatureEnabled = enterpriseFeatures.includes(`${provider.key}-account-linking`);
 
   useOnMount(() => {
-    const loadAccount = withErrorReporting(`Error loading ${provider.name} account`, async () => {
+    const loadAccount = withErrorReporting(`Error loading ${provider.name} account`)(async () => {
       setAccountInfo(await Ajax(signal).ExternalCredentials(provider).getAccountLinkStatus());
     });
-    const linkAccount = withErrorReporting(`Error linking ${provider.name} account`, async (code, state) => {
+    const linkAccount = withErrorReporting(`Error linking ${provider.name} account`)(async (code, state) => {
       setAccountInfo(await Ajax(signal).ExternalCredentials(provider).linkAccountWithAuthorizationCode(code, state));
     });
 
@@ -92,12 +92,12 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
     setAccountLoaded(true);
   });
 
-  const unlinkAccount = withErrorReporting(`Error unlinking ${provider.name} account`, async () => {
+  const unlinkAccount = withErrorReporting(`Error unlinking ${provider.name} account`)(async () => {
     await Ajax(signal).ExternalCredentials(provider).unlinkAccount();
     setAccountInfo(undefined);
   });
 
-  const getAuthUrlAndRedirect = withErrorReporting(`Error getting Authorization URL for ${provider.name}`, async () => {
+  const getAuthUrlAndRedirect = withErrorReporting(`Error getting Authorization URL for ${provider.name}`)(async () => {
     const url = await Ajax(signal).ExternalCredentials(provider).getAuthorizationUrl();
     window.open(url, Utils.newTabLinkProps.target, 'noopener,noreferrer');
   });

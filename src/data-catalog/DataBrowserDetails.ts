@@ -182,8 +182,7 @@ export const SidebarComponent = ({ dataObj, id }: SidebarComponentProps) => {
         isDatarepoSnapshot(dataset),
         async () => {
           setTdrSnapshotPreparePolling(true);
-          const jobInfo = (await withErrorReporting(
-            'Error exporting dataset',
+          const jobInfo = (await withErrorReporting('Error exporting dataset')(
             async () => await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot()
           )()) as JobModel;
           setSnapshotExportJobId(jobInfo.id);
@@ -388,7 +387,7 @@ const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }: SnapshotE
   const [abortWarningShowing, setAbortWarningShowing] = useState(false);
 
   usePollingEffect(
-    withErrorReporting('Problem checking status of snapshot import', async () => {
+    withErrorReporting('Problem checking status of snapshot import')(async () => {
       jobStatus === 'running' && (await checkJobStatus());
     }),
     { ms: 1000, leading: true }
@@ -402,8 +401,7 @@ const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }: SnapshotE
       [
         jobStatusTypes.succeeded,
         async () => {
-          const jobResult = await withErrorReporting(
-            'Error getting export result',
+          const jobResult = await withErrorReporting('Error getting export result')(
             async () => await Ajax().DataRepo.job(jobId).result()
           )();
           // @ts-ignore - this has an unknown response type, but in this case it should

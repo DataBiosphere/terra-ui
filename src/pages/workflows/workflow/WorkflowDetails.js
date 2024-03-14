@@ -142,7 +142,7 @@ const WorkflowSummary = () => {
           {
             style: { margin: '0 0.5rem', flexShrink: 0 },
             tooltip: 'Copy import URL',
-            onClick: withErrorReporting('Error copying to clipboard', async () => {
+            onClick: withErrorReporting('Error copying to clipboard')(async () => {
               await clipboard.writeText(importUrl);
               setImportUrlCopied(true);
               setTimeout(() => setImportUrlCopied(), 1500);
