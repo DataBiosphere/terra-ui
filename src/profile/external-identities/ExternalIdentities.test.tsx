@@ -1,3 +1,4 @@
+import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import React from 'react';
 import { getConfig } from 'src/libs/config';
@@ -31,7 +32,7 @@ jest.mock('src/profile/external-identities/NihAccount', () => ({
 }));
 describe('ExternalIdentities', () => {
   beforeEach(() =>
-    getConfig.mockReturnValue({ externalCreds: { providers: ['github'], urlRoot: 'https/foo.bar.com' } })
+    asMockedFn(getConfig).mockReturnValue({ externalCreds: { providers: ['github'], urlRoot: 'https/foo.bar.com' } })
   );
   describe('when the user has access to GitHub Account Linking', () => {
     it('shows the GitHub Account Linking card', async () => {
