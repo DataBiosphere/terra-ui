@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
+  ConceptSet,
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderDomainOption,
   SnapshotBuilderOption,
@@ -111,11 +112,6 @@ export interface CriteriaGroup {
 
 export interface Cohort extends DatasetBuilderType {
   criteriaGroups: CriteriaGroup[];
-}
-
-export interface ConceptSet extends DatasetBuilderType {
-  concept: Concept;
-  featureValueGroupName: string;
 }
 
 export interface DatasetBuilderType {

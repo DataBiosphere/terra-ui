@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers';
 import { SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { ConceptSetCreator, toConceptSet } from './ConceptSetCreator';
+import { ConceptSetCreator, toDomainConceptSet } from './ConceptSetCreator';
 import { homepageState } from './dataset-builder-types';
 import { dummyDatasetModel } from './TestConstants';
 
@@ -55,7 +55,7 @@ describe('ConceptSetCreator', () => {
     await user.click(screen.getByText('Add to concept sets'));
     // Assert
     expect(onStateChange).toHaveBeenCalledWith(homepageState.new());
-    expect(conceptSetUpdater.mock.calls[0][0]([])).toEqual([toConceptSet(rootConceptNoChildren)]);
+    expect(conceptSetUpdater.mock.calls[0][0]([])).toEqual([toDomainConceptSet(rootConceptNoChildren)]);
   });
 
   it('returns to the home page on cancel', async () => {

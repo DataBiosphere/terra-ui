@@ -4,6 +4,7 @@ import {
   convertDatasetParticipantCountRequest,
   DatasetAccessRequest,
   DatasetAccessRequestApi,
+  DatasetBuilderType,
   DatasetParticipantCountRequest,
   DatasetParticipantCountResponse,
   GetConceptHierarchyResponse,
@@ -63,17 +64,22 @@ export type SnapshotBuilderFeatureValueGroup = {
   values: string[];
 };
 
-export type SnapshotBuilderDatasetConceptSets = {
-  name: string;
-  concept?: SnapshotBuilderConcept;
+export interface DomainConceptSet extends DatasetBuilderType {
+  concept: SnapshotBuilderConcept;
   featureValueGroupName: string;
-};
+}
+
+export interface PrepackagedConceptSet extends DatasetBuilderType {
+  featureValueGroupName: string;
+}
+
+export type ConceptSet = DomainConceptSet | PrepackagedConceptSet;
 
 export type SnapshotBuilderSettings = {
   domainOptions: SnapshotBuilderDomainOption[];
   programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
   featureValueGroups: SnapshotBuilderFeatureValueGroup[];
-  datasetConceptSets?: SnapshotBuilderDatasetConceptSets[];
+  datasetConceptSets?: PrepackagedConceptSet[];
 };
 
 export type DatasetModel = {

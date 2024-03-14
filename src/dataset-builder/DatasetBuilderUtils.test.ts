@@ -4,7 +4,6 @@ import {
   AnyCriteriaApi,
   Cohort,
   CohortApi,
-  ConceptSet,
   convertCohort,
   convertCriteria,
   convertDatasetAccessRequest,
@@ -24,6 +23,7 @@ import {
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
+  DomainConceptSet,
   SnapshotBuilderConcept,
   SnapshotBuilderDomainOption,
   SnapshotBuilderProgramDataListItem,
@@ -150,7 +150,11 @@ const valueSet: ValueSet = { domain: 'valueDomain', values: [{ name: 'valueName'
 
 const valueSetApi: ValueSetApi = { name: 'valueDomain', values: ['valueName'] };
 
-const conceptSet: ConceptSet = { name: 'conceptSetName', concept, featureValueGroupName: 'featureValueGroupName' };
+const conceptSet: DomainConceptSet = {
+  name: 'conceptSetName',
+  concept,
+  featureValueGroupName: 'featureValueGroupName',
+};
 
 const datasetAccessRequest: DatasetAccessRequest = {
   name: 'RequestName',

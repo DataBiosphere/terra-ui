@@ -2,8 +2,8 @@ import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Cohort, ConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DataRepo, DataRepoContract, DatasetModel } from 'src/libs/ajax/DataRepo';
+import { Cohort } from 'src/dataset-builder/DatasetBuilderUtils';
+import { ConceptSet, DataRepo, DataRepoContract, DatasetModel, DomainConceptSet } from 'src/libs/ajax/DataRepo';
 import * as Nav from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -41,10 +41,10 @@ describe('DatasetBuilder', () => {
   type DatasetBuilderContentsPropsOverrides = {
     onStateChange?: OnStateChangeHandler;
     updateCohorts?: Updater<Cohort[]>;
-    updateConceptSets?: Updater<ConceptSet[]>;
+    updateConceptSets?: Updater<DomainConceptSet[]>;
     dataset?: DatasetModel;
     cohorts?: Cohort[];
-    conceptSets?: ConceptSet[];
+    conceptSets?: DomainConceptSet[];
   };
   const showDatasetBuilderContents = (overrides?: DatasetBuilderContentsPropsOverrides) => {
     render(
