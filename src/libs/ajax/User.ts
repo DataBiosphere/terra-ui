@@ -225,20 +225,6 @@ export const User = (signal?: AbortSignal) => {
       return json.resources.map((resource) => resource.resourceId);
     },
 
-    gimmeAccess: async (enterpriseFeature: string, email: string): Promise<void> => {
-      await fetchSam(
-        `/api/resources/v2/enterprise-feature/${enterpriseFeature}/policies/user/memberEmails/${email}`,
-        _.mergeAll([authOpts(), { signal, method: 'PUT' }])
-      );
-    },
-
-    removeMyAccess: async (enterpriseFeature: string, email: string): Promise<void> => {
-      await fetchSam(
-        `/api/resources/v2/enterprise-feature/${enterpriseFeature}/policies/user/memberEmails/${email}`,
-        _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
-      );
-    },
-
     registerWithProfile: async (
       acceptsTermsOfService: boolean,
       profile: CreateTerraUserProfileRequest
