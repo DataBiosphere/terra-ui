@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { TextArea, TextInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
+import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
 
 export interface CreateWorkflowModalProps {
@@ -35,6 +36,11 @@ export const CreateWorkflowModal = (props: CreateWorkflowModalProps): ReactNode 
           documentation,
           workflowContent
         );
+        Nav.goToPath('workflow-dashboard', {
+          namespace: workflowNamespace,
+          name: workflowName,
+          snapshotId: 1,
+        });
       },
     },
     [
