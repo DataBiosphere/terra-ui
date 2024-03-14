@@ -1,5 +1,5 @@
-import { Cohort, CriteriaGroup, DomainOption } from 'src/dataset-builder/DatasetBuilderUtils';
-import { SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
+import { Cohort, CriteriaGroup } from 'src/dataset-builder/DatasetBuilderUtils';
+import { SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 
 let groupCount = 1;
 export const newCriteriaGroup = (): CriteriaGroup => {
@@ -59,7 +59,7 @@ export interface DomainCriteriaSelectorState extends DatasetBuilderState {
 
   readonly cohort: Cohort;
   readonly criteriaGroup: CriteriaGroup;
-  readonly domainOption: DomainOption;
+  readonly domainOption: SnapshotBuilderDomainOption;
   readonly cart: Concept[];
   readonly cancelState: AnyDatasetBuilderState;
   readonly openedConcept?: Concept;
@@ -69,7 +69,7 @@ export const domainCriteriaSelectorState = {
   new: (
     cohort: Cohort,
     criteriaGroup: CriteriaGroup,
-    domainOption: DomainOption,
+    domainOption: SnapshotBuilderDomainOption,
     cart: Concept[],
     cancelState: AnyDatasetBuilderState,
     openedConcept?: Concept
@@ -89,7 +89,7 @@ export interface DomainCriteriaSearchState extends DatasetBuilderState {
 
   readonly cohort: Cohort;
   readonly criteriaGroup: CriteriaGroup;
-  readonly domainOption: DomainOption;
+  readonly domainOption: SnapshotBuilderDomainOption;
   readonly cart: Concept[];
   readonly searchText: string;
 }
@@ -98,7 +98,7 @@ export const domainCriteriaSearchState = {
   new: (
     cohort: Cohort,
     criteriaGroup: CriteriaGroup,
-    domainOption: DomainOption,
+    domainOption: SnapshotBuilderDomainOption,
     cart: Concept[] = [],
     searchText = ''
   ): DomainCriteriaSearchState => ({

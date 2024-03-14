@@ -15,19 +15,21 @@ import {
   DatasetAccessRequestApi,
   DomainCriteria,
   DomainCriteriaApi,
-  DomainOption,
   HighlightConceptName,
   ProgramDataListCriteria,
   ProgramDataListCriteriaApi,
-  ProgramDataListOption,
-  ProgramDataListValue,
   ProgramDataRangeCriteria,
   ProgramDataRangeCriteriaApi,
-  ProgramDataRangeOption,
   ValueSet,
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
+import {
+  SnapshotBuilderConcept,
+  SnapshotBuilderDomainOption,
+  SnapshotBuilderProgramDataListItem,
+  SnapshotBuilderProgramDataListOption,
+  SnapshotBuilderProgramDataRangeOption,
+} from 'src/libs/ajax/DataRepo';
 
 const concept: SnapshotBuilderConcept = {
   id: 0,
@@ -36,10 +38,12 @@ const concept: SnapshotBuilderConcept = {
   hasChildren: false,
 };
 
-const domainOption: DomainOption = {
+const domainOption: SnapshotBuilderDomainOption = {
   id: 1,
   name: 'category',
   kind: 'domain',
+  tableName: 'category_occurrence',
+  columnName: 'category_concept_id',
   conceptCount: 10,
   participantCount: 20,
   root: concept,
@@ -61,9 +65,11 @@ const domainCriteriaApi: DomainCriteriaApi = {
   conceptId: 100,
 };
 
-const rangeOption: ProgramDataRangeOption = {
+const rangeOption: SnapshotBuilderProgramDataRangeOption = {
   id: 2,
   kind: 'range',
+  tableName: 'person',
+  columnName: 'range_column',
   min: 0,
   max: 101,
   name: 'rangeOption',
@@ -86,16 +92,18 @@ const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
   high: 99,
 };
 
-const optionValues: ProgramDataListValue[] = [{ id: 5, name: 'listOptionListValue' }];
+const optionValues: SnapshotBuilderProgramDataListItem[] = [{ id: 5, name: 'listOptionListValue' }];
 
-const listOption: ProgramDataListOption = {
+const listOption: SnapshotBuilderProgramDataListOption = {
   id: 2,
   kind: 'list',
   name: 'listOption',
+  tableName: 'person',
+  columnName: 'list_concept_id',
   values: optionValues,
 };
 
-const criteriaListValues: ProgramDataListValue[] = [
+const criteriaListValues: SnapshotBuilderProgramDataListItem[] = [
   { id: 7, name: 'criteriaListValue1' },
   { id: 8, name: 'criteriaListValue2' },
 ];
