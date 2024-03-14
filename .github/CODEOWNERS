@@ -27,7 +27,6 @@
 /src/workspaces/ @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/billing-projects.js @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/delete-orphaned-workspaces.js @DataBiosphere/broadworkspaces-terra-ui
-/integration-tests/tests/workspace-dashboard.js @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/run-analysis.js @DataBiosphere/broad-interactive-analysis
 /integration-tests/tests/run-analysis-azure.js @DataBiosphere/broad-interactive-analysis
 /integration-tests/tests/run-rstudio.js @DataBiosphere/broad-interactive-analysis
