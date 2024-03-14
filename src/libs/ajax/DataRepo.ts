@@ -48,7 +48,7 @@ export type SnapshotBuilderFeatureValueGroup = {
 
 export type SnapshotBuilderDatasetConceptSets = {
   name: string;
-  concept: SnapshotBuilderConcept;
+  concept?: SnapshotBuilderConcept;
   featureValueGroupName: string;
 };
 

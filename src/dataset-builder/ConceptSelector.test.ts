@@ -24,13 +24,12 @@ describe('ConceptSelector', () => {
   const datasetId = '0';
   // Using 101 so the ID doesn't match the count.
   const rootConcept = { ...dummyGetConceptForId(100), children: [dummyGetConceptForId(101)] };
-  const initialCart: SnapshotBuilderConcept[] = [];
-  const renderSelector = (cart?: SnapshotBuilderConcept[]) => {
+  const renderSelector = (initialCart: SnapshotBuilderConcept[] = []) => {
     render(
       h(ConceptSelector, {
         actionText,
         rootConcept,
-        initialCart: cart || initialCart,
+        initialCart,
         onCancel,
         onCommit,
         title,

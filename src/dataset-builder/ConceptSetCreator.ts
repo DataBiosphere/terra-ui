@@ -50,8 +50,8 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
     title: 'Add concept',
     onCancel: () => onStateChange(homepageState.new()),
     onCommit: (selected: Concept[]) => {
-      // ensures cart persistence without duplicating items in the cart
-      conceptSetUpdater(() => _.flow(_.map(toConceptSet))(selected));
+      // commit ignores the current concept set selection and overwrites it with the cart
+      conceptSetUpdater(() => _.map(toConceptSet, selected));
       onStateChange(homepageState.new());
     },
     actionText: 'Add to concept sets',
