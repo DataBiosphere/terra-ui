@@ -19,7 +19,7 @@ export const FrameworkServiceLink = (props: FrameworkServiceLinkProps): ReactNod
   const style = button ? {} : { display: 'inline-flex', alignItems: 'center' };
   return (
     <Component
-      onClick={withErrorReporting('Error getting Fence Link', async () => {
+      onClick={withErrorReporting('Error getting Fence Link')(async () => {
         const result = await Ajax().User.getFenceAuthUrl(providerKey, redirectUrl);
         window.open(result.url, Utils.newTabLinkProps.target, 'noopener,noreferrer');
       })}

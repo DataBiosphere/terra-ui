@@ -2,16 +2,12 @@ import * as _ from 'lodash/fp';
 import {
   convertDatasetAccessRequest,
   convertDatasetParticipantCountRequest,
-  convertProgramDataOptionToListOption,
-  convertProgramDataOptionToRangeOption,
   DatasetAccessRequest,
   DatasetAccessRequestApi,
   DatasetParticipantCountRequest,
   DatasetParticipantCountResponse,
   GetConceptHierarchyResponse,
   GetConceptsResponse,
-  ProgramDataListOption,
-  ProgramDataRangeOption,
   SearchConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
@@ -24,20 +20,41 @@ export type SnapshotBuilderConcept = {
   children?: SnapshotBuilderConcept[];
 };
 
-export type SnapshotBuilderDomainOption = {
+export type SnapshotBuilderOptionTypeNames = 'list' | 'range' | 'domain';
+
+export interface SnapshotBuilderOption {
+  kind: SnapshotBuilderOptionTypeNames;
+  name: string;
   id: number;
-  category: string;
+  tableName: string;
+  columnName: string;
+}
+
+export interface SnapshotBuilderProgramDataOption extends SnapshotBuilderOption {
+  kind: 'range' | 'list';
+}
+
+export interface SnapshotBuilderProgramDataListItem {
+  name: string;
+  id: number;
+}
+
+export interface SnapshotBuilderProgramDataListOption extends SnapshotBuilderProgramDataOption {
+  kind: 'list';
+  values: SnapshotBuilderProgramDataListItem[];
+}
+
+export interface SnapshotBuilderProgramDataRangeOption extends SnapshotBuilderProgramDataOption {
+  kind: 'range';
+  min: number;
+  max: number;
+}
+
+export interface SnapshotBuilderDomainOption extends SnapshotBuilderOption {
+  kind: 'domain';
   conceptCount?: number;
   participantCount?: number;
   root: SnapshotBuilderConcept;
-};
-
-export interface SnapshotBuilderProgramDataOption {
-  id: number;
-  kind: 'range' | 'list';
-  name: string;
-  tableName: string;
-  columnName: string;
 }
 
 export type SnapshotBuilderFeatureValueGroup = {
@@ -53,7 +70,7 @@ export type SnapshotBuilderDatasetConceptSets = {
 
 export type SnapshotBuilderSettings = {
   domainOptions: SnapshotBuilderDomainOption[];
-  programDataOptions: SnapshotBuilderProgramDataOption[];
+  programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
   featureValueGroups: SnapshotBuilderFeatureValueGroup[];
   datasetConceptSets?: SnapshotBuilderDatasetConceptSets[];
 };
@@ -101,42 +118,6 @@ export interface Snapshot {
   cloudPlatform: 'azure' | 'gcp';
 }
 
-export interface ColumnStatisticsModel {
-  dataType:
-    | 'string'
-    | 'boolean'
-    | 'bytes'
-    | 'date'
-    | 'datetime'
-    | 'dirref'
-    | 'fileref'
-    | 'float'
-    | 'float64'
-    | 'integer'
-    | 'int64'
-    | 'numeric'
-    | 'record'
-    | 'text'
-    | 'time'
-    | 'timestamp';
-}
-
-export interface ColumnStatisticsIntOrDoubleModel extends ColumnStatisticsModel {
-  dataType: 'float' | 'float64' | 'integer' | 'int64' | 'numeric';
-  minValue: number;
-  maxValue: number;
-}
-
-export interface ColumnStatisticsTextModel extends ColumnStatisticsModel {
-  dataType: 'string' | 'text';
-  values: ColumnStatisticsTextValue[];
-}
-
-interface ColumnStatisticsTextValue {
-  value: string;
-  count: number;
-}
-
 export type JobStatus = 'running' | 'succeeded' | 'failed';
 
 export const jobStatusTypes: Record<JobStatus, JobStatus> = {
@@ -159,9 +140,6 @@ export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
-    queryDatasetColumnStatisticsById: (
-      dataOption: SnapshotBuilderProgramDataOption
-    ) => Promise<ProgramDataRangeOption | ProgramDataListOption>;
     createSnapshotRequest(request: DatasetAccessRequest): Promise<DatasetAccessRequestApi>;
     getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
@@ -191,26 +169,6 @@ const callDataRepoPost = async (url: string, signal: AbortSignal | undefined, js
   return await res.json();
 };
 
-const handleProgramDataOptions = async (
-  datasetId: string,
-  programDataOption: SnapshotBuilderProgramDataOption,
-  signal: AbortSignal | undefined
-): Promise<ProgramDataRangeOption | ProgramDataListOption> => {
-  switch (programDataOption.kind) {
-    case 'list':
-      return convertProgramDataOptionToListOption(programDataOption);
-    case 'range': {
-      const statistics: ColumnStatisticsTextModel | ColumnStatisticsIntOrDoubleModel = await callDataRepoPost(
-        `repository/v1/datasets/${datasetId}/data/${programDataOption.tableName}/statistics/${programDataOption.columnName}`,
-        signal,
-        {}
-      );
-      return convertProgramDataOptionToRangeOption(programDataOption, statistics);
-    }
-    default:
-      throw new Error('Unexpected option');
-  }
-};
 export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
   dataset: (datasetId) => {
     return {
@@ -240,8 +198,6 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       },
       getConceptHierarchy: async (concept: SnapshotBuilderConcept) =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/conceptHierarchy/${concept.id}`),
-      queryDatasetColumnStatisticsById: (programDataOption) =>
-        handleProgramDataOptions(datasetId, programDataOption, signal),
     };
   },
   snapshot: (snapshotId) => {

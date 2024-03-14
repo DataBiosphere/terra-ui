@@ -2,7 +2,6 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { convertApiDomainOptionToDomainOption } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, DataRepoContract } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -36,9 +35,7 @@ describe('DomainCriteriaSelector', () => {
   const datasetId = '';
   const concept = dummyGetConceptForId(101);
   const children = [dummyGetConceptForId(102)];
-  const domainOption = convertApiDomainOptionToDomainOption(
-    dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0]
-  );
+  const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
   const cohort = newCohort('cohort');
   cohort.criteriaGroups.push(newCriteriaGroup());
   asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);

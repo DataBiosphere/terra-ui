@@ -135,7 +135,7 @@ export const NewUserModal = ({ addFunction, addUnregisteredUser = false, adminLa
   const signal = useCancellation();
 
   useOnMount(() => {
-    const loadData = withErrorReporting('Error looking up collaborators', async () => {
+    const loadData = withErrorReporting('Error looking up collaborators')(async () => {
       const [shareSuggestions, groups] = await Promise.all([Ajax(signal).Workspaces.getShareLog(), Ajax(signal).Groups.list()]);
 
       const suggestions = _.flow(_.map('groupEmail'), _.concat(shareSuggestions), _.uniq)(groups);

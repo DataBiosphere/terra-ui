@@ -80,9 +80,7 @@ export const useCloudEnvironmentPolling = (
       throw error;
     }
   };
-  const refreshRuntimes = withErrorReporting('Error loading cloud environments', load) as (
-    maybeStale?: boolean
-  ) => Promise<void>;
+  const refreshRuntimes = withErrorReporting('Error loading cloud environments')(load);
   const refreshRuntimesSilently = withErrorIgnoring(load);
   useEffect(() => {
     if (

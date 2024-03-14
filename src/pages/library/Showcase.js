@@ -152,7 +152,7 @@ export const Showcase = () => {
   const [fullList, setFullList] = useState(stateHistory.featuredWorkspaces);
 
   useOnMount(() => {
-    const loadData = withErrorReporting('Error loading showcase', async () => {
+    const loadData = withErrorReporting('Error loading showcase')(async () => {
       const showcase = await Ajax().FirecloudBucket.getShowcaseWorkspaces();
 
       const featuredWorkspaces = _.map((workspace) => {
