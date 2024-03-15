@@ -31,7 +31,7 @@ import colors, { terraSpecial } from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { DEPRECATE_FIRECLOUD_UI, ENABLE_WORKFLOW_RESOURCE_MONITORING } from 'src/libs/feature-previews-config';
+import { ENABLE_WORKFLOW_RESOURCE_MONITORING, FIRECLOUD_UI_MIGRATION } from 'src/libs/feature-previews-config';
 import { HiddenLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withCancellationSignal } from 'src/libs/react-utils';
@@ -890,7 +890,7 @@ export const WorkflowView = _.flow(
                       Link,
                       {
                         href: methodLink(modifiedConfig),
-                        ...(isFeaturePreviewEnabled(DEPRECATE_FIRECLOUD_UI) ? {} : Utils.newTabLinkProps),
+                        ...(isFeaturePreviewEnabled(FIRECLOUD_UI_MIGRATION) ? {} : Utils.newTabLinkProps),
                       },
                       [sourceDisplay]
                     ),

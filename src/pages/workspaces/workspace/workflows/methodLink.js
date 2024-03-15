@@ -1,7 +1,7 @@
 import { getEnabledBrand } from 'src/libs/brand-utils';
 import { getConfig } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { DEPRECATE_FIRECLOUD_UI } from 'src/libs/feature-previews-config';
+import { FIRECLOUD_UI_MIGRATION } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 
 export const methodLink = (config) => {
@@ -10,7 +10,7 @@ export const methodLink = (config) => {
   } = config;
 
   if (sourceRepo === 'agora') {
-    if (isFeaturePreviewEnabled(DEPRECATE_FIRECLOUD_UI)) {
+    if (isFeaturePreviewEnabled(FIRECLOUD_UI_MIGRATION)) {
       return Nav.getLink('workflow-dashboard', { namespace: methodNamespace, name: methodName, snapshotId: methodVersion });
     }
     return `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}#methods/${methodNamespace}/${methodName}/${methodVersion}`;

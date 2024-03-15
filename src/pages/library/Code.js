@@ -14,7 +14,7 @@ import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { DEPRECATE_FIRECLOUD_UI } from 'src/libs/feature-previews-config';
+import { FIRECLOUD_UI_MIGRATION } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
@@ -104,7 +104,7 @@ export const MethodRepoTile = () => {
       h(
         Link,
         {
-          href: isFeaturePreviewEnabled(DEPRECATE_FIRECLOUD_UI)
+          href: isFeaturePreviewEnabled(FIRECLOUD_UI_MIGRATION)
             ? Nav.getLink('workflows')
             : `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}#methods`,
           style: { color: colors.accent(1.1) }, // For a11y, we need at least 4.5:1 contrast agaisnst the gray background
