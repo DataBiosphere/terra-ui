@@ -1,5 +1,4 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
-import { useThemeFromContext } from '@terra-ui-packages/components';
+import { useThemeFromContext, TooltipTrigger } from '@terra-ui-packages/components';
 import React from 'react';
 import { icon } from 'src/components/icons';
 
