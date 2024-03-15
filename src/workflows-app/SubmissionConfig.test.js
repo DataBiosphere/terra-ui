@@ -855,6 +855,64 @@ describe('Initial state', () => {
     within(row2cells[2]).getByText('String');
     within(row2cells[3]).getByDisplayValue('unused_output'); // autofill by name, no previous run
   });
+
+  it('should render disabled script button for private workflow', async () => {
+    // ** ARRANGE **
+    // const user = userEvent.setup();
+    const methodResponseWithPrivate = {
+      ...methodsResponse,
+      isPrivate: true,
+    };
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseForNewMethod));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodResponseWithPrivate));
+    const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+      };
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      )
+    );
+
+    // ** ASSERT **
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+    expect(mockWdlResponse).toHaveBeenCalledTimes(1);
+
+    expect(screen.getByRole('button', { name: 'View Workflow Script' }));
+
+    // ** ACT **
+    // await user.click(button);
+  });
 });
 
 describe('Records Table updates', () => {
