@@ -6,7 +6,6 @@ parameters:
     enum:
       - build-deploy
       - integration-tests-staging
-      - integration-tests-alpha
     default: build-deploy
 
 orbs:
@@ -17,11 +16,11 @@ executors:
   node:
     working_directory: /mnt/ramdisk
     docker:
-      - image: cimg/node:18.10
+      - image: cimg/node:20.11
   puppeteer:
     working_directory: /mnt/ramdisk
     docker:
-      - image: cimg/node:18.10-browsers
+      - image: cimg/node:20.11-browsers
   gcloud:
     working_directory: /mnt/ramdisk
     docker:
@@ -31,7 +30,9 @@ anchors:
   filter-pr-branch: &filter-pr-branch
     filters:
       branches:
-        ignore: dev
+        ignore:
+          - dev
+          - /gh-readonly-queue\/.*/
 
   filter-dev-branch: &filter-dev-branch
     filters:
@@ -96,7 +97,7 @@ commands:
         default: "SA_KEY_JSON"
       env:
         type: enum
-        enum: [dev, staging, alpha]
+        enum: [dev, staging]
         default: dev
       pr:
         type: boolean
@@ -150,7 +151,7 @@ commands:
         default: false
       env:
         type: enum
-        enum: [ staging, alpha ]
+        enum: [ staging ]
         default: staging
       log_dir:
         type: string
@@ -181,7 +182,7 @@ commands:
             JEST_JUNIT_OUTPUT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/junit"
             SCREENSHOT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/failure-screenshots"
             ENVIRONMENT: << parameters.env >>
-          no_output_timeout: 20m
+          no_output_timeout: 25m
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||")
@@ -202,6 +203,7 @@ commands:
               bash ../.circleci/wait-for-job-finish.sh
               node --require ../.pnp.cjs ./slack/notify-circleci-test-results.js
             fi
+          no_output_timeout: 25m
           when: always
 
   notify-qa:
@@ -227,6 +229,13 @@ jobs:
           keys:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
       - run: yarn install --immutable
+      - run:
+          name: "Check for missing cache files"
+          command: |
+            if [[ $(git ls-files .yarn/cache --exclude-standard --others) ]]; then
+              echo "Changes to Yarn cache need to be committed" 1>&2
+              exit 1
+            fi
       - run: yarn run build
       - run: yarn eslint --max-warnings=0 .
       - run: yarn workspaces foreach --exclude terra-integration-tests run test --coverage --maxWorkers=2 --passWithNoTests
@@ -258,14 +267,6 @@ jobs:
     executor: gcloud
     steps:
       - deploy-env
-  deploy-alpha:
-    executor: gcloud
-    steps:
-      - deploy-env:
-          sa_key_var: "ALPHA_SA_KEY_JSON"
-          env: "alpha"
-      - notify-qa:
-          channel: "C7H40L71D" # dsde-qa-notify
   deploy-staging:
     executor: gcloud
     steps:
@@ -276,17 +277,12 @@ jobs:
           channel: "C7H40L71D" # dsde-qa-notify
   integration-tests-pr-staging:
     executor: puppeteer
+    resource_class: medium+
     parallelism: 4
     steps:
       - integration-tests:
           local: true
           env: staging
-  integration-tests-alpha:
-    executor: puppeteer
-    parallelism: 4
-    steps:
-      - integration-tests:
-          env: alpha
   integration-tests-staging:
     executor: puppeteer
     parallelism: 4
@@ -313,10 +309,6 @@ workflows:
           <<: *filter-dev-branch
           requires:
             - build
-      - deploy-alpha:
-          <<: *filter-dev-branch
-          requires:
-            - build
       - deploy-staging:
           <<: *filter-dev-branch
           requires:
@@ -330,11 +322,6 @@ workflows:
       equal: [integration-tests-staging, << pipeline.parameters.workflow_to_run >>]
     jobs:
       - integration-tests-staging
-  integration-tests-alpha:
-    when:
-      equal: [integration-tests-alpha, << pipeline.parameters.workflow_to_run >>]
-    jobs:
-      - integration-tests-alpha
   nightly-integration-tests:
     triggers:
       - schedule:
