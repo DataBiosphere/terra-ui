@@ -4,12 +4,14 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { UnsupportedWorkspaceCell } from './UnsupportedWorkspaceCell';
 
-test('renders UnsupportedWorkspaceCell with status and message', () => {
-  const testStatus = 'Test Status';
-  const testMessage = 'Test Message';
+describe('UnsupportedWorkspaceCell', () => {
+  it('renders UnsupportedWorkspaceCell with status and message', () => {
+    const testStatus = 'Test Status';
+    const testMessage = 'Test Message';
 
-  render(<UnsupportedWorkspaceCell status={testStatus} message={testMessage} />);
+    render(<UnsupportedWorkspaceCell status={testStatus} message={testMessage} />);
 
-  expect(screen.getByText(testStatus)).toBeInTheDocument();
-  expect(screen.getByText(testMessage)).toBeInTheDocument();
+    expect(screen.getByText(testStatus)).toBeInTheDocument();
+    expect(screen.getByText(testMessage)).toBeInTheDocument();
+  });
 });
