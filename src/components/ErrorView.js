@@ -1,11 +1,11 @@
+import { useThemeFromContext } from '@terra-ui-packages/components';
 import { cond, maybeParseJSON } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { div, h, iframe } from 'react-hyperscript-helpers';
-import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 
-export const styles = {
+export const getStyles = (colors) => ({
   htmlFrame: {
     width: '100%',
     border: Style.standardLine,
@@ -22,9 +22,12 @@ export const styles = {
     fontFamily: 'Menlo, monospace',
     maxHeight: 400,
   },
-};
+});
 
 const ErrorView = ({ error }) => {
+  const { colors } = useThemeFromContext();
+  const styles = getStyles(colors);
+
   return div({ style: { marginTop: '1rem' } }, [
     cond(
       [_.isError(error), () => error.message],
