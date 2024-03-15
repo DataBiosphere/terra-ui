@@ -18,3 +18,4 @@ export * from './Spinner';
 export * from './Switch';
 export * from './theme';
 export * from './TooltipTrigger';
+export * from './useModalHandler';

@@ -1,11 +1,11 @@
-import { Modal } from '@terra-ui-packages/components';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ReactNode } from 'react';
-import { div, h, span } from 'react-hyperscript-helpers';
-import { ButtonPrimary } from 'src/components/common';
-import { useModalHandler } from 'src/components/useModalHandler';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+
+import { ButtonPrimary } from './buttons';
+import { renderWithTheme as render } from './internal/test-utils';
+import { Modal } from './Modal';
+import { useModalHandler } from './useModalHandler';
 
 describe('useModalHandler helper hook', () => {
   interface TestComponentProps {
@@ -17,52 +17,37 @@ describe('useModalHandler helper hook', () => {
     /* in most cases, usage will leverage a custom variant of Modal that
        streamlines the hook usage a bit, but we are using raw Modal since
        it is sufficient for testing */
-    const myModal = useModalHandler((args: string, close: () => void) =>
-      h(
-        Modal,
-        {
-          title: `Modal for ${args}.`,
-          onDismiss: () => {
+    const myModal = useModalHandler((args: string, close: () => void) => {
+      return (
+        <Modal
+          title={`Modal for ${args}.`}
+          onDismiss={() => {
             close();
             onCloseThing(args);
-          },
-          okButton: () => {
+          }}
+          okButton={() => {
             close();
             onSuccess(args);
-          },
-        },
-        [span([`content for ${args}`])]
-      )
+          }}
+        >
+          <span>content for {args} </span>
+        </Modal>
+      );
+    });
+    return (
+      <div>
+        <ButtonPrimary onClick={() => myModal.open('ThingOne')}>Open One</ButtonPrimary>
+        <ButtonPrimary onClick={() => myModal.open('ThingTwo')}>Open Two</ButtonPrimary>
+        {myModal.maybeRender()}
+      </div>
     );
-    return div([
-      h(
-        ButtonPrimary,
-        {
-          onClick: () => myModal.open('ThingOne'),
-        },
-        ['Open One']
-      ),
-      h(
-        ButtonPrimary,
-        {
-          onClick: () => myModal.open('ThingTwo'),
-        },
-        ['Open Two']
-      ),
-      myModal.maybeRender(),
-    ]);
   };
 
   it('renders no modal initially', () => {
     // Arrange
 
     // Act
-    render(
-      h(TestComponent, {
-        onCloseThing: () => {},
-        onSuccess: () => {},
-      })
-    );
+    render(<TestComponent onCloseThing={() => {}} onSuccess={() => {}} />);
 
     // Assert
     expect(screen.queryAllByText('Modal for ThingOne.').length).toBe(0);
@@ -71,12 +56,7 @@ describe('useModalHandler helper hook', () => {
 
   it('opens modal with correct args flow', () => {
     // Arrange
-    render(
-      h(TestComponent, {
-        onCloseThing: () => {},
-        onSuccess: () => {},
-      })
-    );
+    render(<TestComponent onCloseThing={() => {}} onSuccess={() => {}} />);
 
     // Act
     const button = screen.getByText('Open One');
@@ -89,12 +69,7 @@ describe('useModalHandler helper hook', () => {
 
   it('opens modal with correct args flow - 2nd item', () => {
     // Arrange
-    render(
-      h(TestComponent, {
-        onCloseThing: () => {},
-        onSuccess: () => {},
-      })
-    );
+    render(<TestComponent onCloseThing={() => {}} onSuccess={() => {}} />);
 
     // Act
     const button = screen.getByText('Open Two');
@@ -110,12 +85,7 @@ describe('useModalHandler helper hook', () => {
     const user = userEvent.setup();
     const onSuccessWatcher = jest.fn();
 
-    render(
-      h(TestComponent, {
-        onCloseThing: () => {},
-        onSuccess: onSuccessWatcher,
-      })
-    );
+    render(<TestComponent onCloseThing={() => {}} onSuccess={onSuccessWatcher} />);
 
     const button = screen.getByText('Open One');
     fireEvent.click(button);
@@ -136,12 +106,7 @@ describe('useModalHandler helper hook', () => {
     const user = userEvent.setup();
     const onCloseWatcher = jest.fn();
 
-    render(
-      h(TestComponent, {
-        onCloseThing: onCloseWatcher,
-        onSuccess: () => {},
-      })
-    );
+    render(<TestComponent onCloseThing={onCloseWatcher} onSuccess={() => {}} />);
 
     const button = screen.getByText('Open One');
     fireEvent.click(button);

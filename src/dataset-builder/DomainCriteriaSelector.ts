@@ -1,8 +1,13 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import { DomainCriteria, DomainOption } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
+import { DomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
+import {
+  DataRepo,
+  SnapshotBuilderConcept as Concept,
+  SnapshotBuilderConcept,
+  SnapshotBuilderDomainOption,
+} from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useOnMount } from 'src/libs/react-utils';
 
@@ -23,7 +28,7 @@ interface DomainCriteriaSelectorProps {
 }
 
 export const toCriteria =
-  (domainOption: DomainOption, getNextCriteriaIndex: () => number) =>
+  (domainOption: SnapshotBuilderDomainOption, getNextCriteriaIndex: () => number) =>
   (concept: Concept): DomainCriteria => {
     return {
       kind: 'domain',

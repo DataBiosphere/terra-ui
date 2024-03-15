@@ -16,7 +16,7 @@ import { DatasetBuilderBreadcrumbs } from './Breadcrumbs';
 interface DomainDisplayProps {
   title: string;
   displayInformation: {
-    category: string;
+    name: string;
     participantCount?: number;
     conceptCount?: number;
   }[];
@@ -40,10 +40,10 @@ const TileDisplay = (props: DomainDisplayProps) => {
                 marginRight: '1rem',
                 border: `1px solid ${colors.light()}`,
               },
-              key: displayTile.category,
+              key: displayTile.name,
             },
             [
-              h3([displayTile.category]),
+              h3([displayTile.name]),
               div({ style: { display: 'flex', alignItems: 'baseline' } }, [
                 div({ style: { fontSize: 30, fontWeight: 600 } }, [
                   displayTile.conceptCount ? `${displayTile.conceptCount / 1000}K` : 'UNKNOWN',
