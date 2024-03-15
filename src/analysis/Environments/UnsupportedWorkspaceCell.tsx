@@ -8,7 +8,14 @@ export const unsupportedDiskMessage =
   'This disk is not associated with a supported workspace. It is recommended that you delete it to avoid additional cloud costs.';
 export const unsupportedCloudEnvironmentMessage =
   'This cloud environment is not associated with a supported workspace. It is recommended that you delete it to avoid additional cloud costs.';
-export const UnsupportedWorkspaceCell = ({ status, message }) => {
+
+export interface UnsupportedWorkspaceCellProps {
+  status: string;
+  message: string;
+}
+
+export const UnsupportedWorkspaceCell = (props: UnsupportedWorkspaceCellProps) => {
+  const { status, message } = props;
   const { colors } = useThemeFromContext();
 
   return (
