@@ -1,4 +1,4 @@
-import { CSSProperties, ReactElement } from 'react';
+import React, { CSSProperties, ReactElement } from 'react';
 import { EventWorkspaceAttributes } from 'src/libs/events';
 import { memoWithName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
