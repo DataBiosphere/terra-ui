@@ -64,15 +64,15 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
   const signal = useCancellation();
   const [accountInfo, setAccountInfo] = useState<EcmLinkAccountResponse>();
   const [accountLoaded, setAccountLoaded] = useState<boolean>(false);
-  const callbacks: Array<OAuth2Callback['name']> = ['oauth-callback', 'ecm-callback']; // ecm-callback is deprecated, but still needs to be supported
+  const callbacks: Array<OAuth2Callback['name']> = ['oauth-callback', 'ecm-callback', 'fence-callback']; // ecm-callback is deprecated, but still needs to be supported
   const isLinking =
     callbacks.includes(Nav.getCurrentRoute().name) && state && JSON.parse(atob(state)).provider === provider.key;
 
   useOnMount(() => {
-    const loadAccount = withErrorReporting(`Error loading ${provider.name} account`)(async () => {
+    const loadAccount = withErrorReporting(`Error loading ${provider.short} account`)(async () => {
       setAccountInfo(await Ajax(signal).ExternalCredentials(provider).getAccountLinkStatus());
     });
-    const linkAccount = withErrorReporting(`Error linking ${provider.name} account`)(async (code, state) => {
+    const linkAccount = withErrorReporting(`Error linking ${provider.short} account`)(async (code, state) => {
       setAccountInfo(await Ajax(signal).ExternalCredentials(provider).linkAccountWithAuthorizationCode(code, state));
     });
 
@@ -86,15 +86,17 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
     setAccountLoaded(true);
   });
 
-  const unlinkAccount = withErrorReporting(`Error unlinking ${provider.name} account`)(async () => {
+  const unlinkAccount = withErrorReporting(`Error unlinking ${provider.short} account`)(async () => {
     await Ajax(signal).ExternalCredentials(provider).unlinkAccount();
     setAccountInfo(undefined);
   });
 
-  const getAuthUrlAndRedirect = withErrorReporting(`Error getting Authorization URL for ${provider.name}`)(async () => {
-    const url = await Ajax(signal).ExternalCredentials(provider).getAuthorizationUrl();
-    window.open(url, Utils.newTabLinkProps.target, 'noopener,noreferrer');
-  });
+  const getAuthUrlAndRedirect = withErrorReporting(`Error getting Authorization URL for ${provider.short}`)(
+    async () => {
+      const url = await Ajax(signal).ExternalCredentials(provider).getAuthorizationUrl();
+      window.open(url, Utils.newTabLinkProps.target, 'noopener,noreferrer');
+    }
+  );
 
   return (
     <div style={styles.idLink.container}>
@@ -108,7 +110,7 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
               target={Utils.newTabLinkProps.target}
               rel={Utils.newTabLinkProps.rel}
             >
-              Link your {provider.name} account
+              Log Into {provider.short}
             </ButtonPrimary>
           </div>
         )}
@@ -124,7 +126,7 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
             </div>
             <div>
               <Clickable
-                aria-label={`Renew your ${provider.name} link`}
+                aria-label={`Renew your ${provider.short} link`}
                 onClick={getAuthUrlAndRedirect}
                 style={styles.clickableLink}
               >
@@ -132,7 +134,7 @@ export const OAuth2Link = (props: OAuth2LinkProps) => {
               </Clickable>
               <span style={{ margin: '0 0.25rem 0' }}> | </span>
               <Clickable
-                aria-label={`Unlink from ${provider.name}`}
+                aria-label={`Unlink from ${provider.short}`}
                 onClick={unlinkAccount}
                 style={styles.clickableLink}
               >

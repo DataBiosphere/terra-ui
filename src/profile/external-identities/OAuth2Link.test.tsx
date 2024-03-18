@@ -45,6 +45,7 @@ type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 const testAccessTokenProvider: OAuth2Provider = {
   key: 'github',
   name: 'Test Provider',
+  short: 'Test',
   queryParams: {
     redirectUri: 'localhost/oauth_callback',
   },
@@ -73,7 +74,7 @@ describe('OAuth2Link', () => {
       const { container } = await act(() => render(<OAuth2Link queryParams={{}} provider={testAccessTokenProvider} />));
 
       // Assert
-      screen.getByText(`Link your ${testAccessTokenProvider.name} account`);
+      screen.getByText(`Log Into ${testAccessTokenProvider.short}`);
       expect(getLinkStatusFn).toHaveBeenCalled();
       expect(getAuthorizationUrlFn).not.toHaveBeenCalled();
       expect(await axe(container)).toHaveNoViolations();
@@ -101,7 +102,7 @@ describe('OAuth2Link', () => {
       await act(() => render(<OAuth2Link queryParams={{}} provider={testAccessTokenProvider} />));
 
       // Assert
-      const button = screen.getByText(`Link your ${testAccessTokenProvider.name} account`);
+      const button = screen.getByText(`Log Into ${testAccessTokenProvider.short}`);
       await user.click(button);
       expect(getAuthorizationUrlFn).toHaveBeenCalled();
       expect(window.open).toHaveBeenCalled();
@@ -189,7 +190,7 @@ describe('OAuth2Link', () => {
 
       // Assert
       expect(unlinkAccountFn).toHaveBeenCalled();
-      screen.getByText(`Link your ${testAccessTokenProvider.name} account`);
+      screen.getByText(`Log Into ${testAccessTokenProvider.short}`);
 
       expect(await axe(container)).toHaveNoViolations();
     });

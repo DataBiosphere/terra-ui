@@ -10,8 +10,8 @@ export interface EcmLinkAccountResponse {
 }
 export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OAuth2Provider) => {
   const { key: providerKey, queryParams, supportsAccessToken, supportsIdToken } = oAuth2Provider;
-  const oauthRoot = `/api/oauth/v1/${providerKey}`;
-  const oidcRoot = `/api/oidc/v1/${providerKey}`;
+  const oauthRoot = `api/oauth/v1/${providerKey}`;
+  const oidcRoot = `api/oidc/v1/${providerKey}`;
 
   return {
     getAccountLinkStatus: async (): Promise<EcmLinkAccountResponse | undefined> => {

@@ -10,7 +10,7 @@
   "dockstoreUrlRoot": "https://staging.dockstore.org",
   "drsHubUrlRoot": "https://drshub.dsde-dev.broadinstitute.org",
   "externalCreds": {
-    "providers": ["ras", "github"],
+    "providers": ["fence", "dcf-fence", "anvil", "kids-first", "ras", "github"],
     "urlRoot": "https://externalcreds.dsde-dev.broadinstitute.org"
   },
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-dev",
