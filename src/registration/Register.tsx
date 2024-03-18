@@ -1,6 +1,7 @@
 import { Modal } from '@terra-ui-packages/components';
 import React, { ReactNode, useState } from 'react';
-import { loadTerraUser, signOut } from 'src/auth/auth';
+import { loadTerraUser } from 'src/auth/auth';
+import { signOut } from 'src/auth/auth-events/logout';
 import { ButtonPrimary, ButtonSecondary, LabeledCheckbox } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import planet from 'src/images/register-planet.svg';

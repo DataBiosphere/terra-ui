@@ -20,6 +20,14 @@ jest.mock('src/libs/ajax/User', (): UserExports => {
 // Mock the entire auth module to work around the auth/ajax-common import cycle.
 jest.mock('src/auth/auth');
 
+type LogoutExports = typeof import('src/auth/auth-events/logout');
+jest.mock(
+  'src/auth/auth-events/logout',
+  (): LogoutExports => ({
+    signOut: jest.fn(),
+  })
+);
+
 type ErrorExports = typeof import('src/libs/error');
 jest.mock('src/libs/error', (): ErrorExports => {
   return {

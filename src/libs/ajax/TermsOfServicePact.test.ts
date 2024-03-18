@@ -22,6 +22,14 @@ jest.mock('src/auth/auth', () => {
   };
 });
 
+type LogoutExports = typeof import('src/auth/auth-events/logout');
+jest.mock(
+  'src/auth/auth-events/logout',
+  (): LogoutExports => ({
+    signOut: jest.fn(),
+  })
+);
+
 const { boolean } = MatchersV3;
 
 const termsOfServicePact = new PactV3({

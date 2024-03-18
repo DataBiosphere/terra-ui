@@ -3,6 +3,7 @@ import { compile, pathToRegexp } from 'path-to-regexp';
 import * as Analysis from 'src/analysis/Analyses';
 import * as AnalysisLauncher from 'src/analysis/AnalysisLauncher';
 import * as AppLauncher from 'src/analysis/AppLauncher';
+import * as Logout from 'src/auth/Logout';
 import * as DataBrowserDetails from 'src/data-catalog/DataBrowserDetails';
 import * as DataBrowserPreview from 'src/data-catalog/DataBrowserPreview';
 import * as ImportDataPage from 'src/import-data/ImportDataPage';
@@ -85,6 +86,7 @@ const routes = _.flatten([
   WorkspaceFiles.navPaths,
   WorkflowsApp.navPaths,
   WorkspaceMigration.navPaths,
+  Logout.navPaths,
   NotFound.navPaths, // must be last
 ]);
 

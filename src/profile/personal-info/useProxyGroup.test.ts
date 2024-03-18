@@ -9,6 +9,14 @@ import { useProxyGroup } from './useProxyGroup';
 // Workaround for import cycle.
 jest.mock('src/auth/auth');
 
+type LogoutExports = typeof import('src/auth/auth-events/logout');
+jest.mock(
+  'src/auth/auth-events/logout',
+  (): LogoutExports => ({
+    signOut: jest.fn(),
+  })
+);
+
 type UserExports = typeof import('src/libs/ajax/User');
 jest.mock('src/libs/ajax/User', (): UserExports => {
   return {

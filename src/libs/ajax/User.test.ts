@@ -16,6 +16,14 @@ jest.mock(
   })
 );
 
+type LogoutExports = typeof import('src/auth/auth-events/logout');
+jest.mock(
+  'src/auth/auth-events/logout',
+  (): LogoutExports => ({
+    signOut: jest.fn(),
+  })
+);
+
 const completeUserProfile: TerraUserProfile = {
   firstName: 'testFirstName',
   lastName: 'testLastName',
