@@ -908,7 +908,8 @@ describe('Initial state', () => {
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
     expect(mockWdlResponse).toHaveBeenCalledTimes(1);
 
-    expect(screen.getByRole('button', { name: 'View Workflow Script' }));
+    const button = screen.getByRole('button', { name: 'View Workflow Script' });
+    expect(button).toBeDisabled();
 
     // ** ACT **
     // await user.click(button);
