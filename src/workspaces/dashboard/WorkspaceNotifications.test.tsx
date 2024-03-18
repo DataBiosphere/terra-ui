@@ -2,7 +2,6 @@ import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
-import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { userStore } from 'src/libs/state';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -66,7 +65,7 @@ describe('WorkspaceNotifications', () => {
     // @ts-expect-error
     act(() => userStore.update((state) => ({ ...state, profile })));
 
-    const { getByLabelText } = render(h(WorkspaceNotifications, { workspace: testWorkspace }));
+    const { getByLabelText } = render(<WorkspaceNotifications workspace={testWorkspace}/>);
     const submissionNotificationsCheckbox = getByLabelText('Receive submission notifications');
     expect(submissionNotificationsCheckbox.getAttribute('aria-checked')).toBe(`${expectedState}`);
   });
@@ -108,7 +107,7 @@ describe('WorkspaceNotifications', () => {
       },
     }));
 
-    const { getByLabelText } = render(h(WorkspaceNotifications, { workspace: testWorkspace }));
+    const { getByLabelText } = render(<WorkspaceNotifications workspace={testWorkspace}/>);
     const submissionNotificationsCheckbox = getByLabelText('Receive submission notifications');
 
     await user.click(submissionNotificationsCheckbox);
@@ -132,7 +131,7 @@ describe('WorkspaceNotifications', () => {
     }));
 
     // Act
-    const { container } = render(h(WorkspaceNotifications, { workspace: testWorkspace }));
+    const { container } = render(<WorkspaceNotifications workspace={testWorkspace}/>);
 
     // Assert
     expect(await axe(container)).toHaveNoViolations();
