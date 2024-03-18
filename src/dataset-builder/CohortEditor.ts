@@ -1,11 +1,12 @@
 import { Spinner } from '@terra-ui-packages/components';
+import { debounce } from 'lodash';
 import _ from 'lodash/fp';
 import React, { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
-import { NumberInput, withDebouncedChange } from 'src/components/input';
+import { NumberInput } from 'src/components/input';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import {
   AnyCriteria,
@@ -47,24 +48,38 @@ type CriteriaViewProps = {
 
 const addCriteriaText = 'Add criteria';
 
-const DebouncedSlider = withDebouncedChange(Slider);
-const DebouncedNumberInput = withDebouncedChange(NumberInput);
 export const CriteriaView = (props: CriteriaViewProps) => {
   const { datasetId, criteria, deleteCriteria, updateCriteria } = props;
 
   const [criteriaCount, setCriteriaCount] = useLoadedData<DatasetParticipantCountResponse>();
 
-  useEffect(() => {
-    setCriteriaCount(async () =>
-      DataRepo()
-        .dataset(datasetId)
-        .getCounts({
-          // Create a "cohort" to get the count of participants for this criteria on its own.
-          cohorts: [{ criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }], name: '' }],
-        })
-    );
-  }, [criteria, datasetId, setCriteriaCount]);
+  const debouncedFetchData = debounce(async (datasetId, criteria) => {
+    return await DataRepo()
+      .dataset(datasetId)
+      .getCounts({
+        cohorts: [{ criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }], name: '' }],
+      });
+  }, 250);
 
+  useEffect(() => {
+    setCriteriaCount(async () => {
+      const debounceData = debouncedFetchData(datasetId, criteria);
+      if (!debounceData) {
+        return {
+          result: {
+            total: 1000,
+          },
+          sql: 'string',
+        };
+      }
+      // return criteriaCount.status === 'Ready' ? criteriaCount.state : ;
+      return debounceData;
+    });
+
+    return () => {
+      debouncedFetchData.cancel();
+    };
+  }, [criteria, datasetId, setCriteriaCount, debouncedFetchData]);
   return div(
     {
       style: {
@@ -130,7 +145,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
                 return h(Fragment, [
                   div([strong([`${criteria.option.name}:`]), ` ${criteria.low} - ${criteria.high}`]),
                   div({ style: { display: 'flex', alignItems: 'center' } }, [
-                    h(DebouncedNumberInput, {
+                    h(NumberInput, {
                       min: criteria.option.min,
                       max: criteria.high,
                       isClearable: false,
@@ -140,7 +155,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
                       'aria-label': `${criteria.option.name} low`,
                       style: numberInputStyles,
                     }),
-                    h(DebouncedSlider, {
+                    h(Slider, {
                       range: true,
                       value: [criteria.low, criteria.high],
                       min: criteria.option.min,
@@ -149,7 +164,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
                       style: { marginLeft: rangeSliderMargin },
                       ariaLabelForHandle: [`${criteria.option.name} low slider`, `${criteria.option.name} high slider`],
                     }),
-                    h(DebouncedNumberInput, {
+                    h(NumberInput, {
                       min: criteria.low,
                       max: criteria.option.max,
                       isClearable: false,
@@ -322,11 +337,11 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   const [groupParticipantCount, setGroupParticipantCount] = useLoadedData<DatasetParticipantCountResponse>();
 
   useEffect(() => {
-    setGroupParticipantCount(async () =>
-      DataRepo()
-        .dataset(dataset.id)
-        .getCounts({ cohorts: [{ criteriaGroups: [criteriaGroup], name: '' }] })
-    );
+    // setGroupParticipantCount(async () =>
+    //   DataRepo()
+    //     .dataset(dataset.id)
+    //     .getCounts({ cohorts: [{ criteriaGroups: [criteriaGroup], name: '' }] })
+    // );
   }, [criteriaGroup, dataset.id, setGroupParticipantCount]);
 
   return div(
