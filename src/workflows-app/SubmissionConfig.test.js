@@ -858,9 +858,8 @@ describe('Initial state', () => {
 
   it('should render disabled script button for private workflow', async () => {
     // ** ARRANGE **
-    // const user = userEvent.setup();
     const methodResponseWithPrivate = {
-      ...methodsResponse,
+      ...methodsResponse.methods[0],
       isPrivate: true,
     };
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseForNewMethod));
