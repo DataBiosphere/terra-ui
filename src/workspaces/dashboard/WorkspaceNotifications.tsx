@@ -31,6 +31,8 @@ export const WorkspaceNotifications = (props: WorkspaceNotificationsProps): Reac
   const submissionNotificationKeys = workspaceSubmissionNotificationKeys(namespace, name);
   const workspaceNotificationKey = workspaceChangedNotificationKey(namespace, name);
 
+  const leftCharSpace = { marginLeft: '1ch' };
+
   const renderNotificationCheckbox = (
     notificationKeys: string[],
     saving: boolean,
@@ -40,7 +42,7 @@ export const WorkspaceNotifications = (props: WorkspaceNotificationsProps): Reac
     tooltipInfo: string
   ) => {
     return (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '0.25rem' }}>
         <LabeledCheckbox
           checked={notificationEnabled(notificationKeys, prefsData as Record<string, string>)}
           disabled={saving}
@@ -51,10 +53,10 @@ export const WorkspaceNotifications = (props: WorkspaceNotificationsProps): Reac
             await updateNotificationPreferences(notificationKeys, value, notificationType, props.workspace);
           })}
         >
-          <span style={{ marginLeft: '1ch' }}>{label}</span>
+          <span style={leftCharSpace}>{label}</span>
         </LabeledCheckbox>
-        <InfoBox style={{ marginLeft: '1ch' }}>{tooltipInfo}</InfoBox>
-        {saving && <Spinner size={12} style={{ marginLeft: '1ch' }} />}
+        <InfoBox style={leftCharSpace}>{tooltipInfo}</InfoBox>
+        {saving && <Spinner size={12} style={leftCharSpace} />}
       </div>
     );
   };
