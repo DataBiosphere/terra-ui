@@ -64,16 +64,15 @@ export type SnapshotBuilderFeatureValueGroup = {
   values: string[];
 };
 
-export interface DomainConceptSet extends DatasetBuilderType {
+export interface DomainConceptSet extends ConceptSet {
   concept: SnapshotBuilderConcept;
-  featureValueGroupName: string;
 }
 
-export interface PrepackagedConceptSet extends DatasetBuilderType {
+export type PrepackagedConceptSet = ConceptSet;
+
+export interface ConceptSet extends DatasetBuilderType {
   featureValueGroupName: string;
 }
-
-export type ConceptSet = DomainConceptSet | PrepackagedConceptSet;
 
 export type SnapshotBuilderSettings = {
   domainOptions: SnapshotBuilderDomainOption[];
