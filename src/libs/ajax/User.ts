@@ -216,6 +216,15 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
+    getEnterpriseFeatures: async (): Promise<string[]> => {
+      const res = await fetchSam(
+        '/api/resources/v2?format=flat&resourceTypes=enterprise-feature&roles=user',
+        _.mergeAll([authOpts(), { signal }])
+      );
+      const json = await res.json();
+      return json.resources.map((resource) => resource.resourceId);
+    },
+
     registerWithProfile: async (
       acceptsTermsOfService: boolean,
       profile: CreateTerraUserProfileRequest

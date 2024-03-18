@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import React, { ReactNode } from 'react';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
+import { userHasAccessToEnterpriseFeature } from 'src/enterprise-features/features';
 import { getConfig } from 'src/libs/config';
 import allProviders from 'src/libs/providers';
 import { FenceAccount } from 'src/profile/external-identities/FenceAccount';
@@ -24,13 +25,13 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode =>
         ),
         allProviders
       )}
-      {getConfig().externalCreds?.providers.map((providerKey) => (
-        <OAuth2Link
-          key={`oauth2link-${providerKey}`}
-          queryParams={queryParams}
-          provider={oauth2Provider(providerKey)}
-        />
-      ))}
+      {getConfig().externalCreds?.providers.includes('ras') && (
+        <OAuth2Link key="oauth2link-ras}" queryParams={queryParams} provider={oauth2Provider('ras')} />
+      )}
+      {getConfig().externalCreds?.providers.includes('github') &&
+        userHasAccessToEnterpriseFeature('github-account-linking') && (
+          <OAuth2Link key="oauth2link-github}" queryParams={queryParams} provider={oauth2Provider('github')} />
+        )}
     </PageBox>
   );
 };

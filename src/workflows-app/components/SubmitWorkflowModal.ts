@@ -1,18 +1,17 @@
-import { Modal, Spinner } from '@terra-ui-packages/components';
+import { Modal, Spinner, useThemeFromContext } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { generateAppName, getCurrentApp } from 'src/analysis/utils/app-utils';
 import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary } from 'src/components/common';
-import { styles as errorStyles } from 'src/components/ErrorView';
+import { getStyles as getErrorStyles } from 'src/components/ErrorView';
 import { icon } from 'src/components/icons';
 import { TextArea, TextInput } from 'src/components/input';
 import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import { RecordResponse } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
-import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
@@ -65,6 +64,8 @@ export const SubmitWorkflowModal = ({
   const { captureEvent } = useMetricsEvent();
   const canSubmit = canCompute;
 
+  const { colors } = useThemeFromContext();
+  const errorStyles = getErrorStyles(colors);
   const submitRun = async () => {
     const runSetsPayload = {
       run_set_name: runSetName,
