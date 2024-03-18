@@ -13,7 +13,6 @@ jest.mock('src/libs/ajax');
 
 jest.mock('src/auth/auth-events/logout', () => ({
   ...jest.requireActual('src/auth/auth-events/logout'),
-
   signOut: jest.fn(),
 }));
 
