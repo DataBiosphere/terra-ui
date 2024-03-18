@@ -25,8 +25,6 @@ jest.mock('src/profile/notification-settings/utils', (): NotificationUtilsExport
   };
 });
 
-jest.spyOn(console, 'error').mockImplementation(() => {});
-
 describe('WorkspaceNotifications', () => {
   const testWorkspace = {
     ...defaultGoogleWorkspace,
@@ -36,6 +34,11 @@ describe('WorkspaceNotifications', () => {
       namespace: 'namespace',
     },
   };
+
+  beforeEach(() => {
+    // Don't show expected error responses in logs
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
 
   afterEach(() => {
     userStore.reset();
