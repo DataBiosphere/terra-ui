@@ -1,6 +1,7 @@
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
+import React from 'react';
 import * as Notifications from 'src/libs/notifications';
 import { userStore } from 'src/libs/state';
 import {
@@ -36,13 +37,6 @@ describe('WorkspaceNotifications', () => {
     },
   };
 
-  beforeEach(() => {
-    userStore.update((state) => ({
-      ...state,
-      profile: {},
-    }));
-  });
-
   afterEach(() => {
     userStore.reset();
   });
@@ -70,7 +64,7 @@ describe('WorkspaceNotifications', () => {
     },
   ])('renders checkbox with submission notifications status', ({ profile, expectedState }) => {
     // Arrange
-    // @ts-expect-error
+    // @ts-ignore: partial update
     act(() => userStore.update((state) => ({ ...state, profile })));
 
     // Act
@@ -93,7 +87,7 @@ describe('WorkspaceNotifications', () => {
     // Assert
     expect(updateNotificationPreferences).toHaveBeenCalledWith(
       workspaceSubmissionNotificationKeys('namespace', 'name'),
-      false,
+      false, // toggled to false because since there are no stored user preferences, true is the default value
       'WorkspaceSubmission',
       testWorkspace
     );
@@ -111,7 +105,7 @@ describe('WorkspaceNotifications', () => {
     // Assert
     expect(updateNotificationPreferences).toHaveBeenCalledWith(
       workspaceChangedNotificationKey('namespace', 'name'),
-      false,
+      false, // toggled to false because since there are no stored user preferences, true is the default value
       'WorkspaceChanged',
       testWorkspace
     );

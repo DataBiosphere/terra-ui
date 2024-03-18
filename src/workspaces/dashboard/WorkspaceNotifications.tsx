@@ -1,12 +1,13 @@
 import { InfoBox, Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { ReactNode, useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { LabeledCheckbox } from 'src/components/common';
 import { withErrorReporting } from 'src/libs/error';
 import { userStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
 import {
   notificationEnabled,
+  NotificationType,
   updateNotificationPreferences,
   workspaceChangedNotificationInfo,
   workspaceChangedNotificationKey,
@@ -37,7 +38,7 @@ export const WorkspaceNotifications = (props: WorkspaceNotificationsProps): Reac
     notificationKeys: string[],
     saving: boolean,
     setSaving: (saving: boolean) => void,
-    notificationType: string,
+    notificationType: NotificationType,
     label: string,
     tooltipInfo: string
   ) => {
