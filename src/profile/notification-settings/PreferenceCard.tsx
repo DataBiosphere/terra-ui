@@ -12,7 +12,7 @@ import { NotificationType } from 'src/profile/notification-settings/utils';
 
 const cardStyles: Record<string, CSSProperties> = {
   label: {
-    ...Style.noWrapEllipsis,
+    whiteSpace: 'nowrap',
     height: '1rem',
     gridColumnStart: '1',
     gridColumnEnd: '3',
