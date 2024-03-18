@@ -259,11 +259,6 @@ export const fetchOrchestration = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
-export const fetchRex = _.flow(
-  withUrlPrefix(`${getConfig().rexUrlRoot}/api/`),
-  withRetryAfterReloadingExpiredAuthToken
-)(fetchOk);
-
 export const fetchBond = _.flow(
   withUrlPrefix(`${getConfig().bondUrlRoot}/`),
   withRetryAfterReloadingExpiredAuthToken
