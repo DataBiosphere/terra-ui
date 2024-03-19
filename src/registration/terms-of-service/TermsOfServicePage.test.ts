@@ -74,6 +74,7 @@ const setupMockAjax = async (
         User: {
           getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
           getUserAllowances: jest.fn().mockResolvedValue(terraUserAllowances),
+          getEnterpriseFeatures: jest.fn().mockResolvedValue([]),
           profile: {
             get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
             update: jest.fn().mockResolvedValue({ keyValuePairs: [] }),

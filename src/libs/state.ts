@@ -133,6 +133,7 @@ export interface TerraUserState {
   profile: TerraUserProfile;
   terraUser: TerraUser;
   terraUserAttributes: SamUserAttributes;
+  enterpriseFeatures: string[];
   samUser: SamUserResponse | undefined;
 }
 
@@ -167,6 +168,7 @@ export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
   terraUserAttributes: {
     marketingConsent: true,
   },
+  enterpriseFeatures: [],
   samUser: undefined,
 });
 
