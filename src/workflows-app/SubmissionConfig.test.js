@@ -913,9 +913,6 @@ describe('Initial state', () => {
 
     const button = screen.getByRole('button', { name: 'View Workflow Script' });
     expect(button.getAttribute('aria-disabled')).toBe('true');
-
-    // ** ACT **
-    // await user.click(button);
   });
 });
 
