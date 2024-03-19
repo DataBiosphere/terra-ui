@@ -158,8 +158,8 @@ export const inputSourceTypes = _.invert(inputSourceLabels);
 export const inputTypeParamDefaults = {
   literal: () => ({ parameter_value: '' }),
   record_lookup: () => ({ record_attribute: '' }),
-  object_builder: (inputType: StructInputType) => ({
-    fields: inputType.fields.map((field) => ({ name: field.field_name, source: { type: 'none' } })),
+  object_builder: (inputType: InputType) => ({
+    fields: asStructType(inputType).fields.map((field) => ({ name: field.field_name, source: { type: 'none' } })),
   }),
 };
 
