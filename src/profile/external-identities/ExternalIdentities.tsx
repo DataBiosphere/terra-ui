@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
+import { userHasAccessToEnterpriseFeature } from 'src/enterprise-features/features';
 import { getConfig } from 'src/libs/config';
 import { NihAccount } from 'src/profile/external-identities/NihAccount';
 import { OAuth2Link } from 'src/profile/external-identities/OAuth2Link';

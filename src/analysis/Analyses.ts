@@ -836,6 +836,20 @@ export const BaseAnalyses = (
                     onDismiss: () => setDeletingAnalysisName(undefined),
                   }),
               ]),
+              isAzureWorkspace(workspace) &&
+                div({ style: { marginBottom: '1rem' } }, [
+                  h(
+                    Link,
+                    {
+                      ...Utils.newTabLinkProps,
+                      href: 'https://support.terra.bio/hc/en-us/articles/22950635210395-Add-Python-3-10-to-access-DRS-URIs-in-JupyterLab',
+                    },
+                    [
+                      'See instructions for accessing DRS URIs in JupyterLab',
+                      icon('pop-out', { style: { marginLeft: '1ch' } }),
+                    ]
+                  ),
+                ]),
               renderAnalyses(),
             ]),
           (loadedState.status === 'Loading' || busy) && spinnerOverlay,
