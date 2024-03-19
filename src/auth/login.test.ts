@@ -84,6 +84,7 @@ const mockCurrentUserGroupMembership = {
   role: 'member' as GroupRole,
 };
 
+// TODO centralize Ajax mock setup so it can be reused across tests
 describe('a request to load a terra user', () => {
   // reset userStore state before each test
   beforeEach(() => {

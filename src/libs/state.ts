@@ -134,7 +134,7 @@ export interface TerraUserState {
   terraUser: TerraUser;
   terraUserAttributes: SamUserAttributes;
   enterpriseFeatures: string[];
-  samUser: SamUserResponse | undefined;
+  samUser: SamUserResponse;
 }
 
 /**
@@ -169,7 +169,16 @@ export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
     marketingConsent: true,
   },
   enterpriseFeatures: [],
-  samUser: undefined,
+  samUser: {
+    id: undefined,
+    googleSubjectId: undefined,
+    email: undefined,
+    azureB2CId: undefined,
+    allowed: undefined,
+    createdAt: undefined,
+    registeredAt: undefined,
+    updatedAt: undefined,
+  },
 });
 
 export const getTerraUser = (): TerraUser => userStore.get().terraUser;

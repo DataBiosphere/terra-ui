@@ -528,7 +528,7 @@ authStore.subscribe(
       if (window.Appcues) {
         const { terraUser, samUser } = userStore.get();
         window.Appcues.identify(terraUser.id!, {
-          dateJoined: samUser!.registeredAt!.getTime(),
+          dateJoined: samUser.registeredAt!.getTime(),
         });
         window.Appcues.on('all', captureAppcuesEvent);
       }

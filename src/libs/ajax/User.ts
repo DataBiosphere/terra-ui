@@ -154,14 +154,14 @@ export interface SamInviteUserResponse {
 }
 
 export interface SamUserResponse {
-  id: string;
-  googleSubjectId?: string;
-  email: string;
-  azureB2CId?: string;
-  allowed: boolean;
-  createdAt: Date;
-  registeredAt?: Date;
-  updatedAt: Date;
+  id: string | undefined;
+  googleSubjectId?: string | undefined;
+  email: string | undefined;
+  azureB2CId?: string | undefined;
+  allowed: boolean | undefined;
+  createdAt: Date | undefined;
+  registeredAt?: Date | undefined;
+  updatedAt: Date | undefined;
 }
 
 export type SamUserAttributes = {
