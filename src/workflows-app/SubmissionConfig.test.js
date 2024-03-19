@@ -548,10 +548,6 @@ describe('Initial state', () => {
     getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot, cromwellUrlRoot });
   });
 
-  // beforeEach(() => {
-  //   getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot });
-  // });
-
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
@@ -863,8 +859,12 @@ describe('Initial state', () => {
   it('should render disabled script button for private workflow', async () => {
     // ** ARRANGE **
     const methodResponseWithPrivate = {
-      ...methodsResponse.methods[0],
-      isPrivate: true,
+      methods: [
+        {
+          ...methodsResponse.methods[0],
+          isPrivate: true,
+        },
+      ],
     };
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseForNewMethod));
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodResponseWithPrivate));
@@ -909,11 +909,10 @@ describe('Initial state', () => {
     expect(mockTypesResponse).toHaveBeenCalledTimes(1);
     expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
-    expect(mockWdlResponse).toHaveBeenCalledTimes(0);
+    expect(mockWdlResponse).toHaveBeenCalledTimes(1);
 
-    // console.log(await screen.getAllByRole('button'));
     const button = screen.getByRole('button', { name: 'View Workflow Script' });
-    expect(button).toBeDisabled();
+    expect(button.getAttribute('aria-disabled')).toBe('true');
 
     // ** ACT **
     // await user.click(button);
