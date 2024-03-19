@@ -3,11 +3,16 @@ import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act } from '@testing-library/react';
 import { loadTerraUser } from 'src/auth/auth';
 import { Ajax } from 'src/libs/ajax';
+import { GroupRole } from 'src/libs/ajax/Groups';
 import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
 import { SamUserResponse } from 'src/libs/ajax/User';
 import { TerraUserState, userStore } from 'src/libs/state';
 
 jest.mock('src/libs/ajax');
+
+type AjaxExports = typeof import('src/libs/ajax');
+type AjaxContract = ReturnType<AjaxExports['Ajax']>;
+
 jest.mock('react-notifications-component', () => {
   return {
     Store: {
@@ -37,39 +42,83 @@ const mockSamUserTermsOfServiceDetails: SamUserTermsOfServiceDetails = {
   isCurrentVersion: true,
 };
 
-type AjaxExports = typeof import('src/libs/ajax');
-type AjaxContract = ReturnType<AjaxExports['Ajax']>;
+const mockTerraUserProfile = {
+  firstName: 'testFirstName',
+  lastName: 'testLastName',
+  institute: 'testInstitute',
+  contactEmail: 'testContactEmail',
+  title: 'testTitle',
+  department: 'testDepartment',
+  interestInTerra: 'testInterestInTerra',
+  programLocationCity: 'testProgramLocationCity',
+  programLocationState: 'testProgramLocationState',
+  programLocationCountry: 'testProgramLocationCountry',
+  researchArea: 'testResearchArea',
+  starredWorkspaces: 'testStarredWorkspaces',
+};
+
+const testSamUserAllowancesDetails = {
+  enabled: true,
+  termsOfService: true,
+};
+
+const testSamUserAllowances = {
+  allowed: true,
+  details: testSamUserAllowancesDetails,
+};
+
+const mockNihDatasetPermission = {
+  name: 'testNihDatasetPermissionName',
+  authorized: true,
+};
+
+const mockOrchestrationNihStatusResponse = {
+  linkedNihUsername: 'testLinkedNihUsername',
+  datasetPermissions: mockNihDatasetPermission,
+  linkExpireTime: 1234,
+};
+
+const mockCurrentUserGroupMembership = {
+  groupEmail: 'testGroupEmail',
+  groupName: 'testGroupName',
+  role: 'member' as GroupRole,
+};
 
 describe('a request to load a terra user', () => {
-  // reset userStore before each test
+  // reset userStore state before each test
   beforeEach(() => {
     userStore.reset;
   });
   describe('when successful', () => {
     // Arrange (shared between tests for the success case)
-    const getProfileFunction = jest.fn().mockResolvedValue('testProfile');
-    const getUserAllowancesFunction = jest.fn().mockResolvedValue('testAllowances');
+    const getUserAllowancesFunction = jest.fn().mockResolvedValue(testSamUserAllowances);
     const getUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
     const getUserTermsOfServiceDetailsFunction = jest.fn().mockResolvedValue(mockSamUserTermsOfServiceDetails);
-    const getEnterpriseFeaturesFunction = jest.fn().mockResolvedValue('testEnterpriseFeatures');
+    const getEnterpriseFeaturesFunction = jest.fn().mockResolvedValue([]);
     const getSamUserResponseFunction = jest.fn().mockResolvedValue(mockSamUserResponse);
+    const getNihStatusFunction = jest.fn().mockResolvedValue(mockOrchestrationNihStatusResponse);
+    const getFenceStatusFunction = jest.fn().mockResolvedValue({});
 
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
           User: {
-            getProfile: getProfileFunction,
             getUserAllowances: getUserAllowancesFunction,
             getUserAttributes: getUserAttributesFunction,
             getUserTermsOfServiceDetails: getUserTermsOfServiceDetailsFunction,
             getEnterpriseFeatures: getEnterpriseFeaturesFunction,
             getSamUserResponse: getSamUserResponseFunction,
+            getNihStatus: getNihStatusFunction,
+            getFenceStatus: getFenceStatusFunction,
             profile: {
-              get: jest.fn().mockReturnValue({}),
+              get: jest.fn().mockReturnValue(mockTerraUserProfile),
             },
           },
           TermsOfService: {
             getUserTermsOfServiceDetails: jest.fn().mockReturnValue({}),
+          },
+          Groups: {
+            list: jest.fn().mockReturnValue([mockCurrentUserGroupMembership]),
           },
         } as DeepPartial<AjaxContract> as AjaxContract)
     );
@@ -98,12 +147,7 @@ describe('a request to load a terra user', () => {
     });
     describe('when not successful', () => {
       it('should fail with an error', async () => {
-        // Arrange
-        const getProfileFunction = jest.fn().mockResolvedValue('testProfile');
-        const getUserAllowancesFunction = jest.fn().mockResolvedValue('testAllowances');
-        const getUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
-        const getEnterpriseFeaturesFunction = jest.fn().mockResolvedValue('testEnterpriseFeatures');
-        const getUserTermsOfServiceDetailsFunction = jest.fn().mockResolvedValue(mockSamUserTermsOfServiceDetails);
+        // // Arrange
         // mock a failure to get samUserResponse
         const getSamUserResponseFunction = jest.fn().mockRejectedValue(new Error('unknown'));
 
@@ -111,14 +155,13 @@ describe('a request to load a terra user', () => {
           () =>
             ({
               User: {
-                getProfile: getProfileFunction,
                 getUserAllowances: getUserAllowancesFunction,
                 getUserAttributes: getUserAttributesFunction,
                 getUserTermsOfServiceDetails: getUserTermsOfServiceDetailsFunction,
                 getEnterpriseFeatures: getEnterpriseFeaturesFunction,
                 getSamUserResponse: getSamUserResponseFunction,
                 profile: {
-                  get: jest.fn().mockReturnValue({}),
+                  get: jest.fn().mockReturnValue(mockTerraUserProfile),
                 },
               },
               TermsOfService: {
