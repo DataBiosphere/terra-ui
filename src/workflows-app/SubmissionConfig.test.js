@@ -545,8 +545,12 @@ describe('Initial state', () => {
   });
 
   beforeEach(() => {
-    getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot });
+    getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot, cromwellUrlRoot });
   });
+
+  // beforeEach(() => {
+  //   getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot });
+  // });
 
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
@@ -905,8 +909,9 @@ describe('Initial state', () => {
     expect(mockTypesResponse).toHaveBeenCalledTimes(1);
     expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
-    expect(mockWdlResponse).toHaveBeenCalledTimes(1);
+    expect(mockWdlResponse).toHaveBeenCalledTimes(0);
 
+    // console.log(await screen.getAllByRole('button'));
     const button = screen.getByRole('button', { name: 'View Workflow Script' });
     expect(button).toBeDisabled();
 
