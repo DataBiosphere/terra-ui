@@ -194,6 +194,14 @@ export const renderTypeText = (iotype: InputType): string => {
 export const unwrapOptional = (input: InputType): Exclude<InputType, OptionalInputType> =>
   input.type === 'optional' ? input.optional_type : input;
 
+export const asStructType = (input: InputType): StructInputType => {
+  const unwrapped = unwrapOptional(input);
+  if (unwrapped.type === 'struct') {
+    return unwrapped as StructInputType;
+  }
+  throw new Error('Not a struct');
+};
+
 type InputValidation =
   | {
       type: 'error' | 'info' | 'success';

@@ -177,7 +177,7 @@ export const InputSourceSelect = (props) => {
           type: newType,
         };
       } else {
-        const paramDefault = inputTypeParamDefaults[newType](inputType);
+        const paramDefault = inputTypeParamDefaults[newType](unwrappedType);
         newSource = {
           type: newType,
           ...paramDefault,
