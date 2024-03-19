@@ -171,6 +171,7 @@ describe('a request to load a terra user', () => {
             } as DeepPartial<AjaxContract> as AjaxContract)
         );
         // Act, Assert
+        // this expect.assertions is here to prevent the test from passing if the error is not thrown
         expect.assertions(1);
         try {
           await act(() => loadTerraUser());
