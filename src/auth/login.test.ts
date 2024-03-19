@@ -52,6 +52,7 @@ describe('a request to load a terra user', () => {
     const getUserAllowancesFunction = jest.fn().mockResolvedValue('testAllowances');
     const getUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
     const getUserTermsOfServiceDetailsFunction = jest.fn().mockResolvedValue(mockSamUserTermsOfServiceDetails);
+    const getEnterpriseFeaturesFunction = jest.fn().mockResolvedValue('testEnterpriseFeatures');
     const getSamUserResponseFunction = jest.fn().mockResolvedValue(mockSamUserResponse);
 
     asMockedFn(Ajax).mockImplementation(
@@ -62,6 +63,7 @@ describe('a request to load a terra user', () => {
             getUserAllowances: getUserAllowancesFunction,
             getUserAttributes: getUserAttributesFunction,
             getUserTermsOfServiceDetails: getUserTermsOfServiceDetailsFunction,
+            getEnterpriseFeatures: getEnterpriseFeaturesFunction,
             getSamUserResponse: getSamUserResponseFunction,
             profile: {
               get: jest.fn().mockReturnValue({}),
@@ -101,6 +103,7 @@ describe('a request to load a terra user', () => {
         const getProfileFunction = jest.fn().mockResolvedValue('testProfile');
         const getUserAllowancesFunction = jest.fn().mockResolvedValue('testAllowances');
         const getUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
+        const getEnterpriseFeaturesFunction = jest.fn().mockResolvedValue('testEnterpriseFeatures');
         const getUserTermsOfServiceDetailsFunction = jest.fn().mockResolvedValue(mockSamUserTermsOfServiceDetails);
         // mock a failure to get samUserResponse
         const getSamUserResponseFunction = jest.fn().mockRejectedValue(new Error('unknown'));
@@ -113,6 +116,7 @@ describe('a request to load a terra user', () => {
                 getUserAllowances: getUserAllowancesFunction,
                 getUserAttributes: getUserAttributesFunction,
                 getUserTermsOfServiceDetails: getUserTermsOfServiceDetailsFunction,
+                getEnterpriseFeatures: getEnterpriseFeaturesFunction,
                 getSamUserResponse: getSamUserResponseFunction,
                 profile: {
                   get: jest.fn().mockReturnValue({}),
