@@ -42,7 +42,7 @@ const WorkspaceNotificationCardHeaders = memoWithName('NotificationCardHeaders',
       h(InfoBox, { style: { marginLeft: '0.5rem' } }, [workspaceSubmissionNotificationInfo]),
     ]),
     div({ style: { display: 'flex', justifyContent: 'center' } }, [
-      boldDiv('Changed Opt In'),
+      boldDiv('Data Changed Opt In'),
       h(InfoBox, { style: { marginLeft: '0.5rem' } }, [workspaceChangedNotificationInfo]),
     ]),
   ]);
@@ -172,7 +172,7 @@ export const NotificationSettings = () => {
                   workspace.workspace.name
                 ),
                 notificationType: 'WorkspaceChanged',
-                optionLabel: `Opt-in to workspace changed notifications for ${label}`,
+                optionLabel: `Opt-in to workspace data changed notifications for ${label}`,
               },
             ],
           } as NotificationCardProps);

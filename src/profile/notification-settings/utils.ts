@@ -15,7 +15,7 @@ export const workspaceChangedNotificationKey = (namespace: string, name: string)
 export const workspaceSubmissionNotificationInfo =
   'Receive email notifications when a submission in this workspace has succeeded, failed, or been aborted.';
 export const workspaceChangedNotificationInfo =
-  'Receive email notifications when an owner of a workspace sends a workspace changed notification.';
+  'Receive email notifications when an owner of a workspace sends a data changed notification.';
 
 export type NotificationType =
   | 'WorkspaceSubmission'

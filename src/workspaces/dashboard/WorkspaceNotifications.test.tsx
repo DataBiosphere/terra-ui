@@ -102,7 +102,7 @@ describe('WorkspaceNotifications', () => {
 
     // Act
     await render(<WorkspaceNotifications workspace={testWorkspace} />);
-    const workspaceChangedCheckbox = screen.getByLabelText('Receive workspace changed notifications');
+    const workspaceChangedCheckbox = screen.getByLabelText('Receive data changed notifications');
     await user.click(workspaceChangedCheckbox);
 
     // Assert

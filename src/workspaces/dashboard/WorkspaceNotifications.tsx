@@ -77,7 +77,7 @@ export const WorkspaceNotifications = (props: WorkspaceNotificationsProps): Reac
         workspaceChangedSaving,
         setWorkspaceChangedSaving,
         'WorkspaceChanged',
-        'Receive workspace changed notifications',
+        'Receive data changed notifications',
         workspaceChangedNotificationInfo
       )}
     </div>
