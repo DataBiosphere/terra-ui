@@ -329,7 +329,7 @@ export const BaseSubmissionConfig = (
             h(
               Link,
               {
-                disabled: workflowScript == null,
+                disabled: workflowScript == null || method.isPrivate === true,
                 onClick: () => setViewWorkflowScriptModal(true),
               },
               'View Workflow Script'
