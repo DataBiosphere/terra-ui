@@ -81,7 +81,7 @@ export const NotificationSettings = () => {
       } as UserAttributesCardProps),
       h(UserAttributesCard, {
         value: marketingConsent,
-        label: 'Marketing communications (including upcoming workshops and new flagship dataset additions)',
+        label: 'Marketing communications, including upcoming workshops and new flagship dataset additions',
         setSaving,
         notificationKeys: ['notifications/MarketingConsent'],
         notificationType: 'Marketing',
