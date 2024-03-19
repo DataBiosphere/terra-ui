@@ -572,8 +572,8 @@ export const loadTerraUser = async (): Promise<void> => {
     const getAllowances = Ajax().User.getUserAllowances();
     const getAttributes = Ajax().User.getUserAttributes();
     const getTermsOfService = Ajax().TermsOfService.getUserTermsOfServiceDetails();
-    const getSamUser = Ajax().User.getSamUserResponse();
     const getEnterpriseFeatures = Ajax().User.getEnterpriseFeatures();
+    const getSamUser = Ajax().User.getSamUserResponse();
     const [profile, terraUserAllowances, terraUserAttributes, termsOfService, enterpriseFeatures, samUser] =
       await Promise.all([
         getProfile,
