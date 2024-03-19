@@ -52,7 +52,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
 
   const [criteriaCount, setCriteriaCount] = useLoadedData<DatasetParticipantCountResponse>();
 
-  const debounceGetCriteriaCount = useRef(
+  const debounceSetCriteriaCount = useRef(
     _.debounce(250, (datasetId, criteria) => {
       setCriteriaCount(
         async () =>
@@ -72,8 +72,8 @@ export const CriteriaView = (props: CriteriaViewProps) => {
   );
 
   useEffect(() => {
-    debounceGetCriteriaCount.current(datasetId, criteria);
-  }, [criteria, datasetId, debounceGetCriteriaCount]);
+    debounceSetCriteriaCount.current(datasetId, criteria);
+  }, [criteria, datasetId, debounceSetCriteriaCount]);
   return div(
     {
       style: {
