@@ -1,7 +1,6 @@
-import { expect } from '@storybook/test';
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { act } from 'react-dom/test-utils';
+import { act } from '@testing-library/react';
 import { loadTerraUser } from 'src/auth/auth';
 import { Ajax } from 'src/libs/ajax';
 import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
@@ -79,7 +78,7 @@ describe('a request to load a terra user', () => {
       await act(() => loadTerraUser());
 
       // Assert
-      await expect(getSamUserResponseFunction).toHaveBeenCalled();
+      expect(getSamUserResponseFunction).toHaveBeenCalled();
     });
     it('should update the samUser in state', async () => {
       // Act
@@ -94,8 +93,8 @@ describe('a request to load a terra user', () => {
         samUser,
       }));
       // Assert
-      await expect(getSamUserResponseFunction).toHaveBeenCalled();
-      await expect(userStore.get().samUser).toEqual(mockSamUserResponse);
+      expect(getSamUserResponseFunction).toHaveBeenCalled();
+      expect(userStore.get().samUser).toEqual(mockSamUserResponse);
     });
     describe('when not successful', () => {
       it('should fail with an error', async () => {
@@ -128,11 +127,11 @@ describe('a request to load a terra user', () => {
             } as DeepPartial<AjaxContract> as AjaxContract)
         );
         // Act, Assert
-        await expect.assertions(1);
+        expect.assertions(1);
         try {
           await act(() => loadTerraUser());
         } catch (error) {
-          await expect(error).toEqual(new Error('unknown'));
+          expect(error).toEqual(new Error('unknown'));
         }
       });
     });
