@@ -61,6 +61,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
             .getCounts({
               cohorts: [
                 {
+                  // Create a "cohort" to get the count of participants for this criteria on its own.
                   criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }],
                   name: '',
                 },
