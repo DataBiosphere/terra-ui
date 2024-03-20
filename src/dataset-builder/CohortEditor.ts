@@ -52,7 +52,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
 
   const [criteriaCount, setCriteriaCount] = useLoadedData<DatasetParticipantCountResponse>();
 
-  const debounceSetCriteriaCount = useRef(
+  const updateCriteriaCount = useRef(
     _.debounce(250, (datasetId, criteria) => {
       setCriteriaCount(
         async () =>
@@ -72,8 +72,8 @@ export const CriteriaView = (props: CriteriaViewProps) => {
   );
 
   useEffect(() => {
-    debounceSetCriteriaCount.current(datasetId, criteria);
-  }, [criteria, datasetId, debounceSetCriteriaCount]);
+    updateCriteriaCount.current(datasetId, criteria);
+  }, [criteria, datasetId]);
   return div(
     {
       style: {
@@ -330,7 +330,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
 
   const [groupParticipantCount, setGroupParticipantCount] = useLoadedData<DatasetParticipantCountResponse>();
 
-  const debounceSetGroupParticipantCount = useRef(
+  const updateGroupParticipantCount = useRef(
     _.debounce(250, (dataset, criteriaGroup) =>
       setGroupParticipantCount(async () =>
         DataRepo()
@@ -341,8 +341,8 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   );
 
   useEffect(() => {
-    debounceSetGroupParticipantCount.current(dataset, criteriaGroup);
-  }, [criteriaGroup, dataset, setGroupParticipantCount]);
+    updateGroupParticipantCount.current(dataset, criteriaGroup);
+  }, [criteriaGroup, dataset]);
 
   return div(
     {
