@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
+import { Logout } from 'src/auth/Logout';
 import { fixedSpinnerOverlay } from 'src/components/common';
 import { useRoute } from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
@@ -22,6 +23,7 @@ const AuthContainer = ({ children }) => {
   const authspinner = () => fixedSpinnerOverlay;
 
   return Utils.cond<ReactNode>(
+    [name === 'logout-callback', () => h(Logout)],
     [signInStatus === 'uninitialized' && !isPublic, authspinner],
     [signInStatus === 'signedOut' && !isPublic, () => h(SignIn)],
     [userMustRegister, () => h(Register)],

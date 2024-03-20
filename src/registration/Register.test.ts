@@ -3,7 +3,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { loadTerraUser } from 'src/auth/auth';
-import { signOut } from 'src/auth/auth-events/logout';
+import { signOut } from 'src/auth/auth-events/signout';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -11,9 +11,10 @@ import { Register } from './Register';
 
 jest.mock('src/libs/ajax');
 
-jest.mock('src/auth/auth-events/logout', () => ({
-  ...jest.requireActual('src/auth/auth-events/logout'),
+jest.mock('src/auth/auth-events/signout', () => ({
+  ...jest.requireActual('src/auth/auth-events/signout'),
   signOut: jest.fn(),
+  userSignedOut: jest.fn(),
 }));
 
 jest.mock('src/auth/auth', () => ({

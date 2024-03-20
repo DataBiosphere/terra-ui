@@ -1,16 +1,16 @@
 import React from 'react';
-import FooterWrapper from 'src/components/FooterWrapper';
-import TopBar from 'src/components/TopBar';
+import { userSignedOut } from 'src/auth/auth-events/signout';
+import * as Nav from 'src/libs/nav';
 
 export const logoutCallbackLinkName = 'logout-callback';
-const Logout = () => {
-  return (
-    <FooterWrapper>
-      <TopBar title="Logout" href={undefined}>
-        <div />
-      </TopBar>
-    </FooterWrapper>
-  );
+export const Logout = () => {
+  try {
+    userSignedOut();
+  } catch (e) {
+    console.error(e);
+  }
+  Nav.goToPath('root');
+  return <div />;
 };
 
 export const navPaths = [

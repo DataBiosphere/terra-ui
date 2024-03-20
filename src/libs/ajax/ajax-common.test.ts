@@ -1,6 +1,6 @@
 import { getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken } from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { signOut } from 'src/auth/auth-events/logout';
+import { signOut } from 'src/auth/auth-events/signout';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -52,10 +52,10 @@ jest.mock('src/auth/auth', (): Partial<AuthExports> => {
   };
 });
 
-type LogoutExports = typeof import('src/auth/auth-events/logout');
+type LogoutExports = typeof import('src/auth/auth-events/signout');
 
 jest.mock(
-  'src/auth/auth-events/logout',
+  'src/auth/auth-events/signout',
   (): Partial<LogoutExports> => ({
     signOut: jest.fn(),
   })

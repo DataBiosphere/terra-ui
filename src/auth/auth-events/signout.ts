@@ -1,8 +1,10 @@
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { logoutCallbackLinkName } from 'src/auth/Logout';
 import { removeUserFromLocalState } from 'src/auth/oidc-broker';
 import { Ajax } from 'src/libs/ajax';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import Events, { MetricsEventName } from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
 import { notify, sessionTimeoutProps } from 'src/libs/notifications';
 import {
   authStore,
@@ -25,6 +27,25 @@ export type SignOutCause =
   | 'errorRefreshingAuthToken'
   | 'idleStatusMonitor'
   | 'unspecified';
+
+export const signOut = (cause: SignOutCause = 'unspecified'): void => {
+  // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
+  sendSignOutMetrics(cause);
+  if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
+    notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
+  }
+
+  try {
+    const userManager = oidcStore.get().userManager;
+    const redirectUrl = `${window.location.origin}/${Nav.getLink(logoutCallbackLinkName)}`;
+    // This will redirect to the logout callback page, which calls `userSignedOut` and then redirects to the homepage.
+    userManager!.signoutRedirect({ post_logout_redirect_uri: redirectUrl });
+  } catch (e: unknown) {
+    console.error('Signing out with B2C failed. Falling back on local signout', e);
+    userSignedOut(true);
+    Nav.goToPath('root');
+  }
+};
 
 const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
   const eventToFire: MetricsEventName = switchCase<SignOutCause, MetricsEventName>(
@@ -53,21 +74,14 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
   });
 };
 
-export const signOut = (cause: SignOutCause = 'unspecified'): void => {
-  // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
-  sendSignOutMetrics(cause);
-  if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
-    notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
-  }
-  userSignedOut();
-};
-
-const userSignedOut = () => {
+export const userSignedOut = (redirectFailed = false) => {
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
 
-  removeUserFromLocalState();
+  if (redirectFailed) {
+    removeUserFromLocalState();
+  }
 
   const { cookiesAccepted } = authStore.get();
 

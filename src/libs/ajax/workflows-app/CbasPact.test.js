@@ -24,8 +24,9 @@ jest.mock('src/auth/auth', () => {
     signOutAfterSessionTimeout: jest.fn(),
   };
 });
-jest.mock('src/auth/auth-events/logout', () => ({
+jest.mock('src/auth/auth-events/signout', () => ({
   signOut: jest.fn(),
+  userSignedOut: jest.fn(),
 }));
 
 jest.mock('src/libs/state', () => {
