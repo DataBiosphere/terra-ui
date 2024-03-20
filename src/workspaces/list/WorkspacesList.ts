@@ -13,9 +13,9 @@ import { useOnMount } from 'src/libs/react-utils';
 import { elements as StyleElements } from 'src/libs/style';
 import { newTabLinkProps } from 'src/libs/utils';
 import { useDeletionPolling } from 'src/workspaces/common/state/useDeletionPolling';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { categorizeWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
 import { RecentlyViewedWorkspaces } from 'src/workspaces/list/RecentlyViewedWorkspaces';
-import { useWorkspacesWithSubmissionStats } from 'src/workspaces/list/state/useWorkspacesWithSubmissionStats';
 import {
   getWorkspaceFiltersFromQuery,
   WorkspaceFilters,
@@ -32,7 +32,28 @@ export const getWorkspace = (id: string, workspaces: Workspace[]): Workspace =>
   _.find({ workspace: { workspaceId: id } }, workspaces)!;
 
 export const WorkspacesList = (): ReactNode => {
-  const { workspaces, refresh: refreshWorkspaces, loadingWorkspaces } = useWorkspacesWithSubmissionStats();
+  const {
+    workspaces,
+    refresh: refreshWorkspaces,
+    loading: loadingWorkspaces,
+  } = useWorkspaces(
+    [
+      'accessLevel',
+      'public',
+      'workspace.attributes.description',
+      'workspace.attributes.tag:tags',
+      'workspace.authorizationDomain',
+      'workspace.cloudPlatform',
+      'workspace.createdBy',
+      'workspace.lastModified',
+      'workspace.name',
+      'workspace.namespace',
+      'workspace.workspaceId',
+      'workspace.state',
+      'workspace.errorMessage',
+    ],
+    250
+  );
 
   const [featuredList, setFeaturedList] = useState<{ name: string; namespace: string }[]>();
   useDeletionPolling(workspaces);

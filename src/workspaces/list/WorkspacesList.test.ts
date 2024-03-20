@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
-import { useWorkspacesWithSubmissionStats } from 'src/workspaces/list/state/useWorkspacesWithSubmissionStats';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspacesList } from 'src/workspaces/list/WorkspacesList';
 import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
@@ -52,12 +52,11 @@ jest.mock<WorkspaceFiltersExports>('src/workspaces/list/WorkspaceFilters', () =>
   WorkspaceFilters: jest.fn().mockReturnValue(null),
 }));
 
-jest.mock<UseWorkspaceWithSubmissionStatsExports>('src/workspaces/list/state/useWorkspacesWithSubmissionStats', () => ({
-  ...jest.requireActual('src/workspaces/list/state/useWorkspacesWithSubmissionStats'),
-  useWorkspacesWithSubmissionStats: jest.fn(),
+type UseWorkspacesExports = typeof import('src/workspaces/common/state/useWorkspaces');
+jest.mock<UseWorkspacesExports>('src/workspaces/common/state/useWorkspaces', () => ({
+  ...jest.requireActual('src/workspaces/common/state/useWorkspaces'),
+  useWorkspaces: jest.fn(),
 }));
-type UseWorkspaceWithSubmissionStatsExports =
-  typeof import('src/workspaces/list/state/useWorkspacesWithSubmissionStats');
 
 describe('WorkspaceList', () => {
   afterEach(() => {
@@ -66,11 +65,10 @@ describe('WorkspaceList', () => {
 
   it('does not poll workspaces that are not deleting', async () => {
     // Arrange
-    asMockedFn(useWorkspacesWithSubmissionStats).mockReturnValue({
+    asMockedFn(useWorkspaces).mockReturnValue({
       workspaces: [defaultAzureWorkspace, defaultGoogleWorkspace],
-      refresh: () => jest.fn(),
-      loadingWorkspaces: false,
-      loadingSubmissionStats: false,
+      refresh: jest.fn(),
+      loading: false,
     });
     const mockDetailsFn = jest.fn();
     const mockAjax: DeepPartial<AjaxContract> = {
@@ -112,11 +110,10 @@ describe('WorkspaceList', () => {
         state: 'Deleting',
       },
     };
-    asMockedFn(useWorkspacesWithSubmissionStats).mockReturnValue({
+    asMockedFn(useWorkspaces).mockReturnValue({
       workspaces: [deletingWorkspace, defaultGoogleWorkspace],
-      refresh: () => jest.fn(),
-      loadingWorkspaces: false,
-      loadingSubmissionStats: false,
+      refresh: jest.fn(),
+      loading: false,
     });
     const mockDetailsFn: ReturnType<AjaxContract['Workspaces']['workspace']>['details'] = jest
       .fn()
@@ -183,11 +180,10 @@ describe('WorkspaceList', () => {
       },
     ];
 
-    asMockedFn(useWorkspacesWithSubmissionStats).mockReturnValue({
+    asMockedFn(useWorkspaces).mockReturnValue({
       workspaces: deletingWorkspaces,
-      refresh: () => jest.fn(),
-      loadingWorkspaces: false,
-      loadingSubmissionStats: false,
+      refresh: jest.fn(),
+      loading: false,
     });
     const mockDetailsFn: ReturnType<AjaxContract['Workspaces']['workspace']>['details'] = jest
       .fn()
