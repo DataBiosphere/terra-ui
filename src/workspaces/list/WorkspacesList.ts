@@ -32,12 +32,7 @@ export const getWorkspace = (id: string, workspaces: Workspace[]): Workspace =>
   _.find({ workspace: { workspaceId: id } }, workspaces)!;
 
 export const WorkspacesList = (): ReactNode => {
-  const {
-    workspaces,
-    refresh: refreshWorkspaces,
-    loadingWorkspaces,
-    loadingSubmissionStats,
-  } = useWorkspacesWithSubmissionStats();
+  const { workspaces, refresh: refreshWorkspaces, loadingWorkspaces } = useWorkspacesWithSubmissionStats();
 
   const [featuredList, setFeaturedList] = useState<{ name: string; namespace: string }[]>();
   useDeletionPolling(workspaces);
@@ -94,11 +89,10 @@ export const WorkspacesList = (): ReactNode => {
             ['Learn more about workspaces.']
           ),
         ]),
-        h(RecentlyViewedWorkspaces, { workspaces, loadingSubmissionStats }),
+        h(RecentlyViewedWorkspaces, { workspaces }),
         h(WorkspaceFilters, { workspaces }),
         h(WorkspacesListTabs, {
           workspaces: sortedWorkspaces,
-          loadingSubmissionStats,
           loadingWorkspaces,
           refreshWorkspaces,
         }),
