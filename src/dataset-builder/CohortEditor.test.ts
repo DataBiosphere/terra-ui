@@ -30,6 +30,7 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
     DataRepo: jest.fn(),
   };
 });
+
 describe('CohortEditor', () => {
   type CriteriaViewPropsOverrides = {
     criteria: AnyCriteria;
