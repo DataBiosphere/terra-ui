@@ -1,8 +1,8 @@
 import { ButtonPrimary } from '@terra-ui-packages/components';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { signOut } from 'src/auth/auth-events/signout';
 
-export const Disabled: React.FC = () => {
+export const Disabled = (): ReactNode => {
   return (
     <div role="main" style={{ padding: '1rem' }}>
       <div>
