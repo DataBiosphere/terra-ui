@@ -1,7 +1,6 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { ConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DatasetModel, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
+import { DatasetModel, DomainConceptSet, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 
 import { ConceptSelector } from './ConceptSelector';
 import { homepageState, Updater } from './dataset-builder-types';
@@ -10,27 +9,50 @@ import { OnStateChangeHandler } from './DatasetBuilder';
 export type ConceptSetCreatorProps = {
   readonly onStateChange: OnStateChangeHandler;
   readonly dataset: DatasetModel;
-  readonly conceptSetUpdater: Updater<ConceptSet[]>;
+  readonly conceptSetUpdater: Updater<DomainConceptSet[]>;
+  readonly cart: Concept[];
 };
 
-export const toConceptSet = (concept: Concept): ConceptSet => {
+// featureValueGroupName represents a domain name
+// this works because the only concepts passed in are also domains
+// such as Condition
+export const toDomainConceptSet = (concept: Concept): DomainConceptSet => {
   return {
     name: concept.name,
+    concept,
     featureValueGroupName: concept.name,
   };
 };
 
+export const toConcept = (conceptSet: DomainConceptSet): Concept => {
+  return conceptSet.concept;
+};
+
 export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
-  const { onStateChange, dataset, conceptSetUpdater } = props;
+  const { onStateChange, dataset, conceptSetUpdater, cart } = props;
   const { snapshotBuilderSettings, id } = dataset;
+  // create a root for all domainOptions
+  const domainOptionRoot: Concept = {
+    id: 0,
+    name: 'Point to Domain Options',
+    count: 100,
+    hasChildren: true,
+    children: _.map(_.get('root'), snapshotBuilderSettings?.domainOptions),
+  };
   return h(ConceptSelector, {
-    // create a root for all domainOptions
-    parents: [{ parentId: 0, children: [_.map(_.get('root'), snapshotBuilderSettings?.domainOptions)] }],
-    initialCart: [],
+    // Concept selection currently only supports top level domains, so nodes should not be expandable
+    parents: [
+      {
+        parentId: domainOptionRoot.id,
+        children: _.map((child) => ({ ...child, hasChildren: false }), domainOptionRoot.children),
+      },
+    ],
+    initialCart: cart,
     title: 'Add concept',
     onCancel: () => onStateChange(homepageState.new()),
     onCommit: (selected: Concept[]) => {
-      conceptSetUpdater((conceptSets) => _.flow(_.map(toConceptSet), _.union(conceptSets))(selected));
+      // commit ignores the current concept set selection and overwrites it with the cart
+      conceptSetUpdater(() => _.map(toDomainConceptSet, selected));
       onStateChange(homepageState.new());
     },
     actionText: 'Add to concept sets',

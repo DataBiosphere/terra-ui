@@ -60,15 +60,20 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
             width: 710,
             render: (concept) => {
               const [label, iconName]: [string, IconId] = (() => {
-                if (_.contains(concept, cart)) {
+                if (_.filter(_.isEqual(concept), cart).length > 0) {
                   return ['remove', 'minus-circle-red'];
                 }
                 return ['add', 'plus-circle-filled'];
               })();
               return h(Fragment, [
-                h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
-                  icon(iconName, { size: 16 }),
-                ]),
+                h(
+                  Link,
+                  {
+                    'aria-label': `${label} ${concept.id}`,
+                    onClick: () => setCart(_.xorWith(_.isEqual, cart, [concept])),
+                  },
+                  [icon(iconName, { size: 16 })]
+                ),
                 div({ style: { marginLeft: 5 } }, [
                   openedConcept?.id === concept.id ? div({ style: { fontWeight: 600 } }, [concept.name]) : concept.name,
                 ]),
