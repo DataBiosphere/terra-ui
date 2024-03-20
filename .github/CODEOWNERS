@@ -22,12 +22,12 @@
 /src/pages/LandingPage* @DataBiosphere/terra-cobranding
 /src/pages/billing/ @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/workspaces/* @DataBiosphere/broadworkspaces-terra-ui
+/src/profile/notification-settings/* @DataBiosphere/broadworkspaces-terra-ui
 /src/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
 /src/workspace-data/ @DataBiosphere/analysisjourneys
 /src/workspaces/ @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/billing-projects.js @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/delete-orphaned-workspaces.js @DataBiosphere/broadworkspaces-terra-ui
-/integration-tests/tests/workspace-dashboard.js @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/run-analysis.js @DataBiosphere/broad-interactive-analysis
 /integration-tests/tests/run-analysis-azure.js @DataBiosphere/broad-interactive-analysis
 /integration-tests/tests/run-rstudio.js @DataBiosphere/broad-interactive-analysis

@@ -10,18 +10,22 @@ import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import {
   AnyCriteria,
   Cohort,
-  convertApiDomainOptionToDomainOption,
   CriteriaGroup,
   DatasetParticipantCountResponse,
   displayParticipantCount,
-  DomainOption,
   ProgramDataListCriteria,
-  ProgramDataListOption,
-  ProgramDataListValue,
   ProgramDataRangeCriteria,
-  ProgramDataRangeOption,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DataRepo, DatasetModel } from 'src/libs/ajax/DataRepo';
+import {
+  DataRepo,
+  DatasetModel,
+  SnapshotBuilderDomainOption,
+  SnapshotBuilderOption,
+  SnapshotBuilderProgramDataListItem,
+  SnapshotBuilderProgramDataListOption,
+  SnapshotBuilderProgramDataOption,
+  SnapshotBuilderProgramDataRangeOption,
+} from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
@@ -122,7 +126,8 @@ export const CriteriaView = (props: CriteriaViewProps) => {
                         _.set(
                           'values',
                           _.filter(
-                            (value: ProgramDataListValue) => _.flow(_.map('value'), _.includes(value.id))(values),
+                            (value: SnapshotBuilderProgramDataListItem) =>
+                              _.flow(_.map('value'), _.includes(value.id))(values),
                             criteria.option.values
                           )
                         ),
@@ -185,11 +190,9 @@ export const CriteriaView = (props: CriteriaViewProps) => {
   );
 };
 
-type CriteriaOption = DomainOption | ProgramDataListOption | ProgramDataRangeOption;
-
 export const criteriaFromOption = (
   index: number,
-  option: ProgramDataRangeOption | ProgramDataListOption
+  option: SnapshotBuilderProgramDataRangeOption | SnapshotBuilderProgramDataListOption
 ): ProgramDataRangeCriteria | ProgramDataListCriteria => {
   switch (option.kind) {
     case 'range': {
@@ -222,8 +225,6 @@ type AddCriteriaSelectorProps = {
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
   cohort: Cohort;
-  domainOptions: DomainOption[];
-  programDataOptions: (ProgramDataListOption | ProgramDataRangeOption)[];
 };
 
 const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
@@ -235,13 +236,22 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
     onStateChange,
     getNextCriteriaIndex,
     cohort,
-    domainOptions,
-    programDataOptions,
   } = props;
+
+  const convertToProgramDataOptionSubtype = (option: SnapshotBuilderProgramDataOption) => {
+    switch (option.kind) {
+      case 'list':
+        return option as SnapshotBuilderProgramDataListOption;
+      case 'range':
+        return option as SnapshotBuilderProgramDataRangeOption;
+      default:
+        throw new Error(`Unknown program data subtype: ${option.kind}`);
+    }
+  };
 
   return (
     snapshotBuilderSettings &&
-    h(GroupedSelect<CriteriaOption>, {
+    h(GroupedSelect<SnapshotBuilderOption>, {
       styles: { container: (provided) => ({ ...provided, width: '230px', marginTop: wideMargin }) },
       isClearable: false,
       isSearchable: false,
@@ -253,7 +263,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
               value: domainOption,
               label: domainOption.name,
             }),
-            domainOptions
+            snapshotBuilderSettings.domainOptions
           ),
         },
         {
@@ -263,7 +273,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
               value: programDataOption,
               label: programDataOption.name,
             };
-          }, programDataOptions),
+          }, snapshotBuilderSettings.programDataOptions),
         },
       ],
       'aria-label': addCriteriaText,
@@ -272,13 +282,18 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
       onChange: async (criteriaOption) => {
         if (criteriaOption !== null) {
           if (criteriaOption.value.kind === 'domain') {
-            onStateChange(domainCriteriaSearchState.new(cohort, criteriaGroup, criteriaOption.value));
+            onStateChange(
+              domainCriteriaSearchState.new(cohort, criteriaGroup, criteriaOption.value as SnapshotBuilderDomainOption)
+            );
           } else {
             const criteriaIndex = getNextCriteriaIndex();
             updateCohort(
               _.set(
                 `criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`,
-                criteriaFromOption(criteriaIndex, criteriaOption.value)
+                criteriaFromOption(
+                  criteriaIndex,
+                  convertToProgramDataOptionSubtype(criteriaOption.value as SnapshotBuilderProgramDataOption)
+                )
               )
             );
           }
@@ -296,22 +311,10 @@ type CriteriaGroupViewProps = {
   dataset: DatasetModel;
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
-  domainOptions: DomainOption[];
-  programDataOptions: (ProgramDataListOption | ProgramDataRangeOption)[];
 };
 
 export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
-  const {
-    index,
-    criteriaGroup,
-    updateCohort,
-    cohort,
-    dataset,
-    onStateChange,
-    getNextCriteriaIndex,
-    programDataOptions,
-    domainOptions,
-  } = props;
+  const { index, criteriaGroup, updateCohort, cohort, dataset, onStateChange, getNextCriteriaIndex } = props;
 
   const deleteCriteria = (criteria: AnyCriteria) =>
     updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)));
@@ -424,8 +427,6 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
           onStateChange,
           getNextCriteriaIndex,
           cohort,
-          programDataOptions,
-          domainOptions,
         }),
       ]),
       div(
@@ -459,12 +460,9 @@ type CohortGroupsProps = {
   updateCohort: Updater<Cohort>;
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
-  domainOptions: DomainOption[];
-  programDataOptions: (ProgramDataListOption | ProgramDataRangeOption)[];
 };
 const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
-  const { dataset, cohort, updateCohort, onStateChange, getNextCriteriaIndex, domainOptions, programDataOptions } =
-    props;
+  const { dataset, cohort, updateCohort, onStateChange, getNextCriteriaIndex } = props;
   return div({ style: { width: '47rem' } }, [
     cohort == null
       ? 'No cohort found'
@@ -480,8 +478,6 @@ const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
                   dataset,
                   onStateChange,
                   getNextCriteriaIndex,
-                  domainOptions,
-                  programDataOptions,
                 }),
                 div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'center' } }, [
                   div(
@@ -519,12 +515,9 @@ type CohortEditorContentsProps = {
   dataset: DatasetModel;
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
-  domainOptions: DomainOption[];
-  programDataOptions: (ProgramDataListOption | ProgramDataRangeOption)[];
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
-  const { updateCohort, cohort, dataset, onStateChange, getNextCriteriaIndex, domainOptions, programDataOptions } =
-    props;
+  const { updateCohort, cohort, dataset, onStateChange, getNextCriteriaIndex } = props;
   return h(BuilderPageHeader, [
     h2({ style: { display: 'flex', alignItems: 'center' } }, [
       h(
@@ -548,8 +541,6 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
         updateCohort,
         onStateChange,
         getNextCriteriaIndex,
-        domainOptions,
-        programDataOptions,
       }),
       h(
         ButtonOutline,
@@ -573,18 +564,12 @@ interface CohortEditorProps {
   readonly originalCohort: Cohort;
   readonly updateCohorts: Updater<Cohort[]>;
   readonly getNextCriteriaIndex: () => number;
-  readonly programDataOptions: (ProgramDataListOption | ProgramDataRangeOption)[];
 }
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
-  const { onStateChange, dataset, originalCohort, updateCohorts, getNextCriteriaIndex, programDataOptions } = props;
+  const { onStateChange, dataset, originalCohort, updateCohorts, getNextCriteriaIndex } = props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
 
-  // Program data options passed in because we want to cache them per dataset
-  const domainOptions = _.map(
-    (snapshotBuilderDomainOption) => convertApiDomainOptionToDomainOption(snapshotBuilderDomainOption),
-    dataset?.snapshotBuilderSettings?.domainOptions
-  );
   const updateCohort = (updateCohort: (Cohort) => Cohort) => setCohort(updateCohort);
 
   return h(Fragment, [
@@ -594,8 +579,6 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
       dataset,
       onStateChange,
       getNextCriteriaIndex,
-      domainOptions,
-      programDataOptions,
     }),
     // add div to cover page to footer
     div(

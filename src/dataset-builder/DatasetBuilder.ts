@@ -13,20 +13,19 @@ import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   Cohort,
-  ConceptSet,
   DatasetBuilderType,
   DatasetBuilderValue,
   DatasetParticipantCountResponse,
   displayParticipantCount,
-  ProgramDataListOption,
-  ProgramDataRangeOption,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
+  ConceptSet,
   DataRepo,
   datasetIncludeTypes,
   DatasetModel,
-  SnapshotBuilderDatasetConceptSets as DatasetConceptSets,
+  DomainConceptSet,
+  PrepackagedConceptSet,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
 } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
@@ -37,8 +36,15 @@ import * as Utils from 'src/libs/utils';
 import { validate } from 'validate.js';
 
 import { CohortEditor } from './CohortEditor';
-import { ConceptSetCreator } from './ConceptSetCreator';
-import { AnyDatasetBuilderState, cohortEditorState, homepageState, newCohort, Updater } from './dataset-builder-types';
+import { ConceptSetCreator, toConcept } from './ConceptSetCreator';
+import {
+  AnyDatasetBuilderState,
+  cohortEditorState,
+  conceptSetCreatorState,
+  homepageState,
+  newCohort,
+  Updater,
+} from './dataset-builder-types';
 import { BuilderPageHeader, DatasetBuilderHeader } from './DatasetBuilderHeader';
 import { DomainCriteriaSelector } from './DomainCriteriaSelector';
 
@@ -367,18 +373,18 @@ export const ConceptSetSelector = ({
   onChange,
   onStateChange,
 }: {
-  conceptSets: DatasetConceptSets[];
-  prepackagedConceptSets?: DatasetConceptSets[];
+  conceptSets: DomainConceptSet[];
+  prepackagedConceptSets?: PrepackagedConceptSet[];
   selectedConceptSets: HeaderAndValues<ConceptSet>[];
-  updateConceptSets: Updater<ConceptSet[]>;
+  updateConceptSets: Updater<DomainConceptSet[]>;
   onChange: (conceptSets: HeaderAndValues<ConceptSet>[]) => void;
   onStateChange: OnStateChangeHandler;
 }) => {
-  return h(Selector<DatasetConceptSets>, {
+  return h(Selector<ConceptSet>, {
     headerAction: h(
       Link,
       {
-        onClick: () => onStateChange({ mode: 'concept-set-creator' }),
+        onClick: () => onStateChange(conceptSetCreatorState.new(_.map(toConcept, conceptSets))),
         'aria-label': 'Create new concept set',
       },
       [icon('plus-circle-filled', { size: 24 })]
@@ -528,10 +534,10 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
 export type DatasetBuilderContentsProps = {
   onStateChange: OnStateChangeHandler;
   updateCohorts: Updater<Cohort[]>;
-  updateConceptSets: Updater<DatasetConceptSets[]>;
+  updateConceptSets: Updater<DomainConceptSet[]>;
   dataset: DatasetModel;
   cohorts: Cohort[];
-  conceptSets: ConceptSet[];
+  conceptSets: DomainConceptSet[];
 };
 
 export const DatasetBuilderContents = ({
@@ -617,7 +623,9 @@ export const DatasetBuilderContents = ({
             onStateChange,
           }),
           h(ConceptSetSelector, {
+            // all domain concept sets
             conceptSets,
+            // all prepackaged concept sets
             prepackagedConceptSets: dataset.snapshotBuilderSettings?.datasetConceptSets,
             selectedConceptSets,
             updateConceptSets,
@@ -682,36 +690,22 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
     initialState || homepageState.new()
   );
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
-  const [conceptSets, setConceptSets] = useState<DatasetConceptSets[]>([]);
+  const [conceptSets, setConceptSets] = useState<DomainConceptSet[]>([]);
   const onStateChange = setDatasetBuilderState;
-
-  const [programDataOptions, loadProgramDataOptions] =
-    useLoadedData<(ProgramDataRangeOption | ProgramDataListOption)[]>();
 
   const getNextCriteriaIndex = () => {
     criteriaCount++;
     return criteriaCount;
   };
 
-  const loadDatasetProgramDataOptions = (dataset) =>
-    Promise.all(
-      _.map(
-        (snapshotBuilderProgramDataOption) =>
-          DataRepo().dataset(dataset.id).queryDatasetColumnStatisticsById(snapshotBuilderProgramDataOption),
-        dataset?.snapshotBuilderSettings?.programDataOptions
-      )
-    );
-
   useOnMount(() => {
-    void loadDatasetModel(async () => {
-      const dataset = await DataRepo()
+    void loadDatasetModel(async () =>
+      DataRepo()
         .dataset(datasetId)
-        .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES]);
-      void loadProgramDataOptions(() => loadDatasetProgramDataOptions(dataset));
-      return dataset;
-    });
+        .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
+    );
   });
-  return datasetModel.status === 'Ready' && programDataOptions.status === 'Ready'
+  return datasetModel.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         h(DatasetBuilderHeader, { datasetDetails: datasetModel.state }),
@@ -735,7 +729,6 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                       dataset: datasetModel.state,
                       updateCohorts: setCohorts,
                       getNextCriteriaIndex,
-                      programDataOptions: programDataOptions.status === 'Ready' ? programDataOptions.state : [],
                     })
                   : div(['No Dataset Builder Settings Found']);
               case 'domain-criteria-selector':
@@ -758,6 +751,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                       onStateChange,
                       dataset: datasetModel.state,
                       conceptSetUpdater: setConceptSets,
+                      cart: datasetBuilderState.cart,
                     })
                   : div(['No Dataset Builder Settings Found']);
               default:
