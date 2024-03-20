@@ -1,7 +1,6 @@
 import { useUniqueId } from '@terra-ui-packages/components';
 import React from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
-import { SingleValue } from 'react-select';
 import { IComputeConfig } from 'src/analysis/modal-utils';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { Select } from 'src/components/common';
@@ -10,7 +9,7 @@ import { defaultAzureDiskSize } from 'src/libs/azure-utils';
 
 export interface AzurePersistentDiskSizeSelectInputProps {
   persistentDiskSize: number;
-  onChangePersistentDiskSize: (e: SingleValue<number | undefined>) => void;
+  onChangePersistentDiskSize: (e: number | null | undefined) => void;
   persistentDiskExists: boolean;
 }
 

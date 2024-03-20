@@ -16,6 +16,8 @@ export const dummyDatasetModel = (): DatasetModel => ({
         kind: 'range',
         tableName: 'person',
         columnName: 'year_of_birth',
+        min: 1907,
+        max: 2013,
       },
       {
         id: 1,
@@ -23,6 +25,10 @@ export const dummyDatasetModel = (): DatasetModel => ({
         kind: 'list',
         tableName: 'person',
         columnName: 'ethnicity',
+        values: [
+          { name: 'ethnicity 1', id: 300 },
+          { name: 'ethnicity 2', id: 301 },
+        ],
       },
       {
         id: 2,
@@ -30,6 +36,10 @@ export const dummyDatasetModel = (): DatasetModel => ({
         kind: 'list',
         tableName: 'person',
         columnName: 'gender_identity',
+        values: [
+          { name: 'gender 1', id: 200 },
+          { name: 'gender 2', id: 201 },
+        ],
       },
       {
         id: 3,
@@ -37,26 +47,39 @@ export const dummyDatasetModel = (): DatasetModel => ({
         kind: 'list',
         tableName: 'person',
         columnName: 'race',
+        values: [
+          { name: 'race 1', id: 100 },
+          { name: 'race 2', id: 101 },
+        ],
       },
     ],
     domainOptions: [
       {
+        kind: 'domain',
         id: 10,
-        category: 'Condition',
+        name: 'Condition',
+        tableName: 'condition_occurrence',
+        columnName: 'condition_concept_id',
         conceptCount: 18000,
         participantCount: 12500,
         root: dummyGetConceptForId(100),
       },
       {
+        kind: 'domain',
         id: 11,
-        category: 'Procedure',
+        name: 'Procedure',
+        tableName: 'procedure_occurrence',
+        columnName: 'procedure_concept_id',
         conceptCount: 22500,
         participantCount: 11328,
         root: dummyGetConceptForId(200),
       },
       {
+        kind: 'domain',
         id: 12,
-        category: 'Observation',
+        name: 'Observation',
+        tableName: 'observation',
+        columnName: 'observation_concept_id',
         conceptCount: 12300,
         participantCount: 23223,
         root: dummyGetConceptForId(300),
@@ -90,8 +113,14 @@ export const dummyDatasetModel = (): DatasetModel => ({
       },
     ],
     datasetConceptSets: [
-      { name: 'Demographics', featureValueGroupName: 'Person' },
-      { name: 'All surveys', featureValueGroupName: 'Surveys' },
+      {
+        name: 'Demographics',
+        featureValueGroupName: 'Person',
+      },
+      {
+        name: 'All surveys',
+        featureValueGroupName: 'Surveys',
+      },
     ],
   },
 });
