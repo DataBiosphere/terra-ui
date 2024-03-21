@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { userSignedOut } from 'src/auth/auth-events/signout';
 import * as Nav from 'src/libs/nav';
 
