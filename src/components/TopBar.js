@@ -7,7 +7,7 @@ import { Transition } from 'react-transition-group';
 import { AlertsIndicator } from 'src/alerts/Alerts';
 import { RequiredUpdateAlert } from 'src/alerts/RequiredUpdateAlert';
 import { signIn } from 'src/auth/auth';
-import { signOut } from 'src/auth/auth-events/signout';
+import { signOut } from 'src/auth/signout/sign-out';
 import { Clickable, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextArea } from 'src/components/input';

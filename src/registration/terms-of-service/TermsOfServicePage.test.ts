@@ -29,11 +29,11 @@ jest.mock(
 
 type AuthExports = typeof import('src/auth/auth');
 
-type LogoutExports = typeof import('src/auth/auth-events/signout');
+type SignOutExports = typeof import('src/auth/signout/sign-out');
 jest.mock(
-  'src/auth/auth-events/signout',
-  (): LogoutExports => ({
-    ...jest.requireActual<LogoutExports>('src/auth/auth-events/signout'),
+  'src/auth/signout/sign-out',
+  (): SignOutExports => ({
+    ...jest.requireActual<SignOutExports>('src/auth/signout/sign-out'),
     signOut: jest.fn(),
   })
 );

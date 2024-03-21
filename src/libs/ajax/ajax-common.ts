@@ -9,7 +9,7 @@ import {
   sendRetryMetric,
 } from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { signOut, SignOutCause } from 'src/auth/auth-events/signout';
+import { signOut, SignOutCause } from 'src/auth/signout/sign-out';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore } from 'src/libs/state';
 

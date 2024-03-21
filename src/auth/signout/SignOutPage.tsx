@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { userSignedOut } from 'src/auth/auth-events/signout';
+import { userSignedOut } from 'src/auth/signout/sign-out';
 import * as Nav from 'src/libs/nav';
 
-export const logoutCallbackLinkName = 'logout-callback';
-export const Logout = () => {
+export const signOutCallbackLinkName = 'signout-callback';
+export const SignOutPage = () => {
   useEffect(() => {
     try {
       userSignedOut();
@@ -17,9 +17,9 @@ export const Logout = () => {
 
 export const navPaths = [
   {
-    name: logoutCallbackLinkName,
-    path: '/logout',
-    component: Logout,
-    title: 'Logout',
+    name: signOutCallbackLinkName,
+    path: '/signout',
+    component: SignOutPage,
+    title: 'SignOut',
   },
 ];

@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 import React from 'react';
-import { Logout } from 'src/auth/Logout';
 import { OidcUser } from 'src/auth/oidc-broker';
+import { SignOutPage } from 'src/auth/signout/SignOutPage';
 import { authStore, azureCookieReadyStore, cookieReadyStore, metricStore, oidcStore, userStore } from 'src/libs/state';
 
 type NavExports = typeof import('src/libs/nav');
@@ -15,7 +15,7 @@ jest.mock(
   })
 );
 
-describe('Logout', () => {
+describe('SignOutPage', () => {
   it('clears stores after being redirected to', () => {
     // Arrange
     cookieReadyStore.update(() => true);
@@ -25,7 +25,7 @@ describe('Logout', () => {
     metricStore.update((state) => ({ ...state, anonymousId: '12345', sessionId: '67890' }));
     userStore.update((state) => ({ ...state, enterpriseFeatures: ['github-account-linking'] }));
     // Act
-    render(<Logout />);
+    render(<SignOutPage />);
     // Assert
     expect(cookieReadyStore.get()).toBe(false);
     expect(azureCookieReadyStore.get().readyForRuntime).toBe(false);

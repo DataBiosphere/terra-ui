@@ -1,6 +1,6 @@
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { logoutCallbackLinkName } from 'src/auth/Logout';
 import { removeUserFromLocalState } from 'src/auth/oidc-broker';
+import { signOutCallbackLinkName } from 'src/auth/signout/SignOutPage';
 import { Ajax } from 'src/libs/ajax';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import Events, { MetricsEventName } from 'src/libs/events';
@@ -38,7 +38,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 
   try {
     const userManager = oidcStore.get().userManager;
-    const redirectUrl = `${window.location.origin}/${Nav.getLink(logoutCallbackLinkName)}`;
+    const redirectUrl = `${Nav.getWindowOrigin()}/${Nav.getLink(signOutCallbackLinkName)}`;
     // This will redirect to the logout callback page, which calls `userSignedOut` and then redirects to the homepage.
     userManager!.signoutRedirect({ post_logout_redirect_uri: redirectUrl });
   } catch (e: unknown) {
@@ -76,6 +76,7 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
 };
 
 export const userSignedOut = (redirectFailed = false) => {
+  // At this point, we are guaranteed to not have a valid token, if the redirect succeeded.
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();

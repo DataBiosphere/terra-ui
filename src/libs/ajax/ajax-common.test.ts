@@ -1,7 +1,7 @@
 import { getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken } from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { signOut } from 'src/auth/auth-events/signout';
 import { OidcUser } from 'src/auth/oidc-broker';
+import { signOut } from 'src/auth/signout/sign-out';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } from './ajax-common';
@@ -52,11 +52,11 @@ jest.mock('src/auth/auth', (): Partial<AuthExports> => {
   };
 });
 
-type LogoutExports = typeof import('src/auth/auth-events/signout');
+type SignOutExports = typeof import('src/auth/signout/sign-out');
 
 jest.mock(
-  'src/auth/auth-events/signout',
-  (): Partial<LogoutExports> => ({
+  'src/auth/signout/sign-out',
+  (): Partial<SignOutExports> => ({
     signOut: jest.fn(),
   })
 );

@@ -11,12 +11,12 @@ import { useUserProfile } from './useUserProfile';
 jest.mock('src/auth/auth');
 jest.mock('src/libs/ajax');
 
-type SignoutExports = typeof import('src/auth/auth-events/signout');
+type SignOutExports = typeof import('src/auth/signout/sign-out');
 
 jest.mock(
-  'src/auth/auth-events/signout',
-  (): SignoutExports => ({
-    ...jest.requireActual('src/auth/auth-events/signout'),
+  'src/auth/signout/sign-out',
+  (): SignOutExports => ({
+    ...jest.requireActual('src/auth/signout/sign-out'),
     signOut: jest.fn(),
     userSignedOut: jest.fn(),
   })

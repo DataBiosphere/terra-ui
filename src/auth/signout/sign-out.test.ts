@@ -1,7 +1,7 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { signOut } from 'src/auth/auth-events/signout';
 import { removeUserFromLocalState } from 'src/auth/oidc-broker';
+import { signOut } from 'src/auth/signout/sign-out';
 import { Ajax } from 'src/libs/ajax';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
@@ -32,8 +32,9 @@ type NavExports = typeof import('src/libs/nav');
 jest.mock('src/libs/nav', (): NavExports => {
   return {
     ...jest.requireActual<NavExports>('src/libs/nav'),
-    getLink: jest.fn().mockReturnValue({ name: 'logout-callback', query: {} }),
+    getLink: jest.fn().mockReturnValue({ name: 'signout-callback', query: {} }),
     goToPath: jest.fn(),
+    getWindowOrigin: jest.fn(),
   };
 });
 
@@ -51,7 +52,7 @@ jest.mock('src/libs/state', () => {
   };
 });
 
-describe('signout', () => {
+describe('sign-out', () => {
   it('sends sign out metrics', async () => {
     // Arrange
     const captureEventFn = jest.fn();
@@ -94,20 +95,23 @@ describe('signout', () => {
     // Assert
     expect(notify).toHaveBeenCalledWith('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
   });
-  it('redirects to the logout callback page', () => {
+  it('redirects to the signout callback page', () => {
     // Arrange
     const signoutRedirectFn = jest.fn();
+    const hostname = 'https://mycoolhost.horse';
+    const link = 'signout';
     asMockedFn(oidcStore.get).mockReturnValue({
       userManager: {
         signoutRedirect: signoutRedirectFn,
       },
     } as unknown as OidcState);
-    asMockedFn(Nav.getLink).mockReturnValue('logout');
+    asMockedFn(Nav.getLink).mockReturnValue(link);
+    asMockedFn(Nav.getWindowOrigin).mockReturnValue(hostname);
     // Act
     signOut();
     // Assert
     expect(signoutRedirectFn).toHaveBeenCalledWith({
-      post_logout_redirect_uri: `${window.location.origin}/logout`,
+      post_logout_redirect_uri: `${hostname}/${link}`,
     });
   });
   it('logs an error and calls userSignedOut if signoutRedirect throws', () => {

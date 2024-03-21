@@ -1,6 +1,6 @@
 import { ButtonPrimary } from '@terra-ui-packages/components';
 import React, { ReactNode } from 'react';
-import { signOut } from 'src/auth/auth-events/signout';
+import { signOut } from 'src/auth/signout/sign-out';
 
 export const Disabled = (): ReactNode => {
   return (
