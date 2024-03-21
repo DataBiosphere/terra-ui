@@ -9,7 +9,6 @@ import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces
 import { NoContentMessage } from 'src/workspaces/list/NoContentMessage';
 import { RenderedWorkspaces } from 'src/workspaces/list/RenderedWorkspaces';
 import { getWorkspaceFiltersFromQuery, WorkspaceFilterValues } from 'src/workspaces/list/WorkspaceFilters';
-import { workspaceSubmissionStatus } from 'src/workspaces/list/WorkspaceSubmissionStatusIcon';
 import { getCloudProviderFromWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 export interface WorkspaceTab {
@@ -19,14 +18,13 @@ export interface WorkspaceTab {
 }
 
 interface WorkspacesListTabsProps {
-  loadingSubmissionStats: boolean;
   loadingWorkspaces: boolean;
   workspaces: CategorizedWorkspaces;
   refreshWorkspaces: () => void;
 }
 
 export const WorkspacesListTabs = (props: WorkspacesListTabsProps): ReactNode => {
-  const { workspaces, loadingSubmissionStats, loadingWorkspaces } = props;
+  const { workspaces, loadingWorkspaces } = props;
   const { query } = Nav.useRoute();
   const filters = getWorkspaceFiltersFromQuery(query);
 
@@ -60,8 +58,7 @@ export const WorkspacesListTabs = (props: WorkspacesListTabsProps): ReactNode =>
       h(RenderedWorkspaces, {
         workspaces: filteredWorkspaces[filters.tab],
         label: _.lowerCase(filters.tab),
-        loadingSubmissionStats,
-        noContent: h(NoContentMessage, { workspaces, filters, loadingWorkspaces, loadingSubmissionStats }),
+        noContent: h(NoContentMessage, { workspaces, filters, loadingWorkspaces }),
       }),
     ]
   );
@@ -73,13 +70,11 @@ const filterWorkspaces = (workspaces: CategorizedWorkspaces, filters: WorkspaceF
       const {
         workspace: { namespace, name, attributes },
       } = ws;
-      const submissionStatus = workspaceSubmissionStatus(ws);
       return !!(
         textMatch(filters.nameFilter, `${namespace}/${name}`) &&
         (_.isEmpty(filters.accessLevels) || filters.accessLevels.includes(ws.accessLevel)) &&
         (_.isEmpty(filters.projects) || filters.projects === namespace) &&
         (_.isEmpty(filters.cloudPlatform) || getCloudProviderFromWorkspace(ws) === filters.cloudPlatform) &&
-        (_.isEmpty(filters.submissions) || (submissionStatus && filters.submissions.includes(submissionStatus))) &&
         _.every((a) => _.includes(a, _.get(['tag:tags', 'items'], attributes)), filters.tags)
       );
     };
