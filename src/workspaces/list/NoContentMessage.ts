@@ -9,13 +9,12 @@ import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserAc
 
 interface NoContentMessageProps {
   loadingWorkspaces: boolean;
-  loadingSubmissionStats: boolean;
   workspaces: CategorizedWorkspaces;
   filters: WorkspaceFilterValues;
 }
 
 export const NoContentMessage = (props: NoContentMessageProps): ReactNode => {
-  const { loadingWorkspaces, loadingSubmissionStats, workspaces, filters } = props;
+  const { loadingWorkspaces, workspaces, filters } = props;
   const { setUserActions } = useContext(WorkspaceUserActionsContext);
 
   return cond(
@@ -27,7 +26,6 @@ export const NoContentMessage = (props: NoContentMessageProps): ReactNode => {
           onClick: () => setUserActions({ creatingNewWorkspace: true }),
         }),
     ],
-    [!_.isEmpty(filters.submissions) && loadingSubmissionStats, () => h(Fragment, ['Loading submission statuses...'])],
     () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
   );
 };
