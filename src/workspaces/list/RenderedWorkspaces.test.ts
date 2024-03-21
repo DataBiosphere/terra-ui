@@ -29,7 +29,7 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     const label = 'myWorkspaces';
 
     // Act
-    render(h(RenderedWorkspaces, { workspaces, label, noContent: div({}), loadingSubmissionStats: false }));
+    render(h(RenderedWorkspaces, { workspaces, label, noContent: div({}) }));
 
     // Assert
     const renderedGoogleWS = screen.getAllByText(defaultGoogleWorkspace.workspace.name);
@@ -52,9 +52,7 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     const label = 'myWorkspaces';
 
     // Act
-    render(
-      h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}), loadingSubmissionStats: false })
-    );
+    render(h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}) }));
 
     // Assert
     const workspaceDescriptionDisplay = screen.queryAllByText('some description');
@@ -78,9 +76,7 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     const label = 'myWorkspaces';
 
     // Act
-    render(
-      h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}), loadingSubmissionStats: false })
-    );
+    render(h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}) }));
 
     // Assert
     const workspaceDescriptionDisplay = screen.queryAllByText('some description');
@@ -104,9 +100,7 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     const label = 'myWorkspaces';
 
     // Act
-    render(
-      h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}), loadingSubmissionStats: false })
-    );
+    render(h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}) }));
 
     // Assert
     const workspaceDescriptionDisplay = screen.queryAllByText('some description');
@@ -126,9 +120,7 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     const label = 'myWorkspaces';
 
     // Act
-    render(
-      h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}), loadingSubmissionStats: false })
-    );
+    render(h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}) }));
 
     // Assert
     const detailsLink = screen.getByText('See error details.');
@@ -149,9 +141,7 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     const label = 'myWorkspaces';
 
     // Act
-    render(
-      h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}), loadingSubmissionStats: false })
-    );
+    render(h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}) }));
     const detailsLink = screen.getByText('See error details.');
     fireEvent.click(detailsLink);
     // Assert

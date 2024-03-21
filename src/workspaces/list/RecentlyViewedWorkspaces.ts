@@ -6,16 +6,14 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { recentlyViewedPersistenceId } from 'src/workspaces/common/state/recentlyViewedWorkspaces';
 import { RecentlyViewedWorkspaceCard } from 'src/workspaces/list/RecentlyViewedWorkspaceCard';
 import { getWorkspace, persistenceId } from 'src/workspaces/list/WorkspacesList';
-import { workspaceSubmissionStatus } from 'src/workspaces/list/WorkspaceSubmissionStatusIcon';
 import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface RecentlyViewedWorkspacesProps {
   workspaces: Workspace[];
-  loadingSubmissionStats: boolean;
 }
 
 export const RecentlyViewedWorkspaces = (props: RecentlyViewedWorkspacesProps): ReactNode => {
-  const { workspaces, loadingSubmissionStats } = props;
+  const { workspaces } = props;
   const [recentlyViewedOpen, setRecentlyViewedOpen] = useState<boolean>(() =>
     _.defaultTo(true, getLocalPref(persistenceId)?.recentlyViewedOpen)
   );
@@ -51,9 +49,7 @@ export const RecentlyViewedWorkspaces = (props: RecentlyViewedWorkspacesProps): 
                 const workspace = getWorkspace(workspaceId, workspaces);
                 return h(RecentlyViewedWorkspaceCard, {
                   workspace,
-                  loadingSubmissionStats,
                   timestamp,
-                  submissionStatus: workspaceSubmissionStatus(workspace),
                 });
               }, recentlyViewed)
             ),
