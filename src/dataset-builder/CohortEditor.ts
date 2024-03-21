@@ -1,6 +1,6 @@
 import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import Slider from 'src/components/common/Slider';
@@ -56,17 +56,28 @@ export const CriteriaView = (props: CriteriaViewProps) => {
 
   const [criteriaCount, setCriteriaCount] = useLoadedData<DatasetParticipantCountResponse>();
 
-  useEffect(() => {
-    setCriteriaCount(async () =>
-      DataRepo()
-        .dataset(datasetId)
-        .getCounts({
-          // Create a "cohort" to get the count of participants for this criteria on its own.
-          cohorts: [{ criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }], name: '' }],
-        })
-    );
-  }, [criteria, datasetId, setCriteriaCount]);
+  const updateCriteriaCount = useRef(
+    _.debounce(250, (datasetId, criteria) => {
+      setCriteriaCount(
+        async () =>
+          await DataRepo()
+            .dataset(datasetId)
+            .getCounts({
+              cohorts: [
+                {
+                  // Create a "cohort" to get the count of participants for this criteria on its own.
+                  criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }],
+                  name: '',
+                },
+              ],
+            })
+      );
+    })
+  );
 
+  useEffect(() => {
+    updateCriteriaCount.current(datasetId, criteria);
+  }, [criteria, datasetId]);
   return div(
     {
       style: {
@@ -322,13 +333,19 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
 
   const [groupParticipantCount, setGroupParticipantCount] = useLoadedData<DatasetParticipantCountResponse>();
 
+  const updateGroupParticipantCount = useRef(
+    _.debounce(250, (dataset, criteriaGroup) =>
+      setGroupParticipantCount(async () =>
+        DataRepo()
+          .dataset(dataset.id)
+          .getCounts({ cohorts: [{ criteriaGroups: [criteriaGroup], name: '' }] })
+      )
+    )
+  );
+
   useEffect(() => {
-    setGroupParticipantCount(async () =>
-      DataRepo()
-        .dataset(dataset.id)
-        .getCounts({ cohorts: [{ criteriaGroups: [criteriaGroup], name: '' }] })
-    );
-  }, [criteriaGroup, dataset.id, setGroupParticipantCount]);
+    updateGroupParticipantCount.current(dataset, criteriaGroup);
+  }, [criteriaGroup, dataset]);
 
   return div(
     {
