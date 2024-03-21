@@ -11,7 +11,6 @@ import { useInstance } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
-import { WorkspaceSubmissionStatus } from 'src/workspaces/list/WorkspaceSubmissionStatusIcon';
 import {
   cloudProviderLabels,
   cloudProviderTypes,
@@ -104,24 +103,6 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         options: _.flow(_.map('workspace.namespace'), _.uniq, _.sortBy(_.identity))(workspaces),
       }),
     ]),
-    div({ style: styles.filter }, [
-      h(Select<string, true>, {
-        isClearable: true,
-        isMulti: true,
-        isSearchable: false,
-        placeholder: 'Submission status',
-        'aria-label': 'Filter by submission status',
-        value: filters.submissions,
-        hideSelectedOptions: true,
-        onChange: (data) => {
-          const option = _.map('value', data);
-          Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'submissionStatus', option });
-          Nav.updateSearch({ ...query, submissionsFilter: option });
-        },
-        options: ['running', 'success', 'failure'],
-        getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-      }),
-    ]),
     div({ style: { ...styles.filter, marginRight: 0 } }, [
       h(Select<string | undefined>, {
         isClearable: true,
@@ -147,7 +128,6 @@ export interface WorkspaceFilterValues {
   accessLevels: string[];
   projects?: string;
   cloudPlatform?: CloudPlatform;
-  submissions: WorkspaceSubmissionStatus[];
   tab: keyof CategorizedWorkspaces;
   tags: string[];
 }
@@ -157,7 +137,6 @@ export const getWorkspaceFiltersFromQuery = (query: any): WorkspaceFilterValues 
   accessLevels: query.accessLevelsFilter || EMPTY_LIST,
   projects: query.projectsFilter || undefined,
   cloudPlatform: query.cloudPlatform || undefined,
-  submissions: query.submissionsFilter || EMPTY_LIST,
   tab: query.tab || 'myWorkspaces',
   tags: query.tagsFilter || EMPTY_LIST,
 });
