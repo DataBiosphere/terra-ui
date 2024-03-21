@@ -12,7 +12,7 @@ export const Logout = () => {
     }
     Nav.goToPath('root');
   }, []);
-  return <div />;
+  return null;
 };
 
 export const navPaths = [
