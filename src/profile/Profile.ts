@@ -34,6 +34,10 @@ export const Profile = (): ReactNode => {
     }
   }, [profileStatus]);
 
+  // This coalescing is needed due to a peculiarity in the way Nav works.
+  // When the user is redirected back to the app from an external oauth provider,
+  // we need to grab the `state` and `code` query params from the URL.
+  // Not all providers order the query params and href the same way, and this seems to break Nav.useRoute query parsing.
   const { query, name } = Nav.useRoute();
   const { state, code } = qs.parse(window.location.search, { ignoreQueryPrefix: true });
   let coalescedQuery = {};

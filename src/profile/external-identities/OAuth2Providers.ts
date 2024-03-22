@@ -20,9 +20,9 @@ export type OAuth2Provider = {
 };
 
 const createRedirectUri = (callback: OAuth2Callback['link']) => {
-  // return `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/${callback}`;
   return `${window.location.origin}/${callback}`;
 };
+
 export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider => {
   switch (providerKey) {
     case 'github':
