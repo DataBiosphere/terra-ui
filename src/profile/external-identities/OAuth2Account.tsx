@@ -1,16 +1,16 @@
-import { Clickable } from '@terra-ui-packages/components';
-import React, { useState } from 'react';
+import _ from 'lodash/fp';
+import React from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonPrimary } from 'src/components/common';
-import { icon } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
-import { EcmLinkAccountResponse } from 'src/libs/ajax/ExternalCredentials';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { LinkOAuth2Account } from 'src/profile/external-identities/LinkOAuth2Account';
 import { OAuth2Callback, OAuth2Provider } from 'src/profile/external-identities/OAuth2Providers';
+import { UnlinkOAuth2Account } from 'src/profile/external-identities/UnlinkOAuth2Account';
 import { SpacedSpinner } from 'src/profile/SpacedSpinner';
 
 const styles = {
@@ -51,95 +51,66 @@ const styles = {
   },
 };
 
-interface OAuth2LinkProps {
+interface OAuth2AccountProps {
   queryParams: { state?: string; code?: string };
   provider: OAuth2Provider;
 }
-export const OAuth2Link = (props: OAuth2LinkProps) => {
+export const OAuth2Account = (props: OAuth2AccountProps) => {
   const {
     queryParams: { state, code },
     provider,
   } = props;
 
+  const { oAuth2AccountStatus: storedOAuth2AccountStatus } = useStore(authStore);
+
+  const { externalUserId, expirationTimestamp } = storedOAuth2AccountStatus[provider.key] ?? {
+    externalUserId: undefined,
+    expirationTimestamp: undefined,
+  };
   const signal = useCancellation();
-  const [accountInfo, setAccountInfo] = useState<EcmLinkAccountResponse>();
-  const [accountLoaded, setAccountLoaded] = useState<boolean>(false);
   const callbacks: Array<OAuth2Callback['name']> = ['oauth-callback', 'ecm-callback', 'fence-callback']; // ecm-callback is deprecated, but still needs to be supported
   const isLinking =
     callbacks.includes(Nav.getCurrentRoute().name) && state && JSON.parse(atob(state)).provider === provider.key;
 
   useOnMount(() => {
-    const loadAccount = withErrorReporting(`Error loading ${provider.short} account`)(async () => {
-      setAccountInfo(await Ajax(signal).ExternalCredentials(provider).getAccountLinkStatus());
-    });
     const linkAccount = withErrorReporting(`Error linking ${provider.short} account`)(async (code, state) => {
-      setAccountInfo(await Ajax(signal).ExternalCredentials(provider).linkAccountWithAuthorizationCode(code, state));
+      const accountInfo = await Ajax(signal)
+        .ExternalCredentials(provider)
+        .linkAccountWithAuthorizationCode(code, state);
+      authStore.update(_.set(['oAuth2AccountStatus', provider.key], accountInfo));
     });
 
     if (isLinking) {
       const profileLink = `/${Nav.getLink('profile', {}, { tab: 'externalIdentities' })}`;
       window.history.replaceState({}, '', profileLink);
       linkAccount(code, state);
-    } else {
-      loadAccount();
     }
-    setAccountLoaded(true);
   });
-
-  const unlinkAccount = withErrorReporting(`Error unlinking ${provider.short} account`)(async () => {
-    await Ajax(signal).ExternalCredentials(provider).unlinkAccount();
-    setAccountInfo(undefined);
-  });
-
-  const getAuthUrlAndRedirect = withErrorReporting(`Error getting Authorization URL for ${provider.short}`)(
-    async () => {
-      const url = await Ajax(signal).ExternalCredentials(provider).getAuthorizationUrl();
-      window.open(url, Utils.newTabLinkProps.target, 'noopener,noreferrer');
-    }
-  );
 
   return (
     <div style={styles.idLink.container}>
       <div style={styles.idLink.linkContentTop(false)}>
         <h3 style={{ marginTop: 0, ...styles.idLink.linkName }}>{provider.name}</h3>
-        {!accountLoaded && <SpacedSpinner>Loading account status...</SpacedSpinner>}
-        {accountLoaded && !accountInfo && (
+        {isLinking && <SpacedSpinner>Loading account status...</SpacedSpinner>}
+        {!externalUserId && (
           <div>
-            <ButtonPrimary
-              onClick={getAuthUrlAndRedirect}
-              target={Utils.newTabLinkProps.target}
-              rel={Utils.newTabLinkProps.rel}
-            >
-              Log Into {provider.short}
-            </ButtonPrimary>
+            <LinkOAuth2Account provider={provider} linkText={`Log Into ${provider.short}`} />
           </div>
         )}
-        {accountInfo && (
+        {externalUserId && (
           <>
             <div>
               <span style={styles.idLink.linkDetailLabel}>Username:</span>
-              {accountInfo.externalUserId}
+              {externalUserId}
             </div>
             <div>
               <span style={styles.idLink.linkDetailLabel}>Link Expiration:</span>
-              <span>{Utils.makeCompleteDate(accountInfo.expirationTimestamp)}</span>
+              <span>{Utils.makeCompleteDate(expirationTimestamp)}</span>
             </div>
             <div>
-              <Clickable
-                aria-label={`Renew your ${provider.short} link`}
-                onClick={getAuthUrlAndRedirect}
-                style={styles.clickableLink}
-              >
-                Renew{icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })}
-              </Clickable>
+              <LinkOAuth2Account linkText={`Renew your ${provider.short} link`} provider={provider} button={false} />
               <span style={{ margin: '0 0.25rem 0' }}> | </span>
-              <Clickable
-                aria-label={`Unlink from ${provider.short}`}
-                onClick={unlinkAccount}
-                style={styles.clickableLink}
-              >
-                Unlink
-              </Clickable>
+              <UnlinkOAuth2Account linkText="Unlink" provider={provider} />
             </div>
             {provider.supportsIdToken && (
               <ClipboardButton text={Ajax(signal).ExternalCredentials(provider).getIdentityToken}>

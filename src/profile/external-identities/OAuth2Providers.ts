@@ -16,10 +16,12 @@ export type OAuth2Provider = {
   };
   supportsAccessToken: boolean;
   supportsIdToken: boolean;
+  isFence: boolean;
 };
 
 const createRedirectUri = (callback: OAuth2Callback['link']) => {
-  return `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/${callback}`;
+  // return `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/${callback}`;
+  return `${window.location.origin}/${callback}`;
 };
 export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider => {
   switch (providerKey) {
@@ -33,6 +35,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         },
         supportsAccessToken: true,
         supportsIdToken: false,
+        isFence: false,
       };
     case 'ras':
       return {
@@ -45,6 +48,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         },
         supportsAccessToken: false,
         supportsIdToken: false, // turning off clipboard copying for now.
+        isFence: false,
       };
     case 'fence':
       return {
@@ -56,6 +60,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         },
         supportsAccessToken: true,
         supportsIdToken: false,
+        isFence: true,
       };
     case 'dcf-fence':
       return {
@@ -67,6 +72,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         },
         supportsAccessToken: true,
         supportsIdToken: false,
+        isFence: true,
       };
     case 'kids-first':
       return {
@@ -78,6 +84,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         },
         supportsAccessToken: true,
         supportsIdToken: false,
+        isFence: true,
       };
     case 'anvil':
       return {
@@ -89,8 +96,13 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         },
         supportsAccessToken: true,
         supportsIdToken: false,
+        isFence: true,
       };
     default:
       throw new Error(`Unknown OAuth2 provider key: ${providerKey}`);
   }
 };
+
+const providers = (getConfig().externalCreds?.providers ?? []) as OAuth2ProviderKey[];
+
+export const allOAuth2Providers: OAuth2Provider[] = providers.map((key) => oauth2Provider(key));
