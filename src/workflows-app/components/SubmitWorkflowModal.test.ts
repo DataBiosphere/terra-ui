@@ -94,7 +94,7 @@ describe('SubmitWorkflowModal', () => {
   const testCases: Array<{
     role: 'CREATOR' | 'WRITER' | 'READER';
     canSubmit: boolean;
-    cromwellRunnerStates: Array<'NONE' | 'RUNNING' | 'PROVISIONING'>;
+    cromwellRunnerStates: Array<'NONE' | 'RUNNING' | 'PROVISIONING' | 'ERROR'>;
   }> = [
     {
       role: 'CREATOR',
@@ -140,6 +140,11 @@ describe('SubmitWorkflowModal', () => {
       role: 'READER',
       canSubmit: false,
       cromwellRunnerStates: [],
+    },
+    {
+      role: 'WRITER',
+      canSubmit: true,
+      cromwellRunnerStates: ['NONE', 'PROVISIONING', 'ERROR'],
     },
   ];
 
@@ -217,8 +222,16 @@ describe('SubmitWorkflowModal', () => {
       } else {
         expect(createAppV2).not.toHaveBeenCalled();
       }
-      expect(listAppsV2).toHaveBeenCalledTimes(cromwellRunnerStates.length + 1); // + 1 to get proxy urls
-      expect(postRunSetFunction).toHaveBeenCalledWith(appToSubmitTo.proxyUrls.cbas, postRunSetPayload);
+      // If the app ends up RUNNING:
+      if (cromwellRunnerStates.includes('RUNNING')) {
+        expect(listAppsV2).toHaveBeenCalledTimes(cromwellRunnerStates.length + 1); // + 1 to get proxy urls
+        expect(postRunSetFunction).toHaveBeenCalledWith(appToSubmitTo.proxyUrls.cbas, postRunSetPayload);
+      } else if (cromwellRunnerStates.includes('ERROR')) {
+        expect(listAppsV2).toHaveBeenCalledTimes(cromwellRunnerStates.length); // no extra call for proxy urls
+        expect(postRunSetFunction).not.toHaveBeenCalledWith();
+        // Look for the error message:
+        screen.getByText(/A problem has occurred launching your personal Cromwell runner/i);
+      }
     } else {
       expect(createAppV2).not.toHaveBeenCalled();
       expect(listAppsV2).not.toHaveBeenCalled();
