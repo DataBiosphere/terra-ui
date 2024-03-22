@@ -1,6 +1,6 @@
 import { WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 
-export const workflowParams = [
+export const workflowParamsRecordLookup = [
   {
     input_name: 'wf_hello.hello.addressee',
     input_type: {
@@ -14,6 +14,20 @@ export const workflowParams = [
   },
 ];
 
+export const workflowParamsLiteral = [
+  {
+    input_name: 'wf_hello.hello.addressee',
+    input_type: {
+      type: 'primitive',
+      primitive_type: 'String',
+    },
+    source: {
+      type: 'literal',
+      parameter_value: 'foo bar',
+    },
+  },
+];
+
 export const mockRunsData = {
   runs: [
     {
@@ -23,7 +37,7 @@ export const mockRunsData = {
       record_id: 'FOO2',
       workflow_url: 'https://xyz.wdl',
       state: 'SYSTEM_ERROR',
-      workflow_params: JSON.stringify(workflowParams),
+      workflow_params: JSON.stringify(workflowParamsRecordLookup),
       workflow_outputs: '[]',
       submission_date: '2022-07-14T22:22:15.591Z',
       last_modified_timestamp: '2022-07-14T23:14:25.791Z',
@@ -37,7 +51,7 @@ export const mockRunsData = {
       workflow_url:
         'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
       state: 'COMPLETE',
-      workflow_params: JSON.stringify(workflowParams),
+      workflow_params: JSON.stringify(workflowParamsRecordLookup),
       workflow_outputs: '[]',
       submission_date: '2022-12-08T23:29:18.675+00:00',
       last_modified_timestamp: '2022-12-08T23:29:55.695+00:00',
@@ -60,7 +74,28 @@ export const runSetData = {
       last_modified_timestamp: '2022-12-09T16:30:50.280+00:00',
       run_count: 1,
       error_count: 0,
-      input_definition: JSON.stringify(workflowParams),
+      input_definition: JSON.stringify(workflowParamsRecordLookup),
+      output_definition: '[]',
+    },
+  ],
+};
+
+export const runSetDataWithLiteral = {
+  run_sets: [
+    {
+      run_set_id: 'e8347247-4738-4ad1-a591-56c119f93f58',
+      method_id: '00000000-0000-0000-0000-000000000004',
+      method_version_id: '20000000-0000-0000-0000-000000000004',
+      is_template: false,
+      run_set_name: 'hello world',
+      run_set_description: 'test',
+      state: 'COMPLETE',
+      record_type: 'FOO',
+      submission_timestamp: '2022-12-08T23:28:50.280+00:00',
+      last_modified_timestamp: '2022-12-09T16:30:50.280+00:00',
+      run_count: 1,
+      error_count: 0,
+      input_definition: JSON.stringify(workflowParamsLiteral),
       output_definition: '[]',
     },
   ],
@@ -159,7 +194,7 @@ export const simpleRunsData = {
       record_id: 'FOO2',
       workflow_url: 'https://xyz.wdl',
       state: 'RUNNING',
-      workflow_params: JSON.stringify(workflowParams),
+      workflow_params: JSON.stringify(workflowParamsRecordLookup),
       workflow_outputs: '[]',
       submission_date: new Date().toISOString(),
       last_modified_timestamp: new Date().toISOString(),

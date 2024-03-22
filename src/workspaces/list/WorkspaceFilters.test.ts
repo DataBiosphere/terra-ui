@@ -47,12 +47,6 @@ describe('WorkspaceFilters', () => {
       filterParam: { projectsFilter: defaultGoogleWorkspace.workspace.namespace },
     },
     {
-      label: 'Filter by submission status',
-      item: 'Success',
-      eventData: { filter: 'submissionStatus', option: ['success'] },
-      filterParam: { submissionsFilter: ['success'] },
-    },
-    {
       label: 'Filter by cloud platform',
       item: 'Microsoft Azure',
       eventData: { filter: 'cloudPlatform', option: 'AZURE' },

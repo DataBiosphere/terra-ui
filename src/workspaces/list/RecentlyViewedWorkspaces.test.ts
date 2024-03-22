@@ -45,7 +45,7 @@ describe('The recently viewed workspaces component', () => {
     asMockedFn(getLocalPref).mockImplementation(mockgetLocalPref);
 
     // Act
-    render(h(RecentlyViewedWorkspaces, { workspaces: [defaultAzureWorkspace], loadingSubmissionStats: false }));
+    render(h(RecentlyViewedWorkspaces, { workspaces: [defaultAzureWorkspace] }));
     expect(mockgetLocalPref).toBeCalled();
     const renderedAzureWS = screen.getAllByText(defaultAzureWorkspace.workspace.name);
     expect(renderedAzureWS).toHaveLength(1);
@@ -62,7 +62,7 @@ describe('The recently viewed workspaces component', () => {
 
     // Act
     const workspaces = [defaultAzureWorkspace];
-    render(h(RecentlyViewedWorkspaces, { workspaces, loadingSubmissionStats: false }));
+    render(h(RecentlyViewedWorkspaces, { workspaces }));
 
     // Assert
     expect(getLocalPref).toBeCalled();
@@ -81,7 +81,7 @@ describe('The recently viewed workspaces component', () => {
 
     // Act
     const workspaces = [defaultAzureWorkspace];
-    render(h(RecentlyViewedWorkspaces, { workspaces, loadingSubmissionStats: false }));
+    render(h(RecentlyViewedWorkspaces, { workspaces }));
 
     // Assert
     expect(getLocalPref).toBeCalled();
@@ -100,7 +100,7 @@ describe('The recently viewed workspaces component', () => {
 
     // Act
     const workspaces = [defaultAzureWorkspace, defaultGoogleWorkspace];
-    render(h(RecentlyViewedWorkspaces, { workspaces, loadingSubmissionStats: false }));
+    render(h(RecentlyViewedWorkspaces, { workspaces }));
 
     // Assert
     const renderedAzureWS = screen.getAllByText(defaultAzureWorkspace.workspace.name);
@@ -133,7 +133,7 @@ describe('The recently viewed workspaces component', () => {
       },
       defaultGoogleWorkspace,
     ];
-    render(h(RecentlyViewedWorkspaces, { workspaces, loadingSubmissionStats: false }));
+    render(h(RecentlyViewedWorkspaces, { workspaces }));
 
     // Assert
     const renderedAzureWS = screen.queryAllByText(defaultAzureWorkspace.workspace.name);
