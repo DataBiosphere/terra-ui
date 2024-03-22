@@ -75,7 +75,8 @@
     "postinstall": "husky install",
     "save-build-info": "echo \\{\\\"gitRevision\\\": \\\"$(git rev-parse HEAD)\\\", \\\"buildTimestamp\\\": $(date -u '+%s000')\\} > public/build-info.json",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "chromatic": "npx chromatic --project-token=chpt_5aa5b5fb9d15a84"
   },
   "devDependencies": {
     "@axe-core/react": "^4.6.1",
@@ -104,6 +105,7 @@
     "@vitejs/plugin-react": "^4.0.0",
     "browserslist": "^4.18.1",
     "check-dts": "^0.7.2",
+    "chromatic": "^11.2.0",
     "eslint": "^8.3.0",
     "eslint-config-airbnb-typescript-prettier": "^5.0.0",
     "eslint-import-resolver-typescript": "^3.6.0",

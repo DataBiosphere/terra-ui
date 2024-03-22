@@ -88,6 +88,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["array-move", "npm:4.0.0"],\
             ["browserslist", "npm:4.22.2"],\
             ["check-dts", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:0.7.2"],\
+            ["chromatic", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:11.2.0"],\
             ["clipboard-polyfill", "npm:3.0.3"],\
             ["color", "npm:4.0.1"],\
             ["date-fns", "npm:2.24.0"],\
@@ -11040,6 +11041,32 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/chownr-npm-2.0.0-638f1c9c61-c57cf9dd07.zip/node_modules/chownr/",\
           "packageDependencies": [\
             ["chownr", "npm:2.0.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["chromatic", [\
+        ["npm:11.2.0", {\
+          "packageLocation": "./.yarn/cache/chromatic-npm-11.2.0-0fe32d98a5-3747fbc8c2.zip/node_modules/chromatic/",\
+          "packageDependencies": [\
+            ["chromatic", "npm:11.2.0"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:11.2.0", {\
+          "packageLocation": "./.yarn/__virtual__/chromatic-virtual-abd5fd4126/0/cache/chromatic-npm-11.2.0-0fe32d98a5-3747fbc8c2.zip/node_modules/chromatic/",\
+          "packageDependencies": [\
+            ["chromatic", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:11.2.0"],\
+            ["@chromatic-com/cypress", null],\
+            ["@chromatic-com/playwright", null],\
+            ["@types/chromatic-com__cypress", null],\
+            ["@types/chromatic-com__playwright", null]\
+          ],\
+          "packagePeers": [\
+            "@chromatic-com/cypress",\
+            "@chromatic-com/playwright",\
+            "@types/chromatic-com__cypress",\
+            "@types/chromatic-com__playwright"\
           ],\
           "linkType": "HARD"\
         }]\
@@ -23405,6 +23432,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["array-move", "npm:4.0.0"],\
             ["browserslist", "npm:4.22.2"],\
             ["check-dts", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:0.7.2"],\
+            ["chromatic", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:11.2.0"],\
             ["clipboard-polyfill", "npm:3.0.3"],\
             ["color", "npm:4.0.1"],\
             ["date-fns", "npm:2.24.0"],\
