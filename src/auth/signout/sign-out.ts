@@ -91,7 +91,7 @@ export const userSignedOut = (redirectFailed = false) => {
   authStore.update((state) => ({
     ...state,
     signInStatus: 'signedOut',
-    // TODO: If allowed, this should be moved to the cookie store
+    // TODO: If allowed, this should be moved to the cookie store https://broadworkbench.atlassian.net/browse/ID-1172
     // Load whether a user has input a cookie acceptance in a previous session on this system,
     // or whether they input cookie acceptance previously in this session
     cookiesAccepted,
