@@ -10,7 +10,7 @@ const buttonStyle: CSSProperties = {
   height: '2.25rem',
   fontSize: 14,
   fontWeight: 500,
-  textTransform: 'uppercase',
+  // textTransform: 'uppercase',
   whiteSpace: 'nowrap',
   userSelect: 'none',
 };
