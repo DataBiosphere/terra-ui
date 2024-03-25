@@ -527,11 +527,8 @@ authStore.subscribe(
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
         const { terraUser, samUser } = userStore.get();
-        // for Sam users who registered before we started tracking registration dates in Sam,
-        // registeredAt may be null in the Sam db. In that case, use epoch instead
-        const dateJoined = samUser.registeredAt ? samUser.registeredAt.getTime() : new Date('1970-01-01').getTime();
         window.Appcues.identify(terraUser.id!, {
-          dateJoined,
+          dateJoined: samUser.registeredAt.getTime(),
         });
         window.Appcues.on('all', captureAppcuesEvent);
       }
