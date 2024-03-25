@@ -35,7 +35,6 @@ import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/Wo
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows';
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView';
 import * as Dashboard from 'src/pages/workspaces/WorkspaceDashboard';
-import * as WorkspaceMigration from 'src/pages/workspaces/WorkspaceMigration';
 import * as PrivacyPolicy from 'src/registration/privacy-policy/PrivacyPolicy';
 import * as TermsOfService from 'src/registration/terms-of-service/TermsOfServicePage';
 import * as WorkflowsApp from 'src/workflows-app/routes';
@@ -85,7 +84,6 @@ const routes = _.flatten([
   FeaturePreviews.navPaths,
   WorkspaceFiles.navPaths,
   WorkflowsApp.navPaths,
-  WorkspaceMigration.navPaths,
   SignOutPage.navPaths,
   NotFound.navPaths, // must be last
 ]);
