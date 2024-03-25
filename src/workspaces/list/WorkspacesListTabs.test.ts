@@ -56,7 +56,6 @@ describe('The WorkspacesListTabs component', () => {
         workspaces,
         refreshWorkspaces: jest.fn(),
         loadingWorkspaces: false,
-        loadingSubmissionStats: false,
       })
     );
 
@@ -83,7 +82,6 @@ describe('The WorkspacesListTabs component', () => {
         workspaces,
         refreshWorkspaces: jest.fn(),
         loadingWorkspaces: false,
-        loadingSubmissionStats: false,
       })
     );
 
@@ -111,7 +109,6 @@ describe('The WorkspacesListTabs component', () => {
         workspaces,
         refreshWorkspaces: jest.fn(),
         loadingWorkspaces: false,
-        loadingSubmissionStats: false,
       })
     );
 
@@ -136,7 +133,6 @@ describe('The WorkspacesListTabs component', () => {
         workspaces,
         refreshWorkspaces: jest.fn(),
         loadingWorkspaces: false,
-        loadingSubmissionStats: false,
       })
     );
 
@@ -164,7 +160,6 @@ describe('The WorkspacesListTabs component', () => {
         workspaces,
         refreshWorkspaces,
         loadingWorkspaces: false,
-        loadingSubmissionStats: false,
       })
     );
 
@@ -200,7 +195,6 @@ describe('The WorkspacesListTabs component', () => {
         workspaces,
         refreshWorkspaces,
         loadingWorkspaces: false,
-        loadingSubmissionStats: false,
       })
     );
 

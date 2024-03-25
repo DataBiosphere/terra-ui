@@ -9,6 +9,18 @@ import { useUserProfile } from './useUserProfile';
 
 // Workaround for import cycle.
 jest.mock('src/auth/auth');
+jest.mock('src/libs/ajax');
+
+type SignOutExports = typeof import('src/auth/signout/sign-out');
+
+jest.mock(
+  'src/auth/signout/sign-out',
+  (): SignOutExports => ({
+    ...jest.requireActual('src/auth/signout/sign-out'),
+    signOut: jest.fn(),
+    userSignedOut: jest.fn(),
+  })
+);
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock('src/libs/nav', (): NavExports => {

@@ -7,10 +7,9 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceSubmissionStatusIcon } from 'src/workspaces/list/WorkspaceSubmissionStatusIcon';
 import { getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 
-export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadingSubmissionStats, timestamp }) => {
+export const RecentlyViewedWorkspaceCard = ({ workspace, timestamp }) => {
   const {
     workspace: { namespace, name },
   } = workspace;
@@ -36,12 +35,8 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
       div({ style: { flex: 'none' } }, [
         div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, name),
         div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-          div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, `Viewed ${dateViewed}`),
+          div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, [`Viewed ${dateViewed}`]),
           div({ style: { display: 'flex', alignItems: 'center' } }, [
-            h(WorkspaceSubmissionStatusIcon, {
-              status: submissionStatus,
-              loadingSubmissionStats,
-            }),
             h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(workspace), style: { marginLeft: 5 } }),
           ]),
         ]),

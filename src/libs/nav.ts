@@ -127,6 +127,10 @@ export const getCurrentRoute = () => {
   return parseRoute(routeHandlersStore.get(), history.location);
 };
 
+export const getWindowOrigin = (): string => {
+  return window.location.origin;
+};
+
 export const useRoute = () => {
   const location: any = useContext(locationContext);
   const handlers = useStore(routeHandlersStore);
