@@ -75,8 +75,7 @@
     "postinstall": "husky install",
     "save-build-info": "echo \\{\\\"gitRevision\\\": \\\"$(git rev-parse HEAD)\\\", \\\"buildTimestamp\\\": $(date -u '+%s000')\\} > public/build-info.json",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "chromatic": "npx chromatic --project-token=chpt_5aa5b5fb9d15a84"
+    "build-storybook": "storybook build"
   },
   "devDependencies": {
     "@axe-core/react": "^4.6.1",

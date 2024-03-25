@@ -20,5 +20,4 @@ jobs:
       - name: Run Chromatic
         uses: chromaui/action@latest
         with:
-          # TODO: move to a secret/environment variable
-          projectToken: chpt_5aa5b5fb9d15a84
+          projectToken: ${{ secrets.CHROMATIC_PUBLISH_TOKEN }}
