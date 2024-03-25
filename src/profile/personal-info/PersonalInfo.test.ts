@@ -8,6 +8,15 @@ import { PersonalInfo } from './PersonalInfo';
 // Workaround for import cycle.
 jest.mock('src/auth/auth');
 
+type SignOutExports = typeof import('src/auth/signout/sign-out');
+jest.mock(
+  'src/auth/signout/sign-out',
+  (): SignOutExports => ({
+    signOut: jest.fn(),
+    userSignedOut: jest.fn(),
+  })
+);
+
 type UseProxyGroupExports = typeof import('./useProxyGroup');
 jest.mock('./useProxyGroup', (): UseProxyGroupExports => {
   return {

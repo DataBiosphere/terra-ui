@@ -6,7 +6,7 @@ name: Run E2E integration Tests
 #
 # There are the required service accounts:
 # lyle-user@terra-lyle.iam.gserviceaccount.com
-# firecloud-alpha@broad-dsde-alpha.iam.gserviceaccount.com
+# firecloud-dev@broad-dsde-dev.iam.gserviceaccount.com
 #
 # Instructions setting up Workload Identity Federation can be found here:
 # https://docs.google.com/document/d/1bnhDmWQHAMat_Saoa_z28FHwXmGWw6kywjdbKf208h4/edit?usp=sharing
@@ -98,7 +98,7 @@ jobs:
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
-          service_account: 'firecloud-alpha@broad-dsde-alpha.iam.gserviceaccount.com'
+          service_account: 'firecloud-dev@broad-dsde-dev.iam.gserviceaccount.com'
           access_token_scopes: 'profile, email, openid'
           access_token_subject: 'Scarlett.Flowerpicker@test.firecloud.org'
           export_environment_variables: false
