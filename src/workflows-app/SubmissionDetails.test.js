@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { metadata as runDetailsMetadata } from 'src/workflows-app/fixtures/test-workflow';
 import { BaseSubmissionDetails } from 'src/workflows-app/SubmissionDetails';
-import { methodData, mockRunsData, runSetData, simpleRunsData } from 'src/workflows-app/utils/mock-data';
+import { methodData, mockRunsData, runSetData, runSetDataWithLiteral, simpleRunsData } from 'src/workflows-app/utils/mock-data';
 import { mockAzureApps, mockAzureWorkspace, runSetOutputDef, runSetResponse } from 'src/workflows-app/utils/mock-responses';
 
 const submissionId = 'e8347247-4738-4ad1-a591-56c119f93f58';
@@ -702,6 +702,69 @@ describe('Submission Details page', () => {
     expect(row1cells[2]).toHaveTextContent('String');
     expect(row1cells[3]).toHaveTextContent('record_lookup');
     expect(row1cells[4]).toHaveTextContent('foo_name');
+  });
+
+  it('Inputs tab handles literal values', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const getRuns = jest.fn(() => Promise.resolve(mockRunsData));
+    const getRunsSets = jest.fn(() => Promise.resolve(runSetDataWithLiteral));
+    const getMethods = jest.fn(() => Promise.resolve(methodData));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRuns,
+          },
+          runSets: {
+            get: getRunsSets,
+          },
+          methods: {
+            getById: getMethods,
+          },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(BaseSubmissionDetails, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          submissionId,
+        })
+      );
+    });
+
+    const workflowsTabButton = screen.getByRole('tab', { name: 'Workflows' });
+    expect(workflowsTabButton !== undefined);
+
+    const inputsTabButton = screen.getByRole('tab', { name: 'Inputs' });
+    expect(inputsTabButton !== undefined);
+
+    // ** ACT **
+    // user clicks on inputs tab button
+    await user.click(inputsTabButton);
+
+    // Assert
+    const inputTable = screen.getByRole('table');
+    const rows = within(inputTable).getAllByRole('row');
+
+    const row1cells = within(rows[1]).getAllByRole('cell');
+    expect(row1cells[3]).toHaveTextContent('literal');
+    expect(row1cells[4]).toHaveTextContent('foo bar');
   });
 
   it('should display outputs on the Outputs tab', async () => {

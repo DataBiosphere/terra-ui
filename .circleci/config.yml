@@ -285,6 +285,7 @@ jobs:
           env: staging
   integration-tests-staging:
     executor: puppeteer
+    resource_class: medium+
     parallelism: 4
     steps:
       - integration-tests:
