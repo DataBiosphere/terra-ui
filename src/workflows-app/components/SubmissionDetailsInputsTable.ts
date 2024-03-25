@@ -5,7 +5,7 @@ import { FlexTable, Sortable, TextCell } from 'src/components/table';
 import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import { getInputTableData, InputTableData } from 'src/workflows-app/utils/submission-utils';
 
-import { InputDefinition, RecordLookupInputSource } from '../models/submission-models';
+import { InputDefinition, LiteralInputSource, RecordLookupInputSource } from '../models/submission-models';
 import { tableContainerStyle, tableStyle } from './submission-tables-styles';
 
 const rowWidth = 100;
@@ -95,6 +95,10 @@ const SubmissionDetailsInputsTable = ({ configuredInputDefinition }: SubmissionD
                       const source: RecordLookupInputSource = inputTableData[rowIndex]
                         .source as RecordLookupInputSource;
                       return h(TextCell, [source.record_attribute]);
+                    }
+                    if (inputTableData[rowIndex].source.type === 'literal') {
+                      const source: LiteralInputSource = inputTableData[rowIndex].source as LiteralInputSource;
+                      return h(TextCell, [source.parameter_value]);
                     }
                     return h(TextCell, []);
                   },
