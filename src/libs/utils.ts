@@ -44,6 +44,10 @@ export const makePrettyDate = (dateString: number | string | Date): string => {
 
 export const formatTimestampInSeconds = (secondsSinceEpoch: number): string => formatDatetime(secondsSinceEpoch * 1000);
 
+export const getTimestampMetricLabel = (timestamp: number): string | undefined => {
+  return timestamp < 0 ? undefined : formatTimestampInSeconds(timestamp);
+};
+
 export const makeCompleteDateParts = (dateString) => {
   return _.map((part) => part.format(new Date(dateString)), completeDateFormatParts);
 };

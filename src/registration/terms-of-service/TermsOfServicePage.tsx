@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { loadTerraUser, signOut } from 'src/auth/auth';
+import { loadTerraUser } from 'src/auth/auth';
+import { signOut } from 'src/auth/signout/sign-out';
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common';
 import scienceBackground from 'src/images/science-background.jpg';
 import { Ajax } from 'src/libs/ajax';

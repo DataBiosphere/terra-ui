@@ -16,7 +16,6 @@ jest.mock('src/libs/ajax');
 jest.mock('src/auth/auth', () => ({
   ...jest.requireActual('src/auth/auth'),
   loadTerraUser: jest.fn(),
-  signOut: jest.fn(),
 }));
 
 jest.mock('react-notifications-component', () => {

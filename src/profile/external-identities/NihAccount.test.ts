@@ -11,8 +11,8 @@ jest.mock('src/libs/nav', () => ({
   getLink: jest.fn(() => 'externalIdentities'),
 }));
 
-jest.mock('src/auth/auth', () => ({
-  ...jest.requireActual('src/auth/auth'),
+jest.mock('src/auth/signout/sign-out', () => ({
+  ...jest.requireActual('src/auth/signout/sign-out'),
   signOut: jest.fn(),
 }));
 
