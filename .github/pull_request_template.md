@@ -7,13 +7,16 @@
 <!--Please give an abridged version of the ticket description here and/or fill out the following fields.-->
 
 ### What
-- 
+-
 
 ### Why
-- 
+-
 
 ### Testing strategy
+<!-- Note that changes impacting components in Storybook stories can be viewed at https://www.chromatic.com/library?appId=65fc89c9335768720ff8605a.
+Choose the branch corresponding to this PR, and changes can be reviewed by commit. --->
+
 - [ ] <!-- Test case 1 -->
 
 <!-- ### Visual Aids -->
-<!-- https://support.apple.com/guide/quicktime-player/record-your-screen-qtp97b08e666/mac --> 
+<!-- https://support.apple.com/guide/quicktime-player/record-your-screen-qtp97b08e666/mac -->
