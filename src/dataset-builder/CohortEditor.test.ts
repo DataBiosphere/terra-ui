@@ -33,6 +33,15 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   };
 });
 
+type ReactUtilsExports = typeof import('src/libs/react-utils');
+jest.mock('src/libs/react-utils', (): ReactUtilsExports => {
+  const actual = jest.requireActual<ReactUtilsExports>('src/libs/react-utils');
+  return {
+    ...actual,
+    useDebouncedValue: (value) => value,
+  };
+});
+
 describe('CohortEditor', () => {
   type CriteriaViewPropsOverrides = {
     criteria: AnyCriteria;
