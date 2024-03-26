@@ -443,7 +443,7 @@ declare global {
 }
 
 authStore.subscribe(
-  withErrorIgnoring()(async (state: AuthState, oldState: AuthState) => {
+  withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
         window.Appcues.identify(userStore.get().terraUser.id!, {
@@ -555,7 +555,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorIgnoring()(async (state: AuthState, oldState: AuthState) => {
+  withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
       await Ajax().Metrics.syncProfile();
     }
@@ -563,7 +563,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorIgnoring()(async (state: AuthState, oldState: AuthState) => {
+  withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
       const { anonymousId } = metricStore.get();
       if (anonymousId) {

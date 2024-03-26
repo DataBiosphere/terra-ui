@@ -1,8 +1,8 @@
 import { createContext, createElement, PropsWithChildren, useContext } from 'react';
 
-export type NotificationType = 'Error' | 'Warning' | 'Info' | 'Success' | 'Welcome';
+export type NotificationType = 'error' | 'warn' | 'info' | 'success' | 'welcome';
 export interface NotificationOptions {
-  detail: string;
+  detail: string | unknown;
 }
 
 export interface NotificationsContract {
@@ -23,7 +23,9 @@ export const NotificationsProvider = (props: NotificationsProviderProps) => {
 export const useNotificationsFromContext = (): NotificationsContract => {
   const notifier = useContext(NotificationsContext);
   if (!notifier) {
-    throw new Error('No NotificationsProvider provided. Components (or hooks within them) using useNotificationsFromContext must be descendants of NotificationsProvider.');
+    throw new Error(
+      'No NotificationsProvider provided. Components (or hooks within them) using useNotificationsFromContext must be descendants of NotificationsProvider.'
+    );
   }
   return notifier;
 };
