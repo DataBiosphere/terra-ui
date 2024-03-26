@@ -1,6 +1,9 @@
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { withErrorReporter } from 'src/libs/error';
+import { reportError as reportErrorFallback, withErrorReporter } from 'src/libs/error';
+import { notify } from 'src/libs/notifications';
 import { mockNotifications } from 'src/testing/test-utils';
+
+jest.mock('src/libs/notifications');
 
 describe('report', () => {
   it('calls notify and console.error', async () => {
@@ -44,6 +47,30 @@ describe('report', () => {
     expect(mockNotifications.notify).toBeCalledTimes(0);
     expect(console.error).toBeCalledTimes(1);
     expect(console.error).toBeCalledWith('Things went BOOM', new Error(sessionTimedOutErrorMessage));
+    expect(outerThrow).toEqual(null);
+  });
+});
+
+describe('reportError - using terra notificationsProvider fallback', () => {
+  it('calls notify and console.error', async () => {
+    // Arrange
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    let outerThrow: unknown | null = null;
+
+    // Act
+    try {
+      await reportErrorFallback('Things went BOOM', new Error('BOOM!'));
+    } catch (e) {
+      outerThrow = e;
+    }
+
+    // Assert
+    const expectedError = new Error('BOOM!');
+    expect(notify).toBeCalledTimes(1);
+    expect(notify).toBeCalledWith('error', 'Things went BOOM', { detail: expectedError });
+    expect(console.error).toBeCalledTimes(1);
+    expect(console.error).toBeCalledWith('Things went BOOM', expectedError);
     expect(outerThrow).toEqual(null);
   });
 });

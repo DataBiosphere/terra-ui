@@ -9,8 +9,7 @@ import {
   useUniqueId,
 } from '@terra-ui-packages/components';
 import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
-import { NotificationsContract } from '@terra-ui-packages/notifications';
-import { NotificationOptions, NotificationType } from '@terra-ui-packages/notifications';
+import { NotificationType } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -237,8 +236,4 @@ const showNotification = ({ id, timeout }) => {
     insert: 'bottom',
     width: 350,
   });
-};
-
-export const notificationsProvider: NotificationsContract = {
-  notify: (type: NotificationType, title: string, options?: NotificationOptions) => notify(type, title, options),
 };

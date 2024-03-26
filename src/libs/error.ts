@@ -1,7 +1,7 @@
 import { AnyPromiseFn } from '@terra-ui-packages/core-utils';
-import { NotificationsContract } from '@terra-ui-packages/notifications';
+import { NotificationOptions, NotificationsContract, NotificationType } from '@terra-ui-packages/notifications';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { notificationsProvider } from 'src/libs/notifications';
+import { notify } from 'src/libs/notifications';
 
 export type ErrorCallback = (error: unknown) => void | Promise<void>;
 
@@ -79,6 +79,10 @@ export const withErrorReporter = (reporter: NotificationsContract) => ({
       withErrorIgnoring(withErrorReporter(reporter).reportErrorAndRethrow(title)(fn));
   },
 });
+
+const notificationsProvider: NotificationsContract = {
+  notify: (type: NotificationType, title: string, options?: NotificationOptions) => notify(type, title, options),
+};
 
 // provide backwards compatible fail-safe for existing code that is not yet ready for code-reuse
 const withTerraUIReporter = withErrorReporter(notificationsProvider);
