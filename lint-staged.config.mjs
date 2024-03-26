@@ -5,7 +5,7 @@ import process from 'process';
 import ignore from 'ignore';
 
 export default {
-  '*.{js,ts}': (files) => {
+  '*.{js,ts,jsx,tsx}': (files) => {
     const cwd = process.cwd();
     const relativePaths = files.map((p) => path.relative(cwd, p));
 
