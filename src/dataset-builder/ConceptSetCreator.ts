@@ -31,20 +31,16 @@ export const toConcept = (conceptSet: DomainConceptSet): Concept => {
 export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
   const { onStateChange, dataset, conceptSetUpdater, cart } = props;
   const { snapshotBuilderSettings, id } = dataset;
-  // create a root for all domainOptions
-  const domainOptionRoot: Concept = {
-    id: 0,
-    name: 'Point to Domain Options',
-    count: 100,
-    hasChildren: true,
-    children: _.map(_.get('root'), snapshotBuilderSettings?.domainOptions),
-  };
   return h(ConceptSelector, {
+    // create a root for all domainOptions
     // Concept selection currently only supports top level domains, so nodes should not be expandable
     parents: [
       {
-        parentId: domainOptionRoot.id,
-        children: _.map((child) => ({ ...child, hasChildren: false }), domainOptionRoot.children),
+        parentId: 0,
+        children: _.map(
+          _.flow(_.get('root'), (child) => ({ ...child, hasChildren: false })),
+          snapshotBuilderSettings?.domainOptions
+        ),
       },
     ],
     initialCart: cart,
