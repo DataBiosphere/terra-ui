@@ -14,8 +14,10 @@ import {
 } from 'react';
 import onClickOutside from 'react-onclickoutside';
 
+import { IconId } from '.';
 import { FocusTrap } from './FocusTrap';
 import { useUniqueId } from './hooks/useUniqueId';
+import { icon, IconProps } from './icon';
 import { computePopupPosition, Side, useBoundingRects } from './internal/popup-utils';
 import { PopupPortal } from './internal/PopupPortal';
 import { useThemeFromContext } from './theme';
@@ -25,6 +27,10 @@ type DivProps = JSX.IntrinsicElements['div'];
 // The role of the popup element must match the aria-haspopup attribute of the popup trigger element.
 // aria-popup supports a limited subset of ARIA roles.
 type PopupRole = Exclude<AriaAttributes['aria-haspopup'], boolean | 'true' | 'false'>;
+
+export const makeMenuIcon = (iconName: IconId, props?: IconProps | undefined) => {
+  return icon(iconName, { ...{ size: 15, style: { marginRight: '.3rem' } }, ...props });
+};
 
 interface PopupElementProps extends Omit<DivProps, 'role'> {
   role: PopupRole;

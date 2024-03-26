@@ -1,13 +1,9 @@
 import { PopupTrigger } from '@terra-ui-packages/components';
-import _ from 'lodash/fp';
 import { h, hr } from 'react-hyperscript-helpers';
-import { icon } from 'src/components/icons';
 import { VerticalNavigation } from 'src/components/keyboard-nav';
 import colors from 'src/libs/colors';
 
-export const makeMenuIcon = (iconName, props) => {
-  return icon(iconName, _.merge({ size: 15, style: { marginRight: '.3rem' } }, props));
-};
+export { makeMenuIcon } from '@terra-ui-packages/components';
 
 export const MenuDivider = () =>
   hr({
