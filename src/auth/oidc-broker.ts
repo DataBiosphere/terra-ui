@@ -26,6 +26,7 @@ export const getOidcConfig = () => {
   const metadata = {
     authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
     token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`,
+    end_session_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/logout`,
   };
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
@@ -105,7 +106,7 @@ export const oidcSignIn = async (args: OidcSignInArgs): Promise<OidcUser | null>
       authInstance.signinSilent(extraArgs);
 };
 
-export const revokeTokens = async (): Promise<void> => {
+export const removeUserFromLocalState = async (): Promise<void> => {
   // send back auth instance, so we can use it for remove and clear stale state
   const auth: AuthContextProps = getAuthInstance();
   auth.removeUser();

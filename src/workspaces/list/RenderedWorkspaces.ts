@@ -18,10 +18,6 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
 import { WorkspaceStarControl } from 'src/workspaces/list/WorkspaceStarControl';
-import {
-  workspaceSubmissionStatus,
-  WorkspaceSubmissionStatusIcon,
-} from 'src/workspaces/list/WorkspaceSubmissionStatusIcon';
 import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
 import {
   canRead,
@@ -58,11 +54,10 @@ interface RenderedWorkspacesProps {
   workspaces: Workspace[];
   label: string;
   noContent: ReactNode;
-  loadingSubmissionStats: boolean;
 }
 
 export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode => {
-  const { workspaces, loadingSubmissionStats } = props;
+  const { workspaces } = props;
   const {
     profile: { starredWorkspaces },
   } = useStore<TerraUserState>(userStore);
@@ -126,12 +121,6 @@ export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode =>
               headerRenderer: makeHeaderRenderer('accessLevel'),
               cellRenderer: ({ rowIndex }) => h(AccessLevelCell, { workspace: sortedWorkspaces[rowIndex] }),
               size: { basis: 120, grow: 1, shrink: 0 },
-            },
-            {
-              headerRenderer: () => div({ className: 'sr-only' }, ['Last Workflow Submitted Status']),
-              cellRenderer: ({ rowIndex }) =>
-                h(SubmissionStatusCell, { workspace: sortedWorkspaces[rowIndex], loadingSubmissionStats }),
-              size: { basis: 30, grow: 0, shrink: 0 },
             },
             {
               headerRenderer: () => div({ className: 'sr-only' }, ['Cloud Platform']),
@@ -336,24 +325,6 @@ const AccessLevelCell = (props: CellProps): ReactNode => {
 
   return div({ style: styles.tableCellContainer }, [
     div({ style: styles.tableCellContent }, [Utils.normalizeLabel(accessLevel)]),
-  ]);
-};
-
-interface SubmissionStatusCellProps extends CellProps {
-  loadingSubmissionStats: boolean;
-}
-
-const SubmissionStatusCell = (props: SubmissionStatusCellProps): ReactNode => {
-  const { workspace, loadingSubmissionStats } = props;
-  const lastRunStatus = workspaceSubmissionStatus(workspace);
-
-  return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
-    div({ style: styles.tableCellContent }, [
-      h(WorkspaceSubmissionStatusIcon, {
-        status: lastRunStatus,
-        loadingSubmissionStats,
-      }),
-    ]),
   ]);
 };
 

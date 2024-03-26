@@ -7,10 +7,9 @@ import {
   loadAuthToken,
   sendAuthTokenDesyncMetric,
   sendRetryMetric,
-  signOut,
-  SignOutCause,
 } from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { signOut, SignOutCause } from 'src/auth/signout/sign-out';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore } from 'src/libs/state';
 

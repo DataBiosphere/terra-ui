@@ -1,6 +1,7 @@
-import { getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken, signOut } from 'src/auth/auth';
+import { getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken } from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { OidcUser } from 'src/auth/oidc-broker';
+import { signOut } from 'src/auth/signout/sign-out';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } from './ajax-common';
@@ -48,9 +49,17 @@ jest.mock('src/auth/auth', (): Partial<AuthExports> => {
     loadAuthToken: jest.fn(),
     sendAuthTokenDesyncMetric: jest.fn(),
     sendRetryMetric: jest.fn(),
-    signOut: jest.fn(),
   };
 });
+
+type SignOutExports = typeof import('src/auth/signout/sign-out');
+
+jest.mock(
+  'src/auth/signout/sign-out',
+  (): Partial<SignOutExports> => ({
+    signOut: jest.fn(),
+  })
+);
 
 describe('withRetryAfterReloadingExpiredAuthToken', () => {
   it('passes args through to wrapped fetch', async () => {
