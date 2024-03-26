@@ -51,30 +51,6 @@ describe('report', () => {
   });
 });
 
-describe('reportError - using terra notificationsProvider fallback', () => {
-  it('calls notify and console.error', async () => {
-    // Arrange
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    let outerThrow: unknown | null = null;
-
-    // Act
-    try {
-      await reportErrorFallback('Things went BOOM', new Error('BOOM!'));
-    } catch (e) {
-      outerThrow = e;
-    }
-
-    // Assert
-    const expectedError = new Error('BOOM!');
-    expect(notify).toBeCalledTimes(1);
-    expect(notify).toBeCalledWith('error', 'Things went BOOM', { detail: expectedError });
-    expect(console.error).toBeCalledTimes(1);
-    expect(console.error).toBeCalledWith('Things went BOOM', expectedError);
-    expect(outerThrow).toEqual(null);
-  });
-});
-
 describe('reportErrorAndRethrow', () => {
   it('calls notify and rethrows error', async () => {
     // Arrange
@@ -131,5 +107,29 @@ describe('withErrorReportingInModal', () => {
     expect(console.error).toBeCalledTimes(1);
     expect(console.error).toBeCalledWith('Things went BOOM', expectedError);
     expect(outerThrow).toEqual(expectedError);
+  });
+});
+
+describe('reportError - using terra notificationsProvider fallback', () => {
+  it('calls notify and console.error', async () => {
+    // Arrange
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    let outerThrow: unknown | null = null;
+
+    // Act
+    try {
+      await reportErrorFallback('Things went BOOM', new Error('BOOM!'));
+    } catch (e) {
+      outerThrow = e;
+    }
+
+    // Assert
+    const expectedError = new Error('BOOM!');
+    expect(notify).toBeCalledTimes(1);
+    expect(notify).toBeCalledWith('error', 'Things went BOOM', { detail: expectedError });
+    expect(console.error).toBeCalledTimes(1);
+    expect(console.error).toBeCalledWith('Things went BOOM', expectedError);
+    expect(outerThrow).toEqual(null);
   });
 });

@@ -14,6 +14,13 @@ export type NotificationsProviderProps = PropsWithChildren<{
   notifications: NotificationsContract;
 }>;
 
+export const text = {
+  error: {
+    noProvider:
+      'No NotificationsProvider provided. Components (or hooks within them) using useNotificationsFromContext must be descendants of NotificationsProvider.',
+  },
+};
+
 /** Provides notifications to descendents via React Context. */
 export const NotificationsProvider = (props: NotificationsProviderProps) => {
   const { children, notifications } = props;
@@ -23,9 +30,7 @@ export const NotificationsProvider = (props: NotificationsProviderProps) => {
 export const useNotificationsFromContext = (): NotificationsContract => {
   const notifier = useContext(NotificationsContext);
   if (!notifier) {
-    throw new Error(
-      'No NotificationsProvider provided. Components (or hooks within them) using useNotificationsFromContext must be descendants of NotificationsProvider.'
-    );
+    throw new Error(text.error.noProvider);
   }
   return notifier;
 };

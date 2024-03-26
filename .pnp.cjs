@@ -44,7 +44,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
     "ignorePatternData": "(^(?:\\\\.yarn\\\\/sdks(?:\\\\/(?!\\\\.{1,2}(?:\\\\/|$))(?:(?:(?!(?:^|\\\\/)\\\\.{1,2}(?:\\\\/|$)).)*?)|$))$)",\
     "fallbackExclusionList": [\
       ["@terra-ui-packages/build-utils", ["virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils", "virtual:c61c4ebeda316964fa7846363a7565f2740824705a1360049b2c57598f5a019c8e10d28d26e7d0f8012883671f61d8251daaead08ed2a3d1744547f0a0f71840#workspace:packages/build-utils", "workspace:packages/build-utils"]],\
-      ["@terra-ui-packages/components", ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components", "workspace:packages/components"]],\
+      ["@terra-ui-packages/components", ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components", "virtual:95a460a88a6a103e3f5d14afa6229e5fd6b868a5eb6c9239003d8f9d452ec79269b189c4a12dbb26bdb634e6578c3b43bc95cbd75eb066e58ec89620e2405d27#workspace:packages/components", "workspace:packages/components"]],\
       ["@terra-ui-packages/core-utils", ["workspace:packages/core-utils"]],\
       ["@terra-ui-packages/notifications", ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/notifications", "workspace:packages/notifications"]],\
       ["@terra-ui-packages/test-utils", ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/test-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/test-utils", "workspace:packages/test-utils"]],\
@@ -8154,6 +8154,48 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
+        ["virtual:95a460a88a6a103e3f5d14afa6229e5fd6b868a5eb6c9239003d8f9d452ec79269b189c4a12dbb26bdb634e6578c3b43bc95cbd75eb066e58ec89620e2405d27#workspace:packages/components", {\
+          "packageLocation": "./.yarn/__virtual__/@terra-ui-packages-components-virtual-817b929005/1/packages/components/",\
+          "packageDependencies": [\
+            ["@terra-ui-packages/components", "virtual:95a460a88a6a103e3f5d14afa6229e5fd6b868a5eb6c9239003d8f9d452ec79269b189c4a12dbb26bdb634e6578c3b43bc95cbd75eb066e58ec89620e2405d27#workspace:packages/components"],\
+            ["@fortawesome/fontawesome-svg-core", "npm:1.2.36"],\
+            ["@fortawesome/free-regular-svg-icons", "npm:5.15.4"],\
+            ["@fortawesome/free-solid-svg-icons", "npm:5.15.4"],\
+            ["@fortawesome/react-fontawesome", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:0.1.15"],\
+            ["@terra-ui-packages/build-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils"],\
+            ["@terra-ui-packages/test-utils", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/test-utils"],\
+            ["@testing-library/dom", "npm:9.3.1"],\
+            ["@testing-library/react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.0.0"],\
+            ["@testing-library/user-event", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.4.3"],\
+            ["@types/jest", "npm:28.1.8"],\
+            ["@types/lodash", "npm:4.14.202"],\
+            ["@types/react", "npm:18.2.47"],\
+            ["@types/react-dom", null],\
+            ["@types/react-modal", "npm:3.16.2"],\
+            ["@types/react-onclickoutside", "npm:6.7.5"],\
+            ["@types/testing-library__jest-dom", "npm:5.14.9"],\
+            ["color", "npm:4.0.1"],\
+            ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
+            ["lodash", "npm:4.17.21"],\
+            ["react", "npm:18.2.0"],\
+            ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:18.2.0"],\
+            ["react-focus-lock", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:2.9.5"],\
+            ["react-modal", "virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:3.16.1"],\
+            ["react-onclickoutside", "virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:6.13.0"],\
+            ["react-select", "virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:5.7.4"],\
+            ["react-switch", "virtual:f14c7c2b623bfe35a608f25e5b8f5582c71bc9475deb0d9650188d23bcf292a9531c8cce96f863c9a827a93aa74f4453675de981d038283eed4a2d8e81e490f7#npm:6.1.0"],\
+            ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
+            ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:4.5.2"],\
+            ["vite-plugin-svgr", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:3.2.0"]\
+          ],\
+          "packagePeers": [\
+            "@types/react-dom",\
+            "@types/react",\
+            "react-dom",\
+            "react"\
+          ],\
+          "linkType": "SOFT"\
+        }],\
         ["workspace:packages/components", {\
           "packageLocation": "./packages/components/",\
           "packageDependencies": [\
@@ -8214,6 +8256,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["@terra-ui-packages/notifications", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/notifications"],\
             ["@terra-ui-packages/build-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils"],\
+            ["@terra-ui-packages/components", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components"],\
             ["@terra-ui-packages/test-utils", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/test-utils"],\
             ["@testing-library/dom", "npm:9.3.1"],\
             ["@testing-library/react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.0.0"],\
@@ -8243,6 +8286,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["@terra-ui-packages/notifications", "workspace:packages/notifications"],\
             ["@terra-ui-packages/build-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils"],\
+            ["@terra-ui-packages/components", "virtual:95a460a88a6a103e3f5d14afa6229e5fd6b868a5eb6c9239003d8f9d452ec79269b189c4a12dbb26bdb634e6578c3b43bc95cbd75eb066e58ec89620e2405d27#workspace:packages/components"],\
             ["@terra-ui-packages/test-utils", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/test-utils"],\
             ["@testing-library/dom", "npm:9.3.1"],\
             ["@testing-library/react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.0.0"],\
