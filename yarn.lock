@@ -4760,6 +4760,7 @@ __metadata:
   resolution: "@terra-ui-packages/notifications@workspace:packages/notifications"
   dependencies:
     "@terra-ui-packages/build-utils": ^1.0.0
+    "@terra-ui-packages/components": "*"
     "@terra-ui-packages/test-utils": "*"
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0

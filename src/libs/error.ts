@@ -73,8 +73,6 @@ export const withErrorReporter = (reporter: NotificationsContract) => ({
    * evaluation fails. If evaluation fails, report the error to the user with `title`.
    */
   withErrorReporting: (title: string) => {
-    // const myReporter = reporter ? reporter : notificationProvider;
-
     return <F extends AnyPromiseFn>(fn: F) =>
       withErrorIgnoring(withErrorReporter(reporter).reportErrorAndRethrow(title)(fn));
   },
