@@ -1,4 +1,5 @@
 import { Modal } from '@terra-ui-packages/components';
+import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
@@ -7,7 +8,7 @@ import { appTools } from 'src/analysis/utils/tool-utils';
 import { LabeledCheckbox, spinnerOverlay } from 'src/components/common';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
-import { withErrorReportingInModal } from 'src/libs/error';
+import { withErrorReporter } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
 export type DeleteAppProvider = Pick<LeoAppProvider, 'delete'>;
@@ -21,6 +22,7 @@ export interface DeleteAppModalProps {
 
 export const DeleteAppModal = (props: DeleteAppModalProps): ReactNode => {
   const { app, onDismiss, onSuccess, deleteProvider } = props;
+  const { withErrorReportingInModal } = withErrorReporter(useNotificationsFromContext());
   const [deleteDisk, setDeleteDisk] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { appType } = app;

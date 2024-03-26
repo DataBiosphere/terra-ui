@@ -1,5 +1,5 @@
 import { Theme, ThemeProvider } from '@terra-ui-packages/components';
-import {NotificationsContract, NotificationsProvider} from '@terra-ui-packages/notifications';
+import { NotificationsContract, NotificationsProvider } from '@terra-ui-packages/notifications';
 import {
   act,
   render,
@@ -31,14 +31,12 @@ const testTheme: Theme = {
 };
 
 export const mockNotifications: NotificationsContract = {
-  notify: jest.fn()
-}
+  notify: jest.fn(),
+};
 
 const AppProviders = ({ children }: PropsWithChildren<{}>): ReactElement => {
   return h(ThemeProvider, { theme: testTheme }, [
-    h(NotificationsProvider, {notifications: mockNotifications}, [
-      children
-    ])
+    h(NotificationsProvider, { notifications: mockNotifications }, [children]),
   ]);
 };
 
@@ -54,15 +52,15 @@ export type PromiseController<T> = {
 };
 
 export const renderHookWithAppContexts = <T, U>(
-    hook: (args: T) => U,
-    options?: RenderHookOptions<T>
+  hook: (args: T) => U,
+  options?: RenderHookOptions<T>
 ): RenderHookResult<U, T> => {
   const baseOptions: RenderHookOptions<T> = {
-    wrapper: AppProviders
-  }
-  const mergedOptions: RenderHookOptions<T> = {...baseOptions, ...options};
-  return renderHook(hook, mergedOptions)
-}
+    wrapper: AppProviders,
+  };
+  const mergedOptions: RenderHookOptions<T> = { ...baseOptions, ...options };
+  return renderHook(hook, mergedOptions);
+};
 
 /**
  * Returns a promise and a controller that allows manually resolving/rejecting the promise.
@@ -108,9 +106,9 @@ export const setUpAutoSizerTesting = () => {
 };
 
 const renderHookInActInternal = async <T, U>(
-    renderer: typeof renderHook<U, T>,
-    hook: (args: T) => U,
-    options?: RenderHookOptions<T>
+  renderer: typeof renderHook<U, T>,
+  hook: (args: T) => U,
+  options?: RenderHookOptions<T>
 ): Promise<RenderHookResult<U, T>> => {
   let result: RenderHookResult<U, T>;
   await act(async () => {
@@ -123,14 +121,14 @@ export const renderHookInAct = async <T, U>(
   hook: (args: T) => U,
   options?: RenderHookOptions<T>
 ): Promise<RenderHookResult<U, T>> => {
-  return renderHookInActInternal(renderHook, hook, options)
+  return renderHookInActInternal(renderHook, hook, options);
 };
 
 export const renderHookInActWithAppContexts = async <T, U>(
-    hook: (args: T) => U,
-    options?: RenderHookOptions<T>
+  hook: (args: T) => U,
+  options?: RenderHookOptions<T>
 ): Promise<RenderHookResult<U, T>> => {
-  return renderHookInActInternal(renderHookWithAppContexts, hook, options)
+  return renderHookInActInternal(renderHookWithAppContexts, hook, options);
 };
 
 export class SelectHelper {

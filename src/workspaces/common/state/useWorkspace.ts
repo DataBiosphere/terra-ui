@@ -137,7 +137,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   };
 
   // Note that withErrorIgnoring is used because checkBucketLocation will error for requester pays workspaces.
-  const loadGoogleBucketLocationIgnoringError = withErrorIgnoring()(async (workspace) => {
+  const loadGoogleBucketLocationIgnoringError = withErrorIgnoring(async (workspace) => {
     await loadGoogleBucketLocation(workspace);
   });
 

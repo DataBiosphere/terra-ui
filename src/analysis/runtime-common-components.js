@@ -144,7 +144,7 @@ export function AuthenticatedCookieSetter() {
 export function PeriodicCookieSetter() {
   const signal = useCancellation();
   usePollingEffect(
-    withErrorIgnoring()(async () => {
+    withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.setCookie();
       cookieReadyStore.set(true);
     }),
@@ -162,7 +162,7 @@ export async function setAzureCookieOnUrl(signal, proxyUrl, forApp) {
 export function PeriodicAzureCookieSetter({ proxyUrl, forApp = false }) {
   const signal = useCancellation();
   usePollingEffect(
-    withErrorIgnoring()(async () => {
+    withErrorIgnoring(async () => {
       await setAzureCookieOnUrl(signal, proxyUrl, forApp);
     }),
     { ms: 5 * 60 * 1000, leading: true }
