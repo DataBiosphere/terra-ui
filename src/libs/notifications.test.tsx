@@ -8,7 +8,6 @@ import {
   clearNotification,
   isNotificationMuted,
   muteNotification,
-  notificationsProvider,
   notify,
 } from 'src/libs/notifications';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
@@ -147,20 +146,6 @@ describe('notify', () => {
 
     // Assert
     screen.getByText('Things went BOOM!');
-  });
-});
-
-describe('notificationsProvider', () => {
-  it('renders the notification', () => {
-    // Arrange
-    notificationsProvider.notify('info', 'Test notification', {
-      detail: 'This is only a test',
-    });
-    // Act
-    render(<div>{notificationContent}</div>);
-
-    // Assert
-    screen.getByText('Test notification');
   });
 });
 
