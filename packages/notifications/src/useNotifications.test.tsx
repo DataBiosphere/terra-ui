@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { ErrorBoundary } from '@terra-ui-packages/components';
-import { NotificationsContract, NotificationsProvider, text, useNotificationsFromContext } from './useNotifiation';
+import { NotificationsContract, NotificationsProvider, text, useNotificationsFromContext } from './useNotifications';
 
 describe('useNotificationsFromContext', () => {
     it('gets notifications provider from context', () => {
