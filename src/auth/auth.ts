@@ -527,8 +527,13 @@ authStore.subscribe(
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
         const { terraUser, samUser } = userStore.get();
+        // for Sam users who have been invited but not yet registered
+        // and for a set of users who didn't have registration dates to migrate into Sam
+        // registeredAt may be null in the Sam db. In that case, default to epoch (1970) instead
+        // so the survey won't be immediately displayed
+        const dateJoined = samUser.registeredAt ? samUser.registeredAt.getTime() : new Date('1970-01-01').getTime();
         window.Appcues.identify(terraUser.id!, {
-          dateJoined: samUser.registeredAt.getTime(),
+          dateJoined,
         });
         window.Appcues.on('all', captureAppcuesEvent);
       }
