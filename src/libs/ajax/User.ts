@@ -155,9 +155,9 @@ export interface SamInviteUserResponse {
 
 export interface SamUserResponse {
   id: string | undefined;
-  googleSubjectId?: string | undefined;
+  googleSubjectId?: string;
   email: string | undefined;
-  azureB2CId?: string | undefined;
+  azureB2CId?: string;
   allowed: boolean | undefined;
   createdAt: Date | undefined;
   registeredAt: Date | undefined;
