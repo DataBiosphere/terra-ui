@@ -158,8 +158,8 @@ export const inputSourceTypes = _.invert(inputSourceLabels);
 export const inputTypeParamDefaults = {
   literal: () => ({ parameter_value: '' }),
   record_lookup: () => ({ record_attribute: '' }),
-  object_builder: (inputType: StructInputType) => ({
-    fields: inputType.fields.map((field) => ({ name: field.field_name, source: { type: 'none' } })),
+  object_builder: (inputType: InputType) => ({
+    fields: asStructType(inputType).fields.map((field) => ({ name: field.field_name, source: { type: 'none' } })),
   }),
 };
 
@@ -193,6 +193,14 @@ export const renderTypeText = (iotype: InputType): string => {
 
 export const unwrapOptional = (input: InputType): Exclude<InputType, OptionalInputType> =>
   input.type === 'optional' ? input.optional_type : input;
+
+export const asStructType = (input: InputType): StructInputType => {
+  const unwrapped = unwrapOptional(input);
+  if (unwrapped.type === 'struct') {
+    return unwrapped as StructInputType;
+  }
+  throw new Error('Not a struct');
+};
 
 type InputValidation =
   | {
