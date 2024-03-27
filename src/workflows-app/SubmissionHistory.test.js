@@ -1,6 +1,5 @@
 import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
@@ -49,18 +48,9 @@ const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 const runSetData = {
   run_sets: [
     {
-      error_count: 2,
+      error_count: 0,
       submission_timestamp: '2022-01-01T12:00:00.000+00:00',
       last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
-      record_type: 'FOO',
-      run_count: 4,
-      run_set_id: '1f496c9a-e2ab-4f33-9298-e444c53c7d9d',
-      state: 'COMPLETE',
-    },
-    {
-      error_count: 0,
-      submission_timestamp: '2023-08-01T12:00:00.000+00:00',
-      last_modified_timestamp: '2023-08-02T13:01:01.000+00:00',
       record_type: 'FOO',
       run_count: 1,
       run_set_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
@@ -68,8 +58,8 @@ const runSetData = {
     },
     {
       error_count: 1,
-      submission_timestamp: '2023-07-10T12:00:00.000+00:00',
-      last_modified_timestamp: '2023-08-11T13:01:01.000+00:00',
+      submission_timestamp: '2021-07-10T12:00:00.000+00:00',
+      last_modified_timestamp: '2021-08-11T13:01:01.000+00:00',
       record_type: 'FOO',
       run_count: 2,
       run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
@@ -160,11 +150,11 @@ describe('SubmissionHistory tab', () => {
     // Click on "Date Submitted" column and check that the top column is correct for:
     // * ascending order
     await user.click(await within(headers[headerPosition['Date Submitted']]).getByRole('button'));
-    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jul 10, 2023/);
+    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jul 10, 2021/);
 
     // * descending order
     await user.click(await within(headers[headerPosition['Date Submitted']]).getByRole('button'));
-    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Aug 1, 2023/);
+    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jan 1, 2022/);
 
     // Click on "Status" column and check that the top column is correct for:
     // * ascending order
@@ -267,7 +257,7 @@ describe('SubmissionHistory tab', () => {
     expect(table).toHaveAttribute('aria-rowcount', '3');
 
     const rows = within(table).getAllByRole('row');
-    expect(rows.length).toBe(3); // header + 2 submissions after workspace creation
+    expect(rows.length).toBe(3);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(6);
@@ -285,7 +275,7 @@ describe('SubmissionHistory tab', () => {
     within(cellsFromDataRow1[headerPosition.Submission]).getByText('Data used: FOO');
     within(cellsFromDataRow1[headerPosition.Submission]).getByText('1 workflows');
     within(cellsFromDataRow1[headerPosition.Status]).getByText('Success');
-    within(cellsFromDataRow1[headerPosition['Date Submitted']]).getByText(/Aug 1, 2023/);
+    within(cellsFromDataRow1[headerPosition['Date Submitted']]).getByText(/Jan 1, 2022/);
     within(cellsFromDataRow1[headerPosition.Duration]).getByText('1 day 1 hour 1 minute 1 second');
 
     const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
@@ -293,24 +283,35 @@ describe('SubmissionHistory tab', () => {
     within(headers[headerPosition.Actions]).getByText('Actions');
     within(cellsFromDataRow2[headerPosition.Submission]).getByText('Data used: FOO');
     within(cellsFromDataRow2[headerPosition.Status]).getByText('Failed with 1 errors');
-    within(cellsFromDataRow2[headerPosition['Date Submitted']]).getByText(/Jul 10, 2023/);
+    within(cellsFromDataRow2[headerPosition['Date Submitted']]).getByText(/Jul 10, 2021/);
     within(cellsFromDataRow2[headerPosition.Duration]).getByText('1 month 1 day 1 hour 1 minute 1 second');
   });
 
   it('should support canceled and canceling submissions', async () => {
-    const newRunSetData = {
-      run_sets: _.merge(runSetData.run_sets, [
-        {},
+    const runSetData = {
+      run_sets: [
         {
+          error_count: 0,
+          submission_timestamp: '2022-01-01T12:00:00.000+00:00',
+          last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
+          record_type: 'FOO',
+          run_count: 1,
+          run_set_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
           state: 'CANCELED',
         },
         {
+          error_count: 0,
+          submission_timestamp: '2021-07-10T12:00:00.000+00:00',
+          last_modified_timestamp: '2021-08-11T13:01:01.000+00:00',
+          record_type: 'FOO',
+          run_count: 2,
+          run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
           state: 'CANCELING',
         },
-      ]),
+      ],
     };
 
-    const getRunSetsMethod = jest.fn(() => Promise.resolve(newRunSetData));
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
     const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
 
@@ -364,8 +365,8 @@ describe('SubmissionHistory tab', () => {
     run_sets: [
       {
         error_count: 0,
-        submission_timestamp: '2023-08-01T12:00:00.000+00:00',
-        last_modified_timestamp: '2023-08-02T13:01:01.000+00:00',
+        submission_timestamp: '2022-01-01T12:00:00.000+00:00',
+        last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
         record_type: 'FOO',
         run_count: 1,
         run_set_id: '20000000-0000-0000-0000-200000000002',
