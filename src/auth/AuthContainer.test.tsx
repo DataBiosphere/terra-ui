@@ -206,7 +206,6 @@ describe('AuthContainer', () => {
             } as Partial<GroupsContract>,
             User: {
               getNihStatus: jest.fn(),
-              getFenceStatus: jest.fn(),
             } as Partial<UserContract>,
             TermsOfService: {
               getUserTermsOfServiceDetails: jest.fn(),

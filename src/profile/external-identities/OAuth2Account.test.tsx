@@ -5,17 +5,23 @@ import { axe } from 'jest-axe';
 import React from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { getCurrentRoute } from 'src/libs/nav';
+import { authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { OAuth2Provider } from 'src/profile/external-identities/OAuth2Providers';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { OAuth2Link } from './OAuth2Link';
+import { OAuth2Account } from './OAuth2Account';
 
 jest.mock('src/libs/ajax');
 
 jest.mock('src/auth/auth', () => ({
   ...jest.requireActual('src/auth/auth'),
   loadTerraUser: jest.fn(),
+}));
+
+jest.mock('src/libs/config', () => ({
+  ...jest.requireActual('src/libs/config'),
+  getConfig: jest.fn().mockReturnValue({ externalCreds: { providers: ['github'], urlRoot: 'https/foo.bar.com' } }),
 }));
 
 jest.mock('react-notifications-component', () => {
@@ -44,14 +50,16 @@ type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 const testAccessTokenProvider: OAuth2Provider = {
   key: 'github',
   name: 'Test Provider',
+  short: 'Test',
   queryParams: {
     redirectUri: 'localhost/oauth_callback',
   },
   supportsAccessToken: true,
   supportsIdToken: false,
+  isFence: false,
 };
 
-describe('OAuth2Link', () => {
+describe('OAuth2Account', () => {
   describe('When no account is linked', () => {
     it('shows the button to link an account', async () => {
       // Arrange
@@ -69,11 +77,12 @@ describe('OAuth2Link', () => {
           } as DeepPartial<AjaxContract> as AjaxContract)
       );
       // Act
-      const { container } = await act(() => render(<OAuth2Link queryParams={{}} provider={testAccessTokenProvider} />));
+      const { container } = await act(() =>
+        render(<OAuth2Account queryParams={{}} provider={testAccessTokenProvider} />)
+      );
 
       // Assert
-      screen.getByText(`Link your ${testAccessTokenProvider.name} account`);
-      expect(getLinkStatusFn).toHaveBeenCalled();
+      screen.getByText(`Log Into ${testAccessTokenProvider.short}`);
       expect(getAuthorizationUrlFn).not.toHaveBeenCalled();
       expect(await axe(container)).toHaveNoViolations();
     });
@@ -97,10 +106,10 @@ describe('OAuth2Link', () => {
           } as DeepPartial<AjaxContract> as AjaxContract)
       );
       // Act
-      await act(() => render(<OAuth2Link queryParams={{}} provider={testAccessTokenProvider} />));
+      await act(() => render(<OAuth2Account queryParams={{}} provider={testAccessTokenProvider} />));
 
       // Assert
-      const button = screen.getByText(`Link your ${testAccessTokenProvider.name} account`);
+      const button = screen.getByText(`Log Into ${testAccessTokenProvider.short}`);
       await user.click(button);
       expect(getAuthorizationUrlFn).toHaveBeenCalled();
       expect(window.open).toHaveBeenCalled();
@@ -130,7 +139,7 @@ describe('OAuth2Link', () => {
           } as DeepPartial<AjaxContract> as AjaxContract)
       );
       // Act
-      await act(() => render(<OAuth2Link queryParams={queryParams} provider={testAccessTokenProvider} />));
+      await act(() => render(<OAuth2Account queryParams={queryParams} provider={testAccessTokenProvider} />));
 
       // Assert
       expect(linkAccountFn).toHaveBeenCalled();
@@ -140,24 +149,12 @@ describe('OAuth2Link', () => {
     it('shows the linked account status', async () => {
       // Arrange
       const linkStatus = { externalUserId: 'testUser', expirationTimestamp: new Date(), authenticated: true };
-      const getLinkStatusFn = jest.fn().mockResolvedValue(linkStatus);
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            ExternalCredentials: () => {
-              return {
-                getAccountLinkStatus: getLinkStatusFn,
-              };
-            },
-          } as DeepPartial<AjaxContract> as AjaxContract)
-      );
+      authStore.update((state) => ({ ...state, oAuth2AccountStatus: { [testAccessTokenProvider.key]: linkStatus } }));
       // Act
-      await act(() => render(<OAuth2Link queryParams={{}} provider={testAccessTokenProvider} />));
+      await act(() => render(<OAuth2Account queryParams={{}} provider={testAccessTokenProvider} />));
 
       // Assert
-      expect(getLinkStatusFn).toHaveBeenCalled();
-
-      screen.getByText('Renew');
+      screen.getByText(`Renew your ${testAccessTokenProvider.short} link`);
       screen.getByText('Unlink');
       screen.getByText('Username:');
       screen.getByText(linkStatus.externalUserId);
@@ -168,27 +165,31 @@ describe('OAuth2Link', () => {
       // Arrange
       const user = userEvent.setup();
       const linkStatus = { externalUserId: 'testUser', expirationTimestamp: new Date(), authenticated: true };
-      const getLinkStatusFn = jest.fn().mockResolvedValue(linkStatus);
+      authStore.update((state) => ({ ...state, oAuth2AccountStatus: { [testAccessTokenProvider.key]: linkStatus } }));
       const unlinkAccountFn = jest.fn().mockResolvedValue(undefined);
       asMockedFn(Ajax).mockImplementation(
         () =>
           ({
             ExternalCredentials: () => {
               return {
-                getAccountLinkStatus: getLinkStatusFn,
                 unlinkAccount: unlinkAccountFn,
               };
             },
           } as DeepPartial<AjaxContract> as AjaxContract)
       );
       // Act
-      const { container } = await act(() => render(<OAuth2Link queryParams={{}} provider={testAccessTokenProvider} />));
+      const { container } = await act(() =>
+        render(<OAuth2Account queryParams={{}} provider={testAccessTokenProvider} />)
+      );
       const unlinkButton = screen.getByText('Unlink');
       await user.click(unlinkButton);
 
+      const okButton = screen.getByText('OK');
+      await user.click(okButton);
+
       // Assert
       expect(unlinkAccountFn).toHaveBeenCalled();
-      screen.getByText(`Link your ${testAccessTokenProvider.name} account`);
+      screen.getByText(`Log Into ${testAccessTokenProvider.short}`);
 
       expect(await axe(container)).toHaveNoViolations();
     });

@@ -1,6 +1,5 @@
 import _ from 'lodash/fp';
-import * as qs from 'qs';
-import { authOpts, fetchBond, fetchOrchestration, fetchRex, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts, fetchOrchestration, fetchRex, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
 import { getTerraUser, TerraUserProfile } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
@@ -138,15 +137,6 @@ export interface OrchestrationNihStatusResponse {
   linkedNihUsername: string;
   datasetPermissions: NihDatasetPermission[];
   linkExpireTime: number;
-}
-
-export interface BondFenceUrlResponse {
-  url: string;
-}
-
-export interface BondFenceStatusResponse {
-  issued_at: Date;
-  username: string;
 }
 
 export interface SamInviteUserResponse {
@@ -307,53 +297,6 @@ export const User = (signal?: AbortSignal) => {
 
     unlinkNihAccount: async (): Promise<void> => {
       await fetchOrchestration('api/nih/account', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]));
-    },
-
-    getFenceStatus: async (providerKey: string): Promise<BondFenceStatusResponse | {}> => {
-      try {
-        const res = await fetchBond(`api/link/v1/${providerKey}`, _.merge(authOpts(), { signal }));
-        return res.json();
-      } catch (error: unknown) {
-        if (error instanceof Response && error.status === 404) {
-          return {};
-        }
-        throw error;
-      }
-    },
-
-    getFenceAuthUrl: async (providerKey: string, redirectUri: string): Promise<BondFenceUrlResponse> => {
-      const queryParams = {
-        scopes: ['openid', 'google_credentials', 'data', 'user'],
-        redirect_uri: redirectUri,
-        state: btoa(JSON.stringify({ provider: providerKey })),
-      };
-      const res = await fetchBond(
-        `api/link/v1/${providerKey}/authorization-url?${qs.stringify(queryParams, { indices: false })}`,
-        _.merge(authOpts(), { signal })
-      );
-      return res.json();
-    },
-
-    linkFenceAccount: async (
-      providerKey: string,
-      authCode: string | undefined,
-      redirectUri: string,
-      state: string
-    ): Promise<BondFenceStatusResponse> => {
-      const queryParams = {
-        oauthcode: authCode,
-        redirect_uri: redirectUri,
-        state,
-      };
-      const res = await fetchBond(
-        `api/link/v1/${providerKey}/oauthcode?${qs.stringify(queryParams)}`,
-        _.merge(authOpts(), { signal, method: 'POST' })
-      );
-      return res.json();
-    },
-
-    unlinkFenceAccount: async (providerKey: string): Promise<void> => {
-      await fetchBond(`api/link/v1/${providerKey}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
     },
 
     isUserRegistered: async (email: string): Promise<boolean> => {

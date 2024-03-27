@@ -10,7 +10,7 @@ import * as Utils from 'src/libs/utils';
 
 interface ShibbolethLinkProps extends ClickableProps {
   button?: boolean;
-  children: React.ReactNode[];
+  children: React.ReactNode[] | React.ReactNode;
 }
 
 export const ShibbolethLink = ({ button = false, children, ...props }: ShibbolethLinkProps) => {

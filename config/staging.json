@@ -2,7 +2,6 @@
   "agoraUrlRoot": "https://agora.dsde-staging.broadinstitute.org",
   "bardRoot": "https://terra-bard-staging.appspot.com",
   "billingProfileManagerUrlRoot": "https://bpm.dsde-staging.broadinstitute.org",
-  "bondUrlRoot": "https://bond.dsde-staging.broadinstitute.org",
   "calhounUrlRoot": "https://calhoun.dsde-staging.broadinstitute.org",
   "catalogUrlRoot": "https://catalog.dsde-staging.broadinstitute.org",
   "dataRepoUrlRoot": "https://data.staging.envs-terra.bio",
@@ -10,7 +9,7 @@
   "dockstoreUrlRoot": "https://staging.dockstore.org",
   "drsHubUrlRoot": "https://drshub.dsde-staging.broadinstitute.org",
   "externalCreds": {
-    "providers": ["ras"],
+    "providers": ["fence", "dcf-fence", "anvil", "kids-first", "ras"],
     "urlRoot": "https://externalcreds.dsde-staging.broadinstitute.org"
   },
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-staging",

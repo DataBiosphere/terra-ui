@@ -1,8 +1,11 @@
 import { addDays, addHours, setMilliseconds } from 'date-fns/fp';
 import _ from 'lodash/fp';
+import { ReactElement } from 'react';
+import { getConfig } from 'src/libs/config';
 import { getLinkExpirationAlerts } from 'src/libs/link-expiration-alerts';
 import * as Nav from 'src/libs/nav';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { AuthState } from 'src/libs/state';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/auth/auth', () => {
   return {
@@ -11,14 +14,26 @@ jest.mock('src/auth/auth', () => {
   };
 });
 
-jest.mock('src/libs/providers', () => [
-  {
-    key: 'anvil',
-    name: 'NHGRI AnVIL Data Commons Framework Services',
-    expiresAfter: 30,
-    short: 'NHGRI',
-  },
-]);
+jest.mock('src/libs/config', () => ({
+  ...jest.requireActual('src/libs/config'),
+  getConfig: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('src/profile/external-identities/OAuth2Providers', () => ({
+  allOAuth2Providers: [
+    {
+      key: 'fence',
+      name: 'NHLBI BioData Catalyst Framework Services',
+      short: 'NHLBI',
+      queryParams: {
+        redirectUri: 'localhost://#fence-callback',
+      },
+      supportsAccessToken: true,
+      supportsIdToken: false,
+      isFence: true,
+    },
+  ],
+}));
 
 describe('getLinkExpirationAlerts', () => {
   beforeAll(() => {
@@ -36,8 +51,9 @@ describe('getLinkExpirationAlerts', () => {
         nihStatus: {
           linkedNihUsername: 'user@example.com',
           linkExpireTime: expirationDate.getTime() / 1000,
+          datasetPermissions: [],
         },
-      });
+      } as unknown as AuthState);
 
       expect(alerts).toEqual(
         expect.arrayContaining([
@@ -56,8 +72,9 @@ describe('getLinkExpirationAlerts', () => {
         nihStatus: {
           linkedNihUsername: 'user@example.com',
           linkExpireTime: expirationDate.getTime() / 1000,
+          datasetPermissions: [],
         },
-      });
+      } as unknown as AuthState);
 
       expect(alerts).toEqual(
         expect.arrayContaining([
@@ -76,8 +93,9 @@ describe('getLinkExpirationAlerts', () => {
         nihStatus: {
           linkedNihUsername: 'user@example.com',
           linkExpireTime: expirationDate.getTime() / 1000,
+          datasetPermissions: [],
         },
-      });
+      } as unknown as AuthState);
 
       expect(alerts).toEqual([]);
     });
@@ -86,69 +104,75 @@ describe('getLinkExpirationAlerts', () => {
   describe('fence links', () => {
     beforeEach(() => {
       jest.spyOn(Nav, 'getLink').mockReturnValue('fence-callback');
+      asMockedFn(getConfig).mockReturnValue({ externalCreds: { providers: ['fence'], urlRoot: 'https/foo.bar.com' } });
     });
 
     it('includes alert if link has expired', () => {
-      const issueDate = addDays(-90, new Date());
+      const expirationDate = addDays(-90, new Date());
 
       const alerts = getLinkExpirationAlerts({
-        fenceStatus: {
-          anvil: {
-            username: 'user@example.com',
-            issued_at: issueDate.toISOString(),
+        oAuth2AccountStatus: {
+          fence: {
+            externalUserId: 'user@example.com',
+            expirationTimestamp: expirationDate,
+            authenticated: true,
           },
         },
-      });
+      } as unknown as AuthState);
 
       expect(alerts).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            id: 'fence-link-expiration/anvil',
-            title: 'Your access to NHGRI AnVIL Data Commons Framework Services has expired.',
+            id: 'oauth2-account-link-expiration/fence',
+            title: 'Your access to NHLBI BioData Catalyst Framework Services has expired.',
           }),
         ])
       );
 
-      const { message } = _.find({ id: 'fence-link-expiration/anvil' }, alerts);
-      const { container } = render(message);
+      const message = _.find({ id: 'oauth2-account-link-expiration/fence' }, alerts)?.message;
+      const { container } = render(message as ReactElement);
       expect(container).toHaveTextContent('Log in to restore your access or unlink your account.');
     });
 
     it('includes alert if link will expire within the next 5 days', () => {
-      const issueDate = addDays(-27, new Date());
+      const expirationDate = addDays(3, new Date());
 
       const alerts = getLinkExpirationAlerts({
-        fenceStatus: {
-          anvil: {
-            username: 'user@example.com',
-            issued_at: issueDate.toISOString(),
+        oAuth2AccountStatus: {
+          fence: {
+            externalUserId: 'user@example.com',
+            expirationTimestamp: expirationDate,
+            authenticated: true,
           },
         },
-      });
+      } as unknown as AuthState);
 
       expect(alerts).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            id: 'fence-link-expiration/anvil',
-            title: 'Your access to NHGRI AnVIL Data Commons Framework Services will expire in 3 day(s).',
+            id: 'oauth2-account-link-expiration/fence',
+            title: 'Your access to NHLBI BioData Catalyst Framework Services will expire in 3 day(s).',
           }),
         ])
       );
 
-      const { message } = _.find({ id: 'fence-link-expiration/anvil' }, alerts);
-      const { container } = render(message);
+      const message = _.find({ id: 'oauth2-account-link-expiration/fence' }, alerts)?.message;
+      const { container } = render(message as ReactElement);
       expect(container).toHaveTextContent('Log in to renew your access or unlink your account.');
     });
 
     it('does not include alert if link will not expire within the next 5 days', () => {
+      const expirationDate = addDays(30, new Date());
+
       const alerts = getLinkExpirationAlerts({
-        fenceStatus: {
-          anvil: {
-            username: 'user@example.com',
-            issued_at: new Date().toISOString(),
+        oAuth2AccountStatus: {
+          fence: {
+            externalUserId: 'user@example.com',
+            expirationTimestamp: expirationDate,
+            authenticated: true,
           },
         },
-      });
+      } as unknown as AuthState);
 
       expect(alerts).toEqual([]);
     });

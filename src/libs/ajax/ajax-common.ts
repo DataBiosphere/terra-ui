@@ -263,11 +263,6 @@ export const fetchRex = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
-export const fetchBond = _.flow(
-  withUrlPrefix(`${getConfig().bondUrlRoot}/`),
-  withRetryAfterReloadingExpiredAuthToken
-)(fetchOk);
-
 export const fetchDrsHub = _.flow(
   withUrlPrefix(`${getConfig().drsHubUrlRoot}/`),
   withRetryAfterReloadingExpiredAuthToken
