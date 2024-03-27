@@ -1,6 +1,9 @@
 name: Publish Storybook to Chromatic
 
-on: push
+on:
+  push:
+    tags-ignore:
+      - v0.*
 
 jobs:
   chromatic:
