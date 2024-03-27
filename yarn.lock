@@ -6867,6 +6867,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chromatic@npm:^11.2.0":
+  version: 11.2.0
+  resolution: "chromatic@npm:11.2.0"
+  peerDependencies:
+    "@chromatic-com/cypress": ^0.*.* || ^1.0.0
+    "@chromatic-com/playwright": ^0.*.* || ^1.0.0
+  peerDependenciesMeta:
+    "@chromatic-com/cypress":
+      optional: true
+    "@chromatic-com/playwright":
+      optional: true
+  bin:
+    chroma: dist/bin.js
+    chromatic: dist/bin.js
+    chromatic-cli: dist/bin.js
+  checksum: 3747fbc8c297e75c59dda0226282cff052bcb91f9874676b7e468e94643f956fc4b437450ecfb1812176d3c483b51ceb47d88249fd1f7c09cfb21cd76065716d
+  languageName: node
+  linkType: hard
+
 "ci-info@npm:^3.2.0":
   version: 3.3.0
   resolution: "ci-info@npm:3.3.0"
@@ -7348,7 +7367,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"crypto-js@npm:^4.1.1":
+"crypto-js@npm:^4.2.0":
   version: 4.2.0
   resolution: "crypto-js@npm:4.2.0"
   checksum: f051666dbc077c8324777f44fbd3aaea2986f198fe85092535130d17026c7c2ccf2d23ee5b29b36f7a4a07312db2fae23c9094b644cc35f7858b1b4fcaf27774
@@ -13502,13 +13521,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oidc-client-ts@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "oidc-client-ts@npm:2.0.4"
+"oidc-client-ts@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "oidc-client-ts@npm:2.4.0"
   dependencies:
-    crypto-js: ^4.1.1
+    crypto-js: ^4.2.0
     jwt-decode: ^3.1.2
-  checksum: 266b411794e5509b24695081c2d53e2198b2aeea6cec726535122d6067735e92635b3ec5431d56b1978c3d4966f6d55aad3157e7b2d0de8aa774ee213beb9db6
+  checksum: 8467db689298221f706d3358961efb0ddc789f6bd7d4765e71ae5fe62067999d2ce6e8e7584b9d991b8caa6f7fb383f75841e1cfa9e05808c34632de374f5e68
   languageName: node
   linkType: hard
 
@@ -16834,6 +16853,7 @@ __metadata:
     array-move: ^4.0.0
     browserslist: ^4.18.1
     check-dts: ^0.7.2
+    chromatic: ^11.2.0
     clipboard-polyfill: ^3.0.3
     color: ^4.0.1
     date-fns: ^2.24.0
@@ -16872,7 +16892,7 @@ __metadata:
     lint-staged: ^13.0.3
     lodash: ^4.17.21
     marked: ^4.0.10
-    oidc-client-ts: ^2.0.4
+    oidc-client-ts: ^2.4.0
     outdated-browser-rework: ^3.0.1
     path-to-regexp: ^5.0.0
     pluralize: ^8.0.0

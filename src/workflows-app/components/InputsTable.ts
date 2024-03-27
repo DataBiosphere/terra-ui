@@ -15,8 +15,9 @@ import {
   WithWarnings,
 } from 'src/workflows-app/components/inputs-common';
 import { StructBuilderModal } from 'src/workflows-app/components/StructBuilder';
-import { InputDefinition, ObjectBuilderInputSource, StructInputType } from 'src/workflows-app/models/submission-models';
+import { InputDefinition, ObjectBuilderInputSource } from 'src/workflows-app/models/submission-models';
 import {
+  asStructType,
   getInputTableData,
   InputTableData,
   inputTypeStyle,
@@ -158,7 +159,7 @@ const InputsTable = ({
       structBuilderRow !== undefined &&
       h(StructBuilderModal, {
         structName: inputTableData[structBuilderRow].variable,
-        structType: inputTableData[structBuilderRow].inputType as StructInputType,
+        structType: asStructType(inputTableData[structBuilderRow].inputType),
         structSource: inputTableData[structBuilderRow].source as ObjectBuilderInputSource,
         setStructSource: (source) =>
           setConfiguredInputDefinition(

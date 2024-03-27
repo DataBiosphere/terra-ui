@@ -22,6 +22,7 @@ import {
   StructInputType,
 } from 'src/workflows-app/models/submission-models';
 import {
+  asStructType,
   inputTypeStyle,
   isInputOptional,
   renderTypeText,
@@ -86,7 +87,7 @@ export const StructBuilder = (props: StructBuilderProps) => {
   const structSourcePath = buildStructSourcePath(structIndexPath);
   const structTypeNamePath = buildStructTypeNamePath(structIndexPath);
 
-  const currentStructType = structTypePath ? (_.get(structTypePath, structType) as StructInputType) : structType;
+  const currentStructType = structTypePath ? asStructType(_.get(structTypePath, structType)) : structType;
   const currentStructSource = structSourcePath
     ? (_.get(structSourcePath, structSource) as ObjectBuilderInputSource)
     : structSource;

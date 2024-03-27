@@ -1,8 +1,6 @@
-import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
-import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import {
   B2cIdTokenClaims,
   getCurrentOidcUser,
@@ -10,26 +8,21 @@ import {
   oidcSignIn,
   OidcSignInArgs,
   OidcUser,
-  revokeTokens,
 } from 'src/auth/oidc-broker';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
 import { SamUserAttributes } from 'src/libs/ajax/User';
-import { getSessionStorage } from 'src/libs/browser-storage';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications';
+import { clearNotification, sessionTimeoutProps } from 'src/libs/notifications';
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs';
 import {
   asyncImportJobStore,
   AuthState,
   authStore,
-  azureCookieReadyStore,
-  cookieReadyStore,
   getTerraUser,
-  MetricState,
   metricStore,
   oidcStore,
   requesterPaysProjectStore,
@@ -41,6 +34,7 @@ import {
   workspaceStore,
 } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { getTimestampMetricLabel } from 'src/libs/utils';
 import { allOAuth2Providers } from 'src/profile/external-identities/OAuth2Providers';
 import { v4 as uuid } from 'uuid';
 
@@ -56,84 +50,12 @@ export const getAuthTokenFromLocalStorage = async (): Promise<string | undefined
   return oidcUser?.access_token;
 };
 
-export type SignOutCause =
-  | 'requested'
-  | 'disabled'
-  | 'declinedTos'
-  | 'expiredRefreshToken'
-  | 'errorRefreshingAuthToken'
-  | 'idleStatusMonitor'
-  | 'unspecified';
-
-const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
-  const eventToFire: MetricsEventName = switchCase<SignOutCause, MetricsEventName>(
-    cause,
-    ['requested', () => Events.user.signOut.requested],
-    ['disabled', () => Events.user.signOut.disabled],
-    ['declinedTos', () => Events.user.signOut.declinedTos],
-    ['expiredRefreshToken', () => Events.user.signOut.expiredRefreshToken],
-    ['errorRefreshingAuthToken', () => Events.user.signOut.errorRefreshingAuthToken],
-    ['idleStatusMonitor', () => Events.user.signOut.idleStatusMonitor],
-    ['unspecified', () => Events.user.signOut.unspecified],
-    [DEFAULT, () => Events.user.signOut.unspecified]
-  );
-  const sessionEndTime: number = Date.now();
-  const metricStoreState: MetricState = metricStore.get();
-  const tokenMetadata: TokenMetadata = metricStoreState.authTokenMetadata;
-
-  await Ajax().Metrics.captureEvent(eventToFire, {
-    sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
-    sessionDurationInSeconds:
-      metricStoreState.sessionStartTime < 0 ? undefined : (sessionEndTime - metricStoreState.sessionStartTime) / 1000.0,
-    authTokenCreatedAt: getTimestampMetricLabel(tokenMetadata.createdAt),
-    authTokenExpiresAt: getTimestampMetricLabel(tokenMetadata.expiresAt),
-    totalAuthTokensUsedThisSession: metricStoreState.authTokenMetadata.totalTokensUsedThisSession,
-    totalAuthTokenLoadAttemptsThisSession: metricStoreState.authTokenMetadata.totalTokenLoadAttemptsThisSession,
-  });
-};
-
 export const sendRetryMetric = () => {
   Ajax().Metrics.captureEvent(Events.user.authToken.load.retry, {});
 };
 
 export const sendAuthTokenDesyncMetric = () => {
   Ajax().Metrics.captureEvent(Events.user.authToken.desync, {});
-};
-
-export const signOut = (cause: SignOutCause = 'unspecified'): void => {
-  sendSignOutMetrics(cause);
-  if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
-    notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
-  }
-  // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
-  cookieReadyStore.reset();
-  azureCookieReadyStore.reset();
-  getSessionStorage().clear();
-
-  revokeTokens();
-
-  const { cookiesAccepted } = authStore.get();
-
-  authStore.reset();
-  authStore.update((state) => ({
-    ...state,
-    signInStatus: 'signedOut',
-    // TODO: If allowed, this should be moved to the cookie store
-    // Load whether a user has input a cookie acceptance in a previous session on this system,
-    // or whether they input cookie acceptance previously in this session
-    cookiesAccepted,
-  }));
-  oidcStore.update((state) => ({
-    ...state,
-    user: undefined,
-  }));
-  const anonymousId: string | undefined = metricStore.get().anonymousId;
-  metricStore.reset();
-  metricStore.update((state) => ({
-    ...state,
-    anonymousId,
-  }));
-  userStore.reset();
 };
 
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
@@ -324,9 +246,6 @@ const getOldAuthTokenLabels = (oldAuthTokenMetadata: TokenMetadata) => {
     oldAuthTokenLifespan:
       oldAuthTokenMetadata.createdAt < 0 ? undefined : Date.now() - oldAuthTokenMetadata.createdAt / 1000.0,
   };
-};
-const getTimestampMetricLabel = (timestamp: number): string | undefined => {
-  return timestamp < 0 ? undefined : Utils.formatTimestampInSeconds(timestamp);
 };
 
 export const hasBillingScope = (): boolean => authStore.get().hasGcpBillingScopeThroughB2C === true;
