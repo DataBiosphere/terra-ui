@@ -105,7 +105,7 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     id: ENABLE_AZURE_TDR_IMPORT,
     title: 'Azure TDR Import',
     description: 'Enabling this feature will allow importing TDR snapshots into Azure workspaces.',
-    groups: ['dsp-analysis-journeys'],
+    groups: ['preview-azure-tdr-import'],
     feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Azure TDR snapshot Import'
     )}`,
