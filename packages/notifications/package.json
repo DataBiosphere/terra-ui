@@ -1,6 +1,6 @@
 {
   "name": "@terra-ui-packages/notifications",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "scripts": {
     "build": "vite build --emptyOutDir",
     "dev": "vite build --mode=development --watch",
@@ -23,7 +23,7 @@
     "lib/types/**/*.d.ts"
   ],
   "dependencies": {
-    "@terra-ui-packages/components": "*",
+    "@terra-ui-packages/components": "^0.0.6",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
@@ -40,7 +40,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "typescript": "~5.1.6",
-    "vite": "^4.3.9"
+    "vite": "^4.5.2"
   },
   "peerDependencies": {
     "react": "18.2.0",
