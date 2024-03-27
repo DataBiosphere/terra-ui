@@ -2,8 +2,8 @@ name: Publish Storybook to Chromatic
 
 on:
   push:
-    branches-ignore:
-      - 'refs/**'
+    tags-ignore:
+      - 'v0.*'
 
 jobs:
   chromatic:
