@@ -1,8 +1,11 @@
-import { createContext, createElement, PropsWithChildren, useContext } from 'react';
+import { createContext, createElement, PropsWithChildren, ReactNode, useContext } from 'react';
 
 export type NotificationType = 'error' | 'warn' | 'info' | 'success' | 'welcome';
 export interface NotificationOptions {
-  detail: string | unknown;
+  /**
+   * string, Error(unknown), or json object to be displayed in detail section
+   */
+  detail?: unknown;
 }
 
 export interface NotificationsContract {
@@ -22,7 +25,7 @@ export const text = {
 };
 
 /** Provides notifications to descendents via React Context. */
-export const NotificationsProvider = (props: NotificationsProviderProps) => {
+export const NotificationsProvider = (props: NotificationsProviderProps): ReactNode => {
   const { children, notifications } = props;
   return createElement(NotificationsContext.Provider, { value: notifications }, children);
 };

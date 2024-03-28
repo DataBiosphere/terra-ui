@@ -13,8 +13,9 @@
 -
 
 ### Testing strategy
-<!-- Note that changes impacting components in Storybook stories can be viewed at https://www.chromatic.com/library?appId=65fc89c9335768720ff8605a.
-Choose the branch corresponding to this PR, and changes can be reviewed by commit. --->
+<!-- Note that changes impacting components in Storybook stories can be viewed at
+https://www.chromatic.com/library?appId=65fc89c9335768720ff8605a&branch=<branch>
+The branch corresponding to this PR is selected, and changes can be reviewed by commit. --->
 
 - [ ] <!-- Test case 1 -->
 
