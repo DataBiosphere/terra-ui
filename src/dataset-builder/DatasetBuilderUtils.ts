@@ -237,5 +237,5 @@ export const displayParticipantCount = (count: number): string => {
 };
 
 export const renderParticipantCount = (count: number | undefined): string => {
-  return count ? displayParticipantCount(count) : '';
+  return count !== undefined ? displayParticipantCount(count) : '';
 };
