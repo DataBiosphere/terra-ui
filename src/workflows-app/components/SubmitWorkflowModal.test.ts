@@ -22,7 +22,7 @@ jest.mock('src/libs/ajax');
 
 type AjaxContract = ReturnType<typeof Ajax>;
 
-jest.mock('src/libs/notifications.js');
+jest.mock('src/libs/notifications');
 
 jest.mock('src/libs/nav', () => ({
   getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
