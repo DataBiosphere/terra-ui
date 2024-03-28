@@ -11,14 +11,8 @@ describe('report', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
     const { reportError } = withErrorReporter(mockNotifications);
 
-    let outerThrow: unknown | null = null;
-
     // Act
-    try {
-      await reportError('Things went BOOM', new Error('BOOM!'));
-    } catch (e) {
-      outerThrow = e;
-    }
+    await reportError('Things went BOOM', new Error('BOOM!'));
 
     // Assert
     const expectedError = new Error('BOOM!');
@@ -26,7 +20,6 @@ describe('report', () => {
     expect(mockNotifications.notify).toBeCalledWith('error', 'Things went BOOM', { detail: expectedError });
     expect(console.error).toBeCalledTimes(1);
     expect(console.error).toBeCalledWith('Things went BOOM', expectedError);
-    expect(outerThrow).toEqual(null);
   });
 
   it('ignores session timeout error', async () => {
@@ -34,20 +27,13 @@ describe('report', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
     const { reportError } = withErrorReporter(mockNotifications);
 
-    let outerThrow: unknown | null = null;
-
     // Act
-    try {
-      await reportError('Things went BOOM', new Error(sessionTimedOutErrorMessage));
-    } catch (e) {
-      outerThrow = e;
-    }
+    await reportError('Things went BOOM', new Error(sessionTimedOutErrorMessage));
 
     // Assert
     expect(mockNotifications.notify).toBeCalledTimes(0);
     expect(console.error).toBeCalledTimes(1);
     expect(console.error).toBeCalledWith('Things went BOOM', new Error(sessionTimedOutErrorMessage));
-    expect(outerThrow).toEqual(null);
   });
 });
 
@@ -115,14 +101,8 @@ describe('reportError - using terra notificationsProvider fallback', () => {
     // Arrange
     jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    let outerThrow: unknown | null = null;
-
     // Act
-    try {
-      await reportErrorFallback('Things went BOOM', new Error('BOOM!'));
-    } catch (e) {
-      outerThrow = e;
-    }
+    await reportErrorFallback('Things went BOOM', new Error('BOOM!'));
 
     // Assert
     const expectedError = new Error('BOOM!');
@@ -130,6 +110,5 @@ describe('reportError - using terra notificationsProvider fallback', () => {
     expect(notify).toBeCalledWith('error', 'Things went BOOM', { detail: expectedError });
     expect(console.error).toBeCalledTimes(1);
     expect(console.error).toBeCalledWith('Things went BOOM', expectedError);
-    expect(outerThrow).toEqual(null);
   });
 });

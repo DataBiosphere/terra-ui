@@ -1,6 +1,6 @@
 import Color from 'color';
 import { mapValues } from 'lodash/fp';
-import { createContext, createElement, PropsWithChildren, useContext } from 'react';
+import { createContext, createElement, PropsWithChildren, ReactNode, useContext } from 'react';
 
 type ColorPalette = {
   /** Used as accent on header, loading spinner, background of beta version tag and some buttons */
@@ -53,7 +53,7 @@ export type ThemeProviderProps = PropsWithChildren<{
 }>;
 
 /** Provides a theme to descendents via React Context. */
-export const ThemeProvider = (props: ThemeProviderProps) => {
+export const ThemeProvider = (props: ThemeProviderProps): ReactNode => {
   const { children, theme } = props;
   return createElement(EnrichedThemeContext.Provider, { value: enrichTheme(theme) }, children);
 };

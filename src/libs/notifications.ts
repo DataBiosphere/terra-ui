@@ -28,7 +28,11 @@ export interface NotificationState {
   type: NotificationType;
   title: string;
   message?: ReactNode;
-  detail?: string | Error | unknown;
+
+  /**
+   * string, Error(unknown), or json object to be displayed in detail section
+   */
+  detail?: unknown;
   timeout?: number;
 }
 
@@ -41,7 +45,7 @@ export const sessionTimeoutProps = {
 
 const makeNotification = (props) => _.defaults({ id: uuid() }, props);
 
-export const notify = (type: NotificationType, title: ReactNode, props?: NotificationProps) => {
+export const notify = (type: NotificationType, title: ReactNode, props?: NotificationProps): string => {
   const notification = makeNotification({ type, title, ...props });
   if (!isNotificationMuted(notification.id)) {
     const visibleNotificationIds = _.map('id', notificationStore.get());
