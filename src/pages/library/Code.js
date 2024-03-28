@@ -13,6 +13,9 @@ import { getEnabledBrand } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { FIRECLOUD_UI_MIGRATION } from 'src/libs/feature-previews-config';
+import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -101,7 +104,9 @@ export const MethodRepoTile = () => {
       h(
         Link,
         {
-          href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}#methods`,
+          href: isFeaturePreviewEnabled(FIRECLOUD_UI_MIGRATION)
+            ? Nav.getLink('workflows')
+            : `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}#methods`,
           style: { color: colors.accent(1.1) }, // For a11y, we need at least 4.5:1 contrast agaisnst the gray background
         },
         'Broad Methods Repository'
