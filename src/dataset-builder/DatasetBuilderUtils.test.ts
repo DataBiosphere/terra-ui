@@ -19,6 +19,7 @@ import {
   ProgramDataListCriteriaApi,
   ProgramDataRangeCriteria,
   ProgramDataRangeCriteriaApi,
+  renderParticipantCount,
   ValueSet,
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
@@ -266,5 +267,23 @@ describe('test HighlightConceptName', () => {
     conceptName = 'Clinical Finding';
     result = div(['Clinical Finding']);
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+});
+
+describe('test renderParticipantCount', () => {
+  test('count is undefined', () => {
+    expect(renderParticipantCount(undefined)).toStrictEqual('');
+  });
+
+  test('count is 0', () => {
+    expect(renderParticipantCount(0)).toStrictEqual('0');
+  });
+
+  test('count > 0 and count <= 19', () => {
+    expect(renderParticipantCount(1)).toStrictEqual('Less than 20');
+  });
+
+  test('count is 20', () => {
+    expect(renderParticipantCount(20)).toStrictEqual('20');
   });
 });
