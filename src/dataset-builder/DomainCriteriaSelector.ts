@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
+import { Parent } from 'src/components/TreeGrid';
 import { DomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
@@ -59,7 +60,7 @@ export const saveSelected =
 
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
-  const [hierarchy, setHierarchy] = useLoadedData<Concept>();
+  const [hierarchy, setHierarchy] = useLoadedData<Parent<Concept>[]>();
   useOnMount(() => {
     const openedConcept = state.openedConcept;
     if (openedConcept) {
@@ -70,14 +71,14 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
       // get the children of this concept
       void setHierarchy(async () => {
         const results = (await DataRepo().dataset(datasetId).getConcepts(state.domainOption.root)).result;
-        return { ...state.domainOption.root, children: results };
+        return [{ parentId: state.domainOption.root.id, children: results }];
       });
     }
   });
 
   return hierarchy.status === 'Ready'
     ? h(ConceptSelector, {
-        rootConcept: hierarchy.state,
+        parents: hierarchy.state,
         domainOptionRoot: state.domainOption.root,
         title: state.domainOption.name,
         initialCart: state.cart,

@@ -29,7 +29,7 @@ describe('DomainCriteriaSelector', () => {
     dataset: (_datasetId) =>
       ({
         getConcepts: () => Promise.resolve({ result: [concept] }),
-        getConceptHierarchy: () => Promise.resolve({ result: { ...concept, children } }),
+        getConceptHierarchy: () => Promise.resolve({ result: [{ parentId: concept.id, children }] }),
       } as Partial<DataRepoContract['dataset']>),
   } as Partial<DataRepoContract> as DataRepoContract;
   const datasetId = '';

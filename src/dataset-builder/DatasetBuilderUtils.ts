@@ -129,8 +129,13 @@ export interface GetConceptsResponse {
   result: Concept[];
 }
 
+export interface SnapshotBuilderParentConcept {
+  parentId: number;
+  children: Concept[];
+}
+
 export interface GetConceptHierarchyResponse {
-  result: Concept;
+  readonly result: SnapshotBuilderParentConcept[];
 }
 
 export interface SearchConceptsResponse {
