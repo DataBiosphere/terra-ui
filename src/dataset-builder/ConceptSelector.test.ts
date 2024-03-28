@@ -5,7 +5,7 @@ import { dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
 import { DataRepo, DataRepoContract, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { ConceptSelector } from './ConceptSelector';
+import { ConceptSelector, findRoot } from './ConceptSelector';
 
 jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
@@ -173,5 +173,17 @@ describe('ConceptSelector', () => {
     await user.click(screen.getAllByLabelText(`add ${expandConcept.id}`)[0]);
     // Assert
     expect(screen.getByText('2 concepts', { exact: false })).toBeTruthy();
+  });
+
+  it('finds the root concept', () => {
+    // Arrange
+    const parents = [
+      { parentId: 101, children: [dummyGetConceptForId(102)] },
+      { parentId: 0, children: [dummyGetConceptForId(101)] },
+    ];
+    // Act
+    const root = findRoot(parents);
+    // Assert
+    expect(root).toEqual(0);
   });
 });
