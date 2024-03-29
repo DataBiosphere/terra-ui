@@ -5,7 +5,7 @@ import { div, h, h2 } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { TreeGrid } from 'src/components/TreeGrid';
+import { Parent, RowContents, TreeGrid } from 'src/components/TreeGrid';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
@@ -17,7 +17,7 @@ type ConceptSelectorProps = {
   readonly actionText: string;
   readonly datasetId: string;
   readonly initialCart: Concept[];
-  readonly rootConcept: Concept;
+  readonly parents: Parent<Concept>[];
   readonly openedConcept?: Concept;
 };
 
@@ -31,8 +31,16 @@ export const tableHeaderStyle: CSSProperties = {
   border: `.5px solid ${colors.dark(0.2)}`,
 };
 
+// The list of parents is a tree, where each parent has a list of children. Find the root
+// of the tree by finding the one parent that is not the child of any other parent.
+export const findRoot = <T extends RowContents>(parents: Parent<T>[]) => {
+  const childIds = new Set(_.flow(_.map('children'), _.flatten, _.map('id'))(parents));
+  const root = _.filter((parent: Parent<T>) => !childIds.has(parent.parentId))(parents);
+  return root[0] ? root[0].parentId : 0;
+};
+
 export const ConceptSelector = (props: ConceptSelectorProps) => {
-  const { title, onCancel, onCommit, actionText, datasetId, initialCart, rootConcept, openedConcept } = props;
+  const { title, onCancel, onCommit, actionText, datasetId, initialCart, parents, openedConcept } = props;
 
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> => {
@@ -83,7 +91,8 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
           { name: 'Concept ID', width: 195, render: _.get('id') },
           { name: 'Roll-up count', width: 205, render: _.get('count') },
         ],
-        root: rootConcept,
+        root: { id: findRoot(parents), name: 'root', count: 0, hasChildren: true },
+        parents,
         getChildren,
         headerStyle: tableHeaderStyle,
       }),
