@@ -24,6 +24,7 @@ export type Column<T extends RowContents> = {
   render: (row: T) => string | ReactElement;
 };
 
+/** A parent node in a pre-initialized tree. Each parent node contains its id and a list of its children. */
 export type Parent<T extends RowContents> = {
   readonly parentId: number;
   readonly children: T[];

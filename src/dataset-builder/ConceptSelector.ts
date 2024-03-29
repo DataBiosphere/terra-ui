@@ -32,7 +32,7 @@ export const tableHeaderStyle: CSSProperties = {
 };
 
 // The list of parents is a tree, where each parent has a list of children. Find the root
-// of the tree by finding the one parent that is not the child of any other parent
+// of the tree by finding the one parent that is not the child of any other parent.
 export const findRoot = <T extends RowContents>(parents: Parent<T>[]) => {
   const childIds = new Set(_.flow(_.map('children'), _.flatten, _.map('id'))(parents));
   const root = _.filter((parent: Parent<T>) => !childIds.has(parent.parentId))(parents);
