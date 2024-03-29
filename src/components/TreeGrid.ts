@@ -13,8 +13,6 @@ export type RowContents = {
   id: number;
   /** If true, this row has children. */
   hasChildren: boolean;
-  /** Used when initially populating the tree. If present, this contains all of a node's children. */
-  children?: RowContents[];
 };
 
 export type Column<T extends RowContents> = {
@@ -24,6 +22,12 @@ export type Column<T extends RowContents> = {
   width: number;
   /** Given the current row, return the column's contents. */
   render: (row: T) => string | ReactElement;
+};
+
+/** A parent node in a pre-initialized tree. Each parent node contains its id and a list of its children. */
+export type Parent<T extends RowContents> = {
+  readonly parentId: number;
+  readonly children: T[];
 };
 
 type RowState = 'closed' | 'opening' | 'open';
@@ -48,10 +52,10 @@ const wrapContent =
     state: 'closed',
   });
 
-export const populateTreeFromRoot = <T extends RowContents>(root: T): Row<T>[] => {
+export const populateTree = <T extends RowContents>(root: T, parents: Parent<T>[]): Row<T>[] => {
   const createRows = (parent: T, depth: number, previousRows: Row<T>[]): Row<T>[] => {
     // does parent have children?
-    const children = parent.children ?? [];
+    const children = _.find({ parentId: parent.id }, parents)?.children ?? [];
     const parentRow: Row<T> = {
       contents: parent,
       depth,
@@ -72,6 +76,8 @@ type TreeGridProps<T extends RowContents> = {
   readonly columns: Column<T>[];
   /** The root of the tree to display. Note that the root node is hidden, and only its children are shown. */
   readonly root: T;
+  /** For a pre-initialized tree, all the known parent nodes. */
+  readonly parents?: Parent<T>[];
   /** Given a row, return its children. This is only called if row.hasChildren is true. */
   readonly getChildren: (row: T) => Promise<T[]>;
   /** Optional header style */
@@ -110,8 +116,8 @@ const getRowIndex = <T extends RowContents>(row: Row<T>, rows: Row<T>[]) =>
   _.findIndex((r) => r.contents.id === row.contents.id, rows);
 
 const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
-  const { columns, getChildren, gridWidth, root } = props;
-  const [data, setData] = useState(populateTreeFromRoot(root));
+  const { columns, getChildren, gridWidth, root, parents } = props;
+  const [data, setData] = useState(populateTree(root, parents ?? []));
   const rowHeight = 40;
   const expand = async (row: Row<T>) => {
     const index = getRowIndex(row, data);
