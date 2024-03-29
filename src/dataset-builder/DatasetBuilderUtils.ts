@@ -232,10 +232,9 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
   ]);
 };
 
-export const displayParticipantCount = (count: number): string => {
+export const displayParticipantCount = (count: number | undefined): string => {
+  if (count === undefined) {
+    return '';
+  }
   return count <= 19 && count > 0 ? 'Less than 20' : count.toString();
-};
-
-export const renderParticipantCount = (count: number | undefined): string => {
-  return count !== undefined ? displayParticipantCount(count) : '';
 };

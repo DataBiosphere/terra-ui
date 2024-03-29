@@ -12,6 +12,7 @@ import {
   CriteriaGroupApi,
   DatasetAccessRequest,
   DatasetAccessRequestApi,
+  displayParticipantCount,
   DomainCriteria,
   DomainCriteriaApi,
   HighlightConceptName,
@@ -19,7 +20,6 @@ import {
   ProgramDataListCriteriaApi,
   ProgramDataRangeCriteria,
   ProgramDataRangeCriteriaApi,
-  renderParticipantCount,
   ValueSet,
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
@@ -270,20 +270,20 @@ describe('test HighlightConceptName', () => {
   });
 });
 
-describe('test renderParticipantCount', () => {
+describe('test displayParticipantCount', () => {
   test('count is undefined', () => {
-    expect(renderParticipantCount(undefined)).toStrictEqual('');
+    expect(displayParticipantCount(undefined)).toStrictEqual('');
   });
 
   test('count is 0', () => {
-    expect(renderParticipantCount(0)).toStrictEqual('0');
+    expect(displayParticipantCount(0)).toStrictEqual('0');
   });
 
   test('count > 0 and count <= 19', () => {
-    expect(renderParticipantCount(1)).toStrictEqual('Less than 20');
+    expect(displayParticipantCount(1)).toStrictEqual('Less than 20');
   });
 
   test('count is 20', () => {
-    expect(renderParticipantCount(20)).toStrictEqual('20');
+    expect(displayParticipantCount(20)).toStrictEqual('20');
   });
 });

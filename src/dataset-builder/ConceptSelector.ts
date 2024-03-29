@@ -7,7 +7,7 @@ import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TreeGrid } from 'src/components/TreeGrid';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
-import { renderParticipantCount } from 'src/dataset-builder/DatasetBuilderUtils';
+import { displayParticipantCount } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 
@@ -85,7 +85,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
           {
             name: 'Roll-up count',
             width: 205,
-            render: (row) => renderParticipantCount(row.count),
+            render: (row) => displayParticipantCount(row.count),
           },
         ],
         root: rootConcept,

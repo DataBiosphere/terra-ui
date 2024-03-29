@@ -10,9 +10,9 @@ import { SimpleTable } from 'src/components/table';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import {
+  displayParticipantCount,
   GetConceptsResponse,
   HighlightConceptName,
-  renderParticipantCount,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
@@ -126,7 +126,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   ]),
                 ]),
                 id: concept.id,
-                count: renderParticipantCount(concept.count),
+                count: displayParticipantCount(concept.count),
                 hierarchy: div({ style: { display: 'flex' } }, [
                   h(
                     Link,
