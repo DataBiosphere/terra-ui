@@ -237,9 +237,6 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
   ]);
 };
 
-export const formatCount = (count: number | undefined): string => {
-  if (count === undefined) {
-    return '';
-  }
+export const formatCount = (count: number): string => {
   return count === 19 ? 'Less than 20' : count.toString();
 };

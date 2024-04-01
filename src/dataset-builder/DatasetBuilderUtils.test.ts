@@ -271,10 +271,6 @@ describe('test HighlightConceptName', () => {
 });
 
 describe('test formatCount', () => {
-  test('count is undefined', () => {
-    expect(formatCount(undefined)).toStrictEqual('');
-  });
-
   test('count is 0', () => {
     expect(formatCount(0)).toStrictEqual('0');
   });
