@@ -9,11 +9,7 @@ import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
-import {
-  displayParticipantCount,
-  GetConceptsResponse,
-  HighlightConceptName,
-} from 'src/dataset-builder/DatasetBuilderUtils';
+import { formatCount, GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
@@ -126,7 +122,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   ]),
                 ]),
                 id: concept.id,
-                count: displayParticipantCount(concept.count),
+                count: formatCount(concept.count),
                 hierarchy: div({ style: { display: 'flex' } }, [
                   h(
                     Link,

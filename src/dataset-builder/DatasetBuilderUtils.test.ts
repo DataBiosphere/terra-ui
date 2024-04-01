@@ -12,9 +12,9 @@ import {
   CriteriaGroupApi,
   DatasetAccessRequest,
   DatasetAccessRequestApi,
-  displayParticipantCount,
   DomainCriteria,
   DomainCriteriaApi,
+  formatCount,
   HighlightConceptName,
   ProgramDataListCriteria,
   ProgramDataListCriteriaApi,
@@ -270,20 +270,20 @@ describe('test HighlightConceptName', () => {
   });
 });
 
-describe('test displayParticipantCount', () => {
+describe('test formatCount', () => {
   test('count is undefined', () => {
-    expect(displayParticipantCount(undefined)).toStrictEqual('');
+    expect(formatCount(undefined)).toStrictEqual('');
   });
 
   test('count is 0', () => {
-    expect(displayParticipantCount(0)).toStrictEqual('0');
+    expect(formatCount(0)).toStrictEqual('0');
   });
 
   test('count is 19', () => {
-    expect(displayParticipantCount(19)).toStrictEqual('Less than 20');
+    expect(formatCount(19)).toStrictEqual('Less than 20');
   });
 
   test('count is 20', () => {
-    expect(displayParticipantCount(20)).toStrictEqual('20');
+    expect(formatCount(20)).toStrictEqual('20');
   });
 });

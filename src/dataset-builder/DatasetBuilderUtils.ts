@@ -237,7 +237,7 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
   ]);
 };
 
-export const displayParticipantCount = (count: number | undefined): string => {
+export const formatCount = (count: number | undefined): string => {
   if (count === undefined) {
     return '';
   }
