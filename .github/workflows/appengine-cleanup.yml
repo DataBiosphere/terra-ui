@@ -25,5 +25,4 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v1'
       # Delete old AppEngine versions in each environment
       - run: ./scripts/delete-old-app-engine-versions.sh dev
-      - run: ./scripts/delete-old-app-engine-versions.sh alpha
       - run: ./scripts/delete-old-app-engine-versions.sh staging
