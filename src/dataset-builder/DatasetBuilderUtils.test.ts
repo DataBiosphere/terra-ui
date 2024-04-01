@@ -279,8 +279,8 @@ describe('test displayParticipantCount', () => {
     expect(displayParticipantCount(0)).toStrictEqual('0');
   });
 
-  test('count > 0 and count <= 19', () => {
-    expect(displayParticipantCount(1)).toStrictEqual('Less than 20');
+  test('count is 19', () => {
+    expect(displayParticipantCount(19)).toStrictEqual('Less than 20');
   });
 
   test('count is 20', () => {
