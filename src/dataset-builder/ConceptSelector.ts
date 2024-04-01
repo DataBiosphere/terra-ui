@@ -7,6 +7,7 @@ import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { Parent, RowContents, TreeGrid } from 'src/components/TreeGrid';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
+import { formatCount } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 
@@ -89,7 +90,11 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
             },
           },
           { name: 'Concept ID', width: 195, render: _.get('id') },
-          { name: 'Roll-up count', width: 205, render: _.get('count') },
+          {
+            name: 'Roll-up count',
+            width: 205,
+            render: (row) => formatCount(row.count),
+          },
         ],
         root: { id: findRoot(parents), name: 'root', count: 0, hasChildren: true },
         parents,

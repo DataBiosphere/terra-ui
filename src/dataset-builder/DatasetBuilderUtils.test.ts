@@ -14,6 +14,7 @@ import {
   DatasetAccessRequestApi,
   DomainCriteria,
   DomainCriteriaApi,
+  formatCount,
   HighlightConceptName,
   ProgramDataListCriteria,
   ProgramDataListCriteriaApi,
@@ -266,5 +267,19 @@ describe('test HighlightConceptName', () => {
     conceptName = 'Clinical Finding';
     result = div(['Clinical Finding']);
     expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+});
+
+describe('test formatCount', () => {
+  test('count is 0', () => {
+    expect(formatCount(0)).toStrictEqual('0');
+  });
+
+  test('count is 19', () => {
+    expect(formatCount(19)).toStrictEqual('Less than 20');
+  });
+
+  test('count is 20', () => {
+    expect(formatCount(20)).toStrictEqual('20');
   });
 });
