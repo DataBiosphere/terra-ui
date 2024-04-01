@@ -123,7 +123,7 @@ describe('ConceptSearch', () => {
     renderSearch();
     // Act
     const user = userEvent.setup();
-    await user.click(await screen.findByLabelText(`add ${concept.id}`));
+    await user.click(await screen.findByLabelText(`check ${concept.id}`));
     await user.click(screen.getByLabelText(`open hierarchy ${concept.id}`));
     // Assert
     expect(onOpenHierarchy).toHaveBeenCalledWith(domainOption, [concept], '', concept);
@@ -135,7 +135,7 @@ describe('ConceptSearch', () => {
     const concept = displayedConcepts[0];
     // Act
     const user = userEvent.setup();
-    await user.click(await screen.findByLabelText(`add ${concept.id}`));
+    await user.click(await screen.findByLabelText(`check ${concept.id}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeTruthy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
@@ -147,8 +147,8 @@ describe('ConceptSearch', () => {
     const concept = displayedConcepts[0];
     // Act
     const user = userEvent.setup();
-    await user.click(await screen.findByLabelText(`add ${concept.id}`));
-    await user.click(screen.getByLabelText(`remove ${concept.id}`));
+    await user.click(await screen.findByLabelText(`check ${concept.id}`));
+    await user.click(screen.getByLabelText(`uncheck ${concept.id}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeFalsy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeFalsy();
@@ -160,7 +160,7 @@ describe('ConceptSearch', () => {
     const concept = displayedConcepts[0];
     // Act
     const user = userEvent.setup();
-    await user.click(await screen.findByLabelText(`add ${concept.id}`));
+    await user.click(await screen.findByLabelText(`check ${concept.id}`));
     await user.click(screen.getByText(actionText));
     // Assert
     expect(onCommit).toHaveBeenCalledWith([concept]);
