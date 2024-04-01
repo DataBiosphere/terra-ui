@@ -28,6 +28,12 @@ export type SignOutCause =
   | 'idleStatusMonitor'
   | 'unspecified';
 
+export type SignOutState = {
+  name: string;
+  query: Record<string, string>;
+  params: Record<string, string>;
+};
+
 export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   // sendSignOutMetrics should _not_ be awaited. It's fire-and-forget, and we don't want to block the user's signout
@@ -40,7 +46,9 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
     const userManager = oidcStore.get().userManager;
     const redirectUrl = `${Nav.getWindowOrigin()}/${Nav.getLink(signOutCallbackLinkName)}`;
     // This will redirect to the logout callback page, which calls `userSignedOut` and then redirects to the homepage.
-    userManager!.signoutRedirect({ post_logout_redirect_uri: redirectUrl });
+    const { name, query, params }: SignOutState = Nav.getCurrentRoute();
+    const encodedState = btoa(JSON.stringify({ postLogoutRedirect: { name, query, params } }));
+    userManager!.signoutRedirect({ post_logout_redirect_uri: redirectUrl, extraQueryParams: { state: encodedState } });
   } catch (e: unknown) {
     console.error('Signing out with B2C failed. Falling back on local signout', e);
     userSignedOut(true);

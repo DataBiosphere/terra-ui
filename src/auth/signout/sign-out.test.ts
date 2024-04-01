@@ -28,6 +28,12 @@ jest.mock(
   })
 );
 
+const currentRoute = {
+  name: 'routeName',
+  query: { a: 'a', b: 'b' },
+  params: { foo: 'bar' },
+};
+
 type NavExports = typeof import('src/libs/nav');
 jest.mock('src/libs/nav', (): NavExports => {
   return {
@@ -35,6 +41,7 @@ jest.mock('src/libs/nav', (): NavExports => {
     getLink: jest.fn().mockReturnValue({ name: 'signout-callback', query: {} }),
     goToPath: jest.fn(),
     getWindowOrigin: jest.fn(),
+    getCurrentRoute: jest.fn().mockReturnValue(currentRoute),
   };
 });
 
@@ -100,6 +107,7 @@ describe('sign-out', () => {
     const signoutRedirectFn = jest.fn();
     const hostname = 'https://mycoolhost.horse';
     const link = 'signout';
+    const expectedState = btoa(JSON.stringify({ postLogoutRedirect: currentRoute }));
     asMockedFn(oidcStore.get).mockReturnValue({
       userManager: {
         signoutRedirect: signoutRedirectFn,
@@ -107,11 +115,13 @@ describe('sign-out', () => {
     } as unknown as OidcState);
     asMockedFn(Nav.getLink).mockReturnValue(link);
     asMockedFn(Nav.getWindowOrigin).mockReturnValue(hostname);
+    asMockedFn(Nav.getCurrentRoute).mockReturnValue(currentRoute);
     // Act
     signOut();
     // Assert
     expect(signoutRedirectFn).toHaveBeenCalledWith({
       post_logout_redirect_uri: `${hostname}/${link}`,
+      extraQueryParams: { state: expectedState },
     });
   });
   it('logs an error and calls userSignedOut if signoutRedirect throws', () => {
