@@ -33,12 +33,12 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   };
 });
 
-type ReactUtilsExports = typeof import('src/libs/react-utils');
-jest.mock('src/libs/react-utils', (): ReactUtilsExports => {
-  const actual = jest.requireActual<ReactUtilsExports>('src/libs/react-utils');
-  return {
+type LodashFpExports = typeof import('lodash/fp');
+jest.mock('lodash/fp', (): LodashFpExports => {
+  const actual = jest.requireActual<LodashFpExports>('lodash/fp');
+  return <_.LoDashFp & _.LodashDebounce>{
     ...actual,
-    useDebouncedValue: (value) => value,
+    debounce: (_wait, func) => func,
   };
 });
 
