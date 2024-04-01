@@ -66,13 +66,13 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
             name: 'Concept Name',
             width: 710,
             render: (concept) => {
-              const isChecked = _.filter(_.isEqual(concept), cart).length > 0;
+              const checked = _.filter(_.isEqual(concept), cart).length > 0;
               return h(Fragment, [
                 h(
                   LabeledCheckbox,
                   {
-                    'aria-label': isChecked ? `uncheck ${concept.id}` : `check ${concept.id}`,
-                    checked: isChecked,
+                    'aria-label': checked ? `uncheck ${concept.id}` : `check ${concept.id}`,
+                    checked,
                     onChange: () => setCart(_.xorWith(_.isEqual, cart, [concept])),
                   },
                   []
