@@ -1,9 +1,8 @@
-import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, strong } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
-import { Link, spinnerOverlay } from 'src/components/common';
+import { LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
@@ -109,14 +108,19 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               { width: 100, key: 'hierarchy' },
             ],
             rows: _.map((concept) => {
-              const [label, iconName]: [string, IconId] = _.contains(concept, cart)
-                ? ['remove', 'minus-circle-red']
-                : ['add', 'plus-circle-filled'];
+              const checked = _.contains(concept, cart);
               return {
                 name: div({ style: { display: 'flex' } }, [
-                  h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
-                    icon(iconName, { size: 16 }),
-                  ]),
+                  h(
+                    LabeledCheckbox,
+                    {
+                      'aria-label': checked ? `uncheck ${concept.id}` : `check ${concept.id}`,
+                      checked,
+                      onChange: () => setCart(_.xor(cart, [concept])),
+                      size: 12,
+                    },
+                    []
+                  ),
                   div({ style: { marginLeft: 5 } }, [
                     h(HighlightConceptName, { conceptName: concept.name, searchFilter: searchText }),
                   ]),
