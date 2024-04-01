@@ -241,5 +241,5 @@ export const displayParticipantCount = (count: number | undefined): string => {
   if (count === undefined) {
     return '';
   }
-  return count <= 19 && count > 0 ? 'Less than 20' : count.toString();
+  return count === 19 ? 'Less than 20' : count.toString();
 };
