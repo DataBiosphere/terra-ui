@@ -4,7 +4,7 @@
 # MUST have jq installed to be able to use this script.
 #
 # USAGE: ./delete-old-app-engine-versions.sh ENV
-#   ENV must be one of dev, alpha, or staging
+#   ENV must be either dev or staging
 #
 
 set -eu
@@ -31,7 +31,7 @@ check_color_support() {
 
 # print out usage to stdout
 usage() {
-    printf "Usage: %s ${BLD}ENV${RST}\n  ${BLD}ENV${RST} must be one of dev, alpha, or staging\n" "$0"
+    printf "Usage: %s ${BLD}ENV${RST}\n  ${BLD}ENV${RST} must be either dev or staging\n" "$0"
     exit 0
 }
 
@@ -150,9 +150,9 @@ fi
 
 case $1 in
     --help ) usage;;
-    dev|alpha|staging ) ;;
+    dev|staging ) ;;
     prod ) error "This script cannot be run against prod.";;
-    * ) error "ENV must be one of dev, alpha, or staging";;
+    * ) error "ENV must be either dev or staging";;
 esac
 
 NEW_PROJECT="bvdp-saturn-$1"
