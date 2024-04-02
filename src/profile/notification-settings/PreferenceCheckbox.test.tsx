@@ -2,17 +2,25 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { EventWorkspaceAttributes } from 'src/libs/events';
-import * as Notifications from 'src/libs/notifications';
+import { notify } from 'src/libs/notifications';
 import {
   NotificationCheckbox,
   NotificationCheckboxProps,
   UserAttributesCheckbox,
   UserAttributesCheckboxProps,
 } from 'src/profile/notification-settings/PreferenceCheckbox';
-import { updateNotificationPreferences, updateUserAttributes } from 'src/profile/notification-settings/utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
-jest.mock('src/libs/notifications');
+import { updateNotificationPreferences, updateUserAttributes } from './utils';
+
+type NotificationsExports = typeof import('src/libs/notifications');
+jest.mock('src/libs/notifications', (): NotificationsExports => {
+  const actual = jest.requireActual<NotificationsExports>('src/libs/notifications');
+  return {
+    ...actual,
+    notify: jest.fn(),
+  };
+});
 
 type NotificationUtilsExports = typeof import('./utils');
 jest.mock('./utils', (): NotificationUtilsExports => {
@@ -93,7 +101,6 @@ describe('NotificationCheckbox', () => {
   it('notifies the user if there is an error saving the preference', async () => {
     // Arrange
     const user = userEvent.setup();
-    jest.spyOn(Notifications, 'notify');
 
     // Act
     await render(<NotificationCheckbox {...notificationOffProps} />);
@@ -101,7 +108,7 @@ describe('NotificationCheckbox', () => {
     await user.click(checkbox);
 
     // Assert
-    expect(Notifications.notify).toHaveBeenCalled();
+    expect(notify).toHaveBeenCalled();
   });
 });
 
@@ -196,7 +203,6 @@ describe('UserAttributesCheckbox', () => {
   it('notifies the user if there is an error saving the preference', async () => {
     // Arrange
     const user = userEvent.setup();
-    jest.spyOn(Notifications, 'notify');
 
     // Act
     await render(<UserAttributesCheckbox {...notificationOffProps} />);
@@ -204,6 +210,6 @@ describe('UserAttributesCheckbox', () => {
     await user.click(checkbox);
 
     // Assert
-    expect(Notifications.notify).toHaveBeenCalled();
+    expect(notify).toHaveBeenCalled();
   });
 });
