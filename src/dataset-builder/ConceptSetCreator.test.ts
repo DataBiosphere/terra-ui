@@ -50,7 +50,7 @@ describe('ConceptSetCreator', () => {
     const rootConceptNoChildren = { ...rootConcept, hasChildren: false };
     // Act
     const user = userEvent.setup();
-    // Check the LabeledCheckbox button for the root concept.
+    // Click the select button for the root concept.
     await user.click(screen.getByLabelText(`check ${rootConceptNoChildren.id}`));
     await user.click(screen.getByText('Add to concept sets'));
     // Assert
