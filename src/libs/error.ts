@@ -78,7 +78,7 @@ export const withErrorReporter = (reporter: NotificationsContract) => ({
   },
 });
 
-const notificationsProvider: NotificationsContract = {
+export const notificationsProvider: NotificationsContract = {
   notify: (type: NotificationType, title: string, options?: NotificationOptions) => notify(type, title, options),
 };
 
