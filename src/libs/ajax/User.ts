@@ -1,8 +1,7 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { authOpts, fetchBond, fetchOrchestration, fetchRex, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
-import { getTerraUser, TerraUserProfile } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
+import { authOpts, fetchBond, fetchOrchestration, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
+import { TerraUserProfile } from 'src/libs/state';
 
 export interface SamUserRegistrationStatusResponse {
   userSubjectId: string;
@@ -154,19 +153,15 @@ export interface SamInviteUserResponse {
   userEmail: string;
 }
 
-export interface RexFirstTimestampResponse {
-  timestamp: Date;
-}
-
 export interface SamUserResponse {
-  id: string;
+  id: string | undefined;
   googleSubjectId?: string;
-  email: string;
+  email: string | undefined;
   azureB2CId?: string;
-  allowed: boolean;
-  createdAt: Date;
-  registeredAt?: Date;
-  updatedAt: Date;
+  allowed: boolean | undefined;
+  createdAt: Date | undefined;
+  registeredAt: Date | undefined;
+  updatedAt: Date | undefined;
 }
 
 export type SamUserAttributes = {
@@ -178,15 +173,6 @@ export type SamUserAttributesRequest = {
 };
 
 export type OrchestrationUserRegistrationRequest = object;
-
-// TODO: Remove this as a part of https://broadworkbench.atlassian.net/browse/ID-460
-const getFirstTimeStamp = Utils.memoizeAsync(
-  async (token): Promise<RexFirstTimestampResponse> => {
-    const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]));
-    return res.json();
-  },
-  { keyFn: (...args) => JSON.stringify(args) }
-) as (token: string) => Promise<RexFirstTimestampResponse>;
 
 export const User = (signal?: AbortSignal) => {
   return {
@@ -281,8 +267,9 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
-    firstTimestamp: (): Promise<RexFirstTimestampResponse> => {
-      return getFirstTimeStamp(getTerraUser().token!);
+    getSamUserResponse: async (): Promise<SamUserResponse> => {
+      const res = await fetchSam('api/users/v2/self', _.mergeAll([authOpts(), { method: 'GET' }]));
+      return res.json();
     },
 
     getNihStatus: async (): Promise<OrchestrationNihStatusResponse | undefined> => {
