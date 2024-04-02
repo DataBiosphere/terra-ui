@@ -1,7 +1,17 @@
-import { ButtonPrimary, Clickable, icon, Link, Modal, useThemeFromContext, useUniqueId } from '@terra-ui-packages/components';
+import {
+  ButtonPrimary,
+  Clickable,
+  icon,
+  IconId,
+  Link,
+  Modal,
+  useThemeFromContext,
+  useUniqueId,
+} from '@terra-ui-packages/components';
 import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
+import { NotificationType } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { Store } from 'react-notifications-component';
 import ErrorView from 'src/components/ErrorView';
@@ -13,6 +23,21 @@ import { v4 as uuid } from 'uuid';
 
 // documentation: https://github.com/teodosii/react-notifications-component
 
+export interface NotificationState {
+  id?: string;
+  type: NotificationType;
+  title: string;
+  message?: ReactNode;
+
+  /**
+   * string, Error(unknown), or json object to be displayed in detail section
+   */
+  detail?: unknown;
+  timeout?: number;
+}
+
+export type NotificationProps = Omit<NotificationState, 'type' | 'title'>;
+
 export const sessionTimeoutProps = {
   id: 'sessionTimeout',
   detail: 'You have been signed out due to inactivity',
@@ -20,7 +45,7 @@ export const sessionTimeoutProps = {
 
 const makeNotification = (props) => _.defaults({ id: uuid() }, props);
 
-export const notify = (type, title, props) => {
+export const notify = (type: NotificationType, title: ReactNode, props?: NotificationProps): string => {
   const notification = makeNotification({ type, title, ...props });
   if (!isNotificationMuted(notification.id)) {
     const visibleNotificationIds = _.map('id', notificationStore.get());
@@ -58,11 +83,11 @@ const NotificationDisplay = ({ id }) => {
   const [modal, setModal] = useState(false);
   const [notificationNumber, setNotificationNumber] = useState(0);
 
-  const notifications = _.filter((n) => n.id === id, notificationState);
+  const notifications: NotificationState[] = _.filter((n) => n.id === id, notificationState);
   const onFirst = notificationNumber === 0;
   const onLast = notificationNumber + 1 === notifications.length;
 
-  const { title, message, detail, type, action, onDismiss } = notifications[notificationNumber];
+  const { title, message, detail, type } = notifications[notificationNumber];
   const [baseColor, ariaLabel] = switchCase(
     type,
     ['success', () => [colors.success, 'success notification']],
@@ -72,7 +97,13 @@ const NotificationDisplay = ({ id }) => {
     ['error', () => [colors.danger, 'error notification']],
     [DEFAULT, () => [colors.accent, 'notification']]
   );
-  const iconType = switchCase(type, ['success', () => 'success-standard'], ['warn', () => 'warning-standard'], ['error', () => 'error-standard']);
+  const iconType = switchCase<string, IconId>(
+    type,
+    ['success', () => 'success-standard'],
+    ['warn', () => 'warning-standard'],
+    ['error', () => 'error-standard'],
+    [DEFAULT, () => 'info-circle-regular']
+  );
   const labelId = useUniqueId();
   const descId = useUniqueId();
 
@@ -118,18 +149,6 @@ const NotificationDisplay = ({ id }) => {
                 },
                 ['Details']
               ),
-            !!action &&
-              h(
-                Clickable,
-                {
-                  style: { marginTop: '0.25rem', textDecoration: 'underline' },
-                  onClick: () => {
-                    action.callback();
-                    Store.removeNotification(id);
-                  },
-                },
-                [action.label]
-              ),
           ]),
         ]),
         h(
@@ -140,7 +159,6 @@ const NotificationDisplay = ({ id }) => {
             title: 'Dismiss notification',
             onClick: () => {
               Store.removeNotification(id);
-              onDismiss?.();
             },
           },
           [icon('times', { size: 20 })]
@@ -149,7 +167,13 @@ const NotificationDisplay = ({ id }) => {
       notifications.length > 1 &&
         div(
           {
-            style: { alignItems: 'center', borderTop: `1px solid ${baseColor()}`, display: 'flex', fontSize: 10, padding: '0.75rem 1rem' },
+            style: {
+              alignItems: 'center',
+              borderTop: `1px solid ${baseColor()}`,
+              display: 'flex',
+              fontSize: 10,
+              padding: '0.75rem 1rem',
+            },
           },
           [
             h(
@@ -191,7 +215,7 @@ const NotificationDisplay = ({ id }) => {
             showCancel: false,
             showX: true,
             onDismiss: () => setModal(false),
-            okButton: h(ButtonPrimary, { onClick: refreshPage }, 'Refresh Page'),
+            okButton: h(ButtonPrimary, { onClick: refreshPage }, ['Refresh Page']),
           },
           [h(ErrorView, { error: detail })]
         ),

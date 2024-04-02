@@ -3734,6 +3734,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@storybook/addon-actions@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@storybook/addon-actions@npm:8.0.0"
+  dependencies:
+    "@storybook/core-events": 8.0.0
+    "@storybook/global": ^5.0.0
+    "@types/uuid": ^9.0.1
+    dequal: ^2.0.2
+    polished: ^4.2.2
+    uuid: ^9.0.0
+  checksum: c24e07def81e77620c9fafa14cde7aa426efe09b1e4a7906baa22165c17df338dd171cc5b0f3c407ef036583774f25a840521f16b4b2442e0db60699a5044145
+  languageName: node
+  linkType: hard
+
 "@storybook/addon-backgrounds@npm:7.6.17":
   version: 7.6.17
   resolution: "@storybook/addon-backgrounds@npm:7.6.17"
@@ -4156,6 +4170,15 @@ __metadata:
   dependencies:
     ts-dedent: ^2.0.0
   checksum: 7463d8349211f23e9a25e08d85b04b9f6b24ee8747c775a8ec41ac4ff208e06f5183487d0f92af1e820f9c5044393a28e2065e5183a43b758f65deaab3ac3b61
+  languageName: node
+  linkType: hard
+
+"@storybook/core-events@npm:8.0.0":
+  version: 8.0.0
+  resolution: "@storybook/core-events@npm:8.0.0"
+  dependencies:
+    ts-dedent: ^2.0.0
+  checksum: 5c58add81bae0b9de642ddb06568c663651574ddb86007b50c0a5877c3e300135e3f1a6533a6dd25e260d29c11c811410481e2fc6523f5d4d221ad66d18e91d5
   languageName: node
   linkType: hard
 
@@ -4639,6 +4662,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@terra-ui-packages/analysis@*, @terra-ui-packages/analysis@workspace:packages/analysis":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/analysis@workspace:packages/analysis"
+  dependencies:
+    "@terra-ui-packages/build-utils": ^1.0.0
+    "@terra-ui-packages/components": ^0.0.6
+    "@terra-ui-packages/test-utils": "*"
+    "@testing-library/dom": ^9.3.1
+    "@testing-library/react": ^14.0.0
+    "@testing-library/user-event": ^14.4.3
+    "@types/jest": ^28.1.8
+    "@types/lodash": ^4.14.184
+    "@types/react": ^18.2.15
+    "@types/testing-library__jest-dom": ^5.14.9
+    jest: ^27.4.3
+    lodash: ^4.17.21
+    react: 18.2.0
+    react-dom: 18.2.0
+    typescript: ~5.1.6
+    vite: ^4.5.2
+  peerDependencies:
+    react: 18.2.0
+    react-dom: 18.2.0
+  languageName: unknown
+  linkType: soft
+
 "@terra-ui-packages/build-utils@^1.0.0, @terra-ui-packages/build-utils@workspace:packages/build-utils":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/build-utils@workspace:packages/build-utils"
@@ -4652,7 +4701,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/components@*, @terra-ui-packages/components@workspace:packages/components":
+"@terra-ui-packages/components@*, @terra-ui-packages/components@^0.0.6, @terra-ui-packages/components@workspace:packages/components":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/components@workspace:packages/components"
   dependencies:
@@ -4703,6 +4752,32 @@ __metadata:
     lodash: ^4.17.21
     typescript: ~5.1.6
     vite: ^4.5.2
+  languageName: unknown
+  linkType: soft
+
+"@terra-ui-packages/notifications@*, @terra-ui-packages/notifications@workspace:packages/notifications":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/notifications@workspace:packages/notifications"
+  dependencies:
+    "@terra-ui-packages/build-utils": ^1.0.0
+    "@terra-ui-packages/components": ^0.0.6
+    "@terra-ui-packages/test-utils": "*"
+    "@testing-library/dom": ^9.3.1
+    "@testing-library/react": ^14.0.0
+    "@testing-library/user-event": ^14.4.3
+    "@types/jest": ^28.1.8
+    "@types/lodash": ^4.14.184
+    "@types/react": ^18.2.15
+    "@types/testing-library__jest-dom": ^5.14.9
+    jest: ^27.4.3
+    lodash: ^4.17.21
+    react: 18.2.0
+    react-dom: 18.2.0
+    typescript: ~5.1.6
+    vite: ^4.5.2
+  peerDependencies:
+    react: 18.2.0
+    react-dom: 18.2.0
   languageName: unknown
   linkType: soft
 
@@ -6864,6 +6939,25 @@ __metadata:
   version: 2.0.0
   resolution: "chownr@npm:2.0.0"
   checksum: c57cf9dd0791e2f18a5ee9c1a299ae6e801ff58fee96dc8bfd0dcb4738a6ce58dd252a3605b1c93c6418fe4f9d5093b28ffbf4d66648cb2a9c67eaef9679be2f
+  languageName: node
+  linkType: hard
+
+"chromatic@npm:^11.2.0":
+  version: 11.2.0
+  resolution: "chromatic@npm:11.2.0"
+  peerDependencies:
+    "@chromatic-com/cypress": ^0.*.* || ^1.0.0
+    "@chromatic-com/playwright": ^0.*.* || ^1.0.0
+  peerDependenciesMeta:
+    "@chromatic-com/cypress":
+      optional: true
+    "@chromatic-com/playwright":
+      optional: true
+  bin:
+    chroma: dist/bin.js
+    chromatic: dist/bin.js
+    chromatic-cli: dist/bin.js
+  checksum: 3747fbc8c297e75c59dda0226282cff052bcb91f9874676b7e468e94643f956fc4b437450ecfb1812176d3c483b51ceb47d88249fd1f7c09cfb21cd76065716d
   languageName: node
   linkType: hard
 
@@ -16806,6 +16900,7 @@ __metadata:
     "@dnd-kit/utilities": ^3.2.1
     "@microlink/react-json-view": ^1.22.2
     "@pact-foundation/pact": 12.1.1
+    "@storybook/addon-actions": ^8.0.0
     "@storybook/addon-essentials": ^7.6.17
     "@storybook/addon-interactions": ^7.6.17
     "@storybook/addon-links": ^7.6.17
@@ -16814,8 +16909,10 @@ __metadata:
     "@storybook/react": ^7.6.17
     "@storybook/react-vite": ^7.6.17
     "@storybook/test": ^7.6.17
+    "@terra-ui-packages/analysis": "*"
     "@terra-ui-packages/components": "*"
     "@terra-ui-packages/core-utils": "*"
+    "@terra-ui-packages/notifications": "*"
     "@terra-ui-packages/test-utils": "*"
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0
@@ -16834,6 +16931,7 @@ __metadata:
     array-move: ^4.0.0
     browserslist: ^4.18.1
     check-dts: ^0.7.2
+    chromatic: ^11.2.0
     clipboard-polyfill: ^3.0.3
     color: ^4.0.1
     date-fns: ^2.24.0

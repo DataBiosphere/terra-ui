@@ -2,7 +2,7 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import React from 'react';
-import * as Notifications from 'src/libs/notifications';
+import { notify } from 'src/libs/notifications';
 import { userStore } from 'src/libs/state';
 import {
   updateNotificationPreferences,
@@ -14,6 +14,8 @@ import {
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceNotifications } from 'src/workspaces/dashboard/WorkspaceNotifications';
+
+jest.mock('src/libs/notifications');
 
 type NotificationUtilsExports = typeof import('src/profile/notification-settings/utils');
 jest.mock('src/profile/notification-settings/utils', (): NotificationUtilsExports => {
@@ -136,7 +138,6 @@ describe('WorkspaceNotifications', () => {
   it('handles an error from setting the preference value', async () => {
     // Arrange
     const user = userEvent.setup();
-    jest.spyOn(Notifications, 'notify');
 
     // Act
     await render(<WorkspaceNotifications workspace={testWorkspace} />);
@@ -144,7 +145,7 @@ describe('WorkspaceNotifications', () => {
     await user.click(submissionNotificationsCheckbox);
 
     // Assert
-    expect(Notifications.notify).toHaveBeenCalled();
+    expect(notify).toHaveBeenCalled();
   });
 
   it('has no accessibility errors', async () => {

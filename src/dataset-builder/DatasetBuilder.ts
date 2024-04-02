@@ -16,7 +16,7 @@ import {
   DatasetBuilderType,
   DatasetBuilderValue,
   DatasetParticipantCountResponse,
-  displayParticipantCount,
+  formatCount,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
@@ -655,7 +655,7 @@ export const DatasetBuilderContents = ({
         h(ActionBar, {
           prompt: h(Fragment, [
             datasetRequestParticipantCount.status === 'Ready'
-              ? displayParticipantCount(datasetRequestParticipantCount.state.result.total)
+              ? formatCount(datasetRequestParticipantCount.state.result.total)
               : h(Spinner),
             ' participants in this dataset',
           ]),
