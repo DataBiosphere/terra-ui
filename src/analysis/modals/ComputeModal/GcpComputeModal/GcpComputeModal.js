@@ -20,7 +20,7 @@ import {
   generatePersistentDiskName,
   pdTypeFromDiskType,
 } from 'src/analysis/utils/disk-utils';
-import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/analysis/utils/gce-machines';
+import { cloudServices, isMachineTypeDifferent, machineTypes } from 'src/analysis/utils/gce-machines';
 import {
   defaultAutopauseThreshold,
   defaultComputeRegion,
@@ -1179,7 +1179,7 @@ export const GcpComputeModalBase = ({
                         setRuntimeType(value);
                         const defaultMachineTypeForSelectedValue = getDefaultMachineType(isDataproc(value), selectedImage?.toolLabel);
                         // we need to update the compute config if the current value is smaller than the default for the dropdown option
-                        if (isMachineTypeSmaller(computeConfig.masterMachineType, defaultMachineTypeForSelectedValue)) {
+                        if (isMachineTypeDifferent(computeConfig.masterMachineType, defaultMachineTypeForSelectedValue)) {
                           updateComputeConfig('masterMachineType', defaultMachineTypeForSelectedValue);
                         }
                         updateComputeConfig('componentGatewayEnabled', isDataproc(value));

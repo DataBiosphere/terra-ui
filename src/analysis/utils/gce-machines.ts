@@ -2,7 +2,13 @@ import _ from 'lodash/fp';
 
 // GOOGLE CLOUD MACHINE TYPES AND PRICING
 
-export const machineTypes = [
+export interface MachineType {
+  name: string;
+  cpu: number;
+  memory: number;
+}
+
+export const machineTypes: MachineType[] = [
   { name: 'n1-standard-1', cpu: 1, memory: 3.75 },
   { name: 'n1-standard-2', cpu: 2, memory: 7.5 },
   { name: 'n1-standard-4', cpu: 4, memory: 15 },
@@ -28,8 +34,13 @@ export const machineTypes = [
 ];
 
 // returns true if machineTypeA machine type is smaller than machineTypeB
-export const isMachineTypeSmaller = (machineTypeA, machineTypeB) =>
-  _.find({ name: machineTypeA }, machineTypes).cpu < _.find({ name: machineTypeB }, machineTypes).cpu;
+export const isMachineTypeDifferent = (machineTypeA: string, machineTypeB: string): boolean => {
+  const machineA = getMachineTypeFromName(machineTypeA);
+  const machineB = getMachineTypeFromName(machineTypeB);
+  return machineA && machineB ? machineA.cpu < machineB.cpu : true;
+};
+
+const getMachineTypeFromName = (name: string): MachineType | undefined => _.find({ name }, machineTypes);
 
 // As of June 21, 2021:
 // GPUs are only supported with general-purpose N1 or accelerator-optimized A2 machine types.
@@ -111,9 +122,15 @@ export const zonesToGpus = [
   { name: 'SOUTHAMERICA-EAST1-A', validTypes: [] },
   { name: 'SOUTHAMERICA-EAST1-B', validTypes: [] },
   { name: 'SOUTHAMERICA-EAST1-C', validTypes: ['nvidia-tesla-t4'] },
-  { name: 'US-CENTRAL1-A', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-v100', 'nvidia-tesla-p4', 'nvidia-tesla-k80'] },
+  {
+    name: 'US-CENTRAL1-A',
+    validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-v100', 'nvidia-tesla-p4', 'nvidia-tesla-k80'],
+  },
   { name: 'US-CENTRAL1-B', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-v100'] },
-  { name: 'US-CENTRAL1-C', validTypes: ['nvidia-tesla-v100', 'nvidia-tesla-p100', 'nvidia-tesla-p4', 'nvidia-tesla-k80'] },
+  {
+    name: 'US-CENTRAL1-C',
+    validTypes: ['nvidia-tesla-v100', 'nvidia-tesla-p100', 'nvidia-tesla-p4', 'nvidia-tesla-k80'],
+  },
   { name: 'US-CENTRAL1-F', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-v100', 'nvidia-tesla-p100'] },
   { name: 'US-EAST1-B', validTypes: ['nvidia-tesla-p100'] },
   { name: 'US-EAST1-C', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-v100', 'nvidia-tesla-p100', 'nvidia-tesla-k80'] },
@@ -639,4 +656,5 @@ export const regionToPrices = [
 
 export const version = '6'; // updated jupyter-iframe-extension.js
 
-export const dataSyncingDocUrl = 'https://support.terra.bio/hc/en-us/articles/360034505132--Lock-and-Playground-Notebook-Modes';
+export const dataSyncingDocUrl =
+  'https://support.terra.bio/hc/en-us/articles/360034505132--Lock-and-Playground-Notebook-Modes';
