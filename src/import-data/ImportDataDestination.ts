@@ -135,6 +135,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       'workspace.authorizationDomain',
       'workspace.cloudPlatform',
       'workspace.createdBy',
+      'workspace.googleProject',
       'workspace.lastModified',
       'workspace.name',
       'workspace.namespace',
