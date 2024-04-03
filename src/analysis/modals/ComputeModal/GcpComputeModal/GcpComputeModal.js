@@ -1178,7 +1178,7 @@ export const GcpComputeModalBase = ({
                       onChange: ({ value }) => {
                         setRuntimeType(value);
                         const defaultMachineTypeForSelectedValue = getDefaultMachineType(isDataproc(value), selectedImage?.toolLabel);
-                        // we need to update the compute config if the current value is smaller than the default for the dropdown option
+                        // we need to update the compute config if the current value is different than the default for the dropdown option
                         if (isMachineTypeDifferent(computeConfig.masterMachineType, defaultMachineTypeForSelectedValue)) {
                           updateComputeConfig('masterMachineType', defaultMachineTypeForSelectedValue);
                         }

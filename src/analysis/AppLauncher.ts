@@ -102,7 +102,7 @@ const ApplicationLauncher = _.flow(
       )(async (shouldCopy) => {
         // this modal only opens when the state variable outdatedAnalyses is non empty (keeps track of a user's outdated RStudio files). it gives users two options when their files are in use by another user
         // 1) make copies of those files and continue working on the copies or 2) do nothing.
-        // in either case, their original version of the anafslysis is outdated and we will no longer sync that file to the workspace bucket for the current user
+        // in either case, their original version of the analysis is outdated and we will no longer sync that file to the workspace bucket for the current user
         await Promise.all(
           _.flatMap(async ({ name, metadata: currentMetadata }) => {
             const file = getFileName(name);
