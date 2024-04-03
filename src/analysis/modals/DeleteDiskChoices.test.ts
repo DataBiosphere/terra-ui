@@ -4,18 +4,16 @@ import { h } from 'react-hyperscript-helpers';
 import { azureRuntime, getAzureDisk, getDisk, getRuntimeConfig } from 'src/analysis/_testData/testData';
 import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
-import { cloudServices } from 'src/analysis/utils/gce-machines';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary } from 'src/components/common';
 import { cloudServiceTypes } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { formatUSD } from 'src/libs/utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
-import { cloudProviderTypes } from 'src/workspaces/utils';
 
 const renderActionButton = () => h(ButtonPrimary, {}, ['Delete']);
 
 describe('DeleteDiskChoices', () => {
-  it.each([{ cloudService: cloudProviderTypes.GCP }, { cloudService: cloudServices.AZURE }])(
+  it.each([{ cloudService: cloudServiceTypes.GCE }, { cloudService: cloudServiceTypes.AZURE_VM }])(
     'Should pass through all correct values',
     ({ cloudService }) => {
       // Arrange
