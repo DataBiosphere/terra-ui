@@ -108,21 +108,22 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               { width: 100, key: 'hierarchy' },
             ],
             rows: _.map((concept) => {
-              const checked = _.contains(concept, cart);
               return {
                 name: div({ style: { display: 'flex' } }, [
                   h(
                     LabeledCheckbox,
                     {
-                      'aria-label': checked ? `uncheck ${concept.id}` : `check ${concept.id}`,
-                      checked,
+                      style: { padding: 12 },
+                      checked: _.contains(concept, cart),
                       onChange: () => setCart(_.xor(cart, [concept])),
                     },
-                    []
+                    [
+                      h(HighlightConceptName, {
+                        conceptName: concept.name,
+                        searchFilter: searchText,
+                      }),
+                    ]
                   ),
-                  div({ style: { marginLeft: 12 } }, [
-                    h(HighlightConceptName, { conceptName: concept.name, searchFilter: searchText }),
-                  ]),
                 ]),
                 id: concept.id,
                 count: formatCount(concept.count),

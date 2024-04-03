@@ -67,20 +67,22 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
             name: 'Concept Name',
             width: 710,
             render: (concept) => {
-              const checked = _.filter(_.isEqual(concept), cart).length > 0;
               return h(Fragment, [
                 h(
                   LabeledCheckbox,
                   {
-                    'aria-label': checked ? `uncheck ${concept.id}` : `check ${concept.id}`,
-                    checked,
+                    style: { marginRight: 12 },
+                    checked: _.filter(_.isEqual(concept), cart).length > 0,
                     onChange: () => setCart(_.xorWith(_.isEqual, cart, [concept])),
                   },
-                  []
+                  [
+                    div([
+                      openedConcept?.id === concept.id
+                        ? div({ style: { fontWeight: 600 } }, [concept.name])
+                        : concept.name,
+                    ]),
+                  ]
                 ),
-                div({ style: { marginLeft: 5 } }, [
-                  openedConcept?.id === concept.id ? div({ style: { fontWeight: 600 } }, [concept.name]) : concept.name,
-                ]),
               ]);
             },
           },
