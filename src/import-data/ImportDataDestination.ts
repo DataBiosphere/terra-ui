@@ -18,7 +18,7 @@ import * as Utils from 'src/libs/utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
-import { isAzureWorkspace, WorkspaceInfo } from 'src/workspaces/utils';
+import { WorkspaceInfo } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
@@ -224,9 +224,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       !!selectedWorkspace &&
         h(Fragment, [
           h(WorkspacePolicies, { workspace: selectedWorkspace }),
-          !!isProtectedData &&
-            isAzureWorkspace(selectedWorkspace) &&
-            div([p(['Importing this data may add:']), ul([li(['Additional access controls'])])]),
+          !!isProtectedData && div([p(['Importing this data may add:']), ul([li(['Additional access controls'])])]),
         ]),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
@@ -358,10 +356,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
                 cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
-                renderNotice: ({ selectedBillingProject }) =>
+                renderNotice: () =>
                   h(Fragment, [
                     isProtectedData &&
-                      selectedBillingProject?.cloudPlatform === 'AZURE' &&
                       p([
                         'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
                       ]),

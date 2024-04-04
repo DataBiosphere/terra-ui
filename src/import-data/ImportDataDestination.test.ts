@@ -1,7 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { BillingProject } from 'src/billing-core/models';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { azureProtectedDataBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -365,14 +364,14 @@ describe('ImportDataDestination', () => {
     {
       url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb'),
       workspace: makeGoogleWorkspace(),
-      displayExtraAccessControlNotice: false, // don't display it for GCP workspace
+      displayExtraAccessControlNotice: true,
     },
   ] as {
     url: URL;
     workspace: WorkspaceWrapper;
     displayExtraAccessControlNotice: boolean;
   }[])(
-    'displays additional access controls message when importing protected data into an Azure workspace',
+    'displays additional access controls message when importing protected data into a protected workspace',
     async ({ url, workspace, displayExtraAccessControlNotice }) => {
       // Arrange
       const user = userEvent.setup();
@@ -418,6 +417,10 @@ describe('ImportDataDestination', () => {
     },
     {
       workspace: makeAzureWorkspace({ policies: [protectedDataPolicy] }),
+      shouldDisplayPolicies: true,
+    },
+    {
+      workspace: makeGoogleWorkspace({ policies: [protectedDataPolicy] }),
       shouldDisplayPolicies: true,
     },
   ] as {
@@ -585,10 +588,8 @@ describe('ImportDataDestination', () => {
 
       const { renderNotice } = asMockedFn(NewWorkspaceModal).mock.lastCall[0];
 
-      const isNoticeShownForBillingProject = (billingProject: BillingProject | undefined): boolean => {
-        const { container: noticeContainer } = render(
-          renderNotice?.({ selectedBillingProject: billingProject }) as JSX.Element
-        );
+      const isNoticeShownForBillingProject = (): boolean => {
+        const { container: noticeContainer } = render(renderNotice?.() as JSX.Element);
         const isNoticeShown = !!within(noticeContainer).queryByText(
           'Importing controlled access data will apply any additional access controls associated with the data to this workspace.'
         );
@@ -597,7 +598,7 @@ describe('ImportDataDestination', () => {
 
       // Assert
       expect(isNoticeShownForBillingProject(undefined)).toBe(false);
-      expect(isNoticeShownForBillingProject(gcpBillingProject)).toBe(false);
+      expect(isNoticeShownForBillingProject(gcpBillingProject)).toBe(noticeExpected);
       expect(isNoticeShownForBillingProject(azureProtectedDataBillingProject)).toBe(noticeExpected);
     }
   );
