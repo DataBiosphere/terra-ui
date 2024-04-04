@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import React from 'react';
+import React, { useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
@@ -69,8 +69,9 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
   };
   const signal = useCancellation();
   const callbacks: Array<OAuth2Callback['name']> = ['oauth-callback', 'ecm-callback', 'fence-callback']; // ecm-callback is deprecated, but still needs to be supported
-  const isLinking =
-    callbacks.includes(Nav.getCurrentRoute().name) && state && JSON.parse(atob(state)).provider === provider.key;
+  const [isLinking, setIsLinking] = useState(
+    callbacks.includes(Nav.getCurrentRoute().name) && state && JSON.parse(atob(state)).provider === provider.key
+  );
 
   useOnMount(() => {
     const linkAccount = withErrorReporting(`Error linking ${provider.short} account`)(async (code, state) => {
@@ -78,6 +79,7 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
         .ExternalCredentials(provider)
         .linkAccountWithAuthorizationCode(code, state);
       authStore.update(_.set(['oAuth2AccountStatus', provider.key], accountInfo));
+      setIsLinking(false);
     });
 
     if (isLinking) {
