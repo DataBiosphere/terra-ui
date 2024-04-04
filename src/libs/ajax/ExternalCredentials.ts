@@ -49,12 +49,7 @@ export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OA
         )}`,
         _.merge(authOpts(), { signal, method: 'POST' })
       );
-      const json = await res.json();
-      return {
-        externalUserId: json.externalUserId,
-        expirationTimestamp: new Date(json.expirationTimestamp),
-        authenticated: json.authenticated,
-      };
+      return res.json();
     },
     unlinkAccount: async (): Promise<void> => {
       await fetchEcm(oauthRoot, _.merge(authOpts(), { signal, method: 'DELETE' }));
