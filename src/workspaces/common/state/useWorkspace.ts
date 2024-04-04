@@ -42,7 +42,7 @@ export const azureBucketRecheckRate = 5000;
 export const useWorkspace = (namespace, name): WorkspaceDetails => {
   const [accessError, setAccessError] = useState(false);
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
-  const accessNotificationId = useRef();
+  const accessNotificationId = useRef<string | undefined>();
   const workspace: InitializedWorkspaceWrapper | undefined = useStore<InitializedWorkspaceWrapper>(workspaceStore);
 
   const [{ location, locationType, fetchedLocation }, setGoogleStorage] = useState<{

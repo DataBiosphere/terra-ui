@@ -11,6 +11,7 @@
     "@terra-ui-packages/analysis": "*",
     "@terra-ui-packages/components": "*",
     "@terra-ui-packages/core-utils": "*",
+    "@terra-ui-packages/notifications": "*",
     "animate.css": "^4.1.1",
     "array-move": "^4.0.0",
     "clipboard-polyfill": "^3.0.3",
@@ -81,6 +82,7 @@
   "devDependencies": {
     "@axe-core/react": "^4.6.1",
     "@pact-foundation/pact": "12.1.1",
+    "@storybook/addon-actions": "^8.0.0",
     "@storybook/addon-essentials": "^7.6.17",
     "@storybook/addon-interactions": "^7.6.17",
     "@storybook/addon-links": "^7.6.17",

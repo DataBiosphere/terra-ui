@@ -1,4 +1,5 @@
 import { Modal } from '@terra-ui-packages/components';
+import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
@@ -7,7 +8,7 @@ import { isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { LabeledCheckbox, spinnerOverlay } from 'src/components/common';
 import { isAzureConfig, isGceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { withErrorReporting } from 'src/libs/error';
+import { withErrorReporter } from 'src/libs/error';
 import { withBusyState } from 'src/libs/utils';
 
 import { DeleteRuntimeProvider } from './Environments.models';
@@ -21,6 +22,7 @@ export interface DeleteRuntimeModalProps {
 
 export const DeleteRuntimeModal = (props: DeleteRuntimeModalProps): ReactNode => {
   const { runtime, deleteProvider, onDismiss, onSuccess } = props;
+  const { withErrorReporting } = withErrorReporter(useNotificationsFromContext());
   const { cloudContext, runtimeConfig } = runtime;
   const [deleteDisk, setDeleteDisk] = useState(false);
   const [deleting, setDeleting] = useState(false);

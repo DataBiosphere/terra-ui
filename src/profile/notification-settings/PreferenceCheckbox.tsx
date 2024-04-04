@@ -4,12 +4,8 @@ import { Checkbox } from 'src/components/common';
 import { withErrorReporting } from 'src/libs/error';
 import { EventWorkspaceAttributes } from 'src/libs/events';
 import * as Utils from 'src/libs/utils';
-import {
-  notificationEnabled,
-  NotificationType,
-  updateNotificationPreferences,
-  updateUserAttributes,
-} from 'src/profile/notification-settings/utils';
+
+import { notificationEnabled, NotificationType, updateNotificationPreferences, updateUserAttributes } from './utils';
 
 export interface NotificationCheckboxProps {
   notificationKeys: string[];

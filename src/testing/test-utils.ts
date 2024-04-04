@@ -1,4 +1,5 @@
 import { Theme, ThemeProvider } from '@terra-ui-packages/components';
+import { NotificationsContract, NotificationsProvider } from '@terra-ui-packages/notifications';
 import {
   act,
   render,
@@ -29,8 +30,14 @@ const testTheme: Theme = {
   },
 };
 
+export const mockNotifications: NotificationsContract = {
+  notify: jest.fn(),
+};
+
 const AppProviders = ({ children }: PropsWithChildren<{}>): ReactElement => {
-  return h(ThemeProvider, { theme: testTheme }, [children]);
+  return h(ThemeProvider, { theme: testTheme }, [
+    h(NotificationsProvider, { notifications: mockNotifications }, [children]),
+  ]);
 };
 
 export const renderWithAppContexts = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => {
@@ -42,6 +49,17 @@ type UserEvent = ReturnType<typeof userEvent.setup>;
 export type PromiseController<T> = {
   resolve: (value: T) => void;
   reject: (reason: unknown) => void;
+};
+
+export const renderHookWithAppContexts = <T, U>(
+  hook: (args: T) => U,
+  options?: RenderHookOptions<T>
+): RenderHookResult<U, T> => {
+  const baseOptions: RenderHookOptions<T> = {
+    wrapper: AppProviders,
+  };
+  const mergedOptions: RenderHookOptions<T> = { ...baseOptions, ...options };
+  return renderHook(hook, mergedOptions);
 };
 
 /**
@@ -87,15 +105,30 @@ export const setUpAutoSizerTesting = () => {
   });
 };
 
-export const renderHookInAct = async <T, U>(
-  callback: (args: T) => U,
+const renderHookInActInternal = async <T, U>(
+  renderer: typeof renderHook<U, T>,
+  hook: (args: T) => U,
   options?: RenderHookOptions<T>
 ): Promise<RenderHookResult<U, T>> => {
   let result: RenderHookResult<U, T>;
   await act(async () => {
-    result = renderHook(callback, options);
+    result = renderer(hook, options);
   });
   return result!;
+};
+
+export const renderHookInAct = async <T, U>(
+  hook: (args: T) => U,
+  options?: RenderHookOptions<T>
+): Promise<RenderHookResult<U, T>> => {
+  return renderHookInActInternal(renderHook, hook, options);
+};
+
+export const renderHookInActWithAppContexts = async <T, U>(
+  hook: (args: T) => U,
+  options?: RenderHookOptions<T>
+): Promise<RenderHookResult<U, T>> => {
+  return renderHookInActInternal(renderHookWithAppContexts, hook, options);
 };
 
 export class SelectHelper {
