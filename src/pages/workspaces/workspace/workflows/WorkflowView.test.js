@@ -442,7 +442,7 @@ describe('Workflow View (GCP)', () => {
       },
     };
 
-    Ajax.mockReturnValue(() => ({
+    Ajax.mockImplementation(() => ({
       Workspaces: {
         workspace: (_namespace, _name) => ({
           checkBucketAccess: jest.fn().mockResolvedValue({}),
