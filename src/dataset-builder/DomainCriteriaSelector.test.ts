@@ -29,7 +29,7 @@ describe('DomainCriteriaSelector', () => {
     dataset: (_datasetId) =>
       ({
         getConcepts: () => Promise.resolve({ result: [concept] }),
-        getConceptHierarchy: () => Promise.resolve({ result: { ...concept, children } }),
+        getConceptHierarchy: () => Promise.resolve({ result: [{ parentId: concept.id, children }] }),
       } as Partial<DataRepoContract['dataset']>),
   } as Partial<DataRepoContract> as DataRepoContract;
   const datasetId = '';
@@ -77,7 +77,8 @@ describe('DomainCriteriaSelector', () => {
     // Act
     await screen.findByText(state.domainOption.name);
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${concept.id}`));
+    // add
+    await user.click(screen.getByLabelText(`${concept.name}`));
     await user.click(screen.getByText('Add to group'));
     // Assert
     const expectedCriteria = toCriteria(domainOption, getNextCriteriaIndex)(concept);

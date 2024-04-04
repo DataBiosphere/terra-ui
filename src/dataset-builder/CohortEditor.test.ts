@@ -33,12 +33,12 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   };
 });
 
-type ReactUtilsExports = typeof import('src/libs/react-utils');
-jest.mock('src/libs/react-utils', (): ReactUtilsExports => {
-  const actual = jest.requireActual<ReactUtilsExports>('src/libs/react-utils');
-  return {
+type LodashFpExports = typeof import('lodash/fp');
+jest.mock('lodash/fp', (): LodashFpExports => {
+  const actual = jest.requireActual<LodashFpExports>('lodash/fp');
+  return <_.LoDashFp & _.LodashDebounce>{
     ...actual,
-    useDebouncedValue: (value) => value,
+    debounce: (_wait, func) => func,
   };
 });
 
@@ -164,14 +164,14 @@ describe('CohortEditor', () => {
   it('renders list criteria', async () => {
     // Arrange
     mockListStatistics();
-    const criteria = (await criteriaFromOption(0, {
+    const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'list',
       kind: 'list',
       tableName: 'person',
       columnName: 'list_column',
       values: [],
-    })) as ProgramDataListCriteria;
+    }) as ProgramDataListCriteria;
     renderCriteriaView({ criteria });
 
     expect(await screen.findByText(criteria.option.name, { exact: false })).toBeTruthy();
@@ -182,7 +182,7 @@ describe('CohortEditor', () => {
     // Arrange
     const user = userEvent.setup();
     const updateCriteria = jest.fn();
-    const criteria = (await criteriaFromOption(0, {
+    const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'list',
       kind: 'list',
@@ -198,7 +198,7 @@ describe('CohortEditor', () => {
           name: 'value 1',
         },
       ],
-    })) as ProgramDataListCriteria;
+    }) as ProgramDataListCriteria;
     criteria.values = [{ id: 0, name: 'value 0' }];
     renderCriteriaView({ updateCriteria, criteria });
     // Act
@@ -222,7 +222,7 @@ describe('CohortEditor', () => {
 
   it('renders range criteria', async () => {
     // Arrange
-    const criteria = (await criteriaFromOption(0, {
+    const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'range',
       kind: 'range',
@@ -230,7 +230,7 @@ describe('CohortEditor', () => {
       columnName: 'range_column',
       min: 55,
       max: 99,
-    })) as ProgramDataRangeCriteria;
+    }) as ProgramDataRangeCriteria;
     renderCriteriaView({ criteria });
     // Assert
     expect(await screen.findByText(criteria.option.name, { exact: false })).toBeTruthy();
@@ -242,7 +242,7 @@ describe('CohortEditor', () => {
     // Arrange
     const user = userEvent.setup();
     mockRangeStatistics();
-    const criteria = (await criteriaFromOption(0, {
+    const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'range',
       kind: 'range',
@@ -250,7 +250,7 @@ describe('CohortEditor', () => {
       columnName: 'range_column',
       min: 55,
       max: 99,
-    })) as ProgramDataRangeCriteria;
+    }) as ProgramDataRangeCriteria;
     const updateCriteria = jest.fn();
     renderCriteriaView({ criteria, updateCriteria });
     const lowInput = 65;
@@ -271,7 +271,7 @@ describe('CohortEditor', () => {
     const min = 55;
     const max = 99;
 
-    const criteria = (await criteriaFromOption(0, {
+    const criteria = criteriaFromOption(0, {
       id: 0,
       tableName: 'person',
       columnName: 'range_column',
@@ -279,7 +279,7 @@ describe('CohortEditor', () => {
       kind: 'range',
       min,
       max,
-    })) as ProgramDataRangeCriteria;
+    }) as ProgramDataRangeCriteria;
     const updateCriteria = jest.fn();
     renderCriteriaView({ criteria, updateCriteria });
     // Act
@@ -298,7 +298,7 @@ describe('CohortEditor', () => {
 
   it('can delete criteria', async () => {
     // Arrange
-    const criteria = (await criteriaFromOption(0, {
+    const criteria = criteriaFromOption(0, {
       id: 0,
       tableName: 'person',
       columnName: 'range_column',
@@ -306,7 +306,7 @@ describe('CohortEditor', () => {
       kind: 'range',
       min: 55,
       max: 99,
-    })) as ProgramDataRangeCriteria;
+    }) as ProgramDataRangeCriteria;
     const deleteCriteria = jest.fn();
 
     renderCriteriaView({ deleteCriteria, criteria });
@@ -428,13 +428,13 @@ describe('CohortEditor', () => {
     expect(updateCohort).toHaveBeenCalledTimes(1);
 
     const updatedCohort: Cohort = updateCohort.mock.calls[0][0](cohort);
-    const { index: _, ...expectedCriteria } = await criteriaFromOption(2, programDataRangeOption());
+    const { index: _, ...expectedCriteria } = criteriaFromOption(2, programDataRangeOption());
     expect(updatedCohort.criteriaGroups[0].criteria).toMatchObject([expectedCriteria]);
   });
 
   it('can delete criteria from the criteria group', async () => {
     // Arrange
-    const criteria = await criteriaFromOption(0, programDataRangeOption());
+    const criteria = criteriaFromOption(0, programDataRangeOption());
     const { cohort, updateCohort } = showCriteriaGroup({
       initializeGroup: (criteriaGroup) => criteriaGroup.criteria.push(criteria),
     });

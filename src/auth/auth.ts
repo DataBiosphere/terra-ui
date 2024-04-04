@@ -1,4 +1,3 @@
-import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
 import {
@@ -446,8 +445,14 @@ authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
-        window.Appcues.identify(userStore.get().terraUser.id!, {
-          dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime(),
+        const { terraUser, samUser } = userStore.get();
+        // for Sam users who have been invited but not yet registered
+        // and for a set of users who didn't have registration dates to migrate into Sam
+        // registeredAt may be null in the Sam db. In that case, default to epoch (1970) instead
+        // so the survey won't be immediately displayed
+        const dateJoined = samUser.registeredAt ? samUser.registeredAt.getTime() : new Date('1970-01-01').getTime();
+        window.Appcues.identify(terraUser.id!, {
+          dateJoined,
         });
         window.Appcues.on('all', captureAppcuesEvent);
       }
@@ -492,19 +497,23 @@ export const loadTerraUser = async (): Promise<void> => {
     const getAttributes = Ajax().User.getUserAttributes();
     const getTermsOfService = Ajax().TermsOfService.getUserTermsOfServiceDetails();
     const getEnterpriseFeatures = Ajax().User.getEnterpriseFeatures();
-    const [profile, terraUserAllowances, terraUserAttributes, termsOfService, enterpriseFeatures] = await Promise.all([
-      getProfile,
-      getAllowances,
-      getAttributes,
-      getTermsOfService,
-      getEnterpriseFeatures,
-    ]);
+    const getSamUser = Ajax().User.getSamUserResponse();
+    const [profile, terraUserAllowances, terraUserAttributes, termsOfService, enterpriseFeatures, samUser] =
+      await Promise.all([
+        getProfile,
+        getAllowances,
+        getAttributes,
+        getTermsOfService,
+        getEnterpriseFeatures,
+        getSamUser,
+      ]);
     clearNotification(sessionTimeoutProps.id);
     userStore.update((state: TerraUserState) => ({
       ...state,
       profile,
       terraUserAttributes,
       enterpriseFeatures,
+      samUser,
     }));
     authStore.update((state: AuthState) => ({
       ...state,

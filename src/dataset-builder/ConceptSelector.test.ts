@@ -5,7 +5,7 @@ import { dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
 import { DataRepo, DataRepoContract, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { ConceptSelector } from './ConceptSelector';
+import { ConceptSelector, findRoot } from './ConceptSelector';
 
 jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
@@ -23,12 +23,12 @@ describe('ConceptSelector', () => {
   const actionText = 'action text';
   const datasetId = '0';
   // Using 101 so the ID doesn't match the count.
-  const rootConcept = { ...dummyGetConceptForId(100), children: [dummyGetConceptForId(101)] };
+  const parents = [{ parentId: 0, children: [dummyGetConceptForId(101), dummyGetConceptForId(102)] }];
   const renderSelector = (initialCart: SnapshotBuilderConcept[] = []) => {
     render(
       h(ConceptSelector, {
         actionText,
-        rootConcept,
+        parents,
         initialCart,
         onCancel,
         onCommit,
@@ -38,8 +38,8 @@ describe('ConceptSelector', () => {
     );
   };
 
-  const firstChild = rootConcept.children[0];
-  const secondChild = rootConcept.children[1];
+  const firstChild = parents[0].children[0];
+  const secondChild = parents[0].children[1];
 
   it('renders the concept selector', () => {
     // Arrange
@@ -48,7 +48,8 @@ describe('ConceptSelector', () => {
     expect(screen.queryByText(title)).toBeTruthy();
     expect(screen.queryByText(firstChild.name)).toBeTruthy();
     expect(screen.queryByText(firstChild.id)).toBeTruthy();
-    expect(screen.queryByText(firstChild.count || 0)).toBeTruthy();
+    // Two elements have the same count.
+    expect(screen.queryAllByText(firstChild.count!)).toHaveLength(2);
     // Action text not visible until a row is selected.
     expect(screen.queryByText(actionText)).toBeFalsy();
   });
@@ -74,7 +75,8 @@ describe('ConceptSelector', () => {
     renderSelector();
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${firstChild.id}`));
+    // add
+    await user.click(screen.getByLabelText(`${firstChild.name}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeTruthy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
@@ -85,7 +87,8 @@ describe('ConceptSelector', () => {
     renderSelector([secondChild]);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${firstChild.id}`));
+    // add
+    await user.click(screen.getByLabelText(`${firstChild.name}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeTruthy();
     expect(screen.queryByText('2 concept', { exact: false })).toBeTruthy();
@@ -96,8 +99,10 @@ describe('ConceptSelector', () => {
     renderSelector();
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${firstChild.id}`));
-    await user.click(screen.getByLabelText(`remove ${firstChild.id}`));
+    // add
+    await user.click(screen.getByLabelText(`${firstChild.name}`));
+    // remove
+    await user.click(screen.getByLabelText(`${firstChild.name}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeFalsy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeFalsy();
@@ -108,7 +113,8 @@ describe('ConceptSelector', () => {
     renderSelector([firstChild]);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`remove ${firstChild.id}`));
+    // remove
+    await user.click(screen.getByLabelText(`${firstChild.name}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeFalsy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeFalsy();
@@ -119,10 +125,11 @@ describe('ConceptSelector', () => {
     renderSelector();
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${firstChild.id}`));
+    // add
+    await user.click(screen.getByLabelText(`${firstChild.name}`));
     await user.click(screen.getByText(actionText));
     // Assert
-    expect(onCommit).toHaveBeenCalledWith(rootConcept.children);
+    expect(onCommit).toHaveBeenCalledWith([firstChild]);
   });
 
   it('calls cancel on cancel', async () => {
@@ -142,7 +149,7 @@ describe('ConceptSelector', () => {
     const mockDataRepoContract: DataRepoContract = {
       dataset: (_datasetId) =>
         ({
-          getConcepts: () => Promise.resolve({ result: [dummyGetConceptForId(102)] }),
+          getConcepts: () => Promise.resolve({ result: [dummyGetConceptForId(103)] }),
         } as Partial<DataRepoContract['dataset']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
@@ -157,7 +164,7 @@ describe('ConceptSelector', () => {
   it('supports multiple add to cart', async () => {
     // Arrange
     renderSelector();
-    const expandConcept = dummyGetConceptForId(102);
+    const expandConcept = dummyGetConceptForId(103);
     const mockDataRepoContract: DataRepoContract = {
       dataset: (_datasetId) =>
         ({
@@ -168,9 +175,23 @@ describe('ConceptSelector', () => {
     // Act
     const user = userEvent.setup();
     await user.click(screen.getByLabelText(`expand ${firstChild.id}`));
-    await user.click(screen.getAllByLabelText(`add ${firstChild.id}`)[0]);
-    await user.click(screen.getAllByLabelText(`add ${expandConcept.id}`)[0]);
+    // add
+    await user.click(screen.getAllByLabelText(`${firstChild.name}`)[0]);
+    // remove
+    await user.click(screen.getAllByLabelText(`${expandConcept.name}`)[0]);
     // Assert
     expect(screen.getByText('2 concepts', { exact: false })).toBeTruthy();
+  });
+
+  it('finds the root concept', () => {
+    // Arrange
+    const parents = [
+      { parentId: 101, children: [dummyGetConceptForId(102)] },
+      { parentId: 0, children: [dummyGetConceptForId(101)] },
+    ];
+    // Act
+    const root = findRoot(parents);
+    // Assert
+    expect(root).toEqual(0);
   });
 });

@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
-import { populateTreeFromRoot, RowContents, TreeGrid } from 'src/components/TreeGrid';
+import { Parent, populateTree, RowContents, TreeGrid } from 'src/components/TreeGrid';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type Node = RowContents & {
@@ -12,8 +12,8 @@ type Node = RowContents & {
 const child1: Node = { id: 2, name: 'child1', hasChildren: false };
 const child2: Node = { id: 3, name: 'child2', hasChildren: true };
 const child3: Node = { id: 4, name: 'child3', hasChildren: false };
-const root: Node = { id: 1, name: 'root', hasChildren: true, children: [child1, child2] };
-const rootPointer: Node = { id: 0, name: 'Point to Root', hasChildren: true, children: [root] };
+const root: Node = { id: 1, name: 'root', hasChildren: true };
+const rootPointer: Node = { id: 0, name: 'Point to Root', hasChildren: true };
 
 const testConcepts = [
   { id: 0, name: 'Point to Root', hasChildren: true },
@@ -39,6 +39,17 @@ const columns = [
   { name: 'col3', width: 100, render: col3 },
 ];
 
+const parents: Parent<Node>[] = [
+  {
+    parentId: 0,
+    children: [root],
+  },
+  {
+    parentId: root.id,
+    children: [child1, child2],
+  },
+];
+
 describe('TreeGrid', () => {
   let getChildrenCount: number;
   const renderTree = () => {
@@ -47,6 +58,7 @@ describe('TreeGrid', () => {
       TreeGrid({
         columns,
         root: rootPointer,
+        parents,
         getChildren: async (node) => {
           getChildrenCount++;
           const id = node.id;
@@ -59,7 +71,7 @@ describe('TreeGrid', () => {
   };
 
   it('initializes the tree with nodes in the correct orrder', () => {
-    expect(populateTreeFromRoot(rootPointer)).toEqual([
+    expect(populateTree(rootPointer, parents)).toEqual([
       { contents: root, depth: 0, isFetched: true, state: 'open' },
       { contents: child1, depth: 1, isFetched: false, state: 'closed' },
       { contents: child2, depth: 1, isFetched: false, state: 'closed' },

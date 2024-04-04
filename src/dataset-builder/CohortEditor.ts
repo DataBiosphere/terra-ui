@@ -12,7 +12,7 @@ import {
   Cohort,
   CriteriaGroup,
   DatasetParticipantCountResponse,
-  displayParticipantCount,
+  formatCount,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
 } from 'src/dataset-builder/DatasetBuilderUtils';
@@ -99,7 +99,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
               deleteCriteria(criteria);
             },
           },
-          [icon('minus-circle-red', { size: 24, style: { color: colors.danger() } })]
+          [icon('trash-circle-filled', { size: 35, style: { color: colors.danger() } })]
         ),
         div({ style: { marginLeft: narrowMargin, width: '25rem' } }, [
           (() => {
@@ -182,10 +182,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
           })(),
         ]),
       ]),
-      div([
-        'Count: ',
-        criteriaCount.status === 'Ready' ? displayParticipantCount(criteriaCount.state.result.total) : h(Spinner),
-      ]),
+      div(['Count: ', criteriaCount.status === 'Ready' ? formatCount(criteriaCount.state.result.total) : h(Spinner)]),
     ]
   );
 };
@@ -445,7 +442,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
           div({ style: { marginRight: wideMargin } }, [
             'Group count: ',
             groupParticipantCount.status === 'Ready'
-              ? displayParticipantCount(groupParticipantCount.state.result.total)
+              ? formatCount(groupParticipantCount.state.result.total)
               : h(Spinner),
           ]),
         ]

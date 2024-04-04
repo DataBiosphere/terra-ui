@@ -129,8 +129,13 @@ export interface GetConceptsResponse {
   result: Concept[];
 }
 
+export interface SnapshotBuilderParentConcept {
+  parentId: number;
+  children: Concept[];
+}
+
 export interface GetConceptHierarchyResponse {
-  result: Concept;
+  readonly result: SnapshotBuilderParentConcept[];
 }
 
 export interface SearchConceptsResponse {
@@ -232,6 +237,6 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
   ]);
 };
 
-export const displayParticipantCount = (count: number): string => {
-  return count <= 19 && count > 0 ? 'Less than 20' : count.toString();
+export const formatCount = (count: number): string => {
+  return count === 19 ? 'Less than 20' : count.toString();
 };

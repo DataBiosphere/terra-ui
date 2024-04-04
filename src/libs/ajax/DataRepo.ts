@@ -16,9 +16,8 @@ import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 export type SnapshotBuilderConcept = {
   id: number;
   name: string;
-  count?: number;
+  count: number;
   hasChildren: boolean;
-  children?: SnapshotBuilderConcept[];
 };
 
 export type SnapshotBuilderOptionTypeNames = 'list' | 'range' | 'domain';
@@ -198,7 +197,7 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       searchConcepts: async (domain: SnapshotBuilderConcept, searchText: string): Promise<GetConceptsResponse> => {
         return callDataRepo(
           `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${
-            domain.name
+            domain.id
           }/search?searchText=${encodeURIComponent(searchText)}`
         );
       },

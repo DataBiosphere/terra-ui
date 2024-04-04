@@ -3,7 +3,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
-import { SamUserAllowances } from 'src/libs/ajax/User';
+import { SamUserAllowances, SamUserResponse } from 'src/libs/ajax/User';
 import { AuthState, authStore } from 'src/libs/state';
 import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfServicePage';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -61,7 +61,16 @@ const setupMockAjax = async (
     allowed: termsOfService.permitsSystemUsage,
     details: { enabled: true, termsOfService: termsOfService.permitsSystemUsage },
   };
-
+  const mockSamUserResponse: SamUserResponse = {
+    id: 'testId',
+    googleSubjectId: 'testGoogleSubjectId',
+    email: 'testEmail',
+    azureB2CId: 'testAzureB2CId',
+    allowed: true,
+    createdAt: new Date('1970-01-01'),
+    registeredAt: new Date('1970-01-01'),
+    updatedAt: new Date('1970-01-01'),
+  };
   const getTermsOfServiceText = jest.fn().mockResolvedValue('some text');
   const getUserTermsOfServiceDetails = jest
     .fn()
@@ -83,6 +92,7 @@ const setupMockAjax = async (
           getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
           getUserAllowances: jest.fn().mockResolvedValue(terraUserAllowances),
           getEnterpriseFeatures: jest.fn().mockResolvedValue([]),
+          getSamUserResponse: jest.fn().mockResolvedValue(mockSamUserResponse),
           profile: {
             get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
             update: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
