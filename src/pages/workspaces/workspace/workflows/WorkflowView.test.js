@@ -6,7 +6,7 @@ import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepCo
 import { chooseRootType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
 import { WorkflowView } from 'src/pages/workspaces/workspace/workflows/WorkflowView';
-import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
+import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/nav', () => ({
@@ -24,6 +24,7 @@ jest.mock('react-virtualized', () => {
   const actual = jest.requireActual('react-virtualized');
 
   const { AutoSizer } = actual;
+
   class MockAutoSizer extends AutoSizer {
     state = {
       height: 1000,
@@ -230,12 +231,10 @@ describe('Workflow View (GCP)', () => {
     entityType: 'sra_set',
     name: 'echo_to_file-configured_2024-01-17T18-55-52',
   };
-  const mockLaunchResponse = jest.fn(() =>
-    Promise.resolve({ submissionId: 'abc123', ...initializedGoogleWorkspace.workspaceId })
-  );
+  const mockLaunchResponse = jest.fn(() => Promise.resolve({ submissionId: 'abc123', ...initializedGoogleWorkspace.workspaceId }));
 
   const renderWorkflowView = () => {
-    asMockedFn(Ajax).mockReturnValue({
+    Ajax.mockImplementation(() => ({
       Methods: {
         list: jest.fn(() => Promise.resolve(methodList)),
         method: () => ({
@@ -246,7 +245,7 @@ describe('Workflow View (GCP)', () => {
       Workspaces: {
         workspace: (_namespace, _name) => ({
           details: jest.fn().mockResolvedValue(initializedGoogleWorkspace),
-          entityMetadata: jest.fn().mockReturnValue(mockEntityMetadata),
+          entityMetadata: jest.fn().mockReturnValue(entityMetadata),
           listSnapshots: jest.fn().mockResolvedValue({
             gcpDataRepoSnapshots: [],
           }),
@@ -282,66 +281,8 @@ describe('Workflow View (GCP)', () => {
       Apps: {
         list: jest.fn().mockReturnValue([]),
       },
-    });
+    }));
   };
-
-  // Ajax.mockImplementation(() => {
-  //   return {
-  //     Metrics: {
-  //       captureEvent: jest.fn(),
-  //     },
-  //     Methods: {
-  //       list: jest.fn(() => Promise.resolve(methodList)),
-  //       method: () => ({
-  //         get: jest.fn(() => Promise.resolve(mockAgoraResponse)),
-  //       }),
-  //       configInputsOutputs: jest.fn(() => Promise.resolve(mockConfigInputOutputs)),
-  //     },
-  //     Workspaces: {
-  //       workspace: () => ({
-  //         details: jest.fn().mockResolvedValue(initializedGoogleWorkspace),
-  //         checkBucketReadAccess: jest.fn(),
-  //         storageCostEstimate: jest.fn(),
-  //         bucketUsage: jest.fn(),
-  //         checkBucketLocation: jest.fn().mockResolvedValue(mockStorageDetails),
-  //         entityMetadata: jest.fn().mockReturnValue(mockEntityMetadata),
-  //         listSnapshots: jest.fn().mockResolvedValue({
-  //           gcpDataRepoSnapshots: [],
-  //         }),
-  //         checkBucketAccess: jest.fn().mockResolvedValue({}),
-  //         createEntity: jest.fn().mockResolvedValue(mockCreateEntity),
-  //         methodConfig: () => ({
-  //           validate: jest.fn().mockReturnValue(mockValidate),
-  //           get: jest.fn().mockResolvedValue({
-  //             methodRepoMethod: {
-  //               methodNamespace: 'gatk',
-  //               methodName: 'echo_to_file',
-  //               sourceRepo: 'agora',
-  //               methodUri: 'agora://gatk/echo_to_file/12',
-  //               methodVersion: 12,
-  //             },
-  //             rootEntityType: 'sra',
-  //             name: 'echo_to_file-configured',
-  //           }),
-  //           save: jest.fn().mockReturnValue(mockSave),
-  //           launch: jest.fn(mockLaunchResponse),
-  //         }),
-  //         paginatedEntitiesOfType,
-  //       }),
-  //     },
-  //     Disks: {
-  //       disksV1: () => ({
-  //         list: jest.fn(),
-  //       }),
-  //     },
-  //     Runtimes: {
-  //       listV2: jest.fn(),
-  //     },
-  //     Apps: {
-  //       list: jest.fn().mockReturnValue([]),
-  //     },
-  //   };
-  // });
 
   it('view workflow in workspace from mock import', async () => {
     renderWorkflowView();
@@ -373,9 +314,7 @@ describe('Workflow View (GCP)', () => {
       render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
     });
 
-    const selectDataButton = screen
-      .getAllByRole('button')
-      .filter((button) => button.textContent.includes('Select Data'))[0];
+    const selectDataButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Select Data'))[0];
     expect(selectDataButton).toHaveTextContent('Select Data');
 
     expect(screen.getByText('sra')).toBeInTheDocument();
@@ -409,14 +348,15 @@ describe('Workflow View (GCP)', () => {
 
     const ws = jest.fn().mockReturnValue(Promise.resolve(initializedGoogleWorkspace.workspace));
 
-    asMockedFn(Ajax).mockReturnValue({
+    Ajax.mockImplementation(() => ({
       Workspaces: {
         workspace: (_namespace, _name) => ({
           ws,
           paginatedEntitiesOfType,
         }),
       },
-    });
+    }));
+
     const entitySelectionModel = {
       newSetName: 'new_set',
       selectedEntities: {},
@@ -502,7 +442,7 @@ describe('Workflow View (GCP)', () => {
       },
     };
 
-    asMockedFn(Ajax).mockReturnValue({
+    Ajax.mockReturnValue(() => ({
       Workspaces: {
         workspace: (_namespace, _name) => ({
           checkBucketAccess: jest.fn().mockResolvedValue({}),
@@ -513,7 +453,7 @@ describe('Workflow View (GCP)', () => {
           }),
         }),
       },
-    });
+    }));
 
     // Act
     await act(async () => {
