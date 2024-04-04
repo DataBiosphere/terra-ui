@@ -4,15 +4,10 @@ import { AuthContextProps } from 'react-oidc-context';
 import { AuthTokenState } from 'src/auth/auth';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { Dataset } from 'src/libs/ajax/Catalog';
+import { EcmLinkAccountResponse } from 'src/libs/ajax/ExternalCredentials';
 import { OidcConfig } from 'src/libs/ajax/OAuth2';
 import { SamTermsOfServiceConfig } from 'src/libs/ajax/TermsOfService';
-import {
-  BondFenceStatusResponse,
-  NihDatasetPermission,
-  SamUserAllowances,
-  SamUserAttributes,
-  SamUserResponse,
-} from 'src/libs/ajax/User';
+import { NihDatasetPermission, SamUserAllowances, SamUserAttributes, SamUserResponse } from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/workspaces/utils';
 
@@ -59,13 +54,13 @@ export type SignInStatusState =
 
 export type SignInStatus = Initializable<SignInStatusState>;
 
-export interface FenceStatus {
-  [key: string]: BondFenceStatusResponse;
+export interface OAuth2AccountStatus {
+  [key: string]: EcmLinkAccountResponse;
 }
 
 export interface AuthState {
   cookiesAccepted: boolean | undefined;
-  fenceStatus: FenceStatus;
+  oAuth2AccountStatus: OAuth2AccountStatus;
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   signInStatus: SignInStatus;
   userJustSignedIn: boolean;
@@ -81,7 +76,7 @@ export interface AuthState {
  */
 export const authStore: Atom<AuthState> = atom<AuthState>({
   cookiesAccepted: undefined,
-  fenceStatus: {},
+  oAuth2AccountStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
   userJustSignedIn: false,

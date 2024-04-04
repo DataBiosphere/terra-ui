@@ -77,7 +77,6 @@ const setupMockAjax = async (
     .mockResolvedValue(termsOfService satisfies SamUserTermsOfServiceDetails);
   const acceptTermsOfService = jest.fn().mockResolvedValue(undefined);
   const rejectTermsOfService = jest.fn().mockResolvedValue(undefined);
-  const getFenceStatus = jest.fn();
   const getNihStatus = jest.fn();
 
   type AjaxExports = typeof import('src/libs/ajax');
@@ -100,7 +99,6 @@ const setupMockAjax = async (
             setPreferences: jest.fn().mockResolvedValue({}),
             preferLegacyFirecloud: jest.fn().mockResolvedValue({}),
           },
-          getFenceStatus,
           getNihStatus,
         },
         TermsOfService: {
