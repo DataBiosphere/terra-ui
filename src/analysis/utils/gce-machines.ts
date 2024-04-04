@@ -33,8 +33,9 @@ export const machineTypes: MachineType[] = [
   { name: 'n1-highcpu-96', cpu: 96, memory: 86.4 },
 ];
 
-// returns true if machineTypeA machine type is smaller than machineTypeB
-export const isMachineTypeDifferent = (machineTypeA: string, machineTypeB: string): boolean => {
+// returns true if machineTypeA machine type is smaller than machineTypeB, or if either is undefined
+// The undefined check can be removed when all callers are in typescript
+export const isMachineTypeSmaller = (machineTypeA: string, machineTypeB: string): boolean => {
   const machineA = getMachineTypeFromName(machineTypeA);
   const machineB = getMachineTypeFromName(machineTypeB);
   return machineA && machineB ? machineA.cpu < machineB.cpu : true;
