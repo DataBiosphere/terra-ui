@@ -27,7 +27,7 @@ import {
 
 jest.mock('src/libs/ajax');
 
-jest.mock('src/libs/notifications.js');
+jest.mock('src/libs/notifications');
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),

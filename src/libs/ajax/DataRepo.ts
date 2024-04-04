@@ -197,7 +197,7 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       searchConcepts: async (domain: SnapshotBuilderConcept, searchText: string): Promise<GetConceptsResponse> => {
         return callDataRepo(
           `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${
-            domain.name
+            domain.id
           }/search?searchText=${encodeURIComponent(searchText)}`
         );
       },

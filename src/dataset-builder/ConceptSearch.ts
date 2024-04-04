@@ -1,9 +1,8 @@
-import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, strong } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
-import { Link, spinnerOverlay } from 'src/components/common';
+import { LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
@@ -109,17 +108,22 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               { width: 100, key: 'hierarchy' },
             ],
             rows: _.map((concept) => {
-              const [label, iconName]: [string, IconId] = _.contains(concept, cart)
-                ? ['remove', 'minus-circle-red']
-                : ['add', 'plus-circle-filled'];
               return {
                 name: div({ style: { display: 'flex' } }, [
-                  h(Link, { 'aria-label': `${label} ${concept.id}`, onClick: () => setCart(_.xor(cart, [concept])) }, [
-                    icon(iconName, { size: 16 }),
-                  ]),
-                  div({ style: { marginLeft: 5 } }, [
-                    h(HighlightConceptName, { conceptName: concept.name, searchFilter: searchText }),
-                  ]),
+                  h(
+                    LabeledCheckbox,
+                    {
+                      style: { padding: 12 },
+                      checked: _.contains(concept, cart),
+                      onChange: () => setCart(_.xor(cart, [concept])),
+                    },
+                    [
+                      h(HighlightConceptName, {
+                        conceptName: concept.name,
+                        searchFilter: searchText,
+                      }),
+                    ]
+                  ),
                 ]),
                 id: concept.id,
                 count: formatCount(concept.count),
