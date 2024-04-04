@@ -17,7 +17,6 @@ import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { clearNotification, sessionTimeoutProps } from 'src/libs/notifications';
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs';
-import allProviders from 'src/libs/providers';
 import {
   asyncImportJobStore,
   AuthState,
@@ -35,6 +34,7 @@ import {
 } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { getTimestampMetricLabel } from 'src/libs/utils';
+import { allOAuth2Providers } from 'src/profile/external-identities/OAuth2Providers';
 import { v4 as uuid } from 'uuid';
 
 export const getAuthToken = (): string | undefined => {
@@ -583,18 +583,16 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting('Error loading Framework Services account status')(
-    async (state: AuthState, oldState: AuthState) => {
-      if (userCanNowUseTerra(oldState, state)) {
-        await Promise.all(
-          _.map(async ({ key }) => {
-            const status = await Ajax().User.getFenceStatus(key);
-            authStore.update(_.set(['fenceStatus', key], status));
-          }, allProviders)
-        );
-      }
+  withErrorReporting('Error loading OAuth2 account status')(async (state: AuthState, oldState: AuthState) => {
+    if (userCanNowUseTerra(oldState, state)) {
+      await Promise.all(
+        _.map(async (provider) => {
+          const status = await Ajax().ExternalCredentials(provider).getAccountLinkStatus();
+          authStore.update(_.set(['oAuth2AccountStatus', provider.key], status));
+        }, allOAuth2Providers)
+      );
     }
-  )
+  })
 );
 
 authStore.subscribe((state: AuthState, oldState: AuthState) => {
