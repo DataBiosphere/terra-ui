@@ -45,35 +45,40 @@ export const getOAuth2ProviderLinkExpirationAlert = (
   status: EcmLinkAccountResponse,
   now: number
 ) => {
-  const { key, name } = provider;
-  const { expirationTimestamp } = status;
+  if (status) {
+    const { key, name } = provider;
+    const { expirationTimestamp } = status;
 
-  const dateOfExpiration = expirationTimestamp.getTime();
-  const shouldNotify = Boolean(dateOfExpiration) && now >= addDays(-5, dateOfExpiration).getTime();
+    const dateOfExpiration = expirationTimestamp.getTime();
+    const shouldNotify = Boolean(dateOfExpiration) && now >= addDays(-5, dateOfExpiration).getTime();
 
-  if (!shouldNotify) {
-    return null;
+    if (!shouldNotify) {
+      return null;
+    }
+
+    const hasExpired = now >= dateOfExpiration;
+    const expireStatus = hasExpired
+      ? 'has expired'
+      : `will expire in ${differenceInDays(now, dateOfExpiration)} day(s)`;
+
+    return {
+      id: `oauth2-account-link-expiration/${key}`,
+      title: `Your access to ${name} ${expireStatus}.`,
+      message: (
+        <div>
+          Log in to{' '}
+          <LinkOAuth2Account
+            linkText={expireStatus === 'has expired' ? 'restore ' : 'renew '}
+            provider={provider}
+            button={false}
+          />{' '}
+          your access or <UnlinkOAuth2Account linkText="unlink" provider={provider} /> your account.
+        </div>
+      ),
+      severity: 'info',
+    };
   }
-
-  const hasExpired = now >= dateOfExpiration;
-  const expireStatus = hasExpired ? 'has expired' : `will expire in ${differenceInDays(now, dateOfExpiration)} day(s)`;
-
-  return {
-    id: `oauth2-account-link-expiration/${key}`,
-    title: `Your access to ${name} ${expireStatus}.`,
-    message: (
-      <div>
-        Log in to{' '}
-        <LinkOAuth2Account
-          linkText={expireStatus === 'has expired' ? 'restore ' : 'renew '}
-          provider={provider}
-          button={false}
-        />{' '}
-        your access or <UnlinkOAuth2Account linkText="unlink" provider={provider} /> your account.
-      </div>
-    ),
-    severity: 'info',
-  };
+  return undefined;
 };
 
 export const getLinkExpirationAlerts = (authState: AuthState): Alert[] => {
