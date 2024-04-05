@@ -64,6 +64,7 @@ const ApplicationLauncher = _.flow(
       application,
       workspace: { azureContext, workspace },
       analysisName,
+      isLoadingCloudEnvironments,
     },
     _ref
   ) => {
@@ -92,7 +93,7 @@ const ApplicationLauncher = _.flow(
     );
 
     const runtime = getCurrentRuntime(runtimes);
-    const runtimeStatus = getConvertedRuntimeStatus(runtime); // preserve null vs undefined
+    const runtimeStatus = getConvertedRuntimeStatus(runtime);
 
     const FileOutdatedModal = (props: FileOutdatedModalProps) => {
       const { onDismiss, bucketName, hashedOwnerEmail } = props;
@@ -428,12 +429,12 @@ const ApplicationLauncher = _.flow(
                     () => 'Cloud environment is stopped. Start it to edit your notebook or use the terminal.',
                   ],
                   [runtimeStatus === 'Error', () => 'Error with the cloud environment, please try again.'],
-                  [runtimeStatus === null, () => 'Create a cloud environment to continue.'],
-                  [runtimeStatus === undefined, () => 'Loading...'],
+                  [runtimeStatus === undefined && isLoadingCloudEnvironments, () => 'Loading...'],
+                  [runtimeStatus === undefined, () => 'Create a cloud environment to continue.'],
                   () => 'Unknown cloud environment status. Please create a new cloud environment or contact support.'
                 ),
               ]),
-            busy && spinnerOverlay,
+            (isLoadingCloudEnvironments || busy) && spinnerOverlay,
           ]),
     ]);
   }
