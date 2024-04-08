@@ -825,12 +825,22 @@ describe('Environments', () => {
         render(h(Environments, props));
       });
 
+      // Assert
+
+      // One time on page load
+      expect(mockListRuntime).toBeCalledTimes(1);
+      expect(mockListApp).toBeCalledTimes(1);
+      expect(mockListDisk).toBeCalledTimes(1);
+
       const checkbox = screen.getByLabelText('Hide resources you did not create');
       await user.click(checkbox);
+
+      // Second time on checkbox click
       expect(mockListRuntime).toBeCalledTimes(2);
       expect(mockListApp).toBeCalledTimes(2);
       expect(mockListDisk).toBeCalledTimes(2);
 
+      // First call should filter by creator, second call should not
       expect(mockListRuntime.mock.calls).toEqual([
         [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
         [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
