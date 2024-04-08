@@ -10,14 +10,19 @@ export interface EcmLinkAccountResponse {
 }
 export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OAuth2Provider) => {
   const { key: providerKey, queryParams, supportsAccessToken, supportsIdToken } = oAuth2Provider;
-  const oauthRoot = `/api/oauth/v1/${providerKey}`;
-  const oidcRoot = `/api/oidc/v1/${providerKey}`;
+  const oauthRoot = `api/oauth/v1/${providerKey}`;
+  const oidcRoot = `api/oidc/v1/${providerKey}`;
 
   return {
     getAccountLinkStatus: async (): Promise<EcmLinkAccountResponse | undefined> => {
       try {
         const res = await fetchEcm(oauthRoot, _.merge(authOpts(), { signal }));
-        return res.json();
+        const json = await res.json();
+        return {
+          externalUserId: json.externalUserId,
+          expirationTimestamp: new Date(json.expirationTimestamp),
+          authenticated: json.authenticated,
+        };
       } catch (error: unknown) {
         if (error instanceof Response && error.status === 404) {
           return undefined;
@@ -44,7 +49,12 @@ export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OA
         )}`,
         _.merge(authOpts(), { signal, method: 'POST' })
       );
-      return res.json();
+      const json = await res.json();
+      return {
+        externalUserId: json.externalUserId,
+        expirationTimestamp: new Date(json.expirationTimestamp),
+        authenticated: json.authenticated,
+      };
     },
     unlinkAccount: async (): Promise<void> => {
       await fetchEcm(oauthRoot, _.merge(authOpts(), { signal, method: 'DELETE' }));
