@@ -909,10 +909,11 @@ describe('Initial state', () => {
     expect(mockTypesResponse).toHaveBeenCalledTimes(1);
     expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
-    expect(mockWdlResponse).toHaveBeenCalledTimes(1);
+    expect(mockWdlResponse).toHaveBeenCalledTimes(0);
 
     const button = screen.getByRole('button', { name: 'View Workflow Script' });
     expect(button.getAttribute('aria-disabled')).toBe('true');
+    expect(screen.getByText('View Workflow Script not yet available for private workflows')).toBeInTheDocument();
   });
 });
 
