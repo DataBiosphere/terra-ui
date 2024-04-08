@@ -1,6 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { BillingProject } from 'src/billing-core/models';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { azureProtectedDataBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -588,8 +589,10 @@ describe('ImportDataDestination', () => {
 
       const { renderNotice } = asMockedFn(NewWorkspaceModal).mock.lastCall[0];
 
-      const isNoticeShownForBillingProject = (): boolean => {
-        const { container: noticeContainer } = render(renderNotice?.() as JSX.Element);
+      const isNoticeShownForBillingProject = (billingProject: BillingProject | undefined): boolean => {
+        const { container: noticeContainer } = render(
+          renderNotice?.({ selectedBillingProject: billingProject }) as JSX.Element
+        );
         const isNoticeShown = !!within(noticeContainer).queryByText(
           'Importing controlled access data will apply any additional access controls associated with the data to this workspace.'
         );

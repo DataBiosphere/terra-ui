@@ -356,9 +356,10 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
                 cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
-                renderNotice: () =>
+                renderNotice: ({ selectedBillingProject }) =>
                   h(Fragment, [
                     isProtectedData &&
+                      selectedBillingProject !== undefined &&
                       p([
                         'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
                       ]),
