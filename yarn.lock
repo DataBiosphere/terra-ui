@@ -4681,7 +4681,7 @@ __metadata:
     react: 18.2.0
     react-dom: 18.2.0
     typescript: ~5.1.6
-    vite: ^4.5.2
+    vite: ^4.5.3
   peerDependencies:
     react: 18.2.0
     react-dom: 18.2.0
@@ -4694,10 +4694,10 @@ __metadata:
   dependencies:
     "@rollup/plugin-typescript": ^11.1.6
     tslib: ^2.6.1
-    vite: ^4.5.2
+    vite: ^4.5.3
   peerDependencies:
     typescript: ~5.1.6
-    vite: ^4.5.2
+    vite: ^4.5.3
   languageName: unknown
   linkType: soft
 
@@ -4731,7 +4731,7 @@ __metadata:
     react-select: ^5.7.4
     react-switch: ^6.1.0
     typescript: ~5.1.6
-    vite: ^4.5.2
+    vite: ^4.5.3
     vite-plugin-svgr: ^3.2.0
   peerDependencies:
     react: 18.2.0
@@ -4751,7 +4751,7 @@ __metadata:
     jest: ^27.4.3
     lodash: ^4.17.21
     typescript: ~5.1.6
-    vite: ^4.5.2
+    vite: ^4.5.3
   languageName: unknown
   linkType: soft
 
@@ -4774,7 +4774,7 @@ __metadata:
     react: 18.2.0
     react-dom: 18.2.0
     typescript: ~5.1.6
-    vite: ^4.5.2
+    vite: ^4.5.3
   peerDependencies:
     react: 18.2.0
     react-dom: 18.2.0
@@ -4805,7 +4805,7 @@ __metadata:
     jest-fail-on-console: ^3.1.1
     jest-watch-typeahead: ^1.0.0
     typescript: ~5.1.6
-    vite: ^4.5.2
+    vite: ^4.5.3
     whatwg-fetch: ^3.6.2
   peerDependencies:
     "@testing-library/react": ^14.0.0
@@ -16974,7 +16974,7 @@ __metadata:
     use-memo-one: ^1.1.3
     uuid: ^8.3.2
     validate.js: ^0.13.1
-    vite: ^4.5.2
+    vite: ^4.5.3
     vite-plugin-svgr: ^3.2.0
   dependenciesMeta:
     "@fortawesome/fontawesome-common-types":
@@ -17841,9 +17841,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^4.5.2":
-  version: 4.5.2
-  resolution: "vite@npm:4.5.2"
+"vite@npm:^4.5.3":
+  version: 4.5.3
+  resolution: "vite@npm:4.5.3"
   dependencies:
     esbuild: ^0.18.10
     fsevents: ~2.3.2
@@ -17877,7 +17877,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 9d1f84f703c2660aced34deee7f309278ed368880f66e9570ac115c793d91f7fffb80ab19c602b3c8bc1341fe23437d86a3fcca2a9ef82f7ef0cdac5a40d0c86
+  checksum: fd3f512ce48ca2a1fe60ad0376283b832de9272725fdbc65064ae9248f792de87b0f27a89573115e23e26784800daca329f8a9234d298ba6f60e808a9c63883c
   languageName: node
   linkType: hard
 
