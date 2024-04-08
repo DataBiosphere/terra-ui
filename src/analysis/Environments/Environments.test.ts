@@ -811,9 +811,15 @@ describe('Environments', () => {
       const user = userEvent.setup();
       const mockListRuntime = jest.fn();
       const mockListApp = jest.fn();
+      const mockListDisk = jest.fn();
       const runtimeProvider = getMockLeoRuntimeProvider({ list: mockListRuntime });
       const appProvider = getMockLeoAppProvider({ listWithoutProject: mockListApp });
-      const props = getEnvironmentsProps({ leoAppData: appProvider, leoRuntimeData: runtimeProvider });
+      const diskProvider = getMockLeoDiskProvider({ list: mockListDisk });
+      const props = getEnvironmentsProps({
+        leoAppData: appProvider,
+        leoRuntimeData: runtimeProvider,
+        leoDiskData: diskProvider,
+      });
 
       await act(async () => {
         render(h(Environments, props));
@@ -823,6 +829,8 @@ describe('Environments', () => {
       await user.click(checkbox);
       expect(mockListRuntime).toBeCalledTimes(2);
       expect(mockListApp).toBeCalledTimes(2);
+      expect(mockListDisk).toBeCalledTimes(2);
+
       expect(mockListRuntime.mock.calls).toEqual([
         [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
         [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
@@ -830,6 +838,10 @@ describe('Environments', () => {
       expect(mockListApp.mock.calls).toEqual([
         [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
         [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
+      ]);
+      expect(mockListDisk.mock.calls).toEqual([
+        [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
+        [{ includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
       ]);
     });
   });
