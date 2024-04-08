@@ -817,7 +817,6 @@ describe('Environments', () => {
 
       await act(async () => {
         render(h(Environments, props));
-        // const checkbox = screen.getByLabelText("Hide resources you did not create");
       });
 
       const checkbox = screen.getByLabelText('Hide resources you did not create');
@@ -825,8 +824,12 @@ describe('Environments', () => {
       expect(mockListRuntime).toBeCalledTimes(2);
       expect(mockListApp).toBeCalledTimes(2);
       expect(mockListRuntime.mock.calls).toEqual([
-        [expect.objectContaining({ role: 'creator' }), expect.any(AbortSignal)],
-        [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(AbortSignal)],
+        [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
+        [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
+      ]);
+      expect(mockListApp.mock.calls).toEqual([
+        [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
+        [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
       ]);
     });
   });
