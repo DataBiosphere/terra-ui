@@ -1,3 +1,4 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, input, label, span } from 'react-hyperscript-helpers';
@@ -346,6 +347,24 @@ const CallTable = ({
             },
             ...(isAzure // GCP workspaces do not have inputs/outputs/logs (only log file is at top level, linked in workflow dashboard)
               ? [
+                  {
+                    size: { basis: 200, grow: 1 },
+                    field: 'cost',
+                    headerRenderer: () =>
+                      h(Sortable, { sort, field: 'cost', onSort: setSort }, [
+                        'Est. Task Cost',
+                        h(
+                          TooltipTrigger,
+                          {
+                            content: 'This is a list price for VM and disk costs per hour and does not include any cloud account discounts.',
+                          },
+                          [icon('info-circle', { style: { marginLeft: '0.25rem', color: colors.accent(1) } })]
+                        ),
+                      ]),
+                    cellRenderer: ({ rowIndex }) => {
+                      return div({}, [rowIndex]);
+                    },
+                  },
                   {
                     size: { basis: 200, grow: 1 },
                     field: 'logs',
