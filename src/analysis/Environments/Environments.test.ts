@@ -804,6 +804,32 @@ describe('Environments', () => {
       screen.getByText('Delete persistent disk?');
     });
   });
+
+  describe('Other - ', () => {
+    it('Performs query properly with resources owner checkbox', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const mockListRuntime = jest.fn();
+      const mockListApp = jest.fn();
+      const runtimeProvider = getMockLeoRuntimeProvider({ list: mockListRuntime });
+      const appProvider = getMockLeoAppProvider({ listWithoutProject: mockListApp });
+      const props = getEnvironmentsProps({ leoAppData: appProvider, leoRuntimeData: runtimeProvider });
+
+      await act(async () => {
+        render(h(Environments, props));
+        // const checkbox = screen.getByLabelText("Hide resources you did not create");
+      });
+
+      const checkbox = screen.getByLabelText('Hide resources you did not create');
+      await user.click(checkbox);
+      expect(mockListRuntime).toBeCalledTimes(2);
+      expect(mockListApp).toBeCalledTimes(2);
+      expect(mockListRuntime.mock.calls).toEqual([
+        [expect.objectContaining({ role: 'creator' }), expect.any(AbortSignal)],
+        [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(AbortSignal)],
+      ]);
+    });
+  });
   // TODO: Reenable once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
   //   describe('PauseButton', () => {
   //     it.each([{ app: generateTestAppWithGoogleWorkspace() }, { app: generateTestAppWithAzureWorkspace() }])(
