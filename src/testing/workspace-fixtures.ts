@@ -100,6 +100,10 @@ export const makeGoogleWorkspace = (workspace?: DeepPartial<GoogleWorkspace>): G
   return _.merge(_.cloneDeep(defaultGoogleWorkspace), workspace);
 };
 
+export const makeGoogleProtectedWorkspace = (workspace?: DeepPartial<GoogleWorkspace>): GoogleWorkspace => {
+  return _.merge(_.cloneDeep(protectedGoogleWorkspace), workspace);
+};
+
 export const protectedGoogleWorkspace = makeGoogleWorkspace({
   workspace: { bucketName: 'fc-secure-00001111-2222-3333-aaaa-bbbbccccdddd' },
 });

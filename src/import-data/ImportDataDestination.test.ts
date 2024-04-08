@@ -5,7 +5,12 @@ import { BillingProject } from 'src/billing-core/models';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { azureProtectedDataBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
-import { makeAzureWorkspace, makeGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
+import {
+  makeAzureWorkspace,
+  makeGoogleProtectedWorkspace,
+  makeGoogleWorkspace,
+  protectedDataPolicy,
+} from 'src/testing/workspace-fixtures';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
@@ -421,7 +426,7 @@ describe('ImportDataDestination', () => {
       shouldDisplayPolicies: true,
     },
     {
-      workspace: makeGoogleWorkspace({ policies: [protectedDataPolicy] }),
+      workspace: makeGoogleProtectedWorkspace({ policies: [protectedDataPolicy] }),
       shouldDisplayPolicies: true,
     },
   ] as {
@@ -576,7 +581,7 @@ describe('ImportDataDestination', () => {
       noticeExpected: true,
     },
   ] as { importRequest: ImportRequest; noticeExpected: boolean }[])(
-    'shows a notice when importing protected data into a new Azure workspace',
+    'shows a notice when importing protected data into a new workspace',
     async ({ importRequest, noticeExpected }) => {
       // Arrange
       const user = userEvent.setup();
