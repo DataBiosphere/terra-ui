@@ -12,10 +12,15 @@ import {
   StatusMessage,
 } from 'src/analysis/runtime-common-components';
 import { getExtension, notebookLockHash, stripExtension } from 'src/analysis/utils/file-utils';
-import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/analysis/utils/runtime-utils';
+import {
+  getAnalysesDisplayList,
+  getConvertedRuntimeStatus,
+  getCurrentRuntime,
+  usableStatuses,
+} from 'src/analysis/utils/runtime-utils';
 import {
   getPatternFromRuntimeTool,
-  getToolLabelFromCloudEnv,
+  getToolLabelFromRuntime,
   launchableToolLabel,
   runtimeToolLabels,
   runtimeTools,
@@ -23,6 +28,7 @@ import {
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
+import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -33,40 +39,47 @@ import { azureCookieReadyStore, cookieReadyStore, userStore } from 'src/libs/sta
 import * as Utils from 'src/libs/utils';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
+import { AnalysisFile } from './useAnalysisFiles';
+
 // The App launcher is where the iframe for the application lives
 // There are several different URL schemes that can be used to access the app launcher, which affect its functionality
+interface FileOutdatedModalProps {
+  onDismiss: () => void;
+  bucketName: string;
+  hashedOwnerEmail: string;
+}
 
 const ApplicationLauncher = _.flow(
   forwardRefWithName('ApplicationLauncher'),
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: _.get('application'),
+    title: _.get('application') as unknown as string,
     activeTab: appLauncherTabName,
   })
 )(
   (
     {
       name: workspaceName,
-      sparkInterface,
       analysesData: { runtimes, refreshRuntimes },
       application,
       workspace: { azureContext, workspace },
       analysisName,
+      isLoadingCloudEnvironments,
     },
     _ref
   ) => {
     const { namespace, name, workspaceId, googleProject, bucketName } = workspace;
     const [busy, setBusy] = useState(true);
-    const [outdatedAnalyses, setOutdatedAnalyses] = useState();
+    const [outdatedAnalyses, setOutdatedAnalyses] = useState<AnalysisFile[]>();
     const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false);
-    const [hashedOwnerEmail, setHashedOwnerEmail] = useState();
-    const [iframeSrc, setIframeSrc] = useState();
+    const [hashedOwnerEmail, setHashedOwnerEmail] = useState<string>();
+    const [iframeSrc, setIframeSrc] = useState<string>();
 
     const leoCookieReady = useStore(cookieReadyStore);
     const azureCookieReady = useStore(azureCookieReadyStore);
     const cookieReady = googleProject ? leoCookieReady : azureCookieReady.readyForRuntime;
     const signal = useCancellation();
-    const interval = useRef();
+    const interval = useRef<number>();
     const {
       terraUser: { email },
     } = useStore(userStore);
@@ -80,9 +93,10 @@ const ApplicationLauncher = _.flow(
     );
 
     const runtime = getCurrentRuntime(runtimes);
-    const runtimeStatus = getConvertedRuntimeStatus(runtime); // preserve null vs undefined
+    const runtimeStatus = getConvertedRuntimeStatus(runtime);
 
-    const FileOutdatedModal = ({ onDismiss, bucketName }) => {
+    const FileOutdatedModal = (props: FileOutdatedModalProps) => {
+      const { onDismiss, bucketName, hashedOwnerEmail } = props;
       const handleChoice = _.flow(
         withErrorReportingInModal('Error setting up analysis file syncing', onDismiss),
         Utils.withBusyState(setBusy)
@@ -94,16 +108,24 @@ const ApplicationLauncher = _.flow(
           _.flatMap(async ({ name, metadata: currentMetadata }) => {
             const file = getFileName(name);
             const newMetadata = currentMetadata;
-            if (shouldCopy) {
-              // clear 'outdated' metadata (which gets populated by welder) so that new copy file does not get marked as outdated
-              newMetadata[hashedOwnerEmail] = '';
+            if (file && newMetadata) {
+              if (shouldCopy) {
+                // clear 'outdated' metadata (which gets populated by welder) so that new copy file does not get marked as outdated
+                newMetadata[hashedOwnerEmail] = '';
+                await Ajax()
+                  .Buckets.analysis(googleProject, bucketName, file, runtimeToolLabels.RStudio)
+                  .copyWithMetadata(getCopyName(file), bucketName, newMetadata);
+              }
+              // update bucket metadata for the outdated file to be marked as doNotSync so that welder ignores the outdated file for the current user
+              newMetadata[hashedOwnerEmail] = 'doNotSync';
               await Ajax()
                 .Buckets.analysis(googleProject, bucketName, file, runtimeToolLabels.RStudio)
-                .copyWithMetadata(getCopyName(file), bucketName, newMetadata);
+                .updateMetadata(file, newMetadata);
+            } else {
+              console.error(
+                `could not resolve file to copy, or could not find metadata on file welder flagged \n\t file name: ${name}\n\t metadata: ${currentMetadata}`
+              );
             }
-            // update bucket metadata for the outdated file to be marked as doNotSync so that welder ignores the outdated file for the current user
-            newMetadata[hashedOwnerEmail] = 'doNotSync';
-            await Ajax().Buckets.analysis(googleProject, bucketName, file, runtimeToolLabels.RStudio).updateMetadata(file, newMetadata);
           }, outdatedAnalyses)
         );
         onDismiss();
@@ -127,77 +149,85 @@ const ApplicationLauncher = _.flow(
           showButtons: false,
         },
         [
-          Utils.cond(
-            // if user has more than one outdated rstudio analysis, display plural phrasing
-            [
-              _.size(outdatedAnalyses) > 1,
-              () => [
-                p([
-                  'These R files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.',
-                ]),
-                p([getAnalysesDisplayList(outdatedAnalyses)]),
-                p(['You can']),
-                p(['1) ', strong(['save your changes as new copies']), ' of your files which will enable file syncing on the copies']),
-                p([strong(['or'])]),
-                p([
-                  '2) ',
-                  strong(['continue working on your versions']),
-                  ` of ${getAnalysesDisplayList(outdatedAnalyses)} with file syncing disabled.`,
-                ]),
+          _.merge(
+            Utils.cond(
+              // if user has more than one outdated rstudio analysis, display plural phrasing
+              [
+                _.size(outdatedAnalyses) > 1,
+                () => [
+                  p([
+                    'These R files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.',
+                  ]),
+                  p([getAnalysesDisplayList(outdatedAnalyses)]),
+                  p(['You can']),
+                  p([
+                    '1) ',
+                    strong(['save your changes as new copies']),
+                    ' of your files which will enable file syncing on the copies',
+                  ]),
+                  p([strong(['or'])]),
+                  p([
+                    '2) ',
+                    strong(['continue working on your versions']),
+                    ` of ${getAnalysesDisplayList(outdatedAnalyses)} with file syncing disabled.`,
+                  ]),
+                ],
               ],
-            ],
-            // if user has one outdated rstudio analysis, display singular phrasing
-            [
-              _.size(outdatedAnalyses) === 1,
-              () => [
-                p([
-                  `${getAnalysisNameFromList(
-                    outdatedAnalyses
-                  )} is being edited by another user and your version is now outdated. Your file will no longer sync with the workspace bucket.`,
-                ]),
-                p(['You can']),
-                p([
-                  '1) ',
-                  strong(['save your changes as a new copy']),
-                  ` of ${getAnalysisNameFromList(outdatedAnalyses)} which will enable file syncing on the copy`,
-                ]),
-                p([strong(['or'])]),
-                p([
-                  '2) ',
-                  strong(['continue working on your outdated version']),
-                  ` of ${getAnalysisNameFromList(outdatedAnalyses)} with file syncing disabled.`,
-                ]),
+              // if user has one outdated rstudio analysis, display singular phrasing
+              [
+                _.size(outdatedAnalyses) === 1,
+                () => [
+                  p([
+                    `${getAnalysisNameFromList(
+                      outdatedAnalyses
+                    )} is being edited by another user and your version is now outdated. Your file will no longer sync with the workspace bucket.`,
+                  ]),
+                  p(['You can']),
+                  p([
+                    '1) ',
+                    strong(['save your changes as a new copy']),
+                    ` of ${getAnalysisNameFromList(outdatedAnalyses)} which will enable file syncing on the copy`,
+                  ]),
+                  p([strong(['or'])]),
+                  p([
+                    '2) ',
+                    strong(['continue working on your outdated version']),
+                    ` of ${getAnalysisNameFromList(outdatedAnalyses)} with file syncing disabled.`,
+                  ]),
+                ],
               ],
-            ]
+              [Utils.DEFAULT, () => []]
+            ),
+            div({ style: { marginTop: '2rem' } }, [
+              h(
+                ButtonSecondary,
+                {
+                  style: { padding: '0 1rem' },
+                  onClick: () => handleChoice(false),
+                },
+                ['Keep outdated version']
+              ),
+              h(
+                ButtonPrimary,
+                {
+                  style: { padding: '0 1rem' },
+                  onClick: () => handleChoice(true),
+                },
+                ['Make a copy']
+              ),
+            ])
           ),
-          div({ style: { marginTop: '2rem' } }, [
-            h(
-              ButtonSecondary,
-              {
-                style: { padding: '0 1rem' },
-                onClick: () => handleChoice(false),
-              },
-              ['Keep outdated version']
-            ),
-            h(
-              ButtonPrimary,
-              {
-                style: { padding: '0 1rem' },
-                onClick: () => handleChoice(true),
-              },
-              ['Make a copy']
-            ),
-          ]),
         ]
       );
     };
 
-    const checkForOutdatedAnalyses = async ({ googleProject, bucketName }) => {
+    const checkForOutdatedAnalyses = async ({ googleProject, bucketName }): Promise<AnalysisFile[]> => {
       const analyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName);
       return _.filter(
-        (analysis) =>
+        (analysis: AnalysisFile) =>
           _.includes(getExtension(analysis?.name), runtimeTools.RStudio.ext) &&
-          analysis?.metadata &&
+          !!analysis?.metadata &&
+          !!hashedOwnerEmail &&
           analysis?.metadata[hashedOwnerEmail] === 'outdated',
         analyses
       );
@@ -206,8 +236,12 @@ const ApplicationLauncher = _.flow(
     useOnMount(() => {
       const loadUserEmail = async () => {
         const findHashedEmail = withErrorReporting('Error loading user email information')(async () => {
-          const hashedEmail = await notebookLockHash(bucketName, email);
-          setHashedOwnerEmail(hashedEmail);
+          if (email) {
+            const hashedEmail = await notebookLockHash(bucketName, email);
+            setHashedOwnerEmail(hashedEmail);
+          } else {
+            console.error('failed to load hashed owner email because user email is not defined');
+          }
         });
 
         await refreshRuntimes();
@@ -218,11 +252,52 @@ const ApplicationLauncher = _.flow(
     });
 
     useEffect(() => {
-      const runtime = getCurrentRuntime(runtimes);
       const runtimeStatus = getConvertedRuntimeStatus(runtime);
 
+      const setupWelder = _.flow(
+        Utils.withBusyState(setBusy),
+        withErrorReporting('Error setting up analysis file syncing')
+      )(async (runtime: Runtime) => {
+        // The special case here is because for GCP, Jupyter and JupyterLab can both be run on the same runtime and a
+        // user may toggle back and forth between them. In order to keep notebooks tidy and in a predictable location on
+        // disk, we mirror the localBaseDirectory used by edit mode for Jupyter.
+        // Once Jupyter is phased out in favor of JupyterLab for GCP, the localBaseDirectory can be '' for all cases
+        const localBaseDirectory =
+          !!googleProject && application === runtimeToolLabels.JupyterLab ? `${workspaceName}/edit` : '';
+
+        const { storageContainerName } = azureContext
+          ? await Ajax(signal).AzureStorage.details(workspaceId)
+          : { storageContainerName: bucketName };
+        const cloudStorageDirectory = azureContext
+          ? `${storageContainerName}/analyses`
+          : `gs://${storageContainerName}/notebooks`;
+
+        googleProject
+          ? await Ajax()
+              .Runtimes.fileSyncing(googleProject, runtime.runtimeName)
+              .setStorageLinks(
+                localBaseDirectory,
+                '',
+                cloudStorageDirectory,
+                getPatternFromRuntimeTool(getToolLabelFromRuntime(runtime))
+              )
+          : await Ajax()
+              .Runtimes.azureProxy(runtime.proxyUrl)
+              .setStorageLinks(
+                localBaseDirectory,
+                cloudStorageDirectory,
+                getPatternFromRuntimeTool(getToolLabelFromRuntime(runtime))
+              );
+      });
+
+      if (shouldSetupWelder && runtime && runtimeStatus === 'Running') {
+        setupWelder(runtime);
+        setShouldSetupWelder(false);
+      }
+
       const computeIframeSrc = withErrorReporting('Error loading application iframe')(async () => {
-        const getSparkInterfaceSource = (proxyUrl) => {
+        const getSparkInterfaceSource = (proxyUrl): string => {
+          const sparkInterface = Nav.getCurrentUrl().href.split('/').pop();
           console.assert(_.endsWith('/jupyter', proxyUrl), 'Unexpected ending for proxy URL');
           const proxyUrlWithlastSegmentDropped = _.flow(_.split('/'), _.dropRight(1), _.join('/'))(proxyUrl);
           return `${proxyUrlWithlastSegmentDropped}/${sparkInterface}`;
@@ -235,44 +310,26 @@ const ApplicationLauncher = _.flow(
           [launchableToolLabel.spark, () => getSparkInterfaceSource(proxyUrl)],
           [runtimeToolLabels.RStudio, () => proxyUrl],
           // Jupyter lab can open to a specific file. See the docs for more details https://jupyterlab.readthedocs.io/en/stable/user/urls.html
-          [runtimeToolLabels.JupyterLab, () => (analysisName ? `${proxyUrl}/lab/tree/${analysisName}` : `${proxyUrl}/lab`)],
+          [
+            runtimeToolLabels.JupyterLab,
+            () => (analysisName ? `${proxyUrl}/lab/tree/${analysisName}` : `${proxyUrl}/lab`),
+          ],
           [
             Utils.DEFAULT,
-            () =>
+            () => {
               console.error(
                 `Expected ${application} to be one of terminal, spark, ${runtimeToolLabels.RStudio}, or ${runtimeToolLabels.JupyterLab}.`
-              ),
+              );
+              return '';
+            },
           ]
         );
 
         setIframeSrc(url);
       });
 
-      const setupWelder = _.flow(
-        Utils.withBusyState(setBusy),
-        withErrorReporting('Error setting up analysis file syncing')
-      )(async () => {
-        // The special case here is because for GCP, Jupyter and JupyterLab can both be run on the same runtime and a
-        // user may toggle back and forth between them. In order to keep notebooks tidy and in a predictable location on
-        // disk, we mirror the localBaseDirectory used by edit mode for Jupyter.
-        // Once Jupyter is phased out in favor of JupyterLab for GCP, the localBaseDirectory can be '' for all cases
-        const localBaseDirectory = !!googleProject && application === runtimeToolLabels.JupyterLab ? `${workspaceName}/edit` : '';
-
-        const { storageContainerName: azureStorageContainer } = azureContext ? await Ajax(signal).AzureStorage.details(workspaceId) : {};
-        const cloudStorageDirectory = azureContext ? `${azureStorageContainer}/analyses` : `gs://${bucketName}/notebooks`;
-
-        googleProject
-          ? await Ajax()
-              .Runtimes.fileSyncing(googleProject, runtime.runtimeName)
-              .setStorageLinks(localBaseDirectory, '', cloudStorageDirectory, getPatternFromRuntimeTool(getToolLabelFromCloudEnv(runtime)))
-          : await Ajax()
-              .Runtimes.azureProxy(runtime.proxyUrl)
-              .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromRuntimeTool(getToolLabelFromCloudEnv(runtime)));
-      });
-
-      if (shouldSetupWelder && runtimeStatus === 'Running') {
-        setupWelder();
-        setShouldSetupWelder(false);
+      if (runtime) {
+        computeIframeSrc();
       }
 
       const findOutdatedAnalyses = async () => {
@@ -288,12 +345,11 @@ const ApplicationLauncher = _.flow(
         }
       };
 
-      computeIframeSrc();
-      if (runtimeStatus === 'Running') {
-        !!googleProject && findOutdatedAnalyses();
+      if (runtimeStatus === 'Running' && !!googleProject) {
+        findOutdatedAnalyses();
 
         // periodically check for outdated R analyses
-        interval.current = !!googleProject && setInterval(findOutdatedAnalyses, 10000);
+        interval.current = window.setInterval(findOutdatedAnalyses, 10000);
       }
 
       return () => {
@@ -324,13 +380,17 @@ const ApplicationLauncher = _.flow(
       }),
       h(RuntimeKicker, { runtime, refreshRuntimes }),
       // We cannot attach the periodic cookie setter until we have a running runtime for azure, because the relay is not guaranteed to be ready until then
-      !!azureContext && getConvertedRuntimeStatus(runtime) === 'Running' ? h(PeriodicAzureCookieSetter, { proxyUrl: runtime.proxyUrl }) : null,
-      fileOutdatedOpen && h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName }),
+      !!azureContext && runtime && getConvertedRuntimeStatus(runtime) === 'Running'
+        ? h(PeriodicAzureCookieSetter, { proxyUrl: runtime.proxyUrl })
+        : null,
+      fileOutdatedOpen &&
+        hashedOwnerEmail &&
+        h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName, hashedOwnerEmail }),
       _.includes(runtimeStatus, usableStatuses) && cookieReady
         ? h(Fragment, [
             application === runtimeToolLabels.JupyterLab &&
               div({ style: { padding: '2rem', position: 'absolute', top: 0, left: 0, zIndex: 0 } }, [
-                h(StatusMessage, {}, ['Your Virtual Machine (VM) is ready. JupyterLab will launch momentarily...']),
+                h(StatusMessage, ['Your Virtual Machine (VM) is ready. JupyterLab will launch momentarily...']),
               ]),
             iframe({
               src: iframeSrc,
@@ -338,14 +398,16 @@ const ApplicationLauncher = _.flow(
                 border: 'none',
                 flex: 1,
                 zIndex: 1,
-                ...(application === launchableToolLabel.terminal ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}), // cuts off the useless Jupyter top bar
+                ...(application === launchableToolLabel.terminal
+                  ? { marginTop: -45, clipPath: 'inset(45px 0 0)' }
+                  : {}), // cuts off the useless Jupyter top bar
               },
               title: `Interactive ${application} iframe`,
             }),
           ])
         : div({ style: { padding: '2rem' } }, [
             !busy &&
-              h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(runtimeStatus) }, [
+              h(StatusMessage, { hideSpinner: _.includes(runtimeStatus, ['Error', 'Stopped']) }, [
                 Utils.cond(
                   [
                     runtimeStatus === 'Creating' && azureContext,
@@ -359,28 +421,26 @@ const ApplicationLauncher = _.flow(
                   [_.includes(runtimeStatus, usableStatuses), () => 'Almost ready...'],
                   [
                     runtimeStatus === 'Stopping',
-                    () => 'Cloud environment is stopping, which takes ~4 minutes. You can restart it after it finishes.',
+                    () =>
+                      'Cloud environment is stopping, which takes ~4 minutes. You can restart it after it finishes.',
                   ],
-                  [runtimeStatus === 'Stopped', () => 'Cloud environment is stopped. Start it to edit your notebook or use the terminal.'],
-                  [runtimeStatus === 'LeoReconfiguring', () => 'Cloud environment is updating, please wait.'],
+                  [
+                    runtimeStatus === 'Stopped',
+                    () => 'Cloud environment is stopped. Start it to edit your notebook or use the terminal.',
+                  ],
                   [runtimeStatus === 'Error', () => 'Error with the cloud environment, please try again.'],
-                  [runtimeStatus === null, () => 'Create a cloud environment to continue.'],
-                  [runtimeStatus === undefined, () => 'Loading...'],
+                  [runtimeStatus === undefined && isLoadingCloudEnvironments, () => 'Loading...'],
+                  [runtimeStatus === undefined, () => 'Create a cloud environment to continue.'],
                   () => 'Unknown cloud environment status. Please create a new cloud environment or contact support.'
                 ),
               ]),
-            busy && spinnerOverlay,
+            (isLoadingCloudEnvironments || busy) && spinnerOverlay,
           ]),
     ]);
   }
 );
 
 export const navPaths = [
-  {
-    name: 'workspace-terminal', // legacy
-    path: '/workspaces/:namespace/:name/notebooks/terminal',
-    component: (props) => h(Nav.Redirector, { pathname: Nav.getPath('workspace-application-launch', { ...props, application: 'terminal' }) }),
-  },
   {
     name: appLauncherTabName,
     path: '/workspaces/:namespace/:name/applications/:application',
@@ -397,6 +457,6 @@ export const navPaths = [
     name: 'workspace-spark-interface-launch',
     path: '/workspaces/:namespace/:name/applications/:application/:sparkInterface',
     component: ApplicationLauncher,
-    title: ({ name, application, sparkInterface }) => `${name} - ${application} - ${sparkInterface}`,
+    title: ({ name, application }) => `${name} - ${application}`,
   },
 ];
