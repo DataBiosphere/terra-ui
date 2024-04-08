@@ -28,6 +28,7 @@ const testImportCohortDataFn = _.flow(
   await signIntoTerra(page, { token, testUrl });
 
   await click(page, clickable({ textContains: 'Browse Data' }));
+  await waitForNoSpinners(page);
 
   await Promise.all([page.waitForNavigation(navOptionNetworkIdle()), click(page, clickable({ textContains: '1000 Genomes Low Coverage' }))]);
 
