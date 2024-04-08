@@ -32,7 +32,7 @@ import {
   runtimeToolLabels,
   toolLabelDisplays,
 } from 'src/analysis/utils/tool-utils';
-import { Clickable } from 'src/components/common';
+import { Clickable, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { getRegionInfo } from 'src/components/region-common';
 import cromwellImg from 'src/images/cromwell-logo.png'; // To be replaced by something square
@@ -381,5 +381,6 @@ export const ContextBar = ({
           ),
       ]),
     ]),
+    isLoadingCloudEnvironments && spinnerOverlay,
   ]);
 };

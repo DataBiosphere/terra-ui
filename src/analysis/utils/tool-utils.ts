@@ -222,7 +222,8 @@ export const getToolLabelForImage = (imageId: string): ToolLabel | undefined => 
 export const getToolLabelFromFileExtension = (fileName: FileExtension): ToolLabel =>
   extensionToToolMap[getExtension(fileName)];
 
-export const getToolLabelFromRuntime = (cloudEnv: Runtime): ToolLabel => cloudEnv?.labels?.tool as ToolLabel;
+export const getToolLabelFromRuntime = (cloudEnv: Runtime): RuntimeToolLabel =>
+  cloudEnv?.labels?.tool as RuntimeToolLabel;
 export const getToolLabelFromApp = (cloudEnv: App): ToolLabel => cloudEnv?.appType as ToolLabel;
 
 export const getToolLabelFromCloudEnv = (cloudEnv: Runtime | App): ToolLabel => {
