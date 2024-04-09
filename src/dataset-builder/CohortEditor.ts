@@ -99,7 +99,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
               deleteCriteria(criteria);
             },
           },
-          [icon('minus-circle-red', { size: 24, style: { color: colors.danger() } })]
+          [icon('trash-circle-filled', { size: 35, style: { color: colors.danger() } })]
         ),
         div({ style: { marginLeft: narrowMargin, width: '25rem' } }, [
           (() => {

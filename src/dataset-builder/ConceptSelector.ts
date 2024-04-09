@@ -1,9 +1,8 @@
-import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
-import { Link } from 'src/components/common';
+import { LabeledCheckbox, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { Parent, RowContents, TreeGrid } from 'src/components/TreeGrid';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
@@ -68,24 +67,22 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
             name: 'Concept Name',
             width: 710,
             render: (concept) => {
-              const [label, iconName]: [string, IconId] = (() => {
-                if (_.filter(_.isEqual(concept), cart).length > 0) {
-                  return ['remove', 'minus-circle-red'];
-                }
-                return ['add', 'plus-circle-filled'];
-              })();
               return h(Fragment, [
                 h(
-                  Link,
+                  LabeledCheckbox,
                   {
-                    'aria-label': `${label} ${concept.id}`,
-                    onClick: () => setCart(_.xorWith(_.isEqual, cart, [concept])),
+                    style: { marginRight: 12 },
+                    checked: _.filter(_.isEqual(concept), cart).length > 0,
+                    onChange: () => setCart(_.xorWith(_.isEqual, cart, [concept])),
                   },
-                  [icon(iconName, { size: 16 })]
+                  [
+                    div([
+                      openedConcept?.id === concept.id
+                        ? div({ style: { fontWeight: 600 } }, [concept.name])
+                        : concept.name,
+                    ]),
+                  ]
                 ),
-                div({ style: { marginLeft: 5 } }, [
-                  openedConcept?.id === concept.id ? div({ style: { fontWeight: 600 } }, [concept.name]) : concept.name,
-                ]),
               ]);
             },
           },

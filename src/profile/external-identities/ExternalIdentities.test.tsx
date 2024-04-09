@@ -11,19 +11,9 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('src/profile/external-identities/OAuth2Link', () => ({
-  ...jest.requireActual('src/profile/external-identities/OAuth2Link'),
-  OAuth2Link: jest.fn((props) => <div>{props.provider.name}</div>),
-}));
-
-jest.mock('src/profile/external-identities/OAuth2Link', () => ({
-  ...jest.requireActual('src/profile/external-identities/OAuth2Link'),
-  OAuth2Link: jest.fn((props) => <div>{props.provider.name}</div>),
-}));
-
-jest.mock('src/profile/external-identities/FenceAccount', () => ({
-  ...jest.requireActual('src/profile/external-identities/FenceAccount'),
-  FenceAccount: jest.fn((props) => <div>{props.provider.name}</div>),
+jest.mock('src/profile/external-identities/OAuth2Account', () => ({
+  ...jest.requireActual('src/profile/external-identities/OAuth2Account'),
+  OAuth2Account: jest.fn((props) => <div>{props.provider.name}</div>),
 }));
 
 jest.mock('src/profile/external-identities/NihAccount', () => ({

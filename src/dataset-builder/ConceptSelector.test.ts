@@ -75,7 +75,8 @@ describe('ConceptSelector', () => {
     renderSelector();
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${firstChild.id}`));
+    // add
+    await user.click(screen.getByLabelText(`${firstChild.name}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeTruthy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
@@ -86,7 +87,8 @@ describe('ConceptSelector', () => {
     renderSelector([secondChild]);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${firstChild.id}`));
+    // add
+    await user.click(screen.getByLabelText(`${firstChild.name}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeTruthy();
     expect(screen.queryByText('2 concept', { exact: false })).toBeTruthy();
@@ -97,8 +99,10 @@ describe('ConceptSelector', () => {
     renderSelector();
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${firstChild.id}`));
-    await user.click(screen.getByLabelText(`remove ${firstChild.id}`));
+    // add
+    await user.click(screen.getByLabelText(`${firstChild.name}`));
+    // remove
+    await user.click(screen.getByLabelText(`${firstChild.name}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeFalsy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeFalsy();
@@ -109,7 +113,8 @@ describe('ConceptSelector', () => {
     renderSelector([firstChild]);
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`remove ${firstChild.id}`));
+    // remove
+    await user.click(screen.getByLabelText(`${firstChild.name}`));
     // Assert
     expect(screen.queryByText(actionText)).toBeFalsy();
     expect(screen.queryByText('1 concept', { exact: false })).toBeFalsy();
@@ -120,7 +125,8 @@ describe('ConceptSelector', () => {
     renderSelector();
     // Act
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText(`add ${firstChild.id}`));
+    // add
+    await user.click(screen.getByLabelText(`${firstChild.name}`));
     await user.click(screen.getByText(actionText));
     // Assert
     expect(onCommit).toHaveBeenCalledWith([firstChild]);
@@ -169,8 +175,10 @@ describe('ConceptSelector', () => {
     // Act
     const user = userEvent.setup();
     await user.click(screen.getByLabelText(`expand ${firstChild.id}`));
-    await user.click(screen.getAllByLabelText(`add ${firstChild.id}`)[0]);
-    await user.click(screen.getAllByLabelText(`add ${expandConcept.id}`)[0]);
+    // add
+    await user.click(screen.getAllByLabelText(`${firstChild.name}`)[0]);
+    // remove
+    await user.click(screen.getAllByLabelText(`${expandConcept.name}`)[0]);
     // Assert
     expect(screen.getByText('2 concepts', { exact: false })).toBeTruthy();
   });
