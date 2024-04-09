@@ -3,7 +3,7 @@ import { formatDatetime, Mutate, NavLinkProvider } from '@terra-ui-packages/core
 import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
-import { div, h, h2, strong } from 'react-hyperscript-helpers';
+import { div, h, h2, span, strong } from 'react-hyperscript-helpers';
 import { RuntimeErrorModal } from 'src/analysis/AnalysisNotificationManager';
 import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
 import { getAppStatusForDisplay, getDiskAppType } from 'src/analysis/utils/app-utils';
@@ -17,7 +17,7 @@ import { workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import { getCreatorForCompute } from 'src/analysis/utils/resource-utils';
 import { getDisplayRuntimeStatus, isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel } from 'src/analysis/utils/tool-utils';
-import { Clickable, Link, spinnerOverlay } from 'src/components/common';
+import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { makeMenuIcon } from 'src/components/PopupTrigger';
 import SupportRequestWrapper from 'src/components/SupportRequest';
@@ -114,9 +114,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' });
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' });
 
-  // TODO [IA-4432] restore the stateful var when checkbox reintroduced
-  // const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
-  const shouldFilterByCreator = true;
+  const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
 
   const refreshData = withBusyState(setLoading, async () => {
     await refreshWorkspaces();
@@ -210,10 +208,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(refreshData, 30000);
-    return () => {
-      clearInterval(interval);
-    };
   }, [shouldFilterByCreator]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getCloudProvider = (cloudEnvironment) =>
@@ -480,12 +474,11 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       h2({ style: { ...styleElements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, [
         'Your cloud environments',
       ]),
-      // TODO [IA-4432] reenable this checkbox when query performance is fixed
-      // div({ style: { marginBottom: '.5rem' } }, [
-      //   h(LabeledCheckbox, { checked: shouldFilterByCreator, onChange: setShouldFilterByCreator }, [
-      //     span({ style: { fontWeight: 600 } }, [' Hide resources you did not create']),
-      //   ]),
-      // ]),
+      div({ style: { marginBottom: '.5rem' } }, [
+        h(LabeledCheckbox, { checked: shouldFilterByCreator, onChange: setShouldFilterByCreator }, [
+          span({ style: { fontWeight: 600 } }, [' Hide resources you did not create']),
+        ]),
+      ]),
       runtimes &&
         disks &&
         div({ style: { overflow: 'scroll', overflowWrap: 'break-word', wordBreak: 'break-all' } }, [

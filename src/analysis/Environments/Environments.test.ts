@@ -804,6 +804,57 @@ describe('Environments', () => {
       screen.getByText('Delete persistent disk?');
     });
   });
+
+  describe('Other - ', () => {
+    it('Performs query properly with resources owner checkbox', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const mockListRuntime = jest.fn();
+      const mockListApp = jest.fn();
+      const mockListDisk = jest.fn();
+      const runtimeProvider = getMockLeoRuntimeProvider({ list: mockListRuntime });
+      const appProvider = getMockLeoAppProvider({ listWithoutProject: mockListApp });
+      const diskProvider = getMockLeoDiskProvider({ list: mockListDisk });
+      const props = getEnvironmentsProps({
+        leoAppData: appProvider,
+        leoRuntimeData: runtimeProvider,
+        leoDiskData: diskProvider,
+      });
+
+      await act(async () => {
+        render(h(Environments, props));
+      });
+
+      // Assert
+
+      // One time on page load
+      expect(mockListRuntime).toBeCalledTimes(1);
+      expect(mockListApp).toBeCalledTimes(1);
+      expect(mockListDisk).toBeCalledTimes(1);
+
+      const checkbox = screen.getByLabelText('Hide resources you did not create');
+      await user.click(checkbox);
+
+      // Second time on checkbox click
+      expect(mockListRuntime).toBeCalledTimes(2);
+      expect(mockListApp).toBeCalledTimes(2);
+      expect(mockListDisk).toBeCalledTimes(2);
+
+      // First call should filter by creator, second call should not
+      expect(mockListRuntime.mock.calls).toEqual([
+        [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
+        [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
+      ]);
+      expect(mockListApp.mock.calls).toEqual([
+        [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
+        [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
+      ]);
+      expect(mockListDisk.mock.calls).toEqual([
+        [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
+        [{ includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
+      ]);
+    });
+  });
   // TODO: Reenable once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
   //   describe('PauseButton', () => {
   //     it.each([{ app: generateTestAppWithGoogleWorkspace() }, { app: generateTestAppWithAzureWorkspace() }])(
