@@ -593,7 +593,9 @@ describe('ImportDataDestination', () => {
       const { renderNotice } = asMockedFn(NewWorkspaceModal).mock.lastCall[0];
 
       const isNoticeShown = (): boolean => {
-        const { container: noticeContainer } = render(renderNotice?.() as JSX.Element);
+        const { container: noticeContainer } = render(
+          renderNotice?.({ selectedBillingProject: undefined }) as JSX.Element
+        );
         const isNoticeShown = !!within(noticeContainer).queryByText(
           'Importing controlled access data will apply any additional access controls associated with the data to this workspace.'
         );
