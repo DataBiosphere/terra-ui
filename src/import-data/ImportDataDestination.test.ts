@@ -591,19 +591,16 @@ describe('ImportDataDestination', () => {
       await user.click(newWorkspaceButton);
 
       const { renderNotice } = asMockedFn(NewWorkspaceModal).mock.lastCall[0];
+      const { container: noticeContainer } = render(
+        renderNotice?.({ selectedBillingProject: undefined }) as JSX.Element
+      );
 
-      const isNoticeShown = (): boolean => {
-        const { container: noticeContainer } = render(
-          renderNotice?.({ selectedBillingProject: undefined }) as JSX.Element
-        );
-        const isNoticeShown = !!within(noticeContainer).queryByText(
-          'Importing controlled access data will apply any additional access controls associated with the data to this workspace.'
-        );
-        return isNoticeShown;
-      };
+      const controlledAccessText = !!within(noticeContainer).queryByText(
+        'Importing controlled access data will apply any additional access controls associated with the data to this workspace.'
+      );
 
       // Assert
-      expect(isNoticeShown()).toBe(noticeExpected);
+      expect(controlledAccessText).toBe(noticeExpected);
     }
   );
 });
