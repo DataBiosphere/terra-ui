@@ -626,7 +626,11 @@ export const WorkspaceData = _.flow(
             return _.set([name, 'resource'], _.merge(metadata, attributes), acc);
           },
           _.pick(_.map('name', _.map('metadata', snapshotBody)), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist
-          snapshotBody
+          _.filter((snapshot) => {
+            // Do not display snapshot references that are only created for linking policies.
+            const isForPolicy = snapshot.metadata.properties.some((p) => p.key === 'purpose' && p.value === 'policy');
+            return !isForPolicy;
+          }, snapshotBody)
         );
 
         setSnapshotDetails(snapshots);
