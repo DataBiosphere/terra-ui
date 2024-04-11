@@ -93,15 +93,16 @@ const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceN
   );
 };
 
-const makeWorkspace = withSignedInPage(async ({ page, billingProject, hasBucket = false }) => {
+const makeWorkspace = withSignedInPage(async ({ page, billingProject, hasBucket = false, isProtected = false }) => {
   const workspaceName = getTestWorkspaceName();
   try {
     await page.evaluate(
-      async (name, billingProject) => {
-        await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} });
+      async (name, billingProject, isProtected) => {
+        await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {}, enhancedBucketLogging: isProtected });
       },
       workspaceName,
-      billingProject
+      billingProject,
+      isProtected
     );
     console.info(`Created workspace: ${workspaceName}`);
     if (hasBucket) {
@@ -204,6 +205,22 @@ const deleteWorkspaceV2 = async ({ page, billingProject, workspaceName }) => {
 const withWorkspace = (test) => async (options) => {
   console.log('withWorkspace ...');
   const { workspaceName } = await makeGcpWorkspace(options);
+
+  try {
+    await test({ ...options, workspaceName });
+  } finally {
+    console.log('withWorkspace cleanup ...');
+    const didDelete = await withSignedInPage(deleteWorkspaceInUi)({ ...options, workspaceName });
+    if (!didDelete) {
+      // Pass test on a failed cleanup - expect leaked resources to be cleaned up by the test `delete-orphaned-workspaces`
+      console.error(`Unable to delete workspace ${workspaceName} via the UI. The resource will be leaked!`);
+    }
+  }
+};
+
+const withProtectedWorkspace = (test) => async (options) => {
+  console.log('withWorkspace ...');
+  const { workspaceName } = await makeGcpWorkspace({ ...options, isProtected: true });
 
   try {
     await test({ ...options, workspaceName });
@@ -551,4 +568,5 @@ module.exports = {
   withAzureWorkspace,
   withUser,
   withWorkspace,
+  withProtectedWorkspace,
 };
