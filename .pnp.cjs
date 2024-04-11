@@ -4403,10 +4403,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@google-cloud/secret-manager", [\
-        ["npm:4.0.0", {\
-          "packageLocation": "./.yarn/cache/@google-cloud-secret-manager-npm-4.0.0-2f654c0bb8-9d8ccec25b.zip/node_modules/@google-cloud/secret-manager/",\
+        ["npm:4.2.2", {\
+          "packageLocation": "./.yarn/cache/@google-cloud-secret-manager-npm-4.2.2-4ea5a546ab-32522e9d70.zip/node_modules/@google-cloud/secret-manager/",\
           "packageDependencies": [\
-            ["@google-cloud/secret-manager", "npm:4.0.0"],\
+            ["@google-cloud/secret-manager", "npm:4.2.2"],\
             ["google-gax", "npm:3.6.1"]\
           ],\
           "linkType": "HARD"\
@@ -4431,7 +4431,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/long", "npm:4.0.1"],\
             ["lodash.camelcase", "npm:4.3.0"],\
             ["long", "npm:4.0.0"],\
-            ["protobufjs", "npm:7.2.4"],\
+            ["protobufjs", "npm:7.2.6"],\
             ["yargs", "npm:17.7.2"]\
           ],\
           "linkType": "HARD"\
@@ -20684,7 +20684,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/proto3-json-serializer-npm-1.1.1-3b67d27ff8-0cd94cb635.zip/node_modules/proto3-json-serializer/",\
           "packageDependencies": [\
             ["proto3-json-serializer", "npm:1.1.1"],\
-            ["protobufjs", "npm:7.2.4"]\
+            ["protobufjs", "npm:7.2.6"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -20694,6 +20694,25 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/unplugged/protobufjs-npm-7.2.4-c40bd79e8d/node_modules/protobufjs/",\
           "packageDependencies": [\
             ["protobufjs", "npm:7.2.4"],\
+            ["@protobufjs/aspromise", "npm:1.1.2"],\
+            ["@protobufjs/base64", "npm:1.1.2"],\
+            ["@protobufjs/codegen", "npm:2.0.4"],\
+            ["@protobufjs/eventemitter", "npm:1.1.0"],\
+            ["@protobufjs/fetch", "npm:1.1.0"],\
+            ["@protobufjs/float", "npm:1.0.2"],\
+            ["@protobufjs/inquire", "npm:1.1.0"],\
+            ["@protobufjs/path", "npm:1.1.2"],\
+            ["@protobufjs/pool", "npm:1.1.0"],\
+            ["@protobufjs/utf8", "npm:1.1.0"],\
+            ["@types/node", "npm:20.6.2"],\
+            ["long", "npm:5.2.3"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:7.2.6", {\
+          "packageLocation": "./.yarn/unplugged/protobufjs-npm-7.2.6-4bb38caa1d/node_modules/protobufjs/",\
+          "packageDependencies": [\
+            ["protobufjs", "npm:7.2.6"],\
             ["@protobufjs/aspromise", "npm:1.1.2"],\
             ["@protobufjs/base64", "npm:1.1.2"],\
             ["@protobufjs/codegen", "npm:2.0.4"],\
@@ -23529,7 +23548,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["terra-integration-tests", "workspace:integration-tests"],\
             ["@axe-core/puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:4.6.0"],\
-            ["@google-cloud/secret-manager", "npm:4.0.0"],\
+            ["@google-cloud/secret-manager", "npm:4.2.2"],\
             ["date-fns", "npm:2.24.0"],\
             ["google-auth-library", "npm:7.14.1"],\
             ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
