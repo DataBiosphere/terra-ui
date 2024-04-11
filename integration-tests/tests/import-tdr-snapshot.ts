@@ -23,7 +23,7 @@ const importTdrSnapshot = _.flow(
   const importUrl = `${testUrl}/#import-data?${qs.stringify({
     format: 'tdrexport',
     snapshotId: tdrSnapshot.id,
-    snapshotName: 'aj_group_constraint_test_dataset_1_snapshot_1',
+    snapshotName: tdrSnapshot.name,
     tdrmanifest: tdrSnapshot.manifestUrl,
     tdrSyncPermissions: false,
     url: tdrSnapshot.tdrUrl,
