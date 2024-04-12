@@ -4,6 +4,7 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
+import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
@@ -79,6 +80,7 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
         .ExternalCredentials(provider)
         .linkAccountWithAuthorizationCode(code, state);
       authStore.update(_.set(['oAuth2AccountStatus', provider.key], accountInfo));
+      Ajax().Metrics.captureEvent(Events.user.externalCredential.link, { provider: provider.key });
       setIsLinking(false);
     });
 
