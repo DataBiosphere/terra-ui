@@ -3,7 +3,8 @@ import { div, h, p, span } from 'react-hyperscript-helpers';
 import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { WarningTitle } from 'src/analysis/modals/WarningTitle';
-import { RadioBlock, SaveFilesHelpAzure, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-components';
+import { RadioBlock } from 'src/analysis/runtime-common-components';
+import { SaveFilesHelpAzure, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-text';
 import { runtimeToolLabels, ToolLabel } from 'src/analysis/utils/tool-utils';
 import TitleBar from 'src/components/TitleBar';
 import {

@@ -1,11 +1,7 @@
-import { Fragment } from 'react';
+import React, { Fragment } from 'react';
 import { code, h, p, span } from 'react-hyperscript-helpers';
-import {
-  RadioBlock,
-  SaveFilesHelp,
-  SaveFilesHelpAzure,
-  SaveFilesHelpRStudio,
-} from 'src/analysis/runtime-common-components';
+import { RadioBlock } from 'src/analysis/runtime-common-components';
+import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-text';
 import { getMountDir, mountPoints, ToolLabel } from 'src/analysis/utils/tool-utils';
 import { cloudServiceTypes, ComputeType } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import * as Utils from 'src/libs/utils';
@@ -72,7 +68,7 @@ export const DeleteDiskChoices = ({
         p({ style: { marginBottom: 0 } }, ['Also deletes your application configuration and cloud compute profile.']),
       ]
     ),
-    Utils.cond(
+    Utils.cond<React.ReactNode>(
       [toolLabel === 'RStudio', () => h(SaveFilesHelpRStudio)],
       [cloudService === cloudServiceTypes.GCE, () => SaveFilesHelp({ isGalaxyDisk: false })],
       [Utils.DEFAULT, () => h(SaveFilesHelpAzure)]

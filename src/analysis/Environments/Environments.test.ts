@@ -95,9 +95,7 @@ const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): Envi
     leoRuntimeData: getMockLeoRuntimeProvider(),
     leoDiskData: getMockLeoDiskProvider(),
     permissions: mockPermissions,
-    metrics: {
-      captureEvent: jest.fn(),
-    },
+    onDataRefresh: jest.fn(),
   };
   asMockedFn(defaultProps.useWorkspaces).mockReturnValue(defaultUseWorkspacesProps);
 

@@ -42,6 +42,16 @@ const actionLogAsyncFn = (name: string) => {
   return storyAlert;
 };
 
+const actionLogFn = (name: string) => {
+  const storyAlert = (...args: any[]) => {
+    const log = [`${name} method called with:`, ...args];
+    action(name)(log);
+    // eslint-disable-next-line no-console
+    console.log(log);
+  };
+  return storyAlert;
+};
+
 const runtimesStore = atom<ListRuntimeItem[]>([]);
 const disksStore = atom<PersistentDisk[]>([]);
 
@@ -108,10 +118,6 @@ const getMockUseWorkspaces = (mockResults: WorkspaceWrapper[]): EnvironmentsProp
   return useMockHook;
 };
 
-const getMockMetrics = (): EnvironmentsProps['metrics'] => ({
-  captureEvent: actionLogAsyncFn('metrics.captureEvent'),
-});
-
 const getMockNav = (): EnvironmentsProps['nav'] => ({
   // eslint-disable-next-line no-alert
   navTo: (navKey) => alert(navKey),
@@ -145,8 +151,8 @@ export const HappyEnvironments: Story = {
             leoAppData={getMockLeoApps()}
             leoRuntimeData={getMockLeoRuntimes()}
             leoDiskData={getMockLeoDisks()}
-            metrics={getMockMetrics()}
             permissions={happyPermissions}
+            onDataRefresh={actionLogFn('onDataRefresh')}
           />
         </NotificationsProvider>
       );
@@ -171,8 +177,8 @@ export const NoEnvironments: Story = {
             leoAppData={getMockLeoApps()}
             leoRuntimeData={getMockLeoRuntimes()}
             leoDiskData={getMockLeoDisks()}
-            metrics={getMockMetrics()}
             permissions={happyPermissions}
+            onDataRefresh={actionLogFn('onDataRefresh')}
           />
         </NotificationsProvider>
       );
@@ -200,8 +206,8 @@ export const DeleteError: Story = {
               delete: () => Promise.reject(Error('BOOM!')),
             }}
             leoDiskData={getMockLeoDisks()}
-            metrics={getMockMetrics()}
             permissions={happyPermissions}
+            onDataRefresh={actionLogFn('onDataRefresh')}
           />
         </NotificationsProvider>
       );

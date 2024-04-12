@@ -2,9 +2,9 @@ import { Spinner } from '@terra-ui-packages/components';
 import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
-import { b, div, h, input, label, p } from 'react-hyperscript-helpers';
+import { b, div, h, input, label } from 'react-hyperscript-helpers';
 import { getConvertedRuntimeStatus, usableStatuses } from 'src/analysis/utils/runtime-utils';
-import { ButtonPrimary, IdContainer, Link, spinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { icon } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
@@ -170,87 +170,6 @@ export function PeriodicAzureCookieSetter({ proxyUrl, forApp = false }) {
   return null;
 }
 
-export const SaveFilesHelp = ({ isGalaxyDisk = false }) => {
-  return h(Fragment, [
-    p([
-      'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
-      h(
-        Link,
-        {
-          'aria-label': 'Save file help',
-          href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-          ...Utils.newTabLinkProps,
-        },
-        ['move them to the workspace bucket.']
-      ),
-      !isGalaxyDisk ? 'Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.' : '',
-    ]),
-  ]);
-};
-
-export const SaveFilesHelpRStudio = () => {
-  return h(Fragment, [
-    p([
-      'If you want to save files permanently, including input data, analysis outputs, installed packages or code in your session, ',
-      h(
-        Link,
-        {
-          'aria-label': 'RStudio save help',
-          href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-          ...Utils.newTabLinkProps,
-        },
-        ['move them to the workspace bucket.']
-      ),
-    ]),
-  ]);
-};
-
-export const SaveFilesHelpGalaxy = () => {
-  return h(Fragment, [
-    p([
-      'Deleting your Cloud Environment will stop your ',
-      'running Galaxy application and your application costs. You can create a new Cloud Environment ',
-      'for Galaxy later, which will take 8-10 minutes.',
-    ]),
-    p([
-      'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
-      h(
-        Link,
-        {
-          'aria-label': 'Galaxy save help',
-          href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-          ...Utils.newTabLinkProps,
-        },
-        ['move them to the workspace bucket.']
-      ),
-    ]),
-  ]);
-};
-
-export const SaveFilesHelpAzure = () => {
-  return h(Fragment, [
-    p([
-      'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
-      h(
-        Link,
-        {
-          'aria-label': 'Save file help',
-          href: 'https://support.terra.bio/hc/en-us/articles/12043575737883',
-          ...Utils.newTabLinkProps,
-        },
-        ['move them to the workspace bucket.']
-      ),
-    ]),
-  ]);
-};
-
-export const GalaxyWarning = () => {
-  return h(Fragment, [
-    p({ style: { fontWeight: 600 } }, 'Important: Please keep this tab open and logged in to Terra while using Galaxy.'),
-    p('Galaxy will open in a new tab. '),
-  ]);
-};
-
 export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
   const cookieReady = useStore(cookieReadyStore);
   return h(
@@ -269,8 +188,3 @@ export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
     ['Open Galaxy']
   );
 };
-
-export const appLauncherTabName = 'workspace-application-launch';
-export const appLauncherWithAnalysisTabName = `${appLauncherTabName}-with-analysis`;
-export const analysisLauncherTabName = 'workspace-analysis-launch';
-export const analysisTabName = 'workspace-analyses';
