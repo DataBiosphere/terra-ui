@@ -111,6 +111,10 @@ const eventsList = {
     },
     register: 'user:register',
     sessionTimeout: 'user:sessionTimeout',
+    externalCredential: {
+      link: 'user:externalCredential:link',
+      unlink: 'user:externalCredential:unlink',
+    },
   },
   workflowClearIO: 'workflow:clearIO',
   workflowImport: 'workflow:import',
