@@ -1,20 +1,22 @@
 import { useEffect } from 'react';
-import { SignOutState, userSignedOut } from 'src/auth/signout/sign-out';
+import { SignOutCause, SignOutRedirect, userSignedOut } from 'src/auth/signout/sign-out';
 import * as Nav from 'src/libs/nav';
 
 export const signOutCallbackLinkName = 'signout-callback';
 export const SignOutPage = () => {
   const { query } = Nav.useRoute();
   const { state } = query;
-  const decodedState: SignOutState | undefined = state ? JSON.parse(atob(state)).postLogoutRedirect : undefined;
+  const { signOutRedirect, signOutCause }: { signOutRedirect?: SignOutRedirect; signOutCause?: SignOutCause } = state
+    ? JSON.parse(atob(state))
+    : {};
   useEffect(() => {
     try {
-      userSignedOut();
+      userSignedOut(signOutCause);
     } catch (e) {
       console.error(e);
     }
-    if (decodedState) {
-      Nav.goToPath(decodedState.name, decodedState.params, decodedState.query);
+    if (signOutRedirect) {
+      Nav.goToPath(signOutRedirect.name, signOutRedirect.params, signOutRedirect.query);
     } else {
       Nav.goToPath('root');
     }
