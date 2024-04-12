@@ -154,13 +154,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         apps: newApps.length,
       });
     }
-    // metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, {
-    //   leoCallTimeMs: leoCallTimeTotalMs,
-    //   totalCallTimeMs: leoCallTimeTotalMs,
-    //   runtimes: newRuntimes.length,
-    //   disks: newDisks.length,
-    //   apps: newApps.length,
-    // });
 
     const decorateLabeledResourceWithWorkspace = <T extends ListRuntimeItem | PersistentDisk | App>(
       cloudObject: T
