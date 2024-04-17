@@ -62,7 +62,7 @@ const getMockLeoRuntimeProvider = (overrides?: Partial<LeoRuntimeProvider>): Leo
     delete: jest.fn(),
   };
   asMockedFn(defaultProvider.list).mockResolvedValue([]);
-
+  q;
   return { ...defaultProvider, ...overrides };
 };
 
@@ -70,6 +70,8 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
   const defaultProvider: LeoDiskProvider = {
     list: jest.fn(),
     delete: jest.fn(),
+    update: jest.fn(),
+    details: jest.fn(),
   };
   asMockedFn(defaultProvider.list).mockResolvedValue([]);
 
