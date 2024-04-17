@@ -219,19 +219,7 @@ const withWorkspace = (test) => async (options) => {
 };
 
 const withProtectedWorkspace = (test) => async (options) => {
-  console.log('withWorkspace ...');
-  const { workspaceName } = await makeGcpWorkspace({ ...options, isProtected: true });
-
-  try {
-    await test({ ...options, workspaceName });
-  } finally {
-    console.log('withWorkspace cleanup ...');
-    const didDelete = await withSignedInPage(deleteWorkspaceInUi)({ ...options, workspaceName });
-    if (!didDelete) {
-      // Pass test on a failed cleanup - expect leaked resources to be cleaned up by the test `delete-orphaned-workspaces`
-      console.error(`Unable to delete workspace ${workspaceName} via the UI. The resource will be leaked!`);
-    }
-  }
+  return withWorkspace(test)({ ...options, isProtected: true });
 };
 
 /** Create an Azure workspace, run the given test, then delete the workspace. */
