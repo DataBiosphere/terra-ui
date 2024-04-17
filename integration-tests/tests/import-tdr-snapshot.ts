@@ -55,6 +55,7 @@ const importTdrSnapshot = _.flow(
   await waitForNoSpinners(page);
 
   // Assert policy has propagated from snapshot to workspace
+  await findText(page, 'Data Access ControlsYes');
   await click(page, clickable({ text: 'Authorization domain' }));
   await findText(page, tdrSnapshot.groupConstraint);
 });
