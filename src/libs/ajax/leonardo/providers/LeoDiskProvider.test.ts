@@ -1,6 +1,6 @@
-import { Ajax } from 'src/libs/ajax';
 import {
   DiskAjaxContract,
+  Disks,
   DisksAjaxContract,
   DisksAjaxContractV1,
   DisksAjaxContractV2,
@@ -9,14 +9,13 @@ import { asMockedFn } from 'src/testing/test-utils';
 
 import { DiskBasics, leoDiskProvider } from './LeoDiskProvider';
 
-jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/leonardo/Disks');
 
-type AjaxContract = ReturnType<typeof Ajax>;
-type DiskNeeds = Pick<DiskAjaxContract, 'delete'>;
+type DiskNeeds = Pick<DiskAjaxContract, 'delete' | 'details' | 'update'>;
 type DisksV1Needs = Pick<DisksAjaxContractV1, 'list' | 'disk'>;
 type DisksV2Needs = Pick<DisksAjaxContractV2, 'delete'>;
 
-interface AjaxMockNeeds {
+interface DiskMockNeeds {
   DisksV1: DisksV1Needs;
   DisksV2: DisksV2Needs;
   disk: DiskNeeds;
@@ -29,9 +28,11 @@ interface AjaxMockNeeds {
  * @return collection of key contract sub-objects for easy
  * mock overrides and/or method spying/assertions
  */
-const mockAjaxNeeds = (): AjaxMockNeeds => {
+const mockDiskNeeds = (): DiskMockNeeds => {
   const partialDisk: DiskNeeds = {
     delete: jest.fn(),
+    details: jest.fn(),
+    update: jest.fn(),
   };
   const mockDisk = partialDisk as DiskAjaxContract;
 
@@ -56,7 +57,7 @@ const mockAjaxNeeds = (): AjaxMockNeeds => {
   asMockedFn(mockDisks.disksV1).mockReturnValue(mockDisksV1);
   asMockedFn(mockDisks.disksV2).mockReturnValue(mockDisksV2);
 
-  asMockedFn(Ajax).mockReturnValue({ Disks: mockDisks } as AjaxContract);
+  asMockedFn(Disks).mockReturnValue(mockDisks);
 
   return {
     DisksV1: partialDisksV1,
@@ -67,24 +68,24 @@ const mockAjaxNeeds = (): AjaxMockNeeds => {
 describe('leoDiskProvider', () => {
   it('handles list call', async () => {
     // Arrange
-    const ajaxMock = mockAjaxNeeds();
-    asMockedFn(ajaxMock.DisksV1.list).mockResolvedValue([]);
+    const diskMock = mockDiskNeeds();
+    asMockedFn(diskMock.DisksV1.list).mockResolvedValue([]);
     const signal = new window.AbortController().signal;
 
     // Act
     const result = await leoDiskProvider.list({ arg: '1' }, { signal });
 
     // Assert;
-    expect(Ajax).toBeCalledTimes(1);
-    expect(Ajax).toBeCalledWith(signal);
-    expect(ajaxMock.DisksV1.list).toBeCalledTimes(1);
-    expect(ajaxMock.DisksV1.list).toBeCalledWith({ arg: '1' });
+    expect(Disks).toBeCalledTimes(1);
+    expect(Disks).toBeCalledWith(signal);
+    expect(diskMock.DisksV1.list).toBeCalledTimes(1);
+    expect(diskMock.DisksV1.list).toBeCalledWith({ arg: '1' });
     expect(result).toEqual([]);
   });
 
   it('handles delete disk call for GCP', async () => {
     // Arrange
-    const ajaxMock = mockAjaxNeeds();
+    const diskMock = mockDiskNeeds();
     const abort = new window.AbortController();
     const disk: DiskBasics = {
       name: 'myDiskName',
@@ -100,16 +101,16 @@ describe('leoDiskProvider', () => {
     void (await leoDiskProvider.delete(disk, { signal: abort.signal }));
 
     // Assert;
-    expect(Ajax).toBeCalledTimes(1);
-    expect(Ajax).toBeCalledWith(abort.signal);
-    expect(ajaxMock.DisksV1.disk).toBeCalledTimes(1);
-    expect(ajaxMock.DisksV1.disk).toBeCalledWith('myGoogleProject', 'myDiskName');
-    expect(ajaxMock.disk.delete).toBeCalledTimes(1);
+    expect(Disks).toBeCalledTimes(1);
+    expect(Disks).toBeCalledWith(abort.signal);
+    expect(diskMock.DisksV1.disk).toBeCalledTimes(1);
+    expect(diskMock.DisksV1.disk).toBeCalledWith('myGoogleProject', 'myDiskName');
+    expect(diskMock.disk.delete).toBeCalledTimes(1);
   });
 
   it('handles delete disk call for Azure', async () => {
     // Arrange
-    const ajaxMock = mockAjaxNeeds();
+    const diskMock = mockDiskNeeds();
     const abort = new window.AbortController();
     const disk: DiskBasics = {
       name: 'myDiskName',
@@ -125,9 +126,58 @@ describe('leoDiskProvider', () => {
     void (await leoDiskProvider.delete(disk, { signal: abort.signal }));
 
     // Assert;
-    expect(Ajax).toBeCalledTimes(1);
-    expect(Ajax).toBeCalledWith(abort.signal);
-    expect(ajaxMock.DisksV2.delete).toBeCalledTimes(1);
-    expect(ajaxMock.DisksV2.delete).toBeCalledWith(123);
+    expect(Disks).toBeCalledTimes(1);
+    expect(Disks).toBeCalledWith(abort.signal);
+    expect(diskMock.DisksV2.delete).toBeCalledTimes(1);
+    expect(diskMock.DisksV2.delete).toBeCalledWith(123);
+  });
+
+  it('handles details call for GCP', async () => {
+    const diskMock = mockDiskNeeds();
+    const abort = new window.AbortController();
+    const disk: DiskBasics = {
+      name: 'myDiskName',
+      id: 123,
+      cloudContext: {
+        cloudProvider: 'GCP',
+        cloudResource: 'myGoogleProject',
+      },
+    };
+
+    // Act
+    // calls to this method generally don't care about passing in signal, but doing it here for completeness
+    void (await leoDiskProvider.details(disk, { signal: abort.signal }));
+
+    // Assert;
+    expect(Disks).toBeCalledTimes(1);
+    expect(Disks).toBeCalledWith(abort.signal);
+    expect(diskMock.DisksV1.disk).toBeCalledTimes(1);
+    expect(diskMock.DisksV1.disk).toBeCalledWith('myGoogleProject', 'myDiskName');
+    expect(diskMock.disk.details).toBeCalledTimes(1);
+  });
+
+  it('handles update call for GCP', async () => {
+    const diskMock = mockDiskNeeds();
+    const abort = new window.AbortController();
+    const disk: DiskBasics = {
+      name: 'myDiskName',
+      id: 123,
+      cloudContext: {
+        cloudProvider: 'GCP',
+        cloudResource: 'myGoogleProject',
+      },
+    };
+
+    // Act
+    // calls to this method generally don't care about passing in signal, but doing it here for completeness
+    void (await leoDiskProvider.update(disk, 100, { signal: abort.signal }));
+
+    // Assert;
+    expect(Disks).toBeCalledTimes(1);
+    expect(Disks).toBeCalledWith(abort.signal);
+    expect(diskMock.DisksV1.disk).toBeCalledTimes(1);
+    expect(diskMock.DisksV1.disk).toBeCalledWith('myGoogleProject', 'myDiskName');
+    expect(diskMock.disk.update).toBeCalledTimes(1);
+    expect(diskMock.disk.update).toBeCalledWith(100);
   });
 });
