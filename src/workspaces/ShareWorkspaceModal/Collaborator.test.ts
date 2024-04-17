@@ -208,7 +208,7 @@ describe('a Collaborator component', () => {
     expect(setAcl).toHaveBeenCalledTimes(1);
   });
 
-  describe('only allows owners and project owners to share compute', () => {
+  describe('only allows owners and project owners to share with additional permissions', () => {
     const setAcl = jest.fn();
     const aclMock = asMockedFn(setAcl);
     const item: AccessEntry = {
@@ -220,7 +220,7 @@ describe('a Collaborator component', () => {
     };
     const acl = [item];
 
-    it('allows an owner to share compute', async () => {
+    it('allows an owner to share with additional permissions', async () => {
       // Act
       render(
         h(Collaborator, {
@@ -236,8 +236,12 @@ describe('a Collaborator component', () => {
       const canCompute = screen.getByText('Can compute');
       expect(canCompute).not.toBeNull();
       expect(canCompute).not.toHaveAttribute('disabled');
+
+      const canShare = screen.getByText('Can share');
+      expect(canShare).not.toBeNull();
+      expect(canShare).not.toHaveAttribute('disabled');
     });
-    it('allows a project owner to share compute', async () => {
+    it('allows a project owner to share with additional permissions', async () => {
       // Act
       render(
         h(Collaborator, {
@@ -253,8 +257,12 @@ describe('a Collaborator component', () => {
       const canCompute = screen.getByText('Can compute');
       expect(canCompute).not.toBeNull();
       expect(canCompute).not.toHaveAttribute('disabled');
+
+      const canShare = screen.getByText('Can share');
+      expect(canShare).not.toBeNull();
+      expect(canShare).not.toHaveAttribute('disabled');
     });
-    it('does not allow a writer to share compute', async () => {
+    it('does not allow a writer to share with additional permissions', async () => {
       // Act
       render(
         h(Collaborator, {
@@ -270,6 +278,10 @@ describe('a Collaborator component', () => {
       const canCompute = screen.getByText('Can compute');
       expect(canCompute).not.toBeNull();
       expect(canCompute).toHaveAttribute('disabled');
+
+      const canShare = screen.getByText('Can share');
+      expect(canShare).not.toBeNull();
+      expect(canShare).toHaveAttribute('disabled');
     });
   });
 });

@@ -94,7 +94,7 @@ interface AclInputProps extends AclSelectProps {
 export const AclInput: React.FC<AclInputProps> = (props: AclInputProps) => {
   const { value, onChange, disabled, maxAccessLevel, isAzureWorkspace, autoFocus, ...rest } = props;
   const { accessLevel, canShare, canCompute } = value;
-  const userCanShareCompute = ['OWNER', 'PROJECT_OWNER'].includes(maxAccessLevel);
+  const userCanShareAdditionalPerms = ['OWNER', 'PROJECT_OWNER'].includes(maxAccessLevel);
   return div({ style: { display: 'flex', marginTop: '0.25rem' } }, [
     div({ style: { width: isAzureWorkspace ? 425 : 200 } }, [
       h(AclSelect, {
@@ -126,7 +126,7 @@ export const AclInput: React.FC<AclInputProps> = (props: AclInputProps) => {
           h(
             LabeledCheckbox,
             {
-              disabled: disabled || accessLevel === 'OWNER',
+              disabled: disabled || !userCanShareAdditionalPerms,
               checked: canShare,
               onChange: () => onChange(_.update('canShare', (b) => !b, value)),
             },
@@ -137,7 +137,7 @@ export const AclInput: React.FC<AclInputProps> = (props: AclInputProps) => {
           h(
             LabeledCheckbox,
             {
-              disabled: disabled || !userCanShareCompute,
+              disabled: disabled || !userCanShareAdditionalPerms,
               checked: canCompute,
               onChange: () => onChange(_.update('canCompute', (b) => !b, value)),
             },
