@@ -22,12 +22,11 @@ export const useCloudEnvironmentPolling = (
   namespace: string,
   workspace?: Workspace
 ): CloudEnvironmentDetails => {
-  const [controller, setController] = useState(new window.AbortController());
+  const controller = useRef(new window.AbortController());
   const abort = () => {
-    controller.abort();
-    setController(new window.AbortController());
+    controller.current.abort();
+    controller.current = new window.AbortController();
   };
-  const signal = controller.signal;
 
   const timeout = useRef<NodeJS.Timeout>();
   const [runtimes, setRuntimes] = useState<ListRuntimeItem[]>();
@@ -53,13 +52,13 @@ export const useCloudEnvironmentPolling = (
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
       const [newDisks, newRuntimes] = await Promise.all([
-        Ajax(signal)
+        Ajax(controller.current.signal)
           .Disks.disksV1()
           .list({
             ...cloudEnvFilters,
             includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace',
           }),
-        Ajax(signal).Runtimes.listV2(cloudEnvFilters),
+        Ajax(controller.current.signal).Runtimes.listV2(cloudEnvFilters),
       ]);
 
       setRuntimes(newRuntimes);
