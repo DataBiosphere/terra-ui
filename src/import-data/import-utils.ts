@@ -61,8 +61,8 @@ export const canImportIntoWorkspace = (importOptions: ImportOptions, workspace: 
     return false;
   }
 
-  // If the source data is protected, the destination workspace must also be protected.
-  if (isProtectedData && !isProtectedWorkspace(workspace)) {
+  // If the source data is protected, the destination workspace must also be protected and not public.
+  if (isProtectedData && !(isProtectedWorkspace(workspace) && !workspace.public)) {
     return false;
   }
 

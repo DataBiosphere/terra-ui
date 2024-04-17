@@ -94,6 +94,23 @@ describe('canImportIntoWorkspace', () => {
     expect(canImportProtectedDataIntoUnprotectedGoogleWorkspace).toBe(false);
   });
 
+  it('requires a non-public workspace for protected data', () => {
+    // Arrange
+    const protectedPublicGoogleWorkspace = makeGoogleWorkspace({
+      workspace: { bucketName: 'fc-secure-00001111-2222-3333-aaaa-bbbbccccdddd' },
+      public: true,
+    });
+
+    // Act
+    const canImportProtectedDataIntoProtectedPublicWorkspace = canImportIntoWorkspace(
+      { isProtectedData: true },
+      protectedPublicGoogleWorkspace
+    );
+
+    // Assert
+    expect(canImportProtectedDataIntoProtectedPublicWorkspace).toBe(false);
+  });
+
   it('can require an authorization domain', () => {
     // Arrange
     const requiredAuthDomain = 'test-ad';
