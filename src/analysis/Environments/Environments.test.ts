@@ -62,7 +62,6 @@ const getMockLeoRuntimeProvider = (overrides?: Partial<LeoRuntimeProvider>): Leo
     delete: jest.fn(),
   };
   asMockedFn(defaultProvider.list).mockResolvedValue([]);
-  q;
   return { ...defaultProvider, ...overrides };
 };
 
