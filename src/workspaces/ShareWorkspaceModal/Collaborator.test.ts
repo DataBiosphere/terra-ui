@@ -1,3 +1,4 @@
+import { expect } from '@storybook/test';
 import { fireEvent, screen } from '@testing-library/react';
 import { Dispatch, SetStateAction } from 'react';
 import { h } from 'react-hyperscript-helpers';
@@ -205,5 +206,70 @@ describe('a Collaborator component', () => {
     expect(writterPermission).not.toBeNull();
     fireEvent.click(writterPermission);
     expect(setAcl).toHaveBeenCalledTimes(1);
+  });
+
+  describe('only allows owners and project owners to share compute', () => {
+    const setAcl = jest.fn();
+    const aclMock = asMockedFn(setAcl);
+    const item: AccessEntry = {
+      email: 'user1@test.com',
+      pending: false,
+      canShare: true,
+      canCompute: true,
+      accessLevel: 'WRITER',
+    };
+    const acl = [item];
+
+    it('allows an owner to share compute', async () => {
+      // Act
+      render(
+        h(Collaborator, {
+          aclItem: item,
+          acl,
+          setAcl: aclMock,
+          originalAcl: acl,
+          workspace: { ...workspace, accessLevel: 'OWNER' },
+        })
+      );
+
+      // Assert
+      const canCompute = screen.getByText('Can compute');
+      expect(canCompute).not.toBeNull();
+      expect(canCompute).not.toHaveAttribute('disabled');
+    });
+    it('allows a project owner to share compute', async () => {
+      // Act
+      render(
+        h(Collaborator, {
+          aclItem: item,
+          acl,
+          setAcl: aclMock,
+          originalAcl: acl,
+          workspace: { ...workspace, accessLevel: 'PROJECT_OWNER' },
+        })
+      );
+
+      // Assert
+      const canCompute = screen.getByText('Can compute');
+      expect(canCompute).not.toBeNull();
+      expect(canCompute).not.toHaveAttribute('disabled');
+    });
+    it('does not allow a writer to share compute', async () => {
+      // Act
+      render(
+        h(Collaborator, {
+          aclItem: item,
+          acl,
+          setAcl: aclMock,
+          originalAcl: acl,
+          workspace: { ...workspace, accessLevel: 'WRITER' },
+        })
+      );
+
+      // Assert
+      const canCompute = screen.getByText('Can compute');
+      expect(canCompute).not.toBeNull();
+      expect(canCompute).toHaveAttribute('disabled');
+    });
   });
 });
