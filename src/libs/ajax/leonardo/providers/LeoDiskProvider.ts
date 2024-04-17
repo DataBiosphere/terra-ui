@@ -51,6 +51,6 @@ export const leoDiskProvider: LeoDiskProvider = {
       const googleProject = cloudContext.cloudResource;
       return Disks(signal).disksV1().disk(googleProject, name).update(newSize);
     }
-    throw new Error(`Updating disk details is currently only supported for google disks. Disk: ${disk}`);
+    throw new Error(`Updating disk is currently only supported for google disks. Disk: ${disk}`);
   },
 };
