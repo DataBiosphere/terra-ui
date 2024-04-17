@@ -22,5 +22,17 @@ module.exports = {
     billingProjectAzure: 'dsp-staging-testing-20230915',
     testUrl: 'https://bvdp-saturn-staging.appspot.com',
     workflowName: 'echo_to_file',
+    /**
+     * Snapshot imported in import-tdr-snapshot
+     * https://data.staging.envs-terra.bio/snapshots/cbd9a3a6-76ea-4311-bcd8-9be2d7cd2731
+     * */
+    tdrSnapshot: {
+      id: 'cbd9a3a6-76ea-4311-bcd8-9be2d7cd2731',
+      name: 'aj_group_constraint_test_dataset_1_snapshot_1',
+      manifestUrl:
+        'https://storage.googleapis.com/fixtures-for-tests/fixtures/public/tdr-snapshot/staging/aj_group_constraint_test_dataset_1_snapshot_1/manifest.json',
+      tdrUrl: 'https://data.staging.envs-terra.bio.broadinstitute.org',
+      groupConstraint: 'aj-group-constraint-test',
+    },
   },
 };

@@ -62,5 +62,4 @@ const importTdrSnapshot = _.flow(
 registerTest({
   name: 'import-tdr-snapshot',
   fn: importTdrSnapshot,
-  targetEnvironments: ['dev'],
 });
