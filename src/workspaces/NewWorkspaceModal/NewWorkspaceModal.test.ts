@@ -54,6 +54,7 @@ interface SetupResult {
   containerInfo: jest.MockedFunction<AzureStorageContract['containerInfo']>;
   cloneWorkspace: jest.MockedFunction<ReturnType<AjaxContract['Workspaces']['workspace']>['clone']>;
   createWorkspace: jest.MockedFunction<AjaxContract['Workspaces']['create']>;
+  getWorkspaceDetails: jest.MockedFunction<ReturnType<AjaxContract['Workspaces']['workspace']>['details']>;
   listApps: jest.MockedFunction<AjaxContract['Apps']['listAppsV2']>;
   listWdsInstances: jest.MockedFunction<AjaxContract['WorkspaceData']['listInstances']>;
 }
@@ -68,6 +69,7 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
   });
   const cloneWorkspace = jest.fn().mockReturnValue(abandonedPromise());
   const createWorkspace = jest.fn().mockReturnValue(abandonedPromise());
+  const getWorkspaceDetails = jest.fn().mockResolvedValue({ workspace: { attributes: { description: '' } } });
   const captureEvent = jest.fn();
   const listApps = jest.fn().mockResolvedValue([]);
   const listWdsInstances = jest.fn().mockResolvedValue([]);
@@ -97,6 +99,7 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
           workspace: () => ({
             clone: cloneWorkspace,
             checkBucketLocation,
+            details: getWorkspaceDetails,
           }),
         },
         WorkspaceData: {
@@ -123,6 +126,7 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
     containerInfo,
     cloneWorkspace,
     createWorkspace,
+    getWorkspaceDetails,
     captureEvent,
     listApps,
     listWdsInstances,
@@ -1479,5 +1483,34 @@ describe('NewWorkspaceModal', () => {
       toWorkspaceRegion: selectedBillingProjectRegion,
     };
     expect(captureEvent).toHaveBeenCalledWith(Events.workspaceClone, expectedEvent);
+  });
+
+  it('loads full description when cloning a workspace', async () => {
+    // Arrange
+    const cloneWorkspace = makeGoogleWorkspace({
+      workspace: { attributes: { description: 'Important: before using this workspace,' } },
+    });
+
+    const { getWorkspaceDetails } = setup();
+    getWorkspaceDetails.mockResolvedValue({
+      workspace: {
+        attributes: { description: 'Important: before using this workspace, <rest of the instructions>.' },
+      },
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace,
+          onDismiss: () => {},
+          onSuccess: () => {},
+        })
+      );
+    });
+
+    // Assert
+    const descriptionInput = screen.getByLabelText('Description');
+    expect(descriptionInput).toHaveValue('Important: before using this workspace, <rest of the instructions>.');
   });
 });
