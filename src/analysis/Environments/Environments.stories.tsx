@@ -152,7 +152,7 @@ export const HappyEnvironments: Story = {
             leoRuntimeData={getMockLeoRuntimes()}
             leoDiskData={getMockLeoDisks()}
             permissions={happyPermissions}
-            onDataRefresh={actionLogFn('onDataRefresh')}
+            onEvent={actionLogFn('onEvent')}
           />
         </NotificationsProvider>
       );
@@ -178,7 +178,7 @@ export const NoEnvironments: Story = {
             leoRuntimeData={getMockLeoRuntimes()}
             leoDiskData={getMockLeoDisks()}
             permissions={happyPermissions}
-            onDataRefresh={actionLogFn('onDataRefresh')}
+            onEvent={actionLogFn('onEvent')}
           />
         </NotificationsProvider>
       );
@@ -207,7 +207,7 @@ export const DeleteError: Story = {
             }}
             leoDiskData={getMockLeoDisks()}
             permissions={happyPermissions}
-            onDataRefresh={actionLogFn('onDataRefresh')}
+            onEvent={actionLogFn('onEvent')}
           />
         </NotificationsProvider>
       );
