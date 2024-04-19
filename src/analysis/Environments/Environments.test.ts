@@ -95,7 +95,7 @@ const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): Envi
     leoRuntimeData: getMockLeoRuntimeProvider(),
     leoDiskData: getMockLeoDiskProvider(),
     permissions: mockPermissions,
-    onEvents: jest.fn(),
+    onEvent: jest.fn(),
   };
   asMockedFn(defaultProps.useWorkspaces).mockReturnValue(defaultUseWorkspacesProps);
 
@@ -890,8 +890,8 @@ describe('Environments Component', () => {
   //     }
   //   );
   // });
-  describe('onEvents', () => {
-    it('calls onEvents[onDataRefesh] with a runtime', async () => {
+  describe('onEvent', () => {
+    it('calls onEvent[onDataRefesh] with a runtime', async () => {
       // Arrange
       const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
@@ -903,8 +903,8 @@ describe('Environments Component', () => {
       });
 
       // Assert
-      expect(props.onEvents).toBeCalledTimes(1);
-      expect(props.onEvents).toBeCalledWith(
+      expect(props.onEvent).toBeCalledTimes(1);
+      expect(props.onEvent).toBeCalledWith(
         'onDataRefresh',
         // times are zeroed out because of mocked data calls
         { leoCallTimeMs: 0, totalCallTimeMs: 0, runtimes: 1, disks: 0, apps: 0 } satisfies DataRefreshInfo

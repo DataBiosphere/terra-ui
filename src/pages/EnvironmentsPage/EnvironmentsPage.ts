@@ -49,7 +49,7 @@ export const EnvironmentsPage = (): ReactNode => {
       leoRuntimeData: leoRuntimeProvider,
       leoDiskData: leoDiskProvider,
       permissions: leoResourcePermissions,
-      onEvents: (eventName, eventArgs) => {
+      onEvent: (eventName, eventArgs) => {
         switch (eventName) {
           case 'onDataRefresh':
             metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, eventArgs);

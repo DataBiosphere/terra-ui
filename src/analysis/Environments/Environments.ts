@@ -83,11 +83,11 @@ export interface EnvironmentsProps {
   leoRuntimeData: LeoRuntimeProviderNeeds;
   leoDiskData: LeoDiskProviderNeeds;
   permissions: LeoResourcePermissionsProvider;
-  onEvents?: KeyedEventHandler<EnvironmentsEvents>;
+  onEvent?: KeyedEventHandler<EnvironmentsEvents>;
 }
 
 export const Environments = (props: EnvironmentsProps): ReactNode => {
-  const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, onEvents } = props;
+  const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, onEvent } = props;
   const { colors } = useThemeFromContext();
   const { withErrorReporting } = withErrorReporter(useNotificationsFromContext());
   const signal = useCancellation();
@@ -149,8 +149,8 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     const endTimeForLeoCallsEpochMs = Date.now();
 
     const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs;
-    if (onEvents) {
-      onEvents('onDataRefresh', {
+    if (onEvent) {
+      onEvent('onDataRefresh', {
         leoCallTimeMs: leoCallTimeTotalMs,
         totalCallTimeMs: leoCallTimeTotalMs,
         runtimes: newRuntimes.length,

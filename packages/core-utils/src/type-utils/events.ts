@@ -14,7 +14,7 @@
  * // using KeyedEventHandler<MyComponentEvents> type will have then handler narrow
  * // its 2nd argument type based on the first argument:
  *
- *  onEvents: (eventName, eventArgs) => {
+ *  onEvent: (eventName, eventArgs) => {
  *    switch (eventName) {
  *      // eventArgs type narrowed to match expected args for eventName
  *    }
