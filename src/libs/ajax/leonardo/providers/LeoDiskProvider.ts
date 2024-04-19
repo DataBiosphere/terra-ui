@@ -42,7 +42,6 @@ export const leoDiskProvider: LeoDiskProvider = {
     }
     throw new Error(`Getting disk details is currently only supported for google disks. Disk: ${disk}`);
   },
-  // TODO: validation discussion
   update: (disk: DiskBasics, newSize: number, options: AbortOption = {}): Promise<void> => {
     const { signal } = options;
     const { cloudContext, name } = disk;

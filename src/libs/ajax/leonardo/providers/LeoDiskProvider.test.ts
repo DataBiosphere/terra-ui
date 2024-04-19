@@ -1,9 +1,9 @@
 import {
-  DiskAjaxContract,
   Disks,
-  DisksAjaxContract,
-  DisksAjaxContractV1,
-  DisksAjaxContractV2,
+  DisksContractV1,
+  DisksContractV2,
+  DisksDataClientContract,
+  DiskWrapperContract,
 } from 'src/libs/ajax/leonardo/Disks';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -11,9 +11,9 @@ import { DiskBasics, leoDiskProvider } from './LeoDiskProvider';
 
 jest.mock('src/libs/ajax/leonardo/Disks');
 
-type DiskNeeds = Pick<DiskAjaxContract, 'delete' | 'details' | 'update'>;
-type DisksV1Needs = Pick<DisksAjaxContractV1, 'list' | 'disk'>;
-type DisksV2Needs = Pick<DisksAjaxContractV2, 'delete'>;
+type DiskNeeds = Pick<DiskWrapperContract, 'delete' | 'details' | 'update'>;
+type DisksV1Needs = Pick<DisksContractV1, 'list' | 'disk'>;
+type DisksV2Needs = Pick<DisksContractV2, 'delete'>;
 
 interface DiskMockNeeds {
   DisksV1: DisksV1Needs;
@@ -34,23 +34,23 @@ const mockDiskNeeds = (): DiskMockNeeds => {
     details: jest.fn(),
     update: jest.fn(),
   };
-  const mockDisk = partialDisk as DiskAjaxContract;
+  const mockDisk = partialDisk as DiskWrapperContract;
 
   const partialDisksV1: DisksV1Needs = {
     disk: jest.fn(),
     list: jest.fn(),
   };
-  const mockDisksV1 = partialDisksV1 as DisksAjaxContractV1;
+  const mockDisksV1 = partialDisksV1 as DisksContractV1;
 
   const partialDisksV2: DisksV2Needs = {
     delete: jest.fn(),
   };
-  const mockDisksV2 = partialDisksV2 as DisksAjaxContractV2;
+  const mockDisksV2 = partialDisksV2 as DisksContractV2;
 
   asMockedFn(mockDisksV1.disk).mockReturnValue(mockDisk);
 
   // Ajax.Disks root
-  const mockDisks: DisksAjaxContract = {
+  const mockDisks: DisksDataClientContract = {
     disksV1: jest.fn(),
     disksV2: jest.fn(),
   };

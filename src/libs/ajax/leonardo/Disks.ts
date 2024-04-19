@@ -56,8 +56,7 @@ export const Disks = (signal?: AbortSignal) => {
   };
 };
 
-// TODO: these should be deletable?
-export type DisksAjaxContract = ReturnType<typeof Disks>;
-export type DisksAjaxContractV1 = ReturnType<DisksAjaxContract['disksV1']>;
-export type DisksAjaxContractV2 = ReturnType<DisksAjaxContract['disksV2']>;
-export type DiskAjaxContract = ReturnType<DisksAjaxContractV1['disk']>;
+export type DisksDataClientContract = ReturnType<typeof Disks>;
+export type DisksContractV1 = ReturnType<DisksDataClientContract['disksV1']>;
+export type DisksContractV2 = ReturnType<DisksDataClientContract['disksV2']>;
+export type DiskWrapperContract = ReturnType<DisksContractV1['disk']>;
