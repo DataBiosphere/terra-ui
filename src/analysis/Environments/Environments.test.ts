@@ -25,7 +25,7 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
-import { EnvironmentNavActions, Environments, EnvironmentsProps } from './Environments';
+import { DataRefreshInfo, EnvironmentNavActions, Environments, EnvironmentsProps } from './Environments';
 import { LeoResourcePermissionsProvider } from './Environments.models';
 
 jest.mock('src/libs/notifications', () => ({
@@ -95,7 +95,7 @@ const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): Envi
     leoRuntimeData: getMockLeoRuntimeProvider(),
     leoDiskData: getMockLeoDiskProvider(),
     permissions: mockPermissions,
-    onDataRefresh: jest.fn(),
+    onEvents: jest.fn(),
   };
   asMockedFn(defaultProps.useWorkspaces).mockReturnValue(defaultUseWorkspacesProps);
 
@@ -104,7 +104,7 @@ const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): Envi
   return finalizedProps;
 };
 
-describe('Environments', () => {
+describe('Environments Component', () => {
   describe('Runtimes - ', () => {
     it('Renders page correctly with runtimes and no found workspaces', async () => {
       // Arrange
@@ -890,6 +890,27 @@ describe('Environments', () => {
   //     }
   //   );
   // });
+  describe('onEvents', () => {
+    it('calls onEvents[onDataRefesh] with a runtime', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
+      const runtime1 = generateTestListGoogleRuntime();
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
+
+      // Act
+      await act(async () => {
+        render(h(Environments, props));
+      });
+
+      // Assert
+      expect(props.onEvents).toBeCalledTimes(1);
+      expect(props.onEvents).toBeCalledWith(
+        'onDataRefresh',
+        // times are zeroed out because of mocked data calls
+        { leoCallTimeMs: 0, totalCallTimeMs: 0, runtimes: 1, disks: 0, apps: 0 } satisfies DataRefreshInfo
+      );
+    });
+  });
 });
 
 const getTextContentForColumn = (row, column) => getAllByRole(row, 'cell')[column].textContent;

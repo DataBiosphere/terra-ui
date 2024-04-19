@@ -81,7 +81,7 @@ describe('Environments Page', () => {
       runtimes: 3,
     };
     asMockedFn(Environments).mockImplementation((props: EnvironmentsProps): React.ReactNode => {
-      props.onDataRefresh && props.onDataRefresh(refreshInfo);
+      props.onEvents && props.onEvents('onDataRefresh', refreshInfo);
       return 'Mock Environments';
     });
     // Act

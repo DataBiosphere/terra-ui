@@ -49,8 +49,14 @@ export const EnvironmentsPage = (): ReactNode => {
       leoRuntimeData: leoRuntimeProvider,
       leoDiskData: leoDiskProvider,
       permissions: leoResourcePermissions,
-      onDataRefresh: (info) => {
-        metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, info);
+      onEvents: (eventName, eventArgs) => {
+        switch (eventName) {
+          case 'onDataRefresh':
+            metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, eventArgs);
+            break;
+          default:
+            break;
+        }
       },
     }),
   ]);

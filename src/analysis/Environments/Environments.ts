@@ -1,5 +1,5 @@
 import { PopupTrigger, TooltipTrigger, useModalHandler, useThemeFromContext } from '@terra-ui-packages/components';
-import { formatDatetime, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
+import { formatDatetime, KeyedEventHandler, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
 import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
@@ -72,6 +72,10 @@ export interface DataRefreshInfo {
   apps: number;
 }
 
+export interface EnvironmentsEvents {
+  onDataRefresh: DataRefreshInfo;
+}
+
 export interface EnvironmentsProps {
   nav: NavLinkProvider<EnvironmentNavActions>;
   useWorkspaces: UseWorkspaces;
@@ -79,11 +83,11 @@ export interface EnvironmentsProps {
   leoRuntimeData: LeoRuntimeProviderNeeds;
   leoDiskData: LeoDiskProviderNeeds;
   permissions: LeoResourcePermissionsProvider;
-  onDataRefresh?: (info: DataRefreshInfo) => void;
+  onEvents?: KeyedEventHandler<EnvironmentsEvents>;
 }
 
 export const Environments = (props: EnvironmentsProps): ReactNode => {
-  const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, onDataRefresh } = props;
+  const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, onEvents } = props;
   const { colors } = useThemeFromContext();
   const { withErrorReporting } = withErrorReporter(useNotificationsFromContext());
   const signal = useCancellation();
@@ -145,8 +149,8 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     const endTimeForLeoCallsEpochMs = Date.now();
 
     const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs;
-    if (onDataRefresh) {
-      onDataRefresh({
+    if (onEvents) {
+      onEvents('onDataRefresh', {
         leoCallTimeMs: leoCallTimeTotalMs,
         totalCallTimeMs: leoCallTimeTotalMs,
         runtimes: newRuntimes.length,
