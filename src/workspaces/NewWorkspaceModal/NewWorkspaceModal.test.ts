@@ -1,10 +1,10 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { abandonedPromise, DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn, withFakeTimers } from '@terra-ui-packages/test-utils';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { CloudPlatform } from 'src/billing-core/models';
+import { BillingProject, CloudPlatform } from 'src/billing-core/models';
 import { Ajax } from 'src/libs/ajax';
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
@@ -20,6 +20,7 @@ import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-
 import {
   defaultAzureWorkspace,
   defaultGoogleWorkspace,
+  makeGoogleWorkspace,
   mockBucketRequesterPaysError,
   protectedAzureWorkspace,
 } from 'src/testing/workspace-fixtures';
@@ -28,6 +29,7 @@ import { AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/work
 import NewWorkspaceModal from './NewWorkspaceModal';
 
 jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/AzureStorage');
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock(
@@ -41,67 +43,98 @@ jest.mock(
 
 type AjaxContract = ReturnType<typeof Ajax>;
 
-const dummyGroupsResponse = {
-  list: async () => {
-    return [];
-  },
-  group: (_groupName) => {
-    return {
-      isMember: async () => {
-        return true;
-      },
-    };
-  },
-};
+interface SetupOptions {
+  billingProjects?: BillingProject[];
+  groups?: string[];
+}
 
-const dummyGroupAjax: DeepPartial<AjaxContract> = {
-  Groups: dummyGroupsResponse,
-};
+interface SetupResult {
+  captureEvent: jest.MockedFunction<AjaxContract['Metrics']['captureEvent']>;
+  checkBucketLocation: jest.MockedFunction<ReturnType<AjaxContract['Workspaces']['workspace']>['checkBucketLocation']>;
+  containerInfo: jest.MockedFunction<AzureStorageContract['containerInfo']>;
+  cloneWorkspace: jest.MockedFunction<ReturnType<AjaxContract['Workspaces']['workspace']>['clone']>;
+  createWorkspace: jest.MockedFunction<AjaxContract['Workspaces']['create']>;
+  getWorkspaceDetails: jest.MockedFunction<ReturnType<AjaxContract['Workspaces']['workspace']>['details']>;
+  listApps: jest.MockedFunction<AjaxContract['Apps']['listAppsV2']>;
+  listWdsInstances: jest.MockedFunction<AjaxContract['WorkspaceData']['listInstances']>;
+}
 
-const nonBillingAjax: DeepPartial<AjaxContract> = {
-  Groups: dummyGroupsResponse,
-  Metrics: {
-    captureEvent: async (_name, _details) => {
-      // Do nothing
-    },
-  },
-};
+const setup = (opts: SetupOptions = {}): SetupResult => {
+  const { billingProjects = [gcpBillingProject, azureBillingProject], groups = [] } = opts;
 
-// Mock Azure containerInfo method, which is called when cloning an Azure workspace.
-jest.mock('src/libs/ajax/AzureStorage');
-const azureStorageMock: Partial<AzureStorageContract> = {
-  containerInfo: jest.fn().mockResolvedValue({ region: 'japaneast' }),
+  const listBillingProjects = jest.fn().mockResolvedValue(billingProjects);
+  const checkBucketLocation = jest.fn().mockResolvedValue({
+    location: 'US-CENTRAL1',
+    locationType: 'location-type',
+  });
+  const cloneWorkspace = jest.fn().mockReturnValue(abandonedPromise());
+  const createWorkspace = jest.fn().mockReturnValue(abandonedPromise());
+  const getWorkspaceDetails = jest.fn().mockResolvedValue({ workspace: { attributes: { description: '' } } });
+  const captureEvent = jest.fn();
+  const listApps = jest.fn().mockResolvedValue([]);
+  const listWdsInstances = jest.fn().mockResolvedValue([]);
+
+  asMockedFn(Ajax).mockImplementation(
+    () =>
+      ({
+        Apps: { listAppsV2: listApps },
+        Billing: { listProjects: listBillingProjects },
+        FirecloudBucket: { getFeaturedWorkspaces: jest.fn().mockResolvedValue([]) },
+        Groups: {
+          list: () => {
+            const groupsResponse = groups.map((groupName) => ({
+              groupEmail: `${groupName}@test.firecloud.org`,
+              groupName,
+              role: 'member',
+            }));
+            return Promise.resolve(groupsResponse);
+          },
+          group: (groupName) => ({
+            isMember: () => Promise.resolve(groups.includes(groupName)),
+          }),
+        },
+        Metrics: { captureEvent },
+        Workspaces: {
+          create: createWorkspace,
+          workspace: () => ({
+            clone: cloneWorkspace,
+            checkBucketLocation,
+            details: getWorkspaceDetails,
+          }),
+        },
+        WorkspaceData: {
+          listInstances: listWdsInstances,
+        },
+      } as DeepPartial<AjaxContract> as AjaxContract)
+  );
+
+  const containerInfo = jest.fn().mockResolvedValue({
+    storageContainerName: 'sc-e18cfbc3-7115-4a37-add7-1d95d3ecfa14',
+    resourceId: '4da46849-7f06-44e2-ba62-80fa2348ff35',
+    region: 'japaneast',
+  });
+
+  asMockedFn(AzureStorage).mockImplementation(
+    () =>
+      ({
+        containerInfo,
+      } as Partial<AzureStorageContract> as AzureStorageContract)
+  );
+
+  return {
+    checkBucketLocation,
+    containerInfo,
+    cloneWorkspace,
+    createWorkspace,
+    getWorkspaceDetails,
+    captureEvent,
+    listApps,
+    listWdsInstances,
+  };
 };
-asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract);
 
 const egressWarning = /may incur network egress charges/;
 const nonRegionSpecificEgressWarning = /Copying data may incur network egress charges/;
-
-const hasGroupsAjax = {
-  Groups: {
-    list: async () => {
-      return [
-        {
-          groupEmail: 'AuthDomain@test.firecloud.org',
-          groupName: 'AuthDomain',
-          role: 'member',
-        },
-      ];
-    },
-    group: (_groupName) => {
-      return {
-        isMember: async () => {
-          return true;
-        },
-      };
-    },
-  },
-  Metrics: {
-    captureEvent: async (_name, _details) => {
-      // Do nothing
-    },
-  },
-};
 
 // Create and cloned workspace response does not include cloudPlatform.
 // The modal should add it to the workspace passed to onSuccess.
@@ -143,15 +176,7 @@ describe('NewWorkspaceModal', () => {
   describe('handles when no appropriate billing projects are available', () => {
     it('shows a message if there are no billing projects to use for creation', async () => {
       // Arrange
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [] });
 
       // Act
       await act(async () => {
@@ -169,15 +194,7 @@ describe('NewWorkspaceModal', () => {
 
     it('shows a message if there are no protected billing projects to use for creating a workspace with additional security monitoring ', async () => {
       // Arrange
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [azureBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [azureBillingProject] });
 
       // Act
       await act(async () => {
@@ -196,15 +213,7 @@ describe('NewWorkspaceModal', () => {
 
     it('shows a message if there are no billing projects to use for cloning', async () => {
       // Arrange
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [] });
 
       // Act
       await act(async () => {
@@ -224,15 +233,7 @@ describe('NewWorkspaceModal', () => {
     it('redirects to billing if there are no suitable billing projects', async () => {
       // Arrange
       const user = userEvent.setup();
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [] });
 
       // Arrange
       await act(async () => {
@@ -255,16 +256,7 @@ describe('NewWorkspaceModal', () => {
   it('Shows all available billing projects by default', async () => {
     // Arrange
     const user = userEvent.setup();
-
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [gcpBillingProject, azureBillingProject],
-          },
-          ...nonBillingAjax,
-        } as AjaxContract)
-    );
+    setup();
 
     await act(async () => {
       render(
@@ -290,16 +282,7 @@ describe('NewWorkspaceModal', () => {
     it('hides unprotected Azure billing projects when additional security monitoring is required', async () => {
       // Arrange
       const user = userEvent.setup();
-
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject] });
 
       await act(async () => {
         render(
@@ -340,16 +323,7 @@ describe('NewWorkspaceModal', () => {
       async ({ cloudPlatform, expectedBillingProjects, requireEnhancedBucketLogging }) => {
         // Arrange
         const user = userEvent.setup();
-
-        asMockedFn(Ajax).mockImplementation(
-          () =>
-            ({
-              Billing: {
-                listProjects: async () => [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject],
-              },
-              ...nonBillingAjax,
-            } as AjaxContract)
-        );
+        setup({ billingProjects: [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject] });
 
         // Act
         await act(async () => {
@@ -371,21 +345,7 @@ describe('NewWorkspaceModal', () => {
   describe('filters billing projects when cloning a workspace ', () => {
     it('Hides Azure billing projects when cloning a GCP workspace', async () => {
       const user = userEvent.setup();
-      const mockAjax: DeepPartial<AjaxContract> = {
-        Workspaces: {
-          workspace: () => ({
-            checkBucketLocation: jest.fn().mockResolvedValue({
-              location: 'US-CENTRAL1',
-              locationType: 'location-type',
-            }),
-          }),
-        },
-        Billing: {
-          listProjects: async () => [gcpBillingProject, azureBillingProject],
-        },
-        ...nonBillingAjax,
-      };
-      asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+      setup();
 
       // Act
       await act(async () => {
@@ -404,16 +364,7 @@ describe('NewWorkspaceModal', () => {
 
     it('Hides GCP billing projects when cloning an Azure workspace', async () => {
       const user = userEvent.setup();
-
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject] });
 
       // Act
       await act(async () => {
@@ -435,16 +386,7 @@ describe('NewWorkspaceModal', () => {
 
     it('Hides billing projects that cannot be used for cloning a protected data Azure workspace', async () => {
       const user = userEvent.setup();
-
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject] });
 
       // Act
       await act(async () => {
@@ -465,15 +407,7 @@ describe('NewWorkspaceModal', () => {
   describe('decides when to show a policy section ', () => {
     const policyLabel = 'The workspace will inherit:';
     it('Shows a policy section when cloning an Azure workspace with polices', async () => {
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [azureProtectedDataBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [azureProtectedDataBillingProject] });
 
       // Act
       await act(async () => {
@@ -492,15 +426,7 @@ describe('NewWorkspaceModal', () => {
     });
 
     it('Does not show a policy section when cloning an Azure workspace without polices', async () => {
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [azureBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [azureBillingProject] });
 
       // Act
       await act(async () => {
@@ -520,25 +446,10 @@ describe('NewWorkspaceModal', () => {
 
     it('Does not show a policy section when cloning a protected GCP workspace', async () => {
       // Arrange
-      const protectedWorkspace = { ...defaultGoogleWorkspace };
-      protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Workspaces: {
-              workspace: () => ({
-                checkBucketLocation: jest.fn().mockResolvedValue({
-                  location: 'US-CENTRAL1',
-                  locationType: 'location-type',
-                }),
-              }),
-            },
-            Billing: {
-              listProjects: async () => [gcpBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [gcpBillingProject] });
+      const protectedWorkspace = makeGoogleWorkspace({
+        workspace: { bucketName: `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}` },
+      });
 
       // Act
       await act(async () => {
@@ -559,15 +470,7 @@ describe('NewWorkspaceModal', () => {
     it('Shows a policy section when creating a new workspace from a protected data billing project', async () => {
       // Arrange
       const user = userEvent.setup();
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [azureProtectedDataBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [azureProtectedDataBillingProject] });
 
       // Act
       await act(async () => {
@@ -593,15 +496,7 @@ describe('NewWorkspaceModal', () => {
     it('Does not shows a policy section when creating a new workspace from an unprotected data billing project', async () => {
       // Arrange
       const user = userEvent.setup();
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [azureBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [azureBillingProject] });
 
       // Act
       await act(async () => {
@@ -626,16 +521,7 @@ describe('NewWorkspaceModal', () => {
     it('Hides azure billing projects if part of workflow import', async () => {
       // Arrange
       const user = userEvent.setup();
-
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [gcpBillingProject, azureBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup();
 
       await act(async () => {
         render(
@@ -662,16 +548,7 @@ describe('NewWorkspaceModal', () => {
     it('Does not warn about no Azure support if no billing projects were hidden', async () => {
       // Arrange
       const user = userEvent.setup();
-
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [gcpBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [gcpBillingProject] });
 
       await act(async () => {
         render(
@@ -705,19 +582,7 @@ describe('NewWorkspaceModal', () => {
       async ({ selectCheckbox }) => {
         // Arrange
         const user = userEvent.setup();
-        const createWorkspace = jest.fn();
-        asMockedFn(Ajax).mockImplementation(
-          () =>
-            ({
-              Billing: {
-                listProjects: async () => [gcpBillingProject, azureBillingProject],
-              },
-              Workspaces: {
-                create: createWorkspace,
-              },
-              ...nonBillingAjax,
-            } as AjaxContract)
-        );
+        const { createWorkspace } = setup();
 
         await act(async () => {
           render(
@@ -772,16 +637,7 @@ describe('NewWorkspaceModal', () => {
     it('does not show the checkbox if an Azure billing project is selected', async () => {
       // Arrange
       const user = userEvent.setup();
-
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [gcpBillingProject, azureBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup();
 
       await act(async () => {
         render(
@@ -805,16 +661,7 @@ describe('NewWorkspaceModal', () => {
     it('does not let the user uncheck the option if requireEnhancedBucketLogging is passed in as true', async () => {
       // Arrange
       const user = userEvent.setup();
-
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [gcpBillingProject, azureBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup();
 
       await act(async () => {
         render(
@@ -842,25 +689,10 @@ describe('NewWorkspaceModal', () => {
     it('does not let the user uncheck the option if cloning a GCP protected data workspace', async () => {
       // Arrange
       const user = userEvent.setup();
-      const protectedWorkspace = { ...defaultGoogleWorkspace };
-      protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Workspaces: {
-              workspace: () => ({
-                checkBucketLocation: jest.fn().mockResolvedValue({
-                  location: 'US-CENTRAL1',
-                  locationType: 'location-type',
-                }),
-              }),
-            },
-            Billing: {
-              listProjects: async () => [gcpBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [gcpBillingProject] });
+      const protectedWorkspace = makeGoogleWorkspace({
+        workspace: { bucketName: `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}` },
+      });
 
       // Act
       await act(async () => {
@@ -889,16 +721,7 @@ describe('NewWorkspaceModal', () => {
     it('checks and disables the option if an auth domain is chosen', async () => {
       // Arrange
       const user = userEvent.setup();
-
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [gcpBillingProject, azureBillingProject],
-            },
-            ...hasGroupsAjax,
-          } as AjaxContract)
-      );
+      setup({ groups: ['AuthDomain'] });
 
       await act(async () => {
         render(
@@ -932,16 +755,7 @@ describe('NewWorkspaceModal', () => {
   it('allows showing a notice based on the selected billing project', async () => {
     // Arrange
     const user = userEvent.setup();
-
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [gcpBillingProject, azureBillingProject],
-          },
-          ...hasGroupsAjax,
-        } as AjaxContract)
-    );
+    setup({ groups: ['AuthDomain'] });
 
     const renderNotice = jest.fn().mockImplementation(({ selectedBillingProject }) => {
       return selectedBillingProject
@@ -975,25 +789,16 @@ describe('NewWorkspaceModal', () => {
 
   describe('while creating a workspace', () => {
     const workspaceFromCreateResponse = defaultGoogleWorkspace.workspace;
-    const createWorkspace = jest.fn().mockReturnValue(workspaceFromCreateResponse);
-    const captureEvent = jest.fn();
+    let createWorkspace: jest.MockedFunction<AjaxContract['Workspaces']['create']>;
+    let captureEvent: jest.MockedFunction<AjaxContract['Metrics']['captureEvent']>;
 
     beforeEach(async () => {
       // Arrange
       const user = userEvent.setup();
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [gcpBillingProject, azureBillingProject],
-            },
-            Workspaces: {
-              create: createWorkspace,
-            },
-            Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-            ...dummyGroupAjax,
-          } as AjaxContract)
-      );
+      const setupResult = setup();
+      createWorkspace = setupResult.createWorkspace;
+      createWorkspace.mockResolvedValue(workspaceFromCreateResponse);
+      captureEvent = setupResult.captureEvent;
 
       await act(async () => {
         render(
@@ -1050,23 +855,8 @@ describe('NewWorkspaceModal', () => {
     const billingProjectWithRegion = _.cloneDeep(azureBillingProject);
     billingProjectWithRegion.region = 'eastus';
 
-    const workspaceFromCreateResponse = defaultAzureWorkspace.workspace;
-    const createWorkspaceResponse = jest.fn().mockResolvedValue(workspaceFromCreateResponse);
-    const captureEvent = jest.fn();
-
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [billingProjectWithRegion],
-          },
-          Workspaces: {
-            create: createWorkspaceResponse,
-          },
-          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-          ...dummyGroupAjax,
-        } as AjaxContract)
-    );
+    const { createWorkspace, captureEvent } = setup({ billingProjects: [billingProjectWithRegion] });
+    createWorkspace.mockResolvedValue(defaultAzureWorkspace.workspace);
 
     await act(async () => {
       render(
@@ -1090,12 +880,12 @@ describe('NewWorkspaceModal', () => {
     await user.click(createWorkspaceButton);
 
     // Assert
-    expect(createWorkspaceResponse).toHaveBeenCalled();
+    expect(createWorkspace).toHaveBeenCalled();
     const expectedEvent = {
       cloudPlatform: 'AZURE',
       region: 'eastus',
-      workspaceName: workspaceFromCreateResponse.name,
-      workspaceNamespace: workspaceFromCreateResponse.namespace,
+      workspaceName: defaultAzureWorkspace.workspace.name,
+      workspaceNamespace: defaultAzureWorkspace.workspace.namespace,
       hasProtectedData: undefined,
       workspaceAccessLevel: undefined,
     };
@@ -1112,21 +902,8 @@ describe('NewWorkspaceModal', () => {
       const user = userEvent.setup();
 
       const createdWorkspace = mockWorkspaces[cloudPlatform];
-
-      const createWorkspace = jest.fn().mockResolvedValue(createdWorkspace);
-
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [azureBillingProject, gcpBillingProject],
-            },
-            Workspaces: {
-              create: createWorkspace,
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      const { createWorkspace } = setup();
+      createWorkspace.mockResolvedValue(createdWorkspace);
 
       const onSuccess = jest.fn();
       await act(async () => {
@@ -1175,21 +952,8 @@ describe('NewWorkspaceModal', () => {
       async ({ response, expectedMessage }) => {
         // Arrange
         const user = userEvent.setup();
-
-        const createWorkspace = jest.fn().mockRejectedValue(response);
-
-        asMockedFn(Ajax).mockImplementation(
-          () =>
-            ({
-              Billing: {
-                listProjects: async () => [azureBillingProject],
-              },
-              Workspaces: {
-                create: createWorkspace,
-              },
-              ...nonBillingAjax,
-            } as AjaxContract)
-        );
+        const { createWorkspace } = setup({ billingProjects: [azureBillingProject] });
+        createWorkspace.mockRejectedValue(response);
 
         await act(async () => {
           render(
@@ -1220,23 +984,8 @@ describe('NewWorkspaceModal', () => {
     it('shows an error message if creating a workspace throws an error', async () => {
       // Arrange
       const user = userEvent.setup();
-
-      const createWorkspace = jest.fn().mockImplementation(() => {
-        throw new Error('Something went wrong.');
-      });
-
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Billing: {
-              listProjects: async () => [azureBillingProject],
-            },
-            Workspaces: {
-              create: createWorkspace,
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      const { createWorkspace } = setup({ billingProjects: [azureBillingProject] });
+      createWorkspace.mockRejectedValue(new Error('Something went wrong.'));
 
       await act(async () => {
         render(
@@ -1281,7 +1030,9 @@ describe('NewWorkspaceModal', () => {
           lastModified: '2023-11-13T18:39:32.267Z',
           authorizationDomain: [],
         };
-        const createWorkspace = jest.fn().mockResolvedValue(newWorkspace);
+
+        const { createWorkspace, listApps, listWdsInstances } = setup({ billingProjects: [azureBillingProject] });
+        createWorkspace.mockResolvedValue(newWorkspace);
 
         const wdsApp: ListAppItem = {
           workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
@@ -1314,34 +1065,11 @@ describe('NewWorkspaceModal', () => {
           region: 'us-central1',
         };
 
-        const listAppsV2 = jest
-          .fn()
+        listApps
           .mockResolvedValue([wdsApp])
           .mockResolvedValueOnce([{ ...wdsApp, status: 'PROVISIONING', proxyUrls: {} }]);
 
-        const listInstances = jest
-          .fn()
-          .mockResolvedValue(['aaaabbbb-cccc-dddd-0000-111122223333'])
-          .mockResolvedValueOnce([]);
-
-        asMockedFn(Ajax).mockImplementation(
-          () =>
-            ({
-              Apps: {
-                listAppsV2,
-              },
-              Billing: {
-                listProjects: async () => [azureBillingProject],
-              },
-              Workspaces: {
-                create: createWorkspace,
-              },
-              WorkspaceData: {
-                listInstances,
-              },
-              ...nonBillingAjax,
-            } as AjaxContract)
-        );
+        listWdsInstances.mockResolvedValue(['aaaabbbb-cccc-dddd-0000-111122223333']).mockResolvedValueOnce([]);
 
         const onSuccess = jest.fn();
 
@@ -1374,23 +1102,23 @@ describe('NewWorkspaceModal', () => {
         await act(() => jest.advanceTimersByTime(30000));
 
         // Assert
-        expect(listAppsV2).toHaveBeenCalledTimes(1);
+        expect(listApps).toHaveBeenCalledTimes(1);
         expect(onSuccess).not.toHaveBeenCalled();
 
         // Act
         await act(() => jest.advanceTimersByTime(15000));
 
         // Assert
-        expect(listAppsV2).toHaveBeenCalledTimes(2);
-        expect(listInstances).toHaveBeenCalledTimes(1);
+        expect(listApps).toHaveBeenCalledTimes(2);
+        expect(listWdsInstances).toHaveBeenCalledTimes(1);
         expect(onSuccess).not.toHaveBeenCalled();
 
         // Act
         await act(() => jest.advanceTimersByTime(5000));
 
         // Assert
-        expect(listAppsV2).toHaveBeenCalledTimes(2);
-        expect(listInstances).toHaveBeenCalledTimes(2);
+        expect(listApps).toHaveBeenCalledTimes(2);
+        expect(listWdsInstances).toHaveBeenCalledTimes(2);
 
         expect(onSuccess).toHaveBeenCalled();
       })
@@ -1412,7 +1140,9 @@ describe('NewWorkspaceModal', () => {
           lastModified: '2023-11-13T18:39:32.267Z',
           authorizationDomain: [],
         };
-        const createWorkspace = jest.fn().mockResolvedValue(newWorkspace);
+
+        const { createWorkspace, listApps } = setup({ billingProjects: [azureBillingProject] });
+        createWorkspace.mockResolvedValue(newWorkspace);
 
         const wdsApp: ListAppItem = {
           workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
@@ -1443,26 +1173,9 @@ describe('NewWorkspaceModal', () => {
           region: 'us-central1',
         };
 
-        const listAppsV2 = jest
-          .fn()
+        listApps
           .mockResolvedValue([wdsApp])
           .mockResolvedValueOnce([{ ...wdsApp, status: 'PROVISIONING', proxyUrls: {} }]);
-
-        asMockedFn(Ajax).mockImplementation(
-          () =>
-            ({
-              Apps: {
-                listAppsV2,
-              },
-              Billing: {
-                listProjects: async () => [azureBillingProject],
-              },
-              Workspaces: {
-                create: createWorkspace,
-              },
-              ...nonBillingAjax,
-            } as AjaxContract)
-        );
 
         await act(async () => {
           render(
@@ -1491,7 +1204,7 @@ describe('NewWorkspaceModal', () => {
         await act(() => jest.advanceTimersByTime(15000));
 
         // Assert
-        expect(listAppsV2).toHaveBeenCalledTimes(2);
+        expect(listApps).toHaveBeenCalledTimes(2);
 
         screen.getByText('Failed to provision data services for new workspace.');
       })
@@ -1502,23 +1215,7 @@ describe('NewWorkspaceModal', () => {
     it('shows a message if the destination bucket location is in a different region', async () => {
       // Arrange
       const user = userEvent.setup();
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Workspaces: {
-              workspace: () => ({
-                checkBucketLocation: jest.fn().mockResolvedValue({
-                  location: 'US-CENTRAL1',
-                  locationType: 'location-type',
-                }),
-              }),
-            },
-            Billing: {
-              listProjects: async () => [gcpBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      setup({ billingProjects: [gcpBillingProject] });
 
       // Act
       await act(async () => {
@@ -1557,20 +1254,8 @@ describe('NewWorkspaceModal', () => {
     it('shows a generic message if the source workspace is requester pays', async () => {
       // Arrange
       const user = userEvent.setup();
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Workspaces: {
-              workspace: () => ({
-                checkBucketLocation: () => Promise.reject(mockBucketRequesterPaysError),
-              }),
-            },
-            Billing: {
-              listProjects: async () => [gcpBillingProject],
-            },
-            ...nonBillingAjax,
-          } as AjaxContract)
-      );
+      const { checkBucketLocation } = setup({ billingProjects: [gcpBillingProject] });
+      checkBucketLocation.mockRejectedValue(mockBucketRequesterPaysError);
 
       // Act
       await act(async () => {
@@ -1631,19 +1316,12 @@ describe('NewWorkspaceModal', () => {
         const user = userEvent.setup();
         const billingProjectWithRegion = _.cloneDeep(azureBillingProject);
         billingProjectWithRegion.region = billingProjectRegion;
-        asMockedFn(Ajax).mockImplementation(
-          () =>
-            ({
-              Billing: {
-                listProjects: async () => [billingProjectWithRegion],
-              },
-              ...nonBillingAjax,
-            } as AjaxContract)
-        );
-        const azureStorageMock: Partial<AzureStorageContract> = {
-          containerInfo: jest.fn().mockResolvedValue({ region: workspaceRegion }),
-        };
-        asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract);
+        const { containerInfo } = setup({ billingProjects: [billingProjectWithRegion] });
+        containerInfo.mockResolvedValue({
+          storageContainerName: 'sc-e18cfbc3-7115-4a37-add7-1d95d3ecfa14',
+          resourceId: '4da46849-7f06-44e2-ba62-80fa2348ff35',
+          region: workspaceRegion,
+        });
 
         // Act
         await act(async () => {
@@ -1692,20 +1370,8 @@ describe('NewWorkspaceModal', () => {
     // Whether the billing project has a region doesn't actually matter for this case.
     const billingProjectWithRegion = _.cloneDeep(azureBillingProject);
     billingProjectWithRegion.region = 'eastus';
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [billingProjectWithRegion],
-          },
-          ...nonBillingAjax,
-        } as AjaxContract)
-    );
-
-    const errorAzureStorageMock: Partial<AzureStorageContract> = {
-      containerInfo: () => Promise.reject(new Response('Mock container error', { status: 500 })),
-    };
-    asMockedFn(AzureStorage).mockImplementation(() => errorAzureStorageMock as AzureStorageContract);
+    const { containerInfo } = setup({ billingProjects: [billingProjectWithRegion] });
+    containerInfo.mockRejectedValue(new Response('Mock container error', { status: 500 }));
 
     // Don't show expected message about storage container not being available
     jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -1733,22 +1399,11 @@ describe('NewWorkspaceModal', () => {
     const cloneWorkspace = _.cloneDeep(defaultAzureWorkspace);
     cloneWorkspace.workspace.namespace = azureBillingProject.projectName;
 
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [azureBillingProject],
-          },
-          ...nonBillingAjax,
-        } as AjaxContract)
-    );
+    const { containerInfo } = setup({ billingProjects: [azureBillingProject] });
 
     // The container error does not matter -- we will not show an egress message
     // because the selected billing project matches the namespace of the clone workspace.
-    const errorAzureStorageMock: Partial<AzureStorageContract> = {
-      containerInfo: () => Promise.reject(new Response('Mock container error', { status: 500 })),
-    };
-    asMockedFn(AzureStorage).mockImplementation(() => errorAzureStorageMock as AzureStorageContract);
+    containerInfo.mockRejectedValue(new Response('Mock container error', { status: 500 }));
 
     // Don't show expected message about storage container not being available
     jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -1782,31 +1437,15 @@ describe('NewWorkspaceModal', () => {
     const billingProjectWithRegion = _.cloneDeep(azureBillingProject);
     billingProjectWithRegion.region = selectedBillingProjectRegion;
 
-    const cloneWorkspaceResponse = jest.fn().mockResolvedValue(workspaceFromCloneResponse);
-    const captureEvent = jest.fn();
-
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Billing: {
-            listProjects: async () => [billingProjectWithRegion],
-          },
-          Workspaces: {
-            workspace: () => ({
-              clone: cloneWorkspaceResponse,
-            }),
-          },
-          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-          FirecloudBucket: { getFeaturedWorkspaces: jest.fn() },
-          ...dummyGroupAjax,
-        } as AjaxContract)
-    );
+    const { containerInfo, cloneWorkspace, captureEvent } = setup({ billingProjects: [billingProjectWithRegion] });
+    cloneWorkspace.mockResolvedValue(workspaceFromCloneResponse);
 
     // When cloning, we retrieve the region of the source workspace.
-    const azureStorageMock: Partial<AzureStorageContract> = {
-      containerInfo: jest.fn().mockResolvedValue({ region: sourceWorkspaceRegion }),
-    };
-    asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract);
+    containerInfo.mockResolvedValue({
+      storageContainerName: 'sc-e18cfbc3-7115-4a37-add7-1d95d3ecfa14',
+      resourceId: '4da46849-7f06-44e2-ba62-80fa2348ff35',
+      region: sourceWorkspaceRegion,
+    });
 
     await act(async () => {
       render(
@@ -1831,7 +1470,7 @@ describe('NewWorkspaceModal', () => {
     await user.click(cloneWorkspaceButton);
 
     // Assert
-    expect(cloneWorkspaceResponse).toHaveBeenCalled();
+    expect(cloneWorkspace).toHaveBeenCalled();
     const expectedEvent = {
       featured: false,
       fromWorkspaceCloudPlatform: 'AZURE',
@@ -1844,5 +1483,34 @@ describe('NewWorkspaceModal', () => {
       toWorkspaceRegion: selectedBillingProjectRegion,
     };
     expect(captureEvent).toHaveBeenCalledWith(Events.workspaceClone, expectedEvent);
+  });
+
+  it('loads full description when cloning a workspace', async () => {
+    // Arrange
+    const cloneWorkspace = makeGoogleWorkspace({
+      workspace: { attributes: { description: 'Important: before using this workspace,' } },
+    });
+
+    const { getWorkspaceDetails } = setup();
+    getWorkspaceDetails.mockResolvedValue({
+      workspace: {
+        attributes: { description: 'Important: before using this workspace, <rest of the instructions>.' },
+      },
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace,
+          onDismiss: () => {},
+          onSuccess: () => {},
+        })
+      );
+    });
+
+    // Assert
+    const descriptionInput = screen.getByLabelText('Description');
+    expect(descriptionInput).toHaveValue('Important: before using this workspace, <rest of the instructions>.');
   });
 });

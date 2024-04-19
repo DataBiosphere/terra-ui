@@ -285,6 +285,13 @@ const NewWorkspaceModal = withDisplayName(
           }),
         Ajax(signal).Groups.list().then(setAllGroups),
         !!cloneWorkspace &&
+          Ajax(signal)
+            .Workspaces.workspace(namespace, cloneWorkspace.workspace.name)
+            .details(['workspace.attributes.description'])
+            .then((workspace) => {
+              setDescription(workspace.workspace.attributes.description || '');
+            }),
+        !!cloneWorkspace &&
           isGoogleWorkspace(cloneWorkspace) &&
           Ajax(signal)
             .Workspaces.workspace(namespace, cloneWorkspace.workspace.name)
