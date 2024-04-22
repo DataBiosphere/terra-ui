@@ -218,7 +218,17 @@ export const User = (signal?: AbortSignal) => {
           { signal, method: 'POST' },
         ])
       );
-      return res.json();
+      const json = await res.json();
+      return {
+        id: json.id,
+        googleSubjectId: json.googleSubjectId,
+        email: json.email,
+        azureB2CId: json.azureB2CId,
+        allowed: json.allowed,
+        createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
+        registeredAt: json.registeredAt ? new Date(json.registeredAt) : undefined,
+        updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
+      };
     },
 
     profile: {
@@ -259,7 +269,17 @@ export const User = (signal?: AbortSignal) => {
 
     getSamUserResponse: async (): Promise<SamUserResponse> => {
       const res = await fetchSam('api/users/v2/self', _.mergeAll([authOpts(), { method: 'GET' }]));
-      return res.json();
+      const json = await res.json();
+      return {
+        id: json.id,
+        googleSubjectId: json.googleSubjectId,
+        email: json.email,
+        azureB2CId: json.azureB2CId,
+        allowed: json.allowed,
+        createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
+        registeredAt: json.registeredAt ? new Date(json.registeredAt) : undefined,
+        updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
+      };
     },
 
     getNihStatus: async (): Promise<OrchestrationNihStatusResponse | undefined> => {
