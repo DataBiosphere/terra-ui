@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { Dispatch, ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { analysisTabName } from 'src/analysis/runtime-common-components';
+import { analysisTabName } from 'src/analysis/runtime-common-text';
 import { TabBar } from 'src/components/tabBars';
 import * as Nav from 'src/libs/nav';
 import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
