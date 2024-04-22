@@ -16,6 +16,7 @@ import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 export type SnapshotBuilderConcept = {
   id: number;
   name: string;
+  code: string;
   count: number;
   hasChildren: boolean;
 };
