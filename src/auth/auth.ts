@@ -53,10 +53,6 @@ export const sendRetryMetric = () => {
   Ajax().Metrics.captureEvent(Events.user.authToken.load.retry, {});
 };
 
-export const sendAuthTokenDesyncMetric = () => {
-  Ajax().Metrics.captureEvent(Events.user.authToken.desync, {});
-};
-
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
   // Here, we update `userJustSignedIn` to true, so that we that the user became authenticated via the "Sign In" button.
   // This is necessary to differentiate signing in vs reloading or opening a new tab.
@@ -80,9 +76,7 @@ export const signIn = async (includeBillingScope = false): Promise<OidcUser> => 
     });
     return authTokenState.oidcUser;
   }
-  if (authTokenState.status === 'expired') {
-    Ajax().Metrics.captureEvent(Events.user.login.expired, {});
-  } else if (authTokenState.status === 'error') {
+  if (authTokenState.status === 'error') {
     Ajax().Metrics.captureEvent(Events.user.login.error, {});
   }
   throw new Error('Auth token failed to load when signing in');
@@ -186,13 +180,6 @@ export const loadAuthToken = async (
       refreshTokenCreatedAt: getTimestampMetricLabel(currentRefreshTokenMetadata.createdAt),
       refreshTokenExpiresAt: getTimestampMetricLabel(currentRefreshTokenMetadata.expiresAt),
       jwtExpiresAt: getTimestampMetricLabel(jwtExpiresAt),
-    });
-  } else if (loadedAuthTokenState.status === 'expired') {
-    Ajax().Metrics.captureEvent(Events.user.authToken.load.expired, {
-      ...getOldAuthTokenLabels(oldAuthTokenMetadata),
-      refreshTokenId: oldRefreshTokenMetadata.id,
-      refreshTokenCreatedAt: getTimestampMetricLabel(oldRefreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: getTimestampMetricLabel(oldRefreshTokenMetadata.expiresAt),
     });
   } else {
     Ajax().Metrics.captureEvent(Events.user.authToken.load.error, {

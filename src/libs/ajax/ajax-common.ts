@@ -5,7 +5,6 @@ import {
   getAuthToken,
   getAuthTokenFromLocalStorage,
   loadAuthToken,
-  sendAuthTokenDesyncMetric,
   sendRetryMetric,
 } from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
@@ -81,11 +80,6 @@ const createRequestWithStoredAuthToken = async (
   options?: RequestInit
 ): Promise<Response> => {
   const localToken = (await getAuthTokenFromLocalStorage())!;
-  const localHeaderJson = JSON.stringify(authOpts(localToken));
-  const memoryHeaderJson = JSON.stringify(authOpts());
-  if (localHeaderJson !== memoryHeaderJson) {
-    sendAuthTokenDesyncMetric();
-  }
   return createRequestWithNewAuthToken(localToken, wrappedFetch, resource, options);
 };
 
