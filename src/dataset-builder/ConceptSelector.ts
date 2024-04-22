@@ -64,7 +64,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
       h(TreeGrid<Concept>, {
         columns: [
           {
-            name: 'Concept Name',
+            name: 'Concept name',
             width: 710,
             render: (concept) => {
               return h(Fragment, [
@@ -87,13 +87,14 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
             },
           },
           { name: 'Concept ID', width: 195, render: _.get('id') },
+          { name: 'Code', width: 195, render: _.get('code') },
           {
             name: 'Roll-up count',
             width: 205,
             render: (row) => formatCount(row.count),
           },
         ],
-        root: { id: findRoot(parents), name: 'root', count: 0, hasChildren: true },
+        root: { id: findRoot(parents), name: 'root', code: '', count: 0, hasChildren: true },
         parents,
         getChildren,
         headerStyle: tableHeaderStyle,
