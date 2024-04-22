@@ -1,4 +1,3 @@
-import { expect } from '@storybook/test';
 import { fireEvent, screen } from '@testing-library/react';
 import { Dispatch, SetStateAction } from 'react';
 import { h } from 'react-hyperscript-helpers';
@@ -7,7 +6,7 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { AccessEntry, WorkspaceAcl } from 'src/workspaces/acl-utils';
 import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
-import { BaseWorkspace } from 'src/workspaces/utils';
+import { BaseWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
@@ -220,7 +219,24 @@ describe('a Collaborator component', () => {
     };
     const acl = [item];
 
-    it('allows an owner to share with additional permissions', async () => {
+    test.each([
+      {
+        accessLevel: 'OWNER' as WorkspaceAccessLevel,
+        descriptor: 'allows',
+        checkFn: (htmlElement: HTMLElement) => expect(htmlElement).not,
+      },
+      {
+        accessLevel: 'PROJECT_OWNER' as WorkspaceAccessLevel,
+        descriptor: 'allows',
+        checkFn: (htmlElement: HTMLElement) => expect(htmlElement).not,
+      },
+      {
+        accessLevel: 'WRITER' as WorkspaceAccessLevel,
+        descriptor: 'does not allow',
+        checkFn: (htmlElement: HTMLElement) => expect(htmlElement),
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ])('$descriptor an $accessLevel to share with additional permissions', ({ accessLevel, descriptor, checkFn }) => {
       // Act
       render(
         h(Collaborator, {
@@ -228,60 +244,16 @@ describe('a Collaborator component', () => {
           acl,
           setAcl: aclMock,
           originalAcl: acl,
-          workspace: { ...workspace, accessLevel: 'OWNER' },
+          workspace: { ...workspace, accessLevel },
         })
       );
 
       // Assert
       const canCompute = screen.getByText('Can compute');
-      expect(canCompute).not.toBeNull();
-      expect(canCompute).not.toHaveAttribute('disabled');
+      checkFn(canCompute).toHaveAttribute('disabled');
 
       const canShare = screen.getByText('Can share');
-      expect(canShare).not.toBeNull();
-      expect(canShare).not.toHaveAttribute('disabled');
-    });
-    it('allows a project owner to share with additional permissions', async () => {
-      // Act
-      render(
-        h(Collaborator, {
-          aclItem: item,
-          acl,
-          setAcl: aclMock,
-          originalAcl: acl,
-          workspace: { ...workspace, accessLevel: 'PROJECT_OWNER' },
-        })
-      );
-
-      // Assert
-      const canCompute = screen.getByText('Can compute');
-      expect(canCompute).not.toBeNull();
-      expect(canCompute).not.toHaveAttribute('disabled');
-
-      const canShare = screen.getByText('Can share');
-      expect(canShare).not.toBeNull();
-      expect(canShare).not.toHaveAttribute('disabled');
-    });
-    it('does not allow a writer to share with additional permissions', async () => {
-      // Act
-      render(
-        h(Collaborator, {
-          aclItem: item,
-          acl,
-          setAcl: aclMock,
-          originalAcl: acl,
-          workspace: { ...workspace, accessLevel: 'WRITER' },
-        })
-      );
-
-      // Assert
-      const canCompute = screen.getByText('Can compute');
-      expect(canCompute).not.toBeNull();
-      expect(canCompute).toHaveAttribute('disabled');
-
-      const canShare = screen.getByText('Can share');
-      expect(canShare).not.toBeNull();
-      expect(canShare).toHaveAttribute('disabled');
+      checkFn(canShare).toHaveAttribute('disabled');
     });
   });
 });
