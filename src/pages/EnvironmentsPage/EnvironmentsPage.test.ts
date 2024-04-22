@@ -67,7 +67,7 @@ describe('Environments Page', () => {
     );
   });
 
-  it('forwards onDataRefresh to metrics event', () => {
+  it('forwards dataRefresh to metrics event', () => {
     // Arrange
     const mockMetricsProvider: MetricsProvider = {
       captureEvent: jest.fn(),
@@ -81,7 +81,7 @@ describe('Environments Page', () => {
       runtimes: 3,
     };
     asMockedFn(Environments).mockImplementation((props: EnvironmentsProps): React.ReactNode => {
-      props.onEvent && props.onEvent('onDataRefresh', refreshInfo);
+      props.onEvent && props.onEvent('dataRefresh', refreshInfo);
       return 'Mock Environments';
     });
     // Act

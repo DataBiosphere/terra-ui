@@ -891,7 +891,7 @@ describe('Environments Component', () => {
   //   );
   // });
   describe('onEvent', () => {
-    it('calls onEvent[onDataRefesh] with a runtime', async () => {
+    it('calls onEvent[dataRefesh] with a runtime', async () => {
       // Arrange
       const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
@@ -905,7 +905,7 @@ describe('Environments Component', () => {
       // Assert
       expect(props.onEvent).toBeCalledTimes(1);
       expect(props.onEvent).toBeCalledWith(
-        'onDataRefresh',
+        'dataRefresh',
         // times are zeroed out because of mocked data calls
         { leoCallTimeMs: 0, totalCallTimeMs: 0, runtimes: 1, disks: 0, apps: 0 } satisfies DataRefreshInfo
       );

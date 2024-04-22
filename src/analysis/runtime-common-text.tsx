@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Link } from 'src/components/common';
 import * as Utils from 'src/libs/utils';
 
-export const SaveFilesHelp = ({ isGalaxyDisk = false }): React.ReactNode => {
+export interface SaveFilesHelpProps {
+  isGalaxyDisk?: boolean;
+}
+export const SaveFilesHelp = (props: SaveFilesHelpProps): ReactNode => {
+  const { isGalaxyDisk = false } = props;
   return (
     <p>
       If you want to save some files permanently, such as input data, analysis outputs, or installed packages,&nbsp;
@@ -20,7 +24,7 @@ export const SaveFilesHelp = ({ isGalaxyDisk = false }): React.ReactNode => {
   );
 };
 
-export const SaveFilesHelpRStudio = (): React.ReactNode => {
+export const SaveFilesHelpRStudio = (): ReactNode => {
   return (
     <p>
       If you want to save files permanently, including input data, analysis outputs, installed packages or code in your
@@ -36,7 +40,7 @@ export const SaveFilesHelpRStudio = (): React.ReactNode => {
   );
 };
 
-export const SaveFilesHelpGalaxy = (): React.ReactNode => {
+export const SaveFilesHelpGalaxy = (): ReactNode => {
   return (
     <>
       <p>
@@ -57,7 +61,7 @@ export const SaveFilesHelpGalaxy = (): React.ReactNode => {
   );
 };
 
-export const SaveFilesHelpAzure = (): React.ReactNode => {
+export const SaveFilesHelpAzure = (): ReactNode => {
   return (
     <p>
       If you want to save some files permanently, such as input data, analysis outputs, or installed packages,&nbsp;
@@ -72,7 +76,7 @@ export const SaveFilesHelpAzure = (): React.ReactNode => {
   );
 };
 
-export const GalaxyWarning = (): React.ReactNode => {
+export const GalaxyWarning = (): ReactNode => {
   return (
     <>
       <p style={{ fontWeight: 600 }}>Important: Please keep this tab open and logged in to Terra while using Galaxy.</p>

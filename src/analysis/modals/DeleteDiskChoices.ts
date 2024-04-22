@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import { Fragment, ReactNode } from 'react';
 import { code, h, p, span } from 'react-hyperscript-helpers';
 import { RadioBlock } from 'src/analysis/runtime-common-components';
 import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-text';
@@ -14,13 +14,8 @@ type DeleteDiskChoicesProps = {
   cloudService?: ComputeType;
 };
 
-export const DeleteDiskChoices = ({
-  persistentDiskCostDisplay,
-  deleteDiskSelected,
-  setDeleteDiskSelected,
-  toolLabel,
-  cloudService,
-}: DeleteDiskChoicesProps) => {
+export const DeleteDiskChoices = (props: DeleteDiskChoicesProps): ReactNode => {
+  const { persistentDiskCostDisplay, deleteDiskSelected, setDeleteDiskSelected, toolLabel, cloudService } = props;
   const getMountDirectoryDisplay = (toolLabel) =>
     toolLabel
       ? getMountDir(toolLabel)
@@ -68,7 +63,7 @@ export const DeleteDiskChoices = ({
         p({ style: { marginBottom: 0 } }, ['Also deletes your application configuration and cloud compute profile.']),
       ]
     ),
-    Utils.cond<React.ReactNode>(
+    Utils.cond<ReactNode>(
       [toolLabel === 'RStudio', () => h(SaveFilesHelpRStudio)],
       [cloudService === cloudServiceTypes.GCE, () => SaveFilesHelp({ isGalaxyDisk: false })],
       [Utils.DEFAULT, () => h(SaveFilesHelpAzure)]

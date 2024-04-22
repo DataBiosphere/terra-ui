@@ -73,7 +73,7 @@ export interface DataRefreshInfo {
 }
 
 export interface EnvironmentsEvents {
-  onDataRefresh: DataRefreshInfo;
+  dataRefresh: DataRefreshInfo;
 }
 
 export interface EnvironmentsProps {
@@ -150,7 +150,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
     const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs;
     if (onEvent) {
-      onEvent('onDataRefresh', {
+      onEvent('dataRefresh', {
         leoCallTimeMs: leoCallTimeTotalMs,
         totalCallTimeMs: leoCallTimeTotalMs,
         runtimes: newRuntimes.length,

@@ -51,7 +51,7 @@ export const EnvironmentsPage = (): ReactNode => {
       permissions: leoResourcePermissions,
       onEvent: (eventName, eventArgs) => {
         switch (eventName) {
-          case 'onDataRefresh':
+          case 'dataRefresh':
             metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, eventArgs);
             break;
           default:

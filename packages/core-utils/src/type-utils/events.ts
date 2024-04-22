@@ -3,8 +3,8 @@
  *
  * @example
  * interface MyComponentEvents {
- *   onEvent1: { a: string, b: number },
- *   onEvent2: null
+ *   event1: { a: string, b: number },
+ *   event2: null
  * }
  * interface MyComponentProps {
  *   ...
@@ -19,8 +19,6 @@
  *      // eventArgs type narrowed to match expected args for eventName
  *    }
  *  }
- *
- * // and similar for navTo
  */
 export interface KeyedEventHandler<Events, FnReturn = void> {
   <K extends keyof Events>(key: K, args: Events[K]): FnReturn;
