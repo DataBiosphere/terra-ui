@@ -7,7 +7,7 @@ import {
 import { defaultGceMachineType, defaultLocation, generateRuntimeName } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
 import { App, AppError, GetAppItem, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk, PersistentDiskDetail } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   AzureConfig,
   cloudServiceTypes,
@@ -27,7 +27,19 @@ export const testDefaultLocation = defaultLocation;
 
 export const testAzureDefaultRegion = defaultAzureRegion;
 
-export const defaultImage = {
+// TODO: this has diverged from `ComputeImage` type used in the code.
+export interface NormalizedImageType {
+  id: string;
+  image: string;
+  label: string;
+  packages: string;
+  requiresSpark: boolean;
+  updated: string;
+  version: string;
+  url?: string;
+}
+
+export const defaultImage: NormalizedImageType = {
   id: 'terra-jupyter-gatk',
   image: 'us.gcr.io/broad-dsp-gcr-public/terra-jupyter-gatk:2.2.8',
   label: 'Default: (GATK 4.2.4.0, Python 3.7.12, R 4.2.1)',
@@ -70,7 +82,7 @@ export const pegasusImage = {
   version: '1.6.0',
 };
 
-export const imageDocs = [
+export const imageDocs: NormalizedImageType[] = [
   defaultImage,
   {
     id: 'terra-jupyter-bioconductor',
@@ -169,9 +181,8 @@ export const generateAzureWorkspace = (prefix: string = uuid().substring(0, 8)):
   policies: [],
 });
 
-export const defaultTestDisk = {
+export const defaultTestDisk: PersistentDisk = {
   id: 15778,
-  googleProject: defaultGoogleWorkspace.workspace.googleProject,
   cloudContext: {
     cloudProvider: 'GCP',
     cloudResource: defaultGoogleWorkspace.workspace.googleProject,
@@ -185,6 +196,7 @@ export const defaultTestDisk = {
     destroyedDate: null,
     dateAccessed: '2022-07-18T20:34:56.092Z',
   },
+  labels: {},
   size: defaultGcePersistentDiskSize,
   diskType: defaultPersistentDiskType,
   blockSize: 4096,
@@ -195,6 +207,16 @@ export const getDisk = ({ size = defaultGcePersistentDiskSize } = {}) => ({
   id: getRandomInt(10000),
   size,
 });
+
+export const getPersistentDiskDetail = (): PersistentDiskDetail => {
+  const disk = getDisk();
+  return {
+    ...disk,
+    serviceAccount: 'testuser123@broad.com',
+    samResource: 1,
+    formattedBy: 'Jupyter',
+  };
+};
 
 export const getAzureDisk = ({ size = defaultGcePersistentDiskSize } = {}) => ({
   ...azureDisk,
@@ -211,7 +233,7 @@ const randomMaxInt = 10000;
 export const getJupyterRuntimeConfig = ({
   diskId = getRandomInt(randomMaxInt),
   machineType = defaultGceMachineType,
-} = {}): RuntimeConfig => ({
+} = {}): GoogleRuntimeConfig => ({
   machineType,
   persistentDiskId: diskId,
   cloudService: cloudServiceTypes.GCE,
@@ -368,7 +390,7 @@ export const getGoogleDataProcRuntime = ({
   runtimeName = generateRuntimeName(),
   status = runtimeStatuses.running.leoLabel,
   tool = tools.HAIL_BATCH.label,
-  runtimeConfig = getRuntimeConfig(),
+  runtimeConfig = getRuntimeConfig() satisfies RuntimeConfig,
 } = {}): ListRuntimeItem => {
   return {
     id: getRandomInt(randomMaxInt),
@@ -413,7 +435,7 @@ export const getGoogleRuntime = ({
   status = runtimeStatuses.running.leoLabel,
   tool = tools.Jupyter,
   runtimeConfig = getJupyterRuntimeConfig(),
-  image = undefined,
+  image = '',
 } = {}): GetRuntimeItem => {
   const googleProject = workspace.workspace.googleProject;
   const imageUri =
