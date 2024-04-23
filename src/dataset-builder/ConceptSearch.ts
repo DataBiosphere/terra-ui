@@ -102,7 +102,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
             },
             columns: [
               { header: strong(['Concept name']), width: 710, key: 'name' },
-              { header: strong(['ID']), width: 195, key: 'id' },
+              { header: strong(['Concept ID']), width: 195, key: 'id' },
               { header: strong(['Code']), width: 195, key: 'code' },
               { header: strong(['Roll-up count']), width: 205, key: 'count' },
               { width: 100, key: 'hierarchy' },
