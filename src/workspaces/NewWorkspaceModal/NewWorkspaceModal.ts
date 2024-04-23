@@ -411,6 +411,53 @@ const NewWorkspaceModal = withDisplayName(
         : 'You need a billing project to create a new workspace.';
     };
 
+    const renderAzurePolicyAndWorkspaceInfo = () => {
+      return div({}, [
+        ((!!cloneWorkspace && isAzureWorkspace(cloneWorkspace)) || isAzureBillingProject(selectedBillingProject)) &&
+          h(WorkspacePolicies, {
+            workspace: cloneWorkspace,
+            billingProject: selectedBillingProject,
+            title: 'Policies',
+            policiesLabel: 'The workspace will inherit:',
+          }),
+        renderNotice({ selectedBillingProject }),
+        workflowImport &&
+          azureBillingProjectsExist &&
+          div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
+            icon('info-circle', { size: 16, style: { marginRight: '0.5rem', color: colors.accent() } }),
+            div([
+              'Importing directly into new Azure workspaces is not currently supported. To create a new workspace with an Azure billing project, visit the main ',
+              h(
+                Link,
+                {
+                  href: Nav.getLink('workspaces'),
+                },
+                ['Workspaces']
+              ),
+              ' page.',
+            ]),
+          ]),
+        isAzureBillingProject() &&
+          div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
+            icon('warning-standard', {
+              size: 16,
+              style: { marginRight: '0.5rem', color: colors.warning() },
+            }),
+            div([
+              'Creating a workspace may increase your infrastructure costs. ',
+              h(
+                Link,
+                {
+                  href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
+                  ...Utils.newTabLinkProps,
+                },
+                ['Learn more and follow changes', icon('pop-out', { size: 14, style: { marginLeft: '0.25rem' } })]
+              ),
+            ]),
+          ]),
+      ]);
+    };
+
     return Utils.cond(
       [loading, () => spinnerOverlay],
       [
@@ -647,52 +694,7 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
-                    ((!!cloneWorkspace && isAzureWorkspace(cloneWorkspace)) ||
-                      isAzureBillingProject(selectedBillingProject)) &&
-                      h(WorkspacePolicies, {
-                        workspace: cloneWorkspace,
-                        billingProject: selectedBillingProject,
-                        title: 'Policies',
-                        policiesLabel: 'The workspace will inherit:',
-                      }),
-                    renderNotice({ selectedBillingProject }),
-                    workflowImport &&
-                      azureBillingProjectsExist &&
-                      div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
-                        icon('info-circle', { size: 16, style: { marginRight: '0.5rem', color: colors.accent() } }),
-                        div([
-                          'Importing directly into new Azure workspaces is not currently supported. To create a new workspace with an Azure billing project, visit the main ',
-                          h(
-                            Link,
-                            {
-                              href: Nav.getLink('workspaces'),
-                            },
-                            ['Workspaces']
-                          ),
-                          ' page.',
-                        ]),
-                      ]),
-                    isAzureBillingProject() &&
-                      div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
-                        icon('warning-standard', {
-                          size: 16,
-                          style: { marginRight: '0.5rem', color: colors.warning() },
-                        }),
-                        div([
-                          'Creating a workspace may increase your infrastructure costs. ',
-                          h(
-                            Link,
-                            {
-                              href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
-                              ...Utils.newTabLinkProps,
-                            },
-                            [
-                              'Learn more and follow changes',
-                              icon('pop-out', { size: 14, style: { marginLeft: '0.25rem' } }),
-                            ]
-                          ),
-                        ]),
-                      ]),
+                    renderAzurePolicyAndWorkspaceInfo(),
                     createError &&
                       div(
                         {
