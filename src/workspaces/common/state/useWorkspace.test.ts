@@ -38,7 +38,6 @@ jest.mock('src/auth/auth', (): AuthExports => {
     ...jest.requireActual('src/auth/auth'),
     getAuthToken: jest.fn(() => 'testToken'),
     getAuthTokenFromLocalStorage: jest.fn(() => Promise.resolve('localToken')),
-    sendAuthTokenDesyncMetric: jest.fn(),
   };
 });
 
