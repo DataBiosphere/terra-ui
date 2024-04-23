@@ -36,6 +36,7 @@ const concept: SnapshotBuilderConcept = {
   id: 0,
   name: 'concept',
   count: 10,
+  code: '10',
   hasChildren: false,
 };
 
