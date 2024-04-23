@@ -13,7 +13,7 @@ import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { br, div, h, img, span } from 'react-hyperscript-helpers';
 import { CloudEnvironmentModal } from 'src/analysis/modals/CloudEnvironmentModal';
-import { appLauncherTabName } from 'src/analysis/runtime-common-components';
+import { appLauncherTabName } from 'src/analysis/runtime-common-text';
 import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp } from 'src/analysis/utils/app-utils';
 import {
   getCostDisplayForDisk,

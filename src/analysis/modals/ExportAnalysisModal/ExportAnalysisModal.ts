@@ -3,10 +3,10 @@ import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { b, h } from 'react-hyperscript-helpers';
 import { useAnalysisExportState } from 'src/analysis/modals/ExportAnalysisModal/useAnalysisExportState';
-import { analysisLauncherTabName, analysisTabName } from 'src/analysis/runtime-common-components';
-import { getAnalysisFileExtension, stripExtension } from 'src/analysis/utils/file-utils';
+import { analysisLauncherTabName, analysisTabName } from 'src/analysis/runtime-common-text';
+import { FileExtension, stripExtension } from 'src/analysis/utils/file-utils';
 import { analysisNameInput, analysisNameValidator } from 'src/analysis/utils/notebook-utils';
-import { ToolLabel } from 'src/analysis/utils/tool-utils';
+import { ToolLabel, toolToExtensionMap } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
 import { FormLabel } from 'src/libs/forms';
@@ -15,6 +15,8 @@ import { summarizeErrors } from 'src/libs/utils';
 import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
 import { isValidWsExportTarget, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 import validate from 'validate.js';
+
+const getAnalysisFileExtension = (toolLabel: ToolLabel): FileExtension => toolToExtensionMap[toolLabel];
 
 export interface ExportAnalysisModalProps {
   fromLauncher?: boolean;

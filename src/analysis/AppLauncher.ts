@@ -3,14 +3,12 @@ import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h, iframe, p, strong } from 'react-hyperscript-helpers';
 import {
-  analysisTabName,
-  appLauncherTabName,
-  appLauncherWithAnalysisTabName,
   PeriodicAzureCookieSetter,
   RuntimeKicker,
   RuntimeStatusMonitor,
   StatusMessage,
 } from 'src/analysis/runtime-common-components';
+import { analysisTabName, appLauncherTabName, appLauncherWithAnalysisTabName } from 'src/analysis/runtime-common-text';
 import { getExtension, notebookLockHash, stripExtension } from 'src/analysis/utils/file-utils';
 import {
   getAnalysesDisplayList,
