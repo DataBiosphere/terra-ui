@@ -6,7 +6,7 @@ import { a, div, h, h1, img, span } from 'react-hyperscript-helpers';
 import { Transition } from 'react-transition-group';
 import { AlertsIndicator } from 'src/alerts/Alerts';
 import { RequiredUpdateAlert } from 'src/alerts/RequiredUpdateAlert';
-import { signIn } from 'src/auth/sign-in';
+import { signIn } from 'src/auth/signin/sign-in';
 import { signOut } from 'src/auth/signout/sign-out';
 import { Clickable, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';

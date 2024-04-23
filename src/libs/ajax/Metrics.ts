@@ -1,6 +1,6 @@
 import { getDefaultProperties } from '@databiosphere/bard-client';
 import _ from 'lodash/fp';
-import { ensureAuthSettled } from 'src/auth/sign-in';
+import { ensureAuthSettled } from 'src/auth/signin/sign-in';
 import { authOpts, fetchBard, jsonBody } from 'src/libs/ajax/ajax-common';
 import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring } from 'src/libs/error';

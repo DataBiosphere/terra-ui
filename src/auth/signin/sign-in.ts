@@ -2,7 +2,6 @@ import { AuthTokenState, loadAuthToken } from 'src/auth/auth';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { Ajax } from 'src/libs/ajax';
 import Events from 'src/libs/events';
-import * as Nav from 'src/libs/nav';
 import { AuthState, authStore, metricStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { v4 as uuid } from 'uuid';
@@ -68,13 +67,4 @@ export const ensureAuthSettled = () => {
       }
     });
   });
-};
-
-export const doSignInEvents = (state: AuthState) => {
-  if (state.termsOfService.isCurrentVersion === false) {
-    // The user could theoretically navigate away from the Terms of Service page during the Rolling Acceptance Window.
-    // This is not a concern, since the user will be denied access to the system once the Rolling Acceptance Window ends.
-    // This is really just a convenience to make sure the user is not disrupted once the Rolling Acceptance Window ends.
-    Nav.goToPath('terms-of-service');
-  }
 };

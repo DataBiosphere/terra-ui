@@ -8,7 +8,7 @@ import {
   OidcSignInArgs,
   OidcUser,
 } from 'src/auth/oidc-broker';
-import { doSignInEvents, isNowSignedIn, signIn, userCanNowUseTerra } from 'src/auth/sign-in';
+import { signIn, userCanNowUseTerra } from 'src/auth/signin/sign-in';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
@@ -463,19 +463,6 @@ export const loadTerraUser = async (): Promise<void> => {
     authStore.update((state: AuthState) => ({ ...state, signInStatus }));
   }
 };
-
-authStore.subscribe(
-  withErrorReporting('Error loading user')(async (state: AuthState, oldState: AuthState) => {
-    if (isNowSignedIn(oldState, state)) {
-      await loadTerraUser();
-      if (state.userJustSignedIn) {
-        const loadedState = authStore.get();
-        doSignInEvents(loadedState);
-        authStore.update((state: AuthState) => ({ ...state, userJustSignedIn: false }));
-      }
-    }
-  })
-);
 
 authStore.subscribe(
   withErrorReporting('Error loading NIH account link status')(async (state: AuthState, oldState: AuthState) => {

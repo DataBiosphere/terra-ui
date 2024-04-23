@@ -2,11 +2,18 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act } from '@testing-library/react';
 import { loadTerraUser } from 'src/auth/auth';
+import { signIn } from 'src/auth/signin/sign-in';
 import { Ajax } from 'src/libs/ajax';
 import { GroupRole } from 'src/libs/ajax/Groups';
 import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
 import { SamUserResponse } from 'src/libs/ajax/User';
 import { TerraUserState, userStore } from 'src/libs/state';
+
+jest.mock('src/auth/auth.ts', () => {
+  return {
+    loadAuthToken: jest.fn(),
+  };
+});
 
 jest.mock('src/libs/ajax');
 
@@ -21,6 +28,14 @@ jest.mock('react-notifications-component', () => {
     },
   };
 });
+
+type NotificationExports = typeof import('src/libs/notifications');
+jest.mock(
+  'src/libs/notifications',
+  (): NotificationExports => ({
+    notify: jest.fn(),
+  })
+);
 
 const samUserDate = new Date('1970-01-01');
 
@@ -83,6 +98,19 @@ const mockCurrentUserGroupMembership = {
   groupName: 'testGroupName',
   role: 'member' as GroupRole,
 };
+
+describe('when a user signs in', () => {
+  it('loads the auth token', async () => {
+    // Arrange
+    const captureEventFn = jest.fn();
+    asMockedFn(Ajax).mockReturnValue({
+      Metrics: {
+        captureEvent: captureEventFn,
+      },
+    } as DeepPartial<AjaxContract> as AjaxContract);
+    await signIn();
+  });
+});
 
 // TODO centralize Ajax mock setup so it can be reused across tests
 describe('a request to load a terra user', () => {
