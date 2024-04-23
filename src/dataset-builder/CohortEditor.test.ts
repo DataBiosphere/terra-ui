@@ -152,7 +152,7 @@ describe('CohortEditor', () => {
         conceptCount: 0,
         tableName: 'domain_occurrence',
         columnName: 'domain_concept_id',
-        root: { id: 0, name: 'test concept', count: 0, hasChildren: false },
+        root: { id: 0, name: 'test concept', code: '0', count: 0, hasChildren: false },
       },
     };
     renderCriteriaView({ criteria });
