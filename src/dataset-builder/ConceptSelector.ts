@@ -94,7 +94,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
             render: (row) => formatCount(row.count),
           },
         ],
-        root: { id: findRoot(parents), name: 'root', code: '', count: 0, hasChildren: true },
+        root: { id: findRoot(parents), name: 'root', code: '0', count: 0, hasChildren: true },
         parents,
         getChildren,
         headerStyle: tableHeaderStyle,
