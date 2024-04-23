@@ -194,7 +194,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
             await Promise.allSettled([makeAuthenticatedRequest()]);
 
             // Assert
-            expect(signOut).toHaveBeenCalledWith('expiredRefreshToken');
+            expect(signOut).toHaveBeenCalledWith('errorRefreshingAuthToken');
           });
         });
 
