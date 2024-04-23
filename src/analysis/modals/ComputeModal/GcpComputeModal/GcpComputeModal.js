@@ -9,7 +9,7 @@ import { GcpPersistentDiskSection } from 'src/analysis/modals/ComputeModal/GcpCo
 import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
 import { WarningTitle } from 'src/analysis/modals/WarningTitle';
-import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-components';
+import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-text';
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/analysis/utils/cost-utils';
 import {
   defaultDataprocMasterDiskSize,

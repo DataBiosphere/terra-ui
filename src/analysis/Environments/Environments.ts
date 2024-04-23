@@ -1,5 +1,5 @@
 import { PopupTrigger, TooltipTrigger, useModalHandler, useThemeFromContext } from '@terra-ui-packages/components';
-import { formatDatetime, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
+import { formatDatetime, KeyedEventHandler, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
 import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
@@ -29,9 +29,7 @@ import { isRuntime, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtim
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
-import { MetricsProvider } from 'src/libs/ajax/metrics/useMetrics';
 import { withErrorIgnoring, withErrorReporter } from 'src/libs/error';
-import Events from 'src/libs/events';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
 import { contactUsActive } from 'src/libs/state';
 import { elements as styleElements } from 'src/libs/style';
@@ -66,18 +64,30 @@ type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | '
 type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
 
+export interface DataRefreshInfo {
+  leoCallTimeMs: number;
+  totalCallTimeMs: number;
+  runtimes: number;
+  disks: number;
+  apps: number;
+}
+
+export interface EnvironmentsEvents {
+  dataRefresh: DataRefreshInfo;
+}
+
 export interface EnvironmentsProps {
   nav: NavLinkProvider<EnvironmentNavActions>;
   useWorkspaces: UseWorkspaces;
   leoAppData: LeoAppProviderNeeds;
   leoRuntimeData: LeoRuntimeProviderNeeds;
   leoDiskData: LeoDiskProviderNeeds;
-  metrics: MetricsProvider;
   permissions: LeoResourcePermissionsProvider;
+  onEvent?: KeyedEventHandler<EnvironmentsEvents>;
 }
 
 export const Environments = (props: EnvironmentsProps): ReactNode => {
-  const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, metrics } = props;
+  const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, onEvent } = props;
   const { colors } = useThemeFromContext();
   const { withErrorReporting } = withErrorReporter(useNotificationsFromContext());
   const signal = useCancellation();
@@ -139,13 +149,15 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     const endTimeForLeoCallsEpochMs = Date.now();
 
     const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs;
-    metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, {
-      leoCallTimeMs: leoCallTimeTotalMs,
-      totalCallTimeMs: leoCallTimeTotalMs,
-      runtimes: newRuntimes.length,
-      disks: newDisks.length,
-      apps: newApps.length,
-    });
+    if (onEvent) {
+      onEvent('dataRefresh', {
+        leoCallTimeMs: leoCallTimeTotalMs,
+        totalCallTimeMs: leoCallTimeTotalMs,
+        runtimes: newRuntimes.length,
+        disks: newDisks.length,
+        apps: newApps.length,
+      });
+    }
 
     const decorateLabeledResourceWithWorkspace = <T extends ListRuntimeItem | PersistentDisk | App>(
       cloudObject: T

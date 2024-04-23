@@ -8,6 +8,7 @@ import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider'
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
+import Events from 'src/libs/events';
 import { terraNavKey, TerraNavLinkProvider, terraNavLinkProvider } from 'src/libs/nav';
 import { leoResourcePermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
@@ -38,7 +39,7 @@ export const makeNavProvider = (terraNav: TerraNavLinkProvider): NavLinkProvider
 export const navProvider = makeNavProvider(terraNavLinkProvider);
 
 export const EnvironmentsPage = (): ReactNode => {
-  const metricsProvider = useMetricsEvent();
+  const metrics = useMetricsEvent();
   return h(FooterWrapper, [
     h(TopBar, { title: 'Cloud Environments', href: '' }, []),
     h(Environments, {
@@ -47,8 +48,16 @@ export const EnvironmentsPage = (): ReactNode => {
       leoAppData: leoAppProvider,
       leoRuntimeData: leoRuntimeProvider,
       leoDiskData: leoDiskProvider,
-      metrics: metricsProvider,
       permissions: leoResourcePermissions,
+      onEvent: (eventName, eventArgs) => {
+        switch (eventName) {
+          case 'dataRefresh':
+            metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, eventArgs);
+            break;
+          default:
+            break;
+        }
+      },
     }),
   ]);
 };
