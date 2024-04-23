@@ -2,7 +2,7 @@ import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { addExtensionToNotebook } from 'src/analysis/utils/file-utils';
+import { runtimeTools } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common';
 import { ValidatedInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
@@ -10,6 +10,8 @@ import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
 import validate from 'validate.js';
+
+const addExtensionToNotebook = (name) => `${name}.${runtimeTools.Jupyter.defaultExt}`;
 
 export const analysisNameValidator = (existing) => ({
   presence: { allowEmpty: false },

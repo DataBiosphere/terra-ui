@@ -18,7 +18,7 @@ import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { BaseWorkspace, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 
-import { SaveFilesHelpAzure } from '../runtime-common-components';
+import { SaveFilesHelpAzure } from '../runtime-common-text';
 import { computeStyles } from './modalStyles';
 
 const titleId = 'hail-batch-modal-title';

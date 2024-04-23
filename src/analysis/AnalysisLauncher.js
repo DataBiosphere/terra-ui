@@ -8,17 +8,8 @@ import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers';
 import { AnalysisDuplicator } from 'src/analysis/modals/AnalysisDuplicator';
 import { GcpComputeModal } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import ExportAnalysisModal from 'src/analysis/modals/ExportAnalysisModal/ExportAnalysisModal';
-import {
-  analysisLauncherTabName,
-  analysisTabName,
-  appLauncherTabName,
-  appLauncherWithAnalysisTabName,
-  ApplicationHeader,
-  PlaygroundHeader,
-  RuntimeKicker,
-  RuntimeStatusMonitor,
-  StatusMessage,
-} from 'src/analysis/runtime-common-components';
+import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/analysis/runtime-common-components';
+import { analysisLauncherTabName, analysisTabName, appLauncherTabName, appLauncherWithAnalysisTabName } from 'src/analysis/runtime-common-text';
 import { getCurrentPersistentDisk } from 'src/analysis/utils/disk-utils';
 import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/analysis/utils/file-utils';
 import { dataSyncingDocUrl } from 'src/analysis/utils/gce-machines';

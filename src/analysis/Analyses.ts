@@ -8,7 +8,7 @@ import { div, h, img, label, span } from 'react-hyperscript-helpers';
 import { AnalysisDuplicator } from 'src/analysis/modals/AnalysisDuplicator';
 import { AnalysisModal } from 'src/analysis/modals/AnalysisModal';
 import ExportAnalysisModal from 'src/analysis/modals/ExportAnalysisModal/ExportAnalysisModal';
-import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/analysis/runtime-common-components';
+import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/analysis/runtime-common-text';
 import { AnalysisFile, AnalysisFileMetadata, useAnalysisFiles } from 'src/analysis/useAnalysisFiles';
 import {
   AbsolutePath,

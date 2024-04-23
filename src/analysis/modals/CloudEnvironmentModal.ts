@@ -9,7 +9,8 @@ import { GcpComputeModalBase } from 'src/analysis/modals/ComputeModal/GcpCompute
 import { CromwellModalBase } from 'src/analysis/modals/CromwellModal';
 import { GalaxyModalBase } from 'src/analysis/modals/GalaxyModal';
 import { HailBatchModal } from 'src/analysis/modals/HailBatchModal';
-import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/analysis/runtime-common-components';
+import { PeriodicAzureCookieSetter } from 'src/analysis/runtime-common-components';
+import { appLauncherTabName } from 'src/analysis/runtime-common-text';
 import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/analysis/utils/cost-utils';
 import {
