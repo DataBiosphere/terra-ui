@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, getByRole, screen } from '@testing-library/react';
 import { Dispatch, SetStateAction } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { getTerraUser } from 'src/libs/state';
@@ -218,6 +218,27 @@ describe('a Collaborator component', () => {
       accessLevel: 'WRITER',
     };
     const acl = [item];
+
+    it('displays a tooltip when the user cannot share with additional permissions', () => {
+      // Arrange
+      render(
+        h(Collaborator, {
+          aclItem: item,
+          acl,
+          setAcl: aclMock,
+          originalAcl: acl,
+          workspace: { ...workspace, accessLevel: 'WRITER' },
+        })
+      );
+
+      // Act
+      const canShareCheckbox = getByRole(screen.getByText('Can share').parentElement!, 'checkbox');
+      fireEvent.mouseOver(canShareCheckbox);
+
+      // Assert
+      const tooltip = screen.getByRole('tooltip');
+      expect(tooltip).toHaveTextContent('Only Owners and Project Owners can share additional permissions');
+    });
 
     test.each([
       {
