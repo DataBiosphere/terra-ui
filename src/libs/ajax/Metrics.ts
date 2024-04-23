@@ -40,9 +40,9 @@ export const Metrics = (signal?: AbortSignal) => {
       isRegistered || signInStatus === 'authenticated'
         ? {
             authProvider: getTerraUser().idp,
-            institute: getTerraUserProfile().institute,
-            title: getTerraUserProfile().title,
-            department: getTerraUserProfile().department,
+            userInstitute: getTerraUserProfile().institute,
+            userTitle: getTerraUserProfile().title,
+            userDepartment: getTerraUserProfile().department,
           }
         : {};
     const body = {
