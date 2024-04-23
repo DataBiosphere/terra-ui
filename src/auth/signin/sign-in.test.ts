@@ -1,7 +1,8 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act } from '@testing-library/react';
-import { loadTerraUser } from 'src/auth/auth';
+import { AuthTokenState, loadAuthToken, loadTerraUser } from 'src/auth/auth';
+import { OidcUser } from 'src/auth/oidc-broker';
 import { signIn } from 'src/auth/signin/sign-in';
 import { Ajax } from 'src/libs/ajax';
 import { GroupRole } from 'src/libs/ajax/Groups';
@@ -33,6 +34,7 @@ type NotificationExports = typeof import('src/libs/notifications');
 jest.mock(
   'src/libs/notifications',
   (): NotificationExports => ({
+    ...jest.requireActual('src/libs/state'),
     notify: jest.fn(),
   })
 );
@@ -108,7 +110,18 @@ describe('when a user signs in', () => {
         captureEvent: captureEventFn,
       },
     } as DeepPartial<AjaxContract> as AjaxContract);
-    await signIn();
+
+    asMockedFn(loadAuthToken).mockResolvedValue({
+      status: 'success',
+      oidcUser: { id_token: 'foo' } as OidcUser,
+    } as unknown as AuthTokenState);
+
+    const user = await signIn();
+
+    // Assert
+    expect(loadAuthToken).toHaveBeenCalled();
+    expect(captureEventFn).toHaveBeenCalledWith('user:login:success', expect.any(Object));
+    expect(user.id_token).toEqual('foo');
   });
 });
 
