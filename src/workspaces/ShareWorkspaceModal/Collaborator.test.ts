@@ -244,37 +244,45 @@ describe('a Collaborator component', () => {
       {
         accessLevel: 'OWNER' as WorkspaceAccessLevel,
         descriptor: 'allows',
-        checkFn: (htmlElement: HTMLElement) => expect(htmlElement).not,
+        shouldDisableCheckbox: false,
       },
       {
         accessLevel: 'PROJECT_OWNER' as WorkspaceAccessLevel,
         descriptor: 'allows',
-        checkFn: (htmlElement: HTMLElement) => expect(htmlElement).not,
+        shouldDisableCheckbox: false,
       },
       {
         accessLevel: 'WRITER' as WorkspaceAccessLevel,
         descriptor: 'does not allow',
-        checkFn: (htmlElement: HTMLElement) => expect(htmlElement),
+        shouldDisableCheckbox: true,
       },
+    ])(
+      '$descriptor an $accessLevel to share with additional permissions',
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ])('$descriptor an $accessLevel to share with additional permissions', ({ accessLevel, descriptor, checkFn }) => {
-      // Act
-      render(
-        h(Collaborator, {
-          aclItem: item,
-          acl,
-          setAcl: aclMock,
-          originalAcl: acl,
-          workspace: { ...workspace, accessLevel },
-        })
-      );
+      ({ accessLevel, descriptor, shouldDisableCheckbox }) => {
+        // Act
+        render(
+          h(Collaborator, {
+            aclItem: item,
+            acl,
+            setAcl: aclMock,
+            originalAcl: acl,
+            workspace: { ...workspace, accessLevel },
+          })
+        );
 
-      // Assert
-      const canCompute = screen.getByText('Can compute');
-      checkFn(canCompute).toHaveAttribute('disabled');
+        // Assert
+        const canCompute = screen.getByText('Can compute');
+        const canShare = screen.getByText('Can share');
 
-      const canShare = screen.getByText('Can share');
-      checkFn(canShare).toHaveAttribute('disabled');
-    });
+        if (shouldDisableCheckbox) {
+          expect(canCompute).toHaveAttribute('disabled');
+          expect(canShare).toHaveAttribute('disabled');
+        } else {
+          expect(canCompute).not.toHaveAttribute('disabled');
+          expect(canShare).not.toHaveAttribute('disabled');
+        }
+      }
+    );
   });
 });
