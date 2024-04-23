@@ -2,7 +2,7 @@ import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { analysisLauncherTabName } from 'src/analysis/runtime-common-components';
+import { analysisLauncherTabName } from 'src/analysis/runtime-common-text';
 import { useAnalysisFiles } from 'src/analysis/useAnalysisFiles';
 import { DisplayName, FileName, getDisplayName, getExtension, getFileName } from 'src/analysis/utils/file-utils';
 import { analysisNameInput, analysisNameValidator } from 'src/analysis/utils/notebook-utils';

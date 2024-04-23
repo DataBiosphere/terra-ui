@@ -3,7 +3,7 @@ import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
-import { SaveFilesHelp, SaveFilesHelpAzure } from 'src/analysis/runtime-common-components';
+import { SaveFilesHelp, SaveFilesHelpAzure } from 'src/analysis/runtime-common-text';
 import { isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { LabeledCheckbox, spinnerOverlay } from 'src/components/common';
 import { isAzureConfig, isGceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';

@@ -3,7 +3,7 @@ import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
-import { SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-components';
+import { SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-text';
 import { appTools } from 'src/analysis/utils/tool-utils';
 import { LabeledCheckbox, spinnerOverlay } from 'src/components/common';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
