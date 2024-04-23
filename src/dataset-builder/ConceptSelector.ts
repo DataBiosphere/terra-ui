@@ -86,7 +86,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
               ]);
             },
           },
-          { name: 'Concept ID', width: 195, render: _.get('id') },
+          { name: 'ID', width: 195, render: _.get('id') },
           { name: 'Code', width: 195, render: _.get('code') },
           {
             name: 'Roll-up count',
