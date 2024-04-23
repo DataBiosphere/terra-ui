@@ -3,7 +3,7 @@
  * See https://github.com/DataBiosphere/terra-ui/wiki/Mocking-API-Responses.
  */
 
-import { ensureAuthSettled } from 'src/auth/auth';
+import { ensureAuthSettled } from 'src/auth/sign-in';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { AjaxOverride, ajaxOverridesStore, getTerraUser } from 'src/libs/state';
 
