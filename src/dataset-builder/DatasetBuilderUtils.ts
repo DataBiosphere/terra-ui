@@ -3,6 +3,7 @@ import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
   AnyCriteria as AnyCriteriaApi,
+  Cohort as CohortApi,
   ConceptSet,
   DomainCriteria as DomainCriteriaApi,
   ProgramDataListCriteria as ProgramDataListCriteriaApi,
@@ -14,6 +15,7 @@ import {
   SnapshotBuilderProgramDataListItem,
   SnapshotBuilderProgramDataListOption,
   SnapshotBuilderProgramDataRangeOption,
+  ValueSet as ValueSetApi,
 } from 'src/libs/ajax/DataRepo';
 
 /** A specific criteria based on a type. */
@@ -27,34 +29,6 @@ export interface Criteria {
 
 /** API types represent the data of UI types in the format expected by the backend.
  * They are generally subsets or mappings of the UI types. */
-
-export interface CriteriaGroupApi {
-  name: string;
-  criteria: AnyCriteriaApi[];
-  mustMeet: boolean;
-  meetAll: boolean;
-}
-
-export interface CohortApi extends DatasetBuilderType {
-  criteriaGroups: CriteriaGroupApi[];
-}
-
-export type ValueSetApi = {
-  name: string;
-  values: string[];
-};
-
-export type DatasetRequestApi = {
-  cohorts: CohortApi[];
-  conceptSets: ConceptSet[];
-  valueSets: ValueSetApi[];
-};
-
-export type DatasetAccessRequestApi = {
-  name: string;
-  researchPurposeStatement: string;
-  datasetRequest: DatasetRequestApi;
-};
 
 /** Below are the UI types */
 export interface DomainCriteria extends Criteria {

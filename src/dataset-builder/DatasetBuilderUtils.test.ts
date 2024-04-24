@@ -2,25 +2,24 @@ import { div, span } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
   Cohort,
-  CohortApi,
   convertCohort,
   convertCriteria,
   convertDatasetAccessRequest,
   convertValueSet,
   CriteriaGroup,
-  CriteriaGroupApi,
   DatasetAccessRequest,
-  DatasetAccessRequestApi,
   DomainCriteria,
   formatCount,
   HighlightConceptName,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
   ValueSet,
-  ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   AnyCriteria as AnyCriteriaApi,
+  Cohort as CohortApi,
+  CriteriaGroup as CriteriaGroupApi,
+  DatasetAccessRequest as DatasetAccessRequestApi,
   DomainConceptSet,
   DomainCriteria as DomainCriteriaApi,
   ProgramDataListCriteria as ProgramDataListCriteriaApi,
@@ -30,6 +29,7 @@ import {
   SnapshotBuilderProgramDataListItem,
   SnapshotBuilderProgramDataListOption,
   SnapshotBuilderProgramDataRangeOption,
+  ValueSet as ValueSetApi,
 } from 'src/libs/ajax/DataRepo';
 
 const concept: SnapshotBuilderConcept = {

@@ -2,8 +2,7 @@ import * as _ from 'lodash/fp';
 import {
   convertDatasetAccessRequest,
   convertDatasetParticipantCountRequest,
-  DatasetAccessRequest,
-  DatasetAccessRequestApi,
+  DatasetAccessRequest as DatasetAccessRequestUtils,
   DatasetBuilderType,
   DatasetParticipantCountRequest,
   DatasetParticipantCountResponse,
@@ -107,6 +106,34 @@ export interface ProgramDataListCriteria extends Criteria {
 
 export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
+export interface CriteriaGroup {
+  name: string;
+  criteria: AnyCriteria[];
+  mustMeet: boolean;
+  meetAll: boolean;
+}
+
+export interface Cohort extends DatasetBuilderType {
+  criteriaGroups: CriteriaGroup[];
+}
+
+export type ValueSet = {
+  name: string;
+  values: string[];
+};
+
+export type DatasetRequest = {
+  cohorts: Cohort[];
+  conceptSets: ConceptSet[];
+  valueSets: ValueSet[];
+};
+
+export type DatasetAccessRequest = {
+  name: string;
+  researchPurposeStatement: string;
+  datasetRequest: DatasetRequest;
+};
+
 export type DatasetModel = {
   id: string;
   name: string;
@@ -172,7 +199,7 @@ export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
-    createSnapshotRequest(request: DatasetAccessRequest): Promise<DatasetAccessRequestApi>;
+    createSnapshotRequest(request: DatasetAccessRequestUtils): Promise<DatasetAccessRequest>;
     getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
     getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptHierarchyResponse>;
@@ -207,7 +234,7 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       details: async (include): Promise<DatasetModel> =>
         callDataRepo(`repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`, signal),
       roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
-      createSnapshotRequest: async (request): Promise<DatasetAccessRequestApi> =>
+      createSnapshotRequest: async (request): Promise<DatasetAccessRequest> =>
         callDataRepoPost(
           `repository/v1/datasets/${datasetId}/snapshotRequests`,
           signal,
