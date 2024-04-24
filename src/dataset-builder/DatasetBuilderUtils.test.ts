@@ -62,7 +62,6 @@ const domainCriteria: DomainCriteria = {
 
 const domainCriteriaApi: DomainCriteriaApi = {
   kind: 'domain',
-  name: 'category',
   id: 1,
   conceptId: 100,
 };
@@ -89,7 +88,6 @@ const rangeCriteria: ProgramDataRangeCriteria = {
 const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
   id: 2,
   kind: 'range',
-  name: 'rangeOption',
   low: 1,
   high: 99,
 };
@@ -122,7 +120,6 @@ const listCriteria: ProgramDataListCriteria = {
 const listCriteriaApi: ProgramDataListCriteriaApi = {
   id: 2,
   kind: 'list',
-  name: 'listOption',
   values: criteriaListValuesApi,
 };
 

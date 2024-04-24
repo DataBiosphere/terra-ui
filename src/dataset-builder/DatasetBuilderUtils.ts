@@ -28,7 +28,6 @@ export interface CriteriaApi {
   // This is the ID for either the domain or the program data option
   id: number;
   kind: SnapshotBuilderOptionTypeNames;
-  name: string;
   count?: number;
 }
 
@@ -177,8 +176,8 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
 };
 
 export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
-  const { kind, id, name } = criteria.option;
-  const mergeObject = { kind, id, name };
+  const { kind, id } = criteria.option;
+  const mergeObject = { kind, id };
   switch (criteria.kind) {
     case 'range':
       return _.merge(mergeObject, { low: criteria.low, high: criteria.high }) as ProgramDataRangeCriteriaApi;
