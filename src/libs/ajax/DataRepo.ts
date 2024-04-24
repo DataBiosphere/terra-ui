@@ -81,6 +81,32 @@ export type SnapshotBuilderSettings = {
   datasetConceptSets?: PrepackagedConceptSet[];
 };
 
+export interface Criteria {
+  // This is the ID for either the domain or the program data option
+  id: number;
+  kind: SnapshotBuilderOptionTypeNames;
+  count?: number;
+}
+
+export interface DomainCriteria extends Criteria {
+  kind: 'domain';
+  // This is the id for the selected concept
+  conceptId: number;
+}
+
+export interface ProgramDataRangeCriteria extends Criteria {
+  kind: 'range';
+  low: number;
+  high: number;
+}
+
+export interface ProgramDataListCriteria extends Criteria {
+  kind: 'list';
+  values: number[];
+}
+
+export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
+
 export type DatasetModel = {
   id: string;
   name: string;

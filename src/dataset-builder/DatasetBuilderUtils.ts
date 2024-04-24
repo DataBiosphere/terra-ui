@@ -2,7 +2,11 @@ import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
+  AnyCriteria as AnyCriteriaApi,
   ConceptSet,
+  DomainCriteria as DomainCriteriaApi,
+  ProgramDataListCriteria as ProgramDataListCriteriaApi,
+  ProgramDataRangeCriteria as ProgramDataRangeCriteriaApi,
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderDomainOption,
   SnapshotBuilderOption,
@@ -23,32 +27,6 @@ export interface Criteria {
 
 /** API types represent the data of UI types in the format expected by the backend.
  * They are generally subsets or mappings of the UI types. */
-
-export interface CriteriaApi {
-  // This is the ID for either the domain or the program data option
-  id: number;
-  kind: SnapshotBuilderOptionTypeNames;
-  count?: number;
-}
-
-export interface DomainCriteriaApi extends CriteriaApi {
-  kind: 'domain';
-  // This is the id for the selected concept
-  conceptId: number;
-}
-
-export interface ProgramDataRangeCriteriaApi extends CriteriaApi {
-  kind: 'range';
-  low: number;
-  high: number;
-}
-
-export interface ProgramDataListCriteriaApi extends CriteriaApi {
-  kind: 'list';
-  values: number[];
-}
-
-export type AnyCriteriaApi = DomainCriteriaApi | ProgramDataRangeCriteriaApi | ProgramDataListCriteriaApi;
 
 export interface CriteriaGroupApi {
   name: string;

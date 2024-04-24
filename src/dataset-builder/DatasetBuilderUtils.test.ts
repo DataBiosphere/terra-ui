@@ -1,7 +1,6 @@
 import { div, span } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
-  AnyCriteriaApi,
   Cohort,
   CohortApi,
   convertCohort,
@@ -13,18 +12,19 @@ import {
   DatasetAccessRequest,
   DatasetAccessRequestApi,
   DomainCriteria,
-  DomainCriteriaApi,
   formatCount,
   HighlightConceptName,
   ProgramDataListCriteria,
-  ProgramDataListCriteriaApi,
   ProgramDataRangeCriteria,
-  ProgramDataRangeCriteriaApi,
   ValueSet,
   ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
+  AnyCriteria as AnyCriteriaApi,
   DomainConceptSet,
+  DomainCriteria as DomainCriteriaApi,
+  ProgramDataListCriteria as ProgramDataListCriteriaApi,
+  ProgramDataRangeCriteria as ProgramDataRangeCriteriaApi,
   SnapshotBuilderConcept,
   SnapshotBuilderDomainOption,
   SnapshotBuilderProgramDataListItem,
