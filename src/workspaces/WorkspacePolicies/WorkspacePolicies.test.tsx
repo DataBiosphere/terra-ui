@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import {
   azureBillingProject,
   azureProtectedDataBillingProject,
@@ -30,11 +30,7 @@ describe('WorkspacePolicies', () => {
   describe('handles a workspace as the source of the policies', () => {
     it('renders nothing if the policy array is empty', () => {
       // Act
-      render(
-        h(WorkspacePolicies, {
-          workspace: defaultAzureWorkspace,
-        })
-      );
+      render(<WorkspacePolicies workspace={defaultAzureWorkspace} />);
 
       // Assert
       expect(screen.queryByText(policyLabel)).toBeNull();
@@ -54,11 +50,7 @@ describe('WorkspacePolicies', () => {
       };
 
       // Act
-      render(
-        h(WorkspacePolicies, {
-          workspace: nonProtectedAzureWorkspace,
-        })
-      );
+      render(<WorkspacePolicies workspace={nonProtectedAzureWorkspace} />);
 
       // Assert
       expect(screen.queryByText(policyLabel)).toBeNull();
@@ -72,11 +64,7 @@ describe('WorkspacePolicies', () => {
       };
 
       // Act
-      const { container } = render(
-        h(WorkspacePolicies, {
-          workspace: workspaceWithAllPolicies,
-        })
-      );
+      const { container } = render(<WorkspacePolicies workspace={workspaceWithAllPolicies} />);
 
       // Assert
       expect(await axe(container)).toHaveNoViolations();
@@ -91,11 +79,7 @@ describe('WorkspacePolicies', () => {
       const user = userEvent.setup();
 
       // Act
-      render(
-        h(WorkspacePolicies, {
-          workspace: protectedAzureWorkspace,
-        })
-      );
+      render(<WorkspacePolicies workspace={protectedAzureWorkspace} />);
 
       // Act, click on the info button to get tooltip text to render.
       await user.click(screen.getByLabelText('More info'));
@@ -108,11 +92,7 @@ describe('WorkspacePolicies', () => {
   describe('handles a billing project as the source of the policies', () => {
     it('renders nothing for a GCP billing project', () => {
       // Act
-      render(
-        h(WorkspacePolicies, {
-          billingProject: gcpBillingProject,
-        })
-      );
+      render(<WorkspacePolicies billingProject={gcpBillingProject} />);
 
       // Assert
       expect(screen.queryByText(policyLabel)).toBeNull();
@@ -120,11 +100,7 @@ describe('WorkspacePolicies', () => {
 
     it('renders nothing for an Azure unprotected billing project', () => {
       // Act
-      render(
-        h(WorkspacePolicies, {
-          billingProject: azureBillingProject,
-        })
-      );
+      render(<WorkspacePolicies billingProject={azureBillingProject} />);
 
       // Assert
       expect(screen.queryByText(policyLabel)).toBeNull();
@@ -132,11 +108,7 @@ describe('WorkspacePolicies', () => {
 
     it('renders policies for an Azure protected data billing project', async () => {
       // Act
-      render(
-        h(WorkspacePolicies, {
-          billingProject: azureProtectedDataBillingProject,
-        })
-      );
+      render(<WorkspacePolicies billingProject={azureProtectedDataBillingProject} />);
 
       // Assert
       screen.getByText(policyLabel);
@@ -151,12 +123,7 @@ describe('WorkspacePolicies', () => {
         ...defaultAzureWorkspace,
         policies: [regionConstraintPolicy],
       };
-      render(
-        h(WorkspacePolicies, {
-          billingProject: azureProtectedDataBillingProject,
-          workspace: workspaceWithPolicies,
-        })
-      );
+      render(<WorkspacePolicies billingProject={azureProtectedDataBillingProject} workspace={workspaceWithPolicies} />);
 
       // Assert
       screen.getByText(policyLabel);
@@ -170,12 +137,7 @@ describe('WorkspacePolicies', () => {
         ...defaultAzureWorkspace,
         policies: [protectedDataPolicy, regionConstraintPolicy],
       };
-      render(
-        h(WorkspacePolicies, {
-          billingProject: azureProtectedDataBillingProject,
-          workspace: workspaceWithPolicies,
-        })
-      );
+      render(<WorkspacePolicies billingProject={azureProtectedDataBillingProject} workspace={workspaceWithPolicies} />);
 
       // Assert
       screen.getByText(policyLabel);
@@ -185,7 +147,7 @@ describe('WorkspacePolicies', () => {
 
     it('renders nothing if workspace and billing project are undefined', () => {
       // Act
-      render(h(WorkspacePolicies, {}));
+      render(<WorkspacePolicies />);
 
       // Assert
       expect(screen.queryByText(policyLabel)).toBeNull();
@@ -195,11 +157,7 @@ describe('WorkspacePolicies', () => {
   it('allows passing a title and label about the list', async () => {
     // Act
     render(
-      h(WorkspacePolicies, {
-        title: 'Test title',
-        policiesLabel: 'About this list:',
-        workspace: protectedAzureWorkspace,
-      })
+      <WorkspacePolicies title="Test title" policiesLabel="About this list:" workspace={protectedAzureWorkspace} />
     );
 
     // Assert
