@@ -52,7 +52,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
       runningSubmissionsCount > 0 &&
         b({ style: { display: 'block', margin: '1rem 0' } }, [
           `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
-            'Deleting the following entities could cause workflows using them to fail.',
+            'Deleting the following entries could cause workflows using them to fail.',
         ]),
       moreToDelete &&
         b({ style: { display: 'block', margin: '1rem 0' } }, [
