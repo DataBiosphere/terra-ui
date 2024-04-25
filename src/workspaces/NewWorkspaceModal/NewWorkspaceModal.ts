@@ -5,6 +5,7 @@ import { Fragment, ReactNode, useState } from 'react';
 import { div, h, label, p } from 'react-hyperscript-helpers';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { AzureBillingProject, BillingProject, CloudPlatform, GCPBillingProject } from 'src/billing-core/models';
+import { supportsPhiTracking } from 'src/billing-core/utils';
 import { isBucketErrorRequesterPays } from 'src/components/bucket-utils';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import {
@@ -22,7 +23,6 @@ import { TextArea, ValidatedInput } from 'src/components/input';
 import { allRegions, availableBucketRegions, isSupportedBucketLocation } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
-import { supportsPhiTracking } from 'src/libs/ajax/Billing';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';

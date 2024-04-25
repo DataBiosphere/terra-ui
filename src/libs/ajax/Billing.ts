@@ -59,10 +59,6 @@ export interface GCPBillingProject extends BaseBillingProject {
   servicePerimeter?: string;
 }
 
-export const supportsPhiTracking = (project: BillingProject): boolean => {
-  return project.cloudPlatform === 'AZURE' && project.protectedData && !!project.organization?.enterprise;
-};
-
 export interface UnknownBillingProject extends BaseBillingProject {
   cloudPlatform: 'UNKNOWN';
 }
