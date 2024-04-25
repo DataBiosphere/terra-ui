@@ -405,7 +405,8 @@ describe('NewWorkspaceModal', () => {
   });
 
   describe('decides when to show a policy section ', () => {
-    const policyLabel = 'The workspace will inherit:';
+    const policyTitle = 'Security, controls, and workspace information';
+    const policyLabel = 'Workspace will inherit data protection policies';
     it('Shows a policy section when cloning an Azure workspace with polices', async () => {
       setup({ billingProjects: [azureProtectedDataBillingProject] });
 
@@ -421,7 +422,7 @@ describe('NewWorkspaceModal', () => {
       });
 
       // Assert
-      screen.getByText('Policies');
+      screen.getByText(policyTitle);
       screen.getByText(policyLabel);
     });
 
@@ -440,7 +441,7 @@ describe('NewWorkspaceModal', () => {
       });
 
       // Assert
-      expect(screen.queryByText('Policies')).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
       expect(screen.queryByText(policyLabel)).toBeNull();
     });
 
@@ -463,7 +464,7 @@ describe('NewWorkspaceModal', () => {
       });
 
       // Assert
-      expect(screen.queryByText('Policies')).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
       expect(screen.queryByText(policyLabel)).toBeNull();
     });
 
@@ -483,13 +484,13 @@ describe('NewWorkspaceModal', () => {
       });
 
       // No policy section until billing project is selected.
-      expect(screen.queryByText('Policies')).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
 
       await user.click(screen.getByText('Select a billing project'));
       await user.click(screen.getByText('Protected Azure Billing Project'));
 
       // Assert
-      screen.getByText('Policies');
+      screen.getByText(policyTitle);
       screen.getByText(policyLabel);
     });
 
@@ -512,7 +513,7 @@ describe('NewWorkspaceModal', () => {
       await user.click(screen.getByText('Azure Billing Project'));
 
       // Assert
-      expect(screen.queryByText('Policies')).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
       expect(screen.queryByText(policyLabel)).toBeNull();
     });
   });
