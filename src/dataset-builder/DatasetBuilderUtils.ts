@@ -5,7 +5,6 @@ import {
   AnyCriteria as AnyCriteriaApi,
   Cohort as CohortApi,
   ConceptSet,
-  DatasetParticipantCountRequest,
   DomainCriteria as DomainCriteriaApi,
   ProgramDataListCriteria as ProgramDataListCriteriaApi,
   ProgramDataRangeCriteria as ProgramDataRangeCriteriaApi,
@@ -105,6 +104,17 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
       cohort.criteriaGroups
     ),
   };
+};
+
+export type DatasetParticipantCountRequest = {
+  cohorts: Cohort[];
+};
+
+export type DatasetParticipantCountResponse = {
+  result: {
+    total: number;
+  };
+  sql: string;
 };
 
 export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {

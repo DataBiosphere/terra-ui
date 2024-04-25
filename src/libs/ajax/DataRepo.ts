@@ -4,6 +4,8 @@ import {
   convertDatasetParticipantCountRequest,
   DatasetAccessRequest as DatasetAccessRequestUtils,
   DatasetBuilderType,
+  DatasetParticipantCountRequest,
+  DatasetParticipantCountResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
@@ -209,17 +211,6 @@ export interface SnapshotBuilderParentConcept {
   parentId: number;
   children: SnapshotBuilderConcept[];
 }
-
-export type DatasetParticipantCountRequest = {
-  cohorts: Cohort[];
-};
-
-export type DatasetParticipantCountResponse = {
-  result: {
-    total: number;
-  };
-  sql: string;
-};
 
 export interface DataRepoContract {
   dataset: (datasetId: string) => {

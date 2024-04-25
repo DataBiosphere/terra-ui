@@ -11,6 +11,7 @@ import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
+  DatasetParticipantCountResponse,
   formatCount,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
@@ -18,7 +19,6 @@ import {
 import {
   DataRepo,
   DatasetModel,
-  DatasetParticipantCountResponse,
   SnapshotBuilderDomainOption,
   SnapshotBuilderOption,
   SnapshotBuilderProgramDataListItem,
