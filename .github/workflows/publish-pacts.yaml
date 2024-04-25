@@ -12,13 +12,15 @@ on:
 env:
   PUBLISH_CONTRACTS_RUN_NAME: 'publish-contracts-${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt }}'
   CAN_I_DEPLOY_RUN_NAME: 'can-i-deploy-${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt }}'
+  PACTS_ARTIFACT: terraui-pacts-${{ github.event.repository.name }}-${{ github.run_id }}
+  PACTS_OUTPUT_DIR: pacts
 jobs:
   setup-and-test:
     runs-on: ubuntu-latest
     outputs:
-      pact-b64: ${{ steps.encode.outputs.pact-b64 }}
       new-tag: ${{ steps.tag.outputs.new_tag }}
       repo-branch: ${{ steps.extract-branch.outputs.repo-branch }}
+      pact-paths: ${{ steps.locate-pacts.outputs.pact-paths }}
     steps:
       - uses: actions/checkout@v3
       - id: extract-branch
@@ -58,34 +60,69 @@ jobs:
       - name: Run tests
         run: yarn test "\b\w*Pact\w*\.test\.(js|ts)\b" # This matches any test file that contains the word "Pact" at the end of its name, either js or ts.
 
-      - name: Encode the pact as non-breaking base 64 string
-        id: encode
-        env:
-          PACT_FULL_PATH: 'pacts/terraui-cbas.json'  # Currently, workflows are limited to a single Pact file (see WM-1858).
+      - name: Locate Pact files
+        id: locate-pacts
         run: |
-          NON_BREAKING_B64=$(cat $PACT_FULL_PATH | base64 -w 0)
-          echo "pact-b64=${NON_BREAKING_B64}" >> $GITHUB_OUTPUT
-          echo $NON_BREAKING_B64
+          pact_paths=$(find "$PACTS_OUTPUT_DIR" -type f -name '*.json' | jq -cnR '[inputs]')
+          echo "pact-paths=$pact_paths" >> $GITHUB_OUTPUT
 
-  publish-pact-workflow:
+      - name: Upload Pact files
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PACTS_ARTIFACT }}
+          path: ${{ env.PACTS_OUTPUT_DIR }}
+          retention-days: 1
+
+  publish-pacts:
     runs-on: ubuntu-latest
     needs: [setup-and-test]
-    permissions:
-      contents: 'read'
-      id-token: 'write'
+    strategy:
+      matrix:
+        pact-path: ${{ fromJson(needs.setup-and-test.outputs.pact-paths) }}
     steps:
+      - name: Download Pact files
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.PACTS_ARTIFACT }}
+          path: ${{ env.PACTS_OUTPUT_DIR }}
+
+      - name: Encode Pact as non-breaking base64 string
+        id: encode-pact
+        run: |
+          pactB64=$(cat "${{ matrix.pact-path }}" | base64 -w 0)
+          echo "pact-b64=${pactB64}" >> $GITHUB_OUTPUT
+
       - name: Publish Pact contracts
         uses: broadinstitute/workflow-dispatch@v4.0.0
         with:
+          run-name: "${{ env.PUBLISH_CONTRACTS_RUN_NAME }}-${{ matrix.pact-path }}"
           workflow: publish-contracts.yaml
           repo: broadinstitute/terra-github-workflows
           ref: refs/heads/main
           token: ${{ secrets.BROADBOT_TOKEN}} # github token for access to kick off a job in the private repo
           inputs: '{
-            "run-name": "${{ env.PUBLISH_CONTRACTS_RUN_NAME }}",
-            "pact-b64": "${{ needs.setup-and-test.outputs.pact-b64 }}",
+            "run-name": "${{ env.PUBLISH_CONTRACTS_RUN_NAME }}-${{ matrix.pact-path }}",
+            "pact-b64": "${{ steps.encode-pact.outputs.pact-b64 }}",
             "repo-owner": "${{ github.repository_owner }}",
             "repo-name": "${{ github.event.repository.name }}",
             "repo-branch": "${{ needs.setup-and-test.outputs.repo-branch }}",
             "release-tag": "${{ needs.setup-and-test.outputs.new-tag }}"
+          }'
+
+  can-i-deploy:
+    runs-on: ubuntu-latest
+    needs: [ setup-and-test ]
+    steps:
+      - name: Dispatch to terra-github-workflows
+        uses: broadinstitute/workflow-dispatch@v4.0.0
+        with:
+          run-name: "${{ env.CAN_I_DEPLOY_RUN_NAME }}"
+          workflow: .github/workflows/can-i-deploy.yaml
+          repo: broadinstitute/terra-github-workflows
+          ref: refs/heads/main
+          token: ${{ secrets.BROADBOT_TOKEN }} # github token for access to kick off a job in the private repo
+          inputs: '{
+            "run-name": "${{ env.CAN_I_DEPLOY_RUN_NAME }}",
+            "pacticipant": "terraui",
+            "version": "${{ needs.setup-and-test.outputs.new-tag }}"
           }'
