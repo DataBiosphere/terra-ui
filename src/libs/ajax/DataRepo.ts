@@ -4,13 +4,11 @@ import {
   convertDatasetParticipantCountRequest,
   DatasetAccessRequest as DatasetAccessRequestUtils,
   DatasetBuilderType,
-  DatasetParticipantCountRequest,
-  DatasetParticipantCountResponse,
-  GetConceptHierarchyResponse,
-  GetConceptsResponse,
-  SearchConceptsResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
+
+/** API types represent the data of UI types in the format expected by the backend.
+ * They are generally subsets or mappings of the UI types. */
 
 export type SnapshotBuilderConcept = {
   id: number;
@@ -194,6 +192,34 @@ export interface JobModel {
   completed?: string;
   class_name?: string;
 }
+
+export interface GetConceptsResponse {
+  result: SnapshotBuilderConcept[];
+}
+
+export interface GetConceptHierarchyResponse {
+  readonly result: SnapshotBuilderParentConcept[];
+}
+
+export interface SearchConceptsResponse {
+  result: SnapshotBuilderConcept[];
+}
+
+export interface SnapshotBuilderParentConcept {
+  parentId: number;
+  children: SnapshotBuilderConcept[];
+}
+
+export type DatasetParticipantCountRequest = {
+  cohorts: Cohort[];
+};
+
+export type DatasetParticipantCountResponse = {
+  result: {
+    total: number;
+  };
+  sql: string;
+};
 
 export interface DataRepoContract {
   dataset: (datasetId: string) => {

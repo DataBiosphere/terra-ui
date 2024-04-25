@@ -5,10 +5,10 @@ import {
   AnyCriteria as AnyCriteriaApi,
   Cohort as CohortApi,
   ConceptSet,
+  DatasetParticipantCountRequest,
   DomainCriteria as DomainCriteriaApi,
   ProgramDataListCriteria as ProgramDataListCriteriaApi,
   ProgramDataRangeCriteria as ProgramDataRangeCriteriaApi,
-  SnapshotBuilderConcept as Concept,
   SnapshotBuilderDomainOption,
   SnapshotBuilderOption,
   SnapshotBuilderOptionTypeNames,
@@ -26,9 +26,6 @@ export interface Criteria {
   kind: SnapshotBuilderOptionTypeNames;
   option: SnapshotBuilderOption;
 }
-
-/** API types represent the data of UI types in the format expected by the backend.
- * They are generally subsets or mappings of the UI types. */
 
 /** Below are the UI types */
 export interface DomainCriteria extends Criteria {
@@ -75,23 +72,6 @@ export type ValueSet = {
   domain: string;
   values: DatasetBuilderValue[];
 };
-
-export interface GetConceptsResponse {
-  result: Concept[];
-}
-
-export interface SnapshotBuilderParentConcept {
-  parentId: number;
-  children: Concept[];
-}
-
-export interface GetConceptHierarchyResponse {
-  readonly result: SnapshotBuilderParentConcept[];
-}
-
-export interface SearchConceptsResponse {
-  result: Concept[];
-}
 
 export type DatasetRequest = {
   cohorts: Cohort[];
@@ -154,17 +134,6 @@ export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessR
       valueSets: _.map(convertValueSet, datasetAccessRequest.datasetRequest.valueSets),
     },
   };
-};
-
-export type DatasetParticipantCountRequest = {
-  cohorts: Cohort[];
-};
-
-export type DatasetParticipantCountResponse = {
-  result: {
-    total: number;
-  };
-  sql: string;
 };
 
 export const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
