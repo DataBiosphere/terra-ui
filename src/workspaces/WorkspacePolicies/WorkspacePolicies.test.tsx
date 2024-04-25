@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import React from 'react';
+import { Link } from 'src/components/common';
 import {
   azureBillingProject,
   azureProtectedDataBillingProject,
@@ -18,8 +19,8 @@ import {
 import {
   AzureWorkspace,
   groupConstraintLabel,
+  phiTrackingLabel,
   protectedDataLabel,
-  protectedDataMessage,
   regionConstraintLabel,
 } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
@@ -57,7 +58,7 @@ describe('WorkspacePolicies', () => {
     });
 
     it('renders policies with no accessibility errors', async () => {
-      // Arrange
+      // Arrange. Render all policies to check for missing key errors.
       const workspaceWithAllPolicies: AzureWorkspace = {
         ...defaultAzureWorkspace,
         policies: [protectedDataPolicy, groupConstraintPolicy, regionConstraintPolicy],
@@ -72,20 +73,6 @@ describe('WorkspacePolicies', () => {
       screen.getByText(protectedDataLabel);
       screen.getByText(groupConstraintLabel);
       screen.getByText(regionConstraintLabel);
-    });
-
-    it('renders a tooltip', async () => {
-      // Arrange
-      const user = userEvent.setup();
-
-      // Act
-      render(<WorkspacePolicies workspace={protectedAzureWorkspace} />);
-
-      // Act, click on the info button to get tooltip text to render.
-      await user.click(screen.getByLabelText('More info'));
-
-      // Assert
-      expect(screen.getAllByText(protectedDataMessage)).not.toBeNull();
     });
   });
 
@@ -154,14 +141,91 @@ describe('WorkspacePolicies', () => {
     });
   });
 
-  it('allows passing a title and label about the list', async () => {
-    // Act
-    render(
-      <WorkspacePolicies title="Test title" policiesLabel="About this list:" workspace={protectedAzureWorkspace} />
-    );
+  describe('supports UI customization ', () => {
+    it('allows passing a title and label about the list', async () => {
+      // Act
+      render(
+        <WorkspacePolicies title="Test title" policiesLabel="About this list:" workspace={protectedAzureWorkspace} />
+      );
 
-    // Assert
-    expect(screen.getAllByText('Test title')).not.toBeNull();
-    expect(screen.getAllByText('About this list:')).not.toBeNull();
+      // Assert
+      expect(screen.getAllByText('Test title')).not.toBeNull();
+      expect(screen.getAllByText('About this list:')).not.toBeNull();
+    });
+
+    it('renders a link if provided', async () => {
+      // Act
+      render(
+        <WorkspacePolicies
+          workspace={protectedAzureWorkspace}
+          policiesLink={<Link href="http://dummy-link">about policies</Link>}
+        />
+      );
+
+      // Assert
+      screen.getByText('about policies');
+    });
+
+    it('renders an ending notice if provided', async () => {
+      // Act
+      render(<WorkspacePolicies workspace={protectedAzureWorkspace} endingNotice={<div>ending notice</div>} />);
+
+      // Assert
+      screen.getByText('ending notice');
+    });
+
+    it('renders policies as disabled checkbox controls by default', async () => {
+      // Act
+      render(<WorkspacePolicies billingProject={azureProtectedDataBillingProject} />);
+
+      // Assert
+      const checkbox = screen.getByLabelText(protectedDataLabel);
+      expect(checkbox).toHaveAttribute('disabled');
+      expect(checkbox).toHaveAttribute('role', 'checkbox');
+    });
+
+    it('supports rendering policies with a check icon instead of a checkbox', async () => {
+      // Arrange. Include all policies to check for missing key errors.
+      const workspaceWithAllPolicies: AzureWorkspace = {
+        ...defaultAzureWorkspace,
+        policies: [protectedDataPolicy, groupConstraintPolicy, regionConstraintPolicy],
+      };
+
+      // Act
+      render(<WorkspacePolicies workspace={workspaceWithAllPolicies} noCheckboxes />);
+
+      // Assert
+      expect(screen.queryByLabelText(protectedDataLabel)).toBeNull();
+      expect(screen.queryByRole('checkbox')).toBeNull();
+      screen.getByText(protectedDataLabel);
+    });
+  });
+
+  describe('supports toggling PHI tracking ', () => {
+    it('does not provide PHI tracking control by default', async () => {
+      // Act
+      render(<WorkspacePolicies billingProject={azureProtectedDataBillingProject} />);
+
+      // Assert
+      expect(screen.queryByText(phiTrackingLabel)).toBeNull();
+    });
+
+    it('calls PHI tracking callback if provided', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const phiTrackingCallback = jest.fn();
+
+      // Act
+      render(
+        <WorkspacePolicies billingProject={azureProtectedDataBillingProject} togglePhiTracking={phiTrackingCallback} />
+      );
+      const phiCheckbox = screen.getByLabelText(phiTrackingLabel);
+      await user.click(phiCheckbox);
+      await user.click(phiCheckbox);
+
+      // Assert
+      expect(phiTrackingCallback).toHaveBeenNthCalledWith(1, true);
+      expect(phiTrackingCallback).toHaveBeenNthCalledWith(2, false);
+    });
   });
 });

@@ -22,6 +22,7 @@ import { TextArea, ValidatedInput } from 'src/components/input';
 import { allRegions, availableBucketRegions, isSupportedBucketLocation } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
+import { supportsPhiTracking } from 'src/libs/ajax/Billing';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
@@ -39,16 +40,18 @@ import { CloneEgressWarning } from 'src/workspaces/NewWorkspaceModal/CloneEgress
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
 import {
   cloudProviderLabels,
+  hasPhiTrackingPolicy,
   isAzureWorkspace,
   isGoogleWorkspace,
   isProtectedWorkspace,
+  phiTrackingPolicy,
   protectedDataIcon,
   protectedDataLabel,
   protectedDataMessage,
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/workspaces/utils';
-import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
+import { WorkspacePolicies, WorkspacePoliciesProps } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 
 const constraints = {
@@ -121,6 +124,7 @@ const NewWorkspaceModal = withDisplayName(
     const [sourceGCPWorkspaceRegion, setSourceGcpWorkspaceRegion] = useState<string>(defaultLocation);
     const [requesterPaysError, setRequesterPaysError] = useState(false);
     const [isAlphaRegionalityUser, setIsAlphaRegionalityUser] = useState(false);
+    const [phiTracking, setPhiTracking] = useState<boolean | undefined>(undefined);
     const signal = useCancellation();
 
     // Helpers
@@ -147,7 +151,9 @@ const NewWorkspaceModal = withDisplayName(
           copyFilesWithPrefix: isGoogleBillingProject() ? 'notebooks/' : 'analyses/',
           ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation }),
           enhancedBucketLogging,
+          ...(phiTracking && { policies: [phiTrackingPolicy] }),
         };
+
         const createdWorkspace = await Utils.cond(
           [
             !!cloneWorkspace,
@@ -248,7 +254,7 @@ const NewWorkspaceModal = withDisplayName(
           if (error instanceof Response) {
             try {
               const { message } = await error.json();
-              return message;
+              return message || 'Unknown error.';
             } catch (readResponseError) {
               return 'Unknown error.';
             }
@@ -364,7 +370,9 @@ const NewWorkspaceModal = withDisplayName(
       // the Events.workspaceClone event data.
       if (!!cloneWorkspace && isAzureWorkspace(cloneWorkspace)) {
         if (isAzureBillingProject(project)) {
-          return isProtectedWorkspace(cloneWorkspace) ? project.protectedData : true;
+          const protectedOk = isProtectedWorkspace(cloneWorkspace) ? project.protectedData : true;
+          const phiTrackingOk = hasPhiTrackingPolicy(cloneWorkspace) ? supportsPhiTracking(project) : true;
+          return protectedOk && phiTrackingOk;
         }
         return false;
       }
@@ -411,51 +419,60 @@ const NewWorkspaceModal = withDisplayName(
         : 'You need a billing project to create a new workspace.';
     };
 
+    const endingNotice = renderNotice ? renderNotice({ selectedBillingProject }) : undefined;
+
+    const displayAzurePolicyAndWorkspaceInfo =
+      isAzureBillingProject() || (!!cloneWorkspace && isAzureWorkspace(cloneWorkspace));
     const renderAzurePolicyAndWorkspaceInfo = () => {
-      return div({}, [
-        ((!!cloneWorkspace && isAzureWorkspace(cloneWorkspace)) || isAzureBillingProject(selectedBillingProject)) &&
-          h(WorkspacePolicies, {
-            workspace: cloneWorkspace,
-            billingProject: selectedBillingProject,
-            title: 'Policies',
-            policiesLabel: 'The workspace will inherit:',
-          }),
-        renderNotice({ selectedBillingProject }),
-        workflowImport &&
-          azureBillingProjectsExist &&
-          div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
-            icon('info-circle', { size: 16, style: { marginRight: '0.5rem', color: colors.accent() } }),
-            div([
-              'Importing directly into new Azure workspaces is not currently supported. To create a new workspace with an Azure billing project, visit the main ',
-              h(
-                Link,
-                {
-                  href: Nav.getLink('workspaces'),
-                },
-                ['Workspaces']
-              ),
-              ' page.',
-            ]),
-          ]),
-        isAzureBillingProject() &&
-          div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
+      const renderLink = (href: string, text: string) => {
+        return h(
+          Link,
+          {
+            href,
+            ...Utils.newTabLinkProps,
+            style: { display: 'inline-block', marginTop: '0.25rem' },
+          },
+          [text, icon('pop-out', { size: 14, style: { marginLeft: '0.1rem' } })]
+        );
+      };
+      const workspacePoliciesProps: WorkspacePoliciesProps = {
+        workspace: cloneWorkspace,
+        billingProject: selectedBillingProject,
+        title: 'Security, controls, and workspace information',
+        policiesLabel: 'Workspace will inherit data protection policies',
+        policiesLink: renderLink(
+          'https://support.terra.bio/hc/en-us/articles/12029087819291', // get correct ref!
+          'Learn more about policies'
+        ),
+        endingNotice: div([
+          endingNotice,
+          div({ style: { display: 'grid', gridTemplateColumns: 'auto auto', fontWeight: 600 } }, [
             icon('warning-standard', {
-              size: 16,
+              size: 18,
               style: { marginRight: '0.5rem', color: colors.warning() },
             }),
             div([
-              'Creating a workspace may increase your infrastructure costs. ',
-              h(
-                Link,
-                {
-                  href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
-                  ...Utils.newTabLinkProps,
-                },
-                ['Learn more and follow changes', icon('pop-out', { size: 14, style: { marginLeft: '0.25rem' } })]
+              'Creating a workspace may increase your infrastructure costs',
+              renderLink(
+                'https://support.terra.bio/hc/en-us/articles/12029087819291',
+                'Learn more about cost and follow changes'
               ),
             ]),
           ]),
-      ]);
+        ]),
+      };
+      // Allow toggling PHI tracking if:
+      // 1. Creating a new workspace and the billing project supports PHI tracking.
+      // 2. Cloning a workspace without PHI tracking to a billing project that supports PHI tracking.
+      // Note: when cloning a workspace with PHI tracking already enabled, the policy is inherited and cannot be changed
+      if (
+        !!selectedBillingProject &&
+        supportsPhiTracking(selectedBillingProject) &&
+        (!cloneWorkspace || !hasPhiTrackingPolicy(cloneWorkspace))
+      ) {
+        workspacePoliciesProps.togglePhiTracking = (selected: boolean) => setPhiTracking(selected);
+      }
+      return h(WorkspacePolicies, workspacePoliciesProps);
     };
 
     return Utils.cond(
@@ -491,6 +508,7 @@ const NewWorkspaceModal = withDisplayName(
                   ),
                 ]
               ),
+              width: 550,
             },
             [
               creating
@@ -694,7 +712,27 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
-                    renderAzurePolicyAndWorkspaceInfo(),
+                    displayAzurePolicyAndWorkspaceInfo && renderAzurePolicyAndWorkspaceInfo(),
+                    // If we display the Azure policy/workspace section, we render the optional notice within that block
+                    !displayAzurePolicyAndWorkspaceInfo &&
+                      !!endingNotice &&
+                      div({ style: { ...Style.elements.noticeContainer } }, [endingNotice]),
+                    workflowImport &&
+                      azureBillingProjectsExist &&
+                      div({ style: { padding: '1.0rem', display: 'flex' } }, [
+                        icon('info-circle', { size: 16, style: { marginRight: '0.5rem', color: colors.accent() } }),
+                        div([
+                          'Importing directly into new Azure workspaces is not currently supported. To create a new workspace with an Azure billing project, visit the main ',
+                          h(
+                            Link,
+                            {
+                              href: Nav.getLink('workspaces'),
+                            },
+                            ['Workspaces']
+                          ),
+                          ' page.',
+                        ]),
+                      ]),
                     createError &&
                       div(
                         {
