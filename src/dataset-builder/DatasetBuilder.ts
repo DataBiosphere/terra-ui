@@ -11,9 +11,10 @@ import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
-import { Cohort, DatasetBuilderType, DatasetBuilderValue, formatCount } from 'src/dataset-builder/DatasetBuilderUtils';
+import { DatasetBuilderType, DatasetBuilderValue, formatCount } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
+  Cohort,
   ConceptSet,
   DataRepo,
   datasetIncludeTypes,
