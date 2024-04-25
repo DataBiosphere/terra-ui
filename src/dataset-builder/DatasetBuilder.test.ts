@@ -34,7 +34,7 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   };
 });
 
-const concept = { id: 100, name: 'concept', count: 10, hasChildren: false, children: [] };
+const concept = { id: 100, name: 'concept', code: '0', count: 10, hasChildren: false, children: [] };
 
 describe('DatasetBuilder', () => {
   const dummyDatasetDetailsWithId = dummyDatasetModel();
