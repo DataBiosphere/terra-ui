@@ -9,8 +9,12 @@ import { SimpleTable } from 'src/components/table';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import { formatCount, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
-import { GetConceptsResponse } from 'src/libs/ajax/DataRepo';
+import {
+  DataRepo,
+  GetConceptsResponse,
+  SnapshotBuilderConcept as Concept,
+  SnapshotBuilderDomainOption,
+} from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 
