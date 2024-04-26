@@ -19,14 +19,14 @@ import IdleStatusMonitor from 'src/components/IdleStatusMonitor';
 import SupportRequest from 'src/components/SupportRequest';
 import { TitleManager } from 'src/components/TitleManager';
 import { getEnabledBrand } from 'src/libs/brand-utils';
-import { notificationsProvider, reportError } from 'src/libs/error';
+import { reportError, terraUIReporter } from 'src/libs/error';
 import { PageViewReporter } from 'src/libs/events';
 import { LocationProvider, PathHashInserter, Router } from 'src/libs/nav';
 import ImportStatus from 'src/workspace-data/ImportStatus';
 
 const Main = (): ReactNode => {
   return h(ThemeProvider, { theme: getEnabledBrand().theme }, [
-    h(NotificationsProvider, { notifications: notificationsProvider }, [
+    h(NotificationsProvider, { notifications: terraUIReporter }, [
       h(LocationProvider, [
         h(PathHashInserter),
         h(CookieRejectModal),

@@ -17,6 +17,10 @@ describe('useNotificationsFromContext', () => {
 
     const reporter: NotificationsContract = {
       notify: jest.fn(),
+      reportError: jest.fn(),
+      reportErrorAndRethrow: jest.fn(),
+      withErrorReporting: jest.fn(),
+      withErrorReportingInModal: jest.fn(),
     };
 
     // Act

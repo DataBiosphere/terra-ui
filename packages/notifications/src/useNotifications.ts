@@ -1,3 +1,4 @@
+import { AnyPromiseFn } from '@terra-ui-packages/core-utils';
 import { createContext, createElement, PropsWithChildren, ReactNode, useContext } from 'react';
 
 export type NotificationType = 'error' | 'warn' | 'info' | 'success' | 'welcome';
@@ -8,9 +9,17 @@ export interface NotificationOptions {
   detail?: unknown;
 }
 
-export interface NotificationsContract {
+export interface Notifier {
   notify: (type: NotificationType, title: string, options?: NotificationOptions) => void;
 }
+
+export interface NotificationsContract extends Notifier {
+  reportError: (title: string, obj?: unknown) => Promise<void>;
+  reportErrorAndRethrow: <F extends AnyPromiseFn>(title: string) => (fn: F) => F;
+  withErrorReportingInModal: <F extends AnyPromiseFn>(title: string, onDismiss: () => void) => (fn: F) => F;
+  withErrorReporting: <F extends AnyPromiseFn>(title: string) => (fn: F) => F;
+}
+
 const NotificationsContext = createContext<NotificationsContract | null>(null);
 
 export type NotificationsProviderProps = PropsWithChildren<{
