@@ -217,12 +217,11 @@ export const phiTrackingMessage = 'TBD: do we need a message anyplace?';
 
 export const hasPhiTrackingPolicy = (workspace: BaseWorkspace): boolean => {
   const dataTrackingPolicies = _.filter(
-    (policy) => policy.namespace === policyNamespace && policy.name === dataTrackingPolicyName,
+    { namespace: policyNamespace, name: dataTrackingPolicyName },
     workspace.policies
   );
-  return _.some(
-    (policy) =>
-      _.some((additionalData) => additionalData.dataType === phiTrackingDataType.dataType, policy.additionalData),
+  return _.any(
+    (policy) => _.any({ dataType: phiTrackingDataType.dataType }, policy.additionalData),
     dataTrackingPolicies
   );
 };

@@ -291,6 +291,18 @@ describe('hasPhiTrackingPolicy', () => {
       ],
     };
     expect(hasPhiTrackingPolicy(workspaceWithWrongDataType)).toBe(false);
+
+    const workspaceWithNoDataType: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      policies: [
+        {
+          namespace: phiTrackingPolicy.namespace,
+          name: phiTrackingPolicy.name,
+          additionalData: [{ differentKey: 'unrelated' }],
+        },
+      ],
+    };
+    expect(hasPhiTrackingPolicy(workspaceWithNoDataType)).toBe(false);
   });
 });
 
