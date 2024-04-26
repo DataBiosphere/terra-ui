@@ -18,11 +18,12 @@ export type WorkspacePoliciesProps = {
   endingNotice?: ReactNode;
   noCheckboxes?: boolean;
   togglePhiTracking?: (selected: boolean) => void;
+  togglePhiTrackingChecked?: boolean;
 };
 
 export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
   const policyDescriptions = getPolicyDescriptions(props.workspace, props.billingProject);
-  const [phiTracking, setPhiTracking] = useState(false);
+  const [phiTracking, setPhiTracking] = useState(!!props.togglePhiTrackingChecked);
 
   const description = props.policiesLabel
     ? props.policiesLabel

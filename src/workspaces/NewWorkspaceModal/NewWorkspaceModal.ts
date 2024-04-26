@@ -471,6 +471,7 @@ const NewWorkspaceModal = withDisplayName(
         (!cloneWorkspace || !hasPhiTrackingPolicy(cloneWorkspace))
       ) {
         workspacePoliciesProps.togglePhiTracking = (selected: boolean) => setPhiTracking(selected);
+        workspacePoliciesProps.togglePhiTrackingChecked = phiTracking;
       }
       return h(WorkspacePolicies, workspacePoliciesProps);
     };

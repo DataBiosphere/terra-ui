@@ -109,7 +109,7 @@ export interface WorkspacePolicy {
 
 export interface PolicyDescription {
   shortDescription: string;
-  longDescription: string;
+  longDescription?: string;
 }
 
 // Returns descriptions of known policies only (protected data, group constraint, region constraint).
@@ -139,10 +139,7 @@ export const getPolicyDescriptions = (
     });
   }
   if (!!workspace && hasPhiTrackingPolicy(workspace)) {
-    policyDescriptions.push({
-      shortDescription: phiTrackingLabel,
-      longDescription: phiTrackingMessage,
-    });
+    policyDescriptions.push({ shortDescription: phiTrackingLabel });
   }
   return policyDescriptions;
 };
@@ -213,7 +210,6 @@ export const groupConstraintMessage =
   'Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be current users on an approved Data Access Request (DAR).';
 
 export const phiTrackingLabel = 'PHI tracking';
-export const phiTrackingMessage = 'TBD: do we need a message anyplace?';
 
 export const hasPhiTrackingPolicy = (workspace: BaseWorkspace): boolean => {
   const dataTrackingPolicies = _.filter(

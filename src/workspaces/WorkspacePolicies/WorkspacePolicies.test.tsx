@@ -205,6 +205,21 @@ describe('WorkspacePolicies', () => {
       expect(screen.queryByText(phiTrackingLabel)).toBeNull();
     });
 
+    it('checks PHI tracking control if passed value', async () => {
+      // Act
+      render(
+        <WorkspacePolicies
+          billingProject={azureProtectedDataBillingProject}
+          togglePhiTracking={jest.fn()}
+          togglePhiTrackingChecked
+        />
+      );
+      const phiCheckbox = screen.getByLabelText(phiTrackingLabel);
+
+      // Assert
+      expect(phiCheckbox).toBeChecked();
+    });
+
     it('calls PHI tracking callback if provided', async () => {
       // Arrange
       const user = userEvent.setup();
@@ -215,6 +230,7 @@ describe('WorkspacePolicies', () => {
         <WorkspacePolicies billingProject={azureProtectedDataBillingProject} togglePhiTracking={phiTrackingCallback} />
       );
       const phiCheckbox = screen.getByLabelText(phiTrackingLabel);
+      expect(phiCheckbox).not.toBeChecked();
       await user.click(phiCheckbox);
       await user.click(phiCheckbox);
 
