@@ -81,6 +81,7 @@ export const defaultGoogleWorkspace: GoogleWorkspace = {
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Gcp',
+    billingAccount: 'billingAccounts/123456-ABCDEF-ABCDEF',
     bucketName: 'test-bucket',
     googleProject: 'test-gcp-ws-project',
     name: 'test-gcp-ws-name',

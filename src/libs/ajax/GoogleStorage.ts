@@ -22,7 +22,7 @@ import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
 import { getConfig } from 'src/libs/config';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { canWrite, cloudProviderTypes } from 'src/workspaces/utils';
+import { canWrite, cloudProviderTypes, GoogleWorkspace } from 'src/workspaces/utils';
 
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
@@ -36,7 +36,7 @@ const withRequesterPays =
 
     const getUserProject = async () => {
       if (!requesterPaysProjectStore.get() && workspace && (await canUseWorkspaceProject(workspace))) {
-        requesterPaysProjectStore.set(workspace.workspace.googleProject);
+        requesterPaysProjectStore.set((workspace as GoogleWorkspace).workspace.googleProject);
       }
       return requesterPaysProjectStore.get();
     };
