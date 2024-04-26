@@ -1,7 +1,7 @@
 import { action } from '@storybook/addon-actions';
 import type { Meta, StoryObj } from '@storybook/react';
 import { atom, delay } from '@terra-ui-packages/core-utils';
-import { NotificationsContract, NotificationsProvider } from '@terra-ui-packages/notifications';
+import { makeNotificationsContract, NotificationsProvider, Notifier } from '@terra-ui-packages/notifications';
 import React, { useEffect, useState } from 'react';
 import {
   azureRuntime,
@@ -124,9 +124,10 @@ const getMockNav = (): EnvironmentsProps['nav'] => ({
   getUrl: (navKey, args) => `javascript:alert('nav to ${navKey} with: ${JSON.stringify(args)}')`,
 });
 
-const mockNotifications: NotificationsContract = {
+const mockNotifier: Notifier = {
   notify: actionLogAsyncFn('Notifications.notify'),
 };
+const mockNotifications = makeNotificationsContract(mockNotifier, () => false);
 
 const happyPermissions: LeoResourcePermissionsProvider = {
   canDeleteDisk: () => true,
