@@ -106,17 +106,6 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
   };
 };
 
-export type DatasetParticipantCountRequest = {
-  cohorts: Cohort[];
-};
-
-export type DatasetParticipantCountResponse = {
-  result: {
-    total: number;
-  };
-  sql: string;
-};
-
 export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
   const { kind, id } = criteria.option;
   const mergeObject = { kind, id };
@@ -132,6 +121,17 @@ export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
     default:
       throw new Error('Criteria not of type range, list, or domain.');
   }
+};
+
+export type DatasetParticipantCountRequest = {
+  cohorts: Cohort[];
+};
+
+export type DatasetParticipantCountResponse = {
+  result: {
+    total: number;
+  };
+  sql: string;
 };
 
 export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessRequest) => {
