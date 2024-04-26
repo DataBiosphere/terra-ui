@@ -108,21 +108,3 @@ jobs:
             "repo-branch": "${{ needs.setup-and-test.outputs.repo-branch }}",
             "release-tag": "${{ needs.setup-and-test.outputs.new-tag }}"
           }'
-
-  can-i-deploy:
-    runs-on: ubuntu-latest
-    needs: [ setup-and-test ]
-    steps:
-      - name: Dispatch to terra-github-workflows
-        uses: broadinstitute/workflow-dispatch@v4.0.0
-        with:
-          run-name: "${{ env.CAN_I_DEPLOY_RUN_NAME }}"
-          workflow: .github/workflows/can-i-deploy.yaml
-          repo: broadinstitute/terra-github-workflows
-          ref: refs/heads/main
-          token: ${{ secrets.BROADBOT_TOKEN }} # github token for access to kick off a job in the private repo
-          inputs: '{
-            "run-name": "${{ env.CAN_I_DEPLOY_RUN_NAME }}",
-            "pacticipant": "terraui",
-            "version": "${{ needs.setup-and-test.outputs.new-tag }}"
-          }'
