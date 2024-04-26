@@ -123,17 +123,6 @@ export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
   }
 };
 
-export type DatasetParticipantCountRequest = {
-  cohorts: Cohort[];
-};
-
-export type DatasetParticipantCountResponse = {
-  result: {
-    total: number;
-  };
-  sql: string;
-};
-
 export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessRequest) => {
   return {
     name: datasetAccessRequest.name,
@@ -144,6 +133,17 @@ export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessR
       valueSets: _.map(convertValueSet, datasetAccessRequest.datasetRequest.valueSets),
     },
   };
+};
+
+export type DatasetParticipantCountRequest = {
+  cohorts: Cohort[];
+};
+
+export type DatasetParticipantCountResponse = {
+  result: {
+    total: number;
+  };
+  sql: string;
 };
 
 export const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
