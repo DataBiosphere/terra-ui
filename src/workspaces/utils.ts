@@ -220,11 +220,10 @@ export const hasPhiTrackingPolicy = (workspace: BaseWorkspace): boolean => {
     (policy) => policy.namespace === policyNamespace && policy.name === dataTrackingPolicyName,
     workspace.policies
   );
-  return (
-    _.filter(
-      (policy) => _.filter((policyType) => policyType.dataType === phiTrackingDataType.dataType, policy.additionalData),
-      dataTrackingPolicies
-    ).length > 0
+  return _.some(
+    (policy) =>
+      _.some((additionalData) => additionalData.dataType === phiTrackingDataType.dataType, policy.additionalData),
+    dataTrackingPolicies
   );
 };
 export const hasRegionConstraintPolicy = (workspace: BaseWorkspace): boolean =>

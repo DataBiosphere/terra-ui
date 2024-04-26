@@ -20,6 +20,7 @@ import {
   AzureWorkspace,
   groupConstraintLabel,
   phiTrackingLabel,
+  phiTrackingPolicy,
   protectedDataLabel,
   regionConstraintLabel,
 } from 'src/workspaces/utils';
@@ -27,6 +28,11 @@ import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePol
 
 describe('WorkspacePolicies', () => {
   const policyLabel = /This workspace has the following/;
+
+  const workspaceWithAllPolicies: AzureWorkspace = {
+    ...defaultAzureWorkspace,
+    policies: [protectedDataPolicy, groupConstraintPolicy, regionConstraintPolicy, phiTrackingPolicy],
+  };
 
   describe('handles a workspace as the source of the policies', () => {
     it('renders nothing if the policy array is empty', () => {
@@ -58,12 +64,6 @@ describe('WorkspacePolicies', () => {
     });
 
     it('renders policies with no accessibility errors', async () => {
-      // Arrange. Render all policies to check for missing key errors.
-      const workspaceWithAllPolicies: AzureWorkspace = {
-        ...defaultAzureWorkspace,
-        policies: [protectedDataPolicy, groupConstraintPolicy, regionConstraintPolicy],
-      };
-
       // Act
       const { container } = render(<WorkspacePolicies workspace={workspaceWithAllPolicies} />);
 
@@ -73,6 +73,7 @@ describe('WorkspacePolicies', () => {
       screen.getByText(protectedDataLabel);
       screen.getByText(groupConstraintLabel);
       screen.getByText(regionConstraintLabel);
+      screen.getByText(phiTrackingLabel);
     });
   });
 
@@ -185,13 +186,7 @@ describe('WorkspacePolicies', () => {
     });
 
     it('supports rendering policies with a check icon instead of a checkbox', async () => {
-      // Arrange. Include all policies to check for missing key errors.
-      const workspaceWithAllPolicies: AzureWorkspace = {
-        ...defaultAzureWorkspace,
-        policies: [protectedDataPolicy, groupConstraintPolicy, regionConstraintPolicy],
-      };
-
-      // Act
+      // Act. Include all policies to check for missing key errors.
       render(<WorkspacePolicies workspace={workspaceWithAllPolicies} noCheckboxes />);
 
       // Assert

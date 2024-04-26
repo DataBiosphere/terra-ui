@@ -20,9 +20,13 @@ import {
   groupConstraintLabel,
   groupConstraintMessage,
   hasGroupConstraintPolicy,
+  hasPhiTrackingPolicy,
   hasRegionConstraintPolicy,
   isProtectedWorkspace,
   isValidWsExportTarget,
+  phiTrackingLabel,
+  phiTrackingMessage,
+  phiTrackingPolicy,
   protectedDataLabel,
   protectedDataMessage,
   regionConstraintLabel,
@@ -143,14 +147,15 @@ describe('isValidWsExportTarget', () => {
 });
 
 describe('getPolicyDescriptions', () => {
-  it('Returns policy information for a protected and group-constrained workspace', () => {
+  it('Returns policy information for a protected and group-constrained workspace with phi tracking enabled', () => {
     const workspace: WorkspaceWrapper = {
       ...defaultAzureWorkspace,
-      policies: [protectedDataPolicy, groupConstraintPolicy],
+      policies: [protectedDataPolicy, groupConstraintPolicy, phiTrackingPolicy],
     };
     expect(getPolicyDescriptions(workspace)).toEqual([
       { shortDescription: protectedDataLabel, longDescription: protectedDataMessage },
       { shortDescription: groupConstraintLabel, longDescription: groupConstraintMessage },
+      { shortDescription: phiTrackingLabel, longDescription: phiTrackingMessage },
     ]);
   });
 
@@ -248,6 +253,44 @@ describe('hasRegionConstraint', () => {
 
     expect(hasRegionConstraintPolicy(protectedAzureWorkspace)).toBe(false);
     expect(getRegionConstraintLabels(protectedAzureWorkspace.policies).length).toBe(0);
+  });
+});
+
+describe('hasPhiTrackingPolicy', () => {
+  it('Returns true if PHI tracking policy exists', () => {
+    const workspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      policies: [phiTrackingPolicy],
+    };
+    expect(hasPhiTrackingPolicy(workspace)).toBe(true);
+  });
+
+  it('Returns false if PHI tracking policy does not exist', () => {
+    expect(hasPhiTrackingPolicy(defaultAzureWorkspace)).toBe(false);
+
+    const workspaceMissingAdditionalData: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      policies: [
+        {
+          namespace: phiTrackingPolicy.namespace,
+          name: phiTrackingPolicy.name,
+          additionalData: [], // missing phi dataType
+        },
+      ],
+    };
+    expect(hasPhiTrackingPolicy(workspaceMissingAdditionalData)).toBe(false);
+
+    const workspaceWithWrongDataType: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      policies: [
+        {
+          namespace: phiTrackingPolicy.namespace,
+          name: phiTrackingPolicy.name,
+          additionalData: [{ dataType: 'NOT_PHI' }],
+        },
+      ],
+    };
+    expect(hasPhiTrackingPolicy(workspaceWithWrongDataType)).toBe(false);
   });
 });
 
