@@ -25,7 +25,6 @@ import {
   isProtectedWorkspace,
   isValidWsExportTarget,
   phiTrackingLabel,
-  phiTrackingMessage,
   phiTrackingPolicy,
   protectedDataLabel,
   protectedDataMessage,
@@ -155,7 +154,7 @@ describe('getPolicyDescriptions', () => {
     expect(getPolicyDescriptions(workspace)).toEqual([
       { shortDescription: protectedDataLabel, longDescription: protectedDataMessage },
       { shortDescription: groupConstraintLabel, longDescription: groupConstraintMessage },
-      { shortDescription: phiTrackingLabel, longDescription: phiTrackingMessage },
+      { shortDescription: phiTrackingLabel },
     ]);
   });
 
