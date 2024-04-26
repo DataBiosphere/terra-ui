@@ -2,7 +2,7 @@ import * as _ from 'lodash/fp';
 import {
   convertDatasetAccessRequest,
   convertDatasetParticipantCountRequest,
-  DatasetAccessRequest as DatasetAccessRequestUtils,
+  DatasetAccessRequest as DatasetAccessRequestUI,
   DatasetBuilderType,
   DatasetParticipantCountRequest,
   DatasetParticipantCountResponse,
@@ -216,7 +216,7 @@ export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
-    createSnapshotRequest(request: DatasetAccessRequestUtils): Promise<DatasetAccessRequest>;
+    createSnapshotRequest(request: DatasetAccessRequestUI): Promise<DatasetAccessRequest>;
     getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
     getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptHierarchyResponse>;
