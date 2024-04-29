@@ -352,17 +352,22 @@ const CallTable = ({
                     field: 'cost',
                     headerRenderer: () =>
                       h(Sortable, { sort, field: 'cost', onSort: setSort }, [
-                        'Est. Task Cost',
+                        'Approximate Task Cost',
                         h(
                           TooltipTrigger,
                           {
-                            content: 'This is a list price for VM and disk costs per hour and does not include any cloud account discounts.',
+                            content:
+                              'This is a calculated list price for VM costs per hour and does not include disk cost or any cloud account discounts.',
                           },
-                          [icon('info-circle', { style: { marginLeft: '0.25rem', color: colors.accent(1) } })]
+                          [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
                         ),
                       ]),
                     cellRenderer: ({ rowIndex }) => {
-                      return div({}, [rowIndex]);
+                      const { totalVmCostUsd, executionStatus } = filteredCallObjects[rowIndex];
+                      if (executionStatus === 'Running') {
+                        return div({ style: { fontStyle: 'italic' } }, ['In progress']);
+                      }
+                      return totalVmCostUsd ? div({}, [`$${totalVmCostUsd}`]) : div({}, ['-']);
                     },
                   },
                   {

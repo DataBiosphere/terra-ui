@@ -94,6 +94,7 @@ export const BaseRunDetails = (
       'callCaching',
       'workflowLog',
       'failures',
+      'totalVmCostUsd',
     ],
     []
   );
