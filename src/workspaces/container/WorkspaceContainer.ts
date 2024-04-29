@@ -19,11 +19,7 @@ import * as Utils from 'src/libs/utils';
 import { useAppPolling } from 'src/workspaces/common/state/useAppPolling';
 import { useCloudEnvironmentPolling } from 'src/workspaces/common/state/useCloudEnvironmentPolling';
 import { useSingleWorkspaceDeletionPolling } from 'src/workspaces/common/state/useDeletionPolling';
-import {
-  InitializedWorkspaceWrapper as Workspace,
-  StorageDetails,
-  useWorkspace,
-} from 'src/workspaces/common/state/useWorkspace';
+import { InitializedWorkspaceWrapper, StorageDetails, useWorkspace } from 'src/workspaces/common/state/useWorkspace';
 import { WorkspaceDeletingBanner } from 'src/workspaces/container/WorkspaceDeletingBanner';
 import { WorkspaceTabs } from 'src/workspaces/container/WorkspaceTabs';
 import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
@@ -68,7 +64,7 @@ interface WorkspaceContainerProps extends PropsWithChildren {
   analysesData: AnalysesData;
   storageDetails: StorageDetails;
   refresh: () => Promise<void>;
-  workspace: Workspace;
+  workspace: InitializedWorkspaceWrapper | undefined;
   refreshWorkspace: () => void;
 }
 
@@ -103,7 +99,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const isGoogleWorkspaceSyncing =
     workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
 
-  useSingleWorkspaceDeletionPolling(workspace);
+  useSingleWorkspaceDeletionPolling(workspace!);
   useEffect(() => {
     if (workspace?.workspace?.state === 'Deleted') {
       Nav.goToPath('workspaces');
@@ -155,7 +151,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
     ]),
     deletingWorkspace &&
       h(DeleteWorkspaceModal, {
-        workspace,
+        workspace: workspace!,
         onDismiss: () => setDeletingWorkspace(false),
         onSuccess: () => Nav.goToPath('workspaces'),
       }),
@@ -174,7 +170,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
       }),
     leavingWorkspace &&
       h(LeaveResourceModal, {
-        samResourceId: workspace.workspace.workspaceId,
+        samResourceId: workspace!.workspace.workspaceId,
         samResourceType: 'workspace',
         displayName: 'workspace',
         onDismiss: () => setLeavingWorkspace(false),
@@ -182,7 +178,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
       }),
     sharingWorkspace &&
       h(ShareWorkspaceModal, {
-        workspace,
+        workspace: workspace!,
         onDismiss: () => setSharingWorkspace(false),
       }),
   ]);
@@ -226,7 +222,7 @@ export interface WrappedComponentProps {
   ref: Ref<{ refresh: () => void }>;
   namespace: string;
   name: string;
-  workspace: Workspace;
+  workspace: InitializedWorkspaceWrapper;
   refreshWorkspace: () => void;
   analysesData: AnalysesData;
   storageDetails: StorageDetails;

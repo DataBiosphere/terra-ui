@@ -131,6 +131,7 @@ export const generateGoogleWorkspace = (prefix: string = uuid().substring(0, 8))
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Gcp',
+    billingAccount: 'billingAccounts/123456-ABCDEF-ABCDEF',
     bucketName: 'test-bucket',
     googleProject: `${prefix}-project`,
     name: `${prefix}_ws`,
