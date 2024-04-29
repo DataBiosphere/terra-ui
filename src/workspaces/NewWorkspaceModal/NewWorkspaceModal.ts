@@ -441,7 +441,7 @@ const NewWorkspaceModal = withDisplayName(
         title: 'Security, controls, and workspace information',
         policiesLabel: 'Workspace will inherit data protection policies',
         policiesLink: renderLink(
-          'https://support.terra.bio/hc/en-us/articles/12029087819291', // get correct ref!
+          'https://support.terra.bio/hc/en-us/articles/21329019108635-Host-FISMA-data-on-FedRAMP-moderate-Terra-Azure',
           'Learn more about policies'
         ),
         endingNotice: div([
