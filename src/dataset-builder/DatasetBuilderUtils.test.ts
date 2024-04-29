@@ -19,11 +19,11 @@ import {
   AnyCriteria as AnyCriteriaApi,
   Cohort as CohortApi,
   CriteriaGroup as CriteriaGroupApi,
-  DatasetAccessRequest as DatasetAccessRequestApi,
   DomainConceptSet,
   DomainCriteria as DomainCriteriaApi,
   ProgramDataListCriteria as ProgramDataListCriteriaApi,
   ProgramDataRangeCriteria as ProgramDataRangeCriteriaApi,
+  SnapshotAccessRequestResponse,
   SnapshotBuilderConcept,
   SnapshotBuilderDomainOption,
   SnapshotBuilderProgramDataListItem,
@@ -161,7 +161,7 @@ const datasetAccessRequest: DatasetAccessRequest = {
   datasetRequest: { cohorts: [cohort], conceptSets: [conceptSet], valueSets: [valueSet] },
 };
 
-const datasetAccessRequestApi: DatasetAccessRequestApi = {
+const datasetAccessRequestApi: SnapshotAccessRequestResponse = {
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
   datasetRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },

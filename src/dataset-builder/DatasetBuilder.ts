@@ -11,19 +11,14 @@ import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
-import {
-  Cohort,
-  DatasetBuilderType,
-  DatasetBuilderValue,
-  DatasetParticipantCountResponse,
-  formatCount,
-} from 'src/dataset-builder/DatasetBuilderUtils';
+import { Cohort, DatasetBuilderType, DatasetBuilderValue, formatCount } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
   ConceptSet,
   DataRepo,
   datasetIncludeTypes,
   DatasetModel,
+  DatasetParticipantCountResponse,
   DomainConceptSet,
   PrepackagedConceptSet,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
@@ -565,7 +560,7 @@ export const DatasetBuilderContents = ({
   useEffect(() => {
     requestValid &&
       setDatasetRequestParticipantCount(async () =>
-        DataRepo().dataset(dataset.id).getCounts({
+        DataRepo().dataset(dataset.id).getSnapshotBuilderCount({
           cohorts: allCohorts,
         })
       );

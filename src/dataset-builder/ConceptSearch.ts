@@ -11,9 +11,9 @@ import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import { formatCount, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
-  GetConceptsResponse,
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderDomainOption,
+  SnapshotBuilderGetConceptsResponse as GetConceptsResponse,
 } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';

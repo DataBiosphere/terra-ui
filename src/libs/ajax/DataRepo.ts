@@ -5,7 +5,6 @@ import {
   DatasetAccessRequest as DatasetAccessRequestUI,
   DatasetBuilderType,
   DatasetParticipantCountRequest,
-  DatasetParticipantCountResponse,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
@@ -128,7 +127,7 @@ export type DatasetRequest = {
   valueSets: ValueSet[];
 };
 
-export type DatasetAccessRequest = {
+export type SnapshotAccessRequestResponse = {
   name: string;
   researchPurposeStatement: string;
   datasetRequest: DatasetRequest;
@@ -195,16 +194,12 @@ export interface JobModel {
   class_name?: string;
 }
 
-export interface GetConceptsResponse {
+export interface SnapshotBuilderGetConceptsResponse {
   result: SnapshotBuilderConcept[];
 }
 
-export interface GetConceptHierarchyResponse {
-  readonly result: SnapshotBuilderParentConcept[];
-}
-
-export interface SearchConceptsResponse {
-  result: SnapshotBuilderConcept[];
+export interface SnapshotBuilderGetConceptHierarchyResponse {
+  result: SnapshotBuilderParentConcept[];
 }
 
 export interface SnapshotBuilderParentConcept {
@@ -212,15 +207,22 @@ export interface SnapshotBuilderParentConcept {
   children: SnapshotBuilderConcept[];
 }
 
+export type DatasetParticipantCountResponse = {
+  result: {
+    total: number;
+  };
+  sql: string;
+};
+
 export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
-    createSnapshotRequest(request: DatasetAccessRequestUI): Promise<DatasetAccessRequest>;
-    getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
-    getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
-    getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptHierarchyResponse>;
-    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SearchConceptsResponse>;
+    createSnapshotRequest(request: DatasetAccessRequestUI): Promise<SnapshotAccessRequestResponse>;
+    getSnapshotBuilderCount(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
+    getConcepts(parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse>;
+    getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptHierarchyResponse>;
+    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SnapshotBuilderGetConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
@@ -251,21 +253,24 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       details: async (include): Promise<DatasetModel> =>
         callDataRepo(`repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`, signal),
       roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
-      createSnapshotRequest: async (request): Promise<DatasetAccessRequest> =>
+      createSnapshotRequest: async (request): Promise<SnapshotAccessRequestResponse> =>
         callDataRepoPost(
           `repository/v1/datasets/${datasetId}/snapshotRequests`,
           signal,
           convertDatasetAccessRequest(request)
         ),
-      getCounts: async (request): Promise<DatasetParticipantCountResponse> =>
+      getSnapshotBuilderCount: async (request): Promise<DatasetParticipantCountResponse> =>
         callDataRepoPost(
           `repository/v1/datasets/${datasetId}/snapshotBuilder/count`,
           signal,
           convertDatasetParticipantCountRequest(request)
         ),
-      getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
+      getConcepts: async (parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse> =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-      searchConcepts: async (domain: SnapshotBuilderConcept, searchText: string): Promise<GetConceptsResponse> => {
+      searchConcepts: async (
+        domain: SnapshotBuilderConcept,
+        searchText: string
+      ): Promise<SnapshotBuilderGetConceptsResponse> => {
         return callDataRepo(
           `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${
             domain.id

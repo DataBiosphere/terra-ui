@@ -11,7 +11,6 @@ import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
-  DatasetParticipantCountResponse,
   formatCount,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
@@ -19,6 +18,7 @@ import {
 import {
   DataRepo,
   DatasetModel,
+  DatasetParticipantCountResponse,
   SnapshotBuilderDomainOption,
   SnapshotBuilderOption,
   SnapshotBuilderProgramDataListItem,
@@ -62,7 +62,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
         async () =>
           await DataRepo()
             .dataset(datasetId)
-            .getCounts({
+            .getSnapshotBuilderCount({
               cohorts: [
                 {
                   // Create a "cohort" to get the count of participants for this criteria on its own.
@@ -335,7 +335,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
       setGroupParticipantCount(async () =>
         DataRepo()
           .dataset(dataset.id)
-          .getCounts({ cohorts: [{ criteriaGroups: [criteriaGroup], name: '' }] })
+          .getSnapshotBuilderCount({ cohorts: [{ criteriaGroups: [criteriaGroup], name: '' }] })
       )
     )
   );
