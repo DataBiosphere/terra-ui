@@ -38,7 +38,11 @@ export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
   if (policyDescriptions.length > 0) {
     return (
       <div style={{ ...Style.elements.noticeContainer }}>
-        {!!props.title && <div style={{ ...Style.elements.sectionHeader, paddingBottom: '1.0rem' }}>{props.title}</div>}
+        {!!props.title && (
+          <div style={{ ...Style.elements.sectionHeader, paddingBottom: '1.0rem' }} id={`title-${id}`}>
+            {props.title}
+          </div>
+        )}
         <div style={{ fontWeight: 600, display: 'grid', gridTemplateColumns: 'min-content auto' }}>
           {icon('shieldCheck', { size: 18, style: { marginRight: '0.5rem', verticalAlign: 'text-bottom' } })}
           <div style={{}}>
@@ -46,7 +50,11 @@ export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
             {!!props.policiesLink && props.policiesLink}
           </div>
         </div>
-        <div role="list" style={{ marginBlockStart: '0.5rem', marginBlockEnd: '0.5rem' }}>
+        <div
+          role="list"
+          style={{ marginBlockStart: '0.5rem', marginBlockEnd: '0.5rem' }}
+          aria-describedby={`title-${id}`}
+        >
           {_.map((policyDescription) => {
             if (props.noCheckboxes) {
               return (
