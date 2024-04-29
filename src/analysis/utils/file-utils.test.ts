@@ -53,7 +53,7 @@ describe('file-utils', () => {
       asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract);
 
       // Act
-      workspaceStore.set(defaultGoogleWorkspace);
+      workspaceStore.set({ ...defaultGoogleWorkspace, workspaceInitialized: true });
       const { result: hookReturnRef } = await renderHookInAct(() => useAnalysisFiles());
       const state = hookReturnRef.current.loadedState;
 
@@ -76,7 +76,7 @@ describe('file-utils', () => {
       asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract);
 
       // Act
-      workspaceStore.set(defaultGoogleWorkspace);
+      workspaceStore.set({ ...defaultGoogleWorkspace, workspaceInitialized: true });
       await renderHookInAct(() => useAnalysisFiles());
 
       // Assert
@@ -100,7 +100,7 @@ describe('file-utils', () => {
       asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract);
 
       // Act
-      workspaceStore.set(defaultAzureWorkspace);
+      workspaceStore.set({ ...defaultAzureWorkspace, workspaceInitialized: true });
       await renderHookInAct(() => useAnalysisFiles());
 
       // Assert
@@ -126,7 +126,7 @@ describe('file-utils', () => {
       asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract);
 
       // Act
-      workspaceStore.set(defaultGoogleWorkspace);
+      workspaceStore.set({ ...defaultGoogleWorkspace, workspaceInitialized: true });
       const { result: hookReturnRef } = await renderHookInAct(() => useAnalysisFiles());
       await act(() => hookReturnRef.current.createAnalysis('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'));
 
@@ -149,7 +149,7 @@ describe('file-utils', () => {
       asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract);
 
       // Act
-      workspaceStore.set(defaultGoogleWorkspace);
+      workspaceStore.set({ ...defaultGoogleWorkspace, workspaceInitialized: true });
       const hookRender1 = await renderHookInAct(() => useAnalysisFiles());
       const hookResult2 = hookRender1.result.current;
       await act(() => hookResult2.createAnalysis('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'));
@@ -176,7 +176,7 @@ describe('file-utils', () => {
         blob: blobMock as AzureStorageContract['blob'],
       };
       asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract);
-      workspaceStore.set(defaultAzureWorkspace);
+      workspaceStore.set({ ...defaultAzureWorkspace, workspaceInitialized: true });
       const { result: hookReturnRef } = await renderHookInAct(() => useAnalysisFiles());
       // Act
       await act(() => hookReturnRef.current.createAnalysis('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'));
@@ -200,7 +200,7 @@ describe('file-utils', () => {
     asMockedFn(AzureStorage).mockImplementation(() => googleStorageMock as AzureStorageContract);
 
     // Act
-    workspaceStore.set(defaultAzureWorkspace);
+    workspaceStore.set({ ...defaultAzureWorkspace, workspaceInitialized: true });
     const hookRender1 = await renderHookInAct(() => useAnalysisFiles());
     const hookResult2 = hookRender1.result.current;
     await act(() => hookResult2.createAnalysis('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'));
@@ -229,7 +229,7 @@ describe('file-utils', () => {
     asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract);
 
     // Act
-    workspaceStore.set(defaultGoogleWorkspace);
+    workspaceStore.set({ ...defaultGoogleWorkspace, workspaceInitialized: true });
     const { result: hookReturnRef } = await renderHookInAct(() => useAnalysisFiles());
     await act(() => hookReturnRef.current.deleteAnalysis(file1Path));
 
@@ -259,7 +259,7 @@ describe('file-utils', () => {
     asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract);
 
     // Act
-    workspaceStore.set(defaultGoogleWorkspace);
+    workspaceStore.set({ ...defaultGoogleWorkspace, workspaceInitialized: true });
     const hookRender1 = await renderHookInAct(() => useAnalysisFiles());
     const hookResult2 = hookRender1.result.current;
     await act(() => hookResult2.deleteAnalysis(file1Path));
@@ -290,7 +290,7 @@ describe('file-utils', () => {
       blob: blobMock as AzureStorageContract['blob'],
     };
     asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract);
-    workspaceStore.set(defaultAzureWorkspace);
+    workspaceStore.set({ ...defaultAzureWorkspace, workspaceInitialized: true });
     const { result: hookReturnRef } = await renderHookInAct(() => useAnalysisFiles());
     // Act
     await act(() => hookReturnRef.current.deleteAnalysis(file1Path));
@@ -315,7 +315,7 @@ describe('file-utils', () => {
     asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract);
 
     // Act
-    workspaceStore.set(defaultAzureWorkspace);
+    workspaceStore.set({ ...defaultAzureWorkspace, workspaceInitialized: true });
     const hookRender1 = await renderHookInAct(() => useAnalysisFiles());
     const hookResult2 = hookRender1.result.current;
     await act(() => hookResult2.deleteAnalysis(file1Path));

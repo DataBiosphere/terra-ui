@@ -155,6 +155,7 @@ const mockWorkspaces: {
     namespace: gcpBillingProject.projectName,
     name: 'test-workspace',
     workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+    billingAccount: 'billingAccounts/123456-ABCDEF-ABCDEF',
     googleProject: 'test-project',
     bucketName: 'fc-aaaabbbb-cccc-dddd-0000-111122223333',
     createdBy: 'user@example.com',

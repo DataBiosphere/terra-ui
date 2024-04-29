@@ -4598,9 +4598,11 @@ __metadata:
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0
     "@testing-library/user-event": ^14.4.3
+    "@types/color": ^3.0.6
     "@types/jest": ^28.1.8
     "@types/lodash": ^4.14.184
     "@types/react": ^18.2.15
+    "@types/react-dom": ^18.2.15
     "@types/react-modal": ^3.16.2
     "@types/react-onclickoutside": ^6.7.5
     "@types/testing-library__jest-dom": ^5.14.9
@@ -4879,6 +4881,31 @@ __metadata:
   dependencies:
     "@types/tern": "*"
   checksum: 423b6378b6415b626d9f54d37d69477f96940b30a695d4ec36402feb59a96f7ab42d1c17b8472fbb222a0966f6061deee234e37bcd3e34c75836e989dc95929d
+  languageName: node
+  linkType: hard
+
+"@types/color-convert@npm:*":
+  version: 2.0.3
+  resolution: "@types/color-convert@npm:2.0.3"
+  dependencies:
+    "@types/color-name": "*"
+  checksum: bb6649b49a9da85435c0076c0b00183b972ee2ccbebb7f2f20e58843f081616bba054280fad96fe19e8bb998b3494a3f4c105dea6fef31147f92097f2c08f1ca
+  languageName: node
+  linkType: hard
+
+"@types/color-name@npm:*":
+  version: 1.1.4
+  resolution: "@types/color-name@npm:1.1.4"
+  checksum: d0cc22e0f0f4c0a5bed2051e41c3e5b484ca522ecf196a2ff3b7af8acdebd3a1c7823909fab3f3d1ab5f407d70858ead30d7423a060b7c7cef7966ea95056cac
+  languageName: node
+  linkType: hard
+
+"@types/color@npm:^3.0.6":
+  version: 3.0.6
+  resolution: "@types/color@npm:3.0.6"
+  dependencies:
+    "@types/color-convert": "*"
+  checksum: 0f16dcf4e202896d5425019c44a1f99713fca998052ab2fd836cdd38048398a0caf5b79a2efe560e41fca4b9401e8d8f6f02ed541cfea30cca3a8cb1b50b80f7
   languageName: node
   linkType: hard
 
@@ -5216,6 +5243,15 @@ __metadata:
   dependencies:
     "@types/react": "*"
   checksum: e02ea908289a7ad26053308248d2b87f6aeafd73d0e2de2a3d435947bcea0422599016ffd1c3e38ff36c42f5e1c87c7417f05b0a157e48649e4a02f21727d54f
+  languageName: node
+  linkType: hard
+
+"@types/react-dom@npm:^18.2.15":
+  version: 18.3.0
+  resolution: "@types/react-dom@npm:18.3.0"
+  dependencies:
+    "@types/react": "*"
+  checksum: a0cd9b1b815a6abd2a367a9eabdd8df8dd8f13f95897b2f9e1359ea3ac6619f957c1432ece004af7d95e2a7caddbba19faa045f831f32d6263483fc5404a7596
   languageName: node
   linkType: hard
 
@@ -16244,8 +16280,8 @@ __metadata:
   linkType: hard
 
 "tar@npm:^6.1.11, tar@npm:^6.1.2, tar@npm:^6.2.0":
-  version: 6.2.0
-  resolution: "tar@npm:6.2.0"
+  version: 6.2.1
+  resolution: "tar@npm:6.2.1"
   dependencies:
     chownr: ^2.0.0
     fs-minipass: ^2.0.0
@@ -16253,7 +16289,7 @@ __metadata:
     minizlib: ^2.1.1
     mkdirp: ^1.0.3
     yallist: ^4.0.0
-  checksum: db4d9fe74a2082c3a5016630092c54c8375ff3b280186938cfd104f2e089c4fd9bad58688ef6be9cf186a889671bf355c7cda38f09bbf60604b281715ca57f5c
+  checksum: f1322768c9741a25356c11373bce918483f40fa9a25c69c59410c8a1247632487edef5fe76c5f12ac51a6356d2f1829e96d2bc34098668a2fc34d76050ac2b6c
   languageName: node
   linkType: hard
 

@@ -8,7 +8,7 @@
  * $ yarn test-local analysis-context-bar
  */
 
-import { Interactive, TooltipTrigger } from '@terra-ui-packages/components';
+import { Interactive, Spinner, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { br, div, h, img, span } from 'react-hyperscript-helpers';
@@ -32,7 +32,7 @@ import {
   runtimeToolLabels,
   toolLabelDisplays,
 } from 'src/analysis/utils/tool-utils';
-import { Clickable, spinnerOverlay } from 'src/components/common';
+import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { getRegionInfo } from 'src/components/region-common';
 import cromwellImg from 'src/images/cromwell-logo.png'; // To be replaced by something square
@@ -294,19 +294,23 @@ export const ContextBar = ({
                   hover: { ...contextBarStyles.hover },
                 },
                 [
-                  div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, ['Rate:']),
-                  div(
-                    {
-                      style: {
-                        textAlign: 'center',
-                        color: colors.dark(),
-                        fontWeight: 'bold',
-                        fontSize: 16,
-                      },
-                    },
-                    [getTotalToolAndDiskCostDisplay(), span({ style: { fontWeight: 'normal' } })]
-                  ),
-                  div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, ['per hour']),
+                  isLoadingCloudEnvironments
+                    ? h(Spinner, { size: 32, style: { alignSelf: 'center', color: 'inherit' } })
+                    : h(Fragment, [
+                        div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, ['Rate:']),
+                        div(
+                          {
+                            style: {
+                              textAlign: 'center',
+                              color: colors.dark(),
+                              fontWeight: 'bold',
+                              fontSize: 16,
+                            },
+                          },
+                          [getTotalToolAndDiskCostDisplay(), span({ style: { fontWeight: 'normal' } })]
+                        ),
+                        div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, ['per hour']),
+                      ]),
                 ]
               ),
             ]
@@ -321,6 +325,7 @@ export const ContextBar = ({
                 ...contextBarStyles.contextBarButton,
                 borderBottom: '0px',
               },
+              disabled: isLoadingCloudEnvironments,
               hover: contextBarStyles.hover,
               tooltipSide: 'left',
               onClick: () => setCloudEnvOpen(true),
@@ -381,6 +386,5 @@ export const ContextBar = ({
           ),
       ]),
     ]),
-    isLoadingCloudEnvironments && spinnerOverlay,
   ]);
 };

@@ -18,6 +18,7 @@ describe('useImportJobs', () => {
       workspace: {
         authorizationDomain: [],
         cloudPlatform: 'Gcp',
+        billingAccount: 'billingAccounts/123456-ABCDEF-ABCDEF',
         bucketName: 'test-bucket',
         googleProject: 'test-project',
         name: 'google-workspace',

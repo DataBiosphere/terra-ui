@@ -303,7 +303,6 @@ const DataTableActions = ({
 }) => {
   const {
     workspace: { namespace, name },
-    workspaceSubmissionStats: { runningSubmissionsCount },
   } = workspace;
 
   const isSet = tableName.endsWith('_set');
@@ -449,7 +448,6 @@ const DataTableActions = ({
         workspace,
         selectedDataType: tableName,
         selectedEntities: entities,
-        runningSubmissionsCount,
       }),
     savingVersion &&
       h(DataTableSaveVersionModal, {

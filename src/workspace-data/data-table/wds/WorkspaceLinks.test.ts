@@ -58,6 +58,7 @@ describe('WorkspaceLinkById', () => {
       name: 'test-workspace',
       namespace: 'test-workspaces',
       cloudPlatform: 'Gcp',
+      billingAccount: 'billingAccounts/123456-ABCDEF-ABCDEF',
       bucketName: 'test-bucket',
       googleProject: 'google-project',
       authorizationDomain: [],

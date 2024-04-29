@@ -36,15 +36,21 @@ interface BaseWorkspaceInfo {
   isLocked?: boolean;
   state?: WorkspaceState;
   errorMessage?: string;
+  completedCloneWorkspaceFileTransfer?: string;
+  workspaceType?: 'mc' | 'rawls';
+  workspaceVersion?: string;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
   cloudPlatform: 'Azure';
+  bucketName?: '';
+  googleProject?: '';
 }
 
 export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
   cloudPlatform: 'Gcp';
   googleProject: string;
+  billingAccount: string;
   bucketName: string;
 }
 

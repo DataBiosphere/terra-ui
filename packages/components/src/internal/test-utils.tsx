@@ -3,7 +3,7 @@
 import { render } from '@testing-library/react';
 import { ReactElement } from 'react';
 
-import { Theme, ThemeProvider } from '../theme';
+import { Theme, ThemeProvider, ThemeProviderProps } from '../theme';
 
 const terraTheme: Theme = {
   colorPalette: {
@@ -20,7 +20,7 @@ const terraTheme: Theme = {
   },
 };
 
-export const TestThemeProvider = (props) => {
+export const TestThemeProvider = (props: Omit<ThemeProviderProps, 'theme'>) => {
   return <ThemeProvider {...props} theme={terraTheme} />;
 };
 

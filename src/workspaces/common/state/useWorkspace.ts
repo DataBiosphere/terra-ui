@@ -12,10 +12,12 @@ import { ErrorCallback, withErrorHandling, withErrorIgnoring, withErrorReporting
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { clearNotification, notify } from 'src/libs/notifications';
 import { useStore } from 'src/libs/react-utils';
-import { getTerraUser, workspaceStore } from 'src/libs/state';
+import { getTerraUser, InitializedWorkspaceWrapper, workspaceStore } from 'src/libs/state';
 import { differenceFromNowInSeconds, withBusyState } from 'src/libs/utils';
 import { updateRecentlyViewedWorkspaces } from 'src/workspaces/common/state/recentlyViewedWorkspaces';
-import { canWrite, isAzureWorkspace, isGoogleWorkspace, isOwner, WorkspaceWrapper } from 'src/workspaces/utils';
+import { canWrite, isAzureWorkspace, isGoogleWorkspace, isOwner } from 'src/workspaces/utils';
+
+export type { InitializedWorkspaceWrapper } from 'src/libs/state';
 
 export interface StorageDetails {
   googleBucketLocation: string; // historically returns defaultLocation if bucket location cannot be retrieved or Azure
@@ -26,10 +28,8 @@ export interface StorageDetails {
   azureContainerSasUrl?: string;
 }
 
-export type InitializedWorkspaceWrapper = WorkspaceWrapper & { workspaceInitialized: boolean };
-
 export interface WorkspaceDetails {
-  workspace: InitializedWorkspaceWrapper;
+  workspace: InitializedWorkspaceWrapper | undefined;
   accessError: boolean;
   loadingWorkspace: boolean;
   storageDetails: StorageDetails;
@@ -43,7 +43,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   const [accessError, setAccessError] = useState(false);
   const [loadingWorkspace, setLoadingWorkspace] = useState(false);
   const accessNotificationId = useRef<string | undefined>();
-  const workspace: InitializedWorkspaceWrapper | undefined = useStore<InitializedWorkspaceWrapper>(workspaceStore);
+  const workspace = useStore(workspaceStore);
 
   const [{ location, locationType, fetchedLocation }, setGoogleStorage] = useState<{
     fetchedLocation: 'SUCCESS' | 'ERROR' | undefined;

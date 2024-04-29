@@ -16,7 +16,7 @@ import { reportError, withErrorReporting } from 'src/libs/error';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { CloudProvider, cloudProviderTypes, WorkspaceWrapper } from 'src/workspaces/utils';
+import { CloudProvider, cloudProviderTypes } from 'src/workspaces/utils';
 
 export interface AnalysisFileMetadata {
   lockExpiresAt: string;
@@ -51,7 +51,7 @@ export interface AnalysisFileStore {
 export const useAnalysisFiles = (): AnalysisFileStore => {
   const signal = useCancellation();
   const [loading, setLoading] = useState(false);
-  const workspace: WorkspaceWrapper = useStore(workspaceStore);
+  const workspace = useStore(workspaceStore);
   const [analyses, setAnalyses] = useState<AnalysisFile[]>([]);
   const [pendingCreate, setPendingCreate] = useLoadedData<true>();
   const [pendingDelete, setPendingDelete] = useLoadedData<true>();
@@ -59,14 +59,14 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
   const refresh = withHandlers(
     [withErrorReporting('Error loading analysis files'), Utils.withBusyState(setLoading)],
     async (): Promise<void> => {
-      const analysis = await AnalysisProvider.listAnalyses(workspace.workspace, signal);
+      const analysis = await AnalysisProvider.listAnalyses(workspace!.workspace, signal);
       setAnalyses(analysis);
     }
   );
 
   const createAnalysis = async (fullAnalysisName: string, toolLabel: ToolLabel, contents: any): Promise<void> => {
     await setPendingCreate(async () => {
-      await AnalysisProvider.createAnalysis(workspace.workspace, fullAnalysisName, toolLabel, contents, signal);
+      await AnalysisProvider.createAnalysis(workspace!.workspace, fullAnalysisName, toolLabel, contents, signal);
       await refresh();
       return true;
     });
@@ -74,7 +74,7 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
 
   const deleteAnalysis = async (path: AbsolutePath): Promise<void> => {
     await setPendingDelete(async () => {
-      await AnalysisProvider.deleteAnalysis(workspace.workspace, path, signal);
+      await AnalysisProvider.deleteAnalysis(workspace!.workspace, path, signal);
       await refresh();
       return true;
     });
@@ -82,7 +82,7 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
 
   useEffect(() => {
     refresh();
-  }, [workspace.workspace]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [workspace!.workspace]); // eslint-disable-line react-hooks/exhaustive-deps
   // refresh depends only on workspace.workspace, do not want to refresh on workspace.workspaceInitialized
 
   useEffect(() => {

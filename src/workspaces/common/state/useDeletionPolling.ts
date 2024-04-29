@@ -12,12 +12,12 @@ const updateWorkspacesList = (
   errorMessage?: string
 ): Workspace[] => workspaces.map((ws) => updateWorkspace(ws, workspaceId, state, errorMessage));
 
-const updateWorkspace = (
-  workspace: Workspace,
+const updateWorkspace = <T extends Workspace>(
+  workspace: T,
   workspaceId: string,
   state: WorkspaceState,
   errorMessage?: string
-): Workspace => {
+): T => {
   if (workspace.workspace.workspaceId === workspaceId) {
     const update = _.cloneDeep(workspace);
     update.workspace.state = state;
@@ -32,7 +32,7 @@ const checkWorkspaceDeletion = async (workspace: Workspace, abort: () => void, s
     const workspaceId = workspace.workspace.workspaceId;
     abort();
     workspacesStore.update((wsList) => updateWorkspacesList(wsList, workspaceId, state, errorMessage));
-    workspaceStore.update((ws) => updateWorkspace(ws, workspaceId, state, errorMessage));
+    workspaceStore.update((ws) => updateWorkspace(ws!, workspaceId, state, errorMessage));
   };
 
   try {
