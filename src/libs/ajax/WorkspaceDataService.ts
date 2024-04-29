@@ -176,7 +176,7 @@ export const WorkspaceData = (signal) => ({
     return await res.json();
   },
   queryRecords: async (root: string, instanceId: string, wdsType: string): Promise<any> => {
-    const searchPayload = { limit: 100 };
+    const searchPayload = { limit: 1000 };
     const res = await fetchWDS(root)(
       `${instanceId}/search/v0.2/${wdsType}`,
       _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody(searchPayload)])
