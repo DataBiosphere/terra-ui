@@ -1,5 +1,14 @@
 import _ from 'lodash/fp';
-import { AllHTMLAttributes, createElement, ForwardedRef, forwardRef, useState } from 'react';
+import {
+  AllHTMLAttributes,
+  createElement,
+  CSSProperties,
+  FocusEvent,
+  ForwardedRef,
+  forwardRef,
+  MouseEvent,
+  useState,
+} from 'react';
 
 import { injectStyle } from './injectStyle';
 import * as Utils from './utils';
@@ -49,7 +58,7 @@ const pointerTypes = ['radio', 'checkbox', 'submit', 'button'];
 // TODO: Can a more specific type be used by parameterizing this with a tag name?
 export interface InteractiveProps extends AllHTMLAttributes<HTMLElement> {
   /** Styles applied when element is hovered or focused. */
-  hover?: Pick<React.CSSProperties, HoverStyleProperty>;
+  hover?: Pick<CSSProperties, HoverStyleProperty>;
 
   /** HTML tag to render. */
   tagName?: keyof JSX.IntrinsicElements;
@@ -113,7 +122,7 @@ export const Interactive = forwardRef((props: InteractiveProps, ref: ForwardedRe
    */
   const cssVariables = _.flow(
     _.toPairs,
-    _.flatMap(([key, value]) => {
+    _.flatMap(<K extends keyof CSSProperties>([key, value]: [K, CSSProperties[K]]) => {
       return [
         [`--app-hover-${key}`, value],
         [key, `var(--hover-${key}, ${style[key]})`],
@@ -138,11 +147,11 @@ export const Interactive = forwardRef((props: InteractiveProps, ref: ForwardedRe
       tabIndex: computedTabIndex,
       onClick,
       disabled,
-      onMouseDown: (e) => {
+      onMouseDown: (e: MouseEvent<HTMLElement>) => {
         setOutline('none');
         onMouseDown?.(e);
       },
-      onBlur: (e) => {
+      onBlur: (e: FocusEvent<HTMLElement>) => {
         if (outline) {
           setOutline(undefined);
         }

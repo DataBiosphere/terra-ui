@@ -615,7 +615,6 @@ const EntitiesContent = ({
             workspace,
             selectedEntities: selectedKeys,
             selectedDataType: entityKey,
-            runningSubmissionsCount,
           }),
         showColumnProvenance &&
           h(
