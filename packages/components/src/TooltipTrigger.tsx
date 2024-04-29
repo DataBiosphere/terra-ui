@@ -146,19 +146,19 @@ export const TooltipTrigger = (props: TooltipTriggerProps): ReactNode => {
         id: childId,
         'aria-labelledby': hasTooltipContent && useAsLabel ? descriptionId : undefined,
         'aria-describedby': hasTooltipContent && !useAsLabel ? descriptionId : undefined,
-        onMouseEnter: (...args) => {
+        onMouseEnter: (...args: unknown[]) => {
           child.props.onMouseEnter?.(...args);
           setIsOpen(true);
         },
-        onMouseLeave: (...args) => {
+        onMouseLeave: (...args: unknown[]) => {
           child.props.onMouseLeave?.(...args);
           setIsOpen(false);
         },
-        onFocus: (...args) => {
+        onFocus: (...args: unknown[]) => {
           child.props.onFocus?.(...args);
           setIsOpen(true);
         },
-        onBlur: (...args) => {
+        onBlur: (...args: unknown[]) => {
           child.props.onBlur?.(...args);
           setIsOpen(false);
         },
