@@ -22,6 +22,10 @@ export interface AzureManagedAppCoordinates {
   applicationDeploymentName?: string;
 }
 
+export interface Organization {
+  enterprise?: boolean;
+}
+
 export type CloudPlatform = 'GCP' | 'AZURE' | 'UNKNOWN';
 
 export type BillingRole = 'Owner' | 'User';
@@ -45,7 +49,8 @@ export interface AzureBillingProject extends BaseBillingProject {
   managedAppCoordinates: AzureManagedAppCoordinates;
   landingZoneId: string;
   protectedData: boolean;
-  region?: string; // will exist after backfill
+  region?: string; // was backfilled for billing projects with valid MRG info
+  organization?: Organization;
 }
 
 export interface GCPBillingProject extends BaseBillingProject {
