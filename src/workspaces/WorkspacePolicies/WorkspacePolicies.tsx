@@ -17,7 +17,7 @@ export type WorkspacePoliciesProps = {
   policiesLink?: ReactNode;
   endingNotice?: ReactNode;
   noCheckboxes?: boolean;
-  togglePhiTracking?: (selected: boolean) => void;
+  onTogglePhiTracking?: (selected: boolean) => void;
   togglePhiTrackingChecked?: boolean;
 };
 
@@ -30,8 +30,8 @@ export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
     : `This workspace has the following ${pluralize('policy', policyDescriptions.length)}:`;
   const phiTrackingCallback = (selected: boolean) => {
     setPhiTracking(selected);
-    if (props.togglePhiTracking) {
-      props.togglePhiTracking(selected);
+    if (props.onTogglePhiTracking) {
+      props.onTogglePhiTracking(selected);
     }
   };
   const id = useUniqueId();
@@ -79,7 +79,7 @@ export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
               </div>
             );
           }, policyDescriptions)}
-          {!!props.togglePhiTracking && (
+          {!!props.onTogglePhiTracking && (
             <div role="listitem" style={{ marginLeft: '1.25rem' }} key={phiTrackingLabel}>
               <LabeledCheckbox checked={phiTracking} aria-label={phiTrackingLabel} onChange={phiTrackingCallback}>
                 <span style={{ marginLeft: '0.25rem' }}>{phiTrackingLabel}</span>

@@ -38,6 +38,7 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { CloneEgressWarning } from 'src/workspaces/NewWorkspaceModal/CloneEgressWarning';
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
+import { LinkWithPopout } from 'src/workspaces/NewWorkspaceModal/LinkWithPopout';
 import {
   cloudProviderLabels,
   hasPhiTrackingPolicy,
@@ -421,69 +422,61 @@ const NewWorkspaceModal = withDisplayName(
 
     const endingNotice = renderNotice ? renderNotice({ selectedBillingProject }) : undefined;
 
-    const displayAzurePolicyAndWorkspaceInfo =
-      isAzureBillingProject() || (!!cloneWorkspace && isAzureWorkspace(cloneWorkspace));
-    const renderAzurePolicyAndWorkspaceInfo = () => {
-      const renderLink = (href: string, text: string) => {
-        return h(
-          Link,
-          {
-            href,
-            ...Utils.newTabLinkProps,
-            style: { display: 'inline-block', marginTop: '0.25rem' },
-          },
-          [text, icon('pop-out', { size: 14, style: { marginLeft: '0.1rem' } })]
-        );
-      };
-      const workspacePoliciesProps: WorkspacePoliciesProps = {
-        workspace: cloneWorkspace,
-        billingProject: selectedBillingProject,
-        title: 'Security, controls, and workspace information',
-        policiesLabel: 'Workspace will inherit data protection policies',
-        policiesLink: renderLink(
-          'https://support.terra.bio/hc/en-us/articles/21329019108635-Host-FISMA-data-on-FedRAMP-moderate-Terra-Azure',
-          'Learn more about policies'
-        ),
-        endingNotice: div([
-          endingNotice,
-          div(
-            {
-              style: {
-                display: 'grid',
-                gridTemplateColumns: 'auto auto',
-                fontWeight: 600,
-                paddingTop: endingNotice ? '1.0rem' : 0,
+    const renderPolicyAndWorkspaceInfo = () => {
+      if (isAzureBillingProject() || (!!cloneWorkspace && isAzureWorkspace(cloneWorkspace))) {
+        const workspacePoliciesProps: WorkspacePoliciesProps = {
+          workspace: cloneWorkspace,
+          billingProject: selectedBillingProject,
+          title: 'Security, controls, and workspace information',
+          policiesLabel: 'Workspace will inherit data protection policies',
+          policiesLink: LinkWithPopout({
+            href: 'https://support.terra.bio/hc/en-us/articles/21329019108635-Host-FISMA-data-on-FedRAMP-moderate-Terra-Azure',
+            children: 'Learn more about policies',
+          }),
+          endingNotice: div([
+            endingNotice,
+            div(
+              {
+                style: {
+                  display: 'grid',
+                  gridTemplateColumns: 'auto auto',
+                  fontWeight: 600,
+                  paddingTop: endingNotice ? '1.0rem' : 0,
+                },
               },
-            },
-            [
-              icon('warning-standard', {
-                size: 18,
-                style: { marginRight: '0.5rem', color: colors.warning() },
-              }),
-              div([
-                'Creating a workspace may increase your infrastructure costs',
-                renderLink(
-                  'https://support.terra.bio/hc/en-us/articles/12029087819291',
-                  'Learn more about cost and follow changes'
-                ),
-              ]),
-            ]
-          ),
-        ]),
-      };
-      // Allow toggling PHI tracking if:
-      // 1. Creating a new workspace and the billing project supports PHI tracking.
-      // 2. Cloning a workspace without PHI tracking to a billing project that supports PHI tracking.
-      // Note: when cloning a workspace with PHI tracking already enabled, the policy is inherited and cannot be changed
-      if (
-        !!selectedBillingProject &&
-        supportsPhiTracking(selectedBillingProject) &&
-        (!cloneWorkspace || !hasPhiTrackingPolicy(cloneWorkspace))
-      ) {
-        workspacePoliciesProps.togglePhiTracking = (selected: boolean) => setPhiTracking(selected);
-        workspacePoliciesProps.togglePhiTrackingChecked = phiTracking;
+              [
+                icon('warning-standard', {
+                  size: 18,
+                  style: { marginRight: '0.5rem', color: colors.warning() },
+                }),
+                div([
+                  'Creating a workspace may increase your infrastructure costs',
+                  LinkWithPopout({
+                    href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
+                    children: 'Learn more about cost and follow changes',
+                  }),
+                ]),
+              ]
+            ),
+          ]),
+        };
+        // Allow toggling PHI tracking if:
+        // 1. Creating a new workspace and the billing project supports PHI tracking.
+        // 2. Cloning a workspace without PHI tracking to a billing project that supports PHI tracking.
+        // Note: when cloning a workspace with PHI tracking already enabled, the policy is inherited and cannot be changed
+        if (
+          !!selectedBillingProject &&
+          supportsPhiTracking(selectedBillingProject) &&
+          (!cloneWorkspace || !hasPhiTrackingPolicy(cloneWorkspace))
+        ) {
+          workspacePoliciesProps.onTogglePhiTracking = (selected: boolean) => setPhiTracking(selected);
+          workspacePoliciesProps.togglePhiTrackingChecked = phiTracking;
+        }
+        return h(WorkspacePolicies, workspacePoliciesProps);
       }
-      return h(WorkspacePolicies, workspacePoliciesProps);
+
+      // If we display the Azure policy/workspace section, we render the optional notice within that block
+      return endingNotice ? div({ style: { ...Style.elements.noticeContainer } }, [endingNotice]) : undefined;
     };
 
     return Utils.cond(
@@ -723,11 +716,7 @@ const NewWorkspaceModal = withDisplayName(
                             }),
                           ]),
                       ]),
-                    displayAzurePolicyAndWorkspaceInfo && renderAzurePolicyAndWorkspaceInfo(),
-                    // If we display the Azure policy/workspace section, we render the optional notice within that block
-                    !displayAzurePolicyAndWorkspaceInfo &&
-                      !!endingNotice &&
-                      div({ style: { ...Style.elements.noticeContainer } }, [endingNotice]),
+                    renderPolicyAndWorkspaceInfo(),
                     workflowImport &&
                       azureBillingProjectsExist &&
                       div({ style: { padding: '1.0rem', display: 'flex' } }, [

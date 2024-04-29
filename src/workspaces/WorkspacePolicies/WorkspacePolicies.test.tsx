@@ -210,7 +210,7 @@ describe('WorkspacePolicies', () => {
       render(
         <WorkspacePolicies
           billingProject={azureProtectedDataBillingProject}
-          togglePhiTracking={jest.fn()}
+          onTogglePhiTracking={jest.fn()}
           togglePhiTrackingChecked
         />
       );
@@ -227,7 +227,10 @@ describe('WorkspacePolicies', () => {
 
       // Act
       render(
-        <WorkspacePolicies billingProject={azureProtectedDataBillingProject} togglePhiTracking={phiTrackingCallback} />
+        <WorkspacePolicies
+          billingProject={azureProtectedDataBillingProject}
+          onTogglePhiTracking={phiTrackingCallback}
+        />
       );
       const phiCheckbox = screen.getByLabelText(phiTrackingLabel);
       expect(phiCheckbox).not.toBeChecked();
