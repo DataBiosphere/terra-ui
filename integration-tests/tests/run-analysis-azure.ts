@@ -91,16 +91,12 @@ const testRunAnalysisAzure = _.flowRight(
   // Wait for stable UI (sometimes kernel status flickers and fillIn won't work)
   await delay(Millis.ofSeconds(10));
   // Run a command
-  await fillIn(
-    frame,
-    '//*[contains(@class,"jp-Notebook-cell")][last()]//textArea',
-    'print(123456789099876543210990+9876543219)'
-  );
-  await click(frame, '//button[starts-with(@title, "Run the selected cells and advance")]');
+  await fillIn(frame, '//*[contains(@class,"jp-Cell-inputArea")]', 'print(123456789099876543210990+9876543219)');
+  await click(frame, '//button[starts-with(@title, "Run this cell and advance")]');
   await findText(frame, '123456789099886419754209');
 
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
-  await click(frame, '//button[starts-with(@title, "Save and create checkpoint")]');
+  await click(frame, '//button[starts-with(@title, "Save")]');
 
   // Cleanup
   const workspaceId = await getWorkspaceId({ page, billingProject, workspaceName });
