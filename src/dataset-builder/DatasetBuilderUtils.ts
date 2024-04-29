@@ -2,18 +2,18 @@ import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
-  DomainCriteria as DomainCriteriaApi,
-  ProgramDataListCriteria as ProgramDataListCriteriaApi,
-  ProgramDataRangeCriteria as ProgramDataRangeCriteriaApi,
   SnapshotBuilderCohort as CohortApi,
   SnapshotBuilderCriteria as AnyCriteriaApi,
   SnapshotBuilderDatasetConceptSet,
+  SnapshotBuilderDomainCriteria,
   SnapshotBuilderDomainOption,
   SnapshotBuilderFeatureValueGroup as ValueSetApi,
   SnapshotBuilderOption,
   SnapshotBuilderOptionTypeNames,
+  SnapshotBuilderProgramDataListCriteria,
   SnapshotBuilderProgramDataListItem,
   SnapshotBuilderProgramDataListOption,
+  SnapshotBuilderProgramDataRangeCriteria,
   SnapshotBuilderProgramDataRangeOption,
 } from 'src/libs/ajax/DataRepo';
 
@@ -111,13 +111,16 @@ export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
   const mergeObject = { kind, id };
   switch (criteria.kind) {
     case 'range':
-      return _.merge(mergeObject, { low: criteria.low, high: criteria.high }) as ProgramDataRangeCriteriaApi;
+      return _.merge(mergeObject, {
+        low: criteria.low,
+        high: criteria.high,
+      }) as SnapshotBuilderProgramDataRangeCriteria;
     case 'list':
       return _.merge(mergeObject, {
         values: _.map((value) => value.id, criteria.values),
-      }) as ProgramDataListCriteriaApi;
+      }) as SnapshotBuilderProgramDataListCriteria;
     case 'domain':
-      return _.merge(mergeObject, { conceptId: criteria.conceptId }) as DomainCriteriaApi;
+      return _.merge(mergeObject, { conceptId: criteria.conceptId }) as SnapshotBuilderDomainCriteria;
     default:
       throw new Error('Criteria not of type range, list, or domain.');
   }

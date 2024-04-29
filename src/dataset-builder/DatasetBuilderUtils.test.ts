@@ -17,18 +17,18 @@ import {
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DomainConceptSet,
-  DomainCriteria as DomainCriteriaApi,
-  ProgramDataListCriteria as ProgramDataListCriteriaApi,
-  ProgramDataRangeCriteria as ProgramDataRangeCriteriaApi,
   SnapshotAccessRequest as SnapshotAccessRequestApi,
   SnapshotBuilderCohort,
   SnapshotBuilderConcept,
   SnapshotBuilderCriteria,
   SnapshotBuilderCriteriaGroup,
+  SnapshotBuilderDomainCriteria as DomainCriteriaApi,
   SnapshotBuilderDomainOption,
   SnapshotBuilderFeatureValueGroup as ValueSetApi,
+  SnapshotBuilderProgramDataListCriteria,
   SnapshotBuilderProgramDataListItem,
   SnapshotBuilderProgramDataListOption,
+  SnapshotBuilderProgramDataRangeCriteria,
   SnapshotBuilderProgramDataRangeOption,
 } from 'src/libs/ajax/DataRepo';
 
@@ -85,7 +85,7 @@ const rangeCriteria: ProgramDataRangeCriteria = {
   high: 99,
 };
 
-const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
+const rangeCriteriaApi: SnapshotBuilderProgramDataRangeCriteria = {
   id: 2,
   kind: 'range',
   low: 1,
@@ -117,7 +117,7 @@ const listCriteria: ProgramDataListCriteria = {
   values: criteriaListValues,
 };
 
-const listCriteriaApi: ProgramDataListCriteriaApi = {
+const listCriteriaApi: SnapshotBuilderProgramDataListCriteria = {
   id: 2,
   kind: 'list',
   values: criteriaListValuesApi,

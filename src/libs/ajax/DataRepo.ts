@@ -73,31 +73,28 @@ export type SnapshotBuilderSettings = {
   datasetConceptSets?: PrepackagedConceptSet[];
 };
 
-export interface Criteria {
+export interface SnapshotBuilderCriteria {
   // This is the ID for either the domain or the program data option
   id: number;
   kind: SnapshotBuilderOptionTypeNames;
-  count?: number;
 }
 
-export interface DomainCriteria extends Criteria {
+export interface SnapshotBuilderDomainCriteria extends SnapshotBuilderCriteria {
   kind: 'domain';
   // This is the id for the selected concept
   conceptId: number;
 }
 
-export interface ProgramDataRangeCriteria extends Criteria {
+export interface SnapshotBuilderProgramDataRangeCriteria extends SnapshotBuilderCriteria {
   kind: 'range';
   low: number;
   high: number;
 }
 
-export interface ProgramDataListCriteria extends Criteria {
+export interface SnapshotBuilderProgramDataListCriteria extends SnapshotBuilderCriteria {
   kind: 'list';
   values: number[];
 }
-
-export type SnapshotBuilderCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
 export interface SnapshotBuilderCriteriaGroup {
   name: string;
