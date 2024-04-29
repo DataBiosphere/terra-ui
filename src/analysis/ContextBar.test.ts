@@ -474,6 +474,14 @@ describe('ContextBar - buttons', () => {
     expect(queryByTestId('terminal-button-id')).not.toBeInTheDocument();
   });
 
+  it('disables environment configuration button while loading environments', () => {
+    // Act
+    const { getByLabelText } = render(h(ContextBar, { ...contextBarProps, isLoadingCloudEnvironments: true }));
+
+    // Assert
+    expect(getByLabelText('Environment Configuration')).toHaveAttribute('aria-disabled', 'true');
+  });
+
   it('will render Jupyter button with an enabled Terminal Button', () => {
     // Arrange
     const jupyterContextBarProps: ContextBarProps = {
