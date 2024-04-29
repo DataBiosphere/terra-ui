@@ -14,13 +14,13 @@ import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs
 import { Cohort, DatasetBuilderType, DatasetBuilderValue, formatCount } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
-  ConceptSet,
   DataRepo,
   datasetIncludeTypes,
   DatasetModel,
-  DatasetParticipantCountResponse,
   DomainConceptSet,
   PrepackagedConceptSet,
+  SnapshotBuilderCountResponse,
+  SnapshotBuilderDatasetConceptSet as ConceptSet,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
 } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
@@ -549,7 +549,7 @@ export const DatasetBuilderContents = ({
   const [values, setValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [requestingAccess, setRequestingAccess] = useState(false);
   const [datasetRequestParticipantCount, setDatasetRequestParticipantCount] =
-    useLoadedData<DatasetParticipantCountResponse>();
+    useLoadedData<SnapshotBuilderCountResponse>();
 
   const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
   const allConceptSets: ConceptSet[] = useMemo(() => _.flatMap('values', selectedConceptSets), [selectedConceptSets]);

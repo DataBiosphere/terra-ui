@@ -18,7 +18,7 @@ import {
 import {
   DataRepo,
   DatasetModel,
-  DatasetParticipantCountResponse,
+  SnapshotBuilderCountResponse,
   SnapshotBuilderDomainOption,
   SnapshotBuilderOption,
   SnapshotBuilderProgramDataListItem,
@@ -54,7 +54,7 @@ const addCriteriaText = 'Add criteria';
 export const CriteriaView = (props: CriteriaViewProps) => {
   const { datasetId, criteria, deleteCriteria, updateCriteria } = props;
 
-  const [criteriaCount, setCriteriaCount] = useLoadedData<DatasetParticipantCountResponse>();
+  const [criteriaCount, setCriteriaCount] = useLoadedData<SnapshotBuilderCountResponse>();
 
   const updateCriteriaCount = useRef(
     _.debounce(250, (datasetId, criteria) => {
@@ -328,7 +328,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
     );
   };
 
-  const [groupParticipantCount, setGroupParticipantCount] = useLoadedData<DatasetParticipantCountResponse>();
+  const [groupParticipantCount, setGroupParticipantCount] = useLoadedData<SnapshotBuilderCountResponse>();
 
   const updateGroupParticipantCount = useRef(
     _.debounce(250, (dataset, criteriaGroup) =>

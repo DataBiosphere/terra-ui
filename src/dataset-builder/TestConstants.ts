@@ -89,27 +89,22 @@ export const dummyDatasetModel = (): DatasetModel => ({
       {
         values: ['condition column 1', 'condition column 2'],
         name: 'Condition',
-        id: 0,
       },
       {
         values: ['observation column 1', 'observation column 2'],
         name: 'Observation',
-        id: 1,
       },
       {
         values: ['procedure column 1', 'procedure column 2'],
         name: 'Procedure',
-        id: 2,
       },
       {
         values: ['surveys column 1', 'surveys column 2'],
         name: 'Surveys',
-        id: 2,
       },
       {
         values: ['demographics column 1', 'demographics column 2'],
         name: 'Person',
-        id: 3,
       },
     ],
     datasetConceptSets: [

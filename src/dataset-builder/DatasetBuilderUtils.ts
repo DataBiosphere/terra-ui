@@ -2,19 +2,19 @@ import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
-  AnyCriteria as AnyCriteriaApi,
-  Cohort as CohortApi,
-  ConceptSet,
   DomainCriteria as DomainCriteriaApi,
   ProgramDataListCriteria as ProgramDataListCriteriaApi,
   ProgramDataRangeCriteria as ProgramDataRangeCriteriaApi,
+  SnapshotBuilderCohort as CohortApi,
+  SnapshotBuilderCriteria as AnyCriteriaApi,
+  SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderDomainOption,
+  SnapshotBuilderFeatureValueGroup as ValueSetApi,
   SnapshotBuilderOption,
   SnapshotBuilderOptionTypeNames,
   SnapshotBuilderProgramDataListItem,
   SnapshotBuilderProgramDataListOption,
   SnapshotBuilderProgramDataRangeOption,
-  ValueSet as ValueSetApi,
 } from 'src/libs/ajax/DataRepo';
 
 /** A specific criteria based on a type. */
@@ -74,7 +74,7 @@ export type ValueSet = {
 
 export type DatasetRequest = {
   cohorts: Cohort[];
-  conceptSets: ConceptSet[];
+  conceptSets: SnapshotBuilderDatasetConceptSet[];
   valueSets: ValueSet[];
 };
 

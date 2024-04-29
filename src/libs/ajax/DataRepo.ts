@@ -56,19 +56,13 @@ export interface SnapshotBuilderDomainOption extends SnapshotBuilderOption {
   root: SnapshotBuilderConcept;
 }
 
-export type SnapshotBuilderFeatureValueGroup = {
-  id: number;
-  name: string;
-  values: string[];
-};
-
-export interface DomainConceptSet extends ConceptSet {
+export interface DomainConceptSet extends SnapshotBuilderDatasetConceptSet {
   concept: SnapshotBuilderConcept;
 }
 
-export type PrepackagedConceptSet = ConceptSet;
+export type PrepackagedConceptSet = SnapshotBuilderDatasetConceptSet;
 
-export interface ConceptSet extends DatasetBuilderType {
+export interface SnapshotBuilderDatasetConceptSet extends DatasetBuilderType {
   featureValueGroupName: string;
 }
 
@@ -103,34 +97,34 @@ export interface ProgramDataListCriteria extends Criteria {
   values: number[];
 }
 
-export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
+export type SnapshotBuilderCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
-export interface CriteriaGroup {
+export interface SnapshotBuilderCriteriaGroup {
   name: string;
-  criteria: AnyCriteria[];
+  criteria: SnapshotBuilderCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
 }
 
-export interface Cohort extends DatasetBuilderType {
-  criteriaGroups: CriteriaGroup[];
+export interface SnapshotBuilderCohort extends DatasetBuilderType {
+  criteriaGroups: SnapshotBuilderCriteriaGroup[];
 }
 
-export type ValueSet = {
+export type SnapshotBuilderFeatureValueGroup = {
   name: string;
   values: string[];
 };
 
-export type DatasetRequest = {
-  cohorts: Cohort[];
-  conceptSets: ConceptSet[];
-  valueSets: ValueSet[];
+export type SnapshotBuilderRequest = {
+  cohorts: SnapshotBuilderCohort[];
+  conceptSets: SnapshotBuilderDatasetConceptSet[];
+  valueSets: SnapshotBuilderFeatureValueGroup[];
 };
 
-export type SnapshotAccessRequestResponse = {
+export type SnapshotAccessRequest = {
   name: string;
   researchPurposeStatement: string;
-  datasetRequest: DatasetRequest;
+  datasetRequest: SnapshotBuilderRequest;
 };
 
 export type DatasetModel = {
@@ -202,12 +196,23 @@ export interface SnapshotBuilderGetConceptHierarchyResponse {
   result: SnapshotBuilderParentConcept[];
 }
 
+export interface SnapshotAccessRequestResponse {
+  id: string; // uuid
+  datasetId: string; // uuid
+  snapshotId: string; // uuid
+  snapshotName: string;
+  snapshotResearchPurpose: string;
+  snapshotSpecification: SnapshotAccessRequest; // SnapshotBuilderRequest in DataRepo
+  createdBy: string;
+  status: JobStatus;
+}
+
 export interface SnapshotBuilderParentConcept {
   parentId: number;
   children: SnapshotBuilderConcept[];
 }
 
-export type DatasetParticipantCountResponse = {
+export type SnapshotBuilderCountResponse = {
   result: {
     total: number;
   };
@@ -219,7 +224,7 @@ export interface DataRepoContract {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
     createSnapshotRequest(request: DatasetAccessRequestUI): Promise<SnapshotAccessRequestResponse>;
-    getSnapshotBuilderCount(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
+    getSnapshotBuilderCount(request: DatasetParticipantCountRequest): Promise<SnapshotBuilderCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse>;
     getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptHierarchyResponse>;
     searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SnapshotBuilderGetConceptsResponse>;
@@ -259,7 +264,7 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
           signal,
           convertDatasetAccessRequest(request)
         ),
-      getSnapshotBuilderCount: async (request): Promise<DatasetParticipantCountResponse> =>
+      getSnapshotBuilderCount: async (request): Promise<SnapshotBuilderCountResponse> =>
         callDataRepoPost(
           `repository/v1/datasets/${datasetId}/snapshotBuilder/count`,
           signal,

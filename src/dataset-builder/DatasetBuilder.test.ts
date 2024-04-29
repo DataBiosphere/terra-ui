@@ -3,7 +3,13 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Cohort } from 'src/dataset-builder/DatasetBuilderUtils';
-import { ConceptSet, DataRepo, DataRepoContract, DatasetModel, DomainConceptSet } from 'src/libs/ajax/DataRepo';
+import {
+  DataRepo,
+  DataRepoContract,
+  DatasetModel,
+  DomainConceptSet,
+  SnapshotBuilderDatasetConceptSet,
+} from 'src/libs/ajax/DataRepo';
 import * as Nav from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -164,7 +170,7 @@ describe('DatasetBuilder', () => {
     expect(screen.getByText('concept set 1')).toBeTruthy();
     expect(screen.getByText('concept set 2')).toBeTruthy();
     _.flow(
-      _.map((prepackagedConceptSet: ConceptSet) => prepackagedConceptSet.name),
+      _.map((prepackagedConceptSet: SnapshotBuilderDatasetConceptSet) => prepackagedConceptSet.name),
       _.forEach((prepackagedConceptSetName: string) => expect(screen.getByText(prepackagedConceptSetName)).toBeTruthy())
     )(dummyDatasetDetailsWithId!.snapshotBuilderSettings!.datasetConceptSets);
     expect(screen.getByText('Concept sets')).toBeTruthy();

@@ -16,20 +16,20 @@ import {
   ValueSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
-  AnyCriteria as AnyCriteriaApi,
-  Cohort as CohortApi,
-  CriteriaGroup as CriteriaGroupApi,
   DomainConceptSet,
   DomainCriteria as DomainCriteriaApi,
   ProgramDataListCriteria as ProgramDataListCriteriaApi,
   ProgramDataRangeCriteria as ProgramDataRangeCriteriaApi,
-  SnapshotAccessRequestResponse,
+  SnapshotAccessRequest as SnapshotAccessRequestApi,
+  SnapshotBuilderCohort,
   SnapshotBuilderConcept,
+  SnapshotBuilderCriteria,
+  SnapshotBuilderCriteriaGroup,
   SnapshotBuilderDomainOption,
+  SnapshotBuilderFeatureValueGroup as ValueSetApi,
   SnapshotBuilderProgramDataListItem,
   SnapshotBuilderProgramDataListOption,
   SnapshotBuilderProgramDataRangeOption,
-  ValueSet as ValueSetApi,
 } from 'src/libs/ajax/DataRepo';
 
 const concept: SnapshotBuilderConcept = {
@@ -125,7 +125,7 @@ const listCriteriaApi: ProgramDataListCriteriaApi = {
 
 const anyCriteriaArray: AnyCriteria[] = [domainCriteria, rangeCriteria, listCriteria];
 
-const anyCriteriaArrayApi: AnyCriteriaApi[] = [domainCriteriaApi, rangeCriteriaApi, listCriteriaApi];
+const anyCriteriaArrayApi: SnapshotBuilderCriteria[] = [domainCriteriaApi, rangeCriteriaApi, listCriteriaApi];
 
 const criteriaGroup: CriteriaGroup = {
   name: 'criteriaGroup',
@@ -134,7 +134,7 @@ const criteriaGroup: CriteriaGroup = {
   meetAll: false,
 };
 
-const criteriaGroupApi: CriteriaGroupApi = {
+const criteriaGroupApi: SnapshotBuilderCriteriaGroup = {
   name: 'criteriaGroup',
   criteria: anyCriteriaArrayApi,
   mustMeet: true,
@@ -143,7 +143,7 @@ const criteriaGroupApi: CriteriaGroupApi = {
 
 const cohort: Cohort = { name: 'cohort', criteriaGroups: [criteriaGroup] };
 
-const cohortApi: CohortApi = { name: 'cohort', criteriaGroups: [criteriaGroupApi] };
+const cohortApi: SnapshotBuilderCohort = { name: 'cohort', criteriaGroups: [criteriaGroupApi] };
 
 const valueSet: ValueSet = { domain: 'valueDomain', values: [{ name: 'valueName' }] };
 
@@ -161,7 +161,7 @@ const datasetAccessRequest: DatasetAccessRequest = {
   datasetRequest: { cohorts: [cohort], conceptSets: [conceptSet], valueSets: [valueSet] },
 };
 
-const datasetAccessRequestApi: SnapshotAccessRequestResponse = {
+const datasetAccessRequestApi: SnapshotAccessRequestApi = {
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
   datasetRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
