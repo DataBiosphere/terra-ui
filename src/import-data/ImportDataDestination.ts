@@ -372,7 +372,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                       ])
                     );
                   }
-                  if (!importMayTakeTime) {
+                  if (importMayTakeTime) {
                     children.push(div([importMayTakeTimeMessage]));
                   }
                   return children.length > 0 ? h(Fragment, children) : undefined;
