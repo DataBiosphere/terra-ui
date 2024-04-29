@@ -1,6 +1,6 @@
 import { icon, IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { AriaAttributes, CSSProperties, Fragment, ReactNode, useState } from 'react';
+import { AriaAttributes, CSSProperties, Fragment, ReactElement, ReactNode, useState } from 'react';
 import { div, h, h2, img, p, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import {
@@ -363,15 +363,20 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
                 cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
-                renderNotice: ({ selectedBillingProject }) =>
-                  h(Fragment, [
-                    isProtectedData &&
-                      selectedBillingProject?.cloudPlatform === 'AZURE' &&
+                renderNotice: ({ selectedBillingProject }) => {
+                  const children: ReactElement[] = [];
+                  if (isProtectedData && selectedBillingProject?.cloudPlatform === 'AZURE') {
+                    children.push(
                       div({ style: { paddingBottom: importMayTakeTime ? '1.0rem' : 0 } }, [
                         'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
-                      ]),
-                    importMayTakeTime && div([importMayTakeTimeMessage]),
-                  ]),
+                      ])
+                    );
+                  }
+                  if (!importMayTakeTime) {
+                    children.push(div([importMayTakeTimeMessage]));
+                  }
+                  return children.length > 0 ? h(Fragment, children) : undefined;
+                },
                 requireEnhancedBucketLogging: isProtectedData,
                 waitForServices: {
                   wds: true,

@@ -446,19 +446,29 @@ const NewWorkspaceModal = withDisplayName(
         ),
         endingNotice: div([
           endingNotice,
-          div({ style: { display: 'grid', gridTemplateColumns: 'auto auto', fontWeight: 600 } }, [
-            icon('warning-standard', {
-              size: 18,
-              style: { marginRight: '0.5rem', color: colors.warning() },
-            }),
-            div([
-              'Creating a workspace may increase your infrastructure costs',
-              renderLink(
-                'https://support.terra.bio/hc/en-us/articles/12029087819291',
-                'Learn more about cost and follow changes'
-              ),
-            ]),
-          ]),
+          div(
+            {
+              style: {
+                display: 'grid',
+                gridTemplateColumns: 'auto auto',
+                fontWeight: 600,
+                paddingTop: endingNotice ? '1.0rem' : 0,
+              },
+            },
+            [
+              icon('warning-standard', {
+                size: 18,
+                style: { marginRight: '0.5rem', color: colors.warning() },
+              }),
+              div([
+                'Creating a workspace may increase your infrastructure costs',
+                renderLink(
+                  'https://support.terra.bio/hc/en-us/articles/12029087819291',
+                  'Learn more about cost and follow changes'
+                ),
+              ]),
+            ]
+          ),
         ]),
       };
       // Allow toggling PHI tracking if:
