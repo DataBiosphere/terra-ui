@@ -1,12 +1,10 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { removeUserFromLocalState } from 'src/auth/oidc-broker';
 import { signOut } from 'src/auth/signout/sign-out';
 import { Ajax } from 'src/libs/ajax';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { goToPath } from 'src/libs/nav';
-import { notify, sessionTimeoutProps } from 'src/libs/notifications';
 import { OidcState, oidcStore } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -18,15 +16,6 @@ jest.mock('src/libs/ajax');
 
 type AjaxExports = typeof import('src/libs/ajax');
 type AjaxContract = ReturnType<AjaxExports['Ajax']>;
-
-type NotificationExports = typeof import('src/libs/notifications');
-jest.mock(
-  'src/libs/notifications',
-  (): NotificationExports => ({
-    ...jest.requireActual('src/libs/notifications'),
-    notify: jest.fn(),
-  })
-);
 
 const currentRoute = {
   name: 'routeName',
@@ -88,26 +77,13 @@ describe('sign-out', () => {
     // Assert
     expect(captureEventFn).toHaveBeenCalledWith(Events.user.signOut.idleStatusMonitor, expect.any(Object));
   });
-  it('displays a session expired notification for an expired refresh token', () => {
-    // Arrange
-    // Act
-    signOut('expiredRefreshToken');
-    // Assert
-    expect(notify).toHaveBeenCalledWith('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
-  });
-  it('displays a session expired notification for an error refreshing tokens', () => {
-    // Arrange
-    // Act
-    signOut('errorRefreshingAuthToken');
-    // Assert
-    expect(notify).toHaveBeenCalledWith('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
-  });
+
   it('redirects to the signout callback page', () => {
     // Arrange
     const signoutRedirectFn = jest.fn();
     const hostname = 'https://mycoolhost.horse';
     const link = 'signout';
-    const expectedState = btoa(JSON.stringify({ postLogoutRedirect: currentRoute }));
+    const expectedState = btoa(JSON.stringify({ signOutRedirect: currentRoute, signOutCause: 'unspecified' }));
     asMockedFn(oidcStore.get).mockReturnValue({
       userManager: {
         signoutRedirect: signoutRedirectFn,

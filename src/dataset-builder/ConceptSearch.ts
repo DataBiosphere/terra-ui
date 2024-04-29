@@ -126,6 +126,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   ),
                 ]),
                 id: concept.id,
+                code: concept.code,
                 count: formatCount(concept.count),
                 hierarchy: div({ style: { display: 'flex' } }, [
                   h(

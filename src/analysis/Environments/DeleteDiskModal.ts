@@ -3,7 +3,7 @@ import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { h, p, span } from 'react-hyperscript-helpers';
-import { SaveFilesHelp } from 'src/analysis/runtime-common-components';
+import { SaveFilesHelp } from 'src/analysis/runtime-common-text';
 import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { appTools } from 'src/analysis/utils/tool-utils';
 import { spinnerOverlay } from 'src/components/common';

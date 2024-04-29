@@ -1,8 +1,10 @@
 import { render } from '@testing-library/react';
 import React from 'react';
+import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { SignOutPage } from 'src/auth/signout/SignOutPage';
 import * as Nav from 'src/libs/nav';
+import { notify, sessionTimeoutProps } from 'src/libs/notifications';
 import { authStore, azureCookieReadyStore, cookieReadyStore, metricStore, oidcStore, userStore } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -15,6 +17,15 @@ jest.mock(
     getLink: jest.fn().mockImplementation((_) => _),
     goToPath: jest.fn(),
     useRoute: jest.fn().mockReturnValue({ query: {} }),
+  })
+);
+
+type NotificationExports = typeof import('src/libs/notifications');
+jest.mock(
+  'src/libs/notifications',
+  (): NotificationExports => ({
+    ...jest.requireActual('src/libs/notifications'),
+    notify: jest.fn(),
   })
 );
 
@@ -50,12 +61,58 @@ describe('SignOutPage', () => {
   it('redirects to the decoded state path if state is provided', () => {
     // Arrange
     const encodedState = btoa(
-      JSON.stringify({ postLogoutRedirect: { name: 'foo', query: { a: 'a', b: 'b' }, params: { foo: 'bar' } } })
+      JSON.stringify({
+        signOutRedirect: { name: 'foo', query: { a: 'a', b: 'b' }, params: { foo: 'bar' } },
+        signOutCause: 'unspecified',
+      })
     );
     asMockedFn(Nav.useRoute).mockReturnValue({ query: { state: encodedState } });
     // Act
     render(<SignOutPage />);
     // Assert
     expect(Nav.goToPath).toHaveBeenCalledWith('foo', { foo: 'bar' }, { a: 'a', b: 'b' });
+  });
+
+  it('displays a session expired notification for an expired refresh token', () => {
+    // Arrange
+    const encodedState = btoa(
+      JSON.stringify({
+        signOutRedirect: { name: 'foo', query: { a: 'a', b: 'b' }, params: { foo: 'bar' } },
+        signOutCause: 'expiredRefreshToken',
+      })
+    );
+    asMockedFn(Nav.useRoute).mockReturnValue({ query: { state: encodedState } });
+    // Act
+    render(<SignOutPage />);
+    // Assert
+    expect(notify).toHaveBeenCalledWith('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
+  });
+  it('displays a session expired notification for an error refreshing tokens', () => {
+    // Arrange
+    const encodedState = btoa(
+      JSON.stringify({
+        signOutRedirect: { name: 'foo', query: { a: 'a', b: 'b' }, params: { foo: 'bar' } },
+        signOutCause: 'errorRefreshingAuthToken',
+      })
+    );
+    asMockedFn(Nav.useRoute).mockReturnValue({ query: { state: encodedState } });
+    // Act
+    render(<SignOutPage />);
+    // Assert
+    expect(notify).toHaveBeenCalledWith('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
+  });
+  it('does not display a notification for an unspecified sign out cause', () => {
+    // Arrange
+    const encodedState = btoa(
+      JSON.stringify({
+        signOutRedirect: { name: 'foo', query: { a: 'a', b: 'b' }, params: { foo: 'bar' } },
+        signOutCause: 'unspecified',
+      })
+    );
+    asMockedFn(Nav.useRoute).mockReturnValue({ query: { state: encodedState } });
+    // Act
+    render(<SignOutPage />);
+    // Assert
+    expect(notify).not.toHaveBeenCalled();
   });
 });

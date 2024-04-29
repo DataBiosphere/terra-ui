@@ -163,7 +163,7 @@ export const BaseSelect = <
         {
           inputId,
           ...getCommonSelectProps(theme),
-          getOptionLabel: ({ value, label }) => label || value.toString(),
+          getOptionLabel: ({ value, label }: Option) => label || `${value}`,
           value: newValue || null, // need null instead of undefined to clear the select
           formatGroupLabel,
         },
@@ -258,7 +258,7 @@ export const GroupedSelect = <
   return <ParameterizedBaseSelect findValue={findValue} value={value} options={options} {...props} />;
 };
 
-export const AsyncCreatableSelect = (props) => {
+export const AsyncCreatableSelect = (props: any) => {
   const theme = useThemeFromContext();
   return <RAsyncCreatableSelect {..._.merge(getCommonSelectProps(theme), props)} />;
 };

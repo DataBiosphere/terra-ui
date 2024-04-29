@@ -5,6 +5,7 @@ import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
+import Events from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
 import { authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -35,6 +36,7 @@ export const UnlinkOAuth2Account = ({ linkText, provider }: UnlinkOAuth2AccountP
       )(async () => {
         await Ajax().ExternalCredentials(provider).unlinkAccount();
         authStore.update(_.unset(['oAuth2AccountStatus', provider.key]));
+        Ajax().Metrics.captureEvent(Events.user.externalCredential.unlink, { provider: provider.key });
         setIsModalOpen(false);
         notify('success', 'Successfully unlinked account', {
           message: `Successfully unlinked your account from ${provider.name}`,

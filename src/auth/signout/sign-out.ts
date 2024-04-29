@@ -28,30 +28,33 @@ export type SignOutCause =
   | 'idleStatusMonitor'
   | 'unspecified';
 
-export type SignOutState = {
+export type SignOutRedirect = {
   name: string;
   query: Record<string, string>;
   params: Record<string, string>;
 };
 
-export const signOut = (cause: SignOutCause = 'unspecified'): void => {
+type SignOutState = {
+  signOutRedirect: SignOutRedirect;
+  signOutCause: SignOutCause;
+};
+
+export const signOut = (signOutCause: SignOutCause = 'unspecified'): void => {
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   // sendSignOutMetrics should _not_ be awaited. It's fire-and-forget, and we don't want to block the user's signout
-  sendSignOutMetrics(cause);
-  if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
-    notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
-  }
+  sendSignOutMetrics(signOutCause);
 
   try {
     const userManager = oidcStore.get().userManager;
     const redirectUrl = `${Nav.getWindowOrigin()}/${Nav.getLink(signOutCallbackLinkName)}`;
     // This will redirect to the logout callback page, which calls `userSignedOut` and then redirects to the homepage.
-    const { name, query, params }: SignOutState = Nav.getCurrentRoute();
-    const encodedState = btoa(JSON.stringify({ postLogoutRedirect: { name, query, params } }));
+    const { name, query, params }: SignOutRedirect = Nav.getCurrentRoute();
+    const signOutState: SignOutState = { signOutRedirect: { name, query, params }, signOutCause };
+    const encodedState = btoa(JSON.stringify(signOutState));
     userManager!.signoutRedirect({ post_logout_redirect_uri: redirectUrl, extraQueryParams: { state: encodedState } });
   } catch (e: unknown) {
     console.error('Signing out with B2C failed. Falling back on local signout', e);
-    userSignedOut(true);
+    userSignedOut(signOutCause, true);
     Nav.goToPath('root');
   }
 };
@@ -83,11 +86,15 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
   });
 };
 
-export const userSignedOut = (redirectFailed = false) => {
+export const userSignedOut = (cause?: SignOutCause, redirectFailed = false) => {
   // At this point, we are guaranteed to not have a valid token, if the redirect succeeded.
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
+
+  if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
+    notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
+  }
 
   if (redirectFailed) {
     removeUserFromLocalState();
