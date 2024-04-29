@@ -1,6 +1,6 @@
 import { icon, IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { AriaAttributes, CSSProperties, Fragment, ReactElement, ReactNode, useState } from 'react';
+import { AriaAttributes, CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, h2, img, p, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import {
@@ -364,7 +364,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                 requiredAuthDomain: requiredAuthorizationDomain,
                 cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
                 renderNotice: ({ selectedBillingProject }) => {
-                  const children: ReactElement[] = [];
+                  const children: ReactNode[] = [];
                   if (isProtectedData && selectedBillingProject?.cloudPlatform === 'AZURE') {
                     children.push(
                       div({ style: { paddingBottom: importMayTakeTime ? '1.0rem' : 0 } }, [
