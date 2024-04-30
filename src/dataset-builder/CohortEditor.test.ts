@@ -99,7 +99,7 @@ describe('CohortEditor', () => {
     const mockDataRepoContract: Partial<DataRepoContract> = {
       dataset: (_datasetId) =>
         ({
-          getCounts: () =>
+          getSnapshotBuilderCount: () =>
             Promise.resolve({
               result: {
                 total: count,
