@@ -36,15 +36,21 @@ interface BaseWorkspaceInfo {
   isLocked?: boolean;
   state?: WorkspaceState;
   errorMessage?: string;
+  completedCloneWorkspaceFileTransfer?: string;
+  workspaceType?: 'mc' | 'rawls';
+  workspaceVersion?: string;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
   cloudPlatform: 'Azure';
+  bucketName?: '';
+  googleProject?: '';
 }
 
 export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
   cloudPlatform: 'Gcp';
   googleProject: string;
+  billingAccount: string;
   bucketName: string;
 }
 
@@ -109,7 +115,7 @@ export interface WorkspacePolicy {
 
 export interface PolicyDescription {
   shortDescription: string;
-  longDescription: string;
+  longDescription?: string;
 }
 
 // Returns descriptions of known policies only (protected data, group constraint, region constraint).
@@ -137,6 +143,9 @@ export const getPolicyDescriptions = (
       shortDescription: regionConstraintLabel,
       longDescription: regionConstraintMessage(workspace)!,
     });
+  }
+  if (!!workspace && hasPhiTrackingPolicy(workspace)) {
+    policyDescriptions.push({ shortDescription: phiTrackingLabel });
   }
   return policyDescriptions;
 };
@@ -183,8 +192,19 @@ export const isProtectedWorkspace = (workspace: WorkspaceWrapper): boolean => {
   }
 };
 
+const policyNamespace = 'terra';
+const dataTrackingPolicyName = 'data-tracking';
+const phiTrackingDataType = { dataType: 'PHI' };
+export const phiTrackingPolicy: WorkspacePolicy = {
+  namespace: policyNamespace,
+  name: dataTrackingPolicyName,
+  additionalData: [phiTrackingDataType],
+};
 export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefined): boolean =>
-  _.any((policy: WorkspacePolicy) => policy.namespace === 'terra' && policy.name === 'protected-data', policies);
+  _.any(
+    (policy: WorkspacePolicy) => policy.namespace === policyNamespace && policy.name === 'protected-data',
+    policies
+  );
 
 export const protectedDataLabel = 'Additional security monitoring';
 export const protectedDataMessage =
@@ -195,12 +215,24 @@ export const groupConstraintLabel = 'Data access controls';
 export const groupConstraintMessage =
   'Data Access Controls add additional permission restrictions to a workspace. These were added when you imported data from a controlled access source. All workspace collaborators must also be current users on an approved Data Access Request (DAR).';
 
+export const phiTrackingLabel = 'PHI tracking';
+
+export const hasPhiTrackingPolicy = (workspace: BaseWorkspace): boolean => {
+  const dataTrackingPolicies = _.filter(
+    { namespace: policyNamespace, name: dataTrackingPolicyName },
+    workspace.policies
+  );
+  return _.any(
+    (policy) => _.any({ dataType: phiTrackingDataType.dataType }, policy.additionalData),
+    dataTrackingPolicies
+  );
+};
 export const hasRegionConstraintPolicy = (workspace: BaseWorkspace): boolean =>
   getRegionConstraintLabels(workspace.policies).length > 0;
 
 export const getRegionConstraintLabels = (policies: WorkspacePolicy[] | undefined): string[] => {
   const regionPolicies = _.filter(
-    (policy) => policy.namespace === 'terra' && policy.name === 'region-constraint',
+    (policy) => policy.namespace === policyNamespace && policy.name === 'region-constraint',
     policies
   );
   const regionLabels: string[] = [];

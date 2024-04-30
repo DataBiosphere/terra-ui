@@ -3,7 +3,8 @@ import _ from 'lodash/fp';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
 import { RequesterPaysErrorInfo } from 'src/libs/ajax/ajax-common';
-import { AzureWorkspace, GoogleWorkspace, WorkspacePolicy } from 'src/workspaces/utils';
+import { InitializedWorkspaceWrapper } from 'src/workspaces/common/state/useWorkspace';
+import { AzureWorkspace, GoogleWorkspace, phiTrackingPolicy, WorkspacePolicy } from 'src/workspaces/utils';
 
 export const defaultAzureWorkspace: AzureWorkspace = {
   workspace: {
@@ -37,9 +38,15 @@ export const protectedDataPolicy: WorkspacePolicy = {
   namespace: 'terra',
 };
 
-export const protectedAzureWorkspace: AzureWorkspace = _.merge(defaultAzureWorkspace, {
+export const protectedAzureWorkspace: AzureWorkspace = {
+  ...defaultAzureWorkspace,
   policies: [protectedDataPolicy],
-});
+};
+
+export const protectedPhiTrackingAzureWorkspace: AzureWorkspace = {
+  ...defaultAzureWorkspace,
+  policies: [protectedDataPolicy, phiTrackingPolicy],
+};
 
 export const groupConstraintPolicy: WorkspacePolicy = {
   namespace: 'terra',
@@ -63,9 +70,10 @@ export const regionConstraintPolicy: WorkspacePolicy = {
   namespace: 'terra',
 };
 
-export const regionRestrictedAzureWorkspace: AzureWorkspace = _.merge(defaultAzureWorkspace, {
+export const regionRestrictedAzureWorkspace: AzureWorkspace = {
+  ...defaultAzureWorkspace,
   policies: [regionConstraintPolicy],
-});
+};
 
 // These values are not populated by default, and for the majority of existing
 // Google workspaces will remain undefined.  This definition should only be
@@ -81,6 +89,7 @@ export const defaultGoogleWorkspace: GoogleWorkspace = {
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Gcp',
+    billingAccount: 'billingAccounts/123456-ABCDEF-ABCDEF',
     bucketName: 'test-bucket',
     googleProject: 'test-gcp-ws-project',
     name: 'test-gcp-ws-name',
@@ -94,6 +103,11 @@ export const defaultGoogleWorkspace: GoogleWorkspace = {
   canShare: true,
   canCompute: true,
   policies: [],
+};
+
+export const defaultInitializedGoogleWorkspace: InitializedWorkspaceWrapper = {
+  ...defaultGoogleWorkspace,
+  workspaceInitialized: true,
 };
 
 export const makeGoogleWorkspace = (workspace?: DeepPartial<GoogleWorkspace>): GoogleWorkspace => {

@@ -261,7 +261,7 @@ describe('WorkspaceContainer', () => {
     const mockUpdateWsListFn = asMockedFn(workspacesStore.update);
     mockUpdateWsFn.mockImplementation((updateFn) => {
       const updated = updateFn(workspace);
-      expect(updated.workspace.state).toBe('Deleted');
+      expect(updated!.workspace.state).toBe('Deleted');
     });
 
     mockUpdateWsListFn.mockImplementation((updateFn) => {
@@ -332,8 +332,8 @@ describe('WorkspaceContainer', () => {
     const mockUpdateWsListFn = asMockedFn(workspacesStore.update);
     mockUpdateWsFn.mockImplementation((updateFn) => {
       const updated = updateFn(workspace);
-      expect(updated.workspace.state).toBe('DeleteFailed');
-      expect(updated.workspace.errorMessage).toBe(errorMessage);
+      expect(updated!.workspace.state).toBe('DeleteFailed');
+      expect(updated!.workspace.errorMessage).toBe(errorMessage);
     });
 
     mockUpdateWsListFn.mockImplementation((updateFn) => {
