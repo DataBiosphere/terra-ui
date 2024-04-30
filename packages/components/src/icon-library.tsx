@@ -88,6 +88,7 @@ import { ReactComponent as menuIconFilled } from './icons/menu-icon-filled.svg';
 import { ReactComponent as minusCircleRed } from './icons/minus-circle-red.svg';
 import { ReactComponent as plusCircleFilled } from './icons/plus-circle-filled.svg';
 import { ReactComponent as renameIcon } from './icons/rename-icon.svg';
+import { ReactComponent as shieldCheckIcon } from './icons/shield-check-solid.svg';
 import { ReactComponent as squareLight } from './icons/square-light.svg';
 import { ReactComponent as syncAlt } from './icons/sync-alt-regular.svg';
 import { ReactComponent as talkBubble } from './icons/talk-bubble.svg';
@@ -184,6 +185,7 @@ const iconLibrary = {
   search: fa(faSearch),
   share: fa(faShareAlt),
   shield: fa(faShieldAlt),
+  shieldCheck: custom(shieldCheckIcon),
   squareLight: custom(squareLight),
   squareSolid: fa(faSquareSolid),
   star: fa(faStar),

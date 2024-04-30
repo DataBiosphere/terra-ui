@@ -21,7 +21,7 @@ import {
   WorkspaceAcl,
 } from 'src/workspaces/acl-utils';
 import { CurrentCollaborators } from 'src/workspaces/ShareWorkspaceModal/CurrentCollaborators';
-import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from 'src/workspaces/utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 
@@ -188,9 +188,8 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
       h(WorkspacePolicies, {
         workspace,
-        title: isAzureWorkspace(workspace) ? 'Policies' : undefined,
-        policiesLabel: isGoogleWorkspace(workspace) ? 'This workspace has the following:' : undefined,
-        style: { marginTop: '1.0rem', marginBottom: '1.5rem' },
+        policiesLabel: 'Policies on this workspace',
+        noCheckboxes: true,
       }),
       !loaded && centeredSpinner(),
       updateError && div({ style: { marginTop: '1rem' } }, [div(['An error occurred:']), updateError]),

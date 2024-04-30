@@ -9,14 +9,20 @@ import {
   getGoogleDataProcRuntime,
   getGoogleRuntime,
   getJupyterRuntimeConfig,
+  getPersistentDiskDetail,
   hailImage,
   imageDocs,
+  NormalizedImageType,
   testDefaultLocation,
 } from 'src/analysis/_testData/testData';
 import { GcpComputeImageSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection';
 import { GcpComputeModalBase } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/analysis/utils/cost-utils';
-import { defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize, defaultPersistentDiskType } from 'src/analysis/utils/disk-utils';
+import {
+  defaultDataprocMasterDiskSize,
+  defaultDataprocWorkerDiskSize,
+  defaultPersistentDiskType,
+} from 'src/analysis/utils/disk-utils';
 import { cloudServices } from 'src/analysis/utils/gce-machines';
 import {
   defaultDataprocMachineType,
@@ -28,7 +34,11 @@ import {
 } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, runtimeTools, terraSupportedRuntimeImageIds } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
+import { DisksContractV1, DisksDataClientContract, DiskWrapperContract } from 'src/libs/ajax/leonardo/Disks';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { cloudServiceTypes, NormalizedComputeRegion } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { RuntimeAjaxContractV1, RuntimesAjaxContract } from 'src/libs/ajax/leonardo/Runtimes';
 import { formatUSD } from 'src/libs/utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -72,31 +82,35 @@ const defaultModalProps = {
 const verifyDisabled = (item) => expect(item).toHaveAttribute('disabled');
 const verifyEnabled = (item) => expect(item).not.toHaveAttribute('disabled');
 
-const defaultAjaxImpl = {
+type AjaxContract = ReturnType<typeof Ajax>;
+const defaultAjaxImpl: AjaxContract = {
   Runtimes: {
-    runtime: () => ({
-      details: jest.fn(),
-    }),
-  },
-  Disks: {
-    disksV1: () => ({
-      disk: () => ({
+    runtime: () =>
+      ({
         details: jest.fn(),
-      }),
-    }),
-  },
+      } as Partial<RuntimeAjaxContractV1>),
+  } as Partial<RuntimesAjaxContract>,
+  Disks: {
+    disksV1: () =>
+      ({
+        disk: () =>
+          ({
+            details: jest.fn(),
+          } as Partial<DiskWrapperContract>),
+      } as Partial<DisksContractV1>),
+  } as Partial<DisksDataClientContract>,
   Metrics: {
-    captureEvent: () => jest.fn(),
-  },
-};
+    captureEvent: jest.fn(),
+  } as Partial<AjaxContract['Metrics']>,
+} as AjaxContract;
 
 describe('GcpComputeModal', () => {
   beforeAll(() => {});
 
   beforeEach(() => {
     // Arrange
-    GcpComputeImageSection.mockImplementation(() => {});
-    Ajax.mockImplementation(() => ({
+    asMockedFn(GcpComputeImageSection).mockImplementation(() => 'Mock GcpComputeImageSection');
+    asMockedFn(Ajax).mockImplementation(() => ({
       ...defaultAjaxImpl,
     }));
   });
@@ -107,13 +121,30 @@ describe('GcpComputeModal', () => {
 
   const getCreateButton = () => screen.getByText('Create');
 
-  const normalizeImage = ({ id, image, url, version, updated, packages, requiresSpark } = {}) => {
-    return { id, url: image ?? url, isTerraSupported: terraSupportedRuntimeImageIds.includes(id), version, updated, packages, requiresSpark };
+  const normalizeImage = ({
+    id,
+    image,
+    url,
+    version,
+    updated,
+    packages,
+    requiresSpark,
+  }: NormalizedImageType = defaultImage) => {
+    return {
+      id,
+      url: image ?? url,
+      isTerraSupported: terraSupportedRuntimeImageIds.includes(id),
+      version,
+      updated,
+      packages,
+      requiresSpark,
+    };
   };
   const selectRuntimeImage = (ImageSection, runtime, isCustom = false) => {
     const { onSelect: imageSectionOnSelect } = ImageSection.mock.lastCall[0];
     const { imageUrl } = _.find({ imageType: runtime.labels.tool }, runtime.runtimeImages);
-    const fullImage = imageDocs.find(({ image }) => image === imageUrl) ?? { image: imageUrl };
+    const fullImage = imageDocs.find(({ image }) => image === imageUrl);
+
     const normalizedImage = normalizeImage(fullImage);
     return imageSectionOnSelect(!isCustom && normalizedImage, isCustom);
   };
@@ -158,12 +189,12 @@ describe('GcpComputeModal', () => {
       create: createFunc,
       details: jest.fn(),
     }));
-    Ajax.mockImplementation(() => ({
+    asMockedFn(Ajax).mockReturnValue({
       ...defaultAjaxImpl,
       Runtimes: {
-        runtime: runtimeFunc,
-      },
-    }));
+        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+      } as Partial<RuntimesAjaxContract>,
+    } as AjaxContract);
 
     // Act
     await act(async () => {
@@ -194,12 +225,12 @@ describe('GcpComputeModal', () => {
       create: createFunc,
       details: jest.fn(),
     }));
-    Ajax.mockImplementation(() => ({
+    asMockedFn(Ajax).mockReturnValue({
       ...defaultAjaxImpl,
       Runtimes: {
-        runtime: runtimeFunc,
-      },
-    }));
+        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+      } as Partial<RuntimesAjaxContract>,
+    } as AjaxContract);
 
     // Act
     await act(async () => {
@@ -240,25 +271,27 @@ describe('GcpComputeModal', () => {
     const user = userEvent.setup();
 
     // put value into local var so its easier to refactor
-    const disk = defaultTestDisk;
+    const disk: PersistentDisk = defaultTestDisk;
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
       create: createFunc,
       details: jest.fn(),
     }));
-    Ajax.mockImplementation(() => ({
+    asMockedFn(Ajax).mockReturnValue({
       ...defaultAjaxImpl,
       Runtimes: {
-        runtime: runtimeFunc,
-      },
+        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+      } as Partial<RuntimesAjaxContract>,
       Disks: {
-        disksV1: () => ({
-          disk: () => ({
-            details: () => disk,
-          }),
-        }),
-      },
-    }));
+        disksV1: () =>
+          ({
+            disk: () =>
+              ({
+                details: () => Promise.resolve(disk),
+              } as Partial<DiskWrapperContract>),
+          } as Partial<DisksContractV1>),
+      } as Partial<AjaxContract['Disks']>,
+    } as AjaxContract);
 
     // Act
     await act(async () => {
@@ -290,26 +323,31 @@ describe('GcpComputeModal', () => {
       // Arrange
       const disk = getDisk();
       const machine = { name: 'n1-standard-4', cpu: 4, memory: 15 };
-      const runtimeProps = { tool: runtimeTool, runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, machineType: machine.name }) };
+      const runtimeProps = {
+        tool: runtimeTool,
+        runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, machineType: machine.name }),
+      };
       const runtime = getGoogleRuntime(runtimeProps);
 
       const runtimeFunc = jest.fn(() => ({
         create: jest.fn(),
         details: () => runtime,
       }));
-      Ajax.mockImplementation(() => ({
+      asMockedFn(Ajax).mockReturnValue({
         ...defaultAjaxImpl,
         Runtimes: {
-          runtime: runtimeFunc,
-        },
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
         Disks: {
-          disksV1: () => ({
-            disk: () => ({
-              details: () => disk,
-            }),
-          }),
-        },
-      }));
+          disksV1: () =>
+            ({
+              disk: () =>
+                ({
+                  details: () => Promise.resolve(disk),
+                } as Partial<DiskWrapperContract>),
+            } as Partial<DisksContractV1>),
+        } as Partial<AjaxContract['Disks']>,
+      } as AjaxContract);
 
       // Act
       await act(async () => {
@@ -354,19 +392,21 @@ describe('GcpComputeModal', () => {
       const runtimeFunc = jest.fn(() => ({
         details: () => runtime,
       }));
-      Ajax.mockImplementation(() => ({
+      asMockedFn(Ajax).mockReturnValue({
         ...defaultAjaxImpl,
         Runtimes: {
-          runtime: runtimeFunc,
-        },
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
         Disks: {
-          disksV1: () => ({
-            disk: () => ({
-              details: () => disk,
-            }),
-          }),
-        },
-      }));
+          disksV1: () =>
+            ({
+              disk: () =>
+                ({
+                  details: () => Promise.resolve(disk),
+                } as Partial<DiskWrapperContract>),
+            } as Partial<DisksContractV1>),
+        } as Partial<AjaxContract['Disks']>,
+      } as AjaxContract);
 
       // Act
       await act(async () => {
@@ -399,25 +439,27 @@ describe('GcpComputeModal', () => {
       const user = userEvent.setup();
 
       const disk = getDisk();
-      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
+      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
       const runtime = getGoogleRuntime(runtimeProps);
 
       const runtimeFunc = jest.fn(() => ({
         details: () => runtime,
       }));
-      Ajax.mockImplementation(() => ({
+      asMockedFn(Ajax).mockReturnValue({
         ...defaultAjaxImpl,
         Runtimes: {
-          runtime: runtimeFunc,
-        },
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
         Disks: {
-          disksV1: () => ({
-            disk: () => ({
-              details: () => disk,
-            }),
-          }),
-        },
-      }));
+          disksV1: () =>
+            ({
+              disk: () =>
+                ({
+                  details: () => Promise.resolve(disk),
+                } as Partial<DiskWrapperContract>),
+            } as Partial<DisksContractV1>),
+        } as Partial<AjaxContract['Disks']>,
+      } as AjaxContract);
 
       // Act
       await act(async () => {
@@ -436,7 +478,9 @@ describe('GcpComputeModal', () => {
 
       // Assert
       verifyEnabled(screen.getByText('Delete'));
-      const radio1 = screen.getByLabelText('Keep persistent disk, delete application configuration and compute profile');
+      const radio1 = screen.getByLabelText(
+        'Keep persistent disk, delete application configuration and compute profile'
+      );
       expect(radio1).toBeChecked();
       const radio2 = screen.getByLabelText('Delete everything, including persistent disk');
       expect(radio2).not.toBeChecked();
@@ -451,7 +495,7 @@ describe('GcpComputeModal', () => {
       const user = userEvent.setup();
 
       const disk = getDisk();
-      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
+      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
       const runtime = getGoogleRuntime(runtimeProps);
 
       const deleteFunc = jest.fn();
@@ -460,19 +504,21 @@ describe('GcpComputeModal', () => {
         details: () => runtime,
         delete: deleteFunc,
       }));
-      Ajax.mockImplementation(() => ({
+      asMockedFn(Ajax).mockReturnValue({
         ...defaultAjaxImpl,
         Runtimes: {
-          runtime: runtimeFunc,
-        },
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
         Disks: {
-          disksV1: () => ({
-            disk: () => ({
-              details: () => disk,
-            }),
-          }),
-        },
-      }));
+          disksV1: () =>
+            ({
+              disk: () =>
+                ({
+                  details: () => Promise.resolve(disk),
+                } as Partial<DiskWrapperContract>),
+            } as Partial<DisksContractV1>),
+        } as Partial<AjaxContract['Disks']>,
+      } as AjaxContract);
 
       // Act
       await act(async () => {
@@ -502,7 +548,7 @@ describe('GcpComputeModal', () => {
       const user = userEvent.setup();
 
       const disk = getDisk();
-      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
+      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
       const runtime = getGoogleRuntime(runtimeProps);
 
       const updateFunc = jest.fn();
@@ -511,19 +557,21 @@ describe('GcpComputeModal', () => {
         details: () => runtime,
         update: updateFunc,
       }));
-      Ajax.mockImplementation(() => ({
+      asMockedFn(Ajax).mockReturnValue({
         ...defaultAjaxImpl,
         Runtimes: {
-          runtime: runtimeFunc,
-        },
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
         Disks: {
-          disksV1: () => ({
-            disk: () => ({
-              details: () => disk,
-            }),
-          }),
-        },
-      }));
+          disksV1: () =>
+            ({
+              disk: () =>
+                ({
+                  details: () => Promise.resolve(disk),
+                } as Partial<DiskWrapperContract>),
+            } as Partial<DisksContractV1>),
+        } as Partial<AjaxContract['Disks']>,
+      } as AjaxContract);
 
       // Act
       await act(async () => {
@@ -570,8 +618,8 @@ describe('GcpComputeModal', () => {
     'Updating a runtime and changing a field that requires no downtime should call update for tool $tool.label',
     async ({ tool }) => {
       // Arrange
-      const disk = getDisk();
-      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
+      const disk = getPersistentDiskDetail();
+      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
       const runtime = getGoogleRuntime(runtimeProps);
 
       const updateRuntimeFunc = jest.fn();
@@ -581,20 +629,22 @@ describe('GcpComputeModal', () => {
         details: () => runtime,
         update: updateRuntimeFunc,
       }));
-      Ajax.mockImplementation(() => ({
+      asMockedFn(Ajax).mockReturnValue({
         ...defaultAjaxImpl,
         Runtimes: {
-          runtime: runtimeFunc,
-        },
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
         Disks: {
-          disksV1: () => ({
-            disk: () => ({
-              details: () => disk,
-              update: updateDiskFunc,
-            }),
-          }),
-        },
-      }));
+          disksV1: () =>
+            ({
+              disk: () =>
+                ({
+                  update: updateDiskFunc,
+                  details: () => Promise.resolve(disk),
+                } as Partial<DiskWrapperContract>),
+            } as Partial<DisksContractV1>),
+        } as Partial<AjaxContract['Disks']>,
+      } as AjaxContract);
 
       // Act
       await act(async () => {
@@ -631,31 +681,35 @@ describe('GcpComputeModal', () => {
   it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
     'Decreasing disk size should prompt user their disk will be deleted for $tool.label',
     async ({ tool }) => {
-      const disk = getDisk();
-      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
+      const disk = getPersistentDiskDetail();
+      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
       const runtime = getGoogleRuntime(runtimeProps);
 
       const createFunc = jest.fn();
       const deleteFunc = jest.fn();
+      const deleteDiskFunc = jest.fn();
 
       const runtimeFunc = jest.fn(() => ({
         details: () => runtime,
         create: createFunc,
         delete: deleteFunc,
       }));
-      Ajax.mockImplementation(() => ({
+      asMockedFn(Ajax).mockReturnValue({
         ...defaultAjaxImpl,
         Runtimes: {
-          runtime: runtimeFunc,
-        },
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
         Disks: {
-          disksV1: () => ({
-            disk: () => ({
-              details: () => disk,
-            }),
-          }),
-        },
-      }));
+          disksV1: () =>
+            ({
+              disk: () =>
+                ({
+                  delete: deleteDiskFunc,
+                  details: () => Promise.resolve(disk),
+                } as Partial<DiskWrapperContract>),
+            } as Partial<DisksContractV1>),
+        } as Partial<AjaxContract['Disks']>,
+      } as AjaxContract);
 
       // Act
       await act(async () => {
@@ -682,14 +736,181 @@ describe('GcpComputeModal', () => {
       const updateButton = await screen.findByText('Update');
       await userEvent.click(updateButton);
 
-      expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, runtime.runtimeName);
-      expect(deleteFunc).toHaveBeenCalled();
+      expect(runtimeFunc).toHaveBeenCalledWith(
+        defaultModalProps.workspace.workspace.googleProject,
+        runtime.runtimeName
+      );
+      // deleteDisk = true
+      expect(deleteFunc).toHaveBeenCalledWith(true);
       expect(createFunc).toHaveBeenCalledWith(
         expect.objectContaining({
           runtimeConfig: expect.objectContaining({
             persistentDisk: expect.objectContaining({
               size: disk.size - 1,
             }),
+          }),
+        })
+      );
+    }
+  );
+
+  it('Should call delete disk when clicked', async () => {
+    const disk = getPersistentDiskDetail();
+
+    const deleteDiskFunc = jest.fn();
+
+    const runtimeFunc = jest.fn(() => ({
+      details: () => {},
+    }));
+    asMockedFn(Ajax).mockReturnValue({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+      } as Partial<RuntimesAjaxContract>,
+      Disks: {
+        disksV1: () =>
+          ({
+            disk: () =>
+              ({
+                delete: deleteDiskFunc,
+                details: () => Promise.resolve(disk),
+              } as Partial<DiskWrapperContract>),
+          } as Partial<DisksContractV1>),
+      } as Partial<AjaxContract['Disks']>,
+    } as AjaxContract);
+
+    // Act
+    await act(async () => {
+      render(
+        h(GcpComputeModalBase, {
+          ...defaultModalProps,
+          currentDisk: disk,
+        })
+      );
+    });
+
+    const deleteButton = await screen.findByText('Delete Persistent Disk');
+    await userEvent.click(deleteButton);
+
+    await screen.findByText('Delete persistent disk');
+
+    const deleteConfirmationButton = await screen.findByText('Delete');
+    await userEvent.click(deleteConfirmationButton);
+
+    expect(deleteDiskFunc).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should call update disk when creating a runtime', async () => {
+    const disk = getPersistentDiskDetail();
+
+    const createFunc = jest.fn();
+    const updateDiskFunc = jest.fn();
+
+    const runtimeFunc = jest.fn(() => ({
+      details: () => {},
+      create: createFunc,
+    }));
+
+    asMockedFn(Ajax).mockReturnValue({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+      } as Partial<RuntimesAjaxContract>,
+      Disks: {
+        disksV1: () =>
+          ({
+            disk: () =>
+              ({
+                update: updateDiskFunc,
+                details: () => Promise.resolve(disk),
+              } as Partial<DiskWrapperContract>),
+          } as Partial<DisksContractV1>),
+      } as Partial<AjaxContract['Disks']>,
+    } as AjaxContract);
+
+    // Act
+    await act(async () => {
+      render(
+        h(GcpComputeModalBase, {
+          ...defaultModalProps,
+          currentDisk: disk,
+        })
+      );
+    });
+
+    const numberInput = await screen.getByDisplayValue(disk.size);
+    fireEvent.change(numberInput, { target: { value: disk.size + 1 } });
+
+    const createButton = await screen.findByText('Create');
+    await userEvent.click(createButton);
+
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.any(String));
+    expect(createFunc).toHaveBeenCalledTimes(1);
+    expect(updateDiskFunc).toHaveBeenCalledTimes(1);
+    expect(updateDiskFunc).toHaveBeenCalledWith(disk.size + 1);
+  });
+
+  it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
+    'Update a disk via runtime request when the user requests a larger disk and has a new runtime',
+    async ({ tool }) => {
+      const disk = getPersistentDiskDetail();
+      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
+      const runtime = getGoogleRuntime(runtimeProps);
+
+      const updateDiskFunc = jest.fn();
+      const updateRuntimeFunc = jest.fn();
+
+      const runtimeFunc = jest.fn(() => ({
+        details: () => runtime,
+        update: updateRuntimeFunc,
+      }));
+      asMockedFn(Ajax).mockReturnValue({
+        ...defaultAjaxImpl,
+        Runtimes: {
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
+        Disks: {
+          disksV1: () =>
+            ({
+              disk: () =>
+                ({
+                  update: updateDiskFunc,
+                  details: () => Promise.resolve(disk),
+                } as Partial<DiskWrapperContract>),
+            } as Partial<DisksContractV1>),
+        } as Partial<AjaxContract['Disks']>,
+      } as AjaxContract);
+
+      // Act
+      await act(async () => {
+        render(
+          h(GcpComputeModalBase, {
+            ...defaultModalProps,
+            currentDisk: disk,
+            currentRuntime: runtime,
+          })
+        );
+      });
+      await act(async () => {
+        selectRuntimeImage(GcpComputeImageSection, runtime);
+      });
+
+      const numberInput = await screen.getByDisplayValue(disk.size);
+      fireEvent.change(numberInput, { target: { value: disk.size + 1 } });
+
+      const updateButton = await screen.findByText('Update');
+      await userEvent.click(updateButton);
+
+      expect(updateDiskFunc).toHaveBeenCalledTimes(0);
+      expect(updateRuntimeFunc).toHaveBeenCalledTimes(1);
+      expect(runtimeFunc).toHaveBeenCalledWith(
+        defaultModalProps.workspace.workspace.googleProject,
+        runtime.runtimeName
+      );
+      expect(updateRuntimeFunc).toHaveBeenCalledWith(
+        expect.objectContaining({
+          runtimeConfig: expect.objectContaining({
+            diskSize: disk.size + 1,
           }),
         })
       );
@@ -705,17 +926,12 @@ describe('GcpComputeModal', () => {
       create: createFunc,
       details: jest.fn(),
     }));
-    Ajax.mockImplementation(() => ({
+    asMockedFn(Ajax).mockReturnValue({
       ...defaultAjaxImpl,
       Runtimes: {
-        runtime: runtimeFunc,
-      },
-      Disks: {
-        disk: () => ({
-          details: jest.fn(),
-        }),
-      },
-    }));
+        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+      } as Partial<RuntimesAjaxContract>,
+    } as AjaxContract);
 
     // Act
     await act(async () => {
@@ -759,17 +975,12 @@ describe('GcpComputeModal', () => {
       create: createFunc,
       details: jest.fn(),
     }));
-    Ajax.mockImplementation(() => ({
+    asMockedFn(Ajax).mockReturnValue({
       ...defaultAjaxImpl,
       Runtimes: {
-        runtime: runtimeFunc,
-      },
-      Disks: {
-        disk: () => ({
-          details: jest.fn(),
-        }),
-      },
-    }));
+        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+      } as Partial<RuntimesAjaxContract>,
+    } as AjaxContract);
 
     // Act
     await act(async () => {
@@ -809,8 +1020,8 @@ describe('GcpComputeModal', () => {
     const runtimeProps = {
       runtimeConfig: getJupyterRuntimeConfig({
         diskId: undefined,
-        tool: runtimeTools.Jupyter,
       }),
+      tool: runtimeToolLabels.Jupyter,
     };
     const runtime = getGoogleDataProcRuntime(runtimeProps);
 
@@ -820,19 +1031,12 @@ describe('GcpComputeModal', () => {
       details: () => runtime,
       delete: deleteFunc,
     }));
-    Ajax.mockImplementation(() => ({
+    asMockedFn(Ajax).mockReturnValue({
       ...defaultAjaxImpl,
       Runtimes: {
-        runtime: runtimeFunc,
-      },
-      Disks: {
-        disksV1: () => ({
-          disk: () => ({
-            details: () => undefined,
-          }),
-        }),
-      },
-    }));
+        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+      } as Partial<RuntimesAjaxContract>,
+    } as AjaxContract);
 
     // Act
     await act(async () => {
@@ -868,10 +1072,12 @@ describe('GcpComputeModal', () => {
         workerDiskSize: 150,
         numberOfWorkerLocalSSDs: 0,
         numberOfPreemptibleWorkers: 0,
-        cloudService: 'DATAPROC',
+        cloudService: cloudServiceTypes.DATAPROC,
         region: 'us-central1',
         componentGatewayEnabled: true,
         workerPrivateAccess: false,
+        autopauseThreshold: 30,
+        normalizedRegion: 'us-central1' as NormalizedComputeRegion,
       },
     };
     const runtime = getGoogleRuntime(runtimeProps);
@@ -880,17 +1086,12 @@ describe('GcpComputeModal', () => {
       create: jest.fn(),
       details: () => runtime,
     }));
-    Ajax.mockImplementation(() => ({
+    asMockedFn(Ajax).mockReturnValue({
       ...defaultAjaxImpl,
       Runtimes: {
-        runtime: runtimeFunc,
-      },
-      Disks: {
-        disk: () => ({
-          details: jest.fn(),
-        }),
-      },
-    }));
+        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+      } as Partial<RuntimesAjaxContract>,
+    } as AjaxContract);
 
     // Act
     await act(async () => {
@@ -916,8 +1117,8 @@ describe('GcpComputeModal', () => {
 
     const inputs = screen.getAllByLabelText('Disk size (GB)');
     expect(inputs.length).toBe(2);
-    expect(inputs[1]).toHaveDisplayValue(150);
-    expect(inputs[0]).toHaveDisplayValue(151);
+    expect(inputs[1]).toHaveValue(150);
+    expect(inputs[0]).toHaveValue(151);
 
     screen.getByText(machine2.cpu);
     screen.getByText(machine2.memory);
@@ -936,17 +1137,12 @@ describe('GcpComputeModal', () => {
       create: createFunc,
       details: jest.fn(),
     }));
-    Ajax.mockImplementation(() => ({
+    asMockedFn(Ajax).mockReturnValue({
       ...defaultAjaxImpl,
       Runtimes: {
-        runtime: runtimeFunc,
-      },
-      Disks: {
-        disk: () => ({
-          details: jest.fn(),
-        }),
-      },
-    }));
+        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+      } as Partial<RuntimesAjaxContract>,
+    } as AjaxContract);
 
     // Act
     await act(async () => {
@@ -993,24 +1189,28 @@ describe('GcpComputeModal', () => {
 
       const createFunc = jest.fn();
       const disk = getDisk();
-      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
+      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
       const runtime = getGoogleRuntime(runtimeProps);
 
       const runtimeFunc = jest.fn(() => ({
         details: () => runtime,
         create: createFunc,
       }));
-      Ajax.mockImplementation(() => ({
+      asMockedFn(Ajax).mockReturnValue({
         ...defaultAjaxImpl,
         Runtimes: {
-          runtime: runtimeFunc,
-        },
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
         Disks: {
-          disk: () => ({
-            details: () => disk,
-          }),
-        },
-      }));
+          disksV1: () =>
+            ({
+              disk: () =>
+                ({
+                  details: () => Promise.resolve(disk),
+                } as Partial<DiskWrapperContract>),
+            } as Partial<DisksContractV1>),
+        } as Partial<AjaxContract['Disks']>,
+      } as AjaxContract);
 
       // Act and assert
       await act(async () => {
@@ -1041,24 +1241,28 @@ describe('GcpComputeModal', () => {
 
       const createFunc = jest.fn();
       const disk = getDisk();
-      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
+      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
       const runtime = getGoogleRuntime(runtimeProps);
 
       const runtimeFunc = jest.fn(() => ({
         details: () => runtime,
         create: createFunc,
       }));
-      Ajax.mockImplementation(() => ({
+      asMockedFn(Ajax).mockReturnValue({
         ...defaultAjaxImpl,
         Runtimes: {
-          runtime: runtimeFunc,
-        },
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
         Disks: {
-          disk: () => ({
-            details: () => disk,
-          }),
-        },
-      }));
+          disksV1: () =>
+            ({
+              disk: () =>
+                ({
+                  details: () => Promise.resolve(disk),
+                } as Partial<DiskWrapperContract>),
+            } as Partial<DisksContractV1>),
+        } as Partial<AjaxContract['Disks']>,
+      } as AjaxContract);
 
       // Act and assert
       await act(async () => {
@@ -1113,7 +1317,7 @@ describe('GcpComputeModal', () => {
       // arrange
       const user = userEvent.setup();
 
-      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ tool }) };
+      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig(), tool };
       const runtime = getGoogleRuntime(runtimeProps);
 
       // Act
@@ -1156,66 +1360,69 @@ describe('GcpComputeModal', () => {
   });
 
   // GPUs should function properly
-  it.each([{ tool: runtimeTools.Jupyter.label }, { tool: runtimeTools.RStudio.label }])('creates a runtime with GPUs for $tool', async ({ tool }) => {
-    // Arrange
-    const user = userEvent.setup();
+  it.each([{ tool: runtimeTools.Jupyter.label }, { tool: runtimeTools.RStudio.label }])(
+    'creates a runtime with GPUs for $tool',
+    async ({ tool }) => {
+      // Arrange
+      const user = userEvent.setup();
 
-    const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn(),
-    }));
-    Ajax.mockImplementation(() => ({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc,
-      },
-    }));
+      const createFunc = jest.fn();
+      const runtimeFunc = jest.fn(() => ({
+        create: createFunc,
+        details: jest.fn(),
+      }));
+      asMockedFn(Ajax).mockReturnValue({
+        ...defaultAjaxImpl,
+        Runtimes: {
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
+      } as AjaxContract);
 
-    // Act
-    await act(async () => {
-      render(
-        h(GcpComputeModalBase, {
-          ...defaultModalProps,
-          tool,
+      // Act
+      await act(async () => {
+        render(
+          h(GcpComputeModalBase, {
+            ...defaultModalProps,
+            tool,
+          })
+        );
+      });
+      await act(async () => {
+        selectImage(GcpComputeImageSection, undefined);
+      });
+
+      const enableGPU = await screen.getByText('Enable GPUs');
+      await user.click(enableGPU);
+
+      // Assert
+      screen.getByText('GPU type');
+      screen.getByText('GPUs');
+
+      // Act
+      const create = screen.getByText('Create');
+      await user.click(create);
+
+      // Assert
+      expect(createFunc).toHaveBeenCalledWith(
+        expect.objectContaining({
+          runtimeConfig: expect.objectContaining({
+            gpuConfig: { gpuType: defaultGpuType, numOfGpus: defaultNumGpus },
+          }),
         })
       );
-    });
-    await act(async () => {
-      selectImage(GcpComputeImageSection, undefined);
-    });
-
-    const enableGPU = await screen.getByText('Enable GPUs');
-    await user.click(enableGPU);
-
-    // Assert
-    screen.getByText('GPU type');
-    screen.getByText('GPUs');
-
-    // Act
-    const create = screen.getByText('Create');
-    await user.click(create);
-
-    // Assert
-    expect(createFunc).toHaveBeenCalledWith(
-      expect.objectContaining({
-        runtimeConfig: expect.objectContaining({
-          gpuConfig: { gpuType: defaultGpuType, numOfGpus: defaultNumGpus },
-        }),
-      })
-    );
-  });
+    }
+  );
 
   // click learn more about persistent disk
   it.each([
-    { tool: runtimeTools.Jupyter.label, expectedLabel: '/home/jupyter' },
-    { tool: runtimeTools.RStudio.label, expectedLabel: '/home/rstudio' },
+    { tool: runtimeTools.Jupyter, expectedLabel: '/home/jupyter' },
+    { tool: runtimeTools.RStudio, expectedLabel: '/home/rstudio' },
   ])('should render learn more about persistent disks', async ({ tool, expectedLabel }) => {
     // Arrange
     const user = userEvent.setup();
 
     const disk = getDisk();
-    const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
+    const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
     const runtime = getGoogleRuntime(runtimeProps);
     // Act
     // HACK: await not necessary here
@@ -1247,12 +1454,12 @@ describe('GcpComputeModal', () => {
       create: createFunc,
       details: jest.fn(),
     }));
-    Ajax.mockImplementation(() => ({
+    asMockedFn(Ajax).mockReturnValue({
       ...defaultAjaxImpl,
       Runtimes: {
-        runtime: runtimeFunc,
-      },
-    }));
+        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+      } as Partial<RuntimesAjaxContract>,
+    } as AjaxContract);
     render(h(GcpComputeModalBase, defaultModalProps));
 
     // Act
@@ -1264,7 +1471,7 @@ describe('GcpComputeModal', () => {
     });
 
     await screen.findByText('Creation Timeout Limit');
-    const timeoutInput = screen.getByLabelText('Creation Timeout Limit');
+    const timeoutInput = screen.getByLabelText('Creation Timeout Limit') as HTMLInputElement;
     await user.type(timeoutInput, '20');
 
     // Assert
@@ -1288,12 +1495,12 @@ describe('GcpComputeModal', () => {
         create: createFunc,
         details: jest.fn(),
       }));
-      Ajax.mockImplementation(() => ({
+      asMockedFn(Ajax).mockReturnValue({
         ...defaultAjaxImpl,
         Runtimes: {
-          runtime: runtimeFunc,
-        },
-      }));
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
+      } as AjaxContract);
 
       // Act
       await act(async () => {
@@ -1343,12 +1550,13 @@ describe('GcpComputeModal', () => {
         create: createFunc,
         details: jest.fn(),
       }));
-      Ajax.mockImplementation(() => ({
+
+      asMockedFn(Ajax).mockReturnValue({
         ...defaultAjaxImpl,
         Runtimes: {
-          runtime: runtimeFunc,
-        },
-      }));
+          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
+        } as Partial<RuntimesAjaxContract>,
+      } as AjaxContract);
 
       // Act
       await act(async () => {
