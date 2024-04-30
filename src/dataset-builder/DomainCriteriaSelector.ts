@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { Parent } from 'src/components/TreeGrid';
-import { DomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
+import { ProgramDomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
@@ -30,7 +30,7 @@ interface DomainCriteriaSelectorProps {
 
 export const toCriteria =
   (domainOption: SnapshotBuilderDomainOption, getNextCriteriaIndex: () => number) =>
-  (concept: Concept): DomainCriteria => {
+  (concept: Concept): ProgramDomainCriteria => {
     return {
       kind: 'domain',
       conceptId: concept.id,

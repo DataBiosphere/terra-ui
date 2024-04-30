@@ -28,15 +28,15 @@ export interface Criteria {
 }
 
 /** Below are the UI types */
-export interface DomainCriteria extends Criteria {
+export interface DomainConceptSet extends SnapshotBuilderDatasetConceptSet {
+  concept: SnapshotBuilderConcept;
+}
+
+export interface ProgramDomainCriteria extends Criteria {
   kind: 'domain';
   conceptId: number;
   conceptName: string;
   option: DomainOption;
-}
-
-export interface DomainConceptSet extends SnapshotBuilderDatasetConceptSet {
-  concept: SnapshotBuilderConcept;
 }
 export interface ProgramDataRangeCriteria extends Criteria {
   kind: 'range';
@@ -58,7 +58,7 @@ export interface DomainOption extends SnapshotBuilderOption {
   participantCount?: number;
 }
 
-export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
+export type AnyCriteria = ProgramDomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
 export type PrepackagedConceptSet = SnapshotBuilderDatasetConceptSet;
 

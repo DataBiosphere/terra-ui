@@ -9,12 +9,12 @@ import {
   CriteriaGroup,
   DatasetAccessRequest,
   DomainConceptSet,
-  DomainCriteria,
   DomainOption,
   formatCount,
   HighlightConceptName,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
+  ProgramDomainCriteria,
   ValueSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
@@ -51,7 +51,7 @@ const domainOption: DomainOption = {
   root: concept,
 };
 
-const domainCriteria: DomainCriteria = {
+const domainCriteria: ProgramDomainCriteria = {
   conceptId: 100,
   conceptName: 'conceptName',
   kind: 'domain',
