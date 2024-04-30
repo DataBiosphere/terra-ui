@@ -265,7 +265,7 @@ describe('DatasetBuilder', () => {
     const mockDataRepoContract: Partial<DataRepoContract> = {
       dataset: (_datasetId) =>
         ({
-          getCounts: () => Promise.resolve({ result: { total: 100 }, sql: '' }),
+          getSnapshotBuilderCount: () => Promise.resolve({ result: { total: 100 }, sql: '' }),
         } as Partial<DataRepoContract['dataset']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
@@ -281,7 +281,7 @@ describe('DatasetBuilder', () => {
     const mockDataRepoContract: Partial<DataRepoContract> = {
       dataset: (_datasetId) =>
         ({
-          getCounts: () => Promise.resolve({ result: { total: 19 }, sql: '' }),
+          getSnapshotBuilderCount: () => Promise.resolve({ result: { total: 19 }, sql: '' }),
         } as Partial<DataRepoContract['dataset']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
