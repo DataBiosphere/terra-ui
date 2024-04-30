@@ -2,13 +2,13 @@ import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
-  SnapshotBuilderCohort as CohortApi,
+  DatasetParticipantCountRequest,
+  SnapshotBuilderCohort,
   SnapshotBuilderConcept,
-  SnapshotBuilderCriteria as AnyCriteriaApi,
+  SnapshotBuilderCriteria,
   SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderDomainCriteria,
   SnapshotBuilderFeatureValueGroup,
-  SnapshotBuilderFeatureValueGroup as ValueSetApi,
   SnapshotBuilderOption,
   SnapshotBuilderOptionTypeNames,
   SnapshotBuilderProgramDataListCriteria,
@@ -51,13 +51,6 @@ export interface ProgramDataListCriteria extends Criteria {
   values: SnapshotBuilderProgramDataListItem[];
 }
 
-export interface DomainOption extends SnapshotBuilderOption {
-  kind: 'domain';
-  root: SnapshotBuilderConcept;
-  conceptCount?: number;
-  participantCount?: number;
-}
-
 export type AnyCriteria = ProgramDomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
 export type PrepackagedConceptSet = SnapshotBuilderDatasetConceptSet;
@@ -97,6 +90,13 @@ export type DatasetAccessRequest = {
   datasetRequest: DatasetRequest;
 };
 
+export interface DomainOption extends SnapshotBuilderOption {
+  kind: 'domain';
+  root: SnapshotBuilderConcept;
+  conceptCount?: number;
+  participantCount?: number;
+}
+
 export type BuilderSettings = {
   domainOptions: DomainOption[];
   programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
@@ -113,14 +113,14 @@ export type DatasetModel = {
   snapshotBuilderSettings?: BuilderSettings;
 };
 
-export const convertValueSet = (valueSet: ValueSet): ValueSetApi => {
+export const convertValueSet = (valueSet: ValueSet): SnapshotBuilderFeatureValueGroup => {
   return {
     name: valueSet.domain,
     values: _.map('name', valueSet.values),
   };
 };
 
-export const convertCohort = (cohort: Cohort): CohortApi => {
+export const convertCohort = (cohort: Cohort): SnapshotBuilderCohort => {
   return {
     name: cohort.name,
     criteriaGroups: _.map(
@@ -135,7 +135,7 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
   };
 };
 
-export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
+export const convertCriteria = (criteria: AnyCriteria): SnapshotBuilderCriteria => {
   const { kind, id } = criteria.option;
   const mergeObject = { kind, id };
   switch (criteria.kind) {
@@ -165,10 +165,6 @@ export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessR
       valueSets: _.map(convertValueSet, datasetAccessRequest.datasetRequest.valueSets),
     },
   };
-};
-
-export type DatasetParticipantCountRequest = {
-  cohorts: Cohort[];
 };
 
 export const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {

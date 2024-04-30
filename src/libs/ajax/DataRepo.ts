@@ -1,10 +1,10 @@
 import * as _ from 'lodash/fp';
 import {
+  Cohort,
   convertDatasetAccessRequest,
   convertDatasetParticipantCountRequest,
-  DatasetAccessRequest as DatasetAccessRequestUI,
+  DatasetAccessRequest,
   DatasetBuilderType,
-  DatasetParticipantCountRequest,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
@@ -208,11 +208,15 @@ export type SnapshotBuilderCountResponse = {
   sql: string;
 };
 
+export type DatasetParticipantCountRequest = {
+  cohorts: Cohort[];
+};
+
 export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
-    createSnapshotRequest(request: DatasetAccessRequestUI): Promise<SnapshotAccessRequestResponse>;
+    createSnapshotRequest(request: DatasetAccessRequest): Promise<SnapshotAccessRequestResponse>;
     getSnapshotBuilderCount(request: DatasetParticipantCountRequest): Promise<SnapshotBuilderCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse>;
     getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptHierarchyResponse>;
