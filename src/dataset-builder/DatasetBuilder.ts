@@ -15,7 +15,6 @@ import {
   Cohort,
   convertDatasetAccessRequest,
   convertDatasetParticipantCountRequest,
-  DatasetBuilderType,
   DatasetBuilderValue,
   DomainConceptSet,
   formatCount,
@@ -24,6 +23,7 @@ import {
 import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
   DataRepo,
+  DatasetBuilderType,
   datasetIncludeTypes,
   DatasetModel,
   SnapshotBuilderCountResponse,

@@ -3,6 +3,7 @@ import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
   AnyCriteria as AnyCriteriaApi,
+  DatasetBuilderType,
   SnapshotAccessRequest as SnapshotAccessRequestApi,
   SnapshotBuilderCohort,
   SnapshotBuilderConcept,
@@ -68,10 +69,6 @@ export interface Cohort extends DatasetBuilderType {
   criteriaGroups: CriteriaGroup[];
 }
 
-export interface DatasetBuilderType {
-  name: string;
-}
-
 export type DatasetBuilderValue = DatasetBuilderType;
 
 export type ValueSet = {
@@ -89,6 +86,10 @@ export type SnapshotAccessRequest = {
   name: string;
   researchPurposeStatement: string;
   datasetRequest: DatasetRequest;
+};
+
+export type SnapshotBuilderCountRequest = {
+  cohorts: Cohort[];
 };
 
 export interface DomainOption extends SnapshotBuilderOption {
@@ -168,9 +169,6 @@ export const convertDatasetAccessRequest = (datasetAccessRequest: SnapshotAccess
   };
 };
 
-export type SnapshotBuilderCountRequest = {
-  cohorts: Cohort[];
-};
 export const convertDatasetParticipantCountRequest = (
   request: SnapshotBuilderCountRequest
 ): SnapshotBuilderCountRequestApi => {

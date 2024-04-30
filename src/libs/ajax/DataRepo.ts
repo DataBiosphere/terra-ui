@@ -12,8 +12,9 @@ export type SnapshotBuilderConcept = {
   hasChildren: boolean;
 };
 
-export type SnapshotBuilderOptionTypeNames = 'list' | 'range' | 'domain';
+/** Program Data Option Types */
 
+export type SnapshotBuilderOptionTypeNames = 'list' | 'range' | 'domain';
 export interface SnapshotBuilderOption {
   kind: SnapshotBuilderOptionTypeNames;
   name: string;
@@ -41,13 +42,12 @@ export interface SnapshotBuilderProgramDataRangeOption extends SnapshotBuilderPr
   min: number;
   max: number;
 }
-
 export interface SnapshotBuilderDomainOption extends SnapshotBuilderOption {
   kind: 'domain';
   root: SnapshotBuilderConcept;
 }
 
-interface DatasetBuilderType {
+export interface DatasetBuilderType {
   name: string;
 }
 
@@ -62,6 +62,7 @@ export type SnapshotBuilderSettings = {
   datasetConceptSets?: SnapshotBuilderDatasetConceptSet[];
 };
 
+/** Criteria */
 export interface SnapshotBuilderCriteria {
   // This is the ID for either the domain or the program data option
   id: number;
@@ -111,12 +112,20 @@ export type SnapshotBuilderRequest = {
   valueSets: SnapshotBuilderFeatureValueGroup[];
 };
 
-export type SnapshotAccessRequest = {
+interface SnapshotDataset {
+  id: string;
   name: string;
-  researchPurposeStatement: string;
-  datasetRequest: SnapshotBuilderRequest;
-};
+  secureMonitoringEnabled: boolean;
+}
 
+export interface Snapshot {
+  id: string;
+  name: string;
+  source: { dataset: SnapshotDataset }[];
+  cloudPlatform: 'azure' | 'gcp';
+}
+
+/** Dataset Types */
 export type DatasetModel = {
   id: string;
   name: string;
@@ -147,19 +156,7 @@ export const datasetIncludeTypes: Record<DatasetInclude, DatasetInclude> = {
   SNAPSHOT_BUILDER_SETTINGS: 'SNAPSHOT_BUILDER_SETTINGS',
 };
 
-interface SnapshotDataset {
-  id: string;
-  name: string;
-  secureMonitoringEnabled: boolean;
-}
-
-export interface Snapshot {
-  id: string;
-  name: string;
-  source: { dataset: SnapshotDataset }[];
-  cloudPlatform: 'azure' | 'gcp';
-}
-
+/** Jobs */
 export type JobStatus = 'running' | 'succeeded' | 'failed';
 
 export const jobStatusTypes: Record<JobStatus, JobStatus> = {
@@ -178,14 +175,17 @@ export interface JobModel {
   class_name?: string;
 }
 
+/** Response */
 export interface SnapshotBuilderGetConceptsResponse {
   result: SnapshotBuilderConcept[];
 }
-
 export interface SnapshotBuilderGetConceptHierarchyResponse {
   result: SnapshotBuilderParentConcept[];
 }
-
+export interface SnapshotBuilderParentConcept {
+  parentId: number;
+  children: SnapshotBuilderConcept[];
+}
 export interface SnapshotAccessRequestResponse {
   id: string; // uuid
   datasetId: string; // uuid
@@ -197,11 +197,6 @@ export interface SnapshotAccessRequestResponse {
   status: JobStatus;
 }
 
-export interface SnapshotBuilderParentConcept {
-  parentId: number;
-  children: SnapshotBuilderConcept[];
-}
-
 export type SnapshotBuilderCountResponse = {
   result: {
     total: number;
@@ -209,8 +204,15 @@ export type SnapshotBuilderCountResponse = {
   sql: string;
 };
 
+/** Requests */
 export type SnapshotBuilderCountRequest = {
   cohorts: SnapshotBuilderCohort[];
+};
+
+export type SnapshotAccessRequest = {
+  name: string;
+  researchPurposeStatement: string;
+  datasetRequest: SnapshotBuilderRequest;
 };
 
 export interface DataRepoContract {
