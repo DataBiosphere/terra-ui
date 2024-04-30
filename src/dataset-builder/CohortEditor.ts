@@ -10,6 +10,7 @@ import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import {
   AnyCriteria,
   Cohort,
+  convertDatasetParticipantCountRequest,
   CriteriaGroup,
   formatCount,
   ProgramDataListCriteria,
@@ -62,15 +63,17 @@ export const CriteriaView = (props: CriteriaViewProps) => {
         async () =>
           await DataRepo()
             .dataset(datasetId)
-            .getSnapshotBuilderCount({
-              cohorts: [
-                {
-                  // Create a "cohort" to get the count of participants for this criteria on its own.
-                  criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }],
-                  name: '',
-                },
-              ],
-            })
+            .getSnapshotBuilderCount(
+              convertDatasetParticipantCountRequest({
+                cohorts: [
+                  {
+                    // Create a "cohort" to get the count of participants for this criteria on its own.
+                    criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }],
+                    name: '',
+                  },
+                ],
+              })
+            )
       );
     })
   );

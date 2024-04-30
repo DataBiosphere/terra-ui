@@ -2,9 +2,11 @@ import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
+  AnyCriteria as AnyCriteriaApi,
+  SnapshotAccessRequest as SnapshotAccessRequestApi,
   SnapshotBuilderCohort,
   SnapshotBuilderConcept,
-  SnapshotBuilderCriteria,
+  SnapshotBuilderCountRequest as SnapshotBuilderCountRequestApi,
   SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderDomainCriteria,
   SnapshotBuilderFeatureValueGroup,
@@ -83,7 +85,7 @@ export type DatasetRequest = {
   valueSets: ValueSet[];
 };
 
-export type DatasetAccessRequest = {
+export type SnapshotAccessRequest = {
   name: string;
   researchPurposeStatement: string;
   datasetRequest: DatasetRequest;
@@ -134,7 +136,7 @@ export const convertCohort = (cohort: Cohort): SnapshotBuilderCohort => {
   };
 };
 
-export const convertCriteria = (criteria: AnyCriteria): SnapshotBuilderCriteria => {
+export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
   const { kind, id } = criteria.option;
   const mergeObject = { kind, id };
   switch (criteria.kind) {
@@ -154,7 +156,7 @@ export const convertCriteria = (criteria: AnyCriteria): SnapshotBuilderCriteria 
   }
 };
 
-export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessRequest) => {
+export const convertDatasetAccessRequest = (datasetAccessRequest: SnapshotAccessRequest): SnapshotAccessRequestApi => {
   return {
     name: datasetAccessRequest.name,
     researchPurposeStatement: datasetAccessRequest.researchPurposeStatement,
@@ -166,10 +168,12 @@ export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessR
   };
 };
 
-export type DatasetParticipantCountRequest = {
+export type SnapshotBuilderCountRequest = {
   cohorts: Cohort[];
 };
-export const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
+export const convertDatasetParticipantCountRequest = (
+  request: SnapshotBuilderCountRequest
+): SnapshotBuilderCountRequestApi => {
   return { cohorts: _.map(convertCohort, request.cohorts) };
 };
 

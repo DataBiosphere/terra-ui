@@ -7,7 +7,6 @@ import {
   convertDatasetAccessRequest,
   convertValueSet,
   CriteriaGroup,
-  DatasetAccessRequest,
   DomainConceptSet,
   DomainOption,
   formatCount,
@@ -15,13 +14,14 @@ import {
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
   ProgramDomainCriteria,
+  SnapshotAccessRequest,
   ValueSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
+  AnyCriteria as AnyCriteriaApi,
   SnapshotAccessRequest as SnapshotAccessRequestApi,
   SnapshotBuilderCohort,
   SnapshotBuilderConcept,
-  SnapshotBuilderCriteria,
   SnapshotBuilderCriteriaGroup,
   SnapshotBuilderDomainCriteria as DomainCriteriaApi,
   SnapshotBuilderFeatureValueGroup as ValueSetApi,
@@ -125,7 +125,7 @@ const listCriteriaApi: SnapshotBuilderProgramDataListCriteria = {
 
 const anyCriteriaArray: AnyCriteria[] = [domainCriteria, rangeCriteria, listCriteria];
 
-const anyCriteriaArrayApi: SnapshotBuilderCriteria[] = [domainCriteriaApi, rangeCriteriaApi, listCriteriaApi];
+const anyCriteriaArrayApi: AnyCriteriaApi[] = [domainCriteriaApi, rangeCriteriaApi, listCriteriaApi];
 
 const criteriaGroup: CriteriaGroup = {
   name: 'criteriaGroup',
@@ -155,7 +155,7 @@ const conceptSet: DomainConceptSet = {
   featureValueGroupName: 'featureValueGroupName',
 };
 
-const datasetAccessRequest: DatasetAccessRequest = {
+const datasetAccessRequest: SnapshotAccessRequest = {
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
   datasetRequest: { cohorts: [cohort], conceptSets: [conceptSet], valueSets: [valueSet] },

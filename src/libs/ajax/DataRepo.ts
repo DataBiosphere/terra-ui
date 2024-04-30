@@ -1,12 +1,5 @@
 import * as _ from 'lodash/fp';
-import {
-  convertDatasetAccessRequest,
-  convertDatasetParticipantCountRequest,
-  DatasetAccessRequest,
-  DatasetParticipantCountRequest,
-} from 'src/dataset-builder/DatasetBuilderUtils';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
-import { v4 as uuid } from 'uuid';
 
 /** API types represent the data of UI types in the format expected by the backend.
  * They are generally subsets or mappings of the UI types. */
@@ -92,9 +85,13 @@ export interface SnapshotBuilderProgramDataListCriteria extends SnapshotBuilderC
   values: number[];
 }
 
+export type AnyCriteria =
+  | SnapshotBuilderDomainCriteria
+  | SnapshotBuilderProgramDataRangeCriteria
+  | SnapshotBuilderProgramDataListCriteria;
 export interface SnapshotBuilderCriteriaGroup {
   name: string;
-  criteria: SnapshotBuilderCriteria[];
+  criteria: AnyCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
 }
@@ -190,12 +187,12 @@ export interface SnapshotBuilderGetConceptHierarchyResponse {
 }
 
 export interface SnapshotAccessRequestResponse {
-  id: uuid;
-  datasetId: uuid;
-  snapshotId: uuid;
+  id: string; // uuid
+  datasetId: string; // uuid
+  snapshotId: string; // uuid
   snapshotName: string;
   snapshotResearchPurpose: string;
-  snapshotSpecification: SnapshotAccessRequest; // SnapshotBuilderRequest in DataRepo
+  snapshotSpecification: SnapshotAccessRequest;
   createdBy: string;
   status: JobStatus;
 }
@@ -212,12 +209,16 @@ export type SnapshotBuilderCountResponse = {
   sql: string;
 };
 
+export type SnapshotBuilderCountRequest = {
+  cohorts: SnapshotBuilderCohort[];
+};
+
 export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
-    createSnapshotRequest(request: DatasetAccessRequest): Promise<SnapshotAccessRequestResponse>;
-    getSnapshotBuilderCount(request: DatasetParticipantCountRequest): Promise<SnapshotBuilderCountResponse>;
+    createSnapshotRequest(request: SnapshotAccessRequest): Promise<SnapshotAccessRequestResponse>;
+    getSnapshotBuilderCount(request: SnapshotBuilderCountRequest): Promise<SnapshotBuilderCountResponse>;
     getConcepts(parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse>;
     getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptHierarchyResponse>;
     searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SnapshotBuilderGetConceptsResponse>;
@@ -252,17 +253,9 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
         callDataRepo(`repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`, signal),
       roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
       createSnapshotRequest: async (request): Promise<SnapshotAccessRequestResponse> =>
-        callDataRepoPost(
-          `repository/v1/datasets/${datasetId}/snapshotRequests`,
-          signal,
-          convertDatasetAccessRequest(request)
-        ),
+        callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotRequests`, signal, request),
       getSnapshotBuilderCount: async (request): Promise<SnapshotBuilderCountResponse> =>
-        callDataRepoPost(
-          `repository/v1/datasets/${datasetId}/snapshotBuilder/count`,
-          signal,
-          convertDatasetParticipantCountRequest(request)
-        ),
+        callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotBuilder/count`, signal, request),
       getConcepts: async (parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse> =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
       searchConcepts: async (

@@ -13,6 +13,8 @@ import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   Cohort,
+  convertDatasetAccessRequest,
+  convertDatasetParticipantCountRequest,
   DatasetBuilderType,
   DatasetBuilderValue,
   DomainConceptSet,
@@ -481,15 +483,20 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
           onClick: async () => {
             await DataRepo()
               .dataset(datasetId)
-              .createSnapshotRequest({
-                name,
-                researchPurposeStatement,
-                datasetRequest: {
-                  cohorts,
-                  conceptSets,
-                  valueSets: _.map((valuesSet) => ({ domain: valuesSet.header, values: valuesSet.values }), valuesSets),
-                },
-              });
+              .createSnapshotRequest(
+                convertDatasetAccessRequest({
+                  name,
+                  researchPurposeStatement,
+                  datasetRequest: {
+                    cohorts,
+                    conceptSets,
+                    valueSets: _.map(
+                      (valuesSet) => ({ domain: valuesSet.header, values: valuesSet.values }),
+                      valuesSets
+                    ),
+                  },
+                })
+              );
             onDismiss();
           },
         },
@@ -565,9 +572,9 @@ export const DatasetBuilderContents = ({
   useEffect(() => {
     requestValid &&
       setDatasetRequestParticipantCount(async () =>
-        DataRepo().dataset(dataset.id).getSnapshotBuilderCount({
-          cohorts: allCohorts,
-        })
+        DataRepo()
+          .dataset(dataset.id)
+          .getSnapshotBuilderCount(convertDatasetParticipantCountRequest({ cohorts: allCohorts }))
       );
   }, [dataset, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
