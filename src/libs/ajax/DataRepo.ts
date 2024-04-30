@@ -1,10 +1,9 @@
 import * as _ from 'lodash/fp';
 import {
-  Cohort,
   convertDatasetAccessRequest,
   convertDatasetParticipantCountRequest,
   DatasetAccessRequest,
-  DatasetBuilderType,
+  DatasetParticipantCountRequest,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
 
@@ -52,6 +51,10 @@ export interface SnapshotBuilderProgramDataRangeOption extends SnapshotBuilderPr
 export interface SnapshotBuilderDomainOption extends SnapshotBuilderOption {
   kind: 'domain';
   root: SnapshotBuilderConcept;
+}
+
+interface DatasetBuilderType {
+  name: string;
 }
 
 export interface SnapshotBuilderDatasetConceptSet extends DatasetBuilderType {
@@ -206,10 +209,6 @@ export type SnapshotBuilderCountResponse = {
     total: number;
   };
   sql: string;
-};
-
-export type DatasetParticipantCountRequest = {
-  cohorts: Cohort[];
 };
 
 export interface DataRepoContract {

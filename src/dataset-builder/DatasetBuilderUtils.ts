@@ -2,7 +2,6 @@ import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
-  DatasetParticipantCountRequest,
   SnapshotBuilderCohort,
   SnapshotBuilderConcept,
   SnapshotBuilderCriteria,
@@ -167,6 +166,9 @@ export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessR
   };
 };
 
+export type DatasetParticipantCountRequest = {
+  cohorts: Cohort[];
+};
 export const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
   return { cohorts: _.map(convertCohort, request.cohorts) };
 };
