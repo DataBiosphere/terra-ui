@@ -6,6 +6,7 @@ import {
   DatasetParticipantCountRequest,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
+import { v4 as uuid } from 'uuid';
 
 /** API types represent the data of UI types in the format expected by the backend.
  * They are generally subsets or mappings of the UI types. */
@@ -189,9 +190,9 @@ export interface SnapshotBuilderGetConceptHierarchyResponse {
 }
 
 export interface SnapshotAccessRequestResponse {
-  id: string; // uuid
-  datasetId: string; // uuid
-  snapshotId: string; // uuid
+  id: uuid;
+  datasetId: uuid;
+  snapshotId: uuid;
   snapshotName: string;
   snapshotResearchPurpose: string;
   snapshotSpecification: SnapshotAccessRequest; // SnapshotBuilderRequest in DataRepo
