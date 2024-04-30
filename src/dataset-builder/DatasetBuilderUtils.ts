@@ -3,6 +3,7 @@ import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
   SnapshotBuilderCohort as CohortApi,
+  SnapshotBuilderConcept,
   SnapshotBuilderCriteria as AnyCriteriaApi,
   SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderDomainCriteria,
@@ -34,6 +35,9 @@ export interface DomainCriteria extends Criteria {
   option: SnapshotBuilderDomainOption;
 }
 
+export interface DomainConceptSet extends SnapshotBuilderDatasetConceptSet {
+  concept: SnapshotBuilderConcept;
+}
 export interface ProgramDataRangeCriteria extends Criteria {
   kind: 'range';
   option: SnapshotBuilderProgramDataRangeOption;

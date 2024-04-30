@@ -56,10 +56,6 @@ export interface SnapshotBuilderDomainOption extends SnapshotBuilderOption {
   root: SnapshotBuilderConcept;
 }
 
-export interface DomainConceptSet extends SnapshotBuilderDatasetConceptSet {
-  concept: SnapshotBuilderConcept;
-}
-
 export type PrepackagedConceptSet = SnapshotBuilderDatasetConceptSet;
 
 export interface SnapshotBuilderDatasetConceptSet extends DatasetBuilderType {
@@ -70,7 +66,7 @@ export type SnapshotBuilderSettings = {
   domainOptions: SnapshotBuilderDomainOption[];
   programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
   featureValueGroups: SnapshotBuilderFeatureValueGroup[];
-  datasetConceptSets?: PrepackagedConceptSet[];
+  datasetConceptSets?: SnapshotBuilderDatasetConceptSet[];
 };
 
 export interface SnapshotBuilderCriteria {

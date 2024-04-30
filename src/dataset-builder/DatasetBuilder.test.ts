@@ -2,14 +2,8 @@ import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Cohort } from 'src/dataset-builder/DatasetBuilderUtils';
-import {
-  DataRepo,
-  DataRepoContract,
-  DatasetModel,
-  DomainConceptSet,
-  SnapshotBuilderDatasetConceptSet,
-} from 'src/libs/ajax/DataRepo';
+import { Cohort, DomainConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
+import { DataRepo, DataRepoContract, DatasetModel, SnapshotBuilderDatasetConceptSet } from 'src/libs/ajax/DataRepo';
 import * as Nav from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 

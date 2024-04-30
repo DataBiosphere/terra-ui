@@ -8,6 +8,7 @@ import {
   convertValueSet,
   CriteriaGroup,
   DatasetAccessRequest,
+  DomainConceptSet,
   DomainCriteria,
   formatCount,
   HighlightConceptName,
@@ -16,7 +17,6 @@ import {
   ValueSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
-  DomainConceptSet,
   SnapshotAccessRequest as SnapshotAccessRequestApi,
   SnapshotBuilderCohort,
   SnapshotBuilderConcept,
