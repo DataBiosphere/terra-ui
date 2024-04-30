@@ -261,13 +261,12 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       searchConcepts: async (
         domain: SnapshotBuilderConcept,
         searchText: string
-      ): Promise<SnapshotBuilderGetConceptsResponse> => {
-        return callDataRepo(
+      ): Promise<SnapshotBuilderGetConceptsResponse> =>
+        callDataRepo(
           `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${
             domain.id
           }/search?searchText=${encodeURIComponent(searchText)}`
-        );
-      },
+        ),
       getConceptHierarchy: async (concept: SnapshotBuilderConcept) =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/conceptHierarchy/${concept.id}`),
     };
