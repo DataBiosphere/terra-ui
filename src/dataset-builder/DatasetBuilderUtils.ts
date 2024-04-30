@@ -7,7 +7,7 @@ import {
   SnapshotBuilderCriteria as AnyCriteriaApi,
   SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderDomainCriteria,
-  SnapshotBuilderDomainOption,
+  SnapshotBuilderFeatureValueGroup,
   SnapshotBuilderFeatureValueGroup as ValueSetApi,
   SnapshotBuilderOption,
   SnapshotBuilderOptionTypeNames,
@@ -32,7 +32,7 @@ export interface DomainCriteria extends Criteria {
   kind: 'domain';
   conceptId: number;
   conceptName: string;
-  option: SnapshotBuilderDomainOption;
+  option: DomainOption;
 }
 
 export interface DomainConceptSet extends SnapshotBuilderDatasetConceptSet {
@@ -51,7 +51,16 @@ export interface ProgramDataListCriteria extends Criteria {
   values: SnapshotBuilderProgramDataListItem[];
 }
 
+export interface DomainOption extends SnapshotBuilderOption {
+  kind: 'domain';
+  root: SnapshotBuilderConcept;
+  conceptCount?: number;
+  participantCount?: number;
+}
+
 export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
+
+export type PrepackagedConceptSet = SnapshotBuilderDatasetConceptSet;
 
 /** A group of criteria. */
 export interface CriteriaGroup {
@@ -86,6 +95,22 @@ export type DatasetAccessRequest = {
   name: string;
   researchPurposeStatement: string;
   datasetRequest: DatasetRequest;
+};
+
+export type BuilderSettings = {
+  domainOptions: DomainOption[];
+  programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
+  featureValueGroups: SnapshotBuilderFeatureValueGroup[];
+  datasetConceptSets?: SnapshotBuilderDatasetConceptSet[];
+};
+
+export type DatasetModel = {
+  id: string;
+  name: string;
+  description: string;
+  createdDate: string;
+  properties: any;
+  snapshotBuilderSettings?: BuilderSettings;
 };
 
 export const convertValueSet = (valueSet: ValueSet): ValueSetApi => {

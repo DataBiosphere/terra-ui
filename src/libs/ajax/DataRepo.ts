@@ -51,12 +51,8 @@ export interface SnapshotBuilderProgramDataRangeOption extends SnapshotBuilderPr
 
 export interface SnapshotBuilderDomainOption extends SnapshotBuilderOption {
   kind: 'domain';
-  conceptCount?: number;
-  participantCount?: number;
   root: SnapshotBuilderConcept;
 }
-
-export type PrepackagedConceptSet = SnapshotBuilderDatasetConceptSet;
 
 export interface SnapshotBuilderDatasetConceptSet extends DatasetBuilderType {
   featureValueGroupName: string;
