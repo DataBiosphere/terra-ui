@@ -13,7 +13,6 @@ export type SnapshotBuilderConcept = {
 };
 
 /** Program Data Option Types */
-
 export type SnapshotBuilderOptionTypeNames = 'list' | 'range' | 'domain';
 export interface SnapshotBuilderOption {
   kind: SnapshotBuilderOptionTypeNames;
@@ -86,13 +85,13 @@ export interface SnapshotBuilderProgramDataListCriteria extends SnapshotBuilderC
   values: number[];
 }
 
-export type AnyCriteria =
+export type AnySnapshotBuilderCriteria =
   | SnapshotBuilderDomainCriteria
   | SnapshotBuilderProgramDataRangeCriteria
   | SnapshotBuilderProgramDataListCriteria;
 export interface SnapshotBuilderCriteriaGroup {
   name: string;
-  criteria: AnyCriteria[];
+  criteria: AnySnapshotBuilderCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
 }

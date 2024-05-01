@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
-  AnyCriteria as AnyCriteriaApi,
+  AnySnapshotBuilderCriteria,
   DatasetBuilderType,
   SnapshotAccessRequest as SnapshotAccessRequestApi,
   SnapshotBuilderCohort,
@@ -137,7 +137,7 @@ export const convertCohort = (cohort: Cohort): SnapshotBuilderCohort => {
   };
 };
 
-export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
+export const convertCriteria = (criteria: AnyCriteria): AnySnapshotBuilderCriteria => {
   const { kind, id } = criteria.option;
   const mergeObject = { kind, id };
   switch (criteria.kind) {
