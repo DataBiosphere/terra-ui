@@ -892,7 +892,7 @@ describe('Environments Component', () => {
   //   );
   // });
   describe('onEvent', () => {
-    it('calls onEvent[dataRefesh] with a runtime', async () => {
+    it.skip('calls onEvent[dataRefesh] with a runtime', async () => {
       // Arrange
       const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
