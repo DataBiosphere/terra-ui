@@ -18,13 +18,13 @@ import {
   ValueSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
-  AnyCriteria as AnyCriteriaApi,
+  AnySnapshotBuilderCriteria,
   SnapshotAccessRequest as SnapshotAccessRequestApi,
   SnapshotBuilderCohort,
   SnapshotBuilderConcept,
   SnapshotBuilderCriteriaGroup,
-  SnapshotBuilderDomainCriteria as DomainCriteriaApi,
-  SnapshotBuilderFeatureValueGroup as ValueSetApi,
+  SnapshotBuilderDomainCriteria,
+  SnapshotBuilderFeatureValueGroup,
   SnapshotBuilderProgramDataListCriteria,
   SnapshotBuilderProgramDataListItem,
   SnapshotBuilderProgramDataListOption,
@@ -60,7 +60,7 @@ const domainCriteria: ProgramDomainCriteria = {
   count: 100,
 };
 
-const domainCriteriaApi: DomainCriteriaApi = {
+const domainCriteriaApi: SnapshotBuilderDomainCriteria = {
   kind: 'domain',
   id: 1,
   conceptId: 100,
@@ -125,7 +125,7 @@ const listCriteriaApi: SnapshotBuilderProgramDataListCriteria = {
 
 const anyCriteriaArray: AnyCriteria[] = [domainCriteria, rangeCriteria, listCriteria];
 
-const anyCriteriaArrayApi: AnyCriteriaApi[] = [domainCriteriaApi, rangeCriteriaApi, listCriteriaApi];
+const anyCriteriaArrayApi: AnySnapshotBuilderCriteria[] = [domainCriteriaApi, rangeCriteriaApi, listCriteriaApi];
 
 const criteriaGroup: CriteriaGroup = {
   name: 'criteriaGroup',
@@ -147,7 +147,7 @@ const cohortApi: SnapshotBuilderCohort = { name: 'cohort', criteriaGroups: [crit
 
 const valueSet: ValueSet = { domain: 'valueDomain', values: [{ name: 'valueName' }] };
 
-const valueSetApi: ValueSetApi = { name: 'valueDomain', values: ['valueName'] };
+const valueSetApi: SnapshotBuilderFeatureValueGroup = { name: 'valueDomain', values: ['valueName'] };
 
 const conceptSet: DomainConceptSet = {
   name: 'conceptSetName',
