@@ -1,8 +1,7 @@
 import { CSSProperties, ReactNode } from 'react';
 
 import { Clickable } from './Clickable';
-import { Icon } from './Icon';
-import { IconId } from './icon-library';
+import { Icon, IconId } from './Icon';
 import { PopupTrigger, PopupTriggerProps } from './PopupTrigger';
 import { useThemeFromContext } from './theme';
 
