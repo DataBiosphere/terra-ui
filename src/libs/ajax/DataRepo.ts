@@ -253,9 +253,9 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       details: async (include): Promise<DatasetModel> =>
         callDataRepo(`repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`, signal),
       roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
-      createSnapshotRequest: async (request): Promise<SnapshotAccessRequestResponse> =>
+      createSnapshotRequest: async (request: SnapshotAccessRequest): Promise<SnapshotAccessRequestResponse> =>
         callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotRequests`, signal, request),
-      getSnapshotBuilderCount: async (request): Promise<SnapshotBuilderCountResponse> =>
+      getSnapshotBuilderCount: async (request: SnapshotBuilderCountRequest): Promise<SnapshotBuilderCountResponse> =>
         callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotBuilder/count`, signal, request),
       getConcepts: async (parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse> =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
