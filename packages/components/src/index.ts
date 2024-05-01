@@ -5,7 +5,7 @@ export * from './ErrorBoundary';
 export * from './FocusTrap';
 export * from './hooks/useUniqueId';
 export * from './hooks/useWindowDimensions';
-export * from './icon';
+export * from './Icon';
 export type { IconId } from './icon-library';
 export * from './InfoBox';
 export * from './injectStyle';

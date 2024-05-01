@@ -11,7 +11,7 @@ import RSelect, {
 import RAsyncCreatableSelect from 'react-select/async-creatable';
 
 import { useUniqueId } from './hooks/useUniqueId';
-import { icon } from './icon';
+import { Icon } from './Icon';
 import { EnrichedTheme, useThemeFromContext } from './theme';
 
 const getCommonSelectProps = ({ colors }: EnrichedTheme): Partial<RSelectProps> => ({
@@ -73,8 +73,9 @@ const getCommonSelectProps = ({ colors }: EnrichedTheme): Partial<RSelectProps> 
           >
             {children}
           </div>
-          {props.isSelected &&
-            icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })}
+          {props.isSelected && (
+            <Icon icon="check" size={14} style={{ flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) }} />
+          )}
         </div>
       </RSelectComponents.Option>
     ),

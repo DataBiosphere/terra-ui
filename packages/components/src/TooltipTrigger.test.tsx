@@ -2,7 +2,7 @@ import { withFakeTimers } from '@terra-ui-packages/test-utils';
 import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { icon } from './icon';
+import { Icon } from './Icon';
 import { getPopupRoot } from './internal/PopupPortal';
 import { renderWithTheme } from './internal/test-utils';
 import { TooltipTrigger, TooltipTriggerProps } from './TooltipTrigger';
@@ -160,7 +160,7 @@ describe('TooltipTrigger', () => {
       renderTooltipTrigger(
         {},
         {
-          children: icon('plus'),
+          children: <Icon icon="plus" />,
         }
       );
 

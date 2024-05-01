@@ -4,7 +4,7 @@ import RModal, { Props as RModalProps } from 'react-modal';
 import { ButtonPrimary, ButtonSecondary } from './buttons';
 import { Clickable } from './Clickable';
 import { useUniqueId } from './hooks/useUniqueId';
-import { icon } from './icon';
+import { Icon } from './Icon';
 import { getPopupRoot } from './internal/PopupPortal';
 
 export const modalStyles = {
@@ -209,7 +209,7 @@ export const Modal = (props: ModalProps): ReactNode => {
               style={{ alignSelf: 'flex-start', marginLeft: 'auto' }}
               onClick={onDismiss}
             >
-              {icon('times-circle')}
+              <Icon icon="times-circle" />
             </Clickable>
           )}
         </div>
