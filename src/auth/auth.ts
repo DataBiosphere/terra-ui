@@ -181,7 +181,7 @@ export const loadAuthToken = async (
       refreshTokenExpiresAt: getTimestampMetricLabel(currentRefreshTokenMetadata.expiresAt),
       jwtExpiresAt: getTimestampMetricLabel(jwtExpiresAt),
     });
-  } else {
+  } else if (loadedAuthTokenState.status === 'error') {
     Ajax().Metrics.captureEvent(Events.user.authToken.load.error, {
       // we could potentially log the reason, but I don't know if that data is safe to log
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
