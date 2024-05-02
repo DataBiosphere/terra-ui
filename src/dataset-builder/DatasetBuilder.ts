@@ -13,8 +13,8 @@ import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   Cohort,
-  convertDatasetAccessRequest,
   convertDatasetParticipantCountRequest,
+  createDatasetAccessRequest,
   DatasetBuilderValue,
   DomainConceptSet,
   formatCount,
@@ -117,7 +117,7 @@ const ObjectSetListSection = <T extends DatasetBuilderType>(props: ObjectSetList
   ]);
 };
 
-interface HeaderAndValues<T extends DatasetBuilderType> {
+export interface HeaderAndValues<T extends DatasetBuilderType> {
   header: string;
   values: T[];
   makeIcon?: (value, header) => ReactElement;
@@ -453,13 +453,13 @@ export const ValuesSelector = ({
 interface RequestAccessModalProps {
   cohorts: Cohort[];
   conceptSets: ConceptSet[];
-  valuesSets: HeaderAndValues<DatasetBuilderValue>[];
+  valueSets: HeaderAndValues<DatasetBuilderValue>[];
   onDismiss: () => void;
   datasetId: string;
 }
 
 const RequestAccessModal = (props: RequestAccessModalProps) => {
-  const { onDismiss, cohorts, conceptSets, valuesSets, datasetId } = props;
+  const { onDismiss, cohorts, conceptSets, valueSets, datasetId } = props;
   const [name, setName] = useState('');
   const [researchPurposeStatement, setResearchPurposeStatement] = useState('');
 
@@ -484,18 +484,19 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
             await DataRepo()
               .dataset(datasetId)
               .createSnapshotRequest(
-                convertDatasetAccessRequest({
+                createDatasetAccessRequest(
                   name,
                   researchPurposeStatement,
-                  datasetRequest: {
-                    cohorts,
-                    conceptSets,
-                    valueSets: _.map(
-                      (valuesSet) => ({ domain: valuesSet.header, values: valuesSet.values }),
-                      valuesSets
-                    ),
-                  },
-                })
+                  cohorts,
+                  conceptSets,
+                  _.map(
+                    (valuesSet: HeaderAndValues<DatasetBuilderValue>) => ({
+                      domain: valuesSet.header,
+                      values: valuesSet.values,
+                    }),
+                    valueSets // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
+                  )
+                )
               );
             onDismiss();
           },
@@ -674,7 +675,7 @@ export const DatasetBuilderContents = ({
       h(RequestAccessModal, {
         cohorts: allCohorts,
         conceptSets: allConceptSets,
-        valuesSets: selectedValues,
+        valueSets: selectedValues,
         onDismiss: () => setRequestingAccess(false),
         datasetId: dataset.id,
       }),

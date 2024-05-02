@@ -4,8 +4,8 @@ import {
   Cohort,
   convertCohort,
   convertCriteria,
-  convertDatasetAccessRequest,
   convertValueSet,
+  createDatasetAccessRequest,
   CriteriaGroup,
   DomainConceptSet,
   DomainOption,
@@ -193,7 +193,15 @@ describe('test conversion of valueSets', () => {
 
 describe('test conversion of DatasetAccessRequest', () => {
   test('datasetAccessRequest converted to datasetAccessRequestApi', () => {
-    expect(convertDatasetAccessRequest(datasetAccessRequest)).toStrictEqual(datasetAccessRequestApi);
+    expect(
+      createDatasetAccessRequest(
+        datasetAccessRequest.name,
+        datasetAccessRequest.researchPurposeStatement,
+        datasetAccessRequest.datasetRequest.cohorts,
+        datasetAccessRequest.datasetRequest.conceptSets,
+        datasetAccessRequest.datasetRequest.valueSets
+      )
+    ).toStrictEqual(datasetAccessRequestApi);
   });
 });
 

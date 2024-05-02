@@ -157,14 +157,20 @@ export const convertCriteria = (criteria: AnyCriteria): AnySnapshotBuilderCriter
   }
 };
 
-export const convertDatasetAccessRequest = (datasetAccessRequest: SnapshotAccessRequest): SnapshotAccessRequestApi => {
+export const createDatasetAccessRequest = (
+  name: string,
+  researchPurposeStatement: string,
+  cohorts: Cohort[],
+  conceptSets: SnapshotBuilderDatasetConceptSet[],
+  valueSets: ValueSet[]
+): SnapshotAccessRequestApi => {
   return {
-    name: datasetAccessRequest.name,
-    researchPurposeStatement: datasetAccessRequest.researchPurposeStatement,
+    name,
+    researchPurposeStatement,
     datasetRequest: {
-      cohorts: _.map(convertCohort, datasetAccessRequest.datasetRequest.cohorts),
-      conceptSets: datasetAccessRequest.datasetRequest.conceptSets,
-      valueSets: _.map(convertValueSet, datasetAccessRequest.datasetRequest.valueSets),
+      cohorts: _.map(convertCohort, cohorts),
+      conceptSets,
+      valueSets: _.map(convertValueSet, valueSets),
     },
   };
 };
