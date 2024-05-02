@@ -13,8 +13,8 @@ import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   Cohort,
-  convertDatasetParticipantCountRequest,
   createDatasetAccessRequest,
+  createSnapshotBuilderCountRequest,
   DatasetBuilderValue,
   DomainConceptSet,
   formatCount,
@@ -573,9 +573,7 @@ export const DatasetBuilderContents = ({
   useEffect(() => {
     requestValid &&
       setDatasetRequestParticipantCount(async () =>
-        DataRepo()
-          .dataset(dataset.id)
-          .getSnapshotBuilderCount(convertDatasetParticipantCountRequest({ cohorts: allCohorts }))
+        DataRepo().dataset(dataset.id).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
       );
   }, [dataset, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 

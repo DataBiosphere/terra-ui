@@ -7,7 +7,7 @@ import {
   SnapshotAccessRequest as SnapshotAccessRequestApi,
   SnapshotBuilderCohort,
   SnapshotBuilderConcept,
-  SnapshotBuilderCountRequest as SnapshotBuilderCountRequestApi,
+  SnapshotBuilderCountRequest,
   SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderDomainCriteria,
   SnapshotBuilderFeatureValueGroup,
@@ -86,10 +86,6 @@ export type SnapshotAccessRequest = {
   name: string;
   researchPurposeStatement: string;
   datasetRequest: DatasetRequest;
-};
-
-export type SnapshotBuilderCountRequest = {
-  cohorts: Cohort[];
 };
 
 export interface DomainOption extends SnapshotBuilderOption {
@@ -175,10 +171,8 @@ export const createDatasetAccessRequest = (
   };
 };
 
-export const convertDatasetParticipantCountRequest = (
-  request: SnapshotBuilderCountRequest
-): SnapshotBuilderCountRequestApi => {
-  return { cohorts: _.map(convertCohort, request.cohorts) };
+export const createSnapshotBuilderCountRequest = (cohort: Cohort[]): SnapshotBuilderCountRequest => {
+  return { cohorts: _.map(convertCohort, cohort) };
 };
 
 export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElement => {
