@@ -77,7 +77,7 @@ describe('NihAccount', () => {
         });
 
         // Assert
-        expect(screen.getByText('Log In To NIH')).not.toBeNull();
+        expect(screen.getByText('Log in to NIH')).not.toBeNull();
       });
     });
     describe('when the user has linked before', () => {
