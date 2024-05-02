@@ -77,7 +77,7 @@ export type ValueSet = {
   values: DatasetBuilderValue[];
 };
 
-export type DatasetRequest = {
+export type SnapshotBuilderRequest = {
   cohorts: Cohort[];
   conceptSets: SnapshotBuilderDatasetConceptSet[];
   valueSets: ValueSet[];
@@ -86,7 +86,7 @@ export type DatasetRequest = {
 export type SnapshotAccessRequest = {
   name: string;
   researchPurposeStatement: string;
-  datasetRequest: DatasetRequest;
+  datasetRequest: SnapshotBuilderRequest;
 };
 
 export const convertValueSet = (valueSet: ValueSet): SnapshotBuilderFeatureValueGroup => {
