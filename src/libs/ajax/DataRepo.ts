@@ -60,7 +60,7 @@ export type SnapshotBuilderSettings = {
   domainOptions: SnapshotBuilderDomainOption[];
   programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
   featureValueGroups: SnapshotBuilderFeatureValueGroup[];
-  datasetConceptSets?: SnapshotBuilderDatasetConceptSet[];
+  datasetConceptSets: SnapshotBuilderDatasetConceptSet[];
 };
 
 /** Criteria */
