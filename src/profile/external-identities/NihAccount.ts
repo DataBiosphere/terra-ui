@@ -71,7 +71,7 @@ export const NihAccount = ({ nihToken }) => {
       Utils.cond(
         [!nihStatusLoaded, () => h(SpacedSpinner, ['Loading NIH account status...'])],
         [isLinking, () => h(SpacedSpinner, ['Linking NIH account...'])],
-        [!linkedNihUsername, () => div([h(ShibbolethLink, { button: true }, ['Log into NIH'])])],
+        [!linkedNihUsername, () => div([h(ShibbolethLink, { button: true }, ['Log In To NIH'])])],
         () =>
           h(Fragment, [
             div([span({ style: styles.idLink.linkDetailLabel }, ['Username:']), linkedNihUsername]),

@@ -83,7 +83,7 @@ describe('OAuth2Account', () => {
       );
 
       // Assert
-      screen.getByText(`Log Into ${testAccessTokenProvider.short}`);
+      screen.getByText(`Log In To ${testAccessTokenProvider.short}`);
       expect(getAuthorizationUrlFn).not.toHaveBeenCalled();
       expect(await axe(container)).toHaveNoViolations();
     });
@@ -110,7 +110,7 @@ describe('OAuth2Account', () => {
       await act(() => render(<OAuth2Account queryParams={{}} provider={testAccessTokenProvider} />));
 
       // Assert
-      const button = screen.getByText(`Log Into ${testAccessTokenProvider.short}`);
+      const button = screen.getByText(`Log In To ${testAccessTokenProvider.short}`);
       await user.click(button);
       expect(getAuthorizationUrlFn).toHaveBeenCalled();
       expect(window.open).toHaveBeenCalled();
@@ -202,7 +202,7 @@ describe('OAuth2Account', () => {
 
       // Assert
       expect(unlinkAccountFn).toHaveBeenCalled();
-      screen.getByText(`Log Into ${testAccessTokenProvider.short}`);
+      screen.getByText(`Log In To ${testAccessTokenProvider.short}`);
 
       expect(captureEventFn).toHaveBeenCalledWith(Events.user.externalCredential.unlink, {
         provider: testAccessTokenProvider.key,

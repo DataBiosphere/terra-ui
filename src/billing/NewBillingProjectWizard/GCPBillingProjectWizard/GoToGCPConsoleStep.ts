@@ -17,7 +17,7 @@ export const GoToGCPConsoleStep = ({ isActive, ...props }: GoToGCPConsoleStepPro
     h(StepHeader, { title: 'STEP 1' }),
     div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
       h(StepInfo, { style: { maxWidth: '60%' } }, [
-        'Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to login to Terra.',
+        'Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to log in to Terra.',
       ]),
       h(
         ButtonOutline,

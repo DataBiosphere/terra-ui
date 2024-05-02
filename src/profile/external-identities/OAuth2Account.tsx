@@ -98,7 +98,7 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
         {isLinking && <SpacedSpinner>Loading account status...</SpacedSpinner>}
         {!externalUserId && (
           <div>
-            <LinkOAuth2Account provider={provider} linkText={`Log Into ${provider.short}`} />
+            <LinkOAuth2Account provider={provider} linkText={`Log In To ${provider.short}`} />
           </div>
         )}
         {externalUserId && (
