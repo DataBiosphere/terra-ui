@@ -264,7 +264,9 @@ export const notificationStore = atom<any[]>([]);
 
 export const contactUsActive = atom(false);
 
-export const workspaceStore = atom<any>(undefined);
+export type InitializedWorkspaceWrapper = WorkspaceWrapper & { workspaceInitialized: boolean };
+
+export const workspaceStore = atom<InitializedWorkspaceWrapper | undefined>(undefined);
 
 export const workspacesStore = atom<WorkspaceWrapper[]>([]);
 

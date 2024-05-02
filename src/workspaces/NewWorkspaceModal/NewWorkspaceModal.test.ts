@@ -14,6 +14,7 @@ import { goToPath } from 'src/libs/nav';
 import {
   azureBillingProject,
   azureProtectedDataBillingProject,
+  azureProtectedEnterpriseBillingProject,
   gcpBillingProject,
 } from 'src/testing/billing-project-fixtures';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -23,8 +24,15 @@ import {
   makeGoogleWorkspace,
   mockBucketRequesterPaysError,
   protectedAzureWorkspace,
+  protectedPhiTrackingAzureWorkspace,
 } from 'src/testing/workspace-fixtures';
-import { AzureWorkspaceInfo, GoogleWorkspaceInfo, WorkspaceInfo } from 'src/workspaces/utils';
+import {
+  AzureWorkspaceInfo,
+  GoogleWorkspaceInfo,
+  phiTrackingLabel,
+  phiTrackingPolicy,
+  WorkspaceInfo,
+} from 'src/workspaces/utils';
 
 import NewWorkspaceModal from './NewWorkspaceModal';
 
@@ -155,6 +163,7 @@ const mockWorkspaces: {
     namespace: gcpBillingProject.projectName,
     name: 'test-workspace',
     workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+    billingAccount: 'billingAccounts/123456-ABCDEF-ABCDEF',
     googleProject: 'test-project',
     bucketName: 'fc-aaaabbbb-cccc-dddd-0000-111122223333',
     createdBy: 'user@example.com',
@@ -171,6 +180,11 @@ describe('NewWorkspaceModal', () => {
     // Remove icon name from option label.
     // The icon names are only present in tests. They're the result of a configured transform.
     return availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
+  };
+
+  const selectBillingProject = async (user, billingProjectName) => {
+    await user.click(screen.getByText('Select a billing project'));
+    await user.click(screen.getByText(billingProjectName));
   };
 
   describe('handles when no appropriate billing projects are available', () => {
@@ -402,10 +416,37 @@ describe('NewWorkspaceModal', () => {
       // Assert
       expect(await getAvailableBillingProjects(user)).toEqual(['Protected Azure Billing Project']);
     });
+
+    it('Hides billing projects that cannot be used for cloning a PHI tracking Azure workspace', async () => {
+      const user = userEvent.setup();
+      setup({
+        billingProjects: [
+          gcpBillingProject,
+          azureBillingProject,
+          azureProtectedDataBillingProject,
+          azureProtectedEnterpriseBillingProject,
+        ],
+      });
+
+      // Act
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            cloneWorkspace: protectedPhiTrackingAzureWorkspace,
+            onDismiss: () => {},
+            onSuccess: () => {},
+          })
+        );
+      });
+
+      // Assert
+      expect(await getAvailableBillingProjects(user)).toEqual(['Enterprise Azure Billing Project']);
+    });
   });
 
   describe('decides when to show a policy section ', () => {
-    const policyLabel = 'The workspace will inherit:';
+    const policyTitle = 'Security, controls, and workspace information';
+    const policyLabel = 'Workspace will inherit data protection policies';
     it('Shows a policy section when cloning an Azure workspace with polices', async () => {
       setup({ billingProjects: [azureProtectedDataBillingProject] });
 
@@ -421,7 +462,7 @@ describe('NewWorkspaceModal', () => {
       });
 
       // Assert
-      screen.getByText('Policies');
+      screen.getByText(policyTitle);
       screen.getByText(policyLabel);
     });
 
@@ -440,7 +481,7 @@ describe('NewWorkspaceModal', () => {
       });
 
       // Assert
-      expect(screen.queryByText('Policies')).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
       expect(screen.queryByText(policyLabel)).toBeNull();
     });
 
@@ -463,7 +504,7 @@ describe('NewWorkspaceModal', () => {
       });
 
       // Assert
-      expect(screen.queryByText('Policies')).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
       expect(screen.queryByText(policyLabel)).toBeNull();
     });
 
@@ -483,14 +524,18 @@ describe('NewWorkspaceModal', () => {
       });
 
       // No policy section until billing project is selected.
-      expect(screen.queryByText('Policies')).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
 
-      await user.click(screen.getByText('Select a billing project'));
-      await user.click(screen.getByText('Protected Azure Billing Project'));
+      await selectBillingProject(user, 'Protected Azure Billing Project');
 
       // Assert
-      screen.getByText('Policies');
+      screen.getByText(policyTitle);
       screen.getByText(policyLabel);
+      // Informational links that should render
+      screen.getByRole('link', { name: 'Learn more about policies' });
+      screen.getByRole('link', { name: 'Learn more about cost and follow changes' });
+      // Billing project is protected but not enterprise.
+      expect(screen.queryByText(phiTrackingLabel)).toBeNull();
     });
 
     it('Does not shows a policy section when creating a new workspace from an unprotected data billing project', async () => {
@@ -508,12 +553,67 @@ describe('NewWorkspaceModal', () => {
         );
       });
 
-      await user.click(screen.getByText('Select a billing project'));
-      await user.click(screen.getByText('Azure Billing Project'));
+      await selectBillingProject(user, 'Azure Billing Project');
 
       // Assert
-      expect(screen.queryByText('Policies')).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
       expect(screen.queryByText(policyLabel)).toBeNull();
+    });
+
+    it('Allows toggling PHI tracking from an enterprise protected data billing project if cloned workspace does not have PHI tracking', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      setup({ billingProjects: [azureProtectedEnterpriseBillingProject] });
+
+      // Act
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            cloneWorkspace: defaultAzureWorkspace,
+            onDismiss: () => {},
+            onSuccess: () => {},
+          })
+        );
+      });
+
+      await selectBillingProject(user, 'Enterprise Azure Billing Project');
+
+      // Assert
+      screen.getByText(policyTitle);
+      // Make sure we don't show both the read-only checkbox and the one that can be toggled.
+      const checkboxes = screen.getAllByRole('checkbox', { name: phiTrackingLabel });
+      expect(checkboxes.length).toBe(1);
+      const checkbox = checkboxes[0];
+      expect(checkbox).not.toHaveAttribute('disabled');
+      expect(checkbox).not.toBeChecked();
+    });
+
+    it('Does not allow toggling PHI tracking from an enterprise protected data billing project if cloned workspace already has PHI tracking', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      setup({ billingProjects: [azureProtectedEnterpriseBillingProject] });
+
+      // Act
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            cloneWorkspace: protectedPhiTrackingAzureWorkspace,
+            onDismiss: () => {},
+            onSuccess: () => {},
+          })
+        );
+      });
+
+      await selectBillingProject(user, 'Enterprise Azure Billing Project');
+
+      // Assert
+      screen.getByText(policyTitle);
+      // Make sure we don't show both the read-only checkbox and the one that can be toggled.
+      const checkboxes = screen.getAllByRole('checkbox', { name: phiTrackingLabel });
+      expect(checkboxes.length).toBe(1);
+      const checkbox = checkboxes[0];
+      expect(checkbox).toHaveAttribute('disabled');
+      expect(checkbox).toBeChecked();
     });
   });
 
@@ -575,6 +675,58 @@ describe('NewWorkspaceModal', () => {
     });
   });
 
+  describe('passes PHI tracking option if selected for enterprise Azure billing projects', () => {
+    it.each([{ selectCheckbox: true }, { selectCheckbox: false }] as { selectCheckbox: boolean }[])(
+      'shows the checkbox if a enterprise billing project is selected, an passes the policy on create if checked ($selectCheckbox)',
+      async ({ selectCheckbox }) => {
+        // Arrange
+        const user = userEvent.setup();
+        const { createWorkspace } = setup({ billingProjects: [azureProtectedEnterpriseBillingProject] });
+
+        await act(async () => {
+          render(
+            h(NewWorkspaceModal, {
+              onSuccess: () => {},
+              onDismiss: () => {},
+            })
+          );
+        });
+
+        const workspaceNameInput = screen.getByLabelText('Workspace name *');
+        act(() => {
+          fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+        });
+
+        await selectBillingProject(user, azureProtectedEnterpriseBillingProject.projectName);
+
+        const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+
+        // Assert
+        const checkbox = screen.getByRole('checkbox', { name: phiTrackingLabel });
+        expect(checkbox).not.toBeChecked();
+
+        // Act
+        if (selectCheckbox) {
+          await user.click(checkbox);
+          expect(checkbox).toBeChecked();
+        }
+        expect(createWorkspaceButton).not.toHaveAttribute('disabled');
+        await user.click(createWorkspaceButton);
+
+        // Assert arguments sent to Ajax method for creating a workspace.
+        expect(createWorkspace).toBeCalledWith({
+          attributes: { description: '' },
+          authorizationDomain: [],
+          copyFilesWithPrefix: 'analyses/',
+          enhancedBucketLogging: false,
+          name: 'Test workspace',
+          namespace: azureProtectedEnterpriseBillingProject.projectName,
+          ...(selectCheckbox && { policies: [phiTrackingPolicy] }),
+        });
+      }
+    );
+  });
+
   describe('handles Additional Security Monitoring for GCP billing projects/workspaces ', () => {
     const additionalSecurityMonitoring = 'Enable additional security monitoring';
     it.each([{ selectCheckbox: true }, { selectCheckbox: false }] as { selectCheckbox: boolean }[])(
@@ -598,11 +750,7 @@ describe('NewWorkspaceModal', () => {
           fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
         });
 
-        const projectSelector = screen.getByText('Select a billing project');
-        await user.click(projectSelector);
-
-        const googleBillingProject = screen.getByText('Google Billing Project');
-        await user.click(googleBillingProject);
+        await selectBillingProject(user, 'Google Billing Project');
 
         const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
 
@@ -648,11 +796,7 @@ describe('NewWorkspaceModal', () => {
         );
       });
 
-      const projectSelector = screen.getByText('Select a billing project');
-      await user.click(projectSelector);
-
-      const azureBillingProject1 = screen.getByText('Azure Billing Project');
-      await user.click(azureBillingProject1);
+      await selectBillingProject(user, 'Azure Billing Project');
 
       // Assert
       expect(screen.queryByText(additionalSecurityMonitoring)).toBeNull();
@@ -673,11 +817,7 @@ describe('NewWorkspaceModal', () => {
         );
       });
 
-      const projectSelector = screen.getByText('Select a billing project');
-      await user.click(projectSelector);
-
-      const googleBillingProject = screen.getByText('Google Billing Project');
-      await user.click(googleBillingProject);
+      await selectBillingProject(user, 'Google Billing Project');
 
       // Assert
       const checkbox = screen.getByRole('checkbox');
@@ -705,11 +845,7 @@ describe('NewWorkspaceModal', () => {
         );
       });
 
-      const projectSelector = screen.getByText('Select a billing project');
-      await user.click(projectSelector);
-
-      const googleBillingProject = screen.getByText('Google Billing Project');
-      await user.click(googleBillingProject);
+      await selectBillingProject(user, 'Google Billing Project');
 
       // Assert
       const checkbox = screen.getByRole('checkbox');
@@ -732,11 +868,7 @@ describe('NewWorkspaceModal', () => {
         );
       });
 
-      const projectSelector = screen.getByText('Select a billing project');
-      await user.click(projectSelector);
-
-      const googleBillingProject = screen.getByText('Google Billing Project');
-      await user.click(googleBillingProject);
+      await selectBillingProject(user, 'Google Billing Project');
 
       const groupsSelector = screen.getByText('Select groups');
       await user.click(groupsSelector);
@@ -1228,11 +1360,7 @@ describe('NewWorkspaceModal', () => {
         );
       });
 
-      const projectSelector = screen.getByText('Select a billing project');
-      await user.click(projectSelector);
-
-      const googleBillingProject = screen.getByText('Google Billing Project');
-      await user.click(googleBillingProject);
+      await selectBillingProject(user, 'Google Billing Project');
 
       const bucketLocationSelector = screen.getByLabelText('Bucket location');
       await user.click(bucketLocationSelector);
@@ -1271,11 +1399,7 @@ describe('NewWorkspaceModal', () => {
       // Verify warning doesn't show up until a destination billing project is selected.
       expect(screen.queryByText(egressWarning)).toBeNull();
 
-      const projectSelector = screen.getByText('Select a billing project');
-      await user.click(projectSelector);
-
-      const googleBillingProject = screen.getByText('Google Billing Project');
-      await user.click(googleBillingProject);
+      await selectBillingProject(user, 'Google Billing Project');
 
       // Assert
       screen.getByText(nonRegionSpecificEgressWarning);

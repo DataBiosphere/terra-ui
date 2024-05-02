@@ -1,3 +1,4 @@
+/// <reference types="vite-plugin-svgr/client" />
 import {
   faBell,
   faClipboard,
@@ -9,6 +10,7 @@ import {
   faFolderOpen,
   faListAlt,
   faTimesCircle,
+  IconDefinition,
 } from '@fortawesome/free-regular-svg-icons';
 import {
   faArrowLeft,
@@ -60,9 +62,9 @@ import {
   faUnlock,
   faVirus,
 } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { FontAwesomeIcon, FontAwesomeIconProps } from '@fortawesome/react-fontawesome';
 import _ from 'lodash/fp';
-import { ReactNode } from 'react';
+import { FunctionComponent, ReactNode, SVGProps } from 'react';
 
 import { ReactComponent as angleDoubleUp } from './icons/angle-double-up-regular.svg';
 import { ReactComponent as angleUp } from './icons/angle-up-regular.svg';
@@ -86,6 +88,7 @@ import { ReactComponent as menuIconFilled } from './icons/menu-icon-filled.svg';
 import { ReactComponent as minusCircleRed } from './icons/minus-circle-red.svg';
 import { ReactComponent as plusCircleFilled } from './icons/plus-circle-filled.svg';
 import { ReactComponent as renameIcon } from './icons/rename-icon.svg';
+import { ReactComponent as shieldCheckIcon } from './icons/shield-check-solid.svg';
 import { ReactComponent as squareLight } from './icons/square-light.svg';
 import { ReactComponent as syncAlt } from './icons/sync-alt-regular.svg';
 import { ReactComponent as talkBubble } from './icons/talk-bubble.svg';
@@ -94,14 +97,17 @@ import { ReactComponent as trashCircleFilled } from './icons/trash-circle-filled
 import { ReactComponent as warningInfo } from './icons/warning-info.svg';
 import { ReactComponent as wdl } from './icons/wdl.svg';
 
-const fa = _.curry((shape, { size, ...props }) => (
+const fa = _.curry((shape: IconDefinition, { size, ...props }: FontAwesomeIconProps) => (
   <FontAwesomeIcon {..._.merge({ icon: shape, style: { height: size, width: size } }, props)} />
 ));
-const custom = _.curry((Shape, { size, ...props }) => (
-  <Shape {..._.merge({ 'aria-hidden': true, focusable: false, style: { height: size, width: size } }, props)} />
-));
+const custom = _.curry(
+  (
+    Shape: FunctionComponent<SVGProps<SVGSVGElement>>,
+    { size, ...props }: SVGProps<SVGSVGElement> & { size: number }
+  ) => <Shape {..._.merge({ 'aria-hidden': true, focusable: false, style: { height: size, width: size } }, props)} />
+);
 
-const rotate = _.curry((rotation, shape, props) =>
+const rotate = _.curry(<P,>(rotation: number, shape: FunctionComponent<P>, props: P) =>
   shape(_.merge({ style: { transform: `rotate(${rotation}deg)` } }, props))
 );
 
@@ -138,7 +144,8 @@ const iconLibrary = {
   downloadRegular: custom(downloadRegular),
   edit: fa(faPen),
   'ellipsis-v': fa(faEllipsisV),
-  'ellipsis-v-circle': (props) => fa(faEllipsisV, { mask: faCircle, transform: 'shrink-8', ...props }),
+  'ellipsis-v-circle': (props: FontAwesomeIconProps) =>
+    fa(faEllipsisV, { mask: faCircle, transform: 'shrink-8', ...props }),
   'error-standard': fa(faExclamationCircle),
   'expand-arrows-alt': fa(faExpandArrowsAlt),
   export: custom(fileExport),
@@ -168,7 +175,8 @@ const iconLibrary = {
   plus: fa(faPlus),
   'plus-circle': fa(faPlusCircle),
   'plus-circle-filled': custom(plusCircleFilled),
-  'lighter-plus-circle': (props) => fa(faPlus, { mask: faCircle, transform: 'shrink-6', ...props }),
+  'lighter-plus-circle': (props: FontAwesomeIconProps) =>
+    fa(faPlus, { mask: faCircle, transform: 'shrink-6', ...props }),
   'pop-out': custom(externalLinkAlt),
   purchaseOrder: fa(faFileInvoiceDollar),
   question: fa(faQuestion),
@@ -177,6 +185,7 @@ const iconLibrary = {
   search: fa(faSearch),
   share: fa(faShareAlt),
   shield: fa(faShieldAlt),
+  shieldCheck: custom(shieldCheckIcon),
   squareLight: custom(squareLight),
   squareSolid: fa(faSquareSolid),
   star: fa(faStar),
@@ -185,7 +194,7 @@ const iconLibrary = {
   syncAlt: fa(faSyncAlt),
   tachometer: fa(faTachometerAlt),
   tasks: fa(faTasks),
-  terminal: (props) => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),
+  terminal: (props: FontAwesomeIconProps) => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),
   times: custom(times),
   'talk-bubble': custom(talkBubble),
   'times-circle': fa(faTimesCircle),

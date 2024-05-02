@@ -27,7 +27,6 @@ export const useCloudEnvironmentPolling = (
     controller.current.abort();
     controller.current = new window.AbortController();
   };
-
   const timeout = useRef<NodeJS.Timeout>();
   const [runtimes, setRuntimes] = useState<ListRuntimeItem[]>();
   const [isLoadingCloudEnvironments, setIsLoadingCloudEnvironments] = useState<boolean>(true);

@@ -57,6 +57,7 @@ const googleWorkspace: GoogleWorkspace = {
     ],
     createdDate: '',
     createdBy: '',
+    billingAccount: 'billingAccounts/123456-ABCDEF-ABCDEF',
     googleProject: 'test-project',
     bucketName: 'test-bucket',
     lastModified: '',

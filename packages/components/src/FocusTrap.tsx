@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { KeyboardEvent, ReactNode } from 'react';
 import FocusLock from 'react-focus-lock';
 
 export type FocusTrapProps = JSX.IntrinsicElements['div'] & {
@@ -23,7 +23,7 @@ export const FocusTrap = (props: FocusTrapProps): ReactNode => {
           ...style,
         },
         ...otherProps,
-        onKeyDown: (e) => {
+        onKeyDown: (e: KeyboardEvent) => {
           if (e.key === 'Escape') {
             onEscape();
             e.stopPropagation();
