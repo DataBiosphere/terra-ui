@@ -8,10 +8,11 @@ import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
-import { DomainOption, formatCount, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
+import { formatCount, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
+  SnapshotBuilderDomainOption,
   SnapshotBuilderGetConceptsResponse as GetConceptsResponse,
 } from 'src/libs/ajax/DataRepo';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
@@ -19,11 +20,11 @@ import colors from 'src/libs/colors';
 
 type ConceptSearchProps = {
   readonly initialSearch: string;
-  readonly domainOption: DomainOption;
+  readonly domainOption: SnapshotBuilderDomainOption;
   readonly onCancel: () => void;
   readonly onCommit: (selected: Concept[]) => void;
   readonly onOpenHierarchy: (
-    domainOption: DomainOption,
+    domainOption: SnapshotBuilderDomainOption,
     cart: Concept[],
     searchText: string,
     openedConcept?: Concept

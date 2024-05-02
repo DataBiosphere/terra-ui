@@ -44,6 +44,8 @@ export interface SnapshotBuilderProgramDataRangeOption extends SnapshotBuilderPr
 export interface SnapshotBuilderDomainOption extends SnapshotBuilderOption {
   kind: 'domain';
   root: SnapshotBuilderConcept;
+  conceptCount: number;
+  participantCount: number;
 }
 
 export interface DatasetBuilderType {

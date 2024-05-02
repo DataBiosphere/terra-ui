@@ -10,6 +10,7 @@ import {
   SnapshotBuilderCountRequest,
   SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderDomainCriteria,
+  SnapshotBuilderDomainOption,
   SnapshotBuilderFeatureValueGroup,
   SnapshotBuilderOption,
   SnapshotBuilderOptionTypeNames,
@@ -38,7 +39,7 @@ export interface ProgramDomainCriteria extends Criteria {
   kind: 'domain';
   conceptId: number;
   conceptName: string;
-  option: DomainOption;
+  option: SnapshotBuilderDomainOption;
 }
 export interface ProgramDataRangeCriteria extends Criteria {
   kind: 'range';
@@ -86,29 +87,6 @@ export type SnapshotAccessRequest = {
   name: string;
   researchPurposeStatement: string;
   datasetRequest: DatasetRequest;
-};
-
-export interface DomainOption extends SnapshotBuilderOption {
-  kind: 'domain';
-  root: SnapshotBuilderConcept;
-  conceptCount?: number;
-  participantCount?: number;
-}
-
-export type BuilderSettings = {
-  domainOptions: DomainOption[];
-  programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
-  featureValueGroups: SnapshotBuilderFeatureValueGroup[];
-  datasetConceptSets?: SnapshotBuilderDatasetConceptSet[];
-};
-
-export type DatasetModel = {
-  id: string;
-  name: string;
-  description: string;
-  createdDate: string;
-  properties: any;
-  snapshotBuilderSettings?: BuilderSettings;
 };
 
 export const convertValueSet = (valueSet: ValueSet): SnapshotBuilderFeatureValueGroup => {

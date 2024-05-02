@@ -8,7 +8,6 @@ import {
   createDatasetAccessRequest,
   CriteriaGroup,
   DomainConceptSet,
-  DomainOption,
   formatCount,
   HighlightConceptName,
   ProgramDataListCriteria,
@@ -24,6 +23,7 @@ import {
   SnapshotBuilderConcept,
   SnapshotBuilderCriteriaGroup,
   SnapshotBuilderDomainCriteria,
+  SnapshotBuilderDomainOption,
   SnapshotBuilderFeatureValueGroup,
   SnapshotBuilderProgramDataListCriteria,
   SnapshotBuilderProgramDataListItem,
@@ -40,7 +40,7 @@ const concept: SnapshotBuilderConcept = {
   hasChildren: false,
 };
 
-const domainOption: DomainOption = {
+const domainOption: SnapshotBuilderDomainOption = {
   id: 1,
   name: 'category',
   kind: 'domain',
