@@ -47,7 +47,6 @@ jest.mock('src/auth/auth', (): Partial<AuthExports> => {
     getAuthToken: jest.fn(() => mockOidcUser.access_token),
     getAuthTokenFromLocalStorage: jest.fn(() => Promise.resolve(mockOidcUser.access_token)),
     loadAuthToken: jest.fn(),
-    sendAuthTokenDesyncMetric: jest.fn(),
     sendRetryMetric: jest.fn(),
   };
 });
@@ -195,7 +194,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
             await Promise.allSettled([makeAuthenticatedRequest()]);
 
             // Assert
-            expect(signOut).toHaveBeenCalledWith('expiredRefreshToken');
+            expect(signOut).toHaveBeenCalledWith('errorRefreshingAuthToken');
           });
         });
 

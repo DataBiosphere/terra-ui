@@ -89,22 +89,18 @@ const eventsList = {
     authToken: {
       load: {
         success: 'user:authTokenLoad:success',
-        expired: 'user:authTokenLoad:expiredRefreshToken',
         error: 'user:authTokenLoad:error',
         retry: 'user:authTokenLoad:retry',
       },
-      desync: 'user:authToken:desync',
     },
     login: {
       success: 'user:login:success',
-      expired: 'user:login:expiredRefreshToken',
       error: 'user:login:error',
     },
     signOut: {
       requested: 'user:signOut:requested',
       disabled: 'user:signOut:disabled',
       declinedTos: 'user:signOut:declinedTos',
-      expiredRefreshToken: 'user:signOut:expiredRefreshToken',
       errorRefreshingAuthToken: 'user:signOut:errorRefreshingAuthToken',
       idleStatusMonitor: 'user:signOut:idleStatusMonitor',
       unspecified: 'user:signOut:unspecified',
