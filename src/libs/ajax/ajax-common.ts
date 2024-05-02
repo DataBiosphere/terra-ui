@@ -5,7 +5,6 @@ import {
   getAuthToken,
   getAuthTokenFromLocalStorage,
   loadAuthToken,
-  sendAuthTokenDesyncMetric,
   sendRetryMetric,
 } from 'src/auth/auth';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
@@ -81,11 +80,6 @@ const createRequestWithStoredAuthToken = async (
   options?: RequestInit
 ): Promise<Response> => {
   const localToken = (await getAuthTokenFromLocalStorage())!;
-  const localHeaderJson = JSON.stringify(authOpts(localToken));
-  const memoryHeaderJson = JSON.stringify(authOpts());
-  if (localHeaderJson !== memoryHeaderJson) {
-    sendAuthTokenDesyncMetric();
-  }
   return createRequestWithNewAuthToken(localToken, wrappedFetch, resource, options);
 };
 
@@ -122,8 +116,7 @@ export const withRetryAfterReloadingExpiredAuthToken =
         // that means that the user has already been signed out and signed in again to receive a new token
         // in this case, we should not sign the user out again
         if (preRequestAuthToken === postRequestAuthToken) {
-          const signOutCause: SignOutCause =
-            reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
+          const signOutCause: SignOutCause = 'errorRefreshingAuthToken';
           signOut(signOutCause);
         }
         throw new Error(sessionTimedOutErrorMessage);

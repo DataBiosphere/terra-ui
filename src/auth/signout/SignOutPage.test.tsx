@@ -78,7 +78,7 @@ describe('SignOutPage', () => {
     const encodedState = btoa(
       JSON.stringify({
         signOutRedirect: { name: 'foo', query: { a: 'a', b: 'b' }, params: { foo: 'bar' } },
-        signOutCause: 'expiredRefreshToken',
+        signOutCause: 'errorRefreshingAuthToken',
       })
     );
     asMockedFn(Nav.useRoute).mockReturnValue({ query: { state: encodedState } });
