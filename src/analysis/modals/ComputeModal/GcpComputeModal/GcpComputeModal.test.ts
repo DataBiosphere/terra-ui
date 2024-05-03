@@ -5,6 +5,7 @@ import { h } from 'react-hyperscript-helpers';
 import {
   defaultImage,
   defaultTestDisk,
+  getDetailFromDisk,
   getDisk,
   getGoogleDataProcRuntime,
   getGoogleRuntime,
@@ -325,7 +326,7 @@ describe('GcpComputeModal', () => {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
       } as AjaxContract);
-      asMockedFn(leoDiskProvider.details).mockResolvedValue(disk);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -376,7 +377,7 @@ describe('GcpComputeModal', () => {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
       } as AjaxContract);
-      asMockedFn(leoDiskProvider.details).mockResolvedValue(disk);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -421,7 +422,7 @@ describe('GcpComputeModal', () => {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
       } as AjaxContract);
-      asMockedFn(leoDiskProvider.details).mockResolvedValue(disk);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -472,7 +473,7 @@ describe('GcpComputeModal', () => {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
       } as AjaxContract);
-      asMockedFn(leoDiskProvider.details).mockResolvedValue(disk);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -517,7 +518,7 @@ describe('GcpComputeModal', () => {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
       } as AjaxContract);
-      asMockedFn(leoDiskProvider.details).mockResolvedValue(disk);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -580,7 +581,7 @@ describe('GcpComputeModal', () => {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
       } as AjaxContract);
-      asMockedFn(leoDiskProvider.details).mockResolvedValue(disk);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -635,7 +636,7 @@ describe('GcpComputeModal', () => {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
       } as AjaxContract);
-      asMockedFn(leoDiskProvider.details).mockResolvedValue(disk);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -694,7 +695,7 @@ describe('GcpComputeModal', () => {
         runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
       } as Partial<RuntimesAjaxContract>,
     } as AjaxContract);
-    asMockedFn(leoDiskProvider.details).mockResolvedValue(disk);
+    asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
     asMockedFn(leoDiskProvider.delete).mockImplementation(deleteDiskFunc);
 
     // Act
@@ -742,7 +743,7 @@ describe('GcpComputeModal', () => {
         runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
       } as Partial<RuntimesAjaxContract>,
     } as AjaxContract);
-    asMockedFn(leoDiskProvider.details).mockResolvedValue(disk);
+    asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
     asMockedFn(leoDiskProvider.update).mockImplementation(updateDiskFunc);
 
     // Act
@@ -794,7 +795,7 @@ describe('GcpComputeModal', () => {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
       } as AjaxContract);
-      asMockedFn(leoDiskProvider.details).mockResolvedValue(disk);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
       asMockedFn(leoDiskProvider.update).mockImplementation(updateDiskFunc);
 
       // Act
@@ -1118,7 +1119,7 @@ describe('GcpComputeModal', () => {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
       } as AjaxContract);
-      asMockedFn(leoDiskProvider.details).mockResolvedValue(disk);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act and assert
       await act(async () => {
@@ -1162,7 +1163,7 @@ describe('GcpComputeModal', () => {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
       } as AjaxContract);
-      asMockedFn(leoDiskProvider.details).mockResolvedValue(disk);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act and assert
       await act(async () => {
