@@ -63,6 +63,30 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     expect(workspaceStateDisplay).toHaveLength(1);
   });
 
+  it('should indicate when the workspace is in the process of cloning instead of displaying the description', () => {
+    // Arrange
+    const workspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'Cloning',
+        attributes: { description: 'some description' },
+      },
+    };
+    const label = 'myWorkspaces';
+
+    // Act
+    render(h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}) }));
+
+    // Assert
+    const workspaceDescriptionDisplay = screen.queryAllByText('some description');
+    expect(workspaceDescriptionDisplay).toHaveLength(0);
+
+    const workspaceStateDisplay = screen.getAllByText('Workspace cloning in progress');
+    expect(workspaceStateDisplay).not.toBeNull();
+    expect(workspaceStateDisplay).toHaveLength(1);
+  });
+
   it('should indicate when the workspace failed to delete instead of displaying the description', () => {
     // Arrange
     const workspace: WorkspaceWrapper = {
@@ -148,5 +172,26 @@ describe('The behavior of the RenderedWorkspaces component', () => {
 
     const message = screen.getByText('A semi-helpful message!');
     expect(message).not.toBeNull();
+  });
+
+  it('gives a link to display the workspace error message for workspaces that failed cloning', () => {
+    // Arrange
+    const workspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'CloningFailed',
+        errorMessage: 'A semi-helpful message!',
+      },
+    };
+    const label = 'myWorkspaces';
+
+    // Act
+    render(h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}) }));
+
+    // Assert
+    const detailsLink = screen.getByText('See error details.');
+    expect(detailsLink).not.toBeNull();
+    expect(detailsLink).toHaveLength[1];
   });
 });

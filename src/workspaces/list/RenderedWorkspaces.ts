@@ -160,11 +160,10 @@ const NameCell = (props: CellProps): ReactNode => {
   const {
     accessLevel,
     workspace,
-    workspace: { workspaceId, namespace, name, attributes, state },
+    workspace: { workspaceId, namespace, name },
   } = props.workspace;
   const { setUserActions } = useContext(WorkspaceUserActionsContext);
 
-  const description = attributes?.description;
   const canView = canRead(accessLevel);
   const canAccessWorkspace = () =>
     !canView ? setUserActions({ requestingAccessWorkspaceId: workspaceId }) : undefined;
@@ -194,12 +193,7 @@ const NameCell = (props: CellProps): ReactNode => {
         [name]
       ),
     ]),
-    Utils.cond(
-      [state === 'Deleting', () => h(WorkspaceDeletingCell)],
-      [state === 'DeleteFailed', () => h(WorkspaceDeletionFailedCell, { workspace: props.workspace })],
-      [state === 'Deleted', () => h(WorkspaceDeletedCell)],
-      [Utils.DEFAULT, () => h(WorkspaceDescriptionCell, { description })]
-    ),
+    h(WorkspaceStateCell, props),
   ]);
 };
 
@@ -221,6 +215,31 @@ const WorkspaceDescriptionCell = (props: { description: unknown | undefined }) =
   ]);
 };
 
+const WorkspaceStateCell = (props: CellProps): ReactNode => {
+  const {
+    workspace,
+    workspace: { attributes, state },
+  } = props.workspace;
+  const description = attributes?.description;
+  const errorMessage = workspace.errorMessage;
+  switch (state) {
+    case 'Deleting':
+      return h(WorkspaceDeletingCell);
+    case 'DeleteFailed':
+      return h(WorkspaceFailedCell, { state: 'DeleteFailed', errorMessage });
+    case 'Deleted':
+      return h(WorkspaceDeletedCell);
+    case 'Cloning':
+      return h(WorkspaceCloningCell);
+    case 'CloningContainer':
+      return h(WorkspaceCloningCell);
+    case 'CloningFailed':
+      return h(WorkspaceFailedCell, { state: 'CloningFailed', errorMessage });
+    default:
+      return h(WorkspaceDescriptionCell, { description });
+  }
+};
+
 const WorkspaceDeletingCell = (): ReactNode => {
   const deletingIcon = icon('syncAlt', {
     size: 18,
@@ -239,9 +258,33 @@ const WorkspaceDeletingCell = (): ReactNode => {
   );
 };
 
-const WorkspaceDeletionFailedCell = (props: CellProps): ReactNode => {
-  const { workspace } = props;
+const WorkspaceCloningCell = (): ReactNode => {
+  const deletingIcon = icon('syncAlt', {
+    size: 18,
+    style: {
+      animation: 'rotation 2s infinite linear',
+      marginRight: '0.5rem',
+    },
+  });
+  return div(
+    {
+      style: {
+        color: colors.success(),
+      },
+    },
+    [deletingIcon, 'Workspace cloning in progress']
+  );
+};
+
+interface WorkspaceFailedCellProps {
+  state: 'DeleteFailed' | 'CloningFailed';
+  errorMessage?: string;
+}
+
+const WorkspaceFailedCell = (props: WorkspaceFailedCellProps): ReactNode => {
   const [showDetails, setShowDetails] = useState<boolean>(false);
+
+  const failureOperation = props.state === 'DeleteFailed' ? 'deleting' : 'cloning';
 
   const errorIcon = icon('warning-standard', {
     size: 18,
@@ -258,8 +301,8 @@ const WorkspaceDeletionFailedCell = (props: CellProps): ReactNode => {
     },
     [
       errorIcon,
-      'Error deleting workspace',
-      workspace.workspace.errorMessage
+      `Error ${failureOperation} workspace`,
+      props.errorMessage
         ? h(
             Link,
             {
@@ -274,12 +317,12 @@ const WorkspaceDeletionFailedCell = (props: CellProps): ReactNode => {
             Modal,
             {
               width: 800,
-              title: 'Error deleting workspace',
+              title: `Error ${failureOperation} workspace`,
               showCancel: false,
               showX: true,
               onDismiss: () => setShowDetails(false),
             },
-            [h(ErrorView, { error: workspace?.workspace.errorMessage ?? 'No error message available' })]
+            [h(ErrorView, { error: props.errorMessage ?? 'No error message available' })]
           )
         : null,
     ]
