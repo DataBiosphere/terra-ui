@@ -83,6 +83,9 @@ export interface WorkspaceSubmissionStats {
 export type WorkspaceState =
   | 'Creating'
   | 'CreateFailed'
+  | 'Cloning'
+  | 'CloningContainer'
+  | 'CloningFailed'
   | 'Ready'
   | 'Updating'
   | 'UpdateFailed'
