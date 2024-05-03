@@ -2,13 +2,22 @@ import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
 import {
-  ConceptSet,
-  SnapshotBuilderConcept as Concept,
+  AnySnapshotBuilderCriteria,
+  DatasetBuilderType,
+  SnapshotAccessRequest as SnapshotAccessRequestApi,
+  SnapshotBuilderCohort,
+  SnapshotBuilderConcept,
+  SnapshotBuilderCountRequest,
+  SnapshotBuilderDatasetConceptSet,
+  SnapshotBuilderDomainCriteria,
   SnapshotBuilderDomainOption,
+  SnapshotBuilderFeatureValueGroup,
   SnapshotBuilderOption,
   SnapshotBuilderOptionTypeNames,
+  SnapshotBuilderProgramDataListCriteria,
   SnapshotBuilderProgramDataListItem,
   SnapshotBuilderProgramDataListOption,
+  SnapshotBuilderProgramDataRangeCriteria,
   SnapshotBuilderProgramDataRangeOption,
 } from 'src/libs/ajax/DataRepo';
 
@@ -21,72 +30,17 @@ export interface Criteria {
   option: SnapshotBuilderOption;
 }
 
-/** API types represent the data of UI types in the format expected by the backend.
- * They are generally subsets or mappings of the UI types. */
-
-export interface CriteriaApi {
-  // This is the ID for either the domain or the program data option
-  id: number;
-  kind: SnapshotBuilderOptionTypeNames;
-  name: string;
-  count?: number;
-}
-
-export interface DomainCriteriaApi extends CriteriaApi {
-  kind: 'domain';
-  // This is the id for the selected concept
-  conceptId: number;
-}
-
-export interface ProgramDataRangeCriteriaApi extends CriteriaApi {
-  kind: 'range';
-  low: number;
-  high: number;
-}
-
-export interface ProgramDataListCriteriaApi extends CriteriaApi {
-  kind: 'list';
-  values: number[];
-}
-
-export type AnyCriteriaApi = DomainCriteriaApi | ProgramDataRangeCriteriaApi | ProgramDataListCriteriaApi;
-
-export interface CriteriaGroupApi {
-  name: string;
-  criteria: AnyCriteriaApi[];
-  mustMeet: boolean;
-  meetAll: boolean;
-}
-
-export interface CohortApi extends DatasetBuilderType {
-  criteriaGroups: CriteriaGroupApi[];
-}
-
-export type ValueSetApi = {
-  name: string;
-  values: string[];
-};
-
-export type DatasetRequestApi = {
-  cohorts: CohortApi[];
-  conceptSets: ConceptSet[];
-  valueSets: ValueSetApi[];
-};
-
-export type DatasetAccessRequestApi = {
-  name: string;
-  researchPurposeStatement: string;
-  datasetRequest: DatasetRequestApi;
-};
-
 /** Below are the UI types */
-export interface DomainCriteria extends Criteria {
+export interface DomainConceptSet extends SnapshotBuilderDatasetConceptSet {
+  concept: SnapshotBuilderConcept;
+}
+
+export interface ProgramDomainCriteria extends Criteria {
   kind: 'domain';
   conceptId: number;
   conceptName: string;
   option: SnapshotBuilderDomainOption;
 }
-
 export interface ProgramDataRangeCriteria extends Criteria {
   kind: 'range';
   option: SnapshotBuilderProgramDataRangeOption;
@@ -100,7 +54,9 @@ export interface ProgramDataListCriteria extends Criteria {
   values: SnapshotBuilderProgramDataListItem[];
 }
 
-export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
+export type AnyCriteria = ProgramDomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
+
+export type PrepackagedConceptSet = SnapshotBuilderDatasetConceptSet;
 
 /** A group of criteria. */
 export interface CriteriaGroup {
@@ -114,10 +70,6 @@ export interface Cohort extends DatasetBuilderType {
   criteriaGroups: CriteriaGroup[];
 }
 
-export interface DatasetBuilderType {
-  name: string;
-}
-
 export type DatasetBuilderValue = DatasetBuilderType;
 
 export type ValueSet = {
@@ -125,43 +77,26 @@ export type ValueSet = {
   values: DatasetBuilderValue[];
 };
 
-export interface GetConceptsResponse {
-  result: Concept[];
-}
-
-export interface SnapshotBuilderParentConcept {
-  parentId: number;
-  children: Concept[];
-}
-
-export interface GetConceptHierarchyResponse {
-  readonly result: SnapshotBuilderParentConcept[];
-}
-
-export interface SearchConceptsResponse {
-  result: Concept[];
-}
-
-export type DatasetRequest = {
+export type SnapshotBuilderRequest = {
   cohorts: Cohort[];
-  conceptSets: ConceptSet[];
+  conceptSets: SnapshotBuilderDatasetConceptSet[];
   valueSets: ValueSet[];
 };
 
-export type DatasetAccessRequest = {
+export type SnapshotAccessRequest = {
   name: string;
   researchPurposeStatement: string;
-  datasetRequest: DatasetRequest;
+  datasetRequest: SnapshotBuilderRequest;
 };
 
-export const convertValueSet = (valueSet: ValueSet): ValueSetApi => {
+export const convertValueSet = (valueSet: ValueSet): SnapshotBuilderFeatureValueGroup => {
   return {
     name: valueSet.domain,
     values: _.map('name', valueSet.values),
   };
 };
 
-export const convertCohort = (cohort: Cohort): CohortApi => {
+export const convertCohort = (cohort: Cohort): SnapshotBuilderCohort => {
   return {
     name: cohort.name,
     criteriaGroups: _.map(
@@ -176,48 +111,46 @@ export const convertCohort = (cohort: Cohort): CohortApi => {
   };
 };
 
-export const convertCriteria = (criteria: AnyCriteria): AnyCriteriaApi => {
-  const { kind, id, name } = criteria.option;
-  const mergeObject = { kind, id, name };
+export const convertCriteria = (criteria: AnyCriteria): AnySnapshotBuilderCriteria => {
+  const { kind, id } = criteria.option;
+  const mergeObject = { kind, id };
   switch (criteria.kind) {
     case 'range':
-      return _.merge(mergeObject, { low: criteria.low, high: criteria.high }) as ProgramDataRangeCriteriaApi;
+      return _.merge(mergeObject, {
+        low: criteria.low,
+        high: criteria.high,
+      }) as SnapshotBuilderProgramDataRangeCriteria;
     case 'list':
       return _.merge(mergeObject, {
         values: _.map((value) => value.id, criteria.values),
-      }) as ProgramDataListCriteriaApi;
+      }) as SnapshotBuilderProgramDataListCriteria;
     case 'domain':
-      return _.merge(mergeObject, { conceptId: criteria.conceptId }) as DomainCriteriaApi;
+      return _.merge(mergeObject, { conceptId: criteria.conceptId }) as SnapshotBuilderDomainCriteria;
     default:
       throw new Error('Criteria not of type range, list, or domain.');
   }
 };
 
-export const convertDatasetAccessRequest = (datasetAccessRequest: DatasetAccessRequest) => {
+export const createDatasetAccessRequest = (
+  name: string,
+  researchPurposeStatement: string,
+  cohorts: Cohort[],
+  conceptSets: SnapshotBuilderDatasetConceptSet[],
+  valueSets: ValueSet[]
+): SnapshotAccessRequestApi => {
   return {
-    name: datasetAccessRequest.name,
-    researchPurposeStatement: datasetAccessRequest.researchPurposeStatement,
+    name,
+    researchPurposeStatement,
     datasetRequest: {
-      cohorts: _.map(convertCohort, datasetAccessRequest.datasetRequest.cohorts),
-      conceptSets: datasetAccessRequest.datasetRequest.conceptSets,
-      valueSets: _.map(convertValueSet, datasetAccessRequest.datasetRequest.valueSets),
+      cohorts: _.map(convertCohort, cohorts),
+      conceptSets,
+      valueSets: _.map(convertValueSet, valueSets),
     },
   };
 };
 
-export type DatasetParticipantCountRequest = {
-  cohorts: Cohort[];
-};
-
-export type DatasetParticipantCountResponse = {
-  result: {
-    total: number;
-  };
-  sql: string;
-};
-
-export const convertDatasetParticipantCountRequest = (request: DatasetParticipantCountRequest) => {
-  return { cohorts: _.map(convertCohort, request.cohorts) };
+export const createSnapshotBuilderCountRequest = (cohort: Cohort[]): SnapshotBuilderCountRequest => {
+  return { cohorts: _.map(convertCohort, cohort) };
 };
 
 export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElement => {

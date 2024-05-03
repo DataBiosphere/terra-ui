@@ -7,9 +7,9 @@ import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
-  DomainCriteria,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
+  ProgramDomainCriteria,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
@@ -99,7 +99,7 @@ describe('CohortEditor', () => {
     const mockDataRepoContract: Partial<DataRepoContract> = {
       dataset: (_datasetId) =>
         ({
-          getCounts: () =>
+          getSnapshotBuilderCount: () =>
             Promise.resolve({
               result: {
                 total: count,
@@ -138,7 +138,7 @@ describe('CohortEditor', () => {
 
   it('renders domain criteria', async () => {
     // Arrange
-    const criteria: DomainCriteria = {
+    const criteria: ProgramDomainCriteria = {
       kind: 'domain',
       conceptId: 0,
       index: 0,

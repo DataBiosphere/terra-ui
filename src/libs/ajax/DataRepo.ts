@@ -1,17 +1,8 @@
 import * as _ from 'lodash/fp';
-import {
-  convertDatasetAccessRequest,
-  convertDatasetParticipantCountRequest,
-  DatasetAccessRequest,
-  DatasetAccessRequestApi,
-  DatasetBuilderType,
-  DatasetParticipantCountRequest,
-  DatasetParticipantCountResponse,
-  GetConceptHierarchyResponse,
-  GetConceptsResponse,
-  SearchConceptsResponse,
-} from 'src/dataset-builder/DatasetBuilderUtils';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
+
+/** API types represent the data of UI types in the format expected by the backend.
+ * They are generally subsets or mappings of the UI types. */
 
 export type SnapshotBuilderConcept = {
   id: number;
@@ -21,8 +12,8 @@ export type SnapshotBuilderConcept = {
   hasChildren: boolean;
 };
 
+/** Program Data Option Types */
 export type SnapshotBuilderOptionTypeNames = 'list' | 'range' | 'domain';
-
 export interface SnapshotBuilderOption {
   kind: SnapshotBuilderOptionTypeNames;
   name: string;
@@ -50,27 +41,18 @@ export interface SnapshotBuilderProgramDataRangeOption extends SnapshotBuilderPr
   min: number;
   max: number;
 }
-
 export interface SnapshotBuilderDomainOption extends SnapshotBuilderOption {
   kind: 'domain';
-  conceptCount?: number;
-  participantCount?: number;
   root: SnapshotBuilderConcept;
+  conceptCount: number;
+  participantCount: number;
 }
 
-export type SnapshotBuilderFeatureValueGroup = {
-  id: number;
+export interface DatasetBuilderType {
   name: string;
-  values: string[];
-};
-
-export interface DomainConceptSet extends ConceptSet {
-  concept: SnapshotBuilderConcept;
 }
 
-export type PrepackagedConceptSet = ConceptSet;
-
-export interface ConceptSet extends DatasetBuilderType {
+export interface SnapshotBuilderDatasetConceptSet extends DatasetBuilderType {
   featureValueGroupName: string;
 }
 
@@ -78,9 +60,73 @@ export type SnapshotBuilderSettings = {
   domainOptions: SnapshotBuilderDomainOption[];
   programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
   featureValueGroups: SnapshotBuilderFeatureValueGroup[];
-  datasetConceptSets?: PrepackagedConceptSet[];
+  datasetConceptSets: SnapshotBuilderDatasetConceptSet[];
 };
 
+/** Criteria */
+export interface SnapshotBuilderCriteria {
+  // This is the ID for either the domain or the program data option
+  id: number;
+  kind: SnapshotBuilderOptionTypeNames;
+}
+
+export interface SnapshotBuilderDomainCriteria extends SnapshotBuilderCriteria {
+  kind: 'domain';
+  // This is the id for the selected concept
+  conceptId: number;
+}
+
+export interface SnapshotBuilderProgramDataRangeCriteria extends SnapshotBuilderCriteria {
+  kind: 'range';
+  low: number;
+  high: number;
+}
+
+export interface SnapshotBuilderProgramDataListCriteria extends SnapshotBuilderCriteria {
+  kind: 'list';
+  values: number[];
+}
+
+export type AnySnapshotBuilderCriteria =
+  | SnapshotBuilderDomainCriteria
+  | SnapshotBuilderProgramDataRangeCriteria
+  | SnapshotBuilderProgramDataListCriteria;
+export interface SnapshotBuilderCriteriaGroup {
+  name: string;
+  criteria: AnySnapshotBuilderCriteria[];
+  mustMeet: boolean;
+  meetAll: boolean;
+}
+
+export interface SnapshotBuilderCohort extends DatasetBuilderType {
+  criteriaGroups: SnapshotBuilderCriteriaGroup[];
+}
+
+export type SnapshotBuilderFeatureValueGroup = {
+  name: string;
+  values: string[];
+};
+
+export type SnapshotBuilderRequest = {
+  cohorts: SnapshotBuilderCohort[];
+  conceptSets: SnapshotBuilderDatasetConceptSet[];
+  valueSets: SnapshotBuilderFeatureValueGroup[];
+};
+
+interface SnapshotDataset {
+  id: string;
+  name: string;
+  secureMonitoringEnabled: boolean;
+}
+
+export interface Snapshot {
+  id: string;
+  name: string;
+  source: { dataset: SnapshotDataset }[];
+  cloudPlatform: 'azure' | 'gcp';
+}
+
+/** Dataset Types */
 export type DatasetModel = {
   id: string;
   name: string;
@@ -111,19 +157,7 @@ export const datasetIncludeTypes: Record<DatasetInclude, DatasetInclude> = {
   SNAPSHOT_BUILDER_SETTINGS: 'SNAPSHOT_BUILDER_SETTINGS',
 };
 
-interface SnapshotDataset {
-  id: string;
-  name: string;
-  secureMonitoringEnabled: boolean;
-}
-
-export interface Snapshot {
-  id: string;
-  name: string;
-  source: { dataset: SnapshotDataset }[];
-  cloudPlatform: 'azure' | 'gcp';
-}
-
+/** Jobs */
 export type JobStatus = 'running' | 'succeeded' | 'failed';
 
 export const jobStatusTypes: Record<JobStatus, JobStatus> = {
@@ -142,15 +176,55 @@ export interface JobModel {
   class_name?: string;
 }
 
+/** Response */
+export interface SnapshotBuilderGetConceptsResponse {
+  result: SnapshotBuilderConcept[];
+}
+export interface SnapshotBuilderGetConceptHierarchyResponse {
+  result: SnapshotBuilderParentConcept[];
+}
+export interface SnapshotBuilderParentConcept {
+  parentId: number;
+  children: SnapshotBuilderConcept[];
+}
+export interface SnapshotAccessRequestResponse {
+  id: string; // uuid
+  datasetId: string; // uuid
+  snapshotId: string; // uuid
+  snapshotName: string;
+  snapshotResearchPurpose: string;
+  snapshotSpecification: SnapshotAccessRequest;
+  createdBy: string;
+  status: JobStatus;
+}
+
+export type SnapshotBuilderCountResponse = {
+  result: {
+    total: number;
+  };
+  sql: string;
+};
+
+/** Requests */
+export type SnapshotBuilderCountRequest = {
+  cohorts: SnapshotBuilderCohort[];
+};
+
+export type SnapshotAccessRequest = {
+  name: string;
+  researchPurposeStatement: string;
+  datasetRequest: SnapshotBuilderRequest;
+};
+
 export interface DataRepoContract {
   dataset: (datasetId: string) => {
     details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
     roles: () => Promise<string[]>;
-    createSnapshotRequest(request: DatasetAccessRequest): Promise<DatasetAccessRequestApi>;
-    getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
-    getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
-    getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<GetConceptHierarchyResponse>;
-    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SearchConceptsResponse>;
+    createSnapshotRequest(request: SnapshotAccessRequest): Promise<SnapshotAccessRequestResponse>;
+    getSnapshotBuilderCount(request: SnapshotBuilderCountRequest): Promise<SnapshotBuilderCountResponse>;
+    getConcepts(parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse>;
+    getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptHierarchyResponse>;
+    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SnapshotBuilderGetConceptsResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
@@ -181,27 +255,21 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
       details: async (include): Promise<DatasetModel> =>
         callDataRepo(`repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`, signal),
       roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
-      createSnapshotRequest: async (request): Promise<DatasetAccessRequestApi> =>
-        callDataRepoPost(
-          `repository/v1/datasets/${datasetId}/snapshotRequests`,
-          signal,
-          convertDatasetAccessRequest(request)
-        ),
-      getCounts: async (request): Promise<DatasetParticipantCountResponse> =>
-        callDataRepoPost(
-          `repository/v1/datasets/${datasetId}/snapshotBuilder/count`,
-          signal,
-          convertDatasetParticipantCountRequest(request)
-        ),
-      getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
+      createSnapshotRequest: async (request: SnapshotAccessRequest): Promise<SnapshotAccessRequestResponse> =>
+        callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotRequests`, signal, request),
+      getSnapshotBuilderCount: async (request: SnapshotBuilderCountRequest): Promise<SnapshotBuilderCountResponse> =>
+        callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotBuilder/count`, signal, request),
+      getConcepts: async (parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse> =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-      searchConcepts: async (domain: SnapshotBuilderConcept, searchText: string): Promise<GetConceptsResponse> => {
-        return callDataRepo(
+      searchConcepts: async (
+        domain: SnapshotBuilderConcept,
+        searchText: string
+      ): Promise<SnapshotBuilderGetConceptsResponse> =>
+        callDataRepo(
           `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${
             domain.id
           }/search?searchText=${encodeURIComponent(searchText)}`
-        );
-      },
+        ),
       getConceptHierarchy: async (concept: SnapshotBuilderConcept) =>
         callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/conceptHierarchy/${concept.id}`),
     };
