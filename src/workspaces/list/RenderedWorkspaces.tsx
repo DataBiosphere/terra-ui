@@ -1,7 +1,6 @@
 import { icon, Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { ReactNode, useContext, useState } from 'react';
-import { div, h, span } from 'react-hyperscript-helpers';
+import React, { ReactNode, useContext, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { Link } from 'src/components/common';
@@ -56,6 +55,55 @@ interface RenderedWorkspacesProps {
   noContent: ReactNode;
 }
 
+const getColumns = (
+  sort: WorkspaceSort,
+  setSort: React.Dispatch<React.SetStateAction<WorkspaceSort>>,
+  sortedWorkspaces: Workspace[]
+) => [
+  {
+    field: 'starred',
+    headerRenderer: () => <div className="sr-only">Starred</div>,
+    cellRenderer: ({ rowIndex }) => <StarCell workspace={sortedWorkspaces[rowIndex]} />,
+    size: { basis: 40, grow: 0, shrink: 0 },
+  },
+  {
+    field: 'name',
+    headerRenderer: () => <HeaderRenderer sort={sort} name="name" onSort={setSort} />,
+    cellRenderer: ({ rowIndex }) => <NameCell workspace={sortedWorkspaces[rowIndex]} />,
+    size: { basis: 400, grow: 2, shrink: 0 },
+  },
+  {
+    field: 'lastModified',
+    headerRenderer: () => <HeaderRenderer sort={sort} name="lastModified" onSort={setSort} />,
+    cellRenderer: ({ rowIndex }) => <LastModifiedCell workspace={sortedWorkspaces[rowIndex]} />,
+    size: { basis: 100, grow: 1, shrink: 0 },
+  },
+  {
+    field: 'createdBy',
+    headerRenderer: () => <HeaderRenderer sort={sort} name="createdBy" onSort={setSort} />,
+    cellRenderer: ({ rowIndex }) => <CreatedByCell workspace={sortedWorkspaces[rowIndex]} />,
+    size: { basis: 200, grow: 1, shrink: 0 },
+  },
+  {
+    field: 'accessLevel',
+    headerRenderer: () => <HeaderRenderer sort={sort} name="accessLevel" onSort={setSort} />,
+    cellRenderer: ({ rowIndex }) => <AccessLevelCell workspace={sortedWorkspaces[rowIndex]} />,
+    size: { basis: 120, grow: 1, shrink: 0 },
+  },
+  {
+    headerRenderer: () => <div className="sr-only">Cloud Platform</div>,
+    cellRenderer: ({ rowIndex }) => <CloudPlatformCell workspace={sortedWorkspaces[rowIndex]} />,
+    size: { basis: 30, grow: 0, shrink: 0 },
+  },
+  {
+    headerRenderer: () => <div className="sr-only">Actions</div>,
+    cellRenderer: ({ rowIndex }) => (
+      <ActionsCell workspace={sortedWorkspaces[rowIndex]} workspaces={sortedWorkspaces} />
+    ),
+    size: { basis: 30, grow: 0, shrink: 0 },
+  },
+];
+
 export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode => {
   const { workspaces } = props;
   const {
@@ -64,8 +112,6 @@ export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode =>
   const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces);
 
   const [sort, setSort] = useState<WorkspaceSort>({ field: 'lastModified', direction: 'desc' });
-
-  const makeHeaderRenderer = (name: string) => () => h(HeaderRenderer, { sort, name, onSort: setSort });
 
   const sortedWorkspaces = _.orderBy(
     [
@@ -78,83 +124,39 @@ export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode =>
     workspaces
   );
 
-  return div({ style: { flex: 1, backgroundColor: 'white', padding: '0 1rem' } }, [
-    h(AutoSizer, [
-      ({ width, height }) =>
-        h(FlexTable, {
-          'aria-label': props.label,
-          width,
-          height,
-          rowCount: sortedWorkspaces.length,
-          noContentRenderer: () => props.noContent,
-          variant: 'light',
-          rowHeight: 70,
-          // @ts-expect-error
-          sort,
-          columns: [
-            {
-              field: 'starred',
-              headerRenderer: () => div({ className: 'sr-only' }, ['Starred']),
-              cellRenderer: ({ rowIndex }) => h(StarCell, { workspace: sortedWorkspaces[rowIndex] }),
-              size: { basis: 40, grow: 0, shrink: 0 },
-            },
-            {
-              field: 'name',
-              headerRenderer: makeHeaderRenderer('name'),
-              cellRenderer: ({ rowIndex }) => h(NameCell, { workspace: sortedWorkspaces[rowIndex] }),
-              size: { basis: 400, grow: 2, shrink: 0 },
-            },
-            {
-              field: 'lastModified',
-              headerRenderer: makeHeaderRenderer('lastModified'),
-              cellRenderer: ({ rowIndex }) => h(LastModifiedCell, { workspace: sortedWorkspaces[rowIndex] }),
-              size: { basis: 100, grow: 1, shrink: 0 },
-            },
-            {
-              field: 'createdBy',
-              headerRenderer: makeHeaderRenderer('createdBy'),
-              cellRenderer: ({ rowIndex }) => h(CreatedByCell, { workspace: sortedWorkspaces[rowIndex] }),
-              size: { basis: 200, grow: 1, shrink: 0 },
-            },
-            {
-              field: 'accessLevel',
-              headerRenderer: makeHeaderRenderer('accessLevel'),
-              cellRenderer: ({ rowIndex }) => h(AccessLevelCell, { workspace: sortedWorkspaces[rowIndex] }),
-              size: { basis: 120, grow: 1, shrink: 0 },
-            },
-            {
-              headerRenderer: () => div({ className: 'sr-only' }, ['Cloud Platform']),
-              cellRenderer: ({ rowIndex }) => h(CloudPlatformCell, { workspace: sortedWorkspaces[rowIndex] }),
-              size: { basis: 30, grow: 0, shrink: 0 },
-            },
-            {
-              headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
-              cellRenderer: ({ rowIndex }) =>
-                h(ActionsCell, { workspace: sortedWorkspaces[rowIndex], workspaces: sortedWorkspaces }),
-              size: { basis: 30, grow: 0, shrink: 0 },
-            },
-          ],
-        }),
-    ]),
-  ]);
+  const columns = getColumns(sort, setSort, sortedWorkspaces);
+
+  return (
+    <div style={{ flex: 1, backgroundColor: 'white', padding: '0 1rem' }}>
+      <AutoSizer>
+        {({ width, height }) => (
+          <FlexTable
+            aria-label={props.label}
+            width={width}
+            height={height}
+            rowCount={sortedWorkspaces.length}
+            noContentRenderer={() => props.noContent}
+            variant="light"
+            rowHeight={70}
+            // @ts-expect-error
+            sort={sort}
+            columns={columns}
+          />
+        )}
+      </AutoSizer>
+    </div>
+  );
 };
 
 interface CellProps {
   workspace: Workspace;
 }
 
-const StarCell = (props: CellProps): ReactNode =>
-  div(
-    {
-      style: {
-        ...styles.tableCellContainer,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '0.5rem 0',
-      },
-    },
-    [h(WorkspaceStarControl, { workspace: props.workspace })]
-  );
+const StarCell = (props: CellProps): ReactNode => (
+  <div style={{ ...styles.tableCellContainer, justifyContent: 'center', alignItems: 'center', padding: '0.5rem 0' }}>
+    <WorkspaceStarControl workspace={props.workspace} />
+  </div>
+);
 
 const NameCell = (props: CellProps): ReactNode => {
   const {
@@ -168,52 +170,52 @@ const NameCell = (props: CellProps): ReactNode => {
   const canAccessWorkspace = () =>
     !canView ? setUserActions({ requestingAccessWorkspaceId: workspaceId }) : undefined;
 
-  return div({ style: styles.tableCellContainer }, [
-    div({ style: styles.tableCellContent }, [
-      h(
-        Link,
-        {
-          'aria-haspopup': canView ? undefined : 'dialog',
-          style: {
+  return (
+    <div style={styles.tableCellContainer}>
+      <div style={styles.tableCellContent}>
+        <Link
+          aria-haspopup={canView ? undefined : 'dialog'}
+          style={{
             ...(canView ? {} : { color: colors.dark(0.8), fontStyle: 'italic' }),
             fontWeight: 600,
             fontSize: 16,
             ...Style.noWrapEllipsis,
-          },
-          href: canView ? getLink('workspace-dashboard', { namespace, name }) : undefined,
-          onClick: () => {
+          }}
+          href={canView ? getLink('workspace-dashboard', { namespace, name }) : undefined}
+          onClick={() => {
             canAccessWorkspace();
             !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, extractWorkspaceDetails(workspace));
-          },
-          tooltip:
-            !canView && 'You do not have access to this workspace. Select the workspace to learn about gaining access.',
-          tooltipSide: 'right',
-          disabled: workspace.state === 'Deleted',
-        },
-        [name]
-      ),
-    ]),
-    h(WorkspaceStateCell, props),
-  ]);
+          }}
+          tooltip={
+            !canView && 'You do not have access to this workspace. Select the workspace to learn about gaining access.'
+          }
+          tooltipSide="right"
+          disabled={workspace.state === 'Deleted'}
+        >
+          name
+        </Link>
+      </div>
+      <WorkspaceStateCell {...props} />
+    </div>
+  );
 };
 
-const WorkspaceDescriptionCell = (props: { description: unknown | undefined }) => {
-  return div({ style: { ...styles.tableCellContent } }, [
-    h(
-      FirstParagraphMarkdownViewer,
-      {
-        style: {
-          height: '1.5rem',
-          margin: 0,
-          ...Style.noWrapEllipsis,
-          color: props.description ? undefined : colors.dark(0.75),
-          fontSize: 14,
-        },
-      },
-      [props.description?.toString() || 'No description added']
-    ),
-  ]);
-};
+const WorkspaceDescriptionCell = (props: { description: unknown | undefined }) => (
+  <div style={styles.tableCellContent}>
+    <FirstParagraphMarkdownViewer
+      style={{
+        height: '1.5rem',
+        margin: 0,
+        ...Style.noWrapEllipsis,
+        color: props.description ? undefined : colors.dark(0.75),
+        fontSize: 14,
+      }}
+      renderers={{}} // needed to make typechecker work, because FirstParagraphMarkdownViewer is not typed
+    >
+      {props.description?.toString() || 'No description added'}
+    </FirstParagraphMarkdownViewer>
+  </div>
+);
 
 const WorkspaceStateCell = (props: CellProps): ReactNode => {
   const {
@@ -224,19 +226,19 @@ const WorkspaceStateCell = (props: CellProps): ReactNode => {
   const errorMessage = workspace.errorMessage;
   switch (state) {
     case 'Deleting':
-      return h(WorkspaceDeletingCell);
+      return <WorkspaceDeletingCell />;
     case 'DeleteFailed':
-      return h(WorkspaceFailedCell, { state: 'DeleteFailed', errorMessage });
+      return <WorkspaceFailedCell state={state} errorMessage={errorMessage} />;
     case 'Deleted':
-      return h(WorkspaceDeletedCell);
+      return <WorkspaceDeletedCell />;
     case 'Cloning':
-      return h(WorkspaceCloningCell);
+      return <WorkspaceCloningCell />;
     case 'CloningContainer':
-      return h(WorkspaceCloningCell);
+      return <WorkspaceCloningCell />;
     case 'CloningFailed':
-      return h(WorkspaceFailedCell, { state: 'CloningFailed', errorMessage });
+      return <WorkspaceFailedCell state="CloningFailed" errorMessage={errorMessage} />;
     default:
-      return h(WorkspaceDescriptionCell, { description });
+      return <WorkspaceDescriptionCell description={description} />;
   }
 };
 
@@ -248,13 +250,11 @@ const WorkspaceDeletingCell = (): ReactNode => {
       marginRight: '0.5rem',
     },
   });
-  return div(
-    {
-      style: {
-        color: colors.danger(),
-      },
-    },
-    [deletingIcon, 'Workspace deletion in progress']
+  return (
+    <div style={{ color: colors.danger() }}>
+      {deletingIcon}
+      Workspace deletion in progress
+    </div>
   );
 };
 
@@ -266,13 +266,11 @@ const WorkspaceCloningCell = (): ReactNode => {
       marginRight: '0.5rem',
     },
   });
-  return div(
-    {
-      style: {
-        color: colors.success(),
-      },
-    },
-    [deletingIcon, 'Workspace cloning in progress']
+  return (
+    <div style={{ color: colors.success() }}>
+      {deletingIcon}
+      Workspace cloning in progress
+    </div>
   );
 };
 
@@ -284,7 +282,7 @@ interface WorkspaceFailedCellProps {
 const WorkspaceFailedCell = (props: WorkspaceFailedCellProps): ReactNode => {
   const [showDetails, setShowDetails] = useState<boolean>(false);
 
-  const failureOperation = props.state === 'DeleteFailed' ? 'deleting' : 'cloning';
+  const failureOperationMsg = props.state === 'DeleteFailed' ? 'Error deleting workspace' : 'Error cloning workspace';
 
   const errorIcon = icon('warning-standard', {
     size: 18,
@@ -293,90 +291,70 @@ const WorkspaceFailedCell = (props: WorkspaceFailedCellProps): ReactNode => {
       marginRight: '0.5rem',
     },
   });
-  return div(
-    {
-      style: {
-        color: colors.danger(),
-      },
-    },
-    [
-      errorIcon,
-      `Error ${failureOperation} workspace`,
-      props.errorMessage
-        ? h(
-            Link,
-            {
-              onClick: () => setShowDetails(true),
-              style: { fontSize: 14, marginRight: '0.5rem', marginLeft: '0.5rem' },
-            },
-            ['See error details.']
-          )
-        : null,
-      showDetails
-        ? h(
-            Modal,
-            {
-              width: 800,
-              title: `Error ${failureOperation} workspace`,
-              showCancel: false,
-              showX: true,
-              onDismiss: () => setShowDetails(false),
-            },
-            [h(ErrorView, { error: props.errorMessage ?? 'No error message available' })]
-          )
-        : null,
-    ]
+  return (
+    <div style={{ color: colors.danger() }}>
+      {errorIcon}
+      {failureOperationMsg}
+      {props.errorMessage ? (
+        // eslint-disable-next-line jsx-a11y/anchor-is-valid
+        <Link
+          onClick={() => setShowDetails(true)}
+          style={{ fontSize: 14, marginRight: '0.5rem', marginLeft: '0.5rem' }}
+        >
+          See error details.
+        </Link>
+      ) : null}
+      {showDetails ? (
+        <Modal width={800} title={failureOperationMsg} showCancel={false} showX onDismiss={() => setShowDetails(false)}>
+          <ErrorView error={props.errorMessage ?? 'No error message available'} />
+        </Modal>
+      ) : null}
+      ,
+    </div>
   );
 };
 
-const WorkspaceDeletedCell = (): ReactNode =>
-  div(
-    {
-      style: {
-        color: colors.danger(),
-      },
-    },
-    ['Workspace has been deleted. Refresh to remove from list.']
-  );
+const WorkspaceDeletedCell = (): ReactNode => (
+  <div style={{ color: colors.danger() }}>Workspace has been deleted. Refresh to remove from list.</div>
+);
 
 const LastModifiedCell = (props: CellProps): ReactNode => {
   const {
     workspace: { lastModified },
   } = props.workspace;
-
-  return div({ style: styles.tableCellContainer }, [
-    div({ style: styles.tableCellContent }, [
-      h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-        div([Utils.makeStandardDate(lastModified)]),
-      ]),
-    ]),
-  ]);
+  return (
+    <div style={styles.tableCellContainer}>
+      <div style={styles.tableCellContent}>
+        <TooltipTrigger content={Utils.makeCompleteDate(lastModified)}>
+          <div>{Utils.makeStandardDate(lastModified)}</div>
+        </TooltipTrigger>
+      </div>
+    </div>
+  );
 };
 
-const CreatedByCell = (props: CellProps): ReactNode => {
-  const {
-    workspace: { createdBy },
-  } = props.workspace;
+const CreatedByCell = (props: CellProps): ReactNode => (
+  <div style={styles.tableCellContainer}>
+    <div style={styles.tableCellContent}>
+      <span style={Style.noWrapEllipsis}>{props.workspace.workspace.createdBy}</span>
+    </div>
+  </div>
+);
 
-  return div({ style: styles.tableCellContainer }, [
-    div({ style: styles.tableCellContent }, [span({ style: Style.noWrapEllipsis }, [createdBy])]),
-  ]);
-};
-
-const AccessLevelCell = (props: CellProps): ReactNode => {
-  const { accessLevel } = props.workspace;
-
-  return div({ style: styles.tableCellContainer }, [
-    div({ style: styles.tableCellContent }, [Utils.normalizeLabel(accessLevel)]),
-  ]);
-};
+const AccessLevelCell = (props: CellProps): ReactNode => (
+  <div style={styles.tableCellContainer}>
+    <div style={styles.tableCellContent}>{Utils.normalizeLabel(props.workspace.accessLevel)}</div>
+  </div>
+);
 
 const CloudPlatformCell = (props: CellProps): ReactNode => {
-  return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
-    div({ style: styles.tableCellContent }, [
-      h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(props.workspace) }),
-    ]),
-  ]);
+  return (
+    <div style={{ ...styles.tableCellContainer, paddingRight: 0 }}>
+      <div style={styles.tableCellContent}>
+        <CloudProviderIcon cloudProvider={getCloudProviderFromWorkspace(props.workspace)} />
+      </div>
+    </div>
+  );
 };
 
 interface ActionsCellProps extends CellProps {
@@ -392,7 +370,7 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
 
   if (!canRead(accessLevel)) {
     // No menu shown if user does not have read access.
-    return div({ className: 'sr-only' }, ['You do not have permission to perform actions on this workspace.']);
+    return <div className="sr-only">You do not have permission to perform actions on this workspace.</div>;
   }
   if (state === 'Deleted') {
     return null;
@@ -432,14 +410,16 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
     setUserActions({ sharingWorkspace: extendWorkspace(workspaceId, policies, bucketName) });
   const onLeave = () => setUserActions({ leavingWorkspaceId: workspaceId });
 
-  return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
-    div({ style: styles.tableCellContent }, [
-      h(WorkspaceMenu, {
-        iconSize: 20,
-        popupLocation: 'left',
-        callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-        workspaceInfo: { namespace, name },
-      }),
-    ]),
-  ]);
+  return (
+    <div style={{ ...styles.tableCellContainer, paddingRight: 0 }}>
+      <div style={styles.tableCellContent}>
+        <WorkspaceMenu
+          iconSize={20}
+          popupLocation="left"
+          callbacks={{ onClone, onShare, onLock, onDelete, onLeave }}
+          workspaceInfo={{ namespace, name }}
+        />
+      </div>
+    </div>
+  );
 };
