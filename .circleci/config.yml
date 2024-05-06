@@ -235,6 +235,7 @@ jobs:
             if [[ $(git ls-files .yarn/cache --exclude-standard --others) ]]; then
               echo "Changes to Yarn cache need to be committed" 1>&2
               echo "To resolve this, checkout this branch, run yarn, and commit any untracked files in .yarn/cache" 1>&2
+              git ls-files .yarn/cache --exclude-standard --others 1>&2
               exit 1
             fi
       - run: yarn run build
