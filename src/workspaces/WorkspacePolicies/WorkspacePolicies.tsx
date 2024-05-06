@@ -6,7 +6,7 @@ import { BillingProject } from 'src/billing-core/models';
 import { Checkbox, LabeledCheckbox } from 'src/components/common';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
-import { getPolicyDescriptions, phiTrackingLabel, WorkspaceWrapper } from 'src/workspaces/utils';
+import { getPolicyDescriptions, isAzureWorkspace, phiTrackingLabel, WorkspaceWrapper } from 'src/workspaces/utils';
 import { LinkWithPopout } from 'src/workspaces/WorkspacePolicies/LinkWithPopout';
 
 export type WorkspacePoliciesProps = {
@@ -20,6 +20,10 @@ export type WorkspacePoliciesProps = {
 
 export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
   const policyDescriptions = getPolicyDescriptions(props.workspace, props.billingProject);
+  const policyHref =
+    (!!props.workspace && isAzureWorkspace(props.workspace)) || props.billingProject?.cloudPlatform === 'AZURE'
+      ? 'https://support.terra.bio/hc/en-us/articles/21329019108635-Host-FISMA-data-on-FedRAMP-moderate-Terra-Azure'
+      : 'https://support.terra.bio/hc/en-us/articles/360026775691-Overview-Managing-access-to-controlled-data-with-Authorization-Domains';
   const [phiTracking, setPhiTracking] = useState(!!props.togglePhiTrackingChecked);
 
   const description = 'Security and controls on this workspace:';
@@ -39,9 +43,7 @@ export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
             <div style={{}} id={`description-${id}`}>
               {description}
             </div>
-            <LinkWithPopout href="https://support.terra.bio/hc/en-us/articles/21329019108635-Host-FISMA-data-on-FedRAMP-moderate-Terra-Azure">
-              Learn more about Terra security
-            </LinkWithPopout>
+            <LinkWithPopout href={policyHref}>Learn more about Terra security</LinkWithPopout>
           </div>
         </div>
         <div

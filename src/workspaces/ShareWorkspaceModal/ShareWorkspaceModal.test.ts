@@ -5,7 +5,12 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getTerraUser } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
-import { defaultAzureWorkspace, defaultGoogleWorkspace, protectedAzureWorkspace } from 'src/testing/workspace-fixtures';
+import {
+  defaultAzureWorkspace,
+  defaultGoogleWorkspace,
+  protectedAzureWorkspace,
+  protectedGoogleWorkspace,
+} from 'src/testing/workspace-fixtures';
 import { AccessEntry, RawWorkspaceAcl } from 'src/workspaces/acl-utils';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
 import { GoogleWorkspace } from 'src/workspaces/utils';
@@ -203,15 +208,13 @@ describe('the share workspace modal', () => {
       screen.getByText(policyTitle);
     });
 
-    it('shows a policy section without the Policies title for GCP workspaces that have them', async () => {
+    it('shows a policy section for GCP workspaces that have them', async () => {
       mockAjax({}, [], [], jest.fn());
-      const protectedWorkspace = { ...defaultGoogleWorkspace };
-      protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
       await act(async () => {
         render(
           h(ShareWorkspaceModal, {
             onDismiss: jest.fn(),
-            workspace: protectedWorkspace,
+            workspace: protectedGoogleWorkspace,
           })
         );
       });

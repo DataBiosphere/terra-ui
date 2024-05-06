@@ -13,6 +13,7 @@ import {
   groupConstraintPolicy,
   protectedAzureWorkspace,
   protectedDataPolicy,
+  protectedGoogleWorkspace,
   regionConstraintPolicy,
 } from 'src/testing/workspace-fixtures';
 import {
@@ -141,14 +142,45 @@ describe('WorkspacePolicies', () => {
     });
   });
 
-  describe('has a consistent display', () => {
-    it('renders a label and link about policies', async () => {
+  describe('displays general information about security/policies', () => {
+    const policyLinkText = 'Learn more about Terra security';
+    const azurePolicyHref = '21329019108635-Host-FISMA-data-on-FedRAMP-moderate-Terra-Azure';
+
+    it('renders a title', async () => {
       // Act
       render(<WorkspacePolicies workspace={protectedAzureWorkspace} />);
 
       // Assert
       expect(screen.getAllByText('Security and controls on this workspace:')).not.toBeNull();
-      expect(screen.getByRole('link', { name: 'Learn more about Terra security' })).not.toBeNull();
+    });
+
+    it('renders a link with Azure security information for Azure billing projects', async () => {
+      // Act
+      render(<WorkspacePolicies billingProject={azureProtectedDataBillingProject} />);
+
+      // Assert
+      const link = screen.getByRole('link', { name: policyLinkText });
+      expect(link.getAttribute('href')).toContain(azurePolicyHref);
+    });
+
+    it('renders a link with Azure security information for Azure workspaces', async () => {
+      // Act
+      render(<WorkspacePolicies workspace={protectedAzureWorkspace} />);
+
+      // Assert
+      const link = screen.getByRole('link', { name: policyLinkText });
+      expect(link.getAttribute('href')).toContain(azurePolicyHref);
+    });
+
+    it('renders a link with auth domain information for Gcp protected workspaces', async () => {
+      // Act
+      render(<WorkspacePolicies workspace={protectedGoogleWorkspace} />);
+
+      // Assert
+      const link = screen.getByRole('link', { name: policyLinkText });
+      expect(link.getAttribute('href')).toContain(
+        '360026775691-Overview-Managing-access-to-controlled-data-with-Authorization-Domains'
+      );
     });
   });
 
