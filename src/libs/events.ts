@@ -3,6 +3,7 @@ import { ReactNode, useEffect } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { useRoute } from 'src/libs/nav';
 import {
+  containsPhiTrackingPolicy,
   containsProtectedDataPolicy,
   WorkspaceAccessLevel,
   WorkspaceInfo,
@@ -206,6 +207,7 @@ export interface EventWorkspaceDetails {
   workspaceName: string;
   cloudPlatform?: string;
   hasProtectedData?: boolean;
+  hasPhiTracking?: boolean;
   workspaceAccessLevel?: WorkspaceAccessLevel;
 }
 
@@ -224,6 +226,8 @@ export const extractWorkspaceDetails = (workspaceObject: EventWorkspaceAttribute
   // For other types of input, whether the workspace has protected data is unknown.
   const hasProtectedData =
     'policies' in workspaceObject ? containsProtectedDataPolicy(workspaceObject.policies) : undefined;
+  const hasPhiTracking =
+    'policies' in workspaceObject ? containsPhiTrackingPolicy(workspaceObject.policies) : undefined;
 
   return {
     workspaceNamespace: namespace,
@@ -231,6 +235,7 @@ export const extractWorkspaceDetails = (workspaceObject: EventWorkspaceAttribute
     workspaceAccessLevel: accessLevel,
     cloudPlatform: cloudPlatform ? cloudPlatform.toUpperCase() : undefined,
     hasProtectedData,
+    hasPhiTracking,
   };
 };
 
