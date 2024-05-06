@@ -446,7 +446,7 @@ describe('NewWorkspaceModal', () => {
 
   describe('decides when to show a policy section ', () => {
     const policyTitle = 'Security and controls on this workspace:';
-    it('Shows a policy section when cloning an Azure workspace with polices', async () => {
+    it('Shows a policy section when cloning an Azure workspace with policies', async () => {
       setup({ billingProjects: [azureProtectedDataBillingProject] });
 
       // Act

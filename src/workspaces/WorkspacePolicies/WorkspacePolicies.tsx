@@ -39,10 +39,8 @@ export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
       <div style={{ ...Style.elements.noticeContainer }}>
         <div style={{ fontWeight: 600, display: 'grid', gridTemplateColumns: 'min-content auto' }}>
           {icon('shieldCheck', { size: 18, style: { marginRight: '0.5rem', verticalAlign: 'text-bottom' } })}
-          <div style={{}}>
-            <div style={{}} id={`list-title-${id}`}>
-              {listTitle}
-            </div>
+          <div>
+            <div id={`list-title-${id}`}>{listTitle}</div>
             <LinkWithPopout href={policyHref}>Learn more about Terra security</LinkWithPopout>
           </div>
         </div>
