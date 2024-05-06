@@ -161,3 +161,12 @@ export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, subm
     h3({ style: Style.elements.sectionHeader }, [`Workflow ${workflowId}`]),
   ]);
 };
+
+export const getTaskCost = (vmCost, startTime, endTime) => {
+  const currentEndTime = Date.parse(endTime) || Date.now();
+  const vmCostDouble = parseFloat(vmCost);
+  const startDateTime = Date.parse(startTime);
+
+  const elapsedTime = currentEndTime - startDateTime;
+  return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2));
+};

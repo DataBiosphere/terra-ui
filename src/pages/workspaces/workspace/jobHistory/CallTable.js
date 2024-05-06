@@ -5,7 +5,7 @@ import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
+import { getTaskCost, makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
 import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
@@ -130,7 +130,6 @@ const CallTable = ({
   workflowId,
   failedTasks,
   isAzure,
-  setTaskCostTotal,
 }) => {
   const [failuresModalParams, setFailuresModalParams] = useState();
   const [wizardSelection, setWizardSelection] = useState();
@@ -140,7 +139,6 @@ const CallTable = ({
   // NOTE: workflowPath is used to load the workflow in the explorer, implement after the table update is confirmed to be working
   const [workflowPath, setWorkflowPath] = useState([{ id: workflowId, workflowName }]);
   const [searchText, setSearchText] = useState('');
-  const [taskCost, setTaskCost] = useState(0);
   const filteredCallObjects = useMemo(() => {
     return filterCallObjectsFn(searchText, sort, statusFilter)(tableData);
   }, [searchText, sort, statusFilter, tableData]);
@@ -150,29 +148,6 @@ const CallTable = ({
       setStatusFilter(['Failed']);
     }
   }, [defaultFailedFilter]);
-
-  useEffect(() => {
-    setTaskCostTotal(taskCost);
-  }, [setTaskCostTotal, taskCost]);
-
-  const calculateTotalCost = (endTime) => {
-    let total = 0;
-    filteredCallObjects.forEach((call) => {
-      if (call?.vmCostUsd && call?.taskStartTime) {
-        total += getTaskCost(call?.vmCostUsd, call?.taskStartTime, endTime);
-      }
-    });
-    setTaskCost(total);
-  };
-
-  const getTaskCost = (vmCost, startTime, endTime) => {
-    const currentEndTime = Date.parse(endTime) || Date.now();
-    const vmCostDouble = parseFloat(vmCost);
-    const startDateTime = Date.parse(startTime);
-
-    const elapsedTime = currentEndTime - startDateTime;
-    return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2));
-  };
 
   const statusListObjects = useMemo(() => {
     const statusSet = {};
@@ -392,13 +367,10 @@ const CallTable = ({
                       if (taskStartTime && vmCostUsd) {
                         if (executionStatus === 'Running') {
                           const cost = getTaskCost(vmCostUsd, taskStartTime);
-                          calculateTotalCost();
                           return div({}, [`In Progress - $${cost}`]);
                         }
                         if (executionStatus === 'Done') {
                           const cost = getTaskCost(vmCostUsd, taskStartTime, taskEndTime);
-                          setTaskCost(taskCost + cost);
-                          calculateTotalCost(taskEndTime);
                           return div({}, [`$${cost}`]);
                         }
                       } else {
