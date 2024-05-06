@@ -73,7 +73,7 @@
     "check-dts": "check-dts types/**/*.ts",
     "check-types": "yarn workspaces foreach run check-dts",
     "serve": "vite preview",
-    "start": "yarn build-packages >/dev/null && yarn save-build-info && vite",
+    "start": "./start.sh",
     "postinstall": "husky install",
     "save-build-info": "echo \\{\\\"gitRevision\\\": \\\"$(git rev-parse HEAD)\\\", \\\"buildTimestamp\\\": $(date -u '+%s000')\\} > public/build-info.json",
     "storybook": "storybook dev -p 6006",
