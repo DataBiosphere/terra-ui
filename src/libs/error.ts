@@ -1,4 +1,4 @@
-import { IgnoreErrorDecider, makeNotificationsContract, Notifier } from '@terra-ui-packages/notifications';
+import { IgnoreErrorDecider, makeNotificationsProvider, Notifier } from '@terra-ui-packages/notifications';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { notify } from 'src/libs/notifications';
 
@@ -14,11 +14,16 @@ const notifier: Notifier = {
   notify,
 };
 
-export const terraUIReporter = makeNotificationsContract(notifier, ignoreSessionTimeout);
+export const terraUINotifications = makeNotificationsProvider(notifier, ignoreSessionTimeout);
 
 // provide backwards compatible fail-safes for existing code that is not yet ready for code-reuse
 
-export const reportError = terraUIReporter.reportError;
-export const reportErrorAndRethrow = terraUIReporter.reportErrorAndRethrow;
-export const withErrorReportingInModal = terraUIReporter.withErrorReportingInModal;
-export const withErrorReporting = terraUIReporter.withErrorReporting;
+export const reportError = terraUINotifications.reportError;
+
+export const reportErrorAndRethrow = (title: string) =>
+  terraUINotifications.withErrorReporting(title, { rethrow: true });
+
+export const withErrorReportingInModal = (title: string, onDismiss: () => void) =>
+  terraUINotifications.withErrorReporting(title, { rethrow: true, onReported: onDismiss });
+
+export const withErrorReporting = terraUINotifications.withErrorReporting;

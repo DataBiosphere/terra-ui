@@ -1,7 +1,7 @@
 import { Theme, ThemeProvider } from '@terra-ui-packages/components';
 import {
-  makeNotificationsContract,
-  NotificationsContract,
+  makeNotificationsProvider,
+  NotificationsContextProvider,
   NotificationsProvider,
   Notifier,
 } from '@terra-ui-packages/notifications';
@@ -39,11 +39,11 @@ const mockNotifier: Notifier = {
   notify: jest.fn(),
 };
 
-export const mockNotifications: NotificationsContract = makeNotificationsContract(mockNotifier, () => false);
+export const mockNotifications: NotificationsProvider = makeNotificationsProvider(mockNotifier, () => false);
 
 const AppProviders = ({ children }: PropsWithChildren<{}>): ReactElement => {
   return h(ThemeProvider, { theme: testTheme }, [
-    h(NotificationsProvider, { notifications: mockNotifications }, [children]),
+    h(NotificationsContextProvider, { notifications: mockNotifications }, [children]),
   ]);
 };
 

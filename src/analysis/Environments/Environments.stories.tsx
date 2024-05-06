@@ -1,7 +1,7 @@
 import { action } from '@storybook/addon-actions';
 import type { Meta, StoryObj } from '@storybook/react';
 import { atom, delay } from '@terra-ui-packages/core-utils';
-import { makeNotificationsContract, NotificationsProvider, Notifier } from '@terra-ui-packages/notifications';
+import { makeNotificationsProvider, NotificationsContextProvider, Notifier } from '@terra-ui-packages/notifications';
 import React, { useEffect, useState } from 'react';
 import {
   azureRuntime,
@@ -127,7 +127,7 @@ const getMockNav = (): EnvironmentsProps['nav'] => ({
 const mockNotifier: Notifier = {
   notify: actionLogAsyncFn('Notifications.notify'),
 };
-const mockNotifications = makeNotificationsContract(mockNotifier, () => false);
+const mockNotifications = makeNotificationsProvider(mockNotifier, () => false);
 
 const happyPermissions: LeoResourcePermissionsProvider = {
   canDeleteDisk: () => true,
@@ -145,7 +145,7 @@ export const HappyEnvironments: Story = {
         disksStore.set([generateTestDiskWithGoogleWorkspace()]);
       }, []);
       return (
-        <NotificationsProvider notifications={mockNotifications}>
+        <NotificationsContextProvider notifications={mockNotifications}>
           <Environments
             nav={getMockNav()}
             useWorkspaces={getMockUseWorkspaces([defaultGoogleWorkspace, defaultAzureWorkspace])}
@@ -155,7 +155,7 @@ export const HappyEnvironments: Story = {
             permissions={happyPermissions}
             onEvent={actionLogFn('onEvent')}
           />
-        </NotificationsProvider>
+        </NotificationsContextProvider>
       );
     };
     return <StoryWrapper />;
@@ -171,7 +171,7 @@ export const NoEnvironments: Story = {
         disksStore.set([]);
       }, []);
       return (
-        <NotificationsProvider notifications={mockNotifications}>
+        <NotificationsContextProvider notifications={mockNotifications}>
           <Environments
             nav={getMockNav()}
             useWorkspaces={getMockUseWorkspaces([defaultGoogleWorkspace, defaultAzureWorkspace])}
@@ -181,7 +181,7 @@ export const NoEnvironments: Story = {
             permissions={happyPermissions}
             onEvent={actionLogFn('onEvent')}
           />
-        </NotificationsProvider>
+        </NotificationsContextProvider>
       );
     };
     return <StoryWrapper />;
@@ -197,7 +197,7 @@ export const DeleteError: Story = {
         disksStore.set([generateTestDiskWithGoogleWorkspace()]);
       }, []);
       return (
-        <NotificationsProvider notifications={mockNotifications}>
+        <NotificationsContextProvider notifications={mockNotifications}>
           <Environments
             nav={getMockNav()}
             useWorkspaces={getMockUseWorkspaces([defaultGoogleWorkspace, defaultAzureWorkspace])}
@@ -210,7 +210,7 @@ export const DeleteError: Story = {
             permissions={happyPermissions}
             onEvent={actionLogFn('onEvent')}
           />
-        </NotificationsProvider>
+        </NotificationsContextProvider>
       );
     };
     return <StoryWrapper />;

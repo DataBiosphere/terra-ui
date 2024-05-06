@@ -1,4 +1,4 @@
-import { IgnoreErrorDecider, makeNotificationsContract } from './error';
+import { IgnoreErrorDecider, makeNotificationsProvider } from './error';
 import { Notifier } from './useNotifications';
 
 const mockNotifications: Notifier = {
@@ -12,7 +12,7 @@ describe('reportError', () => {
   it('calls notify and console.error', async () => {
     // Arrange
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { reportError } = makeNotificationsContract(mockNotifications, ignoreError);
+    const { reportError } = makeNotificationsProvider(mockNotifications, ignoreError);
 
     // Act
     await reportError('Things went BOOM', new Error('BOOM!'));
@@ -25,10 +25,10 @@ describe('reportError', () => {
     expect(console.error).toBeCalledWith('Things went BOOM', expectedError);
   });
 
-  it('ignores session timeout error', async () => {
+  it('ignores error when ignore-checker is given', async () => {
     // Arrange
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { reportError } = makeNotificationsContract(mockNotifications, ignoreError);
+    const { reportError } = makeNotificationsProvider(mockNotifications, ignoreError);
 
     // Act
     await reportError('Ignore Me', new Error('I cried wolf.'));
@@ -40,12 +40,12 @@ describe('reportError', () => {
   });
 });
 
-describe('reportErrorAndRethrow', () => {
+describe('withErrorReporting (and rethrow)', () => {
   it('calls notify and rethrows error', async () => {
     // Arrange
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { reportErrorAndRethrow } = makeNotificationsContract(mockNotifications, ignoreError);
-    const callMe = reportErrorAndRethrow('Things went BOOM')(async () => {
+    const { withErrorReporting } = makeNotificationsProvider(mockNotifications, ignoreError);
+    const callMe = withErrorReporting('Things went BOOM', { rethrow: true })(async () => {
       throw new Error('BOOM!');
     });
     let outerThrow: unknown | null = null;
@@ -68,10 +68,10 @@ describe('reportErrorAndRethrow', () => {
 });
 
 describe('withErrorReporting', () => {
-  it('calls dismiss and notify', async () => {
+  it('calls notify and console.error', async () => {
     // Arrange
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { withErrorReporting } = makeNotificationsContract(mockNotifications, ignoreError);
+    const { withErrorReporting } = makeNotificationsProvider(mockNotifications, ignoreError);
     const callMe = withErrorReporting('Things went BOOM')(async () => {
       throw new Error('BOOM!');
     });
@@ -88,16 +88,15 @@ describe('withErrorReporting', () => {
   });
 });
 
-describe('withErrorReportingInModal', () => {
+describe('withErrorReporting (in modal)', () => {
   it('calls dismiss and notify', async () => {
     // Arrange
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { withErrorReportingInModal } = makeNotificationsContract(mockNotifications, ignoreError);
+    const { withErrorReporting } = makeNotificationsProvider(mockNotifications, ignoreError);
     const onDismiss = jest.fn();
-    const callMe = withErrorReportingInModal(
-      'Things went BOOM',
-      onDismiss
-    )(async () => {
+
+    // have withErrorReporting use args that match commonly desired behavior within a Modal
+    const callMe = withErrorReporting('Things went BOOM', { onReported: onDismiss, rethrow: true })(async () => {
       throw new Error('BOOM!');
     });
     let outerThrow: unknown | null = null;

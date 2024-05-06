@@ -13,33 +13,49 @@ export interface Notifier {
   notify: (type: NotificationType, title: string, options?: NotificationOptions) => void;
 }
 
-export interface NotificationsContract extends Notifier {
-  reportError: (title: string, obj?: unknown) => Promise<void>;
-  reportErrorAndRethrow: <F extends AnyPromiseFn>(title: string) => (fn: F) => F;
-  withErrorReportingInModal: <F extends AnyPromiseFn>(title: string, onDismiss: () => void) => (fn: F) => F;
-  withErrorReporting: <F extends AnyPromiseFn>(title: string) => (fn: F) => F;
+export interface ErrorReportingOptions {
+  rethrow?: boolean; // default: false
+  onReported?: () => void;
 }
 
-const NotificationsContext = createContext<NotificationsContract | null>(null);
+export interface ErrorReporter {
+  /**
+   * Reports the error visually to the user using the app's notification system
+   * @param title - error title
+   * @param obj - an error, response, or arbitrary json-style object
+   */
+  reportError: (title: string, obj?: unknown) => Promise<void>;
 
-export type NotificationsProviderProps = PropsWithChildren<{
-  notifications: NotificationsContract;
+  /**
+   * Returns a function augmenter (HoF).
+   * If provided function fails when called, report the error to the user with `title` as a side effect.
+   * Use options arg to give onReported callback, and/or rethrow on error.
+   */
+  withErrorReporting: <F extends AnyPromiseFn>(title: string, options?: ErrorReportingOptions) => (fn: F) => F;
+}
+
+export interface NotificationsProvider extends Notifier, ErrorReporter {}
+
+const NotificationsContext = createContext<NotificationsProvider | null>(null);
+
+export type NotificationsContextProviderProps = PropsWithChildren<{
+  notifications: NotificationsProvider;
 }>;
 
 export const text = {
   error: {
     noProvider:
-      'No NotificationsProvider provided. Components (or hooks within them) using useNotificationsFromContext must be descendants of NotificationsProvider.',
+      'No NotificationsContextProvider provided. Components (or hooks within them) using useNotificationsFromContext must be descendants of NotificationsContextProvider.',
   },
 };
 
 /** Provides notifications to descendents via React Context. */
-export const NotificationsProvider = (props: NotificationsProviderProps): ReactNode => {
+export const NotificationsContextProvider = (props: NotificationsContextProviderProps): ReactNode => {
   const { children, notifications } = props;
   return createElement(NotificationsContext.Provider, { value: notifications }, children);
 };
-/** Gets the current NotificationsProvider from React context. */
-export const useNotificationsFromContext = (): NotificationsContract => {
+/** Gets the current NotificationsContextProvider from React context. */
+export const useNotificationsFromContext = (): NotificationsProvider => {
   const notifier = useContext(NotificationsContext);
   if (!notifier) {
     throw new Error(text.error.noProvider);

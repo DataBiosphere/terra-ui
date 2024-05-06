@@ -21,13 +21,13 @@ export interface DeleteAppModalProps {
 
 export const DeleteAppModal = (props: DeleteAppModalProps): ReactNode => {
   const { app, onDismiss, onSuccess, deleteProvider } = props;
-  const { withErrorReportingInModal } = useNotificationsFromContext();
+  const { withErrorReporting } = useNotificationsFromContext();
   const [deleteDisk, setDeleteDisk] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { appType } = app;
   const deleteApp = _.flow(
     Utils.withBusyState(setDeleting),
-    withErrorReportingInModal('Error deleting cloud environment', onDismiss)
+    withErrorReporting('Error deleting cloud environment', { rethrow: true, onNotified: onDismiss })
   )(async () => {
     await deleteProvider.delete(app, { deleteDisk });
     onSuccess();
