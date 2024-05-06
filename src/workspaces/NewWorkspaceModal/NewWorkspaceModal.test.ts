@@ -445,8 +445,7 @@ describe('NewWorkspaceModal', () => {
   });
 
   describe('decides when to show a policy section ', () => {
-    const policyTitle = 'Security, controls, and workspace information';
-    const policyLabel = 'Workspace will inherit data protection policies';
+    const policyTitle = 'Security and controls on this workspace:';
     it('Shows a policy section when cloning an Azure workspace with polices', async () => {
       setup({ billingProjects: [azureProtectedDataBillingProject] });
 
@@ -463,7 +462,6 @@ describe('NewWorkspaceModal', () => {
 
       // Assert
       screen.getByText(policyTitle);
-      screen.getByText(policyLabel);
     });
 
     it('Does not show a policy section when cloning an Azure workspace without polices', async () => {
@@ -482,7 +480,6 @@ describe('NewWorkspaceModal', () => {
 
       // Assert
       expect(screen.queryByText(policyTitle)).toBeNull();
-      expect(screen.queryByText(policyLabel)).toBeNull();
     });
 
     it('Does not show a policy section when cloning a protected GCP workspace', async () => {
@@ -505,7 +502,6 @@ describe('NewWorkspaceModal', () => {
 
       // Assert
       expect(screen.queryByText(policyTitle)).toBeNull();
-      expect(screen.queryByText(policyLabel)).toBeNull();
     });
 
     it('Shows a policy section when creating a new workspace from a protected data billing project', async () => {
@@ -530,9 +526,7 @@ describe('NewWorkspaceModal', () => {
 
       // Assert
       screen.getByText(policyTitle);
-      screen.getByText(policyLabel);
-      // Informational links that should render
-      screen.getByRole('link', { name: 'Learn more about policies' });
+      // Informational link about cost.
       screen.getByRole('link', { name: 'Learn more about cost and follow changes' });
       // Billing project is protected but not enterprise.
       expect(screen.queryByText(phiTrackingLabel)).toBeNull();
@@ -557,7 +551,6 @@ describe('NewWorkspaceModal', () => {
 
       // Assert
       expect(screen.queryByText(policyTitle)).toBeNull();
-      expect(screen.queryByText(policyLabel)).toBeNull();
     });
 
     it('Allows toggling PHI tracking from an enterprise protected data billing project if cloned workspace does not have PHI tracking', async () => {

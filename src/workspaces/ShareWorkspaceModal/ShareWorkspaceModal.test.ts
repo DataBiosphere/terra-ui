@@ -189,7 +189,7 @@ describe('the share workspace modal', () => {
   });
 
   describe('the policy section for sharing workspaces', () => {
-    const policyLabel = 'Policies on this workspace';
+    const policyTitle = 'Security and controls on this workspace:';
     it('shows a policy section for Azure workspaces that have them', async () => {
       mockAjax({}, [], [], jest.fn());
       await act(async () => {
@@ -200,7 +200,7 @@ describe('the share workspace modal', () => {
           })
         );
       });
-      screen.getByText(policyLabel);
+      screen.getByText(policyTitle);
     });
 
     it('shows a policy section without the Policies title for GCP workspaces that have them', async () => {
@@ -215,7 +215,7 @@ describe('the share workspace modal', () => {
           })
         );
       });
-      screen.getByText(policyLabel);
+      screen.getByText(policyTitle);
     });
 
     it('does not show a policy section for Azure workspaces without them', async () => {
@@ -229,7 +229,7 @@ describe('the share workspace modal', () => {
         );
       });
       expect(defaultAzureWorkspace.policies).toEqual([]);
-      expect(screen.queryByText(policyLabel)).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
     });
   });
 });

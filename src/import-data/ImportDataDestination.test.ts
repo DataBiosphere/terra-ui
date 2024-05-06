@@ -442,7 +442,7 @@ describe('ImportDataDestination', () => {
       await workspaceSelect.selectOption(new RegExp(workspaceName));
 
       // Assert
-      const policyHeader = screen.queryByText('Policies on this workspace');
+      const policyHeader = screen.queryByText('Security and controls on this workspace:');
       const policyDetail = screen.queryByText('Additional security monitoring', { exact: false });
 
       expect(!!policyHeader).toEqual(shouldDisplayPolicies);

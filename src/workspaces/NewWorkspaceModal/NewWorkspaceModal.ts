@@ -38,7 +38,6 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { CloneEgressWarning } from 'src/workspaces/NewWorkspaceModal/CloneEgressWarning';
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
-import { LinkWithPopout } from 'src/workspaces/NewWorkspaceModal/LinkWithPopout';
 import {
   cloudProviderLabels,
   hasPhiTrackingPolicy,
@@ -52,6 +51,7 @@ import {
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/workspaces/utils';
+import { LinkWithPopout } from 'src/workspaces/WorkspacePolicies/LinkWithPopout';
 import { WorkspacePolicies, WorkspacePoliciesProps } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 
@@ -427,12 +427,6 @@ const NewWorkspaceModal = withDisplayName(
         const workspacePoliciesProps: WorkspacePoliciesProps = {
           workspace: cloneWorkspace,
           billingProject: selectedBillingProject,
-          title: 'Security, controls, and workspace information',
-          policiesLabel: 'Workspace will inherit data protection policies',
-          policiesLink: LinkWithPopout({
-            href: 'https://support.terra.bio/hc/en-us/articles/21329019108635-Host-FISMA-data-on-FedRAMP-moderate-Terra-Azure',
-            children: 'Learn more about policies',
-          }),
           endingNotice: div([
             endingNotice,
             div(
