@@ -250,7 +250,6 @@ describe('BaseRunDetails - render smoke test', () => {
 
     const task1Row = tableRows[0];
     const cellsFromDataRow1 = within(task1Row).getAllByRole('cell');
-    screen.logTestingPlaygroundURL();
     within(cellsFromDataRow1[7]).getByText('$12.72');
 
     const task2Row = tableRows[1];
