@@ -1,4 +1,4 @@
-import { Spinner } from '@terra-ui-packages/components';
+import { Spinner, useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
@@ -27,7 +27,6 @@ import {
   SnapshotBuilderProgramDataOption,
   SnapshotBuilderProgramDataRangeOption,
 } from 'src/libs/ajax/DataRepo';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 

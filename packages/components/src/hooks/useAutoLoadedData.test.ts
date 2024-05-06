@@ -1,9 +1,9 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import { act, renderHook } from '@testing-library/react';
-import { UseLoadedDataResult } from 'src/libs/ajax/loaded-data/useLoadedData';
-import { controlledPromise } from 'src/testing/test-utils';
 
+import { controlledPromise } from '../internal/test-utils';
 import { useAutoLoadedData } from './useAutoLoadedData';
+import { UseLoadedDataResult } from './useLoadedData';
 
 describe('useAutoLoadedData', () => {
   it('auto-calls dataCall on init', async () => {

@@ -1,3 +1,4 @@
+import { useLoadedData } from '@terra-ui-packages/components';
 import { LoadedState, withHandlers } from '@terra-ui-packages/core-utils';
 import { useEffect, useState } from 'react';
 import {
@@ -11,7 +12,6 @@ import {
 } from 'src/analysis/utils/file-utils';
 import { getToolLabelFromFileExtension, ToolLabel } from 'src/analysis/utils/tool-utils';
 import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { workspaceStore } from 'src/libs/state';
