@@ -1,10 +1,10 @@
 import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import { collapseStatus } from 'src/components/job-common';
+import { collapseStatus, getTaskCost } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
@@ -56,7 +56,7 @@ export const BaseRunDetails = (
   const [showTaskData, setShowTaskData] = useState(false);
 
   const [loadWorkflowFailed, setLoadWorkflowFailed] = useState(false);
-  const [taskCostTotal, setTaskCostTotal] = useState(0);
+  const [taskCostTotal, setTaskCostTotal] = useState(0.0);
 
   const signal = useCancellation();
   const stateRefreshTimer = useRef();
@@ -156,6 +156,27 @@ export const BaseRunDetails = (
     },
     [signal, workspaceId]
   );
+
+  const calculateTotalCost = (callObjects) => {
+    let total = 0;
+    Object.values(callObjects).forEach((call) => {
+      if (!call[0].taskStartTime) {
+        total += 0;
+      } else if (call[0].taskEndTime) {
+        total += getTaskCost(call[0].vmCostUsd, call[0].taskStartTime, call[0].taskEndTime);
+      } else {
+        total += getTaskCost(call[0].vmCostUsd, call[0].taskStartTime);
+      }
+    });
+    return total;
+  };
+
+  useEffect(() => {
+    if (callObjects) {
+      const cost = calculateTotalCost(callObjects);
+      setTaskCostTotal(cost);
+    }
+  }, [callObjects]);
 
   const loadCallCacheMetadata = useCallback(
     async (wfId, includeKey, excludeKey) => {
@@ -265,7 +286,7 @@ export const BaseRunDetails = (
             h(
               TooltipTrigger,
               {
-                content: 'UPDATE ME',
+                content: 'This total is an estimate rounded up to the nearest cent.',
               },
               [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
             ),
@@ -294,7 +315,6 @@ export const BaseRunDetails = (
                 namespace,
                 submissionId,
                 isAzure: true,
-                setTaskCostTotal,
               }),
             ]
           ),
