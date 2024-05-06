@@ -1,4 +1,4 @@
-import { Atom, atom } from '@terra-ui-packages/core-utils';
+import { atom } from '@terra-ui-packages/core-utils';
 import { act, renderHook } from '@testing-library/react';
 
 import { useSettableStore, useStore } from './useStore';
@@ -29,19 +29,16 @@ describe('useStore', () => {
 });
 
 describe('useSettableStore', () => {
-  it('handles direct value update', () => {
+  it('returns a function to update the store', () => {
     // Arrange
     const myAtom = atom<string>('hello');
-    const { result: hookReturnRef, rerender } = renderHook((args: [Atom<string>]) => useSettableStore(...args), {
-      initialProps: [myAtom],
-    });
+    const { result: hookReturnRef } = renderHook(useSettableStore, { initialProps: myAtom });
     const [initialValue, setValue] = hookReturnRef.current;
 
     // Act
     act(() => {
       setValue('goodbye');
     });
-    rerender([myAtom]);
 
     // Assert
     expect(initialValue).toBe('hello');
@@ -53,22 +50,17 @@ describe('useSettableStore', () => {
   it('reacts to updated atom value', () => {
     // Arrange
     const myAtom = atom<string>('hello');
-    const { result: hookReturnRef, rerender } = renderHook((args: [Atom<string>]) => useSettableStore(...args), {
-      initialProps: [myAtom],
-    });
-
+    const { result: hookReturnRef } = renderHook(useSettableStore, { initialProps: myAtom });
     const [initialValue] = hookReturnRef.current;
 
     // Act
     act(() => {
       myAtom.set('goodbye');
     });
-    rerender([myAtom]);
 
     // Assert
     expect(initialValue).toBe('hello');
     const [value] = hookReturnRef.current;
     expect(value).toBe('goodbye');
-    expect(myAtom.get()).toBe('goodbye');
   });
 });
