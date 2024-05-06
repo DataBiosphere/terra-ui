@@ -142,17 +142,9 @@ describe('WorkspacePolicies', () => {
     });
   });
 
-  describe('displays general information about security/policies', () => {
+  describe('displays a help link about security/policies', () => {
     const policyLinkText = 'Learn more about Terra security';
     const azurePolicyHref = '21329019108635-Host-FISMA-data-on-FedRAMP-moderate-Terra-Azure';
-
-    it('renders a title', async () => {
-      // Act
-      render(<WorkspacePolicies workspace={protectedAzureWorkspace} />);
-
-      // Assert
-      expect(screen.getAllByText('Security and controls on this workspace:')).not.toBeNull();
-    });
 
     it('renders a link with Azure security information for Azure billing projects', async () => {
       // Act

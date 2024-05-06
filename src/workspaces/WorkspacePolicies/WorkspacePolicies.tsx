@@ -26,7 +26,7 @@ export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
       : 'https://support.terra.bio/hc/en-us/articles/360026775691-Overview-Managing-access-to-controlled-data-with-Authorization-Domains';
   const [phiTracking, setPhiTracking] = useState(!!props.togglePhiTrackingChecked);
 
-  const description = 'Security and controls on this workspace:';
+  const listTitle = 'Security and controls on this workspace:';
   const phiTrackingCallback = (selected: boolean) => {
     setPhiTracking(selected);
     if (props.onTogglePhiTracking) {
@@ -40,8 +40,8 @@ export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
         <div style={{ fontWeight: 600, display: 'grid', gridTemplateColumns: 'min-content auto' }}>
           {icon('shieldCheck', { size: 18, style: { marginRight: '0.5rem', verticalAlign: 'text-bottom' } })}
           <div style={{}}>
-            <div style={{}} id={`description-${id}`}>
-              {description}
+            <div style={{}} id={`list-title-${id}`}>
+              {listTitle}
             </div>
             <LinkWithPopout href={policyHref}>Learn more about Terra security</LinkWithPopout>
           </div>
@@ -49,7 +49,7 @@ export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
         <div
           role="list"
           style={{ marginBlockStart: '0.5rem', marginBlockEnd: '0.5rem' }}
-          aria-describedby={`description-${id}`}
+          aria-describedby={`list-title-${id}`}
         >
           {_.map((policyDescription) => {
             if (props.noCheckboxes) {
