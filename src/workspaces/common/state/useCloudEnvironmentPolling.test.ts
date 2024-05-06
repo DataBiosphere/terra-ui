@@ -2,6 +2,7 @@ import { generateTestDiskWithGoogleWorkspace } from 'src/analysis/_testData/test
 import { Ajax } from 'src/libs/ajax';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { RuntimesAjaxContract } from 'src/libs/ajax/leonardo/Runtimes';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, defaultInitializedGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -11,14 +12,14 @@ jest.mock('src/libs/ajax');
 jest.mock('src/libs/ajax/leonardo/providers/LeoDiskProvider');
 
 // This code will be needed when we mock and test the runtime methods
-// type AjaxContract = ReturnType<typeof Ajax>;
-// type RuntimesNeeds = Pick<RuntimesAjaxContract, 'listV2'>;
-// interface RuntimeMockNeeds {
-//   topLevel: RuntimesNeeds;
-// }
-// interface AjaxMockNeeds {
-//   Runtimes: RuntimeMockNeeds;
-// }
+type AjaxContract = ReturnType<typeof Ajax>;
+type RuntimesNeeds = Pick<RuntimesAjaxContract, 'listV2'>;
+interface RuntimeMockNeeds {
+  topLevel: RuntimesNeeds;
+}
+interface AjaxMockNeeds {
+  Runtimes: RuntimeMockNeeds;
+}
 /**
  * local test utility - mocks the Ajax super-object and the subset of needed multi-contracts it
  * returns with as much type-safety as possible.
@@ -26,22 +27,25 @@ jest.mock('src/libs/ajax/leonardo/providers/LeoDiskProvider');
  * @return collection of key contract sub-objects for easy
  * mock overrides and/or method spying/assertions
  */
-// const mockAjaxNeeds = (): AjaxMockNeeds => {
-//   const partialRuntimes: RuntimesNeeds = {
-//     listV2: jest.fn(),
-//   };
-//   const mockRuntimes = partialRuntimes as RuntimesAjaxContract;
+const mockAjaxNeeds = (): AjaxMockNeeds => {
+  const partialRuntimes: RuntimesNeeds = {
+    listV2: jest.fn(),
+  };
+  const mockRuntimes = partialRuntimes as RuntimesAjaxContract;
 
-//   asMockedFn(Ajax).mockReturnValue({ Runtimes: mockRuntimes } as AjaxContract);
+  asMockedFn(Ajax).mockReturnValue({ Runtimes: mockRuntimes } as AjaxContract);
 
-//   return {
-//     Runtimes: {
-//       topLevel: partialRuntimes,
-//     },
-//   };
-// };
+  return {
+    Runtimes: {
+      topLevel: partialRuntimes,
+    },
+  };
+};
 
 describe('useCloudEnvironmentPolling', () => {
+  beforeAll(() => {
+    mockAjaxNeeds();
+  });
   it('calls list disk', async () => {
     // Arrange
     const appDisk = generateTestDiskWithGoogleWorkspace({}, defaultGoogleWorkspace);
