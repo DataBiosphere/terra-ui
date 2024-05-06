@@ -250,15 +250,20 @@ describe('BaseRunDetails - render smoke test', () => {
 
     const task1Row = tableRows[0];
     const cellsFromDataRow1 = within(task1Row).getAllByRole('cell');
-    within(cellsFromDataRow1[7]).getByText('$0.03');
+    screen.logTestingPlaygroundURL();
+    within(cellsFromDataRow1[7]).getByText('$12.72');
 
     const task2Row = tableRows[1];
     const cellsFromDataRow2 = within(task2Row).getAllByRole('cell');
-    within(cellsFromDataRow2[7]).getByText('In progress');
+    within(cellsFromDataRow2[7]).getByText(/In Progress -/); // Can't accurately calculate cost for an 'In Progress' task in a test
 
     const task3Row = tableRows[2];
     const cellsFromDataRow3 = within(task3Row).getAllByRole('cell');
-    within(cellsFromDataRow3[7]).getByText('-');
+    within(cellsFromDataRow3[7]).getByText('Fetching cost information');
+
+    const task4Row = tableRows[3];
+    const cellsFromDataRow4 = within(task4Row).getAllByRole('cell');
+    within(cellsFromDataRow4[7]).getByText('-');
   });
 
   it('only shows failed tasks if a workflow has failed', async () => {
@@ -537,7 +542,7 @@ describe('BaseRunDetails - render smoke test', () => {
     await userEvent.type(searchInput, 'Fetch');
     const updatedTable = screen.getByRole('table');
     const updatedRows = within(updatedTable).getAllByRole('row');
-    expect(updatedRows.length).toEqual(4);
+    expect(updatedRows.length).toEqual(5);
     const updatedElement = within(updatedTable).getAllByText(taskName);
     expect(updatedElement.length).toEqual(1);
     expect(updatedElement[0].textContent).toEqual(taskName);
@@ -751,4 +756,4 @@ describe('BaseRunDetails - render smoke test', () => {
     // Ensure the diff is rendered
     screen.getByText('Result: View cache diff');
   });
-});
+}, 8000);

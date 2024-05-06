@@ -1,3 +1,4 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -6,6 +7,7 @@ import { centeredSpinner, icon } from 'src/components/icons';
 import { collapseStatus } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
+import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
@@ -54,6 +56,7 @@ export const BaseRunDetails = (
   const [showTaskData, setShowTaskData] = useState(false);
 
   const [loadWorkflowFailed, setLoadWorkflowFailed] = useState(false);
+  const [taskCostTotal, setTaskCostTotal] = useState(0);
 
   const signal = useCancellation();
   const stateRefreshTimer = useRef();
@@ -94,7 +97,9 @@ export const BaseRunDetails = (
       'callCaching',
       'workflowLog',
       'failures',
-      'totalVmCostUsd',
+      'taskStartTime',
+      'taskEndTime',
+      'vmCostUsd',
     ],
     []
   );
@@ -250,9 +255,20 @@ export const BaseRunDetails = (
       () =>
         div([
           div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
-          div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 2rem' } }, [
+          div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 1rem' } }, [
             h(WorkflowInfoBox, { workflow }, []),
             h(TroubleshootingBox, { name, namespace, logUri: workflow.workflowLog, submissionId, workflowId, showLogModal }, []),
+          ]),
+          div({ style: { fontSize: 16, padding: '0rem 2.5rem 1rem' } }, [
+            span({ style: { fontWeight: 'bold' } }, ['Approximate workflow cost: ']),
+            `$${taskCostTotal.toFixed(2)}`,
+            h(
+              TooltipTrigger,
+              {
+                content: 'UPDATE ME',
+              },
+              [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
+            ),
           ]),
           div(
             {
@@ -278,6 +294,7 @@ export const BaseRunDetails = (
                 namespace,
                 submissionId,
                 isAzure: true,
+                setTaskCostTotal,
               }),
             ]
           ),

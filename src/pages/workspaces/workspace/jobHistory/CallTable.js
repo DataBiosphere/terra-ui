@@ -130,6 +130,7 @@ const CallTable = ({
   workflowId,
   failedTasks,
   isAzure,
+  setTaskCostTotal,
 }) => {
   const [failuresModalParams, setFailuresModalParams] = useState();
   const [wizardSelection, setWizardSelection] = useState();
@@ -139,6 +140,7 @@ const CallTable = ({
   // NOTE: workflowPath is used to load the workflow in the explorer, implement after the table update is confirmed to be working
   const [workflowPath, setWorkflowPath] = useState([{ id: workflowId, workflowName }]);
   const [searchText, setSearchText] = useState('');
+  const [taskCost, setTaskCost] = useState(0);
   const filteredCallObjects = useMemo(() => {
     return filterCallObjectsFn(searchText, sort, statusFilter)(tableData);
   }, [searchText, sort, statusFilter, tableData]);
@@ -148,6 +150,29 @@ const CallTable = ({
       setStatusFilter(['Failed']);
     }
   }, [defaultFailedFilter]);
+
+  useEffect(() => {
+    setTaskCostTotal(taskCost);
+  }, [setTaskCostTotal, taskCost]);
+
+  const calculateTotalCost = (endTime) => {
+    let total = 0;
+    filteredCallObjects.forEach((call) => {
+      if (call?.vmCostUsd && call?.taskStartTime) {
+        total += getTaskCost(call?.vmCostUsd, call?.taskStartTime, endTime);
+      }
+    });
+    setTaskCost(total);
+  };
+
+  const getTaskCost = (vmCost, startTime, endTime) => {
+    const currentEndTime = Date.parse(endTime) || Date.now();
+    const vmCostDouble = parseFloat(vmCost);
+    const startDateTime = Date.parse(startTime);
+
+    const elapsedTime = currentEndTime - startDateTime;
+    return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2));
+  };
 
   const statusListObjects = useMemo(() => {
     const statusSet = {};
@@ -363,11 +388,25 @@ const CallTable = ({
                         ),
                       ]),
                     cellRenderer: ({ rowIndex }) => {
-                      const { totalVmCostUsd, executionStatus } = filteredCallObjects[rowIndex];
-                      if (executionStatus === 'Running') {
-                        return div({ style: { fontStyle: 'italic' } }, ['In progress']);
+                      const { vmCostUsd, taskStartTime, taskEndTime, executionStatus, callCaching } = filteredCallObjects[rowIndex];
+                      if (taskStartTime && vmCostUsd) {
+                        if (executionStatus === 'Running') {
+                          const cost = getTaskCost(vmCostUsd, taskStartTime);
+                          calculateTotalCost();
+                          return div({}, [`In Progress - $${cost}`]);
+                        }
+                        if (executionStatus === 'Done') {
+                          const cost = getTaskCost(vmCostUsd, taskStartTime, taskEndTime);
+                          setTaskCost(taskCost + cost);
+                          calculateTotalCost(taskEndTime);
+                          return div({}, [`$${cost}`]);
+                        }
+                      } else {
+                        if (executionStatus === 'Failed' || callCaching?.hit === true) {
+                          return div({}, ['-']);
+                        }
+                        return div({ style: { fontStyle: 'italic' } }, ['Fetching cost information']);
                       }
-                      return totalVmCostUsd ? div({}, [`$${totalVmCostUsd}`]) : div({}, ['-']);
                     },
                   },
                   {
