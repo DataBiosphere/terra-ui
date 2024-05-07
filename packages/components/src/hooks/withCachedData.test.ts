@@ -1,8 +1,9 @@
 import { atom } from '@terra-ui-packages/core-utils';
 import { act, renderHook } from '@testing-library/react';
-import { useLoadedData, UseLoadedDataResult } from 'src/libs/ajax/loaded-data/useLoadedData';
-import { withCachedData } from 'src/libs/ajax/loaded-data/withCachedData';
-import { controlledPromise } from 'src/testing/test-utils';
+
+import { controlledPromise } from '../internal/test-utils';
+import { useLoadedData, UseLoadedDataResult } from './useLoadedData';
+import { withCachedData } from './withCachedData';
 
 describe('withCachedData', () => {
   it('calls data method and retains state in store', async () => {

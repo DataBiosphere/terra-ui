@@ -1,4 +1,4 @@
-import { useUniqueId } from '@terra-ui-packages/components';
+import { useLoadedData, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { div, h, p } from 'react-hyperscript-helpers';
@@ -16,7 +16,6 @@ import { AzureManagedAppCoordinates } from 'src/billing-core/models';
 import { customSpinnerOverlay, Link, Select } from 'src/components/common';
 import { ValidatedInputWithRef } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { getRegionLabel } from 'src/libs/azure-utils';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';

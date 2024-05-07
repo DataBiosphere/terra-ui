@@ -1,4 +1,4 @@
-import { Clickable, Modal, Spinner } from '@terra-ui-packages/components';
+import { Clickable, Modal, Spinner, useLoadedData } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
 import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
@@ -30,7 +30,6 @@ import {
   SnapshotBuilderDatasetConceptSet as ConceptSet,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
 } from 'src/libs/ajax/DataRepo';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import { useOnMount } from 'src/libs/react-utils';

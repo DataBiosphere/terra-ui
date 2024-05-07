@@ -2,7 +2,6 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import React from 'react';
-import { Link } from 'src/components/common';
 import {
   azureBillingProject,
   azureProtectedDataBillingProject,
@@ -14,6 +13,7 @@ import {
   groupConstraintPolicy,
   protectedAzureWorkspace,
   protectedDataPolicy,
+  protectedGoogleWorkspace,
   regionConstraintPolicy,
 } from 'src/testing/workspace-fixtures';
 import {
@@ -27,7 +27,7 @@ import {
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
 describe('WorkspacePolicies', () => {
-  const policyLabel = /This workspace has the following/;
+  const policyTitle = 'Security and controls on this workspace:';
 
   const workspaceWithAllPolicies: AzureWorkspace = {
     ...defaultAzureWorkspace,
@@ -40,7 +40,7 @@ describe('WorkspacePolicies', () => {
       render(<WorkspacePolicies workspace={defaultAzureWorkspace} />);
 
       // Assert
-      expect(screen.queryByText(policyLabel)).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
     });
 
     it('renders nothing if the workspace does not have known policies', () => {
@@ -60,7 +60,7 @@ describe('WorkspacePolicies', () => {
       render(<WorkspacePolicies workspace={nonProtectedAzureWorkspace} />);
 
       // Assert
-      expect(screen.queryByText(policyLabel)).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
     });
 
     it('renders policies with no accessibility errors', async () => {
@@ -69,7 +69,7 @@ describe('WorkspacePolicies', () => {
 
       // Assert
       expect(await axe(container)).toHaveNoViolations();
-      screen.getByText('This workspace has the following policies:');
+      screen.getByText(policyTitle);
       screen.getByText(protectedDataLabel);
       screen.getByText(groupConstraintLabel);
       screen.getByText(regionConstraintLabel);
@@ -83,7 +83,7 @@ describe('WorkspacePolicies', () => {
       render(<WorkspacePolicies billingProject={gcpBillingProject} />);
 
       // Assert
-      expect(screen.queryByText(policyLabel)).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
     });
 
     it('renders nothing for an Azure unprotected billing project', () => {
@@ -91,7 +91,7 @@ describe('WorkspacePolicies', () => {
       render(<WorkspacePolicies billingProject={azureBillingProject} />);
 
       // Assert
-      expect(screen.queryByText(policyLabel)).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
     });
 
     it('renders policies for an Azure protected data billing project', async () => {
@@ -99,7 +99,7 @@ describe('WorkspacePolicies', () => {
       render(<WorkspacePolicies billingProject={azureProtectedDataBillingProject} />);
 
       // Assert
-      screen.getByText(policyLabel);
+      screen.getByText(policyTitle);
       screen.getByText(protectedDataLabel);
     });
   });
@@ -114,7 +114,7 @@ describe('WorkspacePolicies', () => {
       render(<WorkspacePolicies billingProject={azureProtectedDataBillingProject} workspace={workspaceWithPolicies} />);
 
       // Assert
-      screen.getByText(policyLabel);
+      screen.getByText(policyTitle);
       screen.getByText(protectedDataLabel);
       screen.getByText(regionConstraintLabel);
     });
@@ -128,7 +128,7 @@ describe('WorkspacePolicies', () => {
       render(<WorkspacePolicies billingProject={azureProtectedDataBillingProject} workspace={workspaceWithPolicies} />);
 
       // Assert
-      screen.getByText(policyLabel);
+      screen.getByText(policyTitle);
       expect(screen.getAllByText(protectedDataLabel)).toHaveLength(1);
       screen.getByText(regionConstraintLabel);
     });
@@ -138,35 +138,45 @@ describe('WorkspacePolicies', () => {
       render(<WorkspacePolicies />);
 
       // Assert
-      expect(screen.queryByText(policyLabel)).toBeNull();
+      expect(screen.queryByText(policyTitle)).toBeNull();
+    });
+  });
+
+  describe('displays a help link about security/policies', () => {
+    const policyLinkText = 'Learn more about Terra security';
+    const azurePolicyHref = '21329019108635-Host-FISMA-data-on-FedRAMP-moderate-Terra-Azure';
+
+    it('renders a link with Azure security information for Azure billing projects', async () => {
+      // Act
+      render(<WorkspacePolicies billingProject={azureProtectedDataBillingProject} />);
+
+      // Assert
+      const link = screen.getByRole('link', { name: policyLinkText });
+      expect(link.getAttribute('href')).toContain(azurePolicyHref);
+    });
+
+    it('renders a link with Azure security information for Azure workspaces', async () => {
+      // Act
+      render(<WorkspacePolicies workspace={protectedAzureWorkspace} />);
+
+      // Assert
+      const link = screen.getByRole('link', { name: policyLinkText });
+      expect(link.getAttribute('href')).toContain(azurePolicyHref);
+    });
+
+    it('renders a link with auth domain information for Gcp protected workspaces', async () => {
+      // Act
+      render(<WorkspacePolicies workspace={protectedGoogleWorkspace} />);
+
+      // Assert
+      const link = screen.getByRole('link', { name: policyLinkText });
+      expect(link.getAttribute('href')).toContain(
+        '360026775691-Overview-Managing-access-to-controlled-data-with-Authorization-Domains'
+      );
     });
   });
 
   describe('supports UI customization ', () => {
-    it('allows passing a title and label about the list', async () => {
-      // Act
-      render(
-        <WorkspacePolicies title="Test title" policiesLabel="About this list:" workspace={protectedAzureWorkspace} />
-      );
-
-      // Assert
-      expect(screen.getAllByText('Test title')).not.toBeNull();
-      expect(screen.getAllByText('About this list:')).not.toBeNull();
-    });
-
-    it('renders a link if provided', async () => {
-      // Act
-      render(
-        <WorkspacePolicies
-          workspace={protectedAzureWorkspace}
-          policiesLink={<Link href="http://dummy-link">about policies</Link>}
-        />
-      );
-
-      // Assert
-      screen.getByText('about policies');
-    });
-
     it('renders an ending notice if provided', async () => {
       // Act
       render(<WorkspacePolicies workspace={protectedAzureWorkspace} endingNotice={<div>ending notice</div>} />);

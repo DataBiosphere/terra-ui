@@ -227,7 +227,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         h(WorkspacePolicies, {
           workspace: selectedWorkspace,
           noCheckboxes: true,
-          policiesLabel: 'Policies on this workspace',
           endingNotice:
             isProtectedData && isAzureWorkspace(selectedWorkspace)
               ? div(['Importing this data may add additional access controls'])

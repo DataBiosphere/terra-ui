@@ -1,6 +1,7 @@
 import { ErrorState, LoadedState, ReadyState } from '@terra-ui-packages/core-utils';
 import { useEffect } from 'react';
-import { usePrevious } from 'src/libs/react-utils';
+
+import { usePrevious } from './usePrevious';
 
 export interface LoadedDataEvents<S, E = unknown> {
   /**
