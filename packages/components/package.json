@@ -27,7 +27,7 @@
     "@fortawesome/free-regular-svg-icons": "^5.15.4",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@fortawesome/react-fontawesome": "^0.1.15",
-    "@terra-ui-packages/core-utils": "^0.1.0",
+    "@terra-ui-packages/core-utils": "^0.2.0",
     "color": "^4.0.1",
     "lodash": "^4.17.21",
     "react-focus-lock": "^2.9.5",
