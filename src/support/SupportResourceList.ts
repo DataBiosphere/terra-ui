@@ -2,9 +2,8 @@ import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { ManagedGroupSummary } from 'src/support/ManagedGroupSummary';
 import { SupportResourceListItem, SupportResourceListItemProps } from 'src/support/SupportResourceListItem';
-import { SupportResourceType } from 'src/support/SupportResourceType';
+import { supportResources, SupportResourceType } from 'src/support/SupportResourceType';
 
 interface SupportResourceListProps {
   queryParams: {
@@ -17,9 +16,6 @@ export const SupportResourceList = (props: SupportResourceListProps) => {
   const selectedType = props.queryParams.selectedType || '';
   const resourceName = props.queryParams.resourceName || '';
   const supportResourceListWidth = 350;
-  const supportResources: SupportResourceType[] = [
-    { displayName: 'Group', resourceType: 'managed-group', detailComponent: ManagedGroupSummary },
-  ];
 
   const makeResourceListItemProps = (resourceType: SupportResourceType): SupportResourceListItemProps => {
     return {
