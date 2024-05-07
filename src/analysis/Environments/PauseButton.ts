@@ -30,19 +30,20 @@ export const PauseButton = (props: PauseButtonProps): ReactNode => {
   const shouldShowPauseButton =
     isPauseSupported(getToolLabelFromCloudEnv(cloudEnvironment)) && permissions.hasPausePermission(cloudEnvironment);
 
-  return h(
-    Link,
-    {
-      style: { marginRight: '1rem' },
-      disabled: !isComputePausable(cloudEnvironment),
-      hidden: !shouldShowPauseButton,
-      tooltip: isComputePausable(cloudEnvironment)
-        ? 'Pause cloud environment'
-        : `Cannot pause a cloud environment while in status ${getDisplayStatus(cloudEnvironment)}.`,
-      onClick: () => pauseComputeAndRefresh(cloudEnvironment),
-    },
-    [makeMenuIcon('pause'), 'Pause']
-  );
+  return shouldShowPauseButton
+    ? h(
+        Link,
+        {
+          style: { marginRight: '1rem' },
+          disabled: !isComputePausable(cloudEnvironment),
+          tooltip: isComputePausable(cloudEnvironment)
+            ? 'Pause cloud environment'
+            : `Cannot pause a cloud environment while in status ${getDisplayStatus(cloudEnvironment)}.`,
+          onClick: () => pauseComputeAndRefresh(cloudEnvironment),
+        },
+        [makeMenuIcon('pause'), 'Pause']
+      )
+    : null;
 };
 
 export const pauseableStatuses: LeoRuntimeStatus[] = [

@@ -1,11 +1,20 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { ListRuntimeItem, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { generateTestListGoogleRuntime } from '../_testData/testData';
+import { isPauseSupported } from '../utils/tool-utils';
 import { LeoResourcePermissionsProvider } from './Environments.models';
 import { PauseButton, PauseButtonProps } from './PauseButton';
+
+type ToolUtilsExports = typeof import('src/analysis/utils/tool-utils');
+jest.mock('src/analysis/utils/tool-utils', (): ToolUtilsExports => {
+  return {
+    ...jest.requireActual<ToolUtilsExports>('src/analysis/utils/tool-utils'),
+    isPauseSupported: jest.fn(),
+  };
+});
 
 const mockPermissions: LeoResourcePermissionsProvider = {
   hasDeletePermission: jest.fn(),
@@ -21,6 +30,9 @@ const defaultPauseProps: PauseButtonProps = {
 };
 
 describe('PauseButton', () => {
+  beforeEach(() => {
+    asMockedFn(isPauseSupported).mockReturnValue(true);
+  });
   it.each([
     {
       cloudEnvironment: { ...generateTestListGoogleRuntime(), status: runtimeStatuses.error.leoLabel },
@@ -47,6 +59,7 @@ describe('PauseButton', () => {
     }
   );
 
+  // TODO: change it so we don't hide when they don't have permission and only hide when disallowed?
   it('Hides pause button when user doesnt have permission', () => {
     // Arrange
     const permissions = { ...mockPermissions, hasPausePermission: jest.fn().mockReturnValue(false) };
@@ -60,8 +73,26 @@ describe('PauseButton', () => {
     render(h(PauseButton, pauseProps));
 
     // Assert
-    const pauseButton = screen.getByText('Pause');
-    expect(pauseButton).not.toBeVisible();
+    const pauseButton = screen.queryByText('Pause');
+    expect(pauseButton).toBeNull();
+  });
+
+  it('Hides pause button when pause is not supported', () => {
+    // Arrange
+    const permissions = { ...mockPermissions, hasPausePermission: jest.fn().mockReturnValue(true) };
+    const pauseProps: PauseButtonProps = {
+      ...defaultPauseProps,
+      permissions,
+      cloudEnvironment: generateTestListGoogleRuntime(),
+    };
+    asMockedFn(isPauseSupported).mockReturnValue(false);
+
+    // Act
+    render(h(PauseButton, pauseProps));
+
+    // Assert
+    const pauseButton = screen.queryByText('Pause');
+    expect(pauseButton).toBeNull();
   });
 
   it('Calls pause function when clicked', () => {
