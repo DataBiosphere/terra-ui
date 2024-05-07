@@ -41,22 +41,15 @@ describe('withErrorReporting fallbacks', () => {
     const callMe = reportErrorAndRethrow('Things went BOOM')(async () => {
       throw new Error('BOOM!');
     });
-    let outerThrow: unknown | null = null;
 
-    // Act
-    try {
-      await callMe();
-    } catch (e) {
-      outerThrow = e;
-    }
-
-    // Assert
+    // Act / Assert
     const expectedError = new Error('BOOM!');
+    await expect(callMe).rejects.toThrow(expectedError);
+
     expect(notify).toBeCalledTimes(1);
     expect(notify).toBeCalledWith('error', 'Things went BOOM', { detail: expectedError });
     expect(console.error).toBeCalledTimes(1);
     expect(console.error).toBeCalledWith('Things went BOOM', expectedError);
-    expect(outerThrow).toEqual(expectedError);
   });
 
   it('calls dismiss and notify (in modal)', async () => {
@@ -71,22 +64,15 @@ describe('withErrorReporting fallbacks', () => {
     )(async () => {
       throw new Error('BOOM!');
     });
-    let outerThrow: unknown | null = null;
 
-    // Act
-    try {
-      await callMe();
-    } catch (e) {
-      outerThrow = e;
-    }
-
-    // Assert
+    // Act / Assert
     const expectedError = new Error('BOOM!');
+    await expect(callMe).rejects.toThrow(expectedError);
+
     expect(onDismiss).toBeCalledTimes(1);
     expect(notify).toBeCalledTimes(1);
     expect(notify).toBeCalledWith('error', 'Things went BOOM', { detail: expectedError });
     expect(console.error).toBeCalledTimes(1);
     expect(console.error).toBeCalledWith('Things went BOOM', expectedError);
-    expect(outerThrow).toEqual(expectedError);
   });
 });

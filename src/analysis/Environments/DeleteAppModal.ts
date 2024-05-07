@@ -27,7 +27,7 @@ export const DeleteAppModal = (props: DeleteAppModalProps): ReactNode => {
   const { appType } = app;
   const deleteApp = _.flow(
     Utils.withBusyState(setDeleting),
-    withErrorReporting('Error deleting cloud environment', { rethrow: true, onNotified: onDismiss })
+    withErrorReporting('Error deleting cloud environment', { rethrow: true, onReported: onDismiss })
   )(async () => {
     await deleteProvider.delete(app, { deleteDisk });
     onSuccess();

@@ -1,5 +1,4 @@
-import { IgnoreErrorDecider, makeNotificationsProvider } from './error';
-import { Notifier } from './useNotifications';
+import { IgnoreErrorDecider, makeNotificationsProvider, Notifier } from './notifications-provider';
 
 const mockNotifications: Notifier = {
   notify: jest.fn(),
@@ -48,22 +47,15 @@ describe('withErrorReporting (and rethrow)', () => {
     const callMe = withErrorReporting('Things went BOOM', { rethrow: true })(async () => {
       throw new Error('BOOM!');
     });
-    let outerThrow: unknown | null = null;
 
-    // Act
-    try {
-      await callMe();
-    } catch (e) {
-      outerThrow = e;
-    }
-
-    // Assert
+    // Act / Assert
     const expectedError = new Error('BOOM!');
+    await expect(callMe).rejects.toThrow(expectedError);
+
     expect(mockNotifications.notify).toBeCalledTimes(1);
     expect(mockNotifications.notify).toBeCalledWith('error', 'Things went BOOM', { detail: expectedError });
     expect(console.error).toBeCalledTimes(1);
     expect(console.error).toBeCalledWith('Things went BOOM', expectedError);
-    expect(outerThrow).toEqual(expectedError);
   });
 });
 
@@ -99,22 +91,15 @@ describe('withErrorReporting (in modal)', () => {
     const callMe = withErrorReporting('Things went BOOM', { onReported: onDismiss, rethrow: true })(async () => {
       throw new Error('BOOM!');
     });
-    let outerThrow: unknown | null = null;
 
-    // Act
-    try {
-      await callMe();
-    } catch (e) {
-      outerThrow = e;
-    }
-
-    // Assert
+    // Act / Assert
     const expectedError = new Error('BOOM!');
+    await expect(callMe).rejects.toThrow(expectedError);
+
     expect(onDismiss).toBeCalledTimes(1);
     expect(mockNotifications.notify).toBeCalledTimes(1);
     expect(mockNotifications.notify).toBeCalledWith('error', 'Things went BOOM', { detail: expectedError });
     expect(console.error).toBeCalledTimes(1);
     expect(console.error).toBeCalledWith('Things went BOOM', expectedError);
-    expect(outerThrow).toEqual(expectedError);
   });
 });
