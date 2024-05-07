@@ -566,8 +566,8 @@ describe('BaseRunDetails - render smoke test', () => {
     expect(getFilenameFromAzureBlobPath(undefined)).toEqual('');
 
     // Should only append SAS if it is a private URI
-    const appendedPublic = appendSASTokenIfNecessary(publicURI, mockSAS);
-    const appendedPrivate = appendSASTokenIfNecessary(privateURI, mockSAS);
+    const appendedPublic = appendSASTokenIfNecessary(publicURI, mockSAS, mockWorkspaceId);
+    const appendedPrivate = appendSASTokenIfNecessary(privateURI, mockSAS, mockWorkspaceId);
     expect(appendedPublic).toEqual(publicURI);
     expect(appendedPrivate).toEqual(`${privateURI}?${mockSAS}`);
   });

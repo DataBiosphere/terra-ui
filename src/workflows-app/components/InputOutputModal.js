@@ -11,9 +11,8 @@ import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-
 // Only append sas tokens for files in the workspace container. Otherwise, assume they are public and don't append the token.
 // Public files can't be downloaded if a sas token is appended, since sas tokens limit access to your own container + storage account.
 // Exported for  testing.
-export const appendSASTokenIfNecessary = (blobPath, sasToken) => {
-  const regEx = 'https://lz[a-zA-Z0-9]*.blob.core.windows.net/sc-[0-9a-f]*';
-  const shouldAppendSASToken = blobPath.match(regEx);
+export const appendSASTokenIfNecessary = (blobPath, sasToken, workspaceId) => {
+  const shouldAppendSASToken = blobPath.includes(workspaceId);
   return shouldAppendSASToken ? `${blobPath}?${sasToken}` : blobPath;
 };
 
@@ -22,10 +21,10 @@ export const getFilenameFromAzureBlobPath = (blobPath) => {
   return _.isString(blobPath) ? blobPath.substring(blobPath.lastIndexOf('/') + 1) : '';
 };
 
-const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
+const InputOutputModal = ({ title, jsonData, onDismiss, sasToken, workspaceId }) => {
   // Link to download the blob file
   const renderBlobLink = (blobPath, key = undefined) => {
-    const downloadUrl = appendSASTokenIfNecessary(blobPath, sasToken);
+    const downloadUrl = appendSASTokenIfNecessary(blobPath, sasToken, workspaceId);
     const fileName = getFilenameFromAzureBlobPath(blobPath);
     const props = {
       disabled: !downloadUrl,
