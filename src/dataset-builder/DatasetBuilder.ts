@@ -614,7 +614,6 @@ export const DatasetBuilderContents = ({
         values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
     )(dataset.snapshotBuilderSettings?.featureValueGroups);
-
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
       h(BuilderPageHeader, [
@@ -662,7 +661,7 @@ export const DatasetBuilderContents = ({
       requestValid &&
         h(ActionBar, {
           prompt: h(Fragment, [
-            datasetRequestParticipantCount.status === 'Ready'
+            datasetRequestParticipantCount.status === 'Ready' && datasetRequestParticipantCount.state?.result.total
               ? formatCount(datasetRequestParticipantCount.state.result.total)
               : h(Spinner),
             ' participants in this dataset',
