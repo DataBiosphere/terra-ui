@@ -3,7 +3,6 @@ import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { TextArea, TextInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
-import { GroupSupportSummary } from 'src/libs/ajax/Groups';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
@@ -12,14 +11,16 @@ import { ResourceTypeSummaryProps } from 'src/support/SupportResourceType';
 export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
   const { query } = Nav.useRoute();
   const [groupName, setGroupName] = useState(props.fqResourceId.resourceId || '');
-  const [groupSummaryInfo, setGroupSummaryInfo] = useState<GroupSupportSummary>();
-  const [groupPolicies, setGroupPolicies] = useState<string[]>();
+  const [groupSummaryInfo, setGroupSummaryInfo] = useState('');
+  const [groupPolicies, setGroupPolicies] = useState('');
 
   const submit = async (): Promise<void> => {
+    setGroupSummaryInfo('');
+    setGroupPolicies('');
     const groupSummaryInfo = await Ajax().Groups.group(groupName).getSupportSummary();
     const groupPolicies = await Ajax().SamResources.getResourcePolicies(props.fqResourceId);
-    setGroupSummaryInfo(groupSummaryInfo);
-    setGroupPolicies(groupPolicies);
+    setGroupSummaryInfo(JSON.stringify(groupSummaryInfo, null, 2));
+    setGroupPolicies(JSON.stringify(groupPolicies, null, 2));
   };
 
   useOnMount(() => {
@@ -48,6 +49,11 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
           Nav.updateSearch({ ...query, resourceName: newFilter || undefined });
           setGroupName(newFilter);
         },
+        onKeyDown: (e) => {
+          if (e.key === 'Enter') {
+            submit();
+          }
+        },
         value: props.fqResourceId.resourceId || '',
       }),
       h(ButtonPrimary, { onClick: () => submit() }, ['Load']),
@@ -65,7 +71,7 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
       },
       ['Summary']
     ),
-    h(TextArea, { value: JSON.stringify(groupSummaryInfo, null, 2), readOnly: true, autosize: true }),
+    h(TextArea, { value: groupSummaryInfo, readOnly: true, autosize: true }),
     div(
       {
         style: {
@@ -79,6 +85,6 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
       },
       ['Sam Policies']
     ),
-    h(TextArea, { value: JSON.stringify(groupPolicies, null, 2), readOnly: true, autosize: true }),
+    h(TextArea, { value: groupPolicies, readOnly: true, autosize: true }),
   ]);
 };
