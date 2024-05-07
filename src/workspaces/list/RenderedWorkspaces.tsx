@@ -192,7 +192,7 @@ const NameCell = (props: CellProps): ReactNode => {
           tooltipSide="right"
           disabled={workspace.state === 'Deleted'}
         >
-          name
+          {name}
         </Link>
       </div>
       <WorkspaceStateCell {...props} />
