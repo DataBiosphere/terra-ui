@@ -5,7 +5,6 @@ import { AutoSizer } from 'react-virtualized';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { FlexTable, HeaderCell, tableHeight } from 'src/components/table';
-import { getConfig } from 'src/libs/config';
 import { newTabLinkProps } from 'src/libs/utils';
 import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
@@ -13,7 +12,8 @@ import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-
 // Public files can't be downloaded if a sas token is appended, since sas tokens limit access to your own container + storage account.
 // Exported for  testing.
 export const appendSASTokenIfNecessary = (blobPath, sasToken) => {
-  const shouldAppendSASToken = blobPath.includes(getConfig().workspaceId);
+  const regEx = 'https://lz[a-zA-Z0-9]*.blob.core.windows.net/sc-[0-9a-f]*';
+  const shouldAppendSASToken = blobPath.match(regEx);
   return shouldAppendSASToken ? `${blobPath}?${sasToken}` : blobPath;
 };
 
