@@ -1,11 +1,9 @@
-import { icon, Modal, TooltipTrigger } from '@terra-ui-packages/components';
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { ReactNode, useContext, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { Link } from 'src/components/common';
-import ErrorView from 'src/components/ErrorView';
-import { FirstParagraphMarkdownViewer } from 'src/components/markdown';
 import { FlexTable, HeaderRenderer } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
@@ -17,6 +15,7 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
 import { WorkspaceStarControl } from 'src/workspaces/list/WorkspaceStarControl';
+import { WorkspaceStateCell } from 'src/workspaces/list/WorkspaceStateCell';
 import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
 import {
   canRead,
@@ -199,124 +198,6 @@ const NameCell = (props: CellProps): ReactNode => {
     </div>
   );
 };
-
-const WorkspaceDescriptionCell = (props: { description: unknown | undefined }) => (
-  <div style={styles.tableCellContent}>
-    <FirstParagraphMarkdownViewer
-      style={{
-        height: '1.5rem',
-        margin: 0,
-        ...Style.noWrapEllipsis,
-        color: props.description ? undefined : colors.dark(0.75),
-        fontSize: 14,
-      }}
-      renderers={{}} // needed to make typechecker work, because FirstParagraphMarkdownViewer is not typed
-    >
-      {props.description?.toString() || 'No description added'}
-    </FirstParagraphMarkdownViewer>
-  </div>
-);
-
-const WorkspaceStateCell = (props: CellProps): ReactNode => {
-  const {
-    workspace,
-    workspace: { attributes, state },
-  } = props.workspace;
-  const description = attributes?.description;
-  const errorMessage = workspace.errorMessage;
-  switch (state) {
-    case 'Deleting':
-      return <WorkspaceDeletingCell />;
-    case 'DeleteFailed':
-      return <WorkspaceFailedCell state={state} errorMessage={errorMessage} />;
-    case 'Deleted':
-      return <WorkspaceDeletedCell />;
-    case 'Cloning':
-      return <WorkspaceCloningCell />;
-    case 'CloningContainer':
-      return <WorkspaceCloningCell />;
-    case 'CloningFailed':
-      return <WorkspaceFailedCell state="CloningFailed" errorMessage={errorMessage} />;
-    default:
-      return <WorkspaceDescriptionCell description={description} />;
-  }
-};
-
-const WorkspaceDeletingCell = (): ReactNode => {
-  const deletingIcon = icon('syncAlt', {
-    size: 18,
-    style: {
-      animation: 'rotation 2s infinite linear',
-      marginRight: '0.5rem',
-    },
-  });
-  return (
-    <div style={{ color: colors.danger() }}>
-      {deletingIcon}
-      Workspace deletion in progress
-    </div>
-  );
-};
-
-const WorkspaceCloningCell = (): ReactNode => {
-  const deletingIcon = icon('syncAlt', {
-    size: 18,
-    style: {
-      animation: 'rotation 2s infinite linear',
-      marginRight: '0.5rem',
-    },
-  });
-  return (
-    <div style={{ color: colors.success() }}>
-      {deletingIcon}
-      Workspace cloning in progress
-    </div>
-  );
-};
-
-interface WorkspaceFailedCellProps {
-  state: 'DeleteFailed' | 'CloningFailed';
-  errorMessage?: string;
-}
-
-const WorkspaceFailedCell = (props: WorkspaceFailedCellProps): ReactNode => {
-  const [showDetails, setShowDetails] = useState<boolean>(false);
-
-  const failureOperationMsg = props.state === 'DeleteFailed' ? 'Error deleting workspace' : 'Error cloning workspace';
-
-  const errorIcon = icon('warning-standard', {
-    size: 18,
-    style: {
-      color: colors.danger(),
-      marginRight: '0.5rem',
-    },
-  });
-  return (
-    <div style={{ color: colors.danger() }}>
-      {errorIcon}
-      {failureOperationMsg}
-      {props.errorMessage ? (
-        // eslint-disable-next-line jsx-a11y/anchor-is-valid
-        <Link
-          onClick={() => setShowDetails(true)}
-          style={{ fontSize: 14, marginRight: '0.5rem', marginLeft: '0.5rem' }}
-        >
-          See error details.
-        </Link>
-      ) : null}
-      {showDetails ? (
-        <Modal width={800} title={failureOperationMsg} showCancel={false} showX onDismiss={() => setShowDetails(false)}>
-          <ErrorView error={props.errorMessage ?? 'No error message available'} />
-        </Modal>
-      ) : null}
-      ,
-    </div>
-  );
-};
-
-const WorkspaceDeletedCell = (): ReactNode => (
-  <div style={{ color: colors.danger() }}>Workspace has been deleted. Refresh to remove from list.</div>
-);
 
 const LastModifiedCell = (props: CellProps): ReactNode => {
   const {
