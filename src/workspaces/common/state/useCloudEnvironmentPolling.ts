@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 export interface CloudEnvironmentDetails {
   runtimes?: ListRuntimeItem[];
@@ -20,7 +20,7 @@ export interface CloudEnvironmentDetails {
 export const useCloudEnvironmentPolling = (
   name: string,
   namespace: string,
-  workspace?: Workspace
+  workspace: WorkspaceWrapper
 ): CloudEnvironmentDetails => {
   const controller = useRef(new window.AbortController());
   const abort = () => {
@@ -81,11 +81,7 @@ export const useCloudEnvironmentPolling = (
   const refreshRuntimes = withErrorReporting('Error loading cloud environments')(load);
   const refreshRuntimesSilently = withErrorIgnoring(load);
   useEffect(() => {
-    if (
-      workspace?.workspaceInitialized &&
-      workspace.workspace.name === name &&
-      workspace.workspace.namespace === namespace
-    ) {
+    if (workspace.workspace.name === name && workspace.workspace.namespace === namespace) {
       refreshRuntimes();
     }
     return () => {

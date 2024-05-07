@@ -3,8 +3,7 @@ import _ from 'lodash/fp';
 import { PropsWithChildren, ReactNode, Ref, useEffect, useRef, useState } from 'react';
 import { div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
-import AnalysisNotificationManager from 'src/analysis/AnalysisNotificationManager';
-import { ContextBar } from 'src/analysis/ContextBar';
+import { WorkspaceAnalysesContainer } from 'src/analysis/WorkspaceAnalysesContainer';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
@@ -16,8 +15,6 @@ import { withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { useAppPolling } from 'src/workspaces/common/state/useAppPolling';
-import { useCloudEnvironmentPolling } from 'src/workspaces/common/state/useCloudEnvironmentPolling';
 import { useSingleWorkspaceDeletionPolling } from 'src/workspaces/common/state/useDeletionPolling';
 import { InitializedWorkspaceWrapper, StorageDetails, useWorkspace } from 'src/workspaces/common/state/useWorkspace';
 import { WorkspaceDeletingBanner } from 'src/workspaces/container/WorkspaceDeletingBanner';
@@ -61,35 +58,13 @@ interface WorkspaceContainerProps extends PropsWithChildren {
   breadcrumbs: ReactNode[];
   title: string;
   activeTab?: string;
-  analysesData: AnalysesData;
-  storageDetails: StorageDetails;
   refresh: () => Promise<void>;
   workspace: InitializedWorkspaceWrapper | undefined;
   refreshWorkspace: () => void;
 }
 
 export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
-  const {
-    namespace,
-    name,
-    breadcrumbs,
-    title,
-    activeTab,
-    analysesData: {
-      apps = [],
-      refreshApps,
-      runtimes = [],
-      refreshRuntimes,
-      appDataDisks = [],
-      persistentDisks = [],
-      isLoadingCloudEnvironments,
-    },
-    storageDetails,
-    refresh,
-    workspace,
-    refreshWorkspace,
-    children,
-  } = props;
+  const { namespace, name, breadcrumbs, title, activeTab, refresh, workspace, refreshWorkspace, children } = props;
   const [deletingWorkspace, setDeletingWorkspace] = useState(false);
   const [cloningWorkspace, setCloningWorkspace] = useState(false);
   const [sharingWorkspace, setSharingWorkspace] = useState(false);
@@ -114,7 +89,6 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
         h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [title || `${namespace}/${name}`]),
       ]),
       div({ style: { flexGrow: 1 } }),
-      h(AnalysisNotificationManager, { namespace, name, runtimes, apps }),
     ]),
     h(WorkspaceTabs, {
       namespace,
@@ -130,25 +104,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
     }),
     h(WorkspaceDeletingBanner, { workspace }),
     isGoogleWorkspaceSyncing && h(GooglePermissionsSpinner),
-    div({ role: 'main', style: Style.elements.pageContentContainer }, [
-      div({ style: { flex: 1, display: 'flex' } }, [
-        div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),
-        workspace &&
-          workspace?.workspace.state !== 'Deleting' &&
-          workspace?.workspace.state !== 'DeleteFailed' &&
-          h(ContextBar, {
-            workspace,
-            apps,
-            appDataDisks,
-            refreshApps,
-            runtimes,
-            persistentDisks,
-            refreshRuntimes,
-            isLoadingCloudEnvironments,
-            storageDetails,
-          }),
-      ]),
-    ]),
+    div({ role: 'main', style: Style.elements.pageContentContainer }, [children]),
     deletingWorkspace &&
       h(DeleteWorkspaceModal, {
         workspace: workspace!,
@@ -258,9 +214,6 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
         namespace,
         name
       );
-      const { runtimes, refreshRuntimes, persistentDisks, appDataDisks, isLoadingCloudEnvironments } =
-        useCloudEnvironmentPolling(name, namespace, workspace);
-      const { apps, refreshApps, lastRefresh } = useAppPolling(name, namespace, workspace);
 
       if (accessError) {
         return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)]);
@@ -276,17 +229,6 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
           refreshWorkspace,
           title: _.isFunction(title) ? title(props) : title,
           breadcrumbs: breadcrumbs(props),
-          analysesData: {
-            apps,
-            refreshApps,
-            lastRefresh,
-            runtimes,
-            refreshRuntimes,
-            appDataDisks,
-            persistentDisks,
-            isLoadingCloudEnvironments,
-          },
-          storageDetails,
           refresh: async () => {
             await refreshWorkspace();
             if (_.isObject(child?.current) && 'refresh' in child.current && _.isFunction(child.current.refresh)) {
@@ -296,23 +238,24 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
         },
         [
           workspace &&
-            h(WrappedComponent, {
-              ref: child,
-              workspace,
-              refreshWorkspace,
-              analysesData: {
-                apps,
-                refreshApps,
-                lastRefresh,
-                runtimes,
-                refreshRuntimes,
-                appDataDisks,
-                persistentDisks,
-                isLoadingCloudEnvironments,
+            h(
+              WorkspaceAnalysesContainer,
+              {
+                workspace,
+                storageDetails,
               },
-              storageDetails,
-              ...props,
-            }),
+              [
+                (analysesData) =>
+                  h(WrappedComponent, {
+                    ref: child,
+                    workspace,
+                    refreshWorkspace,
+                    analysesData,
+                    storageDetails,
+                    ...props,
+                  }),
+              ]
+            ),
           loadingWorkspace && spinnerOverlay,
         ]
       );

@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
-import { isAzureWorkspace, isGoogleWorkspace } from 'src/workspaces/utils';
+import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from 'src/workspaces/utils';
 
 export interface AppDetails {
   apps?: ListAppItem[];
@@ -11,7 +10,7 @@ export interface AppDetails {
   lastRefresh: Date | null;
 }
 
-export const useAppPolling = (name: string, namespace: string, workspace?: Workspace): AppDetails => {
+export const useAppPolling = (name: string, namespace: string, workspace: WorkspaceWrapper): AppDetails => {
   const [controller, setController] = useState(new window.AbortController());
   const abort = () => {
     controller.abort();
@@ -28,17 +27,15 @@ export const useAppPolling = (name: string, namespace: string, workspace?: Works
   };
   const loadApps = async (maybeStale?: boolean): Promise<void> => {
     try {
-      const newGoogleApps =
-        workspace?.workspaceInitialized && isGoogleWorkspace(workspace)
-          ? await Ajax(signal).Apps.list(workspace.workspace.googleProject, {
-              role: 'creator',
-              saturnWorkspaceName: workspace.workspace.name,
-            })
-          : [];
-      const newAzureApps =
-        workspace?.workspaceInitialized && isAzureWorkspace(workspace)
-          ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId)
-          : [];
+      const newGoogleApps = isGoogleWorkspace(workspace)
+        ? await Ajax(signal).Apps.list(workspace.workspace.googleProject, {
+            role: 'creator',
+            saturnWorkspaceName: workspace.workspace.name,
+          })
+        : [];
+      const newAzureApps = isAzureWorkspace(workspace)
+        ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId)
+        : [];
       const combinedNewApps = [...newGoogleApps, ...newAzureApps];
 
       setApps(combinedNewApps);
@@ -54,11 +51,7 @@ export const useAppPolling = (name: string, namespace: string, workspace?: Works
   const refreshApps = withErrorReporting('Error loading apps')(loadApps);
   const refreshAppsSilently = withErrorIgnoring(loadApps);
   useEffect(() => {
-    if (
-      workspace?.workspaceInitialized &&
-      workspace.workspace.name === name &&
-      workspace.workspace.namespace === namespace
-    ) {
+    if (workspace.workspace.name === name && workspace.workspace.namespace === namespace) {
       refreshApps();
     }
     return () => {
