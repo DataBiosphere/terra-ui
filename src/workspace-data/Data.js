@@ -44,6 +44,7 @@ import { dataTableVersionsPathRoot, useDataTableVersions } from './data-table/ve
 import { DataTableSaveVersionModal } from './data-table/versioning/DataTableSaveVersionModal';
 import { DataTableVersion } from './data-table/versioning/DataTableVersion';
 import { DataTableVersions } from './data-table/versioning/DataTableVersions';
+import { CollectionErdDiagram } from './data-table/wds/CollectionErdDiagram';
 import WDSContent from './data-table/wds/WDSContent';
 import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
 import { useImportJobs } from './import-jobs';
@@ -528,7 +529,16 @@ const DataTableFeaturePreviewFeedbackBanner = () => {
   );
 };
 
-const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects', 'wds']);
+const workspaceDataTypes = Utils.enumify([
+  'entities',
+  'entitiesVersion',
+  'snapshot',
+  'referenceData',
+  'localVariables',
+  'bucketObjects',
+  'wds',
+  'wdsDiagram',
+]);
 
 export const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
@@ -1051,6 +1061,10 @@ export const WorkspaceData = _.flow(
                           buttonText: 'Data Table Status',
                           onAdd: () => setTroubleshootingWds(true),
                         }),
+                        h(NoDataPlaceholder, {
+                          buttonText: 'Diagram',
+                          onAdd: () => setSelectedData({ type: workspaceDataTypes.wdsDiagram }),
+                        }),
                       ]
                     ),
                   (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) &&
@@ -1507,6 +1521,19 @@ export const WorkspaceData = _.flow(
                       editable: canEditWorkspace,
                       loadMetadata,
                     }),
+                ],
+                [
+                  workspaceDataTypes.wdsDiagram,
+                  () => {
+                    const wdsProxyUrl = wdsApp.state?.proxyUrls?.wds;
+                    return (
+                      wdsProxyUrl &&
+                      h(CollectionErdDiagram, {
+                        collectionId: workspaceId,
+                        wdsProxyUrl,
+                      })
+                    );
+                  },
                 ]
               ),
               // ]
