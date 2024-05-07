@@ -206,6 +206,14 @@ export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefi
     policies
   );
 
+export const containsPhiTrackingPolicy = (policies: WorkspacePolicy[] | undefined): boolean => {
+  const dataTrackingPolicies = _.filter({ namespace: policyNamespace, name: dataTrackingPolicyName }, policies);
+  return _.any(
+    (policy) => _.any({ dataType: phiTrackingDataType.dataType }, policy.additionalData),
+    dataTrackingPolicies
+  );
+};
+
 export const protectedDataLabel = 'Additional security monitoring';
 export const protectedDataMessage =
   'Enhanced logging and monitoring are enabled to support the use of controlled-access data in this workspace.';
@@ -218,14 +226,7 @@ export const groupConstraintMessage =
 export const phiTrackingLabel = 'PHI tracking';
 
 export const hasPhiTrackingPolicy = (workspace: BaseWorkspace): boolean => {
-  const dataTrackingPolicies = _.filter(
-    { namespace: policyNamespace, name: dataTrackingPolicyName },
-    workspace.policies
-  );
-  return _.any(
-    (policy) => _.any({ dataType: phiTrackingDataType.dataType }, policy.additionalData),
-    dataTrackingPolicies
-  );
+  return containsPhiTrackingPolicy(workspace.policies);
 };
 export const hasRegionConstraintPolicy = (workspace: BaseWorkspace): boolean =>
   getRegionConstraintLabels(workspace.policies).length > 0;

@@ -188,7 +188,6 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
       h(WorkspacePolicies, {
         workspace,
-        policiesLabel: 'Policies on this workspace',
         noCheckboxes: true,
       }),
       !loaded && centeredSpinner(),

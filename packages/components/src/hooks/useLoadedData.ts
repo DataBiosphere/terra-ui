@@ -1,6 +1,7 @@
 import { ErrorState, LoadedState, ReadyState } from '@terra-ui-packages/core-utils';
 import { useCallback, useState } from 'react';
-import { LoadedDataEvents, useLoadedDataEvents } from 'src/libs/ajax/loaded-data/useLoadedDataEvents';
+
+import { LoadedDataEvents, useLoadedDataEvents } from './useLoadedDataEvents';
 
 export type UseLoadedDataArgs<S, E = unknown> = LoadedDataEvents<S, E>;
 

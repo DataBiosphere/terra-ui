@@ -1,6 +1,7 @@
 import { ErrorState, LoadingState, ReadyState } from '@terra-ui-packages/core-utils';
 import React, { useEffect } from 'react';
-import { useLoadedData, UseLoadedDataArgs } from 'src/libs/ajax/loaded-data/useLoadedData';
+
+import { useLoadedData, UseLoadedDataArgs } from './useLoadedData';
 
 /**
  * same as LoadedState<S, E>, but never in NoneState
