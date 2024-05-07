@@ -14,8 +14,8 @@ interface SupportResourceListProps {
 }
 
 export const SupportResourceList = (props: SupportResourceListProps) => {
-  const selectedType = props.queryParams.selectedType;
-  const resourceName = props.queryParams.resourceName;
+  const selectedType = props.queryParams.selectedType || '';
+  const resourceName = props.queryParams.resourceName || '';
   const supportResourceListWidth = 350;
   const supportResources: SupportResourceType[] = [
     { displayName: 'Group', resourceType: 'managed-group', detailComponent: ManagedGroupSummary },
@@ -63,13 +63,16 @@ export const SupportResourceList = (props: SupportResourceListProps) => {
       [
         Utils.cond(
           [
-            !!selectedType && _.some({ resourceType: selectedType }, supportResources),
+            !!selectedType,
             () => {
               const supportResourceType = _.find({ resourceType: selectedType }, supportResources);
-              return h(supportResourceType.detailComponent, {
-                displayName: supportResourceType.displayName,
-                fqResourceId: { resourceTypeName: selectedType, resourceId: resourceName },
-              });
+              if (supportResourceType) {
+                return h(supportResourceType.detailComponent, {
+                  displayName: supportResourceType.displayName,
+                  fqResourceId: { resourceTypeName: selectedType, resourceId: resourceName },
+                });
+              }
+              return div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Resource Type']);
             },
           ],
           [

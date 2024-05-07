@@ -3,6 +3,7 @@ import { h, h2, p } from 'react-hyperscript-helpers';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { PageBox } from 'src/components/PageBox';
 import TopBar from 'src/components/TopBar';
+import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import { SupportResourceList } from 'src/support/SupportResourceList';
 
@@ -18,7 +19,7 @@ const SupportPage = (props: SupportPageProps) => {
   const resourceName = props.queryParams.resourceName;
 
   return h(FooterWrapper, [
-    h(TopBar, { title: 'Support' }),
+    h(TopBar, { title: 'Support', href: Nav.getLink('support') }, []),
     h(PageBox, { role: 'main' }, [
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Support']),
       p(['Select resource type.']),

@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { TextArea, TextInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
+import { GroupSupportSummary } from 'src/libs/ajax/Groups';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
@@ -11,8 +12,8 @@ import { ResourceTypeSummaryProps } from 'src/support/SupportResourceType';
 export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
   const { query } = Nav.useRoute();
   const [groupName, setGroupName] = useState(props.fqResourceId.resourceId || '');
-  const [groupSummaryInfo, setGroupSummaryInfo] = useState(undefined);
-  const [groupPolicies, setGroupPolicies] = useState(undefined);
+  const [groupSummaryInfo, setGroupSummaryInfo] = useState<GroupSupportSummary>();
+  const [groupPolicies, setGroupPolicies] = useState<string[]>();
 
   const submit = async (): Promise<void> => {
     const groupSummaryInfo = await Ajax().Groups.group(groupName).getSupportSummary();
@@ -62,7 +63,7 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
           marginLeft: '1rem',
         },
       },
-      'Summary'
+      ['Summary']
     ),
     h(TextArea, { value: JSON.stringify(groupSummaryInfo, null, 2), readOnly: true, autosize: true }),
     div(
@@ -76,7 +77,7 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
           marginLeft: '1rem',
         },
       },
-      'Sam Policies'
+      ['Sam Policies']
     ),
     h(TextArea, { value: JSON.stringify(groupPolicies, null, 2), readOnly: true, autosize: true }),
   ]);
