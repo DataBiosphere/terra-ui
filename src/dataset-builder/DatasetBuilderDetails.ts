@@ -8,6 +8,7 @@ import { MarkdownViewer } from 'src/components/markdown';
 import TopBar from 'src/components/TopBar';
 import { DataRepo, datasetIncludeTypes, DatasetModel } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 
@@ -72,14 +73,24 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
     datasetRoles.status === 'Ready' ? _.intersection(['admin'], datasetRoles.state).length > 0 : false;
 
   useOnMount(() => {
-    void loadDatasetDetails(() => DataRepo().dataset(datasetId).details());
-    void loadDatasetRoles(() => DataRepo().dataset(datasetId).roles());
+    void loadDatasetDetails(
+      withErrorReporting(`Error loading dataset details for dataset ${datasetId}`)(() =>
+        DataRepo().dataset(datasetId).details()
+      )
+    );
+    void loadDatasetRoles(
+      withErrorReporting(`Error loading dataset roles for dataset ${datasetId}`)(() =>
+        DataRepo().dataset(datasetId).roles()
+      )
+    );
   });
 
   useEffect(() => {
     hasAggregateDataViewerAccess &&
-      void loadDatasetDetails(() =>
-        DataRepo().dataset(datasetId).details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS])
+      void loadDatasetDetails(
+        withErrorReporting(`Error loading dataset builder settings for dataset ${datasetId}`)(() =>
+          DataRepo().dataset(datasetId).details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS])
+        )
       );
   }, [datasetId, loadDatasetDetails, hasAggregateDataViewerAccess]);
 

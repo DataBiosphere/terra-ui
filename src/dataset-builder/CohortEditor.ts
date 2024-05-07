@@ -28,6 +28,7 @@ import {
   SnapshotBuilderProgramDataRangeOption,
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
 import { domainCriteriaSearchState, homepageState, newCriteriaGroup, Updater } from './dataset-builder-types';
@@ -59,18 +60,20 @@ export const CriteriaView = (props: CriteriaViewProps) => {
   const updateCriteriaCount = useRef(
     _.debounce(250, (datasetId, criteria) => {
       setCriteriaCount(
-        async () =>
-          await DataRepo()
-            .dataset(datasetId)
-            .getSnapshotBuilderCount(
-              createSnapshotBuilderCountRequest([
-                {
-                  // Create a "cohort" to get the count of participants for these criteria on its own.
-                  criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }],
-                  name: '',
-                },
-              ])
-            )
+        withErrorReporting('Error fetching count for criteria')(
+          async () =>
+            await DataRepo()
+              .dataset(datasetId)
+              .getSnapshotBuilderCount(
+                createSnapshotBuilderCountRequest([
+                  {
+                    // Create a "cohort" to get the count of participants for these criteria on its own.
+                    criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }],
+                    name: '',
+                  },
+                ])
+              )
+        )
       );
     })
   );
@@ -332,10 +335,12 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
 
   const updateGroupParticipantCount = useRef(
     _.debounce(250, (dataset, criteriaGroup) =>
-      setGroupParticipantCount(async () =>
-        DataRepo()
-          .dataset(dataset.id)
-          .getSnapshotBuilderCount(createSnapshotBuilderCountRequest([{ criteriaGroups: [criteriaGroup], name: '' }]))
+      setGroupParticipantCount(
+        withErrorReporting(`Error getting criteria group count for ${criteriaGroup.name}`)(async () =>
+          DataRepo()
+            .dataset(dataset.id)
+            .getSnapshotBuilderCount(createSnapshotBuilderCountRequest([{ criteriaGroups: [criteriaGroup], name: '' }]))
+        )
       )
     )
   );
