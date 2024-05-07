@@ -1,7 +1,5 @@
+import { useAutoLoadedData, useLoadedDataEvents, withCachedData } from '@terra-ui-packages/components';
 import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
-import { useAutoLoadedData } from 'src/libs/ajax/loaded-data/useAutoLoadedData';
-import { useLoadedDataEvents } from 'src/libs/ajax/loaded-data/useLoadedDataEvents';
-import { withCachedData } from 'src/libs/ajax/loaded-data/withCachedData';
 import { FieldsArg, workspaceProvider } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
 import { withErrorReporter } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';

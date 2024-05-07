@@ -1,3 +1,4 @@
+import { useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { useEffect } from 'react';
 import { div, h, h1, h3 } from 'react-hyperscript-helpers';
@@ -6,7 +7,6 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { MarkdownViewer } from 'src/components/markdown';
 import TopBar from 'src/components/TopBar';
 import { DataRepo, datasetIncludeTypes, DatasetModel } from 'src/libs/ajax/DataRepo';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
