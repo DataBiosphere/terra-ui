@@ -23,7 +23,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<PersistentDisk> as PersistentDisk;
 
     // Act
-    const canIDeleteDisk = leoResourcePermissions.canDeleteDisk(myDisk);
+    const canIDeleteDisk = leoResourcePermissions.hasDeletePermission(myDisk);
 
     // Assert
     expect(canIDeleteDisk).toBe(true);
@@ -39,7 +39,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<PersistentDisk> as PersistentDisk;
 
     // Act
-    const canIDeleteDisk = leoResourcePermissions.canDeleteDisk(otherDisk);
+    const canIDeleteDisk = leoResourcePermissions.hasDeletePermission(otherDisk);
 
     // Assert
     expect(canIDeleteDisk).toBe(false);
@@ -55,7 +55,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<ListRuntimeItem> as ListRuntimeItem;
 
     // Act
-    const canIDeleteDisk = leoResourcePermissions.canPauseResource(myRuntime);
+    const canIDeleteDisk = leoResourcePermissions.hasPausePermission(myRuntime);
 
     // Assert
     expect(canIDeleteDisk).toBe(true);
@@ -71,7 +71,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<ListRuntimeItem> as ListRuntimeItem;
 
     // Act
-    const canIDeleteDisk = leoResourcePermissions.canPauseResource(otherRuntime);
+    const canIDeleteDisk = leoResourcePermissions.hasPausePermission(otherRuntime);
 
     // Assert
     expect(canIDeleteDisk).toBe(false);
@@ -137,7 +137,7 @@ describe('environmentsPermissions', () => {
   ] as { resource: App; canDeleteApp: boolean }[])(
     'returns proper boolean for app deletion',
     ({ resource, canDeleteApp }) => {
-      expect(leoResourcePermissions.canDeleteApp(resource)).toBe(canDeleteApp);
+      expect(leoResourcePermissions.isAppInDeletableState(resource)).toBe(canDeleteApp);
     }
   );
 
@@ -234,7 +234,7 @@ describe('environmentsPermissions', () => {
   ] as { resource: App | PersistentDisk | Runtime; canDeleteResource: boolean }[])(
     'returns correct boolean for resource deletion',
     ({ resource, canDeleteResource }) => {
-      expect(leoResourcePermissions.canDeleteResource(resource)).toBe(canDeleteResource);
+      expect(leoResourcePermissions.isResourceInDeletableState(resource)).toBe(canDeleteResource);
     }
   );
 });

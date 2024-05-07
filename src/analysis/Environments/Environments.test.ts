@@ -79,15 +79,15 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
 
 const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
   const mockPermissions: LeoResourcePermissionsProvider = {
-    canDeleteDisk: jest.fn(),
-    canPauseResource: jest.fn(),
-    canDeleteApp: jest.fn(),
-    canDeleteResource: jest.fn(),
+    hasDeletePermission: jest.fn(),
+    hasPausePermission: jest.fn(),
+    isAppInDeletableState: jest.fn(),
+    isResourceInDeletableState: jest.fn(),
   };
-  asMockedFn(mockPermissions.canDeleteDisk).mockReturnValue(true);
-  asMockedFn(mockPermissions.canPauseResource).mockReturnValue(true);
-  asMockedFn(mockPermissions.canDeleteApp).mockReturnValue(true);
-  asMockedFn(mockPermissions.canDeleteResource).mockReturnValue(true);
+  asMockedFn(mockPermissions.hasDeletePermission).mockReturnValue(true);
+  asMockedFn(mockPermissions.hasPausePermission).mockReturnValue(true);
+  asMockedFn(mockPermissions.isAppInDeletableState).mockReturnValue(true);
+  asMockedFn(mockPermissions.isResourceInDeletableState).mockReturnValue(true);
 
   const defaultProps: EnvironmentsProps = {
     nav: mockNav,
@@ -238,7 +238,7 @@ describe('Environments Component', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
-      props.permissions.canDeleteResource = leoResourcePermissions.canDeleteResource;
+      props.permissions.isResourceInDeletableState = leoResourcePermissions.isResourceInDeletableState;
 
       // Act
       await act(async () => {
@@ -264,8 +264,7 @@ describe('Environments Component', () => {
       const buttons2 = getAllByRole(runtime2ButtonsCell, 'button');
       expect(buttons2.length).toBe(2);
       expect(buttons2[0].textContent).toBe('Pause');
-      // TODO: Back to true once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
-      expect(buttons2[0].getAttribute('aria-disabled')).toBe('false');
+      expect(buttons2[0].getAttribute('aria-disabled')).toBe('true');
       expect(buttons2[1].textContent).toBe('Delete');
       expect(buttons2[1].getAttribute('aria-disabled')).toBe('false');
 
@@ -286,7 +285,7 @@ describe('Environments Component', () => {
       expect(buttons4.length).toBe(2);
       expect(buttons4[0].textContent).toBe('Pause');
       // TODO: Back to true once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
-      expect(buttons4[0].getAttribute('aria-disabled')).toBe('false');
+      expect(buttons4[0].getAttribute('aria-disabled')).toBe('true');
       expect(buttons4[1].textContent).toBe('Delete');
       expect(buttons4[1].getAttribute('aria-disabled')).toBe('true');
     });
@@ -301,7 +300,7 @@ describe('Environments Component', () => {
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
 
-      asMockedFn(props.permissions.canPauseResource).mockReturnValue(false);
+      asMockedFn(props.permissions.hasPausePermission).mockReturnValue(false);
 
       // Act
       await act(async () => {

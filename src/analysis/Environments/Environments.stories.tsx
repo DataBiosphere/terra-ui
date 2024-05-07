@@ -129,10 +129,10 @@ const mockNotifications: NotificationsContract = {
 };
 
 const happyPermissions: LeoResourcePermissionsProvider = {
-  canDeleteDisk: () => true,
-  canPauseResource: () => true,
-  canDeleteApp: () => true,
-  canDeleteResource: () => true,
+  hasDeletePermission: () => true,
+  hasPausePermission: () => true,
+  isAppInDeletableState: () => true,
+  isResourceInDeletableState: () => true,
 };
 
 export const HappyEnvironments: Story = {
