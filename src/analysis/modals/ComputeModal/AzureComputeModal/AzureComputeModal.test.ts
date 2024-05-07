@@ -14,8 +14,8 @@ import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/analy
 import { autopauseDisabledValue, defaultAutopauseThreshold } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
-import { DisksContractV2, DisksDataClientContract } from 'src/libs/ajax/leonardo/Disks';
 import { AzureConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { RuntimeAjaxContractV2 } from 'src/libs/ajax/leonardo/Runtimes';
 import { azureMachineTypes, defaultAzureMachineType, getMachineTypeLabel } from 'src/libs/azure-utils';
 import { formatUSD } from 'src/libs/utils';
@@ -25,6 +25,7 @@ import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 import { AzureComputeModalBase } from './AzureComputeModal';
 
 jest.mock('src/analysis/utils/cost-utils');
+jest.mock('src/libs/ajax/leonardo/providers/LeoDiskProvider');
 
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/notifications', () => ({
@@ -61,13 +62,6 @@ const defaultAjaxImpl: AjaxContract = {
   Buckets: { getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }) } satisfies Partial<
     AjaxContract['Buckets']
   >,
-  Disks: {
-    disksV1: {
-      disk: () => ({
-        details: jest.fn(),
-      }),
-    },
-  } satisfies DeepPartial<AjaxContract['Disks']>,
   Metrics: {
     captureEvent: jest.fn(),
   } satisfies Partial<AjaxContract['Metrics']>,
@@ -405,7 +399,6 @@ describe('AzureComputeModal', () => {
     // Arrange
     const user = userEvent.setup();
     const disk = getDisk();
-    const diskDeleteFn = jest.fn();
 
     const runtimeFunc = jest.fn(() => ({
       details: jest.fn(),
@@ -415,12 +408,6 @@ describe('AzureComputeModal', () => {
       Runtimes: {
         runtime: runtimeFunc as Partial<RuntimeAjaxContractV2>,
       } as Partial<AjaxContract['Runtimes']>,
-      Disks: {
-        disksV2: () =>
-          ({
-            delete: diskDeleteFn,
-          } as DisksContractV2),
-      } as DisksDataClientContract,
     } as AjaxContract);
 
     // Act
@@ -442,7 +429,8 @@ describe('AzureComputeModal', () => {
     const radio1 = screen.getByLabelText('Delete persistent disk');
     expect(radio1).toBeChecked();
     await user.click(deleteConfirmationButton);
-    expect(diskDeleteFn).toBeCalledTimes(1);
+    expect(leoDiskProvider.delete).toBeCalledTimes(1);
+    expect(leoDiskProvider.delete).toBeCalledWith(disk);
   });
 
   it('toggles GPU on azure warning when GPU cloud compute profile is selected and unselected', async () => {
