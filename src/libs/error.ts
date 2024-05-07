@@ -14,7 +14,10 @@ const notifier: Notifier = {
   notify,
 };
 
-export const terraUINotifications = makeNotificationsProvider(notifier, ignoreSessionTimeout);
+export const terraUINotifications = makeNotificationsProvider({
+  notifier,
+  shouldIgnoreError: ignoreSessionTimeout,
+});
 
 // provide backwards compatible fail-safes for existing code that is not yet ready for code-reuse
 

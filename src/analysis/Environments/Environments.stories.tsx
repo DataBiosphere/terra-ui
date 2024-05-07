@@ -127,7 +127,10 @@ const getMockNav = (): EnvironmentsProps['nav'] => ({
 const mockNotifier: Notifier = {
   notify: actionLogAsyncFn('Notifications.notify'),
 };
-const mockNotifications = makeNotificationsProvider(mockNotifier, () => false);
+const mockNotifications = makeNotificationsProvider({
+  notifier: mockNotifier,
+  shouldIgnoreError: () => false,
+});
 
 const happyPermissions: LeoResourcePermissionsProvider = {
   canDeleteDisk: () => true,

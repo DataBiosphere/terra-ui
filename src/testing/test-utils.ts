@@ -39,7 +39,10 @@ const mockNotifier: Notifier = {
   notify: jest.fn(),
 };
 
-export const mockNotifications: NotificationsProvider = makeNotificationsProvider(mockNotifier, () => false);
+export const mockNotifications: NotificationsProvider = makeNotificationsProvider({
+  notifier: mockNotifier,
+  shouldIgnoreError: () => false,
+});
 
 const AppProviders = ({ children }: PropsWithChildren<{}>): ReactElement => {
   return h(ThemeProvider, { theme: testTheme }, [

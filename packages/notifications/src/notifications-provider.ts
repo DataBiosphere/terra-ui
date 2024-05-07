@@ -43,24 +43,29 @@ export interface ErrorReporter {
 export interface NotificationsProvider extends Notifier, ErrorReporter {}
 
 /**
- * allows composition of NotificationsProvider dependency when useful for code reuse
- * @param notifier
+ * dependencies for NotificationsProvider factory method makeNotificationsProvider
  */
-export const makeNotificationsProvider = (
-  notifier: Notifier,
-  shouldIgnoreError: IgnoreErrorDecider
-): NotificationsProvider => {
+export interface NotificationsProviderDeps {
+  notifier: Notifier;
+  shouldIgnoreError: IgnoreErrorDecider;
+}
+
+/**
+ * allows composition of NotificationsProvider dependency when useful for code reuse
+ * @param deps
+ */
+export const makeNotificationsProvider = (deps: NotificationsProviderDeps): NotificationsProvider => {
   const notifications: NotificationsProvider = {
-    notify: notifier.notify,
+    notify: deps.notifier.notify,
 
     reportError: async (title: string, obj?: unknown) => {
       console.error(title, obj); // helpful when the notify component fails to render
       // Do not do anything if error should be ignored
-      if (shouldIgnoreError(title, obj)) {
+      if (deps.shouldIgnoreError(title, obj)) {
         return;
       }
       const detail = await (obj instanceof Response ? obj.text().catch(() => 'Unknown error') : obj);
-      notifier.notify('error', title, { detail });
+      deps.notifier.notify('error', title, { detail });
     },
 
     withErrorReporting: (title: string, args?: ErrorReportingOptions) => {

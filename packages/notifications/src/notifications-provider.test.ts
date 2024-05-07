@@ -11,7 +11,10 @@ describe('reportError', () => {
   it('calls notify and console.error', async () => {
     // Arrange
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { reportError } = makeNotificationsProvider(mockNotifications, ignoreError);
+    const { reportError } = makeNotificationsProvider({
+      notifier: mockNotifications,
+      shouldIgnoreError: ignoreError,
+    });
 
     // Act
     await reportError('Things went BOOM', new Error('BOOM!'));
@@ -27,7 +30,10 @@ describe('reportError', () => {
   it('ignores error when ignore-checker is given', async () => {
     // Arrange
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { reportError } = makeNotificationsProvider(mockNotifications, ignoreError);
+    const { reportError } = makeNotificationsProvider({
+      notifier: mockNotifications,
+      shouldIgnoreError: ignoreError,
+    });
 
     // Act
     await reportError('Ignore Me', new Error('I cried wolf.'));
@@ -43,7 +49,10 @@ describe('withErrorReporting (and rethrow)', () => {
   it('calls notify and rethrows error', async () => {
     // Arrange
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { withErrorReporting } = makeNotificationsProvider(mockNotifications, ignoreError);
+    const { withErrorReporting } = makeNotificationsProvider({
+      notifier: mockNotifications,
+      shouldIgnoreError: ignoreError,
+    });
     const callMe = withErrorReporting('Things went BOOM', { rethrow: true })(async () => {
       throw new Error('BOOM!');
     });
@@ -63,7 +72,10 @@ describe('withErrorReporting', () => {
   it('calls notify and console.error', async () => {
     // Arrange
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { withErrorReporting } = makeNotificationsProvider(mockNotifications, ignoreError);
+    const { withErrorReporting } = makeNotificationsProvider({
+      notifier: mockNotifications,
+      shouldIgnoreError: ignoreError,
+    });
     const callMe = withErrorReporting('Things went BOOM')(async () => {
       throw new Error('BOOM!');
     });
@@ -84,7 +96,10 @@ describe('withErrorReporting (in modal)', () => {
   it('calls dismiss and notify', async () => {
     // Arrange
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { withErrorReporting } = makeNotificationsProvider(mockNotifications, ignoreError);
+    const { withErrorReporting } = makeNotificationsProvider({
+      notifier: mockNotifications,
+      shouldIgnoreError: ignoreError,
+    });
     const onDismiss = jest.fn();
 
     // have withErrorReporting use args that match commonly desired behavior within a Modal
