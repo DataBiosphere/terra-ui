@@ -22,7 +22,7 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';
 import { domainCriteriaSearchState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
-import { dummyDatasetModel } from './TestConstants';
+import { dummySnapshot, dummySnapshotBuilderSettings } from './TestConstants';
 
 jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
@@ -51,7 +51,7 @@ describe('CohortEditor', () => {
 
   const mockListStatistics = () => {
     const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
+      snapshot: (_snapshotId) =>
         ({
           queryDatasetColumnStatisticsById: () =>
             Promise.resolve({
@@ -113,11 +113,12 @@ describe('CohortEditor', () => {
 
   const getNextCriteriaIndex = () => 1234;
 
-  const datasetDetails = dummyDatasetModel();
+  const snapshotDetails = dummySnapshot();
+  const snapshotBuilderSettings = dummySnapshotBuilderSettings();
   const renderCriteriaView = (propsOverrides: CriteriaViewPropsOverrides) =>
     render(
       h(CriteriaView, {
-        datasetId: datasetDetails.id,
+        snapshotId: snapshotDetails.id,
         deleteCriteria: _.noop,
         updateCriteria: _.noop,
         key: '1',
@@ -337,10 +338,10 @@ describe('CohortEditor', () => {
     }
     cohort.criteriaGroups.push(criteriaGroup);
     const updateCohort = jest.fn();
-    const datasetDetailsUpdated = _.flow(
-      _.set('snapshotBuilderSettings.domainOptions', domainOptions),
-      _.set('snapshotBuilderSettings.programDataOptions', programDataOptions)
-    )(datasetDetails);
+    const snapshotBuilderSettingsUpdated = _.flow(
+      _.set('domainOptions', domainOptions),
+      _.set('programDataOptions', programDataOptions)
+    )(snapshotBuilderSettings);
 
     render(
       h(CriteriaGroupView, {
@@ -348,7 +349,8 @@ describe('CohortEditor', () => {
         criteriaGroup,
         updateCohort,
         cohort,
-        dataset: datasetDetailsUpdated,
+        snapshot: snapshotDetails,
+        snapshotBuilderSettings: snapshotBuilderSettingsUpdated,
         onStateChange: _.noop,
         getNextCriteriaIndex,
       })
@@ -454,7 +456,8 @@ describe('CohortEditor', () => {
     render(
       h(CohortEditor, {
         onStateChange,
-        dataset: datasetDetails,
+        snapshot: snapshotDetails,
+        snapshotBuilderSettings,
         originalCohort,
         updateCohorts,
         getNextCriteriaIndex,
@@ -514,14 +517,14 @@ describe('CohortEditor', () => {
     // Act
     await user.click(screen.getByText('Add group'));
     await user.click(screen.getByLabelText('Add criteria'));
-    const domainMenuItem = screen.getByText(datasetDetails!.snapshotBuilderSettings!.domainOptions[0].name);
+    const domainMenuItem = screen.getByText(snapshotBuilderSettings!.domainOptions[0].name);
     await user.click(domainMenuItem);
     // Assert
     expect(onStateChange).toBeCalledWith(
       domainCriteriaSearchState.new(
         expect.anything(),
         expect.anything(),
-        _.set('kind', 'domain', datasetDetails!.snapshotBuilderSettings!.domainOptions[0]),
+        _.set('kind', 'domain', snapshotBuilderSettings!.domainOptions[0]),
         [],
         ''
       )

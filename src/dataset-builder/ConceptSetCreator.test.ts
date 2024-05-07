@@ -6,19 +6,19 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { ConceptSetCreator, toDomainConceptSet } from './ConceptSetCreator';
 import { homepageState } from './dataset-builder-types';
-import { dummyDatasetModel } from './TestConstants';
+import { dummySnapshot } from './TestConstants';
 
 jest.mock('src/libs/ajax/GoogleStorage');
 
 describe('ConceptSetCreator', () => {
-  const dataset = dummyDatasetModel();
+  const dataset = dummySnapshot();
 
   const renderConceptSetCreator = (cart: Concept[]) => {
     const conceptSetUpdater = jest.fn();
     const onStateChange = jest.fn();
     render(
       h(ConceptSetCreator, {
-        dataset,
+        snapshot: dataset,
         onStateChange,
         conceptSetUpdater,
         cart,

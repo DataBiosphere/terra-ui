@@ -24,7 +24,7 @@ import { OnStateChangeHandler } from './DatasetBuilder';
 interface DomainCriteriaSelectorProps {
   readonly state: DomainCriteriaSelectorState;
   readonly onStateChange: OnStateChangeHandler;
-  readonly datasetId: string;
+  readonly snapshotId: string;
   readonly getNextCriteriaIndex: () => number;
 }
 
@@ -59,18 +59,18 @@ export const saveSelected =
   };
 
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
-  const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
+  const { state, onStateChange, snapshotId, getNextCriteriaIndex } = props;
   const [hierarchy, setHierarchy] = useLoadedData<Parent<Concept>[]>();
   useOnMount(() => {
     const openedConcept = state.openedConcept;
     if (openedConcept) {
       void setHierarchy(async () => {
-        return (await DataRepo().dataset(datasetId).getConceptHierarchy(openedConcept)).result;
+        return (await DataRepo().snapshot(snapshotId).getConceptHierarchy(openedConcept)).result;
       });
     } else {
       // get the children of this concept
       void setHierarchy(async () => {
-        const results = (await DataRepo().dataset(datasetId).getConcepts(state.domainOption.root)).result;
+        const results = (await DataRepo().snapshot(snapshotId).getConceptChildren(state.domainOption.root)).result;
         return [{ parentId: state.domainOption.root.id, children: results }];
       });
     }
@@ -88,7 +88,7 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
           ),
         onCommit: saveSelected(state, getNextCriteriaIndex, onStateChange),
         actionText: 'Add to group',
-        datasetId,
+        snapshotId,
         openedConcept: state.openedConcept,
       })
     : spinnerOverlay;

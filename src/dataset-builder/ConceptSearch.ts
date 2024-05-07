@@ -14,7 +14,7 @@ import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderDomainOption,
-  SnapshotBuilderGetConceptsResponse as GetConceptsResponse,
+  SnapshotBuilderGetConceptsResponse as getConceptChildrenResponse,
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 
@@ -30,25 +30,25 @@ type ConceptSearchProps = {
     openedConcept?: Concept
   ) => void;
   readonly actionText: string;
-  readonly datasetId: string;
+  readonly snapshotId: string;
   readonly initialCart: Concept[];
 };
 
 const DebouncedTextInput = withDebouncedChange(TextInput);
 export const ConceptSearch = (props: ConceptSearchProps) => {
-  const { initialSearch, domainOption, onCancel, onCommit, onOpenHierarchy, actionText, datasetId, initialCart } =
+  const { initialSearch, domainOption, onCancel, onCommit, onOpenHierarchy, actionText, snapshotId, initialCart } =
     props;
   const [searchText, setSearchText] = useState<string>(initialSearch);
   const [cart, setCart] = useState<Concept[]>(initialCart);
-  const [concepts, searchConcepts] = useLoadedData<GetConceptsResponse>();
+  const [concepts, enumerateConcepts] = useLoadedData<getConceptChildrenResponse>();
 
   useEffect(() => {
     if (searchText.length === 0 || searchText.length > 2) {
-      void searchConcepts(() => {
-        return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, searchText);
+      void enumerateConcepts(() => {
+        return DataRepo().snapshot(snapshotId).enumerateConcepts(domainOption.root, searchText);
       });
     }
-  }, [searchText, datasetId, domainOption.root, searchConcepts]);
+  }, [searchText, snapshotId, domainOption.root, enumerateConcepts]);
   const tableLeftPadding = { paddingLeft: '2rem' };
   const iconSize = 18;
 

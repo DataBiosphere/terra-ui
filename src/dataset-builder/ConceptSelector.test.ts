@@ -33,7 +33,7 @@ describe('ConceptSelector', () => {
         onCancel,
         onCommit,
         title,
-        datasetId,
+        snapshotId: datasetId,
       })
     );
   };
@@ -149,7 +149,7 @@ describe('ConceptSelector', () => {
     const mockDataRepoContract: DataRepoContract = {
       dataset: (_datasetId) =>
         ({
-          getConcepts: () => Promise.resolve({ result: [dummyGetConceptForId(103)] }),
+          getConceptChildren: () => Promise.resolve({ result: [dummyGetConceptForId(103)] }),
         } as Partial<DataRepoContract['dataset']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
@@ -168,7 +168,7 @@ describe('ConceptSelector', () => {
     const mockDataRepoContract: DataRepoContract = {
       dataset: (_datasetId) =>
         ({
-          getConcepts: () => Promise.resolve({ result: [expandConcept] }),
+          getConceptChildren: () => Promise.resolve({ result: [expandConcept] }),
         } as Partial<DataRepoContract['dataset']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);

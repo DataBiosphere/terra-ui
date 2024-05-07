@@ -4,7 +4,7 @@ import { DataRepo, DataRepoContract, DatasetModel } from 'src/libs/ajax/DataRepo
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { DatasetBuilderDetails } from './DatasetBuilderDetails';
-import { dummyDatasetModel } from './TestConstants';
+import { dummySnapshot } from './TestConstants';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -39,8 +39,8 @@ describe('DatasetBuilderDetails', () => {
 
   it('renders', async () => {
     // Arrange
-    mockWithValues(dummyDatasetModel(), ['admin']);
-    render(h(DatasetBuilderDetails, { datasetId: 'id' }));
+    mockWithValues(dummySnapshot(), ['admin']);
+    render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
     // Assert
     expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
     expect(await screen.findByText('Start creating datasets')).toBeTruthy();
@@ -48,8 +48,8 @@ describe('DatasetBuilderDetails', () => {
 
   it("renders the 'how to get access' button if discoverer", async () => {
     // Arrange
-    mockWithValues(dummyDatasetModel(), ['snapshot_creator']);
-    render(h(DatasetBuilderDetails, { datasetId: 'id' }));
+    mockWithValues(dummySnapshot(), ['snapshot_creator']);
+    render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
     // Assert
     expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
     expect(await screen.findByText('Learn how to gain access')).toBeTruthy();

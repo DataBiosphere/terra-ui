@@ -17,7 +17,7 @@ import {
   OnStateChangeHandler,
   ValuesSelector,
 } from './DatasetBuilder';
-import { dummyDatasetModel } from './TestConstants';
+import { dummySnapshot } from './TestConstants';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -37,7 +37,7 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
 const concept = { id: 100, name: 'concept', code: '0', count: 10, hasChildren: false, children: [] };
 
 describe('DatasetBuilder', () => {
-  const dummyDatasetDetailsWithId = dummyDatasetModel();
+  const dummyDatasetDetailsWithId = dummySnapshot();
   type DatasetBuilderContentsPropsOverrides = {
     onStateChange?: OnStateChangeHandler;
     updateCohorts?: Updater<Cohort[]>;
@@ -54,7 +54,7 @@ describe('DatasetBuilder', () => {
         updateCohorts: jest.fn(),
         updateConceptSets: jest.fn(),
         onStateChange: (state) => state,
-        dataset: dummyDatasetDetailsWithId,
+        snapshot: dummyDatasetDetailsWithId,
         ...overrides,
       })
     );

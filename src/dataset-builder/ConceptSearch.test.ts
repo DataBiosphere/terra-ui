@@ -4,7 +4,7 @@ import _ from 'lodash/fp';
 import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { ConceptSearch } from 'src/dataset-builder/ConceptSearch';
-import { dummyDatasetModel, dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
+import { dummyGetConceptForId, dummySnapshotBuilderSettings } from 'src/dataset-builder/TestConstants';
 import { DataRepo, DataRepoContract, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -30,7 +30,7 @@ describe('ConceptSearch', () => {
   const onOpenHierarchy = jest.fn();
   const actionText = 'action text';
   const datasetId = '0';
-  const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
+  const domainOption = dummySnapshotBuilderSettings()!.domainOptions[0];
 
   const renderSearch = (initialSearch = '', initialCart: SnapshotBuilderConcept[] = []) =>
     render(
@@ -41,7 +41,7 @@ describe('ConceptSearch', () => {
         onCancel,
         onCommit,
         onOpenHierarchy,
-        datasetId,
+        snapshotId: datasetId,
         domainOption,
       })
     );
@@ -52,7 +52,7 @@ describe('ConceptSearch', () => {
   const mockDataRepoContract: DataRepoContract = {
     dataset: (_datasetId) =>
       ({
-        searchConcepts: mockSearch,
+        enumerateConcepts: mockSearch,
       } as Partial<DataRepoContract['dataset']>),
   } as Partial<DataRepoContract> as DataRepoContract;
   asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
@@ -83,28 +83,28 @@ describe('ConceptSearch', () => {
     expect(mockSearch).toHaveBeenCalledWith(domainOption.root, searchText);
   });
 
-  it('searchConcepts is called when initial search length is 0', async () => {
+  it('enumerateConcepts is called when initial search length is 0', async () => {
     // Arrange
     await act(() => renderSearch());
-    // Assert - searchConcepts is called because searchText.length is 0
+    // Assert - enumerateConcepts is called because searchText.length is 0
     expect(mockSearch).toBeCalledTimes(1);
   });
 
-  it('searchConcepts is not called when initial search length is 1 or 2', async () => {
+  it('enumerateConcepts is not called when initial search length is 1 or 2', async () => {
     // Arrange
     renderSearch('a');
-    // Assert - searchConcepts is not called because searchText.length is 1
+    // Assert - enumerateConcepts is not called because searchText.length is 1
     expect(mockSearch).toBeCalledTimes(0);
 
     // Arrange
     renderSearch('ab');
-    // Assert - searchConcepts is not called because searchText.length is 2
+    // Assert - enumerateConcepts is not called because searchText.length is 2
     expect(mockSearch).toBeCalledTimes(0);
   });
-  it('searchConcepts is called when initial search length is greater than 2', async () => {
+  it('enumerateConcepts is called when initial search length is greater than 2', async () => {
     // Arrange
     await act(() => renderSearch('abc'));
-    // Assert - searchConcepts is called because searchText.length is greater than 2
+    // Assert - enumerateConcepts is called because searchText.length is greater than 2
     expect(mockSearch).toBeCalledTimes(1);
   });
 

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { DomainConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DatasetModel, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
+import { Snapshot, SnapshotBuilderConcept as Concept, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 
 import { ConceptSelector } from './ConceptSelector';
 import { homepageState, Updater } from './dataset-builder-types';
@@ -9,7 +9,8 @@ import { OnStateChangeHandler } from './DatasetBuilder';
 
 export type ConceptSetCreatorProps = {
   readonly onStateChange: OnStateChangeHandler;
-  readonly dataset: DatasetModel;
+  readonly snapshot: Snapshot;
+  readonly snapshotBuilderSettings: SnapshotBuilderSettings;
   readonly conceptSetUpdater: Updater<DomainConceptSet[]>;
   readonly cart: Concept[];
 };
@@ -30,8 +31,8 @@ export const toConcept = (conceptSet: DomainConceptSet): Concept => {
 };
 
 export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
-  const { onStateChange, dataset, conceptSetUpdater, cart } = props;
-  const { snapshotBuilderSettings, id } = dataset;
+  const { onStateChange, snapshot, snapshotBuilderSettings, conceptSetUpdater, cart } = props;
+  const { id } = snapshot;
   return h(ConceptSelector, {
     // create a root for all domainOptions
     // Concept selection currently only supports top level domains, so nodes should not be expandable
@@ -53,6 +54,6 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
       onStateChange(homepageState.new());
     },
     actionText: 'Add to concept sets',
-    datasetId: id,
+    snapshotId: id,
   });
 };
