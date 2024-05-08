@@ -661,7 +661,7 @@ export const DatasetBuilderContents = ({
       requestValid &&
         h(ActionBar, {
           prompt: h(Fragment, [
-            datasetRequestParticipantCount.status === 'Ready' && datasetRequestParticipantCount.state?.result.total
+            datasetRequestParticipantCount.status === 'Ready'
               ? formatCount(datasetRequestParticipantCount.state.result.total)
               : h(Spinner),
             ' participants in this dataset',

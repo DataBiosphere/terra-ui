@@ -49,29 +49,43 @@ describe('CohortEditor', () => {
     updateCriteria?: (criteria: AnyCriteria) => void;
   };
 
-  const mockListStatistics = () => {
-    const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
-        ({
-          queryDatasetColumnStatisticsById: () =>
-            Promise.resolve({
-              kind: 'list',
-              name: 'list',
-              values: [
-                {
-                  id: 0,
-                  name: 'value 0',
-                },
-                {
-                  id: 1,
-                  name: 'value 1',
-                },
-              ],
-            }),
-        } as Partial<DataRepoContract['dataset']>),
-    } as Partial<DataRepoContract> as DataRepoContract;
-    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+  const mockDataRepo = (datasetMocks: Partial<DataRepoContract['dataset']>) => {
+    asMockedFn(DataRepo).mockImplementation(
+      () => ({ dataset: (_datasetId) => datasetMocks } as Partial<DataRepoContract> as DataRepoContract)
+    );
   };
+
+  const listStatisticsMock = () => ({
+    queryDatasetColumnStatisticsById: () =>
+      Promise.resolve({
+        kind: 'list',
+        name: 'list',
+        values: [
+          {
+            id: 0,
+            name: 'value 0',
+          },
+          {
+            id: 1,
+            name: 'value 1',
+          },
+        ],
+      }),
+  });
+
+  const rangeStatisticsMock = (min = 55, max = 99) => ({
+    queryDatasetColumnStatisticsById: () => Promise.resolve(programDataRangeOption(min, max)),
+  });
+
+  const getSnapshotBuilderCountMock = (count = 0) => ({
+    getSnapshotBuilderCount: () =>
+      Promise.resolve({
+        result: {
+          total: count,
+        },
+        sql: 'sql',
+      }),
+  });
 
   const programDataRangeOption = (min = 55, max = 99): SnapshotBuilderProgramDataRangeOption => {
     return {
@@ -83,32 +97,6 @@ describe('CohortEditor', () => {
       min,
       max,
     };
-  };
-
-  const mockRangeStatistics = (min = 55, max = 99) => {
-    const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
-        ({
-          queryDatasetColumnStatisticsById: () => Promise.resolve(programDataRangeOption(min, max)),
-        } as Partial<DataRepoContract['dataset']>),
-    } as Partial<DataRepoContract> as DataRepoContract;
-    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
-  };
-
-  const mockGetCounts = (count: number) => {
-    const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
-        ({
-          getSnapshotBuilderCount: () =>
-            Promise.resolve({
-              result: {
-                total: count,
-              },
-              sql: 'sql',
-            }),
-        } as Partial<DataRepoContract['dataset']>),
-    } as Partial<DataRepoContract> as DataRepoContract;
-    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   };
 
   const getNextCriteriaIndex = () => 1234;
@@ -138,6 +126,7 @@ describe('CohortEditor', () => {
 
   it('renders domain criteria', async () => {
     // Arrange
+    mockDataRepo(getSnapshotBuilderCountMock(0));
     const criteria: ProgramDomainCriteria = {
       kind: 'domain',
       conceptId: 0,
@@ -163,7 +152,7 @@ describe('CohortEditor', () => {
 
   it('renders list criteria', async () => {
     // Arrange
-    mockListStatistics();
+    mockDataRepo(listStatisticsMock());
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'list',
@@ -182,6 +171,7 @@ describe('CohortEditor', () => {
     // Arrange
     const user = userEvent.setup();
     const updateCriteria = jest.fn();
+    mockDataRepo(getSnapshotBuilderCountMock());
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'list',
@@ -241,7 +231,7 @@ describe('CohortEditor', () => {
   it('allows number inputs for range criteria', async () => {
     // Arrange
     const user = userEvent.setup();
-    mockRangeStatistics();
+    mockDataRepo({ ...rangeStatisticsMock(), ...getSnapshotBuilderCountMock() });
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'range',
@@ -268,6 +258,7 @@ describe('CohortEditor', () => {
 
   it('renders accessible slider handles', async () => {
     // Arrange
+    mockDataRepo(getSnapshotBuilderCountMock());
     const min = 55;
     const max = 99;
 
@@ -298,6 +289,7 @@ describe('CohortEditor', () => {
 
   it('can delete criteria', async () => {
     // Arrange
+    mockDataRepo(getSnapshotBuilderCountMock());
     const criteria = criteriaFromOption(0, {
       id: 0,
       tableName: 'person',
@@ -359,7 +351,7 @@ describe('CohortEditor', () => {
   it('renders criteria group', async () => {
     // Arrange
     const count = 12345;
-    mockGetCounts(count);
+    mockDataRepo(getSnapshotBuilderCountMock(count));
     const { cohort } = showCriteriaGroup({
       initializeGroup: (criteriaGroup) => {
         criteriaGroup.meetAll = false;

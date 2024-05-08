@@ -185,12 +185,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
           })(),
         ]),
       ]),
-      div([
-        'Count: ',
-        criteriaCount.status === 'Ready' && criteriaCount.state?.result.total
-          ? formatCount(criteriaCount.state.result.total)
-          : h(Spinner),
-      ]),
+      div(['Count: ', criteriaCount.status === 'Ready' ? formatCount(criteriaCount.state.result.total) : h(Spinner)]),
     ]
   );
 };
