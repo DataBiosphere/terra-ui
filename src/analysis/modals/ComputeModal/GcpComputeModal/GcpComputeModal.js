@@ -54,6 +54,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer';
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
+import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
@@ -332,7 +333,7 @@ export const GcpComputeModalBase = ({
         .delete(hasAttachedDisk() && shouldDeletePersistentDisk);
     }
     if (shouldDeletePersistentDisk && !hasAttachedDisk()) {
-      await Ajax().Disks.disksV1().disk(googleProject, currentPersistentDiskDetails.name).delete();
+      await leoDiskProvider.delete(currentPersistentDiskDetails);
     }
 
     if (shouldUpdateRuntime || shouldCreateRuntime) {
@@ -387,7 +388,7 @@ export const GcpComputeModalBase = ({
         );
 
         if (shouldUpdatePersistentDisk) {
-          await Ajax().Disks.disksV1().disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size);
+          await leoDiskProvider.update(currentPersistentDiskDetails, desiredPersistentDisk.size);
         }
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig };
@@ -780,7 +781,7 @@ export const GcpComputeModalBase = ({
     )(async () => {
       const [runtimeDetails, persistentDiskDetails] = await Promise.all([
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
-        currentDisk ? Ajax().Disks.disksV1().disk(currentDisk.googleProject, currentDisk.name).details() : null,
+        currentDisk ? leoDiskProvider.details(currentDisk) : null,
       ]);
       const diskTypeName = persistentDiskDetails?.diskType?.value ?? persistentDiskDetails?.diskType;
       setCurrentRuntimeDetails(runtimeDetails);
