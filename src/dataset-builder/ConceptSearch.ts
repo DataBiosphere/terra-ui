@@ -13,8 +13,8 @@ import { formatCount, HighlightConceptName } from 'src/dataset-builder/DatasetBu
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
+  SnapshotBuilderConceptsResponse as getConceptChildrenResponse,
   SnapshotBuilderDomainOption,
-  SnapshotBuilderGetConceptsResponse as getConceptChildrenResponse,
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 

@@ -181,7 +181,7 @@ export interface JobModel {
 }
 
 /** Response */
-export interface SnapshotBuilderGetConceptsResponse {
+export interface SnapshotBuilderConceptsResponse {
   result: SnapshotBuilderConcept[];
 }
 export interface SnapshotBuilderGetConceptHierarchyResponse {
@@ -235,9 +235,9 @@ export interface DataRepoContract {
     exportSnapshot: () => Promise<JobModel>;
     getSnapshotBuilderSettings: () => Promise<SnapshotBuilderSettings>;
     getSnapshotBuilderCount(request: SnapshotBuilderCountRequest): Promise<SnapshotBuilderCountResponse>;
-    getConceptChildren(parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse>;
+    getConceptChildren(parent: SnapshotBuilderConcept): Promise<SnapshotBuilderConceptsResponse>;
     getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptHierarchyResponse>;
-    enumerateConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SnapshotBuilderGetConceptsResponse>;
+    enumerateConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SnapshotBuilderConceptsResponse>;
   };
   job: (jobId: string) => {
     details: () => Promise<JobModel>;
@@ -282,12 +282,12 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
         callDataRepo(`repository/v1/snapshots/${snapshotId}/snapshotBuilder/settings`, signal),
       getSnapshotBuilderCount: async (request: SnapshotBuilderCountRequest): Promise<SnapshotBuilderCountResponse> =>
         callDataRepoPost(`repository/v1/snapshots/${snapshotId}/snapshotBuilder/count`, signal, request),
-      getConceptChildren: async (parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse> =>
+      getConceptChildren: async (parent: SnapshotBuilderConcept): Promise<SnapshotBuilderConceptsResponse> =>
         callDataRepo(`repository/v1/snapshots/${snapshotId}/snapshotBuilder/concepts/${parent.id}/children`),
       enumerateConcepts: async (
         domain: SnapshotBuilderConcept,
         filterText: string
-      ): Promise<SnapshotBuilderGetConceptsResponse> =>
+      ): Promise<SnapshotBuilderConceptsResponse> =>
         callDataRepo(
           `repository/v1/snapshots/${snapshotId}/snapshotBuilder/concepts?domainId=${
             domain.id
