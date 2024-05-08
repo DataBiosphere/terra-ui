@@ -51,7 +51,7 @@ export const SupportResourceListItem = (props: SupportResourceListItemProps) => 
               alignItems: 'center',
               color: isActive ? colors.accent(1.1) : colors.accent(),
             },
-            href: `${Nav.getLink('support')}?${qs.stringify({ selectedType: resourceType.resourceType })}`,
+            href: `${Nav.getLink('support')}?${qs.stringify({ selectedType: resourceType.displayName })}`,
             'aria-current': isActive ? 'location' : false,
           },
           [supportResourceElement]
