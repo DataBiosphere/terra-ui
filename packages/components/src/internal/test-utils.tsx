@@ -27,22 +27,3 @@ export const TestThemeProvider = (props: Omit<ThemeProviderProps, 'theme'>) => {
 export const renderWithTheme = (ui: ReactElement) => {
   return render(ui, { wrapper: TestThemeProvider });
 };
-
-export type PromiseController<T> = {
-  resolve: (value: T) => void;
-  reject: (reason: unknown) => void;
-};
-
-export const controlledPromise = <T,>(): [Promise<T>, PromiseController<T>] => {
-  const controller: PromiseController<T> = {
-    resolve: () => {},
-    reject: () => {},
-  };
-
-  const promise = new Promise<T>((resolve, reject) => {
-    controller.resolve = resolve;
-    controller.reject = reject;
-  });
-
-  return [promise, controller];
-};

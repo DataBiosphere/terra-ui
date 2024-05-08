@@ -46,11 +46,6 @@ export const renderWithAppContexts = (ui: ReactElement, options?: Omit<RenderOpt
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
 
-export type PromiseController<T> = {
-  resolve: (value: T) => void;
-  reject: (reason: unknown) => void;
-};
-
 export const renderHookWithAppContexts = <T, U>(
   hook: (args: T) => U,
   options?: RenderHookOptions<T>
@@ -60,23 +55,6 @@ export const renderHookWithAppContexts = <T, U>(
   };
   const mergedOptions: RenderHookOptions<T> = { ...baseOptions, ...options };
   return renderHook(hook, mergedOptions);
-};
-
-/**
- * Returns a promise and a controller that allows manually resolving/rejecting the promise.
- */
-export const controlledPromise = <T>(): [Promise<T>, PromiseController<T>] => {
-  const controller: PromiseController<T> = {
-    resolve: () => {},
-    reject: () => {},
-  };
-
-  const promise = new Promise<T>((resolve, reject) => {
-    controller.resolve = resolve;
-    controller.reject = reject;
-  });
-
-  return [promise, controller];
 };
 
 // This is for the AutoSizer component. It requires screen dimensions in order to be tested properly.
