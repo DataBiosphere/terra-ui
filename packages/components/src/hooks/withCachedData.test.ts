@@ -1,7 +1,6 @@
-import { atom } from '@terra-ui-packages/core-utils';
+import { atom, controlledPromise } from '@terra-ui-packages/core-utils';
 import { act, renderHook } from '@testing-library/react';
 
-import { controlledPromise } from '../internal/test-utils';
 import { useLoadedData, UseLoadedDataResult } from './useLoadedData';
 import { withCachedData } from './withCachedData';
 
