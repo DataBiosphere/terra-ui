@@ -79,12 +79,12 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
 
 const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
   const mockPermissions: LeoResourcePermissionsProvider = {
-    hasDeletePermission: jest.fn(),
+    hasDeleteDiskPermission: jest.fn(),
     hasPausePermission: jest.fn(),
     isAppInDeletableState: jest.fn(),
     isResourceInDeletableState: jest.fn(),
   };
-  asMockedFn(mockPermissions.hasDeletePermission).mockReturnValue(true);
+  asMockedFn(mockPermissions.hasDeleteDiskPermission).mockReturnValue(true);
   asMockedFn(mockPermissions.hasPausePermission).mockReturnValue(true);
   asMockedFn(mockPermissions.isAppInDeletableState).mockReturnValue(true);
   asMockedFn(mockPermissions.isResourceInDeletableState).mockReturnValue(true);

@@ -5,7 +5,7 @@ import { getDisplayStatus } from 'src/analysis/utils/resource-utils';
 import { getToolLabelFromCloudEnv, isPauseSupported } from 'src/analysis/utils/tool-utils';
 import { Link } from 'src/components/common';
 import { makeMenuIcon } from 'src/components/PopupTrigger';
-import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
+import { App, appStatuses, isApp, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
 import {
   isRuntime,
   LeoRuntimeStatus,
@@ -46,16 +46,18 @@ export const PauseButton = (props: PauseButtonProps): ReactNode => {
     : null;
 };
 
-export const pauseableStatuses: LeoRuntimeStatus[] = [
+export const pauseableRuntimeStatuses: LeoRuntimeStatus[] = [
   runtimeStatuses.running.leoLabel,
   runtimeStatuses.updating.leoLabel,
   runtimeStatuses.starting.leoLabel,
 ];
 
-const isComputePausable = (compute: App | Runtime): boolean =>
+export const pauseableAppStatuses: LeoAppStatus[] = [appStatuses.running.status, appStatuses.starting.status];
+
+export const isComputePausable = (compute: App | Runtime): boolean =>
   Utils.cond(
-    [isRuntime(compute), () => _.includes(_.capitalize(compute.status), pauseableStatuses)],
-    [isApp(compute), () => _.includes(_.capitalize(compute.status), ['Running', 'Starting'])],
+    [isRuntime(compute), () => _.includes(_.capitalize(compute.status), pauseableRuntimeStatuses)],
+    [isApp(compute), () => _.includes(_.upperCase(compute.status), pauseableAppStatuses)],
     [
       Utils.DEFAULT,
       () => {

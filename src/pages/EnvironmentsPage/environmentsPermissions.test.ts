@@ -23,7 +23,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<PersistentDisk> as PersistentDisk;
 
     // Act
-    const canIDeleteDisk = leoResourcePermissions.hasDeletePermission(myDisk);
+    const canIDeleteDisk = leoResourcePermissions.hasDeleteDiskPermission(myDisk);
 
     // Assert
     expect(canIDeleteDisk).toBe(true);
@@ -39,7 +39,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<PersistentDisk> as PersistentDisk;
 
     // Act
-    const canIDeleteDisk = leoResourcePermissions.hasDeletePermission(otherDisk);
+    const canIDeleteDisk = leoResourcePermissions.hasDeleteDiskPermission(otherDisk);
 
     // Assert
     expect(canIDeleteDisk).toBe(false);

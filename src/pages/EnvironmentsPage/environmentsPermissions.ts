@@ -8,7 +8,7 @@ import { getTerraUser } from 'src/libs/state';
 
 const makePermissionsProvider = (userEmailGetter: () => string): LeoResourcePermissionsProvider => {
   return <LeoResourcePermissionsProvider>{
-    hasDeletePermission: (disk: PersistentDisk) => {
+    hasDeleteDiskPermission: (disk: PersistentDisk) => {
       const currentUserEmail = userEmailGetter();
       return disk.auditInfo.creator === currentUserEmail;
     },
