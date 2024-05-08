@@ -115,6 +115,7 @@ describe('CohortEditor', () => {
 
   it('renders unknown criteria', async () => {
     // Arrange
+    mockDataRepo(getSnapshotBuilderCountMock(0));
     const criteria = { name: 'bogus', invalid: 'property' };
 
     // The 'as any' is required to create an invalid criteria for testing purposes.
@@ -152,7 +153,7 @@ describe('CohortEditor', () => {
 
   it('renders list criteria', async () => {
     // Arrange
-    mockDataRepo(listStatisticsMock());
+    mockDataRepo({ ...listStatisticsMock(), ...getSnapshotBuilderCountMock() });
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'list',
