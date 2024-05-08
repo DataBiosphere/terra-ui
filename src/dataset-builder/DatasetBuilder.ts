@@ -573,7 +573,7 @@ export const DatasetBuilderContents = ({
   useEffect(() => {
     requestValid &&
       setDatasetRequestParticipantCount(
-        withErrorReporting('Error generating dataset counts')(async () =>
+        withErrorReporting('Error generating participant count')(async () =>
           DataRepo().dataset(dataset.id).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
         )
       );
