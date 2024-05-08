@@ -122,10 +122,10 @@ export interface SnapshotDataset {
 export interface Snapshot {
   id: string;
   name: string;
-  description: string;
-  createdDate: string;
+  description?: string;
+  createdDate?: string;
   source: { dataset: SnapshotDataset }[];
-  properties: any;
+  properties?: any;
   cloudPlatform: 'azure' | 'gcp';
 }
 

@@ -162,6 +162,7 @@ const datasetAccessRequest: SnapshotAccessRequest = {
 };
 
 const datasetAccessRequestApi: SnapshotAccessRequestApi = {
+  sourceSnapshotId: 'sourceSnapshotId',
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
   datasetRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },

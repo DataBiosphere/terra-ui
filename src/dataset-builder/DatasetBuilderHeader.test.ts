@@ -13,7 +13,7 @@ describe('DatasetBuilderHeader', () => {
   it('renders', () => {
     const { getByText } = render(
       h(DatasetBuilderHeader, {
-        datasetDetails: dummySnapshot(),
+        snapshotDetails: dummySnapshot(),
       })
     );
 
