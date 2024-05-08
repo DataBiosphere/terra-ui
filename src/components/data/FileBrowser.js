@@ -252,7 +252,7 @@ const BucketBrowserTable = ({
                           h(ClipboardButton, {
                             tooltip: 'Copy file URL to clipboard',
                             className: 'cell-hover-only',
-                            style: { marginLeft: '1rem', display: 'inline-table' },
+                            style: { marginLeft: '1rem', display: 'inline' },
                             text: `gs://${bucketName}/${object.name}`,
                             iconSize: 14, // See this PR for reason: https://github.com/DataBiosphere/terra-ui/pull/4288
                           }),
