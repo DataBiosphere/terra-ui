@@ -117,10 +117,12 @@ describe('CohortEditor', () => {
     // Arrange
     mockDataRepo(getSnapshotBuilderCountMock(0));
     const criteria = { name: 'bogus', invalid: 'property' };
-
+    // This should error fetching the count because the conversion to API counts to generate counts should fail
+    jest.spyOn(console, 'error').mockImplementation((error) => expect(error).toBe('Error fetching count for criteria'));
     // The 'as any' is required to create an invalid criteria for testing purposes.
     renderCriteriaView({ criteria: criteria as any });
     // Assert
+
     expect(await screen.findByText('Unknown criteria')).toBeTruthy();
     expect(screen.queryByText(criteria.name)).toBeFalsy();
   });
