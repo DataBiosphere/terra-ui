@@ -60,9 +60,12 @@ describe('DatasetBuilder', () => {
     );
   };
 
-  const mockDataRepo = (datasetMocks: Partial<DataRepoContract['dataset']>) => {
+  const mockDataRepo = (datasetMocks: Partial<DataRepoContract['dataset']>[]) => {
     asMockedFn(DataRepo).mockImplementation(
-      () => ({ dataset: (_datasetId) => datasetMocks } as Partial<DataRepoContract> as DataRepoContract)
+      () =>
+        ({
+          dataset: (_datasetId) => Object.assign({}, ...datasetMocks),
+        } as Partial<DataRepoContract> as DataRepoContract)
     );
   };
 
@@ -205,7 +208,7 @@ describe('DatasetBuilder', () => {
 
   it('allows selecting cohorts, concept sets, and values', async () => {
     // Arrange
-    mockDataRepo(getSnapshotBuilderCountMock());
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const user = userEvent.setup();
     showDatasetBuilderContents({
       cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
@@ -231,7 +234,7 @@ describe('DatasetBuilder', () => {
   it('maintains old values selections', async () => {
     // Arrange
     const user = userEvent.setup();
-    mockDataRepo(getSnapshotBuilderCountMock());
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     await initializeValidDatasetRequest(user);
     await user.click(screen.getByLabelText('condition column 1'));
     await user.click(screen.getByLabelText('concept set 1'));
@@ -257,7 +260,7 @@ describe('DatasetBuilder', () => {
 
   it('shows the home page by default', async () => {
     // Arrange
-    mockDataRepo({ ...datasetDetailsMock(dummyDatasetDetailsWithId), ...queryDatasetColumnStatisticsByIdMock() });
+    mockDataRepo([datasetDetailsMock(dummyDatasetDetailsWithId), queryDatasetColumnStatisticsByIdMock()]);
     render(h(DatasetBuilderView));
     // Assert
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();
