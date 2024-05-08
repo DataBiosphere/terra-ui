@@ -1,4 +1,9 @@
-import { defaultAzureWorkspace, defaultGoogleWorkspace, protectedAzureWorkspace } from 'src/testing/workspace-fixtures';
+import {
+  defaultAzureWorkspace,
+  defaultGoogleWorkspace,
+  protectedAzureWorkspace,
+  protectedPhiTrackingAzureWorkspace,
+} from 'src/testing/workspace-fixtures';
 
 import { extractBillingDetails, extractCrossWorkspaceDetails, extractWorkspaceDetails } from './events';
 
@@ -17,6 +22,7 @@ describe('extractWorkspaceDetails', () => {
       workspaceNamespace: 'wsNamespace',
       cloudPlatform: 'GCP',
       hasProtectedData: undefined,
+      hasPhiTracking: undefined,
     });
   });
 
@@ -38,11 +44,12 @@ describe('extractWorkspaceDetails', () => {
       workspaceNamespace: defaultGoogleWorkspace.workspace.namespace,
       cloudPlatform: 'GCP',
       hasProtectedData: false,
+      hasPhiTracking: false,
       workspaceAccessLevel: 'OWNER',
     });
   });
 
-  it('Determine hasProtectedData based on workspace.policies', () => {
+  it('Determines hasProtectedData based on workspace.policies', () => {
     // Act
     const workspaceDetails = extractWorkspaceDetails(protectedAzureWorkspace);
 
@@ -52,6 +59,22 @@ describe('extractWorkspaceDetails', () => {
       workspaceNamespace: protectedAzureWorkspace.workspace.namespace,
       cloudPlatform: 'AZURE',
       hasProtectedData: true,
+      hasPhiTracking: false,
+      workspaceAccessLevel: 'OWNER',
+    });
+  });
+
+  it('Determines hasPhiTracking based on workspace.policies', () => {
+    // Act
+    const workspaceDetails = extractWorkspaceDetails(protectedPhiTrackingAzureWorkspace);
+
+    // Assert
+    expect(workspaceDetails).toEqual({
+      workspaceName: protectedAzureWorkspace.workspace.name,
+      workspaceNamespace: protectedAzureWorkspace.workspace.namespace,
+      cloudPlatform: 'AZURE',
+      hasProtectedData: true,
+      hasPhiTracking: true,
       workspaceAccessLevel: 'OWNER',
     });
   });

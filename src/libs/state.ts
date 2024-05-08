@@ -178,6 +178,8 @@ export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
 
 export const getTerraUser = (): TerraUser => userStore.get().terraUser;
 
+export const getTerraUserProfile = (): TerraUserProfile => userStore.get().profile;
+
 export interface TokenMetadata {
   token: string | undefined; // do not log or send this to mixpanel
   id: string | undefined;

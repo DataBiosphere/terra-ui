@@ -1,7 +1,8 @@
 import { Atom, LoadedState, ReadyState } from '@terra-ui-packages/core-utils';
-import { AutoLoadedState } from 'src/libs/ajax/loaded-data/useAutoLoadedData';
-import { useLoadedDataEvents } from 'src/libs/ajax/loaded-data/useLoadedDataEvents';
-import { useSettableStore } from 'src/libs/react-utils';
+
+import { AutoLoadedState } from './useAutoLoadedData';
+import { useLoadedDataEvents } from './useLoadedDataEvents';
+import { useSettableStore } from './useStore';
 
 type LoadedDataFn<S, E = unknown> = (
   ...args: any[]

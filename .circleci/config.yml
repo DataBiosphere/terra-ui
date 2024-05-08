@@ -206,19 +206,6 @@ commands:
           no_output_timeout: 25m
           when: always
 
-  notify-qa:
-    parameters:
-      channel:
-        type: string
-        default: ""
-    steps:
-      - slack/status:
-          channel: << parameters.channel >>
-          include_job_number_field: false
-          include_project_field: false
-          failure_message: ":sadpanda: $CIRCLE_JOB failed."
-          success_message: ":circleci-pass: $CIRCLE_JOB ran successfully."
-
 jobs:
   build:
     executor: node
@@ -274,8 +261,12 @@ jobs:
       - deploy-env:
           sa_key_var: "STAGING_SA_KEY_JSON"
           env: "staging"
-      - notify-qa:
-          channel: "C7H40L71D" # dsde-qa-notify
+      - slack/status:
+          channel: "C6DTFUCDD" # workbench-release
+          include_job_number_field: false
+          include_project_field: false
+          failure_message: ":circleci-fail: Terra UI deployment to staging failed"
+          success_message: ":circleci-pass: Terra UI deployment to staging done"
   integration-tests-pr-staging:
     executor: puppeteer
     resource_class: medium+

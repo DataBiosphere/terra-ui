@@ -1,8 +1,8 @@
+import { useLoadedData } from '@terra-ui-packages/components';
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import { useEffect } from 'react';
 import { RuntimeToolLabel } from 'src/analysis/utils/tool-utils';
 import { ComputeImageProvider } from 'src/libs/ajax/compute-image-providers/ComputeImageProvider';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { workspaceStore } from 'src/libs/state';
 import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/workspaces/utils';

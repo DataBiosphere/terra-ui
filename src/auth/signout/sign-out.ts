@@ -23,7 +23,6 @@ export type SignOutCause =
   | 'requested'
   | 'disabled'
   | 'declinedTos'
-  | 'expiredRefreshToken'
   | 'errorRefreshingAuthToken'
   | 'idleStatusMonitor'
   | 'unspecified';
@@ -65,7 +64,6 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
     ['requested', () => Events.user.signOut.requested],
     ['disabled', () => Events.user.signOut.disabled],
     ['declinedTos', () => Events.user.signOut.declinedTos],
-    ['expiredRefreshToken', () => Events.user.signOut.expiredRefreshToken],
     ['errorRefreshingAuthToken', () => Events.user.signOut.errorRefreshingAuthToken],
     ['idleStatusMonitor', () => Events.user.signOut.idleStatusMonitor],
     ['unspecified', () => Events.user.signOut.unspecified],
@@ -92,7 +90,7 @@ export const userSignedOut = (cause?: SignOutCause, redirectFailed = false) => {
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
 
-  if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
+  if (cause === 'errorRefreshingAuthToken') {
     notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
   }
 

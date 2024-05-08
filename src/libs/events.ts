@@ -3,6 +3,7 @@ import { ReactNode, useEffect } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { useRoute } from 'src/libs/nav';
 import {
+  containsPhiTrackingPolicy,
   containsProtectedDataPolicy,
   WorkspaceAccessLevel,
   WorkspaceInfo,
@@ -89,22 +90,18 @@ const eventsList = {
     authToken: {
       load: {
         success: 'user:authTokenLoad:success',
-        expired: 'user:authTokenLoad:expiredRefreshToken',
         error: 'user:authTokenLoad:error',
         retry: 'user:authTokenLoad:retry',
       },
-      desync: 'user:authToken:desync',
     },
     login: {
       success: 'user:login:success',
-      expired: 'user:login:expiredRefreshToken',
       error: 'user:login:error',
     },
     signOut: {
       requested: 'user:signOut:requested',
       disabled: 'user:signOut:disabled',
       declinedTos: 'user:signOut:declinedTos',
-      expiredRefreshToken: 'user:signOut:expiredRefreshToken',
       errorRefreshingAuthToken: 'user:signOut:errorRefreshingAuthToken',
       idleStatusMonitor: 'user:signOut:idleStatusMonitor',
       unspecified: 'user:signOut:unspecified',
@@ -210,6 +207,7 @@ export interface EventWorkspaceDetails {
   workspaceName: string;
   cloudPlatform?: string;
   hasProtectedData?: boolean;
+  hasPhiTracking?: boolean;
   workspaceAccessLevel?: WorkspaceAccessLevel;
 }
 
@@ -228,6 +226,8 @@ export const extractWorkspaceDetails = (workspaceObject: EventWorkspaceAttribute
   // For other types of input, whether the workspace has protected data is unknown.
   const hasProtectedData =
     'policies' in workspaceObject ? containsProtectedDataPolicy(workspaceObject.policies) : undefined;
+  const hasPhiTracking =
+    'policies' in workspaceObject ? containsPhiTrackingPolicy(workspaceObject.policies) : undefined;
 
   return {
     workspaceNamespace: namespace,
@@ -235,6 +235,7 @@ export const extractWorkspaceDetails = (workspaceObject: EventWorkspaceAttribute
     workspaceAccessLevel: accessLevel,
     cloudPlatform: cloudPlatform ? cloudPlatform.toUpperCase() : undefined,
     hasProtectedData,
+    hasPhiTracking,
   };
 };
 

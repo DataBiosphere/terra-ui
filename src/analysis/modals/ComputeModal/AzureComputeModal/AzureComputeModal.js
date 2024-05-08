@@ -23,6 +23,7 @@ import { NumberInput } from 'src/components/input';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
+import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import {
   azureMachineTypes,
   defaultAzureComputeConfig,
@@ -344,7 +345,7 @@ export const AzureComputeModalBase = ({
         () =>
           Utils.cond(
             [doesRuntimeExist(), () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).delete(deleteDiskSelected)], // delete runtime
-            [!!persistentDiskExists, () => Ajax().Disks.disksV2().delete(currentPersistentDiskDetails.id)] // delete disk
+            [!!persistentDiskExists, () => leoDiskProvider.delete(currentPersistentDiskDetails)] // delete disk
           ),
       ],
       [

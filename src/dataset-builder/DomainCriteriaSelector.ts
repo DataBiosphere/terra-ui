@@ -1,15 +1,15 @@
+import { useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { Parent } from 'src/components/TreeGrid';
-import { DomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
+import { ProgramDomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderConcept,
   SnapshotBuilderDomainOption,
 } from 'src/libs/ajax/DataRepo';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useOnMount } from 'src/libs/react-utils';
 
 import { ConceptSelector } from './ConceptSelector';
@@ -30,7 +30,7 @@ interface DomainCriteriaSelectorProps {
 
 export const toCriteria =
   (domainOption: SnapshotBuilderDomainOption, getNextCriteriaIndex: () => number) =>
-  (concept: Concept): DomainCriteria => {
+  (concept: Concept): ProgramDomainCriteria => {
     return {
       kind: 'domain',
       conceptId: concept.id,

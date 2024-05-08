@@ -1,3 +1,4 @@
+import { useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, strong } from 'react-hyperscript-helpers';
@@ -8,9 +9,13 @@ import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
-import { formatCount, GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
+import { formatCount, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
+import {
+  DataRepo,
+  SnapshotBuilderConcept as Concept,
+  SnapshotBuilderDomainOption,
+  SnapshotBuilderGetConceptsResponse as GetConceptsResponse,
+} from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 
 type ConceptSearchProps = {
