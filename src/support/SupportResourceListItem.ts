@@ -33,7 +33,7 @@ export const SupportResourceListItem = (props: SupportResourceListItemProps) => 
 
   const { resourceType, isActive } = props;
 
-  const supportResourceElement = span({ style: { wordBreak: 'break-all' } }, [resourceType.resourceType]);
+  const supportResourceElement = span({ style: { wordBreak: 'break-all' } }, [resourceType.displayName]);
 
   const renderSupportResource = () =>
     div(
@@ -51,7 +51,7 @@ export const SupportResourceListItem = (props: SupportResourceListItemProps) => 
               alignItems: 'center',
               color: isActive ? colors.accent(1.1) : colors.accent(),
             },
-            href: `${Nav.getLink('support')}?${qs.stringify({ selectedType: resourceType.displayName })}`,
+            href: `${Nav.getLink('support')}?${qs.stringify({ selectedType: resourceType.resourceType })}`,
             'aria-current': isActive ? 'location' : false,
           },
           [supportResourceElement]
