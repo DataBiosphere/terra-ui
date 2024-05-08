@@ -54,7 +54,7 @@ export const UnlinkOAuth2Account = ({ linkText, provider }: UnlinkOAuth2AccountP
         {linkText}
       </Clickable>
       {isModalOpen && (
-        <Modal title="Confirm unlink account" onDismiss={() => setIsModalOpen(false)} okButton={okButton}>
+        <Modal title='Confirm unlink account' onDismiss={() => setIsModalOpen(false)} okButton={okButton}>
           <div>Are you sure you want to unlink from {provider.name}?</div>
           <div style={{ marginTop: '1rem' }}>
             {provider.isFence &&
