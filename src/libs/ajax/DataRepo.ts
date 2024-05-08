@@ -216,6 +216,7 @@ export type SnapshotBuilderCountRequest = {
 
 export type SnapshotAccessRequest = {
   name: string;
+  sourceSnapshotId: string;
   researchPurposeStatement: string;
   datasetRequest: SnapshotBuilderRequest;
 };

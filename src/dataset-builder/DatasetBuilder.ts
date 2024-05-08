@@ -454,10 +454,11 @@ interface RequestAccessModalProps {
   conceptSets: ConceptSet[];
   valueSets: HeaderAndValues<DatasetBuilderValue>[];
   onDismiss: () => void;
+  snapshotId: string;
 }
 
 const RequestAccessModal = (props: RequestAccessModalProps) => {
-  const { onDismiss, cohorts, conceptSets, valueSets } = props;
+  const { onDismiss, cohorts, conceptSets, valueSets, snapshotId } = props;
   const [name, setName] = useState('');
   const [researchPurposeStatement, setResearchPurposeStatement] = useState('');
 
@@ -485,6 +486,7 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
                 createDatasetAccessRequest(
                   name,
                   researchPurposeStatement,
+                  snapshotId,
                   cohorts,
                   conceptSets,
                   _.map(

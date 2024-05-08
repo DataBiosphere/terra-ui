@@ -134,12 +134,14 @@ export const convertCriteria = (criteria: AnyCriteria): AnySnapshotBuilderCriter
 export const createDatasetAccessRequest = (
   name: string,
   researchPurposeStatement: string,
+  snapshotId: string,
   cohorts: Cohort[],
   conceptSets: SnapshotBuilderDatasetConceptSet[],
   valueSets: ValueSet[]
 ): SnapshotAccessRequestApi => {
   return {
     name,
+    sourceSnapshotId: snapshotId,
     researchPurposeStatement,
     datasetRequest: {
       cohorts: _.map(convertCohort, cohorts),
