@@ -69,9 +69,11 @@ export const useWorkspaceStatePolling = (workspaces: Workspace[], status: Loaded
 
   useEffect(() => {
     const iterateUpdatingWorkspaces = async () => {
-      const updatingWorkspaces = _.filter((ws) => _.contains(ws?.workspace?.state, updatingStates), workspaces);
-      for (const ws of updatingWorkspaces) {
-        await checkWorkspaceState(ws, abort, controller.signal);
+      if (status === 'Ready') {
+        const updatingWorkspaces = _.filter((ws) => _.contains(ws?.workspace?.state, updatingStates), workspaces);
+        for (const ws of updatingWorkspaces) {
+          await checkWorkspaceState(ws, abort, controller.signal);
+        }
       }
     };
 
