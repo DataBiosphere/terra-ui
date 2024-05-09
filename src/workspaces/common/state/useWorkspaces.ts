@@ -43,7 +43,7 @@ export const useWorkspaces = (fieldsArg?: FieldsArg, stringAttributeMaxLength?: 
     workspaces: workspaces.state !== null ? workspaces.state : [],
     refresh: () => updateWorkspaces(getData),
     loading: workspaces.status === 'Loading',
+    status: workspaces.status,
   };
-
   return hookResult;
 };
