@@ -22,6 +22,8 @@ interface DomainDisplayProps {
   }[];
 }
 
+const DATASET_NAME = 'AnalytiXIN';
+
 const TileDisplay = (props: DomainDisplayProps) => {
   const { title, displayInformation } = props;
   return div([
@@ -93,9 +95,9 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
           h(DatasetBuilderBreadcrumbs, {
             breadcrumbs: [{ link: Nav.getLink('library-datasets'), title: 'Data Browser' }],
           }),
-          h1({ style: { marginTop: '0.75rem' } }, ['AnalytiXIN']),
+          h1({ style: { marginTop: '0.75rem' } }, [DATASET_NAME]),
           div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-            h(MarkdownViewer, ['AnalytiXIN dataset in OMOP format']),
+            h(MarkdownViewer, [`${DATASET_NAME} dataset`]),
             div({ style: { width: '22rem', backgroundColor: 'white', padding: '1rem', marginLeft: '1rem' } }, [
               div([
                 'Use the Dataset Builder to create specific tailored data for further analyses in a Terra Workspace',

@@ -339,7 +339,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   const updateGroupParticipantCount = useRef(
     _.debounce(250, (snapshotId: string, criteriaGroup: CriteriaGroup) =>
       setGroupParticipantCount(
-        withErrorReporting('Error fetching count for criteria')(async () =>
+        withErrorReporting(`Error getting criteria group count for ${criteriaGroup.name}`)(async () =>
           DataRepo()
             .snapshot(snapshotId)
             .getSnapshotBuilderCount(createSnapshotBuilderCountRequest([{ criteriaGroups: [criteriaGroup], name: '' }]))
