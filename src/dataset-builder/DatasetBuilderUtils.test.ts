@@ -16,6 +16,7 @@ import {
   SnapshotAccessRequest,
   ValueSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
+import { dummySnapshotId } from 'src/dataset-builder/TestConstants';
 import {
   AnySnapshotBuilderCriteria,
   SnapshotAccessRequest as SnapshotAccessRequestApi,
@@ -162,7 +163,7 @@ const datasetAccessRequest: SnapshotAccessRequest = {
 };
 
 const datasetAccessRequestApi: SnapshotAccessRequestApi = {
-  sourceSnapshotId: 'sourceSnapshotId',
+  sourceSnapshotId: dummySnapshotId,
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
   datasetRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
@@ -198,6 +199,7 @@ describe('test conversion of DatasetAccessRequest', () => {
       createDatasetAccessRequest(
         datasetAccessRequest.name,
         datasetAccessRequest.researchPurposeStatement,
+        dummySnapshotId,
         datasetAccessRequest.datasetRequest.cohorts,
         datasetAccessRequest.datasetRequest.conceptSets,
         datasetAccessRequest.datasetRequest.valueSets
