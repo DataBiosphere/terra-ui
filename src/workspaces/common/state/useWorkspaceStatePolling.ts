@@ -77,7 +77,7 @@ export const useWorkspaceStatePolling = (workspaces: Workspace[], status: Loaded
       }
     };
 
-    pollWithCancellation(() => iterateUpdatingWorkspaces(), 3000, true, controller.signal);
+    pollWithCancellation(() => iterateUpdatingWorkspaces(), 30000, false, controller.signal);
     return () => {
       abort();
     };
