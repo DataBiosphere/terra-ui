@@ -19,7 +19,7 @@ describe('Spinner', () => {
     'renders a visually hidden alert after a delay',
     withFakeTimers(() => {
       // Act
-      renderWithTheme(<Spinner message="Loading the data" />);
+      renderWithTheme(<Spinner message='Loading the data' />);
 
       const isMessageRenderedImmediately = !!screen.queryByText('Loading the data');
       act(() => jest.advanceTimersByTime(150));

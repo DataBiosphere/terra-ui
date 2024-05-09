@@ -22,7 +22,7 @@ export const Spinner = (props: SpinnerProps): ReactNode => {
     <>
       {icon('loadingSpinner', { size: 24, style: { color: colors.primary(), ...style }, ...otherProps })}
       <DelayedRender delay={150}>
-        <span role="alert" style={visuallyHidden}>
+        <span role='alert' style={visuallyHidden}>
           {message}
         </span>
       </DelayedRender>

@@ -4,7 +4,7 @@ import { signOut } from 'src/auth/signout/sign-out';
 
 export const Disabled = (): ReactNode => {
   return (
-    <div role="main" style={{ padding: '1rem' }}>
+    <div role='main' style={{ padding: '1rem' }}>
       <div>
         Thank you for registering. Your account is currently inactive. You will be contacted via email when your account
         is activated.
