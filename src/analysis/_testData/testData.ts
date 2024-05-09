@@ -622,7 +622,7 @@ export const galaxyDeleting: App = {
   region: 'us-central1',
 };
 
-export const generateTestApp = (overrides: Partial<ListAppItem>): ListAppItem => ({
+export const generateTestApp = (overrides?: Partial<ListAppItem>): ListAppItem => ({
   workspaceId: null,
   accessScope: null,
   cloudContext: {

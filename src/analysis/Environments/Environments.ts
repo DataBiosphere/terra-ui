@@ -663,7 +663,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                           },
                           [name]
                         ),
-                        permissions.canDeleteDisk(rowDisk) &&
+                        permissions.hasDeleteDiskPermission(rowDisk) &&
                           diskStatus !== 'Deleting' &&
                           multipleDisks &&
                           h(

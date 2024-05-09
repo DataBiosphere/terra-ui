@@ -8,19 +8,19 @@ import { getTerraUser } from 'src/libs/state';
 
 const makePermissionsProvider = (userEmailGetter: () => string): LeoResourcePermissionsProvider => {
   return <LeoResourcePermissionsProvider>{
-    canDeleteDisk: (disk: PersistentDisk) => {
+    hasDeleteDiskPermission: (disk: PersistentDisk) => {
       const currentUserEmail = userEmailGetter();
       return disk.auditInfo.creator === currentUserEmail;
     },
-    canPauseResource: (resource: App | ListRuntimeItem) => {
+    hasPausePermission: (resource: App | ListRuntimeItem) => {
       const currentUserEmail = userEmailGetter();
       const creator = getCreatorForCompute(resource);
       return currentUserEmail === creator;
     },
-    canDeleteApp: (resource: App) => {
+    isAppInDeletableState: (resource: App) => {
       return isResourceDeletable(resource) && !Object.keys(cromwellAppToolLabels).includes(resource.appType);
     },
-    canDeleteResource: (resource: App | PersistentDisk | Runtime) => {
+    isResourceInDeletableState: (resource: App | PersistentDisk | Runtime) => {
       return isResourceDeletable(resource);
     },
   };
