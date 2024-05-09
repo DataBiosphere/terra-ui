@@ -19,7 +19,7 @@ const updateWorkspace = <T extends Workspace>(
   state: WorkspaceState,
   errorMessage?: string
 ): T => {
-  if (workspace.workspace.workspaceId === workspaceId) {
+  if (workspace?.workspace?.workspaceId === workspaceId) {
     const update = _.cloneDeep(workspace);
     update.workspace.state = state;
     update.workspace.errorMessage = errorMessage;
@@ -51,7 +51,7 @@ const checkWorkspaceState = async (workspace: Workspace, abort: () => void, sign
     if (startingState === 'Deleting' && error instanceof Response && error.status === 404) {
       doUpdate(abort, workspace, 'Deleted');
     } else {
-      console.error(`Error checking workspace state for ${workspace.workspace.name}: ${error}`);
+      console.error(`Error checking workspace state for ${workspace.workspace.name}: ${JSON.stringify(error)}`);
     }
   }
 };
