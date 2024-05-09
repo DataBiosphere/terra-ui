@@ -16,10 +16,18 @@ interface SupportPageProps {
 const SupportPage = (props: SupportPageProps) => {
   const selectedType = props.queryParams.selectedType;
   const resourceName = props.queryParams.resourceName;
+  const breadcrumbs = `Support > ${selectedType}`;
 
   return (
     <FooterWrapper>
-      <TopBar title="Support" href={Nav.getLink('support')} />
+      <TopBar title="Support" href={Nav.getLink('support')}>
+        {resourceName && (
+          <div style={Style.breadcrumb.breadcrumb}>
+            <div style={Style.noWrapEllipsis}>{breadcrumbs}</div>
+            <div style={Style.breadcrumb.textUnderBreadcrumb}>{resourceName}</div>
+          </div>
+        )}
+      </TopBar>
       <PageBox role="main" variant={PageBoxVariants.light}>
         <h2 style={{ ...Style.elements.sectionHeader, textTransform: 'uppercase' }}>Support</h2>
         <p>Select resource type.</p>

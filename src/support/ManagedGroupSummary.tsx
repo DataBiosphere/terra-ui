@@ -18,10 +18,10 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
     try {
       const groupSummaryInfo = await Ajax().Groups.group(props.fqResourceId.resourceId).getSupportSummary();
       setGroupSummaryInfo(JSON.stringify(groupSummaryInfo, null, 2));
-    } catch (e) {
-      if (e.status === 404) {
+    } catch (e: Response) {
+      if (e instanceof Response && e.status === 404) {
         setGroupSummaryInfo('Group not found');
-      } else if (e.status === 403) {
+      } else if (e instanceof Response && e.status === 403) {
         setGroupSummaryInfo('You do not have permission to view summary information or are not on VPN');
       } else {
         await reportError('Error loading group summary', e);
@@ -33,10 +33,10 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
     try {
       const groupPolicies = await Ajax().SamResources.getResourcePolicies(props.fqResourceId);
       setGroupPolicies(JSON.stringify(groupPolicies, null, 2));
-    } catch (e) {
-      if (e.status === 404) {
+    } catch (e: Response) {
+      if (e instanceof Response && e.status === 404) {
         setGroupPolicies('Resource not found');
-      } else if (e.status === 403) {
+      } else if (e instanceof Response && e.status === 403) {
         setGroupPolicies('You do not have permission to view resource policies or are not on VPN');
       } else {
         await reportError('Error loading resource policies', e);
