@@ -50,10 +50,10 @@ describe('ConceptSearch', () => {
   const mockSearch = jest.fn();
 
   const mockDataRepoContract: DataRepoContract = {
-    dataset: (_datasetId) =>
+    snapshot: (_snapshotId) =>
       ({
         enumerateConcepts: mockSearch,
-      } as Partial<DataRepoContract['dataset']>),
+      } as Partial<DataRepoContract['snapshot']>),
   } as Partial<DataRepoContract> as DataRepoContract;
   asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   mockSearch.mockResolvedValue({

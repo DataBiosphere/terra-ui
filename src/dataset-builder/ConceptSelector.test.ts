@@ -147,10 +147,10 @@ describe('ConceptSelector', () => {
     renderSelector();
 
     const mockDataRepoContract: DataRepoContract = {
-      dataset: (_datasetId) =>
+      snapshot: (_snapshotId) =>
         ({
           getConceptChildren: () => Promise.resolve({ result: [dummyGetConceptForId(103)] }),
-        } as Partial<DataRepoContract['dataset']>),
+        } as Partial<DataRepoContract['snapshot']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Act
@@ -166,10 +166,10 @@ describe('ConceptSelector', () => {
     renderSelector();
     const expandConcept = dummyGetConceptForId(103);
     const mockDataRepoContract: DataRepoContract = {
-      dataset: (_datasetId) =>
+      snapshot: (_datasetId) =>
         ({
           getConceptChildren: () => Promise.resolve({ result: [expandConcept] }),
-        } as Partial<DataRepoContract['dataset']>),
+        } as Partial<DataRepoContract['snapshot']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Act

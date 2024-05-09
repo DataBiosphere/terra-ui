@@ -26,11 +26,11 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
 
 describe('DomainCriteriaSelector', () => {
   const mockDataRepoContract: Partial<DataRepoContract> = {
-    dataset: (_datasetId) =>
+    snapshot: (_snapshotId) =>
       ({
         getConceptChildren: () => Promise.resolve({ result: [concept] }),
         getConceptHierarchy: () => Promise.resolve({ result: [{ parentId: concept.id, children }] }),
-      } as Partial<DataRepoContract['dataset']>),
+      } as Partial<DataRepoContract['snapshot']>),
   } as Partial<DataRepoContract> as DataRepoContract;
   const datasetId = '';
   const concept = dummyGetConceptForId(101);
