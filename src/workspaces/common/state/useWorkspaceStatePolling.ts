@@ -19,7 +19,7 @@ const updateWorkspace = <T extends Workspace>(
   state: WorkspaceState,
   errorMessage?: string
 ): T => {
-  if (workspace?.workspace?.workspaceId === workspaceId) {
+  if (workspace.workspace?.workspaceId === workspaceId) {
     const update = _.cloneDeep(workspace);
     update.workspace.state = state;
     update.workspace.errorMessage = errorMessage;
@@ -32,7 +32,12 @@ const checkWorkspaceState = async (workspace: Workspace, abort: () => void, sign
   const doUpdate = (abort: () => void, workspace: Workspace, state: WorkspaceState, errorMessage?: string) => {
     const workspaceId = workspace.workspace.workspaceId;
     workspacesStore.update((wsList) => updateWorkspacesList(wsList, workspaceId, state, errorMessage));
-    workspaceStore.update((ws) => updateWorkspace(ws!, workspaceId, state, errorMessage));
+    workspaceStore.update((ws) => {
+      if (ws) {
+        return updateWorkspace(ws, workspaceId, state, errorMessage);
+      }
+      return undefined;
+    });
     abort();
   };
 
