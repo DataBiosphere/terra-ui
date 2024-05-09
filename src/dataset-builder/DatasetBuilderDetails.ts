@@ -6,7 +6,7 @@ import { ButtonOutline, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { MarkdownViewer } from 'src/components/markdown';
 import TopBar from 'src/components/TopBar';
-import { DataRepo, Snapshot, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
+import { DataRepo, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
@@ -66,32 +66,31 @@ interface DatasetBuilderDetailsProps {
 }
 
 export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps) => {
-  const [snapshotDetails, loadSnapshotDetails] = useLoadedData<Snapshot>();
   const [snapshotBuilderSettings, loadSnapshotBuilderSettings] = useLoadedData<SnapshotBuilderSettings>();
-  const [datasetRoles, loadSnapshotRoles] = useLoadedData<string[]>();
+  const [snapshotRoles, loadSnapshotRoles] = useLoadedData<string[]>();
   const hasAggregateDataViewerAccess =
-    datasetRoles.status === 'Ready' ? _.intersection(['admin'], datasetRoles.state).length > 0 : false;
+    snapshotRoles.status === 'Ready' ? _.intersection(['admin'], snapshotRoles.state).length > 0 : false;
 
   useOnMount(() => {
-    void loadSnapshotDetails(() => DataRepo().snapshot(snapshotId).details());
     void loadSnapshotRoles(() => DataRepo().snapshot(snapshotId).roles());
     void loadSnapshotBuilderSettings(() => DataRepo().snapshot(snapshotId).getSnapshotBuilderSettings());
   });
 
   useEffect(() => {
-    hasAggregateDataViewerAccess && void loadSnapshotDetails(() => DataRepo().snapshot(snapshotId).details());
-  }, [snapshotId, loadSnapshotDetails, hasAggregateDataViewerAccess]);
+    hasAggregateDataViewerAccess &&
+      void loadSnapshotBuilderSettings(() => DataRepo().snapshot(snapshotId).getSnapshotBuilderSettings());
+  }, [snapshotId, loadSnapshotBuilderSettings, hasAggregateDataViewerAccess]);
 
-  return snapshotDetails.status === 'Ready'
+  return snapshotBuilderSettings.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         div({ style: { padding: '2rem' } }, [
           h(DatasetBuilderBreadcrumbs, {
             breadcrumbs: [{ link: Nav.getLink('library-datasets'), title: 'Data Browser' }],
           }),
-          h1({ style: { marginTop: '0.75rem' } }, [snapshotDetails.state.name]),
+          h1({ style: { marginTop: '0.75rem' } }, ['AXIN Dataset']),
           div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-            h(MarkdownViewer, [snapshotDetails.state.description]),
+            h(MarkdownViewer, ['OMOP AXIN dataset']),
             div({ style: { width: '22rem', backgroundColor: 'white', padding: '1rem', marginLeft: '1rem' } }, [
               div([
                 'Use the Dataset Builder to create specific tailored data for further analyses in a Terra Workspace',
@@ -112,7 +111,7 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
               ]),
             ]),
           ]),
-          snapshotBuilderSettings.status === 'Ready' &&
+          snapshotBuilderSettings &&
             h(TileDisplay, {
               title: 'EHR Domains',
               displayInformation: snapshotBuilderSettings.state.domainOptions,

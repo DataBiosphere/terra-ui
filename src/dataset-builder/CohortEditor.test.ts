@@ -22,7 +22,7 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';
 import { domainCriteriaSearchState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
-import { dummySnapshot, dummySnapshotBuilderSettings } from './TestConstants';
+import { dummySnapshotBuilderSettings, dummySnapshotId } from './TestConstants';
 
 jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
@@ -48,31 +48,6 @@ describe('CohortEditor', () => {
     deleteCriteria?: (criteria: AnyCriteria) => void;
     updateCriteria?: (criteria: AnyCriteria) => void;
   };
-
-  const mockListStatistics = () => {
-    const mockDataRepoContract: Partial<DataRepoContract> = {
-      snapshot: (_snapshotId) =>
-        ({
-          queryDatasetColumnStatisticsById: () =>
-            Promise.resolve({
-              kind: 'list',
-              name: 'list',
-              values: [
-                {
-                  id: 0,
-                  name: 'value 0',
-                },
-                {
-                  id: 1,
-                  name: 'value 1',
-                },
-              ],
-            }),
-        } as Partial<DataRepoContract['dataset']>),
-    } as Partial<DataRepoContract> as DataRepoContract;
-    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
-  };
-
   const programDataRangeOption = (min = 55, max = 99): SnapshotBuilderProgramDataRangeOption => {
     return {
       id: 0,
@@ -83,16 +58,6 @@ describe('CohortEditor', () => {
       min,
       max,
     };
-  };
-
-  const mockRangeStatistics = (min = 55, max = 99) => {
-    const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
-        ({
-          queryDatasetColumnStatisticsById: () => Promise.resolve(programDataRangeOption(min, max)),
-        } as Partial<DataRepoContract['dataset']>),
-    } as Partial<DataRepoContract> as DataRepoContract;
-    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   };
 
   const mockGetCounts = (count: number) => {
@@ -113,12 +78,11 @@ describe('CohortEditor', () => {
 
   const getNextCriteriaIndex = () => 1234;
 
-  const snapshotDetails = dummySnapshot();
   const snapshotBuilderSettings = dummySnapshotBuilderSettings();
   const renderCriteriaView = (propsOverrides: CriteriaViewPropsOverrides) =>
     render(
       h(CriteriaView, {
-        snapshotId: snapshotDetails.id,
+        snapshotId: dummySnapshotId,
         deleteCriteria: _.noop,
         updateCriteria: _.noop,
         key: '1',
@@ -164,7 +128,6 @@ describe('CohortEditor', () => {
 
   it('renders list criteria', async () => {
     // Arrange
-    mockListStatistics();
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'list',
@@ -242,7 +205,6 @@ describe('CohortEditor', () => {
   it('allows number inputs for range criteria', async () => {
     // Arrange
     const user = userEvent.setup();
-    mockRangeStatistics();
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'range',
@@ -349,7 +311,7 @@ describe('CohortEditor', () => {
         criteriaGroup,
         updateCohort,
         cohort,
-        snapshot: snapshotDetails,
+        snapshotId: dummySnapshotId,
         snapshotBuilderSettings: snapshotBuilderSettingsUpdated,
         onStateChange: _.noop,
         getNextCriteriaIndex,
@@ -456,7 +418,7 @@ describe('CohortEditor', () => {
     render(
       h(CohortEditor, {
         onStateChange,
-        snapshot: snapshotDetails,
+        snapshotId: dummySnapshotId,
         snapshotBuilderSettings,
         originalCohort,
         updateCohorts,

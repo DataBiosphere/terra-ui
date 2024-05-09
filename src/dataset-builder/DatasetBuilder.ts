@@ -24,7 +24,6 @@ import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
   DataRepo,
   DatasetBuilderType,
-  Snapshot,
   SnapshotBuilderCountResponse,
   SnapshotBuilderDatasetConceptSet as ConceptSet,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
@@ -543,7 +542,7 @@ export type DatasetBuilderContentsProps = {
   onStateChange: OnStateChangeHandler;
   updateCohorts: Updater<Cohort[]>;
   updateConceptSets: Updater<DomainConceptSet[]>;
-  snapshot: Snapshot;
+  snapshotId: string;
   snapshotBuilderSettings: SnapshotBuilderSettings;
   cohorts: Cohort[];
   conceptSets: DomainConceptSet[];
@@ -553,7 +552,7 @@ export const DatasetBuilderContents = ({
   onStateChange,
   updateCohorts,
   updateConceptSets,
-  snapshot,
+  snapshotId,
   snapshotBuilderSettings,
   cohorts,
   conceptSets,
@@ -575,9 +574,9 @@ export const DatasetBuilderContents = ({
   useEffect(() => {
     requestValid &&
       setDatasetRequestParticipantCount(async () =>
-        DataRepo().snapshot(snapshot.id).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
+        DataRepo().snapshot(snapshotId).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
       );
-  }, [snapshot, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
+  }, [snapshotId, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
   const getNewFeatureValueGroups = (includedFeatureValueGroups: string[]): string[] =>
     _.without(
@@ -677,7 +676,7 @@ export const DatasetBuilderContents = ({
         conceptSets: allConceptSets,
         valueSets: selectedValues,
         onDismiss: () => setRequestingAccess(false),
-        snapshotId: snapshot.id,
+        snapshotId,
       }),
   ]);
 };
@@ -693,7 +692,6 @@ let criteriaCount = 1;
 
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const { snapshotId, initialState } = props;
-  const [snapshot, loadSnapshot] = useLoadedData<Snapshot>();
   const [snapshotBuilderSettings, loadSnapshotBuilderSettings] = useLoadedData<SnapshotBuilderSettings>();
   const [datasetBuilderState, setDatasetBuilderState] = useState<AnyDatasetBuilderState>(
     initialState || homepageState.new()
@@ -708,13 +706,12 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   };
 
   useOnMount(() => {
-    void loadSnapshot(async () => DataRepo().snapshot(snapshotId).details());
     void loadSnapshotBuilderSettings(async () => DataRepo().snapshot(snapshotId).getSnapshotBuilderSettings());
   });
-  return snapshot.status === 'Ready' && snapshotBuilderSettings.status === 'Ready'
+  return snapshotBuilderSettings.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
-        h(DatasetBuilderHeader, { snapshotDetails: snapshot.state }),
+        h(DatasetBuilderHeader, { snapshotId }),
         div({ style: { backgroundColor: editorBackgroundColor } }, [
           (() => {
             switch (datasetBuilderState.mode) {
@@ -723,7 +720,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   onStateChange,
                   updateCohorts: setCohorts,
                   updateConceptSets: setConceptSets,
-                  snapshot: snapshot.state,
+                  snapshotId,
                   snapshotBuilderSettings: snapshotBuilderSettings.state,
                   cohorts,
                   conceptSets,
@@ -733,7 +730,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   ? h(CohortEditor, {
                       onStateChange,
                       originalCohort: datasetBuilderState.cohort,
-                      snapshot: snapshot.state,
+                      snapshotId,
                       snapshotBuilderSettings: snapshotBuilderSettings.state,
                       updateCohorts: setCohorts,
                       getNextCriteriaIndex,
@@ -757,7 +754,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                 return snapshotBuilderSettings.status === 'Ready'
                   ? h(ConceptSetCreator, {
                       onStateChange,
-                      snapshot: snapshot.state,
+                      snapshotId,
                       snapshotBuilderSettings: snapshotBuilderSettings.state,
                       conceptSetUpdater: setConceptSets,
                       cart: datasetBuilderState.cart,

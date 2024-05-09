@@ -6,7 +6,6 @@ import { Cohort, DomainConceptSet } from 'src/dataset-builder/DatasetBuilderUtil
 import {
   DataRepo,
   DataRepoContract,
-  DatasetModel,
   Snapshot,
   SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderSettings,
@@ -24,7 +23,7 @@ import {
   OnStateChangeHandler,
   ValuesSelector,
 } from './DatasetBuilder';
-import { dummySnapshot, dummySnapshotBuilderSettings } from './TestConstants';
+import { dummySnapshotBuilderSettings, dummySnapshotId } from './TestConstants';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -44,7 +43,6 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
 const concept = { id: 100, name: 'concept', code: '0', count: 10, hasChildren: false, children: [] };
 
 describe('DatasetBuilder', () => {
-  const dummySnapshotWithId = dummySnapshot();
   const dummySettings = dummySnapshotBuilderSettings();
   type DatasetBuilderContentsPropsOverrides = {
     onStateChange?: OnStateChangeHandler;
@@ -63,27 +61,10 @@ describe('DatasetBuilder', () => {
         updateCohorts: jest.fn(),
         updateConceptSets: jest.fn(),
         onStateChange: (state) => state,
-        snapshot: dummySnapshotWithId,
+        snapshotId: dummySnapshotId,
         snapshotBuilderSettings: dummySettings,
         ...overrides,
       })
-    );
-  };
-
-  const mockWithValues = (datasetDetailsResponse: DatasetModel) => {
-    const datasetDetailsMock = jest.fn((_include) => Promise.resolve(datasetDetailsResponse));
-    const queryDatasetColumnStatisticsByIdMock = jest.fn((_dataOption) =>
-      Promise.resolve({ kind: 'range', min: 0, max: 100, id: 0, name: 'unused' })
-    );
-    asMockedFn(DataRepo).mockImplementation(
-      () =>
-        ({
-          dataset: (_datasetId) =>
-            ({
-              details: datasetDetailsMock,
-              queryDatasetColumnStatisticsById: queryDatasetColumnStatisticsByIdMock,
-            } as Partial<DataRepoContract['dataset']>),
-        } as Partial<DataRepoContract> as DataRepoContract)
     );
   };
 
@@ -256,7 +237,6 @@ describe('DatasetBuilder', () => {
 
   it('shows the home page by default', async () => {
     // Arrange
-    mockWithValues(dummySnapshotWithId);
     render(h(DatasetBuilderView));
     // Assert
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();

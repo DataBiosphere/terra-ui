@@ -18,7 +18,6 @@ import {
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
-  Snapshot,
   SnapshotBuilderCountResponse,
   SnapshotBuilderDomainOption,
   SnapshotBuilderOption,
@@ -299,7 +298,7 @@ type CriteriaGroupViewProps = {
   criteriaGroup: CriteriaGroup;
   updateCohort: Updater<Cohort>;
   cohort: Cohort;
-  snapshot: Snapshot;
+  snapshotId: string;
   snapshotBuilderSettings: SnapshotBuilderSettings;
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
@@ -311,7 +310,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
     criteriaGroup,
     updateCohort,
     cohort,
-    snapshot,
+    snapshotId,
     snapshotBuilderSettings,
     onStateChange,
     getNextCriteriaIndex,
@@ -345,8 +344,8 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   );
 
   useEffect(() => {
-    updateGroupParticipantCount.current(snapshot, criteriaGroup);
-  }, [criteriaGroup, snapshot]);
+    updateGroupParticipantCount.current(snapshotId, criteriaGroup);
+  }, [criteriaGroup, snapshotId]);
 
   return div(
     {
@@ -405,7 +404,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
             ? _.map(
                 ([criteriaIndex, criteria]) =>
                   h(CriteriaView, {
-                    snapshotId: snapshot.id,
+                    snapshotId,
                     deleteCriteria,
                     updateCriteria,
                     criteria,
@@ -457,14 +456,14 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
 
 type CohortGroupsProps = {
   cohort: Cohort | undefined;
-  snapshot: Snapshot;
+  snapshotId: string;
   snapshotBuilderSettings: SnapshotBuilderSettings;
   updateCohort: Updater<Cohort>;
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
 };
 const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
-  const { snapshot, snapshotBuilderSettings, cohort, updateCohort, onStateChange, getNextCriteriaIndex } = props;
+  const { snapshotId, snapshotBuilderSettings, cohort, updateCohort, onStateChange, getNextCriteriaIndex } = props;
   return div({ style: { width: '47rem' } }, [
     cohort == null
       ? 'No cohort found'
@@ -477,7 +476,7 @@ const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
                   criteriaGroup,
                   updateCohort,
                   cohort,
-                  snapshot,
+                  snapshotId,
                   snapshotBuilderSettings,
                   onStateChange,
                   getNextCriteriaIndex,
@@ -515,13 +514,13 @@ const editorBackgroundColor = colors.light(0.7);
 type CohortEditorContentsProps = {
   updateCohort: Updater<Cohort>;
   cohort: Cohort;
-  snapshot: Snapshot;
+  snapshotId: string;
   snapshotBuilderSettings: SnapshotBuilderSettings;
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
-  const { updateCohort, cohort, snapshot, snapshotBuilderSettings, onStateChange, getNextCriteriaIndex } = props;
+  const { updateCohort, cohort, snapshotId, snapshotBuilderSettings, onStateChange, getNextCriteriaIndex } = props;
   return h(BuilderPageHeader, [
     h2({ style: { display: 'flex', alignItems: 'center' } }, [
       h(
@@ -540,7 +539,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
     div({ style: { display: 'flow' } }, [
       h(CohortGroups, {
         key: cohort.name,
-        snapshot,
+        snapshotId,
         snapshotBuilderSettings,
         cohort,
         updateCohort,
@@ -565,7 +564,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
 
 interface CohortEditorProps {
   readonly onStateChange: OnStateChangeHandler;
-  readonly snapshot: Snapshot;
+  readonly snapshotId: string;
   readonly snapshotBuilderSettings: SnapshotBuilderSettings;
   readonly originalCohort: Cohort;
   readonly updateCohorts: Updater<Cohort[]>;
@@ -573,7 +572,7 @@ interface CohortEditorProps {
 }
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
-  const { onStateChange, snapshot, snapshotBuilderSettings, originalCohort, updateCohorts, getNextCriteriaIndex } =
+  const { onStateChange, snapshotId, snapshotBuilderSettings, originalCohort, updateCohorts, getNextCriteriaIndex } =
     props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
 
@@ -583,7 +582,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
     h(CohortEditorContents, {
       updateCohort,
       cohort,
-      snapshot,
+      snapshotId,
       snapshotBuilderSettings,
       onStateChange,
       getNextCriteriaIndex,

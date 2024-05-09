@@ -1,24 +1,7 @@
 import _ from 'lodash/fp';
-import { Snapshot, SnapshotBuilderConcept as Concept, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
+import { SnapshotBuilderConcept as Concept, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 
-export const dummySnapshot = (): Snapshot => ({
-  name: 'AnalytiXIN',
-  id: '0',
-  description:
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br><br>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-  source: [
-    {
-      dataset: {
-        id: '0',
-        name: 'AnalytiXIN',
-        secureMonitoringEnabled: true,
-      },
-    },
-  ],
-  createdDate: new Date().toDateString(),
-  cloudPlatform: 'azure',
-  properties: {},
-});
+export const dummySnapshotId = '0';
 
 export const dummySnapshotBuilderSettings = (): SnapshotBuilderSettings => ({
   programDataOptions: [
