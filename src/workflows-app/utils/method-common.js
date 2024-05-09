@@ -76,3 +76,23 @@ export const getMethodVersionName = (url) => {
   }
   return segmentedUrlPath;
 };
+
+export const getFilteredRuns = (filterOption, runsToFilter, errorStates) => {
+  return runsToFilter.filter((run) => {
+    switch (filterOption) {
+      case 'Failed':
+        if (errorStates.includes(run.state)) {
+          return true;
+        }
+        break;
+      case 'Succeeded':
+        if (run.state === 'COMPLETE') {
+          return true;
+        }
+        break;
+      default:
+        return true;
+    }
+    return false;
+  });
+};
