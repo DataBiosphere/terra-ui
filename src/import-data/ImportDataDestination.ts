@@ -362,18 +362,14 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
                 cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
-                renderNotice: () =>
-                  h(Fragment, [
-                    isProtectedData &&
-                      p([
-              renderNotice: () => {
-                const children: ReactNode[] = [];
-                if (isProtectedData) {
-                    children.push(
-                      div({ style: { paddingBottom: importMayTakeTime ? '1.0rem' : 0 } }, [
-                        'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
-                      ])
-                    );
+                renderNotice: () => {
+                  const children: ReactNode[] = [];
+                  if (isProtectedData) {
+                      children.push(
+                        div({ style: { paddingBottom: importMayTakeTime ? '1.0rem' : 0 } }, [
+                          'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
+                        ])
+                      );
                   }
                   if (importMayTakeTime) {
                     children.push(div([importMayTakeTimeMessage]));
