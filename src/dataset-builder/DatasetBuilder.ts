@@ -601,7 +601,7 @@ export const DatasetBuilderContents = ({
         header: featureValueGroup.name,
         values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
-    )(snapshotBuilderSettings?.featureValueGroups);
+    )(snapshotBuilderSettings.featureValueGroups);
 
   const createHeaderAndValuesFromFeatureValueGroups = (
     featureValueGroups: string[]
@@ -612,7 +612,7 @@ export const DatasetBuilderContents = ({
         header: featureValueGroup.name,
         values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
-    )(snapshotBuilderSettings?.featureValueGroups);
+    )(snapshotBuilderSettings.featureValueGroups);
 
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
@@ -633,7 +633,7 @@ export const DatasetBuilderContents = ({
             // all domain concept sets
             conceptSets,
             // all prepackaged concept sets
-            prepackagedConceptSets: snapshotBuilderSettings?.datasetConceptSets,
+            prepackagedConceptSets: snapshotBuilderSettings.datasetConceptSets,
             selectedConceptSets,
             updateConceptSets,
             onChange: async (conceptSets) => {
