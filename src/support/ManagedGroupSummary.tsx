@@ -1,6 +1,5 @@
 import { ButtonPrimary } from '@terra-ui-packages/components';
 import { Fragment, useState } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
 import { TextArea, TextInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
@@ -27,64 +26,62 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
     !!props.fqResourceId.resourceId && submit();
   });
 
-  return h(Fragment, [
-    div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
-      div(
-        {
-          style: {
+  return (
+    <>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <div
+          style={{
             color: colors.dark(),
             fontSize: 18,
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
             marginLeft: '1rem',
-          },
-        },
-        [props.displayName]
-      ),
-      h(TextInput, {
-        placeholder: 'Enter group name',
-        'aria-label': 'Enter group name',
-        onChange: (newFilter) => {
-          Nav.updateSearch({ ...query, resourceName: newFilter || undefined });
-          setGroupName(newFilter);
-        },
-        onKeyDown: (e) => {
-          if (e.key === 'Enter') {
-            submit();
-          }
-        },
-        value: props.fqResourceId.resourceId || '',
-      }),
-      h(ButtonPrimary, { onClick: () => submit() }, ['Load']),
-    ]),
-    div(
-      {
-        style: {
+          }}
+        >
+          {props.displayName}
+        </div>
+        <TextInput
+          placeholder="Enter group name"
+          onChange={(newFilter) => {
+            Nav.updateSearch({ ...query, resourceName: newFilter || undefined });
+            setGroupName(newFilter);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              submit();
+            }
+          }}
+          value={props.fqResourceId.resourceId || ''}
+        />
+        <ButtonPrimary onClick={() => submit()}>Load</ButtonPrimary>
+      </div>
+      <div
+        style={{
           color: colors.dark(),
           fontSize: 18,
           fontWeight: 600,
           display: 'flex',
           alignItems: 'center',
           marginLeft: '1rem',
-        },
-      },
-      ['Summary']
-    ),
-    h(TextArea, { value: groupSummaryInfo, readOnly: true, autosize: true }),
-    div(
-      {
-        style: {
+        }}
+      >
+        Summary
+      </div>
+      <TextArea value={groupSummaryInfo} readOnly autosize />
+      <div
+        style={{
           color: colors.dark(),
           fontSize: 18,
           fontWeight: 600,
           display: 'flex',
           alignItems: 'center',
           marginLeft: '1rem',
-        },
-      },
-      ['Sam Policies']
-    ),
-    h(TextArea, { value: groupPolicies, readOnly: true, autosize: true }),
-  ]);
+        }}
+      >
+        Sam Policies
+      </div>
+      <TextArea value={groupPolicies} readOnly autosize />
+    </>
+  );
 };

@@ -1,7 +1,6 @@
-// import _ from 'lodash/fp';
-import { h, h2, p } from 'react-hyperscript-helpers';
+import React from 'react';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { PageBox } from 'src/components/PageBox';
+import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import TopBar from 'src/components/TopBar';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
@@ -18,14 +17,16 @@ const SupportPage = (props: SupportPageProps) => {
   const selectedType = props.queryParams.selectedType;
   const resourceName = props.queryParams.resourceName;
 
-  return h(FooterWrapper, [
-    h(TopBar, { title: 'Support', href: Nav.getLink('support') }, []),
-    h(PageBox, { role: 'main' }, [
-      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Support']),
-      p(['Select resource type.']),
-      h(SupportResourceList, { queryParams: { selectedType, resourceName } }),
-    ]),
-  ]);
+  return (
+    <FooterWrapper>
+      <TopBar title="Support" href={Nav.getLink('support')} />
+      <PageBox role="main" variant={PageBoxVariants.light}>
+        <h2 style={{ ...Style.elements.sectionHeader, textTransform: 'uppercase' }}>Support</h2>
+        <p>Select resource type.</p>
+        <SupportResourceList queryParams={{ selectedType, resourceName }} />
+      </PageBox>
+    </FooterWrapper>
+  );
 };
 
 export const navPaths = [
