@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import * as GoogleStorage from 'src/libs/ajax/GoogleStorage';
 import * as Notifications from 'src/libs/notifications';
-import { workspaceStore } from 'src/libs/state';
+import { InitializedWorkspaceWrapper, workspaceStore } from 'src/libs/state';
 import { renderHookInAct } from 'src/testing/test-utils';
 import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
 import * as recentlyViewedWorkspaces from 'src/workspaces/common/state/recentlyViewedWorkspaces';
@@ -38,7 +38,6 @@ jest.mock('src/auth/auth', (): AuthExports => {
     ...jest.requireActual('src/auth/auth'),
     getAuthToken: jest.fn(() => 'testToken'),
     getAuthTokenFromLocalStorage: jest.fn(() => Promise.resolve('localToken')),
-    sendAuthTokenDesyncMetric: jest.fn(),
   };
 });
 
@@ -48,7 +47,7 @@ jest.mock('src/libs/config', () => ({
 }));
 
 describe('useWorkspace', () => {
-  const initializedGoogleWorkspace = {
+  const initializedGoogleWorkspace: InitializedWorkspaceWrapper = {
     accessLevel: 'PROJECT_OWNER',
     owners: ['christina@foo.com'],
     workspace: {
@@ -73,10 +72,11 @@ describe('useWorkspace', () => {
     },
     canShare: true,
     canCompute: true,
+    policies: [],
     workspaceInitialized: true,
   };
 
-  const initializedAzureWorkspace = {
+  const initializedAzureWorkspace: InitializedWorkspaceWrapper = {
     accessLevel: 'PROJECT_OWNER',
     owners: ['christina@foo.com'],
     azureContext: {
@@ -105,6 +105,7 @@ describe('useWorkspace', () => {
     },
     canShare: true,
     canCompute: true,
+    policies: [],
     workspaceInitialized: true,
   };
 

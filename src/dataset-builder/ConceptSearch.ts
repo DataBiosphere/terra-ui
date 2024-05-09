@@ -1,3 +1,4 @@
+import { useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, strong } from 'react-hyperscript-helpers';
@@ -8,10 +9,15 @@ import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
-import { formatCount, GetConceptsResponse, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DataRepo, SnapshotBuilderConcept as Concept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
+import { formatCount, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
+import {
+  DataRepo,
+  SnapshotBuilderConcept as Concept,
+  SnapshotBuilderDomainOption,
+  SnapshotBuilderGetConceptsResponse as GetConceptsResponse,
+} from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
 
 type ConceptSearchProps = {
   readonly initialSearch: string;
@@ -40,7 +46,9 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
   useEffect(() => {
     if (searchText.length === 0 || searchText.length > 2) {
       void searchConcepts(() => {
-        return DataRepo().dataset(datasetId).searchConcepts(domainOption.root, searchText);
+        return withErrorReporting(`Error searching concepts with term ${searchText}`)(async () =>
+          DataRepo().dataset(datasetId).searchConcepts(domainOption.root, searchText)
+        )();
       });
     }
   }, [searchText, datasetId, domainOption.root, searchConcepts]);
@@ -126,6 +134,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   ),
                 ]),
                 id: concept.id,
+                code: concept.code,
                 count: formatCount(concept.count),
                 hierarchy: div({ style: { display: 'flex' } }, [
                   h(

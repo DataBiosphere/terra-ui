@@ -1,4 +1,4 @@
-import { Clickable, Modal, Spinner } from '@terra-ui-packages/components';
+import { Clickable, Modal, Spinner, useLoadedData } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
 import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
@@ -13,23 +13,25 @@ import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   Cohort,
-  DatasetBuilderType,
+  createDatasetAccessRequest,
+  createSnapshotBuilderCountRequest,
   DatasetBuilderValue,
-  DatasetParticipantCountResponse,
+  DomainConceptSet,
   formatCount,
+  PrepackagedConceptSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
-  ConceptSet,
   DataRepo,
+  DatasetBuilderType,
   datasetIncludeTypes,
   DatasetModel,
-  DomainConceptSet,
-  PrepackagedConceptSet,
+  SnapshotBuilderCountResponse,
+  SnapshotBuilderDatasetConceptSet as ConceptSet,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
 } from 'src/libs/ajax/DataRepo';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
@@ -115,7 +117,7 @@ const ObjectSetListSection = <T extends DatasetBuilderType>(props: ObjectSetList
   ]);
 };
 
-interface HeaderAndValues<T extends DatasetBuilderType> {
+export interface HeaderAndValues<T extends DatasetBuilderType> {
   header: string;
   values: T[];
   makeIcon?: (value, header) => ReactElement;
@@ -451,13 +453,13 @@ export const ValuesSelector = ({
 interface RequestAccessModalProps {
   cohorts: Cohort[];
   conceptSets: ConceptSet[];
-  valuesSets: HeaderAndValues<DatasetBuilderValue>[];
+  valueSets: HeaderAndValues<DatasetBuilderValue>[];
   onDismiss: () => void;
   datasetId: string;
 }
 
 const RequestAccessModal = (props: RequestAccessModalProps) => {
-  const { onDismiss, cohorts, conceptSets, valuesSets, datasetId } = props;
+  const { onDismiss, cohorts, conceptSets, valueSets, datasetId } = props;
   const [name, setName] = useState('');
   const [researchPurposeStatement, setResearchPurposeStatement] = useState('');
 
@@ -478,20 +480,26 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
         {
           disabled: errors,
           tooltip: errors && Utils.summarizeErrors(errors),
-          onClick: async () => {
+          onClick: withErrorReporting('Error creating dataset request')(async () => {
             await DataRepo()
               .dataset(datasetId)
-              .createSnapshotRequest({
-                name,
-                researchPurposeStatement,
-                datasetRequest: {
+              .createSnapshotRequest(
+                createDatasetAccessRequest(
+                  name,
+                  researchPurposeStatement,
                   cohorts,
                   conceptSets,
-                  valueSets: _.map((valuesSet) => ({ domain: valuesSet.header, values: valuesSet.values }), valuesSets),
-                },
-              });
+                  _.map(
+                    (valuesSet: HeaderAndValues<DatasetBuilderValue>) => ({
+                      domain: valuesSet.header,
+                      values: valuesSet.values,
+                    }),
+                    valueSets // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
+                  )
+                )
+              );
             onDismiss();
-          },
+          }),
         },
         ['Request access']
       ),
@@ -554,7 +562,7 @@ export const DatasetBuilderContents = ({
   const [values, setValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [requestingAccess, setRequestingAccess] = useState(false);
   const [datasetRequestParticipantCount, setDatasetRequestParticipantCount] =
-    useLoadedData<DatasetParticipantCountResponse>();
+    useLoadedData<SnapshotBuilderCountResponse>();
 
   const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
   const allConceptSets: ConceptSet[] = useMemo(() => _.flatMap('values', selectedConceptSets), [selectedConceptSets]);
@@ -564,10 +572,10 @@ export const DatasetBuilderContents = ({
 
   useEffect(() => {
     requestValid &&
-      setDatasetRequestParticipantCount(async () =>
-        DataRepo().dataset(dataset.id).getCounts({
-          cohorts: allCohorts,
-        })
+      setDatasetRequestParticipantCount(
+        withErrorReporting('Error generating participant count')(async () =>
+          DataRepo().dataset(dataset.id).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
+        )
       );
   }, [dataset, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
@@ -606,7 +614,6 @@ export const DatasetBuilderContents = ({
         values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
     )(dataset.snapshotBuilderSettings?.featureValueGroups);
-
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
       h(BuilderPageHeader, [
@@ -667,7 +674,7 @@ export const DatasetBuilderContents = ({
       h(RequestAccessModal, {
         cohorts: allCohorts,
         conceptSets: allConceptSets,
-        valuesSets: selectedValues,
+        valueSets: selectedValues,
         onDismiss: () => setRequestingAccess(false),
         datasetId: dataset.id,
       }),
@@ -699,10 +706,12 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   };
 
   useOnMount(() => {
-    void loadDatasetModel(async () =>
-      DataRepo()
-        .dataset(datasetId)
-        .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
+    void loadDatasetModel(
+      withErrorReporting('Error getting dataset details')(async () =>
+        DataRepo()
+          .dataset(datasetId)
+          .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
+      )
     );
   });
   return datasetModel.status === 'Ready'

@@ -1,7 +1,7 @@
 import { action } from '@storybook/addon-actions';
 import type { Meta, StoryObj } from '@storybook/react';
 import { atom, delay } from '@terra-ui-packages/core-utils';
-import { NotificationsContract, NotificationsProvider } from '@terra-ui-packages/notifications';
+import { makeNotificationsProvider, NotificationsContextProvider, Notifier } from '@terra-ui-packages/notifications';
 import React, { useEffect, useState } from 'react';
 import {
   azureRuntime,
@@ -34,6 +34,16 @@ type Story = StoryObj<typeof Environments>;
 
 const actionLogAsyncFn = (name: string) => {
   const storyAlert = async (...args: any[]) => {
+    const log = [`${name} method called with:`, ...args];
+    action(name)(log);
+    // eslint-disable-next-line no-console
+    console.log(log);
+  };
+  return storyAlert;
+};
+
+const actionLogFn = (name: string) => {
+  const storyAlert = (...args: any[]) => {
     const log = [`${name} method called with:`, ...args];
     action(name)(log);
     // eslint-disable-next-line no-console
@@ -108,25 +118,25 @@ const getMockUseWorkspaces = (mockResults: WorkspaceWrapper[]): EnvironmentsProp
   return useMockHook;
 };
 
-const getMockMetrics = (): EnvironmentsProps['metrics'] => ({
-  captureEvent: actionLogAsyncFn('metrics.captureEvent'),
-});
-
 const getMockNav = (): EnvironmentsProps['nav'] => ({
   // eslint-disable-next-line no-alert
   navTo: (navKey) => alert(navKey),
   getUrl: (navKey, args) => `javascript:alert('nav to ${navKey} with: ${JSON.stringify(args)}')`,
 });
 
-const mockNotifications: NotificationsContract = {
+const mockNotifier: Notifier = {
   notify: actionLogAsyncFn('Notifications.notify'),
 };
+const mockNotifications = makeNotificationsProvider({
+  notifier: mockNotifier,
+  shouldIgnoreError: () => false,
+});
 
 const happyPermissions: LeoResourcePermissionsProvider = {
-  canDeleteDisk: () => true,
-  canPauseResource: () => true,
-  canDeleteApp: () => true,
-  canDeleteResource: () => true,
+  hasDeleteDiskPermission: () => true,
+  hasPausePermission: () => true,
+  isAppInDeletableState: () => true,
+  isResourceInDeletableState: () => true,
 };
 
 export const HappyEnvironments: Story = {
@@ -138,17 +148,17 @@ export const HappyEnvironments: Story = {
         disksStore.set([generateTestDiskWithGoogleWorkspace()]);
       }, []);
       return (
-        <NotificationsProvider notifications={mockNotifications}>
+        <NotificationsContextProvider notifications={mockNotifications}>
           <Environments
             nav={getMockNav()}
             useWorkspaces={getMockUseWorkspaces([defaultGoogleWorkspace, defaultAzureWorkspace])}
             leoAppData={getMockLeoApps()}
             leoRuntimeData={getMockLeoRuntimes()}
             leoDiskData={getMockLeoDisks()}
-            metrics={getMockMetrics()}
             permissions={happyPermissions}
+            onEvent={actionLogFn('onEvent')}
           />
-        </NotificationsProvider>
+        </NotificationsContextProvider>
       );
     };
     return <StoryWrapper />;
@@ -164,17 +174,17 @@ export const NoEnvironments: Story = {
         disksStore.set([]);
       }, []);
       return (
-        <NotificationsProvider notifications={mockNotifications}>
+        <NotificationsContextProvider notifications={mockNotifications}>
           <Environments
             nav={getMockNav()}
             useWorkspaces={getMockUseWorkspaces([defaultGoogleWorkspace, defaultAzureWorkspace])}
             leoAppData={getMockLeoApps()}
             leoRuntimeData={getMockLeoRuntimes()}
             leoDiskData={getMockLeoDisks()}
-            metrics={getMockMetrics()}
             permissions={happyPermissions}
+            onEvent={actionLogFn('onEvent')}
           />
-        </NotificationsProvider>
+        </NotificationsContextProvider>
       );
     };
     return <StoryWrapper />;
@@ -190,7 +200,7 @@ export const DeleteError: Story = {
         disksStore.set([generateTestDiskWithGoogleWorkspace()]);
       }, []);
       return (
-        <NotificationsProvider notifications={mockNotifications}>
+        <NotificationsContextProvider notifications={mockNotifications}>
           <Environments
             nav={getMockNav()}
             useWorkspaces={getMockUseWorkspaces([defaultGoogleWorkspace, defaultAzureWorkspace])}
@@ -200,10 +210,10 @@ export const DeleteError: Story = {
               delete: () => Promise.reject(Error('BOOM!')),
             }}
             leoDiskData={getMockLeoDisks()}
-            metrics={getMockMetrics()}
             permissions={happyPermissions}
+            onEvent={actionLogFn('onEvent')}
           />
-        </NotificationsProvider>
+        </NotificationsContextProvider>
       );
     };
     return <StoryWrapper />;

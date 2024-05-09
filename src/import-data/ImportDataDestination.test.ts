@@ -403,13 +403,8 @@ describe('ImportDataDestination', () => {
       await workspaceSelect.selectOption(new RegExp(workspaceName));
 
       // Assert
-      const importNoticeHeader = screen.queryByText('Importing this data may add:', {
-        exact: false,
-      });
+      const accessControlNotice = screen.queryByText('Importing this data may add additional access controls');
 
-      const accessControlNotice = screen.queryByText('Additional access controls', { exact: false });
-
-      expect(!!importNoticeHeader).toEqual(displayExtraAccessControlNotice);
       expect(!!accessControlNotice).toEqual(displayExtraAccessControlNotice);
     }
   );
@@ -454,7 +449,7 @@ describe('ImportDataDestination', () => {
       await workspaceSelect.selectOption(new RegExp(workspaceName));
 
       // Assert
-      const policyHeader = screen.queryByText('This workspace has the following', { exact: false });
+      const policyHeader = screen.queryByText('Security and controls on this workspace:');
       const policyDetail = screen.queryByText('Additional security monitoring', { exact: false });
 
       expect(!!policyHeader).toEqual(shouldDisplayPolicies);

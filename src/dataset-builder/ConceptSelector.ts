@@ -9,6 +9,7 @@ import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import { formatCount } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
 
 type ConceptSelectorProps = {
   readonly title: string;
@@ -43,10 +44,11 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
   const { title, onCancel, onCommit, actionText, datasetId, initialCart, parents, openedConcept } = props;
 
   const [cart, setCart] = useState<Concept[]>(initialCart);
-  const getChildren = async (concept: Concept): Promise<Concept[]> => {
-    const result = await DataRepo().dataset(datasetId).getConcepts(concept);
-    return result.result;
-  };
+  const getChildren = async (concept: Concept): Promise<Concept[]> =>
+    withErrorReporting(`Error getting concept children for concept ${concept.name}`)(async () => {
+      const result = await DataRepo().dataset(datasetId).getConcepts(concept);
+      return result.result;
+    })();
 
   return h(Fragment, [
     h(BuilderPageHeader, [
@@ -64,7 +66,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
       h(TreeGrid<Concept>, {
         columns: [
           {
-            name: 'Concept Name',
+            name: 'Concept name',
             width: 710,
             render: (concept) => {
               return h(Fragment, [
@@ -87,13 +89,14 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
             },
           },
           { name: 'Concept ID', width: 195, render: _.get('id') },
+          { name: 'Code', width: 195, render: _.get('code') },
           {
             name: 'Roll-up count',
             width: 205,
             render: (row) => formatCount(row.count),
           },
         ],
-        root: { id: findRoot(parents), name: 'root', count: 0, hasChildren: true },
+        root: { id: findRoot(parents), name: 'root', code: '0', count: 0, hasChildren: true },
         parents,
         getChildren,
         headerStyle: tableHeaderStyle,

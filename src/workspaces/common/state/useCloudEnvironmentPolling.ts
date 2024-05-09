@@ -5,6 +5,7 @@ import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils
 import { Ajax } from 'src/libs/ajax';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
 
@@ -22,13 +23,11 @@ export const useCloudEnvironmentPolling = (
   namespace: string,
   workspace?: Workspace
 ): CloudEnvironmentDetails => {
-  const [controller, setController] = useState(new window.AbortController());
+  const controller = useRef(new window.AbortController());
   const abort = () => {
-    controller.abort();
-    setController(new window.AbortController());
+    controller.current.abort();
+    controller.current = new window.AbortController();
   };
-  const signal = controller.signal;
-
   const timeout = useRef<NodeJS.Timeout>();
   const [runtimes, setRuntimes] = useState<ListRuntimeItem[]>();
   const [isLoadingCloudEnvironments, setIsLoadingCloudEnvironments] = useState<boolean>(true);
@@ -53,13 +52,14 @@ export const useCloudEnvironmentPolling = (
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
       const [newDisks, newRuntimes] = await Promise.all([
-        Ajax(signal)
-          .Disks.disksV1()
-          .list({
+        leoDiskProvider.list(
+          {
             ...cloudEnvFilters,
             includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace',
-          }),
-        Ajax(signal).Runtimes.listV2(cloudEnvFilters),
+          },
+          { signal: controller.current.signal }
+        ),
+        Ajax(controller.current.signal).Runtimes.listV2(cloudEnvFilters),
       ]);
 
       setRuntimes(newRuntimes);

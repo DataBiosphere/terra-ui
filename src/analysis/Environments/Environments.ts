@@ -1,9 +1,9 @@
 import { PopupTrigger, TooltipTrigger, useModalHandler, useThemeFromContext } from '@terra-ui-packages/components';
-import { formatDatetime, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
-import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
+import { formatDatetime, KeyedEventHandler, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
+import { useNotificationsFromContext, withErrorIgnoring } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
-import { div, h, h2, strong } from 'react-hyperscript-helpers';
+import { div, h, h2, span, strong } from 'react-hyperscript-helpers';
 import { RuntimeErrorModal } from 'src/analysis/AnalysisNotificationManager';
 import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
 import { getAppStatusForDisplay, getDiskAppType } from 'src/analysis/utils/app-utils';
@@ -17,7 +17,7 @@ import { workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import { getCreatorForCompute } from 'src/analysis/utils/resource-utils';
 import { getDisplayRuntimeStatus, isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel } from 'src/analysis/utils/tool-utils';
-import { Clickable, Link, spinnerOverlay } from 'src/components/common';
+import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { makeMenuIcon } from 'src/components/PopupTrigger';
 import SupportRequestWrapper from 'src/components/SupportRequest';
@@ -29,9 +29,6 @@ import { isRuntime, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtim
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
-import { MetricsProvider } from 'src/libs/ajax/metrics/useMetrics';
-import { withErrorIgnoring, withErrorReporter } from 'src/libs/error';
-import Events from 'src/libs/events';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
 import { contactUsActive } from 'src/libs/state';
 import { elements as styleElements } from 'src/libs/style';
@@ -66,20 +63,32 @@ type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | '
 type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
 
+export interface DataRefreshInfo {
+  leoCallTimeMs: number;
+  totalCallTimeMs: number;
+  runtimes: number;
+  disks: number;
+  apps: number;
+}
+
+export interface EnvironmentsEvents {
+  dataRefresh: DataRefreshInfo;
+}
+
 export interface EnvironmentsProps {
   nav: NavLinkProvider<EnvironmentNavActions>;
   useWorkspaces: UseWorkspaces;
   leoAppData: LeoAppProviderNeeds;
   leoRuntimeData: LeoRuntimeProviderNeeds;
   leoDiskData: LeoDiskProviderNeeds;
-  metrics: MetricsProvider;
   permissions: LeoResourcePermissionsProvider;
+  onEvent?: KeyedEventHandler<EnvironmentsEvents>;
 }
 
 export const Environments = (props: EnvironmentsProps): ReactNode => {
-  const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, metrics } = props;
+  const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, onEvent } = props;
   const { colors } = useThemeFromContext();
-  const { withErrorReporting } = withErrorReporter(useNotificationsFromContext());
+  const { withErrorReporting } = useNotificationsFromContext();
   const signal = useCancellation();
 
   type WorkspaceWrapperLookup = { [namespace: string]: { [name: string]: WorkspaceWrapper } };
@@ -114,9 +123,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' });
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' });
 
-  // TODO [IA-4432] restore the stateful var when checkbox reintroduced
-  // const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
-  const shouldFilterByCreator = true;
+  const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
 
   const refreshData = withBusyState(setLoading, async () => {
     await refreshWorkspaces();
@@ -141,13 +148,15 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     const endTimeForLeoCallsEpochMs = Date.now();
 
     const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs;
-    metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, {
-      leoCallTimeMs: leoCallTimeTotalMs,
-      totalCallTimeMs: leoCallTimeTotalMs,
-      runtimes: newRuntimes.length,
-      disks: newDisks.length,
-      apps: newApps.length,
-    });
+    if (onEvent) {
+      onEvent('dataRefresh', {
+        leoCallTimeMs: leoCallTimeTotalMs,
+        totalCallTimeMs: leoCallTimeTotalMs,
+        runtimes: newRuntimes.length,
+        disks: newDisks.length,
+        apps: newApps.length,
+      });
+    }
 
     const decorateLabeledResourceWithWorkspace = <T extends ListRuntimeItem | PersistentDisk | App>(
       cloudObject: T
@@ -210,10 +219,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(refreshData, 30000);
-    return () => {
-      clearInterval(interval);
-    };
   }, [shouldFilterByCreator]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getCloudProvider = (cloudEnvironment) =>
@@ -480,12 +485,11 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       h2({ style: { ...styleElements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, [
         'Your cloud environments',
       ]),
-      // TODO [IA-4432] reenable this checkbox when query performance is fixed
-      // div({ style: { marginBottom: '.5rem' } }, [
-      //   h(LabeledCheckbox, { checked: shouldFilterByCreator, onChange: setShouldFilterByCreator }, [
-      //     span({ style: { fontWeight: 600 } }, [' Hide resources you did not create']),
-      //   ]),
-      // ]),
+      div({ style: { marginBottom: '.5rem' } }, [
+        h(LabeledCheckbox, { checked: shouldFilterByCreator, onChange: setShouldFilterByCreator }, [
+          span({ style: { fontWeight: 600 } }, [' Hide resources you did not create']),
+        ]),
+      ]),
       runtimes &&
         disks &&
         div({ style: { overflow: 'scroll', overflowWrap: 'break-word', wordBreak: 'break-all' } }, [
@@ -659,7 +663,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                           },
                           [name]
                         ),
-                        permissions.canDeleteDisk(rowDisk) &&
+                        permissions.hasDeleteDiskPermission(rowDisk) &&
                           diskStatus !== 'Deleting' &&
                           multipleDisks &&
                           h(

@@ -27,6 +27,7 @@
     "@fortawesome/free-regular-svg-icons": "^5.15.4",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@fortawesome/react-fontawesome": "^0.1.15",
+    "@terra-ui-packages/core-utils": "^0.2.0",
     "color": "^4.0.1",
     "lodash": "^4.17.21",
     "react-focus-lock": "^2.9.5",
@@ -41,9 +42,11 @@
     "@testing-library/dom": "^9.3.1",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.4.3",
+    "@types/color": "^3.0.6",
     "@types/jest": "^28.1.8",
     "@types/lodash": "^4.14.184",
     "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.15",
     "@types/react-modal": "^3.16.2",
     "@types/react-onclickoutside": "^6.7.5",
     "@types/testing-library__jest-dom": "^5.14.9",
@@ -51,8 +54,8 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "typescript": "~5.1.6",
-    "vite": "^4.5.2",
-    "vite-plugin-svgr": "^3.2.0"
+    "vite": "^5.2.11",
+    "vite-plugin-svgr": "^3.3.0"
   },
   "peerDependencies": {
     "react": "18.2.0",

@@ -178,6 +178,8 @@ export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
 
 export const getTerraUser = (): TerraUser => userStore.get().terraUser;
 
+export const getTerraUserProfile = (): TerraUserProfile => userStore.get().profile;
+
 export interface TokenMetadata {
   token: string | undefined; // do not log or send this to mixpanel
   id: string | undefined;
@@ -262,7 +264,9 @@ export const notificationStore = atom<any[]>([]);
 
 export const contactUsActive = atom(false);
 
-export const workspaceStore = atom<any>(undefined);
+export type InitializedWorkspaceWrapper = WorkspaceWrapper & { workspaceInitialized: boolean };
+
+export const workspaceStore = atom<InitializedWorkspaceWrapper | undefined>(undefined);
 
 export const workspacesStore = atom<WorkspaceWrapper[]>([]);
 

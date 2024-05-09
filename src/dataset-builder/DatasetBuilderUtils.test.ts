@@ -1,34 +1,34 @@
 import { div, span } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
-  AnyCriteriaApi,
   Cohort,
-  CohortApi,
   convertCohort,
   convertCriteria,
-  convertDatasetAccessRequest,
   convertValueSet,
+  createDatasetAccessRequest,
   CriteriaGroup,
-  CriteriaGroupApi,
-  DatasetAccessRequest,
-  DatasetAccessRequestApi,
-  DomainCriteria,
-  DomainCriteriaApi,
+  DomainConceptSet,
   formatCount,
   HighlightConceptName,
   ProgramDataListCriteria,
-  ProgramDataListCriteriaApi,
   ProgramDataRangeCriteria,
-  ProgramDataRangeCriteriaApi,
+  ProgramDomainCriteria,
+  SnapshotAccessRequest,
   ValueSet,
-  ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
-  DomainConceptSet,
+  AnySnapshotBuilderCriteria,
+  SnapshotAccessRequest as SnapshotAccessRequestApi,
+  SnapshotBuilderCohort,
   SnapshotBuilderConcept,
+  SnapshotBuilderCriteriaGroup,
+  SnapshotBuilderDomainCriteria,
   SnapshotBuilderDomainOption,
+  SnapshotBuilderFeatureValueGroup,
+  SnapshotBuilderProgramDataListCriteria,
   SnapshotBuilderProgramDataListItem,
   SnapshotBuilderProgramDataListOption,
+  SnapshotBuilderProgramDataRangeCriteria,
   SnapshotBuilderProgramDataRangeOption,
 } from 'src/libs/ajax/DataRepo';
 
@@ -36,6 +36,7 @@ const concept: SnapshotBuilderConcept = {
   id: 0,
   name: 'concept',
   count: 10,
+  code: '0',
   hasChildren: false,
 };
 
@@ -50,7 +51,7 @@ const domainOption: SnapshotBuilderDomainOption = {
   root: concept,
 };
 
-const domainCriteria: DomainCriteria = {
+const domainCriteria: ProgramDomainCriteria = {
   conceptId: 100,
   conceptName: 'conceptName',
   kind: 'domain',
@@ -59,9 +60,8 @@ const domainCriteria: DomainCriteria = {
   count: 100,
 };
 
-const domainCriteriaApi: DomainCriteriaApi = {
+const domainCriteriaApi: SnapshotBuilderDomainCriteria = {
   kind: 'domain',
-  name: 'category',
   id: 1,
   conceptId: 100,
 };
@@ -85,10 +85,9 @@ const rangeCriteria: ProgramDataRangeCriteria = {
   high: 99,
 };
 
-const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
+const rangeCriteriaApi: SnapshotBuilderProgramDataRangeCriteria = {
   id: 2,
   kind: 'range',
-  name: 'rangeOption',
   low: 1,
   high: 99,
 };
@@ -118,16 +117,15 @@ const listCriteria: ProgramDataListCriteria = {
   values: criteriaListValues,
 };
 
-const listCriteriaApi: ProgramDataListCriteriaApi = {
+const listCriteriaApi: SnapshotBuilderProgramDataListCriteria = {
   id: 2,
   kind: 'list',
-  name: 'listOption',
   values: criteriaListValuesApi,
 };
 
 const anyCriteriaArray: AnyCriteria[] = [domainCriteria, rangeCriteria, listCriteria];
 
-const anyCriteriaArrayApi: AnyCriteriaApi[] = [domainCriteriaApi, rangeCriteriaApi, listCriteriaApi];
+const anyCriteriaArrayApi: AnySnapshotBuilderCriteria[] = [domainCriteriaApi, rangeCriteriaApi, listCriteriaApi];
 
 const criteriaGroup: CriteriaGroup = {
   name: 'criteriaGroup',
@@ -136,7 +134,7 @@ const criteriaGroup: CriteriaGroup = {
   meetAll: false,
 };
 
-const criteriaGroupApi: CriteriaGroupApi = {
+const criteriaGroupApi: SnapshotBuilderCriteriaGroup = {
   name: 'criteriaGroup',
   criteria: anyCriteriaArrayApi,
   mustMeet: true,
@@ -145,11 +143,11 @@ const criteriaGroupApi: CriteriaGroupApi = {
 
 const cohort: Cohort = { name: 'cohort', criteriaGroups: [criteriaGroup] };
 
-const cohortApi: CohortApi = { name: 'cohort', criteriaGroups: [criteriaGroupApi] };
+const cohortApi: SnapshotBuilderCohort = { name: 'cohort', criteriaGroups: [criteriaGroupApi] };
 
 const valueSet: ValueSet = { domain: 'valueDomain', values: [{ name: 'valueName' }] };
 
-const valueSetApi: ValueSetApi = { name: 'valueDomain', values: ['valueName'] };
+const valueSetApi: SnapshotBuilderFeatureValueGroup = { name: 'valueDomain', values: ['valueName'] };
 
 const conceptSet: DomainConceptSet = {
   name: 'conceptSetName',
@@ -157,13 +155,13 @@ const conceptSet: DomainConceptSet = {
   featureValueGroupName: 'featureValueGroupName',
 };
 
-const datasetAccessRequest: DatasetAccessRequest = {
+const datasetAccessRequest: SnapshotAccessRequest = {
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
   datasetRequest: { cohorts: [cohort], conceptSets: [conceptSet], valueSets: [valueSet] },
 };
 
-const datasetAccessRequestApi: DatasetAccessRequestApi = {
+const datasetAccessRequestApi: SnapshotAccessRequestApi = {
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
   datasetRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
@@ -195,7 +193,15 @@ describe('test conversion of valueSets', () => {
 
 describe('test conversion of DatasetAccessRequest', () => {
   test('datasetAccessRequest converted to datasetAccessRequestApi', () => {
-    expect(convertDatasetAccessRequest(datasetAccessRequest)).toStrictEqual(datasetAccessRequestApi);
+    expect(
+      createDatasetAccessRequest(
+        datasetAccessRequest.name,
+        datasetAccessRequest.researchPurposeStatement,
+        datasetAccessRequest.datasetRequest.cohorts,
+        datasetAccessRequest.datasetRequest.conceptSets,
+        datasetAccessRequest.datasetRequest.valueSets
+      )
+    ).toStrictEqual(datasetAccessRequestApi);
   });
 });
 

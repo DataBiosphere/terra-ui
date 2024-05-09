@@ -35,6 +35,8 @@ export const azureMachineTypes = {
 export const getMachineTypeLabel = (key) =>
   _.has(key, azureMachineTypes) ? `${key}, ${azureMachineTypes[key].cpu} CPU(s), ${azureMachineTypes[key].ramInGb} GBs` : 'Unknown machine type';
 
+export const machineTypeHasGpu = (machineType) => !!azureMachineTypes[machineType]?.hasGpu;
+
 export const azureDiskTypes = {
   standard: {
     value: 'Standard_LRS',

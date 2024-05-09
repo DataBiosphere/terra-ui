@@ -28,13 +28,13 @@ const InfoTile = ({ isError = false, content }) => {
   ]);
 };
 
-const displayEntities = (entities, runningSubmissionsCount, showType) => {
+const displayEntities = (entities, showType) => {
   return _.map(
     ([i, entity]) =>
       div(
         {
           style: {
-            borderTop: i === 0 && runningSubmissionsCount === 0 ? undefined : Style.standardLine,
+            borderTop: i === 0 ? undefined : Style.standardLine,
             padding: '0.6rem 1.25rem',
             ...Style.noWrapEllipsis,
           },
@@ -45,7 +45,7 @@ const displayEntities = (entities, runningSubmissionsCount, showType) => {
   );
 };
 
-export const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runningSubmissionsCount, workspace }) => {
+export const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, workspace }) => {
   // State
   const [hardConflicts, setHardConflicts] = useState([]);
   const [softConflicts, setSoftConflicts] = useState([]);
@@ -126,12 +126,6 @@ export const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities,
         },
       },
       [
-        runningSubmissionsCount > 0 &&
-          InfoTile({
-            content:
-              `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
-              'Copying the following data could cause failures if a workflow is using this data.',
-          }),
         !(!!hardConflicts.length || !!additionalDeletions.length || !!softConflicts.length) &&
           h(Fragment, [
             h(FormLabel, { required: true }, ['Destination']),
@@ -161,10 +155,10 @@ export const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities,
         // Row height calculation is font size * line height + padding + border
         div({ style: { maxHeight: 'calc((1em * 1.15 + 1.2rem + 1px) * 10.5)', overflowY: 'auto', margin: '0 -1.25rem' } }, [
           ...Utils.cond(
-            [!!additionalDeletions.length, () => displayEntities(additionalDeletions, runningSubmissionsCount, true)],
-            [!!hardConflicts.length, () => displayEntities(hardConflicts, runningSubmissionsCount, true)],
-            [!!softConflicts.length, () => displayEntities(softConflicts, runningSubmissionsCount, true)],
-            () => displayEntities(selectedEntities, runningSubmissionsCount, false)
+            [!!additionalDeletions.length, () => displayEntities(additionalDeletions, true)],
+            [!!hardConflicts.length, () => displayEntities(hardConflicts, true)],
+            [!!softConflicts.length, () => displayEntities(softConflicts, true)],
+            () => displayEntities(selectedEntities, false)
           ),
         ]),
         div(

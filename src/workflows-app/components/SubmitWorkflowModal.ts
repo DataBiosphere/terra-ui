@@ -95,6 +95,7 @@ export const SubmitWorkflowModal = ({
       methodUrl: methodVersion.url,
       methodVersion: methodVersion.name,
       methodSource: method.source,
+      methodIsPrivate: method.isPrivate,
       previouslyRun: method.last_run.previously_run,
     });
     Nav.goToPath('workspace-workflows-app-submission-details', {

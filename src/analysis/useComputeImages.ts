@@ -1,11 +1,11 @@
+import { useLoadedData } from '@terra-ui-packages/components';
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import { useEffect } from 'react';
 import { RuntimeToolLabel } from 'src/analysis/utils/tool-utils';
 import { ComputeImageProvider } from 'src/libs/ajax/compute-image-providers/ComputeImageProvider';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { workspaceStore } from 'src/libs/state';
-import { isGoogleWorkspaceInfo, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
+import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/workspaces/utils';
 
 export interface ComputeImage {
   id: string;
@@ -28,7 +28,7 @@ export interface ComputeImageStore {
 
 export const useComputeImages = (): ComputeImageStore => {
   const signal = useCancellation();
-  const workspace: WorkspaceWrapper = useStore<WorkspaceWrapper>(workspaceStore);
+  const workspace = useStore(workspaceStore);
   const [loadedState, setLoadedState] = useLoadedData<ComputeImage[]>({
     onError: (state) => {
       // We can't rely on the formatting of the error, so show a generic message but include the error in the console for debugging purposes.
@@ -42,7 +42,7 @@ export const useComputeImages = (): ComputeImageStore => {
 
   const doRefresh = async (): Promise<void> => {
     await setLoadedState(async () => {
-      const workspaceInfo: WorkspaceInfo = workspace.workspace;
+      const workspaceInfo: WorkspaceInfo = workspace!.workspace;
       if (isGoogleWorkspaceInfo(workspaceInfo)) {
         const loadedImages: ComputeImage[] = await ComputeImageProvider.listImages(workspaceInfo.googleProject, signal);
         return loadedImages;

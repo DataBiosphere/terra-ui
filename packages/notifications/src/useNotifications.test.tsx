@@ -2,7 +2,8 @@ import { ErrorBoundary } from '@terra-ui-packages/components';
 import { render } from '@testing-library/react';
 import React from 'react';
 
-import { NotificationsContract, NotificationsProvider, text, useNotificationsFromContext } from './useNotifications';
+import { NotificationsProvider } from './notifications-provider';
+import { NotificationsContextProvider, text, useNotificationsFromContext } from './useNotifications';
 
 describe('useNotificationsFromContext', () => {
   it('gets notifications provider from context', () => {
@@ -15,15 +16,17 @@ describe('useNotificationsFromContext', () => {
       return null;
     };
 
-    const reporter: NotificationsContract = {
+    const reporter: NotificationsProvider = {
       notify: jest.fn(),
+      reportError: jest.fn(),
+      withErrorReporting: jest.fn(),
     };
 
     // Act
     render(
-      <NotificationsProvider notifications={reporter}>
+      <NotificationsContextProvider notifications={reporter}>
         <TestComponent />
-      </NotificationsProvider>
+      </NotificationsContextProvider>
     );
 
     // Assert

@@ -1,7 +1,13 @@
-import { ErrorState, LoadingState, ReadyState } from '@terra-ui-packages/core-utils';
+import {
+  controlledPromise,
+  ErrorState,
+  LoadingState,
+  PromiseController,
+  ReadyState,
+} from '@terra-ui-packages/core-utils';
 import { act, renderHook } from '@testing-library/react';
 import _ from 'lodash/fp';
-import { controlledPromise, PromiseController, renderHookInAct } from 'src/testing/test-utils';
+import { renderHookInAct } from 'src/testing/test-utils';
 
 import IncrementalResponse from './IncrementalResponse';
 import useIncrementalResponse from './useIncrementalResponse';

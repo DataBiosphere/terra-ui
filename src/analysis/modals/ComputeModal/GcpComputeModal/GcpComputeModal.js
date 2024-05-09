@@ -9,7 +9,7 @@ import { GcpPersistentDiskSection } from 'src/analysis/modals/ComputeModal/GcpCo
 import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
 import { WarningTitle } from 'src/analysis/modals/WarningTitle';
-import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-components';
+import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-text';
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/analysis/utils/cost-utils';
 import {
   defaultDataprocMasterDiskSize,
@@ -54,6 +54,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer';
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
+import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
@@ -332,7 +333,7 @@ export const GcpComputeModalBase = ({
         .delete(hasAttachedDisk() && shouldDeletePersistentDisk);
     }
     if (shouldDeletePersistentDisk && !hasAttachedDisk()) {
-      await Ajax().Disks.disksV1().disk(googleProject, currentPersistentDiskDetails.name).delete();
+      await leoDiskProvider.delete(currentPersistentDiskDetails);
     }
 
     if (shouldUpdateRuntime || shouldCreateRuntime) {
@@ -387,7 +388,7 @@ export const GcpComputeModalBase = ({
         );
 
         if (shouldUpdatePersistentDisk) {
-          await Ajax().Disks.disksV1().disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size);
+          await leoDiskProvider.update(currentPersistentDiskDetails, desiredPersistentDisk.size);
         }
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig };
@@ -780,7 +781,7 @@ export const GcpComputeModalBase = ({
     )(async () => {
       const [runtimeDetails, persistentDiskDetails] = await Promise.all([
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
-        currentDisk ? Ajax().Disks.disksV1().disk(currentDisk.googleProject, currentDisk.name).details() : null,
+        currentDisk ? leoDiskProvider.details(currentDisk) : null,
       ]);
       const diskTypeName = persistentDiskDetails?.diskType?.value ?? persistentDiskDetails?.diskType;
       setCurrentRuntimeDetails(runtimeDetails);
@@ -1178,7 +1179,7 @@ export const GcpComputeModalBase = ({
                       onChange: ({ value }) => {
                         setRuntimeType(value);
                         const defaultMachineTypeForSelectedValue = getDefaultMachineType(isDataproc(value), selectedImage?.toolLabel);
-                        // we need to update the compute config if the current value is smaller than the default for the dropdown option
+                        // we need to update the compute config if the current value is different than the default for the dropdown option
                         if (isMachineTypeSmaller(computeConfig.masterMachineType, defaultMachineTypeForSelectedValue)) {
                           updateComputeConfig('masterMachineType', defaultMachineTypeForSelectedValue);
                         }

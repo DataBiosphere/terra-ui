@@ -28,7 +28,11 @@ export const WorkspaceInformation = (props: WorkspaceInformationProps): ReactNod
       return h(
         InfoRow,
         { key: policyDescription.shortDescription, title: _.startCase(policyDescription.shortDescription) },
-        ['Yes', h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [policyDescription.longDescription])]
+        [
+          'Yes',
+          !!policyDescription.longDescription &&
+            h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [policyDescription.longDescription]),
+        ]
       );
     }, policyDescriptions),
   ]);

@@ -1,7 +1,7 @@
 import { icon, IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { AriaAttributes, CSSProperties, Fragment, ReactNode, useState } from 'react';
-import { div, h, h2, img, li, p, span, ul } from 'react-hyperscript-helpers';
+import { div, h, h2, img, p, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import {
   ButtonPrimary,
@@ -174,9 +174,8 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     : [];
   const canUseTemplateWorkspace = filteredTemplates.length > 0;
 
-  const importMayTakeTimeMessage = p([
-    'Note that the import process may take some time after you are redirected into your destination workspace.',
-  ]);
+  const importMayTakeTimeMessage =
+    'Note that the import process may take some time after you are redirected into your destination workspace.';
 
   const linkAccountPrompt = () => {
     return div({}, [
@@ -220,12 +219,19 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             }),
           ]),
       ]),
-      importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
-      !!selectedWorkspace &&
-        h(Fragment, [
-          h(WorkspacePolicies, { workspace: selectedWorkspace }),
-          !!isProtectedData && div([p(['Importing this data may add:']), ul([li(['Additional access controls'])])]),
+      importMayTakeTime &&
+        div({ style: { paddingLeft: '0.5rem', paddingRight: '0.5rem', paddingTop: '0.5rem', lineHeight: '1.5' } }, [
+          importMayTakeTimeMessage,
         ]),
+      !!selectedWorkspace &&
+        h(WorkspacePolicies, {
+          workspace: selectedWorkspace,
+          noCheckboxes: true,
+          endingNotice:
+            isProtectedData
+              ? div(['Importing this data may add additional access controls'])
+              : undefined,
+        }),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
         h(
@@ -245,7 +251,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
   const renderSelectTemplateWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, ['Select a template']),
-      importMayTakeTime && div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
+      importMayTakeTime && div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [p([importMayTakeTimeMessage])]),
       div(
         {
           role: 'radiogroup',
@@ -360,10 +366,18 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                   h(Fragment, [
                     isProtectedData &&
                       p([
-                        'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
-                      ]),
-                    importMayTakeTime && importMayTakeTimeMessage,
-                  ]),
+              renderNotice: () => {
+                const children: ReactNode[] = [];
+                  children.push(
+                    div({ style: { paddingBottom: importMayTakeTime ? '1.0rem' : 0 } }, [
+                      'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
+                    ])
+                  );
+                  if (importMayTakeTime) {
+                    children.push(div([importMayTakeTimeMessage]));
+                  }
+                  return children.length > 0 ? h(Fragment, children) : undefined;
+                },
                 requireEnhancedBucketLogging: isProtectedData,
                 waitForServices: {
                   wds: true,

@@ -1,4 +1,4 @@
-import { Spinner } from '@terra-ui-packages/components';
+import { Spinner, useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
@@ -10,8 +10,8 @@ import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import {
   AnyCriteria,
   Cohort,
+  createSnapshotBuilderCountRequest,
   CriteriaGroup,
-  DatasetParticipantCountResponse,
   formatCount,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
@@ -19,6 +19,7 @@ import {
 import {
   DataRepo,
   DatasetModel,
+  SnapshotBuilderCountResponse,
   SnapshotBuilderDomainOption,
   SnapshotBuilderOption,
   SnapshotBuilderProgramDataListItem,
@@ -26,8 +27,8 @@ import {
   SnapshotBuilderProgramDataOption,
   SnapshotBuilderProgramDataRangeOption,
 } from 'src/libs/ajax/DataRepo';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
 import { domainCriteriaSearchState, homepageState, newCriteriaGroup, Updater } from './dataset-builder-types';
@@ -54,23 +55,25 @@ const addCriteriaText = 'Add criteria';
 export const CriteriaView = (props: CriteriaViewProps) => {
   const { datasetId, criteria, deleteCriteria, updateCriteria } = props;
 
-  const [criteriaCount, setCriteriaCount] = useLoadedData<DatasetParticipantCountResponse>();
+  const [criteriaCount, setCriteriaCount] = useLoadedData<SnapshotBuilderCountResponse>();
 
   const updateCriteriaCount = useRef(
     _.debounce(250, (datasetId, criteria) => {
       setCriteriaCount(
-        async () =>
-          await DataRepo()
-            .dataset(datasetId)
-            .getCounts({
-              cohorts: [
-                {
-                  // Create a "cohort" to get the count of participants for this criteria on its own.
-                  criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }],
-                  name: '',
-                },
-              ],
-            })
+        withErrorReporting('Error fetching count for criteria')(
+          async () =>
+            await DataRepo()
+              .dataset(datasetId)
+              .getSnapshotBuilderCount(
+                createSnapshotBuilderCountRequest([
+                  {
+                    // Create a "cohort" to get the count of participants for these criteria on its own.
+                    criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }],
+                    name: '',
+                  },
+                ])
+              )
+        )
       );
     })
   );
@@ -328,14 +331,16 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
     );
   };
 
-  const [groupParticipantCount, setGroupParticipantCount] = useLoadedData<DatasetParticipantCountResponse>();
+  const [groupParticipantCount, setGroupParticipantCount] = useLoadedData<SnapshotBuilderCountResponse>();
 
   const updateGroupParticipantCount = useRef(
     _.debounce(250, (dataset, criteriaGroup) =>
-      setGroupParticipantCount(async () =>
-        DataRepo()
-          .dataset(dataset.id)
-          .getCounts({ cohorts: [{ criteriaGroups: [criteriaGroup], name: '' }] })
+      setGroupParticipantCount(
+        withErrorReporting(`Error getting criteria group count for ${criteriaGroup.name}`)(async () =>
+          DataRepo()
+            .dataset(dataset.id)
+            .getSnapshotBuilderCount(createSnapshotBuilderCountRequest([{ criteriaGroups: [criteriaGroup], name: '' }]))
+        )
       )
     )
   );

@@ -25,7 +25,7 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
-import { EnvironmentNavActions, Environments, EnvironmentsProps } from './Environments';
+import { DataRefreshInfo, EnvironmentNavActions, Environments, EnvironmentsProps } from './Environments';
 import { LeoResourcePermissionsProvider } from './Environments.models';
 
 jest.mock('src/libs/notifications', () => ({
@@ -62,7 +62,6 @@ const getMockLeoRuntimeProvider = (overrides?: Partial<LeoRuntimeProvider>): Leo
     delete: jest.fn(),
   };
   asMockedFn(defaultProvider.list).mockResolvedValue([]);
-
   return { ...defaultProvider, ...overrides };
 };
 
@@ -70,6 +69,8 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
   const defaultProvider: LeoDiskProvider = {
     list: jest.fn(),
     delete: jest.fn(),
+    update: jest.fn(),
+    details: jest.fn(),
   };
   asMockedFn(defaultProvider.list).mockResolvedValue([]);
 
@@ -78,15 +79,15 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
 
 const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
   const mockPermissions: LeoResourcePermissionsProvider = {
-    canDeleteDisk: jest.fn(),
-    canPauseResource: jest.fn(),
-    canDeleteApp: jest.fn(),
-    canDeleteResource: jest.fn(),
+    hasDeleteDiskPermission: jest.fn(),
+    hasPausePermission: jest.fn(),
+    isAppInDeletableState: jest.fn(),
+    isResourceInDeletableState: jest.fn(),
   };
-  asMockedFn(mockPermissions.canDeleteDisk).mockReturnValue(true);
-  asMockedFn(mockPermissions.canPauseResource).mockReturnValue(true);
-  asMockedFn(mockPermissions.canDeleteApp).mockReturnValue(true);
-  asMockedFn(mockPermissions.canDeleteResource).mockReturnValue(true);
+  asMockedFn(mockPermissions.hasDeleteDiskPermission).mockReturnValue(true);
+  asMockedFn(mockPermissions.hasPausePermission).mockReturnValue(true);
+  asMockedFn(mockPermissions.isAppInDeletableState).mockReturnValue(true);
+  asMockedFn(mockPermissions.isResourceInDeletableState).mockReturnValue(true);
 
   const defaultProps: EnvironmentsProps = {
     nav: mockNav,
@@ -95,9 +96,7 @@ const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): Envi
     leoRuntimeData: getMockLeoRuntimeProvider(),
     leoDiskData: getMockLeoDiskProvider(),
     permissions: mockPermissions,
-    metrics: {
-      captureEvent: jest.fn(),
-    },
+    onEvent: jest.fn(),
   };
   asMockedFn(defaultProps.useWorkspaces).mockReturnValue(defaultUseWorkspacesProps);
 
@@ -106,7 +105,7 @@ const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): Envi
   return finalizedProps;
 };
 
-describe('Environments', () => {
+describe('Environments Component', () => {
   describe('Runtimes - ', () => {
     it('Renders page correctly with runtimes and no found workspaces', async () => {
       // Arrange
@@ -239,7 +238,7 @@ describe('Environments', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
-      props.permissions.canDeleteResource = leoResourcePermissions.canDeleteResource;
+      props.permissions.isResourceInDeletableState = leoResourcePermissions.isResourceInDeletableState;
 
       // Act
       await act(async () => {
@@ -265,8 +264,7 @@ describe('Environments', () => {
       const buttons2 = getAllByRole(runtime2ButtonsCell, 'button');
       expect(buttons2.length).toBe(2);
       expect(buttons2[0].textContent).toBe('Pause');
-      // TODO: Back to true once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
-      expect(buttons2[0].getAttribute('aria-disabled')).toBe('false');
+      expect(buttons2[0].getAttribute('aria-disabled')).toBe('true');
       expect(buttons2[1].textContent).toBe('Delete');
       expect(buttons2[1].getAttribute('aria-disabled')).toBe('false');
 
@@ -287,7 +285,7 @@ describe('Environments', () => {
       expect(buttons4.length).toBe(2);
       expect(buttons4[0].textContent).toBe('Pause');
       // TODO: Back to true once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
-      expect(buttons4[0].getAttribute('aria-disabled')).toBe('false');
+      expect(buttons4[0].getAttribute('aria-disabled')).toBe('true');
       expect(buttons4[1].textContent).toBe('Delete');
       expect(buttons4[1].getAttribute('aria-disabled')).toBe('true');
     });
@@ -302,7 +300,7 @@ describe('Environments', () => {
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
 
-      asMockedFn(props.permissions.canPauseResource).mockReturnValue(false);
+      asMockedFn(props.permissions.hasPausePermission).mockReturnValue(false);
 
       // Act
       await act(async () => {
@@ -804,6 +802,57 @@ describe('Environments', () => {
       screen.getByText('Delete persistent disk?');
     });
   });
+
+  describe('Other - ', () => {
+    it('Performs query properly with resources owner checkbox', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const mockListRuntime = jest.fn();
+      const mockListApp = jest.fn();
+      const mockListDisk = jest.fn();
+      const runtimeProvider = getMockLeoRuntimeProvider({ list: mockListRuntime });
+      const appProvider = getMockLeoAppProvider({ listWithoutProject: mockListApp });
+      const diskProvider = getMockLeoDiskProvider({ list: mockListDisk });
+      const props = getEnvironmentsProps({
+        leoAppData: appProvider,
+        leoRuntimeData: runtimeProvider,
+        leoDiskData: diskProvider,
+      });
+
+      await act(async () => {
+        render(h(Environments, props));
+      });
+
+      // Assert
+
+      // One time on page load
+      expect(mockListRuntime).toBeCalledTimes(1);
+      expect(mockListApp).toBeCalledTimes(1);
+      expect(mockListDisk).toBeCalledTimes(1);
+
+      const checkbox = screen.getByLabelText('Hide resources you did not create');
+      await user.click(checkbox);
+
+      // Second time on checkbox click
+      expect(mockListRuntime).toBeCalledTimes(2);
+      expect(mockListApp).toBeCalledTimes(2);
+      expect(mockListDisk).toBeCalledTimes(2);
+
+      // First call should filter by creator, second call should not
+      expect(mockListRuntime.mock.calls).toEqual([
+        [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
+        [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
+      ]);
+      expect(mockListApp.mock.calls).toEqual([
+        [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
+        [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
+      ]);
+      expect(mockListDisk.mock.calls).toEqual([
+        [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
+        [{ includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
+      ]);
+    });
+  });
   // TODO: Reenable once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
   //   describe('PauseButton', () => {
   //     it.each([{ app: generateTestAppWithGoogleWorkspace() }, { app: generateTestAppWithAzureWorkspace() }])(
@@ -841,6 +890,27 @@ describe('Environments', () => {
   //     }
   //   );
   // });
+  describe('onEvent', () => {
+    it('calls onEvent[dataRefesh] with a runtime', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
+      const runtime1 = generateTestListGoogleRuntime();
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
+
+      // Act
+      await act(async () => {
+        render(h(Environments, props));
+      });
+
+      // Assert
+      expect(props.onEvent).toBeCalledTimes(1);
+      expect(props.onEvent).toBeCalledWith(
+        'dataRefresh',
+        // times are zeroed out because of mocked data calls
+        { leoCallTimeMs: 0, totalCallTimeMs: 0, runtimes: 1, disks: 0, apps: 0 } satisfies DataRefreshInfo
+      );
+    });
+  });
 });
 
 const getTextContentForColumn = (row, column) => getAllByRole(row, 'cell')[column].textContent;

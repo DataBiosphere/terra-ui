@@ -1,3 +1,4 @@
+import { withHandlers } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { useEffect, useRef, useState } from 'react';
@@ -86,17 +87,17 @@ export const BillingList = (props: BillingListProps) => {
     Utils.withBusyState(setIsAuthorizing)
   )(Auth.tryBillingScope);
 
-  const loadAccounts = _.flow(
-    reportErrorAndRethrow('Error loading billing accounts'),
-    Utils.withBusyState(setIsLoadingAccounts)
-  )(() => {
-    if (Auth.hasBillingScope()) {
-      return Ajax(signal)
-        .Billing.listAccounts()
-        .then(_.keyBy('accountName')) // @ts-ignore
-        .then(setBillingAccounts);
+  const loadAccounts = withHandlers(
+    [reportErrorAndRethrow('Error loading billing accounts'), Utils.withBusyState(setIsLoadingAccounts)],
+    async () => {
+      if (Auth.hasBillingScope()) {
+        void (await Ajax(signal)
+          .Billing.listAccounts()
+          .then(_.keyBy('accountName')) // @ts-ignore
+          .then(setBillingAccounts));
+      }
     }
-  });
+  );
 
   const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts);
 

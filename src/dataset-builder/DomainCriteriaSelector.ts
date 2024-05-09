@@ -1,15 +1,16 @@
+import { useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { Parent } from 'src/components/TreeGrid';
-import { DomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
+import { ProgramDomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
   SnapshotBuilderConcept,
   SnapshotBuilderDomainOption,
 } from 'src/libs/ajax/DataRepo';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
+import { withErrorReporting } from 'src/libs/error';
 import { useOnMount } from 'src/libs/react-utils';
 
 import { ConceptSelector } from './ConceptSelector';
@@ -30,7 +31,7 @@ interface DomainCriteriaSelectorProps {
 
 export const toCriteria =
   (domainOption: SnapshotBuilderDomainOption, getNextCriteriaIndex: () => number) =>
-  (concept: Concept): DomainCriteria => {
+  (concept: Concept): ProgramDomainCriteria => {
     return {
       kind: 'domain',
       conceptId: concept.id,
@@ -64,13 +65,19 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   useOnMount(() => {
     const openedConcept = state.openedConcept;
     if (openedConcept) {
-      void setHierarchy(async () => {
-        return (await DataRepo().dataset(datasetId).getConceptHierarchy(openedConcept)).result;
-      });
+      void setHierarchy(
+        withErrorReporting(`Error loading hierarchy information for ${openedConcept.name}`)(async () => {
+          return (await DataRepo().dataset(datasetId).getConceptHierarchy(openedConcept)).result;
+        })
+      );
     } else {
       // get the children of this concept
       void setHierarchy(async () => {
-        const results = (await DataRepo().dataset(datasetId).getConcepts(state.domainOption.root)).result;
+        const results = (
+          await withErrorReporting(`Error getting concept children for ${state.domainOption.root.name}`)(
+            async () => await DataRepo().dataset(datasetId).getConcepts(state.domainOption.root)
+          )()
+        ).result;
         return [{ parentId: state.domainOption.root.id, children: results }];
       });
     }

@@ -1,6 +1,6 @@
+import { useLoadedData } from '@terra-ui-packages/components';
 import { useEffect } from 'react';
 import { Dockstore, DockstoreWorkflowVersionDescriptor } from 'src/libs/ajax/Dockstore';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { reportError } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 

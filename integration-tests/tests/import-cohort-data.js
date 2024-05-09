@@ -15,6 +15,7 @@ const {
   signIntoTerra,
   svgText,
   waitForNoSpinners,
+  noSpinnersAfter,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
@@ -28,6 +29,7 @@ const testImportCohortDataFn = _.flow(
   await signIntoTerra(page, { token, testUrl });
 
   await click(page, clickable({ textContains: 'Browse Data' }));
+  await waitForNoSpinners(page);
 
   await Promise.all([page.waitForNavigation(navOptionNetworkIdle()), click(page, clickable({ textContains: '1000 Genomes Low Coverage' }))]);
 
@@ -45,7 +47,10 @@ const testImportCohortDataFn = _.flow(
   await waitForNoSpinners(page);
   await click(page, clickable({ textContains: 'an existing workspace' }));
   await select(page, 'Select a workspace', workspaceName);
-  await click(page, clickable({ text: 'Import' }));
+
+  await noSpinnersAfter(page, {
+    action: () => click(page, clickable({ text: 'Import' })),
+  });
 
   // Loading the workspace page now means we need to make a Google API call to
   // fetch the GCS bucket location. Wait a bit for it.
