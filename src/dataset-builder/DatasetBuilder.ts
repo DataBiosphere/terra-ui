@@ -692,6 +692,7 @@ let criteriaCount = 1;
 
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const { snapshotId, initialState } = props;
+  const [snapshotRoles, loadSnapshotRoles] = useLoadedData<string[]>();
   const [snapshotBuilderSettings, loadSnapshotBuilderSettings] = useLoadedData<SnapshotBuilderSettings>();
   const [datasetBuilderState, setDatasetBuilderState] = useState<AnyDatasetBuilderState>(
     initialState || homepageState.new()
@@ -699,6 +700,11 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [conceptSets, setConceptSets] = useState<DomainConceptSet[]>([]);
   const onStateChange = setDatasetBuilderState;
+  const isLoaded = snapshotRoles.status === 'Ready' && snapshotBuilderSettings.status === 'Ready';
+  const hasCreateSnapshotRequestAccess =
+    snapshotRoles.status === 'Ready'
+      ? _.intersection(['aggregate_data_reader'], snapshotRoles.state).length > 0
+      : false;
 
   const getNextCriteriaIndex = () => {
     criteriaCount++;
@@ -707,8 +713,13 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
 
   useOnMount(() => {
     void loadSnapshotBuilderSettings(async () => DataRepo().snapshot(snapshotId).getSnapshotBuilderSettings());
+    void loadSnapshotRoles(async () => DataRepo().snapshot(snapshotId).roles());
   });
-  return snapshotBuilderSettings.status === 'Ready'
+
+  if (!isLoaded) {
+    return spinnerOverlay;
+  }
+  return isLoaded && hasCreateSnapshotRequestAccess
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         h(DatasetBuilderHeader, { snapshotId }),
@@ -767,5 +778,5 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
         ]),
         div({ style: { backgroundColor: editorBackgroundColor, height: '100%' } }, []),
       ])
-    : spinnerOverlay;
+    : div(['You do not have access to create a snapshot access request']);
 };

@@ -24,13 +24,13 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
 describe('DatasetBuilderDetails', () => {
   const mockWithValues = (snapshotBuilderSettings: SnapshotBuilderSettings, snapshotRolesResponse: string[]) => {
     const snapshotBuilderSettingsMock = jest.fn((_include) => Promise.resolve(snapshotBuilderSettings));
-    const datasetRolesMock = jest.fn(() => Promise.resolve(snapshotRolesResponse));
+    const snapshotRolesMock = jest.fn(() => Promise.resolve(snapshotRolesResponse));
     asMockedFn(DataRepo).mockImplementation(
       () =>
         ({
           snapshot: (_snapshotId) =>
             ({
-              roles: datasetRolesMock,
+              roles: snapshotRolesMock,
               getSnapshotBuilderSettings: snapshotBuilderSettingsMock,
             } as Partial<DataRepoContract['snapshot']>),
         } as Partial<DataRepoContract> as DataRepoContract)

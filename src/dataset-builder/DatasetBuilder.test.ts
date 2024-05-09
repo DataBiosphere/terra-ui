@@ -68,13 +68,19 @@ describe('DatasetBuilder', () => {
     );
   };
 
-  const mockWithValues = (snapshotBuilderSettingsResponse: SnapshotBuilderSettings) => {
+  const mockWithValues = (
+    snapshotBuilderSettingsResponse: SnapshotBuilderSettings,
+    snapshotRolesResponse: string[]
+  ) => {
+    const snapshotBuilderSettingsMock = jest.fn((_include) => Promise.resolve(snapshotBuilderSettingsResponse));
+    const snapshotRolesMock = jest.fn(() => Promise.resolve(snapshotRolesResponse));
     asMockedFn(DataRepo).mockImplementation(
       () =>
         ({
           snapshot: (_snapshotId) =>
             ({
-              getSnapshotBuilderSettings: jest.fn((_include) => Promise.resolve(snapshotBuilderSettingsResponse)),
+              roles: snapshotRolesMock,
+              getSnapshotBuilderSettings: snapshotBuilderSettingsMock,
             } as Partial<DataRepoContract['snapshot']>),
         } as Partial<DataRepoContract> as DataRepoContract)
     );
@@ -247,9 +253,18 @@ describe('DatasetBuilder', () => {
     expect(screen.getByText('Condition')).toBeTruthy();
   });
 
+  it('hides the cohort builder if no access', async () => {
+    // Arrange
+    mockWithValues(testSnapshotBuilderSettings(), ['discoverer']);
+    render(h(DatasetBuilderView));
+    // Assert
+    expect(screen.getByTestId('loading-spinner')).toBeTruthy();
+    expect(await screen.findByText('You do not have access to create a snapshot access request')).toBeTruthy();
+  });
+
   it('shows the home page by default', async () => {
     // Arrange
-    mockWithValues(testSnapshotBuilderSettings());
+    mockWithValues(testSnapshotBuilderSettings(), ['aggregate_data_reader']);
     render(h(DatasetBuilderView));
     // Assert
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();
@@ -258,7 +273,7 @@ describe('DatasetBuilder', () => {
 
   it('shows the cohort editor page', async () => {
     // Arrange
-    mockWithValues(testSnapshotBuilderSettings());
+    mockWithValues(testSnapshotBuilderSettings(), ['aggregate_data_reader']);
     const initialState = cohortEditorState.new(newCohort('my test cohort'));
     render(h(DatasetBuilderView, { snapshotId: 'ignored', initialState }));
     // Assert
