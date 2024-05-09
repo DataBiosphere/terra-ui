@@ -62,7 +62,7 @@ describe('CohortEditor', () => {
 
   const mockGetCounts = (count: number) => {
     const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
+      snapshot: (_snapshotId) =>
         ({
           getSnapshotBuilderCount: () =>
             Promise.resolve({
@@ -71,7 +71,7 @@ describe('CohortEditor', () => {
               },
               sql: 'sql',
             }),
-        } as Partial<DataRepoContract['dataset']>),
+        } as Partial<DataRepoContract['snapshot']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   };
