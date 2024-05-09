@@ -111,7 +111,7 @@ export const Register = (): ReactNode => {
   };
 
   return (
-    <div role="main" style={mainStyle}>
+    <div role='main' style={mainStyle}>
       <RegistrationLogo />
       <h1 style={headerStyle('4rem')}>New User Registration</h1>
       <div style={{ marginTop: '1rem', display: 'flex', lineHeight: '170%' }}>
@@ -120,14 +120,14 @@ export const Register = (): ReactNode => {
           value={givenName}
           onChange={setGivenName}
           inputStyle={{ display: 'block' }}
-          label="First Name"
+          label='First Name'
         />
         <LabelledTextInput
           required
           value={familyName}
           onChange={setFamilyName}
           inputStyle={{ display: 'block' }}
-          label="Last Name"
+          label='Last Name'
         />
       </div>
       <div style={{ lineHeight: '170%' }}>
@@ -137,7 +137,7 @@ export const Register = (): ReactNode => {
           onChange={setEmail}
           labelStyle={{ display: 'block', marginTop: '2rem' }}
           inputStyle={{ width: '66ex' }}
-          label="Contact Email for Notifications"
+          label='Contact Email for Notifications'
         />
         <LabelledTextInput
           value={institute}
@@ -145,7 +145,7 @@ export const Register = (): ReactNode => {
           disabled={!partOfOrganization}
           onChange={setInstitute}
           inputStyle={{ width: '66ex' }}
-          label="Organization"
+          label='Organization'
         />
       </div>
       <div style={{ lineHeight: '170%', marginTop: '0.25rem' }}>
@@ -164,14 +164,14 @@ export const Register = (): ReactNode => {
           disabled={!partOfOrganization}
           onChange={setDepartment}
           labelStyle={{ display: 'block' }}
-          label="Department"
+          label='Department'
         />
         <LabelledTextInput
           value={title}
           required={partOfOrganization}
           disabled={!partOfOrganization}
           onChange={setTitle}
-          label="Title"
+          label='Title'
           labelStyle={{ display: 'block' }}
         />
       </div>
@@ -199,9 +199,9 @@ export const Register = (): ReactNode => {
         })}
       </div>
       <FormLabel style={{ marginTop: '2rem' }}>Communication Preferences</FormLabel>
-      <RegistrationPageCheckbox title="Necessary communications related to platform operations" checked />
+      <RegistrationPageCheckbox title='Necessary communications related to platform operations' checked />
       <RegistrationPageCheckbox
-        title="Marketing communications including notifications for upcoming workshops and new flagship dataset additions"
+        title='Marketing communications including notifications for upcoming workshops and new flagship dataset additions'
         checked={marketingConsent}
         onChange={setMarketingConsent}
       />
@@ -215,21 +215,21 @@ export const Register = (): ReactNode => {
         Read Terra Platform Terms of Service here
       </ButtonSecondary>
       {showTermsOfService && (
-        <Modal width="80%" title="Terra Terms of Service" showCancel={false} onDismiss={termsOfServiceViewed}>
+        <Modal width='80%' title='Terra Terms of Service' showCancel={false} onDismiss={termsOfServiceViewed}>
           <RemoteMarkdown
             style={{ height: '75vh', overflowY: 'auto' }}
             getRemoteText={() => Ajax().TermsOfService.getTermsOfServiceText()}
-            failureMessage="Could not get Terms of Service"
+            failureMessage='Could not get Terms of Service'
           />
         </Modal>
       )}
       <RegistrationPageCheckbox
-        title="By checking this box, you are agreeing to the Terra Terms of Service"
+        title='By checking this box, you are agreeing to the Terra Terms of Service'
         checked={termsOfServiceAccepted}
         onChange={setTermsOfServiceAccepted}
         disabled={!termsOfServiceSeen}
         tooltip={!termsOfServiceSeen ? 'You must read the Terms of Service before continuing' : undefined}
-        tooltipSide="right"
+        tooltipSide='right'
       />
 
       <div style={{ marginTop: '3rem' }}>
@@ -241,7 +241,7 @@ export const Register = (): ReactNode => {
               ? 'You must fill out all required fields and accept the Terms of Service before continuing'
               : undefined
           }
-          tooltipSide="right"
+          tooltipSide='right'
         >
           Register
         </ButtonPrimary>

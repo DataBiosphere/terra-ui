@@ -114,7 +114,7 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
             <div>
               <LinkOAuth2Account linkText={`Renew your ${provider.short} link`} provider={provider} button={false} />
               <span style={{ margin: '0 0.25rem 0' }}> | </span>
-              <UnlinkOAuth2Account linkText="Unlink" provider={provider} />
+              <UnlinkOAuth2Account linkText='Unlink' provider={provider} />
             </div>
             {provider.supportsIdToken && (
               <ClipboardButton text={Ajax(signal).ExternalCredentials(provider).getIdentityToken}>
