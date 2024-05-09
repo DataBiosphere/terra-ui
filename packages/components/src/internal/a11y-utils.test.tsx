@@ -1,17 +1,18 @@
-import { icon } from '../icon';
+import { Icon } from '../Icon';
 import { containsOnlyUnlabelledIcon, ContainsOnlyUnlabelledIconArgs } from './a11y-utils';
 
 describe('containsOnlyUnlabelledIcon', () => {
-  it.each([
-    [{ children: icon('bell') }, true],
+  fit.each([
+    // Component
+    [{ children: <Icon icon='bell' /> }, true],
     // Element has label
-    [{ 'aria-label': 'Button', children: icon('bell') }, false],
-    [{ 'aria-labelledby': 'label-element', children: icon('bell') }, false],
+    [{ 'aria-label': 'Button', children: <Icon icon='bell' /> }, false],
+    [{ 'aria-labelledby': 'label-element', children: <Icon icon='bell' /> }, false],
     // Icon has label
-    [{ children: icon('bell', { 'aria-label': 'Icon' }) }, false],
-    [{ children: icon('bell', { 'aria-labelledby': 'label-element' }) }, false],
+    [{ children: <Icon icon='bell' aria-label='Icon' /> }, false],
+    [{ children: <Icon icon='bell' aria-labelledby='label-element' /> }, false],
     // Multiple children
-    [{ children: [icon('bell'), 'Label'] }, false],
+    [{ children: [<Icon icon='bell' />, 'Label'] }, false],
     // Non-element child
     [{ children: 'Label' }, false],
   ] as [ContainsOnlyUnlabelledIconArgs, boolean][])(

@@ -1,11 +1,11 @@
 import { ReactNode } from 'react';
 
 import { DelayedRender } from './DelayedRender';
-import { icon, IconProps } from './icon';
+import { Icon, IconProps } from './Icon';
 import { visuallyHidden } from './styles';
 import { useThemeFromContext } from './theme';
 
-export interface SpinnerProps extends IconProps {
+export interface SpinnerProps extends Omit<IconProps, 'icon'> {
   /** Message to announce to screen reader users. */
   message?: string;
 }
@@ -20,7 +20,7 @@ export const Spinner = (props: SpinnerProps): ReactNode => {
 
   return (
     <>
-      {icon('loadingSpinner', { size: 24, style: { color: colors.primary(), ...style }, ...otherProps })}
+      <Icon icon='loadingSpinner' size={24} style={{ color: colors.primary(), ...style }} {...otherProps} />
       <DelayedRender delay={150}>
         <span role='alert' style={visuallyHidden}>
           {message}
