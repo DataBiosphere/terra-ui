@@ -60,21 +60,24 @@ describe('CohortEditor', () => {
     };
   };
 
-  const mockGetCounts = (count: number) => {
-    const mockDataRepoContract: Partial<DataRepoContract> = {
-      snapshot: (_snapshotId) =>
+  const mockDataRepo = (datasetMocks: Partial<DataRepoContract['snapshot']>[]) => {
+    asMockedFn(DataRepo).mockImplementation(
+      () =>
         ({
-          getSnapshotBuilderCount: () =>
-            Promise.resolve({
-              result: {
-                total: count,
-              },
-              sql: 'sql',
-            }),
-        } as Partial<DataRepoContract['snapshot']>),
-    } as Partial<DataRepoContract> as DataRepoContract;
-    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+          snapshot: (_snapshotId) => Object.assign({}, ...datasetMocks),
+        } as Partial<DataRepoContract> as DataRepoContract)
+    );
   };
+
+  const getSnapshotBuilderCountMock = (count = 0) => ({
+    getSnapshotBuilderCount: () =>
+      Promise.resolve({
+        result: {
+          total: count,
+        },
+        sql: 'sql',
+      }),
+  });
 
   const getNextCriteriaIndex = () => 1234;
 
@@ -323,7 +326,7 @@ describe('CohortEditor', () => {
   it('renders criteria group', async () => {
     // Arrange
     const count = 12345;
-    mockGetCounts(count);
+    mockDataRepo([getSnapshotBuilderCountMock(count)]);
     const { cohort } = showCriteriaGroup({
       initializeGroup: (criteriaGroup) => {
         criteriaGroup.meetAll = false;
