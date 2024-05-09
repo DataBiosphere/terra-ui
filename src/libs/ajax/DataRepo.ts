@@ -129,38 +129,6 @@ export interface Snapshot {
   cloudPlatform: 'azure' | 'gcp';
 }
 
-/** Dataset Types */
-// TODO - can we remove these?
-export type DatasetModel = {
-  id: string;
-  name: string;
-  description: string;
-  createdDate: string;
-  properties: any;
-  snapshotBuilderSettings?: SnapshotBuilderSettings;
-};
-
-type DatasetInclude =
-  | 'NONE'
-  | 'SCHEMA'
-  | 'ACCESS_INFORMATION'
-  | 'PROFILE'
-  | 'PROPERTIES'
-  | 'DATA_PROJECT'
-  | 'STORAGE'
-  | 'SNAPSHOT_BUILDER_SETTINGS';
-
-export const datasetIncludeTypes: Record<DatasetInclude, DatasetInclude> = {
-  NONE: 'NONE',
-  SCHEMA: 'SCHEMA',
-  ACCESS_INFORMATION: 'ACCESS_INFORMATION',
-  PROFILE: 'PROFILE',
-  PROPERTIES: 'PROPERTIES',
-  DATA_PROJECT: 'DATA_PROJECT',
-  STORAGE: 'STORAGE',
-  SNAPSHOT_BUILDER_SETTINGS: 'SNAPSHOT_BUILDER_SETTINGS',
-};
-
 /** Jobs */
 export type JobStatus = 'running' | 'succeeded' | 'failed';
 
@@ -222,10 +190,6 @@ export type SnapshotAccessRequest = {
 };
 
 export interface DataRepoContract {
-  dataset: (datasetId: string) => {
-    details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
-    roles: () => Promise<string[]>;
-  };
   snapshotAccessRequest: () => {
     createSnapshotAccessRequest: (request: SnapshotAccessRequest) => Promise<SnapshotAccessRequestResponse>;
   };
@@ -259,13 +223,6 @@ const callDataRepoPost = async (url: string, signal: AbortSignal | undefined, js
 };
 
 export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
-  dataset: (datasetId) => {
-    return {
-      details: async (include): Promise<DatasetModel> =>
-        callDataRepo(`repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`, signal),
-      roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
-    };
-  },
   snapshotAccessRequest: () => {
     return {
       createSnapshotAccessRequest: async (request: SnapshotAccessRequest): Promise<SnapshotAccessRequestResponse> =>

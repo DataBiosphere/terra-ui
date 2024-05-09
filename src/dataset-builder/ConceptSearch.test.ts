@@ -30,7 +30,7 @@ describe('ConceptSearch', () => {
   const onOpenHierarchy = jest.fn();
   const actionText = 'action text';
   const datasetId = '0';
-  const domainOption = testSnapshotBuilderSettings()!.domainOptions[0];
+  const domainOption = testSnapshotBuilderSettings().domainOptions[0];
 
   const renderSearch = (initialSearch = '', initialCart: SnapshotBuilderConcept[] = []) =>
     render(

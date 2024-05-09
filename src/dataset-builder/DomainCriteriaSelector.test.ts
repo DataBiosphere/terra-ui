@@ -32,10 +32,10 @@ describe('DomainCriteriaSelector', () => {
         getConceptHierarchy: () => Promise.resolve({ result: [{ parentId: concept.id, children }] }),
       } as Partial<DataRepoContract['snapshot']>),
   } as Partial<DataRepoContract> as DataRepoContract;
-  const datasetId = '';
+  const snapshotId = '';
   const concept = dummyGetConceptForId(101);
   const children = [dummyGetConceptForId(102)];
-  const domainOption = testSnapshotBuilderSettings()!.domainOptions[0];
+  const domainOption = testSnapshotBuilderSettings().domainOptions[0];
   const cohort = newCohort('cohort');
   cohort.criteriaGroups.push(newCriteriaGroup());
   asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
@@ -51,7 +51,7 @@ describe('DomainCriteriaSelector', () => {
 
   it('renders the domain criteria selector', async () => {
     // Arrange
-    render(h(DomainCriteriaSelector, { state, onStateChange: jest.fn(), snapshotId: datasetId, getNextCriteriaIndex }));
+    render(h(DomainCriteriaSelector, { state, onStateChange: jest.fn(), snapshotId, getNextCriteriaIndex }));
     // Assert
     expect(await screen.findByText(state.domainOption.name)).toBeTruthy();
   });
@@ -62,7 +62,7 @@ describe('DomainCriteriaSelector', () => {
       h(DomainCriteriaSelector, {
         state: { ...state, openedConcept: concept },
         onStateChange: jest.fn(),
-        snapshotId: datasetId,
+        snapshotId,
         getNextCriteriaIndex,
       })
     );
@@ -73,7 +73,7 @@ describe('DomainCriteriaSelector', () => {
   it('updates the domain group on save', async () => {
     const onStateChange = jest.fn();
     // Arrange
-    render(h(DomainCriteriaSelector, { state, onStateChange, snapshotId: datasetId, getNextCriteriaIndex }));
+    render(h(DomainCriteriaSelector, { state, onStateChange, snapshotId, getNextCriteriaIndex }));
     // Act
     await screen.findByText(state.domainOption.name);
     const user = userEvent.setup();
@@ -90,7 +90,7 @@ describe('DomainCriteriaSelector', () => {
   it('returns to the cancel state on cancel', async () => {
     const onStateChange = jest.fn();
     // Arrange
-    render(h(DomainCriteriaSelector, { state, onStateChange, snapshotId: datasetId, getNextCriteriaIndex }));
+    render(h(DomainCriteriaSelector, { state, onStateChange, snapshotId, getNextCriteriaIndex }));
     // Act
     await screen.findByText(state.domainOption.name);
     const user = userEvent.setup();
