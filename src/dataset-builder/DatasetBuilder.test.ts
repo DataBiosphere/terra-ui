@@ -68,11 +68,11 @@ describe('DatasetBuilder', () => {
     );
   };
 
-  const mockDataRepo = (datasetMocks: Partial<DataRepoContract['snapshot']>[]) => {
+  const mockDataRepo = (snapshotMocks: Partial<DataRepoContract['snapshot']>[]) => {
     asMockedFn(DataRepo).mockImplementation(
       () =>
         ({
-          snapshot: (_snapshotId) => Object.assign({}, ...datasetMocks),
+          snapshot: (_snapshotId) => Object.assign({}, ...snapshotMocks),
         } as Partial<DataRepoContract> as DataRepoContract)
     );
   };

@@ -95,7 +95,10 @@ describe('CohortEditor', () => {
 
   it('renders unknown criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock(0)]);
     const criteria = { name: 'bogus', invalid: 'property' };
+    // This should error fetching the count because the conversion to API counts to generate counts should fail
+    jest.spyOn(console, 'error').mockImplementation((error) => expect(error).toBe('Error fetching count for criteria'));
 
     // The 'as any' is required to create an invalid criteria for testing purposes.
     renderCriteriaView({ criteria: criteria as any });
@@ -106,6 +109,7 @@ describe('CohortEditor', () => {
 
   it('renders domain criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock(0)]);
     const criteria: ProgramDomainCriteria = {
       kind: 'domain',
       conceptId: 0,
@@ -131,6 +135,7 @@ describe('CohortEditor', () => {
 
   it('renders list criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'list',
@@ -189,6 +194,7 @@ describe('CohortEditor', () => {
 
   it('renders range criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock(12345)]);
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'range',
@@ -207,6 +213,7 @@ describe('CohortEditor', () => {
 
   it('allows number inputs for range criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const user = userEvent.setup();
     const criteria = criteriaFromOption(0, {
       id: 0,
@@ -234,6 +241,7 @@ describe('CohortEditor', () => {
 
   it('renders accessible slider handles', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const min = 55;
     const max = 99;
 
@@ -264,6 +272,7 @@ describe('CohortEditor', () => {
 
   it('can delete criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const criteria = criteriaFromOption(0, {
       id: 0,
       tableName: 'person',
