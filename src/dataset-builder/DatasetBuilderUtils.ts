@@ -131,7 +131,7 @@ export const convertCriteria = (criteria: AnyCriteria): AnySnapshotBuilderCriter
   }
 };
 
-export const createDatasetAccessRequest = (
+export const createSnapshotAccessRequest = (
   name: string,
   researchPurposeStatement: string,
   snapshotId: string,

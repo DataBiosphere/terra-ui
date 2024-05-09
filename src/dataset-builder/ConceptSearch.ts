@@ -13,7 +13,7 @@ import { formatCount, HighlightConceptName } from 'src/dataset-builder/DatasetBu
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
-  SnapshotBuilderConceptsResponse as getConceptChildrenResponse,
+  SnapshotBuilderConceptsResponse,
   SnapshotBuilderDomainOption,
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
@@ -40,7 +40,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
     props;
   const [searchText, setSearchText] = useState<string>(initialSearch);
   const [cart, setCart] = useState<Concept[]>(initialCart);
-  const [concepts, enumerateConcepts] = useLoadedData<getConceptChildrenResponse>();
+  const [concepts, enumerateConcepts] = useLoadedData<SnapshotBuilderConceptsResponse>();
 
   useEffect(() => {
     if (searchText.length === 0 || searchText.length > 2) {

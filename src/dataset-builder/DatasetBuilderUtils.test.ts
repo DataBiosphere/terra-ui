@@ -5,7 +5,7 @@ import {
   convertCohort,
   convertCriteria,
   convertValueSet,
-  createDatasetAccessRequest,
+  createSnapshotAccessRequest,
   CriteriaGroup,
   DomainConceptSet,
   formatCount,
@@ -196,7 +196,7 @@ describe('test conversion of valueSets', () => {
 describe('test conversion of DatasetAccessRequest', () => {
   test('datasetAccessRequest converted to datasetAccessRequestApi', () => {
     expect(
-      createDatasetAccessRequest(
+      createSnapshotAccessRequest(
         datasetAccessRequest.name,
         datasetAccessRequest.researchPurposeStatement,
         dummySnapshotId,

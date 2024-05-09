@@ -13,7 +13,7 @@ import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   Cohort,
-  createDatasetAccessRequest,
+  createSnapshotAccessRequest,
   createSnapshotBuilderCountRequest,
   DatasetBuilderValue,
   DomainConceptSet,
@@ -482,7 +482,7 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
             await DataRepo()
               .snapshotAccessRequest()
               .createSnapshotAccessRequest(
-                createDatasetAccessRequest(
+                createSnapshotAccessRequest(
                   name,
                   researchPurposeStatement,
                   snapshotId,
