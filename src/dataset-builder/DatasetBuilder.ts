@@ -30,6 +30,7 @@ import {
   SnapshotBuilderSettings,
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
@@ -478,7 +479,7 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
         {
           disabled: errors,
           tooltip: errors && Utils.summarizeErrors(errors),
-          onClick: async () => {
+          onClick: withErrorReporting('Error creating dataset request')(async () => {
             await DataRepo()
               .snapshotAccessRequest()
               .createSnapshotAccessRequest(
@@ -498,7 +499,7 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
                 )
               );
             onDismiss();
-          },
+          }),
         },
         ['Request access']
       ),

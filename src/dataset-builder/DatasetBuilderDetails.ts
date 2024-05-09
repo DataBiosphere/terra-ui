@@ -7,6 +7,7 @@ import { MarkdownViewer } from 'src/components/markdown';
 import TopBar from 'src/components/TopBar';
 import { DataRepo, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 
@@ -73,8 +74,16 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
       : false;
 
   useOnMount(() => {
-    void loadSnapshotRoles(() => DataRepo().snapshot(snapshotId).roles());
-    void loadSnapshotBuilderSettings(() => DataRepo().snapshot(snapshotId).getSnapshotBuilderSettings());
+    void loadSnapshotRoles(
+      withErrorReporting(`Error loading roles for snapshot ${snapshotId}`)(() =>
+        DataRepo().snapshot(snapshotId).roles()
+      )
+    );
+    void loadSnapshotBuilderSettings(
+      withErrorReporting(`Error loading snapshot builder settings for ${snapshotId}`)(() =>
+        DataRepo().snapshot(snapshotId).getSnapshotBuilderSettings()
+      )
+    );
   });
 
   return snapshotBuilderSettings.status === 'Ready' && snapshotRoles.status === 'Ready'

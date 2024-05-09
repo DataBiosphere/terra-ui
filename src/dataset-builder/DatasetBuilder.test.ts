@@ -68,23 +68,22 @@ describe('DatasetBuilder', () => {
     );
   };
 
-  const mockWithValues = (
-    snapshotBuilderSettingsResponse: SnapshotBuilderSettings,
-    snapshotRolesResponse: string[]
-  ) => {
-    const snapshotBuilderSettingsMock = jest.fn((_include) => Promise.resolve(snapshotBuilderSettingsResponse));
-    const snapshotRolesMock = jest.fn(() => Promise.resolve(snapshotRolesResponse));
+  const mockDataRepo = (datasetMocks: Partial<DataRepoContract['snapshot']>[]) => {
     asMockedFn(DataRepo).mockImplementation(
       () =>
         ({
-          snapshot: (_snapshotId) =>
-            ({
-              roles: snapshotRolesMock,
-              getSnapshotBuilderSettings: snapshotBuilderSettingsMock,
-            } as Partial<DataRepoContract['snapshot']>),
+          snapshot: (_snapshotId) => Object.assign({}, ...datasetMocks),
         } as Partial<DataRepoContract> as DataRepoContract)
     );
   };
+
+  const snapshotBuilderSettingsMock = (snapshotBuilderSettingsResponse: SnapshotBuilderSettings) => ({
+    getSnapshotBuilderSettings: jest.fn((_include) => Promise.resolve(snapshotBuilderSettingsResponse)),
+  });
+
+  const snapshotRolesMock = (snapshotRolesResponse: string[]) => ({
+    roles: jest.fn((_include) => Promise.resolve(snapshotRolesResponse)),
+  });
 
   const initializeValidDatasetRequest = async (user) => {
     showDatasetBuilderContents({
@@ -255,7 +254,7 @@ describe('DatasetBuilder', () => {
 
   it('hides the cohort builder if no access', async () => {
     // Arrange
-    mockWithValues(testSnapshotBuilderSettings(), ['discoverer']);
+    mockDataRepo([snapshotBuilderSettingsMock(testSnapshotBuilderSettings()), snapshotRolesMock(['discoverer'])]);
     render(h(DatasetBuilderView));
     // Assert
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();
@@ -264,7 +263,10 @@ describe('DatasetBuilder', () => {
 
   it('shows the home page by default', async () => {
     // Arrange
-    mockWithValues(testSnapshotBuilderSettings(), ['aggregate_data_reader']);
+    mockDataRepo([
+      snapshotBuilderSettingsMock(testSnapshotBuilderSettings()),
+      snapshotRolesMock(['aggregate_data_reader']),
+    ]);
     render(h(DatasetBuilderView));
     // Assert
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();
@@ -273,7 +275,10 @@ describe('DatasetBuilder', () => {
 
   it('shows the cohort editor page', async () => {
     // Arrange
-    mockWithValues(testSnapshotBuilderSettings(), ['aggregate_data_reader']);
+    mockDataRepo([
+      snapshotBuilderSettingsMock(testSnapshotBuilderSettings()),
+      snapshotRolesMock(['aggregate_data_reader']),
+    ]);
     const initialState = cohortEditorState.new(newCohort('my test cohort'));
     render(h(DatasetBuilderView, { snapshotId: 'ignored', initialState }));
     // Assert

@@ -17,6 +17,7 @@ import {
   SnapshotBuilderDomainOption,
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
 
 type ConceptSearchProps = {
   readonly initialSearch: string;
@@ -44,9 +45,11 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
 
   useEffect(() => {
     if (searchText.length === 0 || searchText.length > 2) {
-      void enumerateConcepts(() => {
-        return DataRepo().snapshot(snapshotId).enumerateConcepts(domainOption.root, searchText);
-      });
+      void enumerateConcepts(
+        withErrorReporting(`Error searching concepts with term ${searchText}`)(async () => {
+          return DataRepo().snapshot(snapshotId).enumerateConcepts(domainOption.root, searchText);
+        })
+      );
     }
   }, [searchText, snapshotId, domainOption.root, enumerateConcepts]);
   const tableLeftPadding = { paddingLeft: '2rem' };

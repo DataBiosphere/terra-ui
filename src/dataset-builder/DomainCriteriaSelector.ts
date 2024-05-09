@@ -10,6 +10,7 @@ import {
   SnapshotBuilderConcept,
   SnapshotBuilderDomainOption,
 } from 'src/libs/ajax/DataRepo';
+import { withErrorReporting } from 'src/libs/error';
 import { useOnMount } from 'src/libs/react-utils';
 
 import { ConceptSelector } from './ConceptSelector';
@@ -64,13 +65,19 @@ export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   useOnMount(() => {
     const openedConcept = state.openedConcept;
     if (openedConcept) {
-      void setHierarchy(async () => {
-        return (await DataRepo().snapshot(snapshotId).getConceptHierarchy(openedConcept)).result;
-      });
+      void setHierarchy(
+        withErrorReporting(`Error loading hierarchy information for ${openedConcept.name}`)(async () => {
+          return (await DataRepo().snapshot(snapshotId).getConceptHierarchy(openedConcept)).result;
+        })
+      );
     } else {
       // get the children of this concept
       void setHierarchy(async () => {
-        const results = (await DataRepo().snapshot(snapshotId).getConceptChildren(state.domainOption.root)).result;
+        const results = (
+          await withErrorReporting(`Error getting concept children for ${state.domainOption.root.name}`)(
+            async () => await DataRepo().snapshot(snapshotId).getConceptChildren(state.domainOption.root)
+          )()
+        ).result;
         return [{ parentId: state.domainOption.root.id, children: results }];
       });
     }
