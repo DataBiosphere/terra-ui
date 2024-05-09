@@ -1,6 +1,5 @@
 import { useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { useEffect } from 'react';
 import { div, h, h1, h3 } from 'react-hyperscript-helpers';
 import { ButtonOutline, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -69,28 +68,25 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
   const [snapshotBuilderSettings, loadSnapshotBuilderSettings] = useLoadedData<SnapshotBuilderSettings>();
   const [snapshotRoles, loadSnapshotRoles] = useLoadedData<string[]>();
   const hasAggregateDataViewerAccess =
-    snapshotRoles.status === 'Ready' ? _.intersection(['admin'], snapshotRoles.state).length > 0 : false;
+    snapshotRoles.status === 'Ready'
+      ? _.intersection(['aggregate_data_reader'], snapshotRoles.state).length > 0
+      : false;
 
   useOnMount(() => {
     void loadSnapshotRoles(() => DataRepo().snapshot(snapshotId).roles());
     void loadSnapshotBuilderSettings(() => DataRepo().snapshot(snapshotId).getSnapshotBuilderSettings());
   });
 
-  useEffect(() => {
-    hasAggregateDataViewerAccess &&
-      void loadSnapshotBuilderSettings(() => DataRepo().snapshot(snapshotId).getSnapshotBuilderSettings());
-  }, [snapshotId, loadSnapshotBuilderSettings, hasAggregateDataViewerAccess]);
-
-  return snapshotBuilderSettings.status === 'Ready'
+  return snapshotBuilderSettings.status === 'Ready' && snapshotRoles.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         div({ style: { padding: '2rem' } }, [
           h(DatasetBuilderBreadcrumbs, {
             breadcrumbs: [{ link: Nav.getLink('library-datasets'), title: 'Data Browser' }],
           }),
-          h1({ style: { marginTop: '0.75rem' } }, ['AXIN Dataset']),
+          h1({ style: { marginTop: '0.75rem' } }, ['AnalytiXIN']),
           div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-            h(MarkdownViewer, ['OMOP AXIN dataset']),
+            h(MarkdownViewer, ['AnalytiXIN dataset in OMOP format']),
             div({ style: { width: '22rem', backgroundColor: 'white', padding: '1rem', marginLeft: '1rem' } }, [
               div([
                 'Use the Dataset Builder to create specific tailored data for further analyses in a Terra Workspace',
@@ -111,11 +107,10 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
               ]),
             ]),
           ]),
-          snapshotBuilderSettings &&
-            h(TileDisplay, {
-              title: 'EHR Domains',
-              displayInformation: snapshotBuilderSettings.state.domainOptions,
-            }),
+          h(TileDisplay, {
+            title: 'EHR Domains',
+            displayInformation: snapshotBuilderSettings.state.domainOptions,
+          }),
         ]),
       ])
     : spinnerOverlay;
