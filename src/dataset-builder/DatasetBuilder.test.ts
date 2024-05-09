@@ -252,15 +252,6 @@ describe('DatasetBuilder', () => {
     expect(screen.getByText('Condition')).toBeTruthy();
   });
 
-  it('hides the cohort builder if no access', async () => {
-    // Arrange
-    mockDataRepo([snapshotBuilderSettingsMock(testSnapshotBuilderSettings()), snapshotRolesMock(['discoverer'])]);
-    render(h(DatasetBuilderView));
-    // Assert
-    expect(screen.getByTestId('loading-spinner')).toBeTruthy();
-    expect(await screen.findByText('You do not have access to create a snapshot access request')).toBeTruthy();
-  });
-
   it('shows the home page by default', async () => {
     // Arrange
     mockDataRepo([

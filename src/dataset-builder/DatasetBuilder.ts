@@ -575,8 +575,10 @@ export const DatasetBuilderContents = ({
 
   useEffect(() => {
     requestValid &&
-      setDatasetRequestParticipantCount(async () =>
-        DataRepo().snapshot(snapshotId).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
+      setDatasetRequestParticipantCount(
+        withErrorReporting(`Error fetching snapshot builder count for snapshot ${snapshotId}`)(async () =>
+          DataRepo().snapshot(snapshotId).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
+        )
       );
   }, [snapshotId, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
@@ -709,8 +711,16 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   };
 
   useOnMount(() => {
-    void loadSnapshotBuilderSettings(async () => DataRepo().snapshot(snapshotId).getSnapshotBuilderSettings());
-    void loadSnapshotRoles(async () => DataRepo().snapshot(snapshotId).roles());
+    void loadSnapshotBuilderSettings(
+      withErrorReporting(`Error fetching snapshot builder settings for snapshot ${snapshotId}`)(async () =>
+        DataRepo().snapshot(snapshotId).getSnapshotBuilderSettings()
+      )
+    );
+    void loadSnapshotRoles(
+      withErrorReporting(`Error fetching roles for snapshot ${snapshotId}`)(async () =>
+        DataRepo().snapshot(snapshotId).roles()
+      )
+    );
   });
 
   useEffect(() => {
