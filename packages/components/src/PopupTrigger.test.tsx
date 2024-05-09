@@ -11,8 +11,8 @@ describe('PopupTrigger', () => {
     childProps: Partial<JSX.IntrinsicElements['button']> = {}
   ): { trigger: HTMLElement } => {
     renderWithTheme(
-      <PopupTrigger content="This is a popup" {...props}>
-        <button type="button" {...childProps}>
+      <PopupTrigger content='This is a popup' {...props}>
+        <button type='button' {...childProps}>
           Toggle Popup
         </button>
       </PopupTrigger>
@@ -146,14 +146,14 @@ describe('PopupTrigger', () => {
         <PopupTrigger
           content={
             <>
-              <button type="button">Button A</button>
-              <button type="button">Button B</button>
+              <button type='button'>Button A</button>
+              <button type='button'>Button B</button>
             </>
           }
         >
-          <button type="button">Toggle Popup</button>
+          <button type='button'>Toggle Popup</button>
         </PopupTrigger>
-        <button type="button">Button C</button>
+        <button type='button'>Button C</button>
       </>
     );
 
@@ -203,8 +203,8 @@ describe('PopupTrigger', () => {
 
     const ref: RefObject<PopupTriggerRef> = { current: null };
     renderWithTheme(
-      <PopupTrigger ref={ref} content="This is a popup">
-        <button type="button">Toggle Popup</button>
+      <PopupTrigger ref={ref} content='This is a popup'>
+        <button type='button'>Toggle Popup</button>
       </PopupTrigger>
     );
 

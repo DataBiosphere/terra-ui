@@ -56,7 +56,7 @@ describe('DashboardAuthContainer', () => {
     } as DeepPartial<AjaxContract> as AjaxContract);
 
     // Act
-    render(<DashboardAuthContainer namespace="test-namespace" name="test-name" />);
+    render(<DashboardAuthContainer namespace='test-namespace' name='test-name' />);
 
     // Assert
     expect(document.getElementById('loading-spinner')).not.toBeNull();
@@ -77,7 +77,7 @@ describe('DashboardAuthContainer', () => {
 
     // Act
     await act(async () => {
-      render(<DashboardAuthContainer namespace="test-namespace" name="test-name" />);
+      render(<DashboardAuthContainer namespace='test-namespace' name='test-name' />);
     });
 
     // Assert
@@ -95,7 +95,7 @@ describe('DashboardAuthContainer', () => {
 
     // Act
     await act(async () => {
-      render(<DashboardAuthContainer namespace="test-namespace" name="test-name" />);
+      render(<DashboardAuthContainer namespace='test-namespace' name='test-name' />);
     });
 
     // Assert
@@ -120,7 +120,7 @@ describe('DashboardAuthContainer', () => {
     } as DeepPartial<AjaxContract> as AjaxContract);
     // Act
     await act(async () => {
-      render(<DashboardAuthContainer namespace="test-namespace" name="test-name" />);
+      render(<DashboardAuthContainer namespace='test-namespace' name='test-name' />);
     });
 
     // Assert

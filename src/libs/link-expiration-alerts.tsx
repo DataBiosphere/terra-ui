@@ -69,7 +69,7 @@ export const getOAuth2ProviderLinkExpirationAlert = (
           provider={provider}
           button={false}
         />{' '}
-        your access or <UnlinkOAuth2Account linkText="unlink" provider={provider} /> your account.
+        your access or <UnlinkOAuth2Account linkText='unlink' provider={provider} /> your account.
       </div>
     ),
     severity: 'info',

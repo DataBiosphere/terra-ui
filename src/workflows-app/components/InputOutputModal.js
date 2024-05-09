@@ -5,15 +5,14 @@ import { AutoSizer } from 'react-virtualized';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { FlexTable, HeaderCell, tableHeight } from 'src/components/table';
-import { getConfig } from 'src/libs/config';
 import { newTabLinkProps } from 'src/libs/utils';
 import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
 // Only append sas tokens for files in the workspace container. Otherwise, assume they are public and don't append the token.
 // Public files can't be downloaded if a sas token is appended, since sas tokens limit access to your own container + storage account.
 // Exported for  testing.
-export const appendSASTokenIfNecessary = (blobPath, sasToken) => {
-  const shouldAppendSASToken = blobPath.includes(getConfig().workspaceId);
+export const appendSASTokenIfNecessary = (blobPath, sasToken, workspaceId) => {
+  const shouldAppendSASToken = blobPath.includes(workspaceId);
   return shouldAppendSASToken ? `${blobPath}?${sasToken}` : blobPath;
 };
 
@@ -22,10 +21,10 @@ export const getFilenameFromAzureBlobPath = (blobPath) => {
   return _.isString(blobPath) ? blobPath.substring(blobPath.lastIndexOf('/') + 1) : '';
 };
 
-const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
+const InputOutputModal = ({ title, jsonData, onDismiss, sasToken, workspaceId }) => {
   // Link to download the blob file
   const renderBlobLink = (blobPath, key = undefined) => {
-    const downloadUrl = appendSASTokenIfNecessary(blobPath, sasToken);
+    const downloadUrl = appendSASTokenIfNecessary(blobPath, sasToken, workspaceId);
     const fileName = getFilenameFromAzureBlobPath(blobPath);
     const props = {
       disabled: !downloadUrl,

@@ -10,7 +10,10 @@ import * as Utils from 'src/libs/utils';
 
 import { DecoratedComputeResource, LeoResourcePermissionsProvider } from './Environments.models';
 
-type DeletePermissionsProvider = Pick<LeoResourcePermissionsProvider, 'canDeleteApp' | 'canDeleteResource'>;
+type DeletePermissionsProvider = Pick<
+  LeoResourcePermissionsProvider,
+  'isAppInDeletableState' | 'isResourceInDeletableState'
+>;
 
 export interface DeleteButtonProps {
   resource: DecoratedComputeResource;
@@ -20,7 +23,9 @@ export interface DeleteButtonProps {
 
 export const DeleteButton = (props: DeleteButtonProps): ReactNode => {
   const { resource, permissions, onClick } = props;
-  const isDeletable = isApp(resource) ? permissions.canDeleteApp(resource) : permissions.canDeleteResource(resource);
+  const isDeletable = isApp(resource)
+    ? permissions.isAppInDeletableState(resource)
+    : permissions.isResourceInDeletableState(resource);
 
   return h(
     Link,
@@ -28,7 +33,7 @@ export const DeleteButton = (props: DeleteButtonProps): ReactNode => {
       disabled: !isDeletable,
       tooltip: Utils.cond(
         [isDeletable, () => 'Delete cloud environment'],
-        [isApp(resource) && !permissions.canDeleteApp(resource), () => 'Deleting not yet supported'],
+        [isApp(resource) && !permissions.isAppInDeletableState(resource), () => 'Deleting not yet supported'],
         [
           Utils.DEFAULT,
           () =>

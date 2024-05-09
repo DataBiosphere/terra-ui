@@ -31,6 +31,7 @@ import {
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
@@ -479,7 +480,7 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
         {
           disabled: errors,
           tooltip: errors && Utils.summarizeErrors(errors),
-          onClick: async () => {
+          onClick: withErrorReporting('Error creating dataset request')(async () => {
             await DataRepo()
               .dataset(datasetId)
               .createSnapshotRequest(
@@ -498,7 +499,7 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
                 )
               );
             onDismiss();
-          },
+          }),
         },
         ['Request access']
       ),
@@ -571,8 +572,10 @@ export const DatasetBuilderContents = ({
 
   useEffect(() => {
     requestValid &&
-      setDatasetRequestParticipantCount(async () =>
-        DataRepo().dataset(dataset.id).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
+      setDatasetRequestParticipantCount(
+        withErrorReporting('Error generating participant count')(async () =>
+          DataRepo().dataset(dataset.id).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
+        )
       );
   }, [dataset, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
@@ -611,7 +614,6 @@ export const DatasetBuilderContents = ({
         values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
     )(dataset.snapshotBuilderSettings?.featureValueGroups);
-
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
       h(BuilderPageHeader, [
@@ -704,10 +706,12 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   };
 
   useOnMount(() => {
-    void loadDatasetModel(async () =>
-      DataRepo()
-        .dataset(datasetId)
-        .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
+    void loadDatasetModel(
+      withErrorReporting('Error getting dataset details')(async () =>
+        DataRepo()
+          .dataset(datasetId)
+          .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
+      )
     );
   });
   return datasetModel.status === 'Ready'

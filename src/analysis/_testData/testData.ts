@@ -218,6 +218,15 @@ export const getPersistentDiskDetail = (): PersistentDiskDetail => {
   };
 };
 
+export const getDetailFromDisk = (disk: PersistentDisk): PersistentDiskDetail => {
+  return {
+    ...disk,
+    serviceAccount: 'testuser123@broad.com',
+    samResource: 1,
+    formattedBy: 'Jupyter',
+  };
+};
+
 export const getAzureDisk = ({ size = defaultGcePersistentDiskSize } = {}) => ({
   ...azureDisk,
   id: getRandomInt(10000),
@@ -613,7 +622,7 @@ export const galaxyDeleting: App = {
   region: 'us-central1',
 };
 
-export const generateTestApp = (overrides: Partial<ListAppItem>): ListAppItem => ({
+export const generateTestApp = (overrides?: Partial<ListAppItem>): ListAppItem => ({
   workspaceId: null,
   accessScope: null,
   cloudContext: {
