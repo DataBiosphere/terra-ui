@@ -14,7 +14,7 @@ interface BuilderPageHeaderProps {
 
 const PAGE_PADDING_HEIGHT = 0;
 const PAGE_PADDING_WIDTH = 3;
-const DATASET_NAME = 'AXIN';
+const DATASET_NAME = 'AnalytixIN ';
 
 // The dataset builder has "pages" each of which has a similarly styled header.
 export const BuilderPageHeader = (props: BuilderPageHeaderProps) => {
