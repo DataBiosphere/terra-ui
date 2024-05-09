@@ -1,12 +1,12 @@
 import { Clickable } from '@terra-ui-packages/components';
 import * as qs from 'qs';
-import React, { useState } from 'react';
+import React, { CSSProperties, useState } from 'react';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import { SupportResourceType } from 'src/support/SupportResourceType';
 
-const listItemStyle = (selected, hovered) => {
+const listItemStyle = (selected: boolean, hovered: boolean): CSSProperties => {
   const style = {
     ...Style.navList.itemContainer(selected),
     ...Style.navList.item(selected),
@@ -28,31 +28,31 @@ export interface SupportResourceListItemProps {
 }
 
 export const SupportResourceListItem = (props: SupportResourceListItemProps) => {
-  const [hovered, setHovered] = useState<boolean>();
+  const [hovered, setHovered] = useState<boolean>(false);
 
   const { resourceType, isActive } = props;
 
   const supportResourceElement = <span style={{ wordBreak: 'break-all' }}>{resourceType.displayName}</span>;
 
-  const renderSupportResource = () => (
-    <div
-      style={listItemStyle(isActive, hovered)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <Clickable
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          color: isActive ? colors.accent(1.1) : colors.accent(),
-        }}
-        href={`${Nav.getLink('support')}?${qs.stringify({ selectedType: resourceType.resourceType })}`}
-        aria-current={isActive ? 'location' : false}
+  return (
+    <div role="listitem">
+      <div
+        style={listItemStyle(isActive, hovered)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
       >
-        {supportResourceElement}
-      </Clickable>
+        <Clickable
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            color: isActive ? colors.accent(1.1) : colors.accent(),
+          }}
+          href={`${Nav.getLink('support')}?${qs.stringify({ selectedType: resourceType.resourceType })}`}
+          aria-current={isActive ? 'location' : false}
+        >
+          {supportResourceElement}
+        </Clickable>
+      </div>
     </div>
   );
-
-  return <div role="listitem">{renderSupportResource()}</div>;
 };

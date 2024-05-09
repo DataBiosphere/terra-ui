@@ -10,13 +10,13 @@ import { ResourceTypeSummaryProps } from 'src/support/SupportResourceType';
 
 export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
   const { query } = Nav.useRoute();
-  const [groupName, setGroupName] = useState(props.fqResourceId.resourceId || '');
+  // const [groupName, setGroupName] = useState(props.fqResourceId.resourceId || '');
   const [groupSummaryInfo, setGroupSummaryInfo] = useState('');
   const [groupPolicies, setGroupPolicies] = useState('');
 
   async function loadGroupSummary() {
     try {
-      const groupSummaryInfo = await Ajax().Groups.group(groupName).getSupportSummary();
+      const groupSummaryInfo = await Ajax().Groups.group(props.fqResourceId.resourceId).getSupportSummary();
       setGroupSummaryInfo(JSON.stringify(groupSummaryInfo, null, 2));
     } catch (e) {
       if (e.status === 404) {
@@ -74,7 +74,6 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
             setGroupSummaryInfo('');
             setGroupPolicies('');
             Nav.updateSearch({ ...query, resourceName: newFilter || undefined });
-            setGroupName(newFilter);
           }}
           onKeyDown={async (e) => {
             if (e.key === 'Enter') {

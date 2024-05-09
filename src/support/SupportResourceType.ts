@@ -1,3 +1,4 @@
+import { ComponentType } from 'react';
 import { FullyQualifiedResourceId } from 'src/libs/ajax/SamResources';
 import { ManagedGroupSummary } from 'src/support/ManagedGroupSummary';
 
@@ -9,7 +10,7 @@ export interface ResourceTypeSummaryProps {
 export interface SupportResourceType {
   displayName: string;
   resourceType: string;
-  detailComponent: (props: ResourceTypeSummaryProps) => React.ReactElement<any, any>;
+  detailComponent: ComponentType<ResourceTypeSummaryProps>;
 }
 
 // Define the supported resources, add your own here
