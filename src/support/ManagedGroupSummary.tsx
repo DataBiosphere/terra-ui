@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react';
 import { TextArea, TextInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
+import { reportError } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import { ResourceTypeSummaryProps } from 'src/support/SupportResourceType';
@@ -13,13 +14,39 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
   const [groupSummaryInfo, setGroupSummaryInfo] = useState('');
   const [groupPolicies, setGroupPolicies] = useState('');
 
+  async function loadGroupSummary() {
+    try {
+      const groupSummaryInfo = await Ajax().Groups.group(groupName).getSupportSummary();
+      setGroupSummaryInfo(JSON.stringify(groupSummaryInfo, null, 2));
+    } catch (e) {
+      if (e.status === 404) {
+        setGroupSummaryInfo('Group not found');
+      } else if (e.status === 403) {
+        setGroupSummaryInfo('You do not have permission to view summary information or are not on VPN');
+      } else {
+        await reportError('Error loading group summary', e);
+      }
+    }
+  }
+
+  async function loadResourcePolicies() {
+    try {
+      const groupPolicies = await Ajax().SamResources.getResourcePolicies(props.fqResourceId);
+      setGroupPolicies(JSON.stringify(groupPolicies, null, 2));
+    } catch (e) {
+      if (e.status === 404) {
+        setGroupPolicies('Resource not found');
+      } else if (e.status === 403) {
+        setGroupPolicies('You do not have permission to view resource policies or are not on VPN');
+      } else {
+        await reportError('Error loading resource policies', e);
+      }
+    }
+  }
+
   const submit = async (): Promise<void> => {
-    setGroupSummaryInfo('');
-    setGroupPolicies('');
-    const groupSummaryInfo = await Ajax().Groups.group(groupName).getSupportSummary();
-    const groupPolicies = await Ajax().SamResources.getResourcePolicies(props.fqResourceId);
-    setGroupSummaryInfo(JSON.stringify(groupSummaryInfo, null, 2));
-    setGroupPolicies(JSON.stringify(groupPolicies, null, 2));
+    await loadGroupSummary();
+    await loadResourcePolicies();
   };
 
   useOnMount(() => {
@@ -44,12 +71,14 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
         <TextInput
           placeholder="Enter group name"
           onChange={(newFilter) => {
+            setGroupSummaryInfo('');
+            setGroupPolicies('');
             Nav.updateSearch({ ...query, resourceName: newFilter || undefined });
             setGroupName(newFilter);
           }}
-          onKeyDown={(e) => {
+          onKeyDown={async (e) => {
             if (e.key === 'Enter') {
-              submit();
+              await submit();
             }
           }}
           value={props.fqResourceId.resourceId || ''}
