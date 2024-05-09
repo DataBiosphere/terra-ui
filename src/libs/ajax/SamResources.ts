@@ -34,7 +34,7 @@ export const SamResources = (signal: AbortSignal) => ({
     return Ajax(signal).SamResources.getRequesterPaysSignedUrl(`gs://${bucket}/${object}`, requesterPaysProject);
   },
 
-  getResourcePolicies: async (fqResourceId: FullyQualifiedResourceId): Promise<string[]> => {
+  getResourcePolicies: async (fqResourceId: FullyQualifiedResourceId): Promise<Object> => {
     const res = await fetchSam(
       `api/admin/v1/resources/${fqResourceId.resourceTypeName}/${fqResourceId.resourceId}/policies`,
       _.mergeAll([authOpts(), appIdentifier])

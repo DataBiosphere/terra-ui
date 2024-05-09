@@ -1,7 +1,9 @@
+import ReactJson from '@microlink/react-json-view';
 import { ButtonPrimary } from '@terra-ui-packages/components';
 import { Fragment, useState } from 'react';
-import { TextArea, TextInput } from 'src/components/input';
+import { TextInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
+import { GroupSupportSummary } from 'src/libs/ajax/Groups';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
@@ -10,19 +12,20 @@ import { ResourceTypeSummaryProps } from 'src/support/SupportResourceType';
 
 export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
   const { query } = Nav.useRoute();
-  // const [groupName, setGroupName] = useState(props.fqResourceId.resourceId || '');
-  const [groupSummaryInfo, setGroupSummaryInfo] = useState('');
-  const [groupPolicies, setGroupPolicies] = useState('');
+
+  const [groupSummaryInfo, setGroupSummaryInfo] = useState<GroupSupportSummary>();
+  const [groupPolicies, setGroupPolicies] = useState<string[]>();
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   async function loadGroupSummary() {
     try {
       const groupSummaryInfo = await Ajax().Groups.group(props.fqResourceId.resourceId).getSupportSummary();
-      setGroupSummaryInfo(JSON.stringify(groupSummaryInfo, null, 2));
+      setGroupSummaryInfo(groupSummaryInfo);
     } catch (e: Response) {
       if (e instanceof Response && e.status === 404) {
-        setGroupSummaryInfo('Group not found');
+        errorMessages.push('Group not found');
       } else if (e instanceof Response && e.status === 403) {
-        setGroupSummaryInfo('You do not have permission to view summary information or are not on VPN');
+        errorMessages.push('You do not have permission to view summary information or are not on VPN');
       } else {
         await reportError('Error loading group summary', e);
       }
@@ -32,12 +35,12 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
   async function loadResourcePolicies() {
     try {
       const groupPolicies = await Ajax().SamResources.getResourcePolicies(props.fqResourceId);
-      setGroupPolicies(JSON.stringify(groupPolicies, null, 2));
+      setGroupPolicies(groupPolicies);
     } catch (e: Response) {
       if (e instanceof Response && e.status === 404) {
-        setGroupPolicies('Resource not found');
+        errorMessages.push('Resource not found');
       } else if (e instanceof Response && e.status === 403) {
-        setGroupPolicies('You do not have permission to view resource policies or are not on VPN');
+        errorMessages.push('You do not have permission to view resource policies or are not on VPN');
       } else {
         await reportError('Error loading resource policies', e);
       }
@@ -69,10 +72,12 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
           {props.displayName}
         </div>
         <TextInput
+          style={{ marginRight: '1rem', marginLeft: '1rem' }}
           placeholder="Enter group name"
           onChange={(newFilter) => {
-            setGroupSummaryInfo('');
-            setGroupPolicies('');
+            setGroupSummaryInfo(null);
+            setGroupPolicies(null);
+            setErrorMessages([]);
             Nav.updateSearch({ ...query, resourceName: newFilter || undefined });
           }}
           onKeyDown={async (e) => {
@@ -84,32 +89,48 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
         />
         <ButtonPrimary onClick={() => submit()}>Load</ButtonPrimary>
       </div>
-      <div
-        style={{
-          color: colors.dark(),
-          fontSize: 18,
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          marginLeft: '1rem',
-        }}
-      >
-        Summary
-      </div>
-      <TextArea value={groupSummaryInfo} readOnly autosize />
-      <div
-        style={{
-          color: colors.dark(),
-          fontSize: 18,
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          marginLeft: '1rem',
-        }}
-      >
-        Sam Policies
-      </div>
-      <TextArea value={groupPolicies} readOnly autosize />
+      {!!errorMessages &&
+        errorMessages.map((message) => <div style={{ color: colors.danger(), marginLeft: '1rem' }}>{message}</div>)}
+      {!!groupSummaryInfo && (
+        <>
+          <div
+            style={{
+              color: colors.dark(),
+              fontSize: 18,
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              marginLeft: '1rem',
+              marginTop: '1rem',
+            }}
+          >
+            Summary
+          </div>
+          <ReactJson
+            src={groupSummaryInfo}
+            name={false}
+            style={{ marginLeft: '1rem', border: '1px solid black', padding: '1rem' }}
+          />
+          <div
+            style={{
+              color: colors.dark(),
+              fontSize: 18,
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              marginLeft: '1rem',
+              marginTop: '1rem',
+            }}
+          >
+            Sam Policies
+          </div>
+          <ReactJson
+            src={groupPolicies}
+            name={false}
+            style={{ marginLeft: '1rem', border: '1px solid black', padding: '1rem' }}
+          />
+        </>
+      )}
     </>
   );
 };
