@@ -747,16 +747,14 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   conceptSets,
                 });
               case 'cohort-editor':
-                return snapshotBuilderSettings.status === 'Ready'
-                  ? h(CohortEditor, {
-                      onStateChange,
-                      originalCohort: datasetBuilderState.cohort,
-                      snapshotId,
-                      snapshotBuilderSettings: snapshotBuilderSettings.state,
-                      updateCohorts: setCohorts,
-                      getNextCriteriaIndex,
-                    })
-                  : div(['No Dataset Builder Settings Found']);
+                return h(CohortEditor, {
+                  onStateChange,
+                  originalCohort: datasetBuilderState.cohort,
+                  snapshotId,
+                  snapshotBuilderSettings: snapshotBuilderSettings.state,
+                  updateCohorts: setCohorts,
+                  getNextCriteriaIndex,
+                });
               case 'domain-criteria-selector':
                 return h(DomainCriteriaSelector, {
                   state: datasetBuilderState,
@@ -772,15 +770,13 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   getNextCriteriaIndex,
                 });
               case 'concept-set-creator':
-                return snapshotBuilderSettings.status === 'Ready'
-                  ? h(ConceptSetCreator, {
-                      onStateChange,
-                      snapshotId,
-                      snapshotBuilderSettings: snapshotBuilderSettings.state,
-                      conceptSetUpdater: setConceptSets,
-                      cart: datasetBuilderState.cart,
-                    })
-                  : div(['No Dataset Builder Settings Found']);
+                return h(ConceptSetCreator, {
+                  onStateChange,
+                  snapshotId,
+                  snapshotBuilderSettings: snapshotBuilderSettings.state,
+                  conceptSetUpdater: setConceptSets,
+                  cart: datasetBuilderState.cart,
+                });
               default:
                 return datasetBuilderState;
             }
