@@ -291,6 +291,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
             jsonData: taskDataModal.taskJson,
             onDismiss: () => setTaskDataModal(undefined),
             sasToken,
+            workspaceId,
           }),
         div(
           {

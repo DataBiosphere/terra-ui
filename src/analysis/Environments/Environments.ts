@@ -1,6 +1,6 @@
 import { PopupTrigger, TooltipTrigger, useModalHandler, useThemeFromContext } from '@terra-ui-packages/components';
 import { formatDatetime, KeyedEventHandler, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
-import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
+import { useNotificationsFromContext, withErrorIgnoring } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, h2, span, strong } from 'react-hyperscript-helpers';
@@ -29,7 +29,6 @@ import { isRuntime, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtim
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
-import { withErrorIgnoring, withErrorReporter } from 'src/libs/error';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
 import { contactUsActive } from 'src/libs/state';
 import { elements as styleElements } from 'src/libs/style';
@@ -89,7 +88,7 @@ export interface EnvironmentsProps {
 export const Environments = (props: EnvironmentsProps): ReactNode => {
   const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, onEvent } = props;
   const { colors } = useThemeFromContext();
-  const { withErrorReporting } = withErrorReporter(useNotificationsFromContext());
+  const { withErrorReporting } = useNotificationsFromContext();
   const signal = useCancellation();
 
   type WorkspaceWrapperLookup = { [namespace: string]: { [name: string]: WorkspaceWrapper } };
@@ -664,7 +663,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                           },
                           [name]
                         ),
-                        permissions.canDeleteDisk(rowDisk) &&
+                        permissions.hasDeleteDiskPermission(rowDisk) &&
                           diskStatus !== 'Deleting' &&
                           multipleDisks &&
                           h(
