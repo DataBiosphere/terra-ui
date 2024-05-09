@@ -16,7 +16,7 @@ describe('TooltipTrigger', () => {
   ) => {
     return renderWithTheme(
       <TooltipTrigger content={tooltipContent} {...props}>
-        <button type="button" {...childProps} />
+        <button type='button' {...childProps} />
       </TooltipTrigger>
     );
   };

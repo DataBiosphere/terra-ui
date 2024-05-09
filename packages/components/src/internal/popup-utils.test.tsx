@@ -154,7 +154,7 @@ describe('useBoundingRects', () => {
       const [boundingRect] = useBoundingRects([{ id: 'test-element' }]);
       receivedBoundingRect(boundingRect);
 
-      return <div id="test-element" style={{ width: 200, height: 100, margin: '100px 0 0 50px' }} />;
+      return <div id='test-element' style={{ width: 200, height: 100, margin: '100px 0 0 50px' }} />;
     };
 
     // Act

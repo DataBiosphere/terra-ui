@@ -146,7 +146,7 @@ describe('Modal', () => {
         // Act
         renderModal({
           okButton: (
-            <button type="button" onClick={onOk}>
+            <button type='button' onClick={onOk}>
               Start
             </button>
           ),
@@ -227,11 +227,11 @@ describe('Modal', () => {
       renderWithTheme(
         <>
           <Modal showButtons={false} onDismiss={jest.fn()}>
-            <button type="button">A</button>
-            <button type="button">B</button>
-            <button type="button">C</button>
+            <button type='button'>A</button>
+            <button type='button'>B</button>
+            <button type='button'>C</button>
           </Modal>
-          <button type="button">D</button>
+          <button type='button'>D</button>
         </>
       );
 
@@ -263,7 +263,7 @@ describe('Modal', () => {
           return (
             <>
               <button
-                type="button"
+                type='button'
                 onClick={() => {
                   setIsModalOpen(true);
                 }}

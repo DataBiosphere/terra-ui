@@ -10,9 +10,9 @@ describe('FocusTrap', () => {
 
     const { container } = render(
       <FocusTrap onEscape={jest.fn()}>
-        <button type="button">A</button>
-        <button type="button">B</button>
-        <button type="button">C</button>
+        <button type='button'>A</button>
+        <button type='button'>B</button>
+        <button type='button'>C</button>
       </FocusTrap>
     );
 

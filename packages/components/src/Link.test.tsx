@@ -16,7 +16,7 @@ jest.mock('./Clickable', (): ClickableExports => {
 describe('Link', () => {
   it('renders a styled Clickable', () => {
     // Act
-    render(<Link href="https://example.com" />);
+    render(<Link href='https://example.com' />);
 
     // Assert
     expect(Clickable).toHaveBeenCalledWith(
@@ -27,10 +27,10 @@ describe('Link', () => {
 
   it('has a light variant that is styled differently', () => {
     // Act
-    render(<Link href="https://example.com" />);
+    render(<Link href='https://example.com' />);
     const defaultStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].style;
 
-    render(<Link href="https://example.com" variant="light" />);
+    render(<Link href='https://example.com' variant='light' />);
     const lightVariantStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].style;
 
     // Assert
@@ -39,10 +39,10 @@ describe('Link', () => {
 
   it('can be styled with a different base color', () => {
     // Act
-    render(<Link href="https://example.com" />);
+    render(<Link href='https://example.com' />);
     const defaultStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].style;
 
-    render(<Link href="https://example.com" baseColor={() => 'blue'} />);
+    render(<Link href='https://example.com' baseColor={() => 'blue'} />);
     const baseColorStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].style;
 
     // Assert
@@ -52,10 +52,10 @@ describe('Link', () => {
   describe('when disabled', () => {
     it('is styled differently', () => {
       // Act
-      render(<Link href="https://example.com" />);
+      render(<Link href='https://example.com' />);
       const enabledStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].style;
 
-      render(<Link href="https://example.com" disabled />);
+      render(<Link href='https://example.com' disabled />);
       const disabledStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].style;
 
       // Assert
@@ -64,7 +64,7 @@ describe('Link', () => {
 
     it('has no hover style', () => {
       // Act
-      render(<Link href="https://example.com" disabled />);
+      render(<Link href='https://example.com' disabled />);
       const disabledHoverStyle = (Clickable as jest.MockedFunction<typeof Clickable>).mock.lastCall[0].hover;
 
       // Assert
