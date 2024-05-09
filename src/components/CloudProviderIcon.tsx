@@ -14,5 +14,5 @@ export const CloudProviderIcon = (props: CloudProviderIconProps): ReactNode => {
     GCP: CloudGcpLogo,
   }[cloudProvider];
 
-  return <Icon role="img" title={cloudProviderLabels[cloudProvider]} {...rest} />;
+  return <Icon role='img' title={cloudProviderLabels[cloudProvider]} {...rest} />;
 };

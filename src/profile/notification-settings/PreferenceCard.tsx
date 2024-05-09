@@ -38,7 +38,7 @@ export const NotificationCard: React.FC<NotificationCardProps> = memoWithName(
     const { label, setSaving, prefsData, workspace, options } = props;
 
     return (
-      <div role="listitem" style={{ ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' }}>
+      <div role='listitem' style={{ ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' }}>
         <div style={cardStyles.row}>
           <div style={cardStyles.label}>{label}</div>
           {options.map(
@@ -88,7 +88,7 @@ export const UserAttributesCard: React.FC<UserAttributesCardProps> = memoWithNam
       disabled,
     };
     return (
-      <div role="listitem" style={{ ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' }}>
+      <div role='listitem' style={{ ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' }}>
         <div style={cardStyles.row}>
           <div style={cardStyles.label}>{label}</div>
           <div style={cardStyles.field}>

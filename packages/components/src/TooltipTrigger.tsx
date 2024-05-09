@@ -94,7 +94,7 @@ const Tooltip = (props: TooltipProps): ReactNode => {
     <PopupPortal>
       <div
         id={id}
-        role="tooltip"
+        role='tooltip'
         ref={elementRef}
         style={{
           ...styles.tooltip,
@@ -105,8 +105,8 @@ const Tooltip = (props: TooltipProps): ReactNode => {
         }}
       >
         {children}
-        <svg viewBox="0 0 2 1" style={{ ...styles.notch, ...getNotchPositionStyle() }}>
-          <path d="M0,1l1,-1l1,1Z" />
+        <svg viewBox='0 0 2 1' style={{ ...styles.notch, ...getNotchPositionStyle() }}>
+          <path d='M0,1l1,-1l1,1Z' />
         </svg>
       </div>
     </PopupPortal>

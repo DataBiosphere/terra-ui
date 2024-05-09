@@ -21,7 +21,7 @@ export const InfoBox = (props: InfoBoxProps): ReactNode => {
 
   return (
     <PopupTrigger content={<div style={{ padding: '0.5rem', width: 300 }}>{children}</div>} side={side}>
-      <Clickable aria-label="More info" tagName="span" tooltip={tooltip}>
+      <Clickable aria-label='More info' tagName='span' tooltip={tooltip}>
         <Icon icon={icon} size={size} style={{ color: colors.accent(), cursor: 'pointer', ...style }} />
       </Clickable>
     </PopupTrigger>

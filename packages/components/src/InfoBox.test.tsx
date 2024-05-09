@@ -19,7 +19,7 @@ describe('InfoBox', () => {
 
   it('allows overriding the default icon', async () => {
     // Act
-    renderWithTheme(<InfoBox icon="error-standard">More information about the thing.</InfoBox>);
+    renderWithTheme(<InfoBox icon='error-standard'>More information about the thing.</InfoBox>);
     const trigger = screen.getByRole('button');
 
     // Assert

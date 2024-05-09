@@ -292,7 +292,7 @@ export const BaseRunDetails = (
               },
             }),
           showTaskData &&
-            h(InputOutputModal, { title: taskDataTitle, jsonData: taskDataJson, onDismiss: () => setShowTaskData(false), sasToken }, []),
+            h(InputOutputModal, { title: taskDataTitle, jsonData: taskDataJson, onDismiss: () => setShowTaskData(false), sasToken, workspaceId }, []),
         ])
     ),
   ]);

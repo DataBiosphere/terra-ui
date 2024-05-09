@@ -1,7 +1,6 @@
-import { LoadedState } from '@terra-ui-packages/core-utils';
+import { controlledPromise, LoadedState } from '@terra-ui-packages/core-utils';
 import { act, renderHook } from '@testing-library/react';
 
-import { controlledPromise } from '../internal/test-utils';
 import { useAutoLoadedData } from './useAutoLoadedData';
 import { UseLoadedDataResult } from './useLoadedData';
 

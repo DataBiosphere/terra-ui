@@ -74,7 +74,7 @@ const getCommonSelectProps = ({ colors }: EnrichedTheme): Partial<RSelectProps> 
             {children}
           </div>
           {props.isSelected && (
-            <Icon icon="check" size={14} style={{ flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) }} />
+            <Icon icon='check' size={14} style={{ flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) }} />
           )}
         </div>
       </RSelectComponents.Option>

@@ -16,7 +16,7 @@ describe('TooltipTrigger', () => {
   ) => {
     return renderWithTheme(
       <TooltipTrigger content={tooltipContent} {...props}>
-        <button type="button" {...childProps} />
+        <button type='button' {...childProps} />
       </TooltipTrigger>
     );
   };
@@ -160,7 +160,7 @@ describe('TooltipTrigger', () => {
       renderTooltipTrigger(
         {},
         {
-          children: <Icon icon="plus" />,
+          children: <Icon icon='plus' />,
         }
       );
 

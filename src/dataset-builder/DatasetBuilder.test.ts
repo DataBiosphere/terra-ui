@@ -60,22 +60,34 @@ describe('DatasetBuilder', () => {
     );
   };
 
-  const mockWithValues = (datasetDetailsResponse: DatasetModel) => {
-    const datasetDetailsMock = jest.fn((_include) => Promise.resolve(datasetDetailsResponse));
-    const queryDatasetColumnStatisticsByIdMock = jest.fn((_dataOption) =>
-      Promise.resolve({ kind: 'range', min: 0, max: 100, id: 0, name: 'unused' })
-    );
+  const mockDataRepo = (datasetMocks: Partial<DataRepoContract['dataset']>[]) => {
     asMockedFn(DataRepo).mockImplementation(
       () =>
         ({
-          dataset: (_datasetId) =>
-            ({
-              details: datasetDetailsMock,
-              queryDatasetColumnStatisticsById: queryDatasetColumnStatisticsByIdMock,
-            } as Partial<DataRepoContract['dataset']>),
+          dataset: (_datasetId) => Object.assign({}, ...datasetMocks),
         } as Partial<DataRepoContract> as DataRepoContract)
     );
   };
+
+  const datasetDetailsMock = (datasetDetailsResponse: DatasetModel) => ({
+    details: jest.fn((_include) => Promise.resolve(datasetDetailsResponse)),
+  });
+
+  const queryDatasetColumnStatisticsByIdMock = () => ({
+    queryDatasetColumnStatisticsById: jest.fn((_dataOption) =>
+      Promise.resolve({ kind: 'range', min: 0, max: 100, id: 0, name: 'unused' })
+    ),
+  });
+
+  const getSnapshotBuilderCountMock = (count = 0) => ({
+    getSnapshotBuilderCount: () =>
+      Promise.resolve({
+        result: {
+          total: count,
+        },
+        sql: 'sql',
+      }),
+  });
 
   const initializeValidDatasetRequest = async (user) => {
     showDatasetBuilderContents({
@@ -196,6 +208,7 @@ describe('DatasetBuilder', () => {
 
   it('allows selecting cohorts, concept sets, and values', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const user = userEvent.setup();
     showDatasetBuilderContents({
       cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
@@ -221,6 +234,7 @@ describe('DatasetBuilder', () => {
   it('maintains old values selections', async () => {
     // Arrange
     const user = userEvent.setup();
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     await initializeValidDatasetRequest(user);
     await user.click(screen.getByLabelText('condition column 1'));
     await user.click(screen.getByLabelText('concept set 1'));
@@ -246,7 +260,7 @@ describe('DatasetBuilder', () => {
 
   it('shows the home page by default', async () => {
     // Arrange
-    mockWithValues(dummyDatasetDetailsWithId);
+    mockDataRepo([datasetDetailsMock(dummyDatasetDetailsWithId), queryDatasetColumnStatisticsByIdMock()]);
     render(h(DatasetBuilderView));
     // Assert
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();

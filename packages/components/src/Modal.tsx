@@ -205,11 +205,11 @@ export const Modal = (props: ModalProps): ReactNode => {
           {titleChildren}
           {showX && (
             <Clickable
-              aria-label="Close modal"
+              aria-label='Close modal'
               style={{ alignSelf: 'flex-start', marginLeft: 'auto' }}
               onClick={onDismiss}
             >
-              <Icon icon="times-circle" />
+              <Icon icon='times-circle' />
             </Clickable>
           )}
         </div>
