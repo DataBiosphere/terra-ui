@@ -6,7 +6,6 @@ import { Cohort, DomainConceptSet } from 'src/dataset-builder/DatasetBuilderUtil
 import {
   DataRepo,
   DataRepoContract,
-  Snapshot,
   SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderSettings,
 } from 'src/libs/ajax/DataRepo';
@@ -43,12 +42,12 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
 const concept = { id: 100, name: 'concept', code: '0', count: 10, hasChildren: false, children: [] };
 
 describe('DatasetBuilder', () => {
-  const dummySettings = testSnapshotBuilderSettings();
+  const testSettings = testSnapshotBuilderSettings();
   type DatasetBuilderContentsPropsOverrides = {
     onStateChange?: OnStateChangeHandler;
     updateCohorts?: Updater<Cohort[]>;
     updateConceptSets?: Updater<DomainConceptSet[]>;
-    snapshot?: Snapshot;
+    snapshotId?: string;
     snapshotBuilderSettings?: SnapshotBuilderSettings;
     cohorts?: Cohort[];
     conceptSets?: DomainConceptSet[];
@@ -62,7 +61,7 @@ describe('DatasetBuilder', () => {
         updateConceptSets: jest.fn(),
         onStateChange: (state) => state,
         snapshotId: testSnapshotId,
-        snapshotBuilderSettings: dummySettings,
+        snapshotBuilderSettings: testSettings,
         ...overrides,
       })
     );
@@ -83,6 +82,16 @@ describe('DatasetBuilder', () => {
 
   const snapshotRolesMock = (snapshotRolesResponse: string[]) => ({
     roles: jest.fn((_include) => Promise.resolve(snapshotRolesResponse)),
+  });
+
+  const getSnapshotBuilderCountMock = (count = 0) => ({
+    getSnapshotBuilderCount: () =>
+      Promise.resolve({
+        result: {
+          total: count,
+        },
+        sql: 'sql',
+      }),
   });
 
   const initializeValidDatasetRequest = async (user) => {
@@ -117,7 +126,7 @@ describe('DatasetBuilder', () => {
           { name: 'concept set 1', concept, featureValueGroupName: 'a' },
           { name: 'concept set 2', concept, featureValueGroupName: 'b' },
         ],
-        prepackagedConceptSets: dummySettings!.datasetConceptSets,
+        prepackagedConceptSets: testSettings.datasetConceptSets,
         selectedConceptSets: [],
         updateConceptSets: jest.fn(),
         onChange: (conceptSets) => conceptSets,
@@ -174,7 +183,7 @@ describe('DatasetBuilder', () => {
     _.flow(
       _.map((prepackagedConceptSet: SnapshotBuilderDatasetConceptSet) => prepackagedConceptSet.name),
       _.forEach((prepackagedConceptSetName: string) => expect(screen.getByText(prepackagedConceptSetName)).toBeTruthy())
-    )(dummySettings!.datasetConceptSets);
+    )(testSettings.datasetConceptSets);
     expect(screen.getByText('Concept sets')).toBeTruthy();
     expect(screen.getByText('Prepackaged concept sets')).toBeTruthy();
   });
@@ -204,6 +213,7 @@ describe('DatasetBuilder', () => {
 
   it('allows selecting cohorts, concept sets, and values', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const user = userEvent.setup();
     showDatasetBuilderContents({
       cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
@@ -229,6 +239,7 @@ describe('DatasetBuilder', () => {
   it('maintains old values selections', async () => {
     // Arrange
     const user = userEvent.setup();
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     await initializeValidDatasetRequest(user);
     await user.click(screen.getByLabelText('condition column 1'));
     await user.click(screen.getByLabelText('concept set 1'));
