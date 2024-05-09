@@ -4,7 +4,7 @@ import { DataRepo, DataRepoContract, SnapshotBuilderSettings } from 'src/libs/aj
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { DatasetBuilderDetails } from './DatasetBuilderDetails';
-import { dummySnapshotBuilderSettings } from './TestConstants';
+import { testSnapshotBuilderSettings } from './TestConstants';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -39,7 +39,7 @@ describe('DatasetBuilderDetails', () => {
 
   it('renders', async () => {
     // Arrange
-    mockWithValues(dummySnapshotBuilderSettings(), ['aggregate_data_reader']);
+    mockWithValues(testSnapshotBuilderSettings(), ['aggregate_data_reader']);
     render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
     // Assert
     expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
@@ -48,7 +48,7 @@ describe('DatasetBuilderDetails', () => {
 
   it("renders the 'how to get access' button if discoverer", async () => {
     // Arrange
-    mockWithValues(dummySnapshotBuilderSettings(), ['snapshot_creator']);
+    mockWithValues(testSnapshotBuilderSettings(), ['snapshot_creator']);
     render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
     // Assert
     expect(await screen.findByText('AnalytiXIN')).toBeTruthy();

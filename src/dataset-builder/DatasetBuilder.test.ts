@@ -23,7 +23,7 @@ import {
   OnStateChangeHandler,
   ValuesSelector,
 } from './DatasetBuilder';
-import { dummySnapshotBuilderSettings, dummySnapshotId } from './TestConstants';
+import { testSnapshotBuilderSettings, testSnapshotId } from './TestConstants';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -43,7 +43,7 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
 const concept = { id: 100, name: 'concept', code: '0', count: 10, hasChildren: false, children: [] };
 
 describe('DatasetBuilder', () => {
-  const dummySettings = dummySnapshotBuilderSettings();
+  const dummySettings = testSnapshotBuilderSettings();
   type DatasetBuilderContentsPropsOverrides = {
     onStateChange?: OnStateChangeHandler;
     updateCohorts?: Updater<Cohort[]>;
@@ -61,7 +61,7 @@ describe('DatasetBuilder', () => {
         updateCohorts: jest.fn(),
         updateConceptSets: jest.fn(),
         onStateChange: (state) => state,
-        snapshotId: dummySnapshotId,
+        snapshotId: testSnapshotId,
         snapshotBuilderSettings: dummySettings,
         ...overrides,
       })
@@ -249,7 +249,7 @@ describe('DatasetBuilder', () => {
 
   it('shows the home page by default', async () => {
     // Arrange
-    mockWithValues(dummySnapshotBuilderSettings());
+    mockWithValues(testSnapshotBuilderSettings());
     render(h(DatasetBuilderView));
     // Assert
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();
@@ -258,7 +258,7 @@ describe('DatasetBuilder', () => {
 
   it('shows the cohort editor page', async () => {
     // Arrange
-    mockWithValues(dummySnapshotBuilderSettings());
+    mockWithValues(testSnapshotBuilderSettings());
     const initialState = cohortEditorState.new(newCohort('my test cohort'));
     render(h(DatasetBuilderView, { snapshotId: 'ignored', initialState }));
     // Assert

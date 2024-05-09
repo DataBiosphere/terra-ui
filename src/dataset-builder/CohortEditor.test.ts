@@ -22,7 +22,7 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';
 import { domainCriteriaSearchState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
-import { dummySnapshotBuilderSettings, dummySnapshotId } from './TestConstants';
+import { testSnapshotBuilderSettings, testSnapshotId } from './TestConstants';
 
 jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
@@ -78,11 +78,11 @@ describe('CohortEditor', () => {
 
   const getNextCriteriaIndex = () => 1234;
 
-  const snapshotBuilderSettings = dummySnapshotBuilderSettings();
+  const snapshotBuilderSettings = testSnapshotBuilderSettings();
   const renderCriteriaView = (propsOverrides: CriteriaViewPropsOverrides) =>
     render(
       h(CriteriaView, {
-        snapshotId: dummySnapshotId,
+        snapshotId: testSnapshotId,
         deleteCriteria: _.noop,
         updateCriteria: _.noop,
         key: '1',
@@ -311,7 +311,7 @@ describe('CohortEditor', () => {
         criteriaGroup,
         updateCohort,
         cohort,
-        snapshotId: dummySnapshotId,
+        snapshotId: testSnapshotId,
         snapshotBuilderSettings: snapshotBuilderSettingsUpdated,
         onStateChange: _.noop,
         getNextCriteriaIndex,
@@ -418,7 +418,7 @@ describe('CohortEditor', () => {
     render(
       h(CohortEditor, {
         onStateChange,
-        snapshotId: dummySnapshotId,
+        snapshotId: testSnapshotId,
         snapshotBuilderSettings,
         originalCohort,
         updateCohorts,

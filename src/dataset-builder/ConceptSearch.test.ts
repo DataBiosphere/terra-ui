@@ -4,7 +4,7 @@ import _ from 'lodash/fp';
 import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { ConceptSearch } from 'src/dataset-builder/ConceptSearch';
-import { dummyGetConceptForId, dummySnapshotBuilderSettings } from 'src/dataset-builder/TestConstants';
+import { dummyGetConceptForId, testSnapshotBuilderSettings } from 'src/dataset-builder/TestConstants';
 import { DataRepo, DataRepoContract, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -30,7 +30,7 @@ describe('ConceptSearch', () => {
   const onOpenHierarchy = jest.fn();
   const actionText = 'action text';
   const datasetId = '0';
-  const domainOption = dummySnapshotBuilderSettings()!.domainOptions[0];
+  const domainOption = testSnapshotBuilderSettings()!.domainOptions[0];
 
   const renderSearch = (initialSearch = '', initialCart: SnapshotBuilderConcept[] = []) =>
     render(

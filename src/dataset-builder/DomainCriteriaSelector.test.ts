@@ -13,7 +13,7 @@ import {
   newCriteriaGroup,
 } from './dataset-builder-types';
 import { DomainCriteriaSelector, toCriteria } from './DomainCriteriaSelector';
-import { dummyGetConceptForId, dummySnapshotBuilderSettings } from './TestConstants';
+import { dummyGetConceptForId, testSnapshotBuilderSettings } from './TestConstants';
 
 jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
@@ -35,7 +35,7 @@ describe('DomainCriteriaSelector', () => {
   const datasetId = '';
   const concept = dummyGetConceptForId(101);
   const children = [dummyGetConceptForId(102)];
-  const domainOption = dummySnapshotBuilderSettings()!.domainOptions[0];
+  const domainOption = testSnapshotBuilderSettings()!.domainOptions[0];
   const cohort = newCohort('cohort');
   cohort.criteriaGroups.push(newCriteriaGroup());
   asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);

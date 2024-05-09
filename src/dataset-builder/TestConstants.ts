@@ -1,9 +1,9 @@
 import _ from 'lodash/fp';
 import { SnapshotBuilderConcept as Concept, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 
-export const dummySnapshotId = '0';
+export const testSnapshotId = '0';
 
-export const dummySnapshotBuilderSettings = (): SnapshotBuilderSettings => ({
+export const testSnapshotBuilderSettings = (): SnapshotBuilderSettings => ({
   programDataOptions: [
     {
       id: 0,
