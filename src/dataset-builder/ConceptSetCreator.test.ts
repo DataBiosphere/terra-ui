@@ -28,7 +28,7 @@ describe('ConceptSetCreator', () => {
     return { conceptSetUpdater, onStateChange };
   };
 
-  const rootConcept = snapshotBuilderSettings!.domainOptions[0].root;
+  const rootConcept = snapshotBuilderSettings.domainOptions[0].root;
 
   it('renders the concept set selector', async () => {
     // Arrange

@@ -479,14 +479,14 @@ describe('CohortEditor', () => {
     // Act
     await user.click(screen.getByText('Add group'));
     await user.click(screen.getByLabelText('Add criteria'));
-    const domainMenuItem = screen.getByText(snapshotBuilderSettings!.domainOptions[0].name);
+    const domainMenuItem = screen.getByText(snapshotBuilderSettings.domainOptions[0].name);
     await user.click(domainMenuItem);
     // Assert
     expect(onStateChange).toBeCalledWith(
       domainCriteriaSearchState.new(
         expect.anything(),
         expect.anything(),
-        _.set('kind', 'domain', snapshotBuilderSettings!.domainOptions[0]),
+        _.set('kind', 'domain', snapshotBuilderSettings.domainOptions[0]),
         [],
         ''
       )

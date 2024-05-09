@@ -68,6 +68,18 @@ describe('DatasetBuilder', () => {
     );
   };
 
+  const mockWithValues = (snapshotBuilderSettingsResponse: SnapshotBuilderSettings) => {
+    asMockedFn(DataRepo).mockImplementation(
+      () =>
+        ({
+          snapshot: (_snapshotId) =>
+            ({
+              getSnapshotBuilderSettings: jest.fn((_include) => Promise.resolve(snapshotBuilderSettingsResponse)),
+            } as Partial<DataRepoContract['snapshot']>),
+        } as Partial<DataRepoContract> as DataRepoContract)
+    );
+  };
+
   const initializeValidDatasetRequest = async (user) => {
     showDatasetBuilderContents({
       cohorts: [newCohort('cohort 1')],
@@ -237,6 +249,7 @@ describe('DatasetBuilder', () => {
 
   it('shows the home page by default', async () => {
     // Arrange
+    mockWithValues(dummySnapshotBuilderSettings());
     render(h(DatasetBuilderView));
     // Assert
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();
@@ -245,6 +258,7 @@ describe('DatasetBuilder', () => {
 
   it('shows the cohort editor page', async () => {
     // Arrange
+    mockWithValues(dummySnapshotBuilderSettings());
     const initialState = cohortEditorState.new(newCohort('my test cohort'));
     render(h(DatasetBuilderView, { snapshotId: 'ignored', initialState }));
     // Assert
