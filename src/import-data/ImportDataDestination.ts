@@ -227,10 +227,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         h(WorkspacePolicies, {
           workspace: selectedWorkspace,
           noCheckboxes: true,
-          endingNotice:
-            isProtectedData
-              ? div(['Importing this data may add additional access controls'])
-              : undefined,
+          endingNotice: isProtectedData ? div(['Importing this data may add additional access controls']) : undefined,
         }),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
@@ -365,11 +362,11 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                 renderNotice: () => {
                   const children: ReactNode[] = [];
                   if (isProtectedData) {
-                      children.push(
-                        div({ style: { paddingBottom: importMayTakeTime ? '1.0rem' : 0 } }, [
-                          'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
-                        ])
-                      );
+                    children.push(
+                      div({ style: { paddingBottom: importMayTakeTime ? '1.0rem' : 0 } }, [
+                        'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
+                      ])
+                    );
                   }
                   if (importMayTakeTime) {
                     children.push(div([importMayTakeTimeMessage]));
