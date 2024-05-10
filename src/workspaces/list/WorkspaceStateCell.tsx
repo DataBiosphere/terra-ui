@@ -79,12 +79,14 @@ const WorkspaceCloningCell = (): ReactNode => (
   </WorkspaceStatusPill>
 );
 
-const WorkspaceStatusPill = (props: {
+interface WorkspaceStatusPillProps {
   iconShape: IconId;
   rotateIcon?: boolean;
   color: (number?) => any;
   children: ReactNode;
-}) => {
+}
+
+const WorkspaceStatusPill = (props: WorkspaceStatusPillProps): ReactNode => {
   return (
     <div
       style={{
