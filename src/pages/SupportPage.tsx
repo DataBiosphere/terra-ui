@@ -20,7 +20,7 @@ const SupportPage = (props: SupportPageProps) => {
 
   return (
     <FooterWrapper>
-      <TopBar title="Support" href={Nav.getLink('support')}>
+      <TopBar title='Support' href={Nav.getLink('support')}>
         {resourceName && (
           <div style={Style.breadcrumb.breadcrumb}>
             <div style={Style.noWrapEllipsis}>{breadcrumbs}</div>
@@ -28,7 +28,7 @@ const SupportPage = (props: SupportPageProps) => {
           </div>
         )}
       </TopBar>
-      <PageBox role="main" variant={PageBoxVariants.light}>
+      <PageBox role='main' variant={PageBoxVariants.light}>
         <h2 style={{ ...Style.elements.sectionHeader, textTransform: 'uppercase' }}>Support</h2>
         <p>Select resource type.</p>
         <SupportResourceList queryParams={{ selectedType, resourceName }} />

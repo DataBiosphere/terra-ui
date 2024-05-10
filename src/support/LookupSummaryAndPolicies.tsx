@@ -47,19 +47,9 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
         <ButtonPrimary onClick={() => submit()}>Load</ButtonPrimary>
       </div>
       {!!props.loadSupportSummaryFn && (
-        <SupportSummary
-          displayName={props.displayName}
-          fqResourceId={props.fqResourceId}
-          key={`${props.fqResourceId.resourceTypeName}-summary`}
-          loadSupportSummaryFn={props.loadSupportSummaryFn}
-        />
+        <SupportSummary {...props} key={`${props.fqResourceId.resourceTypeName}-summary`} />
       )}
-      <ResourcePolicies
-        displayName={props.displayName}
-        fqResourceId={props.fqResourceId}
-        key={`${props.fqResourceId.resourceTypeName}-policy`}
-        loadSupportSummaryFn={props.loadSupportSummaryFn}
-      />
+      <ResourcePolicies {...props} key={`${props.fqResourceId.resourceTypeName}-policy`} />
     </>
   );
 };

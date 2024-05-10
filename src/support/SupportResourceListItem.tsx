@@ -35,7 +35,7 @@ export const SupportResourceListItem = (props: SupportResourceListItemProps) => 
   const supportResourceElement = <span style={{ wordBreak: 'break-all' }}>{resourceType.displayName}</span>;
 
   return (
-    <div role="listitem">
+    <div role='listitem'>
       <div
         style={listItemStyle(isActive, hovered)}
         onMouseEnter={() => setHovered(true)}

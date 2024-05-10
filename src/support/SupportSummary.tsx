@@ -5,16 +5,19 @@ import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import { ResourceTypeSummaryProps } from 'src/support/SupportResourceType';
 
-export interface SupportSummaryProps extends ResourceTypeSummaryProps {
-  loadSupportSummaryFn: (id: FullyQualifiedResourceId) => Promise<object>;
-}
-
-export const SupportSummary = (props: SupportSummaryProps) => {
+export const SupportSummary = (props: ResourceTypeSummaryProps) => {
   const [summaryInfo, setSummaryInfo] = useState<object>();
   const [errorMessage, setErrorMessage] = useState<string>('');
   const resourceId = props.fqResourceId.resourceId;
   const fqResourceId = props.fqResourceId;
-  const loadSupportSummaryFn = props.loadSupportSummaryFn;
+
+  async function loadSupportSummary(id: FullyQualifiedResourceId) {
+    if (props.loadSupportSummaryFn) {
+      return props.loadSupportSummaryFn(id);
+    }
+    // throw error here because this component should not be used without a summary function
+    throw new Error('No support summary function provided');
+  }
 
   function clear() {
     setErrorMessage('');
@@ -26,7 +29,7 @@ export const SupportSummary = (props: SupportSummaryProps) => {
       clear();
       if (resourceId) {
         try {
-          setSummaryInfo(await loadSupportSummaryFn(fqResourceId));
+          setSummaryInfo(await loadSupportSummary(fqResourceId));
         } catch (e) {
           if (e instanceof Response && e.status === 404) {
             setErrorMessage('Group not found');
@@ -40,7 +43,8 @@ export const SupportSummary = (props: SupportSummaryProps) => {
     };
 
     loadSummary();
-  }, [fqResourceId, resourceId, loadSupportSummaryFn]);
+    // eslist complains about loadSupportSummary being a dependency, but adding it causes an infinite loop
+  }, [fqResourceId, resourceId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
