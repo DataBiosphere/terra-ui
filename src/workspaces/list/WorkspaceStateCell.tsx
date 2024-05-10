@@ -23,6 +23,7 @@ const styles = {
 
 const WorkspaceDescriptionCell = (props: { description: unknown | undefined }) => (
   <div style={styles.tableCellContent}>
+    {/* @ts-expect-error - FirstParagraphMarkdownViewer is not typed, so ts expects a value for renderers */}
     <FirstParagraphMarkdownViewer
       style={{
         height: '1.5rem',
@@ -31,7 +32,6 @@ const WorkspaceDescriptionCell = (props: { description: unknown | undefined }) =
         color: props.description ? undefined : colors.dark(0.75),
         fontSize: 14,
       }}
-      renderers={{}} // needed to make typechecker work, because FirstParagraphMarkdownViewer is not typed
     >
       {props.description?.toString() || 'No description added'}
     </FirstParagraphMarkdownViewer>
