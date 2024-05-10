@@ -1,19 +1,27 @@
-import { ComponentType } from 'react';
+import { Ajax } from 'src/libs/ajax';
 import { FullyQualifiedResourceId } from 'src/libs/ajax/SamResources';
-import { ManagedGroupSummary } from 'src/support/ManagedGroupSummary';
 
 export interface ResourceTypeSummaryProps {
   displayName: string;
   fqResourceId: FullyQualifiedResourceId;
+  loadSupportSummaryFn: ((id: FullyQualifiedResourceId) => Promise<object>) | undefined;
 }
 
 export interface SupportResourceType {
   displayName: string;
   resourceType: string;
-  detailComponent: ComponentType<ResourceTypeSummaryProps>;
+  loadSupportSummaryFn: ((id: FullyQualifiedResourceId) => Promise<object>) | undefined;
 }
 
 // Define the supported resources, add your own here
 export const supportResources: SupportResourceType[] = [
-  { displayName: 'Group', resourceType: 'managed-group', detailComponent: ManagedGroupSummary },
-];
+  {
+    displayName: 'Group',
+    resourceType: 'managed-group',
+    loadSupportSummaryFn: (id: FullyQualifiedResourceId) => Ajax().Groups.group(id.resourceId).getSupportSummary(),
+  },
+  { displayName: 'Workspace', resourceType: 'workspace', loadSupportSummaryFn: undefined },
+  { displayName: 'Billing Project', resourceType: 'billing-project', loadSupportSummaryFn: undefined },
+  { displayName: 'Dataset', resourceType: 'dataset', loadSupportSummaryFn: undefined },
+  { displayName: 'Snapshot', resourceType: 'datasnapshot', loadSupportSummaryFn: undefined },
+].sort((a, b) => a.displayName.localeCompare(b.displayName));

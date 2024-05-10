@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import React from 'react';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { LookupSummaryAndPolicies } from 'src/support/LookupSummaryAndPolicies';
 import { SupportResourceListItem, SupportResourceListItemProps } from 'src/support/SupportResourceListItem';
 import { supportResources, SupportResourceType } from 'src/support/SupportResourceType';
 
@@ -25,7 +26,7 @@ export const SupportResourceList = (props: SupportResourceListProps) => {
   };
 
   return (
-    <div role="main" style={{ display: 'flex', flex: 1, height: `calc(100% - ${Style.topBarHeight}px)` }}>
+    <div role='main' style={{ display: 'flex', flex: 1, height: `calc(100% - ${Style.topBarHeight}px)` }}>
       <div
         style={{
           minWidth: supportResourceListWidth,
@@ -34,7 +35,7 @@ export const SupportResourceList = (props: SupportResourceListProps) => {
           overflowY: 'auto',
         }}
       >
-        <div role="list">
+        <div role='list'>
           {_.map(
             (supportResource) => (
               <SupportResourceListItem
@@ -60,10 +61,13 @@ export const SupportResourceList = (props: SupportResourceListProps) => {
             () => {
               const supportResourceType = _.find({ resourceType: selectedType }, supportResources);
               if (supportResourceType) {
-                return React.createElement(supportResourceType.detailComponent, {
-                  displayName: supportResourceType.displayName,
-                  fqResourceId: { resourceTypeName: selectedType, resourceId: resourceName },
-                });
+                return (
+                  <LookupSummaryAndPolicies
+                    displayName={supportResourceType.displayName}
+                    fqResourceId={{ resourceTypeName: selectedType, resourceId: resourceName }}
+                    loadSupportSummaryFn={supportResourceType.loadSupportSummaryFn}
+                  />
+                );
               }
               return <div style={{ margin: '1rem auto 0 auto' }}>Select a Resource Type</div>;
             },
