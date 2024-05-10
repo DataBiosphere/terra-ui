@@ -25,7 +25,9 @@ export const Icon = (props: IconProps): ReactNode => {
 };
 
 /**
- * Renders an icon. Prefer the {@link Icon} component in JSX.
+ * Renders an icon.
+ *
+ * @deprecated Use the {@link Icon} component instead.
  *
  * @param icon - The icon to render.
  * @param props - Other props for the icon component.
