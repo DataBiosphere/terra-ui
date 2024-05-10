@@ -1,4 +1,4 @@
-import { icon, IconId, Modal } from '@terra-ui-packages/components';
+import { Icon, IconId, Modal } from '@terra-ui-packages/components';
 import React, { ReactNode, useState } from 'react';
 import { Link } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
@@ -102,14 +102,15 @@ const WorkspaceStatusPill = (props: WorkspaceStatusPillProps): ReactNode => {
         fontSize: '0.875rem',
       }}
     >
-      {icon(props.iconShape, {
-        size: 16,
-        style: {
+      <Icon
+        icon={props.iconShape}
+        size={16}
+        style={{
           animation: props.rotateIcon ? 'rotation 2s infinite linear' : undefined,
           color: props.color(),
           textAlign: 'center',
-        },
-      })}
+        }}
+      />
       <span style={{ margin: '0.5rem' }}>{props.children}</span>
     </div>
   );
