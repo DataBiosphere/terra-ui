@@ -1,9 +1,8 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import typescript from '@rollup/plugin-typescript';
-import process from 'process';
-import { defineConfig } from 'vite';
+import * as process from 'process';
+import { ConfigEnv, defineConfig, PluginOption, UserConfig } from 'vite';
 
-export default defineConfig(({ mode }) => {
+export const defineBaseViteConfig = defineConfig(({ mode }: ConfigEnv): UserConfig => {
   return {
     build: {
       lib: {
@@ -11,6 +10,12 @@ export default defineConfig(({ mode }) => {
         // Build ES Module as CommonJS versions.
         formats: ['es', 'cjs'],
         fileName: (format, entryName) => {
+          // Narrow type of format to 'es' or 'cjs'.
+          // This should never throw because those are the only formats listed in `build.lib.formats`.
+          if (!(format === 'es' || format === 'cjs')) {
+            throw new Error(`Unsupported module format: ${format}`);
+          }
+
           // Since package.json contains `type: "module"`, .js files will be interpreted as ES Modules.
           // CommonJS modules must be distinguished with a .cjs extension.
           const extension = { es: 'js', cjs: 'cjs' }[format];
@@ -69,7 +74,7 @@ export default defineConfig(({ mode }) => {
   };
 });
 
-function preserveExternalImports() {
+function preserveExternalImports(): PluginOption {
   // Depends on running the build from the package's directory.
   // This is a valid assumption when running the build from a package.json script with yarn or npm.
   const packageDirectory = process.cwd();
