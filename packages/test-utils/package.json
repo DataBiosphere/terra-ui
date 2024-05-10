@@ -5,7 +5,7 @@
     "build": "vite build --emptyOutDir",
     "dev": "vite build --mode=development --watch",
     "test": "yarn run build >/dev/null && jest",
-    "check-dts": "check-dts"
+    "check-dts": "check-dts src/**/*"
   },
   "type": "module",
   "module": "./lib/es/index.js",

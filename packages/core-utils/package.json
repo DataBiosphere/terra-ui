@@ -4,7 +4,7 @@
   "scripts": {
     "build": "vite build --emptyOutDir",
     "dev": "vite build --mode=development --watch",
-    "check-dts": "check-dts",
+    "check-dts": "check-dts src/**/*",
     "test": "jest"
   },
   "type": "module",
