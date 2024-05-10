@@ -195,7 +195,6 @@ export const NoEnvironments: Story = {
 };
 
 /**
- * # Error notification
  * This demonstrates the notification callback that is triggered if deleting a cloud environment fails.
  * The callback can be seen in the `Actions` tab.
  */
