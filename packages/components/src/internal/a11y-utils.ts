@@ -1,4 +1,6 @@
-import { Children, ReactNode } from 'react';
+import { Children, isValidElement, ReactNode } from 'react';
+
+import { Icon } from '../Icon';
 
 export interface ContainsOnlyUnlabelledIconArgs {
   'aria-label'?: string;
@@ -30,17 +32,16 @@ export const containsOnlyUnlabelledIcon = (args: ContainsOnlyUnlabelledIconArgs)
   try {
     const onlyChild = Children.only(children);
 
-    // Is there a better way to test for an icon component other than duck-typing?
-    // @ts-ignore Errors caused by invalid type assumption are handled by try/catch.
-    // icon sets aria-hidden to true if neither aria-label or aria-labelledby is provided.
-    if ('data-icon' in onlyChild.props && onlyChild.props['aria-hidden'] === true) {
+    if (
+      isValidElement(onlyChild) &&
+      onlyChild.type === Icon &&
+      !('aria-label' in onlyChild.props || 'aria-labelledby' in onlyChild.props)
+    ) {
       return true;
     }
   } catch (e) {
     // Children.only throws an error if the component has multiple children.
-    // `'data-icon' in onlyChild.props` throws an error if onlyChild is not a React element
-    // (if it's a string, number, etc.) and thus does not have a 'props' property.
-    // Both of those possibilities are expected and should result in this function returning false.
+    // This possibility is expected and should result in this function returning false.
   }
 
   return false;
