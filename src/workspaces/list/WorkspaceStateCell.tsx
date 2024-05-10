@@ -135,11 +135,11 @@ const WorkspaceFailedCell = (props: WorkspaceFailedCellProps): ReactNode => {
           See error details.
         </Link>
       ) : null}
-      {showDetails ? (
+      {showDetails && (
         <Modal width={800} title={failureMsg} showCancel={false} showX onDismiss={() => setShowDetails(false)}>
           <ErrorView error={props.errorMessage ?? 'No error message available'} />
         </Modal>
-      ) : null}
+      )}
     </WorkspaceStatusPill>
   );
 };
