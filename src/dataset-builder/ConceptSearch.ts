@@ -13,8 +13,8 @@ import { formatCount, HighlightConceptName } from 'src/dataset-builder/DatasetBu
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
+  SnapshotBuilderConceptsResponse,
   SnapshotBuilderDomainOption,
-  SnapshotBuilderGetConceptsResponse as GetConceptsResponse,
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -31,27 +31,27 @@ type ConceptSearchProps = {
     openedConcept?: Concept
   ) => void;
   readonly actionText: string;
-  readonly datasetId: string;
+  readonly snapshotId: string;
   readonly initialCart: Concept[];
 };
 
 const DebouncedTextInput = withDebouncedChange(TextInput);
 export const ConceptSearch = (props: ConceptSearchProps) => {
-  const { initialSearch, domainOption, onCancel, onCommit, onOpenHierarchy, actionText, datasetId, initialCart } =
+  const { initialSearch, domainOption, onCancel, onCommit, onOpenHierarchy, actionText, snapshotId, initialCart } =
     props;
   const [searchText, setSearchText] = useState<string>(initialSearch);
   const [cart, setCart] = useState<Concept[]>(initialCart);
-  const [concepts, searchConcepts] = useLoadedData<GetConceptsResponse>();
+  const [concepts, enumerateConcepts] = useLoadedData<SnapshotBuilderConceptsResponse>();
 
   useEffect(() => {
     if (searchText.length === 0 || searchText.length > 2) {
-      void searchConcepts(() => {
-        return withErrorReporting(`Error searching concepts with term ${searchText}`)(async () =>
-          DataRepo().dataset(datasetId).searchConcepts(domainOption.root, searchText)
-        )();
-      });
+      void enumerateConcepts(
+        withErrorReporting(`Error searching concepts with term ${searchText}`)(async () => {
+          return DataRepo().snapshot(snapshotId).enumerateConcepts(domainOption.root, searchText);
+        })
+      );
     }
-  }, [searchText, datasetId, domainOption.root, searchConcepts]);
+  }, [searchText, snapshotId, domainOption.root, enumerateConcepts]);
   const tableLeftPadding = { paddingLeft: '2rem' };
   const iconSize = 18;
 

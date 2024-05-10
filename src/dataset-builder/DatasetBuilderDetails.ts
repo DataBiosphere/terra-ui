@@ -1,12 +1,11 @@
 import { useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { useEffect } from 'react';
 import { div, h, h1, h3 } from 'react-hyperscript-helpers';
 import { ButtonOutline, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { MarkdownViewer } from 'src/components/markdown';
 import TopBar from 'src/components/TopBar';
-import { DataRepo, datasetIncludeTypes, DatasetModel } from 'src/libs/ajax/DataRepo';
+import { DataRepo, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
@@ -22,6 +21,8 @@ interface DomainDisplayProps {
     conceptCount?: number;
   }[];
 }
+
+const DATASET_NAME = 'AnalytiXIN';
 
 const TileDisplay = (props: DomainDisplayProps) => {
   const { title, displayInformation } = props;
@@ -63,47 +64,40 @@ const TileDisplay = (props: DomainDisplayProps) => {
 };
 
 interface DatasetBuilderDetailsProps {
-  datasetId: string;
+  snapshotId: string;
 }
 
-export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps) => {
-  const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetModel>();
-  const [datasetRoles, loadDatasetRoles] = useLoadedData<string[]>();
+export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps) => {
+  const [snapshotBuilderSettings, loadSnapshotBuilderSettings] = useLoadedData<SnapshotBuilderSettings>();
+  const [snapshotRoles, loadSnapshotRoles] = useLoadedData<string[]>();
   const hasAggregateDataViewerAccess =
-    datasetRoles.status === 'Ready' ? _.intersection(['admin'], datasetRoles.state).length > 0 : false;
+    snapshotRoles.status === 'Ready'
+      ? _.intersection(['aggregate_data_reader'], snapshotRoles.state).length > 0
+      : false;
 
   useOnMount(() => {
-    void loadDatasetDetails(
-      withErrorReporting(`Error loading dataset details for dataset ${datasetId}`)(() =>
-        DataRepo().dataset(datasetId).details()
+    void loadSnapshotRoles(
+      withErrorReporting(`Error loading roles for snapshot ${snapshotId}`)(() =>
+        DataRepo().snapshot(snapshotId).roles()
       )
     );
-    void loadDatasetRoles(
-      withErrorReporting(`Error loading dataset roles for dataset ${datasetId}`)(() =>
-        DataRepo().dataset(datasetId).roles()
+    void loadSnapshotBuilderSettings(
+      withErrorReporting(`Error loading snapshot builder settings for ${snapshotId}`)(() =>
+        DataRepo().snapshot(snapshotId).getSnapshotBuilderSettings()
       )
     );
   });
 
-  useEffect(() => {
-    hasAggregateDataViewerAccess &&
-      void loadDatasetDetails(
-        withErrorReporting(`Error loading dataset builder settings for dataset ${datasetId}`)(() =>
-          DataRepo().dataset(datasetId).details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS])
-        )
-      );
-  }, [datasetId, loadDatasetDetails, hasAggregateDataViewerAccess]);
-
-  return datasetDetails.status === 'Ready'
+  return snapshotBuilderSettings.status === 'Ready' && snapshotRoles.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         div({ style: { padding: '2rem' } }, [
           h(DatasetBuilderBreadcrumbs, {
             breadcrumbs: [{ link: Nav.getLink('library-datasets'), title: 'Data Browser' }],
           }),
-          h1({ style: { marginTop: '0.75rem' } }, [datasetDetails.state.name]),
+          h1({ style: { marginTop: '0.75rem' } }, [DATASET_NAME]),
           div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-            h(MarkdownViewer, [datasetDetails.state.description]),
+            h(MarkdownViewer, [`${DATASET_NAME} dataset`]),
             div({ style: { width: '22rem', backgroundColor: 'white', padding: '1rem', marginLeft: '1rem' } }, [
               div([
                 'Use the Dataset Builder to create specific tailored data for further analyses in a Terra Workspace',
@@ -115,7 +109,7 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
                   // TODO: Get link for learn how to get access
                   href: !hasAggregateDataViewerAccess
                     ? encodeURIComponent(Nav.getLink('root'))
-                    : Nav.getLink('dataset-builder', { datasetId }),
+                    : Nav.getLink('dataset-builder', { snapshotId }),
                 },
                 [hasAggregateDataViewerAccess ? 'Start creating datasets' : 'Learn how to gain access']
               ),
@@ -124,11 +118,10 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
               ]),
             ]),
           ]),
-          datasetDetails.state.snapshotBuilderSettings &&
-            h(TileDisplay, {
-              title: 'EHR Domains',
-              displayInformation: datasetDetails.state.snapshotBuilderSettings.domainOptions,
-            }),
+          h(TileDisplay, {
+            title: 'EHR Domains',
+            displayInformation: snapshotBuilderSettings.state.domainOptions,
+          }),
         ]),
       ])
     : spinnerOverlay;
@@ -137,7 +130,7 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
 export const navPaths = [
   {
     name: 'dataset-builder-details',
-    path: '/library/builder/:datasetId',
+    path: '/library/builder/:snapshotId',
     component: DatasetBuilderDetails,
     title: 'Build Dataset',
   },
