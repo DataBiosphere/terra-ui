@@ -3,7 +3,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { RenderedWorkspaces } from 'src/workspaces/list/RenderedWorkspaces';
-import { WorkspaceWrapper } from 'src/workspaces/utils';
+import { WorkspaceState, WorkspaceWrapper } from 'src/workspaces/utils';
 
 // FlexTable uses react-virtualized's AutoSizer to size the table.
 // This makes the virtualized window large enough for all rows/columns to be rendered in tests.
@@ -39,13 +39,48 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     expect(renderedAzureWS).toHaveLength(1);
   });
 
-  it('should indicate when the workspace is in the process of deleting instead of displaying the description', () => {
+  it.each<{ state: WorkspaceState; statusMessage: string }>([
+    // Cloning and CloningContainer are treated as the same state, for now
+    { state: 'Cloning', statusMessage: 'Workspace cloning in progress' },
+    { state: 'CloningContainer', statusMessage: 'Workspace cloning in progress' },
+    { state: 'Deleting', statusMessage: 'Workspace deletion in progress' },
+  ])(
+    'should indicate when the workspace is in a tracked state instead of displaying the description',
+    ({ state, statusMessage }) => {
+      // Arrange
+      const workspace: WorkspaceWrapper = {
+        ...defaultAzureWorkspace,
+        workspace: {
+          ...defaultAzureWorkspace.workspace,
+          state,
+          attributes: { description: 'some description' },
+        },
+      };
+      const label = 'myWorkspaces';
+
+      // Act
+      render(h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}) }));
+
+      // Assert
+      const workspaceDescriptionDisplay = screen.queryAllByText('some description');
+      expect(workspaceDescriptionDisplay).toHaveLength(0);
+
+      const workspaceStateDisplay = screen.getAllByText(statusMessage);
+      expect(workspaceStateDisplay).not.toBeNull();
+      expect(workspaceStateDisplay).toHaveLength(1);
+    }
+  );
+
+  it.each<{ state: WorkspaceState; message: string }>([
+    { state: 'CloningFailed', message: 'Workspace clone unsuccessful' },
+    { state: 'DeleteFailed', message: 'Error deleting workspace' },
+  ])('should indicate workspace failure instead of displaying the description', ({ state, message }) => {
     // Arrange
     const workspace: WorkspaceWrapper = {
       ...defaultAzureWorkspace,
       workspace: {
         ...defaultAzureWorkspace.workspace,
-        state: 'Deleting',
+        state,
         attributes: { description: 'some description' },
       },
     };
@@ -58,60 +93,12 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     const workspaceDescriptionDisplay = screen.queryAllByText('some description');
     expect(workspaceDescriptionDisplay).toHaveLength(0);
 
-    const workspaceStateDisplay = screen.getAllByText('Workspace deletion in progress');
+    const workspaceStateDisplay = screen.getAllByText(message);
     expect(workspaceStateDisplay).not.toBeNull();
     expect(workspaceStateDisplay).toHaveLength(1);
   });
 
-  it('should indicate when the workspace is in the process of cloning instead of displaying the description', () => {
-    // Arrange
-    const workspace: WorkspaceWrapper = {
-      ...defaultAzureWorkspace,
-      workspace: {
-        ...defaultAzureWorkspace.workspace,
-        state: 'Cloning',
-        attributes: { description: 'some description' },
-      },
-    };
-    const label = 'myWorkspaces';
-
-    // Act
-    render(h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}) }));
-
-    // Assert
-    const workspaceDescriptionDisplay = screen.queryAllByText('some description');
-    expect(workspaceDescriptionDisplay).toHaveLength(0);
-
-    const workspaceStateDisplay = screen.getAllByText('Workspace cloning in progress');
-    expect(workspaceStateDisplay).not.toBeNull();
-    expect(workspaceStateDisplay).toHaveLength(1);
-  });
-
-  it('should indicate when the workspace failed to delete instead of displaying the description', () => {
-    // Arrange
-    const workspace: WorkspaceWrapper = {
-      ...defaultAzureWorkspace,
-      workspace: {
-        ...defaultAzureWorkspace.workspace,
-        state: 'DeleteFailed',
-        attributes: { description: 'some description' },
-      },
-    };
-    const label = 'myWorkspaces';
-
-    // Act
-    render(h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}) }));
-
-    // Assert
-    const workspaceDescriptionDisplay = screen.queryAllByText('some description');
-    expect(workspaceDescriptionDisplay).toHaveLength(0);
-
-    const workspaceStateDisplay = screen.getAllByText('Error deleting workspace');
-    expect(workspaceStateDisplay).not.toBeNull();
-    expect(workspaceStateDisplay).toHaveLength(1);
-  });
-
-  it('should render the description when the workspace is not in the process of deleting', () => {
+  it('should render the description when the workspace is not in the process of deleting or cloning', () => {
     // Arrange
     const workspace: WorkspaceWrapper = {
       ...defaultAzureWorkspace,
