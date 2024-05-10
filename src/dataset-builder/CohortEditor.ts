@@ -18,7 +18,6 @@ import {
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
-  DatasetModel,
   SnapshotBuilderCountResponse,
   SnapshotBuilderDomainOption,
   SnapshotBuilderOption,
@@ -26,6 +25,7 @@ import {
   SnapshotBuilderProgramDataListOption,
   SnapshotBuilderProgramDataOption,
   SnapshotBuilderProgramDataRangeOption,
+  SnapshotBuilderSettings,
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -44,7 +44,7 @@ const narrowMargin = 5;
 const wideMargin = 10;
 
 type CriteriaViewProps = {
-  readonly datasetId: string;
+  readonly snapshotId: string;
   readonly criteria: AnyCriteria;
   readonly deleteCriteria: (criteria: AnyCriteria) => void;
   readonly updateCriteria: (criteria: AnyCriteria) => void;
@@ -53,17 +53,17 @@ type CriteriaViewProps = {
 const addCriteriaText = 'Add criteria';
 
 export const CriteriaView = (props: CriteriaViewProps) => {
-  const { datasetId, criteria, deleteCriteria, updateCriteria } = props;
+  const { snapshotId, criteria, deleteCriteria, updateCriteria } = props;
 
   const [criteriaCount, setCriteriaCount] = useLoadedData<SnapshotBuilderCountResponse>();
 
   const updateCriteriaCount = useRef(
-    _.debounce(250, (datasetId, criteria) => {
+    _.debounce(250, (snapshotId, criteria) => {
       setCriteriaCount(
         withErrorReporting('Error fetching count for criteria')(
           async () =>
             await DataRepo()
-              .dataset(datasetId)
+              .snapshot(snapshotId)
               .getSnapshotBuilderCount(
                 createSnapshotBuilderCountRequest([
                   {
@@ -79,8 +79,8 @@ export const CriteriaView = (props: CriteriaViewProps) => {
   );
 
   useEffect(() => {
-    updateCriteriaCount.current(datasetId, criteria);
-  }, [criteria, datasetId]);
+    updateCriteriaCount.current(snapshotId, criteria);
+  }, [criteria, snapshotId]);
   return div(
     {
       style: {
@@ -221,22 +221,15 @@ type AddCriteriaSelectorProps = {
   index: number;
   criteriaGroup: CriteriaGroup;
   updateCohort: Updater<Cohort>;
-  dataset: DatasetModel;
+  snapshotBuilderSettings: SnapshotBuilderSettings;
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
   cohort: Cohort;
 };
 
 const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
-  const {
-    index,
-    criteriaGroup,
-    updateCohort,
-    dataset: { snapshotBuilderSettings },
-    onStateChange,
-    getNextCriteriaIndex,
-    cohort,
-  } = props;
+  const { index, criteriaGroup, updateCohort, snapshotBuilderSettings, onStateChange, getNextCriteriaIndex, cohort } =
+    props;
 
   const convertToProgramDataOptionSubtype = (option: SnapshotBuilderProgramDataOption) => {
     switch (option.kind) {
@@ -308,13 +301,23 @@ type CriteriaGroupViewProps = {
   criteriaGroup: CriteriaGroup;
   updateCohort: Updater<Cohort>;
   cohort: Cohort;
-  dataset: DatasetModel;
+  snapshotId: string;
+  snapshotBuilderSettings: SnapshotBuilderSettings;
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
 };
 
 export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
-  const { index, criteriaGroup, updateCohort, cohort, dataset, onStateChange, getNextCriteriaIndex } = props;
+  const {
+    index,
+    criteriaGroup,
+    updateCohort,
+    cohort,
+    snapshotId,
+    snapshotBuilderSettings,
+    onStateChange,
+    getNextCriteriaIndex,
+  } = props;
 
   const deleteCriteria = (criteria: AnyCriteria) =>
     updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)));
@@ -334,11 +337,11 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   const [groupParticipantCount, setGroupParticipantCount] = useLoadedData<SnapshotBuilderCountResponse>();
 
   const updateGroupParticipantCount = useRef(
-    _.debounce(250, (dataset, criteriaGroup) =>
+    _.debounce(250, (snapshotId: string, criteriaGroup: CriteriaGroup) =>
       setGroupParticipantCount(
         withErrorReporting(`Error getting criteria group count for ${criteriaGroup.name}`)(async () =>
           DataRepo()
-            .dataset(dataset.id)
+            .snapshot(snapshotId)
             .getSnapshotBuilderCount(createSnapshotBuilderCountRequest([{ criteriaGroups: [criteriaGroup], name: '' }]))
         )
       )
@@ -346,8 +349,8 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   );
 
   useEffect(() => {
-    updateGroupParticipantCount.current(dataset, criteriaGroup);
-  }, [criteriaGroup, dataset]);
+    updateGroupParticipantCount.current(snapshotId, criteriaGroup);
+  }, [criteriaGroup, snapshotId]);
 
   return div(
     {
@@ -406,7 +409,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
             ? _.map(
                 ([criteriaIndex, criteria]) =>
                   h(CriteriaView, {
-                    datasetId: dataset.id,
+                    snapshotId,
                     deleteCriteria,
                     updateCriteria,
                     criteria,
@@ -424,8 +427,8 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
         h(AddCriteriaSelector, {
           index,
           criteriaGroup,
+          snapshotBuilderSettings,
           updateCohort,
-          dataset,
           onStateChange,
           getNextCriteriaIndex,
           cohort,
@@ -458,13 +461,14 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
 
 type CohortGroupsProps = {
   cohort: Cohort | undefined;
-  dataset: DatasetModel;
+  snapshotId: string;
+  snapshotBuilderSettings: SnapshotBuilderSettings;
   updateCohort: Updater<Cohort>;
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
 };
 const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
-  const { dataset, cohort, updateCohort, onStateChange, getNextCriteriaIndex } = props;
+  const { snapshotId, snapshotBuilderSettings, cohort, updateCohort, onStateChange, getNextCriteriaIndex } = props;
   return div({ style: { width: '47rem' } }, [
     cohort == null
       ? 'No cohort found'
@@ -477,7 +481,8 @@ const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
                   criteriaGroup,
                   updateCohort,
                   cohort,
-                  dataset,
+                  snapshotId,
+                  snapshotBuilderSettings,
                   onStateChange,
                   getNextCriteriaIndex,
                 }),
@@ -514,12 +519,13 @@ const editorBackgroundColor = colors.light(0.7);
 type CohortEditorContentsProps = {
   updateCohort: Updater<Cohort>;
   cohort: Cohort;
-  dataset: DatasetModel;
+  snapshotId: string;
+  snapshotBuilderSettings: SnapshotBuilderSettings;
   onStateChange: OnStateChangeHandler;
   getNextCriteriaIndex: () => number;
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
-  const { updateCohort, cohort, dataset, onStateChange, getNextCriteriaIndex } = props;
+  const { updateCohort, cohort, snapshotId, snapshotBuilderSettings, onStateChange, getNextCriteriaIndex } = props;
   return h(BuilderPageHeader, [
     h2({ style: { display: 'flex', alignItems: 'center' } }, [
       h(
@@ -538,7 +544,8 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
     div({ style: { display: 'flow' } }, [
       h(CohortGroups, {
         key: cohort.name,
-        dataset,
+        snapshotId,
+        snapshotBuilderSettings,
         cohort,
         updateCohort,
         onStateChange,
@@ -562,14 +569,16 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
 
 interface CohortEditorProps {
   readonly onStateChange: OnStateChangeHandler;
-  readonly dataset: DatasetModel;
+  readonly snapshotId: string;
+  readonly snapshotBuilderSettings: SnapshotBuilderSettings;
   readonly originalCohort: Cohort;
   readonly updateCohorts: Updater<Cohort[]>;
   readonly getNextCriteriaIndex: () => number;
 }
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
-  const { onStateChange, dataset, originalCohort, updateCohorts, getNextCriteriaIndex } = props;
+  const { onStateChange, snapshotId, snapshotBuilderSettings, originalCohort, updateCohorts, getNextCriteriaIndex } =
+    props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
 
   const updateCohort = (updateCohort: (Cohort) => Cohort) => setCohort(updateCohort);
@@ -578,7 +587,8 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
     h(CohortEditorContents, {
       updateCohort,
       cohort,
-      dataset,
+      snapshotId,
+      snapshotBuilderSettings,
       onStateChange,
       getNextCriteriaIndex,
     }),

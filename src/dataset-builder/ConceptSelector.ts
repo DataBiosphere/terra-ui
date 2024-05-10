@@ -16,7 +16,7 @@ type ConceptSelectorProps = {
   readonly onCancel: (selected: Concept[]) => void;
   readonly onCommit: (selected: Concept[]) => void;
   readonly actionText: string;
-  readonly datasetId: string;
+  readonly snapshotId: string;
   readonly initialCart: Concept[];
   readonly parents: Parent<Concept>[];
   readonly openedConcept?: Concept;
@@ -41,12 +41,12 @@ export const findRoot = <T extends RowContents>(parents: Parent<T>[]) => {
 };
 
 export const ConceptSelector = (props: ConceptSelectorProps) => {
-  const { title, onCancel, onCommit, actionText, datasetId, initialCart, parents, openedConcept } = props;
+  const { title, onCancel, onCommit, actionText, snapshotId, initialCart, parents, openedConcept } = props;
 
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> =>
     withErrorReporting(`Error getting concept children for concept ${concept.name}`)(async () => {
-      const result = await DataRepo().dataset(datasetId).getConcepts(concept);
+      const result = await DataRepo().snapshot(snapshotId).getConceptChildren(concept);
       return result.result;
     })();
 
