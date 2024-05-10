@@ -61,41 +61,41 @@ const getColumns = (
 ) => [
   {
     field: 'starred',
-    headerRenderer: () => <div className="sr-only">Starred</div>,
+    headerRenderer: () => <div className='sr-only'>Starred</div>,
     cellRenderer: ({ rowIndex }) => <StarCell workspace={sortedWorkspaces[rowIndex]} />,
     size: { basis: 40, grow: 0, shrink: 0 },
   },
   {
     field: 'name',
-    headerRenderer: () => <HeaderRenderer sort={sort} name="name" onSort={setSort} />,
+    headerRenderer: () => <HeaderRenderer sort={sort} name='name' onSort={setSort} />,
     cellRenderer: ({ rowIndex }) => <NameCell workspace={sortedWorkspaces[rowIndex]} />,
     size: { basis: 400, grow: 2, shrink: 0 },
   },
   {
     field: 'lastModified',
-    headerRenderer: () => <HeaderRenderer sort={sort} name="lastModified" onSort={setSort} />,
+    headerRenderer: () => <HeaderRenderer sort={sort} name='lastModified' onSort={setSort} />,
     cellRenderer: ({ rowIndex }) => <LastModifiedCell workspace={sortedWorkspaces[rowIndex]} />,
     size: { basis: 100, grow: 1, shrink: 0 },
   },
   {
     field: 'createdBy',
-    headerRenderer: () => <HeaderRenderer sort={sort} name="createdBy" onSort={setSort} />,
+    headerRenderer: () => <HeaderRenderer sort={sort} name='createdBy' onSort={setSort} />,
     cellRenderer: ({ rowIndex }) => <CreatedByCell workspace={sortedWorkspaces[rowIndex]} />,
     size: { basis: 200, grow: 1, shrink: 0 },
   },
   {
     field: 'accessLevel',
-    headerRenderer: () => <HeaderRenderer sort={sort} name="accessLevel" onSort={setSort} />,
+    headerRenderer: () => <HeaderRenderer sort={sort} name='accessLevel' onSort={setSort} />,
     cellRenderer: ({ rowIndex }) => <AccessLevelCell workspace={sortedWorkspaces[rowIndex]} />,
     size: { basis: 120, grow: 1, shrink: 0 },
   },
   {
-    headerRenderer: () => <div className="sr-only">Cloud Platform</div>,
+    headerRenderer: () => <div className='sr-only'>Cloud Platform</div>,
     cellRenderer: ({ rowIndex }) => <CloudPlatformCell workspace={sortedWorkspaces[rowIndex]} />,
     size: { basis: 30, grow: 0, shrink: 0 },
   },
   {
-    headerRenderer: () => <div className="sr-only">Actions</div>,
+    headerRenderer: () => <div className='sr-only'>Actions</div>,
     cellRenderer: ({ rowIndex }) => (
       <ActionsCell workspace={sortedWorkspaces[rowIndex]} workspaces={sortedWorkspaces} />
     ),
@@ -135,7 +135,7 @@ export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode =>
             height={height}
             rowCount={sortedWorkspaces.length}
             noContentRenderer={() => props.noContent}
-            variant="light"
+            variant='light'
             rowHeight={70}
             // @ts-expect-error
             sort={sort}
@@ -188,7 +188,7 @@ const NameCell = (props: CellProps): ReactNode => {
           tooltip={
             !canView && 'You do not have access to this workspace. Select the workspace to learn about gaining access.'
           }
-          tooltipSide="right"
+          tooltipSide='right'
           disabled={workspace.state === 'Deleted'}
         >
           {name}
@@ -251,7 +251,7 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
 
   if (!canRead(accessLevel)) {
     // No menu shown if user does not have read access.
-    return <div className="sr-only">You do not have permission to perform actions on this workspace.</div>;
+    return <div className='sr-only'>You do not have permission to perform actions on this workspace.</div>;
   }
   if (state === 'Deleted') {
     return null;
@@ -296,7 +296,7 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
       <div style={styles.tableCellContent}>
         <WorkspaceMenu
           iconSize={20}
-          popupLocation="left"
+          popupLocation='left'
           callbacks={{ onClone, onShare, onLock, onDelete, onLeave }}
           workspaceInfo={{ namespace, name }}
         />

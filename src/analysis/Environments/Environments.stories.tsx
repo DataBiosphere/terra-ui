@@ -107,14 +107,17 @@ const getMockLeoDisks = (): EnvironmentsProps['leoDiskData'] => {
 const getMockUseWorkspaces = (mockResults: WorkspaceWrapper[]): EnvironmentsProps['useWorkspaces'] => {
   const useMockHook: UseWorkspaces = () => {
     const [loading, setLoading] = useState<boolean>(false);
-
+    const [status, setStatus] = useState<'Ready' | 'Loading' | 'Error'>('Ready');
     return {
       workspaces: mockResults,
       loading,
+      status,
       refresh: async () => {
         setLoading(true);
+        setStatus('Loading');
         await delay(1000);
         setLoading(false);
+        setStatus('Ready');
       },
     };
   };

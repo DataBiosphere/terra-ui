@@ -68,13 +68,13 @@ export const WorkspaceStateCell = (props: WorkspaceStateCellProps): ReactNode =>
 };
 
 const WorkspaceDeletingCell = (): ReactNode => (
-  <WorkspaceStatusPill iconShape="syncAlt" rotateIcon color={colors.danger}>
+  <WorkspaceStatusPill iconShape='syncAlt' rotateIcon color={colors.danger}>
     Workspace deletion in progress
   </WorkspaceStatusPill>
 );
 
 const WorkspaceCloningCell = (): ReactNode => (
-  <WorkspaceStatusPill iconShape="syncAlt" rotateIcon color={colors.success}>
+  <WorkspaceStatusPill iconShape='syncAlt' rotateIcon color={colors.success}>
     Workspace cloning in progress
   </WorkspaceStatusPill>
 );
@@ -124,7 +124,7 @@ const WorkspaceFailedCell = (props: WorkspaceFailedCellProps): ReactNode => {
   const failureMsg = props.state === 'DeleteFailed' ? 'Error deleting workspace' : 'Workspace clone unsuccessful';
 
   return (
-    <WorkspaceStatusPill iconShape="warning-standard" color={colors.danger}>
+    <WorkspaceStatusPill iconShape='warning-standard' color={colors.danger}>
       {failureMsg}
       {props.errorMessage ? (
         // eslint-disable-next-line jsx-a11y/anchor-is-valid

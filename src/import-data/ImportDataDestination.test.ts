@@ -59,6 +59,7 @@ const setup = (opts: SetupOptions): void => {
   asMockedFn(useWorkspaces).mockReturnValue({
     loading: false,
     refresh: () => Promise.resolve(),
+    status: 'Ready',
     workspaces,
   });
 
