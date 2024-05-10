@@ -113,7 +113,7 @@ export type SnapshotBuilderRequest = {
   valueSets: SnapshotBuilderFeatureValueGroup[];
 };
 
-export interface SnapshotDataset {
+interface SnapshotDataset {
   id: string;
   name: string;
   secureMonitoringEnabled: boolean;
