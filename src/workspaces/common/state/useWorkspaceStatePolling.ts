@@ -1,6 +1,6 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { workspacesStore, workspaceStore } from 'src/libs/state';
 import { pollWithCancellation } from 'src/libs/utils';
@@ -66,10 +66,10 @@ const updatingStates: WorkspaceState[] = ['Deleting', 'Cloning', 'CloningContain
 export const useWorkspaceStatePolling = (workspaces: Workspace[], status: LoadedState<Workspace[]>['status']) => {
   // we have to do the signal/abort manually instead of with useCancelable so that the it can be cleaned up in the
   // this component's useEffect, instead of the useEffect in useCancelable
-  const [controller, setController] = useState(new window.AbortController());
+  const controller = useRef(new window.AbortController());
   const abort = () => {
-    controller.abort();
-    setController(new window.AbortController());
+    controller.current.abort();
+    controller.current = new window.AbortController();
   };
 
   useEffect(() => {
@@ -77,12 +77,12 @@ export const useWorkspaceStatePolling = (workspaces: Workspace[], status: Loaded
       if (status === 'Ready') {
         const updatingWorkspaces = _.filter((ws) => _.contains(ws?.workspace?.state, updatingStates), workspaces);
         for (const ws of updatingWorkspaces) {
-          await checkWorkspaceState(ws, abort, controller.signal);
+          await checkWorkspaceState(ws, abort, controller.current.signal);
         }
       }
     };
 
-    pollWithCancellation(() => iterateUpdatingWorkspaces(), 30000, false, controller.signal);
+    pollWithCancellation(() => iterateUpdatingWorkspaces(), 30000, false, controller.current.signal);
     return () => {
       abort();
     };
