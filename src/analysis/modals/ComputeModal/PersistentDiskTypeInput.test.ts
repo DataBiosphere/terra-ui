@@ -5,32 +5,23 @@ import {
   PersistentDiskTypeInput,
   PersistentDiskTypeInputProps,
 } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInput';
+import { GoogleDiskType, GooglePdType } from 'src/libs/ajax/leonardo/models/disk-models';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
-const defaultPersistentDiskTypeInputProps: PersistentDiskTypeInputProps = {
-  value: {
-    value: 'pd-standard',
-    label: 'Standard',
-    regionToPricesName: 'monthlyStandardDiskPrice',
-  },
+const defaultPersistentDiskTypeInputProps: PersistentDiskTypeInputProps<GoogleDiskType, GooglePdType> = {
+  value: 'pd-standard',
   onChange: jest.fn(),
   isDisabled: false,
   options: [
     {
-      value: {
-        value: 'pd-standard',
-        label: 'Standard',
-        regionToPricesName: 'monthlyStandardDiskPrice',
-      },
+      value: 'pd-standard',
       label: 'Standard',
+      regionToPricesName: 'monthlyStandardDiskPrice',
     },
     {
-      value: {
-        value: 'pd-balanced',
-        label: 'Balanced',
-        regionToPricesName: 'monthlyBalancedDiskPrice',
-      },
+      value: 'pd-balanced',
       label: 'Balanced',
+      regionToPricesName: 'monthlyBalancedDiskPrice',
     },
   ],
 };
@@ -38,7 +29,7 @@ const defaultPersistentDiskTypeInputProps: PersistentDiskTypeInputProps = {
 describe('PersistentDiskTypeInput', () => {
   it('should render with default value selected.', () => {
     // Arrange
-    render(h(PersistentDiskTypeInput, defaultPersistentDiskTypeInputProps));
+    render(h(PersistentDiskTypeInput<GoogleDiskType, GooglePdType>, defaultPersistentDiskTypeInputProps));
 
     // Assert
     screen.getByText('Standard');
@@ -47,7 +38,7 @@ describe('PersistentDiskTypeInput', () => {
   it('should call onChange when value is updated.', async () => {
     // Arrange
     const user = userEvent.setup();
-    render(h(PersistentDiskTypeInput, defaultPersistentDiskTypeInputProps));
+    render(h(PersistentDiskTypeInput<GoogleDiskType, GooglePdType>, defaultPersistentDiskTypeInputProps));
 
     // Act
     const diskTypeSelect = screen.getByLabelText('Disk Type');
@@ -57,19 +48,21 @@ describe('PersistentDiskTypeInput', () => {
 
     // Assert
     expect(screen.findByText('Balanced')).toBeTruthy();
-    expect(defaultPersistentDiskTypeInputProps.onChange).toBeCalledWith({
-      value: {
-        value: 'pd-balanced',
-        label: 'Balanced',
-        regionToPricesName: 'monthlyBalancedDiskPrice',
-      },
+    expect(defaultPersistentDiskTypeInputProps.onChange).toHaveBeenCalledWith({
+      value: 'pd-balanced',
       label: 'Balanced',
+      regionToPricesName: 'monthlyBalancedDiskPrice',
     });
   });
 
   it('should be disabled when isDisabled is true.', () => {
     // Arrange
-    render(h(PersistentDiskTypeInput, { ...defaultPersistentDiskTypeInputProps, isDisabled: true }));
+    render(
+      h(PersistentDiskTypeInput<GoogleDiskType, GooglePdType>, {
+        ...defaultPersistentDiskTypeInputProps,
+        isDisabled: true,
+      })
+    );
 
     // Act
     const diskTypeSelect = screen.getByLabelText('Disk Type');

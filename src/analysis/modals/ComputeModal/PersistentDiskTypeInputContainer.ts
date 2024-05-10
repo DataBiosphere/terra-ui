@@ -1,20 +1,23 @@
 import { TooltipTrigger } from '@terra-ui-packages/components';
+import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { PersistentDiskTypeInput } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInput';
+import {
+  PersistentDiskTypeInput,
+  PersistentDiskTypeInputProps,
+} from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInput';
+import { DiskType } from 'src/libs/ajax/leonardo/models/disk-models';
 
-export interface PersistentDiskTypeContainerProps {
+export interface PersistentDiskTypeContainerProps<T extends DiskType, Option extends { value: T; label: string }>
+  extends Pick<PersistentDiskTypeInputProps<T, Option>, 'options' | 'value' | 'onChange'> {
   persistentDiskExists: boolean;
-  value: any;
-  onChange: (e: any) => void;
-  options: any;
 }
 
 // TODO: Move into the AzurePersistentDiskInput component
 // Is there an easy way to remove the duplicate PersistentDiskTypeInputs while
 // keeping the correct functionality and appearance?
-export const PersistentDiskTypeInputContainer: React.FC<PersistentDiskTypeContainerProps> = (
-  props: PersistentDiskTypeContainerProps
-) => {
+export const PersistentDiskTypeInputContainer = <T extends DiskType, Option extends { value: T; label: string }>(
+  props: PersistentDiskTypeContainerProps<T, Option>
+): ReactNode => {
   const { persistentDiskExists, value, onChange, options } = props;
   return persistentDiskExists
     ? h(
@@ -28,7 +31,7 @@ export const PersistentDiskTypeInputContainer: React.FC<PersistentDiskTypeContai
           side: 'bottom',
         },
         [
-          h(PersistentDiskTypeInput, {
+          h(PersistentDiskTypeInput<T, Option>, {
             isDisabled: persistentDiskExists,
             onChange,
             options,
@@ -36,7 +39,7 @@ export const PersistentDiskTypeInputContainer: React.FC<PersistentDiskTypeContai
           }),
         ]
       )
-    : h(PersistentDiskTypeInput, {
+    : h(PersistentDiskTypeInput<T, Option>, {
         isDisabled: persistentDiskExists,
         onChange,
         options,
