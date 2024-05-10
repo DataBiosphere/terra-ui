@@ -1,6 +1,7 @@
 import ReactJson from '@microlink/react-json-view';
 import { ButtonPrimary } from '@terra-ui-packages/components';
 import { Fragment, useState } from 'react';
+import React from 'react';
 import { TextInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
 import { GroupSupportSummary } from 'src/libs/ajax/Groups';
@@ -14,14 +15,14 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
   const { query } = Nav.useRoute();
 
   const [groupSummaryInfo, setGroupSummaryInfo] = useState<GroupSupportSummary>();
-  const [groupPolicies, setGroupPolicies] = useState<string[]>();
+  const [groupPolicies, setGroupPolicies] = useState<object>({});
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   async function loadGroupSummary() {
     try {
       const groupSummaryInfo = await Ajax().Groups.group(props.fqResourceId.resourceId).getSupportSummary();
       setGroupSummaryInfo(groupSummaryInfo);
-    } catch (e: Response) {
+    } catch (e) {
       if (e instanceof Response && e.status === 404) {
         errorMessages.push('Group not found');
       } else if (e instanceof Response && e.status === 403) {
@@ -36,7 +37,7 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
     try {
       const groupPolicies = await Ajax().SamResources.getResourcePolicies(props.fqResourceId);
       setGroupPolicies(groupPolicies);
-    } catch (e: Response) {
+    } catch (e) {
       if (e instanceof Response && e.status === 404) {
         errorMessages.push('Resource not found');
       } else if (e instanceof Response && e.status === 403) {
@@ -75,8 +76,8 @@ export const ManagedGroupSummary = (props: ResourceTypeSummaryProps) => {
           style={{ marginRight: '1rem', marginLeft: '1rem' }}
           placeholder="Enter group name"
           onChange={(newFilter) => {
-            setGroupSummaryInfo(null);
-            setGroupPolicies(null);
+            setGroupSummaryInfo(undefined);
+            setGroupPolicies({});
             setErrorMessages([]);
             Nav.updateSearch({ ...query, resourceName: newFilter || undefined });
           }}
