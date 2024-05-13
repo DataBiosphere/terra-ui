@@ -45,7 +45,7 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     { state: 'CloningContainer', statusMessage: 'Workspace cloning in progress' },
     { state: 'Deleting', statusMessage: 'Workspace deletion in progress' },
   ])(
-    'should indicate when the workspace is in a tracked state instead of displaying the description',
+    'should indicate when the workspace is $state instead of displaying the description',
     ({ state, statusMessage }) => {
       // Arrange
       const workspace: WorkspaceWrapper = {
@@ -96,6 +96,37 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     const workspaceStateDisplay = screen.getAllByText(message);
     expect(workspaceStateDisplay).not.toBeNull();
     expect(workspaceStateDisplay).toHaveLength(1);
+  });
+
+  it.each<{ state: WorkspaceState; linkDisabled: boolean }>([
+    { state: 'Creating', linkDisabled: true },
+    { state: 'CreateFailed', linkDisabled: true },
+    { state: 'Cloning', linkDisabled: true },
+    { state: 'CloningContainer', linkDisabled: true },
+    { state: 'CloningFailed', linkDisabled: true },
+    { state: 'Updating', linkDisabled: true },
+    { state: 'UpdateFailed', linkDisabled: true },
+    { state: 'Deleting', linkDisabled: true },
+    { state: 'DeleteFailed', linkDisabled: true },
+    { state: 'Deleted', linkDisabled: true },
+    { state: 'Ready', linkDisabled: false },
+  ])('should have a link with aria-disabled set to $linkDisabled for $state workspaces', ({ state, linkDisabled }) => {
+    // Arrange
+    const workspace: WorkspaceWrapper = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state,
+      },
+    };
+    const label = 'myWorkspaces';
+
+    // Act
+    render(h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}) }));
+
+    // Assert
+    const workspaceNameLink = screen.getAllByText(defaultAzureWorkspace.workspace.name);
+    expect(workspaceNameLink[0]).toHaveAttribute('aria-disabled', linkDisabled.toString());
   });
 
   it('should render the description when the workspace is not in the process of deleting or cloning', () => {
