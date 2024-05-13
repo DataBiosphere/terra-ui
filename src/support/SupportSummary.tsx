@@ -32,9 +32,11 @@ export const SupportSummary = (props: ResourceTypeSummaryProps) => {
           setSummaryInfo(await loadSupportSummary(fqResourceId));
         } catch (e) {
           if (e instanceof Response && e.status === 404) {
-            setErrorMessage('Group not found');
+            setErrorMessage(`${props.displayName} not found`);
           } else if (e instanceof Response && e.status === 403) {
-            setErrorMessage('You do not have permission to view summary information or are not on VPN');
+            setErrorMessage(
+              `You do not have permission to view ${props.displayName} summary information or are not on VPN`
+            );
           } else {
             await reportError('Error loading group summary', e);
           }

@@ -1,6 +1,5 @@
 import _ from 'lodash/fp';
 import { authOpts, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
-import { FullyQualifiedResourceId } from 'src/libs/ajax/SamResources';
 
 export type GroupRole = 'admin' | 'member';
 
@@ -8,13 +7,6 @@ export interface CurrentUserGroupMembership {
   groupEmail: string;
   groupName: string;
   role: GroupRole;
-}
-
-export interface GroupSupportSummary {
-  groupName: string;
-  email: string;
-  authDomainFor: FullyQualifiedResourceId[];
-  parentGroups: string[];
 }
 
 export const Groups = (signal?: AbortSignal) => ({
@@ -93,7 +85,8 @@ export const Groups = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      getSupportSummary: async (): Promise<GroupSupportSummary> => {
+      // we could provide a more specific type here, but we don't use it and don't want to limit future additions
+      getSupportSummary: async (): Promise<object> => {
         const res = await fetchSam(`api/admin/v1/groups/${groupName}/supportSummary`, _.merge(authOpts(), { signal }));
         return res.json();
       },
