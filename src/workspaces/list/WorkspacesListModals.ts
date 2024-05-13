@@ -29,10 +29,7 @@ export const WorkspacesListModals = (props: WorkspacesListModalsProps): ReactNod
       h(NewWorkspaceModal, {
         cloneWorkspace: userActions.cloningWorkspace,
         onDismiss: () => setUserActions({ cloningWorkspace: undefined }),
-        onSuccess: () => {
-          refreshWorkspaces();
-          setUserActions({ cloningWorkspace: undefined });
-        },
+        onSuccess: ({ namespace, name }) => goToPath('workspace-dashboard', { namespace, name }),
       }),
     !!userActions.deletingWorkspaceId &&
       h(DeleteWorkspaceModal, {
