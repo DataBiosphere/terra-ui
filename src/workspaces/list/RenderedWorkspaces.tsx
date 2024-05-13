@@ -34,7 +34,7 @@ interface WorkspaceSort {
   direction: 'desc' | 'asc';
 }
 
-const styles = {
+export const styles = {
   tableCellContainer: {
     height: '100%',
     padding: '0.5rem 0',

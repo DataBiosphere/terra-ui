@@ -5,32 +5,18 @@ import ErrorView from 'src/components/ErrorView';
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
+import { styles } from 'src/workspaces/list/RenderedWorkspaces';
 import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
-const styles = {
-  tableCellContainer: {
-    height: '100%',
-    padding: '0.5rem 0',
-    paddingRight: '2rem',
-    borderTop: `1px solid ${colors.light()}`,
-  },
-  tableCellContent: {
-    height: '50%',
-    display: 'flex',
-    alignItems: 'center',
-  },
-};
-
-const WorkspaceDescriptionCell = (props: { description: unknown | undefined }) => (
+const WorkspaceDescriptionCell = (props: { description: unknown }) => (
   <div style={styles.tableCellContent}>
     {/* @ts-expect-error - FirstParagraphMarkdownViewer is not typed, so ts expects a value for renderers */}
     <FirstParagraphMarkdownViewer
       style={{
-        height: '1.5rem',
         margin: 0,
         ...Style.noWrapEllipsis,
         color: props.description ? undefined : colors.dark(0.75),
-        fontSize: 14,
+        fontSize: '0.875rem',
       }}
     >
       {props.description?.toString() || 'No description added'}
@@ -127,23 +113,31 @@ const WorkspaceFailedCell = (props: WorkspaceFailedCellProps): ReactNode => {
   const failureMsg = props.state === 'DeleteFailed' ? 'Error deleting workspace' : 'Workspace clone unsuccessful';
 
   return (
-    <WorkspaceStatusPill iconShape='warning-standard' color={colors.danger}>
-      {failureMsg}
-      {props.errorMessage ? (
+    <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'baseline' }}>
+      <WorkspaceStatusPill iconShape='warning-standard' color={colors.danger}>
+        {failureMsg}
+      </WorkspaceStatusPill>
+      {props.errorMessage && (
         // eslint-disable-next-line jsx-a11y/anchor-is-valid
         <Link
           onClick={() => setShowDetails(true)}
-          style={{ fontSize: 14, marginRight: '0.5rem', marginLeft: '0.5rem' }}
+          style={{
+            fontSize: '0.875rem',
+            marginRight: '0.5rem',
+            marginLeft: '0.5rem',
+            paddingTop: '0.25rem',
+            paddingBottom: '0.25rem',
+          }}
         >
           See error details.
         </Link>
-      ) : null}
+      )}
       {showDetails && (
         <Modal width={800} title={failureMsg} showCancel={false} showX onDismiss={() => setShowDetails(false)}>
           <ErrorView error={props.errorMessage ?? 'No error message available'} />
         </Modal>
       )}
-    </WorkspaceStatusPill>
+    </div>
   );
 };
 
