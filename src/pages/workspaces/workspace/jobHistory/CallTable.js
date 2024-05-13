@@ -357,7 +357,7 @@ const CallTable = ({
                           TooltipTrigger,
                           {
                             content:
-                              'This is a calculated list price for VM costs per hour and does not include disk cost or any cloud account discounts.',
+                              'This is a calculated list price for VM costs per hour and does not include disk cost, subworkflow costs, or any cloud account discounts.',
                           },
                           [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
                         ),
@@ -367,7 +367,7 @@ const CallTable = ({
                       if (taskStartTime && vmCostUsd) {
                         if (executionStatus === 'Running') {
                           const cost = getTaskCost(vmCostUsd, taskStartTime);
-                          return div({}, [`In Progress - $${cost}`]);
+                          return div({}, [span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
                         }
                         if (executionStatus === 'Done') {
                           const cost = getTaskCost(vmCostUsd, taskStartTime, taskEndTime);

@@ -157,6 +157,12 @@ export const BaseRunDetails = (
     [signal, workspaceId]
   );
 
+  const inProgressElement = (workflow) => {
+    if (workflow.status === 'Running') {
+      return span({ style: { fontStyle: 'italic' } }, ['In progress - ']);
+    }
+  };
+
   const calculateTotalCost = (callObjects) => {
     let total = 0;
     Object.values(callObjects).forEach((call) => {
@@ -282,11 +288,12 @@ export const BaseRunDetails = (
           ]),
           div({ style: { fontSize: 16, padding: '0rem 2.5rem 1rem' } }, [
             span({ style: { fontWeight: 'bold' } }, ['Approximate workflow cost: ']),
+            inProgressElement(workflow),
             `$${taskCostTotal.toFixed(2)}`,
             h(
               TooltipTrigger,
               {
-                content: 'This total is an estimate rounded up to the nearest cent.',
+                content: 'This total is an estimate rounded up to the nearest cent and does not include subworkflow costs.',
               },
               [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
             ),
