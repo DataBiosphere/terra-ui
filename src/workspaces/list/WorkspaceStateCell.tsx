@@ -76,16 +76,15 @@ const WorkspaceStatusPill = (props: WorkspaceStatusPillProps): ReactNode => {
   return (
     <div
       style={{
-        backgroundColor: props.color(0.25),
+        display: 'flex',
         width: 'fit-content',
-        paddingTop: '0.25rem',
-        paddingBottom: '0.25rem',
-        paddingLeft: '1rem',
-        paddingRight: '1rem',
-        fontWeight: 500,
-        textAlign: 'center',
-        borderRadius: '1rem',
-        fontSize: '0.875rem',
+        height: '1.5625rem',
+        padding: '0.625rem',
+        borderRadius: '1.25rem',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '0.625rem',
+        backgroundColor: props.color(0.25),
       }}
     >
       <Icon
@@ -97,7 +96,7 @@ const WorkspaceStatusPill = (props: WorkspaceStatusPillProps): ReactNode => {
           textAlign: 'center',
         }}
       />
-      <span style={{ margin: '0.5rem' }}>{props.children}</span>
+      {props.children}
     </div>
   );
 };
@@ -123,10 +122,7 @@ const WorkspaceFailedCell = (props: WorkspaceFailedCellProps): ReactNode => {
           onClick={() => setShowDetails(true)}
           style={{
             fontSize: '0.875rem',
-            marginRight: '0.5rem',
-            marginLeft: '0.5rem',
-            paddingTop: '0.25rem',
-            paddingBottom: '0.25rem',
+            margin: '0.625rem',
           }}
         >
           See error details.
