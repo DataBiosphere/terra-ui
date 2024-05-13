@@ -1,30 +1,30 @@
-import { useUniqueId } from '@terra-ui-packages/components';
-import React from 'react';
+import { Select, SelectProps, useUniqueId } from '@terra-ui-packages/components';
+import { ReactNode } from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
 import { IComputeConfig } from 'src/analysis/modal-utils';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
-import { Select } from 'src/components/common';
-import { PdSelectOption, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
+import { DiskType } from 'src/libs/ajax/leonardo/models/disk-models';
 
-export interface PersistentDiskTypeInputProps {
-  value: SharedPdType;
-  onChange: (e: { value: SharedPdType; label: string | undefined } | null) => void;
-  isDisabled?: boolean;
-  options: PdSelectOption[];
+type PersistentDiskTypeSelectProps<
+  T extends IComputeConfig['persistentDiskType'],
+  Option extends { value: T; label: string }
+> = SelectProps<T, false, Option>;
+
+export interface PersistentDiskTypeInputProps<T extends DiskType, Option extends { value: T; label: string }>
+  extends Pick<PersistentDiskTypeSelectProps<T, Option>, 'isDisabled' | 'options' | 'value'> {
+  onChange: (selectedOption: Option | null) => void;
 }
 
-const PersistentDiskTypeSelect = Select as typeof Select<IComputeConfig['persistentDiskType']>;
-
-export const PersistentDiskTypeInput: React.FC<PersistentDiskTypeInputProps> = (
-  props: PersistentDiskTypeInputProps
-) => {
+export const PersistentDiskTypeInput = <T extends DiskType, Option extends { value: T; label: string }>(
+  props: PersistentDiskTypeInputProps<T, Option>
+): ReactNode => {
   const { value, onChange, isDisabled, options } = props;
   const persistentDiskId = useUniqueId();
 
   return h(div, [
     label({ htmlFor: persistentDiskId, style: computeStyles.label }, ['Disk Type']),
     div({ style: { marginTop: '0.5rem' } }, [
-      h(PersistentDiskTypeSelect, {
+      h(Select<T, false, Option>, {
         value,
         onChange: (e) => onChange(e),
         isDisabled,
