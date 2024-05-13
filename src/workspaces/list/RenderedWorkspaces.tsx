@@ -189,7 +189,7 @@ const NameCell = (props: CellProps): ReactNode => {
             !canView && 'You do not have access to this workspace. Select the workspace to learn about gaining access.'
           }
           tooltipSide='right'
-          disabled={workspace.state === 'Deleted'}
+          disabled={workspace.state !== 'Ready'}
         >
           {name}
         </Link>
