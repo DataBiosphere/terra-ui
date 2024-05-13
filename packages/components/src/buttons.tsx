@@ -100,7 +100,7 @@ export const ButtonOutline = (props: ButtonOutlineProps): ReactNode => {
       disabled={disabled}
       style={{
         border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
-        color: colors.accent(),
+        color: colors.light(),
         backgroundColor: disabled ? colors.dark(0.25) : 'white',
         ...style,
       }}
