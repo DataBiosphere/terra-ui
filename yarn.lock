@@ -3299,6 +3299,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@storybook/addon-a11y@npm:^8.0.10":
+  version: 8.0.10
+  resolution: "@storybook/addon-a11y@npm:8.0.10"
+  dependencies:
+    "@storybook/addon-highlight": 8.0.10
+    axe-core: ^4.2.0
+  checksum: 7dc75eeab90fe6488b5de8b624f2c221fa56317f71a0b1c25625544724032a3e8d0d80e3ef4fa564bc66d751567d521f0748088e8a7e6b65e5204eab3e45f2a9
+  languageName: node
+  linkType: hard
+
 "@storybook/addon-actions@npm:8.0.10, @storybook/addon-actions@npm:^8.0.0":
   version: 8.0.10
   resolution: "@storybook/addon-actions@npm:8.0.10"
@@ -5858,6 +5868,13 @@ __metadata:
   version: 4.4.1
   resolution: "axe-core@npm:4.4.1"
   checksum: ad14c5b71059dc3d24ef2519b8cd96e98b4a572379396201ce449d1c4262181821d6ca9550df65b22371faf06d28bbe94d391fe5675f2a08e6550f7b5da8416d
+  languageName: node
+  linkType: hard
+
+"axe-core@npm:^4.2.0":
+  version: 4.9.1
+  resolution: "axe-core@npm:4.9.1"
+  checksum: 41d9227871781f96c2952e2a777fca73624959dd0e98864f6d82806a77602f82b4fc490852082a7e524d8cd864e50d8b4d9931819b4a150112981d8c932110c5
   languageName: node
   linkType: hard
 
@@ -16166,6 +16183,7 @@ __metadata:
     "@dnd-kit/utilities": ^3.2.1
     "@microlink/react-json-view": ^1.22.2
     "@pact-foundation/pact": 12.1.1
+    "@storybook/addon-a11y": ^8.0.10
     "@storybook/addon-actions": ^8.0.0
     "@storybook/addon-essentials": ^8.0.10
     "@storybook/addon-interactions": ^8.0.10

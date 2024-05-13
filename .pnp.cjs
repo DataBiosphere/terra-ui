@@ -70,6 +70,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@dnd-kit/utilities", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.2.1"],\
             ["@microlink/react-json-view", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.22.2"],\
             ["@pact-foundation/pact", "npm:12.1.1"],\
+            ["@storybook/addon-a11y", "npm:8.0.10"],\
             ["@storybook/addon-actions", "npm:8.0.10"],\
             ["@storybook/addon-essentials", "npm:8.0.10"],\
             ["@storybook/addon-interactions", "npm:8.0.10"],\
@@ -5588,6 +5589,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["@storybook/addon-a11y", [\
+        ["npm:8.0.10", {\
+          "packageLocation": "./.yarn/cache/@storybook-addon-a11y-npm-8.0.10-7a93a4fbda-7dc75eeab9.zip/node_modules/@storybook/addon-a11y/",\
+          "packageDependencies": [\
+            ["@storybook/addon-a11y", "npm:8.0.10"],\
+            ["@storybook/addon-highlight", "npm:8.0.10"],\
+            ["axe-core", "npm:4.9.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["@storybook/addon-actions", [\
         ["npm:8.0.10", {\
           "packageLocation": "./.yarn/cache/@storybook-addon-actions-npm-8.0.10-e0c3decee7-013c1766f0.zip/node_modules/@storybook/addon-actions/",\
@@ -9328,6 +9340,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/axe-core-npm-4.7.0-a095cfe0ae-f086bcab42.zip/node_modules/axe-core/",\
           "packageDependencies": [\
             ["axe-core", "npm:4.7.0"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:4.9.1", {\
+          "packageLocation": "./.yarn/cache/axe-core-npm-4.9.1-6b74f843b9-41d9227871.zip/node_modules/axe-core/",\
+          "packageDependencies": [\
+            ["axe-core", "npm:4.9.1"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -22015,6 +22034,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@dnd-kit/utilities", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.2.1"],\
             ["@microlink/react-json-view", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.22.2"],\
             ["@pact-foundation/pact", "npm:12.1.1"],\
+            ["@storybook/addon-a11y", "npm:8.0.10"],\
             ["@storybook/addon-actions", "npm:8.0.10"],\
             ["@storybook/addon-essentials", "npm:8.0.10"],\
             ["@storybook/addon-interactions", "npm:8.0.10"],\
