@@ -16,20 +16,26 @@ const filterOptions: FilterOptions[] = [FilterOptions.Failed, FilterOptions.NoFi
 
 const FilterSubmissionsDropdown = ({ filterOption, setFilterOption }: FilterSubmissionsDropdownProps) => {
   return div([
-    div([h3(['Filter by: '])]),
-    h(Select, {
-      isDisabled: false,
-      'aria-label': 'Filter selection',
-      isClearable: false,
-      value: filterOption,
-      placeholder: 'None selected',
-      // @ts-expect-error
-      onChange: ({ value }) => {
-        setFilterOption(value);
-      },
-      styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
-      options: filterOptions,
-    }),
+    div({ style: { display: 'flex', flexDirection: 'row' } }, [
+      h3({ style: { marginRight: '1em', marginTop: 0 } }, ['Filter by:']),
+      div({ style: { marginTop: '-0.5em' } }, [
+        h(Select, {
+          isDisabled: false,
+          'aria-label': 'Filter selection',
+          isClearable: false,
+          value: filterOption,
+          placeholder: 'None selected',
+          // @ts-expect-error
+          onChange: ({ value }) => {
+            setFilterOption(value);
+          },
+          styles: {
+            container: (old) => ({ ...old, display: 'inline-block', width: 200 /* , marginBottom: '1rem' */ }),
+          },
+          options: filterOptions,
+        }),
+      ]),
+    ]),
   ]);
 };
 

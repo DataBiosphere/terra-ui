@@ -238,7 +238,7 @@ const FilterableWorkflowTable = ({
         },
         [
           runsFullyUpdated
-            ? div([
+            ? div({ style: { marginBottom: '1.5em' } }, [
                 icon('check', { size: 15, style: { color: colors.success() } }),
                 ' Workflow statuses are all up to date.',
               ])
@@ -246,27 +246,21 @@ const FilterableWorkflowTable = ({
                 icon('warning-standard', { size: 15, style: { color: colors.warning() } }),
                 ' Some workflow statuses are not up to date. Refreshing the page may update more statuses.',
               ]),
-          h(FilterSubmissionsDropdown, { filterOption, setFilterOption }),
-          div(
-            {
-              style: {
-                float: 'right',
+          div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between' } }, [
+            h(FilterSubmissionsDropdown, { filterOption, setFilterOption }),
+            h(
+              Link,
+              {
+                href: Nav.getLink('workspace-files', { name: workspaceName, namespace }),
+                target: '_blank',
               },
-            },
-            [
-              h(
-                Link,
-                {
-                  href: Nav.getLink('workspace-files', { name: workspaceName, namespace }),
-                  target: '_blank',
-                },
-                [icon('folder-open', { size: 18 }), '\tSubmission Execution Directory']
-              ),
-            ]
-          ),
+              [icon('folder-open', { size: 18 }), '\tSubmission Execution Directory']
+            ),
+          ]),
           div(
             {
               style: {
+                marginTop: '0.5rem',
                 height: tableHeight({
                   actualRows: paginatedPreviousRuns.length,
                   maxRows: 12.5,
