@@ -24,7 +24,7 @@ export type AuthorizationDomain = {
 };
 
 // TODO: Clean up all the optional types when we fix return types of all the places we retrieve workspaces
-interface BaseWorkspaceInfo {
+export interface BaseWorkspaceInfo {
   namespace: string;
   name: string;
   workspaceId: string;

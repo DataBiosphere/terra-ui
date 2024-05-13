@@ -4,37 +4,35 @@ import { useEffect, useRef, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { workspacesStore, workspaceStore } from 'src/libs/state';
 import { pollWithCancellation } from 'src/libs/utils';
-import { WorkspaceState, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
+import { BaseWorkspaceInfo, WorkspaceState, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
-const updateWorkspacesList = (
-  workspaces: Workspace[],
-  workspaceId: string,
-  state: WorkspaceState,
-  errorMessage?: string
-): Workspace[] => workspaces.map((ws) => updateWorkspace(ws, workspaceId, state, errorMessage));
+// type WorkspaceUpdate = Partial<Workspace['workspace']>
 
-const updateWorkspace = <T extends Workspace>(
-  workspace: T,
-  workspaceId: string,
-  state: WorkspaceState,
-  errorMessage?: string
-): T => {
-  if (workspace.workspace?.workspaceId === workspaceId) {
-    const update = _.cloneDeep(workspace);
-    update.workspace.state = state;
-    update.workspace.errorMessage = errorMessage;
-    return update;
+interface WorkspaceUpdate extends Partial<BaseWorkspaceInfo> {
+  workspaceId: string;
+  state: WorkspaceState;
+  errorMessage?: string;
+}
+
+const updateWorkspacesList = (workspaces: Workspace[], update: WorkspaceUpdate): Workspace[] =>
+  workspaces.map((ws) => updateWorkspaceIfMatching(ws, update));
+
+const updateWorkspaceIfMatching = <T extends Workspace>(workspace: T, update: WorkspaceUpdate): T => {
+  if (workspace.workspace?.workspaceId === update.workspaceId) {
+    const updatedWs = _.cloneDeep(workspace);
+    updatedWs.workspace.state = update.state;
+    updatedWs.workspace.errorMessage = update.errorMessage;
+    return updatedWs;
   }
   return workspace;
 };
 
 const checkWorkspaceState = async (workspace: Workspace, abort: () => void, signal: AbortSignal) => {
-  const doUpdate = (abort: () => void, workspace: Workspace, state: WorkspaceState, errorMessage?: string) => {
-    const workspaceId = workspace.workspace.workspaceId;
-    workspacesStore.update((wsList) => updateWorkspacesList(wsList, workspaceId, state, errorMessage));
+  const doUpdate = (abort: () => void, update: WorkspaceUpdate) => {
+    workspacesStore.update((wsList) => updateWorkspacesList(wsList, update));
     workspaceStore.update((ws) => {
       if (ws) {
-        return updateWorkspace(ws, workspaceId, state, errorMessage);
+        return updateWorkspaceIfMatching(ws, update);
       }
       return undefined;
     });
@@ -49,12 +47,18 @@ const checkWorkspaceState = async (workspace: Workspace, abort: () => void, sign
     const state = wsResp.workspace.state;
 
     if (!!state && state !== startingState) {
-      doUpdate(abort, workspace, state, wsResp.workspace.errorMessage);
+      const update = {
+        workspaceId: workspace.workspace.workspaceId,
+        state,
+        errorMessage: wsResp.workspace.errorMessage,
+      };
+      doUpdate(abort, update);
     }
   } catch (error) {
     // for workspaces that are being deleted, the details endpoint will return a 404 when the deletion is complete
     if (startingState === 'Deleting' && error instanceof Response && error.status === 404) {
-      doUpdate(abort, workspace, 'Deleted');
+      const update: WorkspaceUpdate = { workspaceId: workspace.workspace.workspaceId, state: 'Deleted' };
+      doUpdate(abort, update);
     } else {
       console.error(`Error checking workspace state for ${workspace.workspace.name}: ${JSON.stringify(error)}`);
     }
@@ -86,7 +90,6 @@ export const useWorkspaceStatePolling = (workspaces: Workspace[], status: Loaded
     return () => {
       abort();
     };
-    //  eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaces, status]); // adding the controller to deps causes a double fire of the effect
 };
 
