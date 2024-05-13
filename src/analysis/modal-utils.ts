@@ -5,7 +5,7 @@ import {
   getImageUrlFromRuntime,
 } from 'src/analysis/utils/runtime-utils';
 import { getToolLabelFromCloudEnv } from 'src/analysis/utils/tool-utils';
-import { GoogleDiskType, PersistentDisk, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
+import { DiskType, GoogleDiskType, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 
 export interface IComputeConfig {
   masterMachineType: string;
@@ -29,7 +29,7 @@ export interface IComputeConfig {
 
   // Used by Azure disk select
   persistentDiskSize: number;
-  persistentDiskType: SharedPdType; // TODO: Switch to DiskType
+  persistentDiskType: DiskType;
 }
 
 export const buildExistingEnvironmentConfig = (

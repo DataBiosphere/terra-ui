@@ -17,14 +17,14 @@ const meta: Meta<typeof ButtonPrimary> = {
       control: 'boolean',
       description: 'render with warning styling',
       table: {
-        defaultValue: { summary: false },
+        defaultValue: { summary: 'false' },
       },
     },
     disabled: {
       control: 'boolean',
       description: 'disable the button',
       table: {
-        defaultValue: { summary: false },
+        defaultValue: { summary: 'false' },
       },
     },
     tooltip: {
@@ -35,7 +35,7 @@ const meta: Meta<typeof ButtonPrimary> = {
       control: 'number',
       description: 'tooltip delay in milliseconds',
       table: {
-        defaultValue: { summary: 0 },
+        defaultValue: { summary: '0' },
       },
     },
     tooltipSide: {

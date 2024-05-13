@@ -13,7 +13,7 @@ import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   Cohort,
-  createDatasetAccessRequest,
+  createSnapshotAccessRequest,
   createSnapshotBuilderCountRequest,
   DatasetBuilderValue,
   DomainConceptSet,
@@ -24,15 +24,15 @@ import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
   DataRepo,
   DatasetBuilderType,
-  datasetIncludeTypes,
-  DatasetModel,
   SnapshotBuilderCountResponse,
   SnapshotBuilderDatasetConceptSet as ConceptSet,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
+  SnapshotBuilderSettings,
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
+import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { validate } from 'validate.js';
@@ -455,11 +455,11 @@ interface RequestAccessModalProps {
   conceptSets: ConceptSet[];
   valueSets: HeaderAndValues<DatasetBuilderValue>[];
   onDismiss: () => void;
-  datasetId: string;
+  snapshotId: string;
 }
 
 const RequestAccessModal = (props: RequestAccessModalProps) => {
-  const { onDismiss, cohorts, conceptSets, valueSets, datasetId } = props;
+  const { onDismiss, cohorts, conceptSets, valueSets, snapshotId } = props;
   const [name, setName] = useState('');
   const [researchPurposeStatement, setResearchPurposeStatement] = useState('');
 
@@ -482,11 +482,12 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
           tooltip: errors && Utils.summarizeErrors(errors),
           onClick: withErrorReporting('Error creating dataset request')(async () => {
             await DataRepo()
-              .dataset(datasetId)
-              .createSnapshotRequest(
-                createDatasetAccessRequest(
+              .snapshotAccessRequest()
+              .createSnapshotAccessRequest(
+                createSnapshotAccessRequest(
                   name,
                   researchPurposeStatement,
+                  snapshotId,
                   cohorts,
                   conceptSets,
                   _.map(
@@ -543,7 +544,8 @@ export type DatasetBuilderContentsProps = {
   onStateChange: OnStateChangeHandler;
   updateCohorts: Updater<Cohort[]>;
   updateConceptSets: Updater<DomainConceptSet[]>;
-  dataset: DatasetModel;
+  snapshotId: string;
+  snapshotBuilderSettings: SnapshotBuilderSettings;
   cohorts: Cohort[];
   conceptSets: DomainConceptSet[];
 };
@@ -552,7 +554,8 @@ export const DatasetBuilderContents = ({
   onStateChange,
   updateCohorts,
   updateConceptSets,
-  dataset,
+  snapshotId,
+  snapshotBuilderSettings,
   cohorts,
   conceptSets,
 }: DatasetBuilderContentsProps) => {
@@ -573,11 +576,11 @@ export const DatasetBuilderContents = ({
   useEffect(() => {
     requestValid &&
       setDatasetRequestParticipantCount(
-        withErrorReporting('Error generating participant count')(async () =>
-          DataRepo().dataset(dataset.id).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
+        withErrorReporting(`Error fetching snapshot builder count for snapshot ${snapshotId}`)(async () =>
+          DataRepo().snapshot(snapshotId).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
         )
       );
-  }, [dataset, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
+  }, [snapshotId, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
   const getNewFeatureValueGroups = (includedFeatureValueGroups: string[]): string[] =>
     _.without(
@@ -602,7 +605,7 @@ export const DatasetBuilderContents = ({
         header: featureValueGroup.name,
         values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
-    )(dataset.snapshotBuilderSettings?.featureValueGroups);
+    )(snapshotBuilderSettings.featureValueGroups);
 
   const createHeaderAndValuesFromFeatureValueGroups = (
     featureValueGroups: string[]
@@ -613,7 +616,8 @@ export const DatasetBuilderContents = ({
         header: featureValueGroup.name,
         values: _.map((value) => ({ name: value }), featureValueGroup.values),
       }))
-    )(dataset.snapshotBuilderSettings?.featureValueGroups);
+    )(snapshotBuilderSettings.featureValueGroups);
+
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
       h(BuilderPageHeader, [
@@ -633,7 +637,7 @@ export const DatasetBuilderContents = ({
             // all domain concept sets
             conceptSets,
             // all prepackaged concept sets
-            prepackagedConceptSets: dataset.snapshotBuilderSettings?.datasetConceptSets,
+            prepackagedConceptSets: snapshotBuilderSettings.datasetConceptSets,
             selectedConceptSets,
             updateConceptSets,
             onChange: async (conceptSets) => {
@@ -676,13 +680,13 @@ export const DatasetBuilderContents = ({
         conceptSets: allConceptSets,
         valueSets: selectedValues,
         onDismiss: () => setRequestingAccess(false),
-        datasetId: dataset.id,
+        snapshotId,
       }),
   ]);
 };
 
 interface DatasetBuilderProps {
-  datasetId: string;
+  snapshotId: string;
   initialState?: AnyDatasetBuilderState;
 }
 
@@ -691,8 +695,9 @@ const editorBackgroundColor = colors.light(0.7);
 let criteriaCount = 1;
 
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
-  const { datasetId, initialState } = props;
-  const [datasetModel, loadDatasetModel] = useLoadedData<DatasetModel>();
+  const { snapshotId, initialState } = props;
+  const [snapshotRoles, loadSnapshotRoles] = useLoadedData<string[]>();
+  const [snapshotBuilderSettings, loadSnapshotBuilderSettings] = useLoadedData<SnapshotBuilderSettings>();
   const [datasetBuilderState, setDatasetBuilderState] = useState<AnyDatasetBuilderState>(
     initialState || homepageState.new()
   );
@@ -706,18 +711,28 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   };
 
   useOnMount(() => {
-    void loadDatasetModel(
-      withErrorReporting('Error getting dataset details')(async () =>
-        DataRepo()
-          .dataset(datasetId)
-          .details([datasetIncludeTypes.SNAPSHOT_BUILDER_SETTINGS, datasetIncludeTypes.PROPERTIES])
+    void loadSnapshotBuilderSettings(
+      withErrorReporting(`Error fetching snapshot builder settings for snapshot ${snapshotId}`)(async () =>
+        DataRepo().snapshot(snapshotId).getSnapshotBuilderSettings()
+      )
+    );
+    void loadSnapshotRoles(
+      withErrorReporting(`Error fetching roles for snapshot ${snapshotId}`)(async () =>
+        DataRepo().snapshot(snapshotId).roles()
       )
     );
   });
-  return datasetModel.status === 'Ready'
+
+  useEffect(() => {
+    if (snapshotRoles.status === 'Ready' && !_.contains('aggregate_data_reader', snapshotRoles.state)) {
+      Nav.goToPath('dataset-builder-details', { snapshotId });
+    }
+  }, [snapshotRoles, snapshotId]);
+
+  return snapshotRoles.status === 'Ready' && snapshotBuilderSettings.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
-        h(DatasetBuilderHeader, { datasetDetails: datasetModel.state }),
+        h(DatasetBuilderHeader, { snapshotId }),
         div({ style: { backgroundColor: editorBackgroundColor } }, [
           (() => {
             switch (datasetBuilderState.mode) {
@@ -726,43 +741,42 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   onStateChange,
                   updateCohorts: setCohorts,
                   updateConceptSets: setConceptSets,
-                  dataset: datasetModel.state,
+                  snapshotId,
+                  snapshotBuilderSettings: snapshotBuilderSettings.state,
                   cohorts,
                   conceptSets,
                 });
               case 'cohort-editor':
-                return datasetModel.state.snapshotBuilderSettings
-                  ? h(CohortEditor, {
-                      onStateChange,
-                      originalCohort: datasetBuilderState.cohort,
-                      dataset: datasetModel.state,
-                      updateCohorts: setCohorts,
-                      getNextCriteriaIndex,
-                    })
-                  : div(['No Dataset Builder Settings Found']);
+                return h(CohortEditor, {
+                  onStateChange,
+                  originalCohort: datasetBuilderState.cohort,
+                  snapshotId,
+                  snapshotBuilderSettings: snapshotBuilderSettings.state,
+                  updateCohorts: setCohorts,
+                  getNextCriteriaIndex,
+                });
               case 'domain-criteria-selector':
                 return h(DomainCriteriaSelector, {
                   state: datasetBuilderState,
                   onStateChange,
-                  datasetId,
+                  snapshotId,
                   getNextCriteriaIndex,
                 });
               case 'domain-criteria-search':
                 return h(DomainCriteriaSearch, {
                   state: datasetBuilderState,
                   onStateChange,
-                  datasetId,
+                  snapshotId,
                   getNextCriteriaIndex,
                 });
               case 'concept-set-creator':
-                return datasetModel.state.snapshotBuilderSettings
-                  ? h(ConceptSetCreator, {
-                      onStateChange,
-                      dataset: datasetModel.state,
-                      conceptSetUpdater: setConceptSets,
-                      cart: datasetBuilderState.cart,
-                    })
-                  : div(['No Dataset Builder Settings Found']);
+                return h(ConceptSetCreator, {
+                  onStateChange,
+                  snapshotId,
+                  snapshotBuilderSettings: snapshotBuilderSettings.state,
+                  conceptSetUpdater: setConceptSets,
+                  cart: datasetBuilderState.cart,
+                });
               default:
                 return datasetBuilderState;
             }

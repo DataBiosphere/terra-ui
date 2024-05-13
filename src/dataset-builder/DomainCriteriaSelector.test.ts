@@ -13,7 +13,7 @@ import {
   newCriteriaGroup,
 } from './dataset-builder-types';
 import { DomainCriteriaSelector, toCriteria } from './DomainCriteriaSelector';
-import { dummyDatasetModel, dummyGetConceptForId } from './TestConstants';
+import { dummyGetConceptForId, testSnapshotBuilderSettings } from './TestConstants';
 
 jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
@@ -26,16 +26,16 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
 
 describe('DomainCriteriaSelector', () => {
   const mockDataRepoContract: Partial<DataRepoContract> = {
-    dataset: (_datasetId) =>
+    snapshot: (_snapshotId) =>
       ({
-        getConcepts: () => Promise.resolve({ result: [concept] }),
+        getConceptChildren: () => Promise.resolve({ result: [concept] }),
         getConceptHierarchy: () => Promise.resolve({ result: [{ parentId: concept.id, children }] }),
-      } as Partial<DataRepoContract['dataset']>),
+      } as Partial<DataRepoContract['snapshot']>),
   } as Partial<DataRepoContract> as DataRepoContract;
-  const datasetId = '';
+  const snapshotId = '';
   const concept = dummyGetConceptForId(101);
   const children = [dummyGetConceptForId(102)];
-  const domainOption = dummyDatasetModel()!.snapshotBuilderSettings!.domainOptions[0];
+  const domainOption = testSnapshotBuilderSettings().domainOptions[0];
   const cohort = newCohort('cohort');
   cohort.criteriaGroups.push(newCriteriaGroup());
   asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
@@ -51,7 +51,7 @@ describe('DomainCriteriaSelector', () => {
 
   it('renders the domain criteria selector', async () => {
     // Arrange
-    render(h(DomainCriteriaSelector, { state, onStateChange: jest.fn(), datasetId, getNextCriteriaIndex }));
+    render(h(DomainCriteriaSelector, { state, onStateChange: jest.fn(), snapshotId, getNextCriteriaIndex }));
     // Assert
     expect(await screen.findByText(state.domainOption.name)).toBeTruthy();
   });
@@ -62,7 +62,7 @@ describe('DomainCriteriaSelector', () => {
       h(DomainCriteriaSelector, {
         state: { ...state, openedConcept: concept },
         onStateChange: jest.fn(),
-        datasetId,
+        snapshotId,
         getNextCriteriaIndex,
       })
     );
@@ -73,7 +73,7 @@ describe('DomainCriteriaSelector', () => {
   it('updates the domain group on save', async () => {
     const onStateChange = jest.fn();
     // Arrange
-    render(h(DomainCriteriaSelector, { state, onStateChange, datasetId, getNextCriteriaIndex }));
+    render(h(DomainCriteriaSelector, { state, onStateChange, snapshotId, getNextCriteriaIndex }));
     // Act
     await screen.findByText(state.domainOption.name);
     const user = userEvent.setup();
@@ -90,7 +90,7 @@ describe('DomainCriteriaSelector', () => {
   it('returns to the cancel state on cancel', async () => {
     const onStateChange = jest.fn();
     // Arrange
-    render(h(DomainCriteriaSelector, { state, onStateChange, datasetId, getNextCriteriaIndex }));
+    render(h(DomainCriteriaSelector, { state, onStateChange, snapshotId, getNextCriteriaIndex }));
     // Act
     await screen.findByText(state.domainOption.name);
     const user = userEvent.setup();
