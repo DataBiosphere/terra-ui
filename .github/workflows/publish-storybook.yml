@@ -26,3 +26,6 @@ jobs:
         uses: chromaui/action@latest
         with:
           projectToken: ${{ secrets.CHROMATIC_PUBLISH_TOKEN }}
+
+      - name: Run Storybook tests
+        run: yarn test-storybook
