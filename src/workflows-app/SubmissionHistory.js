@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useCallback, useRef, useState } from 'react';
+import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Clickable, Link } from 'src/components/common';
@@ -24,6 +24,9 @@ import {
   statusType,
 } from 'src/workflows-app/utils/submission-utils';
 
+import FilterSubmissionsDropdown from './components/FilterSubmissionsDropdown';
+import { getFilteredRuns } from './utils/method-common';
+
 export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   // State
   const [sort, setSort] = useState({ field: 'submission_timestamp', direction: 'desc' });
@@ -32,10 +35,12 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   const [runSetsData, setRunSetData] = useState();
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState();
+  const [filterOption, setFilterOption] = useState();
 
   const signal = useCancellation();
   const scheduledRefresh = useRef();
   const workspaceId = workspace.workspace.workspaceId;
+  const errorStates = ['ERROR'];
 
   const loadRunSets = useCallback(
     async (cbasUrlRoot) => {
@@ -165,7 +170,18 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
     return div([makeStatusLine(statusType[stateIconKey[state]].icon, stateContent[state])]);
   };
 
-  const sortedPreviousRunSets = _.orderBy(sort.field, sort.direction, runSetsData);
+  const filteredPreviousRunSets = useMemo(
+    () => {
+      if (runSetsData) {
+        return filterOption ? getFilteredRuns(filterOption, runSetsData, errorStates) : runSetsData;
+      }
+      return [];
+    },
+    // Don't re-run if errorStates changes (since it never should change).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filterOption, runSetsData]
+  );
+  const sortedPreviousRunSets = useMemo(() => _.orderBy(sort.field, sort.direction, filteredPreviousRunSets), [sort, filteredPreviousRunSets]);
   const firstPageIndex = (pageNumber - 1) * itemsPerPage;
   const lastPageIndex = firstPageIndex + itemsPerPage;
   const paginatedPreviousRunSets = sortedPreviousRunSets.slice(firstPageIndex, lastPageIndex);
@@ -177,10 +193,10 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
     : div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } }, [
         h(Fragment, [
           div({ style: { margin: '1rem 2rem' } }, [
-            h(Fragment, [
-              h2({ style: { marginTop: 0 } }, ['Submission history']),
-              paginatedPreviousRunSets.length === 0
-                ? div(
+            paginatedPreviousRunSets.length === 0
+              ? h(Fragment, [
+                  h2({ style: { marginTop: 0 } }, ['Submission history']),
+                  div(
                     {
                       style: {
                         padding: '1rem',
@@ -191,166 +207,176 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                       },
                     },
                     ['No workflows have been submitted.']
-                  )
-                : div(['See workflows that were submitted by all collaborators in this workspace.']),
-            ]),
-            paginatedPreviousRunSets.length > 0 &&
-              div(
-                {
-                  style: {
-                    marginTop: '1em',
-                    height: tableHeight({ actualRows: paginatedPreviousRunSets.length, maxRows: 12.5, heightPerRow: rowHeight }),
-                    minHeight: '10em',
-                  },
-                },
-                [
-                  h(AutoSizer, [
-                    ({ width, height }) =>
-                      h(FlexTable, {
-                        'aria-label': 'previous runs',
-                        width,
-                        height,
-                        sort,
-                        rowCount: paginatedPreviousRunSets.length,
-                        noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
-                        hoverHighlight: true,
-                        rowHeight,
-                        styleCell: () => ({
-                          display: 'inline',
-                          alignItems: 'top',
-                          paddingLeft: '1rem',
-                          paddingRight: '1rem',
-                          paddingTop: '1em',
-                        }),
-                        columns: [
-                          {
-                            size: { basis: 100, grow: 0 },
-                            field: 'actions',
-                            headerRenderer: () => h(TextCell, {}, ['Actions']),
-                            cellRenderer: ({ rowIndex }) => {
-                              const permissionToAbort = paginatedPreviousRunSets[rowIndex].user_id === userId;
-                              return h(
-                                MenuTrigger,
-                                {
-                                  'aria-label': 'Action selection menu',
-                                  popupProps: {
-                                    style: { left: '-20px' },
-                                  },
-                                  content: h(Fragment, [
-                                    h(
-                                      MenuButton,
-                                      {
-                                        style: { fontSize: 15 },
-                                        disabled:
-                                          !permissionToAbort ||
-                                          isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) ||
-                                          paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
-                                        tooltip: Utils.cond(
-                                          [
-                                            isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state),
-                                            () => 'Cannot abort a terminal submission',
-                                          ],
-                                          [
-                                            paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
-                                            () => 'Cancel already requested on this submission.',
-                                          ],
-                                          [!permissionToAbort, () => 'You must be the original submitter to abort this submission'],
-                                          () => ''
-                                        ),
-                                        onClick: () => cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id),
-                                      },
-                                      ['Abort']
-                                    ),
-                                  ]),
-                                },
-                                [
-                                  h(
-                                    Clickable,
-                                    {
-                                      style: { textAlign: 'center' },
-                                      'aria-label': 'Action selection menu',
-                                    },
-                                    [icon('cardMenuIcon', { size: 35 })]
-                                  ),
-                                ]
-                              );
-                            },
-                          },
-                          {
-                            size: { basis: 350 },
-                            field: 'runset_name',
-                            headerRenderer: () => h(Sortable, { sort, field: 'runset_name', onSort: setSort }, ['Submission name']),
-                            cellRenderer: ({ rowIndex }) => {
-                              return div([
-                                h(
-                                  Link,
-                                  {
-                                    href: Nav.getLink('workspace-workflows-app-submission-details', {
-                                      name: workspace.workspace.name,
-                                      namespace,
-                                      submissionId: paginatedPreviousRunSets[rowIndex].run_set_id,
-                                    }),
-                                    style: { fontWeight: 'bold' },
-                                  },
-                                  [paginatedPreviousRunSets[rowIndex].run_set_name || 'No name']
-                                ),
-                                h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
-                                  `Data used: ${paginatedPreviousRunSets[rowIndex].record_type}`,
-                                ]),
-                                h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
-                                  `${paginatedPreviousRunSets[rowIndex].run_count} workflows`,
-                                ]),
-                              ]);
-                            },
-                          },
-                          {
-                            size: { basis: 200, grow: 0 },
-                            field: 'state',
-                            headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
-                            cellRenderer: ({ rowIndex }) => {
-                              return stateCell(paginatedPreviousRunSets[rowIndex]);
-                            },
-                          },
-                          {
-                            size: { basis: 200, grow: 0 },
-                            field: 'submission_timestamp',
-                            headerRenderer: () => h(Sortable, { sort, field: 'submission_timestamp', onSort: setSort }, ['Date Submitted']),
-                            cellRenderer: ({ rowIndex }) => {
-                              return h(TextCell, { style: { whiteSpace: 'normal' } }, [
-                                Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp),
-                              ]);
-                            },
-                          },
-                          {
-                            size: { basis: 175, grow: 0 },
-                            field: 'duration',
-                            headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
-                            cellRenderer: ({ rowIndex }) => {
-                              const row = paginatedPreviousRunSets[rowIndex];
-                              return h(TextCell, [
-                                Utils.customFormatDuration(
-                                  getDuration(row.state, row.submission_timestamp, row.last_modified_timestamp, isRunSetInTerminalState)
-                                ),
-                              ]);
-                            },
-                          },
-                          {
-                            size: { basis: 600, grow: 0 },
-                            field: 'comment',
-                            headerRenderer: () => h(Sortable, { sort, field: 'comment', onSort: setSort }, ['Comment']),
-                            cellRenderer: ({ rowIndex }) => {
-                              return div({ style: { width: '100%', textAlign: 'left' } }, [
-                                h(TextCell, { style: { whiteSpace: 'normal', fontStyle: 'italic' } }, [
-                                  paginatedPreviousRunSets[rowIndex].run_set_description || 'No Description',
-                                ]),
-                              ]);
-                            },
-                          },
-                        ],
-                      }),
+                  ),
+                ])
+              : h(Fragment, [
+                  h(Fragment, [
+                    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between' } }, [
+                      h2({ style: { marginTop: 0 } }, ['Submission history']),
+                      h(FilterSubmissionsDropdown, { filterOption, setFilterOption }),
+                    ]),
                   ]),
-                ]
-              ),
+                  div(['See workflows that were submitted by all collaborators in this workspace.']),
+                ]),
+            paginatedPreviousRunSets.length > 0 &&
+              h(Fragment, [
+                div(
+                  {
+                    style: {
+                      marginTop: '1em',
+                      height: tableHeight({ actualRows: paginatedPreviousRunSets.length, maxRows: 12.5, heightPerRow: rowHeight }),
+                      minHeight: '10em',
+                    },
+                  },
+                  [
+                    h(AutoSizer, [
+                      ({ width, height }) =>
+                        h(FlexTable, {
+                          'aria-label': 'previous runs',
+                          width,
+                          height,
+                          sort,
+                          rowCount: paginatedPreviousRunSets.length,
+                          noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
+                          hoverHighlight: true,
+                          rowHeight,
+                          styleCell: () => ({
+                            display: 'inline',
+                            alignItems: 'top',
+                            paddingLeft: '1rem',
+                            paddingRight: '1rem',
+                            paddingTop: '1em',
+                          }),
+                          columns: [
+                            {
+                              size: { basis: 100, grow: 0 },
+                              field: 'actions',
+                              headerRenderer: () => h(TextCell, {}, ['Actions']),
+                              cellRenderer: ({ rowIndex }) => {
+                                const permissionToAbort = paginatedPreviousRunSets[rowIndex].user_id === userId;
+                                return h(
+                                  MenuTrigger,
+                                  {
+                                    'aria-label': 'Action selection menu',
+                                    popupProps: {
+                                      style: { left: '-20px' },
+                                    },
+                                    content: h(Fragment, [
+                                      h(
+                                        MenuButton,
+                                        {
+                                          style: { fontSize: 15 },
+                                          disabled:
+                                            !permissionToAbort ||
+                                            isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) ||
+                                            paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
+                                          tooltip: Utils.cond(
+                                            [
+                                              isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state),
+                                              () => 'Cannot abort a terminal submission',
+                                            ],
+                                            [
+                                              paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
+                                              () => 'Cancel already requested on this submission.',
+                                            ],
+                                            [!permissionToAbort, () => 'You must be the original submitter to abort this submission'],
+                                            () => ''
+                                          ),
+                                          onClick: () => cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id),
+                                        },
+                                        ['Abort']
+                                      ),
+                                    ]),
+                                  },
+                                  [
+                                    h(
+                                      Clickable,
+                                      {
+                                        style: { textAlign: 'center' },
+                                        'aria-label': 'Action selection menu',
+                                      },
+                                      [icon('cardMenuIcon', { size: 35 })]
+                                    ),
+                                  ]
+                                );
+                              },
+                            },
+                            {
+                              size: { basis: 350 },
+                              field: 'runset_name',
+                              headerRenderer: () => h(Sortable, { sort, field: 'runset_name', onSort: setSort }, ['Submission name']),
+                              cellRenderer: ({ rowIndex }) => {
+                                return div([
+                                  h(
+                                    Link,
+                                    {
+                                      href: Nav.getLink('workspace-workflows-app-submission-details', {
+                                        name: workspace.workspace.name,
+                                        namespace,
+                                        submissionId: paginatedPreviousRunSets[rowIndex].run_set_id,
+                                      }),
+                                      style: { fontWeight: 'bold' },
+                                    },
+                                    [paginatedPreviousRunSets[rowIndex].run_set_name || 'No name']
+                                  ),
+                                  h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
+                                    `Data used: ${paginatedPreviousRunSets[rowIndex].record_type}`,
+                                  ]),
+                                  h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
+                                    `${paginatedPreviousRunSets[rowIndex].run_count} workflows`,
+                                  ]),
+                                ]);
+                              },
+                            },
+                            {
+                              size: { basis: 200, grow: 0 },
+                              field: 'state',
+                              headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
+                              cellRenderer: ({ rowIndex }) => {
+                                return stateCell(paginatedPreviousRunSets[rowIndex]);
+                              },
+                            },
+                            {
+                              size: { basis: 200, grow: 0 },
+                              field: 'submission_timestamp',
+                              headerRenderer: () => h(Sortable, { sort, field: 'submission_timestamp', onSort: setSort }, ['Date Submitted']),
+                              cellRenderer: ({ rowIndex }) => {
+                                return h(TextCell, { style: { whiteSpace: 'normal' } }, [
+                                  Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp),
+                                ]);
+                              },
+                            },
+                            {
+                              size: { basis: 175, grow: 0 },
+                              field: 'duration',
+                              headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
+                              cellRenderer: ({ rowIndex }) => {
+                                const row = paginatedPreviousRunSets[rowIndex];
+                                return h(TextCell, [
+                                  Utils.customFormatDuration(
+                                    getDuration(row.state, row.submission_timestamp, row.last_modified_timestamp, isRunSetInTerminalState)
+                                  ),
+                                ]);
+                              },
+                            },
+                            {
+                              size: { basis: 600, grow: 0 },
+                              field: 'comment',
+                              headerRenderer: () => h(Sortable, { sort, field: 'comment', onSort: setSort }, ['Comment']),
+                              cellRenderer: ({ rowIndex }) => {
+                                return div({ style: { width: '100%', textAlign: 'left' } }, [
+                                  h(TextCell, { style: { whiteSpace: 'normal', fontStyle: 'italic' } }, [
+                                    paginatedPreviousRunSets[rowIndex].run_set_description || 'No Description',
+                                  ]),
+                                ]);
+                              },
+                            },
+                          ],
+                        }),
+                    ]),
+                  ]
+                ),
+              ]),
             !_.isEmpty(sortedPreviousRunSets) &&
               div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
                 paginator({
