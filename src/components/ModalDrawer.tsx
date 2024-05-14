@@ -1,4 +1,4 @@
-import React, { CSSProperties, ReactNode } from 'react';
+import React, { ComponentType, CSSProperties, FunctionComponent, ReactNode } from 'react';
 import RModal from 'react-modal';
 import { Transition, TransitionStatus } from 'react-transition-group';
 import { getPopupRoot } from 'src/components/popup-utils';
@@ -79,12 +79,14 @@ const ModalDrawer = (props: ModalDrawerProps): ReactNode => {
 
 export const withModalDrawer =
   (modalDrawerProps: Partial<ModalDrawerProps> = {}) =>
-  (WrappedComponent) => {
-    const Wrapper = (props: any): ReactNode => {
-      const { isOpen, onDismiss, onExited, ...otherProps } = props;
+  <P extends { onDismiss: () => void }>(
+    WrappedComponent: ComponentType<P>
+  ): FunctionComponent<P & Pick<ModalDrawerProps, 'isOpen' | 'onExited'>> => {
+    const Wrapper = (props: P & Pick<ModalDrawerProps, 'isOpen' | 'onExited'>): ReactNode => {
+      const { isOpen, onDismiss, onExited } = props;
       return (
         <ModalDrawer isOpen={isOpen} onDismiss={onDismiss} onExited={onExited} {...modalDrawerProps}>
-          {isOpen && <WrappedComponent {...{ onDismiss, ...otherProps }} />}
+          {isOpen && <WrappedComponent {...props} />}
         </ModalDrawer>
       );
     };
