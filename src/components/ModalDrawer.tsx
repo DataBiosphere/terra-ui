@@ -80,10 +80,11 @@ const ModalDrawer = (props: ModalDrawerProps): ReactNode => {
 export const withModalDrawer =
   (modalDrawerProps: Partial<ModalDrawerProps> = {}) =>
   (WrappedComponent) => {
-    const Wrapper = ({ isOpen, onDismiss, onExited, ...props }) => {
+    const Wrapper = (props: any): ReactNode => {
+      const { isOpen, onDismiss, onExited, ...otherProps } = props;
       return (
         <ModalDrawer isOpen={isOpen} onDismiss={onDismiss} onExited={onExited} {...modalDrawerProps}>
-          {isOpen && <WrappedComponent {...{ onDismiss, ...props }} />}
+          {isOpen && <WrappedComponent {...{ onDismiss, ...otherProps }} />}
         </ModalDrawer>
       );
     };
