@@ -1,5 +1,4 @@
-import { CSSProperties, ReactNode } from 'react';
-import { h } from 'react-hyperscript-helpers';
+import React, { CSSProperties, ReactNode } from 'react';
 import RModal from 'react-modal';
 import { Transition, TransitionStatus } from 'react-transition-group';
 import { getPopupRoot } from 'src/components/popup-utils';
@@ -50,41 +49,31 @@ export interface ModalDrawerProps extends RModal.Props {
 
 const ModalDrawer = (props: ModalDrawerProps): ReactNode => {
   const { isOpen, onDismiss, width = 450, children, onExited, ...otherProps } = props;
-  return h(
-    Transition,
-    {
-      in: isOpen,
-      timeout: { exit: 200 },
-      appear: true,
-      mountOnEnter: true,
-      unmountOnExit: true,
-      onExited,
-    },
-    [
-      (transitionState) =>
-        h(
-          RModal,
-          {
-            aria: {
-              // @ts-expect-error TODO: Is this valid?
-              label: props['aria-label'],
-              labelledby: props['aria-labelledby'],
-              modal: true,
-              hidden: transitionState !== 'entered',
-            },
-            ariaHideApp: false,
-            parentSelector: getPopupRoot,
-            isOpen: true,
-            onRequestClose: onDismiss,
-            style: {
-              overlay: drawer.overlay(transitionState),
-              content: { ...drawer.container(transitionState), width },
-            },
-            ...otherProps,
-          },
-          [children]
-        ),
-    ]
+  return (
+    <Transition in={isOpen} timeout={{ exit: 200 }} appear mountOnEnter unmountOnExit onExited={onExited}>
+      {(transitionState) => (
+        <RModal
+          aria={{
+            // @ts-expect-error TODO: Is this valid?
+            label: props['aria-label'],
+            labelledby: props['aria-labelledby'],
+            modal: true,
+            hidden: transitionState !== 'entered',
+          }}
+          ariaHideApp={false}
+          parentSelector={getPopupRoot}
+          isOpen
+          onRequestClose={onDismiss}
+          style={{
+            overlay: drawer.overlay(transitionState),
+            content: { ...drawer.container(transitionState), width },
+          }}
+          {...otherProps}
+        >
+          {children}
+        </RModal>
+      )}
+    </Transition>
   );
 };
 
@@ -92,9 +81,11 @@ export const withModalDrawer =
   ({ width = undefined, ...modalProps } = {}) =>
   (WrappedComponent) => {
     const Wrapper = ({ isOpen, onDismiss, onExited, ...props }) => {
-      return h(ModalDrawer, { isOpen, width, onDismiss, onExited, ...modalProps }, [
-        isOpen && h(WrappedComponent, { onDismiss, ...props }),
-      ]);
+      return (
+        <ModalDrawer isOpen={isOpen} width={width} onDismiss={onDismiss} onExited={onExited} {...modalProps}>
+          {isOpen && <WrappedComponent {...{ onDismiss, ...props }} />}
+        </ModalDrawer>
+      );
     };
     return Wrapper;
   };
