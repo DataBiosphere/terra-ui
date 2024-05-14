@@ -77,6 +77,15 @@ const ModalDrawer = (props: ModalDrawerProps): ReactNode => {
   );
 };
 
+/**
+ * Factory for a higher-order component that wraps a component in a ModalDrawer.
+ *
+ * @param modalDrawerProps - Props to pass to the ModalDrawer.
+ * @returns A higher-order component that wraps a component in a ModalDrawer.
+ * The wrapped component must accept an onDismiss prop.
+ * The wrapper component accepts the same props as the wrapped component as well as
+ * isOpen and onExited, which are passed to the ModalDrawer.
+ */
 export const withModalDrawer =
   (modalDrawerProps: Partial<ModalDrawerProps> = {}) =>
   <P extends { onDismiss: () => void }>(
@@ -86,6 +95,23 @@ export const withModalDrawer =
       const { isOpen, onDismiss, onExited } = props;
       return (
         <ModalDrawer isOpen={isOpen} onDismiss={onDismiss} onExited={onExited} {...modalDrawerProps}>
+          {/*
+           * WrappedComponent doesn't necessarily accept isOpen and onExited props.
+           *
+           * Thus, passing them through here could result in unintended behavior if the WrappedComponent
+           * does not accept isOpen and/or onExited and passes through unknown props to a child component
+           * that does accept isOpen and/or onExited. Given that withModalDrawer is used to wrap fairly
+           * high level components (which generally do _not_ pass through props), this is unlikely to be
+           * an issue.
+           *
+           * If WrappedComponent _does_ accept isOpen and/or onExited, they must match the types in
+           * Pick<ModalDrawerProps, 'isOpen' | 'onExited'>. If they do not, then Wrapper's props will
+           * be typed as never and attempting to render Wrapper will result in a type error like:
+           * Types of parameters 'props' and 'props' are incompatible.
+           * Type 'any' is not assignable to type 'never'.
+           * The intersection 'ComponentProps & Pick<ModalDrawerProps, "isOpen" | "onExited">' was reduced
+           * to 'never' because property 'isOpen' has conflicting types in some constituents.
+           */}
           {isOpen && <WrappedComponent {...props} />}
         </ModalDrawer>
       );
