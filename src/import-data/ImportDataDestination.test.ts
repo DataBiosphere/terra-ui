@@ -1,11 +1,14 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { BillingProject } from 'src/billing-core/models';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { azureProtectedDataBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
-import { makeAzureWorkspace, makeGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
+import {
+  makeAzureWorkspace,
+  makeGoogleProtectedWorkspace,
+  makeGoogleWorkspace,
+  protectedDataPolicy,
+} from 'src/testing/workspace-fixtures';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
@@ -365,14 +368,14 @@ describe('ImportDataDestination', () => {
     {
       url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb'),
       workspace: makeGoogleWorkspace(),
-      displayExtraAccessControlNotice: false, // don't display it for GCP workspace
+      displayExtraAccessControlNotice: true,
     },
   ] as {
     url: URL;
     workspace: WorkspaceWrapper;
     displayExtraAccessControlNotice: boolean;
   }[])(
-    'displays additional access controls message when importing protected data into an Azure workspace',
+    'displays additional access controls message when importing protected data into a protected workspace',
     async ({ url, workspace, displayExtraAccessControlNotice }) => {
       // Arrange
       const user = userEvent.setup();
@@ -413,6 +416,10 @@ describe('ImportDataDestination', () => {
     },
     {
       workspace: makeAzureWorkspace({ policies: [protectedDataPolicy] }),
+      shouldDisplayPolicies: true,
+    },
+    {
+      workspace: makeGoogleProtectedWorkspace({ policies: [protectedDataPolicy] }),
       shouldDisplayPolicies: true,
     },
   ] as {
@@ -567,7 +574,7 @@ describe('ImportDataDestination', () => {
       noticeExpected: true,
     },
   ] as { importRequest: ImportRequest; noticeExpected: boolean }[])(
-    'shows a notice when importing protected data into a new Azure workspace',
+    'shows a notice when importing protected data into a new workspace',
     async ({ importRequest, noticeExpected }) => {
       // Arrange
       const user = userEvent.setup();
@@ -579,21 +586,16 @@ describe('ImportDataDestination', () => {
       await user.click(newWorkspaceButton);
 
       const { renderNotice } = asMockedFn(NewWorkspaceModal).mock.lastCall[0];
+      const { container: noticeContainer } = render(
+        renderNotice?.({ selectedBillingProject: undefined }) as JSX.Element
+      );
 
-      const isNoticeShownForBillingProject = (billingProject: BillingProject | undefined): boolean => {
-        const { container: noticeContainer } = render(
-          renderNotice?.({ selectedBillingProject: billingProject }) as JSX.Element
-        );
-        const isNoticeShown = !!within(noticeContainer).queryByText(
-          'Importing controlled access data will apply any additional access controls associated with the data to this workspace.'
-        );
-        return isNoticeShown;
-      };
+      const controlledAccessText = !!within(noticeContainer).queryByText(
+        'Importing controlled access data will apply any additional access controls associated with the data to this workspace.'
+      );
 
       // Assert
-      expect(isNoticeShownForBillingProject(undefined)).toBe(false);
-      expect(isNoticeShownForBillingProject(gcpBillingProject)).toBe(false);
-      expect(isNoticeShownForBillingProject(azureProtectedDataBillingProject)).toBe(noticeExpected);
+      expect(controlledAccessText).toBe(noticeExpected);
     }
   );
 });
