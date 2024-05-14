@@ -6,39 +6,40 @@ import { workspacesStore, workspaceStore } from 'src/libs/state';
 import { pollWithCancellation } from 'src/libs/utils';
 import { BaseWorkspaceInfo, WorkspaceState, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
-// type WorkspaceUpdate = Partial<Workspace['workspace']>
-
 interface WorkspaceUpdate extends Partial<BaseWorkspaceInfo> {
   workspaceId: string;
   state: WorkspaceState;
   errorMessage?: string;
 }
 
+// Returns a new list of workspaces with the workspace matching the update replaced with the updated version
 const updateWorkspacesList = (workspaces: Workspace[], update: WorkspaceUpdate): Workspace[] =>
   workspaces.map((ws) => updateWorkspaceIfMatching(ws, update));
 
+// If the workspace matches the update, return a new workspace with the update applied
+// otherwise return the original workspace unchanged
 const updateWorkspaceIfMatching = <T extends Workspace>(workspace: T, update: WorkspaceUpdate): T => {
   if (workspace.workspace?.workspaceId === update.workspaceId) {
-    const updatedWs = _.cloneDeep(workspace);
-    updatedWs.workspace.state = update.state;
-    updatedWs.workspace.errorMessage = update.errorMessage;
-    return updatedWs;
+    return _.merge(_.cloneDeep(workspace), { workspace: update });
   }
   return workspace;
 };
 
-const checkWorkspaceState = async (workspace: Workspace, abort: () => void, signal: AbortSignal) => {
-  const doUpdate = (abort: () => void, update: WorkspaceUpdate) => {
-    workspacesStore.update((wsList) => updateWorkspacesList(wsList, update));
-    workspaceStore.update((ws) => {
-      if (ws) {
-        return updateWorkspaceIfMatching(ws, update);
-      }
-      return undefined;
-    });
-    abort();
-  };
+// Applies the update to the workspace stores and returns the update state
+const doUpdate = (update: WorkspaceUpdate): WorkspaceState => {
+  workspacesStore.update((wsList) => updateWorkspacesList(wsList, update));
+  workspaceStore.update((ws) => {
+    if (ws) {
+      updateWorkspaceIfMatching(ws, update);
+    }
+    return undefined;
+  });
+  return update.state;
+};
 
+// Polls the workspace state, and updates the stores if the state changes
+// Returns the new state or if the workspace state transitions or undefined if the workspace was not updated
+const checkWorkspaceState = async (workspace: Workspace, signal: AbortSignal): Promise<WorkspaceState | undefined> => {
   const startingState = workspace.workspace.state;
   try {
     const wsResp: Workspace = await Ajax(signal)
@@ -52,16 +53,17 @@ const checkWorkspaceState = async (workspace: Workspace, abort: () => void, sign
         state,
         errorMessage: wsResp.workspace.errorMessage,
       };
-      doUpdate(abort, update);
+      return doUpdate(update);
     }
+    return undefined;
   } catch (error) {
     // for workspaces that are being deleted, the details endpoint will return a 404 when the deletion is complete
     if (startingState === 'Deleting' && error instanceof Response && error.status === 404) {
       const update: WorkspaceUpdate = { workspaceId: workspace.workspace.workspaceId, state: 'Deleted' };
-      doUpdate(abort, update);
-    } else {
-      console.error(`Error checking workspace state for ${workspace.workspace.name}: ${JSON.stringify(error)}`);
+      return doUpdate(update);
     }
+    console.error(`Error checking workspace state for ${workspace.workspace.name}: ${JSON.stringify(error)}`);
+    return undefined;
   }
 };
 
@@ -78,10 +80,14 @@ export const useWorkspaceStatePolling = (workspaces: Workspace[], status: Loaded
 
   useEffect(() => {
     const iterateUpdatingWorkspaces = async () => {
+      // wait for the workspaces to be loaded (LoadedState.status) before polling
       if (status === 'Ready') {
         const updatingWorkspaces = _.filter((ws) => _.contains(ws?.workspace?.state, updatingStates), workspaces);
         for (const ws of updatingWorkspaces) {
-          await checkWorkspaceState(ws, abort, controller.current.signal);
+          const updatedState = await checkWorkspaceState(ws, controller.current.signal);
+          if (updatedState) {
+            abort();
+          }
         }
       }
     };
@@ -93,7 +99,7 @@ export const useWorkspaceStatePolling = (workspaces: Workspace[], status: Loaded
   }, [workspaces, status]); // adding the controller to deps causes a double fire of the effect
 };
 
-// we need a separate implementation of this, because using useDeletetionPolling with a list
+// we need a separate implementation of this, because using useWorkspaceStatePolling with a list
 // containing a single workspace in the WorkspaceContainer causes a rendering loop
 export const useSingleWorkspaceStatePolling = (workspace: Workspace) => {
   const [controller, setController] = useState(new window.AbortController());
@@ -106,7 +112,10 @@ export const useSingleWorkspaceStatePolling = (workspace: Workspace) => {
     pollWithCancellation(
       async () => {
         if (_.contains(workspace?.workspace?.state, updatingStates)) {
-          await checkWorkspaceState(workspace, abort, controller.signal);
+          const updatedState = await checkWorkspaceState(workspace, controller.signal);
+          if (updatedState) {
+            abort();
+          }
         }
       },
       30000,
