@@ -94,6 +94,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/node", "npm:18.19.5"],\
             ["@types/react", "npm:18.3.1"],\
             ["@types/react-dom", "npm:18.3.0"],\
+            ["@types/react-modal", "npm:3.16.2"],\
+            ["@types/react-transition-group", "npm:4.4.10"],\
             ["@types/react-virtualized", "npm:9.21.22"],\
             ["@types/testing-library__jest-dom", "npm:5.14.9"],\
             ["@typescript-eslint/eslint-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.62.0"],\
@@ -8265,6 +8267,14 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@types/react-transition-group", [\
+        ["npm:4.4.10", {\
+          "packageLocation": "./.yarn/cache/@types-react-transition-group-npm-4.4.10-5e11bed850-fe2ea11f70.zip/node_modules/@types/react-transition-group/",\
+          "packageDependencies": [\
+            ["@types/react-transition-group", "npm:4.4.10"],\
+            ["@types/react", "npm:18.3.1"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
         ["npm:4.4.4", {\
           "packageLocation": "./.yarn/cache/@types-react-transition-group-npm-4.4.4-258f9685b8-86e9ff9731.zip/node_modules/@types/react-transition-group/",\
           "packageDependencies": [\
@@ -22051,6 +22061,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/node", "npm:18.19.5"],\
             ["@types/react", "npm:18.3.1"],\
             ["@types/react-dom", "npm:18.3.0"],\
+            ["@types/react-modal", "npm:3.16.2"],\
+            ["@types/react-transition-group", "npm:4.4.10"],\
             ["@types/react-virtualized", "npm:9.21.22"],\
             ["@types/testing-library__jest-dom", "npm:5.14.9"],\
             ["@typescript-eslint/eslint-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.62.0"],\

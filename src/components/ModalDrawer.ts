@@ -1,12 +1,12 @@
-import PropTypes from 'prop-types';
+import { CSSProperties, ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import RModal from 'react-modal';
-import { Transition } from 'react-transition-group';
+import { Transition, TransitionStatus } from 'react-transition-group';
 import { getPopupRoot } from 'src/components/popup-utils';
 import colors from 'src/libs/colors';
 
 const drawer = {
-  overlay: (transitionState) =>
+  overlay: (transitionState: TransitionStatus): CSSProperties =>
     transitionState === 'entering' || transitionState === 'entered'
       ? {
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -22,7 +22,7 @@ const drawer = {
           overflowY: 'auto',
         }
       : {},
-  container: (state) => ({
+  container: (state: TransitionStatus): CSSProperties => ({
     ...(state === 'entered' ? {} : { opacity: 0, transform: 'translate(4rem)' }),
     top: 0,
     right: 0,
@@ -38,9 +38,18 @@ const drawer = {
     flexDirection: 'column',
     overflowY: 'auto',
   }),
-};
+} as const;
 
-function ModalDrawer({ isOpen, onDismiss, width = 450, children, onExited, ...props }) {
+export interface ModalDrawerProps extends RModal.Props {
+  children?: ReactNode;
+  isOpen: boolean;
+  width?: CSSProperties['width'];
+  onDismiss: () => void;
+  onExited?: () => void;
+}
+
+const ModalDrawer = (props: ModalDrawerProps): ReactNode => {
+  const { isOpen, onDismiss, width = 450, children, onExited, ...otherProps } = props;
   return h(
     Transition,
     {
@@ -56,34 +65,38 @@ function ModalDrawer({ isOpen, onDismiss, width = 450, children, onExited, ...pr
         h(
           RModal,
           {
-            aria: { label: props['aria-label'], labelledby: props['aria-labelledby'], modal: true, hidden: transitionState !== 'entered' },
+            aria: {
+              // @ts-expect-error TODO: Is this valid?
+              label: props['aria-label'],
+              labelledby: props['aria-labelledby'],
+              modal: true,
+              hidden: transitionState !== 'entered',
+            },
             ariaHideApp: false,
             parentSelector: getPopupRoot,
             isOpen: true,
             onRequestClose: onDismiss,
-            style: { overlay: drawer.overlay(transitionState), content: { ...drawer.container(transitionState), width } },
-            ...props,
+            style: {
+              overlay: drawer.overlay(transitionState),
+              content: { ...drawer.container(transitionState), width },
+            },
+            ...otherProps,
           },
           [children]
         ),
     ]
   );
-}
+};
 
 export const withModalDrawer =
-  ({ width, ...modalProps } = {}) =>
+  ({ width = undefined, ...modalProps } = {}) =>
   (WrappedComponent) => {
     const Wrapper = ({ isOpen, onDismiss, onExited, ...props }) => {
-      return h(ModalDrawer, { isOpen, width, onDismiss, onExited, ...modalProps }, [isOpen && h(WrappedComponent, { onDismiss, ...props })]);
+      return h(ModalDrawer, { isOpen, width, onDismiss, onExited, ...modalProps }, [
+        isOpen && h(WrappedComponent, { onDismiss, ...props }),
+      ]);
     };
     return Wrapper;
   };
-
-ModalDrawer.propTypes = {
-  isOpen: PropTypes.bool,
-  onDismiss: PropTypes.func.isRequired,
-  width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  children: PropTypes.node,
-};
 
 export default ModalDrawer;
