@@ -50,7 +50,7 @@ export interface ModalDrawerProps extends RModal.Props {
 const ModalDrawer = (props: ModalDrawerProps): ReactNode => {
   const { isOpen, onDismiss, width = 450, children, onExited, ...otherProps } = props;
   return (
-    <Transition in={isOpen} timeout={{ exit: 200 }} appear mountOnEnter unmountOnExit onExited={onExited}>
+    <Transition appear in={isOpen} mountOnEnter timeout={{ exit: 200 }} unmountOnExit onExited={onExited}>
       {(transitionState) => (
         <RModal
           aria={{
@@ -61,13 +61,13 @@ const ModalDrawer = (props: ModalDrawerProps): ReactNode => {
             hidden: transitionState !== 'entered',
           }}
           ariaHideApp={false}
-          parentSelector={getPopupRoot}
           isOpen
-          onRequestClose={onDismiss}
+          parentSelector={getPopupRoot}
           style={{
-            overlay: drawer.overlay(transitionState),
             content: { ...drawer.container(transitionState), width },
+            overlay: drawer.overlay(transitionState),
           }}
+          onRequestClose={onDismiss}
           {...otherProps}
         >
           {children}
