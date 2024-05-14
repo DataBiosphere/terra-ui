@@ -157,7 +157,7 @@ export const BaseRunDetails = (
     [signal, workspaceId]
   );
 
-  const inProgressElement = (workflow) => {
+  const renderInProgressElement = (workflow) => {
     if (workflow.status === 'Running') {
       return span({ style: { fontStyle: 'italic' } }, ['In progress - ']);
     }
