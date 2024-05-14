@@ -132,6 +132,11 @@ const Workspaces = (signal) => ({
     const root = `workspaces/v2/${namespace}/${name}`;
 
     return {
+      clone: async (body) => {
+        const res = await fetchRawls(`${root}/clone`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
+        return res.json();
+      },
+
       delete: () => {
         return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },

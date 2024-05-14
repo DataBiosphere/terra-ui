@@ -214,6 +214,7 @@ describe('ImportData', () => {
       workspaces: [defaultAzureWorkspace, defaultGoogleWorkspace],
       loading: false,
       refresh: () => Promise.resolve(),
+      status: 'Ready',
     });
   });
 

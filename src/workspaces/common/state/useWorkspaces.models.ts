@@ -1,3 +1,4 @@
+import { LoadedState } from '@terra-ui-packages/core-utils';
 import { FieldsArg } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
@@ -8,6 +9,7 @@ export interface UseWorkspacesResult {
   workspaces: WorkspaceWrapper[];
   refresh: () => Promise<void>;
   loading: boolean;
+  status: LoadedState<WorkspaceWrapper[]>['status'];
 }
 
 /**
