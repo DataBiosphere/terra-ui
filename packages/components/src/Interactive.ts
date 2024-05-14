@@ -1,3 +1,4 @@
+import { cond } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import {
   AllHTMLAttributes,
@@ -11,7 +12,6 @@ import {
 } from 'react';
 
 import { injectStyle } from './injectStyle';
-import * as Utils from './utils';
 
 // Interactive's hover and focus styles depend on this CSS.
 injectStyle(`
@@ -88,22 +88,22 @@ export const Interactive = forwardRef((props: InteractiveProps, ref: ForwardedRe
   const [outline, setOutline] = useState<string>();
   const { cursor } = style;
 
-  const computedCursor = Utils.cond(
+  const computedCursor = cond(
     [!!cursor, () => cursor],
-    [disabled, () => 'not-allowed'],
+    [!!disabled, () => 'not-allowed'],
     [!!onClick || pointerTags.includes(TagName) || pointerTypes.includes(type!), () => 'pointer']
   );
 
-  const computedTabIndex = Utils.cond(
+  const computedTabIndex = cond(
     [_.isNumber(tabIndex), () => tabIndex],
-    [disabled, () => -1],
+    [!!disabled, () => -1],
     [!!onClick, () => 0],
     () => undefined
   );
 
-  const computedRole = Utils.cond(
+  const computedRole = cond(
     [!!role, () => role],
-    [onClick && !['input', ...pointerTags].includes(TagName), () => 'button'],
+    [!!onClick && !['input', ...pointerTags].includes(TagName), () => 'button'],
     () => undefined
   );
 
