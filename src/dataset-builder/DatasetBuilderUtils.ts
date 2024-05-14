@@ -144,7 +144,7 @@ export const createSnapshotAccessRequest = (
     name,
     sourceSnapshotId: snapshotId,
     researchPurposeStatement,
-    datasetRequest: {
+    snapshotBuilderRequest: {
       cohorts: _.map(convertCohort, cohorts),
       conceptSets,
       valueSets: _.map(convertValueSet, valueSets),
