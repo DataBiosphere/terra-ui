@@ -39,7 +39,7 @@ export const WorkspaceStateCell = (props: WorkspaceStateCellProps): ReactNode =>
     case 'Deleting':
       return <WorkspaceDeletingCell />;
     case 'DeleteFailed':
-      return <WorkspaceFailedCell state={state} errorMessage={errorMessage} />;
+      return <WorkspaceFailedCell workspaceName={workspace.name} state={state} errorMessage={errorMessage} />;
     case 'Deleted':
       return <WorkspaceDeletedCell />;
     case 'Cloning':
@@ -47,7 +47,7 @@ export const WorkspaceStateCell = (props: WorkspaceStateCellProps): ReactNode =>
     case 'CloningContainer':
       return <WorkspaceCloningCell />;
     case 'CloningFailed':
-      return <WorkspaceFailedCell state={state} errorMessage={errorMessage} />;
+      return <WorkspaceFailedCell workspaceName={workspace.name} state={state} errorMessage={errorMessage} />;
     default:
       return <WorkspaceDescriptionCell description={description} />;
   }
@@ -102,6 +102,7 @@ const WorkspaceStatusPill = (props: WorkspaceStatusPillProps): ReactNode => {
 };
 
 interface WorkspaceFailedCellProps {
+  workspaceName: string;
   state: 'DeleteFailed' | 'CloningFailed';
   errorMessage?: string;
 }
@@ -124,6 +125,7 @@ const WorkspaceFailedCell = (props: WorkspaceFailedCellProps): ReactNode => {
             fontSize: '0.875rem',
             margin: '0.625rem',
           }}
+          aria-label={`Error details for workspace: ${props.workspaceName}`}
         >
           See error details.
         </Link>
