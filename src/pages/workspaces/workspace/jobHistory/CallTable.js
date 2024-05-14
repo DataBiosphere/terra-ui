@@ -367,7 +367,7 @@ const CallTable = ({
                       if (taskStartTime && vmCostUsd) {
                         if (executionStatus === 'Running') {
                           const cost = getTaskCost(vmCostUsd, taskStartTime);
-                          return div({}, [span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
+                          return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
                         }
                         if (executionStatus === 'Done') {
                           const cost = getTaskCost(vmCostUsd, taskStartTime, taskEndTime);
