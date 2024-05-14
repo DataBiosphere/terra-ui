@@ -177,11 +177,8 @@ export const BaseRunDetails = (
     return total;
   };
 
-  useEffect(() => {
-    if (callObjects) {
-      const cost = calculateTotalCost(callObjects);
-      setTaskCostTotal(cost);
-    }
+  const taskCostTotal = useMemo(() => {
+    return callObjects ? calculateTotalCost(callObjects) : undefined;
   }, [callObjects]);
 
   const loadCallCacheMetadata = useCallback(
