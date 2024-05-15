@@ -74,6 +74,7 @@ describe('useAnalysisExportState', () => {
       workspaces: [],
       loading: false,
       refresh: jest.fn(),
+      status: 'Ready',
     });
 
     const sourceWorkspaceInfo: Partial<WorkspaceInfo> = {
@@ -117,6 +118,7 @@ describe('useAnalysisExportState', () => {
       ],
       loading: false,
       refresh: jest.fn(),
+      status: 'Ready',
     });
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue([analysis1, analysis2]);
 
@@ -176,6 +178,7 @@ describe('useAnalysisExportState', () => {
       ],
       loading: false,
       refresh: jest.fn(),
+      status: 'Ready',
     });
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue([
       { name: 'files/Analysis1.ipynb' as AbsolutePath } as AnalysisFile,
@@ -233,6 +236,7 @@ describe('useAnalysisExportState', () => {
       ],
       loading: false,
       refresh: jest.fn(),
+      status: 'Ready',
     });
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue([
       { name: 'files/Analysis1.ipynb' as AbsolutePath } as AnalysisFile,
@@ -299,6 +303,7 @@ describe('useAnalysisExportState', () => {
       ],
       loading: false,
       refresh: jest.fn(),
+      status: 'Ready',
     });
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue([
       { name: 'files/Analysis1.ipynb' as AbsolutePath } as AnalysisFile,

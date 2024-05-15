@@ -377,6 +377,91 @@ describe('SubmissionHistory tab', () => {
     fully_updated: true,
   };
 
+  it('should correctly set default option', async () => {
+    // Act
+    await act(async () => {
+      render(
+        h(BaseSubmissionHistory, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      );
+    });
+
+    screen.getByText(/None selected/);
+  });
+
+  it('should correctly select and change results', async () => {
+    const user = userEvent.setup();
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+    const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: 'user-id-blah-blah' }));
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            get: getRunSetsMethod,
+          },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+        User: {
+          getStatus: mockUserResponse,
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(BaseSubmissionHistory, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      );
+    });
+
+    expect(getRunSetsMethod).toHaveBeenCalled();
+
+    const dropdown = await screen.findByLabelText('Filter selection');
+    const filterDropdown = new SelectHelper(dropdown, user);
+    await filterDropdown.selectOption('Failed');
+
+    const table = await screen.findByRole('table');
+
+    // Assert
+    expect(table).toHaveAttribute('aria-colcount', '6');
+    expect(table).toHaveAttribute('aria-rowcount', '2');
+
+    const rows = within(table).getAllByRole('row');
+    expect(rows.length).toBe(2);
+
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    expect(headers.length).toBe(6);
+    within(headers[0]).getByText('Actions');
+    within(headers[1]).getByText('Submission name');
+    within(headers[2]).getByText('Status');
+    within(headers[3]).getByText('Date Submitted');
+    within(headers[4]).getByText('Duration');
+    within(headers[5]).getByText('Comment');
+
+    // // check data rows are rendered as expected
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
+    expect(cellsFromDataRow1.length).toBe(6);
+    within(cellsFromDataRow1[0]).getByText('Abort');
+    within(cellsFromDataRow1[1]).getByText('No name');
+    within(cellsFromDataRow1[1]).getByText('Data used: FOO');
+    within(cellsFromDataRow1[1]).getByText('2 workflows');
+    within(cellsFromDataRow1[2]).getByText('Failed with 1 errors');
+    within(cellsFromDataRow1[3]).getByText('Jul 10, 2021, 12:00 PM');
+    within(cellsFromDataRow1[4]).getByText('1 month 1 day 1 hour 1 minute 1 second');
+    within(cellsFromDataRow1[5]).getByText('No Description');
+  });
+
   it('Gives abort option for actions button', async () => {
     const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(simpleRunSetData));

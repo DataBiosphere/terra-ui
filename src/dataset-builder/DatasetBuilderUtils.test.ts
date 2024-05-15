@@ -166,7 +166,7 @@ const datasetAccessRequestApi: SnapshotAccessRequestApi = {
   sourceSnapshotId: testSnapshotId,
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
-  datasetRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
+  snapshotBuilderRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
 };
 
 describe('test conversion of criteria', () => {

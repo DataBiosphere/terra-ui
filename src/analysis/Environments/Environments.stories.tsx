@@ -20,8 +20,11 @@ import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/works
 import { UseWorkspaces } from 'src/workspaces/common/state/useWorkspaces.models';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
+/**
+ * This component is used in terra-ui, and a version of it is also used in All of Us (AoU).
+ */
 const meta: Meta<typeof Environments> = {
-  title: 'Packages/Analysis/Environments',
+  title: 'src/Analysis/Environments',
   component: Environments,
   parameters: {
     layout: 'centered',
@@ -104,14 +107,17 @@ const getMockLeoDisks = (): EnvironmentsProps['leoDiskData'] => {
 const getMockUseWorkspaces = (mockResults: WorkspaceWrapper[]): EnvironmentsProps['useWorkspaces'] => {
   const useMockHook: UseWorkspaces = () => {
     const [loading, setLoading] = useState<boolean>(false);
-
+    const [status, setStatus] = useState<'Ready' | 'Loading' | 'Error'>('Ready');
     return {
       workspaces: mockResults,
       loading,
+      status,
       refresh: async () => {
         setLoading(true);
+        setStatus('Loading');
         await delay(1000);
         setLoading(false);
+        setStatus('Ready');
       },
     };
   };
@@ -191,6 +197,10 @@ export const NoEnvironments: Story = {
   },
 };
 
+/**
+ * This demonstrates the notification callback that is triggered if deleting a cloud environment fails.
+ * The callback can be seen in the `Actions` tab.
+ */
 export const DeleteError: Story = {
   render: () => {
     const StoryWrapper = (): React.ReactNode => {

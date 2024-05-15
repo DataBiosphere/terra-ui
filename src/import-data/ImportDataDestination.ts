@@ -18,7 +18,7 @@ import * as Utils from 'src/libs/utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
-import { isAzureWorkspace, WorkspaceInfo } from 'src/workspaces/utils';
+import { WorkspaceInfo } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
@@ -227,10 +227,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         h(WorkspacePolicies, {
           workspace: selectedWorkspace,
           noCheckboxes: true,
-          endingNotice:
-            isProtectedData && isAzureWorkspace(selectedWorkspace)
-              ? div(['Importing this data may add additional access controls'])
-              : undefined,
+          endingNotice: isProtectedData ? div(['Importing this data may add additional access controls']) : undefined,
         }),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
@@ -362,9 +359,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
                 cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
-                renderNotice: ({ selectedBillingProject }) => {
+                renderNotice: () => {
                   const children: ReactNode[] = [];
-                  if (isProtectedData && selectedBillingProject?.cloudPlatform === 'AZURE') {
+                  if (isProtectedData) {
                     children.push(
                       div({ style: { paddingBottom: importMayTakeTime ? '1.0rem' : 0 } }, [
                         'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',

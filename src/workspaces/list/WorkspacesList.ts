@@ -12,7 +12,6 @@ import { updateSearch, useRoute } from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import { elements as StyleElements } from 'src/libs/style';
 import { newTabLinkProps } from 'src/libs/utils';
-import { useDeletionPolling } from 'src/workspaces/common/state/useDeletionPolling';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { categorizeWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
 import { RecentlyViewedWorkspaces } from 'src/workspaces/list/RecentlyViewedWorkspaces';
@@ -26,6 +25,8 @@ import { WorkspacesListTabs } from 'src/workspaces/list/WorkspacesListTabs';
 import { WorkspaceUserActions, WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
 import { cloudProviderTypes, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
+import { useWorkspaceStatePolling } from '../common/state/useWorkspaceStatePolling';
+
 export const persistenceId = 'workspaces/list';
 
 export const getWorkspace = (id: string, workspaces: Workspace[]): Workspace =>
@@ -36,6 +37,7 @@ export const WorkspacesList = (): ReactNode => {
     workspaces,
     refresh: refreshWorkspaces,
     loading: loadingWorkspaces,
+    status,
   } = useWorkspaces(
     [
       'accessLevel',
@@ -55,8 +57,8 @@ export const WorkspacesList = (): ReactNode => {
     250
   );
 
+  useWorkspaceStatePolling(workspaces, status);
   const [featuredList, setFeaturedList] = useState<{ name: string; namespace: string }[]>();
-  useDeletionPolling(workspaces);
   const { query } = useRoute();
   const filters: WorkspaceFilterValues = getWorkspaceFiltersFromQuery(query);
 
@@ -76,7 +78,6 @@ export const WorkspacesList = (): ReactNode => {
     });
     loadFeatured();
   });
-
   const sortedWorkspaces = useMemo(() => categorizeWorkspaces(workspaces, featuredList), [workspaces, featuredList]);
 
   const [userActions, setUserActions] = useState<WorkspaceUserActions>({ creatingNewWorkspace: false });
