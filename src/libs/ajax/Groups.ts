@@ -1,5 +1,6 @@
 import _ from 'lodash/fp';
 import { authOpts, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
+import { SupportSummary } from 'src/support/SupportResourceType';
 
 export type GroupRole = 'admin' | 'member';
 
@@ -82,6 +83,12 @@ export const Groups = (signal?: AbortSignal) => ({
 
       isMember: async (): Promise<boolean> => {
         const res = await fetchSam(`${resourceRoot}/action/use`, _.merge(authOpts(), { signal }));
+        return res.json();
+      },
+
+      // we could provide a more specific type here, but we don't use it and don't want to limit future additions
+      getSupportSummary: async (): Promise<SupportSummary> => {
+        const res = await fetchSam(`api/admin/v1/groups/${groupName}/supportSummary`, _.merge(authOpts(), { signal }));
         return res.json();
       },
     };

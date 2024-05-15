@@ -24,6 +24,7 @@ import * as DataExplorer from 'src/pages/library/datasets/DataExplorer';
 import * as Showcase from 'src/pages/library/Showcase';
 import * as NotFound from 'src/pages/NotFound';
 import * as Profile from 'src/pages/ProfilePage';
+import * as Support from 'src/pages/SupportPage';
 import * as UploadData from 'src/pages/UploadDataPage';
 import * as WorkflowsList from 'src/pages/workflows/List';
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails';
@@ -85,6 +86,7 @@ const routes = _.flatten([
   WorkspaceFiles.navPaths,
   WorkflowsApp.navPaths,
   SignOutPage.navPaths,
+  Support.navPaths,
   NotFound.navPaths, // must be last
 ]);
 
