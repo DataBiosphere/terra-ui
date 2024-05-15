@@ -1,12 +1,13 @@
 import { Clickable, Modal, Spinner, useLoadedData } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
-import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, h4, label, li, span, ul } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
+import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
-import { ValidatedInput, ValidatedTextArea } from 'src/components/input';
+import { ValidatedInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
@@ -461,13 +462,12 @@ interface RequestAccessModalProps {
 const RequestAccessModal = (props: RequestAccessModalProps) => {
   const { onDismiss, cohorts, conceptSets, valueSets, snapshotId } = props;
   const [name, setName] = useState('');
-  const [researchPurposeStatement, setResearchPurposeStatement] = useState('');
 
   const required = { presence: { allowEmpty: false } };
-  const errors = validate({ name, researchPurposeStatement }, { name: required, researchPurposeStatement: required });
+  const errors = validate({ name }, { name: required });
 
   const nameId = _.uniqueId('');
-  const researchPurposeId = _.uniqueId('');
+  const [index, setIndex] = useState(0);
 
   return h(
     Modal,
@@ -486,16 +486,16 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
               .createSnapshotAccessRequest(
                 createSnapshotAccessRequest(
                   name,
-                  researchPurposeStatement,
+                  '',
                   snapshotId,
                   cohorts,
                   conceptSets,
                   _.map(
-                    (valuesSet: HeaderAndValues<DatasetBuilderValue>) => ({
-                      domain: valuesSet.header,
-                      values: valuesSet.values,
+                    (valueSet) => ({
+                      domain: valueSet.header,
+                      values: valueSet.values,
                     }),
-                    valueSets // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
+                    valueSets // convert from HeaderAndValues<DatasetBuilderValue>[] to ValueSet[]
                   )
                 )
               );
@@ -504,37 +504,105 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
         },
         ['Request access']
       ),
+      nextStepButton: h(
+        ButtonPrimary,
+        {
+          disabled: errors,
+          tooltip: errors && Utils.summarizeErrors(errors),
+          onClick: async () => {
+            setIndex(index + 1);
+          },
+        },
+        ['Next step']
+      ),
+      index,
     },
     [
       div([
-        div([
-          "A request of the dataset created will be generated and may take up to 72 hours for approval. Once approved you'll be notified by email. We'll send you a copy of this request",
-        ]),
-        h(FormLabel, { htmlFor: nameId, required }, ['Dataset name']),
+        div({
+          style: { marginTop: 10 },
+          children: ['You will be directed away from Terra to the AnalytiXIN website data request form.'],
+        }),
+        div({
+          style: { marginTop: 15 },
+          children: [
+            "A request of the dataset created will be generated and may take up to 2 weeks for approval. Once approved you'll be notified by email. We'll send you a copy of this request.",
+          ],
+        }),
+        h2({
+          style: { marginTop: 30, fontWeight: 600 },
+          children: ['Step ', index + 1, ' of 2'],
+        }),
+        h(FormLabel, { htmlFor: nameId, required }, ['Data snapshot name']),
         h(ValidatedInput, {
           inputProps: {
             id: nameId,
-            'aria-label': 'Dataset name',
+            'aria-label': 'Data snapshot name',
             autoFocus: true,
-            placeholder: 'Enter a name',
+            placeholder: 'This is my new dataset',
             value: name,
             onChange: setName,
           },
         }),
-        h(FormLabel, { htmlFor: researchPurposeId, required }, ['Research purpose statement']),
-        h(ValidatedTextArea, {
-          inputProps: {
-            id: researchPurposeId,
-            'aria-label': 'Research purpose statement',
-            placeholder: 'Enter a research purpose statement',
-            style: {
-              marginTop: '1rem',
-              height: 200,
-            },
-            value: researchPurposeStatement,
-            onChange: setResearchPurposeStatement,
-          },
+      ]),
+      div([
+        div({
+          style: { marginTop: 10 },
+          children: ['You will be directed away from Terra to the AnalytiXIN website data request form.'],
         }),
+        div({
+          style: { marginTop: 15 },
+          children: [
+            "A request of the dataset created will be generated and may take up to 2 weeks for approval. Once approved you'll be notified by email. We'll send you a copy of this request.",
+          ],
+        }),
+        h2({
+          style: { marginTop: 30, fontWeight: 600 },
+          children: ['Step ', index + 1, ' of 2'],
+        }),
+        div(
+          {
+            style: {
+              backgroundColor: colors.accent(0.15),
+              color: colors.dark(),
+              border: `1px solid ${colors.accent(0.05)}`,
+              borderRadius: 10,
+              height: 150,
+              padding: '1rem',
+              marginTop: '0.5rem',
+            },
+          },
+          [
+            div([
+              h3({
+                style: { marginTop: 5, fontWeight: 600 },
+                children: ['Important!'],
+              }),
+              div({
+                style: { display: 'pre-wrap' },
+                children: [
+                  span(['Please copy and paste the ']),
+                  span({ style: { fontWeight: 600 } }, ['Data Snapshot ID']),
+                  span([' into the AnalytiXIN form:']),
+                ],
+              }),
+              div({ style: { display: 'flex' } }, [
+                h4({
+                  style: { fontWeight: 300, color: colors.accent() },
+                  children: ['prefix_name_of_the_snapshot'],
+                }),
+                h(ClipboardButton, {
+                  'aria-label': 'Copy Data Snapshot ID to clipboard',
+                  className: 'cell-hover-only',
+                  iconSize: 14,
+                  text: 'prefix_name_of_the_snapshot',
+                  tooltip: 'Copy Data Snapshot ID to clipboard',
+                  style: { marginLeft: '5', marginTop: '10' },
+                }),
+              ]),
+            ]),
+          ]
+        ),
       ]),
     ]
   );
