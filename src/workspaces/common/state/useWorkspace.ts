@@ -209,6 +209,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
       workspace: { createdBy, createdDate, googleProject },
     } = workspace;
 
+    console.log(workspace?.workspace?.state); // eslint-disable-line no-console
     checkWorkspaceInitialization(workspace);
 
     // Request a service account token. If this is the first time, it could take some time before everything is in sync.
