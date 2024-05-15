@@ -15,6 +15,11 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
     Nav.updateSearch({ ...query, resourceId: resourceId || undefined });
   }
 
+  // event hook to clear the resourceId when resourceType changes
+  React.useEffect(() => {
+    setResourceId('');
+  }, [props.fqResourceId.resourceTypeName]);
+
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -32,7 +37,6 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
         </div>
         <TextInput
           style={{ marginRight: '1rem', marginLeft: '1rem' }}
-          key={`${props.fqResourceId.resourceTypeName}-input`}
           placeholder={`Enter ${props.displayName} ID`}
           onChange={(newResourceId) => {
             setResourceId(newResourceId);
@@ -42,14 +46,12 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
               submit();
             }
           }}
-          defaultValue={props.fqResourceId.resourceId || ''}
+          value={resourceId}
         />
         <ButtonPrimary onClick={() => submit()}>Load</ButtonPrimary>
       </div>
-      {!!props.loadSupportSummaryFn && (
-        <SupportSummary {...props} key={`${props.fqResourceId.resourceTypeName}-summary`} />
-      )}
-      <ResourcePolicies {...props} key={`${props.fqResourceId.resourceTypeName}-policy`} />
+      {!!props.loadSupportSummaryFn && <SupportSummary {...props} />}
+      <ResourcePolicies {...props} />
     </>
   );
 };

@@ -26,7 +26,7 @@ export const SupportResourceList = (props: SupportResourceListProps) => {
   };
 
   return (
-    <div role='main' style={{ display: 'flex', flex: 1, height: `calc(100% - ${Style.topBarHeight}px)` }}>
+    <div style={{ display: 'flex', flex: 1, height: `calc(100% - ${Style.topBarHeight}px)` }}>
       <div
         style={{
           minWidth: supportResourceListWidth,
@@ -69,13 +69,13 @@ export const SupportResourceList = (props: SupportResourceListProps) => {
                   />
                 );
               }
-              return <div style={{ margin: '1rem auto 0 auto' }}>Select a Resource Type</div>;
+              return <div style={{ margin: '1rem auto 0' }}>Select a Resource Type</div>;
             },
           ],
           [
             !selectedType,
             () => {
-              return <div style={{ margin: '1rem auto 0 auto' }}>Select a Resource Type</div>;
+              return <div style={{ margin: '1rem auto 0' }}>Select a Resource Type</div>;
             },
           ]
         )}

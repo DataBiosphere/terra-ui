@@ -8,16 +8,11 @@ import { ResourceTypeSummaryProps } from 'src/support/SupportResourceType';
 export const SupportSummary = (props: ResourceTypeSummaryProps) => {
   const [summaryInfo, setSummaryInfo] = useState<object>();
   const [errorMessage, setErrorMessage] = useState<string>('');
+
   const resourceId = props.fqResourceId.resourceId;
   const fqResourceId = props.fqResourceId;
-
-  async function loadSupportSummary(id: FullyQualifiedResourceId) {
-    if (props.loadSupportSummaryFn) {
-      return props.loadSupportSummaryFn(id);
-    }
-    // throw error here because this component should not be used without a summary function
-    throw new Error('No support summary function provided');
-  }
+  const loadSupportSummaryFn = props.loadSupportSummaryFn;
+  const displayName = props.displayName;
 
   function clear() {
     setErrorMessage('');
@@ -25,6 +20,14 @@ export const SupportSummary = (props: ResourceTypeSummaryProps) => {
   }
 
   useEffect(() => {
+    async function loadSupportSummary(id: FullyQualifiedResourceId) {
+      if (loadSupportSummaryFn) {
+        return loadSupportSummaryFn(id);
+      }
+      // throw error here because this component should not be used without a summary function
+      throw new Error('No support summary function provided');
+    }
+
     const loadSummary = async () => {
       clear();
       if (resourceId) {
@@ -32,11 +35,9 @@ export const SupportSummary = (props: ResourceTypeSummaryProps) => {
           setSummaryInfo(await loadSupportSummary(fqResourceId));
         } catch (e) {
           if (e instanceof Response && e.status === 404) {
-            setErrorMessage(`${props.displayName} not found`);
+            setErrorMessage(`${displayName} not found`);
           } else if (e instanceof Response && e.status === 403) {
-            setErrorMessage(
-              `You do not have permission to view ${props.displayName} summary information or are not on VPN`
-            );
+            setErrorMessage(`You do not have permission to view ${displayName} summary information or are not on VPN`);
           } else {
             await reportError('Error loading group summary', e);
           }
@@ -45,8 +46,7 @@ export const SupportSummary = (props: ResourceTypeSummaryProps) => {
     };
 
     loadSummary();
-    // eslist complains about loadSupportSummary being a dependency, but adding it causes an infinite loop
-  }, [fqResourceId, resourceId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fqResourceId, resourceId, loadSupportSummaryFn, displayName]);
 
   return (
     <>

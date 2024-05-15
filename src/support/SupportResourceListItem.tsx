@@ -1,5 +1,4 @@
 import { Clickable } from '@terra-ui-packages/components';
-import * as qs from 'qs';
 import React, { CSSProperties, useState } from 'react';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
@@ -47,7 +46,7 @@ export const SupportResourceListItem = (props: SupportResourceListItemProps) => 
             alignItems: 'center',
             color: isActive ? colors.accent(1.1) : colors.accent(),
           }}
-          href={`${Nav.getLink('support')}?${qs.stringify({ resourceType: resourceType.resourceType })}`}
+          href={`${Nav.getLink('support', undefined, { resourceType: resourceType.resourceType })}`}
           aria-current={isActive ? 'location' : false}
         >
           {supportResourceElement}
