@@ -160,7 +160,7 @@ const NewWorkspaceModal = withDisplayName(
             !!cloneWorkspace,
             async () => {
               const workspace = await Ajax()
-                .Workspaces.workspace(cloneWorkspace!.workspace.namespace, cloneWorkspace!.workspace.name)
+                .Workspaces.workspaceV2(cloneWorkspace!.workspace.namespace, cloneWorkspace!.workspace.name)
                 .clone(body);
               const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces();
               const metricsData = {
