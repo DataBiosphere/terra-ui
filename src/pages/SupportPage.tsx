@@ -28,7 +28,7 @@ const SupportPage = (props: SupportPageProps) => {
           </div>
         )}
       </TopBar>
-      <PageBox variant={PageBoxVariants.light}>
+      <PageBox role='main' variant={PageBoxVariants.light}>
         <h2 style={{ ...Style.elements.sectionHeader, textTransform: 'uppercase' }}>Support</h2>
         <p>Select resource type.</p>
         <SupportResourceList queryParams={{ resourceType: selectedType, resourceId }} />
