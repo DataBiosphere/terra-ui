@@ -20,7 +20,7 @@ export const ResourcePolicies = (props: ResourceTypeSummaryProps) => {
       if (props.fqResourceId.resourceId) {
         try {
           const policies = await Ajax().SamResources.getResourcePolicies(props.fqResourceId);
-          policies instanceof Array && policies.length === 0
+          Array.isArray(policies) && policies.length === 0
             ? setErrorMessage('No policies found')
             : setResourcePolicies(policies);
         } catch (e) {
