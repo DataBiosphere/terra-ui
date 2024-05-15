@@ -43,6 +43,10 @@ jest.mock('react-virtualized', () => {
 });
 
 describe('Workflow View (GCP)', () => {
+  beforeEach(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
   const initializedGoogleWorkspace = {
     accessLevel: 'OWNER',
     owners: ['bar@foo.com'],
