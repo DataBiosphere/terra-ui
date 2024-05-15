@@ -1,8 +1,9 @@
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
-import { div, h, label, p, span } from 'react-hyperscript-helpers';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
 import { AutopauseConfiguration } from 'src/analysis/modals/ComputeModal/AutopauseConfiguration';
+import { AzureApplicationConfigurationSection } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzureApplicationConfigurationSection';
 import { AzureComputeProfileSelect } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeProfileSelect';
 import { AzurePersistentDiskSection } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSection';
 import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
@@ -11,9 +12,7 @@ import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/analy
 import { generatePersistentDiskName } from 'src/analysis/utils/disk-utils';
 import { autopauseDisabledValue, defaultAutopauseThreshold, generateRuntimeName, getIsRuntimeBusy } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
-import { ButtonOutline, ButtonPrimary, IdContainer, Link, spinnerOverlay } from 'src/components/common';
-import { icon } from 'src/components/icons';
-import { InfoBox } from 'src/components/InfoBox';
+import { ButtonOutline, ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
@@ -117,31 +116,6 @@ export const AzureComputeModalBase = ({
       div({ style: { flex: 1 } }),
 
       renderActionButton(),
-    ]);
-  };
-
-  const renderApplicationConfigurationSection = () => {
-    return div({ style: computeStyles.whiteBoxContainer }, [
-      h(IdContainer, [
-        (id) =>
-          h(Fragment, [
-            div({ style: { marginBottom: '1rem' } }, [
-              label({ htmlFor: id, style: computeStyles.label }, ['Application configuration']),
-              h(InfoBox, { style: { marginLeft: '0.5rem' } }, ['Currently, the Azure VM is pre-configured. ']),
-            ]),
-            p({}, ['Azure Data Science Virtual Machine']),
-            div([
-              h(
-                Link,
-                {
-                  href: 'https://azure.microsoft.com/en-us/services/virtual-machines/data-science-virtual-machines/#product-overview',
-                  ...Utils.newTabLinkProps,
-                },
-                ['Learn more about Azure Data Science VMs.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-              ),
-            ]),
-          ]),
-      ]),
     ]);
   };
 
@@ -261,7 +235,7 @@ export const AzureComputeModalBase = ({
     return h(Fragment, [
       div({ style: { padding: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [renderTitleAndTagline(), renderCostBreakdown()]),
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
-        renderApplicationConfigurationSection(),
+        h(AzureApplicationConfigurationSection),
         div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1.5rem' } }, [
           h(AzureComputeProfileSelect, {
             machineType: computeConfig.machineType,
