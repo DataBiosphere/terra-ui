@@ -4,7 +4,7 @@
 set -o nounset
 
 # Use the error status of the first failure, rather than that of the last item in a pipeline.
-set -o pipefail
+set -eo pipefail
 
 counter=0
 
