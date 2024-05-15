@@ -12,7 +12,7 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
   const [resourceId, setResourceId] = useState<string>(props.fqResourceId.resourceId);
 
   function submit() {
-    Nav.updateSearch({ ...query, resourceName: resourceId || undefined });
+    Nav.updateSearch({ ...query, resourceId: resourceId || undefined });
   }
 
   return (

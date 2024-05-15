@@ -1,5 +1,5 @@
 import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import React from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { FullyQualifiedResourceId } from 'src/libs/ajax/SamResources';
@@ -40,10 +40,12 @@ describe('ResourcePolicies', () => {
     };
 
     // Act
-    render(<ResourcePolicies {...props} />);
+    await act(async () => {
+      render(<ResourcePolicies {...props} />);
+    });
 
     // Assert
-    await waitFor(() => expect(getResourcePolicies).toHaveBeenCalledWith(fqResourceId));
+    expect(getResourcePolicies).toHaveBeenCalledWith(fqResourceId);
     expect(screen.getByText('Sam Policies')).toBeInTheDocument();
     expect(screen.getByText(new RegExp(testValue, 'i'))).toBeInTheDocument();
   });
@@ -61,12 +63,15 @@ describe('ResourcePolicies', () => {
     };
 
     // Act
-    render(<ResourcePolicies {...props} />);
+    await act(async () => {
+      render(<ResourcePolicies {...props} />);
+    });
 
     // Assert
-    await waitFor(() => expect(getResourcePolicies).toHaveBeenCalledWith(fqResourceId));
+    expect(getResourcePolicies).toHaveBeenCalledWith(fqResourceId);
     expect(reportError).toHaveBeenCalled();
   });
+
   it('displays an error message when getResourcePolicies returns an empty array', async () => {
     // Arrange
     const getResourcePolicies = jest.fn(() => Promise.resolve([]));
@@ -79,10 +84,12 @@ describe('ResourcePolicies', () => {
     };
 
     // Act
-    render(<ResourcePolicies {...props} />);
+    await act(async () => {
+      render(<ResourcePolicies {...props} />);
+    });
 
     // Assert
-    await waitFor(() => expect(getResourcePolicies).toHaveBeenCalledWith(fqResourceId));
+    expect(getResourcePolicies).toHaveBeenCalledWith(fqResourceId);
     expect(screen.getByText('No policies found')).toBeInTheDocument();
   });
 
@@ -98,10 +105,12 @@ describe('ResourcePolicies', () => {
     };
 
     // Act
-    render(<ResourcePolicies {...props} />);
+    await act(async () => {
+      render(<ResourcePolicies {...props} />);
+    });
 
     // Assert
-    await waitFor(() => expect(getResourcePolicies).toHaveBeenCalledWith(fqResourceId));
+    expect(getResourcePolicies).toHaveBeenCalledWith(fqResourceId);
     expect(
       screen.getByText('You do not have permission to view display-name policies or are not on VPN')
     ).toBeInTheDocument();

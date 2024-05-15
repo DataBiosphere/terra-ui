@@ -8,14 +8,14 @@ import { supportResources, SupportResourceType } from 'src/support/SupportResour
 
 interface SupportResourceListProps {
   queryParams: {
-    selectedType: string | undefined;
-    resourceName: string | undefined;
+    resourceType: string | undefined;
+    resourceId: string | undefined;
   };
 }
 
 export const SupportResourceList = (props: SupportResourceListProps) => {
-  const selectedType = props.queryParams.selectedType || '';
-  const resourceName = props.queryParams.resourceName || '';
+  const selectedType = props.queryParams.resourceType || '';
+  const resourceId = props.queryParams.resourceId || '';
   const supportResourceListWidth = 350;
 
   const makeResourceListItemProps = (resourceType: SupportResourceType): SupportResourceListItemProps => {
@@ -64,7 +64,7 @@ export const SupportResourceList = (props: SupportResourceListProps) => {
                 return (
                   <LookupSummaryAndPolicies
                     displayName={supportResourceType.displayName}
-                    fqResourceId={{ resourceTypeName: selectedType, resourceId: resourceName }}
+                    fqResourceId={{ resourceTypeName: selectedType, resourceId }}
                     loadSupportSummaryFn={supportResourceType.loadSupportSummaryFn}
                   />
                 );

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import React from 'react';
 import { FullyQualifiedResourceId } from 'src/libs/ajax/SamResources';
 import { reportError } from 'src/libs/error';
@@ -29,11 +29,12 @@ describe('SupportSummary', () => {
     };
 
     // Act
-    render(<SupportSummary {...props} />);
+    await act(async () => {
+      render(<SupportSummary {...props} />);
+    });
 
     // Assert
-    await waitFor(() => expect(loadSupportSummary).toHaveBeenCalledWith(props.fqResourceId));
-    await waitFor(() => screen.getByText('display-name Summary'), { timeout: 1000 });
+    expect(loadSupportSummary).toHaveBeenCalledWith(props.fqResourceId);
     expect(screen.getByText('display-name Summary')).toBeInTheDocument();
     expect(screen.getByText(new RegExp(testValue, 'i'))).toBeInTheDocument();
   });
@@ -50,10 +51,12 @@ describe('SupportSummary', () => {
     };
 
     // Act
-    render(<SupportSummary {...props} />);
+    await act(async () => {
+      render(<SupportSummary {...props} />);
+    });
 
     // Assert
-    await waitFor(() => expect(loadSupportSummary).toHaveBeenCalledWith(props.fqResourceId));
+    expect(loadSupportSummary).toHaveBeenCalledWith(props.fqResourceId);
     expect(reportError).toHaveBeenCalled();
   });
 
@@ -68,11 +71,13 @@ describe('SupportSummary', () => {
     };
 
     // Act
-    render(<SupportSummary {...props} />);
+    await act(async () => {
+      render(<SupportSummary {...props} />);
+    });
 
     // Assert
-    await waitFor(() => expect(loadSupportSummary).toHaveBeenCalledWith(props.fqResourceId));
-    await waitFor(() => screen.getByText('display-name not found'), { timeout: 1000 });
+    expect(loadSupportSummary).toHaveBeenCalledWith(props.fqResourceId);
+    expect(screen.getByText('display-name not found')).toBeInTheDocument();
   });
 
   it('displays an error message when loadSupportSummary throws 403', async () => {
@@ -86,13 +91,14 @@ describe('SupportSummary', () => {
     };
 
     // Act
-    render(<SupportSummary {...props} />);
+    await act(async () => {
+      render(<SupportSummary {...props} />);
+    });
 
     // Assert
-    await waitFor(() => expect(loadSupportSummary).toHaveBeenCalledWith(props.fqResourceId));
-    await waitFor(
-      () => screen.getByText('You do not have permission to view display-name summary information or are not on VPN'),
-      { timeout: 1000 }
-    );
+    expect(loadSupportSummary).toHaveBeenCalledWith(props.fqResourceId);
+    expect(
+      screen.getByText('You do not have permission to view display-name summary information or are not on VPN')
+    ).toBeInTheDocument();
   });
 });
