@@ -5060,6 +5060,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/react-transition-group@npm:^4.4.10":
+  version: 4.4.10
+  resolution: "@types/react-transition-group@npm:4.4.10"
+  dependencies:
+    "@types/react": "*"
+  checksum: fe2ea11f70251e9f79f368e198c18fd469b1d4f1e1d44e4365845b44e15974b0ec925100036f449b023b0ca3480a82725c5f0a73040e282ad32ec7b0def9b57c
+  languageName: node
+  linkType: hard
+
 "@types/react-virtualized@npm:^9.21.22":
   version: 9.21.22
   resolution: "@types/react-virtualized@npm:9.21.22"
@@ -16200,6 +16209,8 @@ __metadata:
     "@types/node": ^18.7.16
     "@types/react": ^18.2.15
     "@types/react-dom": ^18.2.7
+    "@types/react-modal": ^3.16.2
+    "@types/react-transition-group": ^4.4.10
     "@types/react-virtualized": ^9.21.22
     "@types/testing-library__jest-dom": ^5.14.9
     "@typescript-eslint/eslint-plugin": ^5.59.1
