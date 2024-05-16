@@ -4390,7 +4390,7 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": ^5.15.4
     "@fortawesome/react-fontawesome": ^0.1.15
     "@terra-ui-packages/build-utils": ^1.0.0
-    "@terra-ui-packages/core-utils": ^0.2.0
+    "@terra-ui-packages/core-utils": ^0.3.0
     "@terra-ui-packages/test-utils": "*"
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0
@@ -4422,7 +4422,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/core-utils@*, @terra-ui-packages/core-utils@^0.2.0, @terra-ui-packages/core-utils@workspace:packages/core-utils":
+"@terra-ui-packages/core-utils@*, @terra-ui-packages/core-utils@^0.3.0, @terra-ui-packages/core-utils@workspace:packages/core-utils":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/core-utils@workspace:packages/core-utils"
   dependencies:
@@ -4444,7 +4444,7 @@ __metadata:
   dependencies:
     "@terra-ui-packages/build-utils": ^1.0.0
     "@terra-ui-packages/components": ^0.0.6
-    "@terra-ui-packages/core-utils": ^0.2.0
+    "@terra-ui-packages/core-utils": ^0.3.0
     "@terra-ui-packages/test-utils": ^0.0.4
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0
