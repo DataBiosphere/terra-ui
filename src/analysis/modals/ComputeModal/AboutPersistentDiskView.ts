@@ -1,9 +1,8 @@
+import { Icon, Link } from '@terra-ui-packages/components';
 import { ReactNode } from 'react';
 import { br, div, h, p } from 'react-hyperscript-helpers';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { getCurrentMountDirectory, RuntimeToolLabel } from 'src/analysis/utils/tool-utils';
-import { Link } from 'src/components/common';
-import { icon } from 'src/components/icons';
 import TitleBar from 'src/components/TitleBar';
 import * as Utils from 'src/libs/utils';
 
@@ -44,7 +43,7 @@ export const AboutPersistentDiskView = (props: PersistentDiskAboutProps): ReactN
       ]),
       h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047318551', ...Utils.newTabLinkProps }, [
         'Learn more about persistent disks',
-        icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
+        h(Icon, { icon: 'pop-out', size: 12, style: { marginLeft: '0.25rem' } }),
       ]),
     ]),
   ]);
