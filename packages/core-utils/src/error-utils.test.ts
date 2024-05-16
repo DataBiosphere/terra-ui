@@ -19,7 +19,7 @@ describe('withErrorHandling', () => {
 });
 
 describe('withErrorIgnoring', () => {
-  it('calls callback on error', async () => {
+  it('silences throw on error', async () => {
     // Arrange
     const willThrow = async () => {
       throw new Error('BOOM!');
