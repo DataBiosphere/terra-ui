@@ -29,19 +29,21 @@ type DeleteEnvironmentProps = {
   toolLabel?: ToolLabel;
 };
 
-export const DeleteEnvironment = ({
-  id,
-  runtimeConfig,
-  persistentDiskId,
-  persistentDiskCostDisplay,
-  deleteDiskSelected,
-  setDeleteDiskSelected,
-  renderActionButton,
-  hideCloseButton,
-  onDismiss,
-  onPrevious,
-  toolLabel,
-}: DeleteEnvironmentProps) => {
+export const DeleteEnvironment = (props: DeleteEnvironmentProps): ReactNode => {
+  const {
+    id,
+    runtimeConfig,
+    persistentDiskId,
+    persistentDiskCostDisplay,
+    deleteDiskSelected,
+    setDeleteDiskSelected,
+    renderActionButton,
+    hideCloseButton,
+    onDismiss,
+    onPrevious,
+    toolLabel,
+  } = props;
+
   return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
     h(TitleBar, {
       id,
