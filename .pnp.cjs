@@ -7206,7 +7206,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["@terra-ui-packages/analysis", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/analysis"],\
             ["@terra-ui-packages/build-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils"],\
-            ["@terra-ui-packages/components", "virtual:7622511dc70847a11ada9a7eaaaffe58530a3d311fcb42abbab2289d1c585d792d223f0d611d9170fadc7c3491cc5db189dee51121c5cb9e34a5540d7a4d73ab#npm:0.0.5::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fcomponents%2F-%2F%40terra-ui-packages%2Fcomponents-0.0.5.tgz"],\
+            ["@terra-ui-packages/components", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components"],\
             ["@terra-ui-packages/test-utils", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/test-utils"],\
             ["@testing-library/dom", "npm:9.3.4"],\
             ["@testing-library/react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.0.0"],\
@@ -7236,7 +7236,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["@terra-ui-packages/analysis", "workspace:packages/analysis"],\
             ["@terra-ui-packages/build-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils"],\
-            ["@terra-ui-packages/components", "virtual:7622511dc70847a11ada9a7eaaaffe58530a3d311fcb42abbab2289d1c585d792d223f0d611d9170fadc7c3491cc5db189dee51121c5cb9e34a5540d7a4d73ab#npm:0.0.5::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fcomponents%2F-%2F%40terra-ui-packages%2Fcomponents-0.0.5.tgz"],\
+            ["@terra-ui-packages/components", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components"],\
             ["@terra-ui-packages/test-utils", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/test-utils"],\
             ["@testing-library/dom", "npm:9.3.4"],\
             ["@testing-library/react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.0.0"],\
@@ -7306,13 +7306,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@terra-ui-packages/components", [\
-        ["npm:0.0.5::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fcomponents%2F-%2F%40terra-ui-packages%2Fcomponents-0.0.5.tgz", {\
-          "packageLocation": "./.yarn/cache/@terra-ui-packages-components-npm-0.0.5-57ef7279f9-a4e06b036e.zip/node_modules/@terra-ui-packages/components/",\
-          "packageDependencies": [\
-            ["@terra-ui-packages/components", "npm:0.0.5::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fcomponents%2F-%2F%40terra-ui-packages%2Fcomponents-0.0.5.tgz"]\
-          ],\
-          "linkType": "SOFT"\
-        }],\
         ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components", {\
           "packageLocation": "./.yarn/__virtual__/@terra-ui-packages-components-virtual-3cbce82a85/1/packages/components/",\
           "packageDependencies": [\
@@ -7356,20 +7349,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             "react"\
           ],\
           "linkType": "SOFT"\
-        }],\
-        ["virtual:7622511dc70847a11ada9a7eaaaffe58530a3d311fcb42abbab2289d1c585d792d223f0d611d9170fadc7c3491cc5db189dee51121c5cb9e34a5540d7a4d73ab#npm:0.0.5::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fcomponents%2F-%2F%40terra-ui-packages%2Fcomponents-0.0.5.tgz", {\
-          "packageLocation": "./.yarn/__virtual__/@terra-ui-packages-components-virtual-602c780d7b/0/cache/@terra-ui-packages-components-npm-0.0.5-57ef7279f9-a4e06b036e.zip/node_modules/@terra-ui-packages/components/",\
-          "packageDependencies": [\
-            ["@terra-ui-packages/components", "virtual:7622511dc70847a11ada9a7eaaaffe58530a3d311fcb42abbab2289d1c585d792d223f0d611d9170fadc7c3491cc5db189dee51121c5cb9e34a5540d7a4d73ab#npm:0.0.5::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fcomponents%2F-%2F%40terra-ui-packages%2Fcomponents-0.0.5.tgz"],\
-            ["@types/react", "npm:18.3.1"],\
-            ["lodash", "npm:4.17.21"],\
-            ["react", "npm:18.2.0"]\
-          ],\
-          "packagePeers": [\
-            "@types/react",\
-            "react"\
-          ],\
-          "linkType": "HARD"\
         }],\
         ["workspace:packages/components", {\
           "packageLocation": "./packages/components/",\
