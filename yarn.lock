@@ -4347,7 +4347,7 @@ __metadata:
   resolution: "@terra-ui-packages/analysis@workspace:packages/analysis"
   dependencies:
     "@terra-ui-packages/build-utils": ^1.0.0
-    "@terra-ui-packages/components": ^0.0.6
+    "@terra-ui-packages/components": ^0.0.5
     "@terra-ui-packages/test-utils": "*"
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0
@@ -4421,6 +4421,17 @@ __metadata:
     react-dom: 18.2.0
   languageName: unknown
   linkType: soft
+
+"@terra-ui-packages/components@npm:^0.0.5":
+  version: 0.0.5
+  resolution: "@terra-ui-packages/components@npm:0.0.5::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fcomponents%2F-%2F%40terra-ui-packages%2Fcomponents-0.0.5.tgz"
+  dependencies:
+    lodash: ^4.17.21
+  peerDependencies:
+    react: 18.2.0
+  checksum: a4e06b036e77f9a56360ef5aad1d6a5598d9c31ee0f99e2d74b6d60ef900c4aab4e14f48d737d3bc84957c9f907be88fc783f44fa90b07616b5395621f7f1e7f
+  languageName: node
+  linkType: hard
 
 "@terra-ui-packages/core-utils@*, @terra-ui-packages/core-utils@^0.2.0, @terra-ui-packages/core-utils@workspace:packages/core-utils":
   version: 0.0.0-use.local
