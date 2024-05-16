@@ -1724,7 +1724,7 @@ export const GcpComputeModalBase = ({
       [
         'deleteEnvironment',
         () =>
-          DeleteEnvironment({
+          h(DeleteEnvironment, {
             id: titleId,
             runtimeConfig: currentRuntime && currentRuntime.runtimeConfig,
             persistentDiskId: currentPersistentDiskDetails?.id,
@@ -1733,10 +1733,10 @@ export const GcpComputeModalBase = ({
               : 'N/A',
             deleteDiskSelected,
             setDeleteDiskSelected,
-            setViewMode,
             renderActionButton,
             hideCloseButton: false,
             onDismiss,
+            onPrevious: () => setViewMode(undefined),
             toolLabel: currentRuntime && currentRuntime.labels.tool,
           }),
       ],

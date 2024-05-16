@@ -309,17 +309,17 @@ export const AzureComputeModalBase = ({
       [
         'deleteEnvironment',
         () =>
-          DeleteEnvironment({
+          h(DeleteEnvironment, {
             id: titleId,
             runtimeConfig: currentRuntimeDetails && currentRuntimeDetails.runtimeConfig,
             persistentDiskId: currentPersistentDiskDetails?.id,
             persistentDiskCostDisplay: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig)),
             deleteDiskSelected,
             setDeleteDiskSelected,
-            setViewMode,
             renderActionButton,
             hideCloseButton: false,
             onDismiss,
+            onPrevious: () => setViewMode(undefined),
             toolLabel: currentRuntimeDetails && currentRuntimeDetails.labels.tool,
           }),
       ],

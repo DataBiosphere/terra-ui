@@ -22,10 +22,10 @@ type DeleteEnvironmentProps = {
   persistentDiskCostDisplay: string;
   deleteDiskSelected: boolean;
   setDeleteDiskSelected: (p1: boolean) => void;
-  setViewMode: (value: React.SetStateAction<string | undefined>) => void;
   renderActionButton: () => React.ReactElement<any, any>;
   hideCloseButton: boolean;
   onDismiss: () => void;
+  onPrevious: () => void;
   toolLabel?: ToolLabel;
 };
 
@@ -36,10 +36,10 @@ export const DeleteEnvironment = ({
   persistentDiskCostDisplay,
   deleteDiskSelected,
   setDeleteDiskSelected,
-  setViewMode,
   renderActionButton,
   hideCloseButton,
   onDismiss,
+  onPrevious,
   toolLabel,
 }: DeleteEnvironmentProps) => {
   return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
@@ -51,7 +51,7 @@ export const DeleteEnvironment = ({
       onDismiss,
       titleChildren: [],
       onPrevious: () => {
-        setViewMode(undefined);
+        onPrevious();
         setDeleteDiskSelected(false);
       },
     }),
