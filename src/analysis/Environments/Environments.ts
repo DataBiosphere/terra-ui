@@ -1,6 +1,12 @@
 import { PopupTrigger, TooltipTrigger, useModalHandler, useThemeFromContext } from '@terra-ui-packages/components';
-import { formatDatetime, KeyedEventHandler, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
-import { useNotificationsFromContext, withErrorIgnoring } from '@terra-ui-packages/notifications';
+import {
+  formatDatetime,
+  KeyedEventHandler,
+  Mutate,
+  NavLinkProvider,
+  withErrorIgnoring,
+} from '@terra-ui-packages/core-utils';
+import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, h2, span, strong } from 'react-hyperscript-helpers';
