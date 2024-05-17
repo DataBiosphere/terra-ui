@@ -17,7 +17,6 @@ const buttonStyle: CSSProperties = {
 
 export interface ButtonPrimaryProps extends ClickableProps {
   danger?: boolean;
-  inheritText?: boolean;
 }
 
 export const ButtonPrimary = (props: ButtonPrimaryProps): ReactNode => {
