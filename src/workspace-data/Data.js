@@ -355,7 +355,9 @@ const DataTableActions = ({
                     downloadForm.current.submit();
                   } else if (dataProvider.features.supportsTsvAjaxDownload) {
                     // TODO: this overrides the filename specified by the WDS API. Is that ok?
-                    dataProvider.downloadTsv(signal, tableName).then((blob) => FileSaver.saveAs(blob, `${tableName}.tsv`));
+                    Utils.withBusyState(setLoading, dataProvider.downloadTsv)(signal, tableName).then((blob) =>
+                      FileSaver.saveAs(blob, `${tableName}.tsv`)
+                    );
                   }
                   Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
                     ...extractWorkspaceDetails(workspace.workspace),
