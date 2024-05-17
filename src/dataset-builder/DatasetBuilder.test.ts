@@ -300,7 +300,7 @@ describe('DatasetBuilder', () => {
     await initializeValidDatasetRequest(user);
     // Assert
     expect(await screen.findByText('100 participants in this dataset')).toBeTruthy();
-    expect(await screen.findByText('Request access to this dataset')).toBeTruthy();
+    expect(await screen.findByText('Request this data snapshot')).toBeTruthy();
   });
 
   it('hides the count with there are few participants in this dataset ', async () => {
