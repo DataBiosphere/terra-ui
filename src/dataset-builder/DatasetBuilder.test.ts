@@ -316,14 +316,14 @@ describe('DatasetBuilder', () => {
     await initializeValidDatasetRequest(user);
     // Assert
     expect(await screen.findByText('Less than 20 participants in this dataset')).toBeTruthy();
-    expect(await screen.findByText('Request access to this dataset')).toBeTruthy();
+    expect(await screen.findByText('Request this data snapshot')).toBeTruthy();
   });
 
   it('opens the modal when requesting access to the dataset', async () => {
     // Arrange
     const user = userEvent.setup();
     await initializeValidDatasetRequest(user);
-    await user.click(await screen.findByText('Request access to this dataset'));
+    await user.click(await screen.findByText('Request this data snapshot'));
     // Assert
     expect(await screen.findByText('Requesting access')).toBeTruthy();
   });
