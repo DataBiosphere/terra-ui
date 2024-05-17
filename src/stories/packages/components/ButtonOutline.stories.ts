@@ -17,7 +17,7 @@ const meta: Meta<typeof ButtonOutline> = {
       control: 'boolean',
       description: 'disable the button',
       table: {
-        defaultValue: { summary: false },
+        defaultValue: { summary: 'false' },
       },
     },
     tooltip: {
@@ -28,7 +28,7 @@ const meta: Meta<typeof ButtonOutline> = {
       control: 'number',
       description: 'tooltip delay in milliseconds',
       table: {
-        defaultValue: { summary: 0 },
+        defaultValue: { summary: '0' },
       },
     },
     tooltipSide: {

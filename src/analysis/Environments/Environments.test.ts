@@ -23,6 +23,7 @@ import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeP
 import { leoResourcePermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { UseWorkspacesResult } from 'src/workspaces/common/state/useWorkspaces.models';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { DataRefreshInfo, EnvironmentNavActions, Environments, EnvironmentsProps } from './Environments';
@@ -37,10 +38,11 @@ const mockNav: NavLinkProvider<EnvironmentNavActions> = {
   navTo: jest.fn(),
 };
 
-const defaultUseWorkspacesProps = {
+const defaultUseWorkspacesProps: UseWorkspacesResult = {
   workspaces: [defaultGoogleWorkspace] as WorkspaceWrapper[],
   refresh: () => Promise.resolve(),
   loading: false,
+  status: 'Ready',
 };
 
 const getMockLeoAppProvider = (overrides?: Partial<LeoAppProvider>): LeoAppProvider => {

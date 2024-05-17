@@ -6,7 +6,7 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspacesList } from 'src/workspaces/list/WorkspacesList';
-import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
+import { WorkspaceState, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock(
@@ -69,6 +69,7 @@ describe('WorkspaceList', () => {
       workspaces: [defaultAzureWorkspace, defaultGoogleWorkspace],
       refresh: jest.fn(),
       loading: false,
+      status: 'Ready',
     });
     const mockDetailsFn = jest.fn();
     const mockAjax: DeepPartial<AjaxContract> = {
@@ -101,69 +102,73 @@ describe('WorkspaceList', () => {
     expect(mockDetailsFn).not.toBeCalled();
   });
 
-  it('polls for a deleting workspace', async () => {
+  it.each<{ state: WorkspaceState }>([{ state: 'Deleting' }, { state: 'Cloning' }, { state: 'CloningContainer' }])(
+    'polls for a workspace in the tracked states',
+    async ({ state }) => {
+      // Arrange
+      const pollingWorkspace: Workspace = {
+        ...defaultAzureWorkspace,
+        workspace: {
+          ...defaultAzureWorkspace.workspace,
+          state,
+        },
+      };
+      asMockedFn(useWorkspaces).mockReturnValue({
+        workspaces: [pollingWorkspace, defaultGoogleWorkspace],
+        refresh: jest.fn(),
+        loading: false,
+        status: 'Ready',
+      });
+      const mockDetailsFn: ReturnType<AjaxContract['Workspaces']['workspace']>['details'] = jest
+        .fn()
+        .mockResolvedValue({ workspace: { state } } satisfies DeepPartial<Workspace>);
+      const mockWorkspacesFn = jest.fn().mockReturnValue({
+        details: mockDetailsFn,
+      } satisfies DeepPartial<AjaxContract['Workspaces']['workspace']>);
+
+      const mockAjax: DeepPartial<AjaxContract> = {
+        Workspaces: {
+          workspace: mockWorkspacesFn,
+        },
+        FirecloudBucket: {
+          getFeaturedWorkspaces: () => [],
+        },
+        Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
+      };
+
+      asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+      jest.useFakeTimers();
+
+      // Act
+
+      await act(async () => {
+        render(h(WorkspacesList));
+      });
+      // trigger first poll
+      jest.advanceTimersByTime(30000);
+      // Waiting on the assertion here also ensures promises have time to complete
+      await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
+      jest.advanceTimersByTime(30000);
+
+      // Assert
+      await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(2));
+      expect(mockWorkspacesFn).toHaveBeenNthCalledWith(
+        1,
+        defaultAzureWorkspace.workspace.namespace,
+        defaultAzureWorkspace.workspace.name
+      );
+      expect(mockWorkspacesFn).toHaveBeenNthCalledWith(
+        2,
+        defaultAzureWorkspace.workspace.namespace,
+        defaultAzureWorkspace.workspace.name
+      );
+    }
+  );
+
+  it('polls for multiple workspaces in polling states', async () => {
     // Arrange
-    const deletingWorkspace: Workspace = {
-      ...defaultAzureWorkspace,
-      workspace: {
-        ...defaultAzureWorkspace.workspace,
-        state: 'Deleting',
-      },
-    };
-    asMockedFn(useWorkspaces).mockReturnValue({
-      workspaces: [deletingWorkspace, defaultGoogleWorkspace],
-      refresh: jest.fn(),
-      loading: false,
-    });
-    const mockDetailsFn: ReturnType<AjaxContract['Workspaces']['workspace']>['details'] = jest
-      .fn()
-      .mockResolvedValue({ workspace: { state: 'Deleting' } } satisfies DeepPartial<Workspace>);
-    const mockWorkspacesFn = jest.fn().mockReturnValue({
-      details: mockDetailsFn,
-    } satisfies DeepPartial<AjaxContract['Workspaces']['workspace']>);
-
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: mockWorkspacesFn,
-      },
-      FirecloudBucket: {
-        getFeaturedWorkspaces: () => [],
-      },
-      Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
-    };
-
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
-
-    jest.useFakeTimers();
-
-    // Act
-
-    await act(async () => {
-      render(h(WorkspacesList));
-    });
-    // trigger first poll
-    jest.advanceTimersByTime(30000);
-    // Waiting on the assertion here also ensures promises have time to complete
-    await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
-    jest.advanceTimersByTime(30000);
-
-    // Assert
-    await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(2));
-    expect(mockWorkspacesFn).toHaveBeenNthCalledWith(
-      1,
-      defaultAzureWorkspace.workspace.namespace,
-      defaultAzureWorkspace.workspace.name
-    );
-    expect(mockWorkspacesFn).toHaveBeenNthCalledWith(
-      2,
-      defaultAzureWorkspace.workspace.namespace,
-      defaultAzureWorkspace.workspace.name
-    );
-  });
-
-  it('polls for all deleting workspaces', async () => {
-    // Arrange
-    const deletingWorkspaces: Workspace[] = [
+    const pollingWorkspaces: Workspace[] = [
       {
         ...defaultAzureWorkspace,
         workspace: {
@@ -175,22 +180,30 @@ describe('WorkspaceList', () => {
         ...defaultGoogleWorkspace,
         workspace: {
           ...defaultGoogleWorkspace.workspace,
-          state: 'Deleting',
+          state: 'Cloning',
         },
       },
     ];
 
     asMockedFn(useWorkspaces).mockReturnValue({
-      workspaces: deletingWorkspaces,
+      workspaces: pollingWorkspaces,
       refresh: jest.fn(),
       loading: false,
+      status: 'Ready',
     });
-    const mockDetailsFn: ReturnType<AjaxContract['Workspaces']['workspace']>['details'] = jest
+    const mockDeletingDetailsFn: ReturnType<AjaxContract['Workspaces']['workspace']>['details'] = jest
       .fn()
       .mockResolvedValue({ workspace: { state: 'Deleting' } } satisfies DeepPartial<Workspace>);
-    const mockWorkspacesFn = jest.fn().mockReturnValue({
-      details: mockDetailsFn,
-    } satisfies DeepPartial<AjaxContract['Workspaces']['workspace']>);
+    const mockCloningDetailsFn: ReturnType<AjaxContract['Workspaces']['workspace']>['details'] = jest
+      .fn()
+      .mockResolvedValue({ workspace: { state: 'Cloning' } } satisfies DeepPartial<Workspace>);
+
+    const mockWorkspacesFn = jest.fn().mockImplementation((_, name) => {
+      const detailsFn = name === defaultAzureWorkspace.workspace.name ? mockDeletingDetailsFn : mockCloningDetailsFn;
+      return {
+        details: detailsFn,
+      } satisfies DeepPartial<AjaxContract['Workspaces']['workspace']>;
+    });
 
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
@@ -215,11 +228,14 @@ describe('WorkspaceList', () => {
     jest.advanceTimersByTime(30000);
 
     // Assert
-    await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(2));
+    await waitFor(() => expect(mockDeletingDetailsFn).toBeCalledTimes(1));
+    await waitFor(() => expect(mockCloningDetailsFn).toBeCalledTimes(1));
 
     jest.advanceTimersByTime(30000);
 
-    await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(4));
+    await waitFor(() => expect(mockDeletingDetailsFn).toBeCalledTimes(2));
+    await waitFor(() => expect(mockCloningDetailsFn).toBeCalledTimes(2));
+
     expect(mockWorkspacesFn).toHaveBeenNthCalledWith(
       1,
       defaultAzureWorkspace.workspace.namespace,

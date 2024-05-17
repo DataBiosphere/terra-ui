@@ -394,7 +394,7 @@ describe('Submission Details page', () => {
 
     const dropdown = await screen.findByLabelText('Filter selection');
     const filterDropdown = new SelectHelper(dropdown, user);
-    await filterDropdown.selectOption('Error');
+    await filterDropdown.selectOption('Failed');
 
     const table = await screen.findByRole('table');
 

@@ -186,7 +186,7 @@ export type SnapshotAccessRequest = {
   name: string;
   sourceSnapshotId: string;
   researchPurposeStatement: string;
-  datasetRequest: SnapshotBuilderRequest;
+  snapshotBuilderRequest: SnapshotBuilderRequest;
 };
 
 export interface DataRepoContract {
