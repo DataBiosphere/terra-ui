@@ -325,7 +325,7 @@ describe('DatasetBuilder', () => {
     await initializeValidDatasetRequest(user);
     await user.click(await screen.findByText('Request this data snapshot'));
     // Assert
-    expect(await screen.findByText('Requesting access')).toBeTruthy();
+    expect(await screen.findByText('Access request created in Terra')).toBeTruthy();
   });
 
   it('shows the concept set creator', async () => {
