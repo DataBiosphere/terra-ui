@@ -377,6 +377,22 @@ describe('SubmissionHistory tab', () => {
     fully_updated: true,
   };
 
+  const queuedRunSetData = {
+    run_sets: [
+      {
+        error_count: 0,
+        submission_timestamp: '2022-01-01T12:00:00.000+00:00',
+        last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
+        record_type: 'FOO',
+        run_count: 1,
+        run_set_id: '20000000-0000-0000-0000-200000000002',
+        state: 'QUEUED',
+        user_id: 'foo',
+      },
+    ],
+    fully_updated: true,
+  };
+
   it('should correctly set default option', async () => {
     // Act
     await act(async () => {
@@ -514,13 +530,14 @@ describe('SubmissionHistory tab', () => {
   });
 
   const abortTestCases = [
-    ['abort successfully', { workspace: mockAzureWorkspace, userId: 'foo', abortAllowed: true }],
-    ['not allow abort for non-submitter', { workspace: mockAzureWorkspace, userId: 'not-foo', abortAllowed: false }],
+    ['abort successfully', { workspace: mockAzureWorkspace, userId: 'foo', runSet: simpleRunSetData, abortAllowed: true }],
+    ['not allow abort for non-submitter', { workspace: mockAzureWorkspace, userId: 'not-foo', runSet: simpleRunSetData, abortAllowed: false }],
+    ['not allow abort for Queued submission', { workspace: mockAzureWorkspace, userId: 'not-foo', runSet: queuedRunSetData, abortAllowed: false }],
   ];
 
-  it.each(abortTestCases)('should %s', async (_unused, { workspace, userId, abortAllowed }) => {
+  it.each(abortTestCases)('should %s', async (_unused, { workspace, userId, runSet, abortAllowed }) => {
     const user = userEvent.setup();
-    const getRunSetsMethod = jest.fn(() => Promise.resolve(simpleRunSetData));
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSet));
     const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
     const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: userId }));
@@ -578,6 +595,8 @@ describe('SubmissionHistory tab', () => {
     if (abortAllowed) {
       expect(cancelSubmissionFunction).toHaveBeenCalled();
       expect(cancelSubmissionFunction).toBeCalledWith('https://lz-abc/terra-app-abc/cbas', '20000000-0000-0000-0000-200000000002');
+    } else {
+      expect(cancelSubmissionFunction).not.toHaveBeenCalled();
     }
   });
 });
