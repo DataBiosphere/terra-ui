@@ -10,9 +10,9 @@ const buttonStyle: CSSProperties = {
   height: '2.25rem',
   fontSize: 14,
   fontWeight: 500,
+  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
   userSelect: 'none',
-  textTransform: 'uppercase',
 };
 
 export interface ButtonPrimaryProps extends ClickableProps {
