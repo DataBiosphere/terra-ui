@@ -12,6 +12,7 @@ const buttonStyle: CSSProperties = {
   fontWeight: 500,
   whiteSpace: 'nowrap',
   userSelect: 'none',
+  textTransform: 'uppercase',
 };
 
 export interface ButtonPrimaryProps extends ClickableProps {
@@ -20,7 +21,7 @@ export interface ButtonPrimaryProps extends ClickableProps {
 }
 
 export const ButtonPrimary = (props: ButtonPrimaryProps): ReactNode => {
-  const { children, danger = false, inheritText = false, disabled, hover, style, ...otherProps } = props;
+  const { children, danger = false, disabled, hover, style, ...otherProps } = props;
 
   const { colors } = useThemeFromContext();
 
@@ -40,7 +41,6 @@ export const ButtonPrimary = (props: ButtonPrimaryProps): ReactNode => {
         // eslint-disable-next-line no-nested-ternary
         backgroundColor: disabled ? colors.dark(0.25) : danger ? colors.danger() : colors.accent(),
         cursor: disabled ? 'not-allowed' : 'pointer',
-        textTransform: inheritText ? 'inherit' : 'uppercase',
         ...style,
       }}
       hover={
