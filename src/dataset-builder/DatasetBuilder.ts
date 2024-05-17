@@ -7,7 +7,6 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
-import { ValidatedInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
@@ -32,7 +31,6 @@ import {
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
-import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
@@ -461,32 +459,10 @@ interface RequestAccessModalProps {
 
 const RequestAccessModal = (props: RequestAccessModalProps) => {
   const { onDismiss, cohorts, conceptSets, valueSets, snapshotId } = props;
-  const [name, setName] = useState('');
 
   const required = { presence: { allowEmpty: false } };
+  const [name] = useState('');
   const errors = validate({ name }, { name: required });
-
-  const nameId = _.uniqueId('');
-  const [index, setIndex] = useState(0);
-
-  const CommonSection = ({ children }) =>
-    div([
-      div({
-        style: { marginTop: 10 },
-        children: ['You will be directed away from Terra to the AnalytiXIN website data request form.'],
-      }),
-      div({
-        style: { marginTop: 15 },
-        children: [
-          "A request of the dataset created will be generated and may take up to 2 weeks for approval. Once approved you'll be notified by email. We'll send you a copy of this request.",
-        ],
-      }),
-      h2({
-        style: { marginTop: 30, fontWeight: 600 },
-        children: ['Step ', index + 1, ' of 2'],
-      }),
-      children,
-    ]);
 
   const DataSnapshotSection = () =>
     div(
@@ -511,53 +487,34 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
             style: { display: 'pre-wrap', marginTop: -10 },
             children: [
               span(['Please copy and paste the ']),
-              span({ style: { fontWeight: 600 } }, ['Data Snapshot ID']),
+              span({ style: { fontWeight: 600 } }, ['Request ID']),
               span([' into the AnalytiXIN form:']),
             ],
           }),
           div({ style: { display: 'flex', marginTop: 10, color: colors.accent(2) } }, [
             span({
               style: { fontWeight: 400, marginRight: 2 },
-              children: ['prefix_name_of_the_snapshot'],
+              children: [snapshotId],
             }),
             h(ClipboardButton, {
-              'aria-label': 'Copy Data Snapshot ID to clipboard',
+              'aria-label': 'Copy Request ID to clipboard',
               className: 'cell-hover-only',
               iconSize: 14,
-              text: 'prefix_name_of_the_snapshot',
-              tooltip: 'Copy Data Snapshot ID to clipboard',
+              text: snapshotId,
+              tooltip: 'Copy Request ID to clipboard',
             }),
           ]),
         ]),
       ]
     );
 
-  const step1 = CommonSection({
-    children: div([
-      h(FormLabel, { htmlFor: nameId, required }, ['Data snapshot name']),
-      h(ValidatedInput, {
-        inputProps: {
-          id: nameId,
-          'aria-label': 'Data snapshot name',
-          autoFocus: true,
-          placeholder: 'This is my new dataset',
-          value: name,
-          onChange: setName,
-        },
-      }),
-    ]),
-  });
-
-  const step2 = CommonSection({
-    children: h(DataSnapshotSection),
-  });
-
   return h(
     Modal,
     {
-      title: 'Requesting access',
+      title: 'Access request created in Terra',
       showX: false,
       onDismiss,
+      cancelText: 'Return to AxIN Overview',
       okButton: h(
         ButtonPrimary,
         {
@@ -574,33 +531,28 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
                   cohorts,
                   conceptSets,
                   _.map(
-                    (valueSet) => ({
-                      domain: valueSet.header,
-                      values: valueSet.values,
+                    (valuesSet: HeaderAndValues<DatasetBuilderValue>) => ({
+                      domain: valuesSet.header,
+                      values: valuesSet.values,
                     }),
-                    valueSets // convert from HeaderAndValues<DatasetBuilderValue>[] to ValueSet[]
+                    valueSets // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
                   )
                 )
               );
             onDismiss();
           }),
         },
-        ['Request access']
+        ['Continue to AxIN']
       ),
-      nextStepButton: h(
-        ButtonPrimary,
-        {
-          disabled: errors,
-          tooltip: errors && Utils.summarizeErrors(errors),
-          onClick: async () => {
-            setIndex(index + 1);
-          },
-        },
-        ['Next step']
-      ),
-      index,
     },
-    [step1, step2]
+    [
+      div([
+        div([
+          'A request has been generated and may take up to 72 hours for approval. Check your email for a copy of this request. You’ll also be notified via email on approval of the request.',
+        ]),
+        h(DataSnapshotSection),
+      ]),
+    ]
   );
 };
 
@@ -628,7 +580,7 @@ export const DatasetBuilderContents = ({
   const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [values, setValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [requestingAccess, setRequestingAccess] = useState(false);
-  const [datasetRequestParticipantCount, setDatasetRequestParticipantCount] =
+  const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
     useLoadedData<SnapshotBuilderCountResponse>();
 
   const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
@@ -639,12 +591,12 @@ export const DatasetBuilderContents = ({
 
   useEffect(() => {
     requestValid &&
-      setDatasetRequestParticipantCount(
+      setSnapshotRequestParticipantCount(
         withErrorReporting(`Error fetching snapshot builder count for snapshot ${snapshotId}`)(async () =>
           DataRepo().snapshot(snapshotId).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
         )
       );
-  }, [snapshotId, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
+  }, [snapshotId, selectedValues, setSnapshotRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
   const getNewFeatureValueGroups = (includedFeatureValueGroups: string[]): string[] =>
     _.without(
@@ -729,12 +681,12 @@ export const DatasetBuilderContents = ({
       requestValid &&
         h(ActionBar, {
           prompt: h(Fragment, [
-            datasetRequestParticipantCount.status === 'Ready'
-              ? formatCount(datasetRequestParticipantCount.state.result.total)
+            snapshotRequestParticipantCount.status === 'Ready'
+              ? formatCount(snapshotRequestParticipantCount.state.result.total)
               : h(Spinner),
             ' participants in this dataset',
           ]),
-          actionText: 'Request access to this dataset',
+          actionText: 'Request this data snapshot',
           onClick: () => setRequestingAccess(true),
         }),
     ]),

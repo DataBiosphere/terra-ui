@@ -1,4 +1,4 @@
-import React, { CSSProperties, ReactNode, useEffect, useRef } from 'react';
+import { CSSProperties, ReactNode, useEffect, useRef } from 'react';
 import RModal, { Props as RModalProps } from 'react-modal';
 
 import { ButtonPrimary, ButtonSecondary } from './buttons';
@@ -65,8 +65,6 @@ export interface ModalProps
   /** Style the ok button as a "dangerous" operation. */
   danger?: boolean;
 
-  children?: React.ReactNode | React.ReactNode[];
-
   /**
    * Controls the "OK" button.
    * If a string, text for the "OK" button, which will dismiss the modal.
@@ -99,12 +97,6 @@ export interface ModalProps
   /** Modal width. */
   width?: CSSProperties['width'];
 
-  /** Create a button for selecting a next step * */
-  nextStepButton?: ReactNode;
-
-  /** The index of children */
-  index?: number;
-
   /** Called when the modal is dismissed (via the "OK", "Cancel", or "X" buttons or by clicking on the overlay). */
   onDismiss: RModalProps['onRequestClose'];
 }
@@ -123,16 +115,15 @@ export const Modal = (props: ModalProps): ReactNode => {
     titleChildren,
     width = 450,
     onDismiss,
-    nextStepButton,
-    index,
     ...otherProps
   } = props;
 
   const hasTitle = !!title;
   const titleId = useUniqueId();
+
   const modalElement = useRef<HTMLDivElement | null>(null);
 
-  /** Element that was focused before the modal was opened. */
+  /** Element that waas focused before the modal was opened. */
   const previouslyFocusedElement = useRef<Element | null>(null);
   useEffect(() => {
     previouslyFocusedElement.current = document.activeElement;
@@ -223,9 +214,7 @@ export const Modal = (props: ModalProps): ReactNode => {
           )}
         </div>
       )}
-      {children && Array.isArray(children) && index !== undefined && children[index]}
-      {!Array.isArray(children) && children}
-
+      {children}
       {showButtons && (
         <div style={{ ...modalStyles.buttonRow, ...styles?.buttonRow }}>
           {showCancel && (
@@ -233,32 +222,30 @@ export const Modal = (props: ModalProps): ReactNode => {
               {cancelText}
             </ButtonSecondary>
           )}
-          {children && Array.isArray(children) && index !== undefined && index < children.length
-            ? nextStepButton
-            : (() => {
-                if (okButton === undefined) {
-                  return (
-                    <ButtonPrimary danger={danger} onClick={onDismiss}>
-                      OK
-                    </ButtonPrimary>
-                  );
-                }
-                if (typeof okButton === 'string') {
-                  return (
-                    <ButtonPrimary danger={danger} onClick={onDismiss}>
-                      {okButton}
-                    </ButtonPrimary>
-                  );
-                }
-                if (typeof okButton === 'function') {
-                  return (
-                    <ButtonPrimary danger={danger} onClick={okButton}>
-                      OK
-                    </ButtonPrimary>
-                  );
-                }
-                return okButton;
-              })()}
+          {(() => {
+            if (okButton === undefined) {
+              return (
+                <ButtonPrimary danger={danger} onClick={onDismiss}>
+                  OK
+                </ButtonPrimary>
+              );
+            }
+            if (typeof okButton === 'string') {
+              return (
+                <ButtonPrimary danger={danger} onClick={onDismiss}>
+                  {okButton}
+                </ButtonPrimary>
+              );
+            }
+            if (typeof okButton === 'function') {
+              return (
+                <ButtonPrimary danger={danger} onClick={okButton}>
+                  OK
+                </ButtonPrimary>
+              );
+            }
+            return okButton;
+          })()}
         </div>
       )}
     </RModal>
