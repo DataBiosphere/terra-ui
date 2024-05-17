@@ -15,7 +15,7 @@ import { SamUserAttributes } from 'src/libs/ajax/User';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { clearNotification, sessionTimeoutProps } from 'src/libs/notifications';
+import { clearNotification, sessionExpirationProps } from 'src/libs/notifications';
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs';
 import {
   asyncImportJobStore,
@@ -494,7 +494,7 @@ export const loadTerraUser = async (): Promise<void> => {
         getEnterpriseFeatures,
         getSamUser,
       ]);
-    clearNotification(sessionTimeoutProps.id);
+    clearNotification(sessionExpirationProps.id);
     userStore.update((state: TerraUserState) => ({
       ...state,
       profile,
