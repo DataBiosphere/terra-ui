@@ -464,50 +464,6 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
   const [name] = useState('');
   const errors = validate({ name }, { name: required });
 
-  const DataSnapshotSection = () =>
-    div(
-      {
-        style: {
-          backgroundColor: colors.accent(0.15),
-          color: colors.dark(),
-          border: `1px solid ${colors.accent(0.05)}`,
-          borderRadius: 10,
-          height: 150,
-          padding: '1rem',
-          marginTop: '0.5rem',
-        },
-      },
-      [
-        div([
-          h3({
-            style: { marginTop: 5, fontWeight: 600 },
-            children: ['Important!'],
-          }),
-          div({
-            style: { display: 'pre-wrap', marginTop: -10 },
-            children: [
-              span(['Please copy and paste the ']),
-              span({ style: { fontWeight: 600 } }, ['Request ID']),
-              span([' into the AnalytiXIN form:']),
-            ],
-          }),
-          div({ style: { display: 'flex', marginTop: 10, color: colors.accent(2) } }, [
-            span({
-              style: { fontWeight: 400, marginRight: 2 },
-              children: [snapshotId],
-            }),
-            h(ClipboardButton, {
-              'aria-label': 'Copy Request ID to clipboard',
-              className: 'cell-hover-only',
-              iconSize: 14,
-              text: snapshotId,
-              tooltip: 'Copy Request ID to clipboard',
-            }),
-          ]),
-        ]),
-      ]
-    );
-
   return h(
     Modal,
     {
@@ -550,7 +506,48 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
         div([
           'A request has been generated and may take up to 72 hours for approval. Check your email for a copy of this request. You’ll also be notified via email on approval of the request.',
         ]),
-        h(DataSnapshotSection),
+        div(
+          {
+            style: {
+              backgroundColor: colors.accent(0.15),
+              color: colors.dark(),
+              border: `1px solid ${colors.accent(0.05)}`,
+              borderRadius: 10,
+              height: 150,
+              padding: '1rem',
+              marginTop: '0.5rem',
+            },
+          },
+          [
+            div([
+              h3({
+                style: { marginTop: 5, fontWeight: 600 },
+                children: ['Important!'],
+              }),
+              div({
+                style: { display: 'pre-wrap', marginTop: -10 },
+                children: [
+                  span(['Please copy and paste the ']),
+                  span({ style: { fontWeight: 600 } }, ['Request ID']),
+                  span([' into the AnalytiXIN form:']),
+                ],
+              }),
+              div({ style: { display: 'flex', marginTop: 10, color: colors.accent(2) } }, [
+                span({
+                  style: { fontWeight: 400, marginRight: 2 },
+                  children: [snapshotId],
+                }),
+                h(ClipboardButton, {
+                  'aria-label': 'Copy Request ID to clipboard',
+                  className: 'cell-hover-only',
+                  iconSize: 14,
+                  text: snapshotId,
+                  tooltip: 'Copy Request ID to clipboard',
+                }),
+              ]),
+            ]),
+          ]
+        ),
       ]),
     ]
   );
