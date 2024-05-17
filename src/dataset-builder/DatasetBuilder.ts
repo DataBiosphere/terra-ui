@@ -461,7 +461,7 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
   const { onDismiss, cohorts, conceptSets, valueSets, snapshotId } = props;
 
   const required = { presence: { allowEmpty: false } };
-  const [name] = useState('');
+  const [name] = useState('snapshot name -- will be removed');
   const errors = validate({ name }, { name: required });
 
   return h(
@@ -470,11 +470,13 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
       title: 'Access request created in Terra',
       showX: false,
       onDismiss,
+      width: 550,
       cancelText: 'Return to AxIN Overview',
       okButton: h(
         ButtonPrimary,
         {
           disabled: errors,
+          inheritText: true,
           tooltip: errors && Utils.summarizeErrors(errors),
           onClick: withErrorReporting('Error creating dataset request')(async () => {
             await DataRepo()
@@ -502,8 +504,8 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
       ),
     },
     [
-      div([
-        div([
+      div({ style: { width: 400 } }, [
+        div({ style: { lineHeight: 1.5 } }, [
           'A request has been generated and may take up to 72 hours for approval. Check your email for a copy of this request. You’ll also be notified via email on approval of the request.',
         ]),
         div(
@@ -511,11 +513,12 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
             style: {
               backgroundColor: colors.accent(0.15),
               color: colors.dark(),
-              border: `1px solid ${colors.accent(0.05)}`,
+              border: `1px solid ${colors.accent(1.25)}`,
               borderRadius: 10,
-              height: 150,
+              height: 135,
               padding: '1rem',
-              marginTop: '0.5rem',
+              marginTop: '1.5rem',
+              marginBottom: '2rem',
             },
           },
           [
@@ -525,16 +528,16 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
                 children: ['Important!'],
               }),
               div({
-                style: { display: 'pre-wrap', marginTop: -10 },
+                style: { display: 'pre-wrap', marginTop: -10, lineHeight: 1.5 },
                 children: [
                   span(['Please copy and paste the ']),
                   span({ style: { fontWeight: 600 } }, ['Request ID']),
                   span([' into the AnalytiXIN form:']),
                 ],
               }),
-              div({ style: { display: 'flex', marginTop: 10, color: colors.accent(2) } }, [
+              div({ style: { display: 'flex', marginTop: 20, color: colors.accent(1) } }, [
                 span({
-                  style: { fontWeight: 400, marginRight: 2 },
+                  style: { fontWeight: 700, marginRight: 2 },
                   children: [snapshotId],
                 }),
                 h(ClipboardButton, {
