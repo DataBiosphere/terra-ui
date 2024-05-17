@@ -1,5 +1,6 @@
 import _ from 'lodash/fp';
 import { authOpts, fetchOrchestration, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
+import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
 import { TerraUserProfile } from 'src/libs/state';
 
 export interface SamUserRegistrationStatusResponse {
@@ -162,17 +163,20 @@ export type SamUserAttributesRequest = {
   marketingConsent: boolean | undefined;
 };
 
+export type SamUserCombinedStateResponse = {
+  samUser: SamUserResponse;
+  terraUserAllowances: SamUserAllowances;
+  terraUserAttributes: SamUserAttributes;
+  termsOfService: SamUserTermsOfServiceDetails;
+  enterpriseFeatures: string[];
+};
+
 export type OrchestrationUserRegistrationRequest = object;
 
 export const User = (signal?: AbortSignal) => {
   return {
     getStatus: async (): Promise<SamUserRegistrationStatusResponse> => {
       const res = await fetchSam('register/user/v2/self/info', _.mergeAll([authOpts(), { signal }]));
-      return res.json();
-    },
-
-    getUserAllowances: async (): Promise<SamUserAllowances> => {
-      const res = await fetchSam('api/users/v2/self/allowed', _.mergeAll([authOpts(), { signal }]));
       return res.json();
     },
 
@@ -192,17 +196,9 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
-    getEnterpriseFeatures: async (): Promise<string[]> => {
-      try {
-        const res = await fetchSam(
-          '/api/resources/v2?format=flat&resourceTypes=enterprise-feature&roles=user',
-          _.mergeAll([authOpts(), { signal }])
-        );
-        const json = await res.json();
-        return json.resources.map((resource) => resource.resourceId);
-      } catch (error: unknown) {
-        return [];
-      }
+    getSamUserCombinedState: async (): Promise<SamUserCombinedStateResponse> => {
+      const res = await fetchSam('/api/user/v2/self/combinedState', _.mergeAll([authOpts(), { signal }]));
+      return res.json();
     },
 
     registerWithProfile: async (
@@ -265,21 +261,6 @@ export const User = (signal?: AbortSignal) => {
         _.merge(authOpts(), { signal })
       );
       return res.json();
-    },
-
-    getSamUserResponse: async (): Promise<SamUserResponse> => {
-      const res = await fetchSam('api/users/v2/self', _.mergeAll([authOpts(), { method: 'GET' }]));
-      const json = await res.json();
-      return {
-        id: json.id,
-        googleSubjectId: json.googleSubjectId,
-        email: json.email,
-        azureB2CId: json.azureB2CId,
-        allowed: json.allowed,
-        createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
-        registeredAt: json.registeredAt ? new Date(json.registeredAt) : undefined,
-        updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
-      };
     },
 
     getNihStatus: async (): Promise<OrchestrationNihStatusResponse | undefined> => {

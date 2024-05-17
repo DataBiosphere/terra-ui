@@ -5,8 +5,8 @@ import { loadTerraUser } from 'src/auth/auth';
 import { Ajax } from 'src/libs/ajax';
 import { GroupRole } from 'src/libs/ajax/Groups';
 import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
-import { SamUserResponse } from 'src/libs/ajax/User';
-import { TerraUserState, userStore } from 'src/libs/state';
+import { SamUserAttributes, SamUserCombinedStateResponse, SamUserResponse } from 'src/libs/ajax/User';
+import { userStore } from 'src/libs/state';
 
 jest.mock('src/libs/ajax');
 
@@ -67,6 +67,14 @@ const testSamUserAllowances = {
   details: testSamUserAllowancesDetails,
 };
 
+const mockSamUserCombinedState: SamUserCombinedStateResponse = {
+  samUser: mockSamUserResponse,
+  terraUserAllowances: testSamUserAllowances,
+  terraUserAttributes: { marketingConsent: false } as SamUserAttributes,
+  termsOfService: mockSamUserTermsOfServiceDetails,
+  enterpriseFeatures: [],
+};
+
 const mockNihDatasetPermission = {
   name: 'testNihDatasetPermissionName',
   authorized: true,
@@ -92,25 +100,17 @@ describe('a request to load a terra user', () => {
   });
   describe('when successful', () => {
     // Arrange (shared between tests for the success case)
-    const getUserAllowancesFunction = jest.fn().mockResolvedValue(testSamUserAllowances);
-    const getUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
-    const getUserTermsOfServiceDetailsFunction = jest.fn().mockResolvedValue(mockSamUserTermsOfServiceDetails);
-    const getEnterpriseFeaturesFunction = jest.fn().mockResolvedValue([]);
-    const getSamUserResponseFunction = jest.fn().mockResolvedValue(mockSamUserResponse);
-    const getNihStatusFunction = jest.fn().mockResolvedValue(mockOrchestrationNihStatusResponse);
-    const getFenceStatusFunction = jest.fn().mockResolvedValue({});
+    const getSamUserCombinedStateMock = jest.fn().mockResolvedValue(mockSamUserCombinedState);
+    const getNihStatusMock = jest.fn().mockResolvedValue(mockOrchestrationNihStatusResponse);
+    const getFenceStatusMock = jest.fn().mockResolvedValue({});
 
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
           User: {
-            getUserAllowances: getUserAllowancesFunction,
-            getUserAttributes: getUserAttributesFunction,
-            getUserTermsOfServiceDetails: getUserTermsOfServiceDetailsFunction,
-            getEnterpriseFeatures: getEnterpriseFeaturesFunction,
-            getSamUserResponse: getSamUserResponseFunction,
-            getNihStatus: getNihStatusFunction,
-            getFenceStatus: getFenceStatusFunction,
+            getSamUserCombinedState: getSamUserCombinedStateMock,
+            getNihStatus: getNihStatusMock,
+            getFenceStatus: getFenceStatusMock,
             profile: {
               get: jest.fn().mockReturnValue(mockTerraUserProfile),
             },
@@ -128,39 +128,27 @@ describe('a request to load a terra user', () => {
       await act(() => loadTerraUser());
 
       // Assert
-      expect(getSamUserResponseFunction).toHaveBeenCalled();
+      expect(getSamUserCombinedStateMock).toHaveBeenCalled();
     });
     it('should update the samUser in state', async () => {
       // Act
       await act(() => loadTerraUser());
 
-      let samUser;
-      await act(async () => {
-        samUser = await getSamUserResponseFunction.mock.results[0].value;
-      });
-      userStore.update((state: TerraUserState) => ({
-        ...state,
-        samUser,
-      }));
       // Assert
-      expect(getSamUserResponseFunction).toHaveBeenCalled();
+      expect(getSamUserCombinedStateMock).toHaveBeenCalled();
       expect(userStore.get().samUser).toEqual(mockSamUserResponse);
     });
     describe('when not successful', () => {
       it('should fail with an error', async () => {
         // // Arrange
         // mock a failure to get samUserResponse
-        const getSamUserResponseFunction = jest.fn().mockRejectedValue(new Error('unknown'));
+        const getSamUserCombinedStateMockFailure = jest.fn().mockRejectedValue(new Error('unknown'));
 
         asMockedFn(Ajax).mockImplementation(
           () =>
             ({
               User: {
-                getUserAllowances: getUserAllowancesFunction,
-                getUserAttributes: getUserAttributesFunction,
-                getUserTermsOfServiceDetails: getUserTermsOfServiceDetailsFunction,
-                getEnterpriseFeatures: getEnterpriseFeaturesFunction,
-                getSamUserResponse: getSamUserResponseFunction,
+                getSamUserCombinedState: getSamUserCombinedStateMockFailure,
                 profile: {
                   get: jest.fn().mockReturnValue(mockTerraUserProfile),
                 },

@@ -480,20 +480,10 @@ export const loadTerraUser = async (): Promise<void> => {
   try {
     const signInStatus = 'userLoaded';
     const getProfile = Ajax().User.profile.get();
-    const getAllowances = Ajax().User.getUserAllowances();
-    const getAttributes = Ajax().User.getUserAttributes();
-    const getTermsOfService = Ajax().TermsOfService.getUserTermsOfServiceDetails();
-    const getEnterpriseFeatures = Ajax().User.getEnterpriseFeatures();
-    const getSamUser = Ajax().User.getSamUserResponse();
-    const [profile, terraUserAllowances, terraUserAttributes, termsOfService, enterpriseFeatures, samUser] =
-      await Promise.all([
-        getProfile,
-        getAllowances,
-        getAttributes,
-        getTermsOfService,
-        getEnterpriseFeatures,
-        getSamUser,
-      ]);
+    const getCombinedState = Ajax().User.getSamUserCombinedState();
+    const [profile, terraUserCombinedState] = await Promise.all([getProfile, getCombinedState]);
+    const { terraUserAttributes, enterpriseFeatures, samUser, terraUserAllowances, termsOfService } =
+      terraUserCombinedState;
     clearNotification(sessionTimeoutProps.id);
     userStore.update((state: TerraUserState) => ({
       ...state,
