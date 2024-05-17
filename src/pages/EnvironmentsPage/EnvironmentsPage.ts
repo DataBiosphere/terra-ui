@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { EnvironmentNavActions, Environments } from 'src/analysis/Environments/Environments';
 import FooterWrapper from 'src/components/FooterWrapper';
+import SupportRequestWrapper from 'src/components/SupportRequest';
 import TopBar from 'src/components/TopBar';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
@@ -10,6 +11,7 @@ import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeP
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import Events from 'src/libs/events';
 import { terraNavKey, TerraNavLinkProvider, terraNavLinkProvider } from 'src/libs/nav';
+import { contactUsActive } from 'src/libs/state';
 import { leoResourcePermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 
@@ -59,6 +61,7 @@ export const EnvironmentsPage = (): ReactNode => {
         }
       },
     }),
+    contactUsActive.get() && h(SupportRequestWrapper),
   ]);
 };
 
