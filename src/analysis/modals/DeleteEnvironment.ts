@@ -1,4 +1,4 @@
-import { Fragment, ReactNode } from 'react';
+import { Fragment, ReactNode, useEffect } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
 import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
@@ -43,6 +43,16 @@ export const DeleteEnvironment = (props: DeleteEnvironmentProps): ReactNode => {
     onPrevious,
     toolLabel,
   } = props;
+
+  /*
+   * If the application configuration/compute profile has been deleted, and the only
+   * piece remaining is the persistent disk, default to deleting the disk.
+   */
+  useEffect(() => {
+    if (!runtimeConfig && !!persistentDiskId && !deleteDiskSelected) {
+      setDeleteDiskSelected(true);
+    }
+  }, [runtimeConfig, persistentDiskId, deleteDiskSelected, setDeleteDiskSelected]);
 
   return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
     h(TitleBar, {
@@ -118,9 +128,6 @@ export const DeleteEnvironment = (props: DeleteEnvironmentProps): ReactNode => {
         [
           !runtimeConfig && !!persistentDiskId,
           () => {
-            if (!deleteDiskSelected) {
-              setDeleteDiskSelected(true);
-            }
             return h(Fragment, [
               h(
                 RadioBlock,
