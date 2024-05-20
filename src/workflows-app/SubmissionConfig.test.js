@@ -1865,8 +1865,7 @@ describe('Submitting a run set', () => {
     const myPrimitiveRowCells = within(structRows[5]).getAllByRole('cell');
     within(myPrimitiveRowCells[1]).getByText('myPrimitive');
     const myPrimitiveInput = within(myPrimitiveRowCells[4]).getByDisplayValue('Fiesty');
-    await user.clear(myPrimitiveInput);
-    await user.type(myPrimitiveInput, 'Docile');
+    fireEvent.change(myPrimitiveInput, { target: { value: 'Docile' } });
     within(myPrimitiveRowCells[4]).getByDisplayValue('Docile');
 
     // ** ACT **
@@ -1888,8 +1887,7 @@ describe('Submitting a run set', () => {
     const selectOption = within(screen.getByLabelText('Options')).getByText('Type a Value');
     await user.click(selectOption);
     const myInnermostPrimitiveInput = within(myInnermostPrimitiveRowCells[4]).getByLabelText('Enter a value');
-    await user.clear(myInnermostPrimitiveInput);
-    await user.type(myInnermostPrimitiveInput, 'bar');
+    fireEvent.change(myInnermostPrimitiveInput, { target: { value: 'bar' } });
     within(myInnermostPrimitiveRowCells[4]).getByDisplayValue('bar');
 
     // ** ACT **
@@ -1990,7 +1988,7 @@ describe('Submitting a run set', () => {
         },
       })
     );
-  }, 10000);
+  });
 
   it('should call POST /run_sets endpoint with expected parameters after outputs are set to default', async () => {
     // ** ARRANGE **
