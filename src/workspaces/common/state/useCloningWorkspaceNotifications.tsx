@@ -2,14 +2,13 @@ import { Clickable, Icon, useStore, useThemeFromContext } from '@terra-ui-packag
 import React, { ReactNode } from 'react';
 import { Store } from 'react-notifications-component';
 import { cloningWorkspacesStore } from 'src/libs/state';
-import { WorkspaceInfo } from 'src/workspaces/utils';
-
 import {
   StateUpdateAction,
   StateUpdateListener,
   useWorkspacesStatePollingWithAction,
   WorkspaceUpdate,
-} from './state/useWorkspaceStatePolling';
+} from 'src/workspaces/common/state/useWorkspaceStatePolling';
+import { WorkspaceInfo } from 'src/workspaces/utils';
 
 interface CloningWorkspaceNotificationWrapperProps {
   notificationId: string;
@@ -121,7 +120,7 @@ const addWorkspace = (workspace: WorkspaceInfo) =>
 /*
  * A simple hook that polls for the state of cloning workspaces, and adds notifications when the state changes
  */
-export const useCloningWorkspaceNotification = (): void => {
+export const useCloningWorkspaceNotifications = (): void => {
   const cloningStore = useStore(cloningWorkspacesStore);
   const listener: StateUpdateListener = {
     CloningContainer: [containerCloning],
