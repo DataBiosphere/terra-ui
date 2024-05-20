@@ -24,6 +24,7 @@ import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
   DataRepo,
   DatasetBuilderType,
+  SnapshotAccessRequestResponse,
   SnapshotBuilderCountResponse,
   SnapshotBuilderDatasetConceptSet as ConceptSet,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
@@ -449,15 +450,12 @@ export const ValuesSelector = ({
 };
 
 interface RequestAccessModalProps {
-  cohorts: Cohort[];
-  conceptSets: ConceptSet[];
-  valueSets: HeaderAndValues<DatasetBuilderValue>[];
   onDismiss: () => void;
   snapshotId: string;
 }
 
 const RequestAccessModal = (props: RequestAccessModalProps) => {
-  const { onDismiss, cohorts, conceptSets, valueSets, snapshotId } = props;
+  const { onDismiss, snapshotId } = props;
 
   return h(
     Modal,
@@ -470,29 +468,9 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
       okButton: h(
         ButtonPrimary,
         {
-          onClick: withErrorReporting('Error creating dataset request')(async () => {
-            await DataRepo()
-              .snapshotAccessRequest()
-              .createSnapshotAccessRequest(
-                createSnapshotAccessRequest(
-                  'name',
-                  '',
-                  snapshotId,
-                  cohorts,
-                  conceptSets,
-                  _.map(
-                    (valuesSet: HeaderAndValues<DatasetBuilderValue>) => ({
-                      domain: valuesSet.header,
-                      values: valuesSet.values,
-                    }),
-                    valueSets // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
-                  )
-                )
-              );
-            onDismiss();
-          }),
+          onClick: () => {},
         },
-        ['Continue to AxIN']
+        ['Continue to Form']
       ),
     },
     [
@@ -527,9 +505,12 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
               ],
             }),
             div({ style: { display: 'flex', marginTop: 20, color: colors.accent(1) } }, [
-              span({
-                style: { fontWeight: 700, marginRight: 2 },
-              }, [snapshotId]),
+              span(
+                {
+                  style: { fontWeight: 700, marginRight: 2 },
+                },
+                [snapshotId]
+              ),
               h(ClipboardButton, {
                 'aria-label': 'Copy Request ID to clipboard',
                 className: 'cell-hover-only',
@@ -571,6 +552,7 @@ export const DatasetBuilderContents = ({
   const [requestingAccess, setRequestingAccess] = useState(false);
   const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
     useLoadedData<SnapshotBuilderCountResponse>();
+  const [snapshotAccessRequest, setSnapshotAccessRequest] = useLoadedData<SnapshotAccessRequestResponse>();
 
   const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
   const allConceptSets: ConceptSet[] = useMemo(() => _.flatMap('values', selectedConceptSets), [selectedConceptSets]);
@@ -676,17 +658,40 @@ export const DatasetBuilderContents = ({
             ' participants in this dataset',
           ]),
           actionText: 'Request this data snapshot',
-          onClick: () => setRequestingAccess(true),
+          onClick: () => {
+            setSnapshotAccessRequest(
+              withErrorReporting('Error creating dataset request')(async () => {
+                await DataRepo()
+                  .snapshotAccessRequest()
+                  .createSnapshotAccessRequest(
+                    createSnapshotAccessRequest(
+                      '',
+                      '',
+                      snapshotId,
+                      cohorts,
+                      conceptSets,
+                      _.map(
+                        (valuesSet: HeaderAndValues<DatasetBuilderValue>) => ({
+                          domain: valuesSet.header,
+                          values: valuesSet.values,
+                        }),
+                        selectedValues // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
+                      )
+                    )
+                  );
+              })
+            );
+            setRequestingAccess(true);
+          },
         }),
     ]),
-    requestingAccess &&
-      h(RequestAccessModal, {
-        cohorts: allCohorts,
-        conceptSets: allConceptSets,
-        valueSets: selectedValues,
-        onDismiss: () => setRequestingAccess(false),
-        snapshotId,
-      }),
+    snapshotAccessRequest.status === 'Loading'
+      ? spinnerOverlay
+      : requestingAccess &&
+        h(RequestAccessModal, {
+          onDismiss: () => setRequestingAccess(false),
+          snapshotId,
+        }),
   ]);
 };
 
