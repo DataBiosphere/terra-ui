@@ -101,7 +101,7 @@ const setupMockAjax = async (
           captureEvent: jest.fn(),
         },
         User: {
-          getSamUserCombinedState: mockSamUserCombinedState,
+          getSamUserCombinedState: jest.fn().mockResolvedValue(mockSamUserCombinedState),
           profile: {
             get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
             update: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
