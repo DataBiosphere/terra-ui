@@ -470,7 +470,7 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
       title: 'Access request created in Terra',
       showX: false,
       onDismiss,
-      width: 550,
+      width: 500,
       cancelText: 'Return to AxIN Overview',
       okButton: h(
         ButtonPrimary,
@@ -503,54 +503,52 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
       ),
     },
     [
-      div({ style: { width: 400 } }, [
-        div({ style: { lineHeight: 1.5 } }, [
-          'A request has been generated and may take up to 72 hours for approval. Check your email for a copy of this request. You’ll also be notified via email on approval of the request.',
-        ]),
-        div(
-          {
-            style: {
-              backgroundColor: colors.accent(0.15),
-              color: colors.dark(),
-              border: `1px solid ${colors.accent(1.25)}`,
-              borderRadius: 10,
-              height: 135,
-              padding: '1rem',
-              marginTop: '1.5rem',
-              marginBottom: '2rem',
-            },
-          },
-          [
-            div([
-              h3({
-                style: { marginTop: 5, fontWeight: 600 },
-                children: ['Important!'],
-              }),
-              div({
-                style: { display: 'pre-wrap', marginTop: -10, lineHeight: 1.5 },
-                children: [
-                  span(['Please copy and paste the ']),
-                  span({ style: { fontWeight: 600 } }, ['Request ID']),
-                  span([' into the AnalytiXIN form:']),
-                ],
-              }),
-              div({ style: { display: 'flex', marginTop: 20, color: colors.accent(1) } }, [
-                span({
-                  style: { fontWeight: 700, marginRight: 2 },
-                  children: [snapshotId],
-                }),
-                h(ClipboardButton, {
-                  'aria-label': 'Copy Request ID to clipboard',
-                  className: 'cell-hover-only',
-                  iconSize: 14,
-                  text: snapshotId,
-                  tooltip: 'Copy Request ID to clipboard',
-                }),
-              ]),
-            ]),
-          ]
-        ),
+      div({ style: { lineHeight: 1.5 } }, [
+        'A request has been generated and may take up to 72 hours for approval. Check your email for a copy of this request. You’ll also be notified via email on approval of the request.',
       ]),
+      div(
+        {
+          style: {
+            backgroundColor: colors.accent(0.15),
+            color: colors.dark(),
+            border: `1px solid ${colors.accent(1.25)}`,
+            borderRadius: 10,
+            height: 150,
+            padding: '1rem',
+            marginTop: '1.5rem',
+            marginBottom: '2rem',
+          },
+        },
+        [
+          div([
+            h3({
+              style: { marginTop: 5, fontWeight: 600 },
+              children: ['Important!'],
+            }),
+            div({
+              style: { display: 'pre-wrap', marginTop: -10, lineHeight: 1.5 },
+              children: [
+                span(['Please copy and paste the ']),
+                span({ style: { fontWeight: 600 } }, ['Request ID']),
+                span([' into the AnalytiXIN form:']),
+              ],
+            }),
+            div({ style: { display: 'flex', marginTop: 20, color: colors.accent(1) } }, [
+              span({
+                style: { fontWeight: 700, marginRight: 2 },
+                children: [snapshotId],
+              }),
+              h(ClipboardButton, {
+                'aria-label': 'Copy Request ID to clipboard',
+                className: 'cell-hover-only',
+                iconSize: 14,
+                text: snapshotId,
+                tooltip: 'Copy Request ID to clipboard',
+              }),
+            ]),
+          ]),
+        ]
+      ),
     ]
   );
 };
