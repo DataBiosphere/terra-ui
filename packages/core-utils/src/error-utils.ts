@@ -1,4 +1,4 @@
-import { AnyPromiseFn } from '@terra-ui-packages/core-utils';
+import { AnyPromiseFn } from './type-utils/general-types';
 
 export type ErrorCallback = (error: unknown) => void | Promise<void>;
 

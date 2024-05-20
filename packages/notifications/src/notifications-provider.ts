@@ -1,6 +1,4 @@
-import { AnyPromiseFn } from '@terra-ui-packages/core-utils';
-
-import { withErrorHandling } from './error';
+import { AnyPromiseFn, withErrorHandling } from '@terra-ui-packages/core-utils';
 
 /**
  * Should return true of a given error should be ignored
