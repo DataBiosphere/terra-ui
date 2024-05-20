@@ -198,7 +198,21 @@ export const User = (signal?: AbortSignal) => {
 
     getSamUserCombinedState: async (): Promise<SamUserCombinedStateResponse> => {
       const res = await fetchSam('/api/user/v2/self/combinedState', _.mergeAll([authOpts(), { signal }]));
-      return res.json();
+      const response = await res.json();
+      response.terraUserAttributes = response.terraUserAttributes.map((attributes) => {
+        const { userId: _, ...rest } = attributes;
+        return rest;
+      });
+      response.samUser.createdAt = response.samUser.createdAt ? new Date(response.samUser.createdAt) : undefined;
+      response.samUser.registeredAt = response.samUser.registeredAt
+        ? new Date(response.samUser.registeredAt)
+        : undefined;
+      response.samUser.updatedAt = response.samUser.updatedAt ? new Date(response.samUser.updatedAt) : undefined;
+      response.enterpriseFeatures = response.additionalDetails.enterpriseFeatures.resources.map(
+        (resource) => resource.resourceId
+      );
+
+      return response;
     },
 
     registerWithProfile: async (
