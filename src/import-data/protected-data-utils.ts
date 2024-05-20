@@ -75,8 +75,12 @@ export const isProtectedSource = (importRequest: ImportRequest): boolean => {
  */
 export const getImportSource = (url: URL): ImportSource => {
   const anvilSources = [
+    // AnVIL production
     'service.prod.anvil.gi.ucsc.edu',
     'edu-ucsc-gi-platform-anvil-prod-storage-anvilprod.us-east-1',
+    // AnVIL development
+    'service.anvil.gi.ucsc.edu',
+    'edu-ucsc-gi-platform-anvil-dev-storage-anvildev.us-east-1',
   ];
   if (anvilSources.some((path) => url.href.includes(path))) {
     return 'anvil';
