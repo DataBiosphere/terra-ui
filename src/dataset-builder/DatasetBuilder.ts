@@ -529,8 +529,7 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
             div({ style: { display: 'flex', marginTop: 20, color: colors.accent(1) } }, [
               span({
                 style: { fontWeight: 700, marginRight: 2 },
-                children: [snapshotId],
-              }),
+              }, [snapshotId]),
               h(ClipboardButton, {
                 'aria-label': 'Copy Request ID to clipboard',
                 className: 'cell-hover-only',
