@@ -287,7 +287,7 @@ describe('SubmissionHistory tab', () => {
     within(cellsFromDataRow2[headerPosition.Duration]).getByText('1 month 1 day 1 hour 1 minute 1 second');
   });
 
-  it('should support canceled and canceling submissions', async () => {
+  it('should support canceled, canceling and queued submissions', async () => {
     const runSetData = {
       run_sets: [
         {
@@ -307,6 +307,15 @@ describe('SubmissionHistory tab', () => {
           run_count: 2,
           run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
           state: 'CANCELING',
+        },
+        {
+          error_count: 0,
+          submission_timestamp: '2021-07-10T12:00:00.000+00:00',
+          last_modified_timestamp: '2021-08-11T13:01:01.000+00:00',
+          record_type: 'FOO',
+          run_count: 5,
+          run_set_id: '97e04fd6-bbd4-49d4-942d-4e91edc3c3f8',
+          state: 'QUEUED',
         },
       ],
     };
@@ -348,10 +357,10 @@ describe('SubmissionHistory tab', () => {
 
     // Assert
     expect(table).toHaveAttribute('aria-colcount', '6');
-    expect(table).toHaveAttribute('aria-rowcount', '3');
+    expect(table).toHaveAttribute('aria-rowcount', '4');
 
     const rows = within(table).getAllByRole('row');
-    expect(rows.length).toBe(3);
+    expect(rows.length).toBe(4);
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
@@ -359,6 +368,9 @@ describe('SubmissionHistory tab', () => {
 
     const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
     within(cellsFromDataRow2[headerPosition.Status]).getByText('Canceling');
+
+    const cellsFromDataRow3 = within(rows[3]).getAllByRole('cell');
+    within(cellsFromDataRow3[headerPosition.Status]).getByText('Queued');
   });
 
   const simpleRunSetData = {
