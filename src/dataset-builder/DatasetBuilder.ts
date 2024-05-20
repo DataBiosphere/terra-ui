@@ -33,7 +33,6 @@ import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
-import * as Utils from 'src/libs/utils';
 import { validate } from 'validate.js';
 
 import { CohortEditor } from './CohortEditor';
@@ -460,10 +459,6 @@ interface RequestAccessModalProps {
 const RequestAccessModal = (props: RequestAccessModalProps) => {
   const { onDismiss, cohorts, conceptSets, valueSets, snapshotId } = props;
 
-  const required = { presence: { allowEmpty: false } };
-  const [name] = useState('snapshot name -- will be removed');
-  const errors = validate({ name }, { name: required });
-
   return h(
     Modal,
     {
@@ -475,14 +470,12 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
       okButton: h(
         ButtonPrimary,
         {
-          disabled: errors,
-          tooltip: errors && Utils.summarizeErrors(errors),
           onClick: withErrorReporting('Error creating dataset request')(async () => {
             await DataRepo()
               .snapshotAccessRequest()
               .createSnapshotAccessRequest(
                 createSnapshotAccessRequest(
-                  name,
+                  'name',
                   '',
                   snapshotId,
                   cohorts,
