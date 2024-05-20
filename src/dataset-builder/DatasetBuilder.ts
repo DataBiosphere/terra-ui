@@ -475,9 +475,7 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
       okButton: h(
         ButtonPrimary,
         {
-          style: { textTransform: 'inherit' },
           disabled: errors,
-          inheritText: true,
           tooltip: errors && Utils.summarizeErrors(errors),
           onClick: withErrorReporting('Error creating dataset request')(async () => {
             await DataRepo()
