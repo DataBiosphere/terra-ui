@@ -466,27 +466,10 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
       width: 500,
       cancelText: 'Return to AxIN Overview',
       okButton: h(
-        Link,
+        ButtonPrimary,
         {
-          style: {
-            display: 'inline-flex',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-            height: '2.25rem',
-            fontSize: 14,
-            fontWeight: 500,
-            textTransform: 'uppercase',
-            whiteSpace: 'nowrap',
-            userSelect: 'none',
-            border: `1px solid ${colors.accent(1.2)}`,
-            borderRadius: 5,
-            color: 'white',
-            padding: '0.875rem',
-            backgroundColor: colors.accent(),
-            cursor: 'pointer',
-          },
-          'aria-label': 'continue to form',
-          onClick: () => {},
+          href: '',
+          target: '_blank',
         },
         ['Continue to Form']
       ),
@@ -678,26 +661,27 @@ export const DatasetBuilderContents = ({
           actionText: 'Request this data snapshot',
           onClick: () => {
             setSnapshotAccessRequest(
-              withErrorReporting('Error creating dataset request')(async () => {
-                await DataRepo()
-                  .snapshotAccessRequest()
-                  .createSnapshotAccessRequest(
-                    createSnapshotAccessRequest(
-                      '',
-                      '',
-                      snapshotId,
-                      cohorts,
-                      conceptSets,
-                      _.map(
-                        (valuesSet: HeaderAndValues<DatasetBuilderValue>) => ({
-                          domain: valuesSet.header,
-                          values: valuesSet.values,
-                        }),
-                        selectedValues // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
+              withErrorReporting('Error creating dataset request')(
+                async () =>
+                  await DataRepo()
+                    .snapshotAccessRequest()
+                    .createSnapshotAccessRequest(
+                      createSnapshotAccessRequest(
+                        '',
+                        '',
+                        snapshotId,
+                        cohorts,
+                        conceptSets,
+                        _.map(
+                          (valuesSet: HeaderAndValues<DatasetBuilderValue>) => ({
+                            domain: valuesSet.header,
+                            values: valuesSet.values,
+                          }),
+                          selectedValues // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
+                        )
                       )
                     )
-                  );
-              })
+              )
             );
             setRequestingAccess(true);
           },
@@ -705,10 +689,11 @@ export const DatasetBuilderContents = ({
     ]),
     snapshotAccessRequest.status === 'Loading'
       ? spinnerOverlay
-      : requestingAccess &&
+      : snapshotAccessRequest.status === 'Ready' &&
+        requestingAccess &&
         h(RequestAccessModal, {
           onDismiss: () => setRequestingAccess(false),
-          snapshotId,
+          snapshotId: snapshotAccessRequest.state.id,
         }),
   ]);
 };
