@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { workspacesStore, workspaceStore } from 'src/libs/state';
 import { pollWithCancellation } from 'src/libs/utils';
-import { BaseWorkspaceInfo, WorkspaceState, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
+import { BaseWorkspaceInfo, WorkspaceInfo, WorkspaceState, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
-interface WorkspaceUpdate extends Partial<BaseWorkspaceInfo> {
+export interface WorkspaceUpdate extends Partial<BaseWorkspaceInfo> {
   workspaceId: string;
   state: WorkspaceState;
   errorMessage?: string;
@@ -26,7 +26,7 @@ const updateWorkspaceIfMatching = <T extends Workspace>(workspace: T, update: Wo
 };
 
 // Applies the update to the workspace stores and returns the update state
-const doUpdate = (update: WorkspaceUpdate): WorkspaceState => {
+const doUpdate = (update: WorkspaceUpdate): WorkspaceUpdate => {
   workspacesStore.update((wsList) => updateWorkspacesList(wsList, update));
   workspaceStore.update((ws) => {
     if (ws) {
@@ -34,22 +34,25 @@ const doUpdate = (update: WorkspaceUpdate): WorkspaceState => {
     }
     return undefined;
   });
-  return update.state;
+  return update;
 };
 
 // Polls the workspace state, and updates the stores if the state changes
 // Returns the new state or if the workspace state transitions or undefined if the workspace was not updated
-const checkWorkspaceState = async (workspace: Workspace, signal: AbortSignal): Promise<WorkspaceState | undefined> => {
-  const startingState = workspace.workspace.state;
+const checkWorkspaceState = async (
+  workspace: WorkspaceInfo,
+  signal: AbortSignal
+): Promise<WorkspaceUpdate | undefined> => {
+  const startingState = workspace.state;
   try {
     const wsResp: Workspace = await Ajax(signal)
-      .Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
+      .Workspaces.workspace(workspace.namespace, workspace.name)
       .details(['workspace.state', 'workspace.errorMessage']);
     const state = wsResp.workspace.state;
 
     if (!!state && state !== startingState) {
       const update = {
-        workspaceId: workspace.workspace.workspaceId,
+        workspaceId: workspace.workspaceId,
         state,
         errorMessage: wsResp.workspace.errorMessage,
       };
@@ -59,10 +62,10 @@ const checkWorkspaceState = async (workspace: Workspace, signal: AbortSignal): P
   } catch (error) {
     // for workspaces that are being deleted, the details endpoint will return a 404 when the deletion is complete
     if (startingState === 'Deleting' && error instanceof Response && error.status === 404) {
-      const update: WorkspaceUpdate = { workspaceId: workspace.workspace.workspaceId, state: 'Deleted' };
+      const update: WorkspaceUpdate = { workspaceId: workspace.workspaceId, state: 'Deleted' };
       return doUpdate(update);
     }
-    console.error(`Error checking workspace state for ${workspace.workspace.name}: ${JSON.stringify(error)}`);
+    console.error(`Error checking workspace state for ${workspace.name}: ${JSON.stringify(error)}`);
     return undefined;
   }
 };
@@ -84,7 +87,7 @@ export const useWorkspaceStatePolling = (workspaces: Workspace[], status: Loaded
       if (status === 'Ready') {
         const updatingWorkspaces = _.filter((ws) => _.contains(ws?.workspace?.state, updatingStates), workspaces);
         for (const ws of updatingWorkspaces) {
-          const updatedState = await checkWorkspaceState(ws, controller.current.signal);
+          const updatedState = await checkWorkspaceState(ws.workspace, controller.current.signal);
           if (updatedState) {
             abort();
           }
@@ -112,7 +115,7 @@ export const useSingleWorkspaceStatePolling = (workspace: Workspace) => {
     pollWithCancellation(
       async () => {
         if (_.contains(workspace?.workspace?.state, updatingStates)) {
-          const updatedState = await checkWorkspaceState(workspace, controller.signal);
+          const updatedState = await checkWorkspaceState(workspace.workspace, controller.signal);
           if (updatedState) {
             abort();
           }
@@ -127,4 +130,36 @@ export const useSingleWorkspaceStatePolling = (workspace: Workspace) => {
     };
     //  eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspace]); // adding the controller to deps causes a double fire of the effect
+};
+
+export type StateUpdateAction = (WorkspaceUpdate) => void;
+export type StateUpdateListener = { [key in WorkspaceState]?: StateUpdateAction[] };
+
+export const useWorkspacesStatePollingWithAction = (workspaces: WorkspaceInfo[], listeners: StateUpdateListener) => {
+  // we have to do the signal/abort manually instead of with useCancelable so that the it can be cleaned up in the
+  // this component's useEffect, instead of the useEffect in useCancelable
+  const controller = useRef(new window.AbortController());
+  const abort = () => {
+    controller.current.abort();
+    controller.current = new window.AbortController();
+  };
+
+  useEffect(() => {
+    const iterateUpdatingWorkspaces = async () => {
+      // wait for the workspaces to be loaded (LoadedState.status) before polling
+      const updatingWorkspaces = _.filter((ws) => _.contains(ws.state, updatingStates), workspaces);
+      for (const ws of updatingWorkspaces) {
+        const updatedState = await checkWorkspaceState(ws, controller.current.signal);
+        if (updatedState) {
+          listeners[updatedState.state]?.forEach((callback) => callback(updatedState));
+          abort();
+        }
+      }
+    };
+
+    pollWithCancellation(() => iterateUpdatingWorkspaces(), 30000, false, controller.current.signal);
+    return () => {
+      abort();
+    };
+  }, [workspaces, listeners]); // adding the controller to deps causes a double fire of the effect
 };
