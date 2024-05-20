@@ -466,8 +466,26 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
       width: 500,
       cancelText: 'Return to AxIN Overview',
       okButton: h(
-        ButtonPrimary,
+        Link,
         {
+          style: {
+            display: 'inline-flex',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            height: '2.25rem',
+            fontSize: 14,
+            fontWeight: 500,
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+            userSelect: 'none',
+            border: `1px solid ${colors.accent(1.2)}`,
+            borderRadius: 5,
+            color: 'white',
+            padding: '0.875rem',
+            backgroundColor: colors.accent(),
+            cursor: 'pointer',
+          },
+          'aria-label': 'continue to form',
           onClick: () => {},
         },
         ['Continue to Form']
