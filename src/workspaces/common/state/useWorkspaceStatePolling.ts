@@ -30,7 +30,7 @@ const doUpdate = (update: WorkspaceUpdate): WorkspaceUpdate => {
   workspacesStore.update((wsList) => updateWorkspacesList(wsList, update));
   workspaceStore.update((ws) => {
     if (ws) {
-      updateWorkspaceIfMatching(ws, update);
+      return updateWorkspaceIfMatching(ws, update);
     }
     return undefined;
   });
