@@ -8,6 +8,7 @@ import { getConfig } from 'src/libs/config';
 import { footerLogo } from 'src/libs/logos';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
+import { useCloningWorkspaceNotifications } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
 
 const styles = {
   item: { marginLeft: '2rem' },
@@ -25,7 +26,7 @@ const buildDate = new Date(parseInt(getConfig().buildTimestamp, 10));
 const FooterWrapper = ({ children, alwaysShow = false, fixedHeight = false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [scrollBarHeight, setScrollBarHeight] = useState(window.innerHeight - document.body.offsetHeight);
-
+  useCloningWorkspaceNotifications();
   useEffect(() => {
     function handleResize() {
       const newScrollBarHeight = window.innerHeight - document.body.offsetHeight;
