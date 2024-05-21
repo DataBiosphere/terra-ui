@@ -11,7 +11,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     fontWeight: 500,
-    textTransform: 'uppercase',
+    textTransform: 'capitalize',
     marginTop: '1rem',
     height: '3.75rem',
   },
