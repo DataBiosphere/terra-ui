@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
+import { anvilPfbImportRequests, genericPfbImportRequest } from './__fixtures__/import-request-fixtures';
 import { ImportRequest } from './import-types';
 import { ImportDataOverview, ImportDataOverviewProps } from './ImportDataOverview';
 
@@ -17,11 +18,11 @@ const renderImportDataOverview = (props: Partial<ImportDataOverviewProps> = {}):
 describe('ImportDataOverview', () => {
   it.each([
     {
-      importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+      importRequest: anvilPfbImportRequests[0],
       shouldShowProtectedDataWarning: true,
     },
     {
-      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      importRequest: genericPfbImportRequest,
       shouldShowProtectedDataWarning: false,
     },
   ] as { importRequest: ImportRequest; shouldShowProtectedDataWarning: boolean }[])(
