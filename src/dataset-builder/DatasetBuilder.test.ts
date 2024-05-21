@@ -143,6 +143,23 @@ describe('DatasetBuilder', () => {
       })
     );
 
+  const mockCreateSnapshotAccessRequest = jest.fn().mockResolvedValue({
+    id: '8d53c929-a16b-411c-bde6-877885f96564',
+    datasetId: null,
+    sourceSnapshotId: 'c3eb4708-444f-4cbf-a32c-0d3bb93d4819',
+    snapshotName: '',
+    snapshotResearchPurpose: '',
+    snapshotSpecification: {
+      cohorts: [{ name: 'g', criteriaGroups: [] }],
+      conceptSets: [],
+      valueSets: [{ name: 'Person', values: ['Person Column 1', 'Person Column 2'] }],
+    },
+    createdBy: 'user@email.com',
+    status: 'SUBMITTED',
+    createdDate: '2024-05-21T14:46:28.622665Z',
+    updatedDate: null,
+  });
+
   it('renders cohorts', () => {
     // Arrange
     renderCohortSelector();
@@ -320,6 +337,14 @@ describe('DatasetBuilder', () => {
   });
 
   it('opens the modal when requesting access to the dataset', async () => {
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      snapshotAccessRequest: () => ({
+        createSnapshotAccessRequest: mockCreateSnapshotAccessRequest,
+      }),
+    };
+
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+
     // Arrange
     const user = userEvent.setup();
     await initializeValidDatasetRequest(user);
