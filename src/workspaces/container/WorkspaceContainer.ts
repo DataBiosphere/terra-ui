@@ -17,9 +17,10 @@ import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { useAppPolling } from 'src/workspaces/common/state/useAppPolling';
+import { notifyNewWorkspaceClone } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
 import { useCloudEnvironmentPolling } from 'src/workspaces/common/state/useCloudEnvironmentPolling';
-import { useSingleWorkspaceDeletionPolling } from 'src/workspaces/common/state/useDeletionPolling';
 import { InitializedWorkspaceWrapper, StorageDetails, useWorkspace } from 'src/workspaces/common/state/useWorkspace';
+import { useWorkspaceStatePolling } from 'src/workspaces/common/state/useWorkspaceStatePolling';
 import { WorkspaceDeletingBanner } from 'src/workspaces/container/WorkspaceDeletingBanner';
 import { WorkspaceTabs } from 'src/workspaces/container/WorkspaceTabs';
 import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
@@ -99,7 +100,8 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const isGoogleWorkspaceSyncing =
     workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
 
-  useSingleWorkspaceDeletionPolling(workspace!);
+  useWorkspaceStatePolling(workspace ? [workspace] : [], workspaceLoaded ? 'Ready' : 'Loading');
+
   useEffect(() => {
     if (workspace?.workspace?.state === 'Deleted') {
       Nav.goToPath('workspaces');
@@ -159,7 +161,10 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
       h(NewWorkspaceModal, {
         cloneWorkspace: workspace,
         onDismiss: () => setCloningWorkspace(false),
-        onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name }),
+        onSuccess: (clonedWorkspace) => {
+          setCloningWorkspace(false);
+          notifyNewWorkspaceClone(clonedWorkspace);
+        },
       }),
     showLockWorkspaceModal &&
       h(LockWorkspaceModal, {

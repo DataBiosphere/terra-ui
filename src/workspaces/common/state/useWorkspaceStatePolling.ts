@@ -1,6 +1,6 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { workspacesStore, workspaceStore } from 'src/libs/state';
 import { pollWithCancellation } from 'src/libs/utils';
@@ -100,36 +100,6 @@ export const useWorkspaceStatePolling = (workspaces: Workspace[], status: Loaded
       abort();
     };
   }, [workspaces, status]); // adding the controller to deps causes a double fire of the effect
-};
-
-// we need a separate implementation of this, because using useWorkspaceStatePolling with a list
-// containing a single workspace in the WorkspaceContainer causes a rendering loop
-export const useSingleWorkspaceStatePolling = (workspace: Workspace) => {
-  const [controller, setController] = useState(new window.AbortController());
-  const abort = () => {
-    controller.abort();
-    setController(new window.AbortController());
-  };
-
-  useEffect(() => {
-    pollWithCancellation(
-      async () => {
-        if (_.contains(workspace?.workspace?.state, updatingStates)) {
-          const updatedState = await checkWorkspaceState(workspace.workspace, controller.signal);
-          if (updatedState) {
-            abort();
-          }
-        }
-      },
-      30000,
-      false,
-      controller.signal
-    );
-    return () => {
-      abort();
-    };
-    //  eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workspace]); // adding the controller to deps causes a double fire of the effect
 };
 
 export type StateUpdateAction = (WorkspaceUpdate) => void;
