@@ -1,35 +1,26 @@
 import { makeAzureWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
 
+import {
+  azureTdrSnapshotImportRequest,
+  gcpTdrSnapshotImportRequest,
+  genericPfbImportRequest,
+} from './__fixtures__/import-request-fixtures';
 import { ImportRequest } from './import-types';
 import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
 
 describe('getRequiredCloudPlatformForImport', () => {
   it.each([
     {
-      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      importRequest: genericPfbImportRequest,
       expectedCloudPlatform: 'GCP',
     },
     {
-      importRequest: {
-        type: 'tdr-snapshot-export',
-        manifestUrl: new URL('https://example.com/path/to/manifest.json'),
-        snapshot: {
-          id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-          name: 'test-snapshot',
-          source: [
-            {
-              dataset: {
-                id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-                name: 'test-dataset',
-                secureMonitoringEnabled: false,
-              },
-            },
-          ],
-          cloudPlatform: 'gcp',
-        },
-        syncPermissions: false,
-      },
+      importRequest: azureTdrSnapshotImportRequest,
+      expectedCloudPlatform: 'AZURE',
+    },
+    {
+      importRequest: gcpTdrSnapshotImportRequest,
       expectedCloudPlatform: 'GCP',
     },
   ] as {
