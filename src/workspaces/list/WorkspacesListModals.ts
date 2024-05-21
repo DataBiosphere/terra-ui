@@ -2,6 +2,7 @@ import { Fragment, ReactNode, useContext } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import { goToPath } from 'src/libs/nav';
+import { notifyNewWorkspaceClone } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
 import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
 import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
@@ -29,9 +30,10 @@ export const WorkspacesListModals = (props: WorkspacesListModalsProps): ReactNod
       h(NewWorkspaceModal, {
         cloneWorkspace: userActions.cloningWorkspace,
         onDismiss: () => setUserActions({ cloningWorkspace: undefined }),
-        onSuccess: () => {
+        onSuccess: (ws) => {
           refreshWorkspaces();
           setUserActions({ cloningWorkspace: undefined });
+          notifyNewWorkspaceClone(ws);
         },
       }),
     !!userActions.deletingWorkspaceId &&
