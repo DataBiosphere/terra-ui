@@ -203,11 +203,13 @@ export const User = (signal?: AbortSignal) => {
         const { userId: _, ...rest } = attributes;
         return rest;
       });
+
       response.samUser.createdAt = response.samUser.createdAt ? new Date(response.samUser.createdAt) : undefined;
       response.samUser.registeredAt = response.samUser.registeredAt
         ? new Date(response.samUser.registeredAt)
         : undefined;
       response.samUser.updatedAt = response.samUser.updatedAt ? new Date(response.samUser.updatedAt) : undefined;
+
       response.enterpriseFeatures = response.additionalDetails.enterpriseFeatures.resources.map(
         (resource) => resource.resourceId
       );
