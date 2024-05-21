@@ -1,22 +1,20 @@
-import React from 'react';
+import { Icon, Link } from '@terra-ui-packages/components';
+import { ReactNode } from 'react';
 import { br, div, h, p } from 'react-hyperscript-helpers';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { getCurrentMountDirectory, RuntimeToolLabel } from 'src/analysis/utils/tool-utils';
-import { Link } from 'src/components/common';
-import { icon } from 'src/components/icons';
 import TitleBar from 'src/components/TitleBar';
 import * as Utils from 'src/libs/utils';
 
 export interface PersistentDiskAboutProps {
   titleId: string;
-  // TODO: Remove this and use the same type as the one in AzurePersistentDiskSection.ts
-  setViewMode: (viewMode: string | undefined) => void;
   tool: RuntimeToolLabel;
   onDismiss: () => void;
+  onPrevious: () => void;
 }
 
-export const AboutPersistentDiskView: React.FC<PersistentDiskAboutProps> = (props: PersistentDiskAboutProps) => {
-  const { titleId, setViewMode, tool, onDismiss } = props;
+export const AboutPersistentDiskView = (props: PersistentDiskAboutProps): ReactNode => {
+  const { titleId, tool, onDismiss, onPrevious } = props;
   return div({ style: computeStyles.drawerContent }, [
     h(TitleBar, {
       id: titleId,
@@ -25,7 +23,7 @@ export const AboutPersistentDiskView: React.FC<PersistentDiskAboutProps> = (prop
       titleChildren: [],
       hideCloseButton: true,
       onDismiss,
-      onPrevious: () => setViewMode(undefined),
+      onPrevious,
     }),
     div({ style: { lineHeight: 1.5 } }, [
       p([
@@ -45,7 +43,7 @@ export const AboutPersistentDiskView: React.FC<PersistentDiskAboutProps> = (prop
       ]),
       h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047318551', ...Utils.newTabLinkProps }, [
         'Learn more about persistent disks',
-        icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
+        h(Icon, { icon: 'pop-out', size: 12, style: { marginLeft: '0.25rem' } }),
       ]),
     ]),
   ]);
