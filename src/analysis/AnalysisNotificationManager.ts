@@ -1,95 +1,29 @@
 // This file is where any notifications not tied to a specific action are managed for leonardo-related resource
 // For example, if you load a page and your apps/runtimes are in an error state, this component is responsible for that notification
 
-import { Modal } from '@terra-ui-packages/components';
 import { isToday } from 'date-fns';
 import { isAfter } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { Fragment, PropsWithChildren, useEffect, useState } from 'react';
-import { div, h, p } from 'react-hyperscript-helpers';
+import { h, p } from 'react-hyperscript-helpers';
 import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
+import { RuntimeErrorModal } from 'src/analysis/modals/RuntimeErrorModal';
 import { GalaxyLaunchButton } from 'src/analysis/runtime-common-components';
 import { appLauncherTabName, GalaxyWarning } from 'src/analysis/runtime-common-text';
 import { getCurrentApp } from 'src/analysis/utils/app-utils';
 import { dataSyncingDocUrl } from 'src/analysis/utils/gce-machines';
-import { cloudProviders, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
+import { getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { appTools, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
-import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common';
-import { Ajax } from 'src/libs/ajax';
+import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { getDynamic, getSessionStorage, setDynamic } from 'src/libs/browser-storage';
-import colors from 'src/libs/colors';
-import { withErrorReporting } from 'src/libs/error';
-import * as Nav from 'src/libs/nav';
+import { getLink } from 'src/libs/nav';
 import { clearNotification, notify } from 'src/libs/notifications';
-import { useOnMount, usePrevious } from 'src/libs/react-utils';
+import { usePrevious } from 'src/libs/react-utils';
 import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
-
-export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
-  const [error, setError] = useState('');
-  const [userscriptError, setUserscriptError] = useState(false);
-  const [loadingRuntimeDetails, setLoadingRuntimeDetails] = useState(false);
-
-  const loadRuntimeError = _.flow(
-    withErrorReporting('Could Not Retrieve Cloud Environment Error Info'),
-    Utils.withBusyState(setLoadingRuntimeDetails)
-  )(async () => {
-    const { errors: runtimeErrors } =
-      runtime.cloudContext.cloudProvider === cloudProviders.azure.label
-        ? await Ajax().Runtimes.runtimeV2(runtime.workspaceId, runtime.runtimeName).details()
-        : await Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).details();
-    if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), runtimeErrors)) {
-      setError(
-        await Ajax()
-          .Buckets.getObjectPreview(
-            runtime.googleProject,
-            runtime.asyncRuntimeFields.stagingBucket,
-            'userscript_output.txt',
-            true
-          )
-          .then((res) => res.text())
-      );
-      setUserscriptError(true);
-    } else {
-      setError(
-        runtimeErrors && runtimeErrors.length > 0
-          ? runtimeErrors[0].errorMessage
-          : 'An unknown error has occurred with the runtime'
-      );
-    }
-  });
-
-  useOnMount(() => {
-    loadRuntimeError();
-  });
-
-  return h(
-    Modal,
-    {
-      title: `Cloud Environment is in error state${userscriptError ? ' due to Userscript Error' : ''}`,
-      showCancel: false,
-      onDismiss,
-    },
-    [
-      div(
-        {
-          style: {
-            whiteSpace: 'pre-wrap',
-            overflowWrap: 'break-word',
-            overflowY: 'auto',
-            maxHeight: 500,
-            background: colors.light(),
-          },
-        },
-        [error]
-      ),
-      loadingRuntimeDetails && spinnerOverlay,
-    ]
-  );
-};
+import { newTabLinkProps } from 'src/libs/utils';
 
 const RuntimeErrorNotification = ({ runtime }) => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -163,7 +97,7 @@ export const AnalysisNotificationManager = (props: AnalysisNotificationManagerPr
     const welderCutOff = new Date('2019-08-01');
     const createdDate = runtime ? new Date(runtime.auditInfo.createdDate) : new Date();
     const dateNotified = getDynamic(getSessionStorage(), `notifiedOutdatedRuntime${runtime?.id}`) || {};
-    const rStudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' });
+    const rStudioLaunchLink = getLink(appLauncherTabName, { namespace, name, application: 'RStudio' });
     const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps);
     const prevGalaxyApp = getCurrentApp(appTools.GALAXY.label, prevApps || []);
 
@@ -200,7 +134,7 @@ export const AnalysisNotificationManager = (props: AnalysisNotificationManagerPr
           p([
             'Last year, we introduced important updates to Terra that are not compatible with the older cloud environment associated with this workspace. You are no longer able to save new changes to notebooks using this older cloud environment.',
           ]),
-          h(Link, { 'aria-label': 'Welder cutoff link', href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, [
+          h(Link, { 'aria-label': 'Welder cutoff link', href: dataSyncingDocUrl, ...newTabLinkProps }, [
             'Read here for more details.',
           ]),
         ]),
