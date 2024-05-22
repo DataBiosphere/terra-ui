@@ -492,31 +492,29 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
           },
         },
         [
-          div({ key: 'important-container' }, [
+          div([
             h3({
-              key: 'important-heading',
               style: { marginTop: 5, fontWeight: 600 },
               children: ['Important!'],
             }),
-            div({
-              key: 'important-text',
-              style: { display: 'pre-wrap', marginTop: -10, lineHeight: 1.5 },
-              children: [
-                span({ key: 'text-part-1' }, ['Please copy and paste the ']),
-                span({ key: 'text-part-2', style: { fontWeight: 600 } }, ['Request ID']),
-                span({ key: 'text-part-3' }, [' into the AnalytiXIN form:']),
-              ],
-            }),
-            div({ key: 'request-id-container', style: { display: 'flex', marginTop: 20, color: colors.accent(1) } }, [
-              span(
+            div(
+              {
+                style: { display: 'pre-wrap', marginTop: -10, lineHeight: 1.5 },
+              },
+              [
+                span(['Please copy and paste the ']),
+                span({ style: { fontWeight: 600 } }, ['Request ID']),
+                span([' into the AnalytiXIN form:']),
+              ]
+            ),
+            div({ style: { display: 'flex', marginTop: 20, color: colors.accent(1) } }, [
+              div(
                 {
-                  key: 'request-id-span',
                   style: { fontWeight: 700, marginRight: 2 },
                 },
                 [snapshotId]
               ),
               h(ClipboardButton, {
-                key: 'clipboard-button',
                 'aria-label': 'Copy Request ID to clipboard',
                 className: 'cell-hover-only',
                 iconSize: 14,
