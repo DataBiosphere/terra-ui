@@ -95,10 +95,18 @@ export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType =>
     [
       Utils.DEFAULT,
       () => {
-        throw Error(`Invalid disk type: Should not be calling googlePdTypes.fromString for ${JSON.stringify(type)}`);
+        console.error(`Invalid disk type: Should not be calling googlePdTypes.fromString for ${JSON.stringify(type)}`);
+        return undefined;
       },
     ]
-  );
+    /**
+     * TODO: Remove cast
+     * "Log error and return undefined" for unexpected cases looks to be a pattern.
+     * However, the possible undefined isn't handled because the return type does not include undefined).
+     * Type safety could be improved by throwing an error for unexpected inputs.
+     * That would ensure that the return type is GooglePdType instead of GooglePdType | undefined.
+     */
+  ) as GooglePdType; // TODO: Remove cast
 
 const updatePdType = <T extends RawListDiskItem>(disk: T): T & { diskType: GooglePdType } => ({
   ...disk,

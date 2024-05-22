@@ -13,8 +13,6 @@ jest.mock(
   })
 );
 
-// Decorated jsons that are expected to be returned by the ajax layer
-const expectedJson = [azureDisk, galaxyDisk];
 // Undecorated jsons that are expected to be returned from the leo API
 const rawJson = [undecoratePd(azureDisk), undecoratePd(galaxyDisk)];
 
@@ -36,6 +34,6 @@ describe('Disks ajax', () => {
 
     // Assert
     expect(mockFetchLeo).toHaveBeenCalledWith('api/google/v1/disks', expect.anything());
-    expect(disks).toStrictEqual(expectedJson);
+    expect(disks).toStrictEqual(rawJson);
   });
 });
