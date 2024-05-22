@@ -161,7 +161,6 @@ export interface SnapshotBuilderParentConcept {
 }
 export interface SnapshotAccessRequestResponse {
   id: string; // uuid
-  datasetId: string; // uuid
   snapshotId: string; // uuid
   snapshotName: string;
   snapshotResearchPurpose: string;
