@@ -11,50 +11,51 @@ import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
 import { WarningTitle } from 'src/analysis/modals/WarningTitle';
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-text';
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/analysis/utils/cost-utils';
-import {
-  defaultDataprocMasterDiskSize,
-  defaultDataprocWorkerDiskSize,
-  defaultGceBootDiskSize,
-  defaultGcePersistentDiskSize,
-  defaultPersistentDiskType,
-  generatePersistentDiskName,
-  pdTypeFromDiskType,
-} from 'src/analysis/utils/disk-utils';
+import
+  {
+    defaultDataprocMasterDiskSize,
+    defaultDataprocWorkerDiskSize,
+    defaultGceBootDiskSize,
+    defaultGcePersistentDiskSize,
+    defaultPersistentDiskType,
+    generatePersistentDiskName,
+  } from 'src/analysis/utils/disk-utils';
 import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/analysis/utils/gce-machines';
-import {
-  defaultAutopauseThreshold,
-  defaultComputeRegion,
-  defaultComputeZone,
-  defaultDataprocMachineType,
-  defaultGpuType,
-  defaultLocation,
-  defaultNumDataprocPreemptibleWorkers,
-  defaultNumDataprocWorkers,
-  defaultNumGpus,
-  displayNameForGpuType,
-  findMachineType,
-  generateRuntimeName,
-  getAutopauseThreshold,
-  getDefaultMachineType,
-  getImageUrlFromRuntime,
-  getIsRuntimeBusy,
-  getValidGpuOptions,
-  getValidGpuTypesForZone,
-  isAutopauseEnabled,
-  runtimeTypes,
-} from 'src/analysis/utils/runtime-utils';
+import
+  {
+    defaultAutopauseThreshold,
+    defaultComputeRegion,
+    defaultComputeZone,
+    defaultDataprocMachineType,
+    defaultGpuType,
+    defaultLocation,
+    defaultNumDataprocPreemptibleWorkers,
+    defaultNumDataprocWorkers,
+    defaultNumGpus,
+    displayNameForGpuType,
+    findMachineType,
+    generateRuntimeName,
+    getAutopauseThreshold,
+    getDefaultMachineType,
+    getImageUrlFromRuntime,
+    getIsRuntimeBusy,
+    getValidGpuOptions,
+    getValidGpuTypesForZone,
+    isAutopauseEnabled,
+    runtimeTypes,
+  } from 'src/analysis/utils/runtime-utils';
 import { getToolLabelFromCloudEnv, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonOutline, ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common';
-import { icon } from 'src/components/icons';
 import { ImageDepViewer } from 'src/components/ImageDepViewer';
 import { InfoBox } from 'src/components/InfoBox';
-import { NumberInput, TextInput, ValidatedInput } from 'src/components/input';
 import { withModalDrawer } from 'src/components/ModalDrawer';
-import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common';
 import TitleBar from 'src/components/TitleBar';
+import { ButtonOutline, ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import { NumberInput, TextInput, ValidatedInput } from 'src/components/input';
+import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
-import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { leoDiskProvider, pdTypeFromDiskType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';

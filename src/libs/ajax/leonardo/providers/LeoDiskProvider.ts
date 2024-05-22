@@ -1,6 +1,7 @@
+import _ from 'lodash/fp';
 import { isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { AbortOption } from 'src/libs/ajax/data-provider-common';
-import { PersistentDisk, PersistentDiskDetail } from 'src/libs/ajax/leonardo/models/disk-models';
+import { GoogleDiskType, GooglePdType, PersistentDisk, PersistentDiskDetail, RawGetDiskItem, RawListDiskItem, googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
 
 import { Disks } from '../Disks';
 
@@ -14,10 +15,10 @@ export interface LeoDiskProvider {
 }
 
 export const leoDiskProvider: LeoDiskProvider = {
-  list: (listArgs: Record<string, string>, options: AbortOption = {}): Promise<PersistentDisk[]> => {
+  list: async (listArgs: Record<string, string>, options: AbortOption = {}): Promise<PersistentDisk[]> => {
     const { signal } = options;
-
-    return Disks(signal).disksV1().list(listArgs);
+    const disks: RawListDiskItem[] = await Disks(signal).disksV1().list(listArgs);
+    return mapToPdTypes(disks);
   },
   delete: (disk: DiskBasics, options: AbortOption = {}): Promise<void> => {
     const { cloudContext, name, id } = disk;
@@ -35,9 +36,8 @@ export const leoDiskProvider: LeoDiskProvider = {
 
     if (isGcpContext(cloudContext)) {
       const googleProject = cloudContext.cloudResource;
-      const decoratedDisk: PersistentDiskDetail = await Disks(signal).disksV1().disk(googleProject, name).details();
-      // TODO: IA-4883, uncomment when the provider does the sanitization
-      // return updatePdType(undecoratedDisk);
+      const disk: RawGetDiskItem = await Disks(signal).disksV1().disk(googleProject, name).details();
+      const decoratedDisk: PersistentDiskDetail = updatePdType(disk);
       return decoratedDisk;
     }
     throw new Error(`Getting disk details is currently only supported for google disks. Disk: ${disk}`);
@@ -53,3 +53,32 @@ export const leoDiskProvider: LeoDiskProvider = {
     throw new Error(`Updating disk is currently only supported for google disks. Disk: ${disk}`);
   },
 };
+
+export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType => googlePdTypes[type]
+// Utils.switchCase(
+//   type,
+//   [googlePdTypes.standard.value, () => googlePdTypes.standard],
+//   [googlePdTypes.balanced.value, () => googlePdTypes.balanced],
+//   [googlePdTypes.ssd.value, () => googlePdTypes.ssd],
+//   [
+//     Utils.DEFAULT,
+//     () => {
+//       console.error(`Invalid disk type: Should not be calling googlePdTypes.fromString for ${JSON.stringify(type)}`);
+//       return undefined;
+//     },
+//   ]
+//   /**
+//    * TODO: Remove cast
+//    * "Log error and return undefined" for unexpected cases looks to be a pattern.
+//    * However, the possible undefined isn't handled because the return type does not include undefined).
+//    * Type safety could be improved by throwing an error for unexpected inputs.
+//    * That would ensure that the return type is GooglePdType instead of GooglePdType | undefined.
+//    */
+// ) as GooglePdType; // TODO: Remove cast
+
+const updatePdType = <T extends RawListDiskItem>(disk: T): T & { diskType: GooglePdType } => ({
+  ...disk,
+  diskType: pdTypeFromDiskType(disk.diskType),
+});
+const mapToPdTypes = <T extends RawListDiskItem>(disks: T[]): (T & { diskType: GooglePdType })[] =>
+  _.map(updatePdType, disks);

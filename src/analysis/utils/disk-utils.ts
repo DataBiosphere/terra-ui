@@ -5,45 +5,14 @@ import { getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel, appTools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import {
-  diskStatuses,
-  GoogleDiskType,
-  GooglePdType,
-  googlePdTypes,
   PersistentDisk,
-  RawListDiskItem,
+  diskStatuses,
+  googlePdTypes
 } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
 import { v4 as uuid } from 'uuid';
 
-export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType =>
-  Utils.switchCase(
-    type,
-    [googlePdTypes.standard.value, () => googlePdTypes.standard],
-    [googlePdTypes.balanced.value, () => googlePdTypes.balanced],
-    [googlePdTypes.ssd.value, () => googlePdTypes.ssd],
-    [
-      Utils.DEFAULT,
-      () => {
-        console.error(`Invalid disk type: Should not be calling googlePdTypes.fromString for ${JSON.stringify(type)}`);
-        return undefined;
-      },
-    ]
-    /**
-     * TODO: Remove cast
-     * "Log error and return undefined" for unexpected cases looks to be a pattern.
-     * However, the possible undefined isn't handled because the return type does not include undefined).
-     * Type safety could be improved by throwing an error for unexpected inputs.
-     * That would ensure that the return type is GooglePdType instead of GooglePdType | undefined.
-     */
-  ) as GooglePdType; // TODO: Remove cast
-
-export const updatePdType = <T extends RawListDiskItem>(disk: T): T & { diskType: GooglePdType } => ({
-  ...disk,
-  diskType: pdTypeFromDiskType(disk.diskType),
-});
-export const mapToPdTypes = <T extends RawListDiskItem>(disks: T[]): (T & { diskType: GooglePdType })[] =>
-  _.map(updatePdType, disks);
 
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 150;
@@ -62,6 +31,7 @@ export const getCurrentAttachedDataDisk = (
     : appDataDisks.find(({ name }) => app.diskName === name);
   return currentDisk;
 };
+
 
 export const workspaceHasMultipleDisks = (disks: PersistentDisk[], diskAppType: AppToolLabel): boolean => {
   const appTypeDisks = _.filter((disk) => getDiskAppType(disk) === diskAppType && disk.status !== 'Deleting', disks);
