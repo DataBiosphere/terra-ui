@@ -1,7 +1,7 @@
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { removeUserFromLocalState } from 'src/auth/oidc-broker';
 import { signOutCallbackLinkName } from 'src/auth/signout/SignOutPage';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import Events, { MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
@@ -73,7 +73,7 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
   const metricStoreState: MetricState = metricStore.get();
   const tokenMetadata: TokenMetadata = metricStoreState.authTokenMetadata;
 
-  await Ajax().Metrics.captureEvent(eventToFire, {
+  await Metrics().captureEvent(eventToFire, {
     sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
     sessionDurationInSeconds:
       metricStoreState.sessionStartTime < 0 ? undefined : (sessionEndTime - metricStoreState.sessionStartTime) / 1000.0,

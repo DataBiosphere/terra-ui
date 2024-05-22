@@ -11,9 +11,8 @@ import {
 import { Environments, EnvironmentsProps } from 'src/analysis/Environments/Environments';
 import { LeoResourcePermissionsProvider } from 'src/analysis/Environments/Environments.models';
 import { GetAppItem } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { DiskBasics } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { DiskBasics, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { RuntimeBasics } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { RuntimeWrapper } from 'src/libs/ajax/leonardo/Runtimes';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';

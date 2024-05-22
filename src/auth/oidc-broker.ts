@@ -1,8 +1,7 @@
 import _ from 'lodash/fp';
 import { ExtraSigninRequestArgs, IdTokenClaims, User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
-import { Ajax } from 'src/libs/ajax';
-import { OidcConfig } from 'src/libs/ajax/OAuth2';
+import { OAuth2, OidcConfig } from 'src/libs/ajax/OAuth2';
 import { getLocalStorage } from 'src/libs/browser-storage';
 import { getConfig } from 'src/libs/config';
 import { oidcStore } from 'src/libs/state';
@@ -50,7 +49,7 @@ export const getOidcConfig = () => {
 
 // This is the first thing that happens on app load.
 export const initializeClientId = _.memoize(async (): Promise<void> => {
-  const oidcConfig: OidcConfig = await Ajax().OAuth2.getConfiguration();
+  const oidcConfig: OidcConfig = await OAuth2().getConfiguration();
   oidcStore.update((state) => ({ ...state, config: oidcConfig }));
 });
 

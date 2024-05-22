@@ -1,18 +1,13 @@
-// TODO: type with disks
 import _ from 'lodash/fp';
 import { getCurrentAppIncludingDeleting, getDiskAppType } from 'src/analysis/utils/app-utils';
 import { getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel, appTools } from 'src/analysis/utils/tool-utils';
+import { diskStatuses } from 'src/libs/ajax/leonardo/Disks';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import {
-  PersistentDisk,
-  diskStatuses,
-  googlePdTypes
-} from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { googlePdTypes, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import * as Utils from 'src/libs/utils';
 import { v4 as uuid } from 'uuid';
-
 
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 150;
@@ -31,7 +26,6 @@ export const getCurrentAttachedDataDisk = (
     : appDataDisks.find(({ name }) => app.diskName === name);
   return currentDisk;
 };
-
 
 export const workspaceHasMultipleDisks = (disks: PersistentDisk[], diskAppType: AppToolLabel): boolean => {
   const appTypeDisks = _.filter((disk) => getDiskAppType(disk) === diskAppType && disk.status !== 'Deleting', disks);

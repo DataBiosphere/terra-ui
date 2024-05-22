@@ -1,10 +1,8 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
-import {
-  RawGetDiskItem,
-  RawListDiskItem
-} from 'src/libs/ajax/leonardo/models/disk-models';
+
+import { AuditInfo, CloudContext, LeoResourceLabels } from './models/core-models';
 
 export const Disks = (signal?: AbortSignal) => {
   const diskV2Root = 'api/v2/disks';
@@ -52,6 +50,46 @@ export const Disks = (signal?: AbortSignal) => {
     disksV2: v2Func,
   };
 };
+export type AzureDiskType = 'Standard_LRS'; // TODO: Uncomment when enabling SSDs | 'StandardSSD_LRS';
+
+export type GoogleDiskType = 'pd-standard' | 'pd-ssd' | 'pd-balanced';
+
+export type DiskType = GoogleDiskType | AzureDiskType;
+
+export type LeoDiskStatus = 'Creating' | 'Restoring' | 'Ready' | 'Failed' | 'Deleting' | 'Deleted' | 'Error';
+
+export interface DiskStatus {
+  leoLabel: LeoDiskStatus;
+}
+
+export const diskStatuses: { [label: string]: DiskStatus } = {
+  ready: { leoLabel: 'Ready' },
+  creating: { leoLabel: 'Creating' },
+  restoring: { leoLabel: 'Restoring' },
+  failed: { leoLabel: 'Failed' },
+  deleting: { leoLabel: 'Deleting' },
+  deleted: { leoLabel: 'Deleted' },
+  error: { leoLabel: 'Error' },
+};
+
+export interface RawListDiskItem {
+  id: number;
+  cloudContext: CloudContext;
+  zone: string;
+  name: string;
+  status: LeoDiskStatus;
+  auditInfo: AuditInfo;
+  size: number; // In GB
+  diskType: GoogleDiskType;
+  blockSize: number;
+  labels: LeoResourceLabels;
+}
+
+export interface RawGetDiskItem extends RawListDiskItem {
+  serviceAccount: string;
+  samResource: number;
+  formattedBy: string | null;
+}
 
 export type DisksDataClientContract = ReturnType<typeof Disks>;
 export type DisksContractV1 = ReturnType<DisksDataClientContract['disksV1']>;

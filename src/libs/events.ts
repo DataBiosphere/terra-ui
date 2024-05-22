@@ -1,6 +1,5 @@
 import _ from 'lodash/fp';
 import { ReactNode, useEffect } from 'react';
-import { Ajax } from 'src/libs/ajax';
 import { useRoute } from 'src/libs/nav';
 import {
   containsPhiTrackingPolicy,
@@ -9,6 +8,8 @@ import {
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/workspaces/utils';
+
+import { Metrics } from './ajax/Metrics';
 
 /*
  * NOTE: In order to show up in reports, new events MUST be marked as expected in the Mixpanel
@@ -289,10 +290,7 @@ export const PageViewReporter = (): ReactNode => {
   useEffect(() => {
     const isWorkspace = /^#workspaces\/.+\/.+/.test(window.location.hash);
 
-    Ajax().Metrics.captureEvent(
-      `${eventsList.pageView}:${name}`,
-      isWorkspace ? extractWorkspaceDetails(params) : undefined
-    );
+    Metrics().captureEvent(`${eventsList.pageView}:${name}`, isWorkspace ? extractWorkspaceDetails(params) : undefined);
   }, [name, params]);
 
   return null;
@@ -342,7 +340,7 @@ export const captureAppcuesEvent = (eventName: string, event: any) => {
       'appcues.stepType': event.stepType,
       'appcues.timestamp': event.timestamp,
     };
-    return Ajax().Metrics.captureEvent(eventsList.appcuesEvent, eventProps);
+    return Metrics().captureEvent(eventsList.appcuesEvent, eventProps);
   }
 };
 

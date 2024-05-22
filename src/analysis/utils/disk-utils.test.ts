@@ -1,7 +1,7 @@
 import { addDays, subDays } from 'date-fns';
 import { generateTestDisk, generateTestListGoogleRuntime, getRuntimeConfig } from 'src/analysis/_testData/testData';
 import { getCurrentPersistentDisk, getReadyPersistentDisk } from 'src/analysis/utils/disk-utils';
-import { diskStatuses } from 'src/libs/ajax/leonardo/models/disk-models';
+import { diskStatuses } from 'src/libs/ajax/leonardo/Disks';
 
 describe('getCurrentPersistentDisk', () => {
   it('returns undefined if no disks/runtimes exist', () => {
