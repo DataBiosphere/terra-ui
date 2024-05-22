@@ -197,10 +197,10 @@ export const User = (signal?: AbortSignal) => {
     },
 
     getSamUserCombinedState: async (): Promise<SamUserCombinedStateResponse> => {
-      const res = await fetchSam('/api/user/v2/self/combinedState', _.mergeAll([authOpts(), { signal }]));
+      const res = await fetchSam('api/users/v2/self/combinedState', _.mergeAll([authOpts(), { signal }]));
       const response = await res.json();
-      if (response.terraUserAttributes !== null) {
-        response.terraUserAttributes = response.terraUserAttributes.map((attributes) => {
+      if (response.terraUserAttributes !== undefined) {
+        response.terraUserAttributes = response.attributes.map((attributes) => {
           const { userId: _, ...rest } = attributes;
           return rest;
         });
