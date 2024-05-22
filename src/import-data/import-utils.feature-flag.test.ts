@@ -1,3 +1,4 @@
+import { genericPfbImportRequest } from './__fixtures__/import-request-fixtures';
 import { ImportRequest } from './import-types';
 import { getCloudPlatformRequiredForImport } from './import-utils';
 
@@ -17,7 +18,7 @@ jest.mock(
 describe('getRequiredCloudPlatformForImport', () => {
   it('should respect the feature flag for PFB imports', async () => {
     // Arrange
-    const importRequest: ImportRequest = { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') };
+    const importRequest: ImportRequest = genericPfbImportRequest;
 
     // Act
     const cloudPlatform = getCloudPlatformRequiredForImport(importRequest);

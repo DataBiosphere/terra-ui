@@ -1,7 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import {
   makeAzureWorkspace,
@@ -13,8 +12,15 @@ import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
 
+import {
+  anvilPfbImportRequests,
+  azureTdrSnapshotImportRequest,
+  gcpTdrSnapshotImportRequest,
+  gcpTdrSnapshotReferenceImportRequest,
+  genericPfbImportRequest,
+} from './__fixtures__/import-request-fixtures';
 import { ImportRequest } from './import-types';
-import { canImportIntoWorkspace, ImportOptions } from './import-utils';
+import { buildDestinationWorkspaceFilter } from './import-utils';
 import {
   ImportDataDestination,
   ImportDataDestinationProps,
@@ -25,7 +31,7 @@ type ImportUtilsExports = typeof import('./import-utils');
 jest.mock('./import-utils', (): ImportUtilsExports => {
   return {
     ...jest.requireActual<ImportUtilsExports>('./import-utils'),
-    canImportIntoWorkspace: jest.fn().mockReturnValue(true),
+    buildDestinationWorkspaceFilter: jest.fn(),
   };
 });
 
@@ -65,10 +71,7 @@ const setup = (opts: SetupOptions): void => {
 
   render(
     h(ImportDataDestination, {
-      importRequest: {
-        type: 'pfb',
-        url: new URL('https://example.com/path/to/file.pfb'),
-      },
+      importRequest: genericPfbImportRequest,
       initialSelectedWorkspaceId: undefined,
       requiredAuthorizationDomain: undefined,
       templateWorkspaces: {},
@@ -83,11 +86,11 @@ const setup = (opts: SetupOptions): void => {
 describe('ImportDataDestination', () => {
   it.each([
     {
-      importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+      importRequest: anvilPfbImportRequests[0],
       shouldShowProtectedDataWarning: true,
     },
     {
-      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      importRequest: genericPfbImportRequest,
       shouldShowProtectedDataWarning: false,
     },
   ] as {
@@ -99,6 +102,7 @@ describe('ImportDataDestination', () => {
       // Arrange
       const user = userEvent.setup();
 
+      asMockedFn(buildDestinationWorkspaceFilter).mockReturnValue(() => true);
       setup({
         props: {
           importRequest,
@@ -136,11 +140,11 @@ describe('ImportDataDestination', () => {
 
   it.each([
     {
-      importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+      importRequest: anvilPfbImportRequests[0],
       shouldSelectExisting: false,
     },
     {
-      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      importRequest: genericPfbImportRequest,
       shouldSelectExisting: true,
     },
   ] as {
@@ -149,7 +153,7 @@ describe('ImportDataDestination', () => {
   }[])('should disable select an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
     // Arrange
     const user = userEvent.setup();
-    asMockedFn(canImportIntoWorkspace).mockReturnValue(false);
+    asMockedFn(buildDestinationWorkspaceFilter).mockReturnValue(() => false);
 
     setup({
       props: {
@@ -183,80 +187,38 @@ describe('ImportDataDestination', () => {
 
   it.each([
     {
-      importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+      importRequest: anvilPfbImportRequests[0],
       requiredAuthorizationDomain: 'test-auth-domain',
-      expectedArgs: {
-        cloudPlatform: 'GCP',
-        isProtectedData: true,
-        requiredAuthorizationDomain: 'test-auth-domain',
-      },
+      expectedOptions: { requiredAuthorizationDomain: 'test-auth-domain' },
     },
     {
-      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      importRequest: genericPfbImportRequest,
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { cloudPlatform: 'GCP', isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedOptions: { requiredAuthorizationDomain: undefined },
     },
     {
-      importRequest: {
-        type: 'tdr-snapshot-export',
-        manifestUrl: new URL('https://example.com/path/to/manifest.json'),
-        snapshot: {
-          id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-          name: 'test-snapshot',
-          source: [
-            {
-              dataset: {
-                id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-                name: 'test-dataset',
-                secureMonitoringEnabled: false,
-              },
-            },
-          ],
-          cloudPlatform: 'gcp',
-        },
-        syncPermissions: false,
-      },
+      importRequest: gcpTdrSnapshotImportRequest,
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { cloudPlatform: 'GCP', isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedOptions: { requiredAuthorizationDomain: undefined },
     },
     {
-      importRequest: {
-        type: 'tdr-snapshot-export',
-        manifestUrl: new URL('https://example.com/path/to/manifest.json'),
-        snapshot: {
-          id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-          name: 'test-snapshot',
-          source: [
-            {
-              dataset: {
-                id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-                name: 'test-dataset',
-                secureMonitoringEnabled: false,
-              },
-            },
-          ],
-          cloudPlatform: 'azure',
-        },
-        syncPermissions: false,
-      },
+      importRequest: azureTdrSnapshotImportRequest,
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { cloudPlatform: 'AZURE', isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedOptions: { requiredAuthorizationDomain: undefined },
     },
   ] as {
     importRequest: ImportRequest;
     requiredAuthorizationDomain?: string;
-    expectedArgs: { cloudPlatform?: CloudProvider; isProtectedData: boolean; requiredAuthorizationDomain?: string };
+    expectedOptions: { cloudPlatform?: CloudProvider; isProtectedData: boolean; requiredAuthorizationDomain?: string };
   }[])(
-    'should filter workspaces through canImportIntoWorkspace',
-    async ({ importRequest, requiredAuthorizationDomain, expectedArgs }) => {
+    'should filter workspaces through buildDestinationWorkspaceFilter',
+    async ({ importRequest, requiredAuthorizationDomain, expectedOptions }) => {
       // Arrange
       const user = userEvent.setup();
 
-      asMockedFn(canImportIntoWorkspace).mockImplementation(
-        (_importOptions: ImportOptions, workspace: WorkspaceWrapper): boolean => {
-          return workspace.workspace.name === 'allowed-workspace';
-        }
-      );
+      asMockedFn(buildDestinationWorkspaceFilter).mockReturnValue((workspace: WorkspaceWrapper): boolean => {
+        return workspace.workspace.name === 'allowed-workspace';
+      });
 
       setup({
         props: {
@@ -285,48 +247,25 @@ describe('ImportDataDestination', () => {
       const workspaces = await workspaceSelect.getOptions();
 
       // Assert
-      expect(canImportIntoWorkspace).toHaveBeenCalledWith(expectedArgs, expect.anything());
+      expect(buildDestinationWorkspaceFilter).toHaveBeenCalledWith(importRequest, expectedOptions);
       expect(workspaces).toEqual([expect.stringMatching(/allowed-workspace/)]);
     }
   );
 
-  const snapshotFixture: Snapshot = {
-    id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-    name: 'test-snapshot',
-    source: [
-      {
-        dataset: {
-          id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-          name: 'test-dataset',
-          secureMonitoringEnabled: false,
-        },
-      },
-    ],
-    cloudPlatform: 'gcp',
-  };
-
   it.each([
     {
-      importRequest: {
-        type: 'pfb',
-        url: new URL('https://example.com/path/to/file.pfb'),
-      },
+      importRequest: genericPfbImportRequest,
       shouldShowNotice: true,
     },
     {
       importRequest: {
-        type: 'tdr-snapshot-export',
-        manifestUrl: new URL('https://example.com/path/to/manifest.json'),
-        snapshot: snapshotFixture,
+        ...gcpTdrSnapshotImportRequest,
         syncPermissions: true,
       },
       shouldShowNotice: true,
     },
     {
-      importRequest: {
-        type: 'tdr-snapshot-reference',
-        snapshot: snapshotFixture,
-      },
+      importRequest: gcpTdrSnapshotReferenceImportRequest,
       shouldShowNotice: false,
     },
   ] as {
@@ -386,7 +325,7 @@ describe('ImportDataDestination', () => {
         url,
       };
 
-      asMockedFn(canImportIntoWorkspace).mockReturnValue(true);
+      asMockedFn(buildDestinationWorkspaceFilter).mockReturnValue(() => true);
 
       setup({
         props: {
@@ -432,7 +371,7 @@ describe('ImportDataDestination', () => {
       // Arrange
       const user = userEvent.setup();
       const workspaceName = workspace.workspace.name;
-      asMockedFn(canImportIntoWorkspace).mockReturnValue(true);
+      asMockedFn(buildDestinationWorkspaceFilter).mockReturnValue(() => true);
 
       setup({
         props: {
@@ -462,7 +401,7 @@ describe('ImportDataDestination', () => {
     // Unprotected data, no auth domain
     {
       props: {
-        importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+        importRequest: genericPfbImportRequest,
         requiredAuthorizationDomain: undefined,
       },
       expectedNewWorkspaceModalProps: {
@@ -474,7 +413,7 @@ describe('ImportDataDestination', () => {
     // Protected data, required auth domain
     {
       props: {
-        importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+        importRequest: anvilPfbImportRequests[0],
         requiredAuthorizationDomain: 'test-auth-domain',
       },
       expectedNewWorkspaceModalProps: {
@@ -486,25 +425,7 @@ describe('ImportDataDestination', () => {
     // Snapshot requiring an Azure workspace
     {
       props: {
-        importRequest: {
-          type: 'tdr-snapshot-export',
-          manifestUrl: new URL('https://example.com/path/to/manifest.json'),
-          snapshot: {
-            id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-            name: 'test-snapshot',
-            source: [
-              {
-                dataset: {
-                  id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-                  name: 'test-dataset',
-                  secureMonitoringEnabled: false,
-                },
-              },
-            ],
-            cloudPlatform: 'azure',
-          },
-          syncPermissions: false,
-        },
+        importRequest: azureTdrSnapshotImportRequest,
         requiredAuthorizationDomain: undefined,
       },
       expectedNewWorkspaceModalProps: {
@@ -516,25 +437,7 @@ describe('ImportDataDestination', () => {
     // Snapshot requiring a GCP workspace
     {
       props: {
-        importRequest: {
-          type: 'tdr-snapshot-export',
-          manifestUrl: new URL('https://example.com/path/to/manifest.json'),
-          snapshot: {
-            id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-            name: 'test-snapshot',
-            source: [
-              {
-                dataset: {
-                  id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-                  name: 'test-dataset',
-                  secureMonitoringEnabled: false,
-                },
-              },
-            ],
-            cloudPlatform: 'gcp',
-          },
-          syncPermissions: false,
-        },
+        importRequest: gcpTdrSnapshotImportRequest,
         requiredAuthorizationDomain: undefined,
       },
       expectedNewWorkspaceModalProps: {
@@ -564,14 +467,14 @@ describe('ImportDataDestination', () => {
   );
 
   it.each([
-    // Unprotected data, no auth domain
+    // Unprotected data
     {
-      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
+      importRequest: genericPfbImportRequest,
       noticeExpected: false,
     },
-    // Protected data, required auth domain
+    // Protected data
     {
-      importRequest: { type: 'pfb', url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb') },
+      importRequest: anvilPfbImportRequests[0],
       noticeExpected: true,
     },
   ] as { importRequest: ImportRequest; noticeExpected: boolean }[])(

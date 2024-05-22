@@ -3,8 +3,8 @@
 # Exit script if you try to use an uninitialized variable.
 set -o nounset
 
-# Use the error status of the first failure, rather than that of the last item in a pipeline.
-set -o pipefail
+# Use the error status of the first failure, rather than that of the last item in a pipeline. Also fail explicitly on any exit code.
+set -eo pipefail
 
 counter=0
 
@@ -12,7 +12,7 @@ counter=0
 while [ "$counter" -le 1500 ]; do
   # Find number of nodes in running
   job_detail=$(curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM")
-  job_running_nodes_count=$(echo "$job_detail" | jq -r '.parallel_runs[] | select(.status == "running") | select(.index != '"$CIRCLE_NODE_INDEX"')' | grep -c "running")
+  job_running_nodes_count=$(echo "$job_detail" | jq -r '[.parallel_runs[] | select(.status == "running") | select(.index != '"$CIRCLE_NODE_INDEX"')] | length')
 
   if [ "$job_running_nodes_count" -eq 0 ]; then
     exit 0

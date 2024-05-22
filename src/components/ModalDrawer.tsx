@@ -39,7 +39,10 @@ const drawer = {
   }),
 } as const;
 
-export interface ModalDrawerProps extends RModal.Props {
+export interface ModalDrawerProps
+  extends Omit<RModal.Props, 'aria' | 'ariaHideApp' | 'isOpen' | 'parentSelector' | 'style' | 'onRequestClose'> {
+  'aria-label'?: string;
+  'aria-labelledby'?: string;
   children?: ReactNode;
   isOpen: boolean;
   width?: CSSProperties['width'];
@@ -54,7 +57,9 @@ const ModalDrawer = (props: ModalDrawerProps): ReactNode => {
       {(transitionState) => (
         <RModal
           aria={{
-            // @ts-expect-error TODO: Is this valid?
+            // Type definitions do not include all ARIA attributes (label and hidden), but react-modal does pass them through.
+            // https://github.com/reactjs/react-modal/blob/a275399059cc37aa02cac7e9385512b02ff5cf15/src/components/ModalPortal.js#L408
+            // @ts-expect-error
             label: props['aria-label'],
             labelledby: props['aria-labelledby'],
             modal: true,
