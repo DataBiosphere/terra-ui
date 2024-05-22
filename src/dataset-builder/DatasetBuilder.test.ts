@@ -145,7 +145,6 @@ describe('DatasetBuilder', () => {
 
   const mockCreateSnapshotAccessRequest = jest.fn().mockResolvedValue({
     id: '',
-    datasetId: null,
     sourceSnapshotId: '',
     snapshotName: '',
     snapshotResearchPurpose: '',
