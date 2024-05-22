@@ -338,10 +338,15 @@ describe('DatasetBuilder', () => {
 
   it('opens the modal when requesting access to the dataset', async () => {
     const mockDataRepoContract: Partial<DataRepoContract> = {
-      snapshotAccessRequest: () => ({
-        createSnapshotAccessRequest: mockCreateSnapshotAccessRequest,
-      }),
-    };
+      snapshot: (_snapshotId) =>
+        ({
+          getSnapshotBuilderCount: () => Promise.resolve({ result: { total: 19 }, sql: '' }),
+        } as Partial<DataRepoContract['snapshot']>),
+      snapshotAccessRequest: () =>
+        ({
+          createSnapshotAccessRequest: mockCreateSnapshotAccessRequest,
+        } as Partial<DataRepoContract['snapshotAccessRequest']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
 
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
 
