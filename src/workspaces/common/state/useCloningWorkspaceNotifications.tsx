@@ -48,31 +48,30 @@ export const useCloningWorkspaceNotifications = (): void => {
 export const notifyNewWorkspaceClone = (workspace: WorkspaceInfo) => {
   addWorkspace(workspace);
   const notificationId = cloningNotificationId(workspace);
-  const startComponent = (
-    <div style={{ margin: '.5rem', display: 'flex', flexDirection: 'column' }}>
-      <p style={{ fontWeight: 600 }}>Your workspace is being cloned</p>
-      <p style={{ fontWeight: 400 }}>This may take a few minutes, depending on how large your workspace is</p>
-    </div>
-  );
-  notify('info', startComponent, { id: notificationId });
+  notify('info', <NotificationTitle>Workspace is being cloned</NotificationTitle>, {
+    id: notificationId,
+    message: (
+      <div style={{ margin: '.5rem' }}>Depending on the size of your workspace, this may take a few minutes.</div>
+    ),
+  });
 };
 
 const cloningFailure: StateUpdateAction = (workspace: WorkspaceInfo) => {
   const notificationId = cloningNotificationId(workspace);
   removeWorkspace(workspace);
-  notify('error', <div style={{ marginTop: '.5rem', fontWeight: 600 }}>Workspace clone was unsuccessful</div>, {
-    id: notificationId,
-  });
+  notify('error', <NotificationTitle>Workspace clone was unsuccessful</NotificationTitle>, { id: notificationId });
 };
 
 const cloningSuccess: StateUpdateAction = (workspace: WorkspaceInfo) => {
   const notificationId = cloningNotificationId(workspace);
   removeWorkspace(workspace);
-  notify('success', <div style={{ margin: '.5rem', fontWeight: 600 }}>Workspace clone successful</div>, {
-    id: notificationId,
-  });
+  notify('success', <NotificationTitle>Workspace clone successful</NotificationTitle>, { id: notificationId });
 };
 
 const containerCloning: StateUpdateAction = (workspace: WorkspaceInfo) => {
   updateWorkspace(workspace);
 };
+
+const NotificationTitle = (props: { children: React.ReactNode }) => (
+  <div style={{ lineHeight: '26px', fontWeight: 600 }}>{props.children}</div>
+);
