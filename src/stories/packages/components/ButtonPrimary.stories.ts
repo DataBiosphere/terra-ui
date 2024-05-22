@@ -59,4 +59,11 @@ export const Primary: Story = {
     tooltip: 'This can provide additional context',
     children: 'Cancel',
   },
+  parameters: {
+    design: {
+      type: 'figma',
+      url: 'https://www.figma.com/file/fGlf8DGgTz5ec7phmzNUEN/Terra-Styles-%26-Components?node-id=2-262&t=AexvAMYj4iUGF3lt-4',
+      allowFullscreen: true,
+    },
+  },
 };

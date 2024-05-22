@@ -46,9 +46,16 @@ const meta: Meta<typeof ButtonSecondary> = {
 export default meta;
 type Story = StoryObj<typeof ButtonSecondary>;
 
-export const Primary: Story = {
+export const Secondary: Story = {
   args: {
     tooltip: 'This can provide additional context',
     children: 'Cancel',
+  },
+  parameters: {
+    design: {
+      type: 'figma',
+      url: 'https://www.figma.com/file/fGlf8DGgTz5ec7phmzNUEN/Terra-Styles-%26-Components?node-id=151-2135&t=AexvAMYj4iUGF3lt-4',
+      allowFullscreen: true,
+    },
   },
 };
