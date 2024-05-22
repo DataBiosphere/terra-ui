@@ -13,6 +13,10 @@ import { fetchOk } from 'src/libs/ajax/ajax-common';
 import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
 import { Groups } from 'src/libs/ajax/Groups';
 import { Metrics } from 'src/libs/ajax/Metrics';
+<<<<<<< HEAD
+=======
+import { TermsOfService } from 'src/libs/ajax/TermsOfService';
+>>>>>>> d430fa06b (move disk dependencies)
 import { SamUserAttributes, User } from 'src/libs/ajax/User';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
@@ -482,11 +486,29 @@ export const loadTerraUser = async (): Promise<void> => {
   try {
     const signInStatus = 'userLoaded';
     const getProfile = User().profile.get();
+<<<<<<< HEAD
     const getCombinedState = User().getSamUserCombinedState();
     const [profile, terraUserCombinedState] = await Promise.all([getProfile, getCombinedState]);
     const { terraUserAttributes, enterpriseFeatures, samUser, terraUserAllowances, termsOfService } =
       terraUserCombinedState;
     clearNotification(sessionExpirationProps.id);
+=======
+    const getAllowances = User().getUserAllowances();
+    const getAttributes = User().getUserAttributes();
+    const getTermsOfService = TermsOfService().getUserTermsOfServiceDetails();
+    const getEnterpriseFeatures = User().getEnterpriseFeatures();
+    const getSamUser = User().getSamUserResponse();
+    const [profile, terraUserAllowances, terraUserAttributes, termsOfService, enterpriseFeatures, samUser] =
+      await Promise.all([
+        getProfile,
+        getAllowances,
+        getAttributes,
+        getTermsOfService,
+        getEnterpriseFeatures,
+        getSamUser,
+      ]);
+    clearNotification(sessionTimeoutProps.id);
+>>>>>>> d430fa06b (move disk dependencies)
     userStore.update((state: TerraUserState) => ({
       ...state,
       profile,

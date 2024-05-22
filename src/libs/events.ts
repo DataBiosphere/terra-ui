@@ -2,11 +2,11 @@ import _ from 'lodash/fp';
 import { ReactNode, useEffect } from 'react';
 import { useRoute } from 'src/libs/nav';
 import {
-  containsPhiTrackingPolicy,
-  containsProtectedDataPolicy,
   WorkspaceAccessLevel,
   WorkspaceInfo,
   WorkspaceWrapper,
+  containsPhiTrackingPolicy,
+  containsProtectedDataPolicy,
 } from 'src/workspaces/utils';
 
 import { Metrics } from './ajax/Metrics';

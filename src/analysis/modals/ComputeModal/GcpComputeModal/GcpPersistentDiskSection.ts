@@ -5,8 +5,11 @@ import { GcpPersistentDiskSizeNumberInput } from 'src/analysis/modals/ComputeMod
 import { PersistentDiskTypeInputContainer } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInputContainer';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { defaultPersistentDiskType } from 'src/analysis/utils/disk-utils';
-import { GcpPersistentDiskOptions, GoogleDiskType, GooglePdType } from 'src/libs/ajax/leonardo/models/disk-models';
+import { GoogleDiskType } from 'src/libs/ajax/leonardo/Disks';
+import { GooglePdType, googlePdTypes } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { CloudProvider } from 'src/workspaces/utils';
+
+export const GcpPersistentDiskOptions = [googlePdTypes.standard, googlePdTypes.balanced, googlePdTypes.ssd];
 
 export interface GcpPersistentDiskSectionProps {
   persistentDiskExists: boolean;
