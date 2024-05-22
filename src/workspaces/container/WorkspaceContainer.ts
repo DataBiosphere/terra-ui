@@ -17,7 +17,10 @@ import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { useAppPolling } from 'src/workspaces/common/state/useAppPolling';
-import { notifyNewWorkspaceClone } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
+import {
+  notifyNewWorkspaceClone,
+  useCloningWorkspaceNotifications,
+} from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
 import { useCloudEnvironmentPolling } from 'src/workspaces/common/state/useCloudEnvironmentPolling';
 import { InitializedWorkspaceWrapper, StorageDetails, useWorkspace } from 'src/workspaces/common/state/useWorkspace';
 import { useWorkspaceStatePolling } from 'src/workspaces/common/state/useWorkspaceStatePolling';
@@ -101,6 +104,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
     workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
 
   useWorkspaceStatePolling(workspace ? [workspace] : [], workspaceLoaded ? 'Ready' : 'Loading');
+  useCloningWorkspaceNotifications();
 
   useEffect(() => {
     if (workspace?.workspace?.state === 'Deleted') {
