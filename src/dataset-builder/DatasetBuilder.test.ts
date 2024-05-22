@@ -144,9 +144,9 @@ describe('DatasetBuilder', () => {
     );
 
   const mockCreateSnapshotAccessRequest = jest.fn().mockResolvedValue({
-    id: '8d53c929-a16b-411c-bde6-877885f96564',
+    id: '',
     datasetId: null,
-    sourceSnapshotId: 'c3eb4708-444f-4cbf-a32c-0d3bb93d4819',
+    sourceSnapshotId: '',
     snapshotName: '',
     snapshotResearchPurpose: '',
     snapshotSpecification: {
