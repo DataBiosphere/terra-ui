@@ -692,7 +692,10 @@ export const DatasetBuilderContents = ({
       : snapshotAccessRequest.status === 'Ready' &&
         requestingAccess &&
         h(RequestAccessModal, {
-          onDismiss: () => setRequestingAccess(false),
+          onDismiss: () => {
+            setRequestingAccess(false);
+            Nav.goToPath('dataset-builder-details', { snapshotId });
+          },
           snapshotId: snapshotAccessRequest.state.id,
         }),
   ]);
