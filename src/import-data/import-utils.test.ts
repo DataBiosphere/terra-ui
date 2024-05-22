@@ -1,13 +1,14 @@
 import { makeAzureWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
-import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
+import { CloudProvider } from 'src/workspaces/utils';
 
 import {
   azureTdrSnapshotImportRequest,
   gcpTdrSnapshotImportRequest,
   genericPfbImportRequest,
+  protectedGcpTdrSnapshotImportRequest,
 } from './__fixtures__/import-request-fixtures';
 import { ImportRequest } from './import-types';
-import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
+import { buildDestinationWorkspaceFilter, getCloudPlatformRequiredForImport } from './import-utils';
 
 describe('getRequiredCloudPlatformForImport', () => {
   it.each([
@@ -42,8 +43,7 @@ describe('canImportIntoWorkspace', () => {
     const writableWorkspace = makeAzureWorkspace({ accessLevel: 'WRITER' });
     const readOnlyWorkspace = makeAzureWorkspace({ accessLevel: 'READER' });
 
-    const canImportUnprotectedDataIntoWorkspace = (workspace: WorkspaceWrapper) =>
-      canImportIntoWorkspace({ isProtectedData: false }, workspace);
+    const canImportUnprotectedDataIntoWorkspace = buildDestinationWorkspaceFilter(azureTdrSnapshotImportRequest);
 
     // Act
     const canImportIntoOwnedWorkspace = canImportUnprotectedDataIntoWorkspace(ownedWorkspace);
@@ -66,8 +66,7 @@ describe('canImportIntoWorkspace', () => {
 
     const unprotectedGoogleWorkspace = makeGoogleWorkspace();
 
-    const canImportProtectedDataIntoWorkspace = (workspace: WorkspaceWrapper) =>
-      canImportIntoWorkspace({ isProtectedData: true }, workspace);
+    const canImportProtectedDataIntoWorkspace = buildDestinationWorkspaceFilter(protectedGcpTdrSnapshotImportRequest);
 
     // Act
     const canImportProtectedDataIntoUnprotectedAzureWorkspace =
@@ -93,10 +92,9 @@ describe('canImportIntoWorkspace', () => {
     });
 
     // Act
-    const canImportProtectedDataIntoProtectedPublicWorkspace = canImportIntoWorkspace(
-      { isProtectedData: true },
-      protectedPublicGoogleWorkspace
-    );
+    const canImportProtectedDataIntoProtectedPublicWorkspace = buildDestinationWorkspaceFilter(
+      protectedGcpTdrSnapshotImportRequest
+    )(protectedPublicGoogleWorkspace);
 
     // Assert
     expect(canImportProtectedDataIntoProtectedPublicWorkspace).toBe(false);
@@ -104,22 +102,20 @@ describe('canImportIntoWorkspace', () => {
 
   it('can require an authorization domain', () => {
     // Arrange
-    const requiredAuthDomain = 'test-ad';
+    const requiredAuthorizationDomain = 'test-ad';
 
     const workspaceWithRequiredAuthDomain = makeAzureWorkspace({
-      workspace: { authorizationDomain: [{ membersGroupName: requiredAuthDomain }] },
+      workspace: { authorizationDomain: [{ membersGroupName: requiredAuthorizationDomain }] },
     });
 
     const workspaceWithoutRequiredAuthDomain = makeAzureWorkspace();
 
-    const canImportDataWithRequiredAuthDomainIntoWorkspace = (workspace: WorkspaceWrapper) =>
-      canImportIntoWorkspace(
-        {
-          isProtectedData: false,
-          requiredAuthorizationDomain: requiredAuthDomain,
-        },
-        workspace
-      );
+    const canImportDataWithRequiredAuthDomainIntoWorkspace = buildDestinationWorkspaceFilter(
+      azureTdrSnapshotImportRequest,
+      {
+        requiredAuthorizationDomain,
+      }
+    );
 
     // Act
     const canImportDataWithRequiredAuthDomainIntoWorkspaceWithRequiredAuthDomain =
@@ -142,20 +138,15 @@ describe('canImportIntoWorkspace', () => {
 
     // Act
     const workspacesForAzureImports = workspaces
-      .filter((workspace) => canImportIntoWorkspace({ cloudPlatform: 'AZURE', isProtectedData: false }, workspace))
+      .filter(buildDestinationWorkspaceFilter(azureTdrSnapshotImportRequest))
       .map((workspace) => workspace.workspace.name);
 
     const workspacesForGoogleImports = workspaces
-      .filter((workspace) => canImportIntoWorkspace({ cloudPlatform: 'GCP', isProtectedData: false }, workspace))
-      .map((workspace) => workspace.workspace.name);
-
-    const workspacesForUndefinedPlatformImports = workspaces
-      .filter((workspace) => canImportIntoWorkspace({ isProtectedData: false }, workspace))
+      .filter(buildDestinationWorkspaceFilter(gcpTdrSnapshotImportRequest))
       .map((workspace) => workspace.workspace.name);
 
     // Assert
     expect(workspacesForAzureImports).toEqual(['azure-workspace']);
     expect(workspacesForGoogleImports).toEqual(['google-workspace']);
-    expect(workspacesForUndefinedPlatformImports).toEqual(['azure-workspace', 'google-workspace']);
   });
 });

@@ -22,7 +22,7 @@ import { WorkspaceInfo } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
-import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
+import { buildDestinationWorkspaceFilter, getCloudPlatformRequiredForImport } from './import-utils';
 import { isProtectedSource } from './protected-data-utils';
 
 const styles = {
@@ -108,7 +108,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
   } = props;
 
   const isProtectedData = isProtectedSource(importRequest);
-  const requiredCloudPlatform = getCloudPlatformRequiredForImport(importRequest);
 
   // Some import types are finished in a single request.
   // For most though, the import request starts a background task that takes time to complete.
@@ -186,16 +185,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     ]);
   };
 
-  const workspacesToImportTo = workspaces.filter((workspace) => {
-    return canImportIntoWorkspace(
-      {
-        cloudPlatform: requiredCloudPlatform,
-        isProtectedData,
-        requiredAuthorizationDomain,
-      },
-      workspace
-    );
-  });
+  const workspacesToImportTo = workspaces.filter(
+    buildDestinationWorkspaceFilter(importRequest, { requiredAuthorizationDomain })
+  );
 
   // disable import into existing workspaces if data is marked as protected but no protected workspaces are available
   const disableExportIntoExisting = isProtectedData && workspacesToImportTo.length === 0;
