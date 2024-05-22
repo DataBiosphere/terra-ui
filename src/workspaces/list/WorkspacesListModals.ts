@@ -9,7 +9,7 @@ import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceM
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { RequestAccessModal } from 'src/workspaces/RequestAccessModal/RequestAccessModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
-import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
+import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface WorkspacesListModalsProps {
   getWorkspace: (string) => Workspace;
@@ -31,9 +31,13 @@ export const WorkspacesListModals = (props: WorkspacesListModalsProps): ReactNod
         cloneWorkspace: userActions.cloningWorkspace,
         onDismiss: () => setUserActions({ cloningWorkspace: undefined }),
         onSuccess: (ws) => {
-          refreshWorkspaces();
-          setUserActions({ cloningWorkspace: undefined });
-          notifyNewWorkspaceClone(ws);
+          if (userActions.cloningWorkspace && isGoogleWorkspace(userActions.cloningWorkspace)) {
+            goToPath('workspace-dashboard', { namespace: ws.namespace, name: ws.name });
+          } else {
+            refreshWorkspaces();
+            setUserActions({ cloningWorkspace: undefined });
+            notifyNewWorkspaceClone(ws);
+          }
         },
       }),
     !!userActions.deletingWorkspaceId &&

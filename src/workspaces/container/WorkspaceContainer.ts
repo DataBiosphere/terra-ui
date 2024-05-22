@@ -166,8 +166,12 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
         cloneWorkspace: workspace,
         onDismiss: () => setCloningWorkspace(false),
         onSuccess: (clonedWorkspace) => {
-          setCloningWorkspace(false);
-          notifyNewWorkspaceClone(clonedWorkspace);
+          if (workspace && isGoogleWorkspace(workspace)) {
+            Nav.goToPath('workspace-dashboard', { namespace: clonedWorkspace.namespace, name: clonedWorkspace.name });
+          } else {
+            setCloningWorkspace(false);
+            notifyNewWorkspaceClone(clonedWorkspace);
+          }
         },
       }),
     showLockWorkspaceModal &&

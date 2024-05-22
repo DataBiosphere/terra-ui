@@ -26,7 +26,7 @@ export const useCloningWorkspaceNotifications = (): void => {
   const cloningSuccess: StateUpdateAction = (workspace: WorkspaceInfo) => {
     const notificationId = cloningNotificationId(workspace);
     removeWorkspace(workspace);
-    notify('success', <NotificationTitle>Workspace clone successful</NotificationTitle>, { id: notificationId });
+    notify('success', <NotificationTitle>Workspace clone was successful</NotificationTitle>, { id: notificationId });
   };
 
   const containerCloning: StateUpdateAction = (workspace: WorkspaceInfo) => {

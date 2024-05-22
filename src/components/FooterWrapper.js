@@ -25,6 +25,7 @@ const buildDate = new Date(parseInt(getConfig().buildTimestamp, 10));
 const FooterWrapper = ({ children, alwaysShow = false, fixedHeight = false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [scrollBarHeight, setScrollBarHeight] = useState(window.innerHeight - document.body.offsetHeight);
+
   useEffect(() => {
     function handleResize() {
       const newScrollBarHeight = window.innerHeight - document.body.offsetHeight;
