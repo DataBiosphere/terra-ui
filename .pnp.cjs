@@ -5374,29 +5374,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:900f6865e06bd19c656fece4e900df150f294009bf4fb77f248d26195363ba73a05c8c32baa22433aa06d523cba7c0fa00d87603f54255c70bcf97bcaac0f56f#npm:11.1.6", {\
-          "packageLocation": "./.yarn/__virtual__/@rollup-plugin-typescript-virtual-b3c1fae94c/0/cache/@rollup-plugin-typescript-npm-11.1.6-aeaa3525fc-3f5b981f4d.zip/node_modules/@rollup/plugin-typescript/",\
-          "packageDependencies": [\
-            ["@rollup/plugin-typescript", "virtual:900f6865e06bd19c656fece4e900df150f294009bf4fb77f248d26195363ba73a05c8c32baa22433aa06d523cba7c0fa00d87603f54255c70bcf97bcaac0f56f#npm:11.1.6"],\
-            ["@rollup/pluginutils", "virtual:984962544e32f8d81418bd22c5c5f144badc7187f06ed1f904493e6a62d7255d6ca3314eee56b13e800567a82646c22bc030945bf7fecefe3fe65e8b6a273a89#npm:5.1.0"],\
-            ["@types/rollup", null],\
-            ["@types/tslib", null],\
-            ["@types/typescript", null],\
-            ["resolve", "patch:resolve@npm%3A1.22.8#~builtin<compat/resolve>::version=1.22.8&hash=c3c19d"],\
-            ["rollup", null],\
-            ["tslib", "npm:2.6.2"],\
-            ["typescript", null]\
-          ],\
-          "packagePeers": [\
-            "@types/rollup",\
-            "@types/tslib",\
-            "@types/typescript",\
-            "rollup",\
-            "tslib",\
-            "typescript"\
-          ],\
-          "linkType": "HARD"\
-        }],\
         ["virtual:f90a1f371e852bbf1eb959248d7c39712daf739e3922aa5403d3559fdab0ea54685ab625f0dd88a616779807d1d50edfc0c24534015cd596765f1e425dafd35a#npm:11.1.6", {\
           "packageLocation": "./.yarn/__virtual__/@rollup-plugin-typescript-virtual-984962544e/0/cache/@rollup-plugin-typescript-npm-11.1.6-aeaa3525fc-3f5b981f4d.zip/node_modules/@rollup/plugin-typescript/",\
           "packageDependencies": [\
@@ -7402,8 +7379,9 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./packages/build-utils/",\
           "packageDependencies": [\
             ["@terra-ui-packages/build-utils", "workspace:packages/build-utils"],\
-            ["@rollup/plugin-typescript", "virtual:900f6865e06bd19c656fece4e900df150f294009bf4fb77f248d26195363ba73a05c8c32baa22433aa06d523cba7c0fa00d87603f54255c70bcf97bcaac0f56f#npm:11.1.6"],\
+            ["@rollup/plugin-typescript", "virtual:f90a1f371e852bbf1eb959248d7c39712daf739e3922aa5403d3559fdab0ea54685ab625f0dd88a616779807d1d50edfc0c24534015cd596765f1e425dafd35a#npm:11.1.6"],\
             ["tslib", "npm:2.6.2"],\
+            ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
             ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:5.2.11"]\
           ],\
           "linkType": "SOFT"\
