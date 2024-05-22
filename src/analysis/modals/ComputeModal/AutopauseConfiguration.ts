@@ -8,14 +8,25 @@ import { NumberInput } from 'src/components/input';
 import * as Utils from 'src/libs/utils';
 
 export interface AutopauseConfigurationProps {
+  autopauseRequired?: boolean;
   autopauseThreshold: number;
   disabled?: boolean;
+  maxThreshold?: number;
+  minThreshold?: number;
   style?: CSSProperties;
   onChangeAutopauseThreshold: (autopauseThreshold: number) => void;
 }
 
 export const AutopauseConfiguration = (props: AutopauseConfigurationProps): ReactNode => {
-  const { autopauseThreshold, disabled = false, style, onChangeAutopauseThreshold } = props;
+  const {
+    autopauseRequired = false,
+    autopauseThreshold,
+    disabled = false,
+    maxThreshold = 999,
+    minThreshold = 10,
+    style,
+    onChangeAutopauseThreshold,
+  } = props;
 
   const id = useUniqueId();
 
@@ -25,7 +36,7 @@ export const AutopauseConfiguration = (props: AutopauseConfigurationProps): Reac
       {
         id: `${id}-enable`,
         checked: isAutopauseEnabled(autopauseThreshold),
-        disabled,
+        disabled: disabled || autopauseRequired,
         onChange: (v) => onChangeAutopauseThreshold(getAutopauseThreshold(v)),
       },
       [span({ style: { ...computeStyles.label } }, ['Enable autopause'])]
@@ -52,8 +63,8 @@ export const AutopauseConfiguration = (props: AutopauseConfigurationProps): Reac
       [
         h(NumberInput, {
           id: `${id}-threshold`,
-          min: 10,
-          max: 999,
+          min: minThreshold,
+          max: maxThreshold,
           isClearable: false,
           onlyInteger: true,
           disabled,
