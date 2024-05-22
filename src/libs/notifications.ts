@@ -97,11 +97,12 @@ const NotificationDisplay = ({ id }) => {
     ['error', () => [colors.danger, 'error notification']],
     [DEFAULT, () => [colors.accent, 'notification']]
   );
-  const iconType = switchCase<string, IconId>(
+  const iconType = switchCase<string, IconId | undefined>(
     type,
     ['success', () => 'success-standard'],
     ['warn', () => 'warning-standard'],
     ['error', () => 'error-standard'],
+    ['custom', () => undefined],
     [DEFAULT, () => 'info-circle-regular']
   );
   const labelId = useUniqueId();

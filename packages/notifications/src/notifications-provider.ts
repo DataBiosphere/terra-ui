@@ -5,7 +5,7 @@ import { AnyPromiseFn, withErrorHandling } from '@terra-ui-packages/core-utils';
  */
 export type IgnoreErrorDecider = (title: string, obj?: unknown) => boolean;
 
-export type NotificationType = 'error' | 'warn' | 'info' | 'success' | 'welcome';
+export type NotificationType = 'error' | 'warn' | 'info' | 'success' | 'welcome' | 'custom';
 export interface NotificationOptions {
   /**
    * string, Error(unknown), or json object to be displayed in detail section

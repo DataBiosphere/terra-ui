@@ -102,6 +102,21 @@ describe('notify', () => {
     screen.getByLabelText('info notification');
   });
 
+  it('renders custom notifications without an icon', () => {
+    // Arrange
+    notify('custom', 'Test notification', {
+      id: 'test-notification',
+      message: 'This is only a test',
+    });
+
+    // Act
+    render(<div>{notificationContent}</div>);
+
+    // Assert
+    screen.getByText('This is only a test');
+    // the label is only for the icon, which is not present for custom notifications
+  });
+
   it('renders warning notification', () => {
     // Arrange
     notify('warn', 'Test notification', {
