@@ -6,7 +6,7 @@ import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring } from 'src/libs/error';
 import { MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { authStore, getSessionId, getTerraUser, getTerraUserProfile, MetricState, metricStore } from 'src/libs/state';
+import { MetricState, authStore, getSessionId, getTerraUser, getTerraUserProfile, metricStore } from 'src/libs/state';
 import { v4 as uuid } from 'uuid';
 
 export const Metrics = (signal?: AbortSignal) => {
@@ -90,3 +90,5 @@ export const Metrics = (signal?: AbortSignal) => {
     }) as (anonId: string) => Promise<void>,
   };
 };
+
+export type MetricsContract = ReturnType<typeof Metrics>;

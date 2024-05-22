@@ -94,3 +94,4 @@ export const Groups = (signal?: AbortSignal) => ({
     };
   },
 });
+export type GroupsContract = ReturnType<typeof Groups>;

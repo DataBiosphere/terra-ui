@@ -326,3 +326,6 @@ export const User = (signal?: AbortSignal) => {
     },
   };
 };
+
+
+export type UserContract = ReturnType<typeof User>;
