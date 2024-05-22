@@ -25,7 +25,7 @@ const updateWorkspaceIfMatching = <T extends Workspace>(workspace: T, update: Wo
   return workspace;
 };
 
-// Applies the update to the workspace stores and returns the update state
+// Applies the update to the workspace stores and returns the update
 const doUpdate = (update: WorkspaceUpdate): WorkspaceUpdate => {
   workspacesStore.update((wsList) => updateWorkspacesList(wsList, update));
   workspaceStore.update((ws) => {
@@ -105,6 +105,7 @@ export const useWorkspaceStatePolling = (workspaces: Workspace[], status: Loaded
 export type StateUpdateAction = (WorkspaceUpdate) => void;
 export type StateUpdateListener = { [key in WorkspaceState]?: StateUpdateAction[] };
 
+// Monitors the state of workspaces and calls the listeners when the state changes
 export const useWorkspacesStatePollingWithAction = (workspaces: WorkspaceInfo[], listeners: StateUpdateListener) => {
   // we have to do the signal/abort manually instead of with useCancelable so that the it can be cleaned up in the
   // this component's useEffect, instead of the useEffect in useCancelable
