@@ -287,7 +287,7 @@ describe('SubmissionHistory tab', () => {
     within(cellsFromDataRow2[headerPosition.Duration]).getByText('1 month 1 day 1 hour 1 minute 1 second');
   });
 
-  it('should support canceled and canceling submissions', async () => {
+  it('should support canceled, canceling and queued submissions', async () => {
     const runSetData = {
       run_sets: [
         {
@@ -307,6 +307,15 @@ describe('SubmissionHistory tab', () => {
           run_count: 2,
           run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
           state: 'CANCELING',
+        },
+        {
+          error_count: 0,
+          submission_timestamp: '2021-07-10T12:00:00.000+00:00',
+          last_modified_timestamp: '2021-08-11T13:01:01.000+00:00',
+          record_type: 'FOO',
+          run_count: 5,
+          run_set_id: '97e04fd6-bbd4-49d4-942d-4e91edc3c3f8',
+          state: 'QUEUED',
         },
       ],
     };
@@ -348,10 +357,10 @@ describe('SubmissionHistory tab', () => {
 
     // Assert
     expect(table).toHaveAttribute('aria-colcount', '6');
-    expect(table).toHaveAttribute('aria-rowcount', '3');
+    expect(table).toHaveAttribute('aria-rowcount', '4');
 
     const rows = within(table).getAllByRole('row');
-    expect(rows.length).toBe(3);
+    expect(rows.length).toBe(4);
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
@@ -359,6 +368,9 @@ describe('SubmissionHistory tab', () => {
 
     const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
     within(cellsFromDataRow2[headerPosition.Status]).getByText('Canceling');
+
+    const cellsFromDataRow3 = within(rows[3]).getAllByRole('cell');
+    within(cellsFromDataRow3[headerPosition.Status]).getByText('Queued');
   });
 
   const simpleRunSetData = {
@@ -371,6 +383,22 @@ describe('SubmissionHistory tab', () => {
         run_count: 1,
         run_set_id: '20000000-0000-0000-0000-200000000002',
         state: 'RUNNING',
+        user_id: 'foo',
+      },
+    ],
+    fully_updated: true,
+  };
+
+  const queuedRunSetData = {
+    run_sets: [
+      {
+        error_count: 0,
+        submission_timestamp: '2022-01-01T12:00:00.000+00:00',
+        last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
+        record_type: 'FOO',
+        run_count: 1,
+        run_set_id: '20000000-0000-0000-0000-200000000002',
+        state: 'QUEUED',
         user_id: 'foo',
       },
     ],
@@ -514,13 +542,14 @@ describe('SubmissionHistory tab', () => {
   });
 
   const abortTestCases = [
-    ['abort successfully', { workspace: mockAzureWorkspace, userId: 'foo', abortAllowed: true }],
-    ['not allow abort for non-submitter', { workspace: mockAzureWorkspace, userId: 'not-foo', abortAllowed: false }],
+    ['abort successfully', { workspace: mockAzureWorkspace, userId: 'foo', runSet: simpleRunSetData, abortAllowed: true }],
+    ['not allow abort for non-submitter', { workspace: mockAzureWorkspace, userId: 'not-foo', runSet: simpleRunSetData, abortAllowed: false }],
+    ['not allow abort for Queued submission', { workspace: mockAzureWorkspace, userId: 'not-foo', runSet: queuedRunSetData, abortAllowed: false }],
   ];
 
-  it.each(abortTestCases)('should %s', async (_unused, { workspace, userId, abortAllowed }) => {
+  it.each(abortTestCases)('should %s', async (_unused, { workspace, userId, runSet, abortAllowed }) => {
     const user = userEvent.setup();
-    const getRunSetsMethod = jest.fn(() => Promise.resolve(simpleRunSetData));
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSet));
     const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
     const mockUserResponse = jest.fn(() => Promise.resolve({ userSubjectId: userId }));
@@ -578,6 +607,8 @@ describe('SubmissionHistory tab', () => {
     if (abortAllowed) {
       expect(cancelSubmissionFunction).toHaveBeenCalled();
       expect(cancelSubmissionFunction).toBeCalledWith('https://lz-abc/terra-app-abc/cbas', '20000000-0000-0000-0000-200000000002');
+    } else {
+      expect(cancelSubmissionFunction).not.toHaveBeenCalled();
     }
   });
 });
