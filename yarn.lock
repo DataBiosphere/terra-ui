@@ -2423,6 +2423,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@figspec/components@npm:^1.0.1":
+  version: 1.0.3
+  resolution: "@figspec/components@npm:1.0.3"
+  dependencies:
+    lit: ^2.1.3
+  checksum: 2afe175510ccb9f544a70607063e4c1dbc17b2804a81f39562b985684013e7382d00c87b4ae80187ba926e588ef6b378fbc22fcb89ff6424ebcb3f83dc1f8d72
+  languageName: node
+  linkType: hard
+
+"@figspec/react@npm:^1.0.0":
+  version: 1.0.3
+  resolution: "@figspec/react@npm:1.0.3"
+  dependencies:
+    "@figspec/components": ^1.0.1
+    "@lit-labs/react": ^1.0.2
+  peerDependencies:
+    react: ^16.14.0 || ^17.0.0 || ^18.0.0
+  checksum: 8cfc1be1d8b6aa089fb4a7461a46bc96cdd4ad40ee49b0dea46507221d6036a81644b732ed5be0e8047ef6436e776036bcf0a72db724f0f9358837270f4278cf
+  languageName: node
+  linkType: hard
+
 "@floating-ui/core@npm:^1.5.3":
   version: 1.5.3
   resolution: "@floating-ui/core@npm:1.5.3"
@@ -2915,6 +2936,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@lit-labs/react@npm:^1.0.2":
+  version: 1.2.1
+  resolution: "@lit-labs/react@npm:1.2.1"
+  checksum: d4a544c475272630bee54d78a458630ea8b5fab74c18b922ae5046563cc359c8c505188f9f7614ab55e332863f82b179d7970d8b8bd425e77acc167a01657bed
+  languageName: node
+  linkType: hard
+
+"@lit-labs/ssr-dom-shim@npm:^1.0.0, @lit-labs/ssr-dom-shim@npm:^1.1.0":
+  version: 1.2.0
+  resolution: "@lit-labs/ssr-dom-shim@npm:1.2.0"
+  checksum: 704621c28df8d651e54a1b93f6ede8103db2dd3e7a1f02463fe5492bd28aa22de813314c7833260204fed5c8491a6bbd763f6051abc25690df537d812a508c35
+  languageName: node
+  linkType: hard
+
+"@lit/reactive-element@npm:^1.3.0, @lit/reactive-element@npm:^1.6.0":
+  version: 1.6.3
+  resolution: "@lit/reactive-element@npm:1.6.3"
+  dependencies:
+    "@lit-labs/ssr-dom-shim": ^1.0.0
+  checksum: 79b58631c38effeabad090070324431da8a22cf0ff665f5e4de35e4d791f984742b3d340c9c7fce996d1124a8da95febc582471b4c237236c770b1300b56ef6e
+  languageName: node
+  linkType: hard
+
 "@mdx-js/react@npm:^3.0.0":
   version: 3.0.1
   resolution: "@mdx-js/react@npm:3.0.1"
@@ -3342,6 +3386,32 @@ __metadata:
     lodash: ^4.17.21
     ts-dedent: ^2.0.0
   checksum: 63fe6d8870a6b316b13690d873128e0e0d47e76e7be2f854a1c84219af175c9832543347b36891ba2fe1ed4844c83cebe1852651835229e861c15787c37210e4
+  languageName: node
+  linkType: hard
+
+"@storybook/addon-designs@npm:^8.0.2":
+  version: 8.0.2
+  resolution: "@storybook/addon-designs@npm:8.0.2"
+  dependencies:
+    "@figspec/react": ^1.0.0
+  peerDependencies:
+    "@storybook/blocks": ^8.0.0
+    "@storybook/components": ^8.0.0
+    "@storybook/theming": ^8.0.0
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@storybook/blocks":
+      optional: true
+    "@storybook/components":
+      optional: true
+    "@storybook/theming":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 36e6440472e511f426a34dab4e9bfa4a8b29cb3e3b1385e47b417b821d1f1dfaab938676c2fd07a2e467e00c916b6cce6b53b171e68fc160ccbda1afd201f537
   languageName: node
   linkType: hard
 
@@ -5051,16 +5121,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-transition-group@npm:^4.4.0":
-  version: 4.4.4
-  resolution: "@types/react-transition-group@npm:4.4.4"
-  dependencies:
-    "@types/react": "*"
-  checksum: 86e9ff9731798e12bc2afe0304678918769633b531dcf6397f86af81718fb7930ef8648e894eeb3718fc6eab6eb885cfb9b82a44d1d74e10951ee11ebc4643ae
-  languageName: node
-  linkType: hard
-
-"@types/react-transition-group@npm:^4.4.10":
+"@types/react-transition-group@npm:^4.4.0, @types/react-transition-group@npm:^4.4.10":
   version: 4.4.10
   resolution: "@types/react-transition-group@npm:4.4.10"
   dependencies:
@@ -5153,6 +5214,13 @@ __metadata:
   dependencies:
     "@types/jest": "*"
   checksum: d364494fc2545316292e88861146146af1e3818792ca63b62a63758b2f737669b687f4aaddfcfbcb7d0e1ed7890a9bd05de23ff97f277d5e68de574497a9ee72
+  languageName: node
+  linkType: hard
+
+"@types/trusted-types@npm:^2.0.2":
+  version: 2.0.7
+  resolution: "@types/trusted-types@npm:2.0.7"
+  checksum: 8e4202766a65877efcf5d5a41b7dd458480b36195e580a3b1085ad21e948bc417d55d6f8af1fd2a7ad008015d4117d5fdfe432731157da3c68678487174e4ba3
   languageName: node
   linkType: hard
 
@@ -11983,6 +12051,37 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lit-element@npm:^3.3.0":
+  version: 3.3.3
+  resolution: "lit-element@npm:3.3.3"
+  dependencies:
+    "@lit-labs/ssr-dom-shim": ^1.1.0
+    "@lit/reactive-element": ^1.3.0
+    lit-html: ^2.8.0
+  checksum: 29a596fa556e231cce7246ca3e5687ad238f299b0cb374a0934d5e6fe9adf1436e031d4fbd21b280aabfc0e21a66e6c4b52da558a908df2566d09d960f3ca93d
+  languageName: node
+  linkType: hard
+
+"lit-html@npm:^2.8.0":
+  version: 2.8.0
+  resolution: "lit-html@npm:2.8.0"
+  dependencies:
+    "@types/trusted-types": ^2.0.2
+  checksum: 2d70df07248bcb2f502a3afb1e91d260735024fa669669ffb1417575aa39c3092779725ac1b90f5f39e4ce78c63f431f51176bc67f532389f0285a6991573255
+  languageName: node
+  linkType: hard
+
+"lit@npm:^2.1.3":
+  version: 2.8.0
+  resolution: "lit@npm:2.8.0"
+  dependencies:
+    "@lit/reactive-element": ^1.6.0
+    lit-element: ^3.3.0
+    lit-html: ^2.8.0
+  checksum: 2480e733f7d022d3ecba91abc58a20968f0ca8f5fa30b3341ecf4bcf4845e674ad27b721a5ae53529cafc6ca603c015b80d0979ceb7a711e268ef20bb6bc7527
+  languageName: node
+  linkType: hard
+
 "locate-path@npm:^3.0.0":
   version: 3.0.0
   resolution: "locate-path@npm:3.0.0"
@@ -16187,6 +16286,7 @@ __metadata:
     "@pact-foundation/pact": 12.1.1
     "@storybook/addon-a11y": ^8.0.10
     "@storybook/addon-actions": ^8.0.0
+    "@storybook/addon-designs": ^8.0.2
     "@storybook/addon-essentials": ^8.0.10
     "@storybook/addon-interactions": ^8.0.10
     "@storybook/addon-links": ^8.0.10
