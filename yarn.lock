@@ -4418,7 +4418,7 @@ __metadata:
   dependencies:
     "@terra-ui-packages/build-utils": ^2.0.0
     "@terra-ui-packages/components": ^0.0.6
-    "@terra-ui-packages/test-utils": "*"
+    "@terra-ui-packages/test-utils": ^1.0.0
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0
     "@testing-library/user-event": ^14.4.3
@@ -4462,7 +4462,7 @@ __metadata:
     "@fortawesome/react-fontawesome": ^0.1.15
     "@terra-ui-packages/build-utils": ^2.0.0
     "@terra-ui-packages/core-utils": ^0.3.0
-    "@terra-ui-packages/test-utils": "*"
+    "@terra-ui-packages/test-utils": ^1.0.0
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0
     "@testing-library/user-event": ^14.4.3
@@ -4516,7 +4516,7 @@ __metadata:
     "@terra-ui-packages/build-utils": ^2.0.0
     "@terra-ui-packages/components": ^0.0.6
     "@terra-ui-packages/core-utils": ^0.3.0
-    "@terra-ui-packages/test-utils": ^0.0.4
+    "@terra-ui-packages/test-utils": ^1.0.0
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0
     "@testing-library/user-event": ^14.4.3
@@ -4536,7 +4536,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/test-utils@*, @terra-ui-packages/test-utils@^0.0.4, @terra-ui-packages/test-utils@workspace:packages/test-utils":
+"@terra-ui-packages/test-utils@*, @terra-ui-packages/test-utils@1.0.0, @terra-ui-packages/test-utils@^1.0.0, @terra-ui-packages/test-utils@workspace:packages/test-utils":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/test-utils@workspace:packages/test-utils"
   dependencies:
@@ -16300,7 +16300,7 @@ __metadata:
     "@terra-ui-packages/components": "*"
     "@terra-ui-packages/core-utils": "*"
     "@terra-ui-packages/notifications": "*"
-    "@terra-ui-packages/test-utils": "*"
+    "@terra-ui-packages/test-utils": 1.0.0
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0
     "@testing-library/user-event": ^14.4.3
