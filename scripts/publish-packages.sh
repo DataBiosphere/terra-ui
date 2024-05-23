@@ -6,11 +6,11 @@ SCRIPTS_DIR="$(dirname "$0")"
 cd "${SCRIPTS_DIR}/.."
 
 # Build all packages.
-yarn build-packages
+echo "Building packages..."
+yarn build-packages >/dev/null
 
-cd "packages"
-for d in */ ; do
-    cd "$d"
+for d in $(yarn workspaces list --no-private --json | jq -r '.location'); do
+    pushd "$d" >/dev/null
 
     # Get the current package name and version from package.json.
     PACKAGE_NAME=$(node -p "require('./package.json').name")
@@ -40,5 +40,5 @@ for d in */ ; do
        echo "Version ${PACKAGE_VERSION} of ${PACKAGE_NAME} has already been published, so no new version has been published."
    fi
    echo " "
-   cd ..
+   popd >/dev/null
 done
