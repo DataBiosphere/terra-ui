@@ -7,7 +7,7 @@ import {
   loadAuthToken,
   sendRetryMetric,
 } from 'src/auth/auth';
-import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
 import { signOut, SignOutCause } from 'src/auth/signout/sign-out';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore } from 'src/libs/state';
@@ -119,7 +119,7 @@ export const withRetryAfterReloadingExpiredAuthToken =
           const signOutCause: SignOutCause = 'errorRefreshingAuthToken';
           signOut(signOutCause);
         }
-        throw new Error(sessionTimedOutErrorMessage);
+        throw new Error(sessionExpirationErrorMessage);
       } else {
         throw error;
       }

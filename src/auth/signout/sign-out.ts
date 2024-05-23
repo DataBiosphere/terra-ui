@@ -1,11 +1,11 @@
-import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
 import { removeUserFromLocalState } from 'src/auth/oidc-broker';
 import { signOutCallbackLinkName } from 'src/auth/signout/SignOutPage';
 import { Ajax } from 'src/libs/ajax';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import Events, { MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { notify, sessionTimeoutProps } from 'src/libs/notifications';
+import { notify, sessionExpirationProps } from 'src/libs/notifications';
 import {
   authStore,
   azureCookieReadyStore,
@@ -91,7 +91,7 @@ export const userSignedOut = (cause?: SignOutCause, redirectFailed = false) => {
   getSessionStorage().clear();
 
   if (cause === 'errorRefreshingAuthToken') {
-    notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
+    notify('info', sessionExpirationErrorMessage, sessionExpirationProps);
   }
 
   if (redirectFailed) {
