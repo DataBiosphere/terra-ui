@@ -70,7 +70,7 @@ const testSamUserAllowances = {
 const mockSamUserCombinedState: SamUserCombinedStateResponse = {
   samUser: mockSamUserResponse,
   terraUserAllowances: testSamUserAllowances,
-  terraUserAttributes: { marketingConsent: false } as SamUserAttributes,
+  terraUserAttributes: { marketingConsent: false },
   termsOfService: mockSamUserTermsOfServiceDetails,
   enterpriseFeatures: [],
 };
