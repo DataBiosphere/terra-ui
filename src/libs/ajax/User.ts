@@ -239,7 +239,7 @@ export const User = (signal?: AbortSignal) => {
         terraUserAttributes,
         termsOfService,
         enterpriseFeatures,
-      } as SamUserCombinedStateResponse;
+      };
     },
 
     registerWithProfile: async (
