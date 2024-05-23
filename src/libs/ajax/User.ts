@@ -210,24 +210,18 @@ export const User = (signal?: AbortSignal) => {
         updatedAt: responseJson.samUser.updatedAt ? new Date(responseJson.samUser.updatedAt) : undefined,
       };
 
-      const terraUserAllowances = {
-        allowed: responseJson.allowances.allowed,
-        details: {
-          enabled: responseJson.allowances.details.enabled,
-          termsOfService: responseJson.allowances.details.termsOfService,
-        } as SamUserAllowancesDetails,
-      } as SamUserAllowances;
+      const terraUserAllowances: SamUserAllowances = responseJson.allowances;
 
-      const terraUserAttributes = { marketingConsent: responseJson.attributes.marketingConsent } as SamUserAttributes;
+      const terraUserAttributes: SamUserAttributes = { marketingConsent: responseJson.attributes.marketingConsent };
 
-      const termsOfService = {
+      const termsOfService: SamUserTermsOfServiceDetails = {
         latestAcceptedVersion: responseJson.termsOfServiceDetails.latestAcceptedVersion,
         acceptedOn: responseJson.termsOfServiceDetails.acceptedOn
           ? new Date(responseJson.termsOfServiceDetails.acceptedOn)
           : undefined,
         permitsSystemUsage: responseJson.termsOfServiceDetails.permitsSystemUsage,
         isCurrentVersion: responseJson.termsOfServiceDetails.isCurrentVersion,
-      } as SamUserTermsOfServiceDetails;
+      };
 
       const enterpriseFeatures = responseJson.additionalDetails.enterpriseFeatures
         ? responseJson.additionalDetails.enterpriseFeatures.resources.map((resource) => resource.resourceId)
