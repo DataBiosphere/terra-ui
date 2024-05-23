@@ -198,25 +198,48 @@ export const User = (signal?: AbortSignal) => {
 
     getSamUserCombinedState: async (): Promise<SamUserCombinedStateResponse> => {
       const res = await fetchSam('api/users/v2/self/combinedState', _.mergeAll([authOpts(), { signal }]));
-      const response = await res.json();
-      if (response.terraUserAttributes !== undefined) {
-        response.terraUserAttributes = response.attributes.map((attributes) => {
-          const { userId: _, ...rest } = attributes;
-          return rest;
-        });
-      }
+      const responseJson = await res.json();
+      const samUser = {
+        id: responseJson.samUser.id,
+        googleSubjectId: responseJson.samUser.googleSubjectId,
+        email: responseJson.samUser.email,
+        azureB2CId: responseJson.samUser.azureB2CId,
+        allowed: responseJson.samUser.allowed,
+        createdAt: responseJson.samUser.createdAt ? new Date(responseJson.samUser.createdAt) : undefined,
+        registeredAt: responseJson.samUser.registeredAt ? new Date(responseJson.samUser.registeredAt) : undefined,
+        updatedAt: responseJson.samUser.updatedAt ? new Date(responseJson.samUser.updatedAt) : undefined,
+      } as SamUserResponse;
 
-      response.samUser.createdAt = response.samUser.createdAt ? new Date(response.samUser.createdAt) : undefined;
-      response.samUser.registeredAt = response.samUser.registeredAt
-        ? new Date(response.samUser.registeredAt)
-        : undefined;
-      response.samUser.updatedAt = response.samUser.updatedAt ? new Date(response.samUser.updatedAt) : undefined;
+      const terraUserAllowances = {
+        allowed: responseJson.allowances.allowed,
+        details: {
+          enabled: responseJson.allowances.details.enabled,
+          termsOfService: responseJson.allowances.details.termsOfService,
+        } as SamUserAllowancesDetails,
+      } as SamUserAllowances;
 
-      response.enterpriseFeatures = response.additionalDetails.enterpriseFeatures.resources.map(
-        (resource) => resource.resourceId
-      );
+      const terraUserAttributes = { marketingConsent: responseJson.attributes.marketingConsent } as SamUserAttributes;
 
-      return response;
+      const termsOfService = {
+        latestAcceptedVersion: responseJson.termsOfServiceDetails.latestAcceptedVersion,
+        acceptedOn: responseJson.termsOfServiceDetails.acceptedOn
+          ? new Date(responseJson.termsOfServiceDetails.acceptedOn)
+          : undefined,
+        permitsSystemUsage: responseJson.termsOfServiceDetails.permitsSystemUsage,
+        isCurrentVersion: responseJson.termsOfServiceDetails.isCurrentVersion,
+      } as SamUserTermsOfServiceDetails;
+
+      const enterpriseFeatures = responseJson.additionalDetails.enterpriseFeatures
+        ? responseJson.additionalDetails.enterpriseFeatures.resources.map((resource) => resource.resourceId)
+        : [];
+
+      return {
+        samUser,
+        terraUserAllowances,
+        terraUserAttributes,
+        termsOfService,
+        enterpriseFeatures,
+      } as SamUserCombinedStateResponse;
     },
 
     registerWithProfile: async (
