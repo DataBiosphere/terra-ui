@@ -79,7 +79,7 @@ const setupMockAjax = async (
   const mockSamUserCombinedState: SamUserCombinedStateResponse = {
     samUser: mockSamUserResponse,
     terraUserAllowances,
-    terraUserAttributes: { marketingConsent: false } as SamUserAttributes,
+    terraUserAttributes: { marketingConsent: false },
     termsOfService,
     enterpriseFeatures: [],
   };
