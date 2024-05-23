@@ -312,6 +312,11 @@ export const captureAppcuesEvent = (eventName: string, event: any) => {
     'step_interacted',
     'form_submitted',
     'form_field_submitted',
+    'nps_survey_started',
+    'nps_score',
+    'nps_feedback',
+    'nps_ask_me_later_selected_at',
+    'nps_clicked_update_nps_score',
   ];
   if (_.includes(eventName, publicEvents)) {
     const eventProps = {
@@ -341,6 +346,10 @@ export const captureAppcuesEvent = (eventName: string, event: any) => {
       'appcues.stepNumber': event.stepNumber,
       'appcues.stepType': event.stepType,
       'appcues.timestamp': event.timestamp,
+      'appcues.npsScore': event.score,
+      'appcues.npsFeedback': event.feedback,
+      'appcues.npsAskMeLaterSelectedAt': event.askMeLaterSelectedAt,
+      'appcues.npsClickedUpdateNpsScore': event.score,
     };
     return Ajax().Metrics.captureEvent(eventsList.appcuesEvent, eventProps);
   }
