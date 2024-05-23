@@ -38,9 +38,8 @@ export interface NotificationState {
 
 export type NotificationProps = Omit<NotificationState, 'type' | 'title'>;
 
-export const sessionTimeoutProps = {
+export const sessionExpirationProps = {
   id: 'sessionTimeout',
-  detail: 'You have been signed out due to inactivity',
 };
 
 const makeNotification = (props) => _.defaults({ id: uuid() }, props);
