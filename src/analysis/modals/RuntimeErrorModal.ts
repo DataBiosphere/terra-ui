@@ -1,46 +1,51 @@
-import { Modal } from '@terra-ui-packages/components';
+import { Modal, ModalProps } from '@terra-ui-packages/components';
+import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import { spinnerOverlay } from 'src/components/common';
-import { Ajax } from 'src/libs/ajax';
+import { LeoRuntimeProvider, RuntimeBasics } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import colors from 'src/libs/colors';
-import { withErrorReporting } from 'src/libs/error';
 import { useOnMount } from 'src/libs/react-utils';
 import { withBusyState } from 'src/libs/utils';
 
-export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
+export type RuntimeErrorProvider = Pick<LeoRuntimeProvider, 'errorInfo'>;
+
+export const text = {
+  error: {
+    title: {
+      standard: 'Cloud Environment is in error state',
+      userScript: 'Cloud Environment is in error state due to Userscript Error',
+    },
+    unknown: 'An unknown error has occurred with the runtime',
+    cantRetrieve: 'Could Not Retrieve Cloud Environment Error Info',
+  },
+};
+
+export interface RuntimeErrorModalProps {
+  runtime: RuntimeBasics;
+  onDismiss: ModalProps['onDismiss'];
+  errorProvider: RuntimeErrorProvider;
+}
+
+export const RuntimeErrorModal = (props: RuntimeErrorModalProps): ReactNode => {
+  const { runtime, onDismiss, errorProvider } = props;
+  const { withErrorReporting } = useNotificationsFromContext();
+
   const [error, setError] = useState('');
   const [userscriptError, setUserscriptError] = useState(false);
   const [loadingRuntimeDetails, setLoadingRuntimeDetails] = useState(false);
 
   const loadRuntimeError = _.flow(
-    withErrorReporting('Could Not Retrieve Cloud Environment Error Info'),
+    withErrorReporting(text.error.cantRetrieve),
     withBusyState(setLoadingRuntimeDetails)
   )(async () => {
-    const { errors: runtimeErrors } =
-      runtime.cloudContext.cloudProvider === cloudProviders.azure.label
-        ? await Ajax().Runtimes.runtimeV2(runtime.workspaceId, runtime.runtimeName).details()
-        : await Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).details();
-    if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), runtimeErrors)) {
-      setError(
-        await Ajax()
-          .Buckets.getObjectPreview(
-            runtime.googleProject,
-            runtime.asyncRuntimeFields.stagingBucket,
-            'userscript_output.txt',
-            true
-          )
-          .then((res) => res.text())
-      );
+    const errorInfo = await errorProvider.errorInfo(runtime);
+    if (errorInfo.errorType === 'UserScriptError') {
+      setError(errorInfo.detail);
       setUserscriptError(true);
     } else {
-      setError(
-        runtimeErrors && runtimeErrors.length > 0
-          ? runtimeErrors[0].errorMessage
-          : 'An unknown error has occurred with the runtime'
-      );
+      setError(errorInfo.errors.length > 0 ? errorInfo.errors[0].errorMessage : text.error.unknown);
     }
   });
 
@@ -51,7 +56,7 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
   return h(
     Modal,
     {
-      title: `Cloud Environment is in error state${userscriptError ? ' due to Userscript Error' : ''}`,
+      title: userscriptError ? text.error.title.userScript : text.error.title.standard,
       showCancel: false,
       onDismiss,
     },

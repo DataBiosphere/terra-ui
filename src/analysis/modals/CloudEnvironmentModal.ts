@@ -49,6 +49,7 @@ import { appStatuses, LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/m
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { LeoRuntimeStatus, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
+import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
@@ -656,8 +657,9 @@ export const CloudEnvironmentModal = ({
       }),
     errorRuntimeId &&
       h(RuntimeErrorModal, {
-        runtime: _.find({ id: errorRuntimeId }, runtimes),
+        runtime: _.find({ id: errorRuntimeId }, runtimes) as Runtime,
         onDismiss: () => setErrorRuntimeId(undefined),
+        errorProvider: leoRuntimeProvider,
       }),
     busy && spinnerOverlay,
   ]);

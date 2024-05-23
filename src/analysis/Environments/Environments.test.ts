@@ -60,6 +60,7 @@ const getMockLeoAppProvider = (overrides?: Partial<LeoAppProvider>): LeoAppProvi
 const getMockLeoRuntimeProvider = (overrides?: Partial<LeoRuntimeProvider>): LeoRuntimeProvider => {
   const defaultProvider: LeoRuntimeProvider = {
     list: jest.fn(),
+    errorInfo: jest.fn(),
     stop: jest.fn(),
     delete: jest.fn(),
   };

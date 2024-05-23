@@ -18,6 +18,7 @@ import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
+import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { getDynamic, getSessionStorage, setDynamic } from 'src/libs/browser-storage';
 import { getLink } from 'src/libs/nav';
 import { clearNotification, notify } from 'src/libs/notifications';
@@ -46,6 +47,7 @@ const RuntimeErrorNotification = ({ runtime }) => {
       h(RuntimeErrorModal, {
         runtime,
         onDismiss: () => setModalOpen(false),
+        errorProvider: leoRuntimeProvider,
       }),
   ]);
 };

@@ -18,7 +18,7 @@ import userEvent from '@testing-library/user-event';
 import { PropsWithChildren, ReactElement } from 'react';
 import { h } from 'react-hyperscript-helpers';
 
-export { asMockedFn } from '@terra-ui-packages/test-utils';
+export { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 
 const testTheme: Theme = {
   colorPalette: {

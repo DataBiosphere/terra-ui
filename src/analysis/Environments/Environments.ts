@@ -64,7 +64,7 @@ export type EnvironmentNavActions = {
 };
 
 type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | 'pause' | 'delete'>;
-type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
+type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'errorInfo' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
 
 export interface DataRefreshInfo {
@@ -803,8 +803,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         ]),
       errorRuntimeId &&
         h(RuntimeErrorModal, {
-          runtime: _.find({ id: errorRuntimeId }, runtimes),
+          runtime: _.find({ id: errorRuntimeId }, runtimes) as RuntimeWithWorkspace,
           onDismiss: () => setErrorRuntimeId(undefined),
+          errorProvider: leoRuntimeData,
         }),
       deleteRuntimeId &&
         runtimeToDelete &&
