@@ -1,7 +1,6 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { removeUserFromLocalState } from 'src/auth/oidc-broker';
 import { signOut } from 'src/auth/signout/sign-out';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { goToPath } from 'src/libs/nav';
@@ -12,10 +11,7 @@ jest.mock('src/auth/oidc-broker');
 
 jest.mock('react-oidc-context');
 
-jest.mock('src/libs/ajax');
-
-type AjaxExports = typeof import('src/libs/ajax');
-type AjaxContract = ReturnType<AjaxExports['Ajax']>;
+jest.mock('src/libs/ajax/Metrics');
 
 const currentRoute = {
   name: 'routeName',
@@ -52,11 +48,9 @@ describe('sign-out', () => {
   it('sends sign out metrics', async () => {
     // Arrange
     const captureEventFn = jest.fn();
-    asMockedFn(Ajax).mockReturnValue({
-      Metrics: {
-        captureEvent: captureEventFn,
-      },
-    } as DeepPartial<AjaxContract> as AjaxContract);
+    asMockedFn(Metrics).mockReturnValue({
+      captureEvent: captureEventFn,
+    } as Partial<MetricsContract> as MetricsContract);
 
     // Act
     signOut();
@@ -66,11 +60,9 @@ describe('sign-out', () => {
   it('sends sign out metrics with a specified event', async () => {
     // Arrange
     const captureEventFn = jest.fn();
-    asMockedFn(Ajax).mockReturnValue({
-      Metrics: {
-        captureEvent: captureEventFn,
-      },
-    } as DeepPartial<AjaxContract> as AjaxContract);
+    asMockedFn(Metrics).mockReturnValue({
+      captureEvent: captureEventFn,
+    } as Partial<MetricsContract> as MetricsContract);
 
     // Act
     signOut('idleStatusMonitor');

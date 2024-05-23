@@ -23,6 +23,20 @@ jest.mock('react-notifications-component', () => {
   };
 });
 
+jest.mock('src/libs/state', () => {
+  const state = jest.requireActual('src/libs/state');
+  return {
+    ...state,
+    oidcStore: {
+      ...state.oidcStore,
+      get: jest.fn().mockReturnValue({
+        ...state.oidcStore.get,
+        userManager: { getUser: jest.fn() },
+      }),
+    },
+  };
+});
+
 jest.mock('src/libs/ajax');
 
 type AuthExports = typeof import('src/auth/auth');

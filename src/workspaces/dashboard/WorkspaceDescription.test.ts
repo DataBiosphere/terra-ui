@@ -20,7 +20,15 @@ jest.mock('src/libs/ajax', () => ({
   Ajax: jest.fn(),
 }));
 
-jest.mock('src/libs/notifications');
+type MockErrorExports = typeof import('src/libs/error.mock');
+jest.mock('src/libs/error', () => {
+  const errorModule = jest.requireActual('src/libs/error');
+  const mockErrorModule = jest.requireActual<MockErrorExports>('src/libs/error.mock');
+  return {
+    ...errorModule,
+    withErrorReporting: mockErrorModule.mockWithErrorReporting,
+  };
+});
 
 type WorkspaceUtilsExports = typeof import('src/workspaces/utils');
 
@@ -85,6 +93,7 @@ describe('WorkspaceDescription', () => {
     asMockedFn(Ajax).mockReturnValue({
       Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
     } as DeepPartial<AjaxContract> as AjaxContract);
+
     const props = {
       workspace: _.merge(defaultGoogleWorkspace, { workspace: { attributes: { description: undefined } } }),
       refreshWorkspace: jest.fn(),
@@ -147,12 +156,12 @@ describe('WorkspaceDescription', () => {
     const mockShallowMergeNewAttributes = jest.fn().mockResolvedValue({});
     const captureEvent = jest.fn();
     asMockedFn(Ajax).mockReturnValue({
-      Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
       Workspaces: {
         workspace: jest.fn().mockReturnValue({
           shallowMergeNewAttributes: mockShallowMergeNewAttributes,
         }),
       },
+      Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
     } as DeepPartial<AjaxContract> as AjaxContract);
     const newDescription = 'the description the user edited';
 

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { aside, div, h } from 'react-hyperscript-helpers';
 import { Transition } from 'react-transition-group';
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common';
-import { Ajax } from 'src/libs/ajax';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { getEnabledBrand } from 'src/libs/brand-utils';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import colors from 'src/libs/colors';
@@ -48,8 +48,8 @@ const CookieWarning = () => {
     const cookies = document.cookie.split(';');
     acceptCookies(false);
     // TODO: call azure invalidate cookie once endpoint exists, https://broadworkbench.atlassian.net/browse/IA-3498
-    await Ajax(signal)
-      .Runtimes.invalidateCookie()
+    await Runtimes(signal)
+      .invalidateCookie()
       .catch(() => {});
     // Expire all cookies
     _.forEach((cookie) => {

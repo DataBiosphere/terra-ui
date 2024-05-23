@@ -3,12 +3,17 @@ import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act } from '@testing-library/react';
 import { loadTerraUser } from 'src/auth/auth';
 import { Ajax } from 'src/libs/ajax';
-import { GroupRole } from 'src/libs/ajax/Groups';
-import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
-import { SamUserResponse } from 'src/libs/ajax/User';
+import { GroupRole, Groups, GroupsContract } from 'src/libs/ajax/Groups';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
+import { SamUserTermsOfServiceDetails, TermsOfService, TermsOfServiceContract } from 'src/libs/ajax/TermsOfService';
+import { SamUserResponse, User, UserContract } from 'src/libs/ajax/User';
 import { TerraUserState, userStore } from 'src/libs/state';
 
+jest.mock('src/libs/ajax/TermsOfService');
+jest.mock('src/libs/ajax/User');
+jest.mock('src/libs/ajax/Groups');
 jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/Metrics');
 
 type AjaxExports = typeof import('src/libs/ajax');
 type AjaxContract = ReturnType<AjaxExports['Ajax']>;
@@ -18,6 +23,20 @@ jest.mock('react-notifications-component', () => {
     Store: {
       addNotification: jest.fn(),
       removeNotification: jest.fn(),
+    },
+  };
+});
+
+jest.mock('src/libs/state', () => {
+  const state = jest.requireActual('src/libs/state');
+  return {
+    ...state,
+    oidcStore: {
+      ...state.oidcStore,
+      get: jest.fn().mockReturnValue({
+        ...state.oidcStore.get,
+        userManager: { getUser: jest.fn() },
+      }),
     },
   };
 });
@@ -86,19 +105,44 @@ const mockCurrentUserGroupMembership = {
 
 // TODO centralize Ajax mock setup so it can be reused across tests
 describe('a request to load a terra user', () => {
-  // reset userStore state before each test
+  // Arrange (shared between tests for the success case)
+  const getUserAllowancesFunction = jest.fn().mockResolvedValue(testSamUserAllowances);
+  const getUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
+  const getUserTermsOfServiceDetailsFunction = jest.fn().mockResolvedValue(mockSamUserTermsOfServiceDetails);
+  const getEnterpriseFeaturesFunction = jest.fn().mockResolvedValue([]);
+  const getSamUserResponseFunction = jest.fn().mockResolvedValue(mockSamUserResponse);
+  const getNihStatusFunction = jest.fn().mockResolvedValue(mockOrchestrationNihStatusResponse);
+  const getFenceStatusFunction = jest.fn().mockResolvedValue({});
+
   beforeEach(() => {
     userStore.reset;
   });
-  describe('when successful', () => {
-    // Arrange (shared between tests for the success case)
-    const getUserAllowancesFunction = jest.fn().mockResolvedValue(testSamUserAllowances);
-    const getUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
-    const getUserTermsOfServiceDetailsFunction = jest.fn().mockResolvedValue(mockSamUserTermsOfServiceDetails);
-    const getEnterpriseFeaturesFunction = jest.fn().mockResolvedValue([]);
-    const getSamUserResponseFunction = jest.fn().mockResolvedValue(mockSamUserResponse);
-    const getNihStatusFunction = jest.fn().mockResolvedValue(mockOrchestrationNihStatusResponse);
-    const getFenceStatusFunction = jest.fn().mockResolvedValue({});
+
+  // reset userStore state before each test
+  beforeAll(() => {
+    asMockedFn(Metrics).mockReturnValue({
+      captureEvent: jest.fn(),
+    } as Partial<MetricsContract> as MetricsContract);
+    asMockedFn(User).mockReturnValue({
+      getUserAllowances: getUserAllowancesFunction,
+      getUserAttributes: getUserAttributesFunction,
+      getUserTermsOfServiceDetails: getUserTermsOfServiceDetailsFunction,
+      getEnterpriseFeatures: getEnterpriseFeaturesFunction,
+      getSamUserResponse: getSamUserResponseFunction,
+      getNihStatus: getNihStatusFunction,
+      getFenceStatus: getFenceStatusFunction,
+      profile: {
+        get: jest.fn().mockReturnValue(mockTerraUserProfile),
+      },
+    } as DeepPartial<UserContract> as UserContract);
+
+    asMockedFn(Groups).mockReturnValue({
+      list: jest.fn(),
+    } as Partial<GroupsContract> as GroupsContract);
+
+    asMockedFn(TermsOfService).mockReturnValue({
+      getUserTermsOfServiceDetails: jest.fn().mockReturnValue({}),
+    } as Partial<TermsOfServiceContract> as TermsOfServiceContract);
 
     asMockedFn(Ajax).mockImplementation(
       () =>
@@ -123,6 +167,8 @@ describe('a request to load a terra user', () => {
           },
         } as DeepPartial<AjaxContract> as AjaxContract)
     );
+  });
+  describe('when successful', () => {
     it('should include a samUserResponse', async () => {
       // Act
       await act(() => loadTerraUser());
@@ -152,24 +198,25 @@ describe('a request to load a terra user', () => {
         // mock a failure to get samUserResponse
         const getSamUserResponseFunction = jest.fn().mockRejectedValue(new Error('unknown'));
 
-        asMockedFn(Ajax).mockImplementation(
-          () =>
-            ({
-              User: {
-                getUserAllowances: getUserAllowancesFunction,
-                getUserAttributes: getUserAttributesFunction,
-                getUserTermsOfServiceDetails: getUserTermsOfServiceDetailsFunction,
-                getEnterpriseFeatures: getEnterpriseFeaturesFunction,
-                getSamUserResponse: getSamUserResponseFunction,
-                profile: {
-                  get: jest.fn().mockReturnValue(mockTerraUserProfile),
-                },
-              },
-              TermsOfService: {
-                getUserTermsOfServiceDetails: jest.fn().mockReturnValue({}),
-              },
-            } as DeepPartial<AjaxContract> as AjaxContract)
-        );
+        asMockedFn(User).mockReturnValue({
+          getUserAllowances: getUserAllowancesFunction,
+          getUserAttributes: getUserAttributesFunction,
+          getUserTermsOfServiceDetails: getUserTermsOfServiceDetailsFunction,
+          getEnterpriseFeatures: getEnterpriseFeaturesFunction,
+          getSamUserResponse: getSamUserResponseFunction,
+          profile: {
+            get: jest.fn().mockReturnValue(mockTerraUserProfile),
+          },
+          getNihStatus: getNihStatusFunction,
+        } as DeepPartial<UserContract> as UserContract);
+
+        asMockedFn(Groups).mockReturnValue({
+          list: jest.fn(),
+        } as Partial<GroupsContract> as GroupsContract);
+
+        asMockedFn(TermsOfService).mockReturnValue({
+          getUserTermsOfServiceDetails: jest.fn().mockReturnValue({}),
+        } as Partial<TermsOfServiceContract> as TermsOfServiceContract);
         // Act, Assert
         // this expect.assertions is here to prevent the test from passing if the error is not thrown
         expect.assertions(1);
