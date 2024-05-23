@@ -6,7 +6,7 @@ import { notifyNewWorkspaceClone } from 'src/workspaces/common/state/useCloningW
 import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
 import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
-import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
+import { NewWorkspaceModal } from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { RequestAccessModal } from 'src/workspaces/RequestAccessModal/RequestAccessModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
 import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
