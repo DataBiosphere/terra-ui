@@ -2,8 +2,7 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act } from '@testing-library/react';
 import { loadTerraUser } from 'src/auth/auth';
-import { Ajax } from 'src/libs/ajax';
-import { GroupRole, Groups, GroupsContract } from 'src/libs/ajax/Groups';
+import { Groups, GroupsContract } from 'src/libs/ajax/Groups';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamUserTermsOfServiceDetails, TermsOfService, TermsOfServiceContract } from 'src/libs/ajax/TermsOfService';
 import { SamUserResponse, User, UserContract } from 'src/libs/ajax/User';
@@ -12,11 +11,7 @@ import { TerraUserState, userStore } from 'src/libs/state';
 jest.mock('src/libs/ajax/TermsOfService');
 jest.mock('src/libs/ajax/User');
 jest.mock('src/libs/ajax/Groups');
-jest.mock('src/libs/ajax');
 jest.mock('src/libs/ajax/Metrics');
-
-type AjaxExports = typeof import('src/libs/ajax');
-type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
 jest.mock('react-notifications-component', () => {
   return {
@@ -97,12 +92,6 @@ const mockOrchestrationNihStatusResponse = {
   linkExpireTime: 1234,
 };
 
-const mockCurrentUserGroupMembership = {
-  groupEmail: 'testGroupEmail',
-  groupName: 'testGroupName',
-  role: 'member' as GroupRole,
-};
-
 // TODO centralize Ajax mock setup so it can be reused across tests
 describe('a request to load a terra user', () => {
   // Arrange (shared between tests for the success case)
@@ -143,30 +132,6 @@ describe('a request to load a terra user', () => {
     asMockedFn(TermsOfService).mockReturnValue({
       getUserTermsOfServiceDetails: jest.fn().mockReturnValue({}),
     } as Partial<TermsOfServiceContract> as TermsOfServiceContract);
-
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          User: {
-            getUserAllowances: getUserAllowancesFunction,
-            getUserAttributes: getUserAttributesFunction,
-            getUserTermsOfServiceDetails: getUserTermsOfServiceDetailsFunction,
-            getEnterpriseFeatures: getEnterpriseFeaturesFunction,
-            getSamUserResponse: getSamUserResponseFunction,
-            getNihStatus: getNihStatusFunction,
-            getFenceStatus: getFenceStatusFunction,
-            profile: {
-              get: jest.fn().mockReturnValue(mockTerraUserProfile),
-            },
-          },
-          TermsOfService: {
-            getUserTermsOfServiceDetails: jest.fn().mockReturnValue({}),
-          },
-          Groups: {
-            list: jest.fn().mockReturnValue([mockCurrentUserGroupMembership]),
-          },
-        } as DeepPartial<AjaxContract> as AjaxContract)
-    );
   });
   describe('when successful', () => {
     it('should include a samUserResponse', async () => {
@@ -210,13 +175,6 @@ describe('a request to load a terra user', () => {
           getNihStatus: getNihStatusFunction,
         } as DeepPartial<UserContract> as UserContract);
 
-        asMockedFn(Groups).mockReturnValue({
-          list: jest.fn(),
-        } as Partial<GroupsContract> as GroupsContract);
-
-        asMockedFn(TermsOfService).mockReturnValue({
-          getUserTermsOfServiceDetails: jest.fn().mockReturnValue({}),
-        } as Partial<TermsOfServiceContract> as TermsOfServiceContract);
         // Act, Assert
         // this expect.assertions is here to prevent the test from passing if the error is not thrown
         expect.assertions(1);

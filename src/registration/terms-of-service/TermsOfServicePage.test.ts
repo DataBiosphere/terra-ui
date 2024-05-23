@@ -33,23 +33,12 @@ jest.mock(
   })
 );
 
-type AuthExports = typeof import('src/auth/auth');
-
 type SignOutExports = typeof import('src/auth/signout/sign-out');
 jest.mock(
   'src/auth/signout/sign-out',
   (): SignOutExports => ({
     ...jest.requireActual<SignOutExports>('src/auth/signout/sign-out'),
     signOut: jest.fn(),
-  })
-);
-
-jest.mock(
-  'src/auth/auth',
-  (): AuthExports => ({
-    ...jest.requireActual<AuthExports>('src/auth/auth'),
-    getAuthToken: jest.fn(),
-    getAuthTokenFromLocalStorage: jest.fn(),
   })
 );
 
@@ -94,7 +83,6 @@ const setupMockAjax = async (
     () =>
       ({
         TermsOfService: {
-          getUserTermsOfServiceDetails,
           acceptTermsOfService,
           rejectTermsOfService,
           getTermsOfServiceText,
@@ -125,7 +113,6 @@ const setupMockAjax = async (
   } as Partial<GroupsContract> as GroupsContract);
 
   asMockedFn(TermsOfService).mockReturnValue({
-    acceptTermsOfService,
     getUserTermsOfServiceDetails,
   } as Partial<TermsOfServiceContract> as TermsOfServiceContract);
 
