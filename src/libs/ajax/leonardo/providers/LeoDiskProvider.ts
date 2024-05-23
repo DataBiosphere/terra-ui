@@ -86,8 +86,8 @@ export interface AzurePdType {
   // TODO: Pricing skuLetter: 'S'; Enable SSD types | 'E';
 }
 
-export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType =>
-  Utils.switchCase(
+export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType => {
+  return Utils.switchCase(
     type,
     [googlePdTypes.standard.value, () => googlePdTypes.standard],
     [googlePdTypes.balanced.value, () => googlePdTypes.balanced],
@@ -107,6 +107,7 @@ export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType =>
      * That would ensure that the return type is GooglePdType instead of GooglePdType | undefined.
      */
   ) as GooglePdType; // TODO: Remove cast
+};
 
 const updatePdType = <T extends RawListDiskItem>(disk: T): T & { diskType: GooglePdType } => ({
   ...disk,

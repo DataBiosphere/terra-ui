@@ -6,8 +6,6 @@ import path from 'path';
 import { fetchSam } from 'src/libs/ajax/ajax-common';
 import { TermsOfService } from 'src/libs/ajax/TermsOfService';
 
-jest.mock(fetchSam);
-
 jest.mock('src/libs/ajax/ajax-common', () => ({
   ...jest.requireActual('src/libs/ajax/ajax-common'),
   fetchFromProxy: jest.fn(),

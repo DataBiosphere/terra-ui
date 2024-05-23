@@ -4,14 +4,14 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { Groups, GroupsContract } from 'src/libs/ajax/Groups';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
-import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
+import { SamUserTermsOfServiceDetails, TermsOfService, TermsOfServiceContract } from 'src/libs/ajax/TermsOfService';
 import { SamUserAllowances, SamUserResponse, User, UserContract } from 'src/libs/ajax/User';
 import { AuthState, authStore } from 'src/libs/state';
 import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfServicePage';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-
 jest.mock('src/libs/ajax/Metrics');
+jest.mock('src/libs/ajax/TermsOfService');
 jest.mock('src/libs/ajax/User');
 jest.mock('src/libs/ajax/Groups');
 jest.mock('src/libs/ajax');
@@ -49,7 +49,7 @@ jest.mock(
   (): AuthExports => ({
     ...jest.requireActual<AuthExports>('src/auth/auth'),
     getAuthToken: jest.fn(),
-    getAuthTokenFromLocalStorage: jest.fn()
+    getAuthTokenFromLocalStorage: jest.fn(),
   })
 );
 
@@ -93,55 +93,41 @@ const setupMockAjax = async (
   asMockedFn(Ajax).mockImplementation(
     () =>
       ({
-        Metrics: {
-          captureEvent: jest.fn(),
-        },
-        User: {
-          getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
-          getUserAllowances: jest.fn().mockResolvedValue(terraUserAllowances),
-          getEnterpriseFeatures: jest.fn().mockResolvedValue([]),
-          getSamUserResponse: jest.fn().mockResolvedValue(mockSamUserResponse),
-          profile: {
-            get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
-            update: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
-            setPreferences: jest.fn().mockResolvedValue({}),
-            preferLegacyFirecloud: jest.fn().mockResolvedValue({}),
-          },
-          getNihStatus,
-        },
         TermsOfService: {
           getUserTermsOfServiceDetails,
           acceptTermsOfService,
           rejectTermsOfService,
           getTermsOfServiceText,
         },
-        Groups: {
-          list: jest.fn(),
-        },
       } as DeepPartial<AjaxContract> as AjaxContract)
   );
 
   asMockedFn(Metrics).mockReturnValue({
-     captureEvent: jest.fn()
-  }as Partial<MetricsContract> as MetricsContract)
+    captureEvent: jest.fn(),
+  } as Partial<MetricsContract> as MetricsContract);
 
-asMockedFn(User).mockReturnValue( {
-          getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
-          getUserAllowances: jest.fn().mockResolvedValue(terraUserAllowances),
-          getEnterpriseFeatures: jest.fn().mockResolvedValue([]),
-          getSamUserResponse: jest.fn().mockResolvedValue(mockSamUserResponse),
-          profile: {
-            get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
-            update: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
-            setPreferences: jest.fn().mockResolvedValue({}),
-            preferLegacyFirecloud: jest.fn().mockResolvedValue({}),
-          },
-          getNihStatus,
-        } as Partial<UserContract> as UserContract)
+  asMockedFn(User).mockReturnValue({
+    getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
+    getUserAllowances: jest.fn().mockResolvedValue(terraUserAllowances),
+    getEnterpriseFeatures: jest.fn().mockResolvedValue([]),
+    getSamUserResponse: jest.fn().mockResolvedValue(mockSamUserResponse),
+    profile: {
+      get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
+      update: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
+      setPreferences: jest.fn().mockResolvedValue({}),
+      preferLegacyFirecloud: jest.fn().mockResolvedValue({}),
+    },
+    getNihStatus,
+  } as Partial<UserContract> as UserContract);
 
-    asMockedFn(Groups).mockReturnValue({
-          list: jest.fn(),
-        }as Partial<GroupsContract> as GroupsContract)
+  asMockedFn(Groups).mockReturnValue({
+    list: jest.fn(),
+  } as Partial<GroupsContract> as GroupsContract);
+
+  asMockedFn(TermsOfService).mockReturnValue({
+    acceptTermsOfService,
+    getUserTermsOfServiceDetails,
+  } as Partial<TermsOfServiceContract> as TermsOfServiceContract);
 
   await act(async () => {
     authStore.update((state: AuthState) => ({ ...state, termsOfService, signInStatus, terraUserAllowances }));

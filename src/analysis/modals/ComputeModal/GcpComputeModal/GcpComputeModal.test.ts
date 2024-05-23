@@ -37,7 +37,7 @@ import { runtimeToolLabels, runtimeTools, terraSupportedRuntimeImageIds } from '
 import { Ajax } from 'src/libs/ajax';
 import { cloudServiceTypes, NormalizedComputeRegion } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { leoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { LeoDiskProvider, leoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { RuntimeAjaxContractV1, RuntimesAjaxContract } from 'src/libs/ajax/leonardo/Runtimes';
 import { formatUSD } from 'src/libs/utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -50,7 +50,18 @@ jest.mock('src/libs/notifications', () => ({
   },
 }));
 
-jest.mock('src/libs/ajax/leonardo/providers/LeoDiskProvider');
+type DiskProviderExports = typeof import('src/libs/ajax/leonardo/providers/LeoDiskProvider');
+jest.mock('src/libs/ajax/leonardo/providers/LeoDiskProvider', (): DiskProviderExports => {
+  return {
+    ...jest.requireActual('src/libs/ajax/leonardo/providers/LeoDiskProvider'),
+    leoDiskProvider: {
+      details: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    } as Partial<LeoDiskProvider> as LeoDiskProvider,
+  };
+});
+
 jest.mock('src/libs/ajax');
 jest.mock('src/analysis/utils/cost-utils');
 jest.mock('src/libs/config', () => ({
