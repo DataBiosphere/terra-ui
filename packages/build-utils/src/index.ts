@@ -1,1 +1,1 @@
-export { defineBaseViteConfig as viteConfig } from './baseViteConfig';
+export { defineBaseViteConfig } from './baseViteConfig';
