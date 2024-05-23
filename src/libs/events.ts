@@ -299,7 +299,8 @@ export const PageViewReporter = (): ReactNode => {
 };
 
 export const captureAppcuesEvent = (eventName: string, event: any) => {
-  // Only record "public-facing events" (and related properties) as documented by Appcues: https://docs.appcues.com/article/301-client-side-events-reference
+  // record different event properties for "public-facing events" and NPS events
+  // Appcues event properties are listed here: https://docs.appcues.com/article/301-client-side-events-reference
   const publicEvents = [
     'flow_started',
     'flow_completed',
@@ -312,6 +313,8 @@ export const captureAppcuesEvent = (eventName: string, event: any) => {
     'step_interacted',
     'form_submitted',
     'form_field_submitted',
+  ];
+  const npsEvents = [
     'nps_survey_started',
     'nps_score',
     'nps_feedback',
@@ -345,6 +348,20 @@ export const captureAppcuesEvent = (eventName: string, event: any) => {
       'appcues.stepId': event.stepId,
       'appcues.stepNumber': event.stepNumber,
       'appcues.stepType': event.stepType,
+      'appcues.timestamp': event.timestamp,
+    };
+    return Ajax().Metrics.captureEvent(eventsList.appcuesEvent, eventProps);
+  }
+  if (_.includes(eventName, npsEvents)) {
+    const eventProps = {
+      // the NPS survey related events have additional special properties
+      'appcues.flowId': event.flowId,
+      'appcues.flowName': event.flowName,
+      'appcues.flowType': event.flowType,
+      'appcues.flowVersion': event.flowVersion,
+      'appcues.id': event.id,
+      'appcues.name': event.name,
+      'appcues.sessionId': event.sessionId,
       'appcues.timestamp': event.timestamp,
       'appcues.npsScore': event.score,
       'appcues.npsFeedback': event.feedback,
