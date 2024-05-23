@@ -3,12 +3,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
-import {
-  SamUserAllowances,
-  SamUserAttributes,
-  SamUserCombinedStateResponse,
-  SamUserResponse,
-} from 'src/libs/ajax/User';
+import { SamUserAllowances, SamUserCombinedStateResponse, SamUserResponse } from 'src/libs/ajax/User';
 import { AuthState, authStore } from 'src/libs/state';
 import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfServicePage';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';

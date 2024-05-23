@@ -5,7 +5,7 @@ import { loadTerraUser } from 'src/auth/auth';
 import { Ajax } from 'src/libs/ajax';
 import { GroupRole } from 'src/libs/ajax/Groups';
 import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
-import { SamUserAttributes, SamUserCombinedStateResponse, SamUserResponse } from 'src/libs/ajax/User';
+import { SamUserCombinedStateResponse, SamUserResponse } from 'src/libs/ajax/User';
 import { userStore } from 'src/libs/state';
 
 jest.mock('src/libs/ajax');
