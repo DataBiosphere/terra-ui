@@ -4,6 +4,7 @@ import { div, h, label } from 'react-hyperscript-helpers';
 import { IComputeConfig } from 'src/analysis/modal-utils';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { Select } from 'src/components/common';
+import { azureDiskSizes } from 'src/libs/ajax/leonardo/models/disk-models';
 import { defaultAzureDiskSize } from 'src/libs/azure-utils';
 
 export interface AzurePersistentDiskSizeSelectInputProps {
@@ -11,8 +12,6 @@ export interface AzurePersistentDiskSizeSelectInputProps {
   onChangePersistentDiskSize: (e: number | null | undefined) => void;
   persistentDiskExists: boolean;
 }
-
-export const azureDiskSizes: number[] = [32, 64, 128, 256, 512, 1024, 2048, 4095];
 
 const AzurePersistentDiskSizeSelect = Select as typeof Select<IComputeConfig['persistentDiskSize']>;
 

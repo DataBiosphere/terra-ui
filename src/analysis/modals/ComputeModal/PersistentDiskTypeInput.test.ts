@@ -5,8 +5,7 @@ import {
   PersistentDiskTypeInput,
   PersistentDiskTypeInputProps,
 } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInput';
-import { GoogleDiskType } from 'src/libs/ajax/leonardo/Disks';
-import { GooglePdType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { GoogleDiskType, GooglePdType } from 'src/libs/ajax/leonardo/models/disk-models';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 const defaultPersistentDiskTypeInputProps: PersistentDiskTypeInputProps<GoogleDiskType, GooglePdType> = {

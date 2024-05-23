@@ -5,8 +5,7 @@ import {
   getImageUrlFromRuntime,
 } from 'src/analysis/utils/runtime-utils';
 import { getToolLabelFromCloudEnv } from 'src/analysis/utils/tool-utils';
-import { DiskType, GoogleDiskType } from 'src/libs/ajax/leonardo/Disks';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { DiskType, GoogleDiskType, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 
 export interface IComputeConfig {
   masterMachineType: string;

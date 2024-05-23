@@ -5,7 +5,7 @@ import {
   PersistentDiskTypeInput,
   PersistentDiskTypeInputProps,
 } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInput';
-import { DiskType } from 'src/libs/ajax/leonardo/Disks';
+import { DiskType } from 'src/libs/ajax/leonardo/models/disk-models';
 
 export interface PersistentDiskTypeContainerProps<T extends DiskType, Option extends { value: T; label: string }>
   extends Pick<PersistentDiskTypeInputProps<T, Option>, 'options' | 'value' | 'onChange'> {

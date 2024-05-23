@@ -10,7 +10,7 @@ import {
 import { getCurrentAppDataDisk, workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
 import { asMockedFn } from 'src/testing/test-utils';
 import { cloudProviderTypes, WorkspaceInfo } from 'src/workspaces/utils';

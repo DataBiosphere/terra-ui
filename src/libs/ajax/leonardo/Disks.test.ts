@@ -1,6 +1,7 @@
-import { azureDisk, galaxyDisk, undecoratePd } from 'src/analysis/_testData/testData';
+import { azureDisk, galaxyDisk } from 'src/analysis/_testData/testData';
 import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
 import { Disks } from 'src/libs/ajax/leonardo/Disks';
+import { PersistentDisk, RawListDiskItem } from 'src/libs/ajax/leonardo/models/disk-models';
 import { asMockedFn } from 'src/testing/test-utils';
 
 type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
@@ -13,6 +14,12 @@ jest.mock(
   })
 );
 
+const undecoratePd = (disk: PersistentDisk): RawListDiskItem => ({
+  ...disk,
+  diskType: disk.diskType.value,
+});
+// Decorated jsons that are expected to be returned by the ajax layer
+const expectedJson = [azureDisk, galaxyDisk];
 // Undecorated jsons that are expected to be returned from the leo API
 const rawJson = [undecoratePd(azureDisk), undecoratePd(galaxyDisk)];
 
@@ -34,6 +41,6 @@ describe('Disks ajax', () => {
 
     // Assert
     expect(mockFetchLeo).toHaveBeenCalledWith('api/google/v1/disks', expect.anything());
-    expect(disks).toStrictEqual(rawJson);
+    expect(disks).toStrictEqual(expectedJson);
   });
 });

@@ -1,9 +1,8 @@
 import { ToolLabel } from 'src/analysis/utils/tool-utils';
 import { RawRuntimeConfig } from 'src/libs/ajax/leonardo/models/api-runtime-config';
 import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
+import { DiskConfig } from 'src/libs/ajax/leonardo/models/disk-models';
 import { RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
-
-import { DiskType } from '../Disks';
 
 export type LeoRuntimeStatus =
   | 'Running'
@@ -87,13 +86,6 @@ export interface LeoRuntimeImage {
   imageType: string;
   imageUrl: string;
   timestamp: string;
-}
-
-export interface DiskConfig {
-  name: string;
-  size: number;
-  diskType: DiskType;
-  blockSize: number;
 }
 
 export interface RawGetRuntimeItem {

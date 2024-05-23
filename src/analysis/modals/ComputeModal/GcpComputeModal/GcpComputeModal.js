@@ -18,6 +18,7 @@ import {
   defaultGcePersistentDiskSize,
   defaultPersistentDiskType,
   generatePersistentDiskName,
+  pdTypeFromDiskType,
 } from 'src/analysis/utils/disk-utils';
 import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/analysis/utils/gce-machines';
 import {
@@ -53,7 +54,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer';
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
-import { leoDiskProvider, pdTypeFromDiskType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';

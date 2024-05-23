@@ -1,6 +1,7 @@
 import { App, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { LeoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { WorkspaceInfo } from 'src/workspaces/utils';
 
