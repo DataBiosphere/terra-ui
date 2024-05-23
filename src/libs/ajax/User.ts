@@ -199,7 +199,7 @@ export const User = (signal?: AbortSignal) => {
     getSamUserCombinedState: async (): Promise<SamUserCombinedStateResponse> => {
       const res = await fetchSam('api/users/v2/self/combinedState', _.mergeAll([authOpts(), { signal }]));
       const responseJson = await res.json();
-      const samUser = {
+      const samUser: SamUserResponse = {
         id: responseJson.samUser.id,
         googleSubjectId: responseJson.samUser.googleSubjectId,
         email: responseJson.samUser.email,
@@ -208,7 +208,7 @@ export const User = (signal?: AbortSignal) => {
         createdAt: responseJson.samUser.createdAt ? new Date(responseJson.samUser.createdAt) : undefined,
         registeredAt: responseJson.samUser.registeredAt ? new Date(responseJson.samUser.registeredAt) : undefined,
         updatedAt: responseJson.samUser.updatedAt ? new Date(responseJson.samUser.updatedAt) : undefined,
-      } as SamUserResponse;
+      };
 
       const terraUserAllowances = {
         allowed: responseJson.allowances.allowed,
