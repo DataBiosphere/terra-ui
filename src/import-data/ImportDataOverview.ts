@@ -3,8 +3,8 @@ import { div, h, h2, h3 } from 'react-hyperscript-helpers';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 
+import { isProtectedSource } from './import-requirements';
 import { ImportRequest } from './import-types';
-import { isProtectedSource } from './protected-data-utils';
 
 const styles = {
   container: {

@@ -21,9 +21,9 @@ import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModa
 import { WorkspaceInfo } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
+import { isProtectedSource } from './import-requirements';
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
 import { buildDestinationWorkspaceFilter, getCloudPlatformRequiredForImport } from './import-utils';
-import { isProtectedSource } from './protected-data-utils';
 
 const styles = {
   card: {

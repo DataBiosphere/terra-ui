@@ -9,8 +9,8 @@ import {
   WorkspaceWrapper,
 } from 'src/workspaces/utils';
 
+import { isProtectedSource } from './import-requirements';
 import { ImportRequest } from './import-types';
-import { isProtectedSource } from './protected-data-utils';
 
 export const getCloudPlatformRequiredForImport = (importRequest: ImportRequest): CloudProvider | undefined => {
   switch (importRequest.type) {
