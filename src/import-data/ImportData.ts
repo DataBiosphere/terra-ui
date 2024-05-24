@@ -180,7 +180,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     Ajax().Metrics.captureEvent(Events.workspaceDataImport, {
       format,
       ...extractWorkspaceDetails(workspace),
-      importSource: 'url' in importRequest ? getImportSource(importRequest.url) : undefined,
+      importSource: getImportSource(importRequest),
     });
     Nav.goToPath('workspace-data', { namespace, name });
   });

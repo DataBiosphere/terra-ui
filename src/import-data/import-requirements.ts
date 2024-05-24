@@ -3,7 +3,7 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
 import { CloudProvider } from 'src/workspaces/utils';
 
-import { urlMatchesSource, UrlSource } from './import-sources';
+import { anvilSources, biodatacatalystSources, urlMatchesSource, UrlSource } from './import-sources';
 import { ImportRequest } from './import-types';
 
 export const getRequiredCloudPlatform = (importRequest: ImportRequest): CloudProvider | undefined => {
@@ -23,19 +23,18 @@ export const getRequiredCloudPlatform = (importRequest: ImportRequest): CloudPro
   }
 };
 
-// These must be kept in sync with CWDS' twds.data-import.sources setting.
-// https://github.com/DataBiosphere/terra-workspace-data-service/blob/main/service/src/main/resources/application.yml
 const sourcesRequiringSecurityMonitoring: UrlSource[] = [
-  // AnVIL production
-  { type: 'http', host: 'service.prod.anvil.gi.ucsc.edu' },
-  { type: 's3', bucket: 'edu-ucsc-gi-platform-anvil-prod-storage-anvilprod.us-east-1' },
-  // AnVIL development
-  { type: 'http', host: 'service.anvil.gi.ucsc.edu' },
-  { type: 's3', bucket: 'edu-ucsc-gi-platform-anvil-dev-storage-anvildev.us-east-1' },
-  // BioData Catalyst
-  { type: 'http', host: 'gen3.biodatacatalyst.nhlbi.nih.gov' },
-  { type: 's3', bucket: 'gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export' },
-  { type: 's3', bucket: 'gen3-theanvil-io-pfb-export' },
+  // AnVIL PFBs refer to TDR snapshots, so security monitoring requirements will be enforced
+  // by policy on the TDR snapshots. In Terra UI, we assume that all AnVIL PFBs reference
+  // a snapshot that requires security monitoring. This reduces that chance that a user
+  // selects a destination workspace that is not permitted to receive the data and encounters
+  // a failure later in the import process.
+  ...anvilSources,
+
+  // For some other sources, secure monitoring requirements are enforced by Terra Workspace Data Service.
+  // This must be kept in sync with the twds.data-import.sources configuration in terra-workspace-data-service.
+  // https://github.com/DataBiosphere/terra-workspace-data-service/blob/main/service/src/main/resources/application.yml
+  ...biodatacatalystSources,
 ];
 
 /**
