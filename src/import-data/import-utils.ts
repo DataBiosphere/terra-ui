@@ -1,33 +1,7 @@
-import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
-import {
-  canWrite,
-  CloudProvider,
-  getCloudProviderFromWorkspace,
-  isProtectedWorkspace,
-  WorkspaceWrapper,
-} from 'src/workspaces/utils';
+import { canWrite, getCloudProviderFromWorkspace, isProtectedWorkspace, WorkspaceWrapper } from 'src/workspaces/utils';
 
+import { getRequiredCloudPlatform, requiresSecurityMonitoring } from './import-requirements';
 import { ImportRequest } from './import-types';
-import { isProtectedSource } from './protected-data-utils';
-
-export const getCloudPlatformRequiredForImport = (importRequest: ImportRequest): CloudProvider | undefined => {
-  switch (importRequest.type) {
-    case 'tdr-snapshot-export':
-    case 'tdr-snapshot-reference':
-      const tdrCloudPlatformToCloudProvider: Record<Snapshot['cloudPlatform'], CloudProvider> = {
-        azure: 'AZURE',
-        gcp: 'GCP',
-      };
-      return tdrCloudPlatformToCloudProvider[importRequest.snapshot.cloudPlatform];
-    case 'pfb':
-      // restrict PFB imports to GCP unless the user has the right feature flag enabled
-      return isFeaturePreviewEnabled(ENABLE_AZURE_PFB_IMPORT) ? undefined : 'GCP';
-    default:
-      return undefined;
-  }
-};
 
 export type ImportOptions = {
   /** Authorization domain requested for destination workspace. */
@@ -47,8 +21,8 @@ export const buildDestinationWorkspaceFilter = (
 ): ((workspace: WorkspaceWrapper) => boolean) => {
   const { requiredAuthorizationDomain } = importOptions;
 
-  const isProtectedData = isProtectedSource(importRequest);
-  const requiredCloudPlatform = getCloudPlatformRequiredForImport(importRequest);
+  const importRequiresSecurityMonitoring = requiresSecurityMonitoring(importRequest);
+  const requiredCloudPlatform = getRequiredCloudPlatform(importRequest);
 
   return (workspace: WorkspaceWrapper): boolean => {
     // The user must be able to write to the workspace to import data.
@@ -61,8 +35,9 @@ export const buildDestinationWorkspaceFilter = (
       return false;
     }
 
-    // If the source data is protected, the destination workspace must also be protected and not public.
-    if (isProtectedData && !(isProtectedWorkspace(workspace) && !workspace.public)) {
+    // If the source data requires security monitoring, the destination workspace must have security monitoring enabled.
+    // Additionally, require that the destination workspace is not public.
+    if (importRequiresSecurityMonitoring && !(isProtectedWorkspace(workspace) && !workspace.public)) {
       return false;
     }
 

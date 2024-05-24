@@ -15,6 +15,7 @@ import * as Utils from 'src/libs/utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
 import { WorkspaceInfo } from 'src/workspaces/utils';
 
+import { getImportSource } from './import-sources';
 import {
   BagItImportRequest,
   CatalogDatasetImportRequest,
@@ -27,7 +28,6 @@ import {
 } from './import-types';
 import { ImportDataDestination } from './ImportDataDestination';
 import { ImportDataOverview } from './ImportDataOverview';
-import { getImportSource } from './protected-data-utils';
 import { useImportRequest } from './useImportRequest';
 
 export interface ImportDataProps {

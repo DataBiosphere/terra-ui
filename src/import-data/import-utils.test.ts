@@ -1,40 +1,11 @@
 import { makeAzureWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
-import { CloudProvider } from 'src/workspaces/utils';
 
 import {
   azureTdrSnapshotImportRequest,
   gcpTdrSnapshotImportRequest,
-  genericPfbImportRequest,
   protectedGcpTdrSnapshotImportRequest,
 } from './__fixtures__/import-request-fixtures';
-import { ImportRequest } from './import-types';
-import { buildDestinationWorkspaceFilter, getCloudPlatformRequiredForImport } from './import-utils';
-
-describe('getRequiredCloudPlatformForImport', () => {
-  it.each([
-    {
-      importRequest: genericPfbImportRequest,
-      expectedCloudPlatform: 'GCP',
-    },
-    {
-      importRequest: azureTdrSnapshotImportRequest,
-      expectedCloudPlatform: 'AZURE',
-    },
-    {
-      importRequest: gcpTdrSnapshotImportRequest,
-      expectedCloudPlatform: 'GCP',
-    },
-  ] as {
-    importRequest: ImportRequest;
-    expectedCloudPlatform: CloudProvider | undefined;
-  }[])('returns cloud platform required for import', async ({ importRequest, expectedCloudPlatform }) => {
-    // Act
-    const cloudPlatform = getCloudPlatformRequiredForImport(importRequest);
-
-    // Assert
-    expect(cloudPlatform).toEqual(expectedCloudPlatform);
-  });
-});
+import { buildDestinationWorkspaceFilter } from './import-utils';
 
 describe('canImportIntoWorkspace', () => {
   it('requires permission to write to the workspace', () => {
