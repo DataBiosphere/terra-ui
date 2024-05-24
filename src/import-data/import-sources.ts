@@ -1,3 +1,30 @@
+export type UrlSource = { type: 'http'; host: string } | { type: 's3'; bucket: string };
+
+/**
+ * Determine if a PFB file is considered protected data.
+ */
+export const urlMatchesSource = (url: URL, source: UrlSource): boolean => {
+  switch (source.type) {
+    case 'http':
+      // Match the hostname or subdomains of protected hosts.
+      return url.hostname === source.host || url.hostname.endsWith(`.${source.host}`);
+
+    case 's3':
+      // S3 supports multiple URL formats
+      // https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html
+      return (
+        url.hostname === `${source.bucket}.s3.amazonaws.com` ||
+        (url.hostname === 's3.amazonaws.com' && url.pathname.startsWith(`/${source.bucket}/`))
+      );
+
+    default:
+      // Use TypeScript to verify that all cases have been handled.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const exhaustiveGuard: never = source;
+      return false;
+  }
+};
+
 export type ImportSource = 'anvil' | '';
 
 /**

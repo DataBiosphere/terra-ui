@@ -1,12 +1,11 @@
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 
+import { urlMatchesSource, UrlSource } from './import-sources';
 import { ImportRequest } from './import-types';
-
-type ProtectedSource = { type: 'http'; host: string } | { type: 's3'; bucket: string };
 
 // These must be kept in sync with PROTECTED_URL_PATTERNS in import-service.
 // https://github.com/broadinstitute/import-service/blob/develop/app/protected_data.py
-const protectedSources: ProtectedSource[] = [
+const protectedSources: UrlSource[] = [
   // AnVIL production
   { type: 'http', host: 'service.prod.anvil.gi.ucsc.edu' },
   { type: 's3', bucket: 'edu-ucsc-gi-platform-anvil-prod-storage-anvilprod.us-east-1' },
@@ -23,27 +22,7 @@ const protectedSources: ProtectedSource[] = [
  * Determine if a PFB file is considered protected data.
  */
 const isProtectedPfbSource = (pfbUrl: URL): boolean => {
-  return protectedSources.some((source) => {
-    switch (source.type) {
-      case 'http':
-        // Match the hostname or subdomains of protected hosts.
-        return pfbUrl.hostname === source.host || pfbUrl.hostname.endsWith(`.${source.host}`);
-
-      case 's3':
-        // S3 supports multiple URL formats
-        // https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html
-        return (
-          pfbUrl.hostname === `${source.bucket}.s3.amazonaws.com` ||
-          (pfbUrl.hostname === 's3.amazonaws.com' && pfbUrl.pathname.startsWith(`/${source.bucket}/`))
-        );
-
-      default:
-        // Use TypeScript to verify that all cases have been handled.
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const exhaustiveGuard: never = source;
-        return false;
-    }
-  });
+  return protectedSources.some((source) => urlMatchesSource(pfbUrl, source));
 };
 
 /**
