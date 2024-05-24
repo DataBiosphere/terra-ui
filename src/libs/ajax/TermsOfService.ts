@@ -58,3 +58,5 @@ export const TermsOfService = (signal?: AbortSignal) => {
     },
   };
 };
+
+export type TermsOfServiceContract = ReturnType<typeof TermsOfService>;

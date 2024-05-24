@@ -9,9 +9,12 @@ import {
   OidcUser,
 } from 'src/auth/oidc-broker';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
-import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
-import { SamUserAttributes } from 'src/libs/ajax/User';
+import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
+import { Groups } from 'src/libs/ajax/Groups';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { TermsOfService } from 'src/libs/ajax/TermsOfService';
+import { SamUserAttributes, User } from 'src/libs/ajax/User';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
@@ -50,7 +53,7 @@ export const getAuthTokenFromLocalStorage = async (): Promise<string | undefined
 };
 
 export const sendRetryMetric = () => {
-  Ajax().Metrics.captureEvent(Events.user.authToken.load.retry, {});
+  Metrics().captureEvent(Events.user.authToken.load.retry, {});
 };
 
 export const signIn = async (includeBillingScope = false): Promise<OidcUser> => {
@@ -71,13 +74,13 @@ export const signIn = async (includeBillingScope = false): Promise<OidcUser> => 
       sessionId,
       sessionStartTime,
     }));
-    Ajax().Metrics.captureEvent(Events.user.login.success, {
+    Metrics().captureEvent(Events.user.login.success, {
       sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
     });
     return authTokenState.oidcUser;
   }
   if (authTokenState.status === 'error') {
-    Ajax().Metrics.captureEvent(Events.user.login.error, {});
+    Metrics().captureEvent(Events.user.login.error, {});
   }
   throw new Error('Auth token failed to load when signing in');
 };
@@ -170,7 +173,7 @@ export const loadAuthToken = async (
     }));
     const { refreshTokenMetadata: currentRefreshTokenMetadata } = metricStore.get();
 
-    Ajax().Metrics.captureEvent(Events.user.authToken.load.success, {
+    Metrics().captureEvent(Events.user.authToken.load.success, {
       authProvider: oidcUser.profile.idp,
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
       authTokenCreatedAt: getTimestampMetricLabel(authTokenCreatedAt),
@@ -182,7 +185,7 @@ export const loadAuthToken = async (
       jwtExpiresAt: getTimestampMetricLabel(jwtExpiresAt),
     });
   } else if (loadedAuthTokenState.status === 'error') {
-    Ajax().Metrics.captureEvent(Events.user.authToken.load.error, {
+    Metrics().captureEvent(Events.user.authToken.load.error, {
       // we could potentially log the reason, but I don't know if that data is safe to log
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
       refreshTokenId: oldRefreshTokenMetadata.id,
@@ -460,31 +463,31 @@ authStore.subscribe((state: AuthState) => {
 authStore.subscribe(
   withErrorReporting('Error checking groups for timeout status')(async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
-      const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list());
+      const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Groups().list());
       authStore.update((state) => ({ ...state, isTimeoutEnabled }));
     }
   })
 );
 
 export const refreshTerraProfile = async () => {
-  const profile: TerraUserProfile = await Ajax().User.profile.get();
+  const profile: TerraUserProfile = await User().profile.get();
   userStore.update((state: TerraUserState) => ({ ...state, profile }));
 };
 
 export const refreshSamUserAttributes = async (): Promise<void> => {
-  const terraUserAttributes: SamUserAttributes = await Ajax().User.getUserAttributes();
+  const terraUserAttributes: SamUserAttributes = await User().getUserAttributes();
   userStore.update((state: TerraUserState) => ({ ...state, terraUserAttributes }));
 };
 
 export const loadTerraUser = async (): Promise<void> => {
   try {
     const signInStatus = 'userLoaded';
-    const getProfile = Ajax().User.profile.get();
-    const getAllowances = Ajax().User.getUserAllowances();
-    const getAttributes = Ajax().User.getUserAttributes();
-    const getTermsOfService = Ajax().TermsOfService.getUserTermsOfServiceDetails();
-    const getEnterpriseFeatures = Ajax().User.getEnterpriseFeatures();
-    const getSamUser = Ajax().User.getSamUserResponse();
+    const getProfile = User().profile.get();
+    const getAllowances = User().getUserAllowances();
+    const getAttributes = User().getUserAttributes();
+    const getTermsOfService = TermsOfService().getUserTermsOfServiceDetails();
+    const getEnterpriseFeatures = User().getEnterpriseFeatures();
+    const getSamUser = User().getSamUserResponse();
     const [profile, terraUserAllowances, terraUserAttributes, termsOfService, enterpriseFeatures, samUser] =
       await Promise.all([
         getProfile,
@@ -544,7 +547,7 @@ authStore.subscribe(
 authStore.subscribe(
   withErrorReporting('Error loading NIH account link status')(async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
-      const nihStatus = await Ajax().User.getNihStatus();
+      const nihStatus = await User().getNihStatus();
       authStore.update((state: AuthState) => ({ ...state, nihStatus, nihStatusLoaded: true }));
     }
   })
@@ -553,7 +556,7 @@ authStore.subscribe(
 authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
-      await Ajax().Metrics.syncProfile();
+      await Metrics().syncProfile();
     }
   })
 );
@@ -563,7 +566,7 @@ authStore.subscribe(
     if (userCanNowUseTerra(oldState, state)) {
       const { anonymousId } = metricStore.get();
       if (anonymousId) {
-        return await Ajax().Metrics.identify(anonymousId);
+        return await Metrics().identify(anonymousId);
       }
     }
   })
@@ -574,7 +577,7 @@ authStore.subscribe(
     if (userCanNowUseTerra(oldState, state)) {
       await Promise.all(
         _.map(async (provider) => {
-          const status = await Ajax().ExternalCredentials(provider).getAccountLinkStatus();
+          const status = await ExternalCredentials()(provider).getAccountLinkStatus();
           authStore.update(_.set(['oAuth2AccountStatus', provider.key], status));
         }, allOAuth2Providers)
       );

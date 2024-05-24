@@ -1,11 +1,14 @@
+import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { AlertsIndicator } from 'src/alerts/Alerts';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { authStore, TermsOfServiceStatus } from 'src/libs/state';
 import * as TosAlerts from 'src/registration/terms-of-service/terms-of-service-alerts';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/Metrics');
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -19,6 +22,12 @@ jest.mock('react-notifications-component', () => {
       removeNotification: jest.fn(),
     },
   };
+});
+
+beforeAll(() => {
+  asMockedFn(Metrics).mockReturnValue({
+    captureEvent: jest.fn(),
+  } as Partial<MetricsContract> as MetricsContract);
 });
 
 afterEach(() => {
