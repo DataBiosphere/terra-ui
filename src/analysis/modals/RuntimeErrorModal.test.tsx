@@ -7,6 +7,7 @@ import { RuntimeErrorModal, RuntimeErrorProvider, text } from './RuntimeErrorMod
 
 describe('RuntimeErrorModal', () => {
   it('renders basic error', async () => {
+    // Arrange
     const runtime: RuntimeBasics = {
       cloudContext: {
         cloudProvider: 'GCP',
@@ -36,6 +37,7 @@ describe('RuntimeErrorModal', () => {
   });
 
   it('renders unknown error', async () => {
+    // Arrange
     const runtime: RuntimeBasics = {
       cloudContext: {
         cloudProvider: 'GCP',
@@ -65,6 +67,10 @@ describe('RuntimeErrorModal', () => {
   });
 
   it('renders cannot retrieve error', async () => {
+    // Arrange
+    // silence error log to console
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
     const runtime: RuntimeBasics = {
       cloudContext: {
         cloudProvider: 'GCP',
@@ -92,6 +98,7 @@ describe('RuntimeErrorModal', () => {
   });
 
   it('renders user script error', async () => {
+    // Arrange
     const runtime: RuntimeBasics = {
       cloudContext: {
         cloudProvider: 'GCP',
