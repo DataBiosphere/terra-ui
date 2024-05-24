@@ -366,7 +366,7 @@ export const captureAppcuesEvent = (eventName: string, event: any) => {
       'appcues.npsAskMeLaterSelectedAt': event.askMeLaterSelectedAt,
       'appcues.npsClickedUpdateNpsScore': event.score,
     };
-    return Ajax().Metrics.captureEvent(eventsList.appcuesEvent, eventProps);
+    return Metrics().captureEvent(eventsList.appcuesEvent, eventProps);
   }
 };
 
