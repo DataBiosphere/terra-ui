@@ -3,7 +3,7 @@ import { div, h, h2, h3 } from 'react-hyperscript-helpers';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 
-import { isProtectedSource } from './import-requirements';
+import { requiresSecurityMonitoring } from './import-requirements';
 import { ImportRequest } from './import-types';
 
 const styles = {
@@ -49,7 +49,7 @@ export interface ImportDataOverviewProps {
 export const ImportDataOverview = (props: ImportDataOverviewProps): ReactNode => {
   const { importRequest } = props;
 
-  const isProtectedData = isProtectedSource(importRequest);
+  const importRequiresSecurityMonitoring = requiresSecurityMonitoring(importRequest);
 
   return div({ style: styles.card }, [
     h2({ style: styles.title }, [getTitleForImportRequest(importRequest)]),
@@ -61,7 +61,7 @@ export const ImportDataOverview = (props: ImportDataOverviewProps): ReactNode =>
     h3({ style: { fontSize: 16 } }, ['Dataset security requirements:']),
     div(
       { style: { marginTop: '1rem' } },
-      isProtectedData
+      importRequiresSecurityMonitoring
         ? ['The data you have selected requires additional security monitoring.']
         : [
             'The data you just chose to import to Terra will be made available to you within a workspace of your choice where you can then perform analysis.',

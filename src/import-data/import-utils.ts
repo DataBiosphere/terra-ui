@@ -1,6 +1,6 @@
 import { canWrite, getCloudProviderFromWorkspace, isProtectedWorkspace, WorkspaceWrapper } from 'src/workspaces/utils';
 
-import { getRequiredCloudPlatform, isProtectedSource } from './import-requirements';
+import { getRequiredCloudPlatform, requiresSecurityMonitoring } from './import-requirements';
 import { ImportRequest } from './import-types';
 
 export type ImportOptions = {
@@ -21,7 +21,7 @@ export const buildDestinationWorkspaceFilter = (
 ): ((workspace: WorkspaceWrapper) => boolean) => {
   const { requiredAuthorizationDomain } = importOptions;
 
-  const isProtectedData = isProtectedSource(importRequest);
+  const importRequiresSecurityMonitoring = requiresSecurityMonitoring(importRequest);
   const requiredCloudPlatform = getRequiredCloudPlatform(importRequest);
 
   return (workspace: WorkspaceWrapper): boolean => {
@@ -35,8 +35,9 @@ export const buildDestinationWorkspaceFilter = (
       return false;
     }
 
-    // If the source data is protected, the destination workspace must also be protected and not public.
-    if (isProtectedData && !(isProtectedWorkspace(workspace) && !workspace.public)) {
+    // If the source data requires security monitoring, the destination workspace must have security monitoring enabled.
+    // Additionally, require that the destination workspace is not public.
+    if (importRequiresSecurityMonitoring && !(isProtectedWorkspace(workspace) && !workspace.public)) {
       return false;
     }
 

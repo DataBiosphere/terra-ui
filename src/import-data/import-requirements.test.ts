@@ -10,7 +10,7 @@ import {
   protectedGcpTdrSnapshotImportRequest,
   protectedGcpTdrSnapshotReferenceImportRequest,
 } from './__fixtures__/import-request-fixtures';
-import { getRequiredCloudPlatform, isProtectedSource } from './import-requirements';
+import { getRequiredCloudPlatform, requiresSecurityMonitoring } from './import-requirements';
 import { ImportRequest } from './import-types';
 
 describe('cloud provider requirements', () => {
@@ -41,8 +41,8 @@ describe('cloud provider requirements', () => {
   });
 });
 
-describe('protected data requirements', () => {
-  const protectedImports: ImportRequest[] = [
+describe('security monitoring requirements', () => {
+  const importsExpectedToRequireSecurityMonitoring: ImportRequest[] = [
     // AnVIL
     ...anvilPfbImportRequests,
     // BioData Catalyst
@@ -52,7 +52,7 @@ describe('protected data requirements', () => {
     protectedGcpTdrSnapshotReferenceImportRequest,
   ];
 
-  const unprotectedImports: ImportRequest[] = [
+  const importsExpectedToNotRequireSecurityMonitoring: ImportRequest[] = [
     genericPfbImportRequest,
     { type: 'entities', url: new URL('https://example.com/file.json') },
     gcpTdrSnapshotImportRequest,
@@ -60,12 +60,23 @@ describe('protected data requirements', () => {
   ];
 
   describe('isProtectedSource', () => {
-    it.each(protectedImports)('$url should be protected', (importRequest) => {
-      expect(isProtectedSource(importRequest)).toBe(true);
+    it.each(importsExpectedToRequireSecurityMonitoring)('$url should require security monitoring', (importRequest) => {
+      // Act
+      const importRequiresSecurityMonitoring = requiresSecurityMonitoring(importRequest);
+
+      // Assert
+      expect(importRequiresSecurityMonitoring).toBe(true);
     });
 
-    it.each(unprotectedImports)('$url should not be protected', (importRequest) => {
-      expect(isProtectedSource(importRequest)).toBe(false);
-    });
+    it.each(importsExpectedToNotRequireSecurityMonitoring)(
+      '$url should not require security monitoring',
+      (importRequest) => {
+        // Act
+        const importRequiresSecurityMonitoring = requiresSecurityMonitoring(importRequest);
+
+        // Assert
+        expect(importRequiresSecurityMonitoring).toBe(false);
+      }
+    );
   });
 });
