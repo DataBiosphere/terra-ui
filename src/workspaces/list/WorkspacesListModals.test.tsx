@@ -6,8 +6,7 @@ import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/works
 import { notifyNewWorkspaceClone } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
 import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
 import { NewWorkspaceModalProps } from 'src/workspaces/NewWorkspaceModal//NewWorkspaceModal';
-
-import { WorkspaceInfo } from '../utils';
+import { WorkspaceInfo } from 'src/workspaces/utils';
 
 const mockModalFn = jest.fn();
 
