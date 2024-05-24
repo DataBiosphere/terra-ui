@@ -501,7 +501,7 @@ export const NewWorkspaceModal = withDisplayName(
             },
             [
               creating ? (
-                <CreatingWorkspaceMessage />
+                <CreatingWorkspaceMessage asyncClone={!!cloneWorkspace && isAzureWorkspace(cloneWorkspace)} />
               ) : (
                 h(Fragment, [
                   h(IdContainer, [
