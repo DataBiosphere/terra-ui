@@ -1,4 +1,4 @@
-import { viteConfig as defineBaseViteConfig } from '@terra-ui-packages/build-utils';
+import { defineBaseViteConfig } from '@terra-ui-packages/build-utils';
 import { defineConfig } from 'vite';
 
 export default defineConfig((env) => {
