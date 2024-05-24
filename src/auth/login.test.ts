@@ -6,7 +6,7 @@ import { Groups, GroupsContract } from 'src/libs/ajax/Groups';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamUserTermsOfServiceDetails, TermsOfService, TermsOfServiceContract } from 'src/libs/ajax/TermsOfService';
 import { SamUserResponse, User, UserContract } from 'src/libs/ajax/User';
-import { TerraUserState, userStore } from 'src/libs/state';
+import { oidcStore, TerraUserState, userStore } from 'src/libs/state';
 
 jest.mock('src/libs/ajax/TermsOfService');
 jest.mock('src/libs/ajax/User');
@@ -22,19 +22,11 @@ jest.mock('react-notifications-component', () => {
   };
 });
 
-jest.mock('src/libs/state', () => {
-  const state = jest.requireActual('src/libs/state');
-  return {
-    ...state,
-    oidcStore: {
-      ...state.oidcStore,
-      get: jest.fn().mockReturnValue({
-        ...state.oidcStore.get,
-        userManager: { getUser: jest.fn() },
-      }),
-    },
-  };
-});
+jest.spyOn(oidcStore, 'get').mockImplementation(
+  jest.fn().mockReturnValue({
+    userManager: { getUser: jest.fn() },
+  })
+);
 
 const samUserDate = new Date('1970-01-01');
 
@@ -104,7 +96,7 @@ describe('a request to load a terra user', () => {
   const getFenceStatusFunction = jest.fn().mockResolvedValue({});
 
   beforeEach(() => {
-    userStore.reset;
+    userStore.reset();
   });
 
   // reset userStore state before each test

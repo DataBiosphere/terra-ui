@@ -463,7 +463,7 @@ authStore.subscribe((state: AuthState) => {
 authStore.subscribe(
   withErrorReporting('Error checking groups for timeout status')(async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
-      const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, Groups().list());
+      const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Groups().list());
       authStore.update((state) => ({ ...state, isTimeoutEnabled }));
     }
   })
