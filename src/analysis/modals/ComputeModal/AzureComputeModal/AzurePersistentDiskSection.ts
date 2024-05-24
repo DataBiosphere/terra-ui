@@ -8,6 +8,7 @@ import { AzureDiskType, AzurePdType, AzurePersistentDiskOptions } from 'src/libs
 import { defaultAzurePersistentDiskType } from 'src/libs/azure-utils';
 
 export interface AzurePersistentDiskSectionProps {
+  maxPersistentDiskSize?: number;
   persistentDiskExists: boolean;
   persistentDiskSize: number;
   persistentDiskType: AzureDiskType;
@@ -18,6 +19,7 @@ export interface AzurePersistentDiskSectionProps {
 
 export const AzurePersistentDiskSection = (props: AzurePersistentDiskSectionProps): ReactNode => {
   const {
+    maxPersistentDiskSize,
     onClickAbout,
     persistentDiskType,
     persistentDiskSize,
@@ -37,6 +39,7 @@ export const AzurePersistentDiskSection = (props: AzurePersistentDiskSectionProp
         options: AzurePersistentDiskOptions,
       }),
       h(AzurePersistentDiskSizeSelectInput, {
+        maxPersistentDiskSize,
         persistentDiskSize,
         onChangePersistentDiskSize,
         persistentDiskExists,
