@@ -1,7 +1,27 @@
 import { Snapshot } from 'src/libs/ajax/DataRepo';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
+import { CloudProvider } from 'src/workspaces/utils';
 
 import { urlMatchesSource, UrlSource } from './import-sources';
 import { ImportRequest } from './import-types';
+
+export const getRequiredCloudPlatform = (importRequest: ImportRequest): CloudProvider | undefined => {
+  switch (importRequest.type) {
+    case 'tdr-snapshot-export':
+    case 'tdr-snapshot-reference':
+      const tdrCloudPlatformToCloudProvider: Record<Snapshot['cloudPlatform'], CloudProvider> = {
+        azure: 'AZURE',
+        gcp: 'GCP',
+      };
+      return tdrCloudPlatformToCloudProvider[importRequest.snapshot.cloudPlatform];
+    case 'pfb':
+      // restrict PFB imports to GCP unless the user has the right feature flag enabled
+      return isFeaturePreviewEnabled(ENABLE_AZURE_PFB_IMPORT) ? undefined : 'GCP';
+    default:
+      return undefined;
+  }
+};
 
 // These must be kept in sync with PROTECTED_URL_PATTERNS in import-service.
 // https://github.com/broadinstitute/import-service/blob/develop/app/protected_data.py

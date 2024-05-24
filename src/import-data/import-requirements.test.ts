@@ -1,5 +1,8 @@
+import { CloudProvider } from 'src/workspaces/utils';
+
 import {
   anvilPfbImportRequests,
+  azureTdrSnapshotImportRequest,
   biodataCatalystPfbImportRequests,
   gcpTdrSnapshotImportRequest,
   gcpTdrSnapshotReferenceImportRequest,
@@ -7,8 +10,36 @@ import {
   protectedGcpTdrSnapshotImportRequest,
   protectedGcpTdrSnapshotReferenceImportRequest,
 } from './__fixtures__/import-request-fixtures';
-import { isProtectedSource } from './import-requirements';
+import { getRequiredCloudPlatform, isProtectedSource } from './import-requirements';
 import { ImportRequest } from './import-types';
+
+describe('cloud provider requirements', () => {
+  describe('getRequiredCloudPlatform', () => {
+    it.each([
+      {
+        importRequest: genericPfbImportRequest,
+        expectedCloudPlatform: 'GCP',
+      },
+      {
+        importRequest: azureTdrSnapshotImportRequest,
+        expectedCloudPlatform: 'AZURE',
+      },
+      {
+        importRequest: gcpTdrSnapshotImportRequest,
+        expectedCloudPlatform: 'GCP',
+      },
+    ] as {
+      importRequest: ImportRequest;
+      expectedCloudPlatform: CloudProvider | undefined;
+    }[])('returns cloud provider required for import', async ({ importRequest, expectedCloudPlatform }) => {
+      // Act
+      const requiredCloudPlatform = getRequiredCloudPlatform(importRequest);
+
+      // Assert
+      expect(requiredCloudPlatform).toBe(expectedCloudPlatform);
+    });
+  });
+});
 
 describe('protected data requirements', () => {
   const protectedImports: ImportRequest[] = [

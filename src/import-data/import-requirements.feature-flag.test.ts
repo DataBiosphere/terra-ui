@@ -1,6 +1,6 @@
 import { genericPfbImportRequest } from './__fixtures__/import-request-fixtures';
+import { getRequiredCloudPlatform } from './import-requirements';
 import { ImportRequest } from './import-types';
-import { getCloudPlatformRequiredForImport } from './import-utils';
 
 type FeaturePreviewExports = typeof import('src/libs/feature-previews');
 
@@ -12,18 +12,18 @@ jest.mock(
   })
 );
 
-// Note that behavior of getRequiredCloudPlatformForImport when the feature flag is set to false is tested
+// Note that behavior of getRequiredCloudPlatform when the feature flag is set to false is tested
 // in import-utils.test.ts. This file only tests behavior when the feature flag is set to true.
 // Since `jest.mock` is global for any given file, the test below is given this new file.
-describe('getRequiredCloudPlatformForImport', () => {
+describe('getRequiredCloudPlatform', () => {
   it('should respect the feature flag for PFB imports', async () => {
     // Arrange
     const importRequest: ImportRequest = genericPfbImportRequest;
 
     // Act
-    const cloudPlatform = getCloudPlatformRequiredForImport(importRequest);
+    const requiredCloudPlatform = getRequiredCloudPlatform(importRequest);
 
     // Assert
-    expect(cloudPlatform).toBeUndefined();
+    expect(requiredCloudPlatform).toBeUndefined();
   });
 });

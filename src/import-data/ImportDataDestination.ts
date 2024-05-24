@@ -21,9 +21,9 @@ import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModa
 import { WorkspaceInfo } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
-import { isProtectedSource } from './import-requirements';
+import { getRequiredCloudPlatform, isProtectedSource } from './import-requirements';
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
-import { buildDestinationWorkspaceFilter, getCloudPlatformRequiredForImport } from './import-utils';
+import { buildDestinationWorkspaceFilter } from './import-utils';
 
 const styles = {
   card: {
@@ -350,7 +350,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             isCreateOpen &&
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
-                cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
+                cloudPlatform: getRequiredCloudPlatform(importRequest),
                 renderNotice: () => {
                   const children: ReactNode[] = [];
                   if (isProtectedData) {
