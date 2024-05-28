@@ -5,7 +5,13 @@ import { Ajax } from 'src/libs/ajax';
 import { Groups, GroupsContract } from 'src/libs/ajax/Groups';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamUserTermsOfServiceDetails, TermsOfService, TermsOfServiceContract } from 'src/libs/ajax/TermsOfService';
-import { SamUserAllowances, SamUserResponse, User, UserContract } from 'src/libs/ajax/User';
+import {
+  SamUserAllowances,
+  SamUserCombinedStateResponse,
+  SamUserResponse,
+  User,
+  UserContract,
+} from 'src/libs/ajax/User';
 import { AuthState, authStore } from 'src/libs/state';
 import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfServicePage';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -68,6 +74,13 @@ const setupMockAjax = async (
     registeredAt: new Date('1970-01-01'),
     updatedAt: new Date('1970-01-01'),
   };
+  const mockSamUserCombinedState: SamUserCombinedStateResponse = {
+    samUser: mockSamUserResponse,
+    terraUserAllowances,
+    terraUserAttributes: { marketingConsent: false },
+    termsOfService,
+    enterpriseFeatures: [],
+  };
   const getTermsOfServiceText = jest.fn().mockResolvedValue('some text');
   const getUserTermsOfServiceDetails = jest
     .fn()
@@ -95,10 +108,7 @@ const setupMockAjax = async (
   } as Partial<MetricsContract> as MetricsContract);
 
   asMockedFn(User).mockReturnValue({
-    getUserAttributes: jest.fn().mockResolvedValue({ marketingConsent: true }),
-    getUserAllowances: jest.fn().mockResolvedValue(terraUserAllowances),
-    getEnterpriseFeatures: jest.fn().mockResolvedValue([]),
-    getSamUserResponse: jest.fn().mockResolvedValue(mockSamUserResponse),
+    getSamUserCombinedState: jest.fn().mockResolvedValue(mockSamUserCombinedState),
     profile: {
       get: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
       update: jest.fn().mockResolvedValue({ keyValuePairs: [] }),
