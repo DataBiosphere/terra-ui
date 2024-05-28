@@ -347,11 +347,6 @@ const Workspaces = (signal) => ({
         return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
 
-      clone: async (body) => {
-        const res = await fetchRawls(`${root}/clone`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
-        return res.json();
-      },
-
       shallowMergeNewAttributes: (attributesObject) => {
         const payload = attributesUpdateOps(attributesObject);
         return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]));
