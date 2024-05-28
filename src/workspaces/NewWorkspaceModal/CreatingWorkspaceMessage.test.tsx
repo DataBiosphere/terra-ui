@@ -7,7 +7,7 @@ describe('CreatingWorkspaceMessage', () => {
     // Act
     render(<CreatingWorkspaceMessage />);
     // Assert
-    waitFor(() => expect(screen.getByText("Once it's ready, Terra will take you there")).not.toBeNull(), {
+    waitFor(() => expect(screen.getByText('Creating and provisioning your workspace')).not.toBeNull(), {
       timeout: 1000,
     });
   });
