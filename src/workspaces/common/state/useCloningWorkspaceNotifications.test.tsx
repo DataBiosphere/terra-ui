@@ -3,7 +3,7 @@ import { NotificationType } from '@terra-ui-packages/notifications';
 import { waitFor } from '@testing-library/react';
 import React from 'react';
 import { Ajax } from 'src/libs/ajax';
-import { notify } from 'src/libs/notifications';
+import { clearNotification, notify } from 'src/libs/notifications';
 import { cloningWorkspacesStore } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
@@ -29,6 +29,7 @@ jest.mock<NotificationExports>(
   (): NotificationExports => ({
     ...jest.requireActual('src/libs/notifications'),
     notify: jest.fn(),
+    clearNotification: jest.fn(),
   })
 );
 // notify
@@ -38,6 +39,10 @@ const CloningTestComponent = (): React.ReactNode => {
 };
 
 describe('useCloningWorkspaceNotifications', () => {
+  beforeEach(() => {
+    cloningWorkspacesStore.set([]);
+  });
+
   describe('notifyNewWorkspaceClone', () => {
     it('adds the workspace to the cloning store', () => {
       // Arrange
@@ -103,6 +108,9 @@ describe('useCloningWorkspaceNotifications', () => {
 
       // Assert
       expect(cloningWorkspacesStore.get()).toHaveLength(0);
+      expect(asMockedFn(clearNotification)).toHaveBeenCalledWith(
+        expect.stringContaining(`${clone.namespace}/${clone.name}`)
+      );
       expect(asMockedFn(notify)).toHaveBeenCalledWith(notificationType, expect.any(Object), { id: expect.any(String) });
     }
   );
