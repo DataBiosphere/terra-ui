@@ -296,7 +296,8 @@ export const BaseRunDetails = (
             h(
               TooltipTrigger,
               {
-                content: 'This total is an estimate rounded up to the nearest cent and does not include subworkflow costs.',
+                content:
+                  'Approximate cost is calculated based on the the list price of the VMs used and does not include disk cost, subworkflow cost, or any cloud account discounts',
               },
               [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
             ),

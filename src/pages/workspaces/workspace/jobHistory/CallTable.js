@@ -357,7 +357,7 @@ const CallTable = ({
                           TooltipTrigger,
                           {
                             content:
-                              'This is a calculated list price and does not include disk cost, subworkflow costs, or any cloud account discounts.',
+                              'Approximate cost is a calculated based on the list price of the VM, and does not include disk cost or any cloud account discounts.',
                           },
                           [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
                         ),
