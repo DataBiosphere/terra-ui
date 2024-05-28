@@ -5,6 +5,8 @@ import { AnalysesData } from 'src/analysis/Analyses';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Clickable } from 'src/components/common';
+import { MenuButton } from 'src/components/MenuButton';
+import { makeMenuIcon } from 'src/components/PopupTrigger';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
@@ -60,6 +62,15 @@ export const WorkflowsInWorkspace = ({
       }
     },
     [signal, workspaceId]
+  );
+
+  const deleteMethod = useCallback(
+    async (methodId) => {
+      const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
+      await Cbas(signal).methods.delete(cbasProxyUrlState.state, methodId);
+      await loadRunsData(cbasProxyUrlState);
+    },
+    [signal, workspaceId, loadRunsData]
   );
 
   // poll if we're missing CBAS proxy url and stop polling when we have it
@@ -154,13 +165,24 @@ export const WorkflowsInWorkspace = ({
                           ),
                         ]
                       ),
+                      h(
+                        MenuButton,
+                        {
+                          onClick: () => {
+                            deleteMethod(method.method_id);
+                          },
+                          // ...workspaceEditControlProps,
+                          tooltipSide: 'left',
+                        },
+                        [makeMenuIcon('trash'), 'Delete']
+                      ),
                     ]
                   ),
                 methodsData
               )
             ),
           ]),
-    [name, namespace, methodsData]
+    [name, namespace, methodsData, deleteMethod]
   );
 
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
