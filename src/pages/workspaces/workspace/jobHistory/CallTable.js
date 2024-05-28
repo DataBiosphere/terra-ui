@@ -370,6 +370,9 @@ const CallTable = ({
                           return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
                         }
                         const cost = getTaskCost(vmCostUsd, taskStartTime, taskEndTime);
+                        if (cost === 0.0) {
+                          return div({}, ['< $0.01']);
+                        }
                         return div({}, [`$${cost}`]);
                       }
                       if (executionStatus === 'Failed' || callCaching?.hit === true || !_.isEmpty(subWorkflowId)) {

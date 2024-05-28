@@ -162,6 +162,13 @@ export const BaseRunDetails = (
     }
   };
 
+  const renderTaskCostElement = (cost) => {
+    if (cost === 0.0) {
+      return '< $0.01';
+    }
+    return cost.toFixed(2);
+  };
+
   const calculateTotalCost = (callObjects) => {
     let total = 0;
     Object.values(callObjects).forEach((call) => {
@@ -285,7 +292,7 @@ export const BaseRunDetails = (
           div({ style: { fontSize: 16, padding: '0rem 2.5rem 1rem' } }, [
             span({ style: { fontWeight: 'bold' } }, ['Approximate workflow cost: ']),
             renderInProgressElement(workflow),
-            `$${taskCostTotal.toFixed(2)}`,
+            renderTaskCostElement(taskCostTotal),
             h(
               TooltipTrigger,
               {
