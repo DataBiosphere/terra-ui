@@ -1,6 +1,6 @@
 import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
@@ -56,7 +56,6 @@ export const BaseRunDetails = (
   const [showTaskData, setShowTaskData] = useState(false);
 
   const [loadWorkflowFailed, setLoadWorkflowFailed] = useState(false);
-  const [taskCostTotal, setTaskCostTotal] = useState(0.0);
 
   const signal = useCancellation();
   const stateRefreshTimer = useRef();
@@ -285,7 +284,7 @@ export const BaseRunDetails = (
           ]),
           div({ style: { fontSize: 16, padding: '0rem 2.5rem 1rem' } }, [
             span({ style: { fontWeight: 'bold' } }, ['Approximate workflow cost: ']),
-            inProgressElement(workflow),
+            renderInProgressElement(workflow),
             `$${taskCostTotal.toFixed(2)}`,
             h(
               TooltipTrigger,

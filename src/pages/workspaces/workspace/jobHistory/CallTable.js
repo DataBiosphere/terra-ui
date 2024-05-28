@@ -352,33 +352,30 @@ const CallTable = ({
                     field: 'cost',
                     headerRenderer: () =>
                       h(Sortable, { sort, field: 'cost', onSort: setSort }, [
-                        'Approximate Task Cost',
+                        'Approximate Cost',
                         h(
                           TooltipTrigger,
                           {
                             content:
-                              'This is a calculated list price for VM costs per hour and does not include disk cost, subworkflow costs, or any cloud account discounts.',
+                              'This is a calculated list price and does not include disk cost, subworkflow costs, or any cloud account discounts.',
                           },
                           [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
                         ),
                       ]),
                     cellRenderer: ({ rowIndex }) => {
-                      const { vmCostUsd, taskStartTime, taskEndTime, executionStatus, callCaching } = filteredCallObjects[rowIndex];
+                      const { vmCostUsd, taskStartTime, taskEndTime, executionStatus, callCaching, subWorkflowId } = filteredCallObjects[rowIndex];
                       if (taskStartTime && vmCostUsd) {
                         if (executionStatus === 'Running') {
                           const cost = getTaskCost(vmCostUsd, taskStartTime);
                           return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
                         }
-                        if (executionStatus === 'Done') {
-                          const cost = getTaskCost(vmCostUsd, taskStartTime, taskEndTime);
-                          return div({}, [`$${cost}`]);
-                        }
-                      } else {
-                        if (executionStatus === 'Failed' || callCaching?.hit === true) {
-                          return div({}, ['-']);
-                        }
-                        return div({ style: { fontStyle: 'italic' } }, ['Fetching cost information']);
+                        const cost = getTaskCost(vmCostUsd, taskStartTime, taskEndTime);
+                        return div({}, [`$${cost}`]);
                       }
+                      if (executionStatus === 'Failed' || callCaching?.hit === true || !_.isEmpty(subWorkflowId)) {
+                        return div({}, ['-']);
+                      }
+                      return div({ style: { fontStyle: 'italic' } }, ['Fetching cost information']);
                     },
                   },
                   {

@@ -755,4 +755,4 @@ describe('BaseRunDetails - render smoke test', () => {
     // Ensure the diff is rendered
     screen.getByText('Result: View cache diff');
   });
-}, 8000);
+});
