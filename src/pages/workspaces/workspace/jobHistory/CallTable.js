@@ -5,7 +5,7 @@ import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { getTaskCost, makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
+import { getTaskCost, makeCromwellStatusLine, makeStatusLine, renderTaskCostElement, statusType } from 'src/components/job-common';
 import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
@@ -357,7 +357,7 @@ const CallTable = ({
                           TooltipTrigger,
                           {
                             content:
-                              'Approximate cost is a calculated based on the list price of the VM, and does not include disk cost or any cloud account discounts.',
+                              'Approximate cost is calculated based on the list price of the VM, and does not include disk cost or any cloud account discounts.',
                           },
                           [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
                         ),
@@ -370,10 +370,7 @@ const CallTable = ({
                           return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
                         }
                         const cost = getTaskCost(vmCostUsd, taskStartTime, taskEndTime);
-                        if (cost === 0.0) {
-                          return div({}, ['< $0.01']);
-                        }
-                        return div({}, [`$${cost}`]);
+                        return div({}, [renderTaskCostElement(cost)]);
                       }
                       if (executionStatus === 'Failed' || callCaching?.hit === true || !_.isEmpty(subWorkflowId)) {
                         return div({}, ['-']);

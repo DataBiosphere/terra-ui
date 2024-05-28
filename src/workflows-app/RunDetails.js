@@ -4,7 +4,7 @@ import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import { collapseStatus, getTaskCost } from 'src/components/job-common';
+import { collapseStatus, getTaskCost, renderTaskCostElement } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
@@ -162,13 +162,6 @@ export const BaseRunDetails = (
     }
   };
 
-  const renderTaskCostElement = (cost) => {
-    if (cost === 0.0) {
-      return '< $0.01';
-    }
-    return cost.toFixed(2);
-  };
-
   const calculateTotalCost = (callObjects) => {
     let total = 0;
     Object.values(callObjects).forEach((call) => {
@@ -297,7 +290,7 @@ export const BaseRunDetails = (
               TooltipTrigger,
               {
                 content:
-                  'Approximate cost is calculated based on the the list price of the VMs used and does not include disk cost, subworkflow cost, or any cloud account discounts',
+                  'Approximate cost is calculated based on the list price of the VMs used and does not include disk cost, subworkflow cost, or any cloud account discounts',
               },
               [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
             ),

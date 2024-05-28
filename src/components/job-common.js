@@ -170,3 +170,10 @@ export const getTaskCost = (vmCost, startTime, endTime) => {
   const elapsedTime = currentEndTime - startDateTime;
   return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2));
 };
+
+export const renderTaskCostElement = (cost) => {
+  if (cost === 0.0) {
+    return '< $0.01';
+  }
+  return cost.toFixed(2);
+};
