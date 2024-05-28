@@ -57,10 +57,11 @@ jest.mock('src/workspaces/common/state/useWorkspaces', (): UseWorkspacesExports 
 interface SetupOptions {
   props?: Partial<ImportDataDestinationProps>;
   workspaces?: WorkspaceWrapper[];
+  workspaceFilter?: (workspace: WorkspaceWrapper) => boolean;
 }
 
 const setup = (opts: SetupOptions): void => {
-  const { props = {}, workspaces = [] } = opts;
+  const { props = {}, workspaces = [], workspaceFilter = () => true } = opts;
 
   asMockedFn(useWorkspaces).mockReturnValue({
     loading: false,
@@ -68,6 +69,8 @@ const setup = (opts: SetupOptions): void => {
     status: 'Ready',
     workspaces,
   });
+
+  asMockedFn(buildDestinationWorkspaceFilter).mockReturnValue(workspaceFilter);
 
   render(
     h(ImportDataDestination, {
@@ -86,23 +89,22 @@ const setup = (opts: SetupOptions): void => {
 describe('ImportDataDestination', () => {
   it.each([
     {
-      importRequest: anvilPfbImportRequests[0],
-      shouldShowProtectedDataWarning: true,
+      importRequest: genericPfbImportRequest,
+      workspacesFiltered: true,
     },
     {
       importRequest: genericPfbImportRequest,
-      shouldShowProtectedDataWarning: false,
+      workspacesFiltered: false,
     },
   ] as {
     importRequest: ImportRequest;
-    shouldShowProtectedDataWarning: boolean;
+    workspacesFiltered: boolean;
   }[])(
-    'should explain protected data restricts eligible workspaces',
-    async ({ importRequest, shouldShowProtectedDataWarning }) => {
+    'should explain data selection requirements restrict eligible workspaces',
+    async ({ importRequest, workspacesFiltered }) => {
       // Arrange
       const user = userEvent.setup();
 
-      asMockedFn(buildDestinationWorkspaceFilter).mockReturnValue(() => true);
       setup({
         props: {
           importRequest,
@@ -119,6 +121,9 @@ describe('ImportDataDestination', () => {
             },
           }),
         ],
+        workspaceFilter: workspacesFiltered
+          ? (workspace) => workspace.workspace.name === 'allowed-workspace'
+          : () => true,
       });
 
       // Act
@@ -126,64 +131,58 @@ describe('ImportDataDestination', () => {
       await user.click(existingWorkspaceButton);
 
       // Assert
-      const protectedDataWarning = screen.queryByText(
-        'You may only import into workspaces that have additional security monitoring enabled.',
-        {
-          exact: false,
-        }
+      const isRequirementsMessageShown = !!screen.queryByText(
+        'Only workspaces that meet the data selection requirements are shown.'
       );
 
-      const isWarningShown = !!protectedDataWarning;
-      expect(isWarningShown).toEqual(shouldShowProtectedDataWarning);
+      expect(isRequirementsMessageShown).toBe(workspacesFiltered);
     }
   );
 
   it.each([
     {
-      importRequest: anvilPfbImportRequests[0],
-      shouldSelectExisting: false,
+      importRequest: genericPfbImportRequest,
+      isWorkspaceAvailable: false,
     },
     {
       importRequest: genericPfbImportRequest,
-      shouldSelectExisting: true,
+      isWorkspaceAvailable: true,
     },
   ] as {
     importRequest: ImportRequest;
-    shouldSelectExisting: boolean;
-  }[])('should disable select an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
-    // Arrange
-    const user = userEvent.setup();
-    asMockedFn(buildDestinationWorkspaceFilter).mockReturnValue(() => false);
+    isWorkspaceAvailable: boolean;
+  }[])(
+    'should disable select an existing workspace option when no suitable workspaces are available',
+    async ({ importRequest, isWorkspaceAvailable }) => {
+      // Arrange
+      const user = userEvent.setup();
 
-    setup({
-      props: {
-        importRequest,
-      },
-      workspaces: [
-        makeGoogleWorkspace({
-          workspace: {
-            name: 'allowed-workspace',
-          },
-        }),
-        makeGoogleWorkspace({
-          workspace: {
-            name: 'other-workspace',
-          },
-        }),
-      ],
-    });
-    // Act
-    const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
-    await user.click(existingWorkspaceButton);
+      setup({
+        props: {
+          importRequest,
+        },
+        workspaces: [
+          makeGoogleWorkspace({
+            workspace: {
+              name: 'other-workspace',
+            },
+          }),
+        ],
+        workspaceFilter: isWorkspaceAvailable ? () => true : () => false,
+      });
+      // Act
+      const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+      await user.click(existingWorkspaceButton);
 
-    // Assert
-    const selectWorkspace = screen.queryByText('Select a workspace', {
-      exact: false,
-    });
+      // Assert
+      const selectWorkspace = screen.queryByText('Select a workspace', {
+        exact: false,
+      });
 
-    const isSelectWorkspaceShown = !!selectWorkspace;
-    expect(isSelectWorkspaceShown).toEqual(shouldSelectExisting);
-  });
+      const isSelectWorkspaceShown = !!selectWorkspace;
+      expect(isSelectWorkspaceShown).toBe(isWorkspaceAvailable);
+    }
+  );
 
   it.each([
     {
@@ -216,10 +215,6 @@ describe('ImportDataDestination', () => {
       // Arrange
       const user = userEvent.setup();
 
-      asMockedFn(buildDestinationWorkspaceFilter).mockReturnValue((workspace: WorkspaceWrapper): boolean => {
-        return workspace.workspace.name === 'allowed-workspace';
-      });
-
       setup({
         props: {
           importRequest,
@@ -237,6 +232,9 @@ describe('ImportDataDestination', () => {
             },
           }),
         ],
+        workspaceFilter: (workspace: WorkspaceWrapper): boolean => {
+          return workspace.workspace.name === 'allowed-workspace';
+        },
       });
 
       // Act
@@ -258,10 +256,7 @@ describe('ImportDataDestination', () => {
       shouldShowNotice: true,
     },
     {
-      importRequest: {
-        ...gcpTdrSnapshotImportRequest,
-        syncPermissions: true,
-      },
+      importRequest: gcpTdrSnapshotImportRequest,
       shouldShowNotice: true,
     },
     {
@@ -279,6 +274,7 @@ describe('ImportDataDestination', () => {
       props: {
         importRequest,
       },
+      workspaces: [makeGoogleWorkspace()],
     });
 
     // Act
@@ -325,8 +321,6 @@ describe('ImportDataDestination', () => {
         url,
       };
 
-      asMockedFn(buildDestinationWorkspaceFilter).mockReturnValue(() => true);
-
       setup({
         props: {
           importRequest,
@@ -371,7 +365,6 @@ describe('ImportDataDestination', () => {
       // Arrange
       const user = userEvent.setup();
       const workspaceName = workspace.workspace.name;
-      asMockedFn(buildDestinationWorkspaceFilter).mockReturnValue(() => true);
 
       setup({
         props: {

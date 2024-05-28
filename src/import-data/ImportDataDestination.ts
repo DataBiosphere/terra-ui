@@ -1,4 +1,5 @@
 import { icon, IconId } from '@terra-ui-packages/components';
+import { cond } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { AriaAttributes, CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, h2, img, p, span } from 'react-hyperscript-helpers';
@@ -18,7 +19,7 @@ import * as Utils from 'src/libs/utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
-import { WorkspaceInfo } from 'src/workspaces/utils';
+import { canWrite, WorkspaceInfo } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
 import { getRequiredCloudPlatform, requiresSecurityMonitoring } from './import-requirements';
@@ -107,6 +108,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     onImport,
   } = props;
 
+  const requiredCloudPlatform = getRequiredCloudPlatform(importRequest);
   const importRequiresSecurityMonitoring = requiresSecurityMonitoring(importRequest);
 
   // Some import types are finished in a single request.
@@ -185,20 +187,25 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     ]);
   };
 
-  const workspacesToImportTo = workspaces.filter(
+  const numWritableWorkspaces = workspaces.filter((workspace) => canWrite(workspace.accessLevel)).length;
+
+  const availableDestinationWorkspaces = workspaces.filter(
     buildDestinationWorkspaceFilter(importRequest, { requiredAuthorizationDomain })
   );
 
-  // disable import into existing workspaces if no suitable workspaces are available
-  // TODO: this should apply no matter the exact import requirements
-  const disableExportIntoExisting = importRequiresSecurityMonitoring && workspacesToImportTo.length === 0;
+  // If some writable workspaces have been filtered by the destination filter,
+  // it is because they did not meet the data selection requirements.
+  const destinationWorkspaceLimitedByDataRequirements = availableDestinationWorkspaces.length < numWritableWorkspaces;
+
+  // Disable the "Select an existing workspace" option if no suitable workspaces are available.
+  const canImportIntoExistingWorkspace = availableDestinationWorkspaces.length > 0;
 
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, [selectExistingWorkspacePrompt]),
-      importRequiresSecurityMonitoring &&
+      destinationWorkspaceLimitedByDataRequirements &&
         div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem', lineHeight: '1.5' } }, [
-          ' You may only import into workspaces that have additional security monitoring enabled.',
+          'Only workspaces that meet the data selection requirements are shown.',
         ]),
       h(IdContainer, [
         (id) =>
@@ -206,7 +213,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             // @ts-expect-error
             h(WorkspaceSelector, {
               id,
-              workspaces: workspacesToImportTo,
+              workspaces: availableDestinationWorkspaces,
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
             }),
@@ -336,11 +343,12 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               iconName: 'fileSearchSolid',
               title: selectExistingWorkspacePrompt,
               detail: 'Select one of your workspaces',
-              disabled: !userHasBillingProjects || disableExportIntoExisting,
-              tooltip:
-                !userHasBillingProjects || disableExportIntoExisting
-                  ? 'No existing protected workspace is present.'
-                  : undefined,
+              disabled: !canImportIntoExistingWorkspace,
+              tooltip: cond(
+                [canImportIntoExistingWorkspace, () => undefined],
+                [numWritableWorkspaces === 0, () => 'You do not have any writable workspaces.'],
+                () => 'No existing workspace meets the data selection requirements.'
+              ),
             }),
             h(ChoiceButton, {
               onClick: () => setIsCreateOpen(true),
@@ -353,7 +361,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             isCreateOpen &&
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
-                cloudPlatform: getRequiredCloudPlatform(importRequest),
+                cloudPlatform: requiredCloudPlatform,
                 renderNotice: () => {
                   const children: ReactNode[] = [];
                   if (importRequiresSecurityMonitoring) {
