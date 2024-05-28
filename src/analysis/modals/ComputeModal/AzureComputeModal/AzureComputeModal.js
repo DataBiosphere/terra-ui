@@ -238,6 +238,7 @@ export const AzureComputeModalBase = ({
         h(AzureApplicationConfigurationSection),
         div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1.5rem' } }, [
           h(AzureComputeProfileSelect, {
+            disabled: doesRuntimeExist(),
             machineType: computeConfig.machineType,
             style: { marginBottom: '1.5rem' },
             onChangeMachineType: (v) => updateComputeConfig('machineType', v),

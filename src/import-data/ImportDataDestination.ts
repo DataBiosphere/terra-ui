@@ -21,9 +21,9 @@ import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModa
 import { WorkspaceInfo } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
+import { getRequiredCloudPlatform, requiresSecurityMonitoring } from './import-requirements';
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
-import { buildDestinationWorkspaceFilter, getCloudPlatformRequiredForImport } from './import-utils';
-import { isProtectedSource } from './protected-data-utils';
+import { buildDestinationWorkspaceFilter } from './import-utils';
 
 const styles = {
   card: {
@@ -107,7 +107,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     onImport,
   } = props;
 
-  const isProtectedData = isProtectedSource(importRequest);
+  const importRequiresSecurityMonitoring = requiresSecurityMonitoring(importRequest);
 
   // Some import types are finished in a single request.
   // For most though, the import request starts a background task that takes time to complete.
@@ -189,13 +189,14 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     buildDestinationWorkspaceFilter(importRequest, { requiredAuthorizationDomain })
   );
 
-  // disable import into existing workspaces if data is marked as protected but no protected workspaces are available
-  const disableExportIntoExisting = isProtectedData && workspacesToImportTo.length === 0;
+  // disable import into existing workspaces if no suitable workspaces are available
+  // TODO: this should apply no matter the exact import requirements
+  const disableExportIntoExisting = importRequiresSecurityMonitoring && workspacesToImportTo.length === 0;
 
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, [selectExistingWorkspacePrompt]),
-      isProtectedData &&
+      importRequiresSecurityMonitoring &&
         div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem', lineHeight: '1.5' } }, [
           ' You may only import into workspaces that have additional security monitoring enabled.',
         ]),
@@ -219,7 +220,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         h(WorkspacePolicies, {
           workspace: selectedWorkspace,
           noCheckboxes: true,
-          endingNotice: isProtectedData ? div(['Importing this data may add additional access controls']) : undefined,
+          endingNotice: importRequiresSecurityMonitoring
+            ? div(['Importing this data may add additional access controls'])
+            : undefined,
         }),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
@@ -350,10 +353,10 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             isCreateOpen &&
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
-                cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
+                cloudPlatform: getRequiredCloudPlatform(importRequest),
                 renderNotice: () => {
                   const children: ReactNode[] = [];
-                  if (isProtectedData) {
+                  if (importRequiresSecurityMonitoring) {
                     children.push(
                       div({ style: { paddingBottom: importMayTakeTime ? '1.0rem' : 0 } }, [
                         'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
@@ -365,7 +368,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                   }
                   return children.length > 0 ? h(Fragment, children) : undefined;
                 },
-                requireEnhancedBucketLogging: isProtectedData,
+                requireEnhancedBucketLogging: importRequiresSecurityMonitoring,
                 waitForServices: {
                   wds: true,
                 },
