@@ -122,7 +122,8 @@ export const useWorkspacesStatePollingWithAction = (workspaces: WorkspaceInfo[],
       for (const ws of updatingWorkspaces) {
         const updatedState = await checkWorkspaceState(ws, controller.current.signal);
         if (updatedState) {
-          listeners[updatedState.state]?.forEach((callback) => callback(updatedState));
+          const updatedWS = _.merge(ws, updatedState);
+          listeners[updatedState.state]?.forEach((callback) => callback(updatedWS));
           abort();
         }
       }

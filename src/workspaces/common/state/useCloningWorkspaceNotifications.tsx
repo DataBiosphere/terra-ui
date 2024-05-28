@@ -1,6 +1,6 @@
 import { useStore } from '@terra-ui-packages/components';
 import React from 'react';
-import { notify } from 'src/libs/notifications';
+import { clearNotification, notify } from 'src/libs/notifications';
 import { cloningWorkspacesStore } from 'src/libs/state';
 import {
   StateUpdateAction,
@@ -19,14 +19,20 @@ export const useCloningWorkspaceNotifications = (): void => {
 
   const cloningFailure: StateUpdateAction = (workspace: WorkspaceInfo) => {
     const notificationId = cloningNotificationId(workspace);
+    clearNotification(notificationId);
+    notify('error', <NotificationTitle>Workspace clone was unsuccessful</NotificationTitle>, {
+      id: `${notificationId}-failure`,
+    });
     removeWorkspace(workspace);
-    notify('error', <NotificationTitle>Workspace clone was unsuccessful</NotificationTitle>, { id: notificationId });
   };
 
   const cloningSuccess: StateUpdateAction = (workspace: WorkspaceInfo) => {
     const notificationId = cloningNotificationId(workspace);
+    clearNotification(notificationId);
+    notify('success', <NotificationTitle>Workspace clone was successful</NotificationTitle>, {
+      id: `${notificationId}-success`,
+    });
     removeWorkspace(workspace);
-    notify('success', <NotificationTitle>Workspace clone was successful</NotificationTitle>, { id: notificationId });
   };
 
   const containerCloning: StateUpdateAction = (workspace: WorkspaceInfo) => {
@@ -54,7 +60,7 @@ export const notifyNewWorkspaceClone = (workspace: WorkspaceInfo) => {
 };
 
 const cloningNotificationId = (workspace: WorkspaceInfo | WorkspaceUpdate) =>
-  `${workspace.namespace}/${workspace.name}-clone-${workspace.state}`;
+  `${workspace.namespace}/${workspace.name}-clone`;
 
 const updateWorkspace = (update: WorkspaceInfo) =>
   cloningWorkspacesStore.update((workspaces) =>
