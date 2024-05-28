@@ -99,119 +99,123 @@ describe('leoRuntimeProvider', () => {
     expect(result).toEqual([]);
   });
 
-  it('handles errorInfo call - GCP', async () => {
-    // Arrange
-    const ajaxMock = mockAjaxNeeds();
+  describe('errorInfo call', () => {
+    it('handles GCP', async () => {
+      // Arrange
+      const ajaxMock = mockAjaxNeeds();
 
-    const abort = new window.AbortController();
+      const abort = new window.AbortController();
 
-    const runtime: RuntimeBasics = {
-      runtimeName: 'myRuntime',
-      cloudContext: {
-        cloudProvider: 'GCP',
-        cloudResource: 'myGoogleResource',
-      },
-      googleProject: 'myGoogleProject',
-    };
-    asMockedFn(ajaxMock.runtimeV1.details).mockResolvedValue({
-      errors: [{ errorCode: 123, errorMessage: 'runtime error 1', timestamp: '0:00' }],
-    } satisfies Partial<GetRuntimeItem> as GetRuntimeItem);
-
-    // Act
-    const errorInfo = await leoRuntimeProvider.errorInfo(runtime, { signal: abort.signal });
-
-    // Assert;
-    expect(Ajax).toBeCalledTimes(1);
-    expect(Ajax).toBeCalledWith(abort.signal);
-    expect(ajaxMock.Runtimes.runtime).toBeCalledTimes(1);
-    expect(ajaxMock.Runtimes.runtime).toBeCalledWith('myGoogleProject', 'myRuntime');
-    expect(ajaxMock.runtimeV1.details).toBeCalledTimes(1);
-
-    expect(errorInfo).toEqual({
-      errorType: 'ErrorList',
-      errors: [{ errorCode: 123, errorMessage: 'runtime error 1', timestamp: '0:00' }],
-    } satisfies RuntimeErrorInfo);
-  });
-
-  it('handles errorInfo call - GCP with user script error', async () => {
-    // Arrange
-    const ajaxMock = mockAjaxNeeds();
-
-    const abort = new window.AbortController();
-
-    const runtime: RuntimeBasics = {
-      runtimeName: 'myRuntime',
-      cloudContext: {
-        cloudProvider: 'GCP',
-        cloudResource: 'myGoogleResource',
-      },
-      googleProject: 'myGoogleProject',
-    };
-    asMockedFn(ajaxMock.runtimeV1.details).mockResolvedValue(
-      partial<GetRuntimeItem>({
-        asyncRuntimeFields: partial<AsyncRuntimeFields>({ stagingBucket: 'myBucket' }),
-        errors: [{ errorCode: 123, errorMessage: 'Userscript failed: See bucket for details', timestamp: '0:00' }],
-      })
-    );
-    asMockedFn(ajaxMock.Buckets.getObjectPreview).mockResolvedValue(new Response('Error: MeaningOfLife is undefined'));
-
-    // Act
-    const errorInfo = await leoRuntimeProvider.errorInfo(runtime, { signal: abort.signal });
-
-    // Assert;
-    expect(Ajax).toBeCalledTimes(1);
-    expect(Ajax).toBeCalledWith(abort.signal);
-    expect(ajaxMock.Runtimes.runtime).toBeCalledTimes(1);
-    expect(ajaxMock.Runtimes.runtime).toBeCalledWith('myGoogleProject', 'myRuntime');
-    expect(ajaxMock.runtimeV1.details).toBeCalledTimes(1);
-    expect(ajaxMock.Buckets.getObjectPreview).toBeCalledTimes(1);
-    expect(ajaxMock.Buckets.getObjectPreview).toBeCalledWith(
-      'myGoogleProject',
-      'myBucket',
-      'userscript_output.txt',
-      true
-    );
-
-    expect(errorInfo).toEqual({
-      errorType: 'UserScriptError',
-      detail: 'Error: MeaningOfLife is undefined',
-    } satisfies RuntimeErrorInfo);
-  });
-
-  it('handles errorInfo call - Azure', async () => {
-    // Arrange
-    const ajaxMock = mockAjaxNeeds();
-
-    const abort = new window.AbortController();
-
-    const runtime: RuntimeBasics = {
-      runtimeName: 'myRuntime',
-      cloudContext: {
-        cloudProvider: 'AZURE',
-        cloudResource: 'myAzureResource',
-      },
-      workspaceId: 'myWorkspace',
-    };
-    asMockedFn(ajaxMock.runtimeV2.details).mockResolvedValue(
-      partial<GetRuntimeItem>({
+      const runtime: RuntimeBasics = {
+        runtimeName: 'myRuntime',
+        cloudContext: {
+          cloudProvider: 'GCP',
+          cloudResource: 'myGoogleResource',
+        },
+        googleProject: 'myGoogleProject',
+      };
+      asMockedFn(ajaxMock.runtimeV1.details).mockResolvedValue({
         errors: [{ errorCode: 123, errorMessage: 'runtime error 1', timestamp: '0:00' }],
-      })
-    );
+      } satisfies Partial<GetRuntimeItem> as GetRuntimeItem);
 
-    // Act
-    const errorInfo = await leoRuntimeProvider.errorInfo(runtime, { signal: abort.signal });
+      // Act
+      const errorInfo = await leoRuntimeProvider.errorInfo(runtime, { signal: abort.signal });
 
-    // Assert;
-    expect(Ajax).toBeCalledTimes(1);
-    expect(Ajax).toBeCalledWith(abort.signal);
-    expect(ajaxMock.Runtimes.runtimeV2).toBeCalledTimes(1);
-    expect(ajaxMock.Runtimes.runtimeV2).toBeCalledWith('myWorkspace', 'myRuntime');
-    expect(ajaxMock.runtimeV2.details).toBeCalledTimes(1);
+      // Assert;
+      expect(Ajax).toBeCalledTimes(1);
+      expect(Ajax).toBeCalledWith(abort.signal);
+      expect(ajaxMock.Runtimes.runtime).toBeCalledTimes(1);
+      expect(ajaxMock.Runtimes.runtime).toBeCalledWith('myGoogleProject', 'myRuntime');
+      expect(ajaxMock.runtimeV1.details).toBeCalledTimes(1);
 
-    expect(errorInfo).toEqual({
-      errorType: 'ErrorList',
-      errors: [{ errorCode: 123, errorMessage: 'runtime error 1', timestamp: '0:00' }],
-    } satisfies RuntimeErrorInfo);
+      expect(errorInfo).toEqual({
+        errorType: 'ErrorList',
+        errors: [{ errorCode: 123, errorMessage: 'runtime error 1', timestamp: '0:00' }],
+      } satisfies RuntimeErrorInfo);
+    });
+
+    it('handles GCP with user script error', async () => {
+      // Arrange
+      const ajaxMock = mockAjaxNeeds();
+
+      const abort = new window.AbortController();
+
+      const runtime: RuntimeBasics = {
+        runtimeName: 'myRuntime',
+        cloudContext: {
+          cloudProvider: 'GCP',
+          cloudResource: 'myGoogleResource',
+        },
+        googleProject: 'myGoogleProject',
+      };
+      asMockedFn(ajaxMock.runtimeV1.details).mockResolvedValue(
+        partial<GetRuntimeItem>({
+          asyncRuntimeFields: partial<AsyncRuntimeFields>({ stagingBucket: 'myBucket' }),
+          errors: [{ errorCode: 123, errorMessage: 'Userscript failed: See bucket for details', timestamp: '0:00' }],
+        })
+      );
+      asMockedFn(ajaxMock.Buckets.getObjectPreview).mockResolvedValue(
+        new Response('Error: MeaningOfLife is undefined')
+      );
+
+      // Act
+      const errorInfo = await leoRuntimeProvider.errorInfo(runtime, { signal: abort.signal });
+
+      // Assert;
+      expect(Ajax).toBeCalledTimes(1);
+      expect(Ajax).toBeCalledWith(abort.signal);
+      expect(ajaxMock.Runtimes.runtime).toBeCalledTimes(1);
+      expect(ajaxMock.Runtimes.runtime).toBeCalledWith('myGoogleProject', 'myRuntime');
+      expect(ajaxMock.runtimeV1.details).toBeCalledTimes(1);
+      expect(ajaxMock.Buckets.getObjectPreview).toBeCalledTimes(1);
+      expect(ajaxMock.Buckets.getObjectPreview).toBeCalledWith(
+        'myGoogleProject',
+        'myBucket',
+        'userscript_output.txt',
+        true
+      );
+
+      expect(errorInfo).toEqual({
+        errorType: 'UserScriptError',
+        detail: 'Error: MeaningOfLife is undefined',
+      } satisfies RuntimeErrorInfo);
+    });
+
+    it('handles Azure', async () => {
+      // Arrange
+      const ajaxMock = mockAjaxNeeds();
+
+      const abort = new window.AbortController();
+
+      const runtime: RuntimeBasics = {
+        runtimeName: 'myRuntime',
+        cloudContext: {
+          cloudProvider: 'AZURE',
+          cloudResource: 'myAzureResource',
+        },
+        workspaceId: 'myWorkspace',
+      };
+      asMockedFn(ajaxMock.runtimeV2.details).mockResolvedValue(
+        partial<GetRuntimeItem>({
+          errors: [{ errorCode: 123, errorMessage: 'runtime error 1', timestamp: '0:00' }],
+        })
+      );
+
+      // Act
+      const errorInfo = await leoRuntimeProvider.errorInfo(runtime, { signal: abort.signal });
+
+      // Assert;
+      expect(Ajax).toBeCalledTimes(1);
+      expect(Ajax).toBeCalledWith(abort.signal);
+      expect(ajaxMock.Runtimes.runtimeV2).toBeCalledTimes(1);
+      expect(ajaxMock.Runtimes.runtimeV2).toBeCalledWith('myWorkspace', 'myRuntime');
+      expect(ajaxMock.runtimeV2.details).toBeCalledTimes(1);
+
+      expect(errorInfo).toEqual({
+        errorType: 'ErrorList',
+        errors: [{ errorCode: 123, errorMessage: 'runtime error 1', timestamp: '0:00' }],
+      } satisfies RuntimeErrorInfo);
+    });
   });
 
   it('handles stop runtime call', async () => {

@@ -657,7 +657,7 @@ export const CloudEnvironmentModal = ({
       }),
     errorRuntimeId &&
       h(RuntimeErrorModal, {
-        runtime: _.find({ id: errorRuntimeId }, runtimes) as Runtime,
+        runtime: _.find({ id: errorRuntimeId }, runtimes)!,
         onDismiss: () => setErrorRuntimeId(undefined),
         errorProvider: leoRuntimeProvider,
       }),

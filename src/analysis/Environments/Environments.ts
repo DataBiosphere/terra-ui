@@ -803,7 +803,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         ]),
       errorRuntimeId &&
         h(RuntimeErrorModal, {
-          runtime: _.find({ id: errorRuntimeId }, runtimes) as RuntimeWithWorkspace,
+          runtime: _.find({ id: errorRuntimeId }, runtimes)!,
           onDismiss: () => setErrorRuntimeId(undefined),
           errorProvider: leoRuntimeData,
         }),

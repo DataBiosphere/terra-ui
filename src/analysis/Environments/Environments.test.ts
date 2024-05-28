@@ -907,14 +907,13 @@ describe('Environments Component', () => {
 
       // Assert
       expect(props.onEvent).toBeCalledTimes(1);
-      expect(props.onEvent).toBeCalledWith(
-        'dataRefresh',
-        expect.objectContaining({ runtimes: 1, disks: 0, apps: 0 } satisfies Partial<DataRefreshInfo>)
-      );
-      const eventArgs = asMockedFn(props.onEvent as Required<typeof props>['onEvent']).mock
-        .calls[0][1] as DataRefreshInfo;
-      expect(typeof eventArgs.totalCallTimeMs).toBe('number');
-      expect(typeof eventArgs.leoCallTimeMs).toBe('number');
+      expect(props.onEvent).toBeCalledWith('dataRefresh', {
+        runtimes: 1,
+        disks: 0,
+        apps: 0,
+        leoCallTimeMs: expect.any(Number),
+        totalCallTimeMs: expect.any(Number),
+      } satisfies DataRefreshInfo);
     });
   });
 });

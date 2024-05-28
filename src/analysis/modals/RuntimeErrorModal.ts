@@ -1,12 +1,11 @@
 import { Modal, ModalProps } from '@terra-ui-packages/components';
 import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { LeoRuntimeProvider, RuntimeBasics } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import colors from 'src/libs/colors';
-import { useOnMount } from 'src/libs/react-utils';
 import { withBusyState } from 'src/libs/utils';
 
 export type RuntimeErrorProvider = Pick<LeoRuntimeProvider, 'errorInfo'>;
@@ -32,26 +31,25 @@ export const RuntimeErrorModal = (props: RuntimeErrorModalProps): ReactNode => {
   const { runtime, onDismiss, errorProvider } = props;
   const { withErrorReporting } = useNotificationsFromContext();
 
-  const [error, setError] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [userscriptError, setUserscriptError] = useState(false);
   const [loadingRuntimeDetails, setLoadingRuntimeDetails] = useState(false);
 
-  const loadRuntimeError = _.flow(
-    withErrorReporting(text.error.cantRetrieve),
-    withBusyState(setLoadingRuntimeDetails)
-  )(async () => {
-    const errorInfo = await errorProvider.errorInfo(runtime);
-    if (errorInfo.errorType === 'UserScriptError') {
-      setError(errorInfo.detail);
-      setUserscriptError(true);
-    } else {
-      setError(errorInfo.errors.length > 0 ? errorInfo.errors[0].errorMessage : text.error.unknown);
-    }
-  });
-
-  useOnMount(() => {
+  useEffect(() => {
+    const loadRuntimeError = _.flow(
+      withErrorReporting(text.error.cantRetrieve),
+      withBusyState(setLoadingRuntimeDetails)
+    )(async () => {
+      const errorInfo = await errorProvider.errorInfo(runtime);
+      if (errorInfo.errorType === 'UserScriptError') {
+        setErrorMessage(errorInfo.detail);
+        setUserscriptError(true);
+      } else {
+        setErrorMessage(errorInfo.errors.length > 0 ? errorInfo.errors[0].errorMessage : text.error.unknown);
+      }
+    });
     loadRuntimeError();
-  });
+  }, [runtime, withErrorReporting, errorProvider]);
 
   return h(
     Modal,
@@ -71,7 +69,7 @@ export const RuntimeErrorModal = (props: RuntimeErrorModalProps): ReactNode => {
             background: colors.light(),
           },
         },
-        [error]
+        [errorMessage]
       ),
       loadingRuntimeDetails && spinnerOverlay,
     ]

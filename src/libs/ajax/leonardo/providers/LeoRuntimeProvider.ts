@@ -1,4 +1,3 @@
-import _ from 'lodash/fp';
 import { isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { Ajax } from 'src/libs/ajax';
 import { AbortOption } from 'src/libs/ajax/data-provider-common';
@@ -7,8 +6,12 @@ import { AzureRuntimeWrapper, GoogleRuntimeWrapper, RuntimeWrapper } from 'src/l
 
 export type RuntimeBasics = RuntimeWrapper & Pick<Runtime, 'cloudContext'>;
 
+/**
+ * Drives the union type RuntimeErrorInfo. Most runtime errors are of type ErrorList, but there are special cases like UserScriptError
+ */
 export type RuntimeErrorType = 'ErrorList' | 'UserScriptError';
-export interface RuntimeErrorBase {
+
+interface RuntimeErrorBase {
   errorType: RuntimeErrorType;
 }
 
@@ -47,7 +50,7 @@ export const leoRuntimeProvider: LeoRuntimeProvider = {
     const { errors: runtimeErrors, asyncRuntimeFields } = isGcp
       ? await ajax.Runtimes.runtime((runtime as GoogleRuntimeWrapper).googleProject, runtime.runtimeName).details()
       : await ajax.Runtimes.runtimeV2((runtime as AzureRuntimeWrapper).workspaceId, runtime.runtimeName).details();
-    if (isGcp && _.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), runtimeErrors)) {
+    if (isGcp && runtimeErrors.some(({ errorMessage }) => errorMessage.includes('Userscript failed'))) {
       const scriptErrorDetail = await ajax.Buckets.getObjectPreview(
         (runtime as GoogleRuntimeWrapper).googleProject,
         asyncRuntimeFields?.stagingBucket,
