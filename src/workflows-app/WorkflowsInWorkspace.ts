@@ -14,6 +14,7 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
+import { DeleteWorkflowModal } from 'src/workflows-app/components/DeleteWorkflowModal';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { doesAppProxyUrlExist, loadAppUrls, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
@@ -36,6 +37,7 @@ export const WorkflowsInWorkspace = ({
 }: WorkflowsInWorkspaceProps) => {
   const [methodsData, setMethodsData] = useState<WorkflowMethod[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteWorkflowModal, setDeleteWorkflowModal] = useState(false);
 
   const signal = useCancellation();
   const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
@@ -168,21 +170,25 @@ export const WorkflowsInWorkspace = ({
                       h(
                         MenuButton,
                         {
-                          onClick: () => {
-                            deleteMethod(method.method_id);
-                          },
+                          onClick: () => setDeleteWorkflowModal(true),
                           // ...workspaceEditControlProps,
                           tooltipSide: 'left',
                         },
                         [makeMenuIcon('trash'), 'Delete']
                       ),
+                      deleteWorkflowModal &&
+                        h(DeleteWorkflowModal, {
+                          onDismiss: () => setDeleteWorkflowModal(false),
+                          onDelete: () => deleteMethod(method.method_id),
+                          methodName: method.name,
+                        }),
                     ]
                   ),
                 methodsData
               )
             ),
           ]),
-    [name, namespace, methodsData, deleteMethod]
+    [name, namespace, methodsData, deleteMethod, deleteWorkflowModal]
   );
 
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
