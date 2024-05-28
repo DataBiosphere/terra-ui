@@ -175,5 +175,5 @@ export const renderTaskCostElement = (cost) => {
   if (cost === 0.0) {
     return '< $0.01';
   }
-  return cost.toFixed(2);
+  return `$${cost.toFixed(2)}`;
 };
