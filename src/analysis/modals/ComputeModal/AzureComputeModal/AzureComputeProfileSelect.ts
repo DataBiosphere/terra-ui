@@ -7,21 +7,13 @@ import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 
 export interface AzureComputeProfileSelectProps {
-  disabled?: boolean;
   machineType: string;
-  machineTypeOptions?: string[];
   style?: CSSProperties;
   onChangeMachineType: (machineType: string) => void;
 }
 
 export const AzureComputeProfileSelect = (props: AzureComputeProfileSelectProps): ReactNode => {
-  const {
-    disabled = false,
-    machineType,
-    machineTypeOptions = Object.keys(azureMachineTypes),
-    style,
-    onChangeMachineType,
-  } = props;
+  const { machineType, style, onChangeMachineType } = props;
 
   const id = useUniqueId();
 
@@ -49,7 +41,6 @@ export const AzureComputeProfileSelect = (props: AzureComputeProfileSelectProps)
     div({ style: { width: 400 } }, [
       h(Select<AzureComputeProfileSelectProps['machineType']>, {
         id,
-        isDisabled: disabled,
         isSearchable: false,
         isClearable: false,
         value: machineType,
@@ -58,7 +49,7 @@ export const AzureComputeProfileSelect = (props: AzureComputeProfileSelectProps)
             onChangeMachineType(selectedOption.value);
           }
         },
-        options: machineTypeOptions,
+        options: Object.keys(azureMachineTypes),
         getOptionLabel: ({ value }) => getMachineTypeLabel(value),
       }),
     ]),

@@ -238,7 +238,6 @@ export const AzureComputeModalBase = ({
         h(AzureApplicationConfigurationSection),
         div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1.5rem' } }, [
           h(AzureComputeProfileSelect, {
-            disabled: doesRuntimeExist(),
             machineType: computeConfig.machineType,
             style: { marginBottom: '1.5rem' },
             onChangeMachineType: (v) => updateComputeConfig('machineType', v),
@@ -306,21 +305,21 @@ export const AzureComputeModalBase = ({
   return h(Fragment, [
     Utils.switchCase(
       viewMode,
-      ['aboutPersistentDisk', () => h(AboutPersistentDiskView, { titleId, tool, onDismiss, onPrevious: () => setViewMode(undefined) })],
+      ['aboutPersistentDisk', () => AboutPersistentDiskView({ titleId, setViewMode, onDismiss, tool })],
       [
         'deleteEnvironment',
         () =>
-          h(DeleteEnvironment, {
+          DeleteEnvironment({
             id: titleId,
             runtimeConfig: currentRuntimeDetails && currentRuntimeDetails.runtimeConfig,
             persistentDiskId: currentPersistentDiskDetails?.id,
             persistentDiskCostDisplay: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig)),
             deleteDiskSelected,
             setDeleteDiskSelected,
+            setViewMode,
             renderActionButton,
             hideCloseButton: false,
             onDismiss,
-            onPrevious: () => setViewMode(undefined),
             toolLabel: currentRuntimeDetails && currentRuntimeDetails.labels.tool,
           }),
       ],

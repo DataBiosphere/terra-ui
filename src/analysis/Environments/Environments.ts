@@ -10,8 +10,8 @@ import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, h2, span, strong } from 'react-hyperscript-helpers';
+import { RuntimeErrorModal } from 'src/analysis/AnalysisNotificationManager';
 import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
-import { RuntimeErrorModal } from 'src/analysis/modals/RuntimeErrorModal';
 import { getAppStatusForDisplay, getDiskAppType } from 'src/analysis/utils/app-utils';
 import {
   getAppCost,
@@ -28,11 +28,10 @@ import { icon } from 'src/components/icons';
 import { makeMenuIcon } from 'src/components/PopupTrigger';
 import { SimpleFlexTable, Sortable } from 'src/components/table';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { AzureConfig, GceWithPdConfig, getRegionFromZone } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { isRuntime, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
-import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { LeoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
 import { elements as styleElements } from 'src/libs/style';
@@ -64,7 +63,7 @@ export type EnvironmentNavActions = {
 };
 
 type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | 'pause' | 'delete'>;
-type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'errorInfo' | 'stop' | 'delete'>;
+type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
 
 export interface DataRefreshInfo {
@@ -803,9 +802,8 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         ]),
       errorRuntimeId &&
         h(RuntimeErrorModal, {
-          runtime: _.find({ id: errorRuntimeId }, runtimes)!,
+          runtime: _.find({ id: errorRuntimeId }, runtimes),
           onDismiss: () => setErrorRuntimeId(undefined),
-          errorProvider: leoRuntimeData,
         }),
       deleteRuntimeId &&
         runtimeToDelete &&

@@ -2,13 +2,13 @@ import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, ReactElement, useState } from 'react';
 import { Component, div, h, hr, img, span } from 'react-hyperscript-helpers';
+import { RuntimeErrorModal } from 'src/analysis/AnalysisNotificationManager';
 import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
 import { AzureComputeModalBase } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal';
 import { GcpComputeModalBase } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import { CromwellModalBase } from 'src/analysis/modals/CromwellModal';
 import { GalaxyModalBase } from 'src/analysis/modals/GalaxyModal';
 import { HailBatchModal } from 'src/analysis/modals/HailBatchModal';
-import { RuntimeErrorModal } from 'src/analysis/modals/RuntimeErrorModal';
 import { PeriodicAzureCookieSetter } from 'src/analysis/runtime-common-components';
 import { appLauncherTabName } from 'src/analysis/runtime-common-text';
 import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
@@ -46,10 +46,9 @@ import jupyterLogo from 'src/images/jupyter-logo-long.png';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { appStatuses, LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { LeoRuntimeStatus, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
-import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
@@ -657,9 +656,8 @@ export const CloudEnvironmentModal = ({
       }),
     errorRuntimeId &&
       h(RuntimeErrorModal, {
-        runtime: _.find({ id: errorRuntimeId }, runtimes)!,
+        runtime: _.find({ id: errorRuntimeId }, runtimes),
         onDismiss: () => setErrorRuntimeId(undefined),
-        errorProvider: leoRuntimeProvider,
       }),
     busy && spinnerOverlay,
   ]);

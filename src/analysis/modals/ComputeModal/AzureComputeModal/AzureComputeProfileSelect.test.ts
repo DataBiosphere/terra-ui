@@ -37,27 +37,6 @@ describe('AzureComputeProfileSelect', () => {
     expect(selectedOption).toEqual(expectedSelectedOption);
   });
 
-  it('can provide a limited set of options', async () => {
-    // Arrange
-    const machineTypes = ['Standard_DS2_v2', 'Standard_DS3_v2'];
-    const expectedOptions = machineTypes.map(getMachineTypeLabel);
-    const expectedSelectedOption = getMachineTypeLabel(defaultAzureMachineType);
-
-    const user = userEvent.setup();
-
-    // Act
-    setup({ machineTypeOptions: machineTypes });
-
-    // Assert
-    const select = new SelectHelper(screen.getByLabelText('Cloud compute profile'), user);
-
-    const options = await select.getOptions();
-    expect(options).toEqual(expectedOptions);
-
-    const [selectedOption] = await select.getSelectedOptions();
-    expect(selectedOption).toEqual(expectedSelectedOption);
-  });
-
   it('calls onChangeMachineType when a profile is selected', async () => {
     // Arrange
     const user = userEvent.setup();

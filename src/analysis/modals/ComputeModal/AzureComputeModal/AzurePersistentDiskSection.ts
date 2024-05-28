@@ -4,11 +4,11 @@ import { AboutPersistentDiskSection } from 'src/analysis/modals/ComputeModal/Abo
 import { AzurePersistentDiskSizeSelectInput } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSizeSelectInput';
 import { PersistentDiskTypeInputContainer } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInputContainer';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
-import { AzureDiskType, AzurePdType, AzurePersistentDiskOptions } from 'src/libs/ajax/leonardo/models/disk-models';
+import { AzureDiskType } from 'src/libs/ajax/leonardo/Disks';
+import { AzurePdType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { defaultAzurePersistentDiskType } from 'src/libs/azure-utils';
 
 export interface AzurePersistentDiskSectionProps {
-  maxPersistentDiskSize?: number;
   persistentDiskExists: boolean;
   persistentDiskSize: number;
   persistentDiskType: AzureDiskType;
@@ -17,9 +17,22 @@ export interface AzurePersistentDiskSectionProps {
   onClickAbout: () => void;
 }
 
+export const AzurePersistentDiskOptions: AzurePdType[] = [
+  {
+    value: 'Standard_LRS',
+    label: 'Standard HDD',
+  },
+  // TODO: Disabled the SSD option and the test in
+  // AzurePersistentDiskInputTest test until SSD is properly implemented and tested.
+  // Main blocker: Cost calculation.
+  // {
+  //   value: 'StandardSSD_LRS',
+  //   label: 'Standard SSD',
+  // },
+];
+
 export const AzurePersistentDiskSection = (props: AzurePersistentDiskSectionProps): ReactNode => {
   const {
-    maxPersistentDiskSize,
     onClickAbout,
     persistentDiskType,
     persistentDiskSize,
@@ -39,7 +52,6 @@ export const AzurePersistentDiskSection = (props: AzurePersistentDiskSectionProp
         options: AzurePersistentDiskOptions,
       }),
       h(AzurePersistentDiskSizeSelectInput, {
-        maxPersistentDiskSize,
         persistentDiskSize,
         onChangePersistentDiskSize,
         persistentDiskExists,

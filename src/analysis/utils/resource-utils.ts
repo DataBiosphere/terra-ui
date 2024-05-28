@@ -2,8 +2,8 @@ import _ from 'lodash/fp';
 import { getAppStatusForDisplay } from 'src/analysis/utils/app-utils';
 import { getDisplayRuntimeStatus } from 'src/analysis/utils/runtime-utils';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
-import { isPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { isRuntime, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { isPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import * as Utils from 'src/libs/utils';
 
 /**

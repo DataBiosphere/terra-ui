@@ -1,31 +1,10 @@
 import { isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { Ajax } from 'src/libs/ajax';
 import { AbortOption } from 'src/libs/ajax/data-provider-common';
-import { ListRuntimeItem, Runtime, RuntimeError } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { ListRuntimeItem, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { AzureRuntimeWrapper, GoogleRuntimeWrapper, RuntimeWrapper } from 'src/libs/ajax/leonardo/Runtimes';
 
 export type RuntimeBasics = RuntimeWrapper & Pick<Runtime, 'cloudContext'>;
-
-/**
- * Drives the union type RuntimeErrorInfo. Most runtime errors are of type ErrorList, but there are special cases like UserScriptError
- */
-export type RuntimeErrorType = 'ErrorList' | 'UserScriptError';
-
-interface RuntimeErrorBase {
-  errorType: RuntimeErrorType;
-}
-
-export interface RuntimeListError extends RuntimeErrorBase {
-  errorType: 'ErrorList';
-  errors: RuntimeError[];
-}
-
-export interface RuntimeUserScriptError extends RuntimeErrorBase {
-  errorType: 'UserScriptError';
-  detail: string;
-}
-
-export type RuntimeErrorInfo = RuntimeListError | RuntimeUserScriptError;
 
 export type DeleteRuntimeOptions = AbortOption & {
   deleteDisk?: boolean;
@@ -33,7 +12,6 @@ export type DeleteRuntimeOptions = AbortOption & {
 
 export interface LeoRuntimeProvider {
   list: (listArgs: Record<string, string>, options?: AbortOption) => Promise<ListRuntimeItem[]>;
-  errorInfo: (runtime: RuntimeBasics, options?: AbortOption) => Promise<RuntimeErrorInfo>;
   stop: (runtime: RuntimeWrapper, options?: AbortOption) => Promise<void>;
   delete: (runtime: RuntimeBasics, options?: DeleteRuntimeOptions) => Promise<void>;
 }
@@ -43,23 +21,6 @@ export const leoRuntimeProvider: LeoRuntimeProvider = {
     const { signal } = options;
 
     return Ajax(signal).Runtimes.listV2(listArgs);
-  },
-  errorInfo: async (runtime: RuntimeBasics, options?: AbortOption): Promise<RuntimeErrorInfo> => {
-    const ajax = Ajax(options?.signal);
-    const isGcp = isGcpContext(runtime.cloudContext);
-    const { errors: runtimeErrors, asyncRuntimeFields } = isGcp
-      ? await ajax.Runtimes.runtime((runtime as GoogleRuntimeWrapper).googleProject, runtime.runtimeName).details()
-      : await ajax.Runtimes.runtimeV2((runtime as AzureRuntimeWrapper).workspaceId, runtime.runtimeName).details();
-    if (isGcp && runtimeErrors.some(({ errorMessage }) => errorMessage.includes('Userscript failed'))) {
-      const scriptErrorDetail = await ajax.Buckets.getObjectPreview(
-        (runtime as GoogleRuntimeWrapper).googleProject,
-        asyncRuntimeFields?.stagingBucket,
-        'userscript_output.txt',
-        true
-      ).then((res) => res.text());
-      return { errorType: 'UserScriptError', detail: scriptErrorDetail };
-    } // else
-    return { errorType: 'ErrorList', errors: runtimeErrors };
   },
   stop: (runtime: RuntimeWrapper, options: AbortOption = {}): Promise<void> => {
     const { signal } = options;

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { allAppTypes, AppToolLabel, appToolLabels, isAppToolLabel, ToolLabel } from 'src/analysis/utils/tool-utils';
 import { App, DisplayAppStatus, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes, WorkspaceInfo } from 'src/workspaces/utils';

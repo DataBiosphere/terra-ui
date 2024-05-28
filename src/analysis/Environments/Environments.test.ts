@@ -60,7 +60,6 @@ const getMockLeoAppProvider = (overrides?: Partial<LeoAppProvider>): LeoAppProvi
 const getMockLeoRuntimeProvider = (overrides?: Partial<LeoRuntimeProvider>): LeoRuntimeProvider => {
   const defaultProvider: LeoRuntimeProvider = {
     list: jest.fn(),
-    errorInfo: jest.fn(),
     stop: jest.fn(),
     delete: jest.fn(),
   };
@@ -907,13 +906,11 @@ describe('Environments Component', () => {
 
       // Assert
       expect(props.onEvent).toBeCalledTimes(1);
-      expect(props.onEvent).toBeCalledWith('dataRefresh', {
-        runtimes: 1,
-        disks: 0,
-        apps: 0,
-        leoCallTimeMs: expect.any(Number),
-        totalCallTimeMs: expect.any(Number),
-      } satisfies DataRefreshInfo);
+      expect(props.onEvent).toBeCalledWith(
+        'dataRefresh',
+        // times are zeroed out because of mocked data calls
+        { leoCallTimeMs: 0, totalCallTimeMs: 0, runtimes: 1, disks: 0, apps: 0 } satisfies DataRefreshInfo
+      );
     });
   });
 });

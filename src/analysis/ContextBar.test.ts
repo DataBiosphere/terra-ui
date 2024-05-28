@@ -16,9 +16,9 @@ import { appToolLabels, isToolHidden, runtimeToolLabels } from 'src/analysis/uti
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { App, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { NormalizedComputeRegion } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils';
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
