@@ -1,9 +1,12 @@
 import {
   anvilPfbImportRequests,
+  azureTdrSnapshotImportRequest,
   biodataCatalystPfbImportRequests,
+  gcpTdrSnapshotImportRequest,
   genericPfbImportRequest,
 } from './__fixtures__/import-request-fixtures';
-import { getImportSource, ImportSource, urlMatchesSource, UrlSource } from './import-sources';
+import { getImportSource, isAnvilImport, urlMatchesSource, UrlSource } from './import-sources';
+import { ImportRequest } from './import-types';
 
 describe('urlMatchesSource', () => {
   it.each([
@@ -26,19 +29,48 @@ describe('urlMatchesSource', () => {
   );
 });
 
-describe('getImportSource', () => {
+describe('isAnvilImport', () => {
   it.each([
-    ...anvilPfbImportRequests.map((importRequest) => ({ importUrl: importRequest.url, expectedSource: 'anvil' })),
-    ...[genericPfbImportRequest, ...biodataCatalystPfbImportRequests].map((importRequest) => ({
-      importUrl: importRequest.url,
-      expectedSource: '',
+    ...anvilPfbImportRequests.map((importRequest) => ({ importRequest, expected: true })),
+    ...[
+      genericPfbImportRequest,
+      ...biodataCatalystPfbImportRequests,
+      azureTdrSnapshotImportRequest,
+      gcpTdrSnapshotImportRequest,
+    ].map((importRequest) => ({
+      importRequest,
+      expected: false,
     })),
   ] as {
-    importUrl: URL;
-    expectedSource: ImportSource;
-  }[])('identifies import source ($importUrl)', ({ importUrl, expectedSource }) => {
+    importRequest: ImportRequest;
+    expected: boolean;
+  }[])('identifies import source ($importRequest.url)', ({ importRequest, expected }) => {
     // Act
-    const source = getImportSource(importUrl);
+    const isAnvil = isAnvilImport(importRequest);
+
+    // Assert
+    expect(isAnvil).toBe(expected);
+  });
+});
+
+describe('getImportSource', () => {
+  it.each([
+    ...anvilPfbImportRequests.map((importRequest) => ({ importRequest, expectedSource: 'anvil' })),
+    ...[
+      genericPfbImportRequest,
+      ...biodataCatalystPfbImportRequests,
+      azureTdrSnapshotImportRequest,
+      gcpTdrSnapshotImportRequest,
+    ].map((importRequest) => ({
+      importRequest,
+      expectedSource: undefined,
+    })),
+  ] as {
+    importRequest: ImportRequest;
+    expectedSource: string | undefined;
+  }[])('identifies import source ($importRequest.url)', ({ importRequest, expectedSource }) => {
+    // Act
+    const source = getImportSource(importRequest);
 
     // Assert
     expect(source).toBe(expectedSource);
