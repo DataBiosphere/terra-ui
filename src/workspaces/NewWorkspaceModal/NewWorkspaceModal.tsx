@@ -492,8 +492,8 @@ export const NewWorkspaceModal = withDisplayName(
                 [
                   Utils.cond(
                     [!!buttonText, () => buttonText],
-                    [!!cloneWorkspace, () => 'Cloning Workspace'],
-                    () => 'Creating Workspace'
+                    [!!cloneWorkspace, () => 'Clone Workspace'],
+                    () => 'Create Workspace'
                   ),
                 ]
               ),
