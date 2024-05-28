@@ -31,13 +31,13 @@ export const DeleteWorkflowModal = ({ methodName, onDismiss, onDelete }: DeleteW
             onDismiss();
           },
         },
-        ['Delete Method']
+        ['Delete workflow']
       ),
       styles: { modal: { background: colors.warning(0.1) } },
     },
     [
       div({ style: { paddingBottom: '1.5rem', display: 'flex', flex: 'none' } }, [
-        div([`Are you sure you want to delete method "${methodName}"?`]),
+        div([`Are you sure you want to delete workflow "${methodName}"?`]),
       ]),
     ]
   );
