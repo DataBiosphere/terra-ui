@@ -59,8 +59,8 @@ export const WorkspacesList = (): ReactNode => {
     250
   );
 
-  useWorkspaceStatePolling(workspaces, status);
   useCloningWorkspaceNotifications();
+  useWorkspaceStatePolling(workspaces, status);
 
   const [featuredList, setFeaturedList] = useState<{ name: string; namespace: string }[]>();
   const { query } = useRoute();
