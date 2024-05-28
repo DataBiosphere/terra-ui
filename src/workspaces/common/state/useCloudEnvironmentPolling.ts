@@ -3,9 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { Ajax } from 'src/libs/ajax';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { leoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
 
