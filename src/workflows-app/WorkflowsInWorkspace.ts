@@ -18,7 +18,7 @@ import { DeleteWorkflowModal } from 'src/workflows-app/components/DeleteWorkflow
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { doesAppProxyUrlExist, loadAppUrls, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
-import { WorkspaceWrapper } from 'src/workspaces/utils';
+import { canWrite, WorkspaceWrapper } from 'src/workspaces/utils';
 
 type WorkflowsInWorkspaceProps = {
   name: string;
@@ -32,6 +32,7 @@ export const WorkflowsInWorkspace = ({
   namespace,
   workspace: {
     workspace: { workspaceId },
+    accessLevel,
   },
   analysesData: { apps, refreshApps },
 }: WorkflowsInWorkspaceProps) => {
@@ -171,8 +172,10 @@ export const WorkflowsInWorkspace = ({
                         MenuButton,
                         {
                           onClick: () => setDeleteWorkflowModal(true),
-                          // ...workspaceEditControlProps,
-                          tooltipSide: 'left',
+                          disabled: !canWrite(accessLevel),
+                          tooltip: !canWrite(accessLevel)
+                            ? 'You must have write permission to delete workflows in this workspace'
+                            : '',
                         },
                         [makeMenuIcon('trash'), 'Delete']
                       ),
@@ -188,7 +191,7 @@ export const WorkflowsInWorkspace = ({
               )
             ),
           ]),
-    [name, namespace, methodsData, deleteMethod, deleteWorkflowModal]
+    [name, namespace, accessLevel, methodsData, deleteMethod, deleteWorkflowModal]
   );
 
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
