@@ -492,8 +492,8 @@ export const NewWorkspaceModal = withDisplayName(
                 [
                   Utils.cond(
                     [!!buttonText, () => buttonText],
-                    [!!cloneWorkspace, () => 'Clone Workspace'],
-                    () => 'Create Workspace'
+                    [!!cloneWorkspace, () => 'Cloning Workspace'],
+                    () => 'Creating Workspace'
                   ),
                 ]
               ),
@@ -501,7 +501,7 @@ export const NewWorkspaceModal = withDisplayName(
             },
             [
               creating ? (
-                <CreatingWorkspaceMessage asyncClone={!!cloneWorkspace && isAzureWorkspace(cloneWorkspace)} />
+                <CreatingWorkspaceMessage />
               ) : (
                 h(Fragment, [
                   h(IdContainer, [
