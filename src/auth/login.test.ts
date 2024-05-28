@@ -5,8 +5,8 @@ import { loadTerraUser } from 'src/auth/auth';
 import { Groups, GroupsContract } from 'src/libs/ajax/Groups';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamUserTermsOfServiceDetails, TermsOfService, TermsOfServiceContract } from 'src/libs/ajax/TermsOfService';
-import { SamUserResponse, User, UserContract } from 'src/libs/ajax/User';
-import { oidcStore, TerraUserState, userStore } from 'src/libs/state';
+import { SamUserCombinedStateResponse, SamUserResponse, User, UserContract } from 'src/libs/ajax/User';
+import { oidcStore, userStore } from 'src/libs/state';
 
 jest.mock('src/libs/ajax/TermsOfService');
 jest.mock('src/libs/ajax/User');
@@ -95,11 +95,7 @@ const mockOrchestrationNihStatusResponse = {
 // TODO centralize Ajax mock setup so it can be reused across tests
 describe('a request to load a terra user', () => {
   // Arrange (shared between tests for the success case)
-  const getUserAllowancesFunction = jest.fn().mockResolvedValue(testSamUserAllowances);
-  const getUserAttributesFunction = jest.fn().mockResolvedValue({ marketingConsent: false });
-  const getUserTermsOfServiceDetailsFunction = jest.fn().mockResolvedValue(mockSamUserTermsOfServiceDetails);
-  const getEnterpriseFeaturesFunction = jest.fn().mockResolvedValue([]);
-  const getSamUserResponseFunction = jest.fn().mockResolvedValue(mockSamUserResponse);
+  const getCombinedUserStateFunction = jest.fn().mockResolvedValue(mockSamUserCombinedState);
   const getNihStatusFunction = jest.fn().mockResolvedValue(mockOrchestrationNihStatusResponse);
   const getFenceStatusFunction = jest.fn().mockResolvedValue({});
 
@@ -113,11 +109,7 @@ describe('a request to load a terra user', () => {
       captureEvent: jest.fn(),
     } as Partial<MetricsContract> as MetricsContract);
     asMockedFn(User).mockReturnValue({
-      getUserAllowances: getUserAllowancesFunction,
-      getUserAttributes: getUserAttributesFunction,
-      getUserTermsOfServiceDetails: getUserTermsOfServiceDetailsFunction,
-      getEnterpriseFeatures: getEnterpriseFeaturesFunction,
-      getSamUserResponse: getSamUserResponseFunction,
+      getCombinedUserState: getCombinedUserStateFunction,
       getNihStatus: getNihStatusFunction,
       getFenceStatus: getFenceStatusFunction,
       profile: {
@@ -139,14 +131,14 @@ describe('a request to load a terra user', () => {
       await act(() => loadTerraUser());
 
       // Assert
-      expect(getSamUserCombinedStateMock).toHaveBeenCalled();
+      expect(getCombinedUserStateFunction).toHaveBeenCalled();
     });
     it('should update the samUser in state', async () => {
       // Act
       await act(() => loadTerraUser());
 
       // Assert
-      expect(getSamUserCombinedStateMock).toHaveBeenCalled();
+      expect(getCombinedUserStateFunction).toHaveBeenCalled();
       expect(userStore.get().samUser).toEqual(mockSamUserResponse);
     });
     describe('when not successful', () => {
@@ -156,7 +148,7 @@ describe('a request to load a terra user', () => {
         const getSamUserCombinedStateMockFailure = jest.fn().mockRejectedValue(new Error('unknown'));
 
         asMockedFn(User).mockReturnValue({
-                getSamUserCombinedState: getSamUserCombinedStateMockFailure,
+          getSamUserCombinedState: getSamUserCombinedStateMockFailure,
           profile: {
             get: jest.fn().mockReturnValue(mockTerraUserProfile),
           },
