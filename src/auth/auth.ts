@@ -481,8 +481,8 @@ export const refreshSamUserAttributes = async (): Promise<void> => {
 export const loadTerraUser = async (): Promise<void> => {
   try {
     const signInStatus = 'userLoaded';
-    const getProfile = Ajax().User.profile.get();
-    const getCombinedState = Ajax().User.getSamUserCombinedState();
+    const getProfile = User().profile.get();
+    const getCombinedState = User().getSamUserCombinedState();
     const [profile, terraUserCombinedState] = await Promise.all([getProfile, getCombinedState]);
     const { terraUserAttributes, enterpriseFeatures, samUser, terraUserAllowances, termsOfService } =
       terraUserCombinedState;

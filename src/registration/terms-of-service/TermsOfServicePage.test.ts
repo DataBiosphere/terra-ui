@@ -5,7 +5,13 @@ import { Ajax } from 'src/libs/ajax';
 import { Groups, GroupsContract } from 'src/libs/ajax/Groups';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamUserTermsOfServiceDetails, TermsOfService, TermsOfServiceContract } from 'src/libs/ajax/TermsOfService';
-import { SamUserAllowances, SamUserResponse, User, UserContract } from 'src/libs/ajax/User';
+import {
+  SamUserAllowances,
+  SamUserCombinedStateResponse,
+  SamUserResponse,
+  User,
+  UserContract,
+} from 'src/libs/ajax/User';
 import { AuthState, authStore } from 'src/libs/state';
 import { TermsOfServicePage } from 'src/registration/terms-of-service/TermsOfServicePage';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';

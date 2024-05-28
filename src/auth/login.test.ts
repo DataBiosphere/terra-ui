@@ -95,7 +95,7 @@ const mockOrchestrationNihStatusResponse = {
 // TODO centralize Ajax mock setup so it can be reused across tests
 describe('a request to load a terra user', () => {
   // Arrange (shared between tests for the success case)
-  const getCombinedUserStateFunction = jest.fn().mockResolvedValue(mockSamUserCombinedState);
+  const getSamUserCombinedStateFunction = jest.fn().mockResolvedValue(mockSamUserCombinedState);
   const getNihStatusFunction = jest.fn().mockResolvedValue(mockOrchestrationNihStatusResponse);
   const getFenceStatusFunction = jest.fn().mockResolvedValue({});
 
@@ -109,7 +109,7 @@ describe('a request to load a terra user', () => {
       captureEvent: jest.fn(),
     } as Partial<MetricsContract> as MetricsContract);
     asMockedFn(User).mockReturnValue({
-      getCombinedUserState: getCombinedUserStateFunction,
+      getSamUserCombinedState: getSamUserCombinedStateFunction,
       getNihStatus: getNihStatusFunction,
       getFenceStatus: getFenceStatusFunction,
       profile: {
@@ -131,14 +131,14 @@ describe('a request to load a terra user', () => {
       await act(() => loadTerraUser());
 
       // Assert
-      expect(getCombinedUserStateFunction).toHaveBeenCalled();
+      expect(getSamUserCombinedStateFunction).toHaveBeenCalled();
     });
     it('should update the samUser in state', async () => {
       // Act
       await act(() => loadTerraUser());
 
       // Assert
-      expect(getCombinedUserStateFunction).toHaveBeenCalled();
+      expect(getSamUserCombinedStateFunction).toHaveBeenCalled();
       expect(userStore.get().samUser).toEqual(mockSamUserResponse);
     });
     describe('when not successful', () => {
