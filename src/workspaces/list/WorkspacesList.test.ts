@@ -5,6 +5,7 @@ import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { WORKSPACE_UPDATE_POLLING_INTERVAL } from 'src/workspaces/common/state/useWorkspaceStatePolling';
 import { WorkspacesList } from 'src/workspaces/list/WorkspacesList';
 import { WorkspaceState, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
@@ -94,7 +95,7 @@ describe('WorkspaceList', () => {
       render(h(WorkspacesList));
     });
     // trigger first poll
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
     // wait for any promises to complete
     await Promise.resolve();
 
@@ -146,10 +147,10 @@ describe('WorkspaceList', () => {
         render(h(WorkspacesList));
       });
       // trigger first poll
-      jest.advanceTimersByTime(30000);
+      jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
       // Waiting on the assertion here also ensures promises have time to complete
       await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
-      jest.advanceTimersByTime(30000);
+      jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
 
       // Assert
       await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(2));
@@ -225,13 +226,13 @@ describe('WorkspaceList', () => {
       render(h(WorkspacesList));
     });
 
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
 
     // Assert
     await waitFor(() => expect(mockDeletingDetailsFn).toBeCalledTimes(1));
     await waitFor(() => expect(mockCloningDetailsFn).toBeCalledTimes(1));
 
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
 
     await waitFor(() => expect(mockDeletingDetailsFn).toBeCalledTimes(2));
     await waitFor(() => expect(mockCloningDetailsFn).toBeCalledTimes(2));

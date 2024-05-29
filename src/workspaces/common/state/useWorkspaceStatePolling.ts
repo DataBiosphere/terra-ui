@@ -12,6 +12,8 @@ export interface WorkspaceUpdate extends Partial<BaseWorkspaceInfo> {
   errorMessage?: string;
 }
 
+export const WORKSPACE_UPDATE_POLLING_INTERVAL = 15000;
+
 // Returns a new list of workspaces with the workspace matching the update replaced with the updated version
 const updateWorkspacesList = (workspaces: Workspace[], update: WorkspaceUpdate): Workspace[] =>
   workspaces.map((ws) => updateWorkspaceIfMatching(ws, update));
@@ -95,7 +97,12 @@ export const useWorkspaceStatePolling = (workspaces: Workspace[], status: Loaded
       }
     };
 
-    pollWithCancellation(() => iterateUpdatingWorkspaces(), 30000, false, controller.current.signal);
+    pollWithCancellation(
+      () => iterateUpdatingWorkspaces(),
+      WORKSPACE_UPDATE_POLLING_INTERVAL,
+      false,
+      controller.current.signal
+    );
     return () => {
       abort();
     };
@@ -129,7 +136,12 @@ export const useWorkspacesStatePollingWithAction = (workspaces: WorkspaceInfo[],
       }
     };
 
-    pollWithCancellation(() => iterateUpdatingWorkspaces(), 30000, false, controller.current.signal);
+    pollWithCancellation(
+      () => iterateUpdatingWorkspaces(),
+      WORKSPACE_UPDATE_POLLING_INTERVAL,
+      false,
+      controller.current.signal
+    );
     return () => {
       abort();
     };

@@ -7,6 +7,7 @@ import { workspacesStore, workspaceStore } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { InitializedWorkspaceWrapper } from 'src/workspaces/common/state/useWorkspace';
+import { WORKSPACE_UPDATE_POLLING_INTERVAL } from 'src/workspaces/common/state/useWorkspaceStatePolling';
 import { WorkspaceContainer } from 'src/workspaces/container/WorkspaceContainer';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
@@ -167,7 +168,7 @@ describe('WorkspaceContainer', () => {
     // Act
     render(h(WorkspaceContainer, props));
     // trigger timing past poll timing multiple times
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
     await Promise.resolve();
 
     // Assert
@@ -223,11 +224,11 @@ describe('WorkspaceContainer', () => {
     render(h(WorkspaceContainer, props));
 
     // trigger polls
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
     await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
     await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(2));
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
 
     // Assert
     await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(3));
@@ -296,7 +297,7 @@ describe('WorkspaceContainer', () => {
 
     render(h(WorkspaceContainer, props));
     // trigger first poll
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
 
     // Assert
     await waitFor(() => expect(mockDetailsFn).toBeCalled());
@@ -369,7 +370,7 @@ describe('WorkspaceContainer', () => {
 
     render(h(WorkspaceContainer, props));
     // trigger first poll
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
 
     // Assert
     await waitFor(() => expect(mockDetailsFn).toBeCalled());

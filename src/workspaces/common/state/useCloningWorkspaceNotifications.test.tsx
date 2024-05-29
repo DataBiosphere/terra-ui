@@ -11,6 +11,7 @@ import {
   notifyNewWorkspaceClone,
   useCloningWorkspaceNotifications,
 } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
+import { WORKSPACE_UPDATE_POLLING_INTERVAL } from 'src/workspaces/common/state/useWorkspaceStatePolling';
 import { WorkspaceInfo, WorkspaceState } from 'src/workspaces/utils';
 
 type AjaxContract = ReturnType<typeof Ajax>;
@@ -100,7 +101,7 @@ describe('useCloningWorkspaceNotifications', () => {
 
       // Act
       render(<CloningTestComponent />);
-      jest.advanceTimersByTime(30000);
+      jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
       await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
 
       // Assert
@@ -130,7 +131,7 @@ describe('useCloningWorkspaceNotifications', () => {
 
     // Act
     render(<CloningTestComponent />);
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
     await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
 
     // Assert
