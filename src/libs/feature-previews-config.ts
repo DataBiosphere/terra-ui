@@ -124,7 +124,7 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     title: 'Workflows App Status Modal',
     description: 'Enabling this feature will allow you to view the status of the workflows app.',
     feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
-      'Feedback on deprecating Firecloud UI'
+      'Feedback on Workflows App Status Modal'
     )}`,
   },
 ];
