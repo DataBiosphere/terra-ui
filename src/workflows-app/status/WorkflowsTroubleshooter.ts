@@ -70,7 +70,7 @@ export const WorkflowsTroubleshooter = ({ onDismiss, workspaceId, mrgId, tenantI
       td([element || content]),
       td([
         h(ClipboardButton, {
-          text: content,
+          text: content || '',
           style: { marginLeft: '0.5rem' },
           onClick: (e) => e.stopPropagation(), // this stops the collapse when copying
         }),

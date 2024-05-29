@@ -25,7 +25,7 @@ import { WorkflowsTroubleshooter } from 'src/workflows-app/status/WorkflowsTroub
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { analysesDataInitialized, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
-import { WorkspaceWrapper } from 'src/workspaces/utils';
+import { AzureWorkspace } from 'src/workspaces/utils';
 
 const subHeadersMap = {
   'workspace-workflows': 'Workflows in this workspace',
@@ -72,7 +72,7 @@ type WorkflowsAppNavPanelProps = {
   loading: boolean;
   name: string;
   namespace: string;
-  workspace: WorkspaceWrapper;
+  workspace: AzureWorkspace;
   analysesData: AnalysesData;
   launcherDisabled: boolean;
   launching: boolean;

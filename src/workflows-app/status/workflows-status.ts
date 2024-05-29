@@ -9,7 +9,7 @@ type UseWorkflowsStatusArgs = {
 };
 
 export type WorkflowsStatus = {
-  totalVisibleApps: number | null;
+  totalVisibleApps: string | null;
 
   workflowsAppName: string | null;
   cromwellRunnerAppName: string | null;
@@ -217,7 +217,7 @@ export const useWorkflowsStatus = ({ workspaceId }: UseWorkflowsStatusArgs) => {
       listAppsResponse = await Ajax(signal).Apps.listAppsV2(workspaceId);
     } catch (err) {
       setStatus({
-        totalVisibleApps: 0,
+        totalVisibleApps: 'unknown',
 
         workflowsAppName: 'unknown',
         workflowsAppStatus: 'unknown',
@@ -241,7 +241,7 @@ export const useWorkflowsStatus = ({ workspaceId }: UseWorkflowsStatusArgs) => {
       return;
     }
 
-    setStatus((previouStatus) => ({ ...previouStatus, totalVisibleApps: listAppsResponse.length }));
+    setStatus((previousStatus) => ({ ...previousStatus, totalVisibleApps: listAppsResponse.length.toString() }));
 
     const workflowsApp = getCurrentApp('WORKFLOWS_APP', listAppsResponse);
     await analyzeWorkflowsApp(workflowsApp, signal);
