@@ -2,13 +2,14 @@ import { Fragment, ReactNode, useContext } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import { goToPath } from 'src/libs/nav';
+import { notifyNewWorkspaceClone } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
 import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
 import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
-import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
+import { NewWorkspaceModal } from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { RequestAccessModal } from 'src/workspaces/RequestAccessModal/RequestAccessModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
-import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
+import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface WorkspacesListModalsProps {
   getWorkspace: (string) => Workspace;
@@ -29,7 +30,15 @@ export const WorkspacesListModals = (props: WorkspacesListModalsProps): ReactNod
       h(NewWorkspaceModal, {
         cloneWorkspace: userActions.cloningWorkspace,
         onDismiss: () => setUserActions({ cloningWorkspace: undefined }),
-        onSuccess: ({ namespace, name }) => goToPath('workspace-dashboard', { namespace, name }),
+        onSuccess: (ws) => {
+          if (userActions.cloningWorkspace && isGoogleWorkspace(userActions.cloningWorkspace)) {
+            goToPath('workspace-dashboard', { namespace: ws.namespace, name: ws.name });
+          } else {
+            refreshWorkspaces();
+            setUserActions({ cloningWorkspace: undefined });
+            notifyNewWorkspaceClone(ws);
+          }
+        },
       }),
     !!userActions.deletingWorkspaceId &&
       h(DeleteWorkspaceModal, {
