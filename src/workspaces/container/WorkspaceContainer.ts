@@ -7,7 +7,6 @@ import AnalysisNotificationManager from 'src/analysis/AnalysisNotificationManage
 import { ContextBar } from 'src/analysis/ContextBar';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import TitleBar from 'src/components/TitleBar';
 import TopBar from 'src/components/TopBar';
 import colors from 'src/libs/colors';
@@ -17,15 +16,13 @@ import { getTerraUser, workspaceStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { useAppPolling } from 'src/workspaces/common/state/useAppPolling';
+import { useCloningWorkspaceNotifications } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
 import { useCloudEnvironmentPolling } from 'src/workspaces/common/state/useCloudEnvironmentPolling';
-import { useSingleWorkspaceDeletionPolling } from 'src/workspaces/common/state/useDeletionPolling';
 import { InitializedWorkspaceWrapper, StorageDetails, useWorkspace } from 'src/workspaces/common/state/useWorkspace';
+import { useWorkspaceStatePolling } from 'src/workspaces/common/state/useWorkspaceStatePolling';
+import { WorkspaceContainerModals } from 'src/workspaces/container/WorkspaceContainerModals';
 import { WorkspaceDeletingBanner } from 'src/workspaces/container/WorkspaceDeletingBanner';
 import { WorkspaceTabs } from 'src/workspaces/container/WorkspaceTabs';
-import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
-import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
-import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
-import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
 import { azureControlledAccessRequestMessage, isGoogleWorkspace } from 'src/workspaces/utils';
 
 const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
@@ -99,7 +96,9 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const isGoogleWorkspaceSyncing =
     workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
 
-  useSingleWorkspaceDeletionPolling(workspace!);
+  useCloningWorkspaceNotifications();
+  useWorkspaceStatePolling(workspace ? [workspace] : [], workspaceLoaded ? 'Ready' : 'Loading');
+
   useEffect(() => {
     if (workspace?.workspace?.state === 'Deleted') {
       Nav.goToPath('workspaces');
@@ -149,37 +148,20 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
           }),
       ]),
     ]),
-    deletingWorkspace &&
-      h(DeleteWorkspaceModal, {
-        workspace: workspace!,
-        onDismiss: () => setDeletingWorkspace(false),
-        onSuccess: () => Nav.goToPath('workspaces'),
-      }),
-    cloningWorkspace &&
-      h(NewWorkspaceModal, {
-        cloneWorkspace: workspace,
-        onDismiss: () => setCloningWorkspace(false),
-        onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name }),
-      }),
-    showLockWorkspaceModal &&
-      h(LockWorkspaceModal, {
-        // @ts-expect-error
+    workspace &&
+      h(WorkspaceContainerModals, {
         workspace,
-        onDismiss: () => setShowLockWorkspaceModal(false),
-        onSuccess: () => refreshWorkspace(),
-      }),
-    leavingWorkspace &&
-      h(LeaveResourceModal, {
-        samResourceId: workspace!.workspace.workspaceId,
-        samResourceType: 'workspace',
-        displayName: 'workspace',
-        onDismiss: () => setLeavingWorkspace(false),
-        onSuccess: () => Nav.goToPath('workspaces'),
-      }),
-    sharingWorkspace &&
-      h(ShareWorkspaceModal, {
-        workspace: workspace!,
-        onDismiss: () => setSharingWorkspace(false),
+        refreshWorkspace,
+        deletingWorkspace,
+        setDeletingWorkspace,
+        cloningWorkspace,
+        setCloningWorkspace,
+        leavingWorkspace,
+        setLeavingWorkspace,
+        sharingWorkspace,
+        setSharingWorkspace,
+        showLockWorkspaceModal,
+        setShowLockWorkspaceModal,
       }),
   ]);
 };
