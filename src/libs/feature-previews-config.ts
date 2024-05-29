@@ -5,6 +5,7 @@ export const ENABLE_WORKFLOW_RESOURCE_MONITORING = 'enableWorkflowResourceMonito
 export const ENABLE_AZURE_PFB_IMPORT = 'enableAzurePfbImport';
 export const ENABLE_AZURE_TDR_IMPORT = 'enableAzureTdrImport';
 export const FIRECLOUD_UI_MIGRATION = 'firecloudUiMigration';
+export const WORKFLOWS_APP_STATUS = 'workflowsAppStatus';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -114,6 +115,14 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     id: FIRECLOUD_UI_MIGRATION,
     title: 'Firecloud UI Feature Migration',
     description: 'Enabling this feature will update replaceable links to Firecloud UI with new links to Terra UI',
+    feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
+      'Feedback on deprecating Firecloud UI'
+    )}`,
+  },
+  {
+    id: WORKFLOWS_APP_STATUS,
+    title: 'Workflows App Status Modal',
+    description: 'Enabling this feature will allow you to view the status of the workflows app.',
     feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on deprecating Firecloud UI'
     )}`,

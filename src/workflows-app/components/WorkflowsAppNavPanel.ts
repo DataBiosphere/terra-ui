@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { CSSProperties, useEffect } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
 import { div, h, h2, span } from 'react-hyperscript-helpers';
 import { ErrorAlert } from 'src/alerts/ErrorAlert';
 import { AnalysesData } from 'src/analysis/Analyses';
@@ -11,6 +11,8 @@ import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { WORKFLOWS_APP_STATUS } from 'src/libs/feature-previews-config';
 import { useQueryParameter } from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -19,6 +21,7 @@ import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
 import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
+import { WorkflowsTroubleshooter } from 'src/workflows-app/status/WorkflowsTroubleshooter';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { analysesDataInitialized, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
@@ -94,6 +97,7 @@ export const WorkflowsAppNavPanel = ({
 }: WorkflowsAppNavPanelProps) => {
   const [selectedSubHeader, setSelectedSubHeader] = useQueryParameter('tab');
   const { captureEvent } = useMetricsEvent();
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
 
   useEffect(() => {
     if (
@@ -242,6 +246,25 @@ export const WorkflowsAppNavPanel = ({
             ),
           ]
         ),
+        isFeaturePreviewEnabled(WORKFLOWS_APP_STATUS) &&
+          h(
+            Clickable,
+            {
+              'aria-label': 'troubleshooting-button',
+              style: {
+                ...styles.subHeaders(false),
+                // color: colors.accent(1.1),
+                fontSize: 16,
+              },
+              onClick: () => setStatusModalVisible(true),
+            },
+            [
+              h(ListItem, {
+                title: 'Workflows app status',
+                pageReady: true,
+              }),
+            ]
+          ),
         div(
           {
             style: { marginTop: '2rem' },
@@ -257,6 +280,14 @@ export const WorkflowsAppNavPanel = ({
         ),
       ]
     ),
+    statusModalVisible &&
+      h(WorkflowsTroubleshooter, {
+        onDismiss: () => setStatusModalVisible(false),
+        workspaceId: workspace.workspace.workspaceId,
+        mrgId: workspace.azureContext.managedResourceGroupId,
+        tenantId: workspace.azureContext.tenantId,
+        subscriptionId: workspace.azureContext.subscriptionId,
+      }),
     Utils.cond(
       [
         !analysesDataInitialized(analysesData),
