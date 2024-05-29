@@ -38,7 +38,7 @@ export const WorkflowsInWorkspace = ({
 }: WorkflowsInWorkspaceProps) => {
   const [methodsData, setMethodsData] = useState<WorkflowMethod[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deleteWorkflowModal, setDeleteWorkflowModal] = useState(false);
+  const [methodToDelete, setMethodToDelete] = useState(null);
 
   const signal = useCancellation();
   const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
@@ -171,7 +171,7 @@ export const WorkflowsInWorkspace = ({
                       h(
                         MenuButton,
                         {
-                          onClick: () => setDeleteWorkflowModal(true),
+                          onClick: () => setMethodToDelete(method),
                           disabled: !canWrite(accessLevel),
                           tooltip: !canWrite(accessLevel)
                             ? 'You must have write permission to delete workflows in this workspace'
@@ -179,20 +179,23 @@ export const WorkflowsInWorkspace = ({
                         },
                         [makeMenuIcon('trash'), 'Delete']
                       ),
-                      deleteWorkflowModal &&
-                        h(DeleteWorkflowModal, {
-                          onDismiss: () => setDeleteWorkflowModal(false),
-                          onDelete: () => deleteMethod(method.method_id),
-                          methodName: method.name,
-                        }),
                     ]
                   ),
                 methodsData
               )
             ),
+            methodToDelete != null &&
+              h(DeleteWorkflowModal, {
+                onDismiss: () => setMethodToDelete(null),
+                onDelete: () => deleteMethod(methodToDelete.method_id),
+                methodName: methodToDelete.name,
+              }),
           ]),
-    [name, namespace, accessLevel, methodsData, deleteMethod, deleteWorkflowModal]
+    [name, namespace, accessLevel, methodsData, deleteMethod, methodToDelete]
   );
+
+  // (1) useModalHandler
+  // (2) "componentize" the children
 
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
     h2({ style: { marginTop: 0 } }, ['Workflows in this workspace']),
