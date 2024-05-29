@@ -37,8 +37,8 @@ export const WorkflowsInWorkspace = ({
   analysesData: { apps, refreshApps },
 }: WorkflowsInWorkspaceProps) => {
   const [methodsData, setMethodsData] = useState<WorkflowMethod[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [methodToDelete, setMethodToDelete] = useState(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [methodToDelete, setMethodToDelete] = useState<WorkflowMethod | null>(null);
 
   const signal = useCancellation();
   const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
