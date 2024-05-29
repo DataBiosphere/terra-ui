@@ -52,12 +52,12 @@ describe('WorkspacesContainerModals', () => {
 
   it('renders the NewWorkspaceModal when cloning a workspace', () => {
     // Arrange
-    mockModalFn.mockImplementation(() => <div data-testid='mockedNewWorkspaceModal' />);
+    mockModalFn.mockImplementation(() => <div>mockedNewWorkspaceModal</div>);
 
     // Act
     render(<WorkspaceContainerModals {...defaultModalProps} cloningWorkspace />);
     // Assert
-    expect(screen.getByTestId('mockedNewWorkspaceModal')).toBeInTheDocument();
+    expect(screen.getByText('mockedNewWorkspaceModal')).toBeInTheDocument();
   });
 
   it('goes to the cloned workspace when a google workspace is cloned', () => {
@@ -69,13 +69,14 @@ describe('WorkspacesContainerModals', () => {
     };
     mockModalFn.mockImplementation(
       (props: NewWorkspaceModalProps): React.ReactNode => (
-        // eslint-disable-next-line jsx-a11y/control-has-associated-label, react/button-has-type
-        <button data-testid='mockedNewWorkspaceModal' onClick={() => props.onSuccess(newWorkspace)} />
+        <button type='button' onClick={() => props.onSuccess(newWorkspace)}>
+          mockedNewWorkspaceModal
+        </button>
       )
     );
     // Act
     render(<WorkspaceContainerModals {...defaultModalProps} workspace={defaultGoogleWorkspace} cloningWorkspace />);
-    fireEvent.click(screen.getByTestId('mockedNewWorkspaceModal'));
+    fireEvent.click(screen.getByText('mockedNewWorkspaceModal'));
 
     // Assert
     expect(goToPath).toHaveBeenCalledWith('workspace-dashboard', {
@@ -93,13 +94,14 @@ describe('WorkspacesContainerModals', () => {
     };
     mockModalFn.mockImplementation(
       (props: NewWorkspaceModalProps): React.ReactNode => (
-        // eslint-disable-next-line jsx-a11y/control-has-associated-label, react/button-has-type
-        <button data-testid='mockedNewWorkspaceModal' onClick={() => props.onSuccess(newWorkspace)} />
+        <button type='button' onClick={() => props.onSuccess(newWorkspace)}>
+          mockedNewWorkspaceModal
+        </button>
       )
     );
     // Act
     render(<WorkspaceContainerModals {...defaultModalProps} cloningWorkspace />);
-    fireEvent.click(screen.getByTestId('mockedNewWorkspaceModal'));
+    fireEvent.click(screen.getByText('mockedNewWorkspaceModal'));
 
     // Assert
     expect(goToPath).not.toHaveBeenCalled();

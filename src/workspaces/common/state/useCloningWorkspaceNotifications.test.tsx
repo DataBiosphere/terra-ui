@@ -41,6 +41,7 @@ const CloningTestComponent = (): React.ReactNode => {
 describe('useCloningWorkspaceNotifications', () => {
   beforeEach(() => {
     cloningWorkspacesStore.set([]);
+    jest.useFakeTimers();
   });
 
   describe('notifyNewWorkspaceClone', () => {
@@ -72,10 +73,6 @@ describe('useCloningWorkspaceNotifications', () => {
         message: expect.any(Object),
       });
     });
-  });
-
-  beforeEach(() => {
-    jest.useFakeTimers();
   });
 
   it.each<{

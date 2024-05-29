@@ -96,8 +96,8 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const isGoogleWorkspaceSyncing =
     workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
 
-  useWorkspaceStatePolling(workspace ? [workspace] : [], workspaceLoaded ? 'Ready' : 'Loading');
   useCloningWorkspaceNotifications();
+  useWorkspaceStatePolling(workspace ? [workspace] : [], workspaceLoaded ? 'Ready' : 'Loading');
 
   useEffect(() => {
     if (workspace?.workspace?.state === 'Deleted') {

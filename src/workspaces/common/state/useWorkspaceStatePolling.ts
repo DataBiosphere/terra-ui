@@ -38,7 +38,7 @@ const doUpdate = (update: WorkspaceUpdate): WorkspaceUpdate => {
 };
 
 // Polls the workspace state, and updates the stores if the state changes
-// Returns the new state or if the workspace state transitions or undefined if the workspace was not updated
+// Returns the new update if the workspace state transitions or undefined if the workspace was not updated
 const checkWorkspaceState = async (
   workspace: WorkspaceInfo,
   signal: AbortSignal
@@ -99,7 +99,7 @@ export const useWorkspaceStatePolling = (workspaces: Workspace[], status: Loaded
     return () => {
       abort();
     };
-  }, [workspaces, status]); // adding the controller to deps causes a double fire of the effect
+  }, [workspaces, status]);
 };
 
 export type StateUpdateAction = (WorkspaceUpdate) => void;
@@ -133,5 +133,5 @@ export const useWorkspacesStatePollingWithAction = (workspaces: WorkspaceInfo[],
     return () => {
       abort();
     };
-  }, [workspaces, listeners]); // adding the controller to deps causes a double fire of the effect
+  }, [workspaces, listeners]);
 };
