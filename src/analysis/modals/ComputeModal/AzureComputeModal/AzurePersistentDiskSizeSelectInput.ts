@@ -1,5 +1,5 @@
 import { useUniqueId } from '@terra-ui-packages/components';
-import React from 'react';
+import { ReactNode } from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
 import { IComputeConfig } from 'src/analysis/modal-utils';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
@@ -8,6 +8,7 @@ import { azureDiskSizes } from 'src/libs/ajax/leonardo/models/disk-models';
 import { defaultAzureDiskSize } from 'src/libs/azure-utils';
 
 export interface AzurePersistentDiskSizeSelectInputProps {
+  maxPersistentDiskSize?: number;
   persistentDiskSize: number;
   onChangePersistentDiskSize: (e: number | null | undefined) => void;
   persistentDiskExists: boolean;
@@ -15,15 +16,16 @@ export interface AzurePersistentDiskSizeSelectInputProps {
 
 const AzurePersistentDiskSizeSelect = Select as typeof Select<IComputeConfig['persistentDiskSize']>;
 
-export const AzurePersistentDiskSizeSelectInput: React.FC<AzurePersistentDiskSizeSelectInputProps> = (
-  props: AzurePersistentDiskSizeSelectInputProps
-) => {
-  const { persistentDiskSize, onChangePersistentDiskSize, persistentDiskExists } = props;
+export const AzurePersistentDiskSizeSelectInput = (props: AzurePersistentDiskSizeSelectInputProps): ReactNode => {
+  const { maxPersistentDiskSize, persistentDiskSize, onChangePersistentDiskSize, persistentDiskExists } = props;
   const diskSizeId = useUniqueId();
 
   // If the user created a PD before the select implementation, we should still
   // show the correct disk size.
   let extendedAzureDiskSizes = azureDiskSizes;
+  if (maxPersistentDiskSize) {
+    extendedAzureDiskSizes = azureDiskSizes.filter((size) => size <= maxPersistentDiskSize);
+  }
   if (!azureDiskSizes.includes(persistentDiskSize)) {
     extendedAzureDiskSizes = azureDiskSizes.concat(persistentDiskSize);
   }

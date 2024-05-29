@@ -156,6 +156,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
       ERROR: h(TextCell, { style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }, [`Failed with ${errorCount} errors`]),
       CANCELING: 'Canceling',
       CANCELED: 'Canceled',
+      QUEUED: 'Queued',
     };
 
     const stateIconKey = {
@@ -165,6 +166,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
       ERROR: 'failed',
       CANCELING: 'canceling',
       CANCELED: 'canceled',
+      QUEUED: 'queued',
     };
 
     return div([makeStatusLine(statusType[stateIconKey[state]].icon, stateContent[state])]);
@@ -269,7 +271,8 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                           disabled:
                                             !permissionToAbort ||
                                             isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) ||
-                                            paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
+                                            paginatedPreviousRunSets[rowIndex].state === 'CANCELING' ||
+                                            paginatedPreviousRunSets[rowIndex].state === 'QUEUED',
                                           tooltip: Utils.cond(
                                             [
                                               isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state),
@@ -278,6 +281,10 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                             [
                                               paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
                                               () => 'Cancel already requested on this submission.',
+                                            ],
+                                            [
+                                              paginatedPreviousRunSets[rowIndex].state === 'QUEUED',
+                                              () => 'Cannot abort a submission that is in Queued state.',
                                             ],
                                             [!permissionToAbort, () => 'You must be the original submitter to abort this submission'],
                                             () => ''

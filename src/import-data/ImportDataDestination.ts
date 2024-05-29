@@ -1,4 +1,5 @@
 import { icon, IconId } from '@terra-ui-packages/components';
+import { cond } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { AriaAttributes, CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, h2, img, p, span } from 'react-hyperscript-helpers';
@@ -18,12 +19,12 @@ import * as Utils from 'src/libs/utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
-import { WorkspaceInfo } from 'src/workspaces/utils';
+import { canWrite, WorkspaceInfo } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
+import { getRequiredCloudPlatform, requiresSecurityMonitoring } from './import-requirements';
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
-import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
-import { isProtectedSource } from './protected-data-utils';
+import { buildDestinationWorkspaceFilter } from './import-utils';
 
 const styles = {
   card: {
@@ -107,8 +108,8 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     onImport,
   } = props;
 
-  const isProtectedData = isProtectedSource(importRequest);
-  const requiredCloudPlatform = getCloudPlatformRequiredForImport(importRequest);
+  const requiredCloudPlatform = getRequiredCloudPlatform(importRequest);
+  const importRequiresSecurityMonitoring = requiresSecurityMonitoring(importRequest);
 
   // Some import types are finished in a single request.
   // For most though, the import request starts a background task that takes time to complete.
@@ -186,26 +187,25 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     ]);
   };
 
-  const workspacesToImportTo = workspaces.filter((workspace) => {
-    return canImportIntoWorkspace(
-      {
-        cloudPlatform: requiredCloudPlatform,
-        isProtectedData,
-        requiredAuthorizationDomain,
-      },
-      workspace
-    );
-  });
+  const numWritableWorkspaces = workspaces.filter((workspace) => canWrite(workspace.accessLevel)).length;
 
-  // disable import into existing workspaces if data is marked as protected but no protected workspaces are available
-  const disableExportIntoExisting = isProtectedData && workspacesToImportTo.length === 0;
+  const availableDestinationWorkspaces = workspaces.filter(
+    buildDestinationWorkspaceFilter(importRequest, { requiredAuthorizationDomain })
+  );
+
+  // If some writable workspaces have been filtered by the destination filter,
+  // it is because they did not meet the data selection requirements.
+  const destinationWorkspaceLimitedByDataRequirements = availableDestinationWorkspaces.length < numWritableWorkspaces;
+
+  // Disable the "Select an existing workspace" option if no suitable workspaces are available.
+  const canImportIntoExistingWorkspace = availableDestinationWorkspaces.length > 0;
 
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, [selectExistingWorkspacePrompt]),
-      isProtectedData &&
+      destinationWorkspaceLimitedByDataRequirements &&
         div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem', lineHeight: '1.5' } }, [
-          ' You may only import into workspaces that have additional security monitoring enabled.',
+          'Only workspaces that meet the data selection requirements are shown.',
         ]),
       h(IdContainer, [
         (id) =>
@@ -213,7 +213,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             // @ts-expect-error
             h(WorkspaceSelector, {
               id,
-              workspaces: workspacesToImportTo,
+              workspaces: availableDestinationWorkspaces,
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
             }),
@@ -227,7 +227,9 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         h(WorkspacePolicies, {
           workspace: selectedWorkspace,
           noCheckboxes: true,
-          endingNotice: isProtectedData ? div(['Importing this data may add additional access controls']) : undefined,
+          endingNotice: importRequiresSecurityMonitoring
+            ? div(['Importing this data may add additional access controls'])
+            : undefined,
         }),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
@@ -341,11 +343,12 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               iconName: 'fileSearchSolid',
               title: selectExistingWorkspacePrompt,
               detail: 'Select one of your workspaces',
-              disabled: !userHasBillingProjects || disableExportIntoExisting,
-              tooltip:
-                !userHasBillingProjects || disableExportIntoExisting
-                  ? 'No existing protected workspace is present.'
-                  : undefined,
+              disabled: !canImportIntoExistingWorkspace,
+              tooltip: cond(
+                [canImportIntoExistingWorkspace, () => undefined],
+                [numWritableWorkspaces === 0, () => 'You do not have any writable workspaces.'],
+                () => 'No existing workspace meets the data selection requirements.'
+              ),
             }),
             h(ChoiceButton, {
               onClick: () => setIsCreateOpen(true),
@@ -358,10 +361,10 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             isCreateOpen &&
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
-                cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
+                cloudPlatform: requiredCloudPlatform,
                 renderNotice: () => {
                   const children: ReactNode[] = [];
-                  if (isProtectedData) {
+                  if (importRequiresSecurityMonitoring) {
                     children.push(
                       div({ style: { paddingBottom: importMayTakeTime ? '1.0rem' : 0 } }, [
                         'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
@@ -373,7 +376,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                   }
                   return children.length > 0 ? h(Fragment, children) : undefined;
                 },
-                requireEnhancedBucketLogging: isProtectedData,
+                requireEnhancedBucketLogging: importRequiresSecurityMonitoring,
                 waitForServices: {
                   wds: true,
                 },

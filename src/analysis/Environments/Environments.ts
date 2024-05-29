@@ -10,8 +10,8 @@ import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, h2, span, strong } from 'react-hyperscript-helpers';
-import { RuntimeErrorModal } from 'src/analysis/AnalysisNotificationManager';
 import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
+import { RuntimeErrorModal } from 'src/analysis/modals/RuntimeErrorModal';
 import { getAppStatusForDisplay, getDiskAppType } from 'src/analysis/utils/app-utils';
 import {
   getAppCost,
@@ -64,7 +64,7 @@ export type EnvironmentNavActions = {
 };
 
 type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | 'pause' | 'delete'>;
-type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
+type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'errorInfo' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
 
 export interface DataRefreshInfo {
@@ -803,8 +803,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         ]),
       errorRuntimeId &&
         h(RuntimeErrorModal, {
-          runtime: _.find({ id: errorRuntimeId }, runtimes),
+          runtime: _.find({ id: errorRuntimeId }, runtimes)!,
           onDismiss: () => setErrorRuntimeId(undefined),
+          errorProvider: leoRuntimeData,
         }),
       deleteRuntimeId &&
         runtimeToDelete &&

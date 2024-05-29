@@ -1,12 +1,12 @@
 import { Clickable, Modal, Spinner, useLoadedData } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
-import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, label, li, span, ul } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
+import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
-import { ValidatedInput, ValidatedTextArea } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
@@ -24,6 +24,7 @@ import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
   DataRepo,
   DatasetBuilderType,
+  SnapshotAccessRequestResponse,
   SnapshotBuilderCountResponse,
   SnapshotBuilderDatasetConceptSet as ConceptSet,
   SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
@@ -31,10 +32,8 @@ import {
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
-import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
-import * as Utils from 'src/libs/utils';
 import { validate } from 'validate.js';
 
 import { CohortEditor } from './CohortEditor';
@@ -451,91 +450,81 @@ export const ValuesSelector = ({
 };
 
 interface RequestAccessModalProps {
-  cohorts: Cohort[];
-  conceptSets: ConceptSet[];
-  valueSets: HeaderAndValues<DatasetBuilderValue>[];
   onDismiss: () => void;
   snapshotId: string;
 }
 
 const RequestAccessModal = (props: RequestAccessModalProps) => {
-  const { onDismiss, cohorts, conceptSets, valueSets, snapshotId } = props;
-  const [name, setName] = useState('');
-  const [researchPurposeStatement, setResearchPurposeStatement] = useState('');
-
-  const required = { presence: { allowEmpty: false } };
-  const errors = validate({ name, researchPurposeStatement }, { name: required, researchPurposeStatement: required });
-
-  const nameId = _.uniqueId('');
-  const researchPurposeId = _.uniqueId('');
+  const { onDismiss, snapshotId } = props;
 
   return h(
     Modal,
     {
-      title: 'Requesting access',
+      title: 'Access request created in Terra',
       showX: false,
       onDismiss,
+      width: 500,
+      cancelText: 'Return to AxIN Overview',
       okButton: h(
         ButtonPrimary,
         {
-          disabled: errors,
-          tooltip: errors && Utils.summarizeErrors(errors),
-          onClick: withErrorReporting('Error creating dataset request')(async () => {
-            await DataRepo()
-              .snapshotAccessRequest()
-              .createSnapshotAccessRequest(
-                createSnapshotAccessRequest(
-                  name,
-                  researchPurposeStatement,
-                  snapshotId,
-                  cohorts,
-                  conceptSets,
-                  _.map(
-                    (valuesSet: HeaderAndValues<DatasetBuilderValue>) => ({
-                      domain: valuesSet.header,
-                      values: valuesSet.values,
-                    }),
-                    valueSets // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
-                  )
-                )
-              );
-            onDismiss();
-          }),
+          href: '',
+          target: '_blank',
         },
-        ['Request access']
+        ['Continue to Form']
       ),
     },
     [
-      div([
-        div([
-          "A request of the dataset created will be generated and may take up to 72 hours for approval. Once approved you'll be notified by email. We'll send you a copy of this request",
-        ]),
-        h(FormLabel, { htmlFor: nameId, required }, ['Dataset name']),
-        h(ValidatedInput, {
-          inputProps: {
-            id: nameId,
-            'aria-label': 'Dataset name',
-            autoFocus: true,
-            placeholder: 'Enter a name',
-            value: name,
-            onChange: setName,
-          },
-        }),
-        h(FormLabel, { htmlFor: researchPurposeId, required }, ['Research purpose statement']),
-        h(ValidatedTextArea, {
-          inputProps: {
-            id: researchPurposeId,
-            'aria-label': 'Research purpose statement',
-            placeholder: 'Enter a research purpose statement',
-            style: {
-              marginTop: '1rem',
-              height: 200,
-            },
-            value: researchPurposeStatement,
-            onChange: setResearchPurposeStatement,
-          },
-        }),
+      div({ style: { lineHeight: 1.5 } }, [
+        'A request has been generated and may take up to 72 hours for approval. Check your email for a copy of this request. You’ll also be notified via email on approval of the request.',
       ]),
+      div(
+        {
+          style: {
+            backgroundColor: colors.accent(0.15),
+            color: colors.dark(),
+            border: `1px solid ${colors.accent(1.25)}`,
+            borderRadius: 10,
+            height: 150,
+            padding: '1rem',
+            marginTop: '1.5rem',
+            marginBottom: '2rem',
+          },
+        },
+        [
+          div([
+            h3({
+              style: { marginTop: 5, fontWeight: 600 },
+              children: ['Important!'],
+            }),
+            div(
+              {
+                style: { display: 'pre-wrap', marginTop: -10, lineHeight: 1.5 },
+              },
+              [
+                span(['Please copy and paste the ']),
+                span({ style: { fontWeight: 600 } }, ['Request ID']),
+                span([' into the AnalytiXIN form:']),
+              ]
+            ),
+            div({ style: { display: 'flex', marginTop: 20, color: colors.accent(1) } }, [
+              div(
+                {
+                  style: { fontWeight: 700, marginRight: 2 },
+                },
+                [snapshotId]
+              ),
+              h(ClipboardButton, {
+                'aria-label': 'Copy Request ID to clipboard',
+                className: 'cell-hover-only',
+                iconSize: 14,
+                text: snapshotId,
+                tooltip: 'Copy Request ID to clipboard',
+              }),
+            ]),
+          ]),
+        ]
+      ),
     ]
   );
 };
@@ -564,8 +553,9 @@ export const DatasetBuilderContents = ({
   const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [values, setValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [requestingAccess, setRequestingAccess] = useState(false);
-  const [datasetRequestParticipantCount, setDatasetRequestParticipantCount] =
+  const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
     useLoadedData<SnapshotBuilderCountResponse>();
+  const [snapshotAccessRequest, setSnapshotAccessRequest] = useLoadedData<SnapshotAccessRequestResponse>();
 
   const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
   const allConceptSets: ConceptSet[] = useMemo(() => _.flatMap('values', selectedConceptSets), [selectedConceptSets]);
@@ -575,12 +565,12 @@ export const DatasetBuilderContents = ({
 
   useEffect(() => {
     requestValid &&
-      setDatasetRequestParticipantCount(
+      setSnapshotRequestParticipantCount(
         withErrorReporting(`Error fetching snapshot builder count for snapshot ${snapshotId}`)(async () =>
           DataRepo().snapshot(snapshotId).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
         )
       );
-  }, [snapshotId, selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
+  }, [snapshotId, selectedValues, setSnapshotRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
   const getNewFeatureValueGroups = (includedFeatureValueGroups: string[]): string[] =>
     _.without(
@@ -665,23 +655,51 @@ export const DatasetBuilderContents = ({
       requestValid &&
         h(ActionBar, {
           prompt: h(Fragment, [
-            datasetRequestParticipantCount.status === 'Ready'
-              ? formatCount(datasetRequestParticipantCount.state.result.total)
+            snapshotRequestParticipantCount.status === 'Ready'
+              ? formatCount(snapshotRequestParticipantCount.state.result.total)
               : h(Spinner),
             ' participants in this dataset',
           ]),
-          actionText: 'Request access to this dataset',
-          onClick: () => setRequestingAccess(true),
+          actionText: 'Request this data snapshot',
+          onClick: () => {
+            setSnapshotAccessRequest(
+              withErrorReporting('Error creating dataset request')(
+                async () =>
+                  await DataRepo()
+                    .snapshotAccessRequest()
+                    .createSnapshotAccessRequest(
+                      createSnapshotAccessRequest(
+                        '',
+                        '',
+                        snapshotId,
+                        cohorts,
+                        conceptSets,
+                        _.map(
+                          (valuesSet: HeaderAndValues<DatasetBuilderValue>) => ({
+                            domain: valuesSet.header,
+                            values: valuesSet.values,
+                          }),
+                          selectedValues // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
+                        )
+                      )
+                    )
+              )
+            );
+            setRequestingAccess(true);
+          },
         }),
     ]),
-    requestingAccess &&
-      h(RequestAccessModal, {
-        cohorts: allCohorts,
-        conceptSets: allConceptSets,
-        valueSets: selectedValues,
-        onDismiss: () => setRequestingAccess(false),
-        snapshotId,
-      }),
+    snapshotAccessRequest.status === 'Loading'
+      ? spinnerOverlay
+      : snapshotAccessRequest.status === 'Ready' &&
+        requestingAccess &&
+        h(RequestAccessModal, {
+          onDismiss: () => {
+            setRequestingAccess(false);
+            Nav.goToPath('dataset-builder-details', { snapshotId });
+          },
+          snapshotId: snapshotAccessRequest.state.id,
+        }),
   ]);
 };
 

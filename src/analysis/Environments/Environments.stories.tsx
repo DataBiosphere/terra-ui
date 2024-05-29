@@ -14,7 +14,7 @@ import { GetAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { DiskBasics } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
-import { RuntimeBasics } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
+import { RuntimeBasics, RuntimeErrorInfo } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { RuntimeWrapper } from 'src/libs/ajax/leonardo/Runtimes';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { UseWorkspaces } from 'src/workspaces/common/state/useWorkspaces.models';
@@ -73,6 +73,14 @@ const getMockLeoRuntimes = (): EnvironmentsProps['leoRuntimeData'] => {
     list: async () => {
       await actionLogAsyncFn('leoRuntimeData.list')(runtimesStore.get());
       return runtimesStore.get();
+    },
+    errorInfo: async () => {
+      const info: RuntimeErrorInfo = {
+        errorType: 'ErrorList',
+        errors: [{ errorMessage: 'things went BOOM!', errorCode: 0, timestamp: 'timestamp' }],
+      };
+      await actionLogAsyncFn('leoRuntimeData.errorInfo')(info);
+      return info;
     },
     stop: async (runtime: RuntimeWrapper) => {
       const copy: ListRuntimeItem[] = [];

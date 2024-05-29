@@ -143,6 +143,22 @@ describe('DatasetBuilder', () => {
       })
     );
 
+  const mockCreateSnapshotAccessRequest = jest.fn().mockResolvedValue({
+    id: '',
+    sourceSnapshotId: '',
+    snapshotName: '',
+    snapshotResearchPurpose: '',
+    snapshotSpecification: {
+      cohorts: [{ name: 'g', criteriaGroups: [] }],
+      conceptSets: [],
+      valueSets: [{ name: 'Person', values: ['Person Column 1', 'Person Column 2'] }],
+    },
+    createdBy: 'user@email.com',
+    status: 'SUBMITTED',
+    createdDate: '2024-05-21T14:46:28.622665Z',
+    updatedDate: null,
+  });
+
   it('renders cohorts', () => {
     // Arrange
     renderCohortSelector();
@@ -300,7 +316,7 @@ describe('DatasetBuilder', () => {
     await initializeValidDatasetRequest(user);
     // Assert
     expect(await screen.findByText('100 participants in this dataset')).toBeTruthy();
-    expect(await screen.findByText('Request access to this dataset')).toBeTruthy();
+    expect(await screen.findByText('Request this data snapshot')).toBeTruthy();
   });
 
   it('hides the count with there are few participants in this dataset ', async () => {
@@ -316,16 +332,29 @@ describe('DatasetBuilder', () => {
     await initializeValidDatasetRequest(user);
     // Assert
     expect(await screen.findByText('Less than 20 participants in this dataset')).toBeTruthy();
-    expect(await screen.findByText('Request access to this dataset')).toBeTruthy();
+    expect(await screen.findByText('Request this data snapshot')).toBeTruthy();
   });
 
   it('opens the modal when requesting access to the dataset', async () => {
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      snapshot: (_snapshotId) =>
+        ({
+          getSnapshotBuilderCount: () => Promise.resolve({ result: { total: 19 }, sql: '' }),
+        } as Partial<DataRepoContract['snapshot']>),
+      snapshotAccessRequest: () =>
+        ({
+          createSnapshotAccessRequest: mockCreateSnapshotAccessRequest,
+        } as Partial<DataRepoContract['snapshotAccessRequest']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+
     // Arrange
     const user = userEvent.setup();
     await initializeValidDatasetRequest(user);
-    await user.click(await screen.findByText('Request access to this dataset'));
+    await user.click(await screen.findByText('Request this data snapshot'));
     // Assert
-    expect(await screen.findByText('Requesting access')).toBeTruthy();
+    expect(await screen.findByText('Access request created in Terra')).toBeTruthy();
   });
 
   it('shows the concept set creator', async () => {

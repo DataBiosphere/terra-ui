@@ -20,7 +20,7 @@ import {
   genericPfbImportRequest,
 } from './__fixtures__/import-request-fixtures';
 import { ImportRequest } from './import-types';
-import { canImportIntoWorkspace, ImportOptions } from './import-utils';
+import { buildDestinationWorkspaceFilter } from './import-utils';
 import {
   ImportDataDestination,
   ImportDataDestinationProps,
@@ -31,7 +31,7 @@ type ImportUtilsExports = typeof import('./import-utils');
 jest.mock('./import-utils', (): ImportUtilsExports => {
   return {
     ...jest.requireActual<ImportUtilsExports>('./import-utils'),
-    canImportIntoWorkspace: jest.fn().mockReturnValue(true),
+    buildDestinationWorkspaceFilter: jest.fn(),
   };
 });
 
@@ -57,10 +57,11 @@ jest.mock('src/workspaces/common/state/useWorkspaces', (): UseWorkspacesExports 
 interface SetupOptions {
   props?: Partial<ImportDataDestinationProps>;
   workspaces?: WorkspaceWrapper[];
+  workspaceFilter?: (workspace: WorkspaceWrapper) => boolean;
 }
 
 const setup = (opts: SetupOptions): void => {
-  const { props = {}, workspaces = [] } = opts;
+  const { props = {}, workspaces = [], workspaceFilter = () => true } = opts;
 
   asMockedFn(useWorkspaces).mockReturnValue({
     loading: false,
@@ -68,6 +69,8 @@ const setup = (opts: SetupOptions): void => {
     status: 'Ready',
     workspaces,
   });
+
+  asMockedFn(buildDestinationWorkspaceFilter).mockReturnValue(workspaceFilter);
 
   render(
     h(ImportDataDestination, {
@@ -86,19 +89,19 @@ const setup = (opts: SetupOptions): void => {
 describe('ImportDataDestination', () => {
   it.each([
     {
-      importRequest: anvilPfbImportRequests[0],
-      shouldShowProtectedDataWarning: true,
+      importRequest: genericPfbImportRequest,
+      workspacesFiltered: true,
     },
     {
       importRequest: genericPfbImportRequest,
-      shouldShowProtectedDataWarning: false,
+      workspacesFiltered: false,
     },
   ] as {
     importRequest: ImportRequest;
-    shouldShowProtectedDataWarning: boolean;
+    workspacesFiltered: boolean;
   }[])(
-    'should explain protected data restricts eligible workspaces',
-    async ({ importRequest, shouldShowProtectedDataWarning }) => {
+    'should explain data selection requirements restrict eligible workspaces',
+    async ({ importRequest, workspacesFiltered }) => {
       // Arrange
       const user = userEvent.setup();
 
@@ -118,6 +121,9 @@ describe('ImportDataDestination', () => {
             },
           }),
         ],
+        workspaceFilter: workspacesFiltered
+          ? (workspace) => workspace.workspace.name === 'allowed-workspace'
+          : () => true,
       });
 
       // Act
@@ -125,105 +131,89 @@ describe('ImportDataDestination', () => {
       await user.click(existingWorkspaceButton);
 
       // Assert
-      const protectedDataWarning = screen.queryByText(
-        'You may only import into workspaces that have additional security monitoring enabled.',
-        {
-          exact: false,
-        }
+      const isRequirementsMessageShown = !!screen.queryByText(
+        'Only workspaces that meet the data selection requirements are shown.'
       );
 
-      const isWarningShown = !!protectedDataWarning;
-      expect(isWarningShown).toEqual(shouldShowProtectedDataWarning);
+      expect(isRequirementsMessageShown).toBe(workspacesFiltered);
+    }
+  );
+
+  it.each([
+    {
+      importRequest: genericPfbImportRequest,
+      isWorkspaceAvailable: false,
+    },
+    {
+      importRequest: genericPfbImportRequest,
+      isWorkspaceAvailable: true,
+    },
+  ] as {
+    importRequest: ImportRequest;
+    isWorkspaceAvailable: boolean;
+  }[])(
+    'should disable select an existing workspace option when no suitable workspaces are available',
+    async ({ importRequest, isWorkspaceAvailable }) => {
+      // Arrange
+      const user = userEvent.setup();
+
+      setup({
+        props: {
+          importRequest,
+        },
+        workspaces: [
+          makeGoogleWorkspace({
+            workspace: {
+              name: 'other-workspace',
+            },
+          }),
+        ],
+        workspaceFilter: isWorkspaceAvailable ? () => true : () => false,
+      });
+      // Act
+      const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
+      await user.click(existingWorkspaceButton);
+
+      // Assert
+      const selectWorkspace = screen.queryByText('Select a workspace', {
+        exact: false,
+      });
+
+      const isSelectWorkspaceShown = !!selectWorkspace;
+      expect(isSelectWorkspaceShown).toBe(isWorkspaceAvailable);
     }
   );
 
   it.each([
     {
       importRequest: anvilPfbImportRequests[0],
-      shouldSelectExisting: false,
-    },
-    {
-      importRequest: genericPfbImportRequest,
-      shouldSelectExisting: true,
-    },
-  ] as {
-    importRequest: ImportRequest;
-    shouldSelectExisting: boolean;
-  }[])('should disable select an existing workspace option', async ({ importRequest, shouldSelectExisting }) => {
-    // Arrange
-    const user = userEvent.setup();
-    asMockedFn(canImportIntoWorkspace).mockReturnValue(false);
-
-    setup({
-      props: {
-        importRequest,
-      },
-      workspaces: [
-        makeGoogleWorkspace({
-          workspace: {
-            name: 'allowed-workspace',
-          },
-        }),
-        makeGoogleWorkspace({
-          workspace: {
-            name: 'other-workspace',
-          },
-        }),
-      ],
-    });
-    // Act
-    const existingWorkspaceButton = screen.getByText(selectExistingWorkspacePrompt, { exact: false });
-    await user.click(existingWorkspaceButton);
-
-    // Assert
-    const selectWorkspace = screen.queryByText('Select a workspace', {
-      exact: false,
-    });
-
-    const isSelectWorkspaceShown = !!selectWorkspace;
-    expect(isSelectWorkspaceShown).toEqual(shouldSelectExisting);
-  });
-
-  it.each([
-    {
-      importRequest: anvilPfbImportRequests[0],
       requiredAuthorizationDomain: 'test-auth-domain',
-      expectedArgs: {
-        cloudPlatform: 'GCP',
-        isProtectedData: true,
-        requiredAuthorizationDomain: 'test-auth-domain',
-      },
+      expectedOptions: { requiredAuthorizationDomain: 'test-auth-domain' },
     },
     {
       importRequest: genericPfbImportRequest,
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { cloudPlatform: 'GCP', isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedOptions: { requiredAuthorizationDomain: undefined },
     },
     {
       importRequest: gcpTdrSnapshotImportRequest,
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { cloudPlatform: 'GCP', isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedOptions: { requiredAuthorizationDomain: undefined },
     },
     {
       importRequest: azureTdrSnapshotImportRequest,
       requiredAuthorizationDomain: undefined,
-      expectedArgs: { cloudPlatform: 'AZURE', isProtectedData: false, requiredAuthorizationDomain: undefined },
+      expectedOptions: { requiredAuthorizationDomain: undefined },
     },
   ] as {
     importRequest: ImportRequest;
     requiredAuthorizationDomain?: string;
-    expectedArgs: { cloudPlatform?: CloudProvider; isProtectedData: boolean; requiredAuthorizationDomain?: string };
+    expectedOptions: { cloudPlatform?: CloudProvider; isProtectedData: boolean; requiredAuthorizationDomain?: string };
   }[])(
-    'should filter workspaces through canImportIntoWorkspace',
-    async ({ importRequest, requiredAuthorizationDomain, expectedArgs }) => {
+    'should filter workspaces through buildDestinationWorkspaceFilter',
+    async ({ importRequest, requiredAuthorizationDomain, expectedOptions }) => {
       // Arrange
       const user = userEvent.setup();
-
-      asMockedFn(canImportIntoWorkspace).mockImplementation(
-        (_importOptions: ImportOptions, workspace: WorkspaceWrapper): boolean => {
-          return workspace.workspace.name === 'allowed-workspace';
-        }
-      );
 
       setup({
         props: {
@@ -242,6 +232,9 @@ describe('ImportDataDestination', () => {
             },
           }),
         ],
+        workspaceFilter: (workspace: WorkspaceWrapper): boolean => {
+          return workspace.workspace.name === 'allowed-workspace';
+        },
       });
 
       // Act
@@ -252,7 +245,7 @@ describe('ImportDataDestination', () => {
       const workspaces = await workspaceSelect.getOptions();
 
       // Assert
-      expect(canImportIntoWorkspace).toHaveBeenCalledWith(expectedArgs, expect.anything());
+      expect(buildDestinationWorkspaceFilter).toHaveBeenCalledWith(importRequest, expectedOptions);
       expect(workspaces).toEqual([expect.stringMatching(/allowed-workspace/)]);
     }
   );
@@ -263,10 +256,7 @@ describe('ImportDataDestination', () => {
       shouldShowNotice: true,
     },
     {
-      importRequest: {
-        ...gcpTdrSnapshotImportRequest,
-        syncPermissions: true,
-      },
+      importRequest: gcpTdrSnapshotImportRequest,
       shouldShowNotice: true,
     },
     {
@@ -284,6 +274,7 @@ describe('ImportDataDestination', () => {
       props: {
         importRequest,
       },
+      workspaces: [makeGoogleWorkspace()],
     });
 
     // Act
@@ -330,8 +321,6 @@ describe('ImportDataDestination', () => {
         url,
       };
 
-      asMockedFn(canImportIntoWorkspace).mockReturnValue(true);
-
       setup({
         props: {
           importRequest,
@@ -376,7 +365,6 @@ describe('ImportDataDestination', () => {
       // Arrange
       const user = userEvent.setup();
       const workspaceName = workspace.workspace.name;
-      asMockedFn(canImportIntoWorkspace).mockReturnValue(true);
 
       setup({
         props: {
