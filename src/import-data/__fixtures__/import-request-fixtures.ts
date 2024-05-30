@@ -33,6 +33,7 @@ export const azureTdrSnapshotImportRequest: TDRSnapshotExportImportRequest = {
   type: 'tdr-snapshot-export',
   manifestUrl: new URL('https://example.com/path/to/manifest.json'),
   snapshot: getSnapshot({ cloudPlatform: 'azure' }),
+  snapshotAccessControls: [],
   syncPermissions: false,
 };
 
@@ -40,24 +41,28 @@ export const gcpTdrSnapshotImportRequest: TDRSnapshotExportImportRequest = {
   type: 'tdr-snapshot-export',
   manifestUrl: new URL('https://example.com/path/to/manifest.json'),
   snapshot: getSnapshot({ cloudPlatform: 'gcp' }),
+  snapshotAccessControls: [],
   syncPermissions: false,
 };
 
 export const gcpTdrSnapshotReferenceImportRequest: TDRSnapshotReferenceImportRequest = {
   type: 'tdr-snapshot-reference',
   snapshot: getSnapshot({ cloudPlatform: 'gcp' }),
+  snapshotAccessControls: [],
 };
 
 export const protectedGcpTdrSnapshotImportRequest: TDRSnapshotExportImportRequest = {
   type: 'tdr-snapshot-export',
   manifestUrl: new URL('https://example.com/path/to/manifest.json'),
   snapshot: getSnapshot({ cloudPlatform: 'gcp', secureMonitoringEnabled: true }),
+  snapshotAccessControls: [],
   syncPermissions: false,
 };
 
 export const protectedGcpTdrSnapshotReferenceImportRequest: TDRSnapshotReferenceImportRequest = {
   type: 'tdr-snapshot-reference',
   snapshot: getSnapshot({ cloudPlatform: 'gcp', secureMonitoringEnabled: true }),
+  snapshotAccessControls: [],
 };
 
 /**

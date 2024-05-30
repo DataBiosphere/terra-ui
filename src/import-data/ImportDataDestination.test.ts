@@ -299,7 +299,7 @@ describe('ImportDataDestination', () => {
     {
       url: new URL('https://example.com/path/to/file.pfb'),
       workspace: makeAzureWorkspace(),
-      displayExtraAccessControlNotice: false, // don't display if the data isn't protected
+      displayExtraAccessControlNotice: false,
     },
     {
       url: new URL('https://service.prod.anvil.gi.ucsc.edu/path/to/file.pfb'),
@@ -311,7 +311,7 @@ describe('ImportDataDestination', () => {
     workspace: WorkspaceWrapper;
     displayExtraAccessControlNotice: boolean;
   }[])(
-    'displays additional access controls message when importing protected data into a protected workspace',
+    'displays access controls message when importing data that may add access controls to workspace',
     async ({ url, workspace, displayExtraAccessControlNotice }) => {
       // Arrange
       const user = userEvent.setup();
@@ -337,7 +337,7 @@ describe('ImportDataDestination', () => {
       await workspaceSelect.selectOption(new RegExp(workspaceName));
 
       // Assert
-      const accessControlNotice = screen.queryByText('Importing this data may add additional access controls');
+      const accessControlNotice = screen.queryByText(/Importing this data (will|may) add additional access controls/);
 
       expect(!!accessControlNotice).toEqual(displayExtraAccessControlNotice);
     }
@@ -460,18 +460,18 @@ describe('ImportDataDestination', () => {
   );
 
   it.each([
-    // Unprotected data
+    // No access controls
     {
       importRequest: genericPfbImportRequest,
       noticeExpected: false,
     },
-    // Protected data
+    // May have access controls
     {
       importRequest: anvilPfbImportRequests[0],
       noticeExpected: true,
     },
   ] as { importRequest: ImportRequest; noticeExpected: boolean }[])(
-    'shows a notice when importing protected data into a new workspace',
+    'shows a notice when importing data that may have access controls into a new workspace',
     async ({ importRequest, noticeExpected }) => {
       // Arrange
       const user = userEvent.setup();
@@ -488,7 +488,7 @@ describe('ImportDataDestination', () => {
       );
 
       const controlledAccessText = !!within(noticeContainer).queryByText(
-        'Importing controlled access data will apply any additional access controls associated with the data to this workspace.'
+        /Importing controlled access data (will|may) apply any additional access controls associated with the data to this workspace./
       );
 
       // Assert

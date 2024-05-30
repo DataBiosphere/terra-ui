@@ -1,8 +1,8 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { getTerraUser, TerraUser } from 'src/libs/state';
 
 import { leoResourcePermissions } from './environmentsPermissions';

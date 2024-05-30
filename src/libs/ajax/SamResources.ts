@@ -9,7 +9,7 @@ export interface FullyQualifiedResourceId {
   resourceId: string;
 }
 
-export const SamResources = (signal: AbortSignal) => ({
+export const SamResources = (signal?: AbortSignal) => ({
   leave: (samResourceType, samResourceId): Promise<void> =>
     fetchSam(
       `api/resources/v2/${samResourceType}/${samResourceId}/leave`,
@@ -41,4 +41,13 @@ export const SamResources = (signal: AbortSignal) => ({
     );
     return res.json();
   },
+
+  getAuthDomains: async (fqResourceId: FullyQualifiedResourceId): Promise<string[]> => {
+    return fetchSam(
+      `api/resources/v2/${fqResourceId.resourceTypeName}/${fqResourceId.resourceId}/authDomain`,
+      _.mergeAll([authOpts(), { signal }])
+    ).then((r) => r.json());
+  },
 });
+
+export type SamResourcesContract = ReturnType<typeof SamResources>;

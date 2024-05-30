@@ -1,7 +1,6 @@
 import { generateTestDiskWithGoogleWorkspace } from 'src/analysis/_testData/testData';
 import { Ajax } from 'src/libs/ajax';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { leoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { RuntimesAjaxContract } from 'src/libs/ajax/leonardo/Runtimes';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, defaultInitializedGoogleWorkspace } from 'src/testing/workspace-fixtures';

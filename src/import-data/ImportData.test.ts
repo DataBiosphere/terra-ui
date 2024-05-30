@@ -1,9 +1,11 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { partial } from '@terra-ui-packages/test-utils';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
+import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_AZURE_PFB_IMPORT, ENABLE_AZURE_TDR_IMPORT } from 'src/libs/feature-previews-config';
 import { useRoute } from 'src/libs/nav';
@@ -33,6 +35,14 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   return {
     ...jest.requireActual<DataRepoExports>('src/libs/ajax/DataRepo'),
     DataRepo: jest.fn(),
+  };
+});
+
+type SamResourcesExports = typeof import('src/libs/ajax/SamResources');
+jest.mock('src/libs/ajax/SamResources', (): SamResourcesExports => {
+  return {
+    ...jest.requireActual<SamResourcesExports>('src/libs/ajax/SamResources'),
+    SamResources: jest.fn(),
   };
 });
 
@@ -121,6 +131,12 @@ const setup = async (opts: SetupOptions) => {
     }),
   };
   asMockedFn(DataRepo).mockReturnValue(mockDataRepo as unknown as DataRepoContract);
+
+  asMockedFn(SamResources).mockReturnValue(
+    partial<SamResourcesContract>({
+      getAuthDomains: jest.fn().mockResolvedValue([]),
+    })
+  );
 
   const exportDataset = jest.fn().mockResolvedValue(undefined);
 
