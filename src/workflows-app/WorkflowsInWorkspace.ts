@@ -194,9 +194,6 @@ export const WorkflowsInWorkspace = ({
     [name, namespace, accessLevel, methodsData, deleteMethod, methodToDelete]
   );
 
-  // (1) useModalHandler
-  // (2) "componentize" the children
-
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
     h2({ style: { marginTop: 0 } }, ['Workflows in this workspace']),
     !cbasReady || loading ? loadingYourWorkflowsApp() : renderMethods(),
