@@ -77,14 +77,12 @@ describe('Job Common Components - Header Section', () => {
 });
 
 describe('Job Common Components - Cost Elements', () => {
-  const a = getTaskCost('0.05', '2024-05-30T18:29:42.6042077Z', Date.now());
   it.each([
     { taskStartTime: '2024-05-30T18:29:42.6042077Z', taskEndTime: '2024-05-30T18:36:35.8020768Z', vmCostUsd: '0.203', expectedCost: 0.02 },
-    { taskStartTime: '2024-05-30T18:29:42.6042077Z', taskEndTime: Date.now(), vmCostUsd: '0.05', expectedCost: a },
     { taskStartTime: '2024-05-30T18:29:42.6042077Z', taskEndTime: '2024-05-30T18:36:35.8020768Z', vmCostUsd: '0.008', expectedCost: 0 },
   ])('returns expectedCost given $taskStartTime, $taskEndTime, and $vmCostUsd', ({ taskStartTime, taskEndTime, vmCostUsd, expectedCost }) => {
     // Arrange
-    const cost = getTaskCost(vmCostUsd, taskStartTime, taskEndTime);
+    const cost = getTaskCost({ vmCostUsd, taskStartTime, taskEndTime });
 
     // Assert
     expect(cost).toBe(expectedCost);

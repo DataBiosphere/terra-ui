@@ -376,10 +376,10 @@ const CallTable = ({
                       const { vmCostUsd, taskStartTime, taskEndTime, subWorkflowId } = filteredCallObjects[rowIndex];
                       if (doesTaskHaveCostData(filteredCallObjects[rowIndex])) {
                         if (taskEndTime) {
-                          const cost = getTaskCost(vmCostUsd, taskStartTime, taskEndTime);
+                          const cost = getTaskCost({ vmCostUsd, taskStartTime, taskEndTime });
                           return div({}, [renderTaskCostElement(cost)]);
                         }
-                        const cost = getTaskCost(vmCostUsd, taskStartTime);
+                        const cost = getTaskCost({ vmCostUsd, taskStartTime });
                         return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
                       }
                       if (noCostData(filteredCallObjects[rowIndex], subWorkflowId)) {

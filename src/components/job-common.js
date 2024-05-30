@@ -162,10 +162,10 @@ export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, subm
   ]);
 };
 
-export const getTaskCost = (vmCost, startTime, endTime) => {
-  const currentEndTime = Date.parse(endTime) || Date.now();
-  const vmCostDouble = parseFloat(vmCost);
-  const startDateTime = Date.parse(startTime);
+export const getTaskCost = ({ vmCostUsd, taskStartTime, taskEndTime }) => {
+  const currentEndTime = Date.parse(taskEndTime) || Date.now();
+  const vmCostDouble = parseFloat(vmCostUsd);
+  const startDateTime = Date.parse(taskStartTime);
 
   const elapsedTime = currentEndTime - startDateTime;
   return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2));
@@ -184,9 +184,9 @@ export const calculateTotalCost = (callObjects) => {
     if (!call[0].taskStartTime) {
       total += 0;
     } else if (call[0].taskEndTime) {
-      total += getTaskCost(call[0].vmCostUsd, call[0].taskStartTime, call[0].taskEndTime);
+      total += getTaskCost({ vmCostUsd: call[0].vmCostUsd, taskStartTime: call[0].taskStartTime, taskEndTime: call[0].taskEndTime });
     } else {
-      total += getTaskCost(call[0].vmCostUsd, call[0].taskStartTime);
+      total += getTaskCost({ vmCostUsd: call[0].vmCostUsd, taskStartTime: call[0].taskStartTime });
     }
   });
   return total;
