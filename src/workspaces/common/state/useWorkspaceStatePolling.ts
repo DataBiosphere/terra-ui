@@ -139,7 +139,7 @@ export const useWorkspacesStatePollingWithAction = (workspaces: WorkspaceInfo[],
     pollWithCancellation(
       () => iterateUpdatingWorkspaces(),
       WORKSPACE_UPDATE_POLLING_INTERVAL,
-      false,
+      true,
       controller.current.signal
     );
     return () => {
