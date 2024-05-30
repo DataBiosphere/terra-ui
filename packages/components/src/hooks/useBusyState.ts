@@ -1,5 +1,5 @@
 import { AnyPromiseFn } from '@terra-ui-packages/core-utils';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 export type UseBusyStateTuple = [isBusy: boolean, withBusyState: <F extends AnyPromiseFn>(fn: F) => F];
 
@@ -19,16 +19,19 @@ export type UseBusyStateTuple = [isBusy: boolean, withBusyState: <F extends AnyP
  */
 export const useBusyState = (): UseBusyStateTuple => {
   const [busy, setBusy] = useState<boolean>(false);
-  const withBusy = <F extends AnyPromiseFn>(fn: F): F => {
-    return (async (...args: Parameters<F>) => {
-      try {
-        setBusy(true);
-        return await fn(...args);
-      } finally {
-        setBusy(false);
-      }
-    }) as F;
-  };
+  const withBusy = useCallback(
+    <F extends AnyPromiseFn>(fn: F): F => {
+      return (async (...args: Parameters<F>) => {
+        try {
+          setBusy(true);
+          return await fn(...args);
+        } finally {
+          setBusy(false);
+        }
+      }) as F;
+    },
+    [setBusy]
+  );
 
   return [busy, withBusy];
 };
