@@ -168,8 +168,7 @@ export const WorkflowsInWorkspace = ({
                           ),
                         ]
                       ),
-                      h(
-                        div,
+                      div(
                         {
                           style: {
                             display: 'flex',
