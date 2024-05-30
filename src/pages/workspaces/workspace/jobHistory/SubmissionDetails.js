@@ -530,7 +530,7 @@ const SubmissionDetails = _.flow(
                 h(ClipboardButton, {
                   'aria-label': 'Copy submission ID to clipboard',
                   className: 'cell-hover-only',
-                  style: { marginLeft: '0.5rem' },
+                  style: { marginLeft: '0.5rem', display: 'inline' },
                   text: submissionRoot.split('/').pop(),
                 }),
               ]),
