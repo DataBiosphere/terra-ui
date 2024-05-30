@@ -1,5 +1,4 @@
-import { useThemeFromContext } from '@terra-ui-packages/components';
-import { Modal } from '@terra-ui-packages/components';
+import { Modal, useThemeFromContext } from '@terra-ui-packages/components';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary } from 'src/components/common';
 import { icon } from 'src/components/icons';
