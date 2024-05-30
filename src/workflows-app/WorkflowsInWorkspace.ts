@@ -169,22 +169,37 @@ export const WorkflowsInWorkspace = ({
                         ]
                       ),
                       h(
-                        MenuButton,
+                        div,
                         {
-                          onClick: () => setMethodToDelete(method),
-                          disabled: !canWrite(accessLevel),
-                          tooltip: !canWrite(accessLevel)
-                            ? 'You must have write permission to delete workflows in this workspace'
-                            : '',
+                          style: {
+                            display: 'flex',
+                            flexDirection: 'column',
+                            marginTop: '30%',
+                          },
                         },
-                        [makeMenuIcon('trash'), 'Delete']
+                        [
+                          h(
+                            MenuButton,
+                            {
+                              onClick: () => setMethodToDelete(method),
+                              disabled: !canWrite(accessLevel),
+                              tooltip: !canWrite(accessLevel)
+                                ? 'You must have write permission to delete workflows in this workspace'
+                                : '',
+                              style: {
+                                justifyContent: 'flex-end',
+                              },
+                            },
+                            [makeMenuIcon('trash'), 'Delete']
+                          ),
+                        ]
                       ),
                     ]
                   ),
                 methodsData
               )
             ),
-            methodToDelete != null &&
+            methodToDelete &&
               h(DeleteWorkflowModal, {
                 onDismiss: () => setMethodToDelete(null),
                 onDelete: () => deleteMethod(methodToDelete.method_id),
