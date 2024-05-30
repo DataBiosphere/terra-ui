@@ -1,10 +1,12 @@
-import { makeAzureWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { makeAzureWorkspace, makeGoogleProtectedWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import {
+  anvilPfbImportRequests,
   azureTdrSnapshotImportRequest,
   gcpTdrSnapshotImportRequest,
   protectedGcpTdrSnapshotImportRequest,
 } from './__fixtures__/import-request-fixtures';
+import { ImportRequest } from './import-types';
 import { buildDestinationWorkspaceFilter } from './import-utils';
 
 describe('canImportIntoWorkspace', () => {
@@ -120,4 +122,21 @@ describe('canImportIntoWorkspace', () => {
     expect(workspacesForAzureImports).toEqual(['azure-workspace']);
     expect(workspacesForGoogleImports).toEqual(['google-workspace']);
   });
+
+  it.each([{ importRequest: anvilPfbImportRequests[0] }] as { importRequest: ImportRequest }[])(
+    'requires owner permission for imports that could update access controls',
+    ({ importRequest }) => {
+      // Arrange
+      const ownedWorkspace = makeGoogleProtectedWorkspace({ accessLevel: 'OWNER' });
+      const writableWorkspace = makeGoogleProtectedWorkspace({ accessLevel: 'WRITER' });
+      const readOnlyWorkspace = makeGoogleProtectedWorkspace({ accessLevel: 'READER' });
+
+      const canImportAnvilDataIntoWorkspace = buildDestinationWorkspaceFilter(importRequest);
+
+      // Act/Assert
+      expect(canImportAnvilDataIntoWorkspace(ownedWorkspace)).toBe(true);
+      expect(canImportAnvilDataIntoWorkspace(writableWorkspace)).toBe(false);
+      expect(canImportAnvilDataIntoWorkspace(readOnlyWorkspace)).toBe(false);
+    }
+  );
 });

@@ -1,5 +1,5 @@
 import { icon, IconId } from '@terra-ui-packages/components';
-import { cond } from '@terra-ui-packages/core-utils';
+import { cond, switchCase } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { AriaAttributes, CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, h2, img, p, span } from 'react-hyperscript-helpers';
@@ -22,7 +22,12 @@ import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModa
 import { canWrite, WorkspaceInfo } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
-import { getRequiredCloudPlatform, requiresSecurityMonitoring } from './import-requirements';
+import {
+  getRequiredCloudPlatform,
+  importWillUpdateAccessControl,
+  requiresSecurityMonitoring,
+  sourceHasAccessControl,
+} from './import-requirements';
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
 import { buildDestinationWorkspaceFilter } from './import-utils';
 
@@ -227,9 +232,11 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
         h(WorkspacePolicies, {
           workspace: selectedWorkspace,
           noCheckboxes: true,
-          endingNotice: importRequiresSecurityMonitoring
-            ? div(['Importing this data may add additional access controls'])
-            : undefined,
+          endingNotice: switchCase(
+            importWillUpdateAccessControl(importRequest, selectedWorkspace),
+            [true, () => div(['Importing this data will add additional access controls'])],
+            [undefined, () => div(['Importing this data may add additional access controls'])]
+          ),
         }),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
@@ -364,10 +371,13 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                 cloudPlatform: requiredCloudPlatform,
                 renderNotice: () => {
                   const children: ReactNode[] = [];
-                  if (importRequiresSecurityMonitoring) {
+                  const hasAccessControl = sourceHasAccessControl(importRequest);
+                  if (hasAccessControl !== false) {
                     children.push(
                       div({ style: { paddingBottom: importMayTakeTime ? '1.0rem' : 0 } }, [
-                        'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
+                        `Importing controlled access data ${
+                          hasAccessControl ? 'will' : 'may'
+                        } apply any additional access controls associated with the data to this workspace.`,
                       ])
                     );
                   }

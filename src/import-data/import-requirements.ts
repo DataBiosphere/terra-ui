@@ -1,9 +1,10 @@
+import _ from 'lodash';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
-import { CloudProvider } from 'src/workspaces/utils';
+import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
 
-import { anvilSources, biodatacatalystSources, urlMatchesSource, UrlSource } from './import-sources';
+import { anvilSources, biodatacatalystSources, isAnvilImport, urlMatchesSource, UrlSource } from './import-sources';
 import { ImportRequest } from './import-types';
 
 export const getRequiredCloudPlatform = (importRequest: ImportRequest): CloudProvider | undefined => {
@@ -61,6 +62,65 @@ export const requiresSecurityMonitoring = (importRequest: ImportRequest): boolea
     case 'tdr-snapshot-export':
     case 'tdr-snapshot-reference':
       return snapshotRequiresSecurityMonitoring(importRequest.snapshot);
+    default:
+      return false;
+  }
+};
+
+/**
+ * Does an import source have access controls?
+ *
+ * @param importRequest An import request.
+ *
+ * @returns
+ * - `true` if the source has access controls.
+ * - `false` if the source does not have access controls.
+ * - `undefined` if it is unknown whether the source has access controls.
+ */
+export const sourceHasAccessControl = (importRequest: ImportRequest): boolean | undefined => {
+  switch (importRequest.type) {
+    case 'pfb':
+      // PFBs may reference TDR snapshots with data access controls.
+      // We can't know up front which snapshots (if any) a PFB references.
+      // Currently, only PFBs from AnVIL are expected to reference snapshots.
+      return isAnvilImport(importRequest) ? undefined : false;
+    case 'tdr-snapshot-export':
+    case 'tdr-snapshot-reference':
+      // The snapshot has access controls if it has an auth domain.
+      return importRequest.snapshotAccessControls.length !== 0;
+      return undefined;
+    default:
+      return false;
+  }
+};
+
+/**
+ * Will importing data into a workspace update the workspace's access controls?
+ *
+ * @param importRequest An import request.
+ * @param workspace A destination workspace.
+ *
+ * @returns
+ * - `true` if the import will update the workspace's access controls.
+ * - `false` if the import will not update the workspace's access controls.
+ * - `undefined` if it is unknown whether the import will update the workspace's access controls.
+ */
+export const importWillUpdateAccessControl = (
+  importRequest: ImportRequest,
+  workspace: WorkspaceWrapper
+): boolean | undefined => {
+  switch (importRequest.type) {
+    case 'pfb':
+      // PFBs may reference TDR snapshots with data access controls.
+      // We can't know up front which snapshots (if any) a PFB references.
+      // Currently, only PFBs from AnVIL are expected to reference snapshots.
+      return isAnvilImport(importRequest) ? undefined : false;
+    case 'tdr-snapshot-export':
+    case 'tdr-snapshot-reference':
+      // TDR snapshot imports require an access control update if the snapshot requires an auth domain
+      // that the workspace does not already have.
+      const workspaceAuthDomainGroups = workspace.workspace.authorizationDomain.map((ad) => ad.membersGroupName);
+      return _.difference(importRequest.snapshotAccessControls, workspaceAuthDomainGroups).length !== 0;
     default:
       return false;
   }

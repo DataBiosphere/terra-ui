@@ -21,12 +21,14 @@ export interface TDRSnapshotExportImportRequest {
   type: 'tdr-snapshot-export';
   manifestUrl: URL;
   snapshot: Snapshot;
+  snapshotAccessControls: string[];
   syncPermissions: boolean;
 }
 
 export interface TDRSnapshotReferenceImportRequest {
   type: 'tdr-snapshot-reference';
   snapshot: Snapshot;
+  snapshotAccessControls: string[];
 }
 
 export interface CatalogDatasetImportRequest {
