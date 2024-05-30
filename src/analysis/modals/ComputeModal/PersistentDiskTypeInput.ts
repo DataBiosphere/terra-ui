@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
 import { IComputeConfig } from 'src/analysis/modal-utils';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
-import { DiskType } from 'src/libs/ajax/leonardo/models/disk-models';
+import { DiskType } from 'src/libs/ajax/leonardo/Disks';
 
 type PersistentDiskTypeSelectProps<
   T extends IComputeConfig['persistentDiskType'],
