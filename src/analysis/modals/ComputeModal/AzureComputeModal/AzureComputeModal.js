@@ -6,18 +6,22 @@ import { AutopauseConfiguration } from 'src/analysis/modals/ComputeModal/Autopau
 import { AzureApplicationConfigurationSection } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzureApplicationConfigurationSection';
 import { AzureComputeProfileSelect } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeProfileSelect';
 import { AzurePersistentDiskSection } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSection';
+import { azureDiskSizes } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSizeSelectInput';
 import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/analysis/utils/cost-utils';
 import { generatePersistentDiskName } from 'src/analysis/utils/disk-utils';
 import { autopauseDisabledValue, defaultAutopauseThreshold, generateRuntimeName, getIsRuntimeBusy } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
+import { useBillingProject } from 'src/billing/useBillingProject';
+import { getResourceLimits } from 'src/billing-core/resource-limits';
 import { ButtonOutline, ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import {
+  azureMachineTypes,
   defaultAzureComputeConfig,
   defaultAzureDiskSize,
   defaultAzureMachineType,
@@ -33,6 +37,8 @@ import { cloudProviderTypes } from 'src/workspaces/utils';
 
 const titleId = 'azure-compute-modal-title';
 
+const minAutopause = 10;
+
 export const AzureComputeModalBase = ({
   onDismiss,
   onSuccess,
@@ -46,7 +52,6 @@ export const AzureComputeModalBase = ({
   hideCloseButton = false,
 }) => {
   const [_loading, setLoading] = useState(false);
-  const loading = _loading || isLoadingCloudEnvironments;
   const [viewMode, setViewMode] = useState(undefined);
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(currentRuntime);
   const [currentPersistentDiskDetails] = useState(currentDisk);
@@ -55,6 +60,11 @@ export const AzureComputeModalBase = ({
   const { namespace, name: workspaceName, workspaceId } = workspace.workspace;
   const persistentDiskExists = !!currentPersistentDiskDetails;
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false);
+  const billingProject = useBillingProject(namespace);
+  const resourceLimits = billingProject.status === 'Ready' ? getResourceLimits(billingProject.state) : undefined;
+  const availableMachineTypes = resourceLimits?.availableMachineTypes || Object.keys(azureMachineTypes);
+
+  const loading = _loading || isLoadingCloudEnvironments || billingProject.status === 'Loading';
 
   // Lifecycle
   useEffect(() => {
@@ -82,6 +92,34 @@ export const AzureComputeModalBase = ({
     });
     refreshRuntime();
   }, [currentRuntime, location, onError, workspaceId]);
+
+  // Once all data is loaded, check if default computeConfig need to be adjusted based on billing project limits.
+  useEffect(() => {
+    // If there's an existing runtime, computeConfig will be based on its configuration and should be not be changed.
+    if (!loading && !currentRuntimeDetails && resourceLimits) {
+      if (resourceLimits.availableMachineTypes) {
+        const selectedMachineType = computeConfig.machineType;
+        if (!resourceLimits.availableMachineTypes.includes(selectedMachineType)) {
+          updateComputeConfig('machinetypes', resourceLimits.availableMachineTypes[0]);
+        }
+      }
+
+      if (resourceLimits.maxAutopause) {
+        const autopauseConfig = computeConfig.autopauseThreshold;
+        updateComputeConfig('autopauseThreshold', _.clamp(minAutopause, resourceLimits.maxAutopause, autopauseConfig));
+      }
+
+      if (resourceLimits.maxPersistentDiskSize) {
+        const diskSize = computeConfig.persistentDiskSize;
+        if (diskSize > resourceLimits.maxPersistentDiskSize) {
+          updateComputeConfig(
+            'persistentDiskSize',
+            azureDiskSizes.findLast((size) => size <= resourceLimits.maxPersistentDiskSize)
+          );
+        }
+      }
+    }
+  }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderTitleAndTagline = () => {
     return h(Fragment, [
@@ -240,17 +278,22 @@ export const AzureComputeModalBase = ({
           h(AzureComputeProfileSelect, {
             disabled: doesRuntimeExist(),
             machineType: computeConfig.machineType,
+            machineTypeOptions: availableMachineTypes,
             style: { marginBottom: '1.5rem' },
             onChangeMachineType: (v) => updateComputeConfig('machineType', v),
           }),
           h(AutopauseConfiguration, {
+            autopauseRequired: resourceLimits?.maxAutopause !== undefined,
             autopauseThreshold: computeConfig.autopauseThreshold,
             disabled: doesRuntimeExist(),
+            minThreshold: minAutopause,
+            maxThreshold: resourceLimits?.maxAutopause,
             style: { gridColumnEnd: 'span 6' },
             onChangeAutopauseThreshold: (v) => updateComputeConfig('autopauseThreshold', v),
           }),
         ]),
         h(AzurePersistentDiskSection, {
+          maxPersistentDiskSize: resourceLimits?.maxPersistentDiskSize,
           persistentDiskExists,
           onClickAbout: () => {
             setViewMode('aboutPersistentDisk');

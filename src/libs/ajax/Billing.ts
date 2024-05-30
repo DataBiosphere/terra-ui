@@ -24,6 +24,9 @@ export interface AzureManagedAppCoordinates {
 
 export interface Organization {
   enterprise?: boolean;
+
+  /** Resource limits for the billing profile. */
+  limits?: { [resource: string]: unknown };
 }
 
 export type CloudPlatform = 'GCP' | 'AZURE' | 'UNKNOWN';
@@ -221,6 +224,8 @@ export const Billing = (signal?: AbortSignal) => ({
     return response.json();
   },
 });
+
+export type BillingContract = ReturnType<typeof Billing>;
 
 export const canUseWorkspaceProject = async ({
   canCompute,

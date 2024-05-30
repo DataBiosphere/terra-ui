@@ -1,4 +1,5 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { partial } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
@@ -14,12 +15,13 @@ import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/analy
 import { autopauseDisabledValue, defaultAutopauseThreshold } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
+import { Billing, BillingContract } from 'src/libs/ajax/Billing';
 import { AzureConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { RuntimeAjaxContractV2 } from 'src/libs/ajax/leonardo/Runtimes';
 import { azureMachineTypes, defaultAzureMachineType, getMachineTypeLabel } from 'src/libs/azure-utils';
 import { formatUSD } from 'src/libs/utils';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 
 import { AzureComputeModalBase } from './AzureComputeModal';
@@ -28,6 +30,7 @@ jest.mock('src/analysis/utils/cost-utils');
 jest.mock('src/libs/ajax/leonardo/providers/LeoDiskProvider');
 
 jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/Billing');
 jest.mock('src/libs/notifications', () => ({
   notify: jest.fn(),
 }));
@@ -71,11 +74,28 @@ const verifyEnabled = (item) => expect(item).not.toHaveAttribute('disabled');
 const verifyDisabled = (item) => expect(item).toHaveAttribute('disabled');
 
 describe('AzureComputeModal', () => {
-  beforeAll(() => {});
-
   beforeEach(() => {
     // Arrange
     asMockedFn(Ajax).mockReturnValue(defaultAjaxImpl);
+
+    asMockedFn(Billing).mockReturnValue(
+      partial<BillingContract>({
+        getProject: jest.fn().mockResolvedValue({
+          cloudPlatform: 'AZURE',
+          landingZoneId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+          managedAppCoordinates: {
+            tenantId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+            subscriptionId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+            managedResourceGroupId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+          },
+          invalidBillingAccount: false,
+          projectName: 'Azure Billing Project',
+          roles: ['Owner'],
+          status: 'Ready',
+          protectedData: false,
+        }),
+      })
+    );
   });
 
   const getCreateButton = () => screen.getByText('Create');
@@ -454,5 +474,89 @@ describe('AzureComputeModal', () => {
 
     // Assert
     expect(screen.queryByText('Learn more about enabling GPUs.')).not.toBeInTheDocument();
+  });
+
+  describe('with resource limits', () => {
+    beforeEach(() => {
+      // Arrange
+      asMockedFn(Billing).mockReturnValue(
+        partial<BillingContract>({
+          getProject: jest.fn().mockResolvedValue({
+            cloudPlatform: 'AZURE',
+            landingZoneId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+            managedAppCoordinates: {
+              tenantId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+              subscriptionId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+              managedResourceGroupId: 'aaaabbbb-cccc-dddd-0000-111122223333',
+            },
+            invalidBillingAccount: false,
+            projectName: 'Azure Billing Project',
+            roles: ['Owner'],
+            status: 'Ready',
+            protectedData: false,
+            organization: {
+              limits: {
+                machinetypes: 'Standard_DS2_v2,Standard_DS3_v2',
+                autopause: '30',
+                persistentdisk: '32',
+              },
+            },
+          }),
+        })
+      );
+    });
+
+    it('limits machine type options', async () => {
+      // Arrange
+      const user = userEvent.setup();
+
+      // Act
+      await act(async () => {
+        render(h(AzureComputeModalBase, defaultModalProps));
+      });
+
+      // Assert
+      const machineTypeSelect = new SelectHelper(screen.getByLabelText('Cloud compute profile'), user);
+      const machineTypeOptions = await machineTypeSelect.getOptions();
+      expect(machineTypeOptions).toEqual(['Standard_DS2_v2, 2 CPU(s), 7 GBs', 'Standard_DS3_v2, 4 CPU(s), 14 GBs']);
+    });
+
+    it('requires autopause', async () => {
+      // Act
+      await act(async () => {
+        render(h(AzureComputeModalBase, defaultModalProps));
+      });
+
+      // Assert
+      const autopauseCheckbox = screen.getByLabelText('Enable autopause');
+      expect(autopauseCheckbox).toBeChecked();
+      expect(autopauseCheckbox).toHaveAttribute('disabled');
+    });
+
+    it('limits max autopause', async () => {
+      // Act
+      await act(async () => {
+        render(h(AzureComputeModalBase, defaultModalProps));
+      });
+
+      // Assert
+      const autopauseInput = screen.getByLabelText('minutes of inactivity');
+      expect(autopauseInput).toHaveAttribute('max', '30');
+    });
+
+    it('limits persistent disk size', async () => {
+      // Arrange
+      const user = userEvent.setup();
+
+      // Act
+      await act(async () => {
+        render(h(AzureComputeModalBase, defaultModalProps));
+      });
+
+      // Assert
+      const diskSizeSelect = new SelectHelper(screen.getByLabelText('Disk Size (GB)'), user);
+      const diskSizeOptions = await diskSizeSelect.getOptions();
+      expect(diskSizeOptions).toEqual(['32']);
+    });
   });
 });
