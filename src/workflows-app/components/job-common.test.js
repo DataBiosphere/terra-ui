@@ -79,6 +79,7 @@ describe('Job Common Components - Header Section', () => {
 describe('Job Common Components - Cost Elements', () => {
   it.each([
     { taskStartTime: '2024-05-30T18:29:42.6042077Z', taskEndTime: '2024-05-30T18:36:35.8020768Z', vmCostUsd: '0.203', expectedCost: 0.02 },
+    { taskStartTime: '2024-05-30T18:29:42.6042077Z', taskEndTime: undefined, vmCostUsd: '0.203', expectedCost: 0.02 },
     { taskStartTime: '2024-05-30T18:29:42.6042077Z', taskEndTime: '2024-05-30T18:36:35.8020768Z', vmCostUsd: '0.008', expectedCost: 0 },
   ])('returns expectedCost given $taskStartTime, $taskEndTime, and $vmCostUsd', ({ taskStartTime, taskEndTime, vmCostUsd, expectedCost }) => {
     // Arrange
@@ -86,6 +87,13 @@ describe('Job Common Components - Cost Elements', () => {
 
     // Assert
     expect(cost).toBe(expectedCost);
+  });
+
+  it('computes a value greater than zero for In Progress tasks', () => {
+    const taskStartTime = '2024-05-30T18:29:42.6042077Z';
+    const vmCostUsd = '0.005';
+    const cost = getTaskCost({ vmCostUsd, taskStartTime });
+    expect(cost).toBeGreaterThan(0);
   });
 
   it('calculates the total cost of all call objects', () => {
