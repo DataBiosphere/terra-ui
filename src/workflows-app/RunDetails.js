@@ -4,7 +4,7 @@ import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import { collapseStatus, getTaskCost, renderTaskCostElement } from 'src/components/job-common';
+import { calculateTotalCost, collapseStatus, renderTaskCostElement } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
@@ -160,20 +160,6 @@ export const BaseRunDetails = (
     if (workflow.status === 'Running') {
       return span({ style: { fontStyle: 'italic' } }, ['In progress - ']);
     }
-  };
-
-  const calculateTotalCost = (callObjects) => {
-    let total = 0;
-    Object.values(callObjects).forEach((call) => {
-      if (!call[0].taskStartTime) {
-        total += 0;
-      } else if (call[0].taskEndTime) {
-        total += getTaskCost(call[0].vmCostUsd, call[0].taskStartTime, call[0].taskEndTime);
-      } else {
-        total += getTaskCost(call[0].vmCostUsd, call[0].taskStartTime);
-      }
-    });
-    return total;
   };
 
   const taskCostTotal = useMemo(() => {

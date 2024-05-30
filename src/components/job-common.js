@@ -177,3 +177,17 @@ export const renderTaskCostElement = (cost) => {
   }
   return `$${cost.toFixed(2)}`;
 };
+
+export const calculateTotalCost = (callObjects) => {
+  let total = 0;
+  Object.values(callObjects).forEach((call) => {
+    if (!call[0].taskStartTime) {
+      total += 0;
+    } else if (call[0].taskEndTime) {
+      total += getTaskCost(call[0].vmCostUsd, call[0].taskStartTime, call[0].taskEndTime);
+    } else {
+      total += getTaskCost(call[0].vmCostUsd, call[0].taskStartTime);
+    }
+  });
+  return total;
+};

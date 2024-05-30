@@ -95,6 +95,16 @@ const SearchBar = ({ searchText, setSearchText }) => {
   );
 };
 
+const doesTaskHaveCostData = (task) => {
+  return !!(task?.taskStartTime && task?.vmCostUsd);
+};
+
+const noCostData = (task, subWorkflowId) => {
+  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !_.isEmpty(subWorkflowId)) {
+    return true;
+  }
+};
+
 /* WORKFLOW BREADCRUMB SUB-COMPONENT */
 const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) => {
   const workflowPathRender = workflowPath.map((workflow, index) => {
@@ -363,16 +373,16 @@ const CallTable = ({
                         ),
                       ]),
                     cellRenderer: ({ rowIndex }) => {
-                      const { vmCostUsd, taskStartTime, taskEndTime, executionStatus, callCaching, subWorkflowId } = filteredCallObjects[rowIndex];
-                      if (taskStartTime && vmCostUsd) {
-                        if (executionStatus === 'Running') {
-                          const cost = getTaskCost(vmCostUsd, taskStartTime);
-                          return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
+                      const { vmCostUsd, taskStartTime, taskEndTime, subWorkflowId } = filteredCallObjects[rowIndex];
+                      if (doesTaskHaveCostData(filteredCallObjects[rowIndex])) {
+                        if (taskEndTime) {
+                          const cost = getTaskCost(vmCostUsd, taskStartTime, taskEndTime);
+                          return div({}, [renderTaskCostElement(cost)]);
                         }
-                        const cost = getTaskCost(vmCostUsd, taskStartTime, taskEndTime);
-                        return div({}, [renderTaskCostElement(cost)]);
+                        const cost = getTaskCost(vmCostUsd, taskStartTime);
+                        return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
                       }
-                      if (executionStatus === 'Failed' || callCaching?.hit === true || !_.isEmpty(subWorkflowId)) {
+                      if (noCostData(filteredCallObjects[rowIndex], subWorkflowId)) {
                         return div({}, ['-']);
                       }
                       return div({ style: { fontStyle: 'italic' } }, ['Fetching cost information']);
