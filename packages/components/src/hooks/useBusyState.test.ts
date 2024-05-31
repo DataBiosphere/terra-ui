@@ -11,7 +11,7 @@ describe('useBusyState', () => {
 
     // Act
     const hookRender = renderHook(() => useBusyState());
-    const [isBusy1, withBusy1] = hookRender.result.current;
+    const [isBusyInitial, withBusy1] = hookRender.result.current;
 
     const loadData = withBusy1(getData);
     await act(async () => {
@@ -25,7 +25,7 @@ describe('useBusyState', () => {
     const [isBusyFinal] = hookRender.result.current;
 
     // Assert
-    expect(isBusy1).toBe(false);
+    expect(isBusyInitial).toBe(false);
     expect(isBusy2).toBe(true);
     expect(getData).toBeCalledTimes(1);
     expect(isBusyFinal).toBe(false);
@@ -39,19 +39,15 @@ describe('useBusyState', () => {
     // testing for data result value seperate from async busy true/false test above since promise mechanics
     // make it hard to test both in a single test.
     const hookRender = renderHook(() => useBusyState());
-    const [isBusy1, withBusy1] = hookRender.result.current;
+    const [_isBusyInitial, withBusy1] = hookRender.result.current;
 
     const loadData = withBusy1(getData);
     let dataResult: string | null = null;
     await act(async () => {
       dataResult = await loadData();
     });
-    const [isBusyFinal] = hookRender.result.current;
 
     // Assert
-    expect(isBusy1).toBe(false);
-    expect(getData).toBeCalledTimes(1);
-    expect(isBusyFinal).toBe(false);
     expect(dataResult).toBe('happy data');
   });
 });
