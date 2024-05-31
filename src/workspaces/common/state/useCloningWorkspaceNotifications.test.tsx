@@ -135,7 +135,7 @@ describe('useCloningWorkspaceNotifications', () => {
           state,
         },
       };
-      const mockDetailsFn = jest.fn().mockImplementation(() => Promise.resolve(update)); // .mockResolvedValue(update);
+      const mockDetailsFn = jest.fn().mockImplementation(() => Promise.resolve(update));
       const mockAjax: DeepPartial<AjaxContract> = {
         Workspaces: {
           workspace: () => ({ details: mockDetailsFn }),
@@ -183,7 +183,6 @@ describe('useCloningWorkspaceNotifications', () => {
 
     // Act
     render(<CloningTestComponent />);
-    // jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
     await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
 
     // Assert
