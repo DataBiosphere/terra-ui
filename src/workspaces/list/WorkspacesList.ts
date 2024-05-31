@@ -12,8 +12,9 @@ import { updateSearch, useRoute } from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import { elements as StyleElements } from 'src/libs/style';
 import { newTabLinkProps } from 'src/libs/utils';
-import { useDeletionPolling } from 'src/workspaces/common/state/useDeletionPolling';
+import { useCloningWorkspaceNotifications } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { useWorkspaceStatePolling } from 'src/workspaces/common/state/useWorkspaceStatePolling';
 import { categorizeWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
 import { RecentlyViewedWorkspaces } from 'src/workspaces/list/RecentlyViewedWorkspaces';
 import {
@@ -36,6 +37,7 @@ export const WorkspacesList = (): ReactNode => {
     workspaces,
     refresh: refreshWorkspaces,
     loading: loadingWorkspaces,
+    status,
   } = useWorkspaces(
     [
       'accessLevel',
@@ -43,8 +45,10 @@ export const WorkspacesList = (): ReactNode => {
       'workspace.attributes.description',
       'workspace.attributes.tag:tags',
       'workspace.authorizationDomain',
+      'workspace.bucketName',
       'workspace.cloudPlatform',
       'workspace.createdBy',
+      'workspace.googleProject',
       'workspace.lastModified',
       'workspace.name',
       'workspace.namespace',
@@ -55,8 +59,10 @@ export const WorkspacesList = (): ReactNode => {
     250
   );
 
+  useCloningWorkspaceNotifications();
+  useWorkspaceStatePolling(workspaces, status);
+
   const [featuredList, setFeaturedList] = useState<{ name: string; namespace: string }[]>();
-  useDeletionPolling(workspaces);
   const { query } = useRoute();
   const filters: WorkspaceFilterValues = getWorkspaceFiltersFromQuery(query);
 
@@ -76,7 +82,6 @@ export const WorkspacesList = (): ReactNode => {
     });
     loadFeatured();
   });
-
   const sortedWorkspaces = useMemo(() => categorizeWorkspaces(workspaces, featuredList), [workspaces, featuredList]);
 
   const [userActions, setUserActions] = useState<WorkspaceUserActions>({ creatingNewWorkspace: false });

@@ -44,6 +44,46 @@ describe('AutopauseConfiguration', () => {
     expect(autopauseThresholdInput).toBeDisabled();
   });
 
+  it('can disable the option to disable autopause', () => {
+    // Act
+    setup({ autopauseRequired: true });
+
+    // Assert
+    const enableAutopauseCheckbox = screen.getByRole('checkbox', { name: 'Enable autopause' });
+    expect(enableAutopauseCheckbox).toHaveAttribute('disabled');
+
+    const autopauseThresholdInput = screen.getByRole('spinbutton', {
+      name: 'Minutes of inactivity before autopausing',
+    });
+    expect(autopauseThresholdInput).not.toBeDisabled();
+  });
+
+  it('sets default min and max values', () => {
+    // Act
+    setup();
+
+    // Assert
+    const autopauseThresholdInput = screen.getByRole('spinbutton', {
+      name: 'Minutes of inactivity before autopausing',
+    });
+
+    expect(autopauseThresholdInput).toHaveAttribute('min', '10');
+    expect(autopauseThresholdInput).toHaveAttribute('max', '999');
+  });
+
+  it('allows configuring min and max values', () => {
+    // Act
+    setup({ minThreshold: 15, maxThreshold: 30 });
+
+    // Assert
+    const autopauseThresholdInput = screen.getByRole('spinbutton', {
+      name: 'Minutes of inactivity before autopausing',
+    });
+
+    expect(autopauseThresholdInput).toHaveAttribute('min', '15');
+    expect(autopauseThresholdInput).toHaveAttribute('max', '30');
+  });
+
   it('calls onChangeAutopauseThreshold when the threshold is changed', () => {
     // Arrange
     const onChangeAutopauseThreshold = jest.fn();

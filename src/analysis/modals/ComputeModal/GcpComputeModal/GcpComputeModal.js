@@ -18,7 +18,6 @@ import {
   defaultGcePersistentDiskSize,
   defaultPersistentDiskType,
   generatePersistentDiskName,
-  pdTypeFromDiskType,
 } from 'src/analysis/utils/disk-utils';
 import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/analysis/utils/gce-machines';
 import {
@@ -54,7 +53,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer';
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
-import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { leoDiskProvider, pdTypeFromDiskType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
@@ -1715,7 +1714,7 @@ export const GcpComputeModalBase = ({
     Utils.switchCase(
       viewMode,
       ['packages', renderPackages],
-      ['aboutPersistentDisk', () => AboutPersistentDiskView({ titleId, setViewMode, onDismiss, tool })],
+      ['aboutPersistentDisk', () => h(AboutPersistentDiskView, { titleId, tool, onDismiss, onPrevious: () => setViewMode(undefined) })],
       ['sparkConsole', renderSparkConsole],
       ['customImageWarning', renderCustomImageWarning],
       ['environmentWarning', renderEnvironmentWarning],
@@ -1724,7 +1723,7 @@ export const GcpComputeModalBase = ({
       [
         'deleteEnvironment',
         () =>
-          DeleteEnvironment({
+          h(DeleteEnvironment, {
             id: titleId,
             runtimeConfig: currentRuntime && currentRuntime.runtimeConfig,
             persistentDiskId: currentPersistentDiskDetails?.id,
@@ -1733,10 +1732,10 @@ export const GcpComputeModalBase = ({
               : 'N/A',
             deleteDiskSelected,
             setDeleteDiskSelected,
-            setViewMode,
             renderActionButton,
             hideCloseButton: false,
             onDismiss,
+            onPrevious: () => setViewMode(undefined),
             toolLabel: currentRuntime && currentRuntime.labels.tool,
           }),
       ],

@@ -11,17 +11,19 @@ import {
 import { Environments, EnvironmentsProps } from 'src/analysis/Environments/Environments';
 import { LeoResourcePermissionsProvider } from 'src/analysis/Environments/Environments.models';
 import { GetAppItem } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { DiskBasics } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
-import { RuntimeBasics } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
+import { DiskBasics, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { RuntimeBasics, RuntimeErrorInfo } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { RuntimeWrapper } from 'src/libs/ajax/leonardo/Runtimes';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { UseWorkspaces } from 'src/workspaces/common/state/useWorkspaces.models';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
+/**
+ * This component is used in terra-ui, and a version of it is also used in All of Us (AoU).
+ */
 const meta: Meta<typeof Environments> = {
-  title: 'Packages/Analysis/Environments',
+  title: 'src/Analysis/Environments',
   component: Environments,
   parameters: {
     layout: 'centered',
@@ -71,6 +73,14 @@ const getMockLeoRuntimes = (): EnvironmentsProps['leoRuntimeData'] => {
       await actionLogAsyncFn('leoRuntimeData.list')(runtimesStore.get());
       return runtimesStore.get();
     },
+    errorInfo: async () => {
+      const info: RuntimeErrorInfo = {
+        errorType: 'ErrorList',
+        errors: [{ errorMessage: 'things went BOOM!', errorCode: 0, timestamp: 'timestamp' }],
+      };
+      await actionLogAsyncFn('leoRuntimeData.errorInfo')(info);
+      return info;
+    },
     stop: async (runtime: RuntimeWrapper) => {
       const copy: ListRuntimeItem[] = [];
       runtimesStore.get().forEach((r) =>
@@ -104,14 +114,17 @@ const getMockLeoDisks = (): EnvironmentsProps['leoDiskData'] => {
 const getMockUseWorkspaces = (mockResults: WorkspaceWrapper[]): EnvironmentsProps['useWorkspaces'] => {
   const useMockHook: UseWorkspaces = () => {
     const [loading, setLoading] = useState<boolean>(false);
-
+    const [status, setStatus] = useState<'Ready' | 'Loading' | 'Error'>('Ready');
     return {
       workspaces: mockResults,
       loading,
+      status,
       refresh: async () => {
         setLoading(true);
+        setStatus('Loading');
         await delay(1000);
         setLoading(false);
+        setStatus('Ready');
       },
     };
   };
@@ -191,6 +204,10 @@ export const NoEnvironments: Story = {
   },
 };
 
+/**
+ * This demonstrates the notification callback that is triggered if deleting a cloud environment fails.
+ * The callback can be seen in the `Actions` tab.
+ */
 export const DeleteError: Story = {
   render: () => {
     const StoryWrapper = (): React.ReactNode => {

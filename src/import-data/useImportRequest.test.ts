@@ -1,5 +1,7 @@
+import { partial } from '@terra-ui-packages/test-utils';
 import { fetchDataCatalog } from 'src/data-catalog/data-browser-utils';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
+import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_AZURE_TDR_IMPORT } from 'src/libs/feature-previews-config';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -23,6 +25,14 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   return {
     ...jest.requireActual<DataRepoExports>('src/libs/ajax/DataRepo'),
     DataRepo: jest.fn(),
+  };
+});
+
+type SamResourcesExports = typeof import('src/libs/ajax/SamResources');
+jest.mock('src/libs/ajax/SamResources', (): SamResourcesExports => {
+  return {
+    ...jest.requireActual<SamResourcesExports>('src/libs/ajax/SamResources'),
+    SamResources: jest.fn(),
   };
 });
 
@@ -124,6 +134,7 @@ describe('getImportRequest', () => {
         type: 'tdr-snapshot-export',
         manifestUrl: new URL('https://example.com/path/to/manifest.json'),
         snapshot: googleSnapshotFixture,
+        snapshotAccessControls: [],
         syncPermissions: true,
       } satisfies TDRSnapshotExportImportRequest,
     },
@@ -137,6 +148,7 @@ describe('getImportRequest', () => {
       expectedResult: {
         type: 'tdr-snapshot-reference',
         snapshot: googleSnapshotFixture,
+        snapshotAccessControls: [],
       } satisfies TDRSnapshotReferenceImportRequest,
     },
     // Catalog dataset
@@ -218,6 +230,12 @@ describe('getImportRequest', () => {
         contributors: [],
       },
     ]);
+
+    asMockedFn(SamResources).mockReturnValue(
+      partial<SamResourcesContract>({
+        getAuthDomains: jest.fn().mockResolvedValue([]),
+      })
+    );
   });
 
   it.each(testCases)(
@@ -258,6 +276,45 @@ describe('getImportRequest', () => {
 
         // Assert
         expect(importRequestPromise).rejects.toEqual(new Error('Unable to load snapshot.'));
+      }
+    );
+
+    it.each([
+      // Snapshot export
+      {
+        queryParams: {
+          format: 'tdrexport',
+          snapshotId: googleSnapshotFixture.id,
+          tdrmanifest: 'https://example.com/path/to/manifest.json',
+          tdrSyncPermissions: 'true',
+          url: 'https://data.terra.bio',
+        },
+      },
+      // Snapshot by reference
+      {
+        queryParams: {
+          format: 'snapshot',
+          snapshotId: googleSnapshotFixture.id,
+          snapshotName: 'test-snapshot',
+        },
+      },
+    ] as { queryParams: Record<string, any> }[])(
+      'fetches access controls from Sam ($queryParams.format)',
+      async ({ queryParams }) => {
+        // Arrange
+        const mockAccessControlGroups = ['example-group'];
+        asMockedFn(SamResources).mockReturnValue(
+          partial<SamResourcesContract>({
+            getAuthDomains: jest.fn().mockResolvedValue(mockAccessControlGroups),
+          })
+        );
+        // Act
+        const importRequest = await getImportRequest(queryParams);
+
+        // Assert
+        const snapshotAccessControls =
+          'snapshotAccessControls' in importRequest ? importRequest.snapshotAccessControls : undefined;
+        expect(snapshotAccessControls).toEqual(mockAccessControlGroups);
       }
     );
 

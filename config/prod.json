@@ -21,10 +21,6 @@
   "samUrlRoot": "https://sam.dsde-prod.broadinstitute.org",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com",
   "workspaceManagerUrlRoot": "https://workspace.dsde-prod.broadinstitute.org",
-  "tCell": {
-    "appId": "saturnprod-VuHKy",
-    "apiKey": "AQEBBAEGP2gTM2pIdJAQOIeNrm8dcTM7E4FMSmaibbMUQxNU6qy6nLPOBK8QfSvPFSsX8PQ"
-  },
   "alphaRegionalityGroup": "Alpha_Regionality_Users",
   "terraDockerVersionsFile": "terra-docker-versions-prod.json",
   "terraDockerImageBucket": "terra-docker-image-documentation-prod",

@@ -1,4 +1,4 @@
-import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
 import { reportError, reportErrorAndRethrow, withErrorReportingInModal } from 'src/libs/error';
 import { notify } from 'src/libs/notifications';
 
@@ -25,12 +25,12 @@ describe('reportError - using terra NotificationsContextProvider fallback', () =
     jest.spyOn(console, 'error').mockImplementation(() => {});
 
     // Act
-    await reportError('Session is over', new Error(sessionTimedOutErrorMessage));
+    await reportError('Session is over', new Error(sessionExpirationErrorMessage));
 
     // Assert
     expect(notify).toBeCalledTimes(0);
     expect(console.error).toBeCalledTimes(1);
-    expect(console.error).toBeCalledWith('Session is over', new Error(sessionTimedOutErrorMessage));
+    expect(console.error).toBeCalledWith('Session is over', new Error(sessionExpirationErrorMessage));
   });
 });
 

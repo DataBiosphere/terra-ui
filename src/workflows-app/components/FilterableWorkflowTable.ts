@@ -21,7 +21,9 @@ import {
 } from 'src/workflows-app/utils/submission-utils';
 
 import { loadAppUrls } from '../utils/app-utils';
+import { getFilteredRuns } from '../utils/method-common';
 import { LogTooltips } from '../utils/task-log-utils';
+import FilterSubmissionsDropdown, { FilterOptions } from './FilterSubmissionsDropdown';
 import { LogInfo } from './LogViewer';
 
 type Run = {
@@ -61,26 +63,6 @@ type FilterableWorkflowTableProps = {
   setTaskDataModal: ({ taskDataTitle, taskJson }: TaskDataModalProps) => void;
 };
 
-const getFilteredRuns = (filterOption: string, runsData: Run[], errorStates: string[]): Run[] => {
-  return runsData.filter((run: Run) => {
-    switch (filterOption) {
-      case 'Error':
-        if (errorStates.includes(run.state)) {
-          return true;
-        }
-        break;
-      case 'Succeeded':
-        if (run.state === 'COMPLETE') {
-          return true;
-        }
-        break;
-      default:
-        return true;
-    }
-    return false;
-  });
-};
-
 /**
  * Transform the keys to a more user friendly form, e.g. 'fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID' => 'fetch_sra_to_bam.SRA_ID'.
  * @param keyValuePairs Pairs of keys and values whose key task prefixes will be stripped
@@ -106,7 +88,7 @@ const FilterableWorkflowTable = ({
   setTaskDataModal,
 }: FilterableWorkflowTableProps) => {
   const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [filterOption, setFilterOption] = useState<string>();
+  const [filterOption, setFilterOption] = useState<FilterOptions>();
   const [pageNumber, setPageNumber] = useState(1);
   const [sort, setSort] = useState({ field: 'duration', direction: 'desc' });
   const [viewErrorsId, setViewErrorsId] = useState<number>();
@@ -149,13 +131,6 @@ const FilterableWorkflowTable = ({
     return runsSorted;
   };
 
-  enum FilterOptions {
-    Error = 'Error',
-    NoFilter = 'No filter',
-    Succeeded = 'Succeeded',
-  }
-
-  const filterOptions: FilterOptions[] = [FilterOptions.Error, FilterOptions.NoFilter, FilterOptions.Succeeded];
   const filteredPreviousRuns: Run[] = useMemo(
     () => (filterOption ? getFilteredRuns(filterOption, runsData, errorStates) : runsData),
     // Don't re-run if errorStates changes (since it never should change).
@@ -283,7 +258,7 @@ const FilterableWorkflowTable = ({
         },
         [
           runsFullyUpdated
-            ? div([
+            ? div({ style: { marginBottom: '1.5em' } }, [
                 icon('check', { size: 15, style: { color: colors.success() } }),
                 ' Workflow statuses are all up to date.',
               ])
@@ -291,46 +266,27 @@ const FilterableWorkflowTable = ({
                 icon('warning-standard', { size: 15, style: { color: colors.warning() } }),
                 ' Some workflow statuses are not up to date. Refreshing the page may update more statuses.',
               ]),
-          div([h3(['Filter by: '])]),
-          h(Select, {
-            isDisabled: false,
-            'aria-label': 'Filter selection',
-            isClearable: false,
-            value: filterOption,
-            placeholder: 'None selected',
-            // @ts-expect-error
-            onChange: ({ value }) => {
-              setFilterOption(value);
-            },
-            styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
-            options: filterOptions,
-          }),
-          div(
-            {
-              style: {
-                float: 'right',
+          div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between' } }, [
+            h(FilterSubmissionsDropdown, { filterOption, setFilterOption }),
+            h(
+              Link,
+              {
+                href: Nav.getLink(
+                  'workspace-files',
+                  { name: workspaceName, namespace },
+                  {
+                    path: `workspace-services/cbas/${appId}/${taskName}/`,
+                  }
+                ),
+                target: '_blank',
               },
-            },
-            [
-              h(
-                Link,
-                {
-                  href: Nav.getLink(
-                    'workspace-files',
-                    { name: workspaceName, namespace },
-                    {
-                      path: `workspace-services/cbas/${appId}/${taskName}/`,
-                    }
-                  ),
-                  target: '_blank',
-                },
-                [icon('folder-open', { size: 18 }), '\tSubmission Execution Directory']
-              ),
-            ]
-          ),
+              [icon('folder-open', { size: 18 }), '\tSubmission Execution Directory']
+            ),
+          ]),
           div(
             {
               style: {
+                marginTop: '0.5rem',
                 height: tableHeight({
                   actualRows: paginatedPreviousRuns.length,
                   maxRows: 12.5,
@@ -539,6 +495,9 @@ const FilterableWorkflowTable = ({
                                 ['Log']
                               ),
                             ]);
+                          }
+                          if (paginatedPreviousRuns[rowIndex].state === 'QUEUED') {
+                            return div(['Waiting for workflow to be submitted']);
                           }
                           return div(['Error: Workflow ID not found']);
                         },

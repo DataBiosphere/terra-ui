@@ -1,6 +1,5 @@
 import _ from 'lodash/fp';
 import { ReactNode, useEffect } from 'react';
-import { Ajax } from 'src/libs/ajax';
 import { useRoute } from 'src/libs/nav';
 import {
   containsPhiTrackingPolicy,
@@ -9,6 +8,8 @@ import {
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/workspaces/utils';
+
+import { Metrics } from './ajax/Metrics';
 
 /*
  * NOTE: In order to show up in reports, new events MUST be marked as expected in the Mixpanel
@@ -289,17 +290,15 @@ export const PageViewReporter = (): ReactNode => {
   useEffect(() => {
     const isWorkspace = /^#workspaces\/.+\/.+/.test(window.location.hash);
 
-    Ajax().Metrics.captureEvent(
-      `${eventsList.pageView}:${name}`,
-      isWorkspace ? extractWorkspaceDetails(params) : undefined
-    );
+    Metrics().captureEvent(`${eventsList.pageView}:${name}`, isWorkspace ? extractWorkspaceDetails(params) : undefined);
   }, [name, params]);
 
   return null;
 };
 
 export const captureAppcuesEvent = (eventName: string, event: any) => {
-  // Only record "public-facing events" (and related properties) as documented by Appcues: https://docs.appcues.com/article/301-client-side-events-reference
+  // record different event properties for "public-facing events" and NPS events
+  // Appcues event properties are listed here: https://docs.appcues.com/article/301-client-side-events-reference
   const publicEvents = [
     'flow_started',
     'flow_completed',
@@ -312,6 +311,13 @@ export const captureAppcuesEvent = (eventName: string, event: any) => {
     'step_interacted',
     'form_submitted',
     'form_field_submitted',
+  ];
+  const npsEvents = [
+    'nps_survey_started',
+    'nps_score',
+    'nps_feedback',
+    'nps_ask_me_later_selected_at',
+    'nps_clicked_update_nps_score',
   ];
   if (_.includes(eventName, publicEvents)) {
     const eventProps = {
@@ -342,7 +348,25 @@ export const captureAppcuesEvent = (eventName: string, event: any) => {
       'appcues.stepType': event.stepType,
       'appcues.timestamp': event.timestamp,
     };
-    return Ajax().Metrics.captureEvent(eventsList.appcuesEvent, eventProps);
+    return Metrics().captureEvent(eventsList.appcuesEvent, eventProps);
+  }
+  if (_.includes(eventName, npsEvents)) {
+    const eventProps = {
+      // the NPS survey related events have additional special properties
+      'appcues.flowId': event.flowId,
+      'appcues.flowName': event.flowName,
+      'appcues.flowType': event.flowType,
+      'appcues.flowVersion': event.flowVersion,
+      'appcues.id': event.id,
+      'appcues.name': event.name,
+      'appcues.sessionId': event.sessionId,
+      'appcues.timestamp': event.timestamp,
+      'appcues.npsScore': event.score,
+      'appcues.npsFeedback': event.feedback,
+      'appcues.npsAskMeLaterSelectedAt': event.askMeLaterSelectedAt,
+      'appcues.npsClickedUpdateNpsScore': event.score,
+    };
+    return Metrics().captureEvent(eventsList.appcuesEvent, eventProps);
   }
 };
 

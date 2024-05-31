@@ -1,24 +1,40 @@
-import React from 'react';
-import { div } from 'react-hyperscript-helpers';
+import { ReactNode } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
 import { AboutPersistentDiskSection } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskSection';
 import { AzurePersistentDiskSizeSelectInput } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSizeSelectInput';
 import { PersistentDiskTypeInputContainer } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInputContainer';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
-import { AzurePdType, AzurePersistentDiskOptions, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
+import { AzureDiskType } from 'src/libs/ajax/leonardo/Disks';
+import { AzurePdType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { defaultAzurePersistentDiskType } from 'src/libs/azure-utils';
 
 export interface AzurePersistentDiskSectionProps {
+  maxPersistentDiskSize?: number;
   persistentDiskExists: boolean;
   persistentDiskSize: number;
-  persistentDiskType: AzurePdType;
-  onChangePersistentDiskType: (type: SharedPdType) => void;
+  persistentDiskType: AzureDiskType;
+  onChangePersistentDiskType: (type: AzureDiskType | null) => void;
   onChangePersistentDiskSize: (size: number | null | undefined) => void;
   onClickAbout: () => void;
 }
 
-export const AzurePersistentDiskSection: React.FC<AzurePersistentDiskSectionProps> = (
-  props: AzurePersistentDiskSectionProps
-) => {
+export const AzurePersistentDiskOptions: AzurePdType[] = [
+  {
+    value: 'Standard_LRS',
+    label: 'Standard HDD',
+  },
+  // TODO: Disabled the SSD option and the test in
+  // AzurePersistentDiskInputTest test until SSD is properly implemented and tested.
+  // Main blocker: Cost calculation.
+  // {
+  //   value: 'StandardSSD_LRS',
+  //   label: 'Standard SSD',
+  // },
+];
+
+export const AzurePersistentDiskSection = (props: AzurePersistentDiskSectionProps): ReactNode => {
   const {
+    maxPersistentDiskSize,
     onClickAbout,
     persistentDiskType,
     persistentDiskSize,
@@ -29,15 +45,16 @@ export const AzurePersistentDiskSection: React.FC<AzurePersistentDiskSectionProp
 
   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' };
   return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-    AboutPersistentDiskSection({ onClick: onClickAbout }),
+    h(AboutPersistentDiskSection, { onClick: onClickAbout }),
     div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-      PersistentDiskTypeInputContainer({
+      h(PersistentDiskTypeInputContainer<AzureDiskType, AzurePdType>, {
         persistentDiskExists,
         value: persistentDiskType,
-        onChange: (e) => onChangePersistentDiskType(e.value),
+        onChange: (e) => onChangePersistentDiskType(e ? e.value : defaultAzurePersistentDiskType),
         options: AzurePersistentDiskOptions,
       }),
-      AzurePersistentDiskSizeSelectInput({
+      h(AzurePersistentDiskSizeSelectInput, {
+        maxPersistentDiskSize,
         persistentDiskSize,
         onChangePersistentDiskSize,
         persistentDiskExists,

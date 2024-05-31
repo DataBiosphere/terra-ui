@@ -1,11 +1,17 @@
 import { PopupTrigger, TooltipTrigger, useModalHandler, useThemeFromContext } from '@terra-ui-packages/components';
-import { formatDatetime, KeyedEventHandler, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
-import { useNotificationsFromContext, withErrorIgnoring } from '@terra-ui-packages/notifications';
+import {
+  formatDatetime,
+  KeyedEventHandler,
+  Mutate,
+  NavLinkProvider,
+  withErrorIgnoring,
+} from '@terra-ui-packages/core-utils';
+import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, h2, span, strong } from 'react-hyperscript-helpers';
-import { RuntimeErrorModal } from 'src/analysis/AnalysisNotificationManager';
 import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
+import { RuntimeErrorModal } from 'src/analysis/modals/RuntimeErrorModal';
 import { getAppStatusForDisplay, getDiskAppType } from 'src/analysis/utils/app-utils';
 import {
   getAppCost,
@@ -20,17 +26,14 @@ import { AppToolLabel } from 'src/analysis/utils/tool-utils';
 import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { makeMenuIcon } from 'src/components/PopupTrigger';
-import SupportRequestWrapper from 'src/components/SupportRequest';
 import { SimpleFlexTable, Sortable } from 'src/components/table';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { AzureConfig, GceWithPdConfig, getRegionFromZone } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { isRuntime, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
-import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { LeoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
-import { contactUsActive } from 'src/libs/state';
 import { elements as styleElements } from 'src/libs/style';
 import { cond, DEFAULT as COND_DEFAULT, formatUSD, withBusyState } from 'src/libs/utils';
 import { UseWorkspaces, UseWorkspacesResult } from 'src/workspaces/common/state/useWorkspaces.models';
@@ -60,7 +63,7 @@ export type EnvironmentNavActions = {
 };
 
 type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | 'pause' | 'delete'>;
-type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
+type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'errorInfo' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
 
 export interface DataRefreshInfo {
@@ -799,8 +802,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         ]),
       errorRuntimeId &&
         h(RuntimeErrorModal, {
-          runtime: _.find({ id: errorRuntimeId }, runtimes),
+          runtime: _.find({ id: errorRuntimeId }, runtimes)!,
           onDismiss: () => setErrorRuntimeId(undefined),
+          errorProvider: leoRuntimeData,
         }),
       deleteRuntimeId &&
         runtimeToDelete &&
@@ -822,7 +826,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
           appProvider: leoAppData,
         }),
     ]),
-    contactUsActive.get() && h(SupportRequestWrapper),
     loading && spinnerOverlay,
   ]);
 };

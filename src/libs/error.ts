@@ -1,13 +1,13 @@
 import { IgnoreErrorDecider, makeNotificationsProvider, Notifier } from '@terra-ui-packages/notifications';
-import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
 import { notify } from 'src/libs/notifications';
 
-export { type ErrorCallback, withErrorHandling, withErrorIgnoring } from '@terra-ui-packages/notifications';
+export { type ErrorCallback, withErrorHandling, withErrorIgnoring } from '@terra-ui-packages/core-utils';
 
 export const ignoreSessionTimeout: IgnoreErrorDecider = (_title: string, obj?: unknown): boolean => {
   // Do not show an error notification when a session times out.
   // Notification for this case is handled elsewhere.
-  return obj instanceof Error && obj.message === sessionTimedOutErrorMessage;
+  return obj instanceof Error && obj.message === sessionExpirationErrorMessage;
 };
 
 const notifier: Notifier = {
