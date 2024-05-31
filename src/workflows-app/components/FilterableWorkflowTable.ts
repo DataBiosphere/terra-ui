@@ -1,10 +1,10 @@
 import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, h3, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonPrimary, Link, Select } from 'src/components/common';
+import { ButtonPrimary, Clickable, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import colors from 'src/libs/colors';
@@ -111,6 +111,8 @@ const FilterableWorkflowTable = ({
   const [sort, setSort] = useState({ field: 'duration', direction: 'desc' });
   const [viewErrorsId, setViewErrorsId] = useState<number>();
   const [currentWorkflow, setCurrentWorkflow] = useState<WorkflowMetadata>();
+  const [appId, setAppId] = useState<RegExpMatchArray | null>();
+  const [taskName, setTaskName] = useState<string>();
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR'];
   const signal = useCancellation();
@@ -231,16 +233,34 @@ const FilterableWorkflowTable = ({
     [workspaceId, signal, includeKeys, excludeKeys]
   );
 
-  const getWorkflow = async (rowIndex: number): Promise<WorkflowMetadata | undefined> => {
-    if (currentWorkflow && currentWorkflow.id === paginatedPreviousRuns[rowIndex].engine_id) {
-      return currentWorkflow;
-    }
-    const workflow: WorkflowMetadata | undefined = await loadWorkflow(paginatedPreviousRuns[rowIndex].engine_id);
+  const getWorkflow = useCallback(
+    async (rowIndex: number): Promise<WorkflowMetadata | undefined> => {
+      if (currentWorkflow && currentWorkflow.id === paginatedPreviousRuns[rowIndex].engine_id) {
+        return currentWorkflow;
+      }
+      if (!paginatedPreviousRuns[rowIndex]) {
+        return undefined;
+      }
+      const workflow: WorkflowMetadata | undefined = await loadWorkflow(paginatedPreviousRuns[rowIndex].engine_id);
+      if (workflow !== undefined) {
+        setCurrentWorkflow(workflow);
+      }
+      return workflow;
+    },
+    [currentWorkflow, loadWorkflow, paginatedPreviousRuns]
+  );
+
+  const getAppIdAndTaskName = useCallback(async () => {
+    const workflow: WorkflowMetadata | undefined = await getWorkflow(0);
     if (workflow !== undefined) {
-      setCurrentWorkflow(workflow);
+      setTaskName(workflow.workflowName);
+      setAppId(Object.values(workflow.outputs)[0].toString().match('terra-app-[0-9a-fA-f-]*'));
     }
-    return workflow;
-  };
+  }, [getWorkflow]);
+
+  useEffect(() => {
+    getAppIdAndTaskName();
+  }, [getAppIdAndTaskName]);
 
   return div(
     {
@@ -295,7 +315,13 @@ const FilterableWorkflowTable = ({
               h(
                 Link,
                 {
-                  href: Nav.getLink('workspace-files', { name: workspaceName, namespace }),
+                  href: Nav.getLink(
+                    'workspace-files',
+                    { name: workspaceName, namespace },
+                    {
+                      path: `workspace-services/cbas/${appId}/${taskName}/`,
+                    }
+                  ),
                   target: '_blank',
                 },
                 [icon('folder-open', { size: 18 }), '\tSubmission Execution Directory']
@@ -406,16 +432,45 @@ const FilterableWorkflowTable = ({
                       {
                         size: { basis: 400, grow: 0 },
                         field: 'workflowId',
-                        headerRenderer: () =>
-                          h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
+                        headerRenderer: () => [
+                          h(Sortable, { key: 'workflow ID header', sort, field: 'workflowId', onSort: setSort }, [
+                            'Workflow ID',
+                          ]),
+                          h(
+                            Clickable,
+                            {
+                              key: 'tooltip icon',
+                              tooltip: 'Click the workflow ID to go to the execution directory',
+                              useTooltipAsLabel: true,
+                            },
+                            [icon('cardMenuIcon')]
+                          ),
+                        ],
                         cellRenderer: ({ rowIndex }) => {
-                          const engineId = paginatedPreviousRuns[rowIndex].engine_id;
-                          if (engineId !== undefined) {
-                            return h(TextCell, [
-                              span({ style: { marginRight: '0.5rem' } }, [engineId]),
-                              span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
-                            ]);
+                          if (paginatedPreviousRuns[rowIndex].engine_id) {
+                            const engineId = paginatedPreviousRuns[rowIndex].engine_id;
+                            if (engineId !== undefined) {
+                              return h(TextCell, [
+                                h(
+                                  Link,
+                                  {
+                                    style: { marginRight: '0.5rem' },
+                                    href: Nav.getLink(
+                                      'workspace-files',
+                                      { name: workspaceName, namespace },
+                                      {
+                                        path: `workspace-services/cbas/${appId}/${taskName}/${engineId}/`,
+                                      }
+                                    ),
+                                    target: '_blank',
+                                  },
+                                  [engineId]
+                                ),
+                                span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
+                              ]);
+                            }
                           }
+                          return div(['Error: Workflow ID not found']);
                         },
                       },
                       {

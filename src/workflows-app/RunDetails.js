@@ -54,6 +54,8 @@ export const BaseRunDetails = (
   const [showTaskData, setShowTaskData] = useState(false);
 
   const [loadWorkflowFailed, setLoadWorkflowFailed] = useState(false);
+  const [stdOut, setStdOut] = useState();
+  const [appIdMatched, setAppIdMatched] = useState();
 
   const signal = useCancellation();
   const stateRefreshTimer = useRef();
@@ -120,6 +122,8 @@ export const BaseRunDetails = (
             }
           }
           const { workflowName } = metadata;
+          setStdOut(Object.values(metadata.calls)[0][0].stdout);
+          setAppIdMatched(Object.values(metadata.calls)[0][0].stdout.match('terra-app-[0-9a-fA-f-]*'));
           _.isNil(updateWorkflowPath) && setWorkflow(metadata);
           if (!_.isEmpty(metadata?.calls)) {
             setFailedTasks(Object.values(failedTasks)[0]?.calls || {});
@@ -251,7 +255,27 @@ export const BaseRunDetails = (
           div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
           div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 2rem' } }, [
             h(WorkflowInfoBox, { workflow }, []),
-            h(TroubleshootingBox, { name, namespace, logUri: workflow.workflowLog, submissionId, workflowId, showLogModal }, []),
+            h(
+              TroubleshootingBox,
+              {
+                name,
+                namespace,
+                logUri: workflow.workflowLog,
+                submissionId,
+                workflowId,
+                showLogModal,
+                appId: appIdMatched,
+                workflowName: appIdMatched
+                  ? stdOut
+                      .substring(appIdMatched.index + appIdMatched[0].length + 1)
+                      .substring(0, stdOut.substring(appIdMatched.index + appIdMatched[0].length + 1).indexOf('/'))
+                  : 'No workflow name',
+                taskName: stdOut
+                  .substring(0, stdOut.indexOf('/execution/'))
+                  .substring(stdOut.substring(0, stdOut.indexOf('/execution/')).lastIndexOf('/') + 1),
+              },
+              []
+            ),
           ]),
           div(
             {
