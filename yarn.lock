@@ -4452,7 +4452,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/components@*, @terra-ui-packages/components@^0.0.6, @terra-ui-packages/components@workspace:packages/components":
+"@terra-ui-packages/components@*, @terra-ui-packages/components@workspace:packages/components":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/components@workspace:packages/components"
   dependencies:
@@ -4492,6 +4492,28 @@ __metadata:
     react-dom: 18.2.0
   languageName: unknown
   linkType: soft
+
+"@terra-ui-packages/components@npm:^0.0.6":
+  version: 0.0.6
+  resolution: "@terra-ui-packages/components@npm:0.0.6::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fcomponents%2F-%2F%40terra-ui-packages%2Fcomponents-0.0.6.tgz"
+  dependencies:
+    "@fortawesome/fontawesome-svg-core": ^1.2.36
+    "@fortawesome/free-regular-svg-icons": ^5.15.4
+    "@fortawesome/free-solid-svg-icons": ^5.15.4
+    "@fortawesome/react-fontawesome": ^0.1.15
+    color: ^4.0.1
+    lodash: ^4.17.21
+    react-focus-lock: ^2.9.5
+    react-modal: ^3.16.1
+    react-onclickoutside: ^6.13.0
+    react-select: ^5.7.4
+    react-switch: ^6.1.0
+  peerDependencies:
+    react: 18.2.0
+    react-dom: 18.2.0
+  checksum: 09a4512fc328f4a766dd24f2dc983f50880e8eb63328049f2606b69b8e726720e708e0375e060898830d16499f7b3961fe3f009e6d22e2527dd294a14e5afccd
+  languageName: node
+  linkType: hard
 
 "@terra-ui-packages/core-utils@*, @terra-ui-packages/core-utils@^0.3.0, @terra-ui-packages/core-utils@workspace:packages/core-utils":
   version: 0.0.0-use.local
