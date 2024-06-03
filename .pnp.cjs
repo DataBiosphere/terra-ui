@@ -6035,7 +6035,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/ejs", "npm:3.1.5"],\
             ["@yarnpkg/esbuild-plugin-pnp", "virtual:bd05043f97bbc8a2f878cab8a03a6876fa01822f9e742902a2a36b3397ef0131d9d6045fb29c1f4aff7242d4436983327787e8be828f4555767d095163b1966d#npm:3.0.0-rc.15"],\
             ["browser-assert", "npm:1.2.1"],\
-            ["ejs", "npm:3.1.9"],\
+            ["ejs", "npm:3.1.10"],\
             ["esbuild", "npm:0.20.2"],\
             ["esbuild-plugin-alias", "npm:0.2.1"],\
             ["express", "npm:4.19.2"],\
@@ -11794,10 +11794,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["ejs", [\
-        ["npm:3.1.9", {\
-          "packageLocation": "./.yarn/cache/ejs-npm-3.1.9-e201b2088c-af6f10eb81.zip/node_modules/ejs/",\
+        ["npm:3.1.10", {\
+          "packageLocation": "./.yarn/cache/ejs-npm-3.1.10-4e8cf4bdc1-ce90637e9c.zip/node_modules/ejs/",\
           "packageDependencies": [\
-            ["ejs", "npm:3.1.9"],\
+            ["ejs", "npm:3.1.10"],\
             ["jake", "npm:10.8.5"]\
           ],\
           "linkType": "HARD"\
@@ -21679,7 +21679,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["btoa", "npm:1.2.1"],\
             ["chalk", "npm:4.1.2"],\
             ["convert-source-map", "npm:1.9.0"],\
-            ["ejs", "npm:3.1.9"],\
+            ["ejs", "npm:3.1.10"],\
             ["escape-html", "npm:1.0.3"],\
             ["glob", "npm:7.2.3"],\
             ["gzip-size", "npm:6.0.0"],\
