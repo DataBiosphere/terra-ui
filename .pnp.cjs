@@ -36,6 +36,14 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         "reference": "workspace:packages/core-utils"\
       },\
       {\
+        "name": "@terra-ui-packages/data-client-core",\
+        "reference": "workspace:packages/data-client-core"\
+      },\
+      {\
+        "name": "@terra-ui-packages/leonardo-data-client",\
+        "reference": "workspace:packages/leonardo-data-client"\
+      },\
+      {\
         "name": "@terra-ui-packages/notifications",\
         "reference": "workspace:packages/notifications"\
       },\
@@ -51,6 +59,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       ["@terra-ui-packages/build-utils", ["virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils", "virtual:c61c4ebeda316964fa7846363a7565f2740824705a1360049b2c57598f5a019c8e10d28d26e7d0f8012883671f61d8251daaead08ed2a3d1744547f0a0f71840#workspace:packages/build-utils", "workspace:packages/build-utils"]],\
       ["@terra-ui-packages/components", ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components", "workspace:packages/components"]],\
       ["@terra-ui-packages/core-utils", ["workspace:packages/core-utils"]],\
+      ["@terra-ui-packages/data-client-core", ["workspace:packages/data-client-core"]],\
+      ["@terra-ui-packages/leonardo-data-client", ["workspace:packages/leonardo-data-client"]],\
       ["@terra-ui-packages/notifications", ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/notifications", "workspace:packages/notifications"]],\
       ["@terra-ui-packages/test-utils", ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/test-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/test-utils", "workspace:packages/test-utils"]],\
       ["terra-integration-tests", ["workspace:integration-tests"]],\
@@ -7337,6 +7347,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@terra-ui-packages/build-utils", [\
+        ["npm:1.2.0::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fbuild-utils%2F-%2F%40terra-ui-packages%2Fbuild-utils-1.2.0.tgz", {\
+          "packageLocation": "./.yarn/cache/@terra-ui-packages-build-utils-npm-1.2.0-57fb3bc719-92036afaf9.zip/node_modules/@terra-ui-packages/build-utils/",\
+          "packageDependencies": [\
+            ["@terra-ui-packages/build-utils", "npm:1.2.0::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fbuild-utils%2F-%2F%40terra-ui-packages%2Fbuild-utils-1.2.0.tgz"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
         ["virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils", {\
           "packageLocation": "./.yarn/__virtual__/@terra-ui-packages-build-utils-virtual-f90a1f371e/1/packages/build-utils/",\
           "packageDependencies": [\
@@ -7374,6 +7391,25 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             "vite"\
           ],\
           "linkType": "SOFT"\
+        }],\
+        ["virtual:efa0eea786a6dd7a6e2913639d764e4d8782fa21b0d133a4748445585881fb6d612fb79ea63b0a562fa1e693583af6807fa7d4927afa1f1fee81fa995271eae9#npm:1.2.0::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fbuild-utils%2F-%2F%40terra-ui-packages%2Fbuild-utils-1.2.0.tgz", {\
+          "packageLocation": "./.yarn/__virtual__/@terra-ui-packages-build-utils-virtual-7aff75cd6f/0/cache/@terra-ui-packages-build-utils-npm-1.2.0-57fb3bc719-92036afaf9.zip/node_modules/@terra-ui-packages/build-utils/",\
+          "packageDependencies": [\
+            ["@terra-ui-packages/build-utils", "virtual:efa0eea786a6dd7a6e2913639d764e4d8782fa21b0d133a4748445585881fb6d612fb79ea63b0a562fa1e693583af6807fa7d4927afa1f1fee81fa995271eae9#npm:1.2.0::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fbuild-utils%2F-%2F%40terra-ui-packages%2Fbuild-utils-1.2.0.tgz"],\
+            ["@rollup/plugin-typescript", "virtual:f90a1f371e852bbf1eb959248d7c39712daf739e3922aa5403d3559fdab0ea54685ab625f0dd88a616779807d1d50edfc0c24534015cd596765f1e425dafd35a#npm:11.1.6"],\
+            ["@types/typescript", null],\
+            ["@types/vite", null],\
+            ["tslib", "npm:2.6.2"],\
+            ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
+            ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:5.2.11"]\
+          ],\
+          "packagePeers": [\
+            "@types/typescript",\
+            "@types/vite",\
+            "typescript",\
+            "vite"\
+          ],\
+          "linkType": "HARD"\
         }],\
         ["workspace:packages/build-utils", {\
           "packageLocation": "./packages/build-utils/",\
@@ -7546,6 +7582,36 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["check-dts", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:0.7.2"],\
             ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
             ["lodash", "npm:4.17.21"],\
+            ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
+            ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:5.2.11"]\
+          ],\
+          "linkType": "SOFT"\
+        }]\
+      ]],\
+      ["@terra-ui-packages/data-client-core", [\
+        ["workspace:packages/data-client-core", {\
+          "packageLocation": "./packages/data-client-core/",\
+          "packageDependencies": [\
+            ["@terra-ui-packages/data-client-core", "workspace:packages/data-client-core"],\
+            ["@terra-ui-packages/build-utils", "virtual:efa0eea786a6dd7a6e2913639d764e4d8782fa21b0d133a4748445585881fb6d612fb79ea63b0a562fa1e693583af6807fa7d4927afa1f1fee81fa995271eae9#npm:1.2.0::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fbuild-utils%2F-%2F%40terra-ui-packages%2Fbuild-utils-1.2.0.tgz"],\
+            ["@terra-ui-packages/test-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/test-utils"],\
+            ["@types/jest", "npm:28.1.8"],\
+            ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
+            ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
+            ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:5.2.11"]\
+          ],\
+          "linkType": "SOFT"\
+        }]\
+      ]],\
+      ["@terra-ui-packages/leonardo-data-client", [\
+        ["workspace:packages/leonardo-data-client", {\
+          "packageLocation": "./packages/leonardo-data-client/",\
+          "packageDependencies": [\
+            ["@terra-ui-packages/leonardo-data-client", "workspace:packages/leonardo-data-client"],\
+            ["@terra-ui-packages/build-utils", "virtual:efa0eea786a6dd7a6e2913639d764e4d8782fa21b0d133a4748445585881fb6d612fb79ea63b0a562fa1e693583af6807fa7d4927afa1f1fee81fa995271eae9#npm:1.2.0::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fbuild-utils%2F-%2F%40terra-ui-packages%2Fbuild-utils-1.2.0.tgz"],\
+            ["@terra-ui-packages/test-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/test-utils"],\
+            ["@types/jest", "npm:28.1.8"],\
+            ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
             ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:5.2.11"]\
           ],\

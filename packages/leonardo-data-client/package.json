@@ -1,0 +1,33 @@
+{
+  "name": "@terra-ui-packages/leonardo-data-client",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "vite build --emptyOutDir",
+    "dev": "vite build --mode=development --watch",
+    "test": "jest"
+  },
+  "type": "module",
+  "module": "./lib/es/index.js",
+  "main": "./lib/cjs/index.cjs",
+  "types": "./lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/es/index.js",
+      "require": "./lib/cjs/index.cjs",
+      "types": "./lib/types/index.d.ts"
+    }
+  },
+  "files": [
+    "lib/cjs/**",
+    "lib/es/**",
+    "lib/types/**/*.d.ts"
+  ],
+  "devDependencies": {
+    "@terra-ui-packages/build-utils": "^1.2.0",
+    "@terra-ui-packages/test-utils": "*",
+    "@types/jest": "^28.1.8",
+    "jest": "^27.4.3",
+    "typescript": "~5.1.6",
+    "vite": "^5.2.11"
+  }
+}
