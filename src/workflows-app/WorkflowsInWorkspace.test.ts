@@ -106,4 +106,63 @@ describe('Workflows in workspace', () => {
       namespace: 'test-azure-ws-namespace',
     });
   });
+
+  const testCases: Array<{
+    accessLevel: 'CREATOR' | 'WRITER' | 'READER';
+    canDelete: boolean;
+  }> = [
+    {
+      accessLevel: 'PROJECT_OWNER',
+      canDelete: true,
+    },
+    {
+      accessLevel: 'OWNER',
+      canDelete: true,
+    },
+    {
+      accessLevel: 'WRITER',
+      canDelete: true,
+    },
+    {
+      accessLevel: 'READER',
+      canDelete: false,
+    },
+  ];
+
+  it.each(
+    testCases.map((testCase) => ({
+      ...testCase,
+      testName: `should ${testCase.canDelete ? '' : 'not '}be able to click delete workflow button as workspace ${
+        testCase.accessLevel
+      }`,
+    }))
+  )('$testName', async ({ accessLevel, canDelete }) => {
+    const getWithVersions = jest.fn().mockReturnValue(Promise.resolve(methodDataWithVersions));
+    const mockGet: DeepPartial<CbasContract> = {
+      methods: {
+        getWithVersions,
+      },
+    };
+    asMockedFn(Cbas).mockImplementation(() => mockGet as CbasContract);
+
+    await act(() =>
+      render(
+        h(WorkflowsInWorkspace, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: {
+            ...mockAzureWorkspace,
+            accessLevel,
+          },
+          analysesData: defaultAnalysesData,
+        })
+      )
+    );
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+    if (!canDelete) {
+      expect(screen.getByText('Delete')).toHaveAttribute('aria-disabled', 'true');
+    } else {
+      expect(screen.getByText('Delete')).toHaveAttribute('aria-disabled', 'false');
+    }
+  });
 });
