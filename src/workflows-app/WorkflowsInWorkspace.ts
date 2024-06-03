@@ -4,7 +4,7 @@ import { div, h, h2 } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
-import { Clickable } from 'src/components/common';
+import { Clickable, DeleteConfirmationModal } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon } from 'src/components/PopupTrigger';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
@@ -14,7 +14,7 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
-import { DeleteWorkflowModal } from 'src/workflows-app/components/DeleteWorkflowModal';
+// import { DeleteWorkflowModal } from 'src/workflows-app/components/DeleteWorkflowModal';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { doesAppProxyUrlExist, loadAppUrls, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
@@ -199,10 +199,11 @@ export const WorkflowsInWorkspace = ({
               )
             ),
             methodToDelete &&
-              h(DeleteWorkflowModal, {
+              h(DeleteConfirmationModal, {
+                objectType: 'workflow',
+                objectName: methodToDelete.name,
                 onDismiss: () => setMethodToDelete(null),
-                onDelete: () => deleteMethod(methodToDelete.method_id),
-                methodName: methodToDelete.name,
+                onConfirm: () => deleteMethod(methodToDelete.method_id),
               }),
           ]),
     [name, namespace, accessLevel, methodsData, deleteMethod, methodToDelete]
