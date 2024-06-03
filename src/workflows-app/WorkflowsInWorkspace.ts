@@ -42,13 +42,6 @@ export const WorkflowsInWorkspace = ({
   const signal = useCancellation();
   const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
   const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps); // TODO: what is this for?
-  const workflowsApp = getCurrentApp(appToolLabels.WORKFLOWS_APP, apps);
-
-  // these constants can be removed after all WFA instances have been updated to include the "archive" endpoint.
-  const deleteWorkflowsReleaseDate = Date.parse('2024-06-30T12:00:00.000000Z');
-  const deleteWorkflowsEnabled = workflowsApp
-    ? Date.parse(workflowsApp.auditInfo.createdDate) > deleteWorkflowsReleaseDate
-    : false;
 
   const loadRunsData = useCallback(
     async (cbasProxyUrlDetails) => {
@@ -174,32 +167,31 @@ export const WorkflowsInWorkspace = ({
                           ),
                         ]
                       ),
-                      deleteWorkflowsEnabled &&
-                        div(
-                          {
-                            style: {
-                              display: 'flex',
-                              flexDirection: 'column',
-                              marginTop: '30%',
-                            },
+                      div(
+                        {
+                          style: {
+                            display: 'flex',
+                            flexDirection: 'column',
+                            marginTop: '30%',
                           },
-                          [
-                            h(
-                              MenuButton,
-                              {
-                                onClick: () => setMethodToDelete(method),
-                                disabled: !canWrite(accessLevel),
-                                tooltip: !canWrite(accessLevel)
-                                  ? 'You must have write permission to delete workflows in this workspace'
-                                  : '',
-                                style: {
-                                  justifyContent: 'flex-end',
-                                },
+                        },
+                        [
+                          h(
+                            MenuButton,
+                            {
+                              onClick: () => setMethodToDelete(method),
+                              disabled: !canWrite(accessLevel),
+                              tooltip: !canWrite(accessLevel)
+                                ? 'You must have write permission to delete workflows in this workspace'
+                                : '',
+                              style: {
+                                justifyContent: 'flex-end',
                               },
-                              [makeMenuIcon('trash'), 'Delete']
-                            ),
-                          ]
-                        ),
+                            },
+                            [makeMenuIcon('trash'), 'Delete']
+                          ),
+                        ]
+                      ),
                     ]
                   ),
                 methodsData
@@ -213,7 +205,7 @@ export const WorkflowsInWorkspace = ({
                 onConfirm: () => deleteMethod(methodToDelete.method_id),
               }),
           ]),
-    [name, namespace, accessLevel, methodsData, deleteMethod, methodToDelete, deleteWorkflowsEnabled]
+    [name, namespace, accessLevel, methodsData, deleteMethod, methodToDelete]
   );
 
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
