@@ -122,8 +122,12 @@ export const BaseRunDetails = (
             }
           }
           const { workflowName } = metadata;
-          setStdOut(Object.values(metadata.calls)[0][0].stdout);
-          setAppIdMatched(Object.values(metadata.calls)[0][0].stdout.match('terra-app-[0-9a-fA-f-]*'));
+          const metadataCalls = Object.values(metadata.calls);
+          const firstCall = metadataCalls ? metadataCalls[0] : null;
+          const firstCallInfo = firstCall && firstCall !== null ? firstCall[0] : null;
+          const stdOut = firstCallInfo.stdout;
+          setStdOut(stdOut);
+          setAppIdMatched(stdOut && stdOut !== null ? stdOut.match('terra-app-[0-9a-fA-f-]*') : null);
           _.isNil(updateWorkflowPath) && setWorkflow(metadata);
           if (!_.isEmpty(metadata?.calls)) {
             setFailedTasks(Object.values(failedTasks)[0]?.calls || {});
@@ -164,6 +168,14 @@ export const BaseRunDetails = (
     },
     [signal, workspaceId]
   );
+
+  const getWorkflowName = () => {
+    return appIdMatched
+      ? stdOut
+          .substring(appIdMatched.index + appIdMatched[0].length + 1)
+          .substring(0, stdOut.substring(appIdMatched.index + appIdMatched[0].length + 1).indexOf('/'))
+      : null;
+  };
 
   // poll if we're missing CBAS proxy url and stop polling when we have it
   usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cromwellProxyUrlState') && loadWorkflow(workflowId), {
@@ -265,11 +277,7 @@ export const BaseRunDetails = (
                 workflowId,
                 showLogModal,
                 appId: appIdMatched,
-                workflowName: appIdMatched
-                  ? stdOut
-                      .substring(appIdMatched.index + appIdMatched[0].length + 1)
-                      .substring(0, stdOut.substring(appIdMatched.index + appIdMatched[0].length + 1).indexOf('/'))
-                  : 'No workflow name',
+                workflowName: getWorkflowName(),
               },
               []
             ),

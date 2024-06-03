@@ -7,6 +7,19 @@ import * as Nav from 'src/libs/nav';
 import { LogTooltips } from 'src/workflows-app/utils/task-log-utils';
 
 export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, workflowId, showLogModal, appId, workflowName }) => {
+  const makePath = () => {
+    if (!appId || appId == null) {
+      return 'workspace-services/cbas/';
+    }
+    if (!workflowName || workflowName == null) {
+      return `workspace-services/cbas/${appId}/`;
+    }
+    if (!workflowId || workflowId == null) {
+      return `workspace-services/cbas/${appId}/${workflowName}/$`;
+    }
+    return `workspace-services/cbas/${appId}/${workflowName}/${workflowId}/`;
+  };
+
   return div(
     {
       style: {
@@ -57,7 +70,7 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
               'workspace-files',
               { name, namespace },
               {
-                path: `workspace-services/cbas/${appId}/${workflowName}/${workflowId}/`,
+                path: makePath(),
               }
             ),
             target: '_blank',
