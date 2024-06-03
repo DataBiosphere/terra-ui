@@ -351,7 +351,7 @@ describe('Cbas tests', () => {
     });
   });
 
-  it('should successfully DELETE a method', async () => {
+  it('should successfully archive a method', async () => {
     const expectedResponse = {
       method_id: regex(UUID_REGEX, '00000000-0000-0000-0000-000000000000'),
     };
@@ -363,25 +363,25 @@ describe('Cbas tests', () => {
         { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
         { description: 'cromwell initialized' },
       ],
-      uponReceiving: 'a DELETE request to archive a method',
-      withRequest: { method: 'DELETE', path: '/api/batch/v1/methods', query: { method_id: '00000000-0000-0000-0000-000000000009' } },
+      uponReceiving: 'a PATCH request to archive a method',
+      withRequest: { method: 'PATCH', path: '/api/batch/v1/methods', query: { method_id: '00000000-0000-0000-0000-000000000009' } },
       willRespondWith: { status: 200, body: expectedResponse },
     });
 
     await cbasPact.executeTest(async (mockService) => {
       // ARRANGE
       const signal = 'fakeSignal';
-      fetchOk.mockImplementation(async (path) => await fetch(`${mockService.url}/${path}`, { method: 'DELETE', headers }));
+      fetchOk.mockImplementation(async (path) => await fetch(`${mockService.url}/${path}`, { method: 'PATCH', headers }));
       fetchFromProxy.mockImplementation(() => fetchOk);
 
       // ACT
-      const response = await Cbas(signal).methods.delete(mockService.url, '00000000-0000-0000-0000-000000000009');
+      const response = await Cbas(signal).methods.archive(mockService.url, '00000000-0000-0000-0000-000000000009');
 
       // ASSERT
       expect(response).toBeDefined();
       expect(fetchOk).toBeCalledTimes(1);
       expect(fetchFromProxy).toBeCalledTimes(1);
-      expect(fetchOk).toBeCalledWith('api/batch/v1/methods?method_id=00000000-0000-0000-0000-000000000009', { method: 'DELETE', signal });
+      expect(fetchOk).toBeCalledWith('api/batch/v1/methods?method_id=00000000-0000-0000-0000-000000000009', { method: 'PATCH', signal });
     });
   });
 

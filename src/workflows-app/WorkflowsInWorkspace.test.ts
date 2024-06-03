@@ -108,7 +108,7 @@ describe('Workflows in workspace', () => {
   });
 
   const testCases: Array<{
-    accessLevel: 'CREATOR' | 'WRITER' | 'READER';
+    accessLevel: 'PROJECT_OWNER' | 'OWNER' | 'WRITER' | 'READER';
     canDelete: boolean;
   }> = [
     {
