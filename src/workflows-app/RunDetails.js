@@ -270,9 +270,6 @@ export const BaseRunDetails = (
                       .substring(appIdMatched.index + appIdMatched[0].length + 1)
                       .substring(0, stdOut.substring(appIdMatched.index + appIdMatched[0].length + 1).indexOf('/'))
                   : 'No workflow name',
-                taskName: stdOut
-                  .substring(0, stdOut.indexOf('/execution/'))
-                  .substring(stdOut.substring(0, stdOut.indexOf('/execution/')).lastIndexOf('/') + 1),
               },
               []
             ),

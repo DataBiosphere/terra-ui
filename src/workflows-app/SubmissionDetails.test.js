@@ -123,6 +123,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -210,6 +224,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -268,6 +296,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -362,6 +404,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -434,6 +490,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -525,6 +595,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -598,6 +682,20 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -661,6 +759,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -703,6 +815,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -759,6 +885,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -839,6 +979,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -915,6 +1069,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -1080,6 +1248,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
         Metrics: {
@@ -1159,6 +1341,20 @@ describe('Submission Details page', () => {
           },
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
         Metrics: {
@@ -1249,6 +1445,20 @@ describe('Submission Details page', () => {
           captureEvent,
         },
         AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file terra-app-123456',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
           details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
         },
       };
@@ -1276,7 +1486,7 @@ describe('Submission Details page', () => {
       expect(getLink).toBeCalledWith(
         'workspace-files',
         { name: 'test-azure-ws-name', namespace: 'test-azure-ws-namespace' },
-        { path: 'workspace-services/cbas/terra-app-/fetch_sra_to_bam/d16721eb-8745-4aa2-b71e-9ade2d6575aa/' }
+        { path: 'workspace-services/cbas/terra-app-123456/fetch_sra_to_bam/d16721eb-8745-4aa2-b71e-9ade2d6575aa/' }
       )
     );
   });

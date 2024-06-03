@@ -7,6 +7,7 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
@@ -19,12 +20,13 @@ import {
   parseMethodString,
   WorkflowMetadata,
 } from 'src/workflows-app/utils/submission-utils';
+import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
 import { loadAppUrls } from '../utils/app-utils';
 import { getFilteredRuns } from '../utils/method-common';
 import { LogTooltips } from '../utils/task-log-utils';
 import FilterSubmissionsDropdown, { FilterOptions } from './FilterSubmissionsDropdown';
-import { LogInfo } from './LogViewer';
+import { FetchedLogData, LogInfo } from './LogViewer';
 
 type Run = {
   duration: number;
@@ -225,13 +227,31 @@ const FilterableWorkflowTable = ({
     [currentWorkflow, loadWorkflow, paginatedPreviousRuns]
   );
 
+  const fetchLogContent = useCallback(
+    async (azureBlobUri: string): Promise<FetchedLogData | null> => {
+      if (!isAzureUri(azureBlobUri)) {
+        return null;
+      }
+      try {
+        const response = await Ajax(signal).AzureStorage.blobByUri(azureBlobUri).getMetadataAndTextContent();
+        const uri = _.isEmpty(response.azureSasStorageUrl) ? response.azureStorageUrl : response.azureSasStorageUrl;
+        return { textContent: response.textContent, downloadUri: uri };
+      } catch (e) {
+        return null;
+      }
+    },
+    [signal]
+  );
+
   const getAppIdAndTaskName = useCallback(async () => {
     const workflow: WorkflowMetadata | undefined = await getWorkflow(0);
     if (workflow !== undefined) {
       setTaskName(workflow.workflowName);
-      setAppId(Object.values(workflow.outputs)[0].toString().match('terra-app-[0-9a-fA-f-]*'));
+      const logs = await fetchLogContent(workflow.workflowLog);
+      const textContent = logs !== null ? logs.textContent : null;
+      setAppId(textContent !== null && textContent ? textContent.match('terra-app-[0-9a-fA-f-]*') : null);
     }
-  }, [getWorkflow]);
+  }, [getWorkflow, fetchLogContent]);
 
   useEffect(() => {
     getAppIdAndTaskName();

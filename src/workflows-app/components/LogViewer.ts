@@ -44,7 +44,7 @@ export type LogViewerProps = {
 /**
  * Represents data that has been fetched using an Azure Blob URI
  */
-type FetchedLogData = {
+export type FetchedLogData = {
   /** The character data of the log file */
   textContent: string | undefined;
   /** The URI to use for downloading the log file. May or may not have sas token appended, depending on if the file is public or private.  */

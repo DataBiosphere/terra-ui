@@ -6,7 +6,7 @@ import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { LogTooltips } from 'src/workflows-app/utils/task-log-utils';
 
-export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, workflowId, showLogModal, appId, workflowName, taskName }) => {
+export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, workflowId, showLogModal, appId, workflowName }) => {
   return div(
     {
       style: {
@@ -57,7 +57,7 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
               'workspace-files',
               { name, namespace },
               {
-                path: `workspace-services/cbas/${appId}/${workflowName}/${workflowId}/${taskName}/execution/`,
+                path: `workspace-services/cbas/${appId}/${workflowName}/${workflowId}/`,
               }
             ),
             target: '_blank',

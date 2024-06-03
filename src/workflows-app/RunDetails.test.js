@@ -744,7 +744,7 @@ describe('BaseRunDetails - render smoke test', () => {
       expect(getLink).toBeCalledWith(
         'workspace-files',
         { name: 'workspace', namespace: 'example-billing-project' },
-        { path: 'workspace-services/cbas/terra-app-/ther-random-value/00001111-2222-3333-aaaa-bbbbccccdddd/call-Fetch_SRA_to_BAM/execution/' }
+        { path: 'workspace-services/cbas/terra-app-/ther-random-value/00001111-2222-3333-aaaa-bbbbccccdddd/' }
       )
     );
   });
