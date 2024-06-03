@@ -1,5 +1,5 @@
 {
-  "name": "@terra-ui-packages/leonardo-data-client",
+  "name": "@terra-ui-packages/data-client-leonardo",
   "version": "0.0.1",
   "scripts": {
     "build": "vite build --emptyOutDir",
@@ -23,8 +23,8 @@
     "lib/types/**/*.d.ts"
   ],
   "devDependencies": {
-    "@terra-ui-packages/build-utils": "^1.2.0",
-    "@terra-ui-packages/test-utils": "*",
+    "@terra-ui-packages/build-utils": "^2.0.0",
+    "@terra-ui-packages/test-utils": "^1.0.0",
     "@types/jest": "^28.1.8",
     "jest": "^27.4.3",
     "typescript": "~5.1.6",

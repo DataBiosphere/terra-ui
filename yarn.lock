@@ -4452,19 +4452,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/build-utils@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@terra-ui-packages/build-utils@npm:1.2.0::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fbuild-utils%2F-%2F%40terra-ui-packages%2Fbuild-utils-1.2.0.tgz"
-  dependencies:
-    "@rollup/plugin-typescript": ^11.1.6
-    tslib: ^2.6.1
-  peerDependencies:
-    typescript: ~5.1.6
-    vite: ^4.5.3
-  checksum: 92036afaf968e47a116a128496ca68ab4b7829f7c27242a142326d81604455f7b4be79b57a8f68e61cfb850decd58707c740aaa39f17aa73c2e29334984d3c26
-  languageName: node
-  linkType: hard
-
 "@terra-ui-packages/components@*, @terra-ui-packages/components@workspace:packages/components":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/components@workspace:packages/components"
@@ -4548,8 +4535,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/data-client-core@workspace:packages/data-client-core"
   dependencies:
-    "@terra-ui-packages/build-utils": ^1.2.0
-    "@terra-ui-packages/test-utils": "*"
+    "@terra-ui-packages/build-utils": ^2.0.0
+    "@terra-ui-packages/test-utils": ^1.0.0
     "@types/jest": ^28.1.8
     jest: ^27.4.3
     typescript: ~5.1.6
@@ -4557,12 +4544,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/leonardo-data-client@workspace:packages/leonardo-data-client":
+"@terra-ui-packages/data-client-leonardo@workspace:packages/data-client-leonardo":
   version: 0.0.0-use.local
-  resolution: "@terra-ui-packages/leonardo-data-client@workspace:packages/leonardo-data-client"
+  resolution: "@terra-ui-packages/data-client-leonardo@workspace:packages/data-client-leonardo"
   dependencies:
-    "@terra-ui-packages/build-utils": ^1.2.0
-    "@terra-ui-packages/test-utils": "*"
+    "@terra-ui-packages/build-utils": ^2.0.0
+    "@terra-ui-packages/test-utils": ^1.0.0
     "@types/jest": ^28.1.8
     jest: ^27.4.3
     typescript: ~5.1.6
