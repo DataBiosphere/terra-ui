@@ -14,7 +14,6 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
-// import { DeleteWorkflowModal } from 'src/workflows-app/components/DeleteWorkflowModal';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { doesAppProxyUrlExist, loadAppUrls, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
@@ -42,7 +41,14 @@ export const WorkflowsInWorkspace = ({
 
   const signal = useCancellation();
   const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
-  const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps);
+  const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps); // TODO: what is this for?
+  const workflowsApp = getCurrentApp(appToolLabels.WORKFLOWS_APP, apps);
+
+  // these constants can be removed after all WFA instances have been updated to include the "archive" endpoint.
+  const deleteWorkflowsReleaseDate = Date.parse('2024-06-30T12:00:00.000000Z');
+  const deleteWorkflowsEnabled = workflowsApp
+    ? Date.parse(workflowsApp.auditInfo.createdDate) > deleteWorkflowsReleaseDate
+    : false;
 
   const loadRunsData = useCallback(
     async (cbasProxyUrlDetails) => {
@@ -69,11 +75,11 @@ export const WorkflowsInWorkspace = ({
 
   const deleteMethod = useCallback(
     async (methodId) => {
-      const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
-      await Cbas(signal).methods.delete(cbasProxyUrlState.state, methodId);
+      const cbasProxyUrlDetails = workflowsAppStore.get().cbasProxyUrlState;
+      await Cbas(signal).methods.archive(cbasProxyUrlDetails.state, methodId);
       await loadRunsData(cbasProxyUrlState);
     },
-    [signal, workspaceId, loadRunsData]
+    [signal, loadRunsData]
   );
 
   // poll if we're missing CBAS proxy url and stop polling when we have it
@@ -168,31 +174,32 @@ export const WorkflowsInWorkspace = ({
                           ),
                         ]
                       ),
-                      div(
-                        {
-                          style: {
-                            display: 'flex',
-                            flexDirection: 'column',
-                            marginTop: '30%',
-                          },
-                        },
-                        [
-                          h(
-                            MenuButton,
-                            {
-                              onClick: () => setMethodToDelete(method),
-                              disabled: !canWrite(accessLevel),
-                              tooltip: !canWrite(accessLevel)
-                                ? 'You must have write permission to delete workflows in this workspace'
-                                : '',
-                              style: {
-                                justifyContent: 'flex-end',
-                              },
+                      deleteWorkflowsEnabled &&
+                        div(
+                          {
+                            style: {
+                              display: 'flex',
+                              flexDirection: 'column',
+                              marginTop: '30%',
                             },
-                            [makeMenuIcon('trash'), 'Delete']
-                          ),
-                        ]
-                      ),
+                          },
+                          [
+                            h(
+                              MenuButton,
+                              {
+                                onClick: () => setMethodToDelete(method),
+                                disabled: !canWrite(accessLevel),
+                                tooltip: !canWrite(accessLevel)
+                                  ? 'You must have write permission to delete workflows in this workspace'
+                                  : '',
+                                style: {
+                                  justifyContent: 'flex-end',
+                                },
+                              },
+                              [makeMenuIcon('trash'), 'Delete']
+                            ),
+                          ]
+                        ),
                     ]
                   ),
                 methodsData
@@ -206,7 +213,7 @@ export const WorkflowsInWorkspace = ({
                 onConfirm: () => deleteMethod(methodToDelete.method_id),
               }),
           ]),
-    [name, namespace, accessLevel, methodsData, deleteMethod, methodToDelete]
+    [name, namespace, accessLevel, methodsData, deleteMethod, methodToDelete, deleteWorkflowsEnabled]
   );
 
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [

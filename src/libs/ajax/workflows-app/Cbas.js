@@ -19,9 +19,9 @@ export const Cbas = (signal) => ({
       const res = await fetchFromProxy(cbasUrlRoot)('api/batch/v1/methods', _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]));
       return res.json();
     },
-    delete: async (cbasUrlRoot, methodId) => {
+    archive: async (cbasUrlRoot, methodId) => {
       const keyParams = qs.stringify({ method_id: methodId });
-      const res = await fetchFromProxy(cbasUrlRoot)(`api/batch/v1/methods?${keyParams}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }]));
+      const res = await fetchFromProxy(cbasUrlRoot)(`api/batch/v1/methods?${keyParams}`, _.mergeAll([authOpts(), { signal, method: 'PATCH' }]));
       return res.json();
     },
     getWithVersions: async (cbasUrlRoot) => {
