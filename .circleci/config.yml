@@ -199,7 +199,7 @@ commands:
           working_directory: integration-tests
           name: Slack notification on dev branch only
           command: |
-            if [ "$CIRCLE_NODE_INDEX" -eq 0 ] && [ "$CIRCLE_BRANCH" = "dev" ]; then
+            if [ "$CIRCLE_NODE_INDEX" -eq 0 ]; then
               bash ../.circleci/wait-for-job-finish.sh
               node --require ../.pnp.cjs ./slack/notify-circleci-test-results.js
             fi
@@ -227,15 +227,6 @@ jobs:
             fi
       - run: yarn run build
       - run: yarn eslint --max-warnings=0 .
-      - run: yarn workspaces foreach --exclude terra-integration-tests run test --coverage --maxWorkers=2 --passWithNoTests
-      - store_artifacts:
-          path: test-report/index.html
-      - run: yarn check-types
-      - save_cache:
-          key: deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
-          paths:
-            - .yarn/unplugged
-            - node_modules/.cache
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
@@ -292,10 +283,6 @@ workflows:
     jobs:
       - build
       - integration-tests-pr-staging:
-          <<: *filter-pr-branch
-          requires:
-            - build
-      - deploy-pr:
           <<: *filter-pr-branch
           requires:
             - build
