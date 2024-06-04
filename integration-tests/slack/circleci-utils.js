@@ -13,12 +13,14 @@ const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {
     throw new Error('**  ERROR: Missing CircleCI build number. Failed to fetch CircleCI job artifacts.');
   }
 
-  // For more arguments and details of the response, see: https://circleci.com/docs/api/v2/index.html#operation/getJobArtifacts
-  const apiUrlRoot = 'https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui';
+  // The v1.1 artifacts API does not need token, so we use it instead.
+  const apiUrlRoot = 'https://circleci.com/api/v1.1/project/github/DataBiosphere/terra-ui';
   try {
     // Because terra-ui is a public repository on GitHub, API token is not required. See: https://circleci.com/docs/oss#security
     const response = await fetch(`${apiUrlRoot}/${buildNum}/artifacts`);
-    const { items } = await response.json();
+    const resp = await response.json();
+    console.log(`artifacts resp: ${resp}`);
+    const { items } = resp;
     const testSummaryArtifacts = _.filter(_.flow(_.get('path'), _.includes('tests-summary')), items);
     return _.map('url', testSummaryArtifacts);
   } catch (e) {
