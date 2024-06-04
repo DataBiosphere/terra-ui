@@ -29,7 +29,10 @@ while [ "$counter" -le 1800 ]; do
 
   if [ "$count" -eq 0 ]; then
       echo "Checking from NODE_INDEX #$CIRCLE_NODE_INDEX: Parallel running nodes have finished. Waited $counter seconds."
-      echo "$running_nodes"
+      echo "$nodes"
+
+      artifacts=$(curl -s "$URL_BASE/$CIRCLE_BUILD_NUM/artifacts")
+      echo "$artifacts"
       exit 0
   fi
 
