@@ -10,10 +10,11 @@ packages/*/coverage
 
 # production
 /build
-packages/*/lib
+packages/**/lib
 packages/*/.rollup.cache
 tsconfig.tsbuildinfo
 public/build-info.json
+packages/**/vite.config.*.timestamp*
 
 # misc
 .DS_Store

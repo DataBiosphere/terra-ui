@@ -4531,9 +4531,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/data-client-core@workspace:packages/data-client-core":
+"@terra-ui-packages/core@workspace:packages/data-clients/core":
   version: 0.0.0-use.local
-  resolution: "@terra-ui-packages/data-client-core@workspace:packages/data-client-core"
+  resolution: "@terra-ui-packages/core@workspace:packages/data-clients/core"
   dependencies:
     "@terra-ui-packages/build-utils": ^2.0.0
     "@terra-ui-packages/test-utils": ^1.0.0
@@ -4544,9 +4544,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/data-client-leonardo@workspace:packages/data-client-leonardo":
+"@terra-ui-packages/leonardo@workspace:packages/data-clients/leonardo":
   version: 0.0.0-use.local
-  resolution: "@terra-ui-packages/data-client-leonardo@workspace:packages/data-client-leonardo"
+  resolution: "@terra-ui-packages/leonardo@workspace:packages/data-clients/leonardo"
   dependencies:
     "@terra-ui-packages/build-utils": ^2.0.0
     "@terra-ui-packages/test-utils": ^1.0.0
