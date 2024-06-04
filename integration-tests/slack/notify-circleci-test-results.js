@@ -1,6 +1,8 @@
 const _ = require('lodash/fp');
 const { getFailedTestNamesFromArtifacts } = require('./circleci-utils');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { getMessageBlockTemplate } = require('./message-templates');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { postMessage } = require('./post-message');
 const testsInfo = require('./slack-notify-channels.json');
 
@@ -8,6 +10,7 @@ const testsInfo = require('./slack-notify-channels.json');
  * Get array of Slack channel IDs for succeeded job notification
  * @returns {Array[string]}
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAllSlackChannelsForPassedJob = () => {
   return _.map('id', testsInfo.pass);
 };
@@ -31,6 +34,7 @@ const getAllSlackChannelsForFailedJob = () => {
  * @param {Array[string]} failedTests
  * @returns {Map<string, Array[string]>} A map object where key is channel_id, value is test_names array
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getFailedTestsAndChannelIDs = (failedTests) => {
   const allChannelsAndTests = getAllSlackChannelsForFailedJob();
 
@@ -53,7 +57,8 @@ const getFailedTestsAndChannelIDs = (failedTests) => {
 // Post CircleCI UI test report to Slack channels
 const notifyCircleCITestResults = async () => {
   const failedTestNames = await getFailedTestNamesFromArtifacts();
-
+  console.log(`failedTestNames: ${failedTestNames}`);
+  /*
   if (failedTestNames.length === 0) {
     // Slack notification: CircleCI job succeeded
     const channelIDs = getAllSlackChannelsForPassedJob();
@@ -70,7 +75,7 @@ const notifyCircleCITestResults = async () => {
     console.log(`Notifying channel ${channelId} of ${testNames.length} test failures (${testNames.join(', ')})`);
     const messageBlocks = getMessageBlockTemplate(testNames);
     await postMessage({ channel: channelId, blocks: messageBlocks });
-  }, _.toPairs(channelIDsAndNames));
+  }, _.toPairs(channelIDsAndNames)); */
 };
 
 (async () => {

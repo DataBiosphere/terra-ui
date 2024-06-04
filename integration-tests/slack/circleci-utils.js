@@ -18,8 +18,15 @@ const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {
   try {
     // Because terra-ui is a public repository on GitHub, API token is not required. See: https://circleci.com/docs/oss#security
     const response = await fetch(`${apiUrlRoot}/${buildNum}/artifacts`);
+    const resp = await response.json();
+    console.log(`response json: ${JSON.stringify(resp, null, 2)}`);
+
     const { items } = await response.json();
-    const testSummaryArtifacts = _.filter(_.flow(_.get('path'), _.includes('tests-summary')), items);
+    const itm = JSON.stringify(items, null, 2);
+    console.log(`items: ${itm}`);
+
+    const testSummaryArtifacts = _.filter(_.flow(_.get('path'), _.includes('tests-summary-')), items);
+    console.log(`testSummaryArtifacts: ${testSummaryArtifacts}`);
     return _.map('url', testSummaryArtifacts);
   } catch (e) {
     console.error(`**  ERROR: Encountered error when getting CircleCI JOB_BUILD_NUM: ${buildNum} artifacts.`, e);
@@ -33,6 +40,8 @@ const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {
  * @returns {Array[string]}
  */
 const getFailedTestNames = (aggregatedResults) => {
+  console.log(`aggregatedResults.testResults: ${aggregatedResults.testResults}`);
+  console.log('**');
   return _.flow(
     _.filter((testResult) => testResult.numFailingTests > 0),
     _.map((testResult) => parse(testResult.testFilePath).name)
@@ -45,6 +54,7 @@ const getFailedTestNames = (aggregatedResults) => {
  */
 const getFailedTestNamesFromArtifacts = async () => {
   const urls = await fetchJobArtifacts();
+  console.log(`urls: ${urls}`);
   return _.flatten(
     await Promise.all(
       _.map(async (url) => {
