@@ -91,7 +91,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     async (cbasUrlRoot) => {
       try {
         const runSets = await Ajax(signal).Cbas.runSets.get(cbasUrlRoot);
-        const newRunSetData = runSets.run_sets[0];
+        const newRunSetData = runSets.run_sets.find((runSet) => runSet.run_set_id === submissionId);
         setRunSetData(runSets.run_sets);
         setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
         setConfiguredOutputDefinition(maybeParseJSON(newRunSetData.output_definition));
@@ -100,7 +100,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
         notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [signal]
+    [signal, submissionId]
   );
 
   // helper for auto-refresh
