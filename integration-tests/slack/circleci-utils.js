@@ -33,6 +33,8 @@ const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {
  * @returns {Array[string]}
  */
 const getFailedTestNames = (aggregatedResults) => {
+  console.log(`aggregatedResults.testResults: ${aggregatedResults.testResults}`);
+  console.log('**');
   return _.flow(
     _.filter((testResult) => testResult.numFailingTests > 0),
     _.map((testResult) => parse(testResult.testFilePath).name)
@@ -45,6 +47,7 @@ const getFailedTestNames = (aggregatedResults) => {
  */
 const getFailedTestNamesFromArtifacts = async () => {
   const urls = await fetchJobArtifacts();
+  console.log(`urls: ${urls}`);
   return _.flatten(
     await Promise.all(
       _.map(async (url) => {

@@ -53,7 +53,8 @@ const getFailedTestsAndChannelIDs = (failedTests) => {
 // Post CircleCI UI test report to Slack channels
 const notifyCircleCITestResults = async () => {
   const failedTestNames = await getFailedTestNamesFromArtifacts();
-
+  console.log(`failedTestNames: ${failedTestNames}`);
+  /*
   if (failedTestNames.length === 0) {
     // Slack notification: CircleCI job succeeded
     const channelIDs = getAllSlackChannelsForPassedJob();
@@ -70,7 +71,7 @@ const notifyCircleCITestResults = async () => {
     console.log(`Notifying channel ${channelId} of ${testNames.length} test failures (${testNames.join(', ')})`);
     const messageBlocks = getMessageBlockTemplate(testNames);
     await postMessage({ channel: channelId, blocks: messageBlocks });
-  }, _.toPairs(channelIDsAndNames));
+  }, _.toPairs(channelIDsAndNames)); */
 };
 
 (async () => {
