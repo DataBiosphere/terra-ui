@@ -18,7 +18,6 @@ while [ "$counter" -le 1800 ]; do
     exit 0
   fi
 
-  echo "Checking job status: Waiting for parallel running nodes to finish. Waited $counter seconds."
   sleep 30
   counter=$(($counter + 30))
 done
