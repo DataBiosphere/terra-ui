@@ -30,7 +30,7 @@ const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {
     const testSummaryArtifacts = _.filter(_.flow(_.get('path'), _.includes('tests-summary')), items);
     return _.map('url', testSummaryArtifacts);
   } catch (error) {
-    console.error(`** ERROR fetching CircleCI JOB_BUILD_NUM: ${buildNum} artifacts.`);
+    console.error(`** ERROR fetching CircleCI artifacts for JOB_BUILD_NUM: ${buildNum}`);
     console.error(error);
     throw error;
   }
