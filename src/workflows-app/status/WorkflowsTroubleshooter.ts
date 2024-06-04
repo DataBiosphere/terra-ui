@@ -53,6 +53,16 @@ export const WorkflowsTroubleshooter = ({ onDismiss, workspaceId, mrgId, tenantI
       ]
     );
 
+  const iconFromBooleans = (iconRunning, iconSuccess) => {
+    if (iconRunning) {
+      return checkIcon('running');
+    }
+    if (iconSuccess) {
+      return checkIcon('success');
+    }
+    return checkIcon('failure');
+  };
+
   const troubleShooterRow = ([label, content, iconRunning, iconSuccess, element]: [
     string,
     string | null,
@@ -61,16 +71,12 @@ export const WorkflowsTroubleshooter = ({ onDismiss, workspaceId, mrgId, tenantI
     ReactNode?
   ]) => {
     return tr({ key: label }, [
-      td({ style: { fontWeight: 'bold' } }, [
-        // TODO: Remove nested ternary to align with style guide
-        // eslint-disable-next-line no-nested-ternary
-        iconRunning ? checkIcon('running') : iconSuccess ? checkIcon('success') : checkIcon('failure'),
-      ]),
+      td({ style: { fontWeight: 'bold' } }, [iconFromBooleans(iconRunning, iconSuccess)]),
       td({ style: { fontWeight: 'bold', whiteSpace: 'nowrap' } }, [label]),
       td([element || content]),
       td([
         h(ClipboardButton, {
-          text: content || '',
+          text: content ?? '',
           style: { marginLeft: '0.5rem' },
           onClick: (e) => e.stopPropagation(), // this stops the collapse when copying
         }),
