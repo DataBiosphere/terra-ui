@@ -164,6 +164,7 @@ export const useWorkflowsStatus = ({ workspaceId }: UseWorkflowsStatusArgs) => {
         cromwellRunnerAppStatus: 'unknown',
         cromwellRunnerProxyUrl: 'unknown',
         cromwellRunnerResponsive: 'unknown',
+        cromwellRunnerDatabaseConnection: 'unknown',
       }));
       return;
     }
@@ -243,9 +244,10 @@ export const useWorkflowsStatus = ({ workspaceId }: UseWorkflowsStatusArgs) => {
 
     setStatus((previousStatus) => ({ ...previousStatus, totalVisibleApps: listAppsResponse.length.toString() }));
 
-    const workflowsApp = getCurrentApp('WORKFLOWS_APP', listAppsResponse);
-    await analyzeWorkflowsApp(workflowsApp, signal);
-    await analyzeCromwellRunnerApp(getCurrentApp('CROMWELL_RUNNER_APP', listAppsResponse), signal);
+    await Promise.allSettled([
+      analyzeWorkflowsApp(getCurrentApp('WORKFLOWS_APP', listAppsResponse), signal),
+      analyzeCromwellRunnerApp(getCurrentApp('CROMWELL_RUNNER_APP', listAppsResponse), signal),
+    ]);
   }, []);
 
   useEffect(() => {
