@@ -25,7 +25,7 @@ while [ "$counter" -le 1800 ]; do
   # Wait for all nodes with status==running excluding self node
   nodes=$(echo "$job_detail" | jq -r '.parallel_runs[]')
   running_nodes=$(echo "$nodes" | jq -r --arg IDX "$CIRCLE_NODE_INDEX" 'select(.status=="running") | select(.index|tostring!=$IDX)')
-  count=$(echo "$running_nodes" | length)
+  count=$(echo "$running_nodes" | grep -c -e "running" || test $? = 1;)
 
   if [ "$count" -eq 0 ]; then
       echo "Checking from NODE_INDEX #$CIRCLE_NODE_INDEX: Parallel running nodes have finished. Waited $counter seconds."
