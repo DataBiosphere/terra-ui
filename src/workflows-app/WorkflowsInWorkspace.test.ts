@@ -107,6 +107,31 @@ describe('Workflows in workspace', () => {
     });
   });
 
+  it('should open workflow deletion confirmation modal when delete button is clicked', async () => {
+    const user = userEvent.setup();
+    const getWithVersions = jest.fn().mockReturnValue(Promise.resolve(methodDataWithVersions));
+    const mockGet: DeepPartial<CbasContract> = {
+      methods: {
+        getWithVersions,
+      },
+    };
+    asMockedFn(Cbas).mockImplementation(() => mockGet as CbasContract);
+
+    await act(() =>
+      render(
+        h(WorkflowsInWorkspace, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: defaultAnalysesData,
+        })
+      )
+    );
+
+    const deleteConfirmationModalButton = screen.getByRole('button', { name: 'Delete' });
+    await user.click(deleteConfirmationModalButton);
+  });
+
   const testCases: Array<{
     accessLevel: 'PROJECT_OWNER' | 'OWNER' | 'WRITER' | 'READER';
     canDelete: boolean;
@@ -158,11 +183,11 @@ describe('Workflows in workspace', () => {
         })
       )
     );
-    expect(screen.getByText('Delete')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
     if (!canDelete) {
-      expect(screen.getByText('Delete')).toHaveAttribute('aria-disabled', 'true');
+      expect(screen.getByRole('button', { name: 'Delete' })).toHaveAttribute('aria-disabled', 'true');
     } else {
-      expect(screen.getByText('Delete')).toHaveAttribute('aria-disabled', 'false');
+      expect(screen.getByRole('button', { name: 'Delete' })).toHaveAttribute('aria-disabled', 'false');
     }
   });
 });
