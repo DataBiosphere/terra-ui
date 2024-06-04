@@ -2,6 +2,13 @@ const _ = require('lodash/fp');
 const fetch = require('node-fetch');
 const { parse } = require('path');
 
+const checkStatus = (response) => {
+  if (response.ok) {
+    return response;
+  }
+  throw new Error(`HTTP error response status: ${response.status} ${response.statusText}`);
+};
+
 /**
  * Fetch CircleCI artifact links to tests summary JSON files (created in onRunComplete() in jest-reporter.js)
  * @param {string} token
@@ -18,14 +25,16 @@ const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {
   try {
     // Because terra-ui is a public repository on GitHub, API token is not required. See: https://circleci.com/docs/oss#security
     const response = await fetch(`${apiUrlRoot}/${buildNum}/artifacts`);
-    const resp = await response.json();
-    console.log(`artifacts resp: ${resp}`);
-    const { items } = resp;
-    const testSummaryArtifacts = _.filter(_.flow(_.get('path'), _.includes('tests-summary')), items);
+    checkStatus(response);
+
+    const responseJson = await response.json();
+    const testSummaryArtifacts = _.filter(_.flow(_.get('path'), _.includes('tests-summary')), responseJson);
     return _.map('url', testSummaryArtifacts);
-  } catch (e) {
-    console.error(`**  ERROR: Encountered error when getting CircleCI JOB_BUILD_NUM: ${buildNum} artifacts.`, e);
-    throw e;
+  } catch (error) {
+    console.error(`** ERROR fetching CircleCI JOB_BUILD_NUM: ${buildNum} artifacts.`);
+    console.error(error);
+    console.error(`HTTP error response body: ${await error.response.text()}`);
+    throw error;
   }
 };
 
