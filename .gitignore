@@ -5,13 +5,13 @@ node_modules
 
 # testing
 /coverage
-packages/*/coverage
+packages/**/coverage
 /pacts
 
 # production
 /build
 packages/**/lib
-packages/*/.rollup.cache
+packages/**/.rollup.cache
 tsconfig.tsbuildinfo
 public/build-info.json
 packages/**/vite.config.*.timestamp*

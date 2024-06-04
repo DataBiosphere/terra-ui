@@ -1,5 +1,5 @@
 {
-  "name": "@terra-ui-packages/leonardo",
+  "name": "@terra-ui-packages/leonardo-data-client",
   "version": "0.0.1",
   "scripts": {
     "build": "vite build --emptyOutDir",
