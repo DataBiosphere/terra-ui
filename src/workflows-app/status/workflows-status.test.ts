@@ -232,8 +232,8 @@ describe('useWorkflowsStatus', () => {
         cromwellRunnerResponsive: 'unknown',
         cromwellRunnerDatabaseConnection: 'unknown',
       });
-      expect(mockAjax.Cbas.status).toHaveBeenCalledWith(workflowsAppObject.proxyUrls.cbas);
-      expect(mockAjax.CromwellApp.engineStatus).toHaveBeenCalledWith(workflowsAppObject.proxyUrls['cromwell-reader']);
+      expect(mockAjax.Cbas!.status).toHaveBeenCalledWith(workflowsAppObject.proxyUrls.cbas);
+      expect(mockAjax.CromwellApp!.engineStatus).toHaveBeenCalledWith(workflowsAppObject.proxyUrls['cromwell-reader']);
     });
 
     it('uses CBAS and Cromwell status endpoints', async () => {
@@ -315,7 +315,7 @@ describe('useWorkflowsStatus', () => {
         cromwellRunnerResponsive: null,
         cromwellRunnerDatabaseConnection: null,
       });
-      expect(mockAjax.CromwellApp.engineStatus).toHaveBeenCalledWith(
+      expect(mockAjax.CromwellApp!.engineStatus).toHaveBeenCalledWith(
         cromwellRunnerAppObject.proxyUrls['cromwell-runner']
       );
     });
