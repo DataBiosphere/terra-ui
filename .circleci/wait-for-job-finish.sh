@@ -9,7 +9,7 @@ set -eo pipefail
 counter=0
 
 # Wait up to 30 minutes for job to finish. A job can run on multiple nodes: parallelism > 1
-while [ "$counter" -le 2000 ]; do
+while [ "$counter" -le 1800 ]; do
   # Find number of nodes in running
   job_detail=$(curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM")
   job_running_nodes_count=$(echo "$job_detail" | jq -r '[.parallel_runs[] | select(.status == "running") | select(.index != '"$CIRCLE_NODE_INDEX"')] | length')
@@ -18,9 +18,9 @@ while [ "$counter" -le 2000 ]; do
     exit 0
   fi
 
-  echo "Checking status from NODE_INDEX #$CIRCLE_NODE_INDEX: Waiting for parallel running nodes to finish. Waited $counter seconds."
-  sleep 10
-  counter=$(($counter + 10))
+  echo "Checking job status: Waiting for parallel running nodes to finish. Waited $counter seconds."
+  sleep 30
+  counter=$(($counter + 30))
 done
 
 echo "Waited total $counter seconds"

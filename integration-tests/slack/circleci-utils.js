@@ -27,8 +27,8 @@ const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {
     const response = await fetch(`${apiUrlRoot}/${buildNum}/artifacts`);
     checkStatus(response);
 
-    const responseJson = await response.json();
-    const testSummaryArtifacts = _.filter(_.flow(_.get('path'), _.includes('tests-summary')), responseJson);
+    const items = await response.json();
+    const testSummaryArtifacts = _.filter(_.flow(_.get('path'), _.includes('tests-summary')), items);
     return _.map('url', testSummaryArtifacts);
   } catch (error) {
     console.error(`** ERROR fetching CircleCI JOB_BUILD_NUM: ${buildNum} artifacts.`);
@@ -56,6 +56,7 @@ const getFailedTestNames = (aggregatedResults) => {
  */
 const getFailedTestNamesFromArtifacts = async () => {
   const urls = await fetchJobArtifacts();
+  console.log(`Build artifacts URLs: \n${urls.map((url) => `* ${url}`).join('\n')}\n`);
   return _.flatten(
     await Promise.all(
       _.map(async (url) => {
