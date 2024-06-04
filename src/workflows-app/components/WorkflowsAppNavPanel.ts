@@ -11,8 +11,6 @@ import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { WORKFLOWS_APP_STATUS } from 'src/libs/feature-previews-config';
 import { useQueryParameter } from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -246,25 +244,24 @@ export const WorkflowsAppNavPanel = ({
             ),
           ]
         ),
-        isFeaturePreviewEnabled(WORKFLOWS_APP_STATUS) &&
-          h(
-            Clickable,
-            {
-              'aria-label': 'troubleshooting-button',
-              style: {
-                ...styles.subHeaders(false),
-                // color: colors.accent(1.1),
-                fontSize: 16,
-              },
-              onClick: () => setStatusModalVisible(true),
+        h(
+          Clickable,
+          {
+            'aria-label': 'troubleshooting-button',
+            style: {
+              ...styles.subHeaders(false),
+              // color: colors.accent(1.1),
+              fontSize: 16,
             },
-            [
-              h(ListItem, {
-                title: 'Workflows app status',
-                pageReady: true,
-              }),
-            ]
-          ),
+            onClick: () => setStatusModalVisible(true),
+          },
+          [
+            h(ListItem, {
+              title: 'Workflows app status',
+              pageReady: true,
+            }),
+          ]
+        ),
         div(
           {
             style: { marginTop: '2rem' },
