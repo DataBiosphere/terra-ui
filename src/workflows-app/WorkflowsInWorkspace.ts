@@ -68,11 +68,12 @@ export const WorkflowsInWorkspace = ({
 
   const deleteMethod = useCallback(
     async (methodId) => {
-      const cbasProxyUrlDetails = workflowsAppStore.get().cbasProxyUrlState;
-      await Cbas(signal).methods.archive(cbasProxyUrlDetails.state, methodId);
+      const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
+      await Cbas(signal).methods.archive(cbasProxyUrlState.state, methodId);
       await loadRunsData(cbasProxyUrlState);
+      setMethodToDelete(null);
     },
-    [signal, loadRunsData]
+    [signal, loadRunsData, workspaceId]
   );
 
   // poll if we're missing CBAS proxy url and stop polling when we have it
