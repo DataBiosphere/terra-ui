@@ -79,15 +79,18 @@ const testRunAnalysisAzure = _.flowRight(
       // check for errors
       const hasError = await openError(page);
       if (hasError) {
-        const runtimePollingError = await findText(page, 'Error Creating Cloud Environment');
+        // Occurs if leonardo creation call itself errors
         const runtimeCreationError = await findText(page, 'Error modifying cloud environment');
+        // Occurs if the runtime transitions to error status
+        const runtimePollingError = await findText(page, 'Error Creating Cloud Environment');
+        // Only exit early if the error is one of the ones described above
         if (!!runtimePollingError || !!runtimeCreationError) {
           throw new Error('Failed to create cloud environment');
         }
+        // Dismiss any non-fatal errors
+        await dismissAllNotifications(page);
       }
 
-      // Dismiss any error, which we determined above is erroneous
-      await dismissAllNotifications(page);
       // Check for runntime runtime
       const runningRuntime = await findElement(page, clickable({ textContains: 'Running' }));
       return !!runningRuntime;
