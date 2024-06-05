@@ -1,3 +1,5 @@
+import { openError, retryUntil } from '../utils/integration-utils';
+
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
 const uuid = require('uuid');
@@ -69,8 +71,31 @@ const testRunAnalysisAzure = _.flowRight(
   await findElement(page, clickable({ textContains: 'JupyterLab Environment' }));
   await findElement(page, clickable({ textContains: 'Creating' }));
 
-  // Wait for env to finish creating, or break early on error
-  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(25) });
+  // Wait for env to finish creating, or break early on only errors related to runtime creation
+  await retryUntil({
+    getResult: async () => {
+      await dismissInfoNotifications(page);
+
+      // check for errors
+      const hasError = await openError(page);
+      if (hasError) {
+        const runtimePollingError = await findText(page, 'Error Creating Cloud Environment');
+        const runtimeCreationError = await findText(page, 'Error modifying cloud environment');
+        if (!!runtimePollingError || !!runtimeCreationError) {
+          throw new Error('Failed to create cloud environment');
+        }
+      }
+
+      // Dismiss any error, which we determined above is erroneous
+      await dismissAllNotifications(page);
+      // Check for runntime runtime
+      const runningRuntime = await findElement(page, clickable({ textContains: 'Running' }));
+      return !!runningRuntime;
+    },
+    interval: Millis.ofSeconds(30),
+    leading: true,
+    retries: 50, // .5min interval * 50 = 25 mins,
+  });
 
   // Here, we dismiss any errors or popups. Its common another areas of the application might throw an error or have pop-ups.
   // However, as long as we have a running runtime (which the previous section asserts), the pop-up is not relevant
