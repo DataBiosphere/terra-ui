@@ -92,8 +92,12 @@ const testRunAnalysisAzure = _.flowRight(
       }
 
       // Check for runntime runtime
-      const runningRuntime = await findElement(page, clickable({ textContains: 'Running' }));
-      return !!runningRuntime;
+      try {
+        await findElement(page, clickable({ textContains: 'Running' }, { timeout: Millis.ofSecond }));
+        return true;
+      } catch {
+        return false;
+      }
     },
     interval: Millis.ofSeconds(30),
     leading: true,
