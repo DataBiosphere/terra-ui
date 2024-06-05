@@ -1,5 +1,3 @@
-import { openError, retryUntil } from '../utils/integration-utils';
-
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
 const uuid = require('uuid');
@@ -10,6 +8,8 @@ const {
   withAzureWorkspace,
 } = require('../utils/integration-helpers');
 const {
+  openError,
+  retryUntil,
   Millis,
   click,
   clickable,
