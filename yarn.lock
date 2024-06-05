@@ -4531,6 +4531,32 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@terra-ui-packages/data-client-core@workspace:packages/data-clients/core":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/data-client-core@workspace:packages/data-clients/core"
+  dependencies:
+    "@terra-ui-packages/build-utils": ^2.0.0
+    "@terra-ui-packages/test-utils": ^1.0.0
+    "@types/jest": ^28.1.8
+    jest: ^27.4.3
+    typescript: ~5.1.6
+    vite: ^5.2.11
+  languageName: unknown
+  linkType: soft
+
+"@terra-ui-packages/leonardo-data-client@workspace:packages/data-clients/leonardo":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/leonardo-data-client@workspace:packages/data-clients/leonardo"
+  dependencies:
+    "@terra-ui-packages/build-utils": ^2.0.0
+    "@terra-ui-packages/test-utils": ^1.0.0
+    "@types/jest": ^28.1.8
+    jest: ^27.4.3
+    typescript: ~5.1.6
+    vite: ^5.2.11
+  languageName: unknown
+  linkType: soft
+
 "@terra-ui-packages/notifications@*, @terra-ui-packages/notifications@workspace:packages/notifications":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/notifications@workspace:packages/notifications"
