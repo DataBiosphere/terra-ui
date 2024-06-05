@@ -86,22 +86,31 @@ const testRunAnalysisAzure = _.flowRight(
         // Only exit early if the error is one of the ones described above
         if (!!runtimePollingError || !!runtimeCreationError) {
           throw new Error('Failed to create cloud environment');
+        } else {
+          console.warn(
+            'Discovered an error in `run-analysis-azure` not related to runtime creation. Worth investigation'
+          );
         }
         // Dismiss any non-fatal errors
         await dismissAllNotifications(page);
       }
 
-      // Check for runntime runtime
+      // Check for runntime runtime. findElement returns an error if it does not find the element, so we try/catch
       try {
+        // Timeout fast here, the retry loop is the code block responsible for waiting
         await findElement(page, clickable({ textContains: 'Running' }, { timeout: Millis.ofSecond }));
+        // True exits the loop.
+        // If we reach this line, findElement did not throw an exception, meaning we did indeed find `Running`.
         return true;
       } catch {
+        // If we catch an exception, we could not find `Running`, and want to loop again
+        console.log('Looping again in retryUntil for run-analysis-azure test');
         return false;
       }
     },
     interval: Millis.ofSeconds(30),
     leading: true,
-    retries: 50, // .5min interval * 50 = 25 mins,
+    retries: 50, // 30 sec interval * 50 loops = 25 mins,
   });
 
   // Here, we dismiss any errors or popups. Its common another areas of the application might throw an error or have pop-ups.
