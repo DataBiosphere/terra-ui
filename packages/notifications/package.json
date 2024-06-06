@@ -23,7 +23,7 @@
     "lib/types/**/*.d.ts"
   ],
   "dependencies": {
-    "@terra-ui-packages/components": "^0.0.6",
+    "@terra-ui-packages/components": "^1.1.0",
     "@terra-ui-packages/core-utils": "^0.3.0",
     "lodash": "^4.17.21"
   },
