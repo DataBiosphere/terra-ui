@@ -195,7 +195,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
     : div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } }, [
         h(Fragment, [
           div({ style: { margin: '1rem 2rem' } }, [
-            paginatedPreviousRunSets.length === 0
+            paginatedPreviousRunSets.length === 0 && runSetsData && runSetsData.length === 0
               ? h(Fragment, [
                   h2({ style: { marginTop: 0 } }, ['Submission history']),
                   div(
@@ -218,7 +218,20 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                       h(FilterSubmissionsDropdown, { filterOption, setFilterOption }),
                     ]),
                   ]),
-                  div(['See workflows that were submitted by all collaborators in this workspace.']),
+                  paginatedPreviousRunSets.length === 0 && runSetsData && runSetsData.length !== 0
+                    ? div(
+                        {
+                          style: {
+                            padding: '1rem',
+                            border: `1px solid ${colors.accent(1)}`,
+                            borderRadius: 5,
+                            backgroundColor: colors.accent(0.08),
+                            width: '75%',
+                          },
+                        },
+                        ['No workflows match the given filter.']
+                      )
+                    : div(['See workflows that were submitted by all collaborators in this workspace.']),
                 ]),
             paginatedPreviousRunSets.length > 0 &&
               h(Fragment, [
