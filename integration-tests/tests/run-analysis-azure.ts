@@ -108,7 +108,7 @@ const testRunAnalysisAzure = _.flowRight(
       // Ensure any secondary notifications are dismissed as well
       await dismissAllNotifications(page);
 
-      // Check for runntime runtime. findElement returns an error if it does not find the element, so we try/catch
+      // Check for runtime running. findElement returns an error if it does not find the element, so we try/catch
       try {
         // Timeout fast here, the retry loop is the code block responsible for waiting
         await findElement(page, clickable({ textContains: 'Running' }, { timeout: Millis.ofSecond }));
