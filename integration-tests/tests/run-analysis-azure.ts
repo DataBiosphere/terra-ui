@@ -79,21 +79,28 @@ const testRunAnalysisAzure = _.flowRight(
       // check for errors
       const hasError = await openError(page);
       if (hasError) {
+        let hasfatalError = false;
         // Occurs if leonardo creation call itself errors
         try {
-          await findText(page, 'Error modifying cloud environment');
-          throw new Error('Failed to create cloud environment');
+          await findText(page, 'Error modifying cloud environment', { timeout: Millis.ofSecond });
+          // Prior line will throw and go to catch block if not found
+          hasfatalError = true;
         } catch {}
 
         // Occurs if the runtime transitions to error status
         try {
-          await findText(page, 'Cloud Environment is in error state');
-          throw new Error('Failed to create cloud environment');
+          await findText(page, 'Cloud Environment is in error state', { timeout: Millis.ofSecond });
+          // Prior line will throw and go to catch block if not found
+          hasfatalError = true;
         } catch {}
 
-        console.warn(
-          'Discovered an error in `run-analysis-azure` not related to runtime creation. Worth investigation'
-        );
+        if (hasfatalError) {
+          throw new Error('Failed to create cloud environment');
+        } else {
+          console.warn(
+            'Discovered an error in `run-analysis-azure` not related to runtime creation. Worth investigation'
+          );
+        }
         // Dismiss any non-fatal errors
         await dismissAllNotifications(page);
       }
