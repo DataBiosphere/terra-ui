@@ -4452,7 +4452,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/components@*, @terra-ui-packages/components@^0.0.6, @terra-ui-packages/components@workspace:packages/components":
+"@terra-ui-packages/components@*, @terra-ui-packages/components@workspace:packages/components":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/components@workspace:packages/components"
   dependencies:
@@ -4493,6 +4493,28 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@terra-ui-packages/components@npm:^0.0.6":
+  version: 0.0.6
+  resolution: "@terra-ui-packages/components@npm:0.0.6::__archiveUrl=https%3A%2F%2Fus-central1-npm.pkg.dev%2Fdsp-artifact-registry%2Fterra-ui-packages%2F%40terra-ui-packages%2Fcomponents%2F-%2F%40terra-ui-packages%2Fcomponents-0.0.6.tgz"
+  dependencies:
+    "@fortawesome/fontawesome-svg-core": ^1.2.36
+    "@fortawesome/free-regular-svg-icons": ^5.15.4
+    "@fortawesome/free-solid-svg-icons": ^5.15.4
+    "@fortawesome/react-fontawesome": ^0.1.15
+    color: ^4.0.1
+    lodash: ^4.17.21
+    react-focus-lock: ^2.9.5
+    react-modal: ^3.16.1
+    react-onclickoutside: ^6.13.0
+    react-select: ^5.7.4
+    react-switch: ^6.1.0
+  peerDependencies:
+    react: 18.2.0
+    react-dom: 18.2.0
+  checksum: 09a4512fc328f4a766dd24f2dc983f50880e8eb63328049f2606b69b8e726720e708e0375e060898830d16499f7b3961fe3f009e6d22e2527dd294a14e5afccd
+  languageName: node
+  linkType: hard
+
 "@terra-ui-packages/core-utils@*, @terra-ui-packages/core-utils@^0.3.0, @terra-ui-packages/core-utils@workspace:packages/core-utils":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/core-utils@workspace:packages/core-utils"
@@ -4504,6 +4526,32 @@ __metadata:
     check-dts: ^0.7.2
     jest: ^27.4.3
     lodash: ^4.17.21
+    typescript: ~5.1.6
+    vite: ^5.2.11
+  languageName: unknown
+  linkType: soft
+
+"@terra-ui-packages/data-client-core@workspace:packages/data-clients/core":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/data-client-core@workspace:packages/data-clients/core"
+  dependencies:
+    "@terra-ui-packages/build-utils": ^2.0.0
+    "@terra-ui-packages/test-utils": ^1.0.0
+    "@types/jest": ^28.1.8
+    jest: ^27.4.3
+    typescript: ~5.1.6
+    vite: ^5.2.11
+  languageName: unknown
+  linkType: soft
+
+"@terra-ui-packages/leonardo-data-client@workspace:packages/data-clients/leonardo":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/leonardo-data-client@workspace:packages/data-clients/leonardo"
+  dependencies:
+    "@terra-ui-packages/build-utils": ^2.0.0
+    "@terra-ui-packages/test-utils": ^1.0.0
+    "@types/jest": ^28.1.8
+    jest: ^27.4.3
     typescript: ~5.1.6
     vite: ^5.2.11
   languageName: unknown
@@ -7801,13 +7849,13 @@ __metadata:
   linkType: hard
 
 "ejs@npm:^3.1.5, ejs@npm:^3.1.8":
-  version: 3.1.9
-  resolution: "ejs@npm:3.1.9"
+  version: 3.1.10
+  resolution: "ejs@npm:3.1.10"
   dependencies:
     jake: ^10.8.5
   bin:
     ejs: bin/cli.js
-  checksum: af6f10eb815885ff8a8cfacc42c6b6cf87daf97a4884f87a30e0c3271fedd85d76a3a297d9c33a70e735b97ee632887f85e32854b9cdd3a2d97edf931519a35f
+  checksum: ce90637e9c7538663ae023b8a7a380b2ef7cc4096de70be85abf5a3b9641912dde65353211d05e24d56b1f242d71185c6d00e02cb8860701d571786d92c71f05
   languageName: node
   linkType: hard
 

@@ -1,12 +1,10 @@
-import { Modal, ModalProps } from '@terra-ui-packages/components';
+import { Modal, ModalProps, useBusyState, useThemeFromContext } from '@terra-ui-packages/components';
+import { withHandlers } from '@terra-ui-packages/core-utils';
 import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
-import _ from 'lodash/fp';
 import { ReactNode, useEffect, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { LeoRuntimeProvider, RuntimeBasics } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
-import colors from 'src/libs/colors';
-import { withBusyState } from 'src/libs/utils';
 
 export type RuntimeErrorProvider = Pick<LeoRuntimeProvider, 'errorInfo'>;
 
@@ -29,27 +27,28 @@ export interface RuntimeErrorModalProps {
 
 export const RuntimeErrorModal = (props: RuntimeErrorModalProps): ReactNode => {
   const { runtime, onDismiss, errorProvider } = props;
+  const { colors } = useThemeFromContext();
   const { withErrorReporting } = useNotificationsFromContext();
 
   const [errorMessage, setErrorMessage] = useState('');
   const [userscriptError, setUserscriptError] = useState(false);
-  const [loadingRuntimeDetails, setLoadingRuntimeDetails] = useState(false);
+  const [loadingRuntimeDetails, withLoadingRuntimeDetails] = useBusyState();
 
   useEffect(() => {
-    const loadRuntimeError = _.flow(
-      withErrorReporting(text.error.cantRetrieve),
-      withBusyState(setLoadingRuntimeDetails)
-    )(async () => {
-      const errorInfo = await errorProvider.errorInfo(runtime);
-      if (errorInfo.errorType === 'UserScriptError') {
-        setErrorMessage(errorInfo.detail);
-        setUserscriptError(true);
-      } else {
-        setErrorMessage(errorInfo.errors.length > 0 ? errorInfo.errors[0].errorMessage : text.error.unknown);
+    const loadRuntimeError = withHandlers(
+      [withErrorReporting(text.error.cantRetrieve), withLoadingRuntimeDetails],
+      async () => {
+        const errorInfo = await errorProvider.errorInfo(runtime);
+        if (errorInfo.errorType === 'UserScriptError') {
+          setErrorMessage(errorInfo.detail);
+          setUserscriptError(true);
+        } else {
+          setErrorMessage(errorInfo.errors.length > 0 ? errorInfo.errors[0].errorMessage : text.error.unknown);
+        }
       }
-    });
+    );
     loadRuntimeError();
-  }, [runtime, withErrorReporting, errorProvider]);
+  }, [errorProvider, runtime, withErrorReporting, withLoadingRuntimeDetails]);
 
   return h(
     Modal,
