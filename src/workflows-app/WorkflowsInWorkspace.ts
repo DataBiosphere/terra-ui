@@ -40,7 +40,7 @@ export const WorkflowsInWorkspace = ({
 
   const signal = useCancellation();
   const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
-  const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps); // TODO: what is this for?
+  const currentApp = getCurrentApp(appToolLabels.WORKFLOWS_APP, apps);
 
   const loadRunsData = useCallback(
     async (cbasProxyUrlDetails) => {
