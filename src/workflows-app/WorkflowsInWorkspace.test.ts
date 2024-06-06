@@ -1,11 +1,12 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { act, render, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import { goToPath } from 'src/libs/nav';
 import { asMockedFn } from 'src/testing/test-utils';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { methodDataWithVersions } from 'src/workflows-app/utils/mock-data';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
@@ -130,6 +131,9 @@ describe('Workflows in workspace', () => {
 
     const deleteConfirmationModalButton = screen.getByRole('button', { name: 'Delete' });
     await user.click(deleteConfirmationModalButton);
+
+    expect(screen.getByRole('button', { name: 'Delete workflow' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
 
   const testCases: Array<{

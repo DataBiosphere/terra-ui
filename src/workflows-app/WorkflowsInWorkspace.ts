@@ -4,8 +4,7 @@ import { div, h, h2 } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
-import { Clickable, DeleteConfirmationModal } from 'src/components/common';
-import { MenuButton } from 'src/components/MenuButton';
+import { ButtonSecondary, Clickable, DeleteConfirmationModal } from 'src/components/common';
 import { makeMenuIcon } from 'src/components/PopupTrigger';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import colors from 'src/libs/colors';
@@ -178,7 +177,7 @@ export const WorkflowsInWorkspace = ({
                         },
                         [
                           h(
-                            MenuButton,
+                            ButtonSecondary,
                             {
                               onClick: () => setMethodToDelete(method),
                               disabled: !canWrite(accessLevel),
