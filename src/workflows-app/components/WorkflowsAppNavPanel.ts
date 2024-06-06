@@ -250,7 +250,6 @@ export const WorkflowsAppNavPanel = ({
             'aria-label': 'troubleshooting-button',
             style: {
               ...styles.subHeaders(false),
-              // color: colors.accent(1.1),
               fontSize: 16,
             },
             onClick: () => setStatusModalVisible(true),
