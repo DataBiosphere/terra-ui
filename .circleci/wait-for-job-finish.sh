@@ -15,8 +15,8 @@ counter=0
 while [ "$counter" -le 1800 ]; do
   # Find number of nodes in running
   job_detail=$(curl -s "$BASE_URL/$CIRCLE_BUILD_NUM")
-  nodes=$(echo "$job_detail" | jq -r '.steps[] | select(.name=="Running UI integration tests")')
-  running_nodes_count=$(echo "$nodes" | jq -r '[.actions[] | select(.status == "running") | select(.index != '"$CIRCLE_NODE_INDEX"')] | length')
+  ui_test_step=$(echo "$job_detail" | jq -r '.steps[] | select(.name=="Running UI integration tests")')
+  running_nodes_count=$(echo "$ui_test_step" | jq -r '[.actions[] | select(.status == "running") | select(.index != '"$CIRCLE_NODE_INDEX"')] | length')
   
   if [ "$running_nodes_count" -eq 0 ]; then
     exit 0
