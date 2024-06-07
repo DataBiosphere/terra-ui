@@ -1,10 +1,10 @@
 import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Dispatch, SetStateAction, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ButtonPrimary, Link } from 'src/components/common';
-import { HeaderCell, SimpleFlexTable, TextCell } from 'src/components/table';
+import { GridTable, HeaderCell, Resizable, TextCell } from 'src/components/table';
 import { AttributeSchema } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import * as Utils from 'src/libs/utils';
 import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
@@ -73,9 +73,15 @@ export const StructBuilder = (props: StructBuilderProps) => {
     setStructIndexPath,
   } = props;
 
+  const [structTableColumnWidths, setStructTableColumnWidths] = useState({});
+  const structTableRef = useRef<{ recomputeColumnSizes: () => void }>(null);
   const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true);
   const [searchFilter, setSearchFilter] = useState('');
   const [prevStructIndex, setPrevStructIndex] = useState(structIndexPath);
+
+  useEffect(() => {
+    structTableRef.current?.recomputeColumnSizes();
+  }, [structTableColumnWidths]); // TODO: should there be any other dependency?
 
   if (structIndexPath !== prevStructIndex) {
     setSearchFilter('');
@@ -120,6 +126,12 @@ export const StructBuilder = (props: StructBuilderProps) => {
       )
   );
 
+  const withDataTableNamePrefix = (columnName) => `${structName}/${columnName}`;
+
+  const resizeColumn = (currentWidth, delta, columnKey) => {
+    setStructTableColumnWidths(_.set(columnKey, currentWidth + delta));
+  };
+
   const breadcrumbsHeight = 35;
   return div({ style: { height: 500 }, role: 'struct-builder' }, [
     div(
@@ -161,25 +173,48 @@ export const StructBuilder = (props: StructBuilderProps) => {
       h(AutoSizer, [
         ({ width, height }) => {
           return div({ style: { overflow: 'scroll', height, width } }, [
-            h(SimpleFlexTable, {
+            h(GridTable, {
               'aria-label': 'struct-table',
+              ref: structTableRef,
               rowCount: inputTableData.length,
+              width,
+              height,
               readOnly: false,
               hoverHighlight: false,
               noContentMessage: '',
               columns: [
                 {
-                  size: { basis: 250, grow: 0 },
                   field: 'struct',
-                  headerRenderer: () => h(HeaderCell, ['Struct']),
+                  width: structTableColumnWidths[withDataTableNamePrefix('struct')] || 250,
+                  headerRenderer: () => {
+                    const columnWidth = structTableColumnWidths[withDataTableNamePrefix('struct')] || 250;
+                    return h(
+                      Resizable,
+                      {
+                        width: columnWidth,
+                        onWidthChange: (delta) => resizeColumn(columnWidth, delta, withDataTableNamePrefix('struct')),
+                      },
+                      [h(HeaderCell, ['Struct'])]
+                    );
+                  },
                   cellRenderer: () => {
                     return h(TextCell, { style: { fontWeight: 500 } }, [currentStructName]);
                   },
                 },
                 {
-                  size: { basis: 160, grow: 0 },
                   field: 'field',
-                  headerRenderer: () => h(HeaderCell, ['Variable']),
+                  width: structTableColumnWidths[withDataTableNamePrefix('field')] || 200,
+                  headerRenderer: () => {
+                    const columnWidth = structTableColumnWidths[withDataTableNamePrefix('field')] || 200;
+                    return h(
+                      Resizable,
+                      {
+                        width: columnWidth,
+                        onWidthChange: (delta) => resizeColumn(columnWidth, delta, withDataTableNamePrefix('field')),
+                      },
+                      [h(HeaderCell, ['Variable'])]
+                    );
+                  },
                   cellRenderer: ({ rowIndex }) => {
                     return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].field_type) }, [
                       inputTableData[rowIndex].field_name,
@@ -187,9 +222,19 @@ export const StructBuilder = (props: StructBuilderProps) => {
                   },
                 },
                 {
-                  size: { basis: 160, grow: 0 },
                   field: 'type',
-                  headerRenderer: () => h(HeaderCell, ['Type']),
+                  width: structTableColumnWidths[withDataTableNamePrefix('type')] || 160,
+                  headerRenderer: () => {
+                    const columnWidth = structTableColumnWidths[withDataTableNamePrefix('type')] || 160;
+                    return h(
+                      Resizable,
+                      {
+                        width: columnWidth,
+                        onWidthChange: (delta) => resizeColumn(columnWidth, delta, withDataTableNamePrefix('type')),
+                      },
+                      [h(HeaderCell, ['Type'])]
+                    );
+                  },
                   cellRenderer: ({ rowIndex }) => {
                     return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].field_type) }, [
                       inputTableData[rowIndex].inputTypeStr,
@@ -197,7 +242,7 @@ export const StructBuilder = (props: StructBuilderProps) => {
                   },
                 },
                 {
-                  size: { basis: 350, grow: 0 },
+                  width: 350,
                   headerRenderer: () => h(HeaderCell, ['Input sources']),
                   cellRenderer: ({ rowIndex }) => {
                     const configurationIndex = inputTableData[rowIndex].configurationIndex;
@@ -222,8 +267,20 @@ export const StructBuilder = (props: StructBuilderProps) => {
                   },
                 },
                 {
-                  size: { basis: 300, grow: 1 },
-                  headerRenderer: () => h(HeaderCell, [WorkflowTableColumnNames.INPUT_VALUE]),
+                  field: 'input-value',
+                  width: structTableColumnWidths[withDataTableNamePrefix('input-value')] || width - 960,
+                  headerRenderer: () => {
+                    const columnWidth = structTableColumnWidths[withDataTableNamePrefix('input-value')] || width - 960; // 300
+                    return h(
+                      Resizable,
+                      {
+                        width: columnWidth,
+                        onWidthChange: (delta) =>
+                          resizeColumn(columnWidth, delta, withDataTableNamePrefix('input-value')),
+                      },
+                      [h(HeaderCell, [WorkflowTableColumnNames.INPUT_VALUE])]
+                    );
+                  },
                   cellRenderer: ({ rowIndex }) => {
                     // rowIndex is the index of this input in the currently displayed table
                     // configurationIndex is the index of this input the struct input definition
