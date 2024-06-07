@@ -100,7 +100,7 @@ const doesTaskHaveCostData = (task) => {
 };
 
 const noCostData = (task, subWorkflowId) => {
-  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !_.isEmpty(subWorkflowId)) {
+  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !_.isEmpty(subWorkflowId) || !task.startTime) {
     return true;
   }
 };
