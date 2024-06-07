@@ -172,6 +172,8 @@ export const StructBuilder = (props: StructBuilderProps) => {
     div({ style: { height: `calc(500px - ${breadcrumbsHeight}px - 2.5rem)` } }, [
       h(AutoSizer, [
         ({ width, height }) => {
+          const lastColumnWidth = width !== undefined ? width - 960 : 350;
+          // console.log(`lastColumnWidth: ${lastColumnWidth}`);
           return div({ style: { overflow: 'scroll', height, width } }, [
             h(GridTable, {
               'aria-label': 'struct-table',
@@ -268,9 +270,10 @@ export const StructBuilder = (props: StructBuilderProps) => {
                 },
                 {
                   field: 'input-value',
-                  width: structTableColumnWidths[withDataTableNamePrefix('input-value')] || width - 960,
+                  width: structTableColumnWidths[withDataTableNamePrefix('input-value')] || lastColumnWidth,
                   headerRenderer: () => {
-                    const columnWidth = structTableColumnWidths[withDataTableNamePrefix('input-value')] || width - 960; // 300
+                    const columnWidth =
+                      structTableColumnWidths[withDataTableNamePrefix('input-value')] || lastColumnWidth; // 300
                     return h(
                       Resizable,
                       {
