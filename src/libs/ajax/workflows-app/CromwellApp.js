@@ -38,4 +38,9 @@ export const CromwellApp = (signal) => ({
     const res = await fetchFromProxy(cromwellUrlRoot)(`api/workflows/v1/callcaching/diff?${qs.stringify(params)}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
+  engineStatus: async (cromwellUrlRoot) => {
+    const res = await fetchFromProxy(cromwellUrlRoot)('engine/v1/status', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
+
+    return res.json();
+  },
 });
