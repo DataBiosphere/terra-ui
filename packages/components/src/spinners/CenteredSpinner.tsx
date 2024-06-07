@@ -3,7 +3,7 @@ import React, { CSSProperties, ReactNode } from 'react';
 
 import { Spinner, SpinnerProps } from './Spinner';
 
-export const CenteredSpinner = (props: SpinnerProps = {}): ReactNode => {
+export const CenteredSpinner = (props: SpinnerProps): ReactNode => {
   const { size = 48, ...rest } = props;
   const mergedProps = _.merge(
     {

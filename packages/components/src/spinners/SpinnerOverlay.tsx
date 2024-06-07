@@ -44,7 +44,7 @@ export interface SpinnerOverlayProps {
   mode?: SpinnerOverlayMode;
 }
 
-export const SpinnerOverlay = (props: SpinnerOverlayProps = {}): ReactNode => {
+export const SpinnerOverlay = (props: SpinnerOverlayProps): ReactNode => {
   const { mode = 'Default' } = props;
   switch (mode) {
     case 'Absolute':

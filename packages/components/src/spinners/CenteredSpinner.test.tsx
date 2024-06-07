@@ -33,14 +33,4 @@ describe('CenteredSpinner', () => {
       expect(message).toHaveStyle(visuallyHidden as Record<string, unknown>);
     })
   );
-
-  it('renders a spinner icon - no args', () => {
-    // Act
-    // call as raw function to ensure no args in call (React jsx version seems to not ensure this)
-    renderWithTheme(<div>{CenteredSpinner()}</div>);
-
-    // Assert
-    const icon = document.querySelector('[data-icon="loadingSpinner"]');
-    expect(icon).toBeInTheDocument();
-  });
 });
