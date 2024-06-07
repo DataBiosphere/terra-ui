@@ -258,7 +258,7 @@ describe('BaseRunDetails - render smoke test', () => {
 
     const task3Row = tableRows[2];
     const cellsFromDataRow3 = within(task3Row).getAllByRole('cell');
-    within(cellsFromDataRow3[7]).getByText('Fetching cost information');
+    within(cellsFromDataRow3[7]).getByText('-');
 
     const task4Row = tableRows[3];
     const cellsFromDataRow4 = within(task4Row).getAllByRole('cell');
