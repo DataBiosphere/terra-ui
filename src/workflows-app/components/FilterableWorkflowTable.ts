@@ -61,10 +61,14 @@ type FilterableWorkflowTableProps = {
 };
 
 /**
- * When displaying task data, there is no need to include the workflow name as it is already present elsewhere on the page.
- * Here, we strip away the first part of the task key (expected to be the workflow name) to make it shorter and more readable.
- * @param keyValuePairs A map from fully qualified task name to value (can be either inputs or outputs)
- * @returns A map where the fully qualified task name has been stripped of the workflow name prefix.
+ * Workflow Inputs and Outputs are "fully qualified" and come in the form:
+ *    WorkflowName.TaskName.VariableName (for task input/outputs) or
+ *    WorkflowName.VariableName (for workflow inputs/outputs)
+ * Keep in mind that TaskName may be multiple segments in the case of nested workflows.
+ * When displaying these, there is no need to include the workflow name as it is already present elsewhere on the page.
+ * Here, we strip away the first part of the key (expected to be the workflow name) to make it shorter and more readable.
+ * @param keyValuePairs A map from fully qualified variable name to value.
+ * @returns A map where the fully qualified variable name has been stripped of the workflow name prefix.
  */
 const stripWorkflowPrefixFromKeys = <T extends Record<string, any>>(keyValuePairs: T): { [k: string]: any } => {
   const maybeRemovePrefix = (key: string): string => {
