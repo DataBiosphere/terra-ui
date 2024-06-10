@@ -446,6 +446,9 @@ const FilterableWorkflowTable = ({
                               ]);
                             }
                           }
+                          if (paginatedPreviousRuns[rowIndex].state === 'QUEUED') {
+                            return div(['Waiting for workflow to be submitted']);
+                          }
                           return div(['Error: Workflow ID not found']);
                         },
                       },

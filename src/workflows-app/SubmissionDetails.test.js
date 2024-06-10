@@ -10,8 +10,22 @@ import { getLink } from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { metadata as runDetailsMetadata } from 'src/workflows-app/fixtures/test-workflow';
 import { BaseSubmissionDetails } from 'src/workflows-app/SubmissionDetails';
-import { methodData, mockRunsData, runSetData, runSetDataWithLiteral, simpleRunsData } from 'src/workflows-app/utils/mock-data';
-import { mockAzureApps, mockAzureWorkspace, runSetOutputDef, runSetResponse } from 'src/workflows-app/utils/mock-responses';
+import {
+  methodData,
+  mockQueuedRunsData,
+  mockRunsData,
+  queuedRunSetData,
+  runSetData,
+  runSetDataWithLiteral,
+  simpleRunsData,
+} from 'src/workflows-app/utils/mock-data';
+import {
+  mockAzureApps,
+  mockAzureWorkspace,
+  mockCollaborativeAzureApps,
+  runSetOutputDef,
+  runSetResponse,
+} from 'src/workflows-app/utils/mock-responses';
 
 const submissionId = 'e8347247-4738-4ad1-a591-56c119f93f58';
 const cbasUrlRoot = 'https://lz-abc/terra-app-abc/cbas';
@@ -188,6 +202,100 @@ describe('Submission Details page', () => {
     within(cellsFromDataRow2[1]).getByText('Succeeded');
     within(cellsFromDataRow2[2]).getByText('37 seconds');
     within(cellsFromDataRow2[3]).getByText('d16721eb-8745-4aa2-b71e-9ade2d6575aa');
+  });
+
+  it('should correctly display Queued runs', async () => {
+    const getRuns = jest.fn(() => Promise.resolve(mockQueuedRunsData));
+    const getRunsSets = jest.fn(() => Promise.resolve(queuedRunSetData));
+    const getMethods = jest.fn(() => Promise.resolve(methodData));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockCollaborativeAzureApps));
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRuns,
+          },
+          runSets: {
+            get: getRunsSets,
+          },
+          methods: {
+            getById: getMethods,
+          },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(BaseSubmissionDetails, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          submissionId,
+        })
+      );
+    });
+
+    expect(getRuns).toHaveBeenCalled();
+    expect(getRunsSets).toHaveBeenCalled();
+    expect(getMethods).toHaveBeenCalled();
+
+    const table = await screen.findByRole('table');
+
+    // Assert
+    expect(table).toHaveAttribute('aria-colcount', '5');
+    expect(table).toHaveAttribute('aria-rowcount', '3');
+
+    const rows = within(table).getAllByRole('row');
+    expect(rows.length).toBe(3);
+
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    expect(headers.length).toBe(5);
+    within(headers[0]).getByText('Sample ID');
+    within(headers[1]).getByText('Status');
+    within(headers[2]).getByText('Duration');
+    within(headers[3]).getByText('Workflow ID');
+    within(headers[4]).getByText('Workflow Data');
+
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
+    expect(cellsFromDataRow1.length).toBe(5);
+    within(cellsFromDataRow1[0]).getByText('FOO1');
+    within(cellsFromDataRow1[1]).getByText('Queued');
+    within(cellsFromDataRow1[2]).getByText('');
+    within(cellsFromDataRow1[3]).getByText('Waiting for workflow to be submitted');
+    within(cellsFromDataRow1[4]).getByText('Waiting for workflow to be submitted');
+
+    const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
+    expect(cellsFromDataRow2.length).toBe(5);
+    within(cellsFromDataRow2[0]).getByText('FOO2');
+    within(cellsFromDataRow2[1]).getByText('Queued');
+    within(cellsFromDataRow2[2]).getByText('');
+    within(cellsFromDataRow2[3]).getByText('Waiting for workflow to be submitted');
+    within(cellsFromDataRow2[4]).getByText('Waiting for workflow to be submitted');
   });
 
   it('should display standard message when there are no saved workflows', async () => {
