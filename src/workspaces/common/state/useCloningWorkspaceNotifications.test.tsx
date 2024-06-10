@@ -12,7 +12,7 @@ import {
   useCloningWorkspaceNotifications,
 } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
 import { WORKSPACE_UPDATE_POLLING_INTERVAL } from 'src/workspaces/common/state/useWorkspaceStatePolling';
-import { WorkspaceInfo, WorkspaceState } from 'src/workspaces/utils';
+import { WorkspaceInfo, WorkspaceState, WorkspaceWrapper } from 'src/workspaces/utils';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxWorkspacesContract = AjaxContract['Workspaces'];
@@ -88,7 +88,13 @@ describe('useCloningWorkspaceNotifications', () => {
       // Arrange
       const clone: WorkspaceInfo = { ...defaultAzureWorkspace.workspace, state: 'Cloning' };
       cloningWorkspacesStore.set([clone]);
-      const mockDetailsFn = jest.fn().mockResolvedValue({ workspace: { state: updatedState } });
+      const update: DeepPartial<WorkspaceWrapper> = {
+        workspace: {
+          workspaceId: defaultAzureWorkspace.workspace.workspaceId,
+          state: updatedState,
+        },
+      };
+      const mockDetailsFn = jest.fn().mockResolvedValue(update);
       const mockAjax: DeepPartial<AjaxContract> = {
         Workspaces: {
           workspace: () =>
@@ -101,10 +107,12 @@ describe('useCloningWorkspaceNotifications', () => {
 
       // Act
       render(<CloningTestComponent />);
-      jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
       await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
+      jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
 
       // Assert
+      // still only called once
+      await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
       expect(cloningWorkspacesStore.get()).toHaveLength(0);
       expect(asMockedFn(clearNotification)).toHaveBeenCalledWith(
         expect.stringContaining(`${clone.namespace}/${clone.name}`)
@@ -113,11 +121,55 @@ describe('useCloningWorkspaceNotifications', () => {
     }
   );
 
+  it.each<{
+    state: WorkspaceState;
+  }>([{ state: 'Cloning' }, { state: 'CloningContainer' }])(
+    'continues polling when the workspace is in $state',
+    async ({ state }) => {
+      // Arrange
+      const clone: WorkspaceInfo = { ...defaultAzureWorkspace.workspace, state };
+      cloningWorkspacesStore.set([clone]);
+      const update: DeepPartial<WorkspaceWrapper> = {
+        workspace: {
+          workspaceId: defaultAzureWorkspace.workspace.workspaceId,
+          state,
+        },
+      };
+      const mockDetailsFn = jest.fn().mockImplementation(() => Promise.resolve(update));
+      const mockAjax: DeepPartial<AjaxContract> = {
+        Workspaces: {
+          workspace: () => ({ details: mockDetailsFn }),
+        },
+      };
+      asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+      jest.useFakeTimers();
+      // Act
+      render(<CloningTestComponent />);
+
+      await (() => Promise.resolve());
+      await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
+      jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
+      await (() => Promise.resolve());
+
+      // Assert
+      await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(2));
+      expect(cloningWorkspacesStore.get()).toHaveLength(1);
+      expect(asMockedFn(clearNotification)).not.toHaveBeenCalled();
+      expect(asMockedFn(notify)).not.toHaveBeenCalled();
+    }
+  );
+
   it('updates the workspace when the state is updated to to CloningContainer', async () => {
     // Arrange
     const clone: WorkspaceInfo = { ...defaultAzureWorkspace.workspace, state: 'Cloning' };
     cloningWorkspacesStore.set([clone]);
-    const mockDetailsFn = jest.fn().mockResolvedValue({ workspace: { state: 'CloningContainer' } });
+    const update: DeepPartial<WorkspaceWrapper> = {
+      workspace: {
+        workspaceId: defaultAzureWorkspace.workspace.workspaceId,
+        state: 'CloningContainer',
+      },
+    };
+    const mockDetailsFn = jest.fn().mockResolvedValue(update);
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () =>
@@ -131,11 +183,10 @@ describe('useCloningWorkspaceNotifications', () => {
 
     // Act
     render(<CloningTestComponent />);
-    jest.advanceTimersByTime(WORKSPACE_UPDATE_POLLING_INTERVAL);
     await waitFor(() => expect(mockDetailsFn).toBeCalledTimes(1));
 
     // Assert
     expect(cloningWorkspacesStore.get()).toHaveLength(1);
-    expect(cloningWorkspacesStore.get()[0].state).toBe('CloningContainer');
+    await waitFor(() => expect(cloningWorkspacesStore.get()[0].state).toBe('CloningContainer'));
   });
 });

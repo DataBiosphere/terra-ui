@@ -1,8 +1,7 @@
 import { Icon, Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import React, { Fragment, ReactNode, useState } from 'react';
-import { div, h, label, p } from 'react-hyperscript-helpers';
+import React, { ReactNode, useState } from 'react';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { AzureBillingProject, BillingProject, CloudPlatform, GCPBillingProject } from 'src/billing-core/models';
 import { supportsPhiTracking } from 'src/billing-core/utils';
@@ -17,7 +16,6 @@ import {
   spinnerOverlay,
   VirtualizedSelect,
 } from 'src/components/common';
-import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { TextArea, ValidatedInput } from 'src/components/input';
 import { allRegions, availableBucketRegions, isSupportedBucketLocation } from 'src/components/region-common';
@@ -418,32 +416,28 @@ export const NewWorkspaceModal = withDisplayName(
         const workspacePoliciesProps: WorkspacePoliciesProps = {
           workspace: cloneWorkspace,
           billingProject: selectedBillingProject,
-          endingNotice: div([
-            endingNotice,
-            div(
-              {
-                style: {
+          endingNotice: (
+            <div>
+              {endingNotice}
+              <div
+                style={{
                   display: 'grid',
                   gridTemplateColumns: 'auto auto',
                   fontWeight: 600,
                   paddingTop: endingNotice ? '1.0rem' : 0,
-                },
-              },
-              [
-                icon('warning-standard', {
-                  size: 18,
-                  style: { marginRight: '0.5rem', color: colors.warning() },
-                }),
-                div([
-                  'Creating a workspace may increase your infrastructure costs',
-                  LinkWithPopout({
-                    href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
-                    children: 'Learn more about cost and follow changes',
-                  }),
-                ]),
-              ]
-            ),
-          ]),
+                }}
+              >
+                <Icon icon='warning-standard' size={18} style={{ marginRight: '0.5rem', color: colors.warning() }} />
+                <div>
+                  Creating a workspace may increase your infrastructure costs
+                  <LinkWithPopout href='https://support.terra.bio/hc/en-us/articles/12029087819291'>
+                    Learn more about cost and follow changes
+                  </LinkWithPopout>
+                  ,
+                </div>
+              </div>
+            </div>
+          ),
         };
         // Allow toggling PHI tracking if:
         // 1. Creating a new workspace and the billing project supports PHI tracking.
@@ -457,281 +451,272 @@ export const NewWorkspaceModal = withDisplayName(
           workspacePoliciesProps.onTogglePhiTracking = (selected: boolean) => setPhiTracking(selected);
           workspacePoliciesProps.togglePhiTrackingChecked = phiTracking;
         }
-        return h(WorkspacePolicies, workspacePoliciesProps);
+        return <WorkspacePolicies {...workspacePoliciesProps} />;
       }
 
       // If we display the Azure policy/workspace section, we render the optional notice within that block
-      return endingNotice ? div({ style: { ...Style.elements.noticeContainer } }, [endingNotice]) : undefined;
+      return endingNotice ? <div style={{ ...Style.elements.noticeContainer }}>{endingNotice}</div> : undefined;
     };
 
     return Utils.cond(
       [loading, () => spinnerOverlay],
       [
         hasBillingProjects,
-        () =>
-          h(
-            Modal,
-            {
-              title: Utils.cond(
-                [!!title, () => title],
-                [!!cloneWorkspace && creating, () => 'Cloning workspace'],
-                [creating, () => 'Creating workspace'],
-                [!!cloneWorkspace, () => 'Clone this workspace'],
-                () => 'Create a New Workspace'
-              ),
-              // Hold modal open while waiting for create workspace request.
-              shouldCloseOnOverlayClick: !creating,
-              shouldCloseOnEsc: !creating,
-              showButtons: !creating,
-              onDismiss,
-              okButton: h(
-                ButtonPrimary,
-                {
-                  disabled: errors,
-                  tooltip: Utils.summarizeErrors(errors),
-                  onClick: create,
-                },
-                [
-                  Utils.cond(
-                    [!!buttonText, () => buttonText],
-                    [!!cloneWorkspace, () => 'Clone Workspace'],
-                    () => 'Create Workspace'
-                  ),
-                ]
-              ),
-              width: 550,
-            },
-            [
-              creating ? (
-                <CreatingWorkspaceMessage />
-              ) : (
-                h(Fragment, [
-                  h(IdContainer, [
-                    (id) =>
-                      h(Fragment, [
-                        h(FormLabel, { htmlFor: id, required: true }, ['Workspace name']),
-                        h(ValidatedInput, {
-                          inputProps: {
-                            id,
-                            autoFocus: true,
-                            placeholder: 'Enter a name',
-                            value: name,
-                            onChange: (v) => {
-                              setName(v);
-                              setNameModified(true);
-                            },
+        () => (
+          <Modal
+            title={Utils.cond(
+              [!!title, () => title],
+              [!!cloneWorkspace && creating, () => 'Cloning workspace'],
+              [creating, () => 'Creating workspace'],
+              [!!cloneWorkspace, () => 'Clone this workspace'],
+              () => 'Create a New Workspace'
+            )}
+            // Hold modal open while waiting for create workspace request.
+            shouldCloseOnOverlayClick={!creating}
+            shouldCloseOnEsc={!creating}
+            showButtons={!creating}
+            onDismiss={onDismiss}
+            okButton={
+              <ButtonPrimary disabled={errors} tooltip={Utils.summarizeErrors(errors)} onClick={create}>
+                {Utils.cond(
+                  [!!buttonText, () => buttonText],
+                  [!!cloneWorkspace, () => 'Clone Workspace'],
+                  () => 'Create Workspace'
+                )}
+              </ButtonPrimary>
+            }
+            width={550}
+          >
+            {creating ? (
+              <CreatingWorkspaceMessage />
+            ) : (
+              <>
+                <IdContainer>
+                  {(id) => (
+                    <>
+                      <FormLabel htmlFor={id} required>
+                        Workspace name
+                      </FormLabel>
+                      <ValidatedInput
+                        inputProps={{
+                          id,
+                          autoFocus: true,
+                          placeholder: 'Enter a name',
+                          value: name,
+                          onChange: (v) => {
+                            setName(v);
+                            setNameModified(true);
                           },
-                          error: Utils.summarizeErrors(nameModified && errors?.name),
-                        }),
-                      ]),
-                  ]),
-                  h(IdContainer, [
-                    (id) =>
-                      h(Fragment, [
-                        h(FormLabel, { htmlFor: id, required: true }, ['Billing project']),
-                        h(VirtualizedSelect, {
-                          id,
-                          isClearable: false,
-                          placeholder: 'Select a billing project',
-                          value: namespace || null,
-                          ariaLiveMessages: { onFocus: onFocusAria, onChange: onChangeAria },
-                          onChange: (opt) => setNamespace(opt!.value),
-                          styles: { option: (provided) => ({ ...provided, padding: 10 }) },
-                          options: _.map((project: BillingProject) => {
-                            const { projectName, invalidBillingAccount, cloudPlatform } = project;
-                            return {
-                              'aria-label': `${
-                                cloudProviderLabels[cloudPlatform]
-                              } ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
-                              label: h(
-                                TooltipTrigger,
-                                {
-                                  content: invalidBillingAccount && invalidBillingAccountMsg,
-                                  side: 'left',
-                                },
-                                [
-                                  div({ style: { display: 'flex', alignItems: 'center' } }, [
-                                    (cloudPlatform === 'GCP' || cloudPlatform === 'AZURE') &&
-                                      h(CloudProviderIcon, {
-                                        key: projectName,
-                                        cloudProvider: cloudPlatform,
-                                        style: { marginRight: '0.5rem' },
-                                      }),
-                                    projectName,
-                                    isAzureBillingProject(project) &&
-                                      project.region &&
-                                      div({ key: `region-${projectName}`, style: { marginLeft: '0.25rem' } }, [
-                                        `(${getRegionLabel(project.region)})`,
-                                      ]),
-                                    isAzureBillingProject(project) &&
-                                      project.protectedData &&
-                                      icon(protectedDataIcon, {
-                                        key: `protected-${projectName}`,
-                                        size: 18,
-                                        'aria-label': protectedDataLabel,
-                                        style: { marginLeft: '0.5rem' },
-                                      }),
-                                  ]),
-                                ]
-                              ),
-                              value: projectName,
-                              isDisabled: invalidBillingAccount,
-                            };
-                          }, _.sortBy('projectName', billingProjects)),
-                        }),
-                      ]),
-                  ]),
-                  isGoogleBillingProject() &&
-                    h(IdContainer, [
-                      (id) =>
-                        h(Fragment, [
-                          h(FormLabel, { htmlFor: id }, [
-                            'Bucket location',
-                            h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-                              'A bucket location can only be set when creating a workspace. ',
-                              'Once set, it cannot be changed. ',
-                              'A cloned workspace will automatically inherit the bucket location from the original workspace but this may be changed at clone time.',
-                              p([
-                                'By default, workflow and Cloud Environments will run in the same region as the workspace bucket. ',
-                                'Changing bucket or Cloud Environment locations from the defaults can lead to network egress charges.',
-                              ]),
-                              h(
-                                Link,
-                                {
-                                  href: 'https://support.terra.bio/hc/en-us/articles/360058964552',
-                                  ...Utils.newTabLinkProps,
-                                },
-                                ['Read more about bucket locations']
-                              ),
-                            ]),
-                          ]),
-                          h(Select as typeof Select<string>, {
-                            id,
-                            value: bucketLocation,
-                            onChange: (opt) => setBucketLocation(opt!.value),
-                            options: isAlphaRegionalityUser ? allRegions : availableBucketRegions,
-                          }),
-                        ]),
-                    ]),
-                  !!selectedBillingProject &&
-                    !!cloneWorkspace &&
-                    h(CloneEgressWarning, {
-                      sourceWorkspace: cloneWorkspace,
-                      sourceAzureWorkspaceRegion,
-                      selectedBillingProject,
-                      requesterPaysWorkspace: requesterPaysError,
-                      selectedGcpBucketLocation: bucketLocation,
-                      sourceGCPWorkspaceRegion,
-                    }),
-                  h(IdContainer, [
-                    (id) =>
-                      h(Fragment, [
-                        h(FormLabel, { htmlFor: id }, ['Description']),
-                        h(TextArea, {
-                          id,
-                          style: { height: 100 },
-                          placeholder: 'Enter a description',
-                          value: description,
-                          onChange: setDescription,
-                        }),
-                      ]),
-                  ]),
-                  isGoogleBillingProject() &&
-                    div({ style: { margin: '1rem 0.25rem 0.25rem 0' } }, [
-                      h(IdContainer, [
-                        (id) =>
-                          h(Fragment, [
-                            h(
-                              LabeledCheckbox,
-                              {
-                                style: { margin: '0rem 0.25rem 0.25rem 0rem' },
-                                checked: enhancedBucketLogging,
-                                disabled:
-                                  !!requireEnhancedBucketLogging || groups.length > 0 || cloningGcpProtectedWorkspace,
-                                onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
-                                'aria-describedby': id,
-                              },
-                              [
-                                label({ style: { ...Style.elements.sectionHeader } }, [
-                                  `Enable ${_.toLower(protectedDataLabel)}`,
-                                ]),
-                              ]
+                        }}
+                        error={Utils.summarizeErrors(nameModified && errors?.name)}
+                      />
+                    </>
+                  )}
+                </IdContainer>
+                <IdContainer>
+                  {(id) => (
+                    <>
+                      <FormLabel htmlFor={id} required>
+                        Billing project
+                      </FormLabel>
+                      <VirtualizedSelect
+                        id={id}
+                        isClearable={false}
+                        placeholder='Select a billing project'
+                        value={namespace || null}
+                        ariaLiveMessages={{ onFocus: onFocusAria, onChange: onChangeAria }}
+                        onChange={(opt) => setNamespace(opt!.value)}
+                        styles={{ option: (provided) => ({ ...provided, padding: 10 }) }}
+                        options={_.map((project: BillingProject) => {
+                          const { projectName, invalidBillingAccount, cloudPlatform } = project;
+                          return {
+                            'aria-label': `${
+                              cloudProviderLabels[cloudPlatform]
+                            } ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
+                            label: (
+                              <TooltipTrigger content={invalidBillingAccount && invalidBillingAccountMsg} side='left'>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                  {(cloudPlatform === 'GCP' || cloudPlatform === 'AZURE') && (
+                                    <CloudProviderIcon
+                                      key={projectName}
+                                      cloudProvider={cloudPlatform}
+                                      style={{ marginRight: '0.5rem' }}
+                                    />
+                                  )}
+                                  {projectName}
+                                  {isAzureBillingProject(project) && project.region && (
+                                    <div key={`region-${projectName}`} style={{ marginLeft: '0.25rem' }}>
+                                      {`(${getRegionLabel(project.region)})`}
+                                    </div>
+                                  )}
+                                  {isAzureBillingProject(project) && project.protectedData && (
+                                    <Icon
+                                      icon={protectedDataIcon}
+                                      key={`protected-${projectName}`}
+                                      size={18}
+                                      style={{ marginLeft: '0.5rem' }}
+                                      aria-label={protectedDataLabel}
+                                    />
+                                  )}
+                                </div>
+                              </TooltipTrigger>
                             ),
-                            h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
-                              protectedDataMessage,
-                            ]),
-                          ]),
-                      ]),
-                    ]),
-                  isGoogleBillingProject() &&
-                    h(IdContainer, [
-                      (id) =>
-                        h(Fragment, [
-                          h(FormLabel, { htmlFor: id }, [
-                            'Authorization domain (optional)',
-                            h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-                              'An authorization domain can only be set when creating a workspace. ',
-                              'Once set, it cannot be changed. ',
-                              'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
-                              h(
-                                Link,
-                                {
-                                  href: 'https://support.terra.bio/hc/en-us/articles/360026775691',
-                                  ...Utils.newTabLinkProps,
-                                },
-                                ['Read more about authorization domains']
-                              ),
-                            ]),
-                          ]),
-                          p({ style: { marginTop: '.25rem' } }, ['Additional group management controls']),
-                          !!existingGroups.length &&
-                            div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
-                              div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
-                              ...existingGroups.join(', '),
-                            ]),
-                          h(Select as typeof Select<string, true>, {
-                            id,
-                            isClearable: false,
-                            isMulti: true,
-                            placeholder: 'Select groups',
-                            isDisabled: !allGroups || !billingProjects,
-                            value: groups,
-                            onChange: (data) => {
-                              setGroups(_.map('value', data));
-                              setEnhancedBucketLogging(!!requireEnhancedBucketLogging || data.length > 0);
-                            },
-                            options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort(),
-                          }),
-                        ]),
-                    ]),
-                  renderPolicyAndWorkspaceInfo(),
-                  workflowImport &&
-                    azureBillingProjectsExist &&
-                    div({ style: { padding: '1.0rem', display: 'flex' } }, [
-                      icon('info-circle', { size: 16, style: { marginRight: '0.5rem', color: colors.accent() } }),
-                      div([
-                        'Importing directly into new Azure workspaces is not currently supported. To create a new workspace with an Azure billing project, visit the main ',
-                        h(
-                          Link,
-                          {
-                            href: Nav.getLink('workspaces'),
-                          },
-                          ['Workspaces']
-                        ),
-                        ' page.',
-                      ]),
-                    ]),
-                  createError &&
-                    div(
-                      {
-                        style: { marginTop: '1rem', color: colors.danger() },
-                      },
-                      [createError]
-                    ),
-                ])
-              ),
-            ]
-          ),
+                            value: projectName,
+                            isDisabled: invalidBillingAccount,
+                          };
+                        }, _.sortBy('projectName', billingProjects))}
+                      />
+                    </>
+                  )}
+                </IdContainer>
+                {isGoogleBillingProject() && (
+                  <IdContainer>
+                    {(id) => (
+                      <>
+                        <FormLabel htmlFor={id}>
+                          Bucket location
+                          <InfoBox style={{ marginLeft: '0.25rem' }}>
+                            A bucket location can only be set when creating a workspace. Once set, it cannot be changed.
+                            A cloned workspace will automatically inherit the bucket location from the original
+                            workspace but this may be changed at clone time.
+                            <p>
+                              By default, workflow and Cloud Environments will run in the same region as the workspace
+                              bucket. Changing bucket or Cloud Environment locations from the defaults can lead to
+                              network egress charges.
+                            </p>
+                            <Link
+                              href='https://support.terra.bio/hc/en-us/articles/360058964552'
+                              {...Utils.newTabLinkProps}
+                            >
+                              Read more about bucket locations
+                            </Link>
+                          </InfoBox>
+                        </FormLabel>
+                        <Select<string>
+                          id={id}
+                          value={bucketLocation}
+                          onChange={(opt) => setBucketLocation(opt!.value)}
+                          options={isAlphaRegionalityUser ? allRegions : availableBucketRegions}
+                        />
+                      </>
+                    )}
+                  </IdContainer>
+                )}
+                {!!selectedBillingProject && !!cloneWorkspace && (
+                  <CloneEgressWarning
+                    sourceWorkspace={cloneWorkspace}
+                    sourceAzureWorkspaceRegion={sourceAzureWorkspaceRegion}
+                    selectedBillingProject={selectedBillingProject}
+                    requesterPaysWorkspace={requesterPaysError}
+                    selectedGcpBucketLocation={bucketLocation}
+                    sourceGCPWorkspaceRegion={sourceGCPWorkspaceRegion}
+                  />
+                )}
+                <IdContainer>
+                  {(id) => (
+                    <>
+                      <FormLabel htmlFor={id}>Description</FormLabel>
+                      <TextArea
+                        id={id}
+                        style={{ height: 100 }}
+                        placeholder='Enter a description'
+                        value={description}
+                        onChange={setDescription}
+                      />
+                    </>
+                  )}
+                </IdContainer>
+                {isGoogleBillingProject() && (
+                  <div style={{ margin: '1rem 0.25rem 0.25rem 0' }}>
+                    <IdContainer>
+                      {(id) => (
+                        <>
+                          <LabeledCheckbox
+                            style={{ margin: '0rem 0.25rem 0.25rem 0rem' }}
+                            checked={enhancedBucketLogging}
+                            disabled={
+                              !!requireEnhancedBucketLogging || groups.length > 0 || cloningGcpProtectedWorkspace
+                            }
+                            onChange={() => setEnhancedBucketLogging(!enhancedBucketLogging)}
+                            aria-describedby={id}
+                          >
+                            {
+                              // the LabeledCheckbox uses an id container, and wraps its children in a span with the id,
+                              // and sets it 'aria-labelledby': id
+                              /* eslint-disable jsx-a11y/label-has-associated-control */
+                            }
+                            <label style={{ ...Style.elements.sectionHeader }}>{`Enable ${_.toLower(
+                              protectedDataLabel
+                            )}`}</label>
+                            {/* eslint-enable jsx-a11y/label-has-associated-control */}
+                          </LabeledCheckbox>
+                          <InfoBox style={{ marginLeft: '0.25rem', verticalAlign: 'middle' }}>
+                            {protectedDataMessage}
+                          </InfoBox>
+                        </>
+                      )}
+                    </IdContainer>
+                  </div>
+                )}
+                {isGoogleBillingProject() && (
+                  <IdContainer>
+                    {(id) => (
+                      <>
+                        <FormLabel htmlFor={id}>
+                          Authorization domain (optional)
+                          <InfoBox style={{ marginLeft: '0.25rem' }}>
+                            An authorization domain can only be set when creating a workspace. Once set, it cannot be
+                            changed. Any cloned workspace will automatically inherit the authorization domain(s) from
+                            the original workspace and cannot be removed.
+                            <Link
+                              href='https://support.terra.bio/hc/en-us/articles/360026775691'
+                              {...Utils.newTabLinkProps}
+                            >
+                              Read more about authorization domains
+                            </Link>
+                          </InfoBox>
+                        </FormLabel>
+                        <p style={{ marginTop: '.25rem' }}>Additional group management controls</p>
+                        {!!existingGroups.length && (
+                          <div style={{ marginBottom: '0.5rem', fontSize: 12 }}>
+                            <div style={{ marginBottom: '0.2rem' }}>Inherited groups:</div>
+                            {existingGroups.join(', ')}
+                          </div>
+                        )}
+                        <Select<string, true>
+                          id={id}
+                          isClearable={false}
+                          isMulti
+                          placeholder='Select groups'
+                          isDisabled={!allGroups || !billingProjects}
+                          value={groups}
+                          onChange={(data) => {
+                            setGroups(_.map('value', data));
+                            setEnhancedBucketLogging(!!requireEnhancedBucketLogging || data.length > 0);
+                          }}
+                          options={_.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()}
+                        />
+                      </>
+                    )}
+                  </IdContainer>
+                )}
+                {renderPolicyAndWorkspaceInfo()}
+                {workflowImport && azureBillingProjectsExist && (
+                  <div style={{ padding: '1.0rem', display: 'flex' }}>
+                    <Icon icon='info-circle' size={16} style={{ marginRight: '0.5rem', color: colors.accent() }} />,
+                    <div>
+                      Importing directly into new Azure workspaces is not currently supported. To create a new workspace
+                      with an Azure billing project, visit the main
+                      <Link href={Nav.getLink('workspaces')}>Workspaces</Link>
+                      page.
+                    </div>
+                  </div>
+                )}
+                {createError && <div style={{ marginTop: '1rem', color: colors.danger() }}>{createError}</div>}
+              </>
+            )}
+          </Modal>
+        ),
       ],
       () => (
         <NoBillingModal

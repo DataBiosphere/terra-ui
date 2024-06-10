@@ -1,12 +1,13 @@
 import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonPrimary, Link } from 'src/components/common';
+import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
@@ -19,12 +20,13 @@ import {
   parseMethodString,
   WorkflowMetadata,
 } from 'src/workflows-app/utils/submission-utils';
+import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
 import { loadAppUrls } from '../utils/app-utils';
 import { getFilteredRuns } from '../utils/method-common';
 import { LogTooltips } from '../utils/task-log-utils';
 import FilterSubmissionsDropdown, { FilterOptions } from './FilterSubmissionsDropdown';
-import { LogInfo } from './LogViewer';
+import { FetchedLogData, LogInfo } from './LogViewer';
 
 type Run = {
   duration: number;
@@ -64,17 +66,21 @@ type FilterableWorkflowTableProps = {
 };
 
 /**
- * Transform the keys to a more user friendly form, e.g. 'fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID' => 'fetch_sra_to_bam.SRA_ID'.
- * @param keyValuePairs Pairs of keys and values whose key task prefixes will be stripped
- * @returns a new object with modified keys
+ * Workflow Inputs and Outputs are "fully qualified" and come in the form:
+ *    WorkflowName.CallName.VariableName (for task input/outputs) or
+ *    WorkflowName.VariableName (for workflow inputs/outputs)
+ * Keep in mind that CallName may be multiple segments in the case of nested workflows.
+ * When displaying these, there is no need to include the workflow name as it is already present elsewhere on the page.
+ * Here, we strip away the first part of the key (expected to be the workflow name) to make it shorter and more readable.
+ * @param keyValuePairs A map from fully qualified variable name to value.
+ * @returns A map where the fully qualified variable name has been stripped of the workflow name prefix.
  */
-const stripTaskPrefixFromKeys = <T extends Record<string, any>>(keyValuePairs: T): { [k: string]: any } => {
-  return Object.fromEntries(
-    Object.entries(keyValuePairs).map(([key, value]) => [
-      `${parseMethodString(key).workflow}.\n${parseMethodString(key).variable}`,
-      value,
-    ])
-  );
+const stripWorkflowPrefixFromKeys = <T extends Record<string, any>>(keyValuePairs: T): { [k: string]: any } => {
+  const shortenKey = (key: string): string => {
+    const { call, variable } = parseMethodString(key);
+    return call ? `${call}.${variable}` : variable;
+  };
+  return Object.fromEntries(Object.entries(keyValuePairs).map(([key, value]) => [shortenKey(key), value]));
 };
 
 const FilterableWorkflowTable = ({
@@ -93,6 +99,8 @@ const FilterableWorkflowTable = ({
   const [sort, setSort] = useState({ field: 'duration', direction: 'desc' });
   const [viewErrorsId, setViewErrorsId] = useState<number>();
   const [currentWorkflow, setCurrentWorkflow] = useState<WorkflowMetadata>();
+  const [appId, setAppId] = useState<RegExpMatchArray | null>();
+  const [taskName, setTaskName] = useState<string>();
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR'];
   const signal = useCancellation();
@@ -206,16 +214,52 @@ const FilterableWorkflowTable = ({
     [workspaceId, signal, includeKeys, excludeKeys]
   );
 
-  const getWorkflow = async (rowIndex: number): Promise<WorkflowMetadata | undefined> => {
-    if (currentWorkflow && currentWorkflow.id === paginatedPreviousRuns[rowIndex].engine_id) {
-      return currentWorkflow;
-    }
-    const workflow: WorkflowMetadata | undefined = await loadWorkflow(paginatedPreviousRuns[rowIndex].engine_id);
+  const getWorkflow = useCallback(
+    async (rowIndex: number): Promise<WorkflowMetadata | undefined> => {
+      if (currentWorkflow && currentWorkflow.id === paginatedPreviousRuns[rowIndex].engine_id) {
+        return currentWorkflow;
+      }
+      if (!paginatedPreviousRuns[rowIndex]) {
+        return undefined;
+      }
+      const workflow: WorkflowMetadata | undefined = await loadWorkflow(paginatedPreviousRuns[rowIndex].engine_id);
+      if (workflow !== undefined) {
+        setCurrentWorkflow(workflow);
+      }
+      return workflow;
+    },
+    [currentWorkflow, loadWorkflow, paginatedPreviousRuns]
+  );
+
+  const fetchLogContent = useCallback(
+    async (azureBlobUri: string): Promise<FetchedLogData | null> => {
+      if (!isAzureUri(azureBlobUri)) {
+        return null;
+      }
+      try {
+        const response = await Ajax(signal).AzureStorage.blobByUri(azureBlobUri).getMetadataAndTextContent();
+        const uri = _.isEmpty(response.azureSasStorageUrl) ? response.azureStorageUrl : response.azureSasStorageUrl;
+        return { textContent: response.textContent, downloadUri: uri };
+      } catch (e) {
+        return null;
+      }
+    },
+    [signal]
+  );
+
+  const getAppIdAndTaskName = useCallback(async () => {
+    const workflow: WorkflowMetadata | undefined = await getWorkflow(0);
     if (workflow !== undefined) {
-      setCurrentWorkflow(workflow);
+      setTaskName(workflow.workflowName);
+      const logs = await fetchLogContent(workflow.workflowLog);
+      const textContent = logs !== null ? logs.textContent : null;
+      setAppId(textContent !== null && textContent ? textContent.match('terra-app-[0-9a-fA-f-]*') : null);
     }
-    return workflow;
-  };
+  }, [getWorkflow, fetchLogContent]);
+
+  useEffect(() => {
+    getAppIdAndTaskName();
+  }, [getAppIdAndTaskName]);
 
   return div(
     {
@@ -251,7 +295,13 @@ const FilterableWorkflowTable = ({
             h(
               Link,
               {
-                href: Nav.getLink('workspace-files', { name: workspaceName, namespace }),
+                href: Nav.getLink(
+                  'workspace-files',
+                  { name: workspaceName, namespace },
+                  {
+                    path: `workspace-services/cbas/${appId}/${taskName}/`,
+                  }
+                ),
                 target: '_blank',
               },
               [icon('folder-open', { size: 18 }), '\tSubmission Execution Directory']
@@ -362,16 +412,45 @@ const FilterableWorkflowTable = ({
                       {
                         size: { basis: 400, grow: 0 },
                         field: 'workflowId',
-                        headerRenderer: () =>
-                          h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
+                        headerRenderer: () => [
+                          h(Sortable, { key: 'workflow ID header', sort, field: 'workflowId', onSort: setSort }, [
+                            'Workflow ID',
+                          ]),
+                          h(
+                            Clickable,
+                            {
+                              key: 'tooltip icon',
+                              tooltip: 'Click the workflow ID to go to the execution directory',
+                              useTooltipAsLabel: true,
+                            },
+                            [icon('cardMenuIcon')]
+                          ),
+                        ],
                         cellRenderer: ({ rowIndex }) => {
-                          const engineId = paginatedPreviousRuns[rowIndex].engine_id;
-                          if (engineId !== undefined) {
-                            return h(TextCell, [
-                              span({ style: { marginRight: '0.5rem' } }, [engineId]),
-                              span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
-                            ]);
+                          if (paginatedPreviousRuns[rowIndex].engine_id) {
+                            const engineId = paginatedPreviousRuns[rowIndex].engine_id;
+                            if (engineId !== undefined) {
+                              return h(TextCell, [
+                                h(
+                                  Link,
+                                  {
+                                    style: { marginRight: '0.5rem' },
+                                    href: Nav.getLink(
+                                      'workspace-files',
+                                      { name: workspaceName, namespace },
+                                      {
+                                        path: `workspace-services/cbas/${appId}/${taskName}/${engineId}/`,
+                                      }
+                                    ),
+                                    target: '_blank',
+                                  },
+                                  [engineId]
+                                ),
+                                span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
+                              ]);
+                            }
                           }
+                          return div(['Error: Workflow ID not found']);
                         },
                       },
                       {
@@ -394,7 +473,7 @@ const FilterableWorkflowTable = ({
                                     setTaskDataModal({ taskDataTitle: 'Inputs', taskJson: null });
                                     const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
                                     if (workflow !== undefined) {
-                                      const shortenedInputs = stripTaskPrefixFromKeys(workflow.inputs);
+                                      const shortenedInputs = stripWorkflowPrefixFromKeys(workflow.inputs);
                                       setTaskDataModal({ taskDataTitle: 'Inputs', taskJson: shortenedInputs });
                                     }
                                   },
@@ -408,7 +487,7 @@ const FilterableWorkflowTable = ({
                                     setTaskDataModal({ taskDataTitle: 'Outputs', taskJson: null });
                                     const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
                                     if (workflow !== undefined) {
-                                      const shortenedOutputs = stripTaskPrefixFromKeys(workflow.outputs);
+                                      const shortenedOutputs = stripWorkflowPrefixFromKeys(workflow.outputs);
                                       setTaskDataModal({ taskDataTitle: 'Outputs', taskJson: shortenedOutputs });
                                     }
                                   },

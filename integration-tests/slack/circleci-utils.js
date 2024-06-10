@@ -2,6 +2,13 @@ const _ = require('lodash/fp');
 const fetch = require('node-fetch');
 const { parse } = require('path');
 
+const checkStatus = (response) => {
+  if (response.ok) {
+    return response;
+  }
+  throw new Error(`HTTP error response status: ${response.status} ${response.statusText}`);
+};
+
 /**
  * Fetch CircleCI artifact links to tests summary JSON files (created in onRunComplete() in jest-reporter.js)
  * @param {string} token
@@ -13,17 +20,19 @@ const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {
     throw new Error('**  ERROR: Missing CircleCI build number. Failed to fetch CircleCI job artifacts.');
   }
 
-  // For more arguments and details of the response, see: https://circleci.com/docs/api/v2/index.html#operation/getJobArtifacts
-  const apiUrlRoot = 'https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui';
+  const apiUrlRoot = 'https://circleci.com/api/v1.1/project/github/DataBiosphere/terra-ui';
   try {
     // Because terra-ui is a public repository on GitHub, API token is not required. See: https://circleci.com/docs/oss#security
     const response = await fetch(`${apiUrlRoot}/${buildNum}/artifacts`);
-    const { items } = await response.json();
+    checkStatus(response);
+
+    const items = await response.json();
     const testSummaryArtifacts = _.filter(_.flow(_.get('path'), _.includes('tests-summary')), items);
     return _.map('url', testSummaryArtifacts);
-  } catch (e) {
-    console.error(`**  ERROR: Encountered error when getting CircleCI JOB_BUILD_NUM: ${buildNum} artifacts.`, e);
-    throw e;
+  } catch (error) {
+    console.error(`** ERROR fetching CircleCI artifacts for JOB_BUILD_NUM: ${buildNum}`);
+    console.error(error);
+    throw error;
   }
 };
 
@@ -45,6 +54,7 @@ const getFailedTestNames = (aggregatedResults) => {
  */
 const getFailedTestNamesFromArtifacts = async () => {
   const urls = await fetchJobArtifacts();
+  console.log(`Build artifacts URLs: \n${urls.map((url) => `* ${url}`).join('\n')}\n`);
   return _.flatten(
     await Promise.all(
       _.map(async (url) => {

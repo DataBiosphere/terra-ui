@@ -1,6 +1,16 @@
-import { canWrite, getCloudProviderFromWorkspace, isProtectedWorkspace, WorkspaceWrapper } from 'src/workspaces/utils';
+import {
+  canWrite,
+  getCloudProviderFromWorkspace,
+  isOwner,
+  isProtectedWorkspace,
+  WorkspaceWrapper,
+} from 'src/workspaces/utils';
 
-import { getRequiredCloudPlatform, requiresSecurityMonitoring } from './import-requirements';
+import {
+  getRequiredCloudPlatform,
+  importWillUpdateAccessControl,
+  requiresSecurityMonitoring,
+} from './import-requirements';
 import { ImportRequest } from './import-types';
 
 export type ImportOptions = {
@@ -25,8 +35,11 @@ export const buildDestinationWorkspaceFilter = (
   const requiredCloudPlatform = getRequiredCloudPlatform(importRequest);
 
   return (workspace: WorkspaceWrapper): boolean => {
-    // The user must be able to write to the workspace to import data.
-    if (!canWrite(workspace.accessLevel)) {
+    // For all imports, the user must be able to write to the workspace to import data.
+    // Importing controlled access data applies the data's access controls to the destination workspace.
+    // In order to update the workspace's access controls, the user must be an owner of the workspace.
+    const importMayUpdateAccessControl = importWillUpdateAccessControl(importRequest, workspace) !== false;
+    if (!canWrite(workspace.accessLevel) || (importMayUpdateAccessControl && !isOwner(workspace.accessLevel))) {
       return false;
     }
 
