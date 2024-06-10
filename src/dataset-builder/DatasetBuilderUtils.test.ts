@@ -4,7 +4,6 @@ import {
   Cohort,
   convertCohort,
   convertCriteria,
-  convertValueSet,
   createSnapshotAccessRequest,
   CriteriaGroup,
   DomainConceptSet,
@@ -13,8 +12,6 @@ import {
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
   ProgramDomainCriteria,
-  SnapshotAccessRequest,
-  ValueSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { testSnapshotId } from 'src/dataset-builder/TestConstants';
 import {
@@ -146,27 +143,12 @@ const cohort: Cohort = { name: 'cohort', criteriaGroups: [criteriaGroup] };
 
 const cohortApi: SnapshotBuilderCohort = { name: 'cohort', criteriaGroups: [criteriaGroupApi] };
 
-const valueSet: ValueSet = { domain: 'valueDomain', values: [{ name: 'valueName' }] };
-
-const valueSetApi: SnapshotBuilderFeatureValueGroup = { name: 'valueDomain', values: ['valueName'] };
+const valueSetApi: SnapshotBuilderFeatureValueGroup = { name: 'conceptSetName', values: [] };
 
 const conceptSet: DomainConceptSet = {
   name: 'conceptSetName',
   concept,
   featureValueGroupName: 'featureValueGroupName',
-};
-
-const datasetAccessRequest: SnapshotAccessRequest = {
-  name: 'RequestName',
-  researchPurposeStatement: 'purpose',
-  datasetRequest: { cohorts: [cohort], conceptSets: [conceptSet], valueSets: [valueSet] },
-};
-
-const datasetAccessRequestApi: SnapshotAccessRequestApi = {
-  sourceSnapshotId: testSnapshotId,
-  name: 'RequestName',
-  researchPurposeStatement: 'purpose',
-  snapshotBuilderRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
 };
 
 describe('test conversion of criteria', () => {
@@ -187,23 +169,18 @@ describe('test conversion of a cohort', () => {
   });
 });
 
-describe('test conversion of valueSets', () => {
-  test('valueSet converted to valueSetApi', () => {
-    expect(convertValueSet(valueSet)).toStrictEqual(valueSetApi);
-  });
-});
-
 describe('test conversion of DatasetAccessRequest', () => {
   test('datasetAccessRequest converted to datasetAccessRequestApi', () => {
+    const name = 'RequestName';
+    const researchPurposeStatement = 'purpose';
+    const datasetAccessRequestApi: SnapshotAccessRequestApi = {
+      sourceSnapshotId: testSnapshotId,
+      name,
+      researchPurposeStatement,
+      snapshotBuilderRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
+    };
     expect(
-      createSnapshotAccessRequest(
-        datasetAccessRequest.name,
-        datasetAccessRequest.researchPurposeStatement,
-        testSnapshotId,
-        datasetAccessRequest.datasetRequest.cohorts,
-        datasetAccessRequest.datasetRequest.conceptSets,
-        datasetAccessRequest.datasetRequest.valueSets
-      )
+      createSnapshotAccessRequest(name, researchPurposeStatement, testSnapshotId, [cohort], [conceptSet])
     ).toStrictEqual(datasetAccessRequestApi);
   });
 });

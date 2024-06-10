@@ -69,33 +69,6 @@ export interface CriteriaGroup {
 export interface Cohort extends DatasetBuilderType {
   criteriaGroups: CriteriaGroup[];
 }
-
-export type DatasetBuilderValue = DatasetBuilderType;
-
-export type ValueSet = {
-  domain: string;
-  values: DatasetBuilderValue[];
-};
-
-export type SnapshotBuilderRequest = {
-  cohorts: Cohort[];
-  conceptSets: SnapshotBuilderDatasetConceptSet[];
-  valueSets: ValueSet[];
-};
-
-export type SnapshotAccessRequest = {
-  name: string;
-  researchPurposeStatement: string;
-  datasetRequest: SnapshotBuilderRequest;
-};
-
-export const convertValueSet = (valueSet: ValueSet): SnapshotBuilderFeatureValueGroup => {
-  return {
-    name: valueSet.domain,
-    values: _.map('name', valueSet.values),
-  };
-};
-
 export const convertCohort = (cohort: Cohort): SnapshotBuilderCohort => {
   return {
     name: cohort.name,
@@ -137,8 +110,7 @@ export const createSnapshotAccessRequest = (
   researchPurposeStatement: string,
   snapshotId: string,
   cohorts: Cohort[],
-  conceptSets: SnapshotBuilderDatasetConceptSet[],
-  valueSets: ValueSet[]
+  conceptSets: SnapshotBuilderDatasetConceptSet[]
 ): SnapshotAccessRequestApi => {
   return {
     name,
@@ -147,10 +119,17 @@ export const createSnapshotAccessRequest = (
     snapshotBuilderRequest: {
       cohorts: _.map(convertCohort, cohorts),
       conceptSets,
-      valueSets: _.map(convertValueSet, valueSets),
+      valueSets: _.map(convertConceptSetsToValueSets, conceptSets),
     },
   };
 };
+
+const convertConceptSetsToValueSets = (
+  conceptSet: SnapshotBuilderDatasetConceptSet
+): SnapshotBuilderFeatureValueGroup => ({
+  name: conceptSet.name,
+  values: [],
+});
 
 export const createSnapshotBuilderCountRequest = (cohort: Cohort[]): SnapshotBuilderCountRequest => {
   return { cohorts: _.map(convertCohort, cohort) };

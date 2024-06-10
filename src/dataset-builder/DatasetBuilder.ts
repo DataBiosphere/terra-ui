@@ -15,7 +15,6 @@ import {
   Cohort,
   createSnapshotAccessRequest,
   createSnapshotBuilderCountRequest,
-  DatasetBuilderValue,
   DomainConceptSet,
   formatCount,
   PrepackagedConceptSet,
@@ -27,7 +26,6 @@ import {
   SnapshotAccessRequestResponse,
   SnapshotBuilderCountResponse,
   SnapshotBuilderDatasetConceptSet as ConceptSet,
-  SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
   SnapshotBuilderSettings,
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
@@ -151,7 +149,7 @@ const Selector: SelectorComponent = <T extends DatasetBuilderType>(props) => {
     datasetBuilderObjectSets &&
     _.flatMap((datasetBuilderObjectSet) => datasetBuilderObjectSet.values, datasetBuilderObjectSets).length > 0;
 
-  return li({ style: { width: '30%', ...style } }, [
+  return li({ style: { width: '50%', ...style } }, [
     div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' } }, [
       div({ style: { display: 'flex' } }, [
         div(
@@ -415,40 +413,6 @@ export const ConceptSetSelector = ({
   });
 };
 
-export const ValuesSelector = ({
-  selectedValues,
-  values,
-  onChange,
-}: {
-  selectedValues: HeaderAndValues<DatasetBuilderValue>[];
-  values: HeaderAndValues<DatasetBuilderValue>[];
-  onChange: (values: HeaderAndValues<DatasetBuilderValue>[]) => void;
-}) => {
-  return h(Selector, {
-    headerAction: div([
-      h(
-        LabeledCheckbox,
-        {
-          checked: values.length !== 0 && _.isEqual(values, selectedValues),
-          onChange: (checked) => (checked ? onChange(values) : onChange([])),
-          disabled: values.length === 0,
-        },
-        [label({ style: { paddingLeft: '0.5rem' } }, ['Select All'])]
-      ),
-    ]),
-    number: 3,
-    onChange,
-    objectSets: values,
-    selectedObjectSets: selectedValues,
-    header: 'Select values (columns)',
-    placeholder: div([
-      div(['No inputs selected']),
-      div(['You can view the available values by selecting at least one cohort and concept set']),
-    ]),
-    style: { width: '40%', marginLeft: '1rem' },
-  });
-};
-
 interface RequestAccessModalProps {
   onDismiss: () => void;
   snapshotId: string;
@@ -550,8 +514,6 @@ export const DatasetBuilderContents = ({
 }: DatasetBuilderContentsProps) => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
-  const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
-  const [values, setValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [requestingAccess, setRequestingAccess] = useState(false);
   const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
     useLoadedData<SnapshotBuilderCountResponse>();
@@ -560,8 +522,7 @@ export const DatasetBuilderContents = ({
   const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
   const allConceptSets: ConceptSet[] = useMemo(() => _.flatMap('values', selectedConceptSets), [selectedConceptSets]);
 
-  const requestValid =
-    allCohorts.length > 0 && allConceptSets.length > 0 && _.flatMap('values', selectedValues).length > 0;
+  const requestValid = allCohorts.length > 0 && allConceptSets.length > 0;
 
   useEffect(() => {
     requestValid &&
@@ -570,43 +531,7 @@ export const DatasetBuilderContents = ({
           DataRepo().snapshot(snapshotId).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
         )
       );
-  }, [snapshotId, selectedValues, setSnapshotRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
-
-  const getNewFeatureValueGroups = (includedFeatureValueGroups: string[]): string[] =>
-    _.without(
-      [
-        ..._.flatMap(
-          (selectedValueGroups: HeaderAndValues<DatasetBuilderValue>) => selectedValueGroups.header,
-          selectedValues
-        ),
-        ..._.flow(
-          _.flatMap((selectedConceptSetGroup: HeaderAndValues<ConceptSet>) => selectedConceptSetGroup.values),
-          _.map((selectedConceptSet) => selectedConceptSet.featureValueGroupName)
-        )(selectedConceptSets),
-      ],
-      includedFeatureValueGroups
-    );
-
-  const getAvailableValuesFromFeatureGroups = (featureValueGroups: string[]): HeaderAndValues<DatasetBuilderValue>[] =>
-    _.flow(
-      _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
-      _.sortBy('name'),
-      _.map((featureValueGroup: FeatureValueGroup) => ({
-        header: featureValueGroup.name,
-        values: _.map((value) => ({ name: value }), featureValueGroup.values),
-      }))
-    )(snapshotBuilderSettings.featureValueGroups);
-
-  const createHeaderAndValuesFromFeatureValueGroups = (
-    featureValueGroups: string[]
-  ): HeaderAndValues<DatasetBuilderValue>[] =>
-    _.flow(
-      _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
-      _.map((featureValueGroup: FeatureValueGroup) => ({
-        header: featureValueGroup.name,
-        values: _.map((value) => ({ name: value }), featureValueGroup.values),
-      }))
-    )(snapshotBuilderSettings.featureValueGroups);
+  }, [snapshotId, setSnapshotRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
@@ -630,25 +555,8 @@ export const DatasetBuilderContents = ({
             prepackagedConceptSets: snapshotBuilderSettings.datasetConceptSets,
             selectedConceptSets,
             updateConceptSets,
-            onChange: async (conceptSets) => {
-              const includedFeatureValueGroups = _.flow(
-                _.flatMap((headerAndValues: HeaderAndValues<ConceptSet>) => headerAndValues.values),
-                _.map((conceptSet: ConceptSet) => conceptSet.featureValueGroupName)
-              )(conceptSets);
-              const newFeatureValueGroups = getNewFeatureValueGroups(includedFeatureValueGroups);
-              setSelectedValues([
-                ...selectedValues,
-                ...createHeaderAndValuesFromFeatureValueGroups(newFeatureValueGroups),
-              ]);
-              setSelectedConceptSets(conceptSets);
-              setValues(getAvailableValuesFromFeatureGroups(includedFeatureValueGroups));
-            },
+            onChange: setSelectedConceptSets,
             onStateChange,
-          }),
-          h(ValuesSelector, {
-            selectedValues,
-            values,
-            onChange: setSelectedValues,
           }),
         ]),
       ]),
@@ -667,22 +575,7 @@ export const DatasetBuilderContents = ({
                 async () =>
                   await DataRepo()
                     .snapshotAccessRequest()
-                    .createSnapshotAccessRequest(
-                      createSnapshotAccessRequest(
-                        '',
-                        '',
-                        snapshotId,
-                        cohorts,
-                        conceptSets,
-                        _.map(
-                          (valuesSet: HeaderAndValues<DatasetBuilderValue>) => ({
-                            domain: valuesSet.header,
-                            values: valuesSet.values,
-                          }),
-                          selectedValues // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
-                        )
-                      )
-                    )
+                    .createSnapshotAccessRequest(createSnapshotAccessRequest('', '', snapshotId, cohorts, conceptSets))
               )
             );
             setRequestingAccess(true);
