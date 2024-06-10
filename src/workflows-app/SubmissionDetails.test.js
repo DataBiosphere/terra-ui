@@ -1302,9 +1302,9 @@ describe('Submission Details page', () => {
           .getAllByRole('cell')
           .map((el) => el.textContent);
 
-      expect(getRowContent(1)).toEqual(['fetch_sra_to_bam.\nSRA_ID', 'SRR13379731']);
-      expect(getRowContent(2)).toEqual(['fetch_sra_to_bam.\nmachine_mem_gb', '']);
-      expect(getRowContent(3)).toEqual(['fetch_sra_to_bam.\ndocker', 'quay.io/broadinstitute/ncbi-tools:2.10.7.10']);
+      expect(getRowContent(1)).toEqual(['Fetch_SRA_to_BAM.SRA_ID', 'SRR13379731']);
+      expect(getRowContent(2)).toEqual(['Fetch_SRA_to_BAM.machine_mem_gb', '']);
+      expect(getRowContent(3)).toEqual(['Fetch_SRA_to_BAM.docker', 'quay.io/broadinstitute/ncbi-tools:2.10.7.10']);
     }
   });
 
@@ -1395,18 +1395,18 @@ describe('Submission Details page', () => {
       const headers = within(rows[0]).getAllByRole('columnheader');
       expect(headers).toHaveLength(2);
 
-      expect(getRowContent(1)).toEqual(['fetch_sra_to_bam.\nsra_metadata', 'SRR13379731.json']);
-      expect(getRowContent(2)).toEqual(['fetch_sra_to_bam.\nreads_ubam', 'SRR13379731.bam']);
-      expect(getRowContent(3)).toEqual(['fetch_sra_to_bam.\nbiosample_accession', 'kljkl2kj']);
-      expect(getRowContent(4)).toEqual(['fetch_sra_to_bam.\nsample_geo_loc', 'USA']);
-      expect(getRowContent(5)).toEqual(['fetch_sra_to_bam.\nsample_collection_date', '2020-11-30']);
-      expect(getRowContent(6)).toEqual(['fetch_sra_to_bam.\nsequencing_center', 'SEQ_CENTER']);
-      expect(getRowContent(7)).toEqual(['fetch_sra_to_bam.\nsequencing_platform', 'PLATFORM COMPANY']);
-      expect(getRowContent(8)).toEqual(['fetch_sra_to_bam.\nlibrary_id', 'ST-VALUE-2012556126']);
-      expect(getRowContent(9)).toEqual(['fetch_sra_to_bam.\nrun_date', '2022-06-22']);
-      expect(getRowContent(10)).toEqual(['fetch_sra_to_bam.\nsample_collected_by', 'Random lab']);
-      expect(getRowContent(11)).toEqual(['fetch_sra_to_bam.\nsample_strain', 'SARS-CoV-2/USA/44165/2020']);
-      expect(getRowContent(12)).toEqual(['fetch_sra_to_bam.\nsequencing_platform_model', 'NextSeq 550']);
+      expect(getRowContent(1)).toEqual(['sra_metadata', 'SRR13379731.json']);
+      expect(getRowContent(2)).toEqual(['reads_ubam', 'SRR13379731.bam']);
+      expect(getRowContent(3)).toEqual(['biosample_accession', 'kljkl2kj']);
+      expect(getRowContent(4)).toEqual(['sample_geo_loc', 'USA']);
+      expect(getRowContent(5)).toEqual(['sample_collection_date', '2020-11-30']);
+      expect(getRowContent(6)).toEqual(['sequencing_center', 'SEQ_CENTER']);
+      expect(getRowContent(7)).toEqual(['sequencing_platform', 'PLATFORM COMPANY']);
+      expect(getRowContent(8)).toEqual(['library_id', 'ST-VALUE-2012556126']);
+      expect(getRowContent(9)).toEqual(['run_date', '2022-06-22']);
+      expect(getRowContent(10)).toEqual(['sample_collected_by', 'Random lab']);
+      expect(getRowContent(11)).toEqual(['sample_strain', 'SARS-CoV-2/USA/44165/2020']);
+      expect(getRowContent(12)).toEqual(['sequencing_platform_model', 'NextSeq 550']);
     }
   });
 
