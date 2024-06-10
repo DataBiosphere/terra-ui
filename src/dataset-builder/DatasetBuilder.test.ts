@@ -20,7 +20,6 @@ import {
   DatasetBuilderContents,
   DatasetBuilderView,
   OnStateChangeHandler,
-  ValuesSelector,
 } from './DatasetBuilder';
 import { testSnapshotBuilderSettings, testSnapshotId } from './TestConstants';
 
@@ -134,15 +133,6 @@ describe('DatasetBuilder', () => {
       })
     );
 
-  const renderValuesSelector = (valuesValueSets) =>
-    render(
-      h(ValuesSelector, {
-        selectedValues: [],
-        onChange: (conceptSets) => conceptSets,
-        values: valuesValueSets,
-      })
-    );
-
   const mockCreateSnapshotAccessRequest = jest.fn().mockResolvedValue({
     id: '',
     sourceSnapshotId: '',
@@ -204,27 +194,12 @@ describe('DatasetBuilder', () => {
     expect(screen.getByText('Prepackaged concept sets')).toBeTruthy();
   });
 
-  it('renders values with different headers', () => {
-    const valuesValueSets = [
-      { header: 'Person', values: [{ name: 'person field 1' }, { name: 'person field 2' }] },
-      { header: 'Condition', values: [{ name: 'condition field 1' }] },
-      { header: 'Procedure', values: [{ name: 'procedure field 1' }] },
-    ];
-    renderValuesSelector(valuesValueSets);
-
-    _.forEach((valueSet) => {
-      expect(screen.getByText(valueSet.header)).toBeTruthy();
-      _.forEach((value) => expect(screen.getByText(value.name)).toBeTruthy(), valueSet.values);
-    }, valuesValueSets);
-  });
-
   it('renders dataset builder contents with cohorts and concept sets', () => {
     // Arrange
     showDatasetBuilderContents();
     // Assert
     expect(screen.getByText('Select cohorts')).toBeTruthy();
     expect(screen.getByText('Select concept sets')).toBeTruthy();
-    expect(screen.getByText('Select values (columns)')).toBeTruthy();
   });
 
   it('allows selecting cohorts, concept sets, and values', async () => {
@@ -241,42 +216,12 @@ describe('DatasetBuilder', () => {
     // Act
     await user.click(screen.getByLabelText('cohort 1'));
     await user.click(screen.getByLabelText('concept set 1'));
-    await user.click(screen.getByLabelText('condition column 1'));
 
     // Assert
     expect(screen.getByLabelText('cohort 1')).toBeChecked();
     expect(screen.getByLabelText('cohort 2')).not.toBeChecked();
     expect(screen.getByLabelText('concept set 1')).toBeChecked();
     expect(screen.getByLabelText('concept set 2')).not.toBeChecked();
-    expect(screen.getByLabelText('condition column 1')).not.toBeChecked();
-    expect(screen.getByLabelText('condition column 2')).toBeChecked();
-  });
-
-  it('maintains old values selections', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    mockDataRepo([getSnapshotBuilderCountMock()]);
-    await initializeValidDatasetRequest(user);
-    await user.click(screen.getByLabelText('condition column 1'));
-    await user.click(screen.getByLabelText('concept set 1'));
-    await user.click(screen.getByLabelText('concept set 1'));
-
-    // Assert
-    expect(screen.getByLabelText('condition column 1')).not.toBeChecked();
-    expect(screen.getByLabelText('condition column 2')).toBeChecked();
-  });
-
-  it('places selectable values defaulted to selected when concept set is selected', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    showDatasetBuilderContents({
-      conceptSets: [{ name: 'concept set 1', concept, featureValueGroupName: 'Condition' }],
-    });
-    // Act
-    await user.click(screen.getByLabelText('concept set 1'));
-    // Assert
-    expect(screen.getByLabelText('condition column 1')).toBeChecked();
-    expect(screen.getByText('Condition')).toBeTruthy();
   });
 
   it('shows the home page by default', async () => {
