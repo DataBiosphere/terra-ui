@@ -14,7 +14,12 @@ import { useCancellation } from 'src/libs/react-utils';
 import { AppProxyUrlStatus } from 'src/libs/state';
 import { customFormatDuration, differenceFromNowInSeconds } from 'src/libs/utils';
 import { statusType } from 'src/workflows-app/components/job-common';
-import { fetchMetadata, makeStatusLine, WorkflowMetadata } from 'src/workflows-app/utils/submission-utils';
+import {
+  fetchMetadata,
+  makeStatusLine,
+  parseMethodString,
+  WorkflowMetadata,
+} from 'src/workflows-app/utils/submission-utils';
 import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
 import { loadAppUrls } from '../utils/app-utils';
@@ -62,20 +67,20 @@ type FilterableWorkflowTableProps = {
 
 /**
  * Workflow Inputs and Outputs are "fully qualified" and come in the form:
- *    WorkflowName.TaskName.VariableName (for task input/outputs) or
+ *    WorkflowName.CallName.VariableName (for task input/outputs) or
  *    WorkflowName.VariableName (for workflow inputs/outputs)
- * Keep in mind that TaskName may be multiple segments in the case of nested workflows.
+ * Keep in mind that CallName may be multiple segments in the case of nested workflows.
  * When displaying these, there is no need to include the workflow name as it is already present elsewhere on the page.
  * Here, we strip away the first part of the key (expected to be the workflow name) to make it shorter and more readable.
  * @param keyValuePairs A map from fully qualified variable name to value.
  * @returns A map where the fully qualified variable name has been stripped of the workflow name prefix.
  */
 const stripWorkflowPrefixFromKeys = <T extends Record<string, any>>(keyValuePairs: T): { [k: string]: any } => {
-  const maybeRemovePrefix = (key: string): string => {
-    const parts = key.split('.');
-    return parts.length > 1 ? parts.slice(1).join('.') : key;
+  const shortenKey = (key: string): string => {
+    const { call, variable } = parseMethodString(key);
+    return call ? `${call}.${variable}` : variable;
   };
-  return Object.fromEntries(Object.entries(keyValuePairs).map(([key, value]) => [maybeRemovePrefix(key), value]));
+  return Object.fromEntries(Object.entries(keyValuePairs).map(([key, value]) => [shortenKey(key), value]));
 };
 
 const FilterableWorkflowTable = ({
