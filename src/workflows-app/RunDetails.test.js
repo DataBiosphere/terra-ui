@@ -1,4 +1,4 @@
-import { act, screen, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
@@ -6,6 +6,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import * as configStore from 'src/libs/config';
 import Events from 'src/libs/events';
+import { getLink } from 'src/libs/nav';
 import { makeCompleteDate } from 'src/libs/utils';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { appendSASTokenIfNecessary, getFilenameFromAzureBlobPath } from 'src/workflows-app/components/InputOutputModal';
@@ -589,8 +590,8 @@ describe('BaseRunDetails - render smoke test', () => {
     expect(getFilenameFromAzureBlobPath(undefined)).toEqual('');
 
     // Should only append SAS if it is a private URI
-    const appendedPublic = appendSASTokenIfNecessary(publicURI, mockSAS);
-    const appendedPrivate = appendSASTokenIfNecessary(privateURI, mockSAS);
+    const appendedPublic = appendSASTokenIfNecessary(publicURI, mockSAS, mockWorkspaceId);
+    const appendedPrivate = appendSASTokenIfNecessary(privateURI, mockSAS, mockWorkspaceId);
     expect(appendedPublic).toEqual(publicURI);
     expect(appendedPrivate).toEqual(`${privateURI}?${mockSAS}`);
   });
@@ -754,5 +755,20 @@ describe('BaseRunDetails - render smoke test', () => {
 
     // Ensure the diff is rendered
     screen.getByText('Result: View cache diff');
+  });
+
+  it('should create the correct link when the execution directory button is clicked', async () => {
+    const user = userEvent.setup();
+    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+
+    const executionDirectoryButton = await screen.getByText('Execution Directory');
+    await user.click(executionDirectoryButton);
+    await waitFor(() =>
+      expect(getLink).toBeCalledWith(
+        'workspace-files',
+        { name: 'workspace', namespace: 'example-billing-project' },
+        { path: 'workspace-services/cbas/terra-app-/ther-random-value/00001111-2222-3333-aaaa-bbbbccccdddd/' }
+      )
+    );
   });
 });

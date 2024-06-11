@@ -2,11 +2,12 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent';
 import { chooseRootType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
 import { WorkflowView } from 'src/pages/workspaces/workspace/workflows/WorkflowView';
-import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/nav', () => ({
@@ -18,6 +19,7 @@ jest.mock('src/libs/nav', () => ({
 jest.mock('src/libs/notifications', () => ({
   notify: jest.fn(),
 }));
+jest.mock('src/libs/ajax/leonardo/providers/LeoDiskProvider');
 
 // Space for tables is rendered based on the available space. In unit tests, there is no available space, and so we must mock out the space needed to get the data table to render.
 jest.mock('react-virtualized', () => {
@@ -234,6 +236,7 @@ describe('Workflow View (GCP)', () => {
   const mockLaunchResponse = jest.fn(() => Promise.resolve({ submissionId: 'abc123', ...initializedGoogleWorkspace.workspaceId }));
 
   const renderWorkflowView = () => {
+    asMockedFn(leoDiskProvider.list).mockImplementation(jest.fn());
     Ajax.mockImplementation(() => ({
       Methods: {
         list: jest.fn(() => Promise.resolve(methodList)),

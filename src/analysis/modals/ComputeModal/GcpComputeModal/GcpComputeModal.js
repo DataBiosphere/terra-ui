@@ -18,7 +18,6 @@ import {
   defaultGcePersistentDiskSize,
   defaultPersistentDiskType,
   generatePersistentDiskName,
-  pdTypeFromDiskType,
 } from 'src/analysis/utils/disk-utils';
 import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/analysis/utils/gce-machines';
 import {
@@ -54,6 +53,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer';
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
+import { leoDiskProvider, pdTypeFromDiskType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
@@ -332,7 +332,7 @@ export const GcpComputeModalBase = ({
         .delete(hasAttachedDisk() && shouldDeletePersistentDisk);
     }
     if (shouldDeletePersistentDisk && !hasAttachedDisk()) {
-      await Ajax().Disks.disksV1().disk(googleProject, currentPersistentDiskDetails.name).delete();
+      await leoDiskProvider.delete(currentPersistentDiskDetails);
     }
 
     if (shouldUpdateRuntime || shouldCreateRuntime) {
@@ -387,7 +387,7 @@ export const GcpComputeModalBase = ({
         );
 
         if (shouldUpdatePersistentDisk) {
-          await Ajax().Disks.disksV1().disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size);
+          await leoDiskProvider.update(currentPersistentDiskDetails, desiredPersistentDisk.size);
         }
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig };
@@ -780,7 +780,7 @@ export const GcpComputeModalBase = ({
     )(async () => {
       const [runtimeDetails, persistentDiskDetails] = await Promise.all([
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
-        currentDisk ? Ajax().Disks.disksV1().disk(currentDisk.googleProject, currentDisk.name).details() : null,
+        currentDisk ? leoDiskProvider.details(currentDisk) : null,
       ]);
       const diskTypeName = persistentDiskDetails?.diskType?.value ?? persistentDiskDetails?.diskType;
       setCurrentRuntimeDetails(runtimeDetails);
@@ -1714,7 +1714,7 @@ export const GcpComputeModalBase = ({
     Utils.switchCase(
       viewMode,
       ['packages', renderPackages],
-      ['aboutPersistentDisk', () => AboutPersistentDiskView({ titleId, setViewMode, onDismiss, tool })],
+      ['aboutPersistentDisk', () => h(AboutPersistentDiskView, { titleId, tool, onDismiss, onPrevious: () => setViewMode(undefined) })],
       ['sparkConsole', renderSparkConsole],
       ['customImageWarning', renderCustomImageWarning],
       ['environmentWarning', renderEnvironmentWarning],
@@ -1723,7 +1723,7 @@ export const GcpComputeModalBase = ({
       [
         'deleteEnvironment',
         () =>
-          DeleteEnvironment({
+          h(DeleteEnvironment, {
             id: titleId,
             runtimeConfig: currentRuntime && currentRuntime.runtimeConfig,
             persistentDiskId: currentPersistentDiskDetails?.id,
@@ -1732,10 +1732,10 @@ export const GcpComputeModalBase = ({
               : 'N/A',
             deleteDiskSelected,
             setDeleteDiskSelected,
-            setViewMode,
             renderActionButton,
             hideCloseButton: false,
             onDismiss,
+            onPrevious: () => setViewMode(undefined),
             toolLabel: currentRuntime && currentRuntime.labels.tool,
           }),
       ],

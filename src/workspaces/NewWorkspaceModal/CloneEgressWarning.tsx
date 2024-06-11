@@ -102,7 +102,7 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
           <span> </span>
           To prevent charges, the new bucket location needs to stay in the same region as the original one.
           <span> </span>
-          <Link href="https://support.terra.bio/hc/en-us/articles/360058964552" {...Utils.newTabLinkProps}>
+          <Link href='https://support.terra.bio/hc/en-us/articles/360058964552' {...Utils.newTabLinkProps}>
             For more information please read the documentation.
             {icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })}
           </Link>

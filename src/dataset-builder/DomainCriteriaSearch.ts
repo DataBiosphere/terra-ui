@@ -13,12 +13,12 @@ import { OnStateChangeHandler } from './DatasetBuilder';
 interface DomainCriteriaSearchProps {
   readonly state: DomainCriteriaSearchState;
   readonly onStateChange: OnStateChangeHandler;
-  readonly datasetId: string;
+  readonly snapshotId: string;
   readonly getNextCriteriaIndex: () => number;
 }
 
 export const DomainCriteriaSearch = (props: DomainCriteriaSearchProps) => {
-  const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
+  const { state, onStateChange, snapshotId, getNextCriteriaIndex } = props;
   return h(ConceptSearch, {
     initialSearch: state.searchText,
     initialCart: state.cart,
@@ -38,6 +38,6 @@ export const DomainCriteriaSearch = (props: DomainCriteriaSearchProps) => {
       );
     },
     actionText: 'Add to group',
-    datasetId,
+    snapshotId,
   });
 };

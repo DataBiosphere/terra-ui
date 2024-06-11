@@ -1,11 +1,11 @@
 {
   "name": "@terra-ui-packages/test-utils",
-  "version": "0.0.4",
+  "version": "1.0.0",
   "scripts": {
     "build": "vite build --emptyOutDir",
     "dev": "vite build --mode=development --watch",
     "test": "yarn run build >/dev/null && jest",
-    "check-dts": "check-dts"
+    "check-dts": "check-dts src/**/*"
   },
   "type": "module",
   "module": "./lib/es/index.js",
@@ -46,12 +46,12 @@
   },
   "devDependencies": {
     "@jest/types": "^27.5.1",
-    "@terra-ui-packages/build-utils": "^1.0.0",
+    "@terra-ui-packages/build-utils": "^2.0.0",
     "@testing-library/react": "^14.0.0",
     "@types/jest": "^28.1.8",
     "@types/node": "^20.6.2",
     "check-dts": "^0.7.2",
     "typescript": "~5.1.6",
-    "vite": "^4.5.3"
+    "vite": "^5.2.11"
   }
 }

@@ -17,7 +17,7 @@ const meta: Meta<typeof ButtonSecondary> = {
       control: 'boolean',
       description: 'disable the button',
       table: {
-        defaultValue: { summary: false },
+        defaultValue: { summary: 'false' },
       },
     },
     tooltip: {
@@ -28,7 +28,7 @@ const meta: Meta<typeof ButtonSecondary> = {
       control: 'number',
       description: 'tooltip delay in milliseconds',
       table: {
-        defaultValue: { summary: 0 },
+        defaultValue: { summary: '0' },
       },
     },
     tooltipSide: {
@@ -46,9 +46,16 @@ const meta: Meta<typeof ButtonSecondary> = {
 export default meta;
 type Story = StoryObj<typeof ButtonSecondary>;
 
-export const Primary: Story = {
+export const Secondary: Story = {
   args: {
     tooltip: 'This can provide additional context',
     children: 'Cancel',
+  },
+  parameters: {
+    design: {
+      type: 'figma',
+      url: 'https://www.figma.com/file/fGlf8DGgTz5ec7phmzNUEN/Terra-Styles-%26-Components?node-id=151-2135&t=AexvAMYj4iUGF3lt-4',
+      allowFullscreen: true,
+    },
   },
 };

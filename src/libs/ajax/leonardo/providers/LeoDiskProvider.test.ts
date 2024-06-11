@@ -1,9 +1,11 @@
+import { generateTestDisk, getPersistentDiskDetail, undecoratePd } from 'src/analysis/_testData/testData';
 import {
   Disks,
   DisksContractV1,
   DisksContractV2,
   DisksDataClientContract,
   DiskWrapperContract,
+  RawGetDiskItem,
 } from 'src/libs/ajax/leonardo/Disks';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -69,7 +71,8 @@ describe('leoDiskProvider', () => {
   it('handles list call', async () => {
     // Arrange
     const diskMock = mockDiskNeeds();
-    asMockedFn(diskMock.DisksV1.list).mockResolvedValue([]);
+    const disk = generateTestDisk();
+    asMockedFn(diskMock.DisksV1.list).mockResolvedValue([undecoratePd(disk)]);
     const signal = new window.AbortController().signal;
 
     // Act
@@ -80,7 +83,7 @@ describe('leoDiskProvider', () => {
     expect(Disks).toBeCalledWith(signal);
     expect(diskMock.DisksV1.list).toBeCalledTimes(1);
     expect(diskMock.DisksV1.list).toBeCalledWith({ arg: '1' });
-    expect(result).toEqual([]);
+    expect(result).toEqual([disk]);
   });
 
   it('handles delete disk call for GCP', async () => {
@@ -135,25 +138,20 @@ describe('leoDiskProvider', () => {
   it('handles details call for GCP', async () => {
     const diskMock = mockDiskNeeds();
     const abort = new window.AbortController();
-    const disk: DiskBasics = {
-      name: 'myDiskName',
-      id: 123,
-      cloudContext: {
-        cloudProvider: 'GCP',
-        cloudResource: 'myGoogleProject',
-      },
-    };
+    const disk = getPersistentDiskDetail();
+    asMockedFn(diskMock.disk.details).mockResolvedValue(undecoratePd(disk) as RawGetDiskItem);
 
     // Act
     // calls to this method generally don't care about passing in signal, but doing it here for completeness
-    void (await leoDiskProvider.details(disk, { signal: abort.signal }));
+    const details = await leoDiskProvider.details(disk, { signal: abort.signal });
 
     // Assert;
     expect(Disks).toBeCalledTimes(1);
     expect(Disks).toBeCalledWith(abort.signal);
     expect(diskMock.DisksV1.disk).toBeCalledTimes(1);
-    expect(diskMock.DisksV1.disk).toBeCalledWith('myGoogleProject', 'myDiskName');
+    expect(diskMock.DisksV1.disk).toBeCalledWith(disk.cloudContext.cloudResource, disk.name);
     expect(diskMock.disk.details).toBeCalledTimes(1);
+    expect(details).toEqual(disk);
   });
 
   it('handles update call for GCP', async () => {

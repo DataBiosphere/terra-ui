@@ -112,7 +112,8 @@ export const convertCohort = (cohort: Cohort): SnapshotBuilderCohort => {
 };
 
 export const convertCriteria = (criteria: AnyCriteria): AnySnapshotBuilderCriteria => {
-  const { kind, id } = criteria.option;
+  // We need to provide a default in case option isn't a field on bogus criteria
+  const { kind, id } = criteria.option || { kind: undefined };
   const mergeObject = { kind, id };
   switch (criteria.kind) {
     case 'range':
@@ -131,17 +132,19 @@ export const convertCriteria = (criteria: AnyCriteria): AnySnapshotBuilderCriter
   }
 };
 
-export const createDatasetAccessRequest = (
+export const createSnapshotAccessRequest = (
   name: string,
   researchPurposeStatement: string,
+  snapshotId: string,
   cohorts: Cohort[],
   conceptSets: SnapshotBuilderDatasetConceptSet[],
   valueSets: ValueSet[]
 ): SnapshotAccessRequestApi => {
   return {
     name,
+    sourceSnapshotId: snapshotId,
     researchPurposeStatement,
-    datasetRequest: {
+    snapshotBuilderRequest: {
       cohorts: _.map(convertCohort, cohorts),
       conceptSets,
       valueSets: _.map(convertValueSet, valueSets),

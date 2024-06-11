@@ -9,10 +9,7 @@ import { defaultAzureDiskSize } from 'src/libs/azure-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 const defaultAzurePersistentDiskSectionProps: AzurePersistentDiskSectionProps = {
-  persistentDiskType: {
-    value: 'Standard_LRS',
-    label: 'Standard HDD',
-  },
+  persistentDiskType: 'Standard_LRS',
   persistentDiskSize: defaultAzureDiskSize,
   onChangePersistentDiskType: jest.fn(),
   onChangePersistentDiskSize: jest.fn(),
@@ -49,7 +46,7 @@ describe('AzurePersistentDiskSection', () => {
     // Act
     const diskTypeSelect = screen.getByLabelText('Disk Type');
     await userEvent.click(diskTypeSelect);
-    const standardHdd = screen.getByText('Standard HDD');
+    const standardHdd = screen.getByRole('option', { name: 'Standard HDD' });
     await userEvent.click(standardHdd);
     // Assert
     expect(defaultAzurePersistentDiskSectionProps.onChangePersistentDiskType).toHaveBeenCalledWith('Standard_LRS');

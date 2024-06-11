@@ -9,7 +9,7 @@ import { OidcConfig } from 'src/libs/ajax/OAuth2';
 import { SamTermsOfServiceConfig } from 'src/libs/ajax/TermsOfService';
 import { NihDatasetPermission, SamUserAllowances, SamUserAttributes, SamUserResponse } from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
-import type { WorkspaceWrapper } from 'src/workspaces/utils';
+import type { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 
@@ -269,6 +269,8 @@ export type InitializedWorkspaceWrapper = WorkspaceWrapper & { workspaceInitiali
 export const workspaceStore = atom<InitializedWorkspaceWrapper | undefined>(undefined);
 
 export const workspacesStore = atom<WorkspaceWrapper[]>([]);
+
+export const cloningWorkspacesStore = atom<WorkspaceInfo[]>([]);
 
 export const rerunFailuresStatus = atom<unknown>(undefined);
 

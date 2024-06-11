@@ -20,7 +20,7 @@ describe('AboutPersistentDiskSection', () => {
     expect(screen.getByText('Learn more about persistent disks and where your disk is mounted.')).toBeTruthy();
   });
 
-  it('should call setViewMode when clicked', async () => {
+  it('should call onClick when clicked', async () => {
     // Arrange
     render(h(AboutPersistentDiskSection, defaultAboutPersistentDiskSectionProps));
     await userEvent.click(screen.getByText('Learn more about persistent disks and where your disk is mounted.'));

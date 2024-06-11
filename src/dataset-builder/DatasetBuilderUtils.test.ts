@@ -5,7 +5,7 @@ import {
   convertCohort,
   convertCriteria,
   convertValueSet,
-  createDatasetAccessRequest,
+  createSnapshotAccessRequest,
   CriteriaGroup,
   DomainConceptSet,
   formatCount,
@@ -16,6 +16,7 @@ import {
   SnapshotAccessRequest,
   ValueSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
+import { testSnapshotId } from 'src/dataset-builder/TestConstants';
 import {
   AnySnapshotBuilderCriteria,
   SnapshotAccessRequest as SnapshotAccessRequestApi,
@@ -162,9 +163,10 @@ const datasetAccessRequest: SnapshotAccessRequest = {
 };
 
 const datasetAccessRequestApi: SnapshotAccessRequestApi = {
+  sourceSnapshotId: testSnapshotId,
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
-  datasetRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
+  snapshotBuilderRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
 };
 
 describe('test conversion of criteria', () => {
@@ -194,9 +196,10 @@ describe('test conversion of valueSets', () => {
 describe('test conversion of DatasetAccessRequest', () => {
   test('datasetAccessRequest converted to datasetAccessRequestApi', () => {
     expect(
-      createDatasetAccessRequest(
+      createSnapshotAccessRequest(
         datasetAccessRequest.name,
         datasetAccessRequest.researchPurposeStatement,
+        testSnapshotId,
         datasetAccessRequest.datasetRequest.cohorts,
         datasetAccessRequest.datasetRequest.conceptSets,
         datasetAccessRequest.datasetRequest.valueSets

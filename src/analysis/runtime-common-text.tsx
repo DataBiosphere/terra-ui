@@ -11,8 +11,8 @@ export const SaveFilesHelp = (props: SaveFilesHelpProps): ReactNode => {
     <p>
       If you want to save some files permanently, such as input data, analysis outputs, or installed packages,&nbsp;
       <Link
-        aria-label="Save file help"
-        href="https://support.terra.bio/hc/en-us/articles/360026639112"
+        aria-label='Save file help'
+        href='https://support.terra.bio/hc/en-us/articles/360026639112'
         {...Utils.newTabLinkProps}
       >
         move them to the workspace bucket.
@@ -30,8 +30,8 @@ export const SaveFilesHelpRStudio = (): ReactNode => {
       If you want to save files permanently, including input data, analysis outputs, installed packages or code in your
       session,&nbsp;
       <Link
-        aria-label="RStudio save help"
-        href="https://support.terra.bio/hc/en-us/articles/360026639112"
+        aria-label='RStudio save help'
+        href='https://support.terra.bio/hc/en-us/articles/360026639112'
         {...Utils.newTabLinkProps}
       >
         move them to the workspace bucket.
@@ -50,8 +50,8 @@ export const SaveFilesHelpGalaxy = (): ReactNode => {
       <p>
         If you want to save some files permanently, such as input data, analysis outputs, or installed packages,&nbsp;
         <Link
-          aria-label="Galaxy save help"
-          href="https://support.terra.bio/hc/en-us/articles/360026639112"
+          aria-label='Galaxy save help'
+          href='https://support.terra.bio/hc/en-us/articles/360026639112'
           {...Utils.newTabLinkProps}
         >
           move them to the workspace bucket.
@@ -66,8 +66,8 @@ export const SaveFilesHelpAzure = (): ReactNode => {
     <p>
       If you want to save some files permanently, such as input data, analysis outputs, or installed packages,&nbsp;
       <Link
-        aria-label="Save file help"
-        href="https://support.terra.bio/hc/en-us/articles/12043575737883"
+        aria-label='Save file help'
+        href='https://support.terra.bio/hc/en-us/articles/12043575737883'
         {...Utils.newTabLinkProps}
       >
         move them to the workspace bucket.

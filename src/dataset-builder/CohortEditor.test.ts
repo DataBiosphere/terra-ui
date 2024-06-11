@@ -22,7 +22,7 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';
 import { domainCriteriaSearchState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
-import { dummyDatasetModel } from './TestConstants';
+import { testSnapshotBuilderSettings, testSnapshotId } from './TestConstants';
 
 jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
@@ -48,31 +48,6 @@ describe('CohortEditor', () => {
     deleteCriteria?: (criteria: AnyCriteria) => void;
     updateCriteria?: (criteria: AnyCriteria) => void;
   };
-
-  const mockListStatistics = () => {
-    const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
-        ({
-          queryDatasetColumnStatisticsById: () =>
-            Promise.resolve({
-              kind: 'list',
-              name: 'list',
-              values: [
-                {
-                  id: 0,
-                  name: 'value 0',
-                },
-                {
-                  id: 1,
-                  name: 'value 1',
-                },
-              ],
-            }),
-        } as Partial<DataRepoContract['dataset']>),
-    } as Partial<DataRepoContract> as DataRepoContract;
-    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
-  };
-
   const programDataRangeOption = (min = 55, max = 99): SnapshotBuilderProgramDataRangeOption => {
     return {
       id: 0,
@@ -85,39 +60,32 @@ describe('CohortEditor', () => {
     };
   };
 
-  const mockRangeStatistics = (min = 55, max = 99) => {
-    const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
+  const mockDataRepo = (datasetMocks: Partial<DataRepoContract['snapshot']>[]) => {
+    asMockedFn(DataRepo).mockImplementation(
+      () =>
         ({
-          queryDatasetColumnStatisticsById: () => Promise.resolve(programDataRangeOption(min, max)),
-        } as Partial<DataRepoContract['dataset']>),
-    } as Partial<DataRepoContract> as DataRepoContract;
-    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+          snapshot: (_snapshotId) => Object.assign({}, ...datasetMocks),
+        } as Partial<DataRepoContract> as DataRepoContract)
+    );
   };
 
-  const mockGetCounts = (count: number) => {
-    const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
-        ({
-          getSnapshotBuilderCount: () =>
-            Promise.resolve({
-              result: {
-                total: count,
-              },
-              sql: 'sql',
-            }),
-        } as Partial<DataRepoContract['dataset']>),
-    } as Partial<DataRepoContract> as DataRepoContract;
-    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
-  };
+  const getSnapshotBuilderCountMock = (count = 0) => ({
+    getSnapshotBuilderCount: () =>
+      Promise.resolve({
+        result: {
+          total: count,
+        },
+        sql: 'sql',
+      }),
+  });
 
   const getNextCriteriaIndex = () => 1234;
 
-  const datasetDetails = dummyDatasetModel();
+  const snapshotBuilderSettings = testSnapshotBuilderSettings();
   const renderCriteriaView = (propsOverrides: CriteriaViewPropsOverrides) =>
     render(
       h(CriteriaView, {
-        datasetId: datasetDetails.id,
+        snapshotId: testSnapshotId,
         deleteCriteria: _.noop,
         updateCriteria: _.noop,
         key: '1',
@@ -127,7 +95,10 @@ describe('CohortEditor', () => {
 
   it('renders unknown criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock(0)]);
     const criteria = { name: 'bogus', invalid: 'property' };
+    // This should error fetching the count because the conversion to API counts to generate counts should fail
+    jest.spyOn(console, 'error').mockImplementation((error) => expect(error).toBe('Error fetching count for criteria'));
 
     // The 'as any' is required to create an invalid criteria for testing purposes.
     renderCriteriaView({ criteria: criteria as any });
@@ -138,6 +109,7 @@ describe('CohortEditor', () => {
 
   it('renders domain criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock(0)]);
     const criteria: ProgramDomainCriteria = {
       kind: 'domain',
       conceptId: 0,
@@ -163,7 +135,7 @@ describe('CohortEditor', () => {
 
   it('renders list criteria', async () => {
     // Arrange
-    mockListStatistics();
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'list',
@@ -182,6 +154,7 @@ describe('CohortEditor', () => {
     // Arrange
     const user = userEvent.setup();
     const updateCriteria = jest.fn();
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'list',
@@ -222,6 +195,7 @@ describe('CohortEditor', () => {
 
   it('renders range criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock(12345)]);
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'range',
@@ -240,8 +214,8 @@ describe('CohortEditor', () => {
 
   it('allows number inputs for range criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const user = userEvent.setup();
-    mockRangeStatistics();
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'range',
@@ -268,6 +242,7 @@ describe('CohortEditor', () => {
 
   it('renders accessible slider handles', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const min = 55;
     const max = 99;
 
@@ -298,6 +273,7 @@ describe('CohortEditor', () => {
 
   it('can delete criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const criteria = criteriaFromOption(0, {
       id: 0,
       tableName: 'person',
@@ -337,10 +313,10 @@ describe('CohortEditor', () => {
     }
     cohort.criteriaGroups.push(criteriaGroup);
     const updateCohort = jest.fn();
-    const datasetDetailsUpdated = _.flow(
-      _.set('snapshotBuilderSettings.domainOptions', domainOptions),
-      _.set('snapshotBuilderSettings.programDataOptions', programDataOptions)
-    )(datasetDetails);
+    const snapshotBuilderSettingsUpdated = _.flow(
+      _.set('domainOptions', domainOptions),
+      _.set('programDataOptions', programDataOptions)
+    )(snapshotBuilderSettings);
 
     render(
       h(CriteriaGroupView, {
@@ -348,7 +324,8 @@ describe('CohortEditor', () => {
         criteriaGroup,
         updateCohort,
         cohort,
-        dataset: datasetDetailsUpdated,
+        snapshotId: testSnapshotId,
+        snapshotBuilderSettings: snapshotBuilderSettingsUpdated,
         onStateChange: _.noop,
         getNextCriteriaIndex,
       })
@@ -359,7 +336,7 @@ describe('CohortEditor', () => {
   it('renders criteria group', async () => {
     // Arrange
     const count = 12345;
-    mockGetCounts(count);
+    mockDataRepo([getSnapshotBuilderCountMock(count)]);
     const { cohort } = showCriteriaGroup({
       initializeGroup: (criteriaGroup) => {
         criteriaGroup.meetAll = false;
@@ -454,7 +431,8 @@ describe('CohortEditor', () => {
     render(
       h(CohortEditor, {
         onStateChange,
-        dataset: datasetDetails,
+        snapshotId: testSnapshotId,
+        snapshotBuilderSettings,
         originalCohort,
         updateCohorts,
         getNextCriteriaIndex,
@@ -514,14 +492,14 @@ describe('CohortEditor', () => {
     // Act
     await user.click(screen.getByText('Add group'));
     await user.click(screen.getByLabelText('Add criteria'));
-    const domainMenuItem = screen.getByText(datasetDetails!.snapshotBuilderSettings!.domainOptions[0].name);
+    const domainMenuItem = screen.getByText(snapshotBuilderSettings.domainOptions[0].name);
     await user.click(domainMenuItem);
     // Assert
     expect(onStateChange).toBeCalledWith(
       domainCriteriaSearchState.new(
         expect.anything(),
         expect.anything(),
-        _.set('kind', 'domain', datasetDetails!.snapshotBuilderSettings!.domainOptions[0]),
+        _.set('kind', 'domain', snapshotBuilderSettings.domainOptions[0]),
         [],
         ''
       )

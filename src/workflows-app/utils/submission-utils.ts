@@ -91,6 +91,11 @@ export const statusType = {
     label: () => 'Canceled',
     icon: (style) => icon('warning-standard', { size: iconSize, style: { color: colors.dark(), ...style } }),
   },
+  queued: {
+    id: 'queued',
+    label: () => 'Queued',
+    icon: (style) => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } }),
+  },
 };
 
 /**

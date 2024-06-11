@@ -1,48 +1,13 @@
-import { makeAzureWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
-import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
+import { makeAzureWorkspace, makeGoogleProtectedWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
+import {
+  anvilPfbImportRequests,
+  azureTdrSnapshotImportRequest,
+  gcpTdrSnapshotImportRequest,
+  protectedGcpTdrSnapshotImportRequest,
+} from './__fixtures__/import-request-fixtures';
 import { ImportRequest } from './import-types';
-import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
-
-describe('getRequiredCloudPlatformForImport', () => {
-  it.each([
-    {
-      importRequest: { type: 'pfb', url: new URL('https://example.com/path/to/file.pfb') },
-      expectedCloudPlatform: 'GCP',
-    },
-    {
-      importRequest: {
-        type: 'tdr-snapshot-export',
-        manifestUrl: new URL('https://example.com/path/to/manifest.json'),
-        snapshot: {
-          id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-          name: 'test-snapshot',
-          source: [
-            {
-              dataset: {
-                id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-                name: 'test-dataset',
-                secureMonitoringEnabled: false,
-              },
-            },
-          ],
-          cloudPlatform: 'gcp',
-        },
-        syncPermissions: false,
-      },
-      expectedCloudPlatform: 'GCP',
-    },
-  ] as {
-    importRequest: ImportRequest;
-    expectedCloudPlatform: CloudProvider | undefined;
-  }[])('returns cloud platform required for import', async ({ importRequest, expectedCloudPlatform }) => {
-    // Act
-    const cloudPlatform = getCloudPlatformRequiredForImport(importRequest);
-
-    // Assert
-    expect(cloudPlatform).toEqual(expectedCloudPlatform);
-  });
-});
+import { buildDestinationWorkspaceFilter } from './import-utils';
 
 describe('canImportIntoWorkspace', () => {
   it('requires permission to write to the workspace', () => {
@@ -51,8 +16,7 @@ describe('canImportIntoWorkspace', () => {
     const writableWorkspace = makeAzureWorkspace({ accessLevel: 'WRITER' });
     const readOnlyWorkspace = makeAzureWorkspace({ accessLevel: 'READER' });
 
-    const canImportUnprotectedDataIntoWorkspace = (workspace: WorkspaceWrapper) =>
-      canImportIntoWorkspace({ isProtectedData: false }, workspace);
+    const canImportUnprotectedDataIntoWorkspace = buildDestinationWorkspaceFilter(azureTdrSnapshotImportRequest);
 
     // Act
     const canImportIntoOwnedWorkspace = canImportUnprotectedDataIntoWorkspace(ownedWorkspace);
@@ -75,8 +39,7 @@ describe('canImportIntoWorkspace', () => {
 
     const unprotectedGoogleWorkspace = makeGoogleWorkspace();
 
-    const canImportProtectedDataIntoWorkspace = (workspace: WorkspaceWrapper) =>
-      canImportIntoWorkspace({ isProtectedData: true }, workspace);
+    const canImportProtectedDataIntoWorkspace = buildDestinationWorkspaceFilter(protectedGcpTdrSnapshotImportRequest);
 
     // Act
     const canImportProtectedDataIntoUnprotectedAzureWorkspace =
@@ -102,10 +65,9 @@ describe('canImportIntoWorkspace', () => {
     });
 
     // Act
-    const canImportProtectedDataIntoProtectedPublicWorkspace = canImportIntoWorkspace(
-      { isProtectedData: true },
-      protectedPublicGoogleWorkspace
-    );
+    const canImportProtectedDataIntoProtectedPublicWorkspace = buildDestinationWorkspaceFilter(
+      protectedGcpTdrSnapshotImportRequest
+    )(protectedPublicGoogleWorkspace);
 
     // Assert
     expect(canImportProtectedDataIntoProtectedPublicWorkspace).toBe(false);
@@ -113,22 +75,20 @@ describe('canImportIntoWorkspace', () => {
 
   it('can require an authorization domain', () => {
     // Arrange
-    const requiredAuthDomain = 'test-ad';
+    const requiredAuthorizationDomain = 'test-ad';
 
     const workspaceWithRequiredAuthDomain = makeAzureWorkspace({
-      workspace: { authorizationDomain: [{ membersGroupName: requiredAuthDomain }] },
+      workspace: { authorizationDomain: [{ membersGroupName: requiredAuthorizationDomain }] },
     });
 
     const workspaceWithoutRequiredAuthDomain = makeAzureWorkspace();
 
-    const canImportDataWithRequiredAuthDomainIntoWorkspace = (workspace: WorkspaceWrapper) =>
-      canImportIntoWorkspace(
-        {
-          isProtectedData: false,
-          requiredAuthorizationDomain: requiredAuthDomain,
-        },
-        workspace
-      );
+    const canImportDataWithRequiredAuthDomainIntoWorkspace = buildDestinationWorkspaceFilter(
+      azureTdrSnapshotImportRequest,
+      {
+        requiredAuthorizationDomain,
+      }
+    );
 
     // Act
     const canImportDataWithRequiredAuthDomainIntoWorkspaceWithRequiredAuthDomain =
@@ -151,20 +111,32 @@ describe('canImportIntoWorkspace', () => {
 
     // Act
     const workspacesForAzureImports = workspaces
-      .filter((workspace) => canImportIntoWorkspace({ cloudPlatform: 'AZURE', isProtectedData: false }, workspace))
+      .filter(buildDestinationWorkspaceFilter(azureTdrSnapshotImportRequest))
       .map((workspace) => workspace.workspace.name);
 
     const workspacesForGoogleImports = workspaces
-      .filter((workspace) => canImportIntoWorkspace({ cloudPlatform: 'GCP', isProtectedData: false }, workspace))
-      .map((workspace) => workspace.workspace.name);
-
-    const workspacesForUndefinedPlatformImports = workspaces
-      .filter((workspace) => canImportIntoWorkspace({ isProtectedData: false }, workspace))
+      .filter(buildDestinationWorkspaceFilter(gcpTdrSnapshotImportRequest))
       .map((workspace) => workspace.workspace.name);
 
     // Assert
     expect(workspacesForAzureImports).toEqual(['azure-workspace']);
     expect(workspacesForGoogleImports).toEqual(['google-workspace']);
-    expect(workspacesForUndefinedPlatformImports).toEqual(['azure-workspace', 'google-workspace']);
   });
+
+  it.each([{ importRequest: anvilPfbImportRequests[0] }] as { importRequest: ImportRequest }[])(
+    'requires owner permission for imports that could update access controls',
+    ({ importRequest }) => {
+      // Arrange
+      const ownedWorkspace = makeGoogleProtectedWorkspace({ accessLevel: 'OWNER' });
+      const writableWorkspace = makeGoogleProtectedWorkspace({ accessLevel: 'WRITER' });
+      const readOnlyWorkspace = makeGoogleProtectedWorkspace({ accessLevel: 'READER' });
+
+      const canImportAnvilDataIntoWorkspace = buildDestinationWorkspaceFilter(importRequest);
+
+      // Act/Assert
+      expect(canImportAnvilDataIntoWorkspace(ownedWorkspace)).toBe(true);
+      expect(canImportAnvilDataIntoWorkspace(writableWorkspace)).toBe(false);
+      expect(canImportAnvilDataIntoWorkspace(readOnlyWorkspace)).toBe(false);
+    }
+  );
 });

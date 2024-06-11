@@ -5,6 +5,7 @@ import { h } from 'react-hyperscript-helpers';
 import {
   defaultImage,
   defaultTestDisk,
+  getDetailFromDisk,
   getDisk,
   getGoogleDataProcRuntime,
   getGoogleRuntime,
@@ -34,10 +35,9 @@ import {
 } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, runtimeTools, terraSupportedRuntimeImageIds } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
-import { DisksContractV1, DisksDataClientContract, DiskWrapperContract } from 'src/libs/ajax/leonardo/Disks';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, NormalizedComputeRegion } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { LeoDiskProvider, leoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { RuntimeAjaxContractV1, RuntimesAjaxContract } from 'src/libs/ajax/leonardo/Runtimes';
 import { formatUSD } from 'src/libs/utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -49,6 +49,18 @@ jest.mock('src/libs/notifications', () => ({
     console.debug({ method: 'notify', args: [...args] }); /* eslint-disable-line */
   },
 }));
+
+type DiskProviderExports = typeof import('src/libs/ajax/leonardo/providers/LeoDiskProvider');
+jest.mock('src/libs/ajax/leonardo/providers/LeoDiskProvider', (): DiskProviderExports => {
+  return {
+    ...jest.requireActual('src/libs/ajax/leonardo/providers/LeoDiskProvider'),
+    leoDiskProvider: {
+      details: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    } as Partial<LeoDiskProvider> as LeoDiskProvider,
+  };
+});
 
 jest.mock('src/libs/ajax');
 jest.mock('src/analysis/utils/cost-utils');
@@ -90,15 +102,6 @@ const defaultAjaxImpl: AjaxContract = {
         details: jest.fn(),
       } as Partial<RuntimeAjaxContractV1>),
   } as Partial<RuntimesAjaxContract>,
-  Disks: {
-    disksV1: () =>
-      ({
-        disk: () =>
-          ({
-            details: jest.fn(),
-          } as Partial<DiskWrapperContract>),
-      } as Partial<DisksContractV1>),
-  } as Partial<DisksDataClientContract>,
   Metrics: {
     captureEvent: jest.fn(),
   } as Partial<AjaxContract['Metrics']>,
@@ -273,6 +276,7 @@ describe('GcpComputeModal', () => {
     // put value into local var so its easier to refactor
     const disk: PersistentDisk = defaultTestDisk;
     const createFunc = jest.fn();
+    const diskDetailsFunc = jest.fn().mockResolvedValue(disk);
     const runtimeFunc = jest.fn(() => ({
       create: createFunc,
       details: jest.fn(),
@@ -282,16 +286,8 @@ describe('GcpComputeModal', () => {
       Runtimes: {
         runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
       } as Partial<RuntimesAjaxContract>,
-      Disks: {
-        disksV1: () =>
-          ({
-            disk: () =>
-              ({
-                details: () => Promise.resolve(disk),
-              } as Partial<DiskWrapperContract>),
-          } as Partial<DisksContractV1>),
-      } as Partial<AjaxContract['Disks']>,
     } as AjaxContract);
+    asMockedFn(leoDiskProvider.details).mockImplementation(diskDetailsFunc);
 
     // Act
     await act(async () => {
@@ -314,6 +310,7 @@ describe('GcpComputeModal', () => {
         }),
       })
     );
+    expect(diskDetailsFunc).toBeCalledTimes(1);
     expect(onSuccess).toHaveBeenCalled();
   });
 
@@ -338,16 +335,8 @@ describe('GcpComputeModal', () => {
         Runtimes: {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
-        Disks: {
-          disksV1: () =>
-            ({
-              disk: () =>
-                ({
-                  details: () => Promise.resolve(disk),
-                } as Partial<DiskWrapperContract>),
-            } as Partial<DisksContractV1>),
-        } as Partial<AjaxContract['Disks']>,
       } as AjaxContract);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -397,16 +386,8 @@ describe('GcpComputeModal', () => {
         Runtimes: {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
-        Disks: {
-          disksV1: () =>
-            ({
-              disk: () =>
-                ({
-                  details: () => Promise.resolve(disk),
-                } as Partial<DiskWrapperContract>),
-            } as Partial<DisksContractV1>),
-        } as Partial<AjaxContract['Disks']>,
       } as AjaxContract);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -450,16 +431,8 @@ describe('GcpComputeModal', () => {
         Runtimes: {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
-        Disks: {
-          disksV1: () =>
-            ({
-              disk: () =>
-                ({
-                  details: () => Promise.resolve(disk),
-                } as Partial<DiskWrapperContract>),
-            } as Partial<DisksContractV1>),
-        } as Partial<AjaxContract['Disks']>,
       } as AjaxContract);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -509,16 +482,8 @@ describe('GcpComputeModal', () => {
         Runtimes: {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
-        Disks: {
-          disksV1: () =>
-            ({
-              disk: () =>
-                ({
-                  details: () => Promise.resolve(disk),
-                } as Partial<DiskWrapperContract>),
-            } as Partial<DisksContractV1>),
-        } as Partial<AjaxContract['Disks']>,
       } as AjaxContract);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -562,16 +527,8 @@ describe('GcpComputeModal', () => {
         Runtimes: {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
-        Disks: {
-          disksV1: () =>
-            ({
-              disk: () =>
-                ({
-                  details: () => Promise.resolve(disk),
-                } as Partial<DiskWrapperContract>),
-            } as Partial<DisksContractV1>),
-        } as Partial<AjaxContract['Disks']>,
       } as AjaxContract);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -623,7 +580,6 @@ describe('GcpComputeModal', () => {
       const runtime = getGoogleRuntime(runtimeProps);
 
       const updateRuntimeFunc = jest.fn();
-      const updateDiskFunc = jest.fn();
 
       const runtimeFunc = jest.fn(() => ({
         details: () => runtime,
@@ -634,17 +590,8 @@ describe('GcpComputeModal', () => {
         Runtimes: {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
-        Disks: {
-          disksV1: () =>
-            ({
-              disk: () =>
-                ({
-                  update: updateDiskFunc,
-                  details: () => Promise.resolve(disk),
-                } as Partial<DiskWrapperContract>),
-            } as Partial<DisksContractV1>),
-        } as Partial<AjaxContract['Disks']>,
       } as AjaxContract);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -687,7 +634,6 @@ describe('GcpComputeModal', () => {
 
       const createFunc = jest.fn();
       const deleteFunc = jest.fn();
-      const deleteDiskFunc = jest.fn();
 
       const runtimeFunc = jest.fn(() => ({
         details: () => runtime,
@@ -699,17 +645,8 @@ describe('GcpComputeModal', () => {
         Runtimes: {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
-        Disks: {
-          disksV1: () =>
-            ({
-              disk: () =>
-                ({
-                  delete: deleteDiskFunc,
-                  details: () => Promise.resolve(disk),
-                } as Partial<DiskWrapperContract>),
-            } as Partial<DisksContractV1>),
-        } as Partial<AjaxContract['Disks']>,
       } as AjaxContract);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
       await act(async () => {
@@ -755,7 +692,7 @@ describe('GcpComputeModal', () => {
   );
 
   it('Should call delete disk when clicked', async () => {
-    const disk = getPersistentDiskDetail();
+    const disk = getDisk();
 
     const deleteDiskFunc = jest.fn();
 
@@ -767,17 +704,9 @@ describe('GcpComputeModal', () => {
       Runtimes: {
         runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
       } as Partial<RuntimesAjaxContract>,
-      Disks: {
-        disksV1: () =>
-          ({
-            disk: () =>
-              ({
-                delete: deleteDiskFunc,
-                details: () => Promise.resolve(disk),
-              } as Partial<DiskWrapperContract>),
-          } as Partial<DisksContractV1>),
-      } as Partial<AjaxContract['Disks']>,
     } as AjaxContract);
+    asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
+    asMockedFn(leoDiskProvider.delete).mockImplementation(deleteDiskFunc);
 
     // Act
     await act(async () => {
@@ -798,6 +727,13 @@ describe('GcpComputeModal', () => {
     await userEvent.click(deleteConfirmationButton);
 
     expect(deleteDiskFunc).toHaveBeenCalledTimes(1);
+    expect(deleteDiskFunc).toBeCalledWith(
+      expect.objectContaining({
+        name: disk.name,
+        cloudContext: disk.cloudContext,
+        id: disk.id,
+      })
+    );
   });
 
   it('Should call update disk when creating a runtime', async () => {
@@ -816,17 +752,9 @@ describe('GcpComputeModal', () => {
       Runtimes: {
         runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
       } as Partial<RuntimesAjaxContract>,
-      Disks: {
-        disksV1: () =>
-          ({
-            disk: () =>
-              ({
-                update: updateDiskFunc,
-                details: () => Promise.resolve(disk),
-              } as Partial<DiskWrapperContract>),
-          } as Partial<DisksContractV1>),
-      } as Partial<AjaxContract['Disks']>,
     } as AjaxContract);
+    asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
+    asMockedFn(leoDiskProvider.update).mockImplementation(updateDiskFunc);
 
     // Act
     await act(async () => {
@@ -847,7 +775,14 @@ describe('GcpComputeModal', () => {
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.any(String));
     expect(createFunc).toHaveBeenCalledTimes(1);
     expect(updateDiskFunc).toHaveBeenCalledTimes(1);
-    expect(updateDiskFunc).toHaveBeenCalledWith(disk.size + 1);
+    expect(updateDiskFunc).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: disk.name,
+        cloudContext: disk.cloudContext,
+        id: disk.id,
+      }),
+      disk.size + 1
+    );
   });
 
   it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
@@ -869,17 +804,9 @@ describe('GcpComputeModal', () => {
         Runtimes: {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
-        Disks: {
-          disksV1: () =>
-            ({
-              disk: () =>
-                ({
-                  update: updateDiskFunc,
-                  details: () => Promise.resolve(disk),
-                } as Partial<DiskWrapperContract>),
-            } as Partial<DisksContractV1>),
-        } as Partial<AjaxContract['Disks']>,
       } as AjaxContract);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
+      asMockedFn(leoDiskProvider.update).mockImplementation(updateDiskFunc);
 
       // Act
       await act(async () => {
@@ -1201,16 +1128,8 @@ describe('GcpComputeModal', () => {
         Runtimes: {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
-        Disks: {
-          disksV1: () =>
-            ({
-              disk: () =>
-                ({
-                  details: () => Promise.resolve(disk),
-                } as Partial<DiskWrapperContract>),
-            } as Partial<DisksContractV1>),
-        } as Partial<AjaxContract['Disks']>,
       } as AjaxContract);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act and assert
       await act(async () => {
@@ -1253,16 +1172,8 @@ describe('GcpComputeModal', () => {
         Runtimes: {
           runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
         } as Partial<RuntimesAjaxContract>,
-        Disks: {
-          disksV1: () =>
-            ({
-              disk: () =>
-                ({
-                  details: () => Promise.resolve(disk),
-                } as Partial<DiskWrapperContract>),
-            } as Partial<DisksContractV1>),
-        } as Partial<AjaxContract['Disks']>,
       } as AjaxContract);
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act and assert
       await act(async () => {

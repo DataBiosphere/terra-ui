@@ -1,12 +1,13 @@
 import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { useCallback, useMemo, useState } from 'react';
-import { div, h, h3, span } from 'react-hyperscript-helpers';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonPrimary, Link, Select } from 'src/components/common';
+import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
@@ -19,10 +20,13 @@ import {
   parseMethodString,
   WorkflowMetadata,
 } from 'src/workflows-app/utils/submission-utils';
+import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
 import { loadAppUrls } from '../utils/app-utils';
+import { getFilteredRuns } from '../utils/method-common';
 import { LogTooltips } from '../utils/task-log-utils';
-import { LogInfo } from './LogViewer';
+import FilterSubmissionsDropdown, { FilterOptions } from './FilterSubmissionsDropdown';
+import { FetchedLogData, LogInfo } from './LogViewer';
 
 type Run = {
   duration: number;
@@ -61,26 +65,6 @@ type FilterableWorkflowTableProps = {
   setTaskDataModal: ({ taskDataTitle, taskJson }: TaskDataModalProps) => void;
 };
 
-const getFilteredRuns = (filterOption: string, runsData: Run[], errorStates: string[]): Run[] => {
-  return runsData.filter((run: Run) => {
-    switch (filterOption) {
-      case 'Error':
-        if (errorStates.includes(run.state)) {
-          return true;
-        }
-        break;
-      case 'Succeeded':
-        if (run.state === 'COMPLETE') {
-          return true;
-        }
-        break;
-      default:
-        return true;
-    }
-    return false;
-  });
-};
-
 /**
  * Transform the keys to a more user friendly form, e.g. 'fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID' => 'fetch_sra_to_bam.SRA_ID'.
  * @param keyValuePairs Pairs of keys and values whose key task prefixes will be stripped
@@ -106,11 +90,13 @@ const FilterableWorkflowTable = ({
   setTaskDataModal,
 }: FilterableWorkflowTableProps) => {
   const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [filterOption, setFilterOption] = useState<string>();
+  const [filterOption, setFilterOption] = useState<FilterOptions>();
   const [pageNumber, setPageNumber] = useState(1);
   const [sort, setSort] = useState({ field: 'duration', direction: 'desc' });
   const [viewErrorsId, setViewErrorsId] = useState<number>();
   const [currentWorkflow, setCurrentWorkflow] = useState<WorkflowMetadata>();
+  const [appId, setAppId] = useState<RegExpMatchArray | null>();
+  const [taskName, setTaskName] = useState<string>();
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR'];
   const signal = useCancellation();
@@ -147,13 +133,6 @@ const FilterableWorkflowTable = ({
     return runsSorted;
   };
 
-  enum FilterOptions {
-    Error = 'Error',
-    NoFilter = 'No filter',
-    Succeeded = 'Succeeded',
-  }
-
-  const filterOptions: FilterOptions[] = [FilterOptions.Error, FilterOptions.NoFilter, FilterOptions.Succeeded];
   const filteredPreviousRuns: Run[] = useMemo(
     () => (filterOption ? getFilteredRuns(filterOption, runsData, errorStates) : runsData),
     // Don't re-run if errorStates changes (since it never should change).
@@ -231,16 +210,52 @@ const FilterableWorkflowTable = ({
     [workspaceId, signal, includeKeys, excludeKeys]
   );
 
-  const getWorkflow = async (rowIndex: number): Promise<WorkflowMetadata | undefined> => {
-    if (currentWorkflow && currentWorkflow.id === paginatedPreviousRuns[rowIndex].engine_id) {
-      return currentWorkflow;
-    }
-    const workflow: WorkflowMetadata | undefined = await loadWorkflow(paginatedPreviousRuns[rowIndex].engine_id);
+  const getWorkflow = useCallback(
+    async (rowIndex: number): Promise<WorkflowMetadata | undefined> => {
+      if (currentWorkflow && currentWorkflow.id === paginatedPreviousRuns[rowIndex].engine_id) {
+        return currentWorkflow;
+      }
+      if (!paginatedPreviousRuns[rowIndex]) {
+        return undefined;
+      }
+      const workflow: WorkflowMetadata | undefined = await loadWorkflow(paginatedPreviousRuns[rowIndex].engine_id);
+      if (workflow !== undefined) {
+        setCurrentWorkflow(workflow);
+      }
+      return workflow;
+    },
+    [currentWorkflow, loadWorkflow, paginatedPreviousRuns]
+  );
+
+  const fetchLogContent = useCallback(
+    async (azureBlobUri: string): Promise<FetchedLogData | null> => {
+      if (!isAzureUri(azureBlobUri)) {
+        return null;
+      }
+      try {
+        const response = await Ajax(signal).AzureStorage.blobByUri(azureBlobUri).getMetadataAndTextContent();
+        const uri = _.isEmpty(response.azureSasStorageUrl) ? response.azureStorageUrl : response.azureSasStorageUrl;
+        return { textContent: response.textContent, downloadUri: uri };
+      } catch (e) {
+        return null;
+      }
+    },
+    [signal]
+  );
+
+  const getAppIdAndTaskName = useCallback(async () => {
+    const workflow: WorkflowMetadata | undefined = await getWorkflow(0);
     if (workflow !== undefined) {
-      setCurrentWorkflow(workflow);
+      setTaskName(workflow.workflowName);
+      const logs = await fetchLogContent(workflow.workflowLog);
+      const textContent = logs !== null ? logs.textContent : null;
+      setAppId(textContent !== null && textContent ? textContent.match('terra-app-[0-9a-fA-f-]*') : null);
     }
-    return workflow;
-  };
+  }, [getWorkflow, fetchLogContent]);
+
+  useEffect(() => {
+    getAppIdAndTaskName();
+  }, [getAppIdAndTaskName]);
 
   return div(
     {
@@ -263,7 +278,7 @@ const FilterableWorkflowTable = ({
         },
         [
           runsFullyUpdated
-            ? div([
+            ? div({ style: { marginBottom: '1.5em' } }, [
                 icon('check', { size: 15, style: { color: colors.success() } }),
                 ' Workflow statuses are all up to date.',
               ])
@@ -271,40 +286,27 @@ const FilterableWorkflowTable = ({
                 icon('warning-standard', { size: 15, style: { color: colors.warning() } }),
                 ' Some workflow statuses are not up to date. Refreshing the page may update more statuses.',
               ]),
-          div([h3(['Filter by: '])]),
-          h(Select, {
-            isDisabled: false,
-            'aria-label': 'Filter selection',
-            isClearable: false,
-            value: filterOption,
-            placeholder: 'None selected',
-            // @ts-expect-error
-            onChange: ({ value }) => {
-              setFilterOption(value);
-            },
-            styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
-            options: filterOptions,
-          }),
-          div(
-            {
-              style: {
-                float: 'right',
+          div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between' } }, [
+            h(FilterSubmissionsDropdown, { filterOption, setFilterOption }),
+            h(
+              Link,
+              {
+                href: Nav.getLink(
+                  'workspace-files',
+                  { name: workspaceName, namespace },
+                  {
+                    path: `workspace-services/cbas/${appId}/${taskName}/`,
+                  }
+                ),
+                target: '_blank',
               },
-            },
-            [
-              h(
-                Link,
-                {
-                  href: Nav.getLink('workspace-files', { name: workspaceName, namespace }),
-                  target: '_blank',
-                },
-                [icon('folder-open', { size: 18 }), '\tSubmission Execution Directory']
-              ),
-            ]
-          ),
+              [icon('folder-open', { size: 18 }), '\tSubmission Execution Directory']
+            ),
+          ]),
           div(
             {
               style: {
+                marginTop: '0.5rem',
                 height: tableHeight({
                   actualRows: paginatedPreviousRuns.length,
                   maxRows: 12.5,
@@ -406,16 +408,45 @@ const FilterableWorkflowTable = ({
                       {
                         size: { basis: 400, grow: 0 },
                         field: 'workflowId',
-                        headerRenderer: () =>
-                          h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
+                        headerRenderer: () => [
+                          h(Sortable, { key: 'workflow ID header', sort, field: 'workflowId', onSort: setSort }, [
+                            'Workflow ID',
+                          ]),
+                          h(
+                            Clickable,
+                            {
+                              key: 'tooltip icon',
+                              tooltip: 'Click the workflow ID to go to the execution directory',
+                              useTooltipAsLabel: true,
+                            },
+                            [icon('cardMenuIcon')]
+                          ),
+                        ],
                         cellRenderer: ({ rowIndex }) => {
-                          const engineId = paginatedPreviousRuns[rowIndex].engine_id;
-                          if (engineId !== undefined) {
-                            return h(TextCell, [
-                              span({ style: { marginRight: '0.5rem' } }, [engineId]),
-                              span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
-                            ]);
+                          if (paginatedPreviousRuns[rowIndex].engine_id) {
+                            const engineId = paginatedPreviousRuns[rowIndex].engine_id;
+                            if (engineId !== undefined) {
+                              return h(TextCell, [
+                                h(
+                                  Link,
+                                  {
+                                    style: { marginRight: '0.5rem' },
+                                    href: Nav.getLink(
+                                      'workspace-files',
+                                      { name: workspaceName, namespace },
+                                      {
+                                        path: `workspace-services/cbas/${appId}/${taskName}/${engineId}/`,
+                                      }
+                                    ),
+                                    target: '_blank',
+                                  },
+                                  [engineId]
+                                ),
+                                span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
+                              ]);
+                            }
                           }
+                          return div(['Error: Workflow ID not found']);
                         },
                       },
                       {
@@ -484,6 +515,9 @@ const FilterableWorkflowTable = ({
                                 ['Log']
                               ),
                             ]);
+                          }
+                          if (paginatedPreviousRuns[rowIndex].state === 'QUEUED') {
+                            return div(['Waiting for workflow to be submitted']);
                           }
                           return div(['Error: Workflow ID not found']);
                         },

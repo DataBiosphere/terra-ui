@@ -1,0 +1,1 @@
+export { defineBaseViteConfig } from './baseViteConfig';

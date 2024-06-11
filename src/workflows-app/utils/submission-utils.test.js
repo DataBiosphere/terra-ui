@@ -40,6 +40,7 @@ describe('getDuration', () => {
   const nonTerminalTestCases = [
     { type: 'Run Set', state: 'UNKNOWN', stateCallback: isRunSetInTerminalState },
     { type: 'Run Set', state: 'RUNNING', stateCallback: isRunSetInTerminalState },
+    { type: 'Run Set', state: 'QUEUED', stateCallback: isRunSetInTerminalState },
     { type: 'Run', state: 'INITIALIZING', stateCallback: isRunInTerminalState },
     { type: 'Run', state: 'QUEUED', stateCallback: isRunInTerminalState },
     { type: 'Run', state: 'RUNNING', stateCallback: isRunInTerminalState },

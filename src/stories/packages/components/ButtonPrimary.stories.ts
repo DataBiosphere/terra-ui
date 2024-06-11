@@ -17,14 +17,14 @@ const meta: Meta<typeof ButtonPrimary> = {
       control: 'boolean',
       description: 'render with warning styling',
       table: {
-        defaultValue: { summary: false },
+        defaultValue: { summary: 'false' },
       },
     },
     disabled: {
       control: 'boolean',
       description: 'disable the button',
       table: {
-        defaultValue: { summary: false },
+        defaultValue: { summary: 'false' },
       },
     },
     tooltip: {
@@ -35,7 +35,7 @@ const meta: Meta<typeof ButtonPrimary> = {
       control: 'number',
       description: 'tooltip delay in milliseconds',
       table: {
-        defaultValue: { summary: 0 },
+        defaultValue: { summary: '0' },
       },
     },
     tooltipSide: {
@@ -58,5 +58,12 @@ export const Primary: Story = {
     danger: false,
     tooltip: 'This can provide additional context',
     children: 'Cancel',
+  },
+  parameters: {
+    design: {
+      type: 'figma',
+      url: 'https://www.figma.com/file/fGlf8DGgTz5ec7phmzNUEN/Terra-Styles-%26-Components?node-id=2-262&t=AexvAMYj4iUGF3lt-4',
+      allowFullscreen: true,
+    },
   },
 };

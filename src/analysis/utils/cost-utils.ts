@@ -21,15 +21,9 @@ import {
   isAzureContext,
 } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel, appToolLabels, appTools, RuntimeToolLabel, ToolLabel } from 'src/analysis/utils/tool-utils';
+import { diskStatuses, LeoDiskStatus } from 'src/libs/ajax/leonardo/Disks';
 import { App, appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models';
-import {
-  diskStatuses,
-  GooglePdType,
-  googlePdTypes,
-  LeoDiskStatus,
-  PersistentDisk,
-} from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   AzureConfig,
   GoogleRuntimeConfig,
@@ -40,6 +34,7 @@ import {
   isGceWithPdConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { GooglePdType, googlePdTypes, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { getAzurePricesForRegion, getDiskType } from 'src/libs/azure-utils';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/workspaces/utils';

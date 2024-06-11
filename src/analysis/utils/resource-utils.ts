@@ -2,8 +2,8 @@ import _ from 'lodash/fp';
 import { getAppStatusForDisplay } from 'src/analysis/utils/app-utils';
 import { getDisplayRuntimeStatus } from 'src/analysis/utils/runtime-utils';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
-import { isPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { isRuntime, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { isRuntime, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { isPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import * as Utils from 'src/libs/utils';
 
 /**
@@ -12,7 +12,6 @@ import * as Utils from 'src/libs/utils';
  * https://github.com/DataBiosphere/leonardo/blob/706a7504420ea4bec686d4f761455e8502b2ddf1/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
  * https://github.com/DataBiosphere/leonardo/blob/e60c71a9e78b53196c2848cd22a752e22a2cf6f5/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/diskModels.scala
  */
-// TODO: stop using resourceType here when all types are defined....
 export const isResourceDeletable = (resource: App | PersistentDisk | Runtime) =>
   _.includes(
     _.lowerCase(resource?.status),
@@ -28,26 +27,6 @@ export const isResourceDeletable = (resource: App | PersistentDisk | Runtime) =>
         },
       ]
     )
-  );
-export const isComputePausable = (compute: App | Runtime): boolean =>
-  Utils.cond(
-    [
-      isRuntime(compute),
-      () =>
-        _.includes(_.capitalize(compute.status), [
-          runtimeStatuses.running.leoLabel,
-          runtimeStatuses.updating.leoLabel,
-          runtimeStatuses.starting.leoLabel,
-        ]),
-    ],
-    [isApp(compute), () => _.includes(_.capitalize(compute.status), ['Running', 'Starting'])],
-    [
-      Utils.DEFAULT,
-      () => {
-        console.error(`Cannot determine pausability; compute ${compute} must be runtime or app.`);
-        return false;
-      },
-    ]
   );
 
 export interface ComputeWithCreator {

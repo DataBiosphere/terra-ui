@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DataRepo, Snapshot } from 'src/libs/ajax/DataRepo';
+import { SamResources } from 'src/libs/ajax/SamResources';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_AZURE_TDR_IMPORT } from 'src/libs/feature-previews-config';
 import { useRoute } from 'src/libs/nav';
@@ -75,8 +76,12 @@ const getTDRSnapshotExportImportRequest = async (queryParams: QueryParams): Prom
   const syncPermissions = queryParams.tdrSyncPermissions === 'true';
 
   let snapshot: Snapshot;
+  let snapshotAccessControls: string[];
   try {
-    snapshot = await DataRepo().snapshot(snapshotId).details();
+    [snapshot, snapshotAccessControls] = await Promise.all([
+      DataRepo().snapshot(snapshotId).details(),
+      SamResources().getAuthDomains({ resourceTypeName: 'datasnapshot', resourceId: snapshotId }),
+    ]);
   } catch (err: unknown) {
     throw new Error('Unable to load snapshot.');
   }
@@ -89,6 +94,7 @@ const getTDRSnapshotExportImportRequest = async (queryParams: QueryParams): Prom
     type: 'tdr-snapshot-export',
     manifestUrl,
     snapshot,
+    snapshotAccessControls,
     syncPermissions,
   };
 };
@@ -99,8 +105,12 @@ const getTDRSnapshotReferenceImportRequest = async (
   const snapshotId = requireString(queryParams.snapshotId, 'snapshot ID');
 
   let snapshot: Snapshot;
+  let snapshotAccessControls: string[];
   try {
-    snapshot = await DataRepo().snapshot(snapshotId).details();
+    [snapshot, snapshotAccessControls] = await Promise.all([
+      DataRepo().snapshot(snapshotId).details(),
+      SamResources().getAuthDomains({ resourceTypeName: 'datasnapshot', resourceId: snapshotId }),
+    ]);
   } catch (err: unknown) {
     throw new Error('Unable to load snapshot.');
   }
@@ -112,6 +122,7 @@ const getTDRSnapshotReferenceImportRequest = async (
   return {
     type: 'tdr-snapshot-reference',
     snapshot,
+    snapshotAccessControls,
   };
 };
 

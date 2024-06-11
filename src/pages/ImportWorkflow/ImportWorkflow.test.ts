@@ -227,6 +227,7 @@ describe('ImportWorkflow', () => {
       ] as WorkspaceWrapper[],
       refresh: () => Promise.resolve(),
       loading: false,
+      status: 'Ready',
     });
 
     asMockedFn(getTerraUser).mockReturnValue({

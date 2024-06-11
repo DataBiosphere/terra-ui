@@ -105,9 +105,11 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
         Workspaces: {
           create: createWorkspace,
           workspace: () => ({
-            clone: cloneWorkspace,
             checkBucketLocation,
             details: getWorkspaceDetails,
+          }),
+          workspaceV2: () => ({
+            clone: cloneWorkspace,
           }),
         },
         WorkspaceData: {

@@ -1,5 +1,5 @@
 import { getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken } from 'src/auth/auth';
-import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { signOut } from 'src/auth/signout/sign-out';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -174,7 +174,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
           const result = makeAuthenticatedRequest();
 
           // Assert
-          await expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
+          await expect(result).rejects.toEqual(new Error(sessionExpirationErrorMessage));
         });
       });
 
@@ -218,7 +218,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
           const result = makeAuthenticatedRequest();
 
           // Assert
-          await expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
+          await expect(result).rejects.toEqual(new Error(sessionExpirationErrorMessage));
         });
       });
     });
