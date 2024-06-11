@@ -190,9 +190,7 @@ export const StructBuilder = (props: StructBuilderProps) => {
                           ...inputTypeStyle(inputTableData[rowIndex].field_type),
                         },
                       },
-                      [
-                        'input_name_that_is_longer_than_the_column_width_will_be_wrapped', // inputTableData[rowIndex].field_name,
-                      ]
+                      [inputTableData[rowIndex].field_name]
                     );
                   },
                 },
