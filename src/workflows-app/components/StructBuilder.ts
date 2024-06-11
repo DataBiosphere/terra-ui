@@ -169,7 +169,7 @@ export const StructBuilder = (props: StructBuilderProps) => {
               noContentMessage: '',
               columns: [
                 {
-                  size: { basis: 250, grow: 0 },
+                  size: { basis: 200, grow: 0 },
                   field: 'struct',
                   headerRenderer: () => h(HeaderCell, ['Struct']),
                   cellRenderer: () => {
@@ -177,13 +177,23 @@ export const StructBuilder = (props: StructBuilderProps) => {
                   },
                 },
                 {
-                  size: { basis: 160, grow: 0 },
+                  size: { basis: 250, grow: 1 },
                   field: 'field',
                   headerRenderer: () => h(HeaderCell, ['Variable']),
                   cellRenderer: ({ rowIndex }) => {
-                    return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].field_type) }, [
-                      inputTableData[rowIndex].field_name,
-                    ]);
+                    return h(
+                      TextCell,
+                      {
+                        style: {
+                          whiteSpace: 'normal',
+                          overflowWrap: 'break-word',
+                          ...inputTypeStyle(inputTableData[rowIndex].field_type),
+                        },
+                      },
+                      [
+                        'input_name_that_is_longer_than_the_column_width_will_be_wrapped', // inputTableData[rowIndex].field_name,
+                      ]
+                    );
                   },
                 },
                 {
@@ -197,7 +207,7 @@ export const StructBuilder = (props: StructBuilderProps) => {
                   },
                 },
                 {
-                  size: { basis: 350, grow: 0 },
+                  size: { basis: 300, grow: 0 },
                   headerRenderer: () => h(HeaderCell, ['Input sources']),
                   cellRenderer: ({ rowIndex }) => {
                     const configurationIndex = inputTableData[rowIndex].configurationIndex;
@@ -222,7 +232,7 @@ export const StructBuilder = (props: StructBuilderProps) => {
                   },
                 },
                 {
-                  size: { basis: 300, grow: 1 },
+                  size: { basis: 300, grow: 2 },
                   headerRenderer: () => h(HeaderCell, [WorkflowTableColumnNames.INPUT_VALUE]),
                   cellRenderer: ({ rowIndex }) => {
                     // rowIndex is the index of this input in the currently displayed table
