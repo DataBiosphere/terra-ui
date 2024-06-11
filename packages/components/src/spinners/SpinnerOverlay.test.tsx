@@ -12,15 +12,21 @@ describe('SpinnerOverlay', () => {
     const icon = document.querySelector('[data-icon="loadingSpinner"]');
     expect(icon).toBeInTheDocument();
   });
-  it.each(['Absolute', 'Fixed', 'Top', 'Transparent', 'FullScreen', 'Default'] satisfies SpinnerOverlayMode[])(
-    'renders mode',
-    (mode: SpinnerOverlayMode) => {
-      // Act
-      renderWithTheme(<SpinnerOverlay mode={mode} />);
 
-      // Assert
-      const icon = document.querySelector('[data-icon="loadingSpinner"]');
-      expect(icon).toBeInTheDocument();
-    }
-  );
+  const spinnerModesTestArg: [SpinnerOverlayMode][] = [
+    ['Absolute'],
+    ['Fixed'],
+    ['Top'],
+    ['Transparent'],
+    ['FullScreen'],
+    ['Default'],
+  ];
+  it.each(spinnerModesTestArg)('renders mode %s', (mode: SpinnerOverlayMode) => {
+    // Act
+    renderWithTheme(<SpinnerOverlay mode={mode} />);
+
+    // Assert
+    const icon = document.querySelector('[data-icon="loadingSpinner"]');
+    expect(icon).toBeInTheDocument();
+  });
 });

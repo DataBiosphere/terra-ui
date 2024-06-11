@@ -43,14 +43,14 @@ type Story = StoryObj<typeof SpinnerOverlay>;
 export const Overlay: Story = {
   args: {},
   parameters: {
-    design: {
-      type: 'figma',
-      /* Figma URL doesn't land on a section for loading spinners since that section isn't authored in Figma by UX yet.
-        Using a placeholder link for now.
-       */
-      url: 'https://www.figma.com/file/fGlf8DGgTz5ec7phmzNUEN/Terra-Styles-%26-Components?node-id=2-262&t=AexvAMYj4iUGF3lt-4',
-      allowFullscreen: true,
-    },
+    // design: {
+    //   type: 'figma',
+    //   /* Figma URL doesn't land on a section for loading spinners since that section isn't authored in Figma by UX yet.
+    //      Disabling design link for now.
+    //    */
+    //   url: 'https://www.figma.com/file/fGlf8DGgTz5ec7phmzNUEN/Terra-Styles-%26-Components?node-id=2-262&t=AexvAMYj4iUGF3lt-4',
+    //   allowFullscreen: true,
+    // },
   },
   render: (args) => (
     <div style={{ margin: 16 }}>
