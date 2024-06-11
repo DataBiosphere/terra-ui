@@ -4735,7 +4735,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest-util", "npm:27.5.1"],\
             ["jest-validate", "npm:27.5.1"],\
             ["jest-watcher", "npm:27.5.1"],\
-            ["micromatch", "npm:4.0.5"],\
+            ["micromatch", "npm:4.0.7"],\
             ["node-notifier", null],\
             ["rimraf", "npm:3.0.2"],\
             ["slash", "npm:3.0.0"],\
@@ -4927,7 +4927,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest-haste-map", "npm:27.5.1"],\
             ["jest-regex-util", "npm:27.5.1"],\
             ["jest-util", "npm:27.5.1"],\
-            ["micromatch", "npm:4.0.5"],\
+            ["micromatch", "npm:4.0.7"],\
             ["pirates", "npm:4.0.6"],\
             ["slash", "npm:3.0.0"],\
             ["source-map", "npm:0.6.1"],\
@@ -13320,7 +13320,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@nodelib/fs.walk", "npm:1.2.8"],\
             ["glob-parent", "npm:5.1.2"],\
             ["merge2", "npm:1.4.1"],\
-            ["micromatch", "npm:4.0.5"]\
+            ["micromatch", "npm:4.0.7"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -15667,7 +15667,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest-runner", "npm:27.5.1"],\
             ["jest-util", "npm:27.5.1"],\
             ["jest-validate", "npm:27.5.1"],\
-            ["micromatch", "npm:4.0.5"],\
+            ["micromatch", "npm:4.0.7"],\
             ["parse-json", "npm:5.2.0"],\
             ["pretty-format", "npm:27.5.1"],\
             ["slash", "npm:3.0.0"],\
@@ -15845,7 +15845,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest-serializer", "npm:27.5.1"],\
             ["jest-util", "npm:27.5.1"],\
             ["jest-worker", "npm:27.5.1"],\
-            ["micromatch", "npm:4.0.5"],\
+            ["micromatch", "npm:4.0.7"],\
             ["walker", "npm:1.0.8"]\
           ],\
           "linkType": "HARD"\
@@ -15978,7 +15978,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/stack-utils", "npm:2.0.1"],\
             ["chalk", "npm:4.1.2"],\
             ["graceful-fs", "npm:4.2.11"],\
-            ["micromatch", "npm:4.0.5"],\
+            ["micromatch", "npm:4.0.7"],\
             ["pretty-format", "npm:27.5.1"],\
             ["slash", "npm:3.0.0"],\
             ["stack-utils", "npm:2.0.5"]\
@@ -15994,7 +15994,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/stack-utils", "npm:2.0.1"],\
             ["chalk", "npm:4.1.2"],\
             ["graceful-fs", "npm:4.2.11"],\
-            ["micromatch", "npm:4.0.5"],\
+            ["micromatch", "npm:4.0.7"],\
             ["pretty-format", "npm:28.1.3"],\
             ["slash", "npm:3.0.0"],\
             ["stack-utils", "npm:2.0.5"]\
@@ -16010,7 +16010,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/stack-utils", "npm:2.0.1"],\
             ["chalk", "npm:4.1.2"],\
             ["graceful-fs", "npm:4.2.11"],\
-            ["micromatch", "npm:4.0.5"],\
+            ["micromatch", "npm:4.0.7"],\
             ["pretty-format", "npm:29.7.0"],\
             ["slash", "npm:3.0.0"],\
             ["stack-utils", "npm:2.0.5"]\
@@ -16428,7 +16428,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["chalk", "npm:4.1.2"],\
             ["flow-parser", "npm:0.226.0"],\
             ["graceful-fs", "npm:4.2.11"],\
-            ["micromatch", "npm:4.0.5"],\
+            ["micromatch", "npm:4.0.7"],\
             ["neo-async", "npm:2.6.2"],\
             ["node-dir", "npm:0.1.17"],\
             ["recast", "npm:0.23.6"],\
@@ -16461,7 +16461,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["chalk", "npm:4.1.2"],\
             ["flow-parser", "npm:0.226.0"],\
             ["graceful-fs", "npm:4.2.11"],\
-            ["micromatch", "npm:4.0.5"],\
+            ["micromatch", "npm:4.0.7"],\
             ["neo-async", "npm:2.6.2"],\
             ["node-dir", "npm:0.1.17"],\
             ["recast", "npm:0.23.6"],\
@@ -16811,7 +16811,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["execa", "npm:6.1.0"],\
             ["lilconfig", "npm:2.0.5"],\
             ["listr2", "virtual:5f9010e5ff1626822e95f9478abbca9d06865e771c302ab7261d07ee4d7fe4994efa0046bb5f7982f8af81ec57df4734f10c32785310c1db8be5aaf37cb23c05#npm:4.0.5"],\
-            ["micromatch", "npm:4.0.5"],\
+            ["micromatch", "npm:4.0.7"],\
             ["normalize-path", "npm:3.0.0"],\
             ["object-inspect", "npm:1.12.3"],\
             ["pidtree", "npm:0.6.0"],\
@@ -17361,10 +17361,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["micromatch", [\
-        ["npm:4.0.5", {\
-          "packageLocation": "./.yarn/cache/micromatch-npm-4.0.5-cfab5d7669-02a17b671c.zip/node_modules/micromatch/",\
+        ["npm:4.0.7", {\
+          "packageLocation": "./.yarn/cache/micromatch-npm-4.0.7-28fb7387ee-3cde047d70.zip/node_modules/micromatch/",\
           "packageDependencies": [\
-            ["micromatch", "npm:4.0.5"],\
+            ["micromatch", "npm:4.0.7"],\
             ["braces", "npm:3.0.3"],\
             ["picomatch", "npm:2.3.1"]\
           ],\
