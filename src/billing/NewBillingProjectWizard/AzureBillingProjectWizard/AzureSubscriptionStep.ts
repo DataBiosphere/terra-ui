@@ -1,4 +1,4 @@
-import { useLoadedData, useUniqueId } from '@terra-ui-packages/components';
+import { SpinnerOverlay, useLoadedData, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { div, h, p } from 'react-hyperscript-helpers';
@@ -13,7 +13,7 @@ import {
 } from 'src/billing/NewBillingProjectWizard/StepWizard/StepFields';
 import { StepHeader } from 'src/billing/NewBillingProjectWizard/StepWizard/StepHeader';
 import { AzureManagedAppCoordinates } from 'src/billing-core/models';
-import { customSpinnerOverlay, Link, Select } from 'src/components/common';
+import { Link, Select } from 'src/components/common';
 import { ValidatedInputWithRef } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
 import { getRegionLabel } from 'src/libs/azure-utils';
@@ -154,7 +154,7 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
         ),
       ]),
     ]),
-    managedApps.status === 'Loading' && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' }),
+    managedApps.status === 'Loading' && h(SpinnerOverlay, { mode: 'FullScreen' } as const),
   ]);
 };
 

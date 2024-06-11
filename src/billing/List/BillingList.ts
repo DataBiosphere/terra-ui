@@ -1,3 +1,4 @@
+import { SpinnerOverlay } from '@terra-ui-packages/components';
 import { withHandlers } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -14,7 +15,6 @@ import { isCreating, isDeleting } from 'src/billing/utils';
 import { billingRoles } from 'src/billing/utils';
 import { BillingProject, GoogleBillingAccount } from 'src/billing-core/models';
 import Collapse from 'src/components/Collapse';
-import { customSpinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
@@ -305,7 +305,6 @@ export const BillingList = (props: BillingListProps) => {
         ),
       ]
     ),
-    (isLoadingProjects || isAuthorizing || isLoadingAccounts) &&
-      customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' }),
+    (isLoadingProjects || isAuthorizing || isLoadingAccounts) && h(SpinnerOverlay, { mode: 'FullScreen' } as const),
   ]);
 };

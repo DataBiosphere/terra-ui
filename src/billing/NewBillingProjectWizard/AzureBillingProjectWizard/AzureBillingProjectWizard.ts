@@ -1,3 +1,4 @@
+import { SpinnerOverlay } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
@@ -8,7 +9,6 @@ import { ProtectedDataStep } from 'src/billing/NewBillingProjectWizard/AzureBill
 import { StepWizard } from 'src/billing/NewBillingProjectWizard/StepWizard/StepWizard';
 import { billingProjectNameValidator } from 'src/billing/utils';
 import { AzureManagedAppCoordinates, BillingRole } from 'src/billing-core/models';
-import { customSpinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -215,6 +215,6 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
         }),
       ]
     ),
-    isBusy && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' }),
+    isBusy && h(SpinnerOverlay, { mode: 'FullScreen' } as const),
   ]);
 };
