@@ -45,14 +45,14 @@ export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
           </div>
         </div>
         <div
-          role="list"
+          role='list'
           style={{ marginBlockStart: '0.5rem', marginBlockEnd: '0.5rem' }}
           aria-describedby={`list-title-${id}`}
         >
           {_.map((policyDescription) => {
             if (props.noCheckboxes) {
               return (
-                <div role="listitem" style={{ marginLeft: '1.25rem' }} key={policyDescription.shortDescription}>
+                <div role='listitem' style={{ marginLeft: '1.25rem' }} key={policyDescription.shortDescription}>
                   {icon('check', { size: 12, style: { marginRight: '0.25rem', color: colors.accent() } })}
                   {policyDescription.shortDescription}
                 </div>
@@ -62,7 +62,7 @@ export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
             const labelId = `${policyDescription.shortDescription.replaceAll(' ', '-')}-${id}`;
             return (
               <div
-                role="listitem"
+                role='listitem'
                 style={{ marginLeft: '1.25rem', marginBottom: '0.5rem' }}
                 key={policyDescription.shortDescription}
               >
@@ -74,7 +74,7 @@ export const WorkspacePolicies = (props: WorkspacePoliciesProps): ReactNode => {
             );
           }, policyDescriptions)}
           {!!props.onTogglePhiTracking && (
-            <div role="listitem" style={{ marginLeft: '1.25rem' }} key={phiTrackingLabel}>
+            <div role='listitem' style={{ marginLeft: '1.25rem' }} key={phiTrackingLabel}>
               <LabeledCheckbox checked={phiTracking} aria-label={phiTrackingLabel} onChange={phiTrackingCallback}>
                 <span style={{ marginLeft: '0.25rem' }}>{phiTrackingLabel}</span>
               </LabeledCheckbox>

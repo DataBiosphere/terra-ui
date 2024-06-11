@@ -1,11 +1,24 @@
-import { PopupTrigger, TooltipTrigger, useModalHandler, useThemeFromContext } from '@terra-ui-packages/components';
-import { formatDatetime, KeyedEventHandler, Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
+import {
+  PopupTrigger,
+  SpinnerOverlay,
+  TooltipTrigger,
+  useBusyState,
+  useModalHandler,
+  useThemeFromContext,
+} from '@terra-ui-packages/components';
+import {
+  formatDatetime,
+  KeyedEventHandler,
+  Mutate,
+  NavLinkProvider,
+  withErrorIgnoring,
+} from '@terra-ui-packages/core-utils';
 import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, h2, span, strong } from 'react-hyperscript-helpers';
-import { RuntimeErrorModal } from 'src/analysis/AnalysisNotificationManager';
 import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
+import { RuntimeErrorModal } from 'src/analysis/modals/RuntimeErrorModal';
 import { getAppStatusForDisplay, getDiskAppType } from 'src/analysis/utils/app-utils';
 import {
   getAppCost,
@@ -17,23 +30,19 @@ import { workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import { getCreatorForCompute } from 'src/analysis/utils/resource-utils';
 import { getDisplayRuntimeStatus, isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel } from 'src/analysis/utils/tool-utils';
-import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
+import { Clickable, LabeledCheckbox, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { makeMenuIcon } from 'src/components/PopupTrigger';
-import SupportRequestWrapper from 'src/components/SupportRequest';
 import { SimpleFlexTable, Sortable } from 'src/components/table';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { AzureConfig, GceWithPdConfig, getRegionFromZone } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { isRuntime, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
-import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { LeoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
-import { withErrorIgnoring, withErrorReporter } from 'src/libs/error';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
-import { contactUsActive } from 'src/libs/state';
 import { elements as styleElements } from 'src/libs/style';
-import { cond, DEFAULT as COND_DEFAULT, formatUSD, withBusyState } from 'src/libs/utils';
+import { cond, DEFAULT as COND_DEFAULT, formatUSD } from 'src/libs/utils';
 import { UseWorkspaces, UseWorkspacesResult } from 'src/workspaces/common/state/useWorkspaces.models';
 import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
@@ -49,7 +58,7 @@ import {
   LeoResourcePermissionsProvider,
   RuntimeWithWorkspace,
 } from './Environments.models';
-import { PauseButton } from './PauseButton';
+import { PauseButton, PauseButtonProps } from './PauseButton';
 import {
   unsupportedCloudEnvironmentMessage,
   unsupportedDiskMessage,
@@ -61,7 +70,7 @@ export type EnvironmentNavActions = {
 };
 
 type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | 'pause' | 'delete'>;
-type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
+type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'errorInfo' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
 
 export interface DataRefreshInfo {
@@ -89,7 +98,7 @@ export interface EnvironmentsProps {
 export const Environments = (props: EnvironmentsProps): ReactNode => {
   const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, onEvent } = props;
   const { colors } = useThemeFromContext();
-  const { withErrorReporting } = withErrorReporter(useNotificationsFromContext());
+  const { withErrorReporting } = useNotificationsFromContext();
   const signal = useCancellation();
 
   type WorkspaceWrapperLookup = { [namespace: string]: { [name: string]: WorkspaceWrapper } };
@@ -102,7 +111,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const [runtimes, setRuntimes] = useState<RuntimeWithWorkspace[]>();
   const [apps, setApps] = useState<AppWithWorkspace[]>();
   const [disks, setDisks] = useState<DiskWithWorkspace[]>();
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, withLoading] = useBusyState();
   const [errorRuntimeId, setErrorRuntimeId] = useState<number>();
   const getErrorRuntimeId = useGetter(errorRuntimeId);
   const [deleteRuntimeId, setDeleteRuntimeId] = useState<number>();
@@ -126,7 +135,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
   const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
 
-  const refreshData = withBusyState(setLoading, async () => {
+  const refreshData = withLoading(async () => {
     await refreshWorkspaces();
 
     const workspaces = getWorkspaces();
@@ -200,7 +209,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   });
   const loadData = withErrorIgnoring(refreshData);
 
-  const pauseComputeAndRefresh = withBusyState(setLoading, async (compute: DecoratedComputeResource) => {
+  const doPauseComputeAndRefresh = withLoading(async (compute: DecoratedComputeResource) => {
     const wrappedPauseCompute = withErrorReporting('Error pausing compute')(async () => {
       if (isRuntime(compute)) {
         return leoRuntimeData.stop(compute);
@@ -217,6 +226,10 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     await wrappedPauseCompute();
     await loadData();
   });
+
+  const pauseComputeAndRefresh: PauseButtonProps['pauseComputeAndRefresh'] = (compute: App | ListRuntimeItem) => {
+    void doPauseComputeAndRefresh(compute as DecoratedComputeResource);
+  };
 
   useEffect(() => {
     loadData();
@@ -664,7 +677,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                           },
                           [name]
                         ),
-                        permissions.canDeleteDisk(rowDisk) &&
+                        permissions.hasDeleteDiskPermission(rowDisk) &&
                           diskStatus !== 'Deleting' &&
                           multipleDisks &&
                           h(
@@ -800,8 +813,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         ]),
       errorRuntimeId &&
         h(RuntimeErrorModal, {
-          runtime: _.find({ id: errorRuntimeId }, runtimes),
+          runtime: _.find({ id: errorRuntimeId }, runtimes)!,
           onDismiss: () => setErrorRuntimeId(undefined),
+          errorProvider: leoRuntimeData,
         }),
       deleteRuntimeId &&
         runtimeToDelete &&
@@ -823,7 +837,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
           appProvider: leoAppData,
         }),
     ]),
-    contactUsActive.get() && h(SupportRequestWrapper),
-    loading && spinnerOverlay,
+    loading && h(SpinnerOverlay),
   ]);
 };

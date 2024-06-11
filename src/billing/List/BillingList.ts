@@ -1,3 +1,5 @@
+import { SpinnerOverlay } from '@terra-ui-packages/components';
+import { withHandlers } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { useEffect, useRef, useState } from 'react';
@@ -13,7 +15,6 @@ import { isCreating, isDeleting } from 'src/billing/utils';
 import { billingRoles } from 'src/billing/utils';
 import { BillingProject, GoogleBillingAccount } from 'src/billing-core/models';
 import Collapse from 'src/components/Collapse';
-import { customSpinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
@@ -86,17 +87,17 @@ export const BillingList = (props: BillingListProps) => {
     Utils.withBusyState(setIsAuthorizing)
   )(Auth.tryBillingScope);
 
-  const loadAccounts = _.flow(
-    reportErrorAndRethrow('Error loading billing accounts'),
-    Utils.withBusyState(setIsLoadingAccounts)
-  )(() => {
-    if (Auth.hasBillingScope()) {
-      return Ajax(signal)
-        .Billing.listAccounts()
-        .then(_.keyBy('accountName')) // @ts-ignore
-        .then(setBillingAccounts);
+  const loadAccounts = withHandlers(
+    [reportErrorAndRethrow('Error loading billing accounts'), Utils.withBusyState(setIsLoadingAccounts)],
+    async () => {
+      if (Auth.hasBillingScope()) {
+        void (await Ajax(signal)
+          .Billing.listAccounts()
+          .then(_.keyBy('accountName')) // @ts-ignore
+          .then(setBillingAccounts));
+      }
     }
-  });
+  );
 
   const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts);
 
@@ -304,7 +305,6 @@ export const BillingList = (props: BillingListProps) => {
         ),
       ]
     ),
-    (isLoadingProjects || isAuthorizing || isLoadingAccounts) &&
-      customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' }),
+    (isLoadingProjects || isAuthorizing || isLoadingAccounts) && h(SpinnerOverlay, { mode: 'FullScreen' } as const),
   ]);
 };

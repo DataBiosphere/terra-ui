@@ -13,7 +13,7 @@ describe('Select Component', () => {
 
   it('renders', () => {
     // Act
-    renderWithTheme(<Select options={options} value="foo" onChange={() => {}} />);
+    renderWithTheme(<Select options={options} value='foo' onChange={() => {}} />);
 
     // Assert
     expect(screen.getByText('Foo')).toBeInTheDocument();
@@ -25,7 +25,7 @@ describe('Select Component', () => {
     const mockOnChange = jest.fn();
 
     // Act
-    renderWithTheme(<Select options={options} value="foo" onChange={mockOnChange} />);
+    renderWithTheme(<Select options={options} value='foo' onChange={mockOnChange} />);
     await user.click(screen.getByText('Foo'));
     await user.click(screen.getByText('Bar'));
 
@@ -52,7 +52,7 @@ describe('GroupedSelect Component', () => {
 
   it('renders', () => {
     // Act
-    renderWithTheme(<GroupedSelect options={groupedOptions} value="red" onChange={() => {}} />);
+    renderWithTheme(<GroupedSelect options={groupedOptions} value='red' onChange={() => {}} />);
 
     // Assert
     expect(screen.getByText('Red')).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe('GroupedSelect Component', () => {
     const mockOnChange = jest.fn();
 
     // Act
-    renderWithTheme(<GroupedSelect options={groupedOptions} value="blue" onChange={mockOnChange} />);
+    renderWithTheme(<GroupedSelect options={groupedOptions} value='blue' onChange={mockOnChange} />);
     expect(screen.getByText('Blue')).toBeInTheDocument();
     await user.click(screen.getByText('Blue'));
 
@@ -85,7 +85,7 @@ describe('GroupedSelect Component', () => {
     const mockOnChange = jest.fn();
 
     // Act
-    renderWithTheme(<GroupedSelect options={groupedOptions} value="red" onChange={mockOnChange} />);
+    renderWithTheme(<GroupedSelect options={groupedOptions} value='red' onChange={mockOnChange} />);
     expect(screen.getByText('Red')).toBeInTheDocument();
     await user.click(screen.getByText('Red'));
     await user.click(screen.getByText('Medium'));
@@ -104,7 +104,7 @@ describe('AsyncCreatableSelect Component', () => {
   it('renders', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderWithTheme(<AsyncCreatableSelect options={options} value="car" onChange={() => {}} />);
+    renderWithTheme(<AsyncCreatableSelect options={options} value='car' onChange={() => {}} />);
 
     // Act
     const selectComponent = screen.getByText('Select...');

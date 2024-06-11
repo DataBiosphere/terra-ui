@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { CSSProperties, useEffect } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
 import { div, h, h2, span } from 'react-hyperscript-helpers';
 import { ErrorAlert } from 'src/alerts/ErrorAlert';
 import { AnalysesData } from 'src/analysis/Analyses';
@@ -19,10 +19,11 @@ import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
 import { FeaturedWorkflows } from 'src/workflows-app/FeaturedWorkflows';
+import { WorkflowsTroubleshooter } from 'src/workflows-app/status/WorkflowsTroubleshooter';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { analysesDataInitialized, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
-import { WorkspaceWrapper } from 'src/workspaces/utils';
+import { AzureWorkspace } from 'src/workspaces/utils';
 
 const subHeadersMap = {
   'workspace-workflows': 'Workflows in this workspace',
@@ -69,7 +70,7 @@ type WorkflowsAppNavPanelProps = {
   loading: boolean;
   name: string;
   namespace: string;
-  workspace: WorkspaceWrapper;
+  workspace: AzureWorkspace;
   analysesData: AnalysesData;
   launcherDisabled: boolean;
   launching: boolean;
@@ -94,6 +95,7 @@ export const WorkflowsAppNavPanel = ({
 }: WorkflowsAppNavPanelProps) => {
   const [selectedSubHeader, setSelectedSubHeader] = useQueryParameter('tab');
   const { captureEvent } = useMetricsEvent();
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
 
   useEffect(() => {
     if (
@@ -242,6 +244,23 @@ export const WorkflowsAppNavPanel = ({
             ),
           ]
         ),
+        h(
+          Clickable,
+          {
+            'aria-label': 'troubleshooting-button',
+            style: {
+              ...styles.subHeaders(false),
+              fontSize: 16,
+            },
+            onClick: () => setStatusModalVisible(true),
+          },
+          [
+            h(ListItem, {
+              title: 'Workflows app status',
+              pageReady: true,
+            }),
+          ]
+        ),
         div(
           {
             style: { marginTop: '2rem' },
@@ -257,6 +276,14 @@ export const WorkflowsAppNavPanel = ({
         ),
       ]
     ),
+    statusModalVisible &&
+      h(WorkflowsTroubleshooter, {
+        onDismiss: () => setStatusModalVisible(false),
+        workspaceId: workspace.workspace.workspaceId,
+        mrgId: workspace.azureContext.managedResourceGroupId,
+        tenantId: workspace.azureContext.tenantId,
+        subscriptionId: workspace.azureContext.subscriptionId,
+      }),
     Utils.cond(
       [
         !analysesDataInitialized(analysesData),

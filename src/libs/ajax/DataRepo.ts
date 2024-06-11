@@ -122,40 +122,12 @@ interface SnapshotDataset {
 export interface Snapshot {
   id: string;
   name: string;
+  description?: string;
+  createdDate?: string;
   source: { dataset: SnapshotDataset }[];
+  properties?: any;
   cloudPlatform: 'azure' | 'gcp';
 }
-
-/** Dataset Types */
-export type DatasetModel = {
-  id: string;
-  name: string;
-  description: string;
-  createdDate: string;
-  properties: any;
-  snapshotBuilderSettings?: SnapshotBuilderSettings;
-};
-
-type DatasetInclude =
-  | 'NONE'
-  | 'SCHEMA'
-  | 'ACCESS_INFORMATION'
-  | 'PROFILE'
-  | 'PROPERTIES'
-  | 'DATA_PROJECT'
-  | 'STORAGE'
-  | 'SNAPSHOT_BUILDER_SETTINGS';
-
-export const datasetIncludeTypes: Record<DatasetInclude, DatasetInclude> = {
-  NONE: 'NONE',
-  SCHEMA: 'SCHEMA',
-  ACCESS_INFORMATION: 'ACCESS_INFORMATION',
-  PROFILE: 'PROFILE',
-  PROPERTIES: 'PROPERTIES',
-  DATA_PROJECT: 'DATA_PROJECT',
-  STORAGE: 'STORAGE',
-  SNAPSHOT_BUILDER_SETTINGS: 'SNAPSHOT_BUILDER_SETTINGS',
-};
 
 /** Jobs */
 export type JobStatus = 'running' | 'succeeded' | 'failed';
@@ -177,7 +149,7 @@ export interface JobModel {
 }
 
 /** Response */
-export interface SnapshotBuilderGetConceptsResponse {
+export interface SnapshotBuilderConceptsResponse {
   result: SnapshotBuilderConcept[];
 }
 export interface SnapshotBuilderGetConceptHierarchyResponse {
@@ -189,7 +161,6 @@ export interface SnapshotBuilderParentConcept {
 }
 export interface SnapshotAccessRequestResponse {
   id: string; // uuid
-  datasetId: string; // uuid
   snapshotId: string; // uuid
   snapshotName: string;
   snapshotResearchPurpose: string;
@@ -212,23 +183,24 @@ export type SnapshotBuilderCountRequest = {
 
 export type SnapshotAccessRequest = {
   name: string;
+  sourceSnapshotId: string;
   researchPurposeStatement: string;
-  datasetRequest: SnapshotBuilderRequest;
+  snapshotBuilderRequest: SnapshotBuilderRequest;
 };
 
 export interface DataRepoContract {
-  dataset: (datasetId: string) => {
-    details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
-    roles: () => Promise<string[]>;
-    createSnapshotRequest(request: SnapshotAccessRequest): Promise<SnapshotAccessRequestResponse>;
-    getSnapshotBuilderCount(request: SnapshotBuilderCountRequest): Promise<SnapshotBuilderCountResponse>;
-    getConcepts(parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse>;
-    getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptHierarchyResponse>;
-    searchConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SnapshotBuilderGetConceptsResponse>;
+  snapshotAccessRequest: () => {
+    createSnapshotAccessRequest: (request: SnapshotAccessRequest) => Promise<SnapshotAccessRequestResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
+    roles: () => Promise<string[]>;
     exportSnapshot: () => Promise<JobModel>;
+    getSnapshotBuilderSettings: () => Promise<SnapshotBuilderSettings>;
+    getSnapshotBuilderCount(request: SnapshotBuilderCountRequest): Promise<SnapshotBuilderCountResponse>;
+    getConceptChildren(parent: SnapshotBuilderConcept): Promise<SnapshotBuilderConceptsResponse>;
+    getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptHierarchyResponse>;
+    enumerateConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SnapshotBuilderConceptsResponse>;
   };
   job: (jobId: string) => {
     details: () => Promise<JobModel>;
@@ -250,35 +222,35 @@ const callDataRepoPost = async (url: string, signal: AbortSignal | undefined, js
 };
 
 export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
-  dataset: (datasetId) => {
+  snapshotAccessRequest: () => {
     return {
-      details: async (include): Promise<DatasetModel> =>
-        callDataRepo(`repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`, signal),
-      roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
-      createSnapshotRequest: async (request: SnapshotAccessRequest): Promise<SnapshotAccessRequestResponse> =>
-        callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotRequests`, signal, request),
-      getSnapshotBuilderCount: async (request: SnapshotBuilderCountRequest): Promise<SnapshotBuilderCountResponse> =>
-        callDataRepoPost(`repository/v1/datasets/${datasetId}/snapshotBuilder/count`, signal, request),
-      getConcepts: async (parent: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptsResponse> =>
-        callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-      searchConcepts: async (
-        domain: SnapshotBuilderConcept,
-        searchText: string
-      ): Promise<SnapshotBuilderGetConceptsResponse> =>
-        callDataRepo(
-          `repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${
-            domain.id
-          }/search?searchText=${encodeURIComponent(searchText)}`
-        ),
-      getConceptHierarchy: async (concept: SnapshotBuilderConcept) =>
-        callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/conceptHierarchy/${concept.id}`),
+      createSnapshotAccessRequest: async (request: SnapshotAccessRequest): Promise<SnapshotAccessRequestResponse> =>
+        callDataRepoPost('repository/v1/snapshotAccessRequests', signal, request),
     };
   },
   snapshot: (snapshotId) => {
     return {
       details: async () => callDataRepo(`repository/v1/snapshots/${snapshotId}`, signal),
+      roles: async (): Promise<string[]> => callDataRepo(`repository/v1/snapshots/${snapshotId}/roles`, signal),
       exportSnapshot: async () =>
         callDataRepo(`repository/v1/snapshots/${snapshotId}/export?validatePrimaryKeyUniqueness=false`, signal),
+      getSnapshotBuilderSettings: async (): Promise<SnapshotBuilderSettings> =>
+        callDataRepo(`repository/v1/snapshots/${snapshotId}/snapshotBuilder/settings`, signal),
+      getSnapshotBuilderCount: async (request: SnapshotBuilderCountRequest): Promise<SnapshotBuilderCountResponse> =>
+        callDataRepoPost(`repository/v1/snapshots/${snapshotId}/snapshotBuilder/count`, signal, request),
+      getConceptChildren: async (parent: SnapshotBuilderConcept): Promise<SnapshotBuilderConceptsResponse> =>
+        callDataRepo(`repository/v1/snapshots/${snapshotId}/snapshotBuilder/concepts/${parent.id}/children`),
+      enumerateConcepts: async (
+        domain: SnapshotBuilderConcept,
+        filterText: string
+      ): Promise<SnapshotBuilderConceptsResponse> =>
+        callDataRepo(
+          `repository/v1/snapshots/${snapshotId}/snapshotBuilder/concepts?domainId=${
+            domain.id
+          }&filterText=${encodeURIComponent(filterText)}`
+        ),
+      getConceptHierarchy: async (concept: SnapshotBuilderConcept) =>
+        callDataRepo(`repository/v1/snapshots/${snapshotId}/snapshotBuilder/concepts/${concept.id}/hierarchy`),
     };
   },
   job: (jobId) => ({

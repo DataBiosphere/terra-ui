@@ -1,5 +1,10 @@
 import { Theme, ThemeProvider } from '@terra-ui-packages/components';
-import { NotificationsContract, NotificationsProvider } from '@terra-ui-packages/notifications';
+import {
+  makeNotificationsProvider,
+  NotificationsContextProvider,
+  NotificationsProvider,
+  Notifier,
+} from '@terra-ui-packages/notifications';
 import {
   act,
   render,
@@ -13,7 +18,7 @@ import userEvent from '@testing-library/user-event';
 import { PropsWithChildren, ReactElement } from 'react';
 import { h } from 'react-hyperscript-helpers';
 
-export { asMockedFn } from '@terra-ui-packages/test-utils';
+export { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 
 const testTheme: Theme = {
   colorPalette: {
@@ -30,13 +35,18 @@ const testTheme: Theme = {
   },
 };
 
-export const mockNotifications: NotificationsContract = {
+const mockNotifier: Notifier = {
   notify: jest.fn(),
 };
 
+export const mockNotifications: NotificationsProvider = makeNotificationsProvider({
+  notifier: mockNotifier,
+  shouldIgnoreError: () => false,
+});
+
 const AppProviders = ({ children }: PropsWithChildren<{}>): ReactElement => {
   return h(ThemeProvider, { theme: testTheme }, [
-    h(NotificationsProvider, { notifications: mockNotifications }, [children]),
+    h(NotificationsContextProvider, { notifications: mockNotifications }, [children]),
   ]);
 };
 
@@ -45,11 +55,6 @@ export const renderWithAppContexts = (ui: ReactElement, options?: Omit<RenderOpt
 };
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
-
-export type PromiseController<T> = {
-  resolve: (value: T) => void;
-  reject: (reason: unknown) => void;
-};
 
 export const renderHookWithAppContexts = <T, U>(
   hook: (args: T) => U,
@@ -60,23 +65,6 @@ export const renderHookWithAppContexts = <T, U>(
   };
   const mergedOptions: RenderHookOptions<T> = { ...baseOptions, ...options };
   return renderHook(hook, mergedOptions);
-};
-
-/**
- * Returns a promise and a controller that allows manually resolving/rejecting the promise.
- */
-export const controlledPromise = <T>(): [Promise<T>, PromiseController<T>] => {
-  const controller: PromiseController<T> = {
-    resolve: () => {},
-    reject: () => {},
-  };
-
-  const promise = new Promise<T>((resolve, reject) => {
-    controller.resolve = resolve;
-    controller.reject = reject;
-  });
-
-  return [promise, controller];
 };
 
 // This is for the AutoSizer component. It requires screen dimensions in order to be tested properly.

@@ -1,10 +1,10 @@
 import { render } from '@testing-library/react';
 import React from 'react';
-import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { SignOutPage } from 'src/auth/signout/SignOutPage';
 import * as Nav from 'src/libs/nav';
-import { notify, sessionTimeoutProps } from 'src/libs/notifications';
+import { notify, sessionExpirationProps } from 'src/libs/notifications';
 import { authStore, azureCookieReadyStore, cookieReadyStore, metricStore, oidcStore, userStore } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -85,7 +85,7 @@ describe('SignOutPage', () => {
     // Act
     render(<SignOutPage />);
     // Assert
-    expect(notify).toHaveBeenCalledWith('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
+    expect(notify).toHaveBeenCalledWith('info', sessionExpirationErrorMessage, sessionExpirationProps);
   });
   it('displays a session expired notification for an error refreshing tokens', () => {
     // Arrange
@@ -99,7 +99,7 @@ describe('SignOutPage', () => {
     // Act
     render(<SignOutPage />);
     // Assert
-    expect(notify).toHaveBeenCalledWith('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
+    expect(notify).toHaveBeenCalledWith('info', sessionExpirationErrorMessage, sessionExpirationProps);
   });
   it('does not display a notification for an unspecified sign out cause', () => {
     // Arrange

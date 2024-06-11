@@ -6,8 +6,8 @@ import {
 } from 'src/analysis/utils/disk-utils';
 import { defaultGceMachineType, defaultLocation, generateRuntimeName } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
+import { RawGetDiskItem, RawListDiskItem } from 'src/libs/ajax/leonardo/Disks';
 import { App, AppError, GetAppItem, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk, PersistentDiskDetail } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   AzureConfig,
   cloudServiceTypes,
@@ -16,6 +16,7 @@ import {
   RuntimeConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { GetRuntimeItem, ListRuntimeItem, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { PersistentDisk, PersistentDiskDetail } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { defaultAzureRegion } from 'src/libs/azure-utils';
 import * as Utils from 'src/libs/utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -210,6 +211,15 @@ export const getDisk = ({ size = defaultGcePersistentDiskSize } = {}) => ({
 
 export const getPersistentDiskDetail = (): PersistentDiskDetail => {
   const disk = getDisk();
+  return {
+    ...disk,
+    serviceAccount: 'testuser123@broad.com',
+    samResource: 1,
+    formattedBy: 'Jupyter',
+  };
+};
+
+export const getDetailFromDisk = (disk: PersistentDisk): PersistentDiskDetail => {
   return {
     ...disk,
     serviceAccount: 'testuser123@broad.com',
@@ -613,7 +623,7 @@ export const galaxyDeleting: App = {
   region: 'us-central1',
 };
 
-export const generateTestApp = (overrides: Partial<ListAppItem>): ListAppItem => ({
+export const generateTestApp = (overrides?: Partial<ListAppItem>): ListAppItem => ({
   workspaceId: null,
   accessScope: null,
   cloudContext: {
@@ -709,6 +719,11 @@ export const generateTestAppWithAzureWorkspace = (
   status: 'RUNNING',
   region: 'us-central1',
   ...overrides,
+});
+
+export const undecoratePd = (disk: PersistentDisk): RawListDiskItem | RawGetDiskItem => ({
+  ...disk,
+  diskType: disk.diskType.value,
 });
 
 export const generateTestDiskWithGoogleWorkspace = (

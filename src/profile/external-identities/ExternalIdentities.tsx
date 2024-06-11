@@ -14,7 +14,7 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode =>
   const { queryParams } = props;
 
   return (
-    <PageBox role="main" style={{ flexGrow: 1 }} variant={PageBoxVariants.light}>
+    <PageBox role='main' style={{ flexGrow: 1 }} variant={PageBoxVariants.light}>
       <NihAccount nihToken={queryParams?.['nih-username-token']} />
       {getConfig()
         .externalCreds?.providers.filter((p) => p !== 'github')
@@ -27,7 +27,7 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode =>
         ))}
       {getConfig().externalCreds?.providers.includes('github') &&
         userHasAccessToEnterpriseFeature('github-account-linking') && (
-          <OAuth2Account key="oauth2link-github}" queryParams={queryParams} provider={oauth2Provider('github')} />
+          <OAuth2Account key='oauth2link-github}' queryParams={queryParams} provider={oauth2Provider('github')} />
         )}
     </PageBox>
   );

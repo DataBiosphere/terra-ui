@@ -70,7 +70,7 @@ const testRunAnalysisAzure = _.flowRight(
   await findElement(page, clickable({ textContains: 'Creating' }));
 
   // Wait for env to finish creating, or break early on error
-  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(20) });
+  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(25) });
 
   // Here, we dismiss any errors or popups. Its common another areas of the application might throw an error or have pop-ups.
   // However, as long as we have a running runtime (which the previous section asserts), the pop-up is not relevant
@@ -92,7 +92,7 @@ const testRunAnalysisAzure = _.flowRight(
   await delay(Millis.ofSeconds(10));
   // Run a command
   await fillIn(frame, '//*[contains(@class,"jp-Cell-inputArea")]', 'print(123456789099876543210990+9876543219)');
-  await click(frame, '//button[starts-with(@title, "Run this cell and advance")]');
+  await click(frame, '//button[starts-with(@title, "Run")]');
   await findText(frame, '123456789099886419754209');
 
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
@@ -106,7 +106,6 @@ const testRunAnalysisAzure = _.flowRight(
 registerTest({
   name: 'run-analysis-azure',
   fn: testRunAnalysisAzure,
-  // targetEnvironments: ['dev', 'staging'],
-  targetEnvironments: [],
-  timeout: Millis.ofMinutes(25),
+  targetEnvironments: ['dev', 'staging'],
+  timeout: Millis.ofMinutes(30),
 });

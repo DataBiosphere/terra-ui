@@ -182,7 +182,7 @@ commands:
             JEST_JUNIT_OUTPUT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/junit"
             SCREENSHOT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/failure-screenshots"
             ENVIRONMENT: << parameters.env >>
-          no_output_timeout: 25m
+          no_output_timeout: 45m
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||")
@@ -203,7 +203,7 @@ commands:
               bash ../.circleci/wait-for-job-finish.sh
               node --require ../.pnp.cjs ./slack/notify-circleci-test-results.js
             fi
-          no_output_timeout: 25m
+          no_output_timeout: 30m
           when: always
 
 jobs:
@@ -222,6 +222,7 @@ jobs:
             if [[ $(git ls-files .yarn/cache --exclude-standard --others) ]]; then
               echo "Changes to Yarn cache need to be committed" 1>&2
               echo "To resolve this, checkout this branch, run yarn, and commit any untracked files in .yarn/cache" 1>&2
+              git ls-files .yarn/cache --exclude-standard --others 1>&2
               exit 1
             fi
       - run: yarn run build

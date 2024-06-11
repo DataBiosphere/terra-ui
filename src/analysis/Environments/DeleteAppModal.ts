@@ -8,7 +8,6 @@ import { appTools } from 'src/analysis/utils/tool-utils';
 import { LabeledCheckbox, spinnerOverlay } from 'src/components/common';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
-import { withErrorReporter } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
 export type DeleteAppProvider = Pick<LeoAppProvider, 'delete'>;
@@ -22,13 +21,13 @@ export interface DeleteAppModalProps {
 
 export const DeleteAppModal = (props: DeleteAppModalProps): ReactNode => {
   const { app, onDismiss, onSuccess, deleteProvider } = props;
-  const { withErrorReportingInModal } = withErrorReporter(useNotificationsFromContext());
+  const { withErrorReporting } = useNotificationsFromContext();
   const [deleteDisk, setDeleteDisk] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { appType } = app;
   const deleteApp = _.flow(
     Utils.withBusyState(setDeleting),
-    withErrorReportingInModal('Error deleting cloud environment', onDismiss)
+    withErrorReporting('Error deleting cloud environment', { rethrow: true, onReported: onDismiss })
   )(async () => {
     await deleteProvider.delete(app, { deleteDisk });
     onSuccess();

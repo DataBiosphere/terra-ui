@@ -1,10 +1,10 @@
 import { screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { DataRepo, DataRepoContract, DatasetModel } from 'src/libs/ajax/DataRepo';
+import { DataRepo, DataRepoContract, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { DatasetBuilderDetails } from './DatasetBuilderDetails';
-import { dummyDatasetModel } from './TestConstants';
+import { testSnapshotBuilderSettings } from './TestConstants';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -22,25 +22,25 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
 });
 
 describe('DatasetBuilderDetails', () => {
-  const mockWithValues = (datasetDetailsResponse: DatasetModel, datasetRolesResponse: string[]) => {
-    const datasetDetailsMock = jest.fn((_include) => Promise.resolve(datasetDetailsResponse));
-    const datasetRolesMock = jest.fn(() => Promise.resolve(datasetRolesResponse));
+  const mockWithValues = (snapshotBuilderSettings: SnapshotBuilderSettings, snapshotRolesResponse: string[]) => {
+    const snapshotBuilderSettingsMock = jest.fn((_include) => Promise.resolve(snapshotBuilderSettings));
+    const snapshotRolesMock = jest.fn(() => Promise.resolve(snapshotRolesResponse));
     asMockedFn(DataRepo).mockImplementation(
       () =>
         ({
-          dataset: (_datasetId) =>
+          snapshot: (_snapshotId) =>
             ({
-              details: datasetDetailsMock,
-              roles: datasetRolesMock,
-            } as Partial<DataRepoContract['dataset']>),
+              roles: snapshotRolesMock,
+              getSnapshotBuilderSettings: snapshotBuilderSettingsMock,
+            } as Partial<DataRepoContract['snapshot']>),
         } as Partial<DataRepoContract> as DataRepoContract)
     );
   };
 
   it('renders', async () => {
     // Arrange
-    mockWithValues(dummyDatasetModel(), ['admin']);
-    render(h(DatasetBuilderDetails, { datasetId: 'id' }));
+    mockWithValues(testSnapshotBuilderSettings(), ['aggregate_data_reader']);
+    render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
     // Assert
     expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
     expect(await screen.findByText('Start creating datasets')).toBeTruthy();
@@ -48,8 +48,8 @@ describe('DatasetBuilderDetails', () => {
 
   it("renders the 'how to get access' button if discoverer", async () => {
     // Arrange
-    mockWithValues(dummyDatasetModel(), ['snapshot_creator']);
-    render(h(DatasetBuilderDetails, { datasetId: 'id' }));
+    mockWithValues(testSnapshotBuilderSettings(), ['snapshot_creator']);
+    render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
     // Assert
     expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
     expect(await screen.findByText('Learn how to gain access')).toBeTruthy();

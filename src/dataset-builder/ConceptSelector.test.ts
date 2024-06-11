@@ -21,7 +21,7 @@ describe('ConceptSelector', () => {
   const onCommit = jest.fn();
   const title = 'title';
   const actionText = 'action text';
-  const datasetId = '0';
+  const snapshotId = '0';
   // Using 101 so the ID doesn't match the count.
   const parents = [{ parentId: 0, children: [dummyGetConceptForId(101), dummyGetConceptForId(102)] }];
   const renderSelector = (initialCart: SnapshotBuilderConcept[] = []) => {
@@ -33,7 +33,7 @@ describe('ConceptSelector', () => {
         onCancel,
         onCommit,
         title,
-        datasetId,
+        snapshotId,
       })
     );
   };
@@ -147,10 +147,10 @@ describe('ConceptSelector', () => {
     renderSelector();
 
     const mockDataRepoContract: DataRepoContract = {
-      dataset: (_datasetId) =>
+      snapshot: (_snapshotId) =>
         ({
-          getConcepts: () => Promise.resolve({ result: [dummyGetConceptForId(103)] }),
-        } as Partial<DataRepoContract['dataset']>),
+          getConceptChildren: () => Promise.resolve({ result: [dummyGetConceptForId(103)] }),
+        } as Partial<DataRepoContract['snapshot']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Act
@@ -166,10 +166,10 @@ describe('ConceptSelector', () => {
     renderSelector();
     const expandConcept = dummyGetConceptForId(103);
     const mockDataRepoContract: DataRepoContract = {
-      dataset: (_datasetId) =>
+      snapshot: (_datasetId) =>
         ({
-          getConcepts: () => Promise.resolve({ result: [expandConcept] }),
-        } as Partial<DataRepoContract['dataset']>),
+          getConceptChildren: () => Promise.resolve({ result: [expandConcept] }),
+        } as Partial<DataRepoContract['snapshot']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Act

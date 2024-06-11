@@ -3,7 +3,12 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Cohort, DomainConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DataRepo, DataRepoContract, DatasetModel, SnapshotBuilderDatasetConceptSet } from 'src/libs/ajax/DataRepo';
+import {
+  DataRepo,
+  DataRepoContract,
+  SnapshotBuilderDatasetConceptSet,
+  SnapshotBuilderSettings,
+} from 'src/libs/ajax/DataRepo';
 import * as Nav from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -17,7 +22,7 @@ import {
   OnStateChangeHandler,
   ValuesSelector,
 } from './DatasetBuilder';
-import { dummyDatasetModel } from './TestConstants';
+import { testSnapshotBuilderSettings, testSnapshotId } from './TestConstants';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -37,12 +42,13 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
 const concept = { id: 100, name: 'concept', code: '0', count: 10, hasChildren: false, children: [] };
 
 describe('DatasetBuilder', () => {
-  const dummyDatasetDetailsWithId = dummyDatasetModel();
+  const testSettings = testSnapshotBuilderSettings();
   type DatasetBuilderContentsPropsOverrides = {
     onStateChange?: OnStateChangeHandler;
     updateCohorts?: Updater<Cohort[]>;
     updateConceptSets?: Updater<DomainConceptSet[]>;
-    dataset?: DatasetModel;
+    snapshotId?: string;
+    snapshotBuilderSettings?: SnapshotBuilderSettings;
     cohorts?: Cohort[];
     conceptSets?: DomainConceptSet[];
   };
@@ -54,28 +60,39 @@ describe('DatasetBuilder', () => {
         updateCohorts: jest.fn(),
         updateConceptSets: jest.fn(),
         onStateChange: (state) => state,
-        dataset: dummyDatasetDetailsWithId,
+        snapshotId: testSnapshotId,
+        snapshotBuilderSettings: testSettings,
         ...overrides,
       })
     );
   };
 
-  const mockWithValues = (datasetDetailsResponse: DatasetModel) => {
-    const datasetDetailsMock = jest.fn((_include) => Promise.resolve(datasetDetailsResponse));
-    const queryDatasetColumnStatisticsByIdMock = jest.fn((_dataOption) =>
-      Promise.resolve({ kind: 'range', min: 0, max: 100, id: 0, name: 'unused' })
-    );
+  const mockDataRepo = (snapshotMocks: Partial<DataRepoContract['snapshot']>[]) => {
     asMockedFn(DataRepo).mockImplementation(
       () =>
         ({
-          dataset: (_datasetId) =>
-            ({
-              details: datasetDetailsMock,
-              queryDatasetColumnStatisticsById: queryDatasetColumnStatisticsByIdMock,
-            } as Partial<DataRepoContract['dataset']>),
+          snapshot: (_snapshotId) => Object.assign({}, ...snapshotMocks),
         } as Partial<DataRepoContract> as DataRepoContract)
     );
   };
+
+  const snapshotBuilderSettingsMock = (snapshotBuilderSettingsResponse: SnapshotBuilderSettings) => ({
+    getSnapshotBuilderSettings: jest.fn((_include) => Promise.resolve(snapshotBuilderSettingsResponse)),
+  });
+
+  const snapshotRolesMock = (snapshotRolesResponse: string[]) => ({
+    roles: jest.fn((_include) => Promise.resolve(snapshotRolesResponse)),
+  });
+
+  const getSnapshotBuilderCountMock = (count = 0) => ({
+    getSnapshotBuilderCount: () =>
+      Promise.resolve({
+        result: {
+          total: count,
+        },
+        sql: 'sql',
+      }),
+  });
 
   const initializeValidDatasetRequest = async (user) => {
     showDatasetBuilderContents({
@@ -109,7 +126,7 @@ describe('DatasetBuilder', () => {
           { name: 'concept set 1', concept, featureValueGroupName: 'a' },
           { name: 'concept set 2', concept, featureValueGroupName: 'b' },
         ],
-        prepackagedConceptSets: dummyDatasetDetailsWithId!.snapshotBuilderSettings!.datasetConceptSets,
+        prepackagedConceptSets: testSettings.datasetConceptSets,
         selectedConceptSets: [],
         updateConceptSets: jest.fn(),
         onChange: (conceptSets) => conceptSets,
@@ -125,6 +142,22 @@ describe('DatasetBuilder', () => {
         values: valuesValueSets,
       })
     );
+
+  const mockCreateSnapshotAccessRequest = jest.fn().mockResolvedValue({
+    id: '',
+    sourceSnapshotId: '',
+    snapshotName: '',
+    snapshotResearchPurpose: '',
+    snapshotSpecification: {
+      cohorts: [{ name: 'g', criteriaGroups: [] }],
+      conceptSets: [],
+      valueSets: [{ name: 'Person', values: ['Person Column 1', 'Person Column 2'] }],
+    },
+    createdBy: 'user@email.com',
+    status: 'SUBMITTED',
+    createdDate: '2024-05-21T14:46:28.622665Z',
+    updatedDate: null,
+  });
 
   it('renders cohorts', () => {
     // Arrange
@@ -166,7 +199,7 @@ describe('DatasetBuilder', () => {
     _.flow(
       _.map((prepackagedConceptSet: SnapshotBuilderDatasetConceptSet) => prepackagedConceptSet.name),
       _.forEach((prepackagedConceptSetName: string) => expect(screen.getByText(prepackagedConceptSetName)).toBeTruthy())
-    )(dummyDatasetDetailsWithId!.snapshotBuilderSettings!.datasetConceptSets);
+    )(testSettings.datasetConceptSets);
     expect(screen.getByText('Concept sets')).toBeTruthy();
     expect(screen.getByText('Prepackaged concept sets')).toBeTruthy();
   });
@@ -196,6 +229,7 @@ describe('DatasetBuilder', () => {
 
   it('allows selecting cohorts, concept sets, and values', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const user = userEvent.setup();
     showDatasetBuilderContents({
       cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
@@ -221,6 +255,7 @@ describe('DatasetBuilder', () => {
   it('maintains old values selections', async () => {
     // Arrange
     const user = userEvent.setup();
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     await initializeValidDatasetRequest(user);
     await user.click(screen.getByLabelText('condition column 1'));
     await user.click(screen.getByLabelText('concept set 1'));
@@ -246,7 +281,10 @@ describe('DatasetBuilder', () => {
 
   it('shows the home page by default', async () => {
     // Arrange
-    mockWithValues(dummyDatasetDetailsWithId);
+    mockDataRepo([
+      snapshotBuilderSettingsMock(testSnapshotBuilderSettings()),
+      snapshotRolesMock(['aggregate_data_reader']),
+    ]);
     render(h(DatasetBuilderView));
     // Assert
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();
@@ -255,18 +293,22 @@ describe('DatasetBuilder', () => {
 
   it('shows the cohort editor page', async () => {
     // Arrange
+    mockDataRepo([
+      snapshotBuilderSettingsMock(testSnapshotBuilderSettings()),
+      snapshotRolesMock(['aggregate_data_reader']),
+    ]);
     const initialState = cohortEditorState.new(newCohort('my test cohort'));
-    render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
+    render(h(DatasetBuilderView, { snapshotId: 'ignored', initialState }));
     // Assert
     expect(await screen.findByText(initialState.cohort.name)).toBeTruthy();
   });
 
   it('shows the participant count and request access buttons when request is valid', async () => {
     const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
+      snapshot: (_snapshotId) =>
         ({
           getSnapshotBuilderCount: () => Promise.resolve({ result: { total: 100 }, sql: '' }),
-        } as Partial<DataRepoContract['dataset']>),
+        } as Partial<DataRepoContract['snapshot']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Arrange
@@ -274,15 +316,15 @@ describe('DatasetBuilder', () => {
     await initializeValidDatasetRequest(user);
     // Assert
     expect(await screen.findByText('100 participants in this dataset')).toBeTruthy();
-    expect(await screen.findByText('Request access to this dataset')).toBeTruthy();
+    expect(await screen.findByText('Request this data snapshot')).toBeTruthy();
   });
 
   it('hides the count with there are few participants in this dataset ', async () => {
     const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
+      snapshot: (_snapshotId) =>
         ({
           getSnapshotBuilderCount: () => Promise.resolve({ result: { total: 19 }, sql: '' }),
-        } as Partial<DataRepoContract['dataset']>),
+        } as Partial<DataRepoContract['snapshot']>),
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Arrange
@@ -290,16 +332,29 @@ describe('DatasetBuilder', () => {
     await initializeValidDatasetRequest(user);
     // Assert
     expect(await screen.findByText('Less than 20 participants in this dataset')).toBeTruthy();
-    expect(await screen.findByText('Request access to this dataset')).toBeTruthy();
+    expect(await screen.findByText('Request this data snapshot')).toBeTruthy();
   });
 
   it('opens the modal when requesting access to the dataset', async () => {
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      snapshot: (_snapshotId) =>
+        ({
+          getSnapshotBuilderCount: () => Promise.resolve({ result: { total: 19 }, sql: '' }),
+        } as Partial<DataRepoContract['snapshot']>),
+      snapshotAccessRequest: () =>
+        ({
+          createSnapshotAccessRequest: mockCreateSnapshotAccessRequest,
+        } as Partial<DataRepoContract['snapshotAccessRequest']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+
     // Arrange
     const user = userEvent.setup();
     await initializeValidDatasetRequest(user);
-    await user.click(await screen.findByText('Request access to this dataset'));
+    await user.click(await screen.findByText('Request this data snapshot'));
     // Assert
-    expect(await screen.findByText('Requesting access')).toBeTruthy();
+    expect(await screen.findByText('Access request created in Terra')).toBeTruthy();
   });
 
   it('shows the concept set creator', async () => {

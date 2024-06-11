@@ -2,25 +2,25 @@ import { LeoResourcePermissionsProvider } from 'src/analysis/Environments/Enviro
 import { getCreatorForCompute, isResourceDeletable } from 'src/analysis/utils/resource-utils';
 import { cromwellAppToolLabels } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { getTerraUser } from 'src/libs/state';
 
 const makePermissionsProvider = (userEmailGetter: () => string): LeoResourcePermissionsProvider => {
   return <LeoResourcePermissionsProvider>{
-    canDeleteDisk: (disk: PersistentDisk) => {
+    hasDeleteDiskPermission: (disk: PersistentDisk) => {
       const currentUserEmail = userEmailGetter();
       return disk.auditInfo.creator === currentUserEmail;
     },
-    canPauseResource: (resource: App | ListRuntimeItem) => {
+    hasPausePermission: (resource: App | ListRuntimeItem) => {
       const currentUserEmail = userEmailGetter();
       const creator = getCreatorForCompute(resource);
       return currentUserEmail === creator;
     },
-    canDeleteApp: (resource: App) => {
+    isAppInDeletableState: (resource: App) => {
       return isResourceDeletable(resource) && !Object.keys(cromwellAppToolLabels).includes(resource.appType);
     },
-    canDeleteResource: (resource: App | PersistentDisk | Runtime) => {
+    isResourceInDeletableState: (resource: App | PersistentDisk | Runtime) => {
       return isResourceDeletable(resource);
     },
   };
