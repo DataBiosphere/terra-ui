@@ -66,17 +66,21 @@ type FilterableWorkflowTableProps = {
 };
 
 /**
- * Transform the keys to a more user friendly form, e.g. 'fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID' => 'fetch_sra_to_bam.SRA_ID'.
- * @param keyValuePairs Pairs of keys and values whose key task prefixes will be stripped
- * @returns a new object with modified keys
+ * Workflow Inputs and Outputs are "fully qualified" and come in the form:
+ *    WorkflowName.CallName.VariableName (for task input/outputs) or
+ *    WorkflowName.VariableName (for workflow inputs/outputs)
+ * Keep in mind that CallName may be multiple segments in the case of nested workflows.
+ * When displaying these, there is no need to include the workflow name as it is already present elsewhere on the page.
+ * Here, we strip away the first part of the key (expected to be the workflow name) to make it shorter and more readable.
+ * @param keyValuePairs A map from fully qualified variable name to value.
+ * @returns A map where the fully qualified variable name has been stripped of the workflow name prefix.
  */
-const stripTaskPrefixFromKeys = <T extends Record<string, any>>(keyValuePairs: T): { [k: string]: any } => {
-  return Object.fromEntries(
-    Object.entries(keyValuePairs).map(([key, value]) => [
-      `${parseMethodString(key).workflow}.\n${parseMethodString(key).variable}`,
-      value,
-    ])
-  );
+const stripWorkflowPrefixFromKeys = <T extends Record<string, any>>(keyValuePairs: T): { [k: string]: any } => {
+  const shortenKey = (key: string): string => {
+    const { call, variable } = parseMethodString(key);
+    return call ? `${call}.${variable}` : variable;
+  };
+  return Object.fromEntries(Object.entries(keyValuePairs).map(([key, value]) => [shortenKey(key), value]));
 };
 
 const FilterableWorkflowTable = ({
@@ -472,7 +476,7 @@ const FilterableWorkflowTable = ({
                                     setTaskDataModal({ taskDataTitle: 'Inputs', taskJson: null });
                                     const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
                                     if (workflow !== undefined) {
-                                      const shortenedInputs = stripTaskPrefixFromKeys(workflow.inputs);
+                                      const shortenedInputs = stripWorkflowPrefixFromKeys(workflow.inputs);
                                       setTaskDataModal({ taskDataTitle: 'Inputs', taskJson: shortenedInputs });
                                     }
                                   },
@@ -486,7 +490,7 @@ const FilterableWorkflowTable = ({
                                     setTaskDataModal({ taskDataTitle: 'Outputs', taskJson: null });
                                     const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
                                     if (workflow !== undefined) {
-                                      const shortenedOutputs = stripTaskPrefixFromKeys(workflow.outputs);
+                                      const shortenedOutputs = stripWorkflowPrefixFromKeys(workflow.outputs);
                                       setTaskDataModal({ taskDataTitle: 'Outputs', taskJson: shortenedOutputs });
                                     }
                                   },
