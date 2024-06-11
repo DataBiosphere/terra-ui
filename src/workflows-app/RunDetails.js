@@ -1,13 +1,11 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import { calculateTotalCost, collapseStatus, renderTaskCostElement } from 'src/components/job-common';
+import { calculateTotalCost, collapseStatus } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
-import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
@@ -19,6 +17,7 @@ import InputOutputModal from 'src/workflows-app/components/InputOutputModal';
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/workflows-app/components/job-common';
 import { LogViewer } from 'src/workflows-app/components/LogViewer';
 import { TroubleshootingBox } from 'src/workflows-app/components/TroubleshootingBox';
+import { WorkflowCostBox } from 'src/workflows-app/components/WorkflowCostBox';
 import { WorkflowInfoBox } from 'src/workflows-app/components/WorkflowInfoBox';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
@@ -58,6 +57,8 @@ export const BaseRunDetails = (
   const [loadWorkflowFailed, setLoadWorkflowFailed] = useState(false);
   const [stdOut, setStdOut] = useState();
   const [appIdMatched, setAppIdMatched] = useState();
+
+  const [cost, setCost] = useState();
 
   const signal = useCancellation();
   const stateRefreshTimer = useRef();
@@ -133,7 +134,9 @@ export const BaseRunDetails = (
           const stdOut = firstCallInfo.stdout;
           setStdOut(stdOut);
           setAppIdMatched(stdOut && stdOut !== null ? stdOut.match('terra-app-[0-9a-fA-f-]*') : null);
-          _.isNil(updateWorkflowPath) && setWorkflow(metadata);
+          const getCost = calculateTotalCost(metadataCalls);
+          // console.log(getCost);
+          _.isNil(updateWorkflowPath) && setWorkflow(metadata) && setCost(getCost);
           if (!_.isEmpty(metadata?.calls)) {
             setFailedTasks(Object.values(failedTasks)[0]?.calls || {});
             setCallObjects(metadata?.calls || {});
@@ -164,15 +167,9 @@ export const BaseRunDetails = (
     [signal, workspaceId]
   );
 
-  const renderInProgressElement = (workflow) => {
-    if (workflow.status === 'Running') {
-      return span({ style: { fontStyle: 'italic' } }, ['In progress - ']);
-    }
-  };
-
-  const taskCostTotal = useMemo(() => {
-    return callObjects ? calculateTotalCost(callObjects) : undefined;
-  }, [callObjects]);
+  // const taskCostTotal = useMemo(() => {
+  //   return callObjects ? calculateTotalCost(callObjects) : undefined;
+  // }, [callObjects]);
 
   const loadCallCacheMetadata = useCallback(
     async (wfId, includeKey, excludeKey) => {
@@ -297,19 +294,21 @@ export const BaseRunDetails = (
               []
             ),
           ]),
-          div({ style: { fontSize: 16, padding: '0rem 2.5rem 1rem' } }, [
-            span({ style: { fontWeight: 'bold' } }, ['Approximate workflow cost: ']),
-            renderInProgressElement(workflow),
-            renderTaskCostElement(taskCostTotal),
-            h(
-              TooltipTrigger,
-              {
-                content:
-                  'Approximate cost is calculated based on the list price of the VMs used and does not include disk cost, subworkflow cost, or any cloud account discounts',
-              },
-              [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
-            ),
-          ]),
+          // console.log(cost),
+          h(WorkflowCostBox, { workflow, cost }, []),
+          // div({ style: { fontSize: 16, padding: '0rem 2.5rem 1rem' } }, [
+          //   span({ style: { fontWeight: 'bold' } }, ['Approximate workflow cost: ']),
+          //   renderInProgressElement(workflow),
+          //   renderTaskCostElement(4),
+          //   h(
+          //     TooltipTrigger,
+          //     {
+          //       content:
+          //         'Approximate cost is calculated based on the list price of the VMs used and does not include disk cost, subworkflow cost, or any cloud account discounts',
+          //     },
+          //     [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
+          //   ),
+          // ]),
           div(
             {
               style: {
