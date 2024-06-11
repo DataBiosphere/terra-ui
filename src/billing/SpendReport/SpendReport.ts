@@ -1,3 +1,4 @@
+import { SpinnerOverlay } from '@terra-ui-packages/components';
 import { subDays } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { Fragment, lazy, Suspense, useEffect, useState } from 'react';
@@ -6,7 +7,7 @@ import { ErrorAlert } from 'src/alerts/ErrorAlert';
 import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import { CostCard } from 'src/billing/SpendReport/CostCard';
 import { CloudPlatform } from 'src/billing-core/models';
-import { customSpinnerOverlay, IdContainer, Select } from 'src/components/common';
+import { IdContainer, Select } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
@@ -376,6 +377,6 @@ export const SpendReport = (props: SpendReportProps) => {
           ]
         ),
     ]),
-    updatingProjectCost && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' }),
+    updatingProjectCost && h(SpinnerOverlay, { mode: 'FullScreen' } as const),
   ]);
 };
