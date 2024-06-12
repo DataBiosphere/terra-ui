@@ -238,23 +238,38 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
             ]),
           ]),
         ]),
-        (() => {
-          if (loadingWorkspace) {
-            return spinnerOverlay;
-          }
-
-          if (accessError) {
-            return h(WorkspaceAccessError);
-          }
-
-          return (
-            workspace &&
-            h(
-              WorkspaceContainer,
-              {
-                namespace,
-                name,
-                activeTab,
+        loadingWorkspace && spinnerOverlay,
+        accessError && h(WorkspaceAccessError),
+        workspace &&
+          h(
+            WorkspaceContainer,
+            {
+              namespace,
+              name,
+              activeTab,
+              workspace,
+              refreshWorkspace,
+              analysesData: {
+                apps,
+                refreshApps,
+                lastRefresh,
+                runtimes,
+                refreshRuntimes,
+                appDataDisks,
+                persistentDisks,
+                isLoadingCloudEnvironments,
+              },
+              storageDetails,
+              refresh: async () => {
+                await refreshWorkspace();
+                if (_.isObject(child?.current) && 'refresh' in child.current && _.isFunction(child.current.refresh)) {
+                  child.current.refresh();
+                }
+              },
+            },
+            [
+              h(WrappedComponent, {
+                ref: child,
                 workspace,
                 refreshWorkspace,
                 analysesData: {
@@ -268,35 +283,10 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
                   isLoadingCloudEnvironments,
                 },
                 storageDetails,
-                refresh: async () => {
-                  await refreshWorkspace();
-                  if (_.isObject(child?.current) && 'refresh' in child.current && _.isFunction(child.current.refresh)) {
-                    child.current.refresh();
-                  }
-                },
-              },
-              [
-                h(WrappedComponent, {
-                  ref: child,
-                  workspace,
-                  refreshWorkspace,
-                  analysesData: {
-                    apps,
-                    refreshApps,
-                    lastRefresh,
-                    runtimes,
-                    refreshRuntimes,
-                    appDataDisks,
-                    persistentDisks,
-                    isLoadingCloudEnvironments,
-                  },
-                  storageDetails,
-                  ...props,
-                }),
-              ]
-            )
-          );
-        })(),
+                ...props,
+              }),
+            ]
+          ),
       ]);
     };
     return withDisplayName('wrapWorkspace', Wrapper);
