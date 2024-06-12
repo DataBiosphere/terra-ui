@@ -1,6 +1,7 @@
+import { useBusyState } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { useState } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link, topSpinnerOverlay } from 'src/components/common';
 import { DeleteFilesConfirmationModal } from 'src/components/file-browser/DeleteFilesConfirmationModal';
 import { icon } from 'src/components/icons';
@@ -22,6 +23,7 @@ interface FilesMenuProps {
   onClickUpload: () => void;
   onCreateDirectory: (directory: FileBrowserDirectory) => void;
   onDeleteFiles: () => void;
+  onRefresh: () => Promise<void>;
 }
 
 export const FilesMenu = (props: FilesMenuProps) => {
@@ -34,8 +36,10 @@ export const FilesMenu = (props: FilesMenuProps) => {
     onClickUpload,
     onCreateDirectory,
     onDeleteFiles,
+    onRefresh,
   } = props;
 
+  const [refreshing, withRefreshing] = useBusyState();
   const [busy, setBusy] = useState(false);
   const [creatingNewDirectory, setCreatingNewDirectory] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -97,6 +101,18 @@ export const FilesMenu = (props: FilesMenuProps) => {
           onClick: () => setConfirmingDelete(true),
         },
         [icon('trash'), ' Delete']
+      ),
+
+      span({ style: { flex: 1 } }),
+
+      h(
+        Link,
+        {
+          disabled: refreshing,
+          style: { padding: '0.5rem' },
+          onClick: withRefreshing(onRefresh),
+        },
+        [icon(refreshing ? 'loadingSpinner' : 'sync'), ' Refresh']
       ),
 
       creatingNewDirectory &&
