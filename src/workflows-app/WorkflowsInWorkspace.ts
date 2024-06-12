@@ -37,6 +37,7 @@ export const WorkflowsInWorkspace = ({
   const [methodsData, setMethodsData] = useState<WorkflowMethod[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [methodToDelete, setMethodToDelete] = useState<WorkflowMethod | null>(null);
+  const [cbasBuildInfo, setCbasBuildInfo] = useState(null);
 
   const signal = useCancellation();
   const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
@@ -63,6 +64,14 @@ export const WorkflowsInWorkspace = ({
       }
     },
     [signal, workspaceId]
+  );
+
+  const loadCbasInfo = useCallback(
+    async (cbasProxyUrlDetails) => {
+      const { build } = await Cbas(signal).info(cbasProxyUrlDetails.state);
+      setCbasBuildInfo(build);
+    },
+    [signal]
   );
 
   const deleteMethod = useCallback(
@@ -92,6 +101,7 @@ export const WorkflowsInWorkspace = ({
 
       if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
         await loadRunsData(cbasProxyUrlState);
+        await loadCbasInfo(cbasProxyUrlState);
         await refreshApps();
       }
     });
@@ -176,20 +186,23 @@ export const WorkflowsInWorkspace = ({
                           },
                         },
                         [
-                          h(
-                            ButtonSecondary,
-                            {
-                              onClick: () => setMethodToDelete(method),
-                              disabled: !canWrite(accessLevel),
-                              tooltip: !canWrite(accessLevel)
-                                ? 'You must have write permission to delete workflows in this workspace'
-                                : '',
-                              style: {
-                                justifyContent: 'flex-end',
+                          // we're gating the delete button behind cbasBuildInfo
+                          // because we know that buildInfo will become available before the new delete endpoint.
+                          cbasBuildInfo &&
+                            h(
+                              ButtonSecondary,
+                              {
+                                onClick: () => setMethodToDelete(method),
+                                disabled: !canWrite(accessLevel),
+                                tooltip: !canWrite(accessLevel)
+                                  ? 'You must have write permission to delete workflows in this workspace'
+                                  : '',
+                                style: {
+                                  justifyContent: 'flex-end',
+                                },
                               },
-                            },
-                            [makeMenuIcon('trash'), 'Delete']
-                          ),
+                              [makeMenuIcon('trash'), 'Delete']
+                            ),
                         ]
                       ),
                     ]
@@ -205,7 +218,7 @@ export const WorkflowsInWorkspace = ({
                 onConfirm: () => deleteMethod(methodToDelete.method_id),
               }),
           ]),
-    [name, namespace, accessLevel, methodsData, deleteMethod, methodToDelete]
+    [name, namespace, accessLevel, methodsData, deleteMethod, methodToDelete, cbasBuildInfo]
   );
 
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
