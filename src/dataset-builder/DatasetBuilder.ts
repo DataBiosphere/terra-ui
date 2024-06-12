@@ -151,7 +151,7 @@ const Selector: SelectorComponent = <T extends DatasetBuilderType>(props) => {
     datasetBuilderObjectSets &&
     _.flatMap((datasetBuilderObjectSet) => datasetBuilderObjectSet.values, datasetBuilderObjectSets).length > 0;
 
-  return li({ style: { width: '30%', ...style } }, [
+  return li({ style: { width: '45%', ...style } }, [
     div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' } }, [
       div({ style: { display: 'flex' } }, [
         div(
@@ -415,40 +415,6 @@ export const ConceptSetSelector = ({
   });
 };
 
-export const ValuesSelector = ({
-  selectedValues,
-  values,
-  onChange,
-}: {
-  selectedValues: HeaderAndValues<DatasetBuilderValue>[];
-  values: HeaderAndValues<DatasetBuilderValue>[];
-  onChange: (values: HeaderAndValues<DatasetBuilderValue>[]) => void;
-}) => {
-  return h(Selector, {
-    headerAction: div([
-      h(
-        LabeledCheckbox,
-        {
-          checked: values.length !== 0 && _.isEqual(values, selectedValues),
-          onChange: (checked) => (checked ? onChange(values) : onChange([])),
-          disabled: values.length === 0,
-        },
-        [label({ style: { paddingLeft: '0.5rem' } }, ['Select All'])]
-      ),
-    ]),
-    number: 3,
-    onChange,
-    objectSets: values,
-    selectedObjectSets: selectedValues,
-    header: 'Select values (columns)',
-    placeholder: div([
-      div(['No inputs selected']),
-      div(['You can view the available values by selecting at least one cohort and concept set']),
-    ]),
-    style: { width: '40%', marginLeft: '1rem' },
-  });
-};
-
 interface RequestAccessModalProps {
   onDismiss: () => void;
   snapshotId: string;
@@ -551,7 +517,6 @@ export const DatasetBuilderContents = ({
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
   const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
-  const [values, setValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [requestingAccess, setRequestingAccess] = useState(false);
   const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
     useLoadedData<SnapshotBuilderCountResponse>();
@@ -560,8 +525,7 @@ export const DatasetBuilderContents = ({
   const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
   const allConceptSets: ConceptSet[] = useMemo(() => _.flatMap('values', selectedConceptSets), [selectedConceptSets]);
 
-  const requestValid =
-    allCohorts.length > 0 && allConceptSets.length > 0 && _.flatMap('values', selectedValues).length > 0;
+  const requestValid = allCohorts.length > 0 && allConceptSets.length > 0;
 
   useEffect(() => {
     requestValid &&
@@ -586,16 +550,6 @@ export const DatasetBuilderContents = ({
       ],
       includedFeatureValueGroups
     );
-
-  const getAvailableValuesFromFeatureGroups = (featureValueGroups: string[]): HeaderAndValues<DatasetBuilderValue>[] =>
-    _.flow(
-      _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
-      _.sortBy('name'),
-      _.map((featureValueGroup: FeatureValueGroup) => ({
-        header: featureValueGroup.name,
-        values: _.map((value) => ({ name: value }), featureValueGroup.values),
-      }))
-    )(snapshotBuilderSettings.featureValueGroups);
 
   const createHeaderAndValuesFromFeatureValueGroups = (
     featureValueGroups: string[]
@@ -641,14 +595,8 @@ export const DatasetBuilderContents = ({
                 ...createHeaderAndValuesFromFeatureValueGroups(newFeatureValueGroups),
               ]);
               setSelectedConceptSets(conceptSets);
-              setValues(getAvailableValuesFromFeatureGroups(includedFeatureValueGroups));
             },
             onStateChange,
-          }),
-          h(ValuesSelector, {
-            selectedValues,
-            values,
-            onChange: setSelectedValues,
           }),
         ]),
       ]),
