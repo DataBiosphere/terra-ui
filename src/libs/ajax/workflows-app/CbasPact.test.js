@@ -375,7 +375,7 @@ describe('Cbas tests', () => {
       fetchFromProxy.mockImplementation(() => fetchOk);
 
       // ACT
-      const response = await Cbas(signal).methods.archive(mockService.url, '00000000-0000-0000-0000-000000000009');
+      const response = await Cbas(signal).methods.patch(mockService.url, '00000000-0000-0000-0000-000000000009', { method_status: 'ARCHIVED' });
 
       // ASSERT
       expect(response).toBeDefined();

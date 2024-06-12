@@ -77,7 +77,7 @@ export const WorkflowsInWorkspace = ({
   const deleteMethod = useCallback(
     async (methodId) => {
       const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
-      await Cbas(signal).methods.archive(cbasProxyUrlState.state, methodId);
+      await Cbas(signal).methods.patch(cbasProxyUrlState.state, methodId, { method_status: 'ARCHIVED' });
       await loadRunsData(cbasProxyUrlState);
       setMethodToDelete(null);
     },
