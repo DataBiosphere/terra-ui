@@ -1,4 +1,4 @@
-import { Modal } from '@terra-ui-packages/components';
+import { Modal, SpinnerOverlay } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { Fragment, useEffect, useMemo, useState } from 'react';
@@ -8,7 +8,7 @@ import * as Auth from 'src/auth/auth';
 import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import { SpendReport } from 'src/billing/SpendReport/SpendReport';
 import { billingRoles } from 'src/billing/utils';
-import { ButtonPrimary, customSpinnerOverlay, IdContainer, Link, VirtualizedSelect } from 'src/components/common';
+import { ButtonPrimary, IdContainer, Link, VirtualizedSelect } from 'src/components/common';
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common';
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
@@ -785,7 +785,7 @@ const ProjectDetail = ({
         },
       }),
     billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) }),
-    updating && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' }),
+    updating && h(SpinnerOverlay, { mode: 'FullScreen' }),
   ]);
 };
 

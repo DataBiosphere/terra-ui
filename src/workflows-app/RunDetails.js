@@ -96,6 +96,7 @@ export const BaseRunDetails = (
       'callCaching',
       'workflowLog',
       'failures',
+      'workflowName',
     ],
     []
   );
