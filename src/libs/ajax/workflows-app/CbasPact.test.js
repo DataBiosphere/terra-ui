@@ -377,7 +377,7 @@ describe('Cbas tests', () => {
       const payload = { method_status: 'ARCHIVED' };
 
       // ACT
-      const response = await Cbas(signal).methods.patch(mockService.url, '00000000-0000-0000-0000-000000000009', ...jsonBody(payload));
+      const response = await Cbas(signal).methods.patch(mockService.url, '00000000-0000-0000-0000-000000000009', payload);
 
       // ASSERT
       expect(response).toBeDefined();
