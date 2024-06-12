@@ -374,14 +374,20 @@ describe('Cbas tests', () => {
       fetchOk.mockImplementation(async (path) => await fetch(`${mockService.url}/${path}`, { method: 'PATCH', headers }));
       fetchFromProxy.mockImplementation(() => fetchOk);
 
+      const payload = { method_status: 'ARCHIVED' };
+
       // ACT
-      const response = await Cbas(signal).methods.patch(mockService.url, '00000000-0000-0000-0000-000000000009', { method_status: 'ARCHIVED' });
+      const response = await Cbas(signal).methods.patch(mockService.url, '00000000-0000-0000-0000-000000000009', ...jsonBody(payload));
 
       // ASSERT
       expect(response).toBeDefined();
       expect(fetchOk).toBeCalledTimes(1);
       expect(fetchFromProxy).toBeCalledTimes(1);
-      expect(fetchOk).toBeCalledWith('api/batch/v1/methods?method_id=00000000-0000-0000-0000-000000000009', { method: 'PATCH', signal });
+      expect(fetchOk).toBeCalledWith('api/batch/v1/methods?method_id=00000000-0000-0000-0000-000000000009', {
+        method: 'PATCH',
+        ...jsonBody(payload),
+        signal,
+      });
     });
   });
 

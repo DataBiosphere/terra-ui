@@ -45,10 +45,12 @@ type CbasContract = ReturnType<typeof Cbas>;
 describe('Workflows in workspace', () => {
   it('should render a message if no methods are in workspace', async () => {
     const getWithVersions = jest.fn().mockReturnValue(Promise.resolve({ methods: [] }));
+    const getInfo = jest.fn().mockReturnValue(Promise.resolve({ git: {} }));
     const mockGet: DeepPartial<CbasContract> = {
       methods: {
         getWithVersions,
       },
+      info: getInfo,
     };
     asMockedFn(Cbas).mockImplementation(() => mockGet as CbasContract);
 
@@ -71,10 +73,12 @@ describe('Workflows in workspace', () => {
   it('should render workflow cards linked to submission config if methods are in workspace', async () => {
     const user = userEvent.setup();
     const getWithVersions = jest.fn().mockReturnValue(Promise.resolve(methodDataWithVersions));
+    const getInfo = jest.fn().mockReturnValue(Promise.resolve({ git: {} }));
     const mockGet: DeepPartial<CbasContract> = {
       methods: {
         getWithVersions,
       },
+      info: getInfo,
     };
     asMockedFn(Cbas).mockImplementation(() => mockGet as CbasContract);
 
@@ -111,10 +115,23 @@ describe('Workflows in workspace', () => {
   it('should open workflow deletion confirmation modal when delete button is clicked', async () => {
     const user = userEvent.setup();
     const getWithVersions = jest.fn().mockReturnValue(Promise.resolve(methodDataWithVersions));
+    const getInfo = jest.fn().mockReturnValue(
+      Promise.resolve({
+        git: {},
+        build: {
+          artifact: 'service',
+          name: 'service',
+          time: '2024-06-03T18:31:45.429Z',
+          version: '0.0.221',
+          group: 'bio.terra',
+        },
+      })
+    );
     const mockGet: DeepPartial<CbasContract> = {
       methods: {
         getWithVersions,
       },
+      info: getInfo,
     };
     asMockedFn(Cbas).mockImplementation(() => mockGet as CbasContract);
 
@@ -167,10 +184,23 @@ describe('Workflows in workspace', () => {
     }))
   )('$testName', async ({ accessLevel, canDelete }) => {
     const getWithVersions = jest.fn().mockReturnValue(Promise.resolve(methodDataWithVersions));
+    const getInfo = jest.fn().mockReturnValue(
+      Promise.resolve({
+        git: {},
+        build: {
+          artifact: 'service',
+          name: 'service',
+          time: '2024-06-03T18:31:45.429Z',
+          version: '0.0.221',
+          group: 'bio.terra',
+        },
+      })
+    );
     const mockGet: DeepPartial<CbasContract> = {
       methods: {
         getWithVersions,
       },
+      info: getInfo,
     };
     asMockedFn(Cbas).mockImplementation(() => mockGet as CbasContract);
 
