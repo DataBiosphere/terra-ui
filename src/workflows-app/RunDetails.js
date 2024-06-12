@@ -107,6 +107,26 @@ export const BaseRunDetails = (
   );
   const excludeKey = useMemo(() => [], []);
 
+  const loadForSubworkflows = useCallback(
+    async (workflowId) => {
+      try {
+        const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
+
+        const metadata = await fetchMetadata({
+          cromwellProxyUrl: cromwellProxyUrlState.state,
+          workflowId,
+          signal,
+          includeKeys: includeKey,
+        });
+
+        return metadata;
+      } catch (e) {
+        // console.log(e);
+      }
+    },
+    [includeKey, signal, workspaceId]
+  );
+
   const loadWorkflow = useCallback(
     async (workflowId, updateWorkflowPath = undefined) => {
       try {
@@ -134,9 +154,12 @@ export const BaseRunDetails = (
           const stdOut = firstCallInfo.stdout;
           setStdOut(stdOut);
           setAppIdMatched(stdOut && stdOut !== null ? stdOut.match('terra-app-[0-9a-fA-f-]*') : null);
-          const getCost = calculateTotalCost(metadataCalls);
+          const getCost = await calculateTotalCost(metadataCalls, loadForSubworkflows);
           // console.log(getCost);
-          _.isNil(updateWorkflowPath) && setWorkflow(metadata) && setCost(getCost);
+          if (_.isNil(updateWorkflowPath)) {
+            setWorkflow(metadata);
+            setCost(getCost);
+          }
           if (!_.isEmpty(metadata?.calls)) {
             setFailedTasks(Object.values(failedTasks)[0]?.calls || {});
             setCallObjects(metadata?.calls || {});
@@ -152,7 +175,7 @@ export const BaseRunDetails = (
         notify('error', 'Error loading run details', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [signal, workspaceId, includeKey, excludeKey]
+    [workspaceId, signal, includeKey, excludeKey, loadForSubworkflows]
   );
 
   //  Below two methods are data fetchers used in the call cache wizard. Defined

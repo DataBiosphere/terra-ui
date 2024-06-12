@@ -178,18 +178,27 @@ export const renderTaskCostElement = (cost) => {
   return `$${cost}`;
 };
 
-export const calculateTotalCost = (callObjects) => {
+export const calculateTotalCost = async (callObjects, loadForSubworkflows) => {
   let total = 0;
   // console.log(callObjects);
-  Object.values(callObjects).forEach((call) => {
-    if (!call[0].taskStartTime) {
-      total += 0;
-    } else if (call[0].taskEndTime) {
-      total += getTaskCost({ vmCostUsd: call[0].vmCostUsd, taskStartTime: call[0].taskStartTime, taskEndTime: call[0].taskEndTime });
-    } else {
-      total += getTaskCost({ vmCostUsd: call[0].vmCostUsd, taskStartTime: call[0].taskStartTime });
+  for (const call of Object.values(callObjects)) {
+    for (const s of call) {
+      const { taskStartTime, taskEndTime, vmCostUsd, subWorkflowId } = s;
+      if (subWorkflowId) {
+        const subWorkflows = await loadForSubworkflows(subWorkflowId);
+        const subworkflowCalls = subWorkflows?.calls;
+        total += await calculateTotalCost(subworkflowCalls, loadForSubworkflows);
+        // console.log(subworkflowCalls);
+      }
+      if (!taskStartTime) {
+        total += 0;
+      } else if (taskEndTime) {
+        total += getTaskCost({ vmCostUsd, taskStartTime, taskEndTime });
+      } else {
+        total += getTaskCost({ vmCostUsd, taskStartTime });
+      }
     }
-  });
+  }
   // console.log(total);
   return total;
 };
