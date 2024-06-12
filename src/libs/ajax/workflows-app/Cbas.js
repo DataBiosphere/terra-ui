@@ -23,11 +23,11 @@ export const Cbas = (signal) => ({
       const res = await fetchFromProxy(cbasUrlRoot)('api/batch/v1/methods', _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]));
       return res.json();
     },
-    patch: async (cbasUrlRoot, methodId, payload) => {
+    archive: async (cbasUrlRoot, methodId) => {
       const keyParams = qs.stringify({ method_id: methodId });
       const res = await fetchFromProxy(cbasUrlRoot)(
         `api/batch/v1/methods?${keyParams}`,
-        _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }])
+        _.mergeAll([authOpts(), jsonBody({ method_status: 'ARCHIVED' }), { signal, method: 'PATCH' }])
       );
       return res.json();
     },

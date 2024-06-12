@@ -153,6 +153,35 @@ describe('Workflows in workspace', () => {
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
 
+  it('should not render a delete button on workflow cards if cbas build info is unavailable', async () => {
+    const getWithVersions = jest.fn().mockReturnValue(Promise.resolve(methodDataWithVersions));
+    const getInfo = jest.fn().mockReturnValue(
+      Promise.resolve({
+        git: {},
+      })
+    );
+    const mockGet: DeepPartial<CbasContract> = {
+      methods: {
+        getWithVersions,
+      },
+      info: getInfo,
+    };
+    asMockedFn(Cbas).mockImplementation(() => mockGet as CbasContract);
+
+    await act(() =>
+      render(
+        h(WorkflowsInWorkspace, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          analysesData: defaultAnalysesData,
+        })
+      )
+    );
+
+    expect(screen.queryByRole('button', { name: 'Delete' })).toBeNull();
+  });
+
   const testCases: Array<{
     accessLevel: 'PROJECT_OWNER' | 'OWNER' | 'WRITER' | 'READER';
     canDelete: boolean;
