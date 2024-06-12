@@ -243,6 +243,29 @@ describe('BaseRunDetails - render smoke test', () => {
     });
   });
 
+  it('shows expected cost details', async () => {
+    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+
+    const table = screen.getByRole('table');
+    const tableRows = within(table).getAllByRole('row').slice(1); // omit header row
+
+    const task1Row = tableRows[0];
+    const cellsFromDataRow1 = within(task1Row).getAllByRole('cell');
+    within(cellsFromDataRow1[7]).getByText('$12.72');
+
+    const task2Row = tableRows[1];
+    const cellsFromDataRow2 = within(task2Row).getAllByRole('cell');
+    within(cellsFromDataRow2[7]).getByText(/In Progress -/); // Can't accurately calculate cost for an 'In Progress' task in a test
+
+    const task3Row = tableRows[2];
+    const cellsFromDataRow3 = within(task3Row).getAllByRole('cell');
+    within(cellsFromDataRow3[7]).getByText('-');
+
+    const task4Row = tableRows[3];
+    const cellsFromDataRow4 = within(task4Row).getAllByRole('cell');
+    within(cellsFromDataRow4[7]).getByText('-');
+  });
+
   it('only shows failed tasks if a workflow has failed', async () => {
     const failedTaskCalls = Object.values(failedTasksMetadata)[0].calls;
     const targetCall = Object.values(failedTaskCalls)[0][0];
@@ -464,7 +487,7 @@ describe('BaseRunDetails - render smoke test', () => {
   it('shows a functional log modal when clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const showLogsLink = screen.getByText('Logs');
+    const showLogsLink = screen.getAllByText('Logs')[0];
     await user.click(showLogsLink); // Open the modal
 
     // Verify all the element titles are present
@@ -487,7 +510,7 @@ describe('BaseRunDetails - render smoke test', () => {
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const showLogsLink = screen.getByText('Logs');
+    const showLogsLink = screen.getAllByText('Logs')[0];
     await user.click(showLogsLink); // Open the modal
 
     // Verify all the element titles are present
@@ -519,7 +542,7 @@ describe('BaseRunDetails - render smoke test', () => {
     await userEvent.type(searchInput, 'Fetch');
     const updatedTable = screen.getByRole('table');
     const updatedRows = within(updatedTable).getAllByRole('row');
-    expect(updatedRows.length).toEqual(2);
+    expect(updatedRows.length).toEqual(5);
     const updatedElement = within(updatedTable).getAllByText(taskName);
     expect(updatedElement.length).toEqual(1);
     expect(updatedElement[0].textContent).toEqual(taskName);
