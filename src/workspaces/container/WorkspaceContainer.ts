@@ -1,6 +1,6 @@
 import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { PropsWithChildren, ReactNode, Ref, useEffect, useRef, useState } from 'react';
+import { Fragment, PropsWithChildren, ReactNode, Ref, useEffect, useRef, useState } from 'react';
 import { div, h, h2, h3, p, span } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
 import AnalysisNotificationManager from 'src/analysis/AnalysisNotificationManager';
@@ -55,13 +55,11 @@ const GooglePermissionsSpinner = (): ReactNode => {
 interface WorkspaceContainerProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  breadcrumbs: ReactNode[];
-  title: string;
   activeTab?: string;
   analysesData: AnalysesData;
   storageDetails: StorageDetails;
   refresh: () => Promise<void>;
-  workspace: InitializedWorkspaceWrapper | undefined;
+  workspace: InitializedWorkspaceWrapper;
   refreshWorkspace: () => void;
 }
 
@@ -69,8 +67,6 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const {
     namespace,
     name,
-    breadcrumbs,
-    title,
     activeTab,
     analysesData: {
       apps = [],
@@ -92,29 +88,20 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const [sharingWorkspace, setSharingWorkspace] = useState(false);
   const [showLockWorkspaceModal, setShowLockWorkspaceModal] = useState(false);
   const [leavingWorkspace, setLeavingWorkspace] = useState(false);
-  const workspaceLoaded = !!workspace;
-  const isGoogleWorkspaceSyncing =
-    workspaceLoaded && isGoogleWorkspace(workspace) && workspace?.workspaceInitialized === false;
+  const isGoogleWorkspaceSyncing = isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false;
 
   useCloningWorkspaceNotifications();
-  useWorkspaceStatePolling(workspace ? [workspace] : [], workspaceLoaded ? 'Ready' : 'Loading');
+  useWorkspaceStatePolling([workspace], 'Ready');
 
   useEffect(() => {
-    if (workspace?.workspace?.state === 'Deleted') {
+    if (workspace.workspace.state === 'Deleted') {
       Nav.goToPath('workspaces');
       workspaceStore.reset();
     }
   }, [workspace]);
 
-  return h(FooterWrapper, [
-    h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
-      div({ style: Style.breadcrumb.breadcrumb }, [
-        div({ style: Style.noWrapEllipsis }, breadcrumbs),
-        h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [title || `${namespace}/${name}`]),
-      ]),
-      div({ style: { flexGrow: 1 } }),
-      h(AnalysisNotificationManager, { namespace, name, runtimes, apps }),
-    ]),
+  return h(Fragment, [
+    h(AnalysisNotificationManager, { namespace, name, runtimes, apps }),
     h(WorkspaceTabs, {
       namespace,
       name,
@@ -132,9 +119,8 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
     div({ role: 'main', style: Style.elements.pageContentContainer }, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),
-        workspace &&
-          workspace?.workspace.state !== 'Deleting' &&
-          workspace?.workspace.state !== 'DeleteFailed' &&
+        workspace.workspace.state !== 'Deleting' &&
+          workspace.workspace.state !== 'DeleteFailed' &&
           h(ContextBar, {
             workspace,
             apps,
@@ -148,21 +134,20 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
           }),
       ]),
     ]),
-    workspace &&
-      h(WorkspaceContainerModals, {
-        workspace,
-        refreshWorkspace,
-        deletingWorkspace,
-        setDeletingWorkspace,
-        cloningWorkspace,
-        setCloningWorkspace,
-        leavingWorkspace,
-        setLeavingWorkspace,
-        sharingWorkspace,
-        setSharingWorkspace,
-        showLockWorkspaceModal,
-        setShowLockWorkspaceModal,
-      }),
+    h(WorkspaceContainerModals, {
+      workspace,
+      refreshWorkspace,
+      deletingWorkspace,
+      setDeletingWorkspace,
+      cloningWorkspace,
+      setCloningWorkspace,
+      leavingWorkspace,
+      setLeavingWorkspace,
+      sharingWorkspace,
+      setSharingWorkspace,
+      showLockWorkspaceModal,
+      setShowLockWorkspaceModal,
+    }),
   ]);
 };
 
@@ -197,7 +182,7 @@ const WorkspaceAccessError = () => {
 export interface WrapWorkspaceOptions {
   breadcrumbs: (props: { name: string; namespace: string }) => ReactNode[];
   activeTab?: string;
-  title: string;
+  title: string | ((props: { name: string; namespace: string }) => string);
 }
 
 export interface WrappedComponentProps {
@@ -244,42 +229,24 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
         useCloudEnvironmentPolling(name, namespace, workspace);
       const { apps, refreshApps, lastRefresh } = useAppPolling(name, namespace, workspace);
 
-      if (accessError) {
-        return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)]);
-      }
-
-      return h(
-        WorkspaceContainer,
-        {
-          namespace,
-          name,
-          activeTab,
-          workspace,
-          refreshWorkspace,
-          title: _.isFunction(title) ? title(props) : title,
-          breadcrumbs: breadcrumbs(props),
-          analysesData: {
-            apps,
-            refreshApps,
-            lastRefresh,
-            runtimes,
-            refreshRuntimes,
-            appDataDisks,
-            persistentDisks,
-            isLoadingCloudEnvironments,
-          },
-          storageDetails,
-          refresh: async () => {
-            await refreshWorkspace();
-            if (_.isObject(child?.current) && 'refresh' in child.current && _.isFunction(child.current.refresh)) {
-              child.current.refresh();
-            }
-          },
-        },
-        [
-          workspace &&
-            h(WrappedComponent, {
-              ref: child,
+      return h(FooterWrapper, [
+        h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
+          div({ style: Style.breadcrumb.breadcrumb }, [
+            div({ style: Style.noWrapEllipsis }, breadcrumbs(props)),
+            h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [
+              (_.isFunction(title) ? title(props) : title) || `${namespace}/${name}`,
+            ]),
+          ]),
+        ]),
+        loadingWorkspace && spinnerOverlay,
+        accessError && h(WorkspaceAccessError),
+        workspace &&
+          h(
+            WorkspaceContainer,
+            {
+              namespace,
+              name,
+              activeTab,
               workspace,
               refreshWorkspace,
               analysesData: {
@@ -293,11 +260,34 @@ export const wrapWorkspace = (opts: WrapWorkspaceOptions): WrapWorkspaceFn => {
                 isLoadingCloudEnvironments,
               },
               storageDetails,
-              ...props,
-            }),
-          loadingWorkspace && spinnerOverlay,
-        ]
-      );
+              refresh: async () => {
+                await refreshWorkspace();
+                if (_.isObject(child?.current) && 'refresh' in child.current && _.isFunction(child.current.refresh)) {
+                  child.current.refresh();
+                }
+              },
+            },
+            [
+              h(WrappedComponent, {
+                ref: child,
+                workspace,
+                refreshWorkspace,
+                analysesData: {
+                  apps,
+                  refreshApps,
+                  lastRefresh,
+                  runtimes,
+                  refreshRuntimes,
+                  appDataDisks,
+                  persistentDisks,
+                  isLoadingCloudEnvironments,
+                },
+                storageDetails,
+                ...props,
+              }),
+            ]
+          ),
+      ]);
     };
     return withDisplayName('wrapWorkspace', Wrapper);
   };
