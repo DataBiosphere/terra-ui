@@ -13,7 +13,7 @@ export const WorkflowCostBox = ({ workflow, cost }) => {
       TooltipTrigger,
       {
         content:
-          'Approximate cost is calculated based on the list price of the VMs used and does not include disk cost, subworkflow cost, or any cloud account discounts',
+          'Approximate cost is calculated based on the list price of the VMs used and does not include disk cost or any cloud account discounts',
       },
       [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
     ),
