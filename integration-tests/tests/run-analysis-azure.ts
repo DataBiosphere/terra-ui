@@ -8,8 +8,6 @@ const {
   withAzureWorkspace,
 } = require('../utils/integration-helpers');
 const {
-  openError,
-  retryUntil,
   Millis,
   click,
   clickable,
@@ -72,59 +70,82 @@ const testRunAnalysisAzure = _.flowRight(
   await findElement(page, clickable({ textContains: 'Creating' }));
 
   // Wait for env to finish creating, or break early on only errors related to runtime creation
-  await retryUntil({
-    getResult: async () => {
-      await dismissInfoNotifications(page);
+  const getErrorXPath = (text) => `//*[@role='alert' and contains(normalize-space(.),'${text}')]`;
 
-      // check for errors
-      const hasError = await openError(page);
-      if (hasError) {
-        let hasfatalError = false;
-        // Occurs if leonardo creation call itself errors
-        try {
-          await findText(page, 'Error modifying cloud environment', { timeout: Millis.ofSecond });
-          // Prior line will throw and go to catch block if not found
-          hasfatalError = true;
-        } catch {}
+  const longTimeoutOptions = { timeout: Millis.ofMinutes(25) };
+  await Promise.race([
+    findElement(page, clickable({ textContains: 'Running' }, longTimeoutOptions)),
+    findElement(page, getErrorXPath('Error Creating Cloud Environment'), longTimeoutOptions),
+    findElement(page, getErrorXPath('Error modifying cloud environment'), longTimeoutOptions),
+  ]);
 
-        // Occurs if the runtime transitions to error status
-        try {
-          await findText(page, 'Cloud Environment is in error state', { timeout: Millis.ofSecond });
-          // Prior line will throw and go to catch block if not found
-          hasfatalError = true;
-        } catch {}
+  let hasRelevantError = false;
+  try {
+    await findElement(page, getErrorXPath('Error Creating Cloud Environment'), { timeout: Millis.ofSecond });
+    hasRelevantError = true;
+  } catch {}
+  try {
+    await findElement(page, getErrorXPath('Error modifying cloud environment'), { timeout: Millis.ofSecond });
+    hasRelevantError = true;
+  } catch {}
 
-        if (hasfatalError) {
-          throw new Error('Failed to create cloud environment');
-        } else {
-          console.warn(
-            'Discovered an error in `run-analysis-azure` not related to runtime creation. Worth investigation'
-          );
-        }
-        // Dismiss any non-fatal errors
-        await dismissAllNotifications(page);
-      }
+  if (hasRelevantError) {
+    throw new Error('Failed to create cloud environment');
+  }
 
-      // Ensure any secondary notifications are dismissed as well
-      await dismissAllNotifications(page);
+  // await retryUntil({
+  //   getResult: async () => {
+  //     await dismissInfoNotifications(page);
 
-      // Check for runtime running. findElement returns an error if it does not find the element, so we try/catch
-      try {
-        // Timeout fast here, the retry loop is the code block responsible for waiting
-        await findElement(page, clickable({ textContains: 'Running' }, { timeout: Millis.ofSecond }));
-        // True exits the loop.
-        // If we reach this line, findElement did not throw an exception, meaning we did indeed find `Running`.
-        return true;
-      } catch {
-        // If we catch an exception, we could not find `Running`, and want to loop again
-        console.log('Looping again in retryUntil for run-analysis-azure test');
-        return false;
-      }
-    },
-    interval: Millis.ofSeconds(30),
-    leading: true,
-    retries: 50, // 30 sec interval * 50 loops = 25 mins,
-  });
+  //     // check for errors
+  //     const hasError = await openError(page);
+  //     if (hasError) {
+  //       let hasfatalError = false;
+  //       // Occurs if leonardo creation call itself errors
+  //       try {
+  //         await findText(page, 'Error modifying cloud environment', { timeout: Millis.ofSecond });
+  //         // Prior line will throw and go to catch block if not found
+  //         hasfatalError = true;
+  //       } catch {}
+
+  //       // Occurs if the runtime transitions to error status
+  //       try {
+  //         await findText(page, 'Cloud Environment is in error state', { timeout: Millis.ofSecond });
+  //         // Prior line will throw and go to catch block if not found
+  //         hasfatalError = true;
+  //       } catch {}
+
+  //       if (hasfatalError) {
+  //         throw new Error('Failed to create cloud environment');
+  //       } else {
+  //         console.warn(
+  //           'Discovered an error in `run-analysis-azure` not related to runtime creation. Worth investigation'
+  //         );
+  //       }
+  //       // Dismiss any non-fatal errors
+  //       await dismissAllNotifications(page);
+  //     }
+
+  //     // Ensure any secondary notifications are dismissed as well
+  //     await dismissAllNotifications(page);
+
+  //     // Check for runtime running. findElement returns an error if it does not find the element, so we try/catch
+  //     try {
+  //       // Timeout fast here, the retry loop is the code block responsible for waiting
+  //       await findElement(page, clickable({ textContains: 'Running' }, { timeout: Millis.ofSecond }));
+  //       // True exits the loop.
+  //       // If we reach this line, findElement did not throw an exception, meaning we did indeed find `Running`.
+  //       return true;
+  //     } catch {
+  //       // If we catch an exception, we could not find `Running`, and want to loop again
+  //       console.log('Looping again in retryUntil for run-analysis-azure test');
+  //       return false;
+  //     }
+  //   },
+  //   interval: Millis.ofSeconds(30),
+  //   leading: true,
+  //   retries: 50, // 30 sec interval * 50 loops = 25 mins,
+  // });
 
   // Here, we dismiss any errors or popups. Its common another areas of the application might throw an error or have pop-ups.
   // However, as long as we have a running runtime (which the previous section asserts), the pop-up is not relevant
