@@ -72,11 +72,10 @@ const testRunAnalysisAzure = _.flowRight(
   // Wait for env to finish creating, or break early on only errors related to runtime creation
   const getErrorXPath = (text) => `//*[@role='alert' and contains(normalize-space(.),'${text}')]`;
 
-  const longTimeoutOptions = { timeout: Millis.ofMinutes(25) };
   await Promise.race([
-    findElement(page, clickable({ textContains: 'Running' }), longTimeoutOptions),
-    findElement(page, getErrorXPath('Error Creating Cloud Environment'), longTimeoutOptions),
-    findElement(page, getErrorXPath('Error modifying cloud environment'), longTimeoutOptions),
+    findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(25) }),
+    findElement(page, getErrorXPath('Error Creating Cloud Environment'), { timeout: Millis.ofMinutes(25) }),
+    findElement(page, getErrorXPath('Error modifying cloud environment'), { timeout: Millis.ofMinutes(25) }),
   ]);
 
   let hasRelevantError = false;
