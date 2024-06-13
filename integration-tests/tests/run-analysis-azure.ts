@@ -74,7 +74,7 @@ const testRunAnalysisAzure = _.flowRight(
 
   const longTimeoutOptions = { timeout: Millis.ofMinutes(25) };
   await Promise.race([
-    findElement(page, clickable({ textContains: 'Running' }, longTimeoutOptions)),
+    findElement(page, clickable({ textContains: 'Running' }), longTimeoutOptions),
     findElement(page, getErrorXPath('Error Creating Cloud Environment'), longTimeoutOptions),
     findElement(page, getErrorXPath('Error modifying cloud environment'), longTimeoutOptions),
   ]);
