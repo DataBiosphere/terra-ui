@@ -161,3 +161,33 @@ export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, subm
     h3({ style: Style.elements.sectionHeader }, [`Workflow ${workflowId}`]),
   ]);
 };
+
+export const getTaskCost = ({ vmCostUsd, taskStartTime, taskEndTime }) => {
+  const currentEndTime = Date.parse(taskEndTime) || Date.now();
+  const vmCostDouble = parseFloat(vmCostUsd);
+  const startDateTime = Date.parse(taskStartTime);
+
+  const elapsedTime = currentEndTime - startDateTime;
+  return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2));
+};
+
+export const renderTaskCostElement = (cost) => {
+  if (cost === 0.0) {
+    return '< $0.01';
+  }
+  return `$${cost.toFixed(2)}`;
+};
+
+export const calculateTotalCost = (callObjects) => {
+  let total = 0;
+  Object.values(callObjects).forEach((call) => {
+    if (!call[0].taskStartTime) {
+      total += 0;
+    } else if (call[0].taskEndTime) {
+      total += getTaskCost({ vmCostUsd: call[0].vmCostUsd, taskStartTime: call[0].taskStartTime, taskEndTime: call[0].taskEndTime });
+    } else {
+      total += getTaskCost({ vmCostUsd: call[0].vmCostUsd, taskStartTime: call[0].taskStartTime });
+    }
+  });
+  return total;
+};

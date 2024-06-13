@@ -1,5 +1,6 @@
 import {
   PopupTrigger,
+  SpinnerOverlay,
   TooltipTrigger,
   useBusyState,
   useModalHandler,
@@ -29,7 +30,7 @@ import { workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import { getCreatorForCompute } from 'src/analysis/utils/resource-utils';
 import { getDisplayRuntimeStatus, isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel } from 'src/analysis/utils/tool-utils';
-import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
+import { Clickable, LabeledCheckbox, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { makeMenuIcon } from 'src/components/PopupTrigger';
 import { SimpleFlexTable, Sortable } from 'src/components/table';
@@ -836,6 +837,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
           appProvider: leoAppData,
         }),
     ]),
-    loading && spinnerOverlay,
+    loading && h(SpinnerOverlay),
   ]);
 };

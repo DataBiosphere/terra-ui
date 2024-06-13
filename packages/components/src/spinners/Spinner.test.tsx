@@ -1,9 +1,9 @@
 import { withFakeTimers } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 
-import { renderWithTheme } from './internal/test-utils';
+import { renderWithTheme } from '../internal/test-utils';
+import { visuallyHidden } from '../styles';
 import { Spinner } from './Spinner';
-import { visuallyHidden } from './styles';
 
 describe('Spinner', () => {
   it('renders a spinner icon', () => {

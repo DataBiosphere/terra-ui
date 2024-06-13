@@ -1,11 +1,13 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import { collapseStatus } from 'src/components/job-common';
+import { calculateTotalCost, collapseStatus, renderTaskCostElement } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
+import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
@@ -96,6 +98,10 @@ export const BaseRunDetails = (
       'callCaching',
       'workflowLog',
       'failures',
+      'taskStartTime',
+      'taskEndTime',
+      'vmCostUsd',
+      'workflowName',
     ],
     []
   );
@@ -158,6 +164,16 @@ export const BaseRunDetails = (
     },
     [signal, workspaceId]
   );
+
+  const renderInProgressElement = (workflow) => {
+    if (workflow.status === 'Running') {
+      return span({ style: { fontStyle: 'italic' } }, ['In progress - ']);
+    }
+  };
+
+  const taskCostTotal = useMemo(() => {
+    return callObjects ? calculateTotalCost(callObjects) : undefined;
+  }, [callObjects]);
 
   const loadCallCacheMetadata = useCallback(
     async (wfId, includeKey, excludeKey) => {
@@ -265,7 +281,7 @@ export const BaseRunDetails = (
       () =>
         div([
           div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
-          div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 2rem' } }, [
+          div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 1rem' } }, [
             h(WorkflowInfoBox, { workflow }, []),
             h(
               TroubleshootingBox,
@@ -280,6 +296,19 @@ export const BaseRunDetails = (
                 workflowName: getWorkflowName(),
               },
               []
+            ),
+          ]),
+          div({ style: { fontSize: 16, padding: '0rem 2.5rem 1rem' } }, [
+            span({ style: { fontWeight: 'bold' } }, ['Approximate workflow cost: ']),
+            renderInProgressElement(workflow),
+            renderTaskCostElement(taskCostTotal),
+            h(
+              TooltipTrigger,
+              {
+                content:
+                  'Approximate cost is calculated based on the list price of the VMs used and does not include disk cost, subworkflow cost, or any cloud account discounts',
+              },
+              [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
             ),
           ]),
           div(

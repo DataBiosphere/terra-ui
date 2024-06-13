@@ -1,9 +1,9 @@
 import { ReactNode } from 'react';
 
-import { DelayedRender } from './DelayedRender';
-import { Icon, IconProps } from './Icon';
-import { visuallyHidden } from './styles';
-import { useThemeFromContext } from './theme';
+import { DelayedRender } from '../DelayedRender';
+import { Icon, IconProps } from '../Icon';
+import { visuallyHidden } from '../styles';
+import { useThemeFromContext } from '../theme';
 
 export interface SpinnerProps extends Omit<IconProps, 'icon'> {
   /** Message to announce to screen reader users. */

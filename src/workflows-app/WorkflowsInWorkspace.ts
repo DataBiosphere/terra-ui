@@ -4,7 +4,8 @@ import { div, h, h2 } from 'react-hyperscript-helpers';
 import { AnalysesData } from 'src/analysis/Analyses';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
-import { Clickable } from 'src/components/common';
+import { ButtonSecondary, Clickable, DeleteConfirmationModal } from 'src/components/common';
+import { makeMenuIcon } from 'src/components/PopupTrigger';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
@@ -15,7 +16,7 @@ import { withBusyState } from 'src/libs/utils';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { doesAppProxyUrlExist, loadAppUrls, loadingYourWorkflowsApp } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
-import { WorkspaceWrapper } from 'src/workspaces/utils';
+import { canWrite, WorkspaceWrapper } from 'src/workspaces/utils';
 
 type WorkflowsInWorkspaceProps = {
   name: string;
@@ -29,15 +30,18 @@ export const WorkflowsInWorkspace = ({
   namespace,
   workspace: {
     workspace: { workspaceId },
+    accessLevel,
   },
   analysesData: { apps, refreshApps },
 }: WorkflowsInWorkspaceProps) => {
   const [methodsData, setMethodsData] = useState<WorkflowMethod[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [methodToDelete, setMethodToDelete] = useState<WorkflowMethod | null>(null);
+  const [cbasBuildInfo, setCbasBuildInfo] = useState(null);
 
   const signal = useCancellation();
   const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
-  const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps);
+  const currentApp = getCurrentApp(appToolLabels.WORKFLOWS_APP, apps);
 
   const loadRunsData = useCallback(
     async (cbasProxyUrlDetails) => {
@@ -62,6 +66,24 @@ export const WorkflowsInWorkspace = ({
     [signal, workspaceId]
   );
 
+  const loadCbasInfo = useCallback(
+    async (cbasProxyUrlDetails) => {
+      const { build } = await Cbas(signal).info(cbasProxyUrlDetails.state);
+      setCbasBuildInfo(build);
+    },
+    [signal]
+  );
+
+  const deleteMethod = useCallback(
+    async (methodId) => {
+      const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
+      await Cbas(signal).methods.archive(cbasProxyUrlState.state, methodId);
+      await loadRunsData(cbasProxyUrlState);
+      setMethodToDelete(null);
+    },
+    [signal, loadRunsData, workspaceId]
+  );
+
   // poll if we're missing CBAS proxy url and stop polling when we have it
   usePollingEffect(
     async () =>
@@ -79,6 +101,7 @@ export const WorkflowsInWorkspace = ({
 
       if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
         await loadRunsData(cbasProxyUrlState);
+        await loadCbasInfo(cbasProxyUrlState);
         await refreshApps();
       }
     });
@@ -154,13 +177,48 @@ export const WorkflowsInWorkspace = ({
                           ),
                         ]
                       ),
+                      div(
+                        {
+                          style: {
+                            display: 'flex',
+                            flexDirection: 'column',
+                            marginTop: '30%',
+                          },
+                        },
+                        [
+                          // we're gating the delete button behind cbasBuildInfo
+                          // because we know that buildInfo will become available before the new delete endpoint.
+                          cbasBuildInfo &&
+                            h(
+                              ButtonSecondary,
+                              {
+                                onClick: () => setMethodToDelete(method),
+                                disabled: !canWrite(accessLevel),
+                                tooltip: !canWrite(accessLevel)
+                                  ? 'You must have write permission to delete workflows in this workspace'
+                                  : '',
+                                style: {
+                                  justifyContent: 'flex-end',
+                                },
+                              },
+                              [makeMenuIcon('trash'), 'Delete']
+                            ),
+                        ]
+                      ),
                     ]
                   ),
                 methodsData
               )
             ),
+            methodToDelete &&
+              h(DeleteConfirmationModal, {
+                objectType: 'workflow',
+                objectName: methodToDelete.name,
+                onDismiss: () => setMethodToDelete(null),
+                onConfirm: () => deleteMethod(methodToDelete.method_id),
+              }),
           ]),
-    [name, namespace, methodsData]
+    [name, namespace, accessLevel, methodsData, deleteMethod, methodToDelete, cbasBuildInfo]
   );
 
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [

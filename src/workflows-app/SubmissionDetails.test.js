@@ -10,8 +10,22 @@ import { getLink } from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { metadata as runDetailsMetadata } from 'src/workflows-app/fixtures/test-workflow';
 import { BaseSubmissionDetails } from 'src/workflows-app/SubmissionDetails';
-import { methodData, mockRunsData, runSetData, runSetDataWithLiteral, simpleRunsData } from 'src/workflows-app/utils/mock-data';
-import { mockAzureApps, mockAzureWorkspace, runSetOutputDef, runSetResponse } from 'src/workflows-app/utils/mock-responses';
+import {
+  methodData,
+  mockQueuedRunsData,
+  mockRunsData,
+  queuedRunSetData,
+  runSetData,
+  runSetDataWithLiteral,
+  simpleRunsData,
+} from 'src/workflows-app/utils/mock-data';
+import {
+  mockAzureApps,
+  mockAzureWorkspace,
+  mockCollaborativeAzureApps,
+  runSetOutputDef,
+  runSetResponse,
+} from 'src/workflows-app/utils/mock-responses';
 
 const submissionId = 'e8347247-4738-4ad1-a591-56c119f93f58';
 const cbasUrlRoot = 'https://lz-abc/terra-app-abc/cbas';
@@ -188,6 +202,100 @@ describe('Submission Details page', () => {
     within(cellsFromDataRow2[1]).getByText('Succeeded');
     within(cellsFromDataRow2[2]).getByText('37 seconds');
     within(cellsFromDataRow2[3]).getByText('d16721eb-8745-4aa2-b71e-9ade2d6575aa');
+  });
+
+  it('should correctly display Queued runs', async () => {
+    const getRuns = jest.fn(() => Promise.resolve(mockQueuedRunsData));
+    const getRunsSets = jest.fn(() => Promise.resolve(queuedRunSetData));
+    const getMethods = jest.fn(() => Promise.resolve(methodData));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockCollaborativeAzureApps));
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRuns,
+          },
+          runSets: {
+            get: getRunsSets,
+          },
+          methods: {
+            getById: getMethods,
+          },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+        Metrics: {
+          captureEvent,
+        },
+        AzureStorage: {
+          blobByUri: jest.fn(() => ({
+            getMetadataAndTextContent: () =>
+              Promise.resolve({
+                uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+                sasToken: '1234-this-is-a-mock-sas-token-5678',
+                fileName: 'inputFile.txt',
+                name: 'inputFile.txt',
+                lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+                size: '324',
+                contentType: 'text/plain',
+                textContent: 'this is the text of a mock file',
+                azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+              }),
+          })),
+          details: jest.fn().mockResolvedValue({ sas: { token: '1234-this-is-a-mock-sas-token-5678' } }),
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(BaseSubmissionDetails, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+          submissionId,
+        })
+      );
+    });
+
+    expect(getRuns).toHaveBeenCalled();
+    expect(getRunsSets).toHaveBeenCalled();
+    expect(getMethods).toHaveBeenCalled();
+
+    const table = await screen.findByRole('table');
+
+    // Assert
+    expect(table).toHaveAttribute('aria-colcount', '5');
+    expect(table).toHaveAttribute('aria-rowcount', '3');
+
+    const rows = within(table).getAllByRole('row');
+    expect(rows.length).toBe(3);
+
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    expect(headers.length).toBe(5);
+    within(headers[0]).getByText('Sample ID');
+    within(headers[1]).getByText('Status');
+    within(headers[2]).getByText('Duration');
+    within(headers[3]).getByText('Workflow ID');
+    within(headers[4]).getByText('Workflow Data');
+
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
+    expect(cellsFromDataRow1.length).toBe(5);
+    within(cellsFromDataRow1[0]).getByText('FOO1');
+    within(cellsFromDataRow1[1]).getByText('Queued');
+    within(cellsFromDataRow1[2]).getByText('');
+    within(cellsFromDataRow1[3]).getByText('Waiting for workflow to be submitted');
+    within(cellsFromDataRow1[4]).getByText('Waiting for workflow to be submitted');
+
+    const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
+    expect(cellsFromDataRow2.length).toBe(5);
+    within(cellsFromDataRow2[0]).getByText('FOO2');
+    within(cellsFromDataRow2[1]).getByText('Queued');
+    within(cellsFromDataRow2[2]).getByText('');
+    within(cellsFromDataRow2[3]).getByText('Waiting for workflow to be submitted');
+    within(cellsFromDataRow2[4]).getByText('Waiting for workflow to be submitted');
   });
 
   it('should display standard message when there are no saved workflows', async () => {
@@ -1302,9 +1410,9 @@ describe('Submission Details page', () => {
           .getAllByRole('cell')
           .map((el) => el.textContent);
 
-      expect(getRowContent(1)).toEqual(['fetch_sra_to_bam.\nSRA_ID', 'SRR13379731']);
-      expect(getRowContent(2)).toEqual(['fetch_sra_to_bam.\nmachine_mem_gb', '']);
-      expect(getRowContent(3)).toEqual(['fetch_sra_to_bam.\ndocker', 'quay.io/broadinstitute/ncbi-tools:2.10.7.10']);
+      expect(getRowContent(1)).toEqual(['Fetch_SRA_to_BAM.SRA_ID', 'SRR13379731']);
+      expect(getRowContent(2)).toEqual(['Fetch_SRA_to_BAM.machine_mem_gb', '']);
+      expect(getRowContent(3)).toEqual(['Fetch_SRA_to_BAM.docker', 'quay.io/broadinstitute/ncbi-tools:2.10.7.10']);
     }
   });
 
@@ -1395,18 +1503,18 @@ describe('Submission Details page', () => {
       const headers = within(rows[0]).getAllByRole('columnheader');
       expect(headers).toHaveLength(2);
 
-      expect(getRowContent(1)).toEqual(['fetch_sra_to_bam.\nsra_metadata', 'SRR13379731.json']);
-      expect(getRowContent(2)).toEqual(['fetch_sra_to_bam.\nreads_ubam', 'SRR13379731.bam']);
-      expect(getRowContent(3)).toEqual(['fetch_sra_to_bam.\nbiosample_accession', 'kljkl2kj']);
-      expect(getRowContent(4)).toEqual(['fetch_sra_to_bam.\nsample_geo_loc', 'USA']);
-      expect(getRowContent(5)).toEqual(['fetch_sra_to_bam.\nsample_collection_date', '2020-11-30']);
-      expect(getRowContent(6)).toEqual(['fetch_sra_to_bam.\nsequencing_center', 'SEQ_CENTER']);
-      expect(getRowContent(7)).toEqual(['fetch_sra_to_bam.\nsequencing_platform', 'PLATFORM COMPANY']);
-      expect(getRowContent(8)).toEqual(['fetch_sra_to_bam.\nlibrary_id', 'ST-VALUE-2012556126']);
-      expect(getRowContent(9)).toEqual(['fetch_sra_to_bam.\nrun_date', '2022-06-22']);
-      expect(getRowContent(10)).toEqual(['fetch_sra_to_bam.\nsample_collected_by', 'Random lab']);
-      expect(getRowContent(11)).toEqual(['fetch_sra_to_bam.\nsample_strain', 'SARS-CoV-2/USA/44165/2020']);
-      expect(getRowContent(12)).toEqual(['fetch_sra_to_bam.\nsequencing_platform_model', 'NextSeq 550']);
+      expect(getRowContent(1)).toEqual(['sra_metadata', 'SRR13379731.json']);
+      expect(getRowContent(2)).toEqual(['reads_ubam', 'SRR13379731.bam']);
+      expect(getRowContent(3)).toEqual(['biosample_accession', 'kljkl2kj']);
+      expect(getRowContent(4)).toEqual(['sample_geo_loc', 'USA']);
+      expect(getRowContent(5)).toEqual(['sample_collection_date', '2020-11-30']);
+      expect(getRowContent(6)).toEqual(['sequencing_center', 'SEQ_CENTER']);
+      expect(getRowContent(7)).toEqual(['sequencing_platform', 'PLATFORM COMPANY']);
+      expect(getRowContent(8)).toEqual(['library_id', 'ST-VALUE-2012556126']);
+      expect(getRowContent(9)).toEqual(['run_date', '2022-06-22']);
+      expect(getRowContent(10)).toEqual(['sample_collected_by', 'Random lab']);
+      expect(getRowContent(11)).toEqual(['sample_strain', 'SARS-CoV-2/USA/44165/2020']);
+      expect(getRowContent(12)).toEqual(['sequencing_platform_model', 'NextSeq 550']);
     }
   });
 

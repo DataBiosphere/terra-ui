@@ -1,10 +1,11 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
+import { getTaskCost, makeCromwellStatusLine, makeStatusLine, renderTaskCostElement, statusType } from 'src/components/job-common';
 import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
@@ -92,6 +93,16 @@ const SearchBar = ({ searchText, setSearchText }) => {
       }),
     ]
   );
+};
+
+const doesTaskHaveCostData = (task) => {
+  return !!(task?.taskStartTime && task?.vmCostUsd);
+};
+
+const noCostData = (task, subWorkflowId) => {
+  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !_.isEmpty(subWorkflowId) || !task.startTime) {
+    return true;
+  }
 };
 
 /* WORKFLOW BREADCRUMB SUB-COMPONENT */
@@ -346,6 +357,37 @@ const CallTable = ({
             },
             ...(isAzure // GCP workspaces do not have inputs/outputs/logs (only log file is at top level, linked in workflow dashboard)
               ? [
+                  {
+                    size: { basis: 200, grow: 1 },
+                    field: 'cost',
+                    headerRenderer: () =>
+                      h(Sortable, { sort, field: 'cost', onSort: setSort }, [
+                        'Approximate Cost',
+                        h(
+                          TooltipTrigger,
+                          {
+                            content:
+                              'Approximate cost is calculated based on the list price of the VM, and does not include disk cost or any cloud account discounts.',
+                          },
+                          [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
+                        ),
+                      ]),
+                    cellRenderer: ({ rowIndex }) => {
+                      const { vmCostUsd, taskStartTime, taskEndTime, subWorkflowId } = filteredCallObjects[rowIndex];
+                      if (doesTaskHaveCostData(filteredCallObjects[rowIndex])) {
+                        if (taskEndTime) {
+                          const cost = getTaskCost({ vmCostUsd, taskStartTime, taskEndTime });
+                          return div({}, [renderTaskCostElement(cost)]);
+                        }
+                        const cost = getTaskCost({ vmCostUsd, taskStartTime });
+                        return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
+                      }
+                      if (noCostData(filteredCallObjects[rowIndex], subWorkflowId)) {
+                        return div({}, ['-']);
+                      }
+                      return div({ style: { fontStyle: 'italic' } }, ['Fetching cost information']);
+                    },
+                  },
                   {
                     size: { basis: 200, grow: 1 },
                     field: 'logs',
