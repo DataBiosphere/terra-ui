@@ -68,8 +68,14 @@ export const WorkflowsInWorkspace = ({
 
   const loadCbasInfo = useCallback(
     async (cbasProxyUrlDetails) => {
-      const { build } = await Cbas(signal).info(cbasProxyUrlDetails.state);
-      setCbasBuildInfo(build);
+      try {
+        const { build } = await Cbas(signal).info(cbasProxyUrlDetails.state);
+        setCbasBuildInfo(build);
+      } catch (error) {
+        notify('error', 'Error loading CBAS build information', {
+          detail: error instanceof Response ? await error.text() : error,
+        });
+      }
     },
     [signal]
   );
