@@ -103,7 +103,7 @@ describe('DatasetBuilder', () => {
   };
 
   beforeEach(() => {
-    asMockedFn(Nav.useRoute).mockReturnValue({ title: 'Build Dataset', params: {}, query: {} });
+    asMockedFn(Nav.useRoute).mockReturnValue({ title: 'Data Explorer', params: {}, query: {} });
   });
 
   const renderCohortSelector = () => {
@@ -198,8 +198,8 @@ describe('DatasetBuilder', () => {
     // Arrange
     showDatasetBuilderContents();
     // Assert
-    expect(screen.getByText('Select cohorts')).toBeTruthy();
-    expect(screen.getByText('Select concept sets')).toBeTruthy();
+    expect(screen.getByText('Select participants')).toBeTruthy();
+    expect(screen.getByText('Select data about participants')).toBeTruthy();
   });
 
   it('allows selecting cohorts, concept sets, and values', async () => {
@@ -233,7 +233,7 @@ describe('DatasetBuilder', () => {
     render(h(DatasetBuilderView));
     // Assert
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();
-    expect(await screen.findByText('Datasets')).toBeTruthy();
+    expect(await screen.findByText('Data Snapshots')).toBeTruthy();
   });
 
   it('shows the cohort editor page', async () => {

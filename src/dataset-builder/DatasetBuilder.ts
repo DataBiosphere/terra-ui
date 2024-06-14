@@ -355,7 +355,7 @@ export const CohortSelector = ({
         },
       ],
       selectedObjectSets: selectedCohorts,
-      header: 'Select cohorts',
+      header: 'Select participants',
       subheader: 'Which participants to include',
       placeholder: div([
         h(SelectorSubHeader, ['No cohorts yet']),
@@ -409,7 +409,7 @@ export const ConceptSetSelector = ({
       { header: 'Prepackaged concept sets', values: prepackagedConceptSets ?? [] },
     ],
     selectedObjectSets: selectedConceptSets,
-    header: 'Select concept sets',
+    header: 'Select data about participants',
     subheader: 'Which information to include about participants',
     style: { marginLeft: '1rem' },
   });
@@ -565,9 +565,9 @@ export const DatasetBuilderContents = ({
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
       h(BuilderPageHeader, [
-        h2(['Datasets']),
+        h2(['Data Snapshots']),
         div([
-          'Build a dataset by selecting the concept sets and values for one or more of your cohorts. Then export the completed dataset to Notebooks where you can perform your analysis',
+          'Build a snapshot by selecting the participants and data for one or more of your cohorts. Then, request access in order to export the data snapshot to a Terra Workspace, where you can perform your analysis.',
         ]),
         ul({ style: { display: 'flex', width: '100%', marginTop: '2rem', listStyleType: 'none', padding: 0 } }, [
           h(CohortSelector, {

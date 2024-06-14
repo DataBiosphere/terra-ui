@@ -40,7 +40,7 @@ export const DatasetBuilderHeader = ({ snapshotId }: DatasetBuilderHeaderProps) 
           },
         ],
       }),
-      h1([DATASET_NAME, ' Dataset Builder']),
+      h1([DATASET_NAME, ' Data Explorer']),
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
         'Create groups of participants based on a specific criteria. You can also save any criteria grouping as a concept set using the menu icon next to the Participant Group title.',
         div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: '20rem' } }, [

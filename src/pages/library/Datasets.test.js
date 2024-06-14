@@ -22,10 +22,10 @@ jest.mock('src/libs/nav', () => ({
 
 beforeEach(() => {
   dataCatalogStore.reset();
-  Nav.useRoute.mockReturnValue({ title: 'Datasets', params: {}, query: {} });
+  Nav.useRoute.mockReturnValue({ title: 'Data Browser', params: {}, query: {} });
 });
 
-describe('Datasets', () => {
+describe('Dataset Browser', () => {
   it('shows a toggle for the data catalog', () => {
     const { getByLabelText, getByText } = render(h(Datasets));
     expect(getByText('Preview the new Data Catalog')).toBeTruthy();
