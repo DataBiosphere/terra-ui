@@ -19,7 +19,7 @@ export const jsonBody = (body) => ({
 });
 export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
 
-type FetchFn = typeof fetch;
+export type FetchFn = typeof fetch;
 
 export const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
   return wrappedFetch(prefix + path, ...args);
@@ -126,9 +126,15 @@ export const withRetryAfterReloadingExpiredAuthToken =
     }
   };
 
-const withAppIdentifier = (wrappedFetch) => (url, options) => {
+export const withAppIdentifier = (wrappedFetch) => (url, options) => {
   return wrappedFetch(url, _.merge(options, appIdentifier));
 };
+
+export const withAuthSession =
+  (wrappedFetch: FetchFn): FetchFn =>
+  (url, options) => {
+    return wrappedFetch(url, _.merge(options, authOpts()));
+  };
 
 export type RequesterPaysErrorInfo = {
   requesterPaysError: boolean;
