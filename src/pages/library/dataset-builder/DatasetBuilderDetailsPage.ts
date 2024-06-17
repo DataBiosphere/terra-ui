@@ -5,6 +5,6 @@ export const navPaths = [
     name: 'dataset-builder-details',
     path: '/library/builder/:snapshotId',
     component: DatasetBuilderDetails,
-    title: 'Build Dataset',
+    title: 'Overview',
   },
 ];

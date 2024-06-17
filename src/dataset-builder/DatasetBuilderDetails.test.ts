@@ -43,7 +43,7 @@ describe('DatasetBuilderDetails', () => {
     render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
     // Assert
     expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
-    expect(await screen.findByText('Start creating datasets')).toBeTruthy();
+    expect(await screen.findByText('Create data snapshots')).toBeTruthy();
   });
 
   it("renders the 'how to get access' button if discoverer", async () => {

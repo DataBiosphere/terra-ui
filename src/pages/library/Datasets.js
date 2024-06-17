@@ -660,6 +660,6 @@ export const navPaths = [
     path: '/library/datasets',
     component: Datasets,
     public: false,
-    title: 'Datasets',
+    title: 'Data Browser',
   },
 ];

@@ -100,7 +100,7 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
             h(MarkdownViewer, [`${DATASET_NAME} dataset`]),
             div({ style: { width: '22rem', backgroundColor: 'white', padding: '1rem', marginLeft: '1rem' } }, [
               div([
-                'Use the Dataset Builder to create specific tailored data for further analyses in a Terra Workspace',
+                'Use the Data Explorer to create specific tailored data snapshots for analysis in a Terra Workspace',
               ]),
               h(
                 ButtonOutline,
@@ -111,10 +111,10 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
                     ? encodeURIComponent(Nav.getLink('root'))
                     : Nav.getLink('dataset-builder', { snapshotId }),
                 },
-                [hasAggregateDataViewerAccess ? 'Start creating datasets' : 'Learn how to gain access']
+                [hasAggregateDataViewerAccess ? 'Create data snapshots' : 'Learn how to gain access']
               ),
               div({ style: { marginTop: '1rem', color: colors.dark(), fontStyle: 'italic' } }, [
-                '* All datasets will need to be reviewed and approved before any analyses can be done',
+                '* All data snapshots will need to be reviewed and approved before any analyses can be done',
               ]),
             ]),
           ]),
