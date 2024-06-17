@@ -316,7 +316,7 @@ export const CohortSelector = ({
       headerAction: h(
         ButtonOutline,
         {
-          style: { borderRadius: 0, textTransform: 'none' },
+          style: { borderRadius: 0, fill: 'white', textTransform: 'none' },
           onClick: () => setCreatingCohort(true),
           'aria-label': 'Create new cohort',
           'aria-haspopup': 'dialog',
