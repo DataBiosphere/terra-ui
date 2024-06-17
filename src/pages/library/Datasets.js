@@ -36,21 +36,10 @@ const styles = {
     ...Style.elements.sectionHeader,
     textTransform: 'uppercase',
   },
-  title: {
-    marginLeft: '2.5rem',
-    marginBottom: '1rem',
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
   content: {
     display: 'flex',
     flexWrap: 'wrap',
-    margin: '1rem 2.5rem',
-  },
-  subtitle: {
-    margin: '1rem 2.5rem',
-    fontSize: 18,
-    fontWeight: 'bold',
+    margin: '2.5rem',
   },
   participant: {
     container: {
@@ -643,31 +632,24 @@ export const Datasets = () => {
     }),
     catalogShowing
       ? h(Browser)
-      : div([
-          p({ style: styles.title }, ['Data Browser']),
-          p({ style: { margin: '0rem 0rem 2.5rem 2.5rem' } }, [
-            'Tap into a rapidly expanding ecosystem of data from various biomedical and partner organizations.',
-          ]),
-          p({ style: styles.subtitle }, ['Featured data']),
-          div({ role: 'main', style: styles.content }, [
-            // Put datasets in alphabetical order
-            thousandGenomesHighCoverage(),
-            thousandGenomesLowCoverage(),
-            amppd(),
-            baseline(),
-            ccdg(),
-            cmg(),
-            encode(),
-            fcDataLib(),
-            framingham(),
-            gp2(),
-            hca(),
-            nemo(),
-            rareX(),
-            target(),
-            tcga(),
-            topMed(),
-          ]),
+      : div({ role: 'main', style: styles.content }, [
+          // Put datasets in alphabetical order
+          thousandGenomesHighCoverage(),
+          thousandGenomesLowCoverage(),
+          amppd(),
+          baseline(),
+          ccdg(),
+          cmg(),
+          encode(),
+          fcDataLib(),
+          framingham(),
+          gp2(),
+          hca(),
+          nemo(),
+          rareX(),
+          target(),
+          tcga(),
+          topMed(),
         ]),
   ]);
 };

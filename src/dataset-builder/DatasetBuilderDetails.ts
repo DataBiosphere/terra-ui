@@ -100,7 +100,7 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
             h(MarkdownViewer, [`${DATASET_NAME} dataset`]),
             div({ style: { width: '22rem', backgroundColor: 'white', padding: '1rem', marginLeft: '1rem' } }, [
               div([
-                'Use the Data Explorer to create specific tailored data snapshots for further analyses in a Terra Workspace',
+                'Use the Data Explorer to create specific tailored data snapshots for analysis in a Terra Workspace',
               ]),
               h(
                 ButtonOutline,
