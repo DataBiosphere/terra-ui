@@ -2,11 +2,17 @@ import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { asMockedFn } from 'src/testing/test-utils';
 
-jest.mock('src/libs/ajax/ajax-common', () => ({
-  fetchLeo: jest.fn(),
-  authOpts: jest.fn(),
-  jsonBody: jest.fn(),
-}));
+type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
+jest.mock(
+  'src/libs/ajax/ajax-common',
+  (): Partial<AjaxCommonExports> => ({
+    withAppIdentifier: jest.fn().mockImplementation((fetchFn) => fetchFn),
+    withAuthSession: jest.fn().mockImplementation((fetchFn) => fetchFn),
+    fetchLeo: jest.fn(),
+    authOpts: jest.fn(),
+    jsonBody: jest.fn(),
+  })
+);
 
 describe('Runtimes ajax', () => {
   const mockFetchLeo = jest.fn();

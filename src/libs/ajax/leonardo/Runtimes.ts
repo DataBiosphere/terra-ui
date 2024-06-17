@@ -111,12 +111,12 @@ export const makeRuntimesHelper = (deps: RuntimesHelperDeps) => (signal: AbortSi
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]));
       },
 
-      start: (): Promise<void> => {
-        return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]));
+      start: async (): Promise<void> => {
+        await v1Api.start(project, name, { signal });
       },
 
-      stop: (): Promise<void> => {
-        return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]));
+      stop: async (): Promise<void> => {
+        await v1Api.stop(project, name, { signal });
       },
 
       delete: (deleteDisk: boolean): Promise<void> => {

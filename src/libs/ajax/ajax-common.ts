@@ -9,6 +9,7 @@ import {
 } from 'src/auth/auth';
 import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
 import { signOut, SignOutCause } from 'src/auth/signout/sign-out';
+import { FetchFn } from 'src/libs/ajax/data-client-common';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore } from 'src/libs/state';
 
@@ -18,8 +19,6 @@ export const jsonBody = (body) => ({
   headers: { 'Content-Type': 'application/json' },
 });
 export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
-
-export type FetchFn = typeof fetch;
 
 export const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
   return wrappedFetch(prefix + path, ...args);
@@ -126,9 +125,11 @@ export const withRetryAfterReloadingExpiredAuthToken =
     }
   };
 
-export const withAppIdentifier = (wrappedFetch) => (url, options) => {
-  return wrappedFetch(url, _.merge(options, appIdentifier));
-};
+export const withAppIdentifier =
+  (wrappedFetch: FetchFn): FetchFn =>
+  (url, options) => {
+    return wrappedFetch(url, _.merge(options, appIdentifier));
+  };
 
 export const withAuthSession =
   (wrappedFetch: FetchFn): FetchFn =>
