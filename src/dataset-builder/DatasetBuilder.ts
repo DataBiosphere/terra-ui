@@ -566,8 +566,9 @@ export const DatasetBuilderContents = ({
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
       h(BuilderPageHeader, [
         h2(['Data Snapshots']),
-        div([
-          'Build a snapshot by selecting the participants and data for one or more of your cohorts. Then, request access in order to export the data snapshot to a Terra Workspace, where you can perform your analysis.',
+        div(['Build a snapshot by selecting the participants and data for one or more of your cohorts.']),
+        div({ style: { marginTop: '5px', whiteSpace: 'pre-line' } }, [
+          'Then, request access in order to export the data snapshot to a Terra Workspace, where you can perform your analysis.',
         ]),
         ul({ style: { display: 'flex', width: '100%', marginTop: '2rem', listStyleType: 'none', padding: 0 } }, [
           h(CohortSelector, {
