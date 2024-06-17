@@ -10,6 +10,7 @@ export type RuntimeErrorProvider = Pick<LeoRuntimeProvider, 'errorInfo'>;
 export const text = {
   error: {
     title: {
+      // If you update this text, update `run-analysis-azure`
       standard: 'Cloud Environment is in error state',
       userScript: 'Cloud Environment is in error state due to Userscript Error',
     },
