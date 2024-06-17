@@ -355,7 +355,7 @@ describe('Cbas tests', () => {
     const expectedResponse = {
       method_id: regex(UUID_REGEX, '00000000-0000-0000-0000-000000000000'),
     };
-    const headers = { 'Content-Type': 'application/json' };
+    const payload = { method_status: 'ARCHIVED' };
 
     await cbasPact.addInteraction({
       states: [
@@ -364,17 +364,21 @@ describe('Cbas tests', () => {
         { description: 'cromwell initialized' },
       ],
       uponReceiving: 'a PATCH request to archive a method',
-      withRequest: { method: 'PATCH', path: '/api/batch/v1/methods', query: { method_id: '00000000-0000-0000-0000-000000000009' } },
+      withRequest: {
+        method: 'PATCH',
+        path: '/api/batch/v1/methods',
+        query: { method_id: '00000000-0000-0000-0000-000000000009' },
+        ...jsonBody(payload),
+      },
       willRespondWith: { status: 200, body: expectedResponse },
     });
 
     await cbasPact.executeTest(async (mockService) => {
       // ARRANGE
       const signal = 'fakeSignal';
-      fetchOk.mockImplementation(async (path) => await fetch(`${mockService.url}/${path}`, { method: 'PATCH', headers }));
-      fetchFromProxy.mockImplementation(() => fetchOk);
 
-      const payload = { method_status: 'ARCHIVED' };
+      fetchOk.mockImplementation(async (path) => await fetch(`${mockService.url}/${path}`, { method: 'PATCH', ...jsonBody(payload) }));
+      fetchFromProxy.mockImplementation(() => fetchOk);
 
       // ACT
       const response = await Cbas(signal).methods.archive(mockService.url, '00000000-0000-0000-0000-000000000009');
