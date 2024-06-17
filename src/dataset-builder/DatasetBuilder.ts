@@ -318,7 +318,6 @@ export const CohortSelector = ({
         {
           style: { borderRadius: 0, fill: 'white', textTransform: 'none' },
           onClick: () => setCreatingCohort(true),
-          'aria-label': 'Create new cohort',
           'aria-haspopup': 'dialog',
         },
         ['Find participants']

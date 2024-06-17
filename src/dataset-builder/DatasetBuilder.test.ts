@@ -163,7 +163,7 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     renderCohortSelector();
     // Act
-    await user.click(screen.getByLabelText('Create new cohort'));
+    await user.click(screen.getByText('Find participants'));
     // Assert
     expect(screen.getByText('Create a new cohort')).toBeTruthy();
   });
