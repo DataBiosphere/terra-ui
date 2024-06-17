@@ -187,6 +187,7 @@ export const AzureComputeModalBase = ({
   // Helper functions -- begin
   const applyChanges = _.flow(
     Utils.withBusyState(setLoading),
+    // If you update this text, update `run-analysis-azure`
     withErrorReportingInModal('Error modifying cloud environment', onError)
   )(async () => {
     sendCloudEnvironmentMetrics();

@@ -108,6 +108,7 @@ export const AnalysisNotificationManager = (props: AnalysisNotificationManagerPr
       prevRuntime?.status !== 'Error' &&
       !_.includes(runtime.id, errorNotifiedRuntimes.get())
     ) {
+      // If you update this text, update `run-analysis-azure`
       notify('error', 'Error Creating Cloud Environment', {
         message: h(RuntimeErrorNotification, { runtime }),
       });
