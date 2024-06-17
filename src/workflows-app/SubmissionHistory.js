@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
-import { div, h, h2 } from 'react-hyperscript-helpers';
+import { div, h, h2, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Clickable, Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
@@ -25,7 +25,7 @@ import {
 } from 'src/workflows-app/utils/submission-utils';
 
 import FilterSubmissionsDropdown from './components/FilterSubmissionsDropdown';
-import { getFilteredRuns } from './utils/method-common';
+import { getFilteredRuns, samIdToAnonymousName } from './utils/method-common';
 
 export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   // State
@@ -172,10 +172,10 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
     return div([makeStatusLine(statusType[stateIconKey[state]].icon, stateContent[state])]);
   };
 
-  const filteredPreviousRunSets = useMemo(
+  const filteredRunSets = useMemo(
     () => {
       if (runSetsData) {
-        return filterOption ? getFilteredRuns(filterOption, runSetsData, errorStates) : runSetsData;
+        return filterOption ? getFilteredRuns(filterOption, runSetsData, userId, errorStates) : runSetsData;
       }
       return [];
     },
@@ -183,10 +183,10 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [filterOption, runSetsData]
   );
-  const sortedPreviousRunSets = useMemo(() => _.orderBy(sort.field, sort.direction, filteredPreviousRunSets), [sort, filteredPreviousRunSets]);
+  const sortedRunSets = useMemo(() => _.orderBy(sort.field, sort.direction, filteredRunSets), [sort, filteredRunSets]);
   const firstPageIndex = (pageNumber - 1) * itemsPerPage;
   const lastPageIndex = firstPageIndex + itemsPerPage;
-  const paginatedPreviousRunSets = sortedPreviousRunSets.slice(firstPageIndex, lastPageIndex);
+  const paginatedRunSets = sortedRunSets.slice(firstPageIndex, lastPageIndex);
 
   const rowHeight = 175;
 
@@ -195,7 +195,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
     : div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } }, [
         h(Fragment, [
           div({ style: { margin: '1rem 2rem' } }, [
-            paginatedPreviousRunSets.length === 0 && runSetsData && runSetsData.length === 0
+            paginatedRunSets.length === 0 && runSetsData && runSetsData.length === 0
               ? h(Fragment, [
                   h2({ style: { marginTop: 0 } }, ['Submission history']),
                   div(
@@ -218,7 +218,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                       h(FilterSubmissionsDropdown, { filterOption, setFilterOption }),
                     ]),
                   ]),
-                  paginatedPreviousRunSets.length === 0 && runSetsData && runSetsData.length !== 0
+                  paginatedRunSets.length === 0 && runSetsData && runSetsData.length !== 0
                     ? div(
                         {
                           style: {
@@ -231,15 +231,23 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                         },
                         ['No workflows match the given filter.']
                       )
-                    : div(['See workflows that were submitted by all collaborators in this workspace.']),
+                    : div({}, [
+                        div(['See workflows that were submitted by all collaborators in this workspace.']),
+                        div(['Your workspace nickname is ', span({ style: { fontWeight: 'bold' } }, [samIdToAnonymousName(userId)])]),
+                        div([
+                          'Other users in this workspace will see your submissions as "Submitted by ',
+                          span({ style: { fontWeight: 'bold' } }, [samIdToAnonymousName(userId)]),
+                          '".',
+                        ]),
+                      ]),
                 ]),
-            paginatedPreviousRunSets.length > 0 &&
+            paginatedRunSets.length > 0 &&
               h(Fragment, [
                 div(
                   {
                     style: {
                       marginTop: '1em',
-                      height: tableHeight({ actualRows: paginatedPreviousRunSets.length, maxRows: 12.5, heightPerRow: rowHeight }),
+                      height: tableHeight({ actualRows: paginatedRunSets.length, maxRows: 12.5, heightPerRow: rowHeight }),
                       minHeight: '10em',
                     },
                   },
@@ -251,7 +259,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                           width,
                           height,
                           sort,
-                          rowCount: paginatedPreviousRunSets.length,
+                          rowCount: paginatedRunSets.length,
                           noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
                           hoverHighlight: true,
                           rowHeight,
@@ -268,7 +276,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                               field: 'actions',
                               headerRenderer: () => h(TextCell, {}, ['Actions']),
                               cellRenderer: ({ rowIndex }) => {
-                                const permissionToAbort = paginatedPreviousRunSets[rowIndex].user_id === userId;
+                                const permissionToAbort = paginatedRunSets[rowIndex].user_id === userId;
                                 return h(
                                   MenuTrigger,
                                   {
@@ -283,26 +291,20 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                           style: { fontSize: 15 },
                                           disabled:
                                             !permissionToAbort ||
-                                            isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) ||
-                                            paginatedPreviousRunSets[rowIndex].state === 'CANCELING' ||
-                                            paginatedPreviousRunSets[rowIndex].state === 'QUEUED',
+                                            isRunSetInTerminalState(paginatedRunSets[rowIndex].state) ||
+                                            paginatedRunSets[rowIndex].state === 'CANCELING' ||
+                                            paginatedRunSets[rowIndex].state === 'QUEUED',
                                           tooltip: Utils.cond(
+                                            [isRunSetInTerminalState(paginatedRunSets[rowIndex].state), () => 'Cannot abort a terminal submission'],
+                                            [paginatedRunSets[rowIndex].state === 'CANCELING', () => 'Cancel already requested on this submission.'],
                                             [
-                                              isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state),
-                                              () => 'Cannot abort a terminal submission',
-                                            ],
-                                            [
-                                              paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
-                                              () => 'Cancel already requested on this submission.',
-                                            ],
-                                            [
-                                              paginatedPreviousRunSets[rowIndex].state === 'QUEUED',
+                                              paginatedRunSets[rowIndex].state === 'QUEUED',
                                               () => 'Cannot abort a submission that is in Queued state.',
                                             ],
                                             [!permissionToAbort, () => 'You must be the original submitter to abort this submission'],
                                             () => ''
                                           ),
-                                          onClick: () => cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id),
+                                          onClick: () => cancelRunSet(paginatedRunSets[rowIndex].run_set_id),
                                         },
                                         ['Abort']
                                       ),
@@ -333,17 +335,23 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                       href: Nav.getLink('workspace-workflows-app-submission-details', {
                                         name: workspace.workspace.name,
                                         namespace,
-                                        submissionId: paginatedPreviousRunSets[rowIndex].run_set_id,
+                                        submissionId: paginatedRunSets[rowIndex].run_set_id,
                                       }),
                                       style: { fontWeight: 'bold' },
                                     },
-                                    [paginatedPreviousRunSets[rowIndex].run_set_name || 'No name']
+                                    [paginatedRunSets[rowIndex].run_set_name || 'No name']
                                   ),
                                   h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
-                                    `Data used: ${paginatedPreviousRunSets[rowIndex].record_type}`,
+                                    `Data used: ${paginatedRunSets[rowIndex].record_type}`,
+                                  ]),
+                                  h(div, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
+                                    'Submitted by ',
+                                    paginatedRunSets[rowIndex].user_id === userId
+                                      ? 'you'
+                                      : span({ style: { fontWeight: 'bold' } }, samIdToAnonymousName(paginatedRunSets[rowIndex].user_id)),
                                   ]),
                                   h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
-                                    `${paginatedPreviousRunSets[rowIndex].run_count} workflows`,
+                                    `${paginatedRunSets[rowIndex].run_count} workflows`,
                                   ]),
                                 ]);
                               },
@@ -353,7 +361,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                               field: 'state',
                               headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                               cellRenderer: ({ rowIndex }) => {
-                                return stateCell(paginatedPreviousRunSets[rowIndex]);
+                                return stateCell(paginatedRunSets[rowIndex]);
                               },
                             },
                             {
@@ -362,7 +370,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                               headerRenderer: () => h(Sortable, { sort, field: 'submission_timestamp', onSort: setSort }, ['Date Submitted']),
                               cellRenderer: ({ rowIndex }) => {
                                 return h(TextCell, { style: { whiteSpace: 'normal' } }, [
-                                  Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp),
+                                  Utils.makeCompleteDate(paginatedRunSets[rowIndex].submission_timestamp),
                                 ]);
                               },
                             },
@@ -371,7 +379,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                               field: 'duration',
                               headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                               cellRenderer: ({ rowIndex }) => {
-                                const row = paginatedPreviousRunSets[rowIndex];
+                                const row = paginatedRunSets[rowIndex];
                                 return h(TextCell, [
                                   Utils.customFormatDuration(
                                     getDuration(row.state, row.submission_timestamp, row.last_modified_timestamp, isRunSetInTerminalState)
@@ -386,7 +394,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                               cellRenderer: ({ rowIndex }) => {
                                 return div({ style: { width: '100%', textAlign: 'left' } }, [
                                   h(TextCell, { style: { whiteSpace: 'normal', fontStyle: 'italic' } }, [
-                                    paginatedPreviousRunSets[rowIndex].run_set_description || 'No Description',
+                                    paginatedRunSets[rowIndex].run_set_description || 'No Description',
                                   ]),
                                 ]);
                               },
@@ -397,11 +405,11 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                   ]
                 ),
               ]),
-            !_.isEmpty(sortedPreviousRunSets) &&
+            !_.isEmpty(sortedRunSets) &&
               div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
                 paginator({
-                  filteredDataLength: sortedPreviousRunSets.length,
-                  unfilteredDataLength: sortedPreviousRunSets.length,
+                  filteredDataLength: sortedRunSets.length,
+                  unfilteredDataLength: sortedRunSets.length,
                   pageNumber,
                   setPageNumber,
                   itemsPerPage,

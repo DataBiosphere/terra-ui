@@ -2,8 +2,11 @@ import { Ajax } from 'src/libs/ajax';
 import { notify } from 'src/libs/notifications';
 import { workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { leftNames, rightNames } from 'src/workflows-app/utils/anonymous-username-pairs';
 import { doesAppProxyUrlExist } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
+
+import { FilterOptions } from '../components/FilterSubmissionsDropdown';
 
 const MethodSource = Object.freeze({
   GitHub: 'GitHub',
@@ -77,16 +80,21 @@ export const getMethodVersionName = (url) => {
   return segmentedUrlPath;
 };
 
-export const getFilteredRuns = (filterOption, runsToFilter, errorStates) => {
+export const getFilteredRuns = (filterOption, runsToFilter, userId, errorStates) => {
   return runsToFilter.filter((run) => {
     switch (filterOption) {
-      case 'Failed':
+      case FilterOptions.Failed:
         if (errorStates.includes(run.state)) {
           return true;
         }
         break;
-      case 'Succeeded':
+      case FilterOptions.Succeeded:
         if (run.state === 'COMPLETE') {
+          return true;
+        }
+        break;
+      case FilterOptions.OwnSubmissions:
+        if (run.user_id === userId) {
           return true;
         }
         break;
@@ -95,4 +103,10 @@ export const getFilteredRuns = (filterOption, runsToFilter, errorStates) => {
     }
     return false;
   });
+};
+
+export const samIdToAnonymousName = (samId) => {
+  const leftIdx = parseInt(samId, 16) % leftNames.length;
+  const rightIdx = parseInt(samId, 16) % rightNames.length;
+  return `${leftNames[leftIdx]}_${rightNames[rightIdx]}`;
 };
