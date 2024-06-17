@@ -139,7 +139,7 @@ export const WorkflowInfoBox: React.FC<WorkflowInfoBoxProps> = (props) => {
           ),
         ]),
       ]),
-      div({}, [
+      div({ 'aria-label': 'Troubleshooting Box' }, [
         h(TroubleshootingBox, {
           name,
           namespace,
