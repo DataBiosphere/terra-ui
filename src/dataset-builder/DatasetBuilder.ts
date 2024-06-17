@@ -4,7 +4,7 @@ import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'rea
 import { div, h, h2, h3, label, li, span, ul } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
+import { ButtonOutline, ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
@@ -314,13 +314,13 @@ export const CohortSelector = ({
   return h(Fragment, [
     h(Selector<Cohort>, {
       headerAction: h(
-        Link,
+        ButtonOutline,
         {
+          style: { borderRadius: 0, fill: 'white', textTransform: 'none' },
           onClick: () => setCreatingCohort(true),
-          'aria-label': 'Create new cohort',
           'aria-haspopup': 'dialog',
         },
-        [icon('plus-circle-filled', { size: 24 })]
+        ['Find participants']
       ),
       number: 1,
       onChange,

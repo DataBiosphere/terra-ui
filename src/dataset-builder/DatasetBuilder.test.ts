@@ -153,16 +153,17 @@ describe('DatasetBuilder', () => {
     // Arrange
     renderCohortSelector();
     // Assert
+    expect(screen.getByText('Find participants')).toBeTruthy();
     expect(screen.getByText('cohort 1')).toBeTruthy();
     expect(screen.getByText('cohort 2')).toBeTruthy();
   });
 
-  it('opens the create cohort model when clicking plus', async () => {
+  it('opens the create cohort model when clicking find participants button', async () => {
     // Arrange
     const user = userEvent.setup();
     renderCohortSelector();
     // Act
-    await user.click(screen.getByLabelText('Create new cohort'));
+    await user.click(screen.getByText('Find participants'));
     // Assert
     expect(screen.getByText('Create a new cohort')).toBeTruthy();
   });
