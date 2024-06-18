@@ -6,18 +6,24 @@ import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { LogTooltips } from 'src/workflows-app/utils/task-log-utils';
 
-export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, workflowId, showLogModal, appId, workflowName }) => {
+type TroubleshootingBoxProps = {
+  name: string;
+  namespace: string;
+  logUri: string;
+  submissionId: string;
+  workflowId: string;
+  showLogModal: (modalTitle: string, logsArray: any, tesLog: string) => void;
+  executionDirectory: string;
+};
+
+export const TroubleshootingBox: React.FC<TroubleshootingBoxProps> = (props) => {
   const makePath = () => {
-    if (!appId || appId == null) {
+    const splitString = 'cbas/';
+    if (!props.executionDirectory || !props.executionDirectory.includes(splitString)) {
       return 'workspace-services/cbas/';
     }
-    if (!workflowName || workflowName == null) {
-      return `workspace-services/cbas/${appId}/`;
-    }
-    if (!workflowId || workflowId == null) {
-      return `workspace-services/cbas/${appId}/${workflowName}/$`;
-    }
-    return `workspace-services/cbas/${appId}/${workflowName}/${workflowId}/`;
+    const path = props.executionDirectory.split(splitString)[1];
+    return `workspace-services/cbas/${path}/`;
   };
 
   return div(
@@ -38,27 +44,37 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
     [
       div({}, [span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Troubleshooting?'])]),
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-        span({}, [span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Workflow ID: ']), span({}, [workflowId])]),
-        span([h(ClipboardButton, { text: workflowId, 'aria-label': 'Copy workflow id' })]),
+        span({}, [
+          span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Workflow ID: ']),
+          span({}, [props.workflowId]),
+        ]),
+        span([h(ClipboardButton, { text: props.workflowId, 'aria-label': 'Copy workflow id' })]),
       ]),
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-        span({}, [span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Submission ID: ']), span({}, [submissionId])]),
-        span([h(ClipboardButton, { text: submissionId, 'aria-label': 'Copy submission id' })]),
+        span({}, [
+          span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Submission ID: ']),
+          span({}, [props.submissionId]),
+        ]),
+        span([h(ClipboardButton, { text: props.submissionId, 'aria-label': 'Copy submission id' })]),
       ]),
       div({ style: { display: 'flex', justifyContent: 'center', paddingTop: '3px' } }, [
         h(
           Link,
           {
             onClick: () => {
-              showLogModal('Workflow Execution Log', [
-                {
-                  logUri,
-                  logTitle: 'Execution Log',
-                  logKey: 'execution_log',
-                  logFilename: 'workflow.log',
-                  logTooltip: LogTooltips.workflowExecution,
-                },
-              ]);
+              props.showLogModal(
+                'Workflow Execution Log',
+                [
+                  {
+                    logUri: props.logUri,
+                    logTitle: 'Execution Log',
+                    logKey: 'execution_log',
+                    logFilename: 'workflow.log',
+                    logTooltip: LogTooltips.workflowExecution,
+                  },
+                ],
+                props.logUri
+              );
             },
           },
           [div({ style: { marginRight: '1.5rem' } }, [icon('fileAlt', { size: 18 }), ' Workflow Execution Log'], {})]
@@ -68,7 +84,7 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
           {
             href: Nav.getLink(
               'workspace-files',
-              { name, namespace },
+              { name: props.name, namespace: props.namespace },
               {
                 path: makePath(),
               }

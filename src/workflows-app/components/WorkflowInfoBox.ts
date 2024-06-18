@@ -26,6 +26,7 @@ type FetchedWorkflowInfoData = {
   wdlScript?: string;
   status: string;
   workflowLog: string;
+  executionDirectory: string;
 };
 
 export const WorkflowInfoBox: React.FC<WorkflowInfoBoxProps> = (props) => {
@@ -39,7 +40,7 @@ export const WorkflowInfoBox: React.FC<WorkflowInfoBoxProps> = (props) => {
         cromwellProxyUrl: cromwellProxyUrlState.state,
         workflowId,
         signal,
-        includeKeys: ['start', 'end', 'submittedFiles', 'status', 'workflowLog'],
+        includeKeys: ['start', 'end', 'submittedFiles', 'status', 'workflowLog', 'workflowRoot'],
         excludeKeys: ['calls'], // NB: Calls can be very large, so it's important for performance to exclude them from the web request (in this component)
       });
       const data: FetchedWorkflowInfoData = {
@@ -48,6 +49,7 @@ export const WorkflowInfoBox: React.FC<WorkflowInfoBoxProps> = (props) => {
         wdlScript: metadata.submittedFiles.workflow,
         status: metadata.status,
         workflowLog: metadata.workflowLog,
+        executionDirectory: metadata.workflowRoot,
       };
       setWorkflowInfo(data);
     },
@@ -57,11 +59,9 @@ export const WorkflowInfoBox: React.FC<WorkflowInfoBoxProps> = (props) => {
   useOnMount(() => {
     const load = async () => {
       try {
-        await Promise.all([loadWorkflowMetadata(workflowId)]);
+        await Promise.resolve(loadWorkflowMetadata(workflowId));
       } catch (e) {
-        // TODO: Fail even more gracefully
-        // eslint-disable-next-line no-console
-        console.log(e);
+        console.error('Failed to fetch Workflow Metadata', e);
       }
     };
     load();
@@ -78,17 +78,6 @@ export const WorkflowInfoBox: React.FC<WorkflowInfoBoxProps> = (props) => {
   const submissionId: string = props.submissionId;
   const workflowId: string = props.workflowId;
 
-  const appIdMatched = 'appIdMatched'; // TODO: This is WRONG and should be something like setAppIdMatched(stdOut && stdOut !== null ? stdOut.match('terra-app-[0-9a-fA-f-]*') : null);
-  const workflowName = 'workflowName'; // TODO: This is WRONG and should be something like:
-  /*
-  const getWorkflowName = () => {
-    return appIdMatched
-      ? stdOut
-          .substring(appIdMatched.index + appIdMatched[0].length + 1)
-          .substring(0, stdOut.substring(appIdMatched.index + appIdMatched[0].length + 1).indexOf('/'))
-      : null;
-  };
-  */
   const [showWDLModal, setShowWDLModal] = useState(false);
 
   return div(
@@ -147,8 +136,7 @@ export const WorkflowInfoBox: React.FC<WorkflowInfoBoxProps> = (props) => {
           submissionId,
           workflowId,
           showLogModal: props.showLogModal,
-          appId: appIdMatched,
-          workflowName,
+          executionDirectory: workflowInfo?.executionDirectory,
         }),
       ]),
       showWDLModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setShowWDLModal(false) }),
