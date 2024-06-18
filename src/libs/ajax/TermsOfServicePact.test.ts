@@ -44,7 +44,7 @@ const termsOfServicePact = new PactV3({
 describe('TermsOfService tests', () => {
   it('should GET details of the currently deployed terms of service version', async () => {
     const expectedResponse = {
-      enforced: boolean(true),
+      enforced: boolean(false),
       // eslint-disable-next-line no-template-curly-in-string
       currentVersion: fromProviderState('${terms_of_service_version}', '01-01-2024'),
       inGracePeriod: boolean(true),
