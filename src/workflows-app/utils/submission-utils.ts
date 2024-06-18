@@ -72,6 +72,7 @@ export type MetadataOptions = {
   includeKeys: string[];
   signal: AbortSignal;
   workflowId: string;
+  expandSubWorkflows: boolean;
 };
 
 const iconSize = 24;
@@ -609,6 +610,8 @@ export const getOutputTableData = (
 };
 
 export const fetchMetadata = async (options: MetadataOptions): Promise<WorkflowMetadata> =>
-  Ajax(options.signal)
-    .CromwellApp.workflows(options.workflowId)
-    .metadata(options.cromwellProxyUrl, { includeKey: options.includeKeys, excludeKey: options.excludeKeys });
+  Ajax(options.signal).CromwellApp.workflows(options.workflowId).metadata(options.cromwellProxyUrl, {
+    includeKey: options.includeKeys,
+    excludeKey: options.excludeKeys,
+    expandSubWorkflows: options.expandSubWorkflows,
+  });

@@ -102,29 +102,31 @@ export const BaseRunDetails = (
       'taskStartTime',
       'taskEndTime',
       'vmCostUsd',
+      'workflowName',
     ],
     []
   );
   const excludeKey = useMemo(() => [], []);
+  const oneKey = useMemo(() => ['calls', 'subWorkflowId', 'taskStartTime', 'taskEndTime', 'vmCostUsd'], []);
 
   const loadForSubworkflows = useCallback(
     async (workflowId) => {
       try {
         const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
-
-        const metadata = await fetchMetadata({
+        const meta = await fetchMetadata({
           cromwellProxyUrl: cromwellProxyUrlState.state,
           workflowId,
           signal,
-          includeKeys: includeKey,
+          includeKeys: oneKey,
+          expandSubWorkflows: true,
         });
-
-        return metadata;
-      } catch (e) {
-        // console.log(e);
+        // console.log(meta);
+        return meta;
+      } catch (error) {
+        notify('error', 'Error loading run details', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [includeKey, signal, workspaceId]
+    [oneKey, signal, workspaceId]
   );
 
   const loadWorkflow = useCallback(
@@ -139,6 +141,7 @@ export const BaseRunDetails = (
             signal,
             includeKeys: includeKey,
             excludeKeys: excludeKey,
+            expandSubWorkflows: false,
           });
           if (metadata?.status?.toLocaleLowerCase() === 'failed') {
             try {
@@ -154,9 +157,8 @@ export const BaseRunDetails = (
           const stdOut = firstCallInfo.stdout;
           setStdOut(stdOut);
           setAppIdMatched(stdOut && stdOut !== null ? stdOut.match('terra-app-[0-9a-fA-f-]*') : null);
-          const getCost = await calculateTotalCost(metadataCalls, loadForSubworkflows);
-          // console.log(getCost);
           if (_.isNil(updateWorkflowPath)) {
+            const getCost = await calculateTotalCost(metadataCalls, loadForSubworkflows);
             setWorkflow(metadata);
             setCost(getCost);
           }
@@ -356,6 +358,7 @@ export const BaseRunDetails = (
                 namespace,
                 submissionId,
                 isAzure: true,
+                loadForSubworkflows,
               }),
             ]
           ),

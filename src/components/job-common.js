@@ -1,3 +1,4 @@
+import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { div, h, h3, h4, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
@@ -168,38 +169,63 @@ export const getTaskCost = ({ vmCostUsd, taskStartTime, taskEndTime }) => {
   const startDateTime = Date.parse(taskStartTime);
 
   const elapsedTime = currentEndTime - startDateTime;
-  return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(8));
+  return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(5));
 };
 
 export const renderTaskCostElement = (cost) => {
   // if (cost === 0.0) {
   //   return '< $0.01';
   // }
-  return `$${cost}`;
+  return `$${cost.toFixed(5)}`;
+};
+
+export const calculateTotalSubworkflowCost = async (calls, loadForSubworkflows) => {
+  let total = 0;
+
+  // console.log(calls);
+  const subWorkflows = await loadForSubworkflows(calls.subWorkflowId);
+  const subWorkflowCalls = subWorkflows?.calls;
+  // console.log(calls);
+  for (const call of Object.values(subWorkflowCalls)) {
+    for (const c of call) {
+      const { taskStartTime, taskEndTime, vmCostUsd, subWorkflowId } = c;
+      if (subWorkflowId) {
+        // const subWorkflows = await loadForSubworkflows(subWorkflowId);
+        // console.log(`calling calculateTotalSubworkflowCost for subWorkflowId ${subWorkflowId}`);
+        total += await calculateTotalSubworkflowCost(c, loadForSubworkflows);
+      }
+      total += costComprehension({ taskStartTime, taskEndTime, vmCostUsd });
+    }
+  }
+  return total;
 };
 
 export const calculateTotalCost = async (callObjects, loadForSubworkflows) => {
   let total = 0;
+  let callObs = callObjects;
   // console.log(callObjects);
-  for (const call of Object.values(callObjects)) {
+  if (!_.isNil || callObjects?.subWorkflowId) {
+    const subWorkflows = await loadForSubworkflows(callObjects.subWorkflowId);
+    // const subCalls = subWorkflows.calls;
+    // console.log('hi');
+    callObs = subWorkflows.calls;
+  }
+  // console.log(callObs);
+  for (const call of Object.values(callObs)) {
     for (const s of call) {
+      // console.log(call);
+      // console.log(s);
       const { taskStartTime, taskEndTime, vmCostUsd, subWorkflowId } = s;
       if (subWorkflowId) {
         const subWorkflows = await loadForSubworkflows(subWorkflowId);
+        // console.log(subWorkflows);
         const subworkflowCalls = subWorkflows?.calls;
-        total += await calculateTotalCost(subworkflowCalls, loadForSubworkflows);
         // console.log(subworkflowCalls);
+        total += await calculateTotalCost(subworkflowCalls, loadForSubworkflows);
       }
-      if (!taskStartTime) {
-        total += 0;
-      } else if (taskEndTime) {
-        total += getTaskCost({ vmCostUsd, taskStartTime, taskEndTime });
-      } else {
-        total += getTaskCost({ vmCostUsd, taskStartTime });
-      }
+      total += costComprehension({ taskStartTime, taskEndTime, vmCostUsd });
     }
   }
-  // console.log(total);
   return total;
 };
 
@@ -207,4 +233,16 @@ export const renderInProgressElement = ({ workflow }) => {
   if (workflow?.status === 'Running') {
     return span({ style: { fontStyle: 'italic' } }, ['In progress - ']);
   }
+};
+
+const costComprehension = ({ taskStartTime, taskEndTime, vmCostUsd }) => {
+  let total = 0;
+  if (!taskStartTime) {
+    total += 0;
+  } else if (taskEndTime) {
+    total += getTaskCost({ vmCostUsd, taskStartTime, taskEndTime });
+  } else {
+    total += getTaskCost({ vmCostUsd, taskStartTime });
+  }
+  return total;
 };

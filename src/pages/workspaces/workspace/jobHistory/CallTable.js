@@ -4,8 +4,17 @@ import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Link, Select } from 'src/components/common';
-import { icon } from 'src/components/icons';
-import { getTaskCost, makeCromwellStatusLine, makeStatusLine, renderTaskCostElement, statusType } from 'src/components/job-common';
+import { centeredSpinner, icon } from 'src/components/icons';
+import {
+  calculateTotalCost,
+  // calculateTotalSubworkflowCost,
+  getTaskCost,
+  makeCromwellStatusLine,
+  makeStatusLine,
+  // renderInProgressElement,
+  renderTaskCostElement,
+  statusType,
+} from 'src/components/job-common';
 import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
@@ -99,8 +108,8 @@ const doesTaskHaveCostData = (task) => {
   return !!(task?.taskStartTime && task?.vmCostUsd);
 };
 
-const noCostData = (task, subWorkflowId) => {
-  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !_.isEmpty(subWorkflowId) || !task.startTime) {
+const noCostData = (task) => {
+  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !task.startTime) {
     return true;
   }
 };
@@ -140,6 +149,7 @@ const CallTable = ({
   workflowId,
   failedTasks,
   isAzure,
+  loadForSubworkflows,
 }) => {
   const [failuresModalParams, setFailuresModalParams] = useState();
   const [wizardSelection, setWizardSelection] = useState();
@@ -152,6 +162,7 @@ const CallTable = ({
   const filteredCallObjects = useMemo(() => {
     return filterCallObjectsFn(searchText, sort, statusFilter)(tableData);
   }, [searchText, sort, statusFilter, tableData]);
+  const [cost, setCost] = useState(0);
 
   useEffect(() => {
     if (defaultFailedFilter) {
@@ -374,6 +385,16 @@ const CallTable = ({
                       ]),
                     cellRenderer: ({ rowIndex }) => {
                       const { vmCostUsd, taskStartTime, taskEndTime, subWorkflowId } = filteredCallObjects[rowIndex];
+                      if (subWorkflowId) {
+                        // console.log(filteredCallObjects[rowIndex]);
+                        calculateTotalCost(filteredCallObjects[rowIndex], loadForSubworkflows).then((s) => {
+                          setCost(s.toFixed(5));
+                        });
+                        if (!cost) {
+                          return div({}, [centeredSpinner()]);
+                        }
+                        return div({}, [`$${cost}`]);
+                      }
                       if (doesTaskHaveCostData(filteredCallObjects[rowIndex])) {
                         if (taskEndTime) {
                           const cost = getTaskCost({ vmCostUsd, taskStartTime, taskEndTime });
@@ -382,7 +403,7 @@ const CallTable = ({
                         const cost = getTaskCost({ vmCostUsd, taskStartTime });
                         return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
                       }
-                      if (noCostData(filteredCallObjects[rowIndex], subWorkflowId)) {
+                      if (noCostData(filteredCallObjects[rowIndex])) {
                         return div({}, ['-']);
                       }
                       return div({ style: { fontStyle: 'italic' } }, ['Fetching cost information']);
