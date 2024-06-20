@@ -1,12 +1,11 @@
-import { Clickable, Modal, Spinner, useLoadedData } from '@terra-ui-packages/components';
+import { Modal, Spinner, useLoadedData } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
 import { div, h, h2, h3, label, li, span, ul } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonOutline, ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
+import { ButtonOutline, ButtonPrimary, LabeledCheckbox, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
@@ -17,6 +16,7 @@ import {
   createSnapshotBuilderCountRequest,
   DatasetBuilderValue,
   DomainConceptSet,
+  domainOptionToConceptSet,
   formatCount,
   PrepackagedConceptSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
@@ -37,15 +37,7 @@ import { useOnMount } from 'src/libs/react-utils';
 import { validate } from 'validate.js';
 
 import { CohortEditor } from './CohortEditor';
-import { ConceptSetCreator, toConcept } from './ConceptSetCreator';
-import {
-  AnyDatasetBuilderState,
-  cohortEditorState,
-  conceptSetCreatorState,
-  homepageState,
-  newCohort,
-  Updater,
-} from './dataset-builder-types';
+import { AnyDatasetBuilderState, cohortEditorState, homepageState, newCohort, Updater } from './dataset-builder-types';
 import { BuilderPageHeader, DatasetBuilderHeader } from './DatasetBuilderHeader';
 import { DomainCriteriaSelector } from './DomainCriteriaSelector';
 
@@ -129,7 +121,7 @@ interface SelectorProps<T extends DatasetBuilderType> {
   objectSets: HeaderAndValues<T>[];
   selectedObjectSets: HeaderAndValues<T>[];
   onChange: (newDatasetBuilderObjectSets: HeaderAndValues<T>[]) => void;
-  headerAction: any;
+  headerAction?: any;
   placeholder?: any;
   style?: React.CSSProperties;
 }
@@ -370,9 +362,7 @@ export const ConceptSetSelector = ({
   conceptSets,
   prepackagedConceptSets,
   selectedConceptSets,
-  updateConceptSets,
   onChange,
-  onStateChange,
 }: {
   conceptSets: DomainConceptSet[];
   prepackagedConceptSets?: PrepackagedConceptSet[];
@@ -382,31 +372,11 @@ export const ConceptSetSelector = ({
   onStateChange: OnStateChangeHandler;
 }) => {
   return h(Selector<ConceptSet>, {
-    headerAction: h(
-      Link,
-      {
-        onClick: () => onStateChange(conceptSetCreatorState.new(_.map(toConcept, conceptSets))),
-        'aria-label': 'Create new concept set',
-      },
-      [icon('plus-circle-filled', { size: 24 })]
-    ),
     number: 2,
     onChange,
     objectSets: [
-      {
-        header: 'Concept sets',
-        values: conceptSets,
-        makeIcon: (value, header) =>
-          h(
-            Clickable,
-            {
-              'aria-label': `Delete ${header}/${value.name}`,
-              onClick: () => updateConceptSets(_.without([value])),
-            },
-            [icon('trash-circle-filled', { size: 20 })]
-          ),
-      },
-      { header: 'Prepackaged concept sets', values: prepackagedConceptSets ?? [] },
+      { header: '', values: conceptSets },
+      { header: '', values: prepackagedConceptSets ?? [] },
     ],
     selectedObjectSets: selectedConceptSets,
     header: 'Select data about participants',
@@ -580,7 +550,7 @@ export const DatasetBuilderContents = ({
           }),
           h(ConceptSetSelector, {
             // all domain concept sets
-            conceptSets,
+            conceptSets: _.map(domainOptionToConceptSet, snapshotBuilderSettings.domainOptions),
             // all prepackaged concept sets
             prepackagedConceptSets: snapshotBuilderSettings.datasetConceptSets,
             selectedConceptSets,
@@ -735,14 +705,6 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   onStateChange,
                   snapshotId,
                   getNextCriteriaIndex,
-                });
-              case 'concept-set-creator':
-                return h(ConceptSetCreator, {
-                  onStateChange,
-                  snapshotId,
-                  snapshotBuilderSettings: snapshotBuilderSettings.state,
-                  conceptSetUpdater: setConceptSets,
-                  cart: datasetBuilderState.cart,
                 });
               default:
                 return datasetBuilderState;

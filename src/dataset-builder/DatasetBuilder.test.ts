@@ -303,19 +303,6 @@ describe('DatasetBuilder', () => {
     expect(await screen.findByText('Access request created in Terra')).toBeTruthy();
   });
 
-  it('shows the concept set creator', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const onStateChange = jest.fn();
-    showDatasetBuilderContents({
-      onStateChange,
-    });
-    // Act
-    await user.click(await screen.findByLabelText('Create new concept set'));
-    // Assert
-    expect(onStateChange).toHaveBeenCalledWith({ mode: 'concept-set-creator', cart: [] });
-  });
-
   it('enables editing cohorts', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -343,20 +330,5 @@ describe('DatasetBuilder', () => {
     await user.click(await screen.findByLabelText('Delete cohort'));
     // Assert
     expect(updateCohorts.mock.calls[0][0](cohorts)).toStrictEqual(_.tail(cohorts));
-  });
-
-  it('enables deleting concept sets', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const updateConceptSets = jest.fn();
-    const conceptSets = [
-      { name: 'concept set 1', concept, featureValueGroupName: 'Condition' },
-      { name: 'concept set 2', concept, featureValueGroupName: 'Procedure' },
-    ];
-    showDatasetBuilderContents({ updateConceptSets, conceptSets });
-    // Act
-    await user.click(await screen.findByLabelText(`Delete Concept sets/${conceptSets[0].name}`));
-    // Assert
-    expect(updateConceptSets.mock.calls[0][0](conceptSets)).toStrictEqual(_.tail(conceptSets));
   });
 });

@@ -89,6 +89,14 @@ export type SnapshotAccessRequest = {
   datasetRequest: SnapshotBuilderRequest;
 };
 
+export const domainOptionToConceptSet = (domainOption: SnapshotBuilderDomainOption): DomainConceptSet => {
+  return {
+    name: domainOption.name,
+    concept: domainOption.root,
+    featureValueGroupName: domainOption.name,
+  };
+};
+
 export const convertValueSet = (valueSet: ValueSet): SnapshotBuilderFeatureValueGroup => {
   return {
     name: valueSet.domain,
