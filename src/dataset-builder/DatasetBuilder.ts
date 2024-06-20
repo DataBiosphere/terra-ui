@@ -351,7 +351,7 @@ export const CohortSelector = ({
       subheader: 'Which participants to include',
       placeholder: div([
         h(SelectorSubHeader, ['No cohorts yet']),
-        div(["Create a cohort by clicking on the '+' icon"]),
+        div(["Create a cohort by clicking on the 'Find Participants' icon"]),
       ]),
     }),
     creatingCohort && h(CreateCohortModal, { onDismiss: () => setCreatingCohort(false), onStateChange, cohorts }),
