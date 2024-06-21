@@ -1,7 +1,7 @@
 import { Mutate } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { isGcpContext } from 'src/analysis/utils/runtime-utils';
-import { AbortOption } from 'src/libs/ajax/data-provider-common';
+import { AbortOption } from 'src/libs/ajax/data-client-common';
 import * as Utils from 'src/libs/utils';
 
 import { AzureDiskType, Disks, GoogleDiskType, RawGetDiskItem, RawListDiskItem } from '../Disks';
