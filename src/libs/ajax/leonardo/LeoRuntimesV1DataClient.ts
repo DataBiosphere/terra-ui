@@ -2,9 +2,9 @@ import { AbortOption, FetchFn } from 'src/libs/ajax/data-client-common';
 import { RawGetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 
 export interface LeoRuntimesV1DataClient {
-  details: (project: string, name: string, options?: AbortOption) => Promise<RawGetRuntimeItem>;
-  start: (project: string, name: string, options?: AbortOption) => Promise<void>;
-  stop: (project: string, name: string, options?: AbortOption) => Promise<void>;
+  details: (googleProject: string, name: string, options?: AbortOption) => Promise<RawGetRuntimeItem>;
+  start: (googleProject: string, name: string, options?: AbortOption) => Promise<void>;
+  stop: (googleProject: string, name: string, options?: AbortOption) => Promise<void>;
 }
 
 export interface LeoRuntimesV1DataClientDeps {
@@ -21,20 +21,20 @@ export const makeLeoRuntimesV1DataClient = (deps: LeoRuntimesV1DataClientDeps): 
   const { fetchAuthedLeo } = deps;
 
   return {
-    details: async (project: string, name: string, options: AbortOption = {}): Promise<RawGetRuntimeItem> => {
+    details: async (googleProject: string, name: string, options: AbortOption = {}): Promise<RawGetRuntimeItem> => {
       const { signal } = options;
-      const res: Response = await fetchAuthedLeo(runtimesPath(project, name), { signal });
+      const res: Response = await fetchAuthedLeo(runtimesPath(googleProject, name), { signal });
       const getItem: RawGetRuntimeItem = await res.json();
       return getItem;
     },
-    start: async (project: string, name: string, options: AbortOption = {}): Promise<void> => {
+    start: async (googleProject: string, name: string, options: AbortOption = {}): Promise<void> => {
       const { signal } = options;
-      await fetchAuthedLeo(`${runtimesPath(project, name)}/start`, { signal, method: 'POST' });
+      await fetchAuthedLeo(`${runtimesPath(googleProject, name)}/start`, { signal, method: 'POST' });
     },
 
-    stop: async (project: string, name: string, options: AbortOption = {}): Promise<void> => {
+    stop: async (googleProject: string, name: string, options: AbortOption = {}): Promise<void> => {
       const { signal } = options;
-      await fetchAuthedLeo(`${runtimesPath(project, name)}/stop`, { signal, method: 'POST' });
+      await fetchAuthedLeo(`${runtimesPath(googleProject, name)}/stop`, { signal, method: 'POST' });
     },
   };
 };
