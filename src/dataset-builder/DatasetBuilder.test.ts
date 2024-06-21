@@ -39,8 +39,6 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   };
 });
 
-const concept = { id: 100, name: 'concept', code: '0', count: 10, hasChildren: false, children: [] };
-
 describe('DatasetBuilder', () => {
   const testSettings = testSnapshotBuilderSettings();
   type DatasetBuilderContentsPropsOverrides = {
@@ -97,10 +95,9 @@ describe('DatasetBuilder', () => {
   const initializeValidDatasetRequest = async (user) => {
     showDatasetBuilderContents({
       cohorts: [newCohort('cohort 1')],
-      conceptSets: [{ name: 'concept set 1', concept, featureValueGroupName: 'Condition' }],
     });
     await user.click(screen.getByLabelText('cohort 1'));
-    await user.click(screen.getByLabelText('concept set 1'));
+    await user.click(screen.getByLabelText('Condition'));
   };
 
   beforeEach(() => {
@@ -206,20 +203,17 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     showDatasetBuilderContents({
       cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
-      conceptSets: [
-        { name: 'concept set 1', concept, featureValueGroupName: 'Condition' },
-        { name: 'concept set 2', concept, featureValueGroupName: 'Procedure' },
-      ],
     });
     // Act
     await user.click(screen.getByLabelText('cohort 1'));
-    await user.click(screen.getByLabelText('concept set 1'));
+    await user.click(screen.getByLabelText('Condition'));
 
     // Assert
     expect(screen.getByLabelText('cohort 1')).toBeChecked();
     expect(screen.getByLabelText('cohort 2')).not.toBeChecked();
-    expect(screen.getByLabelText('concept set 1')).toBeChecked();
-    expect(screen.getByLabelText('concept set 2')).not.toBeChecked();
+    expect(screen.getByLabelText('Condition')).toBeChecked();
+    expect(screen.getByLabelText('Procedure')).not.toBeChecked();
+    expect(screen.getByLabelText('Observation')).not.toBeChecked();
   });
 
   it('shows the home page by default', async () => {
