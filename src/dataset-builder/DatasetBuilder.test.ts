@@ -2,11 +2,12 @@ import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Cohort, DomainConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
+import { Cohort, convertDomainOptionToConceptSet, DomainConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   DataRepoContract,
   SnapshotBuilderDatasetConceptSet,
+  SnapshotBuilderDomainOption,
   SnapshotBuilderSettings,
 } from 'src/libs/ajax/DataRepo';
 import * as Nav from 'src/libs/nav';
@@ -121,10 +122,7 @@ describe('DatasetBuilder', () => {
   const renderConceptSetSelector = () =>
     render(
       h(ConceptSetSelector, {
-        conceptSets: [
-          { name: 'concept set 1', concept, featureValueGroupName: 'a' },
-          { name: 'concept set 2', concept, featureValueGroupName: 'b' },
-        ],
+        conceptSets: _.map(convertDomainOptionToConceptSet, testSettings.domainOptions),
         prepackagedConceptSets: testSettings.datasetConceptSets,
         selectedConceptSets: [],
         updateConceptSets: jest.fn(),
@@ -182,17 +180,16 @@ describe('DatasetBuilder', () => {
     expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(newCohort(cohortName)));
   });
 
-  it('renders concept sets and prepackaged concept sets', () => {
+  it('renders concept sets', () => {
     renderConceptSetSelector();
-
-    expect(screen.getByText('concept set 1')).toBeTruthy();
-    expect(screen.getByText('concept set 2')).toBeTruthy();
+    _.flow(
+      _.map((domainOption: SnapshotBuilderDomainOption) => domainOption.name),
+      _.forEach((domainConceptSetName: string) => expect(screen.getByText(domainConceptSetName)).toBeTruthy())
+    )(testSettings.domainOptions);
     _.flow(
       _.map((prepackagedConceptSet: SnapshotBuilderDatasetConceptSet) => prepackagedConceptSet.name),
       _.forEach((prepackagedConceptSetName: string) => expect(screen.getByText(prepackagedConceptSetName)).toBeTruthy())
     )(testSettings.datasetConceptSets);
-    expect(screen.getByText('Concept sets')).toBeTruthy();
-    expect(screen.getByText('Prepackaged concept sets')).toBeTruthy();
   });
 
   it('renders dataset builder contents with cohorts and concept sets', () => {

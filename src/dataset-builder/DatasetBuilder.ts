@@ -12,11 +12,11 @@ import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   Cohort,
+  convertDomainOptionToConceptSet,
   createSnapshotAccessRequest,
   createSnapshotBuilderCountRequest,
   DatasetBuilderValue,
   DomainConceptSet,
-  domainOptionToConceptSet,
   formatCount,
   PrepackagedConceptSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
@@ -351,7 +351,7 @@ export const CohortSelector = ({
       subheader: 'Which participants to include',
       placeholder: div([
         h(SelectorSubHeader, ['No cohorts yet']),
-        div(["Create a cohort by clicking on the 'Find Participants' icon"]),
+        div(["Create a cohort by clicking on the 'Find Participants' button"]),
       ]),
     }),
     creatingCohort && h(CreateCohortModal, { onDismiss: () => setCreatingCohort(false), onStateChange, cohorts }),
@@ -550,7 +550,7 @@ export const DatasetBuilderContents = ({
           }),
           h(ConceptSetSelector, {
             // all domain concept sets
-            conceptSets: _.map(domainOptionToConceptSet, snapshotBuilderSettings.domainOptions),
+            conceptSets: _.map(convertDomainOptionToConceptSet, snapshotBuilderSettings.domainOptions),
             // all prepackaged concept sets
             prepackagedConceptSets: snapshotBuilderSettings.datasetConceptSets,
             selectedConceptSets,
